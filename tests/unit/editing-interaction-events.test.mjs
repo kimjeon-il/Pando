@@ -25,52 +25,52 @@ test('GIS import forwards the complete coast reconciliation mapping', async () =
   assert.equal(calls.length, 1);
 });
 
-test('insert mode supports repeated single-tap insertion, selected deletion and draft undo', () => {
+test('insert mode supports repeated single-tap insertion, selected deletion and draft undo', async () => {
   let enabled = true;
   const editing = createEditingDomain({ draftServices: {
     getToolConfig: () => enabled ? { shape: 'line' } : null,
     projectCoordinate: value => value, screenToCoordinate: value => value,
   } });
-  assert.equal(editing.setDraftVertexInsertMode(true), false);
-  editing.replaceDraftCoordinates([[0, 0], [10, 0]], { inputPhase: 'refine' });
-  assert.equal(editing.deleteSelectedDraftPoint(), false);
-  assert.equal(editing.setDraftVertexInsertMode(true), true);
+  assert.equal(await editing.setDraftVertexInsertMode(true), false);
+  await editing.replaceDraftCoordinates([[0, 0], [10, 0]], { inputPhase: 'refine' });
+  assert.equal(await editing.deleteSelectedDraftPoint(), false);
+  assert.equal(await editing.setDraftVertexInsertMode(true), true);
   assert.equal(editing.createRenderPacket().draft.vertexInsertMode, true);
-  assert.equal(editing.handleInteraction(eventFor(editing, 'draft-segment-insert', { segmentIndex: 0, screenPoint: [3, 1] })), true);
-  assert.equal(editing.handleInteraction(eventFor(editing, 'draft-segment-insert', { segmentIndex: 1, screenPoint: [7, -1] })), true);
+  assert.equal(await editing.handleInteraction(eventFor(editing, 'draft-segment-insert', { segmentIndex: 0, screenPoint: [3, 1] })), true);
+  assert.equal(await editing.handleInteraction(eventFor(editing, 'draft-segment-insert', { segmentIndex: 1, screenPoint: [7, -1] })), true);
   assert.deepEqual(editing.snapshot().draft.coords, [[0, 0], [3, 0], [7, 0], [10, 0]]);
   assert.equal(editing.snapshot().draft.vertexInsertMode, true);
-  editing.deleteSelectedDraftPoint();
+  await editing.deleteSelectedDraftPoint();
   assert.deepEqual(editing.snapshot().draft.coords, [[0, 0], [3, 0], [10, 0]]);
-  editing.performDraftUndo();
+  await editing.performDraftUndo();
   assert.equal(editing.snapshot().draft.coords.length, 4);
-  editing.setDraftVertexInsertMode(false);
-  assert.equal(editing.handleInteraction(eventFor(editing, 'draft-segment-insert', { segmentIndex: 0, screenPoint: [1, 0] })), false);
-  editing.setDraftVertexInsertMode(true);
-  editing.redrawDraft();
+  await editing.setDraftVertexInsertMode(false);
+  assert.equal(await editing.handleInteraction(eventFor(editing, 'draft-segment-insert', { segmentIndex: 0, screenPoint: [1, 0] })), false);
+  await editing.setDraftVertexInsertMode(true);
+  await editing.redrawDraft();
   assert.equal(editing.snapshot().draft.vertexInsertMode, false);
-  editing.replaceDraftCoordinates([[0, 0], [10, 0]]);
+  await editing.replaceDraftCoordinates([[0, 0], [10, 0]]);
   enabled = false; // A completed preview disables draft input, including stale handles.
-  editing.refreshEditingPresentation('preview-ready');
+  await editing.refreshEditingPresentation('preview-ready');
   assert.equal(editing.createRenderPacket().draft.active, false);
-  assert.equal(editing.deleteSelectedDraftPoint(), false);
-  assert.equal(editing.handleInteraction(eventFor(editing, 'draft-vertex-select', { vertexIndex: 0 })), false);
-  assert.equal(editing.handleInteraction(eventFor(editing, 'draft-vertex-drag-start', { vertexIndex: 0 })), false);
+  assert.equal(await editing.deleteSelectedDraftPoint(), false);
+  assert.equal(await editing.handleInteraction(eventFor(editing, 'draft-vertex-select', { vertexIndex: 0 })), false);
+  assert.equal(await editing.handleInteraction(eventFor(editing, 'draft-vertex-drag-start', { vertexIndex: 0 })), false);
   enabled = true;
-  editing.refreshEditingPresentation('preview-discard');
+  await editing.refreshEditingPresentation('preview-discard');
   assert.equal(editing.createRenderPacket().draft.active, true);
 });
 
-test('insertion mode includes the closing polygon segment and resets with the draft', () => {
+test('insertion mode includes the closing polygon segment and resets with the draft', async () => {
   const editing = createEditingDomain({ draftServices: {
     getToolConfig: () => ({ shape: 'polygon' }),
     projectCoordinate: value => value, screenToCoordinate: value => value,
   } });
-  editing.replaceDraftCoordinates([[0, 0], [10, 0], [10, 10]]);
-  editing.setDraftVertexInsertMode(true);
-  editing.handleInteraction(eventFor(editing, 'draft-segment-insert', { segmentIndex: 2, screenPoint: [5, 5] }));
+  await editing.replaceDraftCoordinates([[0, 0], [10, 0], [10, 10]]);
+  await editing.setDraftVertexInsertMode(true);
+  await editing.handleInteraction(eventFor(editing, 'draft-segment-insert', { segmentIndex: 2, screenPoint: [5, 5] }));
   assert.deepEqual(editing.snapshot().draft.coords.at(-1), [5, 5]);
-  editing.startDraft({ coords: [] });
+  await editing.startDraft({ coords: [] });
   assert.equal(editing.snapshot().draft.vertexInsertMode, false);
 });
 
@@ -84,7 +84,7 @@ const eventFor = (editing, type, detail = {}) => {
   };
 };
 
-test('stale click interactions are rejected without changing packet revision', () => {
+test('stale click interactions are rejected without changing packet revision', async () => {
   const editing = createEditingDomain({
     draftServices: {
       getToolConfig: () => ({ shape: 'line', profile: 'freehand' }),
@@ -92,9 +92,9 @@ test('stale click interactions are rejected without changing packet revision', (
       screenToCoordinate: value => value,
     },
   });
-  editing.replaceDraftCoordinates([[0, 0], [10, 0]]);
+  await editing.replaceDraftCoordinates([[0, 0], [10, 0]]);
   const packet = editing.createRenderPacket();
-  assert.equal(editing.handleInteraction({
+  assert.equal(await editing.handleInteraction({
     type: 'draft-vertex-select',
     projectGeneration: packet.projectGeneration + 1,
     packetRevision: packet.revision,
@@ -103,7 +103,7 @@ test('stale click interactions are rejected without changing packet revision', (
   assert.strictEqual(editing.createRenderPacket(), packet);
 });
 
-test('drag move accepts a newer packet revision only for the active gesture id', () => {
+test('drag move accepts a newer packet revision only for the active gesture id', async () => {
   const frames = [];
   const editing = createEditingDomain({
     draftServices: {
@@ -114,18 +114,18 @@ test('drag move accepts a newer packet revision only for the active gesture id',
       cancelFrame: () => {},
     },
   });
-  editing.replaceDraftCoordinates([[0, 0], [10, 0]]);
-  assert.equal(editing.handleInteraction(eventFor(editing, 'draft-vertex-drag-start', {
+  await editing.replaceDraftCoordinates([[0, 0], [10, 0]]);
+  assert.equal(await editing.handleInteraction(eventFor(editing, 'draft-vertex-drag-start', {
     gestureId: 'gesture-1', vertexIndex: 0, screenPoint: [0, 0],
   })), true);
   const newerRevision = editing.createRenderPacket().revision;
-  assert.equal(editing.handleInteraction({
+  assert.equal(await editing.handleInteraction({
     type: 'draft-vertex-drag-move', gestureId: 'gesture-1', projectGeneration: 0,
     packetRevision: newerRevision - 1, vertexIndex: 0, screenPoint: [4, 5],
   }), true);
   frames.shift()();
   assert.deepEqual(editing.snapshot().draft.coords[0], [4, 5]);
-  assert.equal(editing.handleInteraction({
+  assert.equal(await editing.handleInteraction({
     type: 'draft-vertex-drag-move', gestureId: 'other', projectGeneration: 0,
     packetRevision: newerRevision, vertexIndex: 0, screenPoint: [8, 9],
   }), true, 'move is queued before gesture validation');
@@ -141,12 +141,12 @@ test('project reset cancels an active gesture and rejects its stale end event', 
       projectCoordinate: value => value,
     },
   });
-  editing.replaceDraftCoordinates([[0, 0]]);
+  await editing.replaceDraftCoordinates([[0, 0]]);
   const started = eventFor(editing, 'draft-vertex-drag-start', {
     gestureId: 'old-project', vertexIndex: 0, screenPoint: [0, 0],
   });
-  assert.equal(editing.handleInteraction(started), true);
-  editing.resetProject(2);
+  assert.equal(await editing.handleInteraction(started), true);
+  await editing.resetProject(2);
   assert.equal(await editing.handleInteraction({
     ...started,
     type: 'draft-vertex-drag-end',
@@ -157,7 +157,7 @@ test('project reset cancels an active gesture and rejects its stale end event', 
 });
 
 
-test('rapid candidate clicks retain calculation identity across presentation revisions', () => {
+test('rapid candidate clicks retain calculation identity across presentation revisions', async () => {
   let calculationIds = new Set(['cut-1:a', 'cut-1:b']);
   const selected = new Set();
   const editing = createEditingDomain({ geometryEditing: {
@@ -170,12 +170,12 @@ test('rapid candidate clicks retain calculation identity across presentation rev
   const packet = editing.createRenderPacket();
   const click = candidateId => ({ type: 'territory-candidate-select', candidateId,
     projectGeneration: packet.projectGeneration, packetRevision: packet.revision });
-  assert.equal(editing.handleInteraction(click('cut-1:a')), true);
-  assert.equal(editing.handleInteraction(click('cut-1:b')), true);
+  assert.equal(await editing.handleInteraction(click('cut-1:a')), true);
+  assert.equal(await editing.handleInteraction(click('cut-1:b')), true);
   assert.deepEqual([...selected], ['cut-1:a', 'cut-1:b']);
   calculationIds = new Set(['cut-2:a']);
-  assert.equal(editing.handleInteraction(click('cut-1:a')), false);
-  assert.equal(editing.handleInteraction({ ...click('cut-2:a'), projectGeneration: packet.projectGeneration + 1 }), false);
+  assert.equal(await editing.handleInteraction(click('cut-1:a')), false);
+  assert.equal(await editing.handleInteraction({ ...click('cut-2:a'), projectGeneration: packet.projectGeneration + 1 }), false);
 });
 
 test('a project switch during committer loading rejects the import before publication', async () => {

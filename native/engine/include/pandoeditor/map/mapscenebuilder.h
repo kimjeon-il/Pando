@@ -18,6 +18,10 @@ public:
     std::uint64_t unchangedCount() const {return unchanged_;}
     std::uint64_t deltaUpdateCount() const {return deltaUpdates_;}
     std::uint64_t presentationUpdateCount() const {return presentationUpdates_;}
+    // Transfer an already prepared immutable scene with its matching cache.
+    // The operation owner must reject stale project/month/mode results first.
+    void adoptPreparation(const pandoeditor::ProjectSnapshot&,const MapViewState&,
+                          const std::shared_ptr<const RenderScene>&);
     std::shared_ptr<const RenderScene> refresh(
         const pandoeditor::ProjectSnapshot&,const MapViewState&,
         const InteractionRenderPacket&,const std::shared_ptr<const RenderScene>&,

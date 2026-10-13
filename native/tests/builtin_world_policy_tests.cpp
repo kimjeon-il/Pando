@@ -35,7 +35,7 @@ int main(int argc,char** argv) {
     QCoreApplication application(argc,argv);
     try {
         const auto loaded=WorldDatasetLoader::canonical(QStringLiteral(PANDOEDITOR_WORLD_ASSET_DIR));
-        auto view=pandoeditor::timelineDocumentView(*loaded.document,"2026-10");
+        auto view=pandoeditor::timelineDocumentView(loaded.project->document(),"2026-10");
         auto& document=view.document;
         document.units.erase(std::remove_if(document.units.begin(),document.units.end(),[&](const auto& unit){
             return view.inactiveIds.count(unit.id);

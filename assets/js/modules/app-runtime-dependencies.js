@@ -23,9 +23,8 @@ const { createGisFileController } = await import(versionedModuleUrl('./modules/g
 const polygonGeometry = globalThis.PandoLabPolygonGeometry;
 if (!polygonGeometry) throw new Error('폴리곤 지오메트리 정규화 모듈을 불러오지 못했습니다.');
 
-const [projectStateModule, mapEditTransactionModule, territorialUnitsModule, distributionModelModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule, selectControllerModule, startupReadinessModule, boundaryTopologyModule, geometryMetricsModule, geometryPreviewModule, geometryValidationModule, labelLayoutModule, mapStateTransitionModule, objectRefModule, layerPresentationModule, saveStateModule, colorAdapterModule, projectSerializerModule, persistenceServiceModule, browserProjectStorageModule, physicalLayerServiceModule, territorialServiceModule, distributionServiceModule, genericFeatureServiceModule, tooltipControllerModule, layerTreeControllerModule, historyServiceModule, mapEditWorkerClientModule, mapObjectSpatialIndexModule, surfaceTabsControllerModule] = await Promise.all([
+const [projectStateModule, territorialUnitsModule, distributionModelModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule, selectControllerModule, startupReadinessModule, boundaryTopologyModule, geometryMetricsModule, geometryPreviewModule, geometryValidationModule, labelLayoutModule, mapStateTransitionModule, objectRefModule, layerPresentationModule, saveStateModule, colorAdapterModule, persistenceServiceModule, browserProjectStorageModule, physicalLayerServiceModule, territorialServiceModule, distributionServiceModule, genericFeatureServiceModule, tooltipControllerModule, layerTreeControllerModule, mapEditWorkerClientModule, mapObjectSpatialIndexModule, surfaceTabsControllerModule] = await Promise.all([
   import(versionedModuleUrl('./modules/project-state.js')),
-  import(versionedModuleUrl('./modules/map-edit-transaction.js')),
   import(versionedModuleUrl('./modules/territorial-units.js')),
   import(versionedModuleUrl('./modules/distribution-model.js')),
   import(versionedModuleUrl('./modules/surface-controller.js')),
@@ -45,7 +44,6 @@ const [projectStateModule, mapEditTransactionModule, territorialUnitsModule, dis
   import(versionedModuleUrl('./modules/layer-presentation.js')),
   import(versionedModuleUrl('./modules/save-state-controller.js')),
   import(versionedModuleUrl('./modules/color-adapter.js')),
-  import(versionedModuleUrl('./modules/project-serializer.js')),
   import(versionedModuleUrl('./modules/persistence-service.js')),
   import(versionedModuleUrl('./modules/browser-project-storage.js')),
   import(versionedModuleUrl('./modules/physical-layer-service.js')),
@@ -54,7 +52,6 @@ const [projectStateModule, mapEditTransactionModule, territorialUnitsModule, dis
   import(versionedModuleUrl('./modules/generic-feature-service.js')),
   import(versionedModuleUrl('./modules/tooltip-controller.js')),
   import(versionedModuleUrl('./modules/layer-tree-controller.js')),
-  import(versionedModuleUrl('./modules/history-service.js')),
   import(versionedModuleUrl('./modules/map-edit-worker-client.js')),
   import(versionedModuleUrl('./modules/map-object-spatial-index.js')),
   import(versionedModuleUrl('./modules/surface-tabs-controller.js')),
@@ -63,14 +60,10 @@ const { createSemanticIcon } = await import(versionedModuleUrl('./modules/icon-u
 const { normalizeCountryCollection } = await import(versionedModuleUrl('./modules/country-feature.js'));
 const {
   PROJECT_SCHEMA_VERSION,
-  applyProjectFields,
-  assertCurrentProjectSchema,
   createProjectObjectId,
   pickProjectFields,
-  restoreEntitiesFromDelta,
 } = projectStateModule;
 const { COLOR_DOMAINS, normalizeColorValue, readDomainColor, writeDomainColor } = colorAdapterModule;
-const { createProjectSerializer } = projectSerializerModule;
 const { createPersistenceService } = persistenceServiceModule;
 const { createBrowserProjectStorage } = browserProjectStorageModule;
 const { createHydroService, createTerrainService } = physicalLayerServiceModule;
@@ -89,7 +82,6 @@ const {
 const { createTooltipController } = tooltipControllerModule;
 const { createAppLayerTreeController } = layerTreeControllerModule;
 const { setScopedItemVisibility } = await import(versionedModuleUrl('./modules/layer-list-model.js'));
-const { createHistoryService } = historyServiceModule;
 const { createMapEditWorkerClient } = mapEditWorkerClientModule;
 const { createMapObjectSpatialIndex } = mapObjectSpatialIndexModule;
 const { createSurfaceTabsController } = surfaceTabsControllerModule;
@@ -100,7 +92,6 @@ const {
   MAP_OBJECT_TYPES,
 } = mapObjectCategoriesModule;
 const reliabilityCoreModule = await import(versionedModuleUrl('./modules/reliability-core.js'));
-const projectInvariantsModule = await import(versionedModuleUrl('./modules/project-invariants.js'));
 const selectionStyleModule = await import(versionedModuleUrl('./modules/selection-style.js'));
 const selectionStrokeGeometryModule = await import(versionedModuleUrl('./modules/selection-stroke-geometry.js'));
 const selectionPassModule = await import(versionedModuleUrl('./modules/selection-pass.js'));
@@ -125,7 +116,6 @@ const { createRingHitTester } = await import(versionedModuleUrl('./modules/ring-
 // Their factories are wired once, after the existing services are ready, so
 // the migration does not duplicate project data or create import cycles.
 const projectDomainModule = await import(versionedModuleUrl('./modules/project-domain.js'));
-const projectCommandPipelineModule = await import(versionedModuleUrl('./modules/project-command-pipeline.js'));
 const selectionDomainModule = await import(versionedModuleUrl('./modules/selection-domain.js'));
 const renderingDomainModule = await import(versionedModuleUrl('./modules/rendering-domain.js'));
 const gisDomainModule = await import(versionedModuleUrl('./modules/gis-domain.js'));
@@ -135,7 +125,6 @@ const territorialPropertyControllerModule = await import(versionedModuleUrl('./m
 const objectPropertyControllerModule = await import(versionedModuleUrl('./modules/object-property-controller.js'));
 const { effectiveTerritorialFlagUrl } = countryFlagsModule;
 const { createProjectDomain } = projectDomainModule;
-const { createProjectCommandPipeline } = projectCommandPipelineModule;
 const { createSelectionDomain } = selectionDomainModule;
 const { createRenderingDomain } = renderingDomainModule;
 const { createGisDomain } = gisDomainModule;
@@ -308,7 +297,6 @@ const {
   fetchWithRetry,
   isAbortError,
 } = reliabilityCoreModule;
-const { assertProjectReferenceIntegrity } = projectInvariantsModule;
 const { SELECTION_STYLE, setSelectionColor, setInteractionStyle: setSelectionInteractionStyle } = selectionStyleModule;
 const { buildSelectionBoundarySegments } = selectionStrokeGeometryModule;
 const { createSelectionPass } = selectionPassModule;
@@ -332,13 +320,11 @@ const {
 const { createMapVisualFrame } = mapVisualFrameModule;
 const { createSelectController } = selectControllerModule;
 const { DATA_READINESS, READINESS_EVENTS, canMutateProject, transitionDataReadiness } = startupReadinessModule;
-const { runMapEditTransaction } = mapEditTransactionModule;
 const {
   TERRITORIAL_COVERAGE_MODES,
   createTerritorialFeature,
   normalizeTerritorialEntities,
   territorialRootId,
-  runTerritorialTransaction,
 } = territorialUnitsModule;
 const {
   DISTRIBUTION_SCHEMA_VERSION,
@@ -404,52 +390,15 @@ export {
   versionedModuleUrl,
   createGisFileController,
   polygonGeometry,
-  projectStateModule,
-  mapEditTransactionModule,
-  territorialUnitsModule,
-  distributionModelModule,
-  surfaceControllerModule,
-  toolControllerModule,
-  mapInputControllerModule,
-  gpuMapRendererModule,
-  territorialGeometryModule,
-  selectControllerModule,
-  startupReadinessModule,
-  boundaryTopologyModule,
-  geometryMetricsModule,
-  geometryPreviewModule,
-  geometryValidationModule,
-  labelLayoutModule,
-  mapStateTransitionModule,
-  objectRefModule,
-  layerPresentationModule,
-  saveStateModule,
-  colorAdapterModule,
-  projectSerializerModule,
-  persistenceServiceModule,
-  physicalLayerServiceModule,
-  territorialServiceModule,
-  distributionServiceModule,
-  genericFeatureServiceModule,
-  tooltipControllerModule,
-  layerTreeControllerModule,
-  historyServiceModule,
-  mapEditWorkerClientModule,
-  mapObjectSpatialIndexModule,
-  surfaceTabsControllerModule,
   createSemanticIcon,
   normalizeCountryCollection,
   PROJECT_SCHEMA_VERSION,
-  applyProjectFields,
-  assertCurrentProjectSchema,
   createProjectObjectId,
   pickProjectFields,
   COLOR_DOMAINS,
   normalizeColorValue,
   readDomainColor,
   writeDomainColor,
-  createProjectSerializer,
-  restoreEntitiesFromDelta,
   createBrowserProjectStorage,
   createPersistenceService,
   createHydroService,
@@ -467,48 +416,16 @@ export {
   createTooltipController,
   createAppLayerTreeController,
   setScopedItemVisibility,
-  createHistoryService,
   createMapEditWorkerClient,
   createMapObjectSpatialIndex,
   createSurfaceTabsController,
-  mapObjectCategoriesModule,
   MAP_OBJECT_CATEGORIES,
   MAP_OBJECT_CATEGORY_ORDER,
   MAP_OBJECT_TYPES,
-  reliabilityCoreModule,
-  projectInvariantsModule,
-  selectionStyleModule,
-  selectionStrokeGeometryModule,
-  selectionPassModule,
-  selectionPacketModule,
-  selectionPerformanceBaselineModule,
-  renderSceneModule,
-  adaptiveRenderQualityModule,
-  editPreviewControllerModule,
-  mapHostModule,
-  legacyMapHostModule,
-  mapInteractionGateModule,
-  mapInteractionStyleModule,
-  graticuleGeometryModule,
-  userPreferencesModule,
   applyAppAccent,
-  notificationCopyModule,
-  countryFlagsModule,
-  mapLayoutMetricsModule,
-  mapVisualFrameModule,
   createRingHitTester,
-  projectDomainModule,
-  projectCommandPipelineModule,
-  selectionDomainModule,
-  renderingDomainModule,
-  gisDomainModule,
-  editingDomainModule,
-  selectionUiControllerModule,
-  territorialPropertyControllerModule,
-  objectPropertyControllerModule,
   effectiveTerritorialFlagUrl,
   createProjectDomain,
-  createProjectCommandPipeline,
   createSelectionDomain,
   createRenderingDomain,
   createGisDomain,
@@ -567,7 +484,6 @@ export {
   createOperationalError,
   fetchWithRetry,
   isAbortError,
-  assertProjectReferenceIntegrity,
   SELECTION_STYLE,
   setSelectionColor,
   setSelectionInteractionStyle,
@@ -598,14 +514,12 @@ export {
   READINESS_EVENTS,
   canMutateProject,
   transitionDataReadiness,
-  runMapEditTransaction,
   TERRITORIAL_COVERAGE_MODES,
   createTerritorialFeature,
   createTerritorialEntityRepository,
   createTerritorialEntityStore,
   normalizeTerritorialEntities,
   territorialRootId,
-  runTerritorialTransaction,
   DISTRIBUTION_SCHEMA_VERSION,
   DISTRIBUTION_MODES,
   DISTRIBUTION_RENDER_MODES,

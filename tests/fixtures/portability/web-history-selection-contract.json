@@ -1,0 +1,301 @@
+[
+  {
+    "operation": "select territorial object and builtin hover",
+    "result": null,
+    "name": "Alpha",
+    "stateRevision": 0,
+    "undo": false,
+    "redo": false,
+    "selection": {
+      "revision": 1,
+      "hoverRevision": 1,
+      "projectGeneration": 0,
+      "selection": {
+        "primaryKey": "territorial:entity:A",
+        "keys": [
+          "territorial:entity:A"
+        ],
+        "items": [
+          {
+            "domain": "territorial",
+            "type": "entity",
+            "id": "A",
+            "key": "territorial:entity:A"
+          }
+        ]
+      },
+      "hover": {
+        "domain": "hydro",
+        "type": "river",
+        "id": "builtin-hydro",
+        "key": "hydro:river:builtin-hydro"
+      }
+    },
+    "documentDirty": false
+  },
+  {
+    "operation": "rename keeps the current selection and hover",
+    "result": {
+      "ok": true,
+      "changed": true,
+      "unit": {
+        "type": "Feature",
+        "id": "A",
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                0,
+                0
+              ],
+              [
+                2,
+                0
+              ],
+              [
+                2,
+                2
+              ],
+              [
+                0,
+                2
+              ],
+              [
+                0,
+                0
+              ]
+            ]
+          ]
+        },
+        "properties": {
+          "schemaVersion": 6,
+          "entityKind": "general",
+          "name": "Beta",
+          "style": {},
+          "locked": false,
+          "notes": "",
+          "metadata": {},
+          "sourceFolderId": "",
+          "sourceEntityId": "",
+          "sourceGeometryVersion": "",
+          "parentId": "",
+          "coverageMode": "explicit",
+          "validFrom": null,
+          "validTo": null
+        }
+      }
+    },
+    "name": "Beta",
+    "stateRevision": 1,
+    "undo": true,
+    "redo": false,
+    "selection": {
+      "revision": 1,
+      "hoverRevision": 1,
+      "projectGeneration": 0,
+      "selection": {
+        "primaryKey": "territorial:entity:A",
+        "keys": [
+          "territorial:entity:A"
+        ],
+        "items": [
+          {
+            "domain": "territorial",
+            "type": "entity",
+            "id": "A",
+            "key": "territorial:entity:A"
+          }
+        ]
+      },
+      "hover": {
+        "domain": "hydro",
+        "type": "river",
+        "id": "builtin-hydro",
+        "key": "hydro:river:builtin-hydro"
+      }
+    },
+    "documentDirty": true
+  },
+  {
+    "operation": "Undo clears selected objects but keeps unrelated hover",
+    "result": true,
+    "name": "Alpha",
+    "stateRevision": 1,
+    "undo": false,
+    "redo": true,
+    "selection": {
+      "revision": 2,
+      "hoverRevision": 1,
+      "projectGeneration": 0,
+      "selection": {
+        "primaryKey": null,
+        "keys": [],
+        "items": []
+      },
+      "hover": {
+        "domain": "hydro",
+        "type": "river",
+        "id": "builtin-hydro",
+        "key": "hydro:river:builtin-hydro"
+      }
+    },
+    "documentDirty": false
+  },
+  {
+    "operation": "select builtin objects before Redo",
+    "result": {
+      "revision": 3,
+      "hoverRevision": 1,
+      "projectGeneration": 0,
+      "selection": {
+        "primaryKey": "label:city:builtin%3Aplace%3Afixture%3A1",
+        "keys": [
+          "label:city:builtin%3Aplace%3Afixture%3A1",
+          "hydro:river:builtin-hydro"
+        ],
+        "items": [
+          {
+            "domain": "label",
+            "type": "city",
+            "id": "builtin:place:fixture:1",
+            "key": "label:city:builtin%3Aplace%3Afixture%3A1"
+          },
+          {
+            "domain": "hydro",
+            "type": "river",
+            "id": "builtin-hydro",
+            "key": "hydro:river:builtin-hydro"
+          }
+        ]
+      },
+      "hover": {
+        "domain": "hydro",
+        "type": "river",
+        "id": "builtin-hydro",
+        "key": "hydro:river:builtin-hydro"
+      }
+    },
+    "name": "Alpha",
+    "stateRevision": 1,
+    "undo": false,
+    "redo": true,
+    "selection": {
+      "revision": 3,
+      "hoverRevision": 1,
+      "projectGeneration": 0,
+      "selection": {
+        "primaryKey": "label:city:builtin%3Aplace%3Afixture%3A1",
+        "keys": [
+          "label:city:builtin%3Aplace%3Afixture%3A1",
+          "hydro:river:builtin-hydro"
+        ],
+        "items": [
+          {
+            "domain": "label",
+            "type": "city",
+            "id": "builtin:place:fixture:1",
+            "key": "label:city:builtin%3Aplace%3Afixture%3A1"
+          },
+          {
+            "domain": "hydro",
+            "type": "river",
+            "id": "builtin-hydro",
+            "key": "hydro:river:builtin-hydro"
+          }
+        ]
+      },
+      "hover": {
+        "domain": "hydro",
+        "type": "river",
+        "id": "builtin-hydro",
+        "key": "hydro:river:builtin-hydro"
+      }
+    },
+    "documentDirty": false
+  },
+  {
+    "operation": "Redo clears builtin selection too and keeps unrelated hover",
+    "result": true,
+    "name": "Beta",
+    "stateRevision": 1,
+    "undo": true,
+    "redo": false,
+    "selection": {
+      "revision": 4,
+      "hoverRevision": 1,
+      "projectGeneration": 0,
+      "selection": {
+        "primaryKey": null,
+        "keys": [],
+        "items": []
+      },
+      "hover": {
+        "domain": "hydro",
+        "type": "river",
+        "id": "builtin-hydro",
+        "key": "hydro:river:builtin-hydro"
+      }
+    },
+    "documentDirty": true
+  },
+  {
+    "operation": "no-op history does not clear a newly selected builtin",
+    "result": false,
+    "name": "Beta",
+    "stateRevision": 1,
+    "undo": true,
+    "redo": false,
+    "selection": {
+      "revision": 5,
+      "hoverRevision": 1,
+      "projectGeneration": 0,
+      "selection": {
+        "primaryKey": "label:city:builtin%3Aplace%3Afixture%3A1",
+        "keys": [
+          "label:city:builtin%3Aplace%3Afixture%3A1"
+        ],
+        "items": [
+          {
+            "domain": "label",
+            "type": "city",
+            "id": "builtin:place:fixture:1",
+            "key": "label:city:builtin%3Aplace%3Afixture%3A1"
+          }
+        ]
+      },
+      "hover": {
+        "domain": "hydro",
+        "type": "river",
+        "id": "builtin-hydro",
+        "key": "hydro:river:builtin-hydro"
+      }
+    },
+    "documentDirty": true
+  },
+  {
+    "operation": "Undo clears builtin selection with unchanged project object identities",
+    "result": true,
+    "name": "Alpha",
+    "stateRevision": 1,
+    "undo": false,
+    "redo": true,
+    "selection": {
+      "revision": 6,
+      "hoverRevision": 1,
+      "projectGeneration": 0,
+      "selection": {
+        "primaryKey": null,
+        "keys": [],
+        "items": []
+      },
+      "hover": {
+        "domain": "hydro",
+        "type": "river",
+        "id": "builtin-hydro",
+        "key": "hydro:river:builtin-hydro"
+      }
+    },
+    "documentDirty": false
+  }
+]

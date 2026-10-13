@@ -1,0 +1,311 @@
+{
+  "schemaVersion": 2,
+  "sourceOwner": "repository Web geometry modules",
+  "sourceEncoding": "UTF-8 LF",
+  "generator": "native/tools/m97/cut-kernel-generate.mjs",
+  "parser": {
+    "name": "acorn",
+    "version": "8.15.0"
+  },
+  "transformations": "Existing guarded object-spread adapter, exact packet dependency prefix and D3 redundant-var adapter. Polygon normalization, clipping and retry sources are unchanged.",
+  "files": [
+    {
+      "path": "assets/js/modules/app-country-validation.js",
+      "sha256": "f1198177b310e835b0ac7febffa38ec2e3711d9091d4f5973deeea00ae40d513"
+    },
+    {
+      "path": "assets/js/modules/app-cut-geometry.js",
+      "sha256": "f62f7e81dec6f4a9e2231129f45f7b521266c3ed63deb256aedf96c14130124c"
+    },
+    {
+      "path": "assets/js/modules/app-land-relations.js",
+      "sha256": "1bc5e9e07e9f94247e7c04aa4f7c55643d1da42c1716164342a6e72b8c70453d"
+    },
+    {
+      "path": "assets/js/modules/app-territory-components.js",
+      "sha256": "c82290d2e3601a4d07b6d94746a665bfad9a49c1020f447a0ace90740ef226d9"
+    },
+    {
+      "path": "assets/js/modules/boundary-spatial-index.js",
+      "sha256": "e8721595a89faadfdaa8c61a70505c8f941e12db8ceed189ba829904d2878b5f"
+    },
+    {
+      "path": "assets/js/modules/coordinate-bounds.js",
+      "sha256": "67e2598e59d6e5ff98d871566332286dc83d7e4f9fbc3dc1236c9cc9d08665e0"
+    },
+    {
+      "path": "assets/js/modules/cut-preparation-cache.js",
+      "sha256": "38278991e38a0976e0337d805a0d44a611e453d80c2e91f8cb47780f8e8d1a11"
+    },
+    {
+      "path": "assets/js/modules/cut-worker-preparation.js",
+      "sha256": "f80584f053717baa9cc172bbc8e26ed5a01316ae64c00f091744348c4736f2a2"
+    },
+    {
+      "path": "assets/js/modules/editing-render-packet.js",
+      "sha256": "2f1f97a7758a3f1930065511878bc19acd872dcea04ea8362bf8b40c5327f387"
+    },
+    {
+      "path": "assets/js/modules/geometry-segment-index.js",
+      "sha256": "63680763f49fd03345b1503a135f17c8b66b538673d040dacd69f6a6b648aeb1"
+    },
+    {
+      "path": "assets/js/modules/geometry-versions.js",
+      "sha256": "e28a1992e25049a32ef8accd7a1e5bfa4871a85556c0a6aa5a6cbef61f27333a"
+    },
+    {
+      "path": "assets/js/modules/map-edit-geometry.js",
+      "sha256": "397da6a410d2abcaa871b3c626bd8b1808534351b8332912e13dd76f8feb9915"
+    },
+    {
+      "path": "assets/js/modules/planar-graph-faces.js",
+      "sha256": "283da7701c21cb80e4fd9ef97e8f68e69a8d6f0ec9fc611ee8c23cab45d6c804"
+    },
+    {
+      "path": "assets/js/modules/polygon-clipping-calculation.js",
+      "sha256": "79095890e49875610f27585c694a3f05e6c3322ef6a8b3e57c4a087236339406"
+    },
+    {
+      "path": "assets/js/modules/polygon-geometry.js",
+      "sha256": "a645827c46f7c62dbf929f850c67f350516669dfeafe5c637aec6c67efcfebf4"
+    },
+    {
+      "path": "assets/js/modules/ring-hit-test.js",
+      "sha256": "2f35ea5f6b8e01a14ad269b6689cf45f5212d1595a7c7bccc5ff39e8bb89f0b0"
+    },
+    {
+      "path": "assets/js/modules/river-territory-partition.js",
+      "sha256": "18b32eb7db238beaed99bce8bac980e547a48c785a7bd2071fa56fa63f51db24"
+    },
+    {
+      "path": "assets/js/modules/territorial-geometry.js",
+      "sha256": "25f9b30cc2527d3eafdb3473d0fe8dbc056fc654ce7ff51fc72861e47b3ee827"
+    },
+    {
+      "path": "assets/js/vendor/d3.min.js",
+      "sha256": "4cdf92091ed0cfdd8b862af1c6d4744bd0458e746b92c1bbd5403a1143ecd538"
+    },
+    {
+      "path": "assets/js/vendor/polygon-clipping.min.js",
+      "sha256": "8c1ed56df8b1f97b047f82d91b910aacdaff67d8d9a55f2495eb26e8369186f7"
+    },
+    {
+      "path": "native/assets/geometry/cut/platform.js",
+      "sha256": "59c674d9618b4f1f01627a78d54f222d2f69e0a5bd5705d71a5118eaf09d15cb"
+    },
+    {
+      "path": "native/assets/geometry/LICENSE.polygon-clipping.txt",
+      "sha256": "864ae9e4ed75e1571a3bcf5dc9070264213445b32e7e2af5bf60eba46fb656d0"
+    },
+    {
+      "path": "native/assets/geometry/river/bridge.js",
+      "sha256": "bdbabaf7f943878802e89e3d0ca15c22874fbc2eb776ae99c548d01ea30ef9c7"
+    },
+    {
+      "path": "native/assets/geometry/river/LICENSE.d3.txt",
+      "sha256": "cfbbc38bc63359f41eef41f92314754d6652fd1a17d016de344926d5de34b7d5"
+    },
+    {
+      "path": "native/assets/geometry/river/platform.js",
+      "sha256": "0438e2d97b9869348f6b660bd94d45cc839e69fb1d3fb4db91c9a5650dc45412"
+    },
+    {
+      "path": "native/assets/geometry/river/presentation.js",
+      "sha256": "402e06f4a817d58946d4b9bd27256b1889c3789298a9b69f40274d0190a5b642"
+    },
+    {
+      "path": "native/assets/geometry/river/workspace-observation.js",
+      "sha256": "bd95cf0d09f17bf0b01735e7e2b0ad6eb083884af1c82261c25c9c0fa577c30e"
+    },
+    {
+      "path": "native/tools/m97/cut-kernel-generate.mjs",
+      "sha256": "9ca307de126be03aa01033b3264a4efdfa6d3f1fcf0f2803a5647336686336ec"
+    },
+    {
+      "path": "native/tools/m97/river/generate-d3-adapter.mjs",
+      "sha256": "b69bd1643e8aef3553ef73920ae0258debf2a3a7dfe671a91c77d2ad6d2d7ee5"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "native/assets/geometry/current/cut/app-country-validation.js",
+      "sha256": "c23247743b4926d2e986da2d6db6b3d1a796fbcb56153dd83aec8a40ba528b92",
+      "resource": ":/cut/current/app-country-validation.js",
+      "kind": "cutModule"
+    },
+    {
+      "path": "native/assets/geometry/current/cut/app-cut-geometry.js",
+      "sha256": "a5640e934bffb7774b5a79c9ce821075167521484369bfa7cf1c9fd7e690498f",
+      "resource": ":/cut/current/app-cut-geometry.js",
+      "kind": "cutModule"
+    },
+    {
+      "path": "native/assets/geometry/current/cut/app-land-relations.js",
+      "sha256": "3f536b2c8af82f7254b5d37d2e164d9df739493867f1dd886a7a97cc83efc91c",
+      "resource": ":/cut/current/app-land-relations.js",
+      "kind": "cutModule"
+    },
+    {
+      "path": "native/assets/geometry/current/cut/app-territory-components.js",
+      "sha256": "297bb0b5638f7362d3d40f533e61e682b01ae255fa40e952e1022c7d900a2ad9",
+      "resource": ":/cut/current/app-territory-components.js",
+      "kind": "cutModule"
+    },
+    {
+      "path": "native/assets/geometry/current/cut/boundary-spatial-index.js",
+      "sha256": "e8721595a89faadfdaa8c61a70505c8f941e12db8ceed189ba829904d2878b5f",
+      "resource": ":/cut/current/boundary-spatial-index.js",
+      "kind": "cutModule"
+    },
+    {
+      "path": "native/assets/geometry/current/cut/coordinate-bounds.js",
+      "sha256": "67e2598e59d6e5ff98d871566332286dc83d7e4f9fbc3dc1236c9cc9d08665e0",
+      "resource": ":/cut/current/coordinate-bounds.js",
+      "kind": "cutModule"
+    },
+    {
+      "path": "native/assets/geometry/current/cut/cut-preparation-cache.js",
+      "sha256": "38278991e38a0976e0337d805a0d44a611e453d80c2e91f8cb47780f8e8d1a11",
+      "resource": ":/cut/current/cut-preparation-cache.js",
+      "kind": "cutModule"
+    },
+    {
+      "path": "native/assets/geometry/current/cut/cut-worker-preparation.js",
+      "sha256": "e8e6be3f7aa0dea6e4cc3efd112ae8e150797dd38c8b44f757e0eba7341798c0",
+      "resource": ":/cut/current/cut-worker-preparation.js",
+      "kind": "cutModule"
+    },
+    {
+      "path": "native/assets/geometry/current/cut/editing-render-packet.js",
+      "sha256": "679c7490c7198359709b1a846c356ab53940c5db3f90912ed4c189c482b0e76f",
+      "resource": ":/cut/current/editing-render-packet.js",
+      "kind": "cutModule"
+    },
+    {
+      "path": "native/assets/geometry/current/cut/geometry-segment-index.js",
+      "sha256": "63680763f49fd03345b1503a135f17c8b66b538673d040dacd69f6a6b648aeb1",
+      "resource": ":/cut/current/geometry-segment-index.js",
+      "kind": "cutModule"
+    },
+    {
+      "path": "native/assets/geometry/current/cut/geometry-versions.js",
+      "sha256": "e28a1992e25049a32ef8accd7a1e5bfa4871a85556c0a6aa5a6cbef61f27333a",
+      "resource": ":/cut/current/geometry-versions.js",
+      "kind": "cutModule"
+    },
+    {
+      "path": "native/assets/geometry/current/cut/map-edit-geometry.js",
+      "sha256": "397da6a410d2abcaa871b3c626bd8b1808534351b8332912e13dd76f8feb9915",
+      "resource": ":/cut/current/map-edit-geometry.js",
+      "kind": "cutModule"
+    },
+    {
+      "path": "native/assets/geometry/current/cut/planar-graph-faces.js",
+      "sha256": "283da7701c21cb80e4fd9ef97e8f68e69a8d6f0ec9fc611ee8c23cab45d6c804",
+      "resource": ":/cut/current/planar-graph-faces.js",
+      "kind": "cutModule"
+    },
+    {
+      "path": "native/assets/geometry/current/cut/polygon-geometry.js",
+      "sha256": "a645827c46f7c62dbf929f850c67f350516669dfeafe5c637aec6c67efcfebf4",
+      "resource": ":/cut/current/polygon-geometry.js",
+      "kind": "cutModule"
+    },
+    {
+      "path": "native/assets/geometry/current/cut/ring-hit-test.js",
+      "sha256": "2f35ea5f6b8e01a14ad269b6689cf45f5212d1595a7c7bccc5ff39e8bb89f0b0",
+      "resource": ":/cut/current/ring-hit-test.js",
+      "kind": "cutModule"
+    },
+    {
+      "path": "native/assets/geometry/current/cut/territorial-geometry.js",
+      "sha256": "25f9b30cc2527d3eafdb3473d0fe8dbc056fc654ce7ff51fc72861e47b3ee827",
+      "resource": ":/cut/current/territorial-geometry.js",
+      "kind": "cutModule"
+    },
+    {
+      "path": "native/assets/geometry/cut/platform.js",
+      "sha256": "59c674d9618b4f1f01627a78d54f222d2f69e0a5bd5705d71a5118eaf09d15cb",
+      "resource": ":/cut/platform.js",
+      "kind": "platform"
+    },
+    {
+      "path": "native/assets/geometry/LICENSE.polygon-clipping.txt",
+      "sha256": "864ae9e4ed75e1571a3bcf5dc9070264213445b32e7e2af5bf60eba46fb656d0",
+      "resource": ":/geometry/LICENSE.polygon-clipping.txt",
+      "kind": "license"
+    },
+    {
+      "path": "native/assets/geometry/current/polygon-clipping.min.js",
+      "sha256": "8c1ed56df8b1f97b047f82d91b910aacdaff67d8d9a55f2495eb26e8369186f7",
+      "resource": ":/geometry/polygon-clipping-0.15.7.js",
+      "kind": "vendor"
+    },
+    {
+      "path": "native/assets/geometry/current/polygon-clipping-calculation.js",
+      "sha256": "79095890e49875610f27585c694a3f05e6c3322ef6a8b3e57c4a087236339406",
+      "resource": ":/geometry/polygon-clipping-calculation.js",
+      "kind": "retry"
+    },
+    {
+      "path": "native/assets/geometry/current/polygon-geometry.js",
+      "sha256": "a645827c46f7c62dbf929f850c67f350516669dfeafe5c637aec6c67efcfebf4",
+      "resource": ":/geometry/polygon-geometry.js",
+      "kind": "normalizer"
+    },
+    {
+      "path": "native/assets/geometry/river/bridge.js",
+      "sha256": "bdbabaf7f943878802e89e3d0ca15c22874fbc2eb776ae99c548d01ea30ef9c7",
+      "resource": ":/river/bridge.js",
+      "kind": "boundary"
+    },
+    {
+      "path": "native/assets/geometry/current/d3-original.min.js",
+      "sha256": "4cdf92091ed0cfdd8b862af1c6d4744bd0458e746b92c1bbd5403a1143ecd538",
+      "resource": ":/river/current/d3-original.min.js",
+      "kind": "vendorOriginal"
+    },
+    {
+      "path": "native/assets/geometry/current/d3.min.js",
+      "sha256": "f273f409d8b1ba4c35d98fb06ca56f06726359d792ad719400d0e46a8c15cd85",
+      "resource": ":/river/current/d3.min.js",
+      "kind": "vendor"
+    },
+    {
+      "path": "native/assets/geometry/current/river/planar-graph-faces.js",
+      "sha256": "283da7701c21cb80e4fd9ef97e8f68e69a8d6f0ec9fc611ee8c23cab45d6c804",
+      "resource": ":/river/current/planar-graph-faces.js",
+      "kind": "riverModule"
+    },
+    {
+      "path": "native/assets/geometry/current/river/river-territory-partition.js",
+      "sha256": "22dffcfea221502b51bb4d68b78926d4ae5e0e446cefed126c1c30fb15a594ff",
+      "resource": ":/river/current/river-territory-partition.js",
+      "kind": "riverModule"
+    },
+    {
+      "path": "native/assets/geometry/river/LICENSE.d3.txt",
+      "sha256": "cfbbc38bc63359f41eef41f92314754d6652fd1a17d016de344926d5de34b7d5",
+      "resource": ":/river/LICENSE.d3.txt",
+      "kind": "license"
+    },
+    {
+      "path": "native/assets/geometry/river/platform.js",
+      "sha256": "0438e2d97b9869348f6b660bd94d45cc839e69fb1d3fb4db91c9a5650dc45412",
+      "resource": ":/river/platform.js",
+      "kind": "platform"
+    },
+    {
+      "path": "native/assets/geometry/river/presentation.js",
+      "sha256": "402e06f4a817d58946d4b9bd27256b1889c3789298a9b69f40274d0190a5b642",
+      "resource": ":/river/presentation.js",
+      "kind": "boundary"
+    },
+    {
+      "path": "native/assets/geometry/river/workspace-observation.js",
+      "sha256": "bd95cf0d09f17bf0b01735e7e2b0ad6eb083884af1c82261c25c9c0fa577c30e",
+      "resource": ":/river/workspace-observation.js",
+      "kind": "diagnostics"
+    }
+  ]
+}

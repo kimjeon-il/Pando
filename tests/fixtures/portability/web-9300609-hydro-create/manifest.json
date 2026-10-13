@@ -1,0 +1,22 @@
+{
+  "schema": "pandoeditor-web-supplemental-oracle",
+  "baseline": "930060923889d17134e36e152c29f4adbb2e60a9",
+  "reason": "Raw UI hydro create fields and current save normalization",
+  "files": [
+    {
+      "path": "assets/js/modules/color-adapter.js",
+      "blob": "8d4ac6ba743179e56f244781be612067057e8066",
+      "sha256": "4ceddf070464808bddf451542561ce047e25794c290cdf7f29f44e22514170a2"
+    },
+    {
+      "path": "assets/js/modules/country-default-colors.js",
+      "blob": "6f355d0b06e6f286c457a9c4ad286485ba4e1756",
+      "sha256": "46e2e18f2fb78058edd7d990ecc99d9a81cb087dc3f0ca2de55f7771d5660730"
+    },
+    {
+      "path": "assets/js/modules/app-environment.js",
+      "blob": "4395cc76bc3a7350e3564669a25ca160e6e0690e",
+      "sha256": "0315f31bc1049d82a971d81a2f41866f4d52f3d9d5776de2a1f9722d2f03b183"
+    }
+  ]
+}

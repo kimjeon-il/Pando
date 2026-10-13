@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { writeFile } from 'node:fs/promises';
 import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
-import { createStaticTerritorialSnapshot } from '../../assets/js/modules/territorial-entity-store.js';
+import {staticTerritorialInput} from '../helpers/timeline-project.mjs';
 import { assertCurrentProjectSchema } from '../../assets/js/modules/project-state.js';
 
 // Tracing stalls focused software WebGL even with screencast frames disabled.
@@ -21,7 +21,7 @@ test('country flags zoom with labels and preserve selection and missing-flag fal
   page.on('pageerror', error => errors.push(error.message));
   const id = 'DEU';
   const saved = staticAutosaveProject();
-  Object.assign(saved, createStaticTerritorialSnapshot([createTerritorialFeature({ id,
+  Object.assign(saved, staticTerritorialInput([createTerritorialFeature({ id,
     entityKind: 'general', name: '독일',
     geometry: { type: 'Polygon', coordinates: [[[8, 49], [8, 53], [12, 53], [12, 49], [8, 49]]] },
   })]));

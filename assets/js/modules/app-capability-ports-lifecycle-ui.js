@@ -23,6 +23,7 @@ export const LIFECYCLE_UI_OWNER_PORTS = Object.freeze({
     "domainControllers",
     "domains",
     "draftPresentation",
+    "feedback",
     "genericEditingA",
     "genericEditingB",
     "geometryOperations",
@@ -109,6 +110,7 @@ export const LIFECYCLE_UI_OWNER_PORTS = Object.freeze({
     "workspaceUiA"
   ],
   "domainAssembly": [
+    "platformConfigurationA",
     "builtinBaseline",
     "applicationConstantsA",
     "applicationConstantsB",
@@ -198,7 +200,7 @@ export const LIFECYCLE_UI_OWNER_PORTS = Object.freeze({
     "territorialEditingB",
     "territorialModel",
     "territorialServicesA",
-    "territorialServicesB",
+
     "territoryComponentUi",
     "territoryComponents",
     "territorySelectionA",
@@ -291,7 +293,7 @@ const PORT_SPECS = Object.freeze({
   libraryUi: Object.freeze([["getTerritorialLibraryController","libraryAssembly","getTerritorialLibraryController"],["territorialLibraryController","libraryAssembly","territorialLibraryController"]]),
   mapAudit: Object.freeze([["clearMapAudit","mapAudit","clearMapAudit"],["focusAuditIssue","mapAudit","focusAuditIssue"],["issueCoordinate","mapAudit","issueCoordinate"],["runFullMapAudit","mapAudit","runFullMapAudit"]]),
   navigationBindings: Object.freeze([["bindLayerUI","navigationBindings","bindLayerUI"],["bindNavigationUI","navigationBindings","bindNavigationUI"]]),
-  persistence: Object.freeze([["applyAutosavedView","historyAssembly","applyAutosavedView"],["persistenceService","historyAssembly","persistenceService"]]),
+  persistence: Object.freeze([["applyAutosavedView","historyAssembly","applyAutosavedView"],["persistenceService","historyAssembly","persistenceService"],["initializeCoreServices","historyAssembly","initializeCoreServices"]]),
   pointerInteractionB: Object.freeze([["suppressNextMapClick","pointerTargets","suppressNextMapClick"]]),
   startup: Object.freeze([["init","progressiveStartup","init"]]),
   territorialConversion: Object.freeze([["commitLabelEdit","territorialConversion","commitLabelEdit"],["copySelectedEntityToRegion","territorialConversion","copySelectedEntityToRegion"]]),

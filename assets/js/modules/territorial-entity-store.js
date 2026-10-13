@@ -1,369 +1,43 @@
-import { normalizeTerritorialEntities, normalizeTerritorialFeature, normalizeTerritorialIdentities,
-  TERRITORIAL_IDENTITY_FIELDS } from './territorial-units.js';
-import { createGeometryVersionStore } from './geometry-version-store.js';
-import { restoreTimelineStorage } from './timeline-storage.js';
-import { normalizeTimelineRecords } from './timeline-records.js';
-import { assertStaticTimeline, staticTimelineViews } from './timeline-static-view.js';
-import { hasDatedTimelineRecords, initialTimelineMonth, resolveWorld, resolvedTimelineViews } from './timeline-resolver.js';
-import { replaceTimelineRecordAtMonth, truncateTimelineEntityAtMonth } from './timeline-edit.js';
-import { parseTemporal } from './temporal.js';
-import { normalizeColorValue } from './color-adapter.js';
-
-const text = value => String(value ?? '').trim();
-
+/** Empty detached startup input; C++ admits it before editable data is loaded. */
 export function createEmptyTerritorialState() {
-  return { territorialEntities: [], timelineRecords: { schemaVersion: 1, lifetimes: [], geometryBindings: [], parentRelations: [] },
-    geometries: createGeometryVersionStore() };
+  const geometries=Object.freeze([]);
+  return { territorialEntities: [],timelineRecords: { schemaVersion: 1,lifetimes: [],geometryBindings: [],parentRelations: [] },
+    geometries: Object.freeze({ snapshot: () => geometries,get: () => null }) };
 }
 
-/** Explicit new static project construction; persisted projects use restoreProject. */
-export function createStaticTerritorialSnapshot(features) {
-  const state = createEmptyTerritorialState();
-  const store = createTerritorialEntityStore({ getState: () => state });
-  store.replaceEntities(features);
-  return { territorialEntities: store.identities(), timelineRecords: structuredClone(state.timelineRecords),
-    geometries: state.geometries.snapshot() };
-}
-
-/** Sole writer of the unified Feature collection and entity metadata. */
-export function createTerritorialEntityStore({ getState, onEntitiesReplaced = () => {} } = {}) {
-  if (typeof getState !== 'function') throw new TypeError('영역 Store에는 상태 공급자가 필요합니다.');
-  let cached = null;
-  let staging = null;
-  let identitiesCatalog = [];
-  let monthEditsEnabled = false;
-  const state = () => {
-    const value = getState();
-    if (!Array.isArray(value?.territorialEntities)) throw new TypeError('territorialEntities 배열이 필요합니다.');
-    if (!value.timelineRecords || typeof value.geometries?.snapshot !== 'function')
-      throw new TypeError('영역 Store에는 timelineRecords와 geometry version store가 필요합니다.');
-    return staging?.state || value;
-  };
-  const identity = feature => ({ type: 'Feature', id: feature.id, geometry: null,
-    properties: Object.fromEntries(TERRITORIAL_IDENTITY_FIELDS.filter(key => Object.hasOwn(feature.properties, key))
-      .map(key => [key, feature.properties[key]])) });
-  const catalog = identities => identities.map(feature => ({ id: feature.id, entityKind: feature.properties.entityKind }));
-  const activationError = () => { throw Object.assign(new Error('날짜별 편집은 T4 구현 후 지원합니다.'), { code: 'TIMELINE_ACTIVATION' }); };
-  function datedCandidateFor(next, current) {
-    const previous = current.territorialEntities;
-    const before = new Map(previous.map(feature => [feature.id, feature]));
-    const after = new Map(next.map(feature => [feature.id, feature]));
-    const month = current.timelineCursor;
-    if (!month) activationError();
-    const archive = current.geometries.snapshot();
-    const geometries = createGeometryVersionStore(archive, { reuse: current.geometries });
-    const versions = new Map();
-    for (const entry of archive) versions.set(entry.id, Math.max(versions.get(entry.id) || 0, entry.version));
-    const metadata = new Map((staging?.catalog || identitiesCatalog).map(feature => [feature.id, feature]));
-    let records = structuredClone(current.timelineRecords);
-    const world = resolveWorld([...metadata.values()], records, geometries, month);
-    for (const id of before.keys()) if (!after.has(id)) {
-      records = truncateTimelineEntityAtMonth(records, id, month);
-      if (!records.lifetimes.some(row => row.entityId === id)) metadata.delete(id);
-    }
-    const recordIds = new Set(['lifetimes', 'geometryBindings', 'parentRelations']
-      .flatMap(name => records[name].map(row => row.id)));
-    const allocateRecordId = base => {
-      let id = base, suffix = 0;
-      while (recordIds.has(id)) id = `${base}:${++suffix}`;
-      recordIds.add(id);
-      return id;
-    };
-    for (const feature of next) {
-      const original = before.get(feature.id);
-      if (!original) {
-        if (metadata.has(feature.id) || feature.properties.validFrom !== null || feature.properties.validTo !== null) activationError();
-        const base = `territorial-geometry:${feature.id}`;
-        let geometryId = base, suffix = 0;
-        while (versions.has(geometryId)) geometryId = `${base}:${++suffix}`;
-        const geometryRef = { id: geometryId, version: 1 };
-        geometries.insert(geometryRef, feature.geometry);
-        versions.set(geometryId, 1);
-        records.lifetimes.push({ id: allocateRecordId(`lifetime:${feature.id}`), entityId: feature.id,
-          validFrom: month, validTo: null });
-        records.geometryBindings.push({ id: allocateRecordId(`geometry:${feature.id}`), entityId: feature.id,
-          validFrom: month, validTo: null, geometryRef });
-        records.parentRelations.push({ id: allocateRecordId(`parent:${feature.id}`), entityId: feature.id,
-          validFrom: month, validTo: null, parentId: feature.properties.parentId,
-          coverageMode: feature.properties.coverageMode });
-        metadata.set(feature.id, identity(feature));
-        continue;
-      }
-      if (feature.properties.entityKind !== original.properties.entityKind
-        || feature.properties.validFrom !== original.properties.validFrom
-        || feature.properties.validTo !== original.properties.validTo) activationError();
-      metadata.set(feature.id, identity(feature));
-      const originalRef = world.byId.get(feature.id).geometryRef;
-      if (feature.geometry !== original.geometry && JSON.stringify(feature.geometry) !== JSON.stringify(original.geometry)) {
-        const version = (versions.get(originalRef.id) || 0) + 1;
-        const geometryRef = { id: originalRef.id, version };
-        geometries.insert(geometryRef, feature.geometry);
-        versions.set(originalRef.id, version);
-        records = replaceTimelineRecordAtMonth(records, 'geometryBindings', feature.id, month, { geometryRef });
-      }
-      if (feature.properties.parentId !== original.properties.parentId
-        || feature.properties.coverageMode !== original.properties.coverageMode) {
-        records = replaceTimelineRecordAtMonth(records, 'parentRelations', feature.id, month,
-          { parentId: feature.properties.parentId, coverageMode: feature.properties.coverageMode });
-      }
-    }
-    const catalogIdentities = normalizeTerritorialIdentities([...metadata.values()]);
-    const normalized = normalizeTimelineRecords(records, { entities: catalog(catalogIdentities),
-      geometryExists: ref => ['Polygon', 'MultiPolygon'].includes(geometries.get(ref)?.type) });
-    const views = resolvedTimelineViews(catalogIdentities, normalized, geometries, month).map(feature => {
-      const old = before.get(feature.id);
-      return old && old.geometry === feature.geometry && JSON.stringify(old.properties) === JSON.stringify(feature.properties)
-        ? old : feature;
-    });
-    return { timelineRecords: normalized, geometries, territorialEntities: views, catalog: catalogIdentities };
+/** Read-only current-world projection of the sole C++ document session. */
+export function createTerritorialEntityStore({ documentModel,commandOwner,onEntitiesReplaced = () => {} } = {}) {
+  for (const method of ['territorialViews','list','world','projectWorld'])
+    if (typeof documentModel?.[method]!=='function') throw new TypeError(`The accepted C++ territorial projection is required: ${method}.`);
+  for (const method of ['state','subscribeTransitions','resolveWorld','setTimelineCursor'])
+    if (typeof commandOwner?.[method]!=='function') throw new TypeError(`The same C++ document owner is required: ${method}.`);
+  let previous=documentModel.territorialViews();
+  const unsubscribe=commandOwner.subscribeTransitions(() => {
+    const next=documentModel.territorialViews();
+    const before=new Map(previous.map(row => [row.id,row])),after=new Map(next.map(row => [row.id,row]));
+    const changedIds=new Set([...before.keys(),...after.keys()].filter(id => before.get(id)!==after.get(id)));
+    const prior=previous;
+    previous=next;
+    if (changedIds.size) onEntitiesReplaced(next,{ changedIds,previous: prior });
+  });
+  const entity=id => documentModel.territorialViews().find(row => row.id===String(id ?? '').trim()) || null;
+  async function resolveWorld(month,options) {
+    const world=await commandOwner.resolveWorld(month,options);
+    return documentModel.projectWorld(world,commandOwner.state().epoch);
   }
-  function candidateFor(next, current, validate = true) {
-    if (monthEditsEnabled) return datedCandidateFor(next, current);
-    assertStaticTimeline(current.timelineRecords, current.territorialEntities);
-    const archive = current.geometries.snapshot();
-    const geometries = createGeometryVersionStore(archive, { reuse: current.geometries });
-    // Candidate-local lookup includes past/unreferenced versions. Read the archive
-    // once instead of sorting every geometry again for each incoming entity.
-    const highestGeometryVersions = new Map();
-    for (const entry of archive) highestGeometryVersions.set(entry.id,
-      Math.max(highestGeometryVersions.get(entry.id) || 0, entry.version));
-    const records = structuredClone(current.timelineRecords);
-    const ids = new Set(next.map(feature => feature.id));
-    for (const key of ['lifetimes', 'geometryBindings', 'parentRelations'])
-      records[key] = records[key].filter(record => ids.has(record.entityId));
-    const recordIds = new Set(['lifetimes', 'geometryBindings', 'parentRelations']
-      .flatMap(key => records[key].map(record => record.id)));
-    const allocateRecordId = base => {
-      let id = base, suffix = 0;
-      while (recordIds.has(id)) id = `${base}:${++suffix}`;
-      recordIds.add(id);
-      return id;
-    };
-    for (const feature of next) {
-      const p = feature.properties, id = feature.id;
-      if (p.validFrom !== null || p.validTo !== null) activationError();
-      let binding = records.geometryBindings.find(record => record.entityId === id);
-      if (!binding || (geometries.get(binding.geometryRef) !== feature.geometry
-        && JSON.stringify(geometries.get(binding.geometryRef)) !== JSON.stringify(feature.geometry))) {
-        const geometryId = binding?.geometryRef.id || `territorial-geometry:${id}`;
-        const version = (highestGeometryVersions.get(geometryId) || 0) + 1;
-        const geometryRef = { id: geometryId, version };
-        geometries.insert(geometryRef, feature.geometry);
-        highestGeometryVersions.set(geometryId, version);
-        if (binding) binding.geometryRef = geometryRef;
-        else {
-          binding = { id: allocateRecordId(`geometry:${id}`), entityId: id, validFrom: null, validTo: null, geometryRef };
-          records.geometryBindings.push(binding);
-        }
-      }
-      if (!records.lifetimes.some(record => record.entityId === id))
-        records.lifetimes.push({ id: allocateRecordId(`lifetime:${id}`), entityId: id, validFrom: null, validTo: null });
-      let parent = records.parentRelations.find(record => record.entityId === id);
-      if (!parent) {
-        parent = { id: allocateRecordId(`parent:${id}`), entityId: id, validFrom: null, validTo: null };
-        records.parentRelations.push(parent);
-      }
-      parent.parentId = p.parentId;
-      parent.coverageMode = p.coverageMode;
-    }
-    const identities = normalizeTerritorialIdentities(next.map(identity));
-    const normalized = validate ? normalizeTimelineRecords(records, { entities: catalog(identities),
-      geometryExists: ref => ['Polygon', 'MultiPolygon'].includes(geometries.get(ref)?.type) }) : records;
-    const previous = new Map(current.territorialEntities.map(feature => [feature.id, feature]));
-    const views = staticTimelineViews(identities, normalized, geometries).map(feature => {
-      const before = previous.get(feature.id);
-      return before && before.geometry === feature.geometry
-        && JSON.stringify(before.properties) === JSON.stringify(feature.properties) ? before : feature;
-    });
-    return { timelineRecords: normalized, geometries, territorialEntities: views,
-      catalog: normalizeTerritorialIdentities(next.map(identity)) };
+  async function setTimelineCursor(month,options = {}) {
+    if (typeof options.canPublish==='function' && !options.canPublish())
+      throw Object.assign(new Error('편집을 확정하거나 취소한 뒤 시간대를 이동하세요.'),{ code: 'TIMELINE_DRAFT_ACTIVE' });
+    const before=commandOwner.state().timelineCursor;
+    const result=await commandOwner.setTimelineCursor(month,options);
+    return result.state.timelineCursor!==before;
   }
-  function normalize(entities, unchanged) {
-    if (!staging) return normalizeTerritorialEntities(entities, { validatedUnchanged: unchanged, cloneGeometry: geometry => geometry });
-    const ids = new Set();
-    return entities.map(entity => {
-      const next = unchanged?.has(entity) ? entity : normalizeTerritorialFeature(entity, { cloneGeometry: geometry => geometry });
-      if (!next || ids.has(next.id)) throw new Error('영역 변경 ID 또는 형식이 올바르지 않습니다.');
-      ids.add(next.id);
-      return next;
-    });
-  }
-  // Synchronous multi-entity edits have one validation/publication boundary.
-  // Removed root anchors remain available to dependent-edit calculations only
-  // inside the transaction. They never reach the published collection.
-  function transaction(apply) {
-    if (typeof apply !== 'function') throw new TypeError('영역 transaction 콜백이 필요합니다.');
-    if (staging) return apply();
-    const current = state();
-    const previous = current.territorialEntities;
-    staging = { state: { ...current, territorialEntities: previous,
-      geometries: createGeometryVersionStore(current.geometries.snapshot(), { reuse: current.geometries }),
-      timelineRecords: structuredClone(current.timelineRecords) }, removed: new Set(), catalog: identitiesCatalog };
-    try {
-      const result = apply();
-      if (result?.then) throw new TypeError('영역 transaction은 비동기 계산을 포함할 수 없습니다.');
-      const pending = staging;
-      const next = normalizeTerritorialEntities(pending.state.territorialEntities.filter(entity => !pending.removed.has(entity.id)), {
-        validatedUnchanged: new Set(previous), cloneGeometry: geometry => geometry });
-      const candidate = candidateFor(next, pending.state);
-      staging = null;
-      publishCandidate(candidate, previous);
-      return result;
-    } finally {
-      staging = null;
-      cached = null;
-    }
-  }
-  function snapshot() {
-    const current = state();
-    if (cached?.source === current.territorialEntities && cached.revision === current.stateRevision) return cached.entities;
-    const entities = current.territorialEntities.map(feature => ({ ...feature,
-      properties: structuredClone(feature.properties), geometry: feature.geometry }));
-    cached = { source: current.territorialEntities, revision: current.stateRevision, entities };
-    return entities;
-  }
-  const entity = id => state().territorialEntities.find(feature => text(feature.id) === text(id));
-  function hasField(id, field) {
-    const properties = entity(id)?.properties;
+  function hasField(id,field) {
+    const properties=entity(id)?.properties;
     if (!properties) return false;
-    return Object.hasOwn(field === 'color' ? properties.style : ['capital', 'flagDataUrl'].includes(field)
-      ? properties.metadata : properties, field === 'color' ? 'color' : field);
+    return Object.hasOwn(field==='color' ? properties.style : ['capital','flagDataUrl'].includes(field)
+      ? properties.metadata : properties,field==='color' ? 'color' : field);
   }
-  function setField(id, field, value) {
-    const feature = entity(id);
-    if (!feature) return false;
-    if (['validFrom', 'validTo'].includes(field) && value !== null) activationError();
-    const properties = { ...feature.properties };
-    if (field === 'color') {
-      properties.style = { ...properties.style };
-      if (value) properties.style.color = normalizeColorValue(value);
-      else delete properties.style.color;
-    } else if (['capital', 'flagDataUrl'].includes(field)) {
-      properties.metadata = { ...properties.metadata };
-      if (value === undefined) delete properties.metadata[field];
-      else properties.metadata[field] = value;
-    } else {
-      if (!Object.hasOwn(properties, field)) throw new Error(`지원하지 않는 영역 필드: ${field}`);
-      properties[field] = value;
-    }
-    applyChanges({ features: [{ ...feature, properties }] });
-    return true;
-  }
-  function replaceEntities(entities) {
-    if (!Array.isArray(entities)) throw new TypeError('영역 엔티티 배열이 필요합니다.');
-    const previous = state().territorialEntities;
-    const next = normalize(entities, new Set(previous));
-    if (staging) staging.removed.clear();
-    publish(next, previous);
-    return snapshot();
-  }
-  function publish(next, previous) {
-    const candidate = candidateFor(next, state(), !staging);
-    if (staging) {
-      const { catalog, ...fields } = candidate;
-      Object.assign(staging.state, fields);
-      staging.catalog = catalog;
-      cached = null;
-      return;
-    }
-    publishCandidate(candidate, previous);
-  }
-  function publishCandidate(candidate, previous) {
-    const { catalog, ...fields } = candidate;
-    const next = candidate.territorialEntities;
-    const before = new Map(previous.map(feature => [text(feature.id), feature]));
-    const after = new Map(next.map(feature => [text(feature.id), feature]));
-    const changedIds = new Set([...before.keys(), ...after.keys()].filter(id => before.get(id) !== after.get(id)));
-    Object.assign(state(), fields);
-    identitiesCatalog = catalog || normalizeTerritorialIdentities(next.map(identity));
-    cached = null;
-    state().historyDirtyEntityIds ||= new Set();
-    for (const id of changedIds) state().historyDirtyEntityIds.add(id);
-    onEntitiesReplaced(next, { changedIds, previous });
-  }
-  function applyChanges({ features = [], removedIds = [] }) {
-    const previous = state().territorialEntities;
-    const removed = new Set(removedIds.map(text));
-    const changes = new Map();
-    const previousById = new Map(previous.map(feature => [text(feature.id), feature]));
-    for (const feature of features) {
-      const id = text(feature?.id);
-      if (!id || changes.has(id) || removed.has(id)) throw new Error(`영역 변경 ID가 올바르지 않습니다: ${id}`);
-      const before = previousById.get(id);
-      if (before && before.properties.entityKind !== feature.properties?.entityKind) throw new Error('객체 종류는 생성 후 변경할 수 없습니다. 독립 권역 복사를 사용하세요.');
-      changes.set(id, feature);
-    }
-    if (staging) {
-      for (const entity of previous) if (removed.has(entity.id) && entity.properties.entityKind === 'general' && !entity.properties.parentId) {
-        staging.removed.add(entity.id);
-        removed.delete(entity.id);
-      }
-      for (const id of changes.keys()) staging.removed.delete(id);
-    }
-    const unchanged = new Set();
-    const candidate = previous.filter(feature => !removed.has(text(feature.id))).map(feature => {
-      const replacement = changes.get(text(feature.id));
-      changes.delete(text(feature.id));
-      if (!replacement) unchanged.add(feature);
-      return replacement || feature;
-    }).concat([...changes.values()]);
-    const next = normalize(candidate, unchanged);
-    publish(next, previous);
-    return snapshot();
-  }
-  function appendEntities(entities) {
-    if (!Array.isArray(entities)) throw new TypeError('추가할 영역 배열이 필요합니다.');
-    const ids = new Set(state().territorialEntities.map(feature => text(feature.id)));
-    for (const feature of entities) {
-      const id = text(feature?.id);
-      if (!id || ids.has(id)) throw new Error(`영역 엔티티 ID가 중복되었거나 비어 있습니다: ${id}`);
-      ids.add(id);
-    }
-    if (!entities.length) return [];
-    const added = new Set(entities.map(feature => text(feature.id)));
-    return applyChanges({ features: entities }).filter(feature => added.has(text(feature.id)));
-  }
-  function removeEntities(ids) {
-    const wanted = new Set(ids.map(text));
-    const deleted = snapshot().filter(feature => wanted.has(text(feature.id)));
-    if (deleted.length) applyChanges({ removedIds: deleted.map(feature => feature.id) });
-    return deleted;
-  }
-  function identities() { return normalizeTerritorialIdentities(identitiesCatalog.length ? identitiesCatalog
-    : state().territorialEntities.map(identity)); }
-  function setTimelineCursor(month) {
-    if (staging) throw new Error('Cannot move timeline cursor during a territorial transaction.');
-    const point = parseTemporal(month, { nullable: false });
-    if (point.precision !== 'month') throw Object.assign(new Error('Timeline cursor requires month precision.'), { code: 'INVALID_TIMELINE_CURSOR' });
-    if (state().timelineCursor === point.canonical) { monthEditsEnabled = true; return false; }
-    const previous = state().territorialEntities;
-    const next = resolvedTimelineViews(identities(), state().timelineRecords, state().geometries, point.canonical);
-    state().timelineCursor = point.canonical;
-    state().territorialEntities = next;
-    cached = null;
-    const before = new Map(previous.map(feature => [feature.id, feature]));
-    const after = new Map(next.map(feature => [feature.id, feature]));
-    const changedIds = new Set([...before.keys(), ...after.keys()].filter(id => before.get(id) !== after.get(id)));
-    onEntitiesReplaced(next, { changedIds, previous });
-    monthEditsEnabled = true;
-    return true;
-  }
-  function restoreProject(project, { preserveCursor = false } = {}) {
-    const metadata = normalizeTerritorialIdentities(project.territorialEntities);
-    const storage = restoreTimelineStorage({ schemaVersion: 1, records: project.timelineRecords,
-      geometries: project.geometries }, catalog(metadata), { reuse: state().geometries });
-    const month = preserveCursor && state().timelineCursor
-      ? state().timelineCursor : initialTimelineMonth(storage.records, new Date().toISOString().slice(0, 7));
-    const preservedEditing = monthEditsEnabled;
-    const views = resolvedTimelineViews(metadata, storage.records, storage.geometries, month);
-    publishCandidate({ territorialEntities: views,
-      timelineRecords: storage.records, geometries: storage.geometries }, state().territorialEntities);
-    identitiesCatalog = metadata;
-    state().timelineCursor = month;
-    monthEditsEnabled = (preserveCursor && preservedEditing) || hasDatedTimelineRecords(storage.records);
-    return snapshot();
-  }
-  return Object.freeze({ snapshot, identities, restoreProject, setTimelineCursor, setField, hasField, replaceEntities, applyChanges, appendEntities, removeEntities, transaction,
-    setLocked: (id, locked) => setField(id, 'locked', !!locked),
-    isLocked: id => entity(id)?.properties.locked === true });
+  return Object.freeze({ snapshot: documentModel.territorialViews,identities: () => documentModel.list('territorial'),
+    hasField,isLocked: id => entity(id)?.properties.locked===true,resolveWorld,setTimelineCursor,dispose: unsubscribe });
 }

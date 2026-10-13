@@ -1,0 +1,988 @@
+[
+  {
+    "operation": "initial",
+    "snapshot": {
+      "revision": 0,
+      "hoverRevision": 0,
+      "projectGeneration": 1,
+      "selection": {
+        "primaryKey": null,
+        "keys": [],
+        "items": []
+      },
+      "hover": null
+    },
+    "stats": {
+      "selectionRevision": 0,
+      "selectionHoverRevision": 0,
+      "selectionMutationCount": 0,
+      "selectionNoOpCount": 0,
+      "selectionRenderInvalidationCount": 0
+    }
+  },
+  {
+    "operation": "replace A with anchor",
+    "snapshot": {
+      "revision": 1,
+      "hoverRevision": 0,
+      "projectGeneration": 1,
+      "selection": {
+        "primaryKey": "territorial:entity:A",
+        "keys": [
+          "territorial:entity:A"
+        ],
+        "items": [
+          {
+            "domain": "territorial",
+            "type": "entity",
+            "id": "A",
+            "key": "territorial:entity:A"
+          }
+        ]
+      },
+      "hover": null
+    },
+    "stats": {
+      "selectionRevision": 1,
+      "selectionHoverRevision": 0,
+      "selectionMutationCount": 1,
+      "selectionNoOpCount": 0,
+      "selectionRenderInvalidationCount": 1
+    }
+  },
+  {
+    "operation": "same replace is a no-op",
+    "snapshot": {
+      "revision": 1,
+      "hoverRevision": 0,
+      "projectGeneration": 1,
+      "selection": {
+        "primaryKey": "territorial:entity:A",
+        "keys": [
+          "territorial:entity:A"
+        ],
+        "items": [
+          {
+            "domain": "territorial",
+            "type": "entity",
+            "id": "A",
+            "key": "territorial:entity:A"
+          }
+        ]
+      },
+      "hover": null
+    },
+    "stats": {
+      "selectionRevision": 1,
+      "selectionHoverRevision": 0,
+      "selectionMutationCount": 1,
+      "selectionNoOpCount": 1,
+      "selectionRenderInvalidationCount": 1
+    }
+  },
+  {
+    "operation": "toggle B makes B primary",
+    "snapshot": {
+      "revision": 2,
+      "hoverRevision": 0,
+      "projectGeneration": 1,
+      "selection": {
+        "primaryKey": "territorial:entity:B",
+        "keys": [
+          "territorial:entity:A",
+          "territorial:entity:B"
+        ],
+        "items": [
+          {
+            "domain": "territorial",
+            "type": "entity",
+            "id": "A",
+            "key": "territorial:entity:A"
+          },
+          {
+            "domain": "territorial",
+            "type": "entity",
+            "id": "B",
+            "key": "territorial:entity:B"
+          }
+        ]
+      },
+      "hover": null
+    },
+    "stats": {
+      "selectionRevision": 2,
+      "selectionHoverRevision": 0,
+      "selectionMutationCount": 2,
+      "selectionNoOpCount": 1,
+      "selectionRenderInvalidationCount": 2
+    }
+  },
+  {
+    "operation": "remove primary selects last remaining",
+    "snapshot": {
+      "revision": 3,
+      "hoverRevision": 0,
+      "projectGeneration": 1,
+      "selection": {
+        "primaryKey": "territorial:entity:A",
+        "keys": [
+          "territorial:entity:A"
+        ],
+        "items": [
+          {
+            "domain": "territorial",
+            "type": "entity",
+            "id": "A",
+            "key": "territorial:entity:A"
+          }
+        ]
+      },
+      "hover": null
+    },
+    "stats": {
+      "selectionRevision": 3,
+      "selectionHoverRevision": 0,
+      "selectionMutationCount": 3,
+      "selectionNoOpCount": 1,
+      "selectionRenderInvalidationCount": 3
+    }
+  },
+  {
+    "operation": "range retains removed B anchor",
+    "snapshot": {
+      "revision": 4,
+      "hoverRevision": 0,
+      "projectGeneration": 1,
+      "selection": {
+        "primaryKey": "generic:feature:G",
+        "keys": [
+          "territorial:entity:B",
+          "generic:feature:G"
+        ],
+        "items": [
+          {
+            "domain": "territorial",
+            "type": "entity",
+            "id": "B",
+            "key": "territorial:entity:B"
+          },
+          {
+            "domain": "generic",
+            "type": "feature",
+            "id": "G",
+            "key": "generic:feature:G"
+          }
+        ]
+      },
+      "hover": null
+    },
+    "stats": {
+      "selectionRevision": 4,
+      "selectionHoverRevision": 0,
+      "selectionMutationCount": 4,
+      "selectionNoOpCount": 1,
+      "selectionRenderInvalidationCount": 4
+    }
+  },
+  {
+    "operation": "additive range preserves insertion order",
+    "snapshot": {
+      "revision": 5,
+      "hoverRevision": 0,
+      "projectGeneration": 1,
+      "selection": {
+        "primaryKey": "territorial:entity:A",
+        "keys": [
+          "territorial:entity:B",
+          "generic:feature:G",
+          "territorial:entity:A"
+        ],
+        "items": [
+          {
+            "domain": "territorial",
+            "type": "entity",
+            "id": "B",
+            "key": "territorial:entity:B"
+          },
+          {
+            "domain": "generic",
+            "type": "feature",
+            "id": "G",
+            "key": "generic:feature:G"
+          },
+          {
+            "domain": "territorial",
+            "type": "entity",
+            "id": "A",
+            "key": "territorial:entity:A"
+          }
+        ]
+      },
+      "hover": null
+    },
+    "stats": {
+      "selectionRevision": 5,
+      "selectionHoverRevision": 0,
+      "selectionMutationCount": 5,
+      "selectionNoOpCount": 1,
+      "selectionRenderInvalidationCount": 5
+    }
+  },
+  {
+    "operation": "setMany fallback is last input, not last unique insertion",
+    "snapshot": {
+      "revision": 6,
+      "hoverRevision": 0,
+      "projectGeneration": 1,
+      "selection": {
+        "primaryKey": "territorial:entity:A",
+        "keys": [
+          "territorial:entity:A",
+          "territorial:entity:B"
+        ],
+        "items": [
+          {
+            "domain": "territorial",
+            "type": "entity",
+            "id": "A",
+            "key": "territorial:entity:A"
+          },
+          {
+            "domain": "territorial",
+            "type": "entity",
+            "id": "B",
+            "key": "territorial:entity:B"
+          }
+        ]
+      },
+      "hover": null
+    },
+    "stats": {
+      "selectionRevision": 6,
+      "selectionHoverRevision": 0,
+      "selectionMutationCount": 6,
+      "selectionNoOpCount": 1,
+      "selectionRenderInvalidationCount": 6
+    }
+  },
+  {
+    "operation": "same ID under different label types retains both public keys",
+    "snapshot": {
+      "revision": 7,
+      "hoverRevision": 0,
+      "projectGeneration": 1,
+      "selection": {
+        "primaryKey": "label:capital:L",
+        "keys": [
+          "label:capital:L",
+          "label:city:L",
+          "label:city:builtin%3Aplace%3Afixture%3A1",
+          "hydro:river:builtin-hydro"
+        ],
+        "items": [
+          {
+            "domain": "label",
+            "type": "capital",
+            "id": "L",
+            "key": "label:capital:L"
+          },
+          {
+            "domain": "label",
+            "type": "city",
+            "id": "L",
+            "key": "label:city:L"
+          },
+          {
+            "domain": "label",
+            "type": "city",
+            "id": "builtin:place:fixture:1",
+            "key": "label:city:builtin%3Aplace%3Afixture%3A1"
+          },
+          {
+            "domain": "hydro",
+            "type": "river",
+            "id": "builtin-hydro",
+            "key": "hydro:river:builtin-hydro"
+          }
+        ]
+      },
+      "hover": null
+    },
+    "stats": {
+      "selectionRevision": 7,
+      "selectionHoverRevision": 0,
+      "selectionMutationCount": 7,
+      "selectionNoOpCount": 1,
+      "selectionRenderInvalidationCount": 7
+    }
+  },
+  {
+    "operation": "prune leaves builtin refs and last remaining primary",
+    "snapshot": {
+      "revision": 8,
+      "hoverRevision": 0,
+      "projectGeneration": 1,
+      "selection": {
+        "primaryKey": "hydro:river:builtin-hydro",
+        "keys": [
+          "label:city:builtin%3Aplace%3Afixture%3A1",
+          "hydro:river:builtin-hydro"
+        ],
+        "items": [
+          {
+            "domain": "label",
+            "type": "city",
+            "id": "builtin:place:fixture:1",
+            "key": "label:city:builtin%3Aplace%3Afixture%3A1"
+          },
+          {
+            "domain": "hydro",
+            "type": "river",
+            "id": "builtin-hydro",
+            "key": "hydro:river:builtin-hydro"
+          }
+        ]
+      },
+      "hover": null
+    },
+    "stats": {
+      "selectionRevision": 8,
+      "selectionHoverRevision": 0,
+      "selectionMutationCount": 8,
+      "selectionNoOpCount": 1,
+      "selectionRenderInvalidationCount": 8
+    }
+  },
+  {
+    "operation": "map hover starts",
+    "snapshot": {
+      "revision": 8,
+      "hoverRevision": 1,
+      "projectGeneration": 1,
+      "selection": {
+        "primaryKey": "hydro:river:builtin-hydro",
+        "keys": [
+          "label:city:builtin%3Aplace%3Afixture%3A1",
+          "hydro:river:builtin-hydro"
+        ],
+        "items": [
+          {
+            "domain": "label",
+            "type": "city",
+            "id": "builtin:place:fixture:1",
+            "key": "label:city:builtin%3Aplace%3Afixture%3A1"
+          },
+          {
+            "domain": "hydro",
+            "type": "river",
+            "id": "builtin-hydro",
+            "key": "hydro:river:builtin-hydro"
+          }
+        ]
+      },
+      "hover": {
+        "domain": "hydro",
+        "type": "river",
+        "id": "builtin-hydro",
+        "key": "hydro:river:builtin-hydro"
+      }
+    },
+    "stats": {
+      "selectionRevision": 8,
+      "selectionHoverRevision": 1,
+      "selectionMutationCount": 9,
+      "selectionNoOpCount": 1,
+      "selectionRenderInvalidationCount": 9
+    }
+  },
+  {
+    "operation": "foreign source cannot clear hover",
+    "snapshot": {
+      "revision": 8,
+      "hoverRevision": 1,
+      "projectGeneration": 1,
+      "selection": {
+        "primaryKey": "hydro:river:builtin-hydro",
+        "keys": [
+          "label:city:builtin%3Aplace%3Afixture%3A1",
+          "hydro:river:builtin-hydro"
+        ],
+        "items": [
+          {
+            "domain": "label",
+            "type": "city",
+            "id": "builtin:place:fixture:1",
+            "key": "label:city:builtin%3Aplace%3Afixture%3A1"
+          },
+          {
+            "domain": "hydro",
+            "type": "river",
+            "id": "builtin-hydro",
+            "key": "hydro:river:builtin-hydro"
+          }
+        ]
+      },
+      "hover": {
+        "domain": "hydro",
+        "type": "river",
+        "id": "builtin-hydro",
+        "key": "hydro:river:builtin-hydro"
+      }
+    },
+    "stats": {
+      "selectionRevision": 8,
+      "selectionHoverRevision": 1,
+      "selectionMutationCount": 9,
+      "selectionNoOpCount": 1,
+      "selectionRenderInvalidationCount": 9
+    }
+  },
+  {
+    "operation": "same ref changes hover source without hover revision",
+    "snapshot": {
+      "revision": 8,
+      "hoverRevision": 1,
+      "projectGeneration": 1,
+      "selection": {
+        "primaryKey": "hydro:river:builtin-hydro",
+        "keys": [
+          "label:city:builtin%3Aplace%3Afixture%3A1",
+          "hydro:river:builtin-hydro"
+        ],
+        "items": [
+          {
+            "domain": "label",
+            "type": "city",
+            "id": "builtin:place:fixture:1",
+            "key": "label:city:builtin%3Aplace%3Afixture%3A1"
+          },
+          {
+            "domain": "hydro",
+            "type": "river",
+            "id": "builtin-hydro",
+            "key": "hydro:river:builtin-hydro"
+          }
+        ]
+      },
+      "hover": {
+        "domain": "hydro",
+        "type": "river",
+        "id": "builtin-hydro",
+        "key": "hydro:river:builtin-hydro"
+      }
+    },
+    "stats": {
+      "selectionRevision": 8,
+      "selectionHoverRevision": 1,
+      "selectionMutationCount": 9,
+      "selectionNoOpCount": 2,
+      "selectionRenderInvalidationCount": 9
+    }
+  },
+  {
+    "operation": "old source cannot clear same hover ref",
+    "snapshot": {
+      "revision": 8,
+      "hoverRevision": 1,
+      "projectGeneration": 1,
+      "selection": {
+        "primaryKey": "hydro:river:builtin-hydro",
+        "keys": [
+          "label:city:builtin%3Aplace%3Afixture%3A1",
+          "hydro:river:builtin-hydro"
+        ],
+        "items": [
+          {
+            "domain": "label",
+            "type": "city",
+            "id": "builtin:place:fixture:1",
+            "key": "label:city:builtin%3Aplace%3Afixture%3A1"
+          },
+          {
+            "domain": "hydro",
+            "type": "river",
+            "id": "builtin-hydro",
+            "key": "hydro:river:builtin-hydro"
+          }
+        ]
+      },
+      "hover": {
+        "domain": "hydro",
+        "type": "river",
+        "id": "builtin-hydro",
+        "key": "hydro:river:builtin-hydro"
+      }
+    },
+    "stats": {
+      "selectionRevision": 8,
+      "selectionHoverRevision": 1,
+      "selectionMutationCount": 9,
+      "selectionNoOpCount": 2,
+      "selectionRenderInvalidationCount": 9
+    }
+  },
+  {
+    "operation": "wrong expected key cannot clear hover",
+    "snapshot": {
+      "revision": 8,
+      "hoverRevision": 1,
+      "projectGeneration": 1,
+      "selection": {
+        "primaryKey": "hydro:river:builtin-hydro",
+        "keys": [
+          "label:city:builtin%3Aplace%3Afixture%3A1",
+          "hydro:river:builtin-hydro"
+        ],
+        "items": [
+          {
+            "domain": "label",
+            "type": "city",
+            "id": "builtin:place:fixture:1",
+            "key": "label:city:builtin%3Aplace%3Afixture%3A1"
+          },
+          {
+            "domain": "hydro",
+            "type": "river",
+            "id": "builtin-hydro",
+            "key": "hydro:river:builtin-hydro"
+          }
+        ]
+      },
+      "hover": {
+        "domain": "hydro",
+        "type": "river",
+        "id": "builtin-hydro",
+        "key": "hydro:river:builtin-hydro"
+      }
+    },
+    "stats": {
+      "selectionRevision": 8,
+      "selectionHoverRevision": 1,
+      "selectionMutationCount": 9,
+      "selectionNoOpCount": 2,
+      "selectionRenderInvalidationCount": 9
+    }
+  },
+  {
+    "operation": "matching source and key clears hover",
+    "snapshot": {
+      "revision": 8,
+      "hoverRevision": 2,
+      "projectGeneration": 1,
+      "selection": {
+        "primaryKey": "hydro:river:builtin-hydro",
+        "keys": [
+          "label:city:builtin%3Aplace%3Afixture%3A1",
+          "hydro:river:builtin-hydro"
+        ],
+        "items": [
+          {
+            "domain": "label",
+            "type": "city",
+            "id": "builtin:place:fixture:1",
+            "key": "label:city:builtin%3Aplace%3Afixture%3A1"
+          },
+          {
+            "domain": "hydro",
+            "type": "river",
+            "id": "builtin-hydro",
+            "key": "hydro:river:builtin-hydro"
+          }
+        ]
+      },
+      "hover": null
+    },
+    "stats": {
+      "selectionRevision": 8,
+      "selectionHoverRevision": 2,
+      "selectionMutationCount": 10,
+      "selectionNoOpCount": 2,
+      "selectionRenderInvalidationCount": 10
+    }
+  },
+  {
+    "operation": "invalid selection and hover are no-ops",
+    "snapshot": {
+      "revision": 8,
+      "hoverRevision": 2,
+      "projectGeneration": 1,
+      "selection": {
+        "primaryKey": "hydro:river:builtin-hydro",
+        "keys": [
+          "label:city:builtin%3Aplace%3Afixture%3A1",
+          "hydro:river:builtin-hydro"
+        ],
+        "items": [
+          {
+            "domain": "label",
+            "type": "city",
+            "id": "builtin:place:fixture:1",
+            "key": "label:city:builtin%3Aplace%3Afixture%3A1"
+          },
+          {
+            "domain": "hydro",
+            "type": "river",
+            "id": "builtin-hydro",
+            "key": "hydro:river:builtin-hydro"
+          }
+        ]
+      },
+      "hover": null
+    },
+    "stats": {
+      "selectionRevision": 8,
+      "selectionHoverRevision": 2,
+      "selectionMutationCount": 10,
+      "selectionNoOpCount": 4,
+      "selectionRenderInvalidationCount": 10
+    }
+  },
+  {
+    "operation": "remove by encoded public key",
+    "snapshot": {
+      "revision": 9,
+      "hoverRevision": 2,
+      "projectGeneration": 1,
+      "selection": {
+        "primaryKey": "hydro:river:builtin-hydro",
+        "keys": [
+          "hydro:river:builtin-hydro"
+        ],
+        "items": [
+          {
+            "domain": "hydro",
+            "type": "river",
+            "id": "builtin-hydro",
+            "key": "hydro:river:builtin-hydro"
+          }
+        ]
+      },
+      "hover": null
+    },
+    "stats": {
+      "selectionRevision": 9,
+      "selectionHoverRevision": 2,
+      "selectionMutationCount": 11,
+      "selectionNoOpCount": 4,
+      "selectionRenderInvalidationCount": 11
+    }
+  },
+  {
+    "operation": "clear removes selected items and anchors",
+    "snapshot": {
+      "revision": 10,
+      "hoverRevision": 2,
+      "projectGeneration": 1,
+      "selection": {
+        "primaryKey": null,
+        "keys": [],
+        "items": []
+      },
+      "hover": null
+    },
+    "stats": {
+      "selectionRevision": 10,
+      "selectionHoverRevision": 2,
+      "selectionMutationCount": 12,
+      "selectionNoOpCount": 4,
+      "selectionRenderInvalidationCount": 12
+    }
+  },
+  {
+    "operation": "empty clear is a no-op",
+    "snapshot": {
+      "revision": 10,
+      "hoverRevision": 2,
+      "projectGeneration": 1,
+      "selection": {
+        "primaryKey": null,
+        "keys": [],
+        "items": []
+      },
+      "hover": null
+    },
+    "stats": {
+      "selectionRevision": 10,
+      "selectionHoverRevision": 2,
+      "selectionMutationCount": 12,
+      "selectionNoOpCount": 5,
+      "selectionRenderInvalidationCount": 12
+    }
+  },
+  {
+    "operation": "range after clear uses target only",
+    "snapshot": {
+      "revision": 11,
+      "hoverRevision": 2,
+      "projectGeneration": 1,
+      "selection": {
+        "primaryKey": "territorial:entity:B",
+        "keys": [
+          "territorial:entity:B"
+        ],
+        "items": [
+          {
+            "domain": "territorial",
+            "type": "entity",
+            "id": "B",
+            "key": "territorial:entity:B"
+          }
+        ]
+      },
+      "hover": null
+    },
+    "stats": {
+      "selectionRevision": 11,
+      "selectionHoverRevision": 2,
+      "selectionMutationCount": 13,
+      "selectionNoOpCount": 5,
+      "selectionRenderInvalidationCount": 13
+    }
+  },
+  {
+    "operation": "captured label type stays part of selected reference",
+    "snapshot": {
+      "revision": 12,
+      "hoverRevision": 2,
+      "projectGeneration": 1,
+      "selection": {
+        "primaryKey": "label:capital:L",
+        "keys": [
+          "label:capital:L"
+        ],
+        "items": [
+          {
+            "domain": "label",
+            "type": "capital",
+            "id": "L",
+            "key": "label:capital:L"
+          }
+        ]
+      },
+      "hover": null
+    },
+    "stats": {
+      "selectionRevision": 12,
+      "selectionHoverRevision": 2,
+      "selectionMutationCount": 14,
+      "selectionNoOpCount": 5,
+      "selectionRenderInvalidationCount": 14
+    }
+  },
+  {
+    "operation": "newly selected label kind changes its public key",
+    "snapshot": {
+      "revision": 13,
+      "hoverRevision": 2,
+      "projectGeneration": 1,
+      "selection": {
+        "primaryKey": "label:city:L",
+        "keys": [
+          "label:city:L"
+        ],
+        "items": [
+          {
+            "domain": "label",
+            "type": "city",
+            "id": "L",
+            "key": "label:city:L"
+          }
+        ]
+      },
+      "hover": null
+    },
+    "stats": {
+      "selectionRevision": 13,
+      "selectionHoverRevision": 2,
+      "selectionMutationCount": 15,
+      "selectionNoOpCount": 5,
+      "selectionRenderInvalidationCount": 15
+    }
+  },
+  {
+    "operation": "project reset starts with active hover",
+    "snapshot": {
+      "revision": 13,
+      "hoverRevision": 3,
+      "projectGeneration": 1,
+      "selection": {
+        "primaryKey": "label:city:L",
+        "keys": [
+          "label:city:L"
+        ],
+        "items": [
+          {
+            "domain": "label",
+            "type": "city",
+            "id": "L",
+            "key": "label:city:L"
+          }
+        ]
+      },
+      "hover": {
+        "domain": "label",
+        "type": "city",
+        "id": "builtin:place:fixture:1",
+        "key": "label:city:builtin%3Aplace%3Afixture%3A1"
+      }
+    },
+    "stats": {
+      "selectionRevision": 13,
+      "selectionHoverRevision": 3,
+      "selectionMutationCount": 16,
+      "selectionNoOpCount": 5,
+      "selectionRenderInvalidationCount": 16
+    }
+  },
+  {
+    "operation": "project reset clears selection and hover independently of document undo",
+    "snapshot": {
+      "revision": 14,
+      "hoverRevision": 4,
+      "projectGeneration": 2,
+      "selection": {
+        "primaryKey": null,
+        "keys": [],
+        "items": []
+      },
+      "hover": null
+    },
+    "stats": {
+      "selectionRevision": 14,
+      "selectionHoverRevision": 4,
+      "selectionMutationCount": 17,
+      "selectionNoOpCount": 5,
+      "selectionRenderInvalidationCount": 17
+    }
+  },
+  {
+    "operation": "empty selection anchor quirk starts with scoped toggle",
+    "snapshot": {
+      "revision": 15,
+      "hoverRevision": 4,
+      "projectGeneration": 2,
+      "selection": {
+        "primaryKey": "territorial:entity:A",
+        "keys": [
+          "territorial:entity:A"
+        ],
+        "items": [
+          {
+            "domain": "territorial",
+            "type": "entity",
+            "id": "A",
+            "key": "territorial:entity:A"
+          }
+        ]
+      },
+      "hover": null
+    },
+    "stats": {
+      "selectionRevision": 15,
+      "selectionHoverRevision": 4,
+      "selectionMutationCount": 18,
+      "selectionNoOpCount": 5,
+      "selectionRenderInvalidationCount": 18
+    }
+  },
+  {
+    "operation": "scoped toggle removes the last item but retains its range anchor",
+    "snapshot": {
+      "revision": 16,
+      "hoverRevision": 4,
+      "projectGeneration": 2,
+      "selection": {
+        "primaryKey": null,
+        "keys": [],
+        "items": []
+      },
+      "hover": null
+    },
+    "stats": {
+      "selectionRevision": 16,
+      "selectionHoverRevision": 4,
+      "selectionMutationCount": 19,
+      "selectionNoOpCount": 5,
+      "selectionRenderInvalidationCount": 19
+    }
+  },
+  {
+    "operation": "empty clear early return retains the old range anchor",
+    "snapshot": {
+      "revision": 16,
+      "hoverRevision": 4,
+      "projectGeneration": 2,
+      "selection": {
+        "primaryKey": null,
+        "keys": [],
+        "items": []
+      },
+      "hover": null
+    },
+    "stats": {
+      "selectionRevision": 16,
+      "selectionHoverRevision": 4,
+      "selectionMutationCount": 19,
+      "selectionNoOpCount": 6,
+      "selectionRenderInvalidationCount": 19
+    }
+  },
+  {
+    "operation": "empty resetProject also retains the old range anchor",
+    "snapshot": {
+      "revision": 16,
+      "hoverRevision": 4,
+      "projectGeneration": 3,
+      "selection": {
+        "primaryKey": null,
+        "keys": [],
+        "items": []
+      },
+      "hover": null
+    },
+    "stats": {
+      "selectionRevision": 16,
+      "selectionHoverRevision": 4,
+      "selectionMutationCount": 20,
+      "selectionNoOpCount": 6,
+      "selectionRenderInvalidationCount": 20
+    }
+  },
+  {
+    "operation": "range after empty reset still includes the old anchor",
+    "snapshot": {
+      "revision": 17,
+      "hoverRevision": 4,
+      "projectGeneration": 3,
+      "selection": {
+        "primaryKey": "territorial:entity:B",
+        "keys": [
+          "territorial:entity:A",
+          "territorial:entity:B"
+        ],
+        "items": [
+          {
+            "domain": "territorial",
+            "type": "entity",
+            "id": "A",
+            "key": "territorial:entity:A"
+          },
+          {
+            "domain": "territorial",
+            "type": "entity",
+            "id": "B",
+            "key": "territorial:entity:B"
+          }
+        ]
+      },
+      "hover": null
+    },
+    "stats": {
+      "selectionRevision": 17,
+      "selectionHoverRevision": 4,
+      "selectionMutationCount": 21,
+      "selectionNoOpCount": 6,
+      "selectionRenderInvalidationCount": 21
+    }
+  }
+]

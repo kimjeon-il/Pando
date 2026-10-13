@@ -1,4 +1,3 @@
-import { createDocumentMutationRunner } from './document-mutation-runner.js';
 import {
   SOURCE_KINDS,
   normalizeSourceProvenance,
@@ -127,57 +126,60 @@ export function normalizeGenericFeatureCollection(genericFeatures, { cloneFeatur
   return output;
 }
 
-function applyGenericMetadata(feature, field, value, writeColor) {
-  if (field === 'color') writeColor(feature, value);
-  else if (field === 'source') feature.properties.source = normalizeSourceProvenance(value, { kind: SOURCE_KINDS.UNSUPPORTED });
-  else if (['name', 'notes', 'locked'].includes(field)) feature.properties[field] = field === 'locked' ? value === true : text(value);
-  else throw new Error(`기타 객체에 지원하지 않는 필드 ${field}가 있습니다.`);
-}
-
-export function createGenericFeatureService({ documentStore, commandPipeline, writeColor }) {
-  const mutateDocument = createDocumentMutationRunner({ commandPipeline });
-  const genericFeatures = () => documentStore.readFeatures();
+export function createGenericFeatureService({ documentModel, commandOwner } = {}) {
+  if (typeof documentModel?.list !== 'function') throw new TypeError('The accepted Core document read model is required.');
+  if (typeof commandOwner?.executeCommand !== 'function') throw new TypeError('The Core document command owner is required.');
+  const genericFeatures = () => documentModel.list('generic');
   const get = id => genericFeatures().find(feature => text(feature.id) === text(id)) || null;
-
-  function add(feature) {
-    const normalized = normalizeGenericFeatureSemantics(clone(feature));
-    if (get(normalized.id)) throw new Error(`기타 객체 ID가 중복되었습니다: ${normalized.id}`);
-    mutateDocument({ type: 'generic-feature-create', affectedIds: [text(normalized.id)] }, () => {
-      documentStore.replaceFeatures(normalizeGenericFeatureCollection([...genericFeatures(), normalized]));
-    }, { renderDirty: { domain: 'generic', change: 'geometry' } });
-    return get(normalized.id);
-  }
-
-  function addMany(features) {
-    const normalized = normalizeGenericFeatureCollection(features);
-    mutateDocument({ type: 'generic-feature-import', affectedIds: normalized.map(feature => text(feature.id)) }, () => {
-      documentStore.replaceFeatures(normalizeGenericFeatureCollection([...genericFeatures(), ...normalized]));
-    }, { renderDirty: { domain: 'generic', change: 'structure' } });
-    return normalized.map(feature => get(feature.id));
-  }
-
-  function updateMetadata(id, field, value) {
-    const current = get(id);
-    if (!current) return { ok: false, code: 'not-found' };
-    const candidate = clone(current);
-    applyGenericMetadata(candidate, field, value, writeColor);
-    if (JSON.stringify(candidate.properties) === JSON.stringify(current.properties)) {
-      return { ok: true, changed: false, feature: current };
+  const ref = id => ({ domain: 'generic', id: String(id ?? '') });
+  const failure = result => Object.assign(new Error(result.error.message), result.error);
+  async function execute(commandId, targets, payload) {
+    const result = await commandOwner.executeCommand({ commandId, targets, payload: structuredClone(payload) });
+    if (typeof result?.ok !== 'boolean' || typeof result.changed !== 'boolean'
+      || (!result.ok && (typeof result.error?.code !== 'string' || typeof result.error?.message !== 'string'))) {
+      throw Object.assign(new Error('A complete Core command acknowledgement is required.'), { code: 'PL-CORE-RESPONSE' });
     }
-    mutateDocument({ type: 'generic-feature-metadata', affectedIds: [text(current.id)] }, () => {
-      applyGenericMetadata(current, field, value, writeColor);
-    }, { renderDirty: { domain: 'generic', change: 'metadata' } });
-    return { ok: true, changed: true, feature: current };
+    return result;
   }
-
-  function remove(id, { beforeRemove = () => {} } = {}) {
+  function accepted(result, side, id) {
+    const rows = result[side]?.genericFeatures;
+    if (!Array.isArray(rows)) throw Object.assign(new Error('The accepted Core operation projection is required.'), { code: 'PL-CORE-RESPONSE' });
+    const feature = rows.find(feature => text(feature.id) === text(id));
+    if (!feature) throw Object.assign(new Error(`The accepted generic feature is missing from the read model: ${id}`), { code: 'PL-CORE-RESPONSE' });
+    return feature;
+  }
+  async function add(feature) {
+    const target = ref(feature?.id);
+    const result = await execute('generic.create', [target], { feature });
+    if (!result.ok) throw failure(result);
+    return accepted(result, 'after', target.id);
+  }
+  async function addMany(features) {
+    const ids = Array.isArray(features) ? features.map(feature => feature?.id) : [];
+    const result = await execute('generic.import', ids.map(ref), { features });
+    if (!result.ok) throw failure(result);
+    return ids.map(id => accepted(result, 'after', id));
+  }
+  async function updateMetadata(id, field, value) {
+    const current = get(id);
+    const target = current?.id ?? text(id);
+    const result = await execute('generic.metadata', [ref(target)], { id: target, field, value });
+    if (!result.ok) {
+      if (result.error.code === 'not-found') return { ok: false, code: 'not-found' };
+      if (result.error.code === 'unsupported-field') throw new Error(result.error.message, { cause: failure(result) });
+      throw failure(result);
+    }
+    return { ok: true, changed: result.changed, feature: accepted(result, 'after', target) };
+  }
+  async function remove(id) {
     const feature = get(id);
-    if (!feature) return { ok: false, code: 'not-found' };
-    mutateDocument({ type: 'generic-feature-delete', affectedIds: [text(feature.id)] }, () => {
-      beforeRemove(feature);
-      documentStore.replaceFeatures(genericFeatures().filter(candidate => text(candidate.id) !== text(feature.id)));
-    }, { renderDirty: { domain: 'generic', change: 'structure' } });
-    return { ok: true, feature };
+    const target = feature?.id ?? text(id);
+    const result = await execute('generic.remove', [ref(target)], { id: target });
+    if (!result.ok) {
+      if (result.error.code === 'not-found') return { ok: false, code: 'not-found' };
+      throw failure(result);
+    }
+    return { ok: true, feature: accepted(result, 'before', target) };
   }
 
   return Object.freeze({ get, list: () => genericFeatures(), add, addMany, updateMetadata, remove });

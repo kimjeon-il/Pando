@@ -21,8 +21,17 @@ int main(int argc,char** argv) {
     document.genericFeatures.push_back({"P","Point",{}, {"point",1}});
     pandoeditor::validateDocument(document);
     MapProjection projection;projection.rebuild(document);
-    if(projection.paths.size()!=2||projection.width<=0||projection.height<=0)
+    if(projection.objects.size()!=2||projection.width<=0||projection.height<=0)
         throw std::runtime_error("bounds-only view path or geometry lifetime");
+    for(const auto& row:projection.objects)if(!row.toMap().value("path").toString().isEmpty())
+        throw std::runtime_error("startup projection eagerly formats SVG vertices");
+    const auto lightweight=projection.objects;
+    projection.rebuild(document,{},ProjectionContent::SvgPreview);
+    if(projection.objects.front().toMap().value("path").toString()!=QStringLiteral("M0 10 L2 10 L2 8 L0 8 L0 10 Z "))
+        throw std::runtime_error("requested SVG preview changed vertex order or coordinates");
+    for(int i=0;i<lightweight.size();++i)for(const auto* key:{"countryId","left","top","width","height"})
+        if(lightweight[i].toMap().value(key)!=projection.objects[i].toMap().value(key))
+            throw std::runtime_error("lightweight bounds differ from SVG preview bounds");
 
     pandoeditor::ProjectDocument regional;regional.documentId="regional-projection";
     regional.geometries.insert({"regional",1},{"Polygon",{},{},{{{{12,50},{16,50},{16,54},{12,54},{12,50}}}}});

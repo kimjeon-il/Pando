@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { readFile, writeFile } from 'node:fs/promises';
-import { productionGeoPackage } from '../helpers/production-geopackage.mjs';
+import { productionGeoPackage,coreFileProjection } from '../helpers/production-geopackage.mjs';
 import { boundaryDragCommitEvidence } from '../helpers/boundary-drag-commit.mjs';
 import { assertCurrentProjectSchema } from '../../assets/js/modules/project-state.js';
 import { defaultUserPreferences, STORAGE_KEY } from '../../assets/js/modules/user-preferences.js';
@@ -297,7 +297,8 @@ const snapshot = (page, evaluate = read => page.evaluate(read)) => evaluate(() =
 
 async function loadProjectFile(page, project, name) {
   assertCurrentProjectSchema(project);
-  const file = await productionGeoPackage('write', new ArrayBuffer(0), project);
+  const receipt=await coreFileProjection(project);
+  const file = await productionGeoPackage('write',new ArrayBuffer(0),receipt.project,receipt.spatialState);
   const path = test.info().outputPath(`${name}-input.gpkg`);
   await writeFile(path, new Uint8Array(file.buffer));
   await page.locator('#mobileFileBtn').click();

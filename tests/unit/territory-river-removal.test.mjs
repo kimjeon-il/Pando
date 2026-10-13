@@ -11,14 +11,14 @@ const bands = [0, 2, 4].map(y => [[0, y], [10, y], [10, y + 2], [0, y + 2]]);
 async function start(t, drafts) {
   const h = createSelectionRuntime(api, { riverFeatures });
   t.after(() => h.workflow.clear());
-  h.workflow.start('annex', { targetCountryId: 'target', sourceCountryIds: ['donor'] });
+  await h.workflow.start('annex', { targetCountryId: 'target', sourceCountryIds: ['donor'] });
   assert.equal(await h.workflow.advance(), true);
   for (const coordinates of drafts) {
     assert.equal(await h.workflow.selectMethod('polygon'), true);
     h.setDraft(coordinates);
-    assert.equal(h.workflow.finishDraft(), true);
+    assert.equal(await h.workflow.finishDraft(), true);
     await settle(h);
-    assert.equal(h.workflow.addPart(), true);
+    assert.equal(await h.workflow.addPart(), true);
     await settle(h);
   }
   assert.equal(await h.workflow.selectMethod('components'), true);
@@ -115,7 +115,7 @@ for (const action of ['clear', 'method change']) {
     };
     assert.equal(h.workflow.removePart(current.parts[1].id), true);
     await waitFor(() => started);
-    if (action === 'clear') h.workflow.clear();
+    if (action === 'clear') await h.workflow.clear();
     else assert.equal(await h.workflow.selectMethod('polygon'), true);
     release();
     await settle(h);
@@ -152,7 +152,7 @@ for (const drafts of [bands, bands.slice(0, 1)]) {
     };
     assert.equal(h.workflow.removePart(current.parts[removedIndex].id), true);
     await waitFor(() => started);
-    assert.equal(h.workflow.back(), true);
+    assert.equal(await h.workflow.back(), true);
     assert.equal(current.stage, 'setup');
     release();
     // Let the already-started real river operation return while setup owns the workflow.
@@ -171,7 +171,7 @@ test('Back before the final removal timer starts still restores the full compone
   const expected = await start(t, []);
   const current = h.workflow.activeSession();
   assert.equal(h.workflow.removePart(current.parts[0].id), true);
-  assert.equal(h.workflow.back(), true);
+  assert.equal(await h.workflow.back(), true);
   assert.equal(current.stage, 'setup');
   assert.equal(await h.workflow.advance(), true);
   await settle(h);
@@ -185,7 +185,7 @@ test('removing the last archived river component restores the original cached pa
   const item = h.components.territoryComponentItems().find(candidate => candidate.usesRiverBoundary);
   h.workflow.toggleComponent(item.key);
   await settle(h);
-  assert.equal(h.workflow.addPart(), true);
+  assert.equal(await h.workflow.addPart(), true);
   await settle(h);
   assert.equal(current.parts.length, 1);
   assert.equal(current.componentSnapshots.length, 1);
@@ -208,7 +208,7 @@ test('removing a middle river component from a fully archived donor preserves th
   assert.equal(items.length, 3);
   for (const item of items) h.workflow.toggleComponent(item.key);
   await settle(h);
-  assert.equal(h.workflow.addPart(), true);
+  assert.equal(await h.workflow.addPart(), true);
   await settle(h);
   const parts = structuredClone(current.parts);
   const snapshots = structuredClone(current.componentSnapshots);
@@ -223,7 +223,7 @@ test('removing a middle river component from a fully archived donor preserves th
     expected.workflow.toggleComponent(item.key);
   }
   await settle(expected);
-  assert.equal(expected.workflow.addPart(), true);
+  assert.equal(await expected.workflow.addPart(), true);
   await settle(expected);
   assert.equal(await expected.workflow.selectMethod('components'), true);
   expected.workflow.toggleRiverBoundaries(true);

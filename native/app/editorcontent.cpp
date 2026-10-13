@@ -15,22 +15,23 @@ namespace { QString q(const std::string& s){return QString::fromStdString(s);} }
 bool EditorController::copyBuiltinHydro() {
     if(hydroCopyBusy_||hasPendingEdits()||jobBusy()||hasWebImportPreview())return false;
     const auto selected=selection_.primary();
-    if(!selected||selected->domain!="hydroBuiltin"||!objectVisible(*selected))return false;
+    if(!selected||selected->domain!="hydroBuiltin"||!objectVisible(asObjectRef(*selected)))return false;
     const auto record=hydroRuntime_.recordById(q(selected->id));
     if(!record||!hydroRuntime_.pinLogical(record->logicalFid))return false;
     auto job=hydroRuntime_.logicalGeometryJob(record->logicalFid);
     if(!job){hydroRuntime_.clearPinned();return false;}
     const auto revision=project_.revision();
     const auto instance=project_.instanceId();
+    const auto epoch=coreEpoch();
     const auto source=project_.document().physicalData;
     const auto original=*selected;
     using Result=std::pair<std::optional<HydroLogicalCopy>,QString>;
     auto* watcher=new QFutureWatcher<Result>(this);
     hydroCopyBusy_=true;emit contentEditChanged();
-    connect(watcher,&QFutureWatcher<Result>::finished,this,[this,watcher,revision,instance,source,original,record]{
+    connect(watcher,&QFutureWatcher<Result>::finished,this,[this,watcher,revision,instance,epoch,source,original,record]{
         const auto result=watcher->result();watcher->deleteLater();
         hydroRuntime_.clearPinned();hydroCopyBusy_=false;emit contentEditChanged();
-        if(project_.revision()!=revision||project_.instanceId()!=instance||
+        if(coreEpoch()!=epoch||project_.revision()!=revision||project_.instanceId()!=instance||
            project_.document().physicalData.source!=source.source||
            !selection_.primary()||!(*selection_.primary()==original))return;
         if(!result.first){emit errorOccurred(result.second);return;}
@@ -44,12 +45,10 @@ bool EditorController::copyBuiltinHydro() {
             copy.sourceFeatureId=original.id;
             ContentEdit edit;edit.target={"hydro",id};edit.value=copy;edit.create=true;
             edit.geometry=std::make_pair(geometryRef,std::move(result.first->geometry));
-            CommandArguments args;args.action=std::move(edit);
-            const auto request=CommandProcessor::makeRequest(project_,"content.edit",args);
-            auto prepared=CommandProcessor::prepare(project_,request);
+            auto prepared=prepareCoreRequest(coreContentRequest(edit));
             if(!prepared.ok()||!prepared.preview){emit errorOccurred(QString::fromStdString(prepared.detail));return;}
             MapProjection next;next.rebuild(prepared.preview->change().after());
-            const auto committed=CommandProcessor::confirm(project_,*prepared.preview);
+            const auto committed=confirmCorePreview(*prepared.preview,epoch);
             if(!committed.ok()){emit errorOccurred(QString::fromStdString(commandErrorCode(committed.error)));return;}
             noteAppliedImpact(committed.impact);
             projection_=std::move(next);publish(false);emit geometryChanged();
@@ -89,7 +88,7 @@ bool EditorController::beginContentEdit(const QString& domain,const QString& typ
     if(contentSession_||hasPendingEdits()||structureDialogOpen()||jobBusy()||hasWebImportPreview()) return false;
     ContentEdit edit; edit.create=create;
     if(create) edit.target={domain.toStdString(),QUuid::createUuid().toString(QUuid::WithoutBraces).toStdString()};
-    else {const auto ref=selection_.primary();if(!ref||ref->domain=="placeBuiltin"||ref->domain!=domain.toStdString())return false;edit.target=*ref;}
+    else {const auto ref=primaryObjectRef();if(!ref||ref->domain=="placeBuiltin"||ref->domain!=domain.toStdString())return false;edit.target=*ref;}
     const auto& d=project_.document(); const auto found=project_.index().objects.find(edit.target);
     const auto i=found==project_.index().objects.end()?0:found->second;
     if(domain=="label") {PlaceLabel v=create?PlaceLabel{}:d.labels.at(i);v.id=edit.target.id;if(create)v.kind=type.isEmpty()?"custom":type.toStdString();edit.value=v;}
@@ -106,7 +105,7 @@ bool EditorController::beginContentEdit(const QString& domain,const QString& typ
         hydro->sourceFeatureId=hydro->id;hydro->source.kind="user";hydro->locked=false;
         hydro->id=QUuid::createUuid().toString(QUuid::WithoutBraces).toStdString();edit.target.id=hydro->id;edit.create=true;
     }
-    contentSession_=ContentSession{project_.snapshot(),std::move(edit),{},QString{}};
+    contentSession_=ContentSession{project_.snapshot(),std::move(edit),{},QString{}};contentSession_->epoch=coreEpoch();
     emit contentEditChanged();emit draftsChanged();emit dirtyChanged();return true;
 }
 namespace {
@@ -161,11 +160,19 @@ ContentValue storedContentValue(const ProjectSnapshot& snapshot,const ContentEdi
 }
 bool EditorController::updateContentField(const QString& field,const QVariant& input) {
     if(!contentSession_||contentSession_->preview||geometryEdit_)return false;
-    auto next=contentSession_->edit.value;if(!updateContentValue(next,field,input))return false;
+    // Qt keeps the user's raw input until acknowledgement. Numeric display
+    // proposals use the same current Web coercion as the committed command.
+    auto display=input;const auto raw=coreInputValue(input);
+    if(field=="value"||field=="valueMin"||field=="valueMax") {
+        const auto number=webCommandNumber(raw);if(!number)return false;display=*number;
+    } else if(field=="locked")display=raw.kind==codecjson::Value::Bool&&raw.raw=="true";
+    auto next=contentSession_->edit.value;if(!updateContentValue(next,field,display))return false;
     contentSession_->edit.value=std::move(next);contentSession_->pendingFields.insert(field.toStdString());
+    contentSession_->inputs[field.toStdString()]=input;
     contentSession_->error.clear();emit contentEditChanged();emit dirtyChanged();return true;
 }
-bool EditorController::commitContentField(const QString& field) {
+bool EditorController::commitContentField(const QString& field) try
+{
     if(!contentSession_||contentSession_->edit.create||contentSession_->preview||geometryEdit_)return false;
     auto& s=*contentSession_;if(!s.base.matches(project_))return false;
     const bool scale=field=="valueScaleMode"||field=="valueMin"||field=="valueMax";
@@ -175,24 +182,43 @@ bool EditorController::commitContentField(const QString& field) {
     if(scale)std::get<DistributionLayer>(edit.value).valueScale=std::get<DistributionLayer>(s.edit.value).valueScale;
     else if(field=="flagSource")edit.value=s.edit.value;
     else if(!updateContentValue(edit.value,field,contentEditState().value(field)))return false;
-    CommandArguments args;args.action=edit;
-    auto result=CommandProcessor::prepare(project_,CommandProcessor::makeRequest(project_,"content.edit",args));
+    auto result=[&]() {
+        if(s.edit.target.domain=="generic"||s.edit.target.domain=="distributionLayer"||
+           (s.edit.target.domain=="distributionEntry"&&field=="value")||
+           (s.edit.target.domain=="hydro"&&(field=="name"||field=="notes"||field=="locked"||field=="color"))) {
+            using V=codecjson::Value;auto payload=V::obj();payload.object["id"]=V::str(s.edit.target.id);
+            const auto operation=s.edit.target.domain=="generic"?"generic.metadata":s.edit.target.domain=="distributionLayer"?"distribution.layer.metadata":
+                s.edit.target.domain=="distributionEntry"?"distribution.entry.value":"hydro.metadata";
+            payload.object["field"]=V::str(scale?"valueScale":s.edit.target.domain=="hydro"&&field=="color"?"editorColor":field.toStdString());
+            if(scale) {
+                const auto& value=std::get<DistributionLayer>(s.edit.value).valueScale;auto raw=V::obj();
+                raw.object["mode"]=V::str(value.manual?"manual":"auto");raw.object["min"]=V::num(value.min);raw.object["max"]=V::num(value.max);
+                for(const auto* name:{"valueMin","valueMax"})if(s.inputs.count(name))raw.object[name==std::string("valueMin")?"min":"max"]=coreInputValue(s.inputs.at(name));
+                if(s.inputs.count("valueScaleMode"))raw.object["mode"]=coreInputValue(s.inputs.at("valueScaleMode"));
+                payload.object["value"]=std::move(raw);
+            } else payload.object["value"]=coreInputValue(s.inputs.count(field.toStdString())?s.inputs.at(field.toStdString()):contentEditState().value(field));
+            return prepareCoreRequest(readWebContentCommand(project_.snapshot(),operation,payload,ContentIdentityPolicy::NativeExact));
+        }
+        return prepareCoreRequest(coreContentRequest(edit));
+    }();
     if(!result.ok()){s.error=q(result.detail.empty()?commandErrorCode(result.error):result.detail);emit contentEditChanged();return false;}
     if(result.preview) {
-        const auto committed=CommandProcessor::confirm(project_,*result.preview);
+        const auto committed=confirmCorePreview(*result.preview,s.epoch);
         if(!committed.ok()){s.error=q(commandErrorCode(committed.error));emit contentEditChanged();return false;}
         noteAppliedImpact(committed.impact);
     }
-    s.base=project_.snapshot();s.error.clear();
+    s.base=project_.snapshot();s.epoch=coreEpoch();s.error.clear();
     if(scale){s.pendingFields.erase("valueScaleMode");s.pendingFields.erase("valueMin");s.pendingFields.erase("valueMax");}
     else s.pendingFields.erase(field.toStdString());
+    if(scale){s.inputs.erase("valueScaleMode");s.inputs.erase("valueMin");s.inputs.erase("valueMax");}else s.inputs.erase(field.toStdString());
     if(s.pendingFields.empty())s.edit.value=storedContentValue(s.base,s.edit);
     publish(false);emit contentEditChanged();return true;
-}
+} catch(const std::exception& error) {if(contentSession_){contentSession_->error=QString::fromUtf8(error.what());emit contentEditChanged();}emit errorOccurred("CONTENT_FIELD_FAILED: "+QString::fromUtf8(error.what()));return false;}
+
 void EditorController::refreshContentSession() {
     if(!contentSession_||contentSession_->edit.create||contentSession_->preview||!contentSession_->pendingFields.empty()||geometryEdit_)return;
     if(!project_.index().objects.count(contentSession_->edit.target)){contentSession_.reset();emit contentEditChanged();return;}
-    contentSession_->base=project_.snapshot();contentSession_->edit.value=storedContentValue(contentSession_->base,contentSession_->edit);
+    contentSession_->base=project_.snapshot();contentSession_->epoch=coreEpoch();contentSession_->edit.value=storedContentValue(contentSession_->base,contentSession_->edit);
     emit contentEditChanged();
 }
 QVariantList EditorController::flagLibrary() const {
@@ -218,7 +244,7 @@ bool EditorController::loadContentFlag(const QUrl& url) {
     const auto mime=QMimeDatabase().mimeTypeForData(bytes).name();
     if(!mime.startsWith("image/"))return false;
     const auto dataUrl="data:"+mime.toLatin1()+";base64,"+bytes.toBase64();
-    try{projectcodec::validateFlagDataUrl(dataUrl.toStdString());}
+    try{::projectcodec::validateFlagDataUrl(dataUrl.toStdString());}
     catch(const std::invalid_argument&){return false;}
     auto& symbol=std::get<TerritorialSymbolStyle>(contentSession_->edit.value);
     symbol.policy=FlagPolicy::Embedded;symbol.embeddedDataUrl=dataUrl.toStdString();
@@ -234,24 +260,25 @@ bool EditorController::beginContentGeometry() {
     else if(ref) draft=*s.base.document().geometries.get(*ref);
     else if(const auto hydro=std::get_if<HydroFeature>(&s.edit.value);hydro&&s.base.document().geometries.get(hydro->geometry))draft=*s.base.document().geometries.get(hydro->geometry);
     const bool empty=draft.points.empty()&&draft.lines.empty()&&draft.polygons.empty();
-    geometryEdit_=GeometryEditSession{s.base,s.edit.target,draft,empty?QStringLiteral("draw"):QStringLiteral("edit"),{}};
+    geometryEdit_=GeometryEditSession{coreSession_,s.base,s.edit.target,draft,empty?QStringLiteral("draw"):QStringLiteral("edit"),{}};geometryEdit_->epoch=coreEpoch();
     geometryEdit_->content=true;emit geometryEditChanged();emit contentEditChanged();return true;
 }
-bool EditorController::previewContentEdit(bool remove) {
+bool EditorController::previewContentEdit(bool remove) try
+{
     if(!contentSession_||contentSession_->preview||geometryEdit_)return false;
     auto& s=*contentSession_; if(!s.base.matches(project_)){s.error="문서가 변경되었습니다. 취소 후 다시 편집하세요.";emit contentEditChanged();return false;}
     auto edit=s.edit;if(remove){edit.value=std::monostate{};edit.geometry.reset();edit.create=false;}
-    CommandArguments args;args.action=edit;auto request=CommandProcessor::makeRequest(project_,"content.edit",args);
-    auto result=CommandProcessor::prepare(project_,request);
+    auto result=prepareCoreRequest(coreContentRequest(edit));
     if(!result.ok()||!result.preview){s.error=QString::fromStdString(result.detail.empty()?commandErrorCode(result.error):result.detail);emit contentEditChanged();return false;}
     s.preview=std::move(result.preview);emit contentEditChanged();return true;
-}
+} catch(const std::exception& error) {if(contentSession_){contentSession_->error=QString::fromUtf8(error.what());emit contentEditChanged();}emit errorOccurred("CONTENT_PREVIEW_FAILED: "+QString::fromUtf8(error.what()));return false;}
+
 bool EditorController::confirmContentEdit() {
     if(!contentSession_||!contentSession_->preview)return false;
     MapProjection next;try{next.rebuild(contentSession_->preview->change().after());}catch(...){return false;}
-    auto result=CommandProcessor::confirm(project_,*contentSession_->preview);
+    auto result=confirmCorePreview(*contentSession_->preview,contentSession_->epoch);
     if(!result.ok()){contentSession_->preview.reset();contentSession_->error=q(commandErrorCode(result.error));emit contentEditChanged();return false;}
     noteAppliedImpact(result.impact);
-    projection_=std::move(next);contentSession_.reset();hover_.reset();++hoverRevision_;publish(false);emit geometryChanged();emit contentEditChanged();return true;
+    projection_=std::move(next);contentSession_.reset();coreSession_.selection().setHover({});publish(false);emit geometryChanged();emit contentEditChanged();return true;
 }
 void EditorController::cancelContentEdit(){if(geometryEdit_&&geometryEdit_->content)cancelGeometryEdit();contentSession_.reset();emit contentEditChanged();emit draftsChanged();emit dirtyChanged();}

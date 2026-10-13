@@ -6,7 +6,7 @@ import { createRenderingDomain } from '../../assets/js/modules/rendering-domain.
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
 import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
 import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
-import { initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
+import { testCoreProject, initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { buildCountrySharedBoundarySegments } from '../../assets/js/modules/boundary-topology.js';
@@ -40,7 +40,7 @@ test('production theme applies effective country opacity once to shared and nati
   } finally { globalThis.document = previousDocument; }
 });
 
-test('pending country packet preserves the production theme opacity until native handoff', () => {
+test('pending country packet preserves the production theme opacity until native handoff', async () => {
   const previousDocument = globalThis.document;
   let rendering;
   try {
@@ -49,8 +49,8 @@ test('pending country packet preserves the production theme opacity until native
     const state = { territorialEntities: [entity], physicalSettings: { terrainVisible: false },
       pendingCountryRenderIds: new Set(['LEFT']), layerVisibility: { countries: true },
       layerPresentation: normalizeLayerPresentation({ styles: { countries: { opacity: 0.5 } } }) };
-    initializeTestTerritorialState(state);
-    const store = createTerritorialEntityStore({ getState: () => state });
+    await initializeTestTerritorialState(state);
+    const store = createTerritorialEntityStore({ documentModel:testCoreProject(state).documentModel,commandOwner:testCoreProject(state).client });
     const repo = createTerritorialEntityRepository({ entityStore: store });
     const env = createEnvironment(); env.connect({ projectState: { state }, applicationServicesB: { layerStyle } });
     let actual; const frames = [];

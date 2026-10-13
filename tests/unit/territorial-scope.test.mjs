@@ -1,4 +1,4 @@
-import { initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
+import { executeTerritorialTestCommand, testCoreProject, initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import '../../assets/js/vendor/polygon-clipping.min.js';
@@ -9,11 +9,11 @@ import { createTerritorialFeature } from '../../assets/js/modules/territorial-un
 import { hasCanonicalPolygonWinding, area } from '../../assets/js/modules/map-edit-geometry.js';
 const square = (x0, x1) => ({ type: 'Polygon', coordinates: [[[x0,0],[x0,2],[x1,2],[x1,0],[x0,0]]] });
 
-test('every general hierarchy level has an immutable canonical display extent; independent regions retain their own shape', () => {
+test('every general hierarchy level has an immutable canonical display extent; independent regions retain their own shape', async () => {
   const make = (id, parentId, x0, x1, entityKind = 'general') => createTerritorialFeature({ id, entityKind, parentId, geometry: square(x0,x1) });
   const state = { territorialEntities: [make('A','',0,2),make('B','A',1,3),make('C','B',2,4),make('D','',5,7),make('R','',0,10,'regional')] };
-  initializeTestTerritorialState(state);
-const store = createTerritorialEntityStore({ getState: () => state });
+  await initializeTestTerritorialState(state);
+const store = createTerritorialEntityStore({ documentModel:testCoreProject(state).documentModel,commandOwner:testCoreProject(state).client });
   const repo = createTerritorialEntityRepository({ entityStore: store });
   const scope = createTerritorialScopeResolver({ entityRepository: repo, getState: () => state, clipper: () => globalThis.polygonClipping });
   const before = structuredClone(state.territorialEntities);
@@ -29,7 +29,7 @@ const store = createTerritorialEntityStore({ getState: () => state });
   assert.strictEqual(region.extent, repo.get('R'));
   assert.deepEqual(region.members, []);
   assert.deepEqual(state.territorialEntities, before);
-  store.applyChanges({ features: [{ ...repo.get('B'), properties: { ...repo.get('B').properties, parentId: 'D' } }] });
+  await executeTerritorialTestCommand(state,'territorial.patch',{ features: [{ ...repo.get('B'), properties: { ...repo.get('B').properties, parentId: 'D' } }] });
   assert.equal(area(scope.scope('A').extent.geometry), 4);
   assert.notStrictEqual(scope.scope('A'), first);
   assert.equal(repo.root('C').id, 'D');

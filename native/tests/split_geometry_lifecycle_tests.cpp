@@ -309,17 +309,17 @@ private slots:
     }
     void rootDeletionCleansDisplaySettingsAndUndoRestoresThem() {
         auto document=nested();auto& web=document.presentation.webPresentation;
-        web.hiddenItems["subunits"]={"grandchild","child"};web.objectStyles[territorialPresentationKey("grandchild")].opacity=.4;web.objectStyles[territorialPresentationKey("child")].opacity=.7;
+        web.itemVisibility["subunits"]={{"grandchild",false},{"child",false}};web.objectStyles[territorialPresentationKey("grandchild")].opacity=.4;web.objectStyles[territorialPresentationKey("child")].opacity=.7;
         Project project;project.replace(document);const auto before=projectcodec::encode(project);
         const auto receipt=preview(project,"root",box(0,0,4,10));QVERIFY(receipt.ok());auto command=prepare(project,receipt);QVERIFY(command.ok());QVERIFY(CommandProcessor::confirm(project,*command.preview).ok());
         const auto& next=project.document().presentation.webPresentation;
-        QVERIFY(!next.hiddenItems.at("subunits").count("grandchild"));QVERIFY(next.hiddenItems.at("subunits").count("child"));
+        QVERIFY(!next.itemVisibility.at("subunits").count("grandchild"));QVERIFY(next.itemVisibility.at("subunits").count("child"));
         QVERIFY(!next.objectStyles.count(territorialPresentationKey("grandchild")));QCOMPARE(next.objectStyles.at(territorialPresentationKey("child")).opacity,std::optional<double>{.7});
         const auto after=projectcodec::encode(project);QVERIFY(project.undo());QCOMPARE(projectcodec::encode(project),before);QVERIFY(project.redo());QCOMPARE(projectcodec::encode(project),after);
     }
     void survivorDisplayEditsRemainAcrossSplitUndoRedo() {
         auto document=nested();auto& web=document.presentation.webPresentation;
-        web.hiddenItems["subunits"]={"grandchild","child"};web.objectStyles[territorialPresentationKey("grandchild")].opacity=.4;web.objectStyles[territorialPresentationKey("child")].opacity=.7;
+        web.itemVisibility["subunits"]={{"grandchild",false},{"child",false}};web.objectStyles[territorialPresentationKey("grandchild")].opacity=.4;web.objectStyles[territorialPresentationKey("child")].opacity=.7;
         Project project;project.replace(document);const auto receipt=preview(project,"root",box(0,0,4,10));QVERIFY(receipt.ok());auto command=prepare(project,receipt);QVERIFY(command.ok());QVERIFY(CommandProcessor::confirm(project,*command.preview).ok());
         QCOMPARE(PresentationCommandProcessor::apply(project,SetScopedVisibility{"subunits",{territorialRef("child")},true}),PresentationResult::Applied);
         PresentationStyle changed;changed.opacity=.2;QCOMPARE(PresentationCommandProcessor::apply(project,PatchGroupPresentation{"subunits",changed}),PresentationResult::Applied);

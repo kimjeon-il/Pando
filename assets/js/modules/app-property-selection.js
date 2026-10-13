@@ -102,46 +102,58 @@ export function createPropertySelection() {
     return '자유 영역';
   }
 
-  function commitDistributionMeta(field, value) {
+  const currentProject = generation => !dependencies.projectState.state.projectReplacing
+    && dependencies.domains.projectDomain.getGeneration() === generation;
+  const refreshSelectedDistribution = async id => {
+    const selected = dependencies.projectState.state.selected;
+    if (selected?.domain === 'distribution' && String(selected.id) === String(id))await applyDistributionSelectionIntent(id,true);
+  };
+
+  async function commitDistributionMeta(field, value) {
     if (dependencies.projectState.state.selected?.domain !== 'distribution') return false;
     const layer = distributionLayerById(dependencies.projectState.state.selected.id);
     if (!layer) return false;
     if (layer.locked && field !== 'locked') {
       (0, dependencies.feedback.setActionStatus)('잠금을 해제한 뒤 분포 항목을 변경할 수 있습니다.', 'error', 3200);
-      applyDistributionSelectionIntent(layer.id, true);
+      await applyDistributionSelectionIntent(layer.id,true);
       return false;
     }
-    const result = dependencies.objectModelA.distributionService.updateLayer(layer.id, field, value);
+    const generation = dependencies.domains.projectDomain.getGeneration();
+    const result = await dependencies.objectModelA.distributionService.updateLayer(layer.id, field, value);
+    if (!currentProject(generation)) return false;
     if (!result.ok) {
       if (result.code === 'invalid') (0, dependencies.feedback.setActionStatus)(result.error?.message || '분포 설정이 올바르지 않습니다.', 'error', 3600);
-      applyDistributionSelectionIntent(layer.id, true);
+      await refreshSelectedDistribution(layer.id);
       return false;
     }
     if (field === 'locked') dependencies.domains.layerTreeController?.syncLocks([{ domain: 'distribution', type: 'distribution', id: layer.id }]);
     else (0, dependencies.layers.markLayerTreeDirty)();
-    applyDistributionSelectionIntent(layer.id, true);
+    await refreshSelectedDistribution(layer.id);
     (0, dependencies.feedback.setActionStatus)('분포 정보를 변경했습니다.', 'success');
     return true;
   }
 
-  function createDistributionLayerFromPrompt({ beforeCreate } = {}) {
+  async function createDistributionLayerFromPrompt({ beforeCreate } = {}) {
     const name = prompt('새 분포의 이름을 입력하세요.', '새 분포');
     if (name === null) return false;
-    beforeCreate?.();
-    const layer = dependencies.objectModelA.distributionService.createLayer({
+    const generation = dependencies.domains.projectDomain.getGeneration();
+    await beforeCreate?.();
+    if (!currentProject(generation)) return false;
+    const layer = await dependencies.objectModelA.distributionService.createLayer({
       id: (0, dependencies.surfaces.uid)('distribution'),
       name: name.trim() || '새 분포',
       color: dependencies.platformConfigurationA.COLOR_PRESETS[dependencies.projectState.state.distributionLayers.length % dependencies.platformConfigurationA.COLOR_PRESETS.length] || dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR,
     });
+    if (!currentProject(generation)) return false;
 
     (0, dependencies.layers.markLayerTreeDirty)();
     dependencies.domains.layerTreeController?.render(true);
-    applyDistributionSelectionIntent(layer.id);
+    await applyDistributionSelectionIntent(layer.id);
     (0, dependencies.feedback.setActionStatus)(`${layer.name} 분포를 추가했습니다. 값을 이어서 입력하세요.`, 'success', 3600);
     return true;
   }
 
-  function addTerritorialDistributionEntry() {
+  async function addTerritorialDistributionEntry() {
     const layer = dependencies.projectState.state.selected?.domain === 'distribution' ? distributionLayerById(dependencies.projectState.state.selected.id) : null;
     const territorialUnitId = (0, dependencies.platform.$)('distributionTerritorialUnitInput').value;
     if (!layer || layer.locked || !dependencies.territorialModel.entityRepository.get(territorialUnitId)) return false;
@@ -159,14 +171,16 @@ export function createPropertySelection() {
       (0, dependencies.feedback.setActionStatus)(validationMessage, 'error', 0);
       return false;
     }
-    const result = dependencies.objectModelA.distributionService.addEntry(entry);
+    const generation = dependencies.domains.projectDomain.getGeneration();
+    const result = await dependencies.objectModelA.distributionService.addEntry(entry);
+    if (!currentProject(generation)) return false;
     if (!result.ok) return false;
-    applyDistributionSelectionIntent(layer.id, true);
+    await refreshSelectedDistribution(layer.id);
     (0, dependencies.feedback.setActionStatus)(`${distributionEntryLabel(result.entry)}에 ${layer.name} 분포를 추가했습니다.`, 'success');
     return true;
   }
 
-  function startGeometryDistributionDraft() {
+  async function startGeometryDistributionDraft() {
     const layer = dependencies.projectState.state.selected?.domain === 'distribution' ? distributionLayerById(dependencies.projectState.state.selected.id) : null;
     if (!layer || layer.locked) return false;
     const rawValue = (0, dependencies.platform.$)('distributionValueInput').value;
@@ -176,56 +190,63 @@ export function createPropertySelection() {
       return false;
     }
     dependencies.projectState.state.distributionDraft = { layerId: layer.id, value };
-    dependencies.domains.editingDomain?.setTool('polygon', { announce: false });
+    await dependencies.domains.editingDomain.setTool('polygon',{ announce: false });
     (0, dependencies.taskUi.setModeBanner)('분포 영역을 그리세요.');
     return true;
   }
 
-  function removeDistributionEntry(id) {
+  async function removeDistributionEntry(id) {
     const entry = dependencies.projectState.state.distributionEntries.find(candidate => candidate.id === String(id));
     const layer = entry ? distributionLayerById(entry.layerId) : null;
     if (!entry || !layer || layer.locked) return false;
-    const result = dependencies.objectModelA.distributionService.removeEntry(entry.id);
+    const generation = dependencies.domains.projectDomain.getGeneration();
+    const result = await dependencies.objectModelA.distributionService.removeEntry(entry.id);
+    if (!currentProject(generation)) return false;
     if (!result.ok) return false;
-    applyDistributionSelectionIntent(layer.id, true);
+    await refreshSelectedDistribution(layer.id);
     (0, dependencies.feedback.setActionStatus)('분포 엔트리를 삭제했습니다.', 'success');
     return true;
   }
 
-  function updateDistributionEntryValue(id, value) {
-    const result = dependencies.objectModelA.distributionService.updateEntry(id, value);
+  async function updateDistributionEntryValue(id, value) {
+    const generation = dependencies.domains.projectDomain.getGeneration();
+    const result = await dependencies.objectModelA.distributionService.updateEntry(id, value);
+    if (!currentProject(generation)) return false;
     if (!result.ok) {
       (0, dependencies.feedback.setActionStatus)(result.error?.message || '분포 값을 변경할 수 없습니다.', 'error', 3600);
       dependencies.domainControllers.objectPropertyController.present(dependencies.projectState.state.selected, { refreshOnly: true });
       return false;
     }
-    if (result.changed) applyDistributionSelectionIntent(result.entry.layerId, true);
+    if (result.changed)await refreshSelectedDistribution(result.entry.layerId);
     return true;
   }
 
-  function deleteDistributionLayer(id, { confirm = true } = {}) {
+  async function deleteDistributionLayer(id, { confirm = true } = {}) {
     const layer = distributionLayerById(id);
     if (!layer) return false;
     if (layer.locked) {
       (0, dependencies.feedback.setActionStatus)('잠금을 해제한 뒤 분포 항목을 삭제할 수 있습니다.', 'error', 3200);
       return false;
     }
-    const performDelete = () => {
-      const result = dependencies.objectModelA.distributionService.deleteLayer(layer.id);
+    const generation = dependencies.domains.projectDomain.getGeneration();
+    const performDelete = async () => {
+      if (!currentProject(generation)) return false;
+      const result = await dependencies.objectModelA.distributionService.deleteLayer(layer.id);
+      if (!currentProject(generation)) return false;
       if (!result.ok) return false;
-      if (dependencies.projectState.state.selectedDistributionLayerId === layer.id) dependencies.projectState.state.selectedDistributionLayerId = '';
       if (dependencies.projectState.state.distributionSettings.activeLayerId === layer.id) {
         dependencies.projectState.state.distributionSettings.activeLayerId = '';
         dependencies.domains.projectDomain.queuePresentationAutosave();
       }
       (0, dependencies.layers.markLayerTreeDirty)();
-      dependencies.domains.selectionUiController.clear({ reason: 'distribution-delete-selection-clear' });
+      if (dependencies.projectState.state.selected?.domain === 'distribution'
+        && String(dependencies.projectState.state.selected.id) === String(layer.id))
+        dependencies.domains.selectionUiController.clear({ reason: 'distribution-delete-selection-clear' });
       (0, dependencies.feedback.setActionStatus)(`${layer.name} 분포를 삭제했습니다.`, 'success');
       return true;
     };
     if (!confirm) {
-      performDelete();
-      return true;
+      return performDelete();
     }
     (0, dependencies.projectRestore.openConfirmModal)({
       title: '분포 삭제',
@@ -238,17 +259,17 @@ export function createPropertySelection() {
     return true;
   }
 
-  function setDistributionLayerVisible(id, visible) {
+  async function setDistributionLayerVisible(id, visible) {
     const layer = distributionLayerById(id);
     if (!layer) return false;
-    const group = 'distributions';
-    if (!dependencies.projectState.state.itemVisibility[group]) dependencies.projectState.state.itemVisibility[group] = {};
-    if (visible === false) dependencies.projectState.state.itemVisibility[group][layer.id] = false;
-    else delete dependencies.projectState.state.itemVisibility[group][layer.id];
+    const generation=dependencies.domains.projectDomain.getGeneration();
+    const result=await dependencies.domains.projectDomain.executeCommand({commandId:'presentation.apply',targets:[],
+      payload:{action:'distributionLayerVisibility',id:layer.id,visible:visible!==false}});
+    if(!result.ok)throw Object.assign(new Error(result.error.message),{code:result.error.code});
+    if(generation!==dependencies.domains.projectDomain.getGeneration()||dependencies.projectState.state.projectReplacing)return false;
     dependencies.distributionPresentation.bumpVisibilityRevision();
     (0, dependencies.layers.markLayerTreeDirty)();
     dependencies.domains.renderingDomain?.invalidateOverlayStyle?.('distribution-layer-visibility');
-    dependencies.domains.projectDomain.queuePresentationAutosave();
     return true;
   }
 
@@ -265,11 +286,13 @@ export function createPropertySelection() {
     return dependencies.objectMetadata.commitTerritorialMetadata({ domain: 'territorial', type: 'entity', id: String(id) }, 'color', value);
   }
 
-  function setTerritorialEntityLocked(id, locked) {
+  async function setTerritorialEntityLocked(id, locked) {
     const key = String(id || '');
-    const result = dependencies.objectModelB.territorialApplicationService.setLocked(key, locked, {
+    const generation = dependencies.domains.projectDomain.getGeneration();
+    const result = await dependencies.objectModelB.territorialApplicationService.setLocked(key, locked, {
       history: { description: `${(0, dependencies.objectPresentation.territorialEntityName)(dependencies.territorialModel.entityRepository.get(key))} ${locked ? '잠금' : '잠금 해제'}` },
     });
+    if (!currentProject(generation)) return false;
     if (!result.ok) return false;
     if (!result.changed) return true;
     dependencies.domains.layerTreeController?.syncLocks([{ domain: 'territorial', type: 'entity', id: key }]);
@@ -286,6 +309,7 @@ export function createPropertySelection() {
 
   async function copySelectedHydroForEditing() {
     if (dependencies.projectState.state.selected?.domain !== 'hydro') return;
+    const generation=dependencies.domains.projectDomain.getGeneration(),expectedEpoch=dependencies.domains.projectDomain.state().epoch;
     let source = (0, dependencies.hydroModel.builtInHydroFeatureById)(dependencies.projectState.state.selected.id);
     if (!source) {
       (0, dependencies.feedback.setActionStatus)('복사할 강·호수 객체를 찾을 수 없습니다. 다시 선택하세요.', 'error', 3200);
@@ -304,7 +328,6 @@ export function createPropertySelection() {
         return;
       }
     }
-    dependencies.domains.projectDomain.recordHistory();
     const category = source.properties?.category === 'lake' ? 'lake' : 'river';
     const copy = {
       type: 'Feature',
@@ -319,27 +342,31 @@ export function createPropertySelection() {
         sourceFeatureId: source.properties?.pandolab_id || source.id,
       },
     };
-    (0, dependencies.hydroModel.normalizeHydroEdit)(copy);
-    dependencies.projectState.state.hydroEdits.push(copy);
-    dependencies.projectState.state.physicalSettings.hiddenHydroIds[String(source.properties?.pandolab_id || source.id)] = true;
+    const result=await dependencies.domains.projectDomain.executeCommand({ commandId: 'hydro.copy',expectedEpoch,
+      targets: [{ domain: 'hydro',id: copy.id }],payload: { feature: copy } });
+    if(!result.ok)throw Object.assign(new Error(result.error.message),{ code: result.error.code });
+    if(generation!==dependencies.domains.projectDomain.getGeneration() || dependencies.projectState.state.projectReplacing)return false;
     dependencies.rendering.gpuMapRenderer.invalidateHydroVisibility();
     (0, dependencies.layers.markLayerTreeDirty)();
-    applyHydroSelectionIntent(String(copy.id));
+    await applyHydroSelectionIntent(String(copy.id));
     dependencies.domains.renderingDomain?.invalidateHydroPatch?.('hydro-edit-copy');
-    dependencies.domains.projectDomain.queueAutosave();
     (0, dependencies.feedback.setActionStatus)(`${source.properties?.name || (category === 'lake' ? '호수' : '강')} 편집 복사본을 만들었습니다.`, 'success', 3600);
   }
 
-  function applyDistributionSelectionIntent(id, refreshOnly = false) {
+  async function applyDistributionSelectionIntent(id, refreshOnly = false) {
+    const generation=dependencies.domains.projectDomain.getGeneration();
     const layer = distributionLayerById(id);
     if (layer) {
       const changed = dependencies.projectState.state.distributionSettings.activeLayerId !== layer.id;
-      dependencies.projectState.state.distributionSettings.activeLayerId = layer.id;
-      dependencies.projectState.state.selectedDistributionLayerId = layer.id;
+      if(changed) {
+        const result=await dependencies.domains.projectDomain.executeCommand({ commandId: 'presentation.apply',targets: [],
+          payload: { action: 'distributionActiveLayer',value: layer.id } });
+        if(!result.ok)throw Object.assign(new Error(result.error.message),{ code: result.error.code });
+        if(generation!==dependencies.domains.projectDomain.getGeneration() || dependencies.projectState.state.projectReplacing)return false;
+      }
       if (changed) {
         dependencies.distributionPresentation.bumpVisibilityRevision();
         dependencies.domains.renderingDomain.invalidateOverlayStyle('distribution-selection');
-        dependencies.domains.projectDomain.queuePresentationAutosave();
       }
     }
     return layer ? dependencies.domains.selectionUiController.applyIntent((0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'distribution', type: 'distribution', id: layer.id }), {
