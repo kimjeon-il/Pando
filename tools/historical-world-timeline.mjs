@@ -74,8 +74,11 @@ export function compileHistoricalWorldTimeline({ entities, currentSnapshot, curr
     sourceIdentities.push(info);
     const primary = sources.find(source => source.sourceInfo.featureId === sourceFeature);
     const lifetime = bounds(primary.lifetime);
-    const interval = intersection(lifetime, monthBounds);
-    const version = primary.geometryVersions.find(row => intersection(bounds(row), monthBounds));
+    // The snapshot uses its exact reference DATE for version selection, even
+    // when a historical version is valid earlier within that same month.
+    const currentReference = bounds({ validFrom: currentSnapshot.referenceDate, validTo: currentSnapshot.referenceDate });
+    const version = primary.geometryVersions.find(row => intersection(bounds(row), currentReference));
+    const interval = version && intersection(intersection(lifetime, monthBounds), bounds(version));
     if (!version || !interval) throw new Error(`Missing current geometry/lifetime: ${feature.id}`);
     const normalized = identity(feature);
     normalized.properties.metadata.historicalTimeline = { entityId: primary.entityId, sourceEntityIds: info.sourceEntityIds,
