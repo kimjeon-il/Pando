@@ -67,7 +67,7 @@
     },
     {
       "path": "assets/js/modules/polygon-geometry.js",
-      "sha256": "a645827c46f7c62dbf929f850c67f350516669dfeafe5c637aec6c67efcfebf4"
+      "sha256": "d535803b7d67c024e9802da61966fbf2953e5767f2b80d6023f40c79866bceb9"
     },
     {
       "path": "assets/js/modules/ring-hit-test.js",
@@ -207,7 +207,7 @@
     },
     {
       "path": "native/assets/geometry/current/cut/polygon-geometry.js",
-      "sha256": "a645827c46f7c62dbf929f850c67f350516669dfeafe5c637aec6c67efcfebf4",
+      "sha256": "d535803b7d67c024e9802da61966fbf2953e5767f2b80d6023f40c79866bceb9",
       "resource": ":/cut/current/polygon-geometry.js",
       "kind": "cutModule"
     },
@@ -249,7 +249,7 @@
     },
     {
       "path": "native/assets/geometry/current/polygon-geometry.js",
-      "sha256": "a645827c46f7c62dbf929f850c67f350516669dfeafe5c637aec6c67efcfebf4",
+      "sha256": "d535803b7d67c024e9802da61966fbf2953e5767f2b80d6023f40c79866bceb9",
       "resource": ":/geometry/polygon-geometry.js",
       "kind": "normalizer"
     },
