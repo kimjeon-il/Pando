@@ -50,7 +50,7 @@ struct Harness {
         };
         add("B","Beta",UnitKind::General,1,10,"A");add("C","Child",UnitKind::General,2,2,"B");
         add("D",std::string(120,'D'),UnitKind::General,7,2,"B");add("R","Independent region",UnitKind::Regional,20,2,"");
-        Project project;project.replace(std::move(document));const auto bytes=projectcodec::encode(project);
+        Project project;project.replace(std::move(document));const auto bytes=::projectcodec::encode(project);
         QFile file(directory.filePath("info-ui.pando.json"));
         if(!file.open(QIODevice::WriteOnly)||file.write(bytes)!=bytes.size())throw std::runtime_error("UI fixture write failed");
         file.close();if(!editor.openFile(QUrl::fromLocalFile(file.fileName())))throw std::runtime_error("UI fixture open failed");

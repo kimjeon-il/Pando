@@ -45,7 +45,7 @@ private slots:
         QCOMPARE(resolveDefaultFlag(project.document(),territorialRef("DEU")).source,expected);
         QVERIFY(project.undo());QVERIFY(project.redo());
         QFile file(dir.filePath("converted.json"));QVERIFY(file.open(QIODevice::WriteOnly));
-        file.write(projectcodec::encode(project));file.close();
+        file.write(::projectcodec::encode(project));file.close();
         EditorController editor({false,dir.filePath("converted-private.json")});
         QVERIFY(editor.openFile(QUrl::fromLocalFile(file.fileName())));
         QVERIFY(editor.selectObject({{"domain","territorial"},{"id","DEU"}},"replace","map"));
@@ -124,7 +124,7 @@ private slots:
         if(!accepted) {QCOMPARE(editor.contentEditState(),session);QCOMPARE(editor.documentBytes(),before);return;}
         QVERIFY(editor.commitContentField("flagSource"));editor.cancelContentEdit();
         const auto saved=editor.documentBytes();
-        const auto reopened=projectcodec::decode(saved);
+        const auto reopened=::projectcodec::decode(saved);
         QCOMPARE(reopened.symbols.at(pandoeditor::territorialRef("DEU")).embeddedDataUrl,
                  QString::fromLatin1("data:image/png;base64,"+bytes.toBase64()).toStdString());
     }
@@ -171,7 +171,7 @@ private slots:
         pandoeditor::ProjectDocument document = makeTerritorialDocument({{{"DEU","Germany","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}}},{0x112233,1},"countries"}},{{"countries","Countries"}});
         pandoeditor::Project project;project.replace(document);
         QFile file(dir.filePath("flag-only.json"));QVERIFY(file.open(QIODevice::WriteOnly));
-        file.write(projectcodec::encode(project));file.close();
+        file.write(::projectcodec::encode(project));file.close();
         EditorController editor({false,dir.filePath("private.json")});
         QVERIFY(editor.openFile(QUrl::fromLocalFile(file.fileName())));
         QVERIFY(editor.resizeMapCamera(800,600));
@@ -207,7 +207,7 @@ private slots:
             document.documentId=mobile?"safe-area-mobile":"safe-area-desktop";
             Project project;project.replace(document);
             const auto path=dir.filePath("safe-area.json");QFile file(path);
-            QVERIFY(file.open(QIODevice::WriteOnly));QVERIFY(file.write(projectcodec::encode(project))>0);file.close();
+            QVERIFY(file.open(QIODevice::WriteOnly));QVERIFY(file.write(::projectcodec::encode(project))>0);file.close();
             EditorController editor({mobile,dir.filePath("private.json")});
             QVERIFY(editor.openFile(QUrl::fromLocalFile(path)));
             QVERIFY(editor.resizeMapCamera(600,400));
@@ -263,7 +263,7 @@ private slots:
         document.genericFeatures.push_back(generic);
         Project project;project.replace(document);
         const auto path=dir.filePath("content.json");QFile file(path);
-        QVERIFY(file.open(QIODevice::WriteOnly));QVERIFY(file.write(projectcodec::encode(project))>0);file.close();
+        QVERIFY(file.open(QIODevice::WriteOnly));QVERIFY(file.write(::projectcodec::encode(project))>0);file.close();
         EditorController editor({false,dir.filePath("private.json")});
         QVERIFY(editor.openFile(QUrl::fromLocalFile(path)));
         QVERIFY(editor.resizeMapCamera(800,600));
