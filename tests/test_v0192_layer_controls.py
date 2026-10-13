@@ -55,8 +55,8 @@ class V0192LayerControlTests(unittest.TestCase):
         self.assertIn('data-layer-visibility="lakes"', INDEX)
         self.assertNotIn('class="layer-visibility-toggle"', INDEX)
         setter = function_source(read_module(ROOT,'app-map-settings.js'),'setLayerVisibility')
-        self.assertIn('dependencies.projectState.state.layerVisibility[key] = visible', setter)
-        self.assertIn('queuePresentationAutosave()', setter)
+        self.assertIn("executePresentation({ action: 'visibility', key, visible })", setter)
+        self.assertIn("commandId: 'presentation.apply'", read_module(ROOT,'app-map-settings.js'))
         self.assertNotIn('.checked =', setter)
 
     def test_search_rows_only_select_and_focus_objects(self):

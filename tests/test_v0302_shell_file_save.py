@@ -49,8 +49,8 @@ class ShellFileSaveContractTests(unittest.TestCase):
         self.assertIn('id="helpBtn"', topbar_markup)
 
     def test_dirty_state_is_separate_from_autosave_and_transient_notifications(self):
-        self.assertIn('hasUnsavedChanges: false', SAVE_STATE)
-        self.assertIn('cleanContentToken', SAVE_STATE)
+        self.assertIn('hasUnsavedChanges: dirty', SAVE_STATE)
+        self.assertIn('getDocumentState()', SAVE_STATE)
         self.assertIn('documentDirty', SAVE_STATE)
         self.assertIn('presentationDirty', SAVE_STATE)
         self.assertIn('project-save-status',element_markup(HTML,'projectSaveStatus'))

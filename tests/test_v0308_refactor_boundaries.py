@@ -18,7 +18,7 @@ GPU_RENDERER = (ROOT / "assets/js/modules/gpu-map-renderer.js").read_text(encodi
 TOOLTIP_CONTROLLER = (ROOT / "assets/js/modules/tooltip-controller.js").read_text(encoding="utf-8")
 CONFIRM_MODAL_CONTROLLER = (ROOT / "assets/js/modules/confirm-modal-controller.js").read_text(encoding="utf-8")
 LAYER_TREE_CONTROLLER = (ROOT / "assets/js/modules/layer-tree-controller.js").read_text(encoding="utf-8")
-HISTORY_SERVICE = (ROOT / "assets/js/modules/history-service.js").read_text(encoding="utf-8")
+CORE_HISTORY = (ROOT / "shared/core/src/project.cpp").read_text(encoding="utf-8")
 HISTORICAL_LIBRARY_SERVICE = (ROOT / "assets/js/modules/territorial-library-service.js").read_text(encoding="utf-8")
 IMPORT_SERVICE = (ROOT / "assets/js/modules/import-service.js").read_text(encoding="utf-8")
 HISTORICAL_LIBRARY_CONTROLLER = (ROOT / "assets/js/modules/territorial-library-controller.js").read_text(encoding="utf-8")
@@ -40,10 +40,13 @@ class RefactorBoundaryTests(unittest.TestCase):
             self.assertNotIn("querySelector", source)
             self.assertNotIn("getElementById", source)
 
-    def test_runtime_uses_narrow_persistence_and_serializer_factories(self):
-        for symbol in ('createProjectSerializer','createBrowserProjectStorage','createPersistenceService'):
+    def test_runtime_uses_core_export_and_narrow_browser_persistence_factories(self):
+        for symbol in ('createBrowserProjectStorage','createPersistenceService'):
             self.assertIn(symbol, APP)
         project = read_module(ROOT,'project-domain.js')
+        self.assertIn('commandOwner.exportSnapshot', project)
+        self.assertIn("const buildFileSnapshot = () => exportReceipt('pandolab-project-state')", project)
+        self.assertIn("const buildAutosave = () => exportReceipt('pandolab-autosave')", project)
         self.assertIn('queueAutosave: persistence?.queueProject', project)
         self.assertIn('queueViewAutosave: persistence?.queueView', project)
         self.assertIn('queuePresentationAutosave: persistence?.queuePresentation', project)
@@ -60,21 +63,21 @@ class RefactorBoundaryTests(unittest.TestCase):
     def test_territorial_transactions_are_behind_application_service(self):
         self.assertIn('createTerritorialApplicationService', APP)
         self.assertIn('territorialApplicationService.updateMetadata', APP)
-        self.assertIn('commandPipeline', TERRITORIAL_SERVICE)
-        self.assertIn('const mutateDocument = createDocumentMutationRunner({ commandPipeline })', TERRITORIAL_SERVICE)
-        self.assertIn('entityStore.transaction(', TERRITORIAL_SERVICE)
-        self.assertIn('entityStore', TERRITORIAL_SERVICE)
+        self.assertIn('commandOwner.executeCommand', TERRITORIAL_SERVICE)
+        self.assertIn("execute('territorial.metadata'", TERRITORIAL_SERVICE)
+        self.assertNotIn('entityStore.transaction(', TERRITORIAL_SERVICE)
         self.assertNotIn('document.', TERRITORIAL_SERVICE)
 
     def test_distribution_and_genericFeature_crud_are_behind_services(self):
-        self.assertIn('(0, dependencies.distributionServices.createDistributionService)({', APP)
+        assembly = read_module(ROOT,'app-history-assembly.js')
+        self.assertIn('dependencies.distributionServices.createDistributionService({ documentModel,commandOwner })', assembly)
         self.assertIn("distributionService.updateLayer", APP)
         self.assertIn("distributionService.addEntry", APP)
-        self.assertIn('(0, dependencies.applicationFactories.createGenericFeatureService)({', APP)
+        self.assertIn('dependencies.applicationFactories.createGenericFeatureService({ documentModel,commandOwner })', assembly)
         self.assertIn("genericFeatureService.updateMetadata", APP)
         self.assertIn("genericFeatureService.remove", APP)
-        self.assertIn("commandPipeline", DISTRIBUTION_SERVICE)
-        self.assertIn("commandPipeline", GENERIC_FEATURE_SERVICE)
+        self.assertIn('commandOwner.executeCommand', DISTRIBUTION_SERVICE)
+        self.assertIn('commandOwner.executeCommand', GENERIC_FEATURE_SERVICE)
 
     def test_render_order_is_coordinated_and_renderer_is_dom_free(self):
         self.assertIn('createMapRenderCoordinator({', RENDERING_DOMAIN)
@@ -96,15 +99,13 @@ class RefactorBoundaryTests(unittest.TestCase):
         self.assertIn("document.addEventListener('pointerover'", TOOLTIP_CONTROLLER)
         self.assertIn('dispose', LAYER_TREE_CONTROLLER)
 
-    def test_document_history_is_behind_history_service(self):
-        assembly = read_module(ROOT,'app-project-snapshots.js')
+    def test_document_history_is_owned_by_the_core_project(self):
         project = read_module(ROOT,'project-domain.js')
-        self.assertIn('createHistoryService', assembly)
-        self.assertIn('recordHistory: history?.record', project)
         self.assertIn("travelHistory('undo'", project)
         self.assertIn("travelHistory('redo'", project)
         self.assertNotIn('state.history.push(', APP)
-        self.assertIn('store.future = []', HISTORY_SERVICE)
+        self.assertIn('bool Project::redo()', CORE_HISTORY)
+        self.assertIn('Project::travelHistory(', CORE_HISTORY)
 
     def test_historical_library_loading_and_queries_are_behind_service(self):
         self.assertIn("createTerritorialLibraryService({", APP)
@@ -132,7 +133,7 @@ class RefactorBoundaryTests(unittest.TestCase):
     def test_map_edit_worker_protocol_is_behind_client(self):
         self.assertIn('createMapEditWorkerClient', APP)
         self.assertIn('createWorkerRpcClient({', MAP_EDIT_WORKER_CLIENT)
-        self.assertIn("type: 'execute'", MAP_EDIT_WORKER_CLIENT)
+        self.assertIn('ensureRpc().request(entry.payload.operation, entry.payload.payload', MAP_EDIT_WORKER_CLIENT)
         self.assertIn('createLatestWorkerJobScheduler({', MAP_EDIT_WORKER_CLIENT)
         self.assertIn('Number(entry.metadata?.geometryRevision) === dataRevision', MAP_EDIT_WORKER_CLIENT)
         self.assertIn('Number(entry.projectRevision) === currentTargetRevision()', MAP_EDIT_WORKER_CLIENT)
