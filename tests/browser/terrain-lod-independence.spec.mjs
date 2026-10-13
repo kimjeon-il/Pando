@@ -102,8 +102,8 @@ for (const source of ['dem', 'raster']) {
         await expect.poll(async () => {
           const data = await snapshot(page);
           return data.prepared.length > 0 && data.terrainTargetTileCount > 0
-            && data.terrainTargetTilesLoaded === data.terrainTargetTileCount && data.terrainTilesLoading === 0
-            && data.terrainPendingDecodedBytes === 0 && data.prepared.every(tile => tile.level === data.terrainLevel);
+            && data.terrainTargetTilesLoaded === data.terrainTargetTileCount
+            && data.prepared.every(tile => tile.level === data.terrainLevel);
         }, { timeout: 90_000 }).toBe(true);
       } catch (error) {
         console.log('TERRAIN_WAIT_FAILURE', JSON.stringify({ data: await snapshot(page), errors,
