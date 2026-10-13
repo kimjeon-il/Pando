@@ -219,6 +219,35 @@ void checkCollection(Topology& topology,const std::string& label,const V& value)
     }
     std::cout<<label<<": "<<features.size()<<" countries valid\n";
 }
+void auditCatalog(Topology& topology,const fs::path& root) {
+    const auto directory=root/"assets/data/territorial-entities/source/countries";
+    if(!fs::is_directory(directory))throw std::runtime_error("Missing catalog source directory");
+    std::vector<fs::path> files;
+    for(const auto& entry:fs::directory_iterator(directory))
+        if(entry.is_regular_file()&&entry.path().extension()==".json")files.push_back(entry.path());
+    std::sort(files.begin(),files.end());
+    std::size_t examined=0,failed=0;
+    for(const auto& file:files) {
+        const auto lineage=pandoeditor::codecjson::parse(read(file));
+        for(const auto& entity:array(field(lineage,"entities"))) {
+            const auto id=str(field(entity,"entityId"));
+            for(const auto& version:array(field(entity,"geometryVersions"))) {
+                ++examined;
+                try {
+                    const auto& geometry=field(version,"geometry");
+                    validateSphericalPolygon(geometry);
+                    auto shape=topology.fromJson(geometry);topology.valid(shape);
+                }catch(const std::exception& e){
+                    ++failed;
+                    std::cerr<<file.filename().string()<<":"<<id<<":"
+                        <<str(field(version,"versionId"))<<": "<<e.what()<<"\n";
+                }
+            }
+        }
+    }
+    std::cout<<"Catalog C++ geometry audit: "<<examined<<" versions, "<<failed<<" failures\n";
+    if(failed)throw std::runtime_error("Existing catalog contains invalid geometry versions");
+}
 void selfTest() {
     const auto parse=pandoeditor::codecjson::parse;
     auto valid=[&](const std::string& raw){validateSphericalPolygon(parse(raw));};
@@ -235,16 +264,18 @@ void selfTest() {
 
 int main(int argc,char** argv) {
     try {
-        bool canonicalOnly=false,smoke=false;
+        bool canonicalOnly=false,smoke=false,audit=false;
         fs::path root=fs::current_path();
         for(int i=1;i<argc;++i) {
             if(std::string(argv[i])=="--canonical-only")canonicalOnly=true;
             else if(std::string(argv[i])=="--self-test")smoke=true;
+            else if(std::string(argv[i])=="--audit-catalog")audit=true;
             else if(std::string(argv[i])=="--root"&&i+1<argc)root=argv[++i];
             else throw std::runtime_error("Unknown argument: "+std::string(argv[i]));
         }
         if(smoke){selfTest();return 0;}
         Topology topology;
+        if(audit){auditCatalog(topology,root);return 0;}
         const auto canonical=pandoeditor::codecjson::parse(read(root/"assets/data/territorial-entities/generated/current-world.geojson"));
         checkCollection(topology,"canonical",canonical);
         if(canonicalOnly)return 0;
