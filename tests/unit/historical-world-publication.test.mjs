@@ -28,7 +28,7 @@ test('publicationIsDeterministicAndRejectsStaleOutput', () => {
   assert.equal(project.schemaVersion, 10);
   const trace = JSON.parse(first.get('expected-trace.json'));
   const october = trace.months.find(row => row.month === '2012-10');
-  assert.deepEqual(new Set(october.entities.map(row => row.entityId)),new Set(['SDN','SDS','state:nagorno-karabakh','UKR']));
+  assert.deepEqual(new Set(october.entities.map(row => row.entityId)),new Set(['IDN','SDN','SDS','TLS','state:nagorno-karabakh','UKR']));
   assert.equal(october.points[0].rootIds.join(), 'UKR');
   assert.equal(october.entities.find(row => row.entityId === 'UKR').sourceEntityId, 'state:UKR');
   assert.equal(trace.months.find(row => row.month === manifest.sourceMonth).entities.find(row => row.entityId === 'UKR').sourceEntityId, 'state:UKR');
