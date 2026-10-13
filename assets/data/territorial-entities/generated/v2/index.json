@@ -14165,8 +14165,32 @@
       "parentEntityId": "",
       "geometryVersions": [
         {
+          "versionId": "state:SDS:2011-07-09-independence-r1",
+          "validFrom": "2011-07-09",
+          "validTo": "2026-10-05",
+          "datePrecision": "approximate",
+          "certainty": "low",
+          "sourceId": "natural-earth-5.1.1-current-outline-temporal-proxy",
+          "notes": "2011-07-09 독립한 남수단. 현대 Natural Earth 외곽선을 초기 독립국의 잠정 경계로 재사용. 아비에이·미획정 경계의 당대 확정 형상은 아님.",
+          "instantiation": {
+            "mode": "territory-replacement",
+            "countryUpdates": {}
+          },
+          "historicalProvenance": {
+            "classification": "provisional-modern-outline-proxy",
+            "sourceReferenceDate": "2026-10-06",
+            "politicalEventDate": "2011-07-09",
+            "originalGeometryVersionId": "state:SDS:natural-earth-5.1.1",
+            "evidence": [
+              "https://www.un.org/en/node/122910",
+              "https://www.unmissions.org/en/unmis-0/security-council-establishes-abyei-mission"
+            ],
+            "verifiedHistoricalGeometry": false
+          }
+        },
+        {
           "versionId": "state:SDS:natural-earth-5.1.1",
-          "validFrom": null,
+          "validFrom": "2026-10-06",
           "validTo": null,
           "datePrecision": "current",
           "certainty": "high",
@@ -14190,16 +14214,16 @@
       "file": "state-SDS.json.gz",
       "validFrom": "2011-07-09",
       "validTo": null,
-      "compressedBytes": 11379,
-      "decodedBytes": 90240,
-      "sha256": "3d4f820ffefe4f16797418703f401c13f2d049b48c64f0e1ba929c4209780bfd",
+      "compressedBytes": 22861,
+      "decodedBytes": 180479,
+      "sha256": "8c155801107001a8cdd781879c2297bc9afa227d6f73ea2929ebfb7a2e707e6c",
       "bbox": [
         24.121556,
         3.490202,
         35.920835,
         12.216155
       ],
-      "geometryVersionCount": 1
+      "geometryVersionCount": 2
     },
     {
       "schemaVersion": 2,
@@ -15097,6 +15121,30 @@
           }
         },
         {
+          "versionId": "state:SDN:2011-07-09-post-secession-r1",
+          "validFrom": "2011-07-09",
+          "validTo": "2026-10-05",
+          "datePrecision": "approximate",
+          "certainty": "low",
+          "sourceId": "natural-earth-5.1.1-current-outline-temporal-proxy",
+          "notes": "2011-07-09 남수단 독립 뒤 수단 형상 잠정값. 2026-10-06 Natural Earth 외곽선을 2011~2026 구간의 대리 자료로 사용. 아비에이(Abyei) 분쟁지역과 경계 변경을 해당 연도별로 검증한 도형이 아님.",
+          "instantiation": {
+            "mode": "territory-replacement",
+            "countryUpdates": {}
+          },
+          "historicalProvenance": {
+            "classification": "provisional-modern-outline-proxy",
+            "sourceReferenceDate": "2026-10-06",
+            "politicalEventDate": "2011-07-09",
+            "originalGeometryVersionId": "state:SDN:natural-earth-5.1.1",
+            "evidence": [
+              "https://www.un.org/en/node/122910",
+              "https://unmis.unmissions.org/en/unmis-0/more-borderline"
+            ],
+            "verifiedHistoricalGeometry": false
+          }
+        },
+        {
           "versionId": "state:SDN:natural-earth-5.1.1",
           "validFrom": "2026-10-06",
           "validTo": null,
@@ -15122,16 +15170,16 @@
       "file": "state-SDN.json.gz",
       "validFrom": "1956-01-01",
       "validTo": null,
-      "compressedBytes": 28252,
-      "decodedBytes": 253152,
-      "sha256": "f1d6997149eef3556e4a68a3efd56b5b08b206ccd28e49e7415259b85fc186aa",
+      "compressedBytes": 39765,
+      "decodedBytes": 355345,
+      "sha256": "1374213dd1ea9679666ea09610d972e6a6985c3d497b3b328fa7e4fa806605be",
       "bbox": [
         21.809449,
         3.490202,
         38.603852,
         22.226965
       ],
-      "geometryVersionCount": 2
+      "geometryVersionCount": 3
     },
     {
       "schemaVersion": 2,
@@ -18261,6 +18309,31 @@
           }
         },
         {
+          "versionId": "state:UKR:2014-03-18-post-crimea-r1",
+          "validFrom": "2014-03-18",
+          "validTo": "2026-10-05",
+          "datePrecision": "approximate",
+          "certainty": "low",
+          "sourceId": "natural-earth-5.1.1-current-outline-temporal-proxy",
+          "notes": "2014-03-18 러시아의 크림반도 병합 조약을 실효 지배 지도상 전환 시점으로 채택. 우크라이나의 크림 제외 영역을 2026-10-06 Natural Earth 외곽선으로 근사. 국제법상 크림 영유권 변화를 승인한 의미가 아니며 동부 전쟁과 2022년 이후 실제 통제선·분쟁지역 경계의 연도별 검증을 뜻하지 않음.",
+          "instantiation": {
+            "mode": "territory-replacement",
+            "countryUpdates": {}
+          },
+          "historicalProvenance": {
+            "classification": "provisional-modern-outline-proxy",
+            "sourceReferenceDate": "2026-10-06",
+            "politicalEventDate": "2014-03-18",
+            "originalGeometryVersionId": "state:UKR:natural-earth-5.1.1",
+            "evidence": [
+              "https://hudoc.echr.coe.int/?i=002-14347",
+              "https://press.un.org/en/2014/ga11493.doc.htm",
+              "https://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-0-countries/"
+            ],
+            "verifiedHistoricalGeometry": false
+          }
+        },
+        {
           "versionId": "state:UKR:natural-earth-5.1.1",
           "validFrom": "2026-10-06",
           "validTo": null,
@@ -18286,16 +18359,16 @@
       "file": "state-UKR.json.gz",
       "validFrom": "1991-08-24",
       "validTo": null,
-      "compressedBytes": 57265,
-      "decodedBytes": 538949,
-      "sha256": "c66adb95405c809eca3d9fb6459e6bbaf6847cd593796c76c2029baa96316b4c",
+      "compressedBytes": 81996,
+      "decodedBytes": 768677,
+      "sha256": "973cfc6afb26809d84761248b3d304521c8969c5db37c362e482b3baceb488fd",
       "bbox": [
         22.13284,
         44.381049,
         40.159543,
         52.368949
       ],
-      "geometryVersionCount": 2
+      "geometryVersionCount": 3
     },
     {
       "schemaVersion": 2,
