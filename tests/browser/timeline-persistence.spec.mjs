@@ -13,6 +13,7 @@ async function openApp(page) {
   await page.addInitScript(()=>Object.defineProperty(window,'showSaveFilePicker',{configurable:true,value:undefined}));
   await page.goto('/?debug=1');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{timeout:90000});
+  await expect(page.locator('#actionStatus')).not.toHaveClass(/\bworking\b/,{timeout:90000});
   return errors;
 }
 async function openProject(page,path) {
@@ -25,6 +26,8 @@ async function openProject(page,path) {
   await expect(page.locator('#gisImportError')).toBeEmpty();
   await expect(page.locator('#gisImportConfirmBtn')).toBeVisible({timeout:15000});
   await page.locator('#gisImportConfirmBtn').click();
+  await expect(page.locator('#gisImportModal')).toBeHidden({timeout:90000});
+  await expect(page.locator('#actionStatus')).not.toHaveClass(/\bworking\b/,{timeout:90000});
 }
 async function readAutosave(page) {
   return page.evaluate(async()=>{
@@ -54,6 +57,7 @@ test('static v10 UI file save/open and full autosave restore metadata, records a
   await expect(page.locator('#gisImportModal')).toBeHidden({timeout:30000});
   await expect.poll(()=>page.evaluate(()=>window.PANDOLAB_TERRITORIAL.list().length)).toBe(4);
   await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.setName('A','저장 검증'));
+  await expect(page.locator('#projectSaveStatusText')).toHaveText('저장됨',{timeout:120000});
   await expect.poll(async()=> (await readAutosave(page))?.territorialEntities?.find(entity=>entity.id==='A')?.properties.name,{timeout:30000}).toBe('저장 검증');
   const saved=await readAutosave(page);
   expect(saved.format).toBe('pandolab-autosave-full');
@@ -106,6 +110,7 @@ test('historical default full save and offline restore retain every identity and
   const before=await page.evaluate(()=>({count:window.PANDOLAB_TERRITORIAL.list().length,
     geometry:window.PANDOLAB_TERRITORIAL.get('IRL').geometry}));
   await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.setName('IRL','시간 저장 아일랜드'));
+  await expect(page.locator('#projectSaveStatusText')).toHaveText('저장됨',{timeout:120000});
   await expect.poll(async()=> (await readAutosave(page))?.territorialEntities?.find(entity=>entity.id==='IRL')?.properties.name,{timeout:30000}).toBe('시간 저장 아일랜드');
   const saved=await readAutosave(page);
   expect(saved.format).toBe('pandolab-autosave-full');
