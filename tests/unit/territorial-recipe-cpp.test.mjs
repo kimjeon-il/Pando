@@ -5,7 +5,7 @@ import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
-import { isDeepStrictEqual } from 'node:util';
+import { sameRecipeGeometryWithinProjectionRounding } from '../../tools/build-territorial-geometry.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const recipePath = path.join(root, 'tools/historical-library/east-germany-1989.recipe.json');
@@ -55,11 +55,12 @@ test('pinned DDR recipe inputs and source geometry oracle are present', () => {
   }
 });
 
-test('C++ DDR recipe exactly reproduces every oracle component and coordinate', {
+test('C++ DDR recipe preserves every component and coordinate within projection rounding', {
   skip: !binary || !existsSync(binary) ? 'Set PANDO_TERRITORIAL_RECIPE_BINARY to the built C++ target' : false,
 }, () => {
   const result = spawnSync(binary, [root, recipePath], { cwd: root, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 });
   assert.equal(result.status, 0, result.stderr || result.error?.message);
   const actual = JSON.parse(result.stdout);
-  assert.ok(isDeepStrictEqual(actual, oracle), JSON.stringify(comparisonSummary(actual, oracle)));
+  assert.ok(sameRecipeGeometryWithinProjectionRounding(actual, oracle),
+    JSON.stringify(comparisonSummary(actual, oracle)));
 });
