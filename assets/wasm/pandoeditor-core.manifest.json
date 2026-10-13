@@ -1,7 +1,7 @@
 {
   "schema": "pandoeditor-core-wasm",
   "abiVersion": 1,
-  "sourceSha256": "1dfea13b7211a0ecc0ca38ced399ecf9840bb9eca31f585763bd9a7a33b57b02",
+  "sourceSha256": "07743dfe986e5b8fdd1861eaef4d21c15980733d9727f0f8402f3b66cbfa3d29",
   "compiler": {
     "name": "emscripten",
     "version": "4.0.20"
@@ -405,7 +405,7 @@
     },
     {
       "path": "shared/wasm/CMakeLists.txt",
-      "sha256": "26520341df3adfbf237a505317232fed6a2978b1db4ebec9276a25375eb417ab"
+      "sha256": "80a6b4bb76460372ef2ffa31474152b7fb4e8d16a67f0bf9acd476a18f117cde"
     },
     {
       "path": "shared/wasm/session-bindings.cpp",
@@ -415,11 +415,11 @@
   "assets": {
     "js": {
       "file": "pandoeditor-core.js",
-      "sha256": "10aa6552f9576f3cea9780c8ed7328351d58171b2ccdcf8e271fe7b6309f990b"
+      "sha256": "51faa5a445df2010b8c65017f5aea3a577988b7cfaf6078080d16d8f12d7a4c5"
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "ba17f8a47587e0fd7c5822154a8f9c234803ba8b7b6d6b3eaa21d300ffe7b72e"
+      "sha256": "684521cb13f422c6dff7ff4bdd5b4a7dce69d2c9ff20b40ebe9750c1b824e954"
     }
   }
 }
