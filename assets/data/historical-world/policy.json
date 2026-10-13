@@ -4,10 +4,10 @@
   "replacements": [
     {
       "targetEntityId": "state:soviet-union",
-      "priorityEntityId": "state:ukraine",
+      "priorityEntityId": "state:UKR",
       "validFrom": "1991-08-24",
       "validTo": "2014-03-17",
-      "basis": { "sourceEntityId": "state:ukraine", "geometryVersionIds": ["state:ukraine:1991-2014-r1"] }
+      "basis": { "sourceEntityId": "state:UKR", "geometryVersionIds": ["state:ukraine:1991-2014-r1"] }
     },
     {
       "targetEntityId": "state:soviet-union",
