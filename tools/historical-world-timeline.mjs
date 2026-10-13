@@ -80,9 +80,15 @@ export function compileHistoricalWorldTimeline({ entities, currentSnapshot, curr
     const normalized = identity(feature);
     normalized.properties.metadata.historicalTimeline = { entityId: primary.entityId, sourceEntityIds: info.sourceEntityIds,
       lifetime: structuredClone(primary.lifetime), geometryVersions: primary.geometryVersions.map(withoutGeometry), geometryBindings: [] };
-    definitions.set(feature.id, { identity: normalized, currentSnapshot: true, info, windows: [{ ...interval,
-      versionId: version.versionId, geometry: feature.geometry, parentId: feature.properties.parentId,
-      coverageMode: feature.properties.coverageMode }] });
+    const historicalWindows = primary.geometryVersions.filter(row => row.versionId !== version.versionId).map(row => {
+      const historicalInterval = intersection(lifetime, bounds(row));
+      return historicalInterval && { ...historicalInterval, versionId: row.versionId, geometry: row.geometry,
+        parentId: feature.properties.parentId, coverageMode: feature.properties.coverageMode, currentSnapshot: false };
+    }).filter(Boolean);
+    definitions.set(feature.id, { identity: normalized, currentSnapshot: true, info, windows: [
+      ...historicalWindows, { ...interval, versionId: version.versionId, geometry: feature.geometry,
+        parentId: feature.properties.parentId, coverageMode: feature.properties.coverageMode, currentSnapshot: true }
+    ] });
   }
   for (const entity of entities) {
     const lifetime = bounds(entity.lifetime);
@@ -138,7 +144,7 @@ export function compileHistoricalWorldTimeline({ entities, currentSnapshot, curr
     for (const [id, definition] of ordered) {
       const active = definition.windows.filter(window => covers(window, start));
       if (active.length > 1) throw new Error(`Overlapping geometry intervals: ${id}`);
-      if (active.length) candidates.push({ ...active[0], entityId: id, currentSnapshot: definition.currentSnapshot,
+      if (active.length) candidates.push({ ...active[0], entityId: id, currentSnapshot: active[0].currentSnapshot ?? definition.currentSnapshot,
         validFrom: start && date(start), validTo: end && date(end) });
     }
     // A parent gap hides descendants transitively; cycles are a source error.
@@ -151,7 +157,11 @@ export function compileHistoricalWorldTimeline({ entities, currentSnapshot, curr
       return !!parent && activeParent(parent, seen);
     };
     candidates = candidates.filter(row => activeParent(row));
-    const adjusted = adjustHistoricalTerritories(candidates, policy, clipper);
+    const mappedPolicy = { ...policy, replacements: policy.replacements.map(rule => ({ ...rule,
+      targetEntityId: sourceToProject.get(rule.targetEntityId) || rule.targetEntityId,
+      priorityEntityId: sourceToProject.get(rule.priorityEntityId) || rule.priorityEntityId,
+    })) };
+    const adjusted = adjustHistoricalTerritories(candidates, mappedPolicy, clipper);
     candidates = adjusted.candidates;
     adjustments.push(...adjusted.adjustments.map(row => ({ ...row, validFrom: start && date(start), validTo: end && date(end) })));
     for (const candidate of candidates) {

@@ -23,6 +23,7 @@
 | `GEO-NLD-005` | [Netherlands shoreline pilot — Phase 0 canonical baseline probe](geography/netherlands/phase0-canonical-audit.md) | 2026-10-10 | `investigating` | `not-applied` |
 | `GEO-058` | [Terrain integration validation](geography/terrain/app-terrain-integration-validation.md) | 2026-10-07 | `historical-record` | `unverified` |
 | `GEO-059` | [P2 terrain LOD and demand validation](geography/terrain/app-terrain-p2-validation.md) | 2026-10-07 | `historical-record` | `unverified` |
+| `GEO-LIFE-002` | [역사 형상 중복 정체성 정리 — 인도네시아·우크라이나·수단](geography/country-geometry-identity-consolidation-2026-10-13.md) | 2026-10-13 | `investigating` | `not-applied` |
 | `GEO-023` | [Verified entity lifetime additions](geography/verified-entity-lifetimes.md) | 2026-10-08 | `historical-record` | `unverified` |
 
 ## 도시·지명

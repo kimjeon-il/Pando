@@ -412,6 +412,7 @@ QJsonArray TerritorialLibraryCatalog::instantiateDescriptors(const QStringList& 
     for(const auto& id:entityRefsWithChildren(roots,date,depth)) {
         const auto selected=preview(id,date);const auto entity=selected.value("entity").toObject(),version=selected.value("version").toObject();
         auto metadata=entity.value("metadata").toObject();metadata["sourceInfo"]=entity.value("sourceInfo");metadata["sourceLifetime"]=entity.value("lifetime");
+        if(version.contains("historicalProvenance"))metadata["historicalProvenance"]=version.value("historicalProvenance");
         metadata["sourceGeometryValidity"]=QJsonObject{{"validFrom",version.value("validFrom")},{"validTo",version.value("validTo")}};
         metadata["sourceReferenceDate"]=date;
         if(version.contains("certainty"))metadata["geometryCertainty"]=version.value("certainty");
@@ -419,7 +420,7 @@ QJsonArray TerritorialLibraryCatalog::instantiateDescriptors(const QStringList& 
         descriptors.push_back(QJsonObject{{"entityId",entity.value("entityId")},{"geometryVersionId",version.value("versionId")},
             {"entityKind",entity.value("entityKind")},{"name",displayName(entity.value("names").toObject())},{"parentEntityId",entity.value("parentEntityId")},
             {"geometry",version.value("geometry")},{"validFrom",QJsonValue::Null},{"validTo",QJsonValue::Null},
-            {"metadata",metadata},{"instantiation",entity.value("instantiation")}});
+            {"metadata",metadata},{"instantiation",version.contains("instantiation")?version.value("instantiation"):entity.value("instantiation")}});
     }
     return descriptors;
 }
