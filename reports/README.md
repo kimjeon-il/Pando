@@ -23,6 +23,7 @@
 | `GEO-NLD-005` | [Netherlands shoreline pilot — Phase 0 canonical baseline probe](geography/netherlands/phase0-canonical-audit.md) | 2026-10-10 | `investigating` | `not-applied` |
 | `GEO-058` | [Terrain integration validation](geography/terrain/app-terrain-integration-validation.md) | 2026-10-07 | `historical-record` | `unverified` |
 | `GEO-059` | [P2 terrain LOD and demand validation](geography/terrain/app-terrain-p2-validation.md) | 2026-10-07 | `historical-record` | `unverified` |
+| `GEO-LIFE-001` | [국가 존속기간 공란 조사 — 최상위 일반객체 A–D 32개](geography/country-lifetime-a-d-2026-10-13.md) | 2026-10-13 | `investigating` | `not-applied` |
 | `GEO-023` | [Verified entity lifetime additions](geography/verified-entity-lifetimes.md) | 2026-10-08 | `historical-record` | `unverified` |
 
 ## 도시·지명
