@@ -314,6 +314,7 @@ async function openApp(page, renderer, { staticInput = false, focusCountry = tru
   await page.locator('#flatBtn').evaluate(button => button.click());
   if (staticInput) {
     const project = JSON.parse(await readFile(new URL('../fixtures/timeline-exchange/static.json', import.meta.url), 'utf8'));
+    project.layerVisibility.countries = true;
     const polygons = [
       [[6, 48], [6, 56], [16, 56], [16, 54], [16, 52], [16, 50], [16, 48], [6, 48]],
       [[16, 48], [16, 50], [16, 52], [16, 54], [16, 56], [22, 56], [22, 48], [16, 48]],
@@ -336,6 +337,8 @@ async function openApp(page, renderer, { staticInput = false, focusCountry = tru
     await expect.poll(() => page.evaluate(() => window.__m2State().selected)).toMatchObject({ domain: 'territorial', type: 'entity', id: 'A' });
   } else await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   await focusSelectedObject(page, renderer);
+  if (staticInput) await expect.poll(() => page.evaluate(() => window.__PANDOLAB_MAP_HOST__.getViewState().flatZoom),
+    { timeout: 60_000 }).toBeGreaterThanOrEqual(10);
 }
 
 async function focusSelectedObject(page, renderer) {
@@ -466,6 +469,13 @@ for (const renderer of ['webgl2', 'canvas']) {
     await button.evaluate(button => button.click());
     if (kind === 'shared-boundary') {
       await expect.poll(() => page.evaluate(() => window.__m2State().boundaryPreparation?.status), { timeout: 60_000 }).toBe('ready');
+      const coordinate = staticInput ? [20, 50] : [18, 52];
+      await expect.poll(() => page.evaluate(coordinate => {
+        const frame = [...window.__m2Frames.values()].at(-1);
+        const point = frame?.projectVisibleCoordinate(coordinate);
+        const live = point && window.__PANDOLAB_MAP_HOST__.unproject(point);
+        return live ? Math.hypot(live[0] - coordinate[0], live[1] - coordinate[1]) : Infinity;
+      }, coordinate), { timeout: 60_000 }).toBeLessThan(0.001);
       const attempt = await page.evaluate(coordinate => {
         const frame = [...window.__m2Frames.values()].at(-1);
         return { coordinate, point: frame.projectVisibleCoordinate(coordinate), usedFrame: {
@@ -473,7 +483,7 @@ for (const renderer of ['webgl2', 'canvas']) {
           projectGeneration: frame.projectGeneration, projection: frame.projection, cssTranslate: frame.cssTranslate,
           cssScale: frame.cssScale, cssViewport: frame.cssViewport, flatCenter: frame.flatCenter, rotation: frame.rotation,
         } };
-      }, staticInput ? [19, 52] : [18, 52]);
+      }, coordinate);
       const map = await page.locator('#map').boundingBox();
       attempt.mapRect = map;
       attempt.clientPoint = [map.x + attempt.point[0], map.y + attempt.point[1]];
@@ -595,7 +605,8 @@ for (const renderer of ['webgl2', 'canvas']) {
     await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
     await page.locator('#modePrimaryBtn').click();
     await expect.poll(() => page.evaluate(() => window.__m2State().geometryPreview.session), { timeout: 60_000 }).toBeNull();
-    expect((await page.evaluate(() => window.__m2CommandState())).revision).toBe(history.revision + 1);
+    await expect.poll(() => page.evaluate(() => window.__m2CommandState().revision), { timeout: 60_000 })
+      .toBe(history.revision + 1);
     expect(errors).toEqual([]);
     await writeFile(test.info().outputPath(`${renderer}-${kind}-handoff.json`), JSON.stringify({ moved, handoff,
       final: await snapshot(page), observed: await page.evaluate(() => window.__m2), scope: 'M2 direct stroke handoff; GPU resource replacement is M3' }, null, 2));

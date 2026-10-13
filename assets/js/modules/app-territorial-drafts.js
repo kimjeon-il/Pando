@@ -555,7 +555,6 @@ export function createTerritorialDrafts() {
       parentId: context.parentId,
       coverageMode: dependencies.territorialModel.TERRITORIAL_COVERAGE_MODES.PARTITION,
       name: workflow.name.trim(), geometry: (0, dependencies.platform.deepClone)(geometry),
-      validFrom: parent.properties.validFrom, validTo: parent.properties.validTo,
     });
     return previewTerritorialEdit({
       operation: workflow.editOperation || 'create', targetId: workflow.editTargetId || context.parentId,
