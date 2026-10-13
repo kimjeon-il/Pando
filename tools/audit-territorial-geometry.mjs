@@ -36,7 +36,7 @@ for (const filename of fs.readdirSync(countryDirectory).filter(file => file.ends
       }
     }
   }
-  if (changed) fs.writeFileSync(file, \`\${JSON.stringify(document, null, 2)}\n\`);
+  if (changed) fs.writeFileSync(file, JSON.stringify(document, null, 2) + '\n');
 }
 console.log(JSON.stringify(report, null, 2));
 if (report.invalidVersions || (check && report.rewoundVersions)) process.exitCode = 1;
