@@ -2,10 +2,10 @@ import {createTerritorialEntityLoader} from '../../assets/js/modules/territorial
 import {createTerritorialLibraryService} from '../../assets/js/modules/territorial-library-service.js';
 import {selectGeometryVersion} from '../../assets/js/modules/territorial-library.js';
 
-export async function libraryTrace(corpus,indexBytes) {
+export async function libraryTrace(corpus,indexSpec,indexBytes) {
   let entityReads=0;
-  const loader=createTerritorialEntityLoader({indexUrl:'https://fixture.invalid/index.json',indexSpec:corpus.index,
-    dataRevision:corpus.index.sha256,cacheStorage:null,
+  const loader=createTerritorialEntityLoader({indexUrl:'https://fixture.invalid/index.json',indexSpec,
+    dataRevision:indexSpec.sha256,cacheStorage:null,
     fetchFn:async url=>{
       if(new URL(url).pathname!=='/index.json'){entityReads++;throw new Error('Metadata queries must not fetch geometry');}
       return new Response(indexBytes);
