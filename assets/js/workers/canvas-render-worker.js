@@ -797,7 +797,7 @@ function canvasFallbackWorkerMain() {
           pumpTerrainFetchQueue();
           render(mergeRenderState(message), message.renderRequestId);
         } catch (error) {
-          self.postMessage({ type: 'error', message: error?.message || String(error) });
+          self.postMessage({ type: 'error', message: error?.stack || error?.message || String(error) });
         }
       }
     };

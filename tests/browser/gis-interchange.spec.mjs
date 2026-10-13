@@ -72,11 +72,13 @@ test('GeoPackage export contains QGIS-ready territorial and distribution tables'
   if (!await page.locator('#layerSearchInput').isVisible()) await page.locator('#objectSearchBtn').click();
   await page.locator('#layerSearchInput').fill('폴란드');
   await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '폴란드' }).first().click();
+  await expect(page.locator('#objectSearchSurface')).toBeHidden();
+  await expect(page.locator('#flagPreview img')).toHaveAttribute('alt', '폴란드 깃발', { timeout: 30_000 });
   const assetRevision = await page.evaluate(() => window.PANDOLAB_BUILD_META.assetRevision);
   await expect.poll(() => page.locator('#flagPreview img').evaluate(img => {
     const url = new URL(img.src);
     return { pathname: url.pathname, revision: url.searchParams.get('v') };
-  })).toEqual({ pathname: '/assets/vendor/country-flags/c09927e63705529bbf59ca6684cd9b23225dddad/svg/pl.svg', revision: assetRevision });
+  }), { timeout: 30_000 }).toEqual({ pathname: '/assets/vendor/country-flags/c09927e63705529bbf59ca6684cd9b23225dddad/svg/pl.svg', revision: assetRevision });
   await page.locator('#flagMenuBtn').click();
   await page.locator('#flagRemoveBtn').click();
   await expect(page.locator('#flagPreview img')).toHaveCount(0);
@@ -86,6 +88,8 @@ test('GeoPackage export contains QGIS-ready territorial and distribution tables'
   if (!await page.locator('#layerSearchInput').isVisible()) await page.locator('#objectSearchBtn').click();
   await page.locator('#layerSearchInput').fill('독일');
   await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '독일' }).first().click();
+  await expect(page.locator('#objectSearchSurface')).toBeHidden();
+  await expect(page.locator('#flagPreview img')).toHaveAttribute('alt', '독일 깃발', { timeout: 30_000 });
   await page.locator('#flagMenuBtn').click();
   const [germanFlagChooser] = await Promise.all([page.waitForEvent('filechooser'), page.locator('#flagUploadBtn').click()]);
   await germanFlagChooser.setFiles({
@@ -93,6 +97,8 @@ test('GeoPackage export contains QGIS-ready territorial and distribution tables'
     mimeType: 'image/svg+xml',
     buffer: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="60" height="40"><path fill="#111" d="M0 0h60v40H0z"/></svg>'),
   });
+  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('DEU')?.properties.metadata.flagDataUrl),
+    { timeout: 30_000 }).toMatch(/^data:image\/svg\+xml;base64,/);
   await expect(page.locator('#flagPreview img')).toHaveAttribute('src', /^data:image\/svg\+xml;base64,/);
 
   await page.locator('#createMenuBtn').click();
