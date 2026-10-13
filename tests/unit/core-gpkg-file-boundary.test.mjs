@@ -7,7 +7,7 @@ import {productionGeoPackage,spatialLayerCount,spatialColumns} from '../helpers/
 
 for(const name of ['static','complex'])test(`Core ${name} file export supplies same-epoch spatial facts to the byte encoder`,async t=>{
   const seed=JSON.parse(readFileSync(new URL(`../fixtures/timeline-exchange/${name}.json`,import.meta.url),'utf8'));
-  if(name==='static') seed.genericFeatures.push(normalizeGenericFeatureSemantics({type:'Feature',id:'generic-point',
+  if(name==='static') seed.genericFeatures.push(normalizeGenericFeatureSemantics({type:'Feature',id:'ac7332ab-e9e8-4f20-a14e-b7291ddf5f1d',
     geometry:{type:'Point',coordinates:[0,0]},properties:{schemaVersion:2,name:'Point',source:{kind:'user'}}}));
   const owner=await createNodeCoreProject(seed);t.after(()=>owner.dispose());const before=owner.client.state();
   const result=await owner.client.exportSnapshot({format:'pandolab-project-state',version:seed.version,savedAt:seed.savedAt});
