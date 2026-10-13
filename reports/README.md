@@ -36,6 +36,7 @@
 
 | ID | 보고서 | 원문 수정일 | 상태 | 지도 반영 |
 | --- | --- | --- | --- | --- |
+| `DEV-069` | [Git 대용량 이력 정리 — 격리 검증 및 PR 참조 제약](development/testing/git-history-readonly-audit-2026-10-13.md) | 2026-10-13 | `historical-record` | `not-applicable` |
 | `DEV-068` | [미사용 세계지도 구버전 대용량 자산 정리 — 의존성 검증](development/testing/legacy-world-asset-retirement-2026-10-13.md) | 2026-10-13 | `historical-record` | `not-applicable` |
 | `DEV-067` | [통합 저장소 현행 파일 정리 — 비활성 앱 워크플로](development/testing/current-file-cleanup-2026-10-13.md) | 2026-10-13 | `historical-record` | `not-applicable` |
 | `DEV-066` | [공통 C++·WASM 코어와 앱 시작 경로 개선 — 진행 기록](development/testing/shared-core-startup-implementation-2026-10-12.md) | 2026-10-12 | `investigating` | `not-applicable` |
