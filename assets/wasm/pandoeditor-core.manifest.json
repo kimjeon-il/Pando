@@ -1,7 +1,7 @@
 {
   "schema": "pandoeditor-core-wasm",
   "abiVersion": 1,
-  "sourceSha256": "f2e7d11fb1f3498fad415a045234d49c470e3045ac8f64d3fcbb41f0f7187b1a",
+  "sourceSha256": "1dfea13b7211a0ecc0ca38ced399ecf9840bb9eca31f585763bd9a7a33b57b02",
   "compiler": {
     "name": "emscripten",
     "version": "4.0.20"
@@ -357,7 +357,7 @@
     },
     {
       "path": "shared/core/src/webterritorialedit.cpp",
-      "sha256": "2f7536457dbbd173ac98b5258508b5f06556d635a338739e292f6be5db8a4ea3"
+      "sha256": "ecf1f5db293669cca885c6244c0148a2ac9386e0b06474649f57fa68c86c5f1e"
     },
     {
       "path": "shared/tests/CMakeLists.txt",
@@ -401,7 +401,7 @@
     },
     {
       "path": "shared/tests/web-territorial-command-tests.cpp",
-      "sha256": "7c6a6e2e02aa804bd6815a28aa58c7850d133d88453bb657c481aeeb8c4d9898"
+      "sha256": "41bab1e4dcc6a405a34e0c73ae4540c24e93ab1e24dc00f631c84adf0786e0f9"
     },
     {
       "path": "shared/wasm/CMakeLists.txt",
@@ -419,7 +419,7 @@
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "2c67af41bb7de1594c02ce82df6e010cf64e69d967016328730ad73905ac24d0"
+      "sha256": "ba17f8a47587e0fd7c5822154a8f9c234803ba8b7b6d6b3eaa21d300ffe7b72e"
     }
   }
 }
