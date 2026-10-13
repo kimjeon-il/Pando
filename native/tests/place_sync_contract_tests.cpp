@@ -17,6 +17,10 @@
 #include <stdexcept>
 
 namespace {
+QString placeReportRoot() {
+    const auto nativeRoot=QString::fromUtf8(PLACE_SYNC_REPOSITORY_ROOT);
+    return QFile::exists(nativeRoot+"/../reports/places/source-manifest.json") ? nativeRoot+"/.." : nativeRoot;
+}
 QJsonObject contract() {
     QFile file(QString::fromUtf8(PLACE_SYNC_CONTRACT_PATH));
     if(!file.open(QIODevice::ReadOnly))throw std::runtime_error("Missing frozen Web v2 exchange contract");
@@ -125,8 +129,7 @@ private slots:
         QCOMPARE(source.value("fixtures").toArray().size(),4);
     }
     void reviewedSourceMirrorIsIdenticalToPinnedWebGitBlobs() {
-        const auto nativeRoot=QString::fromUtf8(PLACE_SYNC_REPOSITORY_ROOT);
-        const auto root=QFile::exists(nativeRoot+"/../reports/places/source-manifest.json") ? nativeRoot+"/.." : nativeRoot;
+        const auto root=placeReportRoot();
         QFile manifest(root+"/reports/places/source-manifest.json");
         QVERIFY(manifest.open(QIODevice::ReadOnly));
         const auto report=QJsonDocument::fromJson(manifest.readAll()).object();
@@ -197,7 +200,7 @@ private slots:
         }
     }
     void batch11CityIdsAndPodgoricaHistoricalKoreanTimeline() {
-        const QString root=QString::fromUtf8(PLACE_SYNC_REPOSITORY_ROOT);
+        const QString root=placeReportRoot();
         QFile file(root+"/reports/places/tier1-major-cities-batch11-western-balkans-capitals.json");
         QVERIFY(file.open(QIODevice::ReadOnly));
         const auto document=QJsonDocument::fromJson(file.readAll()).object();
@@ -259,7 +262,7 @@ private slots:
     }
 
     void batch12BratislavaNameChangeAndLanguageVariants() {
-        const QString root=QString::fromUtf8(PLACE_SYNC_REPOSITORY_ROOT);
+        const QString root=placeReportRoot();
         QFile file(root+"/reports/places/tier1-major-cities-batch12-central-eastern-europe-capitals.json");
         QVERIFY(file.open(QIODevice::ReadOnly));
         const auto dataset=QJsonDocument::fromJson(file.readAll()).object();
@@ -319,7 +322,7 @@ private slots:
     }
 
     void batch13FiveCapitalsAndNicosiaMultilingualNames() {
-        const QString root=QString::fromUtf8(PLACE_SYNC_REPOSITORY_ROOT);
+        const QString root=placeReportRoot();
         QFile file(root+"/reports/places/tier1-major-cities-batch13-european-microstates-mediterranean.json");
         QVERIFY(file.open(QIODevice::ReadOnly));
         const auto document=QJsonDocument::fromJson(file.readAll()).object();
@@ -395,7 +398,7 @@ private slots:
     }
 
     void batch14OmittedVaticanAndYearPrecisionLabels() {
-        const QString root=QString::fromUtf8(PLACE_SYNC_REPOSITORY_ROOT);
+        const QString root=placeReportRoot();
         QFile file(root+"/reports/places/tier1-major-cities-batch14-north-atlantic-anatolia-caucasus.json");
         QVERIFY(file.open(QIODevice::ReadOnly));
         const QJsonObject dataset=QJsonDocument::fromJson(file.readAll()).object();
@@ -490,7 +493,7 @@ private slots:
     }
 
     void batch15CentralAsiaKoreanHistoricalNameSelections() {
-        const QString root=QString::fromUtf8(PLACE_SYNC_REPOSITORY_ROOT);
+        const QString root=placeReportRoot();
         QFile file(root+"/reports/places/tier1-major-cities-batch15-central-asia-capitals.json");
         QVERIFY(file.open(QIODevice::ReadOnly));
         const auto data=QJsonDocument::fromJson(file.readAll()).object();
