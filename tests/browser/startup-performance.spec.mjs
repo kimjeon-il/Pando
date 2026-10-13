@@ -19,8 +19,12 @@ test('Android-density mobile viewport caps the map backing store at DPR two', as
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 120_000 });
   const metrics = await page.evaluate(() => window.__PANDOLAB_GPU_METRICS__ || {});
   expect(metrics.devicePixelRatio).toBe(3);
-  // The mobile ceiling is two; adaptive quality can impose a lower cap.
+  // Mobile normally renders at DPR two; constrained performance tier may use 1.5.
   expect(metrics.effectivePixelRatio).toBe(Math.min(3, 2, metrics.renderQuality.dprCap));
+  expect(metrics.effectivePixelRatio).toBeGreaterThanOrEqual(1.5);
+  // After loading, low world-scale zoom must no longer show simplified borders.
+  expect(metrics.canonicalMeshReady).toBe(true);
+  expect(metrics.activeMeshQuality).toBe('canonical');
   expect(metrics.canvasBackingPixels[0] / metrics.viewportCss[0]).toBeLessThanOrEqual(2.01);
   expect(metrics.canvasBackingPixels[1] / metrics.viewportCss[1]).toBeLessThanOrEqual(2.01);
 });
