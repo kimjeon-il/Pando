@@ -1,4 +1,9 @@
 import { expect, test } from '@playwright/test';
+import { readFileSync } from 'node:fs';
+
+const liveWorld = JSON.parse(readFileSync(new URL('../../assets/data/world/current.json', import.meta.url), 'utf8'));
+const liveCanonicalPacket = liveWorld.assets.canonicalCountryPacket.url.split('/').at(-1);
+const liveCanonicalMesh = liveWorld.assets.canonicalMesh.url.split('/').at(-1);
 
 test('canonical geometry request waits for a complete quiet input window', async ({ page }) => {
   test.setTimeout(90_000);
@@ -7,12 +12,12 @@ test('canonical geometry request waits for a complete quiet input window', async
   let geometryRequests = 0;
   let meshRequests = 0;
   let geometryRequestedAt = 0;
-  await page.route('**/countries-canonical-v0.32.0.pcg.gz*', async route => {
+  await page.route(`**/${liveCanonicalPacket}*`, async route => {
     geometryRequests += 1;
     geometryRequestedAt = Date.now();
     await route.abort('aborted');
   });
-  await page.route('**/world-mesh-v0.12.6.bin.gz*', async route => {
+  await page.route(`**/${liveCanonicalMesh}*`, async route => {
     meshRequests += 1;
     await route.abort('aborted');
   });
