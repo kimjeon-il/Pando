@@ -49,14 +49,14 @@ test('GIS geometry validator scopes IDs and resolves worker responses', async ()
     onerror: null,
     postMessage(message) {
       messages.push(message);
-      Promise.resolve().then(() => this.onmessage({ data: { id: message.id, ok: true, overlapAreaKm2: 0 } }));
+      Promise.resolve().then(() => this.onmessage({ data: { ...message, type: 'result', ok: true, result: { overlapAreaKm2: 0 } } }));
     },
     terminate() {},
   };
   const validator = createGisGeometryValidator({ createWorker: () => worker, timeoutMs: 100 });
   const result = await validator.validate({ type: 'FeatureCollection', features: [] }, ['AAA', 'AAA', '']);
   assert.equal(result.overlapAreaKm2, 0);
-  assert.deepEqual(messages[0].affectedIds, ['AAA']);
+  assert.deepEqual(messages[0].payload.affectedIds, ['AAA']);
   validator.dispose();
 });
 

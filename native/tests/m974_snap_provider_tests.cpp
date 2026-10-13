@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "geometrysnapprovider.h"
 #include "commandjobrunner.h"
 #include <QtTest>
@@ -5,10 +6,11 @@ using namespace pandoeditor;
 class M974SnapProviderTests : public QObject {
     Q_OBJECT
     static Geometry square(double x=0,double y=0){Geometry g;g.type="Polygon";g.polygons={{{{x,y},{x+2,y},{x+2,y+2},{x,y+2},{x,y}}}};return g;}
-    static void pair(Project& p){p.replace(std::vector<Country>{{"a","a",square().polygons,0xabcdef},{"b","b",square().polygons,0xabcdef}});}
+    static void pair(Project& p){p.replace(makeTerritorialDocument({{{"a","a","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square().polygons},{0xabcdef,1},"countries"},
+        {{"b","b","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square().polygons},{0xabcdef,1},"countries"}}));}
     static bool apply(Project& p,const char* id,CommandAction action){CommandArguments args;args.action=std::move(action);auto prepared=CommandProcessor::prepare(p,CommandProcessor::makeRequest(p,id,args));return prepared.preview&&CommandProcessor::confirm(p,*prepared.preview).ok();}
     static bool removeA(Project& p){const auto planned=CommandProcessor::planTerritorial(p,DeleteTerritorialIntent{{territorialRef("a")}});return planned.plan&&apply(p,"territorial.delete",ApplyTerritorialMutation{*planned.plan,{}});}
-    static void populate(Project& p){p.replace(std::vector<Country>{{"A","A",{{{{0,0},{2,0},{2,2},{0,2},{0,0}}}},0xabcdef}});}
+    static void populate(Project& p){p.replace(makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{2,0},{2,2},{0,2},{0,0}}}}},{0xabcdef,1},"countries"}}));}
 private slots:
     void stoppedWorkerDefersRebaseAndIgnoresRootPatches(){
         Project p;pair(p);CommandJobRunner runner([&]()->const Project&{return p;});geometrysnap::Provider provider(runner);
@@ -59,7 +61,7 @@ private slots:
         QVERIFY(p.renameCountry("a","Renamed"));QVERIFY(provider.completeWorkerOperation(p.snapshot(),epoch));QCOMPARE(provider.sourceRanks().get(),restored.get());
     }
     void installationDefersGenericTransitionsUntilQueryOrRootGeometrySync(){
-        ProjectDocument document(std::vector<Country>{{"root","root",square(10).polygons,0xabcdef}},{{"countries","Countries"}});
+        pandoeditor::ProjectDocument document = makeTerritorialDocument({{{"root","root","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(10).polygons},{0xabcdef,1},"countries"}},{{"countries","Countries"}});
         for(const auto id:{"ga","gb"}){GenericFeature f;f.id=id;f.geometry={id,1};document.geometries.insert(f.geometry,square());document.genericFeatures.push_back(f);}
         Project p;p.replace(document);CommandJobRunner runner([&]()->const Project&{return p;});geometrysnap::Provider provider(runner);provider.synchronizeInstallation(p.snapshot());const auto initial=provider.sourceRanks();QVERIFY(initial);
         const auto beforeDelete=p.snapshot();QVERIFY(apply(p,"content.edit",ContentEdit{{"generic","ga"},{},{},false}));QVERIFY(!provider.requiresImmediateSynchronization(p.snapshot(),calculateChangeImpact(beforeDelete.document(),p.document())));provider.synchronizeInstallation(p.snapshot());QCOMPARE(provider.sourceRanks().get(),initial.get());QVERIFY(provider.sourceRanks()->count({"generic","ga"}));
@@ -84,7 +86,7 @@ private slots:
         auto high=std::make_shared<geometrysnap::SourceRanks>(*latest);(*high)[territorialRef("a")]=std::numeric_limits<std::uint64_t>::max();(*high)[territorialRef("b")]=std::numeric_limits<std::uint64_t>::max()-1;q.sourceRanks=high;QCOMPARE(index.prepareAndCollect(p.snapshot(),q).candidates.front().ownerIds.front(),std::string("b"));
     }
     void interleavedAdditionsAndContentUpdatesDoNotCopyWarmRanks(){
-        ProjectDocument d(std::vector<Country>{{"t1","t1",square().polygons,0xabcdef}},{{"countries","Countries"}});
+        pandoeditor::ProjectDocument d = makeTerritorialDocument({{{"t1","t1","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square().polygons},{0xabcdef,1},"countries"}},{{"countries","Countries"}});
         const auto add=[&](std::string id,Geometry geometry){GenericFeature f;f.id=id;f.geometry={id,1};d.geometries.insert(f.geometry,std::move(geometry));d.genericFeatures.push_back(f);};add("g1",square());for(int i=0;i<500;++i)add("far"+std::to_string(i),square(40+(i%40)*2,20+((i/40)%20)*2));
         Project p;p.replace(d);CommandJobRunner runner([&]()->const Project&{return p;});geometrysnap::Provider provider(runner);provider.synchronizeSources(p.snapshot());const auto initial=provider.sourceRanks();QVERIFY(initial);QVERIFY(p.renameCountry("t1","Renamed"));provider.synchronizeSources(p.snapshot());QCOMPARE(provider.sourceRanks().get(),initial.get());
         auto updated=p.document().genericFeatures.front();updated.geometry={"g1",2};QVERIFY(apply(p,"content.edit",ContentEdit{{"generic","g1"},updated,std::make_pair(updated.geometry,square(.01)),false}));provider.synchronizeSources(p.snapshot());QCOMPARE(provider.sourceRanks().get(),initial.get());

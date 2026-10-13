@@ -1,6 +1,6 @@
 import '../gis-adapters.js';
 import { territorialRootId, normalizeTerritorialIdentities, TERRITORIAL_SCHEMA_VERSION } from './territorial-units.js';
-import { normalizeSourceProvenance, SOURCE_KINDS } from './source-provenance.js';
+import { normalizeSourceProvenance, validateSourceProvenance, SOURCE_KINDS } from './source-provenance.js';
 
 export function createGisImportTransactionCommitter(runtime = {}) {
   const {
@@ -267,14 +267,18 @@ export function createGisImportTransactionCommitter(runtime = {}) {
       f.id = uid();
       if (['Polygon', 'MultiPolygon'].includes(f.geometry?.type)) f.geometry = normalizePolygonGeometry(f.geometry) || f.geometry;
       const p = f.properties || {};
+      const canonicalSource = validateSourceProvenance(p.source).ok;
+      const attributes = Object.fromEntries(Object.entries(p).filter(([key]) =>
+        !['schemaVersion', 'name', 'notes', 'color', 'locked'].includes(key) && (key !== 'source' || !canonicalSource)));
+      const source = normalizeSourceProvenance(canonicalSource ? p.source : {}, { kind: SOURCE_KINDS.GIS, sourceFormat: 'geojson' });
+      if (Object.keys(attributes).length) source.details.attributes = { ...(source.details.attributes || {}), ...attributes };
       f.properties = {
-        ...p,
-        schemaVersion: p.schemaVersion ?? GENERIC_FEATURE_SCHEMA_VERSION,
+        schemaVersion: GENERIC_FEATURE_SCHEMA_VERSION,
         name: String(p.name || ''),
         color: p.color || DEFAULT_GENERIC_FEATURE_COLOR,
         locked: p.locked === true,
         notes: String(p.notes || ''),
-        source: normalizeSourceProvenance(p.source, { kind: SOURCE_KINDS.GIS, sourceFormat: 'geojson' }),
+        source,
       };
       if (!f.properties.source.sourceId && sourceId) f.properties.source = {
         ...f.properties.source, sourceId,

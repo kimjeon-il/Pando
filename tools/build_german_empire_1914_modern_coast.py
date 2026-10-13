@@ -14,7 +14,7 @@ WORLD=ROOT/"assets/data/countries-ne-5.1.1.geojson"
 OUTDIR=ROOT/"tools/historical-library/working"
 SRCDIR=ROOT/"tools/historical-library/sources/german-empire-1914"
 OUTDIR.mkdir(parents=True,exist_ok=True); SRCDIR.mkdir(parents=True,exist_ok=True)
-REPORT_DIR=report_path("tools/historical-library/working")
+REPORT_DIR=report_path("reports/geography/germany/diagnostics")
 REPORT_DIR.mkdir(parents=True,exist_ok=True)
 
 HGIS_URL="https://raw.githubusercontent.com/acdh-oeaw/histogis-data/master/single_files/deutsches-reich__1871-02-27_1919-12-31.geojson"

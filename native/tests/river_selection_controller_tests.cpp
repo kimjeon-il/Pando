@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "territorial_fixture.h"
 #include "editorcontroller.h"
 #include "river_controller_fixture.h"
@@ -253,7 +254,8 @@ private slots:
  }
 
  void realSourceToggleIsAvailableOnlyInComponents() {
-  QTemporaryDir dir; ProjectDocument d({{"target","Target",{{{{50,0},{51,0},{51,1},{50,1},{50,0}}}},0}, {"donor","Donor",{{{{39.9,-.1},{40.2,-.1},{40.2,.2},{39.9,.2},{39.9,-.1}}}},0}},{{"countries","Countries"}});
+  QTemporaryDir dir; pandoeditor::ProjectDocument d = makeTerritorialDocument({{{"target","Target","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{50,0},{51,0},{51,1},{50,1},{50,0}}}}},{0,1},"countries"},
+        {{"donor","Donor","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{39.9,-.1},{40.2,-.1},{40.2,.2},{39.9,.2},{39.9,-.1}}}}},{0,1},"countries"}},{{"countries","Countries"}});
   d.documentId="river-controller"; d.physicalData.source=std::string(WEB_HYDRO_FIXTURE)+"/v0.13.1/manifest.json";
   Project p;p.replace(d);QFile f(dir.filePath("input.json"));QVERIFY(f.open(QIODevice::WriteOnly));f.write(projectcodec::encode(p));f.close();
   EditorController c({false,dir.filePath("private.json")});QVERIFY(c.openFile(QUrl::fromLocalFile(f.fileName())));c.selectCountry("target");QVERIFY(c.beginAnnexGeometry());QVERIFY(c.geometryToggleProvider({{"domain","territorial"},{"id","donor"}}));QTRY_VERIFY(!c.geometryEditState()["calculating"].toBool());QVERIFY(c.geometryAdvanceStage());QVERIFY(c.geometrySelectTerritoryMethod("components"));QTRY_VERIFY(!c.geometryEditState()["calculating"].toBool());

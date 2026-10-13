@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "territorial_fixture.h"
 #include "historicaltransaction.h"
 #include "geometrycalculator.h"
@@ -21,7 +22,7 @@ HistoricalLibrary catalog(Geometry shape) {
     return HistoricalLibrary(2,{e},{});
 }
 Project project() {
-    Project p;ProjectDocument d({{"A","Before",box(0,0,10,10).polygons,0x223344}},{{"countries","Countries"}});
+    Project p;pandoeditor::ProjectDocument d = makeTerritorialDocument({{{"A","Before","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},box(0,0,10,10).polygons},{0x223344,1},"countries"}},{{"countries","Countries"}});
     p.replace(std::move(d));return p;
 }
 }

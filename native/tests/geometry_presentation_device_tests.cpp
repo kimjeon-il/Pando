@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "editorcontroller.h"
 #include "projectcodec.h"
 #include "gpumapitem.h"
@@ -23,7 +24,7 @@ private slots:
         EditorControllerConfig config;config.appearancePath=directory.filePath("appearance.json");
         EditorController editor(config);
         using namespace pandoeditor;
-        ProjectDocument document({{"A","Alpha",{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}},0xabcdef}},{{"countries","Countries"}});
+        pandoeditor::ProjectDocument document = makeTerritorialDocument({{{"A","Alpha","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}}},{0xabcdef,1},"countries"}},{{"countries","Countries"}});
         Geometry unused;unused.type="Polygon";unused.polygons={{{{30,0},{31,0},{31,1},{30,1},{30,0}}}};
         document.geometries.insert({"unreferenced",77},unused);
         Project project;project.replace(document);QFile file(directory.filePath("input.json"));QVERIFY(file.open(QIODevice::WriteOnly));

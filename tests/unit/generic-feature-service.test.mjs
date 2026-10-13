@@ -2,46 +2,22 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
-  GENERIC_FEATURE_SCHEMA_VERSION,
   createGenericFeatureService,
-  genericFeatureGeometryKind,
-  genericFeatureRole,
   normalizeGenericFeatureCollection,
   normalizeGenericFeatureSemantics,
 } from '../../assets/js/modules/generic-feature-service.js';
 
 const genericFeature = (id, geometry = { type: 'Point', coordinates: [1, 2] }, properties = {}) => ({
-  type: 'Feature', id, geometry, properties: { name: id, color: '#123456', ...properties },
+  type: 'Feature', id, geometry, properties: { schemaVersion: 2, name: id, color: '#123456', ...properties },
 });
 
-test('legacy Generic Feature normalizes to fallback v2 without losing old semantics or source fields', () => {
-  const legacy = genericFeature('one', undefined, {
-    schemaVersion: 1,
-    role: 'territory',
-    ownerId: 'country-a',
-    landBinding: 'hard',
-    category: 'custom',
-    source: { format: 'geojson', provider: 'legacy-provider' },
-  });
-  const [normalized] = normalizeGenericFeatureCollection([legacy]);
-  assert.equal(normalized.properties.schemaVersion, GENERIC_FEATURE_SCHEMA_VERSION);
-  assert.deepEqual(Object.keys(normalized.properties).sort(), ['color', 'locked', 'name', 'notes', 'schemaVersion', 'source'].sort());
-  assert.equal(normalized.properties.source.kind, 'legacy');
-  assert.equal(normalized.properties.source.sourceFormat, 'geojson');
-  assert.equal(normalized.properties.source.details.unmappedSourceFields.provider, 'legacy-provider');
-  assert.equal(normalized.properties.source.details.legacyProperties.category, 'custom');
-  assert.equal(normalized.properties.source.details.legacyGenericSemantics.ownerId, 'country-a');
-  assert.equal(genericFeatureRole(normalized), 'territory');
-  assert.equal(normalized.properties.source.details.legacyGenericSemantics.landBinding, 'hard');
-  assert.equal(genericFeatureGeometryKind(normalized), 'point');
-  assert.equal(legacy.properties.schemaVersion, 1, 'normalization must not mutate legacy input');
-});
-
-test('direct compatibility normalization remains in-place for legacy app callers', () => {
-  const feature = genericFeature('compat', undefined, { schemaVersion: 1, role: 'generic' });
-  assert.equal(normalizeGenericFeatureSemantics(feature), feature);
-  assert.equal(feature.properties.schemaVersion, 2);
-  assert.equal('role' in feature.properties, false);
+test('Generic normalization rejects old versions and retired top-level semantics', () => {
+  for (const properties of [{ schemaVersion: 1 }, { schemaVersion: undefined },
+    { schemaVersion: 2, role: 'territory' }, { schemaVersion: 2, ownerId: 'A' }]) {
+    const feature = genericFeature('old', undefined, properties), before = structuredClone(feature);
+    assert.throws(() => normalizeGenericFeatureSemantics(feature));
+    assert.deepEqual(feature, before);
+  }
 });
 
 test('new v2 Generic Feature uses canonical fallback provenance and rejects duplicate IDs', () => {
@@ -50,7 +26,6 @@ test('new v2 Generic Feature uses canonical fallback provenance and rejects dupl
     source: { schemaVersion: 1, kind: 'gis', dataset: 'roads', sourceId: 'r-1', sourceFormat: 'geojson', sourceType: 'road' },
   })]);
   assert.equal(normalized.properties.source.kind, 'gis');
-  assert.equal(genericFeatureRole(normalized), 'generic');
   assert.throws(() => normalizeGenericFeatureCollection([genericFeature('one'), genericFeature('one')]), /중복/);
 });
 

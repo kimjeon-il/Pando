@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "editorcontroller.h"
 #include "projectcodec.h"
 #include "territorial_fixture.h"
@@ -14,7 +15,7 @@ namespace {
 QVariantMap ref(const QString& id) {return {{"domain","territorial"},{"id",id}};}
 pandoeditor::ProjectDocument fixture() {
     using namespace pandoeditor;
-    ProjectDocument document({{"A","Alpha",{{{{0,0},{12,0},{12,12},{0,12},{0,0}}}},0x336699}},{{"countries","Countries"}});
+    pandoeditor::ProjectDocument document = makeTerritorialDocument({{{"A","Alpha","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{12,0},{12,12},{0,12},{0,0}}}}},{0x336699,1},"countries"}},{{"countries","Countries"}});
     const auto add=[&](const std::string& id,const std::string& name,UnitKind kind,double x,double y,double size,const std::string& parent) {
         Geometry shape{"Polygon",{},{},{{{{x,y},{x+size,y},{x+size,y+size},{x,y+size},{x,y}}}}};
         GeometryRef geometry{"info-shape:"+id,1};document.geometries.insert(geometry,shape);

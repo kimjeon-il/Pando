@@ -29,8 +29,8 @@ export function createObjectPresentation() {
     return (0, dependencies.colorModel.readDomainColor)(dependencies.colorModel.COLOR_DOMAINS.GENERIC, { feature }, { fallback: defaultGenericFeatureColor(feature) }).value;
   }
 
-  function genericFeatureRoleLabel(feature) {
-    return dependencies.objectCatalog.GENERIC_FEATURE_ROLE_RULES[feature?.properties?.role]?.label || '기타 객체';
+  function genericFeatureRoleLabel() {
+    return '기타 객체';
   }
 
   function genericFeatureRoleHelp(feature) {

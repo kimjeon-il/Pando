@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "editorcontroller.h"
 #include "commandjobrunner.h"
 #include "mapscenebridge.h"
@@ -17,10 +18,8 @@ using namespace pandoeditor;
 namespace {
 Project sample() {
     Project p;
-    ProjectDocument document({
-        {"A","Alpha",{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}},0x123456},
-        {"B","Beta",{{{{20,0},{30,0},{30,10},{20,10},{20,0}}}},0x654321}},
-        {{"countries","Countries"}});
+    pandoeditor::ProjectDocument document = makeTerritorialDocument({{{"A","Alpha","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}}},{0x123456,1},"countries"},
+        {{"B","Beta","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{20,0},{30,0},{30,10},{20,10},{20,0}}}}},{0x654321,1},"countries"}},{{"countries","Countries"}});
     for(int i=0;i<2;++i) {
         GeometryRef geometry{"point-"+std::to_string(i),1};
         document.geometries.insert(geometry,Geometry{"Point",{{2.+20*i,2}},{},{}});

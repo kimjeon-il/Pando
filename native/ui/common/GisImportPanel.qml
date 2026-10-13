@@ -19,17 +19,15 @@ Dialog {
         const layers=state.layers || []
         const layer=layers[layerChoice.currentIndex]
         if (!layer) return
-        const values=["country","subunit","region","distribution","generic"]
+        const values=["general","regional","distribution","generic"]
         let requested=values.indexOf(layer.target)
-        targetChoice.currentIndex=requested<0?4:requested
-        const web=state.sourceKind==="geojson-zip" || state.sourceKind==="geopackage"
-        idField.text=layer.target==="country" && web?"pandolab_id":
-                     layer.target==="distribution"?"entry_id":"__fid__"
-        nameField.text=layer.target==="country" && web?"pandolab_name":"name"
+        targetChoice.currentIndex=requested<0?3:requested
+        idField.text=layer.target==="distribution"?"entry_id":"__fid__"
+        nameField.text="name"
     }
     function choices() {
         return {target:targetChoice.currentValue,idField:idField.text,nameField:nameField.text,
-            parentId:parentId.currentValue,coast:coastChoice.currentValue,
+            parentId:targetChoice.currentValue==="general"?parentId.currentValue:"",coast:coastChoice.currentValue,
             layerId:layerId.text,
             layerName:layerName.text}
     }
@@ -70,7 +68,7 @@ Dialog {
                 UiComboBox {
                     id:targetChoice;objectName:"gisTargetChoice"
                     Layout.fillWidth:true
-                    model:[{text:"일반 객체 · 독립",value:"country"},{text:"일반 객체 · 부모 있음",value:"subunit"},{text:"독립 권역",value:"region"},{text:"분포",value:"distribution"},{text:"기타 객체",value:"generic"}];textRole:"text";valueRole:"value"
+                    model:[{text:"일반 객체",value:"general"},{text:"독립 권역",value:"regional"},{text:"분포",value:"distribution"},{text:"기타 객체",value:"generic"}];textRole:"text";valueRole:"value"
                 }
                 RowLayout {
                     Layout.fillWidth:true
@@ -89,13 +87,13 @@ Dialog {
                 }
                 RowLayout {
                     Layout.fillWidth:true
-                    visible:targetChoice.currentValue==="subunit"
+                    visible:targetChoice.currentValue==="general"
                     Label { text:"상위 단위" }
                     UiComboBox {id:parentId;objectName:"gisParentId";Layout.fillWidth:true;textRole:"name";valueRole:"id";model:[{id:"",name:"각 객체의 상위 필드 사용"}].concat(editor.relationParentOptions)}
                 }
                 RowLayout {
                     Layout.fillWidth:true
-                    visible:targetChoice.currentValue==="country"||targetChoice.currentValue==="subunit"
+                    visible:targetChoice.currentValue==="general"
                     Label { text:"해안선·영토 충돌" }
                     UiComboBox {
                         id:coastChoice;objectName:"gisCoastChoice";Layout.fillWidth:true

@@ -1,3 +1,7 @@
+#include "gisdocumentexport.h"
+#include "gisgeopackage.h"
+#include <QTemporaryDir>
+#include "../../shared/tests/territorial-document-fixture.h"
 #include <gisterritorial.h>
 #include <geometrycalculator.h>
 #include <pandoeditor/project.h>
@@ -17,9 +21,8 @@ Geometry rectangle(double left,double right) {
 }
 Project project() {
     Project p;
-    p.replace(ProjectDocument({{"A","Alpha",rectangle(0,4).polygons,0x123456},
-                               {"B","Bravo",rectangle(4,8).polygons,0x654321}},
-                              {{"countries","Countries"}}));
+    p.replace(makeTerritorialDocument({{{"A","Alpha","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},rectangle(0,4).polygons},{0x123456,1},"countries"},
+        {{"B","Bravo","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},rectangle(4,8).polygons},{0x654321,1},"countries"}},{{"countries","Countries"}}));
     return p;
 }
 bool rejected(const std::function<void()>& fn) {
@@ -47,7 +50,7 @@ QByteArray fixture(const char* name) {
 int main(int argc,char** argv) {
     QCoreApplication app(argc,argv);
     auto p=project();
-    GisTerritorialMapping mapping;mapping.target=GisExchangeTarget::Subunit;
+    GisTerritorialMapping mapping;mapping.target=GisExchangeTarget::General;
     mapping.commonParent=territorialRef("A");
     const auto crossing=collection("sub:transfer",rectangle(3,5),"{\"name\":\"Transferred\"}");
     assert(rejected([&]{prepareGisTerritorialImport(p.snapshot(),crossing,"reject",
@@ -78,7 +81,7 @@ int main(int argc,char** argv) {
         {"x","geojson"},mapping,calculateGeometry,[]{return true;});}));
     assert(cancel.document().units.size()==2);
     auto noTransfer=project();
-    GisTerritorialMapping country;country.target=GisExchangeTarget::Country;
+    GisTerritorialMapping country;country.target=GisExchangeTarget::General;
     country.coast=GisTerritorialMapping::CoastDecision::ImportedGeometry;
     const auto newCountry=collection("C",rectangle(3,5),"{\"name\":\"Charlie\"}");
     const auto countryPlan=prepareGisTerritorialImport(noTransfer.snapshot(),newCountry,"country",
@@ -89,7 +92,7 @@ int main(int argc,char** argv) {
     assert(noTransfer.undo()&&noTransfer.document().units.size()==2);
 
     auto owned=project();
-    GisTerritorialMapping region;region.target=GisExchangeTarget::Region;
+    GisTerritorialMapping region;region.target=GisExchangeTarget::Regional;
     auto regionPlan=prepareGisTerritorialImport(owned.snapshot(),
         collection("R",rectangle(1,2),"{\"name\":\"Region\"}"),"region",
         {"region.geojson","geojson"},region,calculateGeometry);
@@ -100,18 +103,24 @@ int main(int argc,char** argv) {
         "owner",{"x","geojson"},mapping,calculateGeometry);}));
 
     Project fixtureProject;
-    fixtureProject.replace(ProjectDocument({{"Z","Remote",rectangle(30,34).polygons,0x333333}},
-        {{"countries","Countries"}}));
-    GisTerritorialMapping webCountry;webCountry.target=GisExchangeTarget::Country;
+    fixtureProject.replace(makeTerritorialDocument({{{"Z","Remote","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},rectangle(30,34).polygons},{0x333333,1},"countries"}},{{"countries","Countries"}}));
+    GisTerritorialMapping webCountry;webCountry.target=GisExchangeTarget::General;
     webCountry.idField="pandolab_id";
     webCountry.nameField="pandolab_name";
     webCountry.coast=GisTerritorialMapping::CoastDecision::ImportedGeometry;
+    auto exportDocument=makeTerritorialDocument({{{"AAA","Imported","",UnitKind::General},rectangle(0,2),{0x123456,1}}});
+    const auto archive=exportGisGeoJsonZip(exportDocument,{"countries"},"2026-10-13T00:00:00Z");
     auto zip=prepareGisTerritorialZipImport(fixtureProject.snapshot(),
-        fixture("web-gis-geojson.zip"),0,"web-zip","web.zip",webCountry,calculateGeometry);
+        archive,0,"web-zip","web.zip",webCountry,calculateGeometry);
     assert(zip.units.front().id=="AAA"&&zip.info.source.sourceKind=="geojson-zip");
+    QTemporaryDir files;assert(files.isValid());
+    QFile package(files.filePath("current.gpkg"));assert(package.open(QIODevice::WriteOnly));
+    package.write(exportGisGeoPackage(exportDocument,{"countries"}));package.close();
     auto gpkg=prepareGisTerritorialGeoPackageImport(fixtureProject.snapshot(),
-        QString::fromUtf8(WEB_GIS_FIXTURE)+"/web-gis.gpkg",0,"web-gpkg",webCountry,calculateGeometry);
+        package.fileName(),0,"web-gpkg",webCountry,calculateGeometry);
     assert(gpkg.units.front().id=="AAA"&&gpkg.info.source.sourceKind=="geopackage");
     assert(rejected([&]{prepareGisTerritorialZipImport(fixtureProject.snapshot(),
-        fixture("web-gis-geojson.zip"),0,"wrong","web.zip",mapping,calculateGeometry);}));
+        archive,0,"wrong","web.zip",region,calculateGeometry);}));
+    assert(rejected([&]{prepareGisTerritorialZipImport(fixtureProject.snapshot(),
+        fixture("web-gis-geojson.zip"),0,"retired","old.zip",webCountry,calculateGeometry);}));
 }

@@ -53,8 +53,7 @@ std::vector<Table> tables() {
     const std::vector<Column> territorial={{"id"},{"name"},{"type"},{"parent_id"},
         {"sovereign_id"},{"valid_from"},{"valid_to"},{"color"},{"style_key"},
         {"source_entity_id"},{"source_geometry_version"},{"metadata_json"},{"properties_json"}};
-    const std::vector<Column> generic={{"id"},{"name"},{"role"},{"owner_id"},
-        {"parent_id"},{"topology_group"},{"land_binding"},{"color"},{"notes"},
+    const std::vector<Column> generic={{"id"},{"name"},{"color"},{"notes"},
         {"locked","INTEGER"},{"properties_json"}};
     const std::vector<Column> distribution={{"entry_id"},{"layer_id"},{"name"},
         {"unit"},{"value_scale_mode"},{"value_scale_min","REAL"},{"value_scale_max","REAL"},
@@ -104,8 +103,6 @@ V properties(const GisGeoJsonFeature& feature,const Table& table) {
         auto& metadata=props.object["source_metadata"];
         props.object["properties_json"]=V::str(metadata.kind==V::Object?
             metadata.encode().toStdString():std::string("{}"));
-        props.object["role"]=V::str("generic");
-        props.object["land_binding"]=V::str("none");
         props.object["locked"]=V::num(0);
     } else if(table.category=="subunits"||table.category=="regions") {
         props.object["metadata_json"]=V::str("{}");

@@ -1,3 +1,4 @@
+#include "territorial-document-fixture.h"
 #include <pandoeditor/document-session.h>
 #include <pandoeditor/webcontentcommands.h>
 #include <pandoeditor/webterritorialcommands.h>
@@ -77,7 +78,7 @@ int main() {
     assert(!projectcodec::encode(nativeSession.project().snapshot(),ports).empty());
     assert(nativeSession.undo(nativeSession.projectState().epoch).result.changed());
     assert(!nativeSession.project().index().objects.count(territorialRef("Native-new")));
-    ProjectDocument alphaDocument({Country{"A","A",{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}},0x123456}},{{"countries","Countries"}});
+    pandoeditor::ProjectDocument alphaDocument = makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}}},{0x123456,1},"countries"}},{{"countries","Countries"}});
     Geometry point;point.type="Point";point.points={{2,3}};alphaDocument.geometries.insert({"native-label",1},point);
     auto alphaLabel=session.project().document().labels.at(0);alphaLabel.id="Alpha";alphaLabel.geometry={"native-label",1};alphaLabel.territory=territorialRef("A");alphaLabel.source.details="{}";
     alphaDocument.labels.push_back(alphaLabel);Project alpha;alpha.replace(std::move(alphaDocument));

@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "territorialpreviewruntime.h"
 #include "territorial_fixture.h"
 #include "territorialgeometry.h"
@@ -16,7 +17,8 @@ namespace {
 Geometry square(double x,double y,double n) {Geometry g;g.polygons={{{{x,y},{x+n,y},{x+n,y+n},{x,y+n},{x,y}}}};return g;}
 Geometry rectangle(double x,double y,double width,double height) {Geometry g;g.polygons={{{{x,y},{x+width,y},{x+width,y+height},{x,y+height},{x,y}}}};return g;}
 ProjectDocument fixture() {
-    ProjectDocument d({{"A","A",square(0,0,10).polygons,0xabcdef},{"B","B",square(20,0,10).polygons,0x123456}},{{"countries","Countries"}});
+    pandoeditor::ProjectDocument d = makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(0,0,10).polygons},{0xabcdef,1},"countries"},
+        {{"B","B","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(20,0,10).polygons},{0x123456,1},"countries"}},{{"countries","Countries"}});
     for(const auto id:{"P","S","C"}) {
         const GeometryRef g{id,1};d.geometries.insert(g,square(id==std::string("P")?1:2,id==std::string("P")?1:2,id==std::string("P")?8:id==std::string("S")?2:1));
         appendTerritory(d,{id,id,"",UnitKind::General,false},g);staticParentRelation(d,d.units.back().id).coverageMode="partition";
@@ -40,7 +42,8 @@ class TerritorialGeometryTests:public QObject {
 private slots:
     void rootAnnexUsesExplicitSelectionSession() {
         QTemporaryDir dir; Project source;
-        source.replace(ProjectDocument({{"A","A",square(0,0,10).polygons,0xabcdef},{"B","B",square(10,0,10).polygons,0x123456}},{{"countries","Countries"}}));
+        source.replace(makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(0,0,10).polygons},{0xabcdef,1},"countries"},
+        {{"B","B","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(10,0,10).polygons},{0x123456,1},"countries"}},{{"countries","Countries"}}));
         QFile file(dir.filePath("input.json")); QVERIFY(file.open(QIODevice::WriteOnly)); file.write(projectcodec::encode(source)); file.close();
         EditorController c({false,dir.filePath("private.json")}); QVERIFY(c.openFile(QUrl::fromLocalFile(file.fileName()))); c.selectCountry("A");
         const auto before=c.documentBytes(); QVERIFY(c.beginAnnexGeometry());
@@ -53,7 +56,8 @@ private slots:
         QCOMPARE(c.documentBytes(),before); c.cancelGeometryEdit(); QCOMPARE(c.documentBytes(),before);
     }
     void rootSelectionRapidTogglesAndReviewLifecycle() {
-        QTemporaryDir dir; Project source; source.replace(ProjectDocument({{"A","A",square(0,0,10).polygons,0xabcdef},{"B","B",square(10,0,10).polygons,0x123456}},{{"countries","Countries"}}));
+        QTemporaryDir dir; Project source; source.replace(makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(0,0,10).polygons},{0xabcdef,1},"countries"},
+        {{"B","B","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(10,0,10).polygons},{0x123456,1},"countries"}},{{"countries","Countries"}}));
         QFile file(dir.filePath("input.json"));QVERIFY(file.open(QIODevice::WriteOnly));file.write(projectcodec::encode(source));file.close();
         EditorController c({false,dir.filePath("private.json")});QVERIFY(c.openFile(QUrl::fromLocalFile(file.fileName())));c.selectCountry("A");const auto before=c.documentBytes();
         QVERIFY(c.beginAnnexGeometry());QVERIFY(c.geometryToggleProvider({{"domain","territorial"},{"id","B"}}));QVERIFY(c.geometryAdvanceStage());QVERIFY(c.geometrySelectTerritoryMethod("line"));
@@ -82,7 +86,9 @@ private slots:
         const auto committed=c.documentBytes();c.undo();QCOMPARE(c.documentBytes(),before);c.redo();QCOMPARE(c.documentBytes(),committed);
     }
     void rootSelectionSourceConfirmationAndCancelEpoch() {
-        QTemporaryDir dir; Project source;source.replace(ProjectDocument({{"A","A",square(0,0,10).polygons,0xabcdef},{"B","B",square(10,0,10).polygons,0x123456},{"C","C",square(20,0,10).polygons,0x123456}},{{"countries","Countries"}}));
+        QTemporaryDir dir; Project source;source.replace(makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(0,0,10).polygons},{0xabcdef,1},"countries"},
+        {{"B","B","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(10,0,10).polygons},{0x123456,1},"countries"},
+        {{"C","C","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(20,0,10).polygons},{0x123456,1},"countries"}},{{"countries","Countries"}}));
         QFile file(dir.filePath("input.json"));QVERIFY(file.open(QIODevice::WriteOnly));file.write(projectcodec::encode(source));file.close();
         EditorController c({false,dir.filePath("private.json")});QVERIFY(c.openFile(QUrl::fromLocalFile(file.fileName())));c.selectCountry("A");const auto before=c.documentBytes();
         QVERIFY(c.beginAnnexGeometry());QVERIFY(c.geometryToggleProvider({{"domain","territorial"},{"id","B"}}));QVERIFY(c.geometryAdvanceStage());QVERIFY(c.geometrySelectTerritoryMethod("components"));
@@ -95,7 +101,8 @@ private slots:
         QTRY_VERIFY_WITH_TIMEOUT(c.geometryEditState().value("components").toList().size()==1,10000);QTest::qWait(350);QVERIFY(!c.geometryEditState().value("previewReady").toBool());QCOMPARE(c.documentBytes(),before);c.cancelGeometryEdit();
     }
     void rootComponentSwitchArchivesOnceAndLastRemovalRestoresSource() {
-        QTemporaryDir dir; Project source;source.replace(ProjectDocument({{"A","A",square(0,0,10).polygons,0xabcdef},{"B","B",square(10,0,10).polygons,0x123456}},{{"countries","Countries"}}));
+        QTemporaryDir dir; Project source;source.replace(makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(0,0,10).polygons},{0xabcdef,1},"countries"},
+        {{"B","B","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(10,0,10).polygons},{0x123456,1},"countries"}},{{"countries","Countries"}}));
         QFile file(dir.filePath("input.json"));QVERIFY(file.open(QIODevice::WriteOnly));file.write(projectcodec::encode(source));file.close();
         EditorController c({false,dir.filePath("private.json")});QVERIFY(c.openFile(QUrl::fromLocalFile(file.fileName())));c.selectCountry("A");const auto before=c.documentBytes();
         QVERIFY(c.beginAnnexGeometry());QVERIFY(c.geometryToggleProvider({{"domain","territorial"},{"id","B"}}));QVERIFY(c.geometryAdvanceStage());QVERIFY(c.geometrySelectTerritoryMethod("components"));
@@ -113,7 +120,9 @@ private slots:
     }
     void failedComponentMethodChangeDoesNotArchiveLaterRepair() {
         QTemporaryDir dir;auto donor=square(10,0,10);donor.type="MultiPolygon";donor.polygons.push_back(square(30,0,10).polygons.front());
-        Project source;source.replace(ProjectDocument({{"A","A",square(0,0,10).polygons,0xabcdef},{"B","B",donor.polygons,0x123456},{"C","C",square(32,2,2).polygons,0x123456}},{{"countries","Countries"}}));
+        Project source;source.replace(makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(0,0,10).polygons},{0xabcdef,1},"countries"},
+        {{"B","B","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},donor.polygons},{0x123456,1},"countries"},
+        {{"C","C","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(32,2,2).polygons},{0x123456,1},"countries"}},{{"countries","Countries"}}));
         QFile file(dir.filePath("input.json"));QVERIFY(file.open(QIODevice::WriteOnly));file.write(projectcodec::encode(source));file.close();
         EditorController c({false,dir.filePath("private.json")});QVERIFY(c.openFile(QUrl::fromLocalFile(file.fileName())));c.selectCountry("A");
         QVERIFY(c.beginAnnexGeometry());QVERIFY(c.geometryToggleProvider({{"domain","territorial"},{"id","B"}}));QVERIFY(c.geometryAdvanceStage());QVERIFY(c.geometrySelectTerritoryMethod("components"));
@@ -134,7 +143,8 @@ private slots:
     }
     void emptyReadyDrawingMethodChangeRequiresConfirmation() {
         QFETCH(bool,mobile);QFETCH(QString,method);QFETCH(QString,nextMethod);
-        QTemporaryDir dir;Project source;source.replace(ProjectDocument({{"A","A",square(0,0,10).polygons,0xabcdef},{"B","B",square(10,0,10).polygons,0x123456}},{{"countries","Countries"}}));
+        QTemporaryDir dir;Project source;source.replace(makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(0,0,10).polygons},{0xabcdef,1},"countries"},
+        {{"B","B","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(10,0,10).polygons},{0x123456,1},"countries"}},{{"countries","Countries"}}));
         QFile file(dir.filePath("input.json"));QVERIFY(file.open(QIODevice::WriteOnly));file.write(projectcodec::encode(source));file.close();
         EditorController c({mobile,dir.filePath("private.json")});QVERIFY(c.openFile(QUrl::fromLocalFile(file.fileName())));c.selectCountry("A");
         const auto before=c.documentBytes();const auto revision=c.revision();
@@ -167,7 +177,8 @@ private slots:
     void emptyPreparingDrawingMethodCanBeSuperseded_data() {emptyReadyDrawingMethodChangeRequiresConfirmation_data();}
     void emptyPreparingDrawingMethodCanBeSuperseded() {
         QFETCH(bool,mobile);QFETCH(QString,method);QFETCH(QString,nextMethod);
-        QTemporaryDir dir;Project source;source.replace(ProjectDocument({{"A","A",square(0,0,10).polygons,0xabcdef},{"B","B",square(10,0,10).polygons,0x123456}},{{"countries","Countries"}}));
+        QTemporaryDir dir;Project source;source.replace(makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(0,0,10).polygons},{0xabcdef,1},"countries"},
+        {{"B","B","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(10,0,10).polygons},{0x123456,1},"countries"}},{{"countries","Countries"}}));
         QFile file(dir.filePath("input.json"));QVERIFY(file.open(QIODevice::WriteOnly));file.write(projectcodec::encode(source));file.close();
         EditorController c({mobile,dir.filePath("private.json")});QVERIFY(c.openFile(QUrl::fromLocalFile(file.fileName())));c.selectCountry("A");const auto before=c.documentBytes();
         QVERIFY(c.beginAnnexGeometry());QVERIFY(c.geometryToggleProvider({{"domain","territorial"},{"id","B"}}));QVERIFY(c.geometryAdvanceStage());QVERIFY(c.geometrySelectTerritoryMethod(method));
@@ -180,7 +191,8 @@ private slots:
         QCOMPARE(c.documentBytes(),before);QVERIFY(!c.canUndo());QVERIFY(!c.canRedo());c.cancelGeometryEdit();
     }
     void emptyPolygonTransferPreservesEditableDraft() {
-        QTemporaryDir dir;Project source;source.replace(ProjectDocument({{"A","A",square(0,0,10).polygons,0xabcdef},{"B","B",square(10,0,10).polygons,0x123456}},{{"countries","Countries"}}));
+        QTemporaryDir dir;Project source;source.replace(makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(0,0,10).polygons},{0xabcdef,1},"countries"},
+        {{"B","B","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(10,0,10).polygons},{0x123456,1},"countries"}},{{"countries","Countries"}}));
         QFile file(dir.filePath("input.json"));QVERIFY(file.open(QIODevice::WriteOnly));file.write(projectcodec::encode(source));file.close();
         EditorController c({false,dir.filePath("private.json")});QVERIFY(c.openFile(QUrl::fromLocalFile(file.fileName())));c.selectCountry("A");
         QVERIFY(c.beginAnnexGeometry());QVERIFY(c.geometryToggleProvider({{"domain","territorial"},{"id","B"}}));QVERIFY(c.geometryAdvanceStage());QVERIFY(c.geometrySelectTerritoryMethod("polygon"));QTRY_VERIFY_WITH_TIMEOUT(!c.geometryEditState().value("calculating").toBool(),10000);
@@ -190,7 +202,8 @@ private slots:
         QVERIFY(c.geometrySelectTerritoryMethod("polygon"));QTRY_VERIFY_WITH_TIMEOUT(!c.geometryEditState().value("calculating").toBool(),10000);QCOMPARE(c.geometryDraftPaths(),draft);QVERIFY(c.geometryUndoDraft());c.cancelGeometryEdit();
     }
     void rootProviderPickerSkipsNestedUnitsAndHighlightsSource() {
-        QTemporaryDir dir;ProjectDocument d({{"A","A",square(0,0,10).polygons,0xabcdef},{"B","B",square(10,0,10).polygons,0x123456}},{{"countries","Countries"}});
+        QTemporaryDir dir;pandoeditor::ProjectDocument d = makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(0,0,10).polygons},{0xabcdef,1},"countries"},
+        {{"B","B","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(10,0,10).polygons},{0x123456,1},"countries"}},{{"countries","Countries"}});
         d.geometries.insert({"child",1},square(12,2,6));appendTerritory(d,{"child","child","",UnitKind::General,false},{"child",1});setFixtureParent(d,territorialRef("child"),territorialRef("B"));d.presentation.objectStyles[territorialRef("child")]={};
         Project source;source.replace(d);QFile file(dir.filePath("input.json"));QVERIFY(file.open(QIODevice::WriteOnly));file.write(projectcodec::encode(source));file.close();
         EditorController c({false,dir.filePath("private.json")});QVERIFY(c.openFile(QUrl::fromLocalFile(file.fileName())));QVERIFY(c.setProjectionMode("flat"));
@@ -205,7 +218,8 @@ private slots:
     void holeCrossingWorksAndSelfCrossingRemainsRejected() {
         QFETCH(bool,selfCrossing);
         QTemporaryDir dir;auto donor=square(10,0,10);if(!selfCrossing)donor.polygons.front().push_back(square(13,3,4).polygons.front().front());
-        Project source;source.replace(ProjectDocument({{"A","A",square(0,0,10).polygons,0xabcdef},{"B","B",donor.polygons,0x123456}},{{"countries","Countries"}}));
+        Project source;source.replace(makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(0,0,10).polygons},{0xabcdef,1},"countries"},
+        {{"B","B","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},donor.polygons},{0x123456,1},"countries"}},{{"countries","Countries"}}));
         QFile file(dir.filePath("input.json"));QVERIFY(file.open(QIODevice::WriteOnly));file.write(projectcodec::encode(source));file.close();
         EditorController c({false,dir.filePath("private.json")});QVERIFY(c.openFile(QUrl::fromLocalFile(file.fileName())));c.selectCountry("A");
         QVERIFY(c.beginAnnexGeometry());QVERIFY(c.geometryToggleProvider({{"domain","territorial"},{"id","B"}}));QVERIFY(c.geometryAdvanceStage());QVERIFY(c.geometrySelectTerritoryMethod("line"));QTRY_VERIFY_WITH_TIMEOUT(!c.geometryEditState().value("calculating").toBool(),10000);
@@ -216,7 +230,8 @@ private slots:
         c.cancelGeometryEdit();
     }
     void fixedTargetProviderSelectionAndBack() {
-        QTemporaryDir dir;Project source;source.replace(ProjectDocument({{"A","A",square(0,0,10).polygons,0xabcdef},{"B","B",square(10,0,10).polygons,0x123456}},{{"countries","Countries"}}));
+        QTemporaryDir dir;Project source;source.replace(makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(0,0,10).polygons},{0xabcdef,1},"countries"},
+        {{"B","B","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(10,0,10).polygons},{0x123456,1},"countries"}},{{"countries","Countries"}}));
         QFile file(dir.filePath("input.json"));QVERIFY(file.open(QIODevice::WriteOnly));file.write(projectcodec::encode(source));file.close();
         EditorController c({false,dir.filePath("private.json")});QVERIFY(c.openFile(QUrl::fromLocalFile(file.fileName())));c.selectCountry("A");
         const auto before=c.documentBytes();QVERIFY(c.beginMergeSelection());
@@ -234,7 +249,8 @@ private slots:
         QCOMPARE(projectcodec::decode(c.documentBytes()).units.size(),std::size_t(1));c.undo();QCOMPARE(c.documentBytes(),before);c.redo();
     }
     void annexBackPreservesProvidersAndDrawing() {
-        QTemporaryDir dir;Project source;source.replace(ProjectDocument({{"A","A",square(0,0,10).polygons,0xabcdef},{"B","B",square(10,0,10).polygons,0x123456}},{{"countries","Countries"}}));
+        QTemporaryDir dir;Project source;source.replace(makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(0,0,10).polygons},{0xabcdef,1},"countries"},
+        {{"B","B","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(10,0,10).polygons},{0x123456,1},"countries"}},{{"countries","Countries"}}));
         QFile file(dir.filePath("input.json"));QVERIFY(file.open(QIODevice::WriteOnly));file.write(projectcodec::encode(source));file.close();
         EditorController c({false,dir.filePath("private.json")});QVERIFY(c.openFile(QUrl::fromLocalFile(file.fileName())));c.selectCountry("A");const auto before=c.documentBytes();
         QVERIFY(c.beginAnnexGeometry());QVERIFY(c.geometryToggleProvider({{"domain","territorial"},{"id","B"}}));QVERIFY(c.geometryAdvanceStage());QVERIFY(c.geometrySelectTerritoryMethod("polygon"));QTRY_VERIFY_WITH_TIMEOUT(!c.geometryEditState().value("calculating").toBool(),10000);
@@ -260,7 +276,8 @@ private slots:
     void oversizedDrawnAnnexPreprocessesBeforePreview() {
         QFETCH(bool,multiDonor);QFETCH(bool,remoteDonor);
         QTemporaryDir dir;
-        ProjectDocument document({{"A","A",square(0,0,10).polygons,0xabcdef},{"B","B",square(10,0,10).polygons,0x123456}},{{"countries","Countries"}});
+        pandoeditor::ProjectDocument document = makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(0,0,10).polygons},{0xabcdef,1},"countries"},
+        {{"B","B","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(10,0,10).polygons},{0x123456,1},"countries"}},{{"countries","Countries"}});
         if(multiDonor) {
             const GeometryRef ref{"C",1};document.geometries.insert(ref,square(remoteDonor?40:20,0,10));
             appendTerritory(document,{"C","C","",UnitKind::General,false},ref);document.presentation.objectStyles[territorialRef("C")]={};
@@ -304,13 +321,15 @@ private slots:
         const auto committed=c.documentBytes();c.undo();QCOMPARE(c.documentBytes(),before);c.redo();QCOMPARE(c.documentBytes(),committed);
     }
     void cancelledDrawnPreprocessingNeverProducesPreview() {
-        Project p;p.replace(ProjectDocument({{"A","A",square(0,0,10).polygons,0xabcdef},{"B","B",square(10,0,10).polygons,0x123456}},{{"countries","Countries"}}));
+        Project p;p.replace(makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(0,0,10).polygons},{0xabcdef,1},"countries"},
+        {{"B","B","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(10,0,10).polygons},{0x123456,1},"countries"}},{{"countries","Countries"}}));
         const auto before=projectcodec::encode(p);JobScheduler jobs;const auto job=jobs.enqueue(p.snapshot(),"drawn-annex");jobs.takeNext();jobs.cancel(job.id());
         const auto result=prepareDrawnTerritoryAnnex(p.snapshot(),{territorialRef("A"),{territorialRef("B")},square(5,-5,20)},job.token());
         QVERIFY(!result.ok());QVERIFY(!result.preview);QCOMPARE(result.detail,std::string("CANCELLED"));QCOMPARE(projectcodec::encode(p),before);
     }
     void rootAnnexClipsDependentsInsteadOfReparenting() {
-        ProjectDocument d({{"A","A",square(0,0,10).polygons,0xabcdef},{"B","B",square(10,0,10).polygons,0x123456}},{{"countries","Countries"}});
+        pandoeditor::ProjectDocument d = makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(0,0,10).polygons},{0xabcdef,1},"countries"},
+        {{"B","B","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(10,0,10).polygons},{0x123456,1},"countries"}},{{"countries","Countries"}});
         d.geometries.insert({"child",1},square(11,1,2));
         appendTerritory(d,{"child","child","",UnitKind::General,false},{"child",1});d.presentation.objectStyles[territorialRef("child")]={};setFixtureParent(d,territorialRef("child"),territorialRef("B"));
         Project p;p.replace(d);const auto before=projectcodec::encode(p);
@@ -322,7 +341,8 @@ private slots:
         const auto after=projectcodec::encode(p);QVERIFY(p.undo());QCOMPARE(projectcodec::encode(p),before);QVERIFY(p.redo());QCOMPARE(projectcodec::encode(p),after);
     }
     void rootAnnexClipsPartialAndNestedDependents() {
-        ProjectDocument d({{"A","A",square(0,0,10).polygons,0xabcdef},{"B","B",square(10,0,10).polygons,0x123456}},{{"countries","Countries"}});
+        pandoeditor::ProjectDocument d = makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(0,0,10).polygons},{0xabcdef,1},"countries"},
+        {{"B","B","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(10,0,10).polygons},{0x123456,1},"countries"}},{{"countries","Countries"}});
         const auto add=[&](const std::string& id,const std::string& parent,Geometry geometry) {
             const GeometryRef ref{id,1};d.geometries.insert(ref,geometry);appendTerritory(d,{id,id,"",UnitKind::General,false},ref);
             setFixtureParent(d,territorialRef(id),territorialRef(parent));d.presentation.objectStyles[territorialRef(id)]={};
@@ -345,7 +365,8 @@ private slots:
     }
     void rootAnnexRejectsDanglingDistributionReference() {
         QFETCH(QString,referenceKind);
-        ProjectDocument d({{"A","A",square(0,0,10).polygons,0xabcdef},{"B","B",square(10,0,10).polygons,0x123456}},{{"countries","Countries"}});
+        pandoeditor::ProjectDocument d = makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(0,0,10).polygons},{0xabcdef,1},"countries"},
+        {{"B","B","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(10,0,10).polygons},{0x123456,1},"countries"}},{{"countries","Countries"}});
         if(referenceKind=="child-distribution") {
             d.geometries.insert({"child",1},square(11,1,2));appendTerritory(d,{"child","child","",UnitKind::General,false},{"child",1});
             setFixtureParent(d,territorialRef("child"),territorialRef("B"));d.presentation.objectStyles[territorialRef("child")]={};
@@ -378,7 +399,8 @@ private slots:
         c.cancelGeometryEdit();c.undo();QCOMPARE(c.documentBytes(),canonical);
     }
     void providerPickingIgnoresCoveringContent() {
-        QTemporaryDir dir;ProjectDocument document({{"A","A",square(0,0,10).polygons,0xabcdef},{"B","B",square(10,0,10).polygons,0x123456}},{{"countries","Countries"}});
+        QTemporaryDir dir;pandoeditor::ProjectDocument document = makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(0,0,10).polygons},{0xabcdef,1},"countries"},
+        {{"B","B","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(10,0,10).polygons},{0x123456,1},"countries"}},{{"countries","Countries"}});
         Geometry point;point.type="Point";point.points={{15,5}};document.geometries.insert({"label",1},point);
         PlaceLabel label;label.id="label";label.name="covering";label.geometry={"label",1};document.labels.push_back(label);
         DistributionLayer layer;layer.id="covering";layer.name="Covering distribution";document.distributionLayers.push_back(layer);
@@ -396,7 +418,7 @@ private slots:
         QCOMPARE(c.primaryObject().value("id").toString(),QStringLiteral("A"));
     }
     void splitDefaultsToSmallerResultAndCanChooseOtherResult() {
-        QTemporaryDir dir;Project source;source.replace(ProjectDocument({{"A","A",square(0,0,10).polygons,0xabcdef}},{{"countries","Countries"}}));
+        QTemporaryDir dir;Project source;source.replace(makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(0,0,10).polygons},{0xabcdef,1},"countries"}},{{"countries","Countries"}}));
         QFile file(dir.filePath("input.json"));QVERIFY(file.open(QIODevice::WriteOnly));file.write(projectcodec::encode(source));file.close();
         EditorController c({false,dir.filePath("private.json")});QVERIFY(c.openFile(QUrl::fromLocalFile(file.fileName())));const auto before=c.documentBytes();
         MapProjection projection;projection.rebuild(source.document());

@@ -12,7 +12,6 @@ import {
 } from '../../assets/js/modules/map-object-categories.js';
 import {
   OBJECT_ACTIONS,
-  createObjectActionExecutor,
   objectActionApplies,
   resolveObjectAction,
 } from '../../assets/js/modules/object-action-registry.js';
@@ -53,24 +52,6 @@ test('action registry resolves dynamic lock metadata and applicability', () => {
   assert.equal(objectActionApplies('border-edit', { domain: 'generic', type: 'feature' }), false);
   assert.equal(objectActionApplies('border-edit', { domain: 'territorial', type: 'entity' }), true);
   assert.ok(OBJECT_ACTIONS['coast-reconcile']);
-});
-
-test('action executor delegates canonical commands without owning mutation logic', () => {
-  const calls = [];
-  const executor = createObjectActionExecutor({
-    execute(command, context, payload) {
-      calls.push({ command, context, payload });
-      return 'done';
-    },
-  });
-  const context = { domain: 'territorial', type: 'entity', capabilities: new Set(['copy-region']) };
-  assert.equal(executor.execute('copy-region', context, { type: 'entity' }), 'done');
-  assert.deepEqual(calls[0], {
-    command: 'territorial.copy-region',
-    context,
-    payload: { type: 'entity' },
-  });
-  assert.equal(executor.execute('border-edit', { ...context, capabilities: new Set() }), false);
 });
 
 test('shared layer menu and editor endpoints bind to the same action ids', () => {

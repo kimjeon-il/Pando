@@ -70,12 +70,9 @@ const { createHydroService, createTerrainService } = physicalLayerServiceModule;
 const { createTerritorialApplicationService } = territorialServiceModule;
 const { createDistributionService } = distributionServiceModule;
 const {
-  GENERIC_FEATURE_ROLE_RULES,
-  GENERIC_FEATURE_ROLE_LABELS,
   GENERIC_FEATURE_SCHEMA_VERSION,
   createGenericFeatureService,
   genericFeatureGeometryKind,
-  genericFeatureRole,
   normalizeGenericFeatureCollection,
   normalizeGenericFeatureSemantics,
 } = genericFeatureServiceModule;
@@ -405,12 +402,9 @@ export {
   createTerrainService,
   createTerritorialApplicationService,
   createDistributionService,
-  GENERIC_FEATURE_ROLE_RULES,
-  GENERIC_FEATURE_ROLE_LABELS,
   GENERIC_FEATURE_SCHEMA_VERSION,
   createGenericFeatureService,
   genericFeatureGeometryKind,
-  genericFeatureRole,
   normalizeGenericFeatureCollection,
   normalizeGenericFeatureSemantics,
   createTooltipController,

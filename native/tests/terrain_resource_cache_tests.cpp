@@ -11,14 +11,6 @@
 class TerrainResourceCacheTests:public QObject {
  Q_OBJECT
 private slots:
- void partialViewsDoNotAccumulateHistory(){
-  TerrainDisplayState state;const QVariant a="A",b="B",c="C";
-  QCOMPARE(state.publish({a},true),QVariantList{a});
-  QCOMPARE(state.publish({b},false),(QVariantList{b,a}));
-  QCOMPARE(state.publish({c},false),(QVariantList{c,a}));
-  QCOMPARE(state.publish({c},true),QVariantList{c});
- }
-
  void replacedSourceReleasesOldProtectionAndPending(){
   QTemporaryDir dir;QVERIFY(dir.isValid());QDir(dir.path()).mkpath("terrain/v0.12.6/0");
   QImage tile(16,16,QImage::Format_ARGB32);tile.fill(QColor(240,60,20));

@@ -38,6 +38,8 @@ expect(!importService.includes('const pending = new Map()'), 'GIS geometry valid
 expect(importService.includes("request('gis.validate'"), 'GIS geometry validation must have a semantic RPC operation');
 
 const rpcWorkers = [
+  ['assets/js/workers/gis-geometry-worker.js', 'gis.validate'],
+  ['assets/js/workers/map-edit-worker.js', 'map-edit.rebase'],
   ['assets/js/workers/gpu-mesh-worker.js', 'geometry.mesh'],
   ['assets/js/workers/geometry-validation-worker.js', 'geometry.audit'],
   ['assets/js/workers/river-territory-partition-worker.js', 'river.partition'],
@@ -46,6 +48,13 @@ for (const [relativePath, operation] of rpcWorkers) {
   const source = read(relativePath);
   expect(source.includes('worker-rpc-host.js'), `${relativePath} must load the canonical Worker RPC host`);
   expect(source.includes(operation), `${relativePath} must expose canonical operation ${operation}`);
+}
+
+for (const file of ['import-service.js', 'map-edit-worker-client.js', 'gpu-mesh-worker-jobs.js', 'app-map-audit.js', 'gis-domain.js']) {
+  const source = read('assets/js/modules/' + file);
+  expect(source.includes('createWorkerRpcClient'), `${file} must use canonical Worker RPC`);
+  expect(!source.includes('codec:'), `${file} must not restore a compatibility codec`);
+  expect(!source.includes('.onmessage ='), `${file} must not own message dispatch`);
 }
 
 const gpuMesh = read('assets/js/workers/gpu-mesh-worker.js');
@@ -62,7 +71,6 @@ const allowedDedicatedWorkers = Object.freeze([
   'canvas-render-worker.js',
   'data-loader-worker.js',
   'hydro-tile-worker.js',
-  'map-edit-worker.js',
 ]);
 const docs = read('docs/architecture/worker-rpc.md');
 for (const worker of allowedDedicatedWorkers) {

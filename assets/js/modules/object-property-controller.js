@@ -20,9 +20,7 @@ export function createObjectPropertyController(runtime = {}) {
     distributionEntriesForLayer,
     genericFeatureById,
     genericFeatureGeometryKind,
-    genericFeatureRole,
     genericFeatureName,
-    genericFeatureRoleLabels,
     labelById,
     labelKey,
     automaticLabelSettings,
@@ -226,7 +224,6 @@ export function createObjectPropertyController(runtime = {}) {
 
   function syncGenericSemanticEditor(feature) {
     const geometryKind = genericFeatureGeometryKind(feature);
-    const role = genericFeatureRole(feature);
     const options = geometryKind === 'point'
       ? [{ value: 'label', label: '지명' }]
       : geometryKind === 'line'
@@ -272,8 +269,6 @@ export function createObjectPropertyController(runtime = {}) {
       || (targetRequiresCountry && countryChoice.invalid)
       || (targetRequiresDistribution && (!$('genericFeatureConvertDistributionInput').value
         || distributionValueInput.value === '' || !Number.isFinite(Number(distributionValueInput.value))));
-    $('genericFeatureRoleValue').textContent = genericFeatureRoleLabels[role] || role;
-    $('genericFeatureTopologyValue').textContent = feature.properties?.topologyGroup || '—';
     syncActionTab('generic');
   }
 

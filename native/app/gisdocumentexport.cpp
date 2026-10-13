@@ -119,8 +119,8 @@ std::vector<GisExportLayer> buildGisExportLayers(const ProjectDocument& document
         layers.push_back({category,file,target,std::move(collection)});
     };
     for(const auto& specification:std::vector<std::tuple<const char*,const char*,const char*>>{
-        {"countries","countries.geojson","country"},{"subunits","subunits.geojson","subunit"},
-        {"regions","regions.geojson","region"},{"genericFeatures","generic_features.geojson","generic"}}) {
+        {"countries","countries.geojson","general"},{"subunits","subunits.geojson","general"},
+        {"regions","regions.geojson","regional"},{"genericFeatures","generic_features.geojson","generic"}}) {
         const auto [category,file,target]=specification;
         if(chosen.count(category))add(category,file,target,exportGisDocumentLayer(document,category));
     }
@@ -145,7 +145,7 @@ QByteArray exportGisGeoJsonZip(const ProjectDocument& document,
             {"targetType",V::str(layer.targetType)},
             {"crs",V::str("EPSG:4326")},
             {"featureCount",V::num(layer.collection.features.size())}});
-        if(layer.targetType=="country")row.object["fields"]=webjson::arr({
+        if(layer.category=="countries")row.object["fields"]=webjson::arr({
             V::str("pandolab_id"),V::str("pandolab_name"),
             V::str("valid_from"),V::str("valid_to")});
         descriptors.array.push_back(std::move(row));

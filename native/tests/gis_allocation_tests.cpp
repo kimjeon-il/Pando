@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include <pandoeditor/gisexchange.h>
 #include <pandoeditor/project.h>
 #include <cstdlib>
@@ -24,8 +25,7 @@ using namespace pandoeditor;
 namespace {
 void check(bool value) {if(!value)throw std::runtime_error("GIS allocation atomicity failed");}
 Project project() {
-    Project p;p.replace(ProjectDocument({{"A","Alpha",{{{{0,0},{2,0},{2,2},{0,2},{0,0}}}},0x123456}},
-        {{"countries","Countries"}}));
+    Project p;p.replace(makeTerritorialDocument({{{"A","Alpha","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{2,0},{2,2},{0,2},{0,0}}}}},{0x123456,1},"countries"}},{{"countries","Countries"}}));
     check(p.setMemo("A","redo")&&p.undo());
     return p;
 }
@@ -81,7 +81,7 @@ int main() {
         bool failed=false;
         failAfter=index;
         try {auto plan=planTerritorialGisImport(snapshot,"gis:territorial",
-            {"sample.gpkg","geopackage"},GisExchangeTarget::Region,{region});(void)plan;}
+            {"sample.gpkg","geopackage"},GisExchangeTarget::Regional,{region});(void)plan;}
         catch(const std::bad_alloc&) {failed=true;}
         failAfter=-1;unchanged(p,before,revision);
         if(!failed)break;

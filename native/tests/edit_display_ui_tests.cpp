@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "editorcontroller.h"
 #include "referenceimagelibrary.h"
 #include "ui_navigation.h"
@@ -24,9 +25,8 @@ using namespace pandoeditor;
 namespace {
 ProjectDocument fixture(double longitude=40.,double latitude=59.)
 {
-    return ProjectDocument({{"A","A",{{{{longitude,latitude},{longitude+4,latitude},
-        {longitude+4,latitude+4},{longitude,latitude+4},{longitude,latitude}}}},0xabcdef}},
-        {{"countries","Countries"}});
+    return makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{longitude,latitude},{longitude+4,latitude},
+        {longitude+4,latitude+4},{longitude,latitude+4},{longitude,latitude}}}}},{0xabcdef,1},"countries"}},{{"countries","Countries"}});
 }
 
 QVariantMap modelData(QObject* object)

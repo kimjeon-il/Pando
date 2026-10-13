@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "territorial_fixture.h"
 #include <pandoeditor/project.h>
 #include <pandoeditor/commands.h>
@@ -28,7 +29,7 @@ void checkAt(bool value, const char* expression, int line) {
 }
 #define check(value) checkAt((value), #value, __LINE__)
 ProjectDocument fixture() {
-    ProjectDocument d({{"A","Alpha",{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}},0x123456,"original"}},{{"countries","Countries"}});
+    pandoeditor::ProjectDocument d = makeTerritorialDocument({{{"A","Alpha","original",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}}},{0x123456,1},"countries"}},{{"countries","Countries"}});
     d.documentId="allocation-test-document"; return d;
 }
 CommandRequest change(const Project& p) {

@@ -5,10 +5,10 @@ import {dirname,resolve} from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
-const web=await import(pathToFileURL(resolve(root,'tests/fixtures/web-m6/source/exchange-adapter-registry.js')));
-const plans=await import(pathToFileURL(resolve(root,'tests/fixtures/web-m6/source/gis-import-plan.js')));
+const web=await import(pathToFileURL(resolve(root,'../assets/js/modules/exchange-adapter-registry.js')));
+const plans=await import(pathToFileURL(resolve(root,'../assets/js/modules/gis-import-plan.js')));
 const lines=[];
-for(const target of ['admin','territory','administrative','country','unknown']) {
+for(const target of ['general','regional','unknown']) {
   const descriptor=web.exchangeTargetDescriptor(target);
   lines.push(['target',target,web.normalizeExchangeTarget(target),descriptor.domain,
               Number(descriptor.replaceOnly),Number(descriptor.fallback)].join('|'));
@@ -27,5 +27,5 @@ else {
   const probe=process.argv.at(-1);
   assert.ok(probe&&!probe.startsWith('--'),'C++ probe path is required');
   assert.equal(execFileSync(probe,{encoding:'utf8'}).replace(/\r\n/g,'\n'),expected);
-  console.log('pinned web GIS exchange plan parity passed');
+  console.log('current web GIS exchange plan parity passed');
 }

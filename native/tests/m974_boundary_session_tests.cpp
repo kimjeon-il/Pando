@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "editorcontroller.h"
 #include "projectcodec.h"
 #include "territorial_fixture.h"
@@ -21,7 +22,10 @@ ProjectDocument triple() {
     auto a=polygon({{0,0},{1,0},{1,.5},{1,1},{0,1},{0,0}});
     auto b=polygon({{1,0},{2,0},{2,1},{1,1},{1,.5},{1,0}});
     auto c=polygon({{0,1},{1,1},{2,1},{2,2},{0,2},{0,1}});
-    return ProjectDocument({{"A","A",a.polygons,0xabcdef},{"B","B",b.polygons,0x123456},{"C","C",c.polygons,0x654321},{"U","Unrelated",box(5,0,1,1).polygons,0x123456}},{{"countries","Countries"}});
+    return makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},a.polygons},{0xabcdef,1},"countries"},
+        {{"B","B","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},b.polygons},{0x123456,1},"countries"},
+        {{"C","C","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},c.polygons},{0x654321,1},"countries"},
+        {{"U","Unrelated","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},box(5,0,1,1).polygons},{0x123456,1},"countries"}},{{"countries","Countries"}});
 }
 bool open(EditorController& c,const ProjectDocument& d,QTemporaryDir& dir) {
     Project p;p.replace(d);QFile f(dir.filePath("input.json"));if(!f.open(QIODevice::WriteOnly))return false;f.write(projectcodec::encode(p));f.close();return c.openFile(QUrl::fromLocalFile(f.fileName()));
