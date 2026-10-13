@@ -7,7 +7,10 @@ import {readTerritorialSources,entityFileName,territorialDataRoot} from '../../t
 import path from 'node:path';
 test('index lists all source entities without geometry and compressed chunks retain every source byte contract',()=>{
  const index=JSON.parse(fs.readFileSync(path.join(territorialDataRoot,'generated/v2/index.json'),'utf8'));
- const entities=readTerritorialSources();assert.equal(index.entities.length,284);
+ const entities=readTerritorialSources();
+ assert.equal(index.entities.length,entities.length);
+ assert.deepEqual(index.entities.map(e=>e.entityId).sort(),entities.map(e=>e.entityId).sort());
+ assert.equal(new Set(entities.map(e=>e.entityId)).size,entities.length);
  for(const entity of entities){
    const item=index.entities.find(e=>e.entityId===entity.entityId);assert.ok(item);
    assert.equal(item.geometryVersionCount,entity.geometryVersions.length);
