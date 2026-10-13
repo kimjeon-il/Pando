@@ -22,11 +22,6 @@ export function initialTimelineMonth(records, currentMonth) {
     : latest.precision === 'date' ? latest.canonical.slice(0, -3) : latest.canonical;
 }
 
-export function hasDatedTimelineRecords(records) {
-  return ['lifetimes', 'geometryBindings', 'parentRelations']
-    .some(name => records[name].some(row => row.validFrom !== null || row.validTo !== null));
-}
-
 function active(row, point) {
   const interval = normalizeTemporalInterval(row.validFrom, row.validTo);
   return (!interval.start || compareTemporal(interval.start, point, { rightBoundary: 'end' }) <= 0)
