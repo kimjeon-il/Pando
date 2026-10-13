@@ -57,7 +57,7 @@ test('domain factories expose isolated public contracts', async t => {
   const editing = createEditingDomain();
   t.after(() => { rendering.dispose();gis.dispose();editing.dispose(); });
   for (const [domain, methods] of [
-    [project, ['snapshot', 'buildProject', 'buildAutosave', 'prepareImport', 'executeCommand', 'admit', 'load', 'dispose']],
+    [project, ['snapshot', 'buildFileSnapshot', 'buildAutosave', 'prepareImport', 'executeCommand', 'admit', 'load', 'dispose']],
     [selection, ['snapshot', 'replace', 'toggle', 'selectRange', 'setMany', 'remove', 'prune', 'clear', 'resetProject', 'setHover', 'has', 'primary', 'size', 'createPacket', 'dispose']],
     [rendering, ['requestRender', 'invalidateView', 'invalidateViewport', 'invalidateProjection', 'invalidateProject', 'invalidateSelection', 'invalidateSelectionStyle', 'invalidateGpuFrame', 'invalidateGpuInteraction', 'invalidateEditingOverlays', 'invalidateGpuContext', 'invalidateQuality', 'invalidateBaseScene', 'beginInteraction', 'endInteraction', 'invalidateSelectionOverlay', 'syncSelectionEmphasis', 'getSelectionRenderStats', 'recordSelectionRenderError', 'invalidateEditedGeometryPatch', 'getDistributionRenderRows', 'getTerritorialBoundaryStats', 'dispose']],
     [gis, ['planImport', 'loadRiverPartitionFeatures', 'computeRiverPartition', 'dispose']],
