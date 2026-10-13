@@ -72,7 +72,7 @@ independently verified against appropriate period maps:
   Sudan's predecessor identity.
 - `state:IDN` (Indonesia): five versions. West New Guinea is excluded before
   1 May 1963 (25 Natural Earth 5.1.1 components of Papua/West Papua from the
-  [pinned component mask](sources/indonesia/west-new-guinea-component-mask-v5.1.1.json));
+  [pinned component mask](../../../tools/historical-library/sources/indonesia/west-new-guinea-component-mask-v5.1.1.json));
   occupied East Timor is approximated as included from 7 December 1975 through
   24 October 1999; from 25 October 1999 it is excluded.
 - `state:TLS` (Timor-Leste): independent state from 20 May 2002, with historical
