@@ -3858,6 +3858,7 @@ export function createGpuMapRenderer(deps) {
         postCanvasWorkerMessage({ type: 'replace-data', features, projectGeneration,
           revision: currentRenderRevision, geometryRevision: geometryRevisionTracker.committedRevision() });
         prepareCountrySharedBoundary({ features, replace: true, baselineCache: false });
+        canvasLastStyleSignature = '';
       }
       const styleSignature = [countryPaletteRevision, countryEmphasisRevision, state.layerVisibility.countries, getSystemTheme(),
         renderScene?.revisions?.geometry, renderScene?.revisions?.style, renderScene?.revisions?.overlayOrder].join(':');

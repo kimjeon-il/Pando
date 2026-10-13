@@ -44,6 +44,7 @@ export function createDomainAssembly() {
     if(!impact || !Array.isArray(impact.geometryDomains) || !Array.isArray(impact.identityDomains)
       || typeof impact.timelineChanged!=='boolean')throw new TypeError('Canonical C++ command render impact is required.');
     const domains=new Set(impact.geometryDomains);
+    const identities=new Set(impact.identityDomains);
     if(domains.has('territorial') || impact.timelineChanged) {
       renderingDomain.invalidateCountryPatch(reason);
       renderingDomain.invalidateTerritorialPatch(reason);
@@ -51,9 +52,9 @@ export function createDomainAssembly() {
     if(domains.has('hydro'))renderingDomain.invalidateHydroPatch(reason);
     if(domains.has('generic'))renderingDomain.invalidateGenericPatch(reason);
     if(domains.has('label'))renderingDomain.invalidateLabels(reason);
-    if(domains.has('distributionEntry') || domains.has('distributionLayer'))renderingDomain.invalidateOverlayGeometry('distribution',reason);
+    if(domains.has('distributionEntry') || domains.has('distributionLayer')
+      || identities.has('distributionEntry') || identities.has('distributionLayer'))renderingDomain.invalidateOverlayGeometry('distribution',reason);
     if(history) {
-      const identities=new Set(impact.identityDomains);
       if(identities.has('territorial')) {
         dependencies.rendering.gpuMapRenderer.invalidateCountryPalette({ base: true,emphasis: true },reason);
         renderingDomain.invalidateBaseScene(reason);
@@ -61,8 +62,6 @@ export function createDomainAssembly() {
       if(identities.has('territorial') || identities.has('label'))renderingDomain.invalidateLabels(reason);
       if(identities.has('hydro') && !domains.has('hydro'))renderingDomain.invalidateHydroPatch(reason);
       if(identities.has('generic') && !domains.has('generic'))renderingDomain.invalidateGenericPatch(reason);
-      if((identities.has('distributionEntry') || identities.has('distributionLayer'))
-        && !domains.has('distributionEntry') && !domains.has('distributionLayer'))renderingDomain.invalidateOverlayGeometry('distribution',reason);
     }
   }
   async function initializeAcceptedDomains() {
