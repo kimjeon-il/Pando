@@ -36,11 +36,6 @@
   pointer-events: auto;
 }
 
-.timeline-status::before {
-  display: none !important;
-  content: none !important;
-}
-
 .timeline-step {
   display: inline-flex;
   flex: 0 0 auto;
@@ -155,7 +150,7 @@
   font-weight: var(--ui-weight-medium);
 }
 
-.status-group:not(.hidden) ~ .status-group:not(.hidden)::before {
+.status-group:not(.hidden) ~ .status-group:not(.hidden):not(.timeline-status)::before {
   content: "";
   width: var(--ui-border-width);
   height: var(--status-group-height);
