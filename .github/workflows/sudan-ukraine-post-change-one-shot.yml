@@ -1,4 +1,5 @@
 name: Sudan and Ukraine historical transition - one shot
+# Re-run with exact snapshot-day geometry selection and updated Web/native regressions.
 
 on:
   push:
