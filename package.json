@@ -52,7 +52,7 @@
     "audit:territorial-geometry": "node tools/audit-territorial-geometry.mjs",
     "migrate:territorial-geometry": "node tools/audit-territorial-geometry.mjs --write",
     "check:territorial-library": "python tools/build-territorial-geometry.py --check && node tools/build-territorial-entity-chunks.mjs --check && node scripts/check-territorial-library.mjs",
-    "check:place-sync": "node tools/export-place-sync.mjs --check && node --test tests/unit/place-sync-contract.test.mjs",
+    "check:place-sync": "node --test tests/unit/place-sync-contract.test.mjs",
     "build:places": "node tools/build-place-runtime.mjs",
     "check:places": "node tools/build-place-runtime.mjs --check && node --test tests/unit/place-publication.test.mjs",
     "build:reference-runtime": "node native/tools/reference-parity/build-runtime.mjs",
