@@ -32,7 +32,7 @@ test('generic GeoJSON reimport preserves provenance and arbitrary attributes whi
   assert.equal(output[0].properties.source.sourceId, 'upstream-9');
   assert.equal(output[0].properties.source.dataset, 'rivers');
   assert.deepEqual(output[0].properties.source.details.nested, { original: true });
-  assert.deepEqual(output[0].properties.source.details.legacyProperties.custom, { rank: 2 });
+  assert.deepEqual(output[0].properties.source.details.attributes.custom, { rank: 2 });
   assert.equal(output[0].properties.notes, 'memo');
   assert.equal(original.properties.source.sourceId, 'upstream-9');
   const reimport=structuredClone(output[0]);reimport.properties.source=normalizeSourceProvenance({...source,sourceId:''});
