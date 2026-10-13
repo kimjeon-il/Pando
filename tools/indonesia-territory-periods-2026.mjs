@@ -1,0 +1,35 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+import assert from 'node:assert/strict';
+const root=path.resolve(fileURLToPath(new URL('..',import.meta.url)));
+const dir='assets/data/territorial-entities/source/countries/';
+const load=name=>JSON.parse(fs.readFileSync(path.join(root,dir+name+'.json'),'utf8'));
+const indonesia=load('indonesia');
+const idn=indonesia.entities.find(e=>e.entityId==='state:IDN');
+assert.equal(idn.geometryVersions.length,2);
+const old=idn.geometryVersions[0],modern=idn.geometryVersions[1];
+assert.equal(old.versionId,'state:indonesia:1945-2002-r1');
+assert.equal(modern.versionId,'state:IDN:natural-earth-5.1.1');
+const westPapua={type:'MultiPolygon',coordinates:[]};
+const source=load('indonesia').entities.find(e=>e.entityId==='state:IDN');
+const timor=load('tls').entities.find(e=>e.entityId==='state:TLS').geometryVersions[0].geometry;
+const candidates=(modern.geometry.type==='MultiPolygon'?modern.geometry.coordinates:[modern.geometry.coordinates]);
+const papua=candidates.filter(p=>p.some(r=>r.some(([lon,lat])=>lon>130&&lat<1)));
+assert.ok(papua.length>0,'No western New Guinea components found');
+const noPapua=candidates.filter(p=>!papua.includes(p));
+assert.ok(noPapua.length>0);
+const clone=(base,id,from,to,coords,note)=>({...structuredClone(base),versionId:id,validFrom:from,validTo:to,geometry:{type:'MultiPolygon',coordinates:coords},certainty:'low',datePrecision:'approximate',sourceId:'natural-earth-5.1.1-period-proxy',notes:note});
+const timorPolygons=timor.type==='MultiPolygon'?timor.coordinates:[timor.coordinates];
+const before=clone(modern,'state:IDN:1945-1963-pre-west-papua-r1','1945-08-17','1963-04-30',noPapua,'서뉴기니 이전 전. 현행 인도네시아에서 서뉴기니 서부 폴리곤을 제거한 근사 형상');
+const papuaPeriod=clone(modern,'state:IDN:1963-1975-pre-east-timor-r1','1963-05-01','1975-12-06',candidates,'서파푸아 편입 후, 동티모르 침공 이전 근사 형상');
+const occupied=clone(old,'state:IDN:1975-1999-east-timor-occupation-r1','1975-12-07','1999-10-18',old.geometry.type==='MultiPolygon'?old.geometry.coordinates:[old.geometry.coordinates],'동티모르 실효 점령 근사. 1975-12-07 당일 전역 점령을 의미하지 않음');
+const post=clone(modern,'state:IDN:1999-2026-post-east-timor-r1','1999-10-19','2026-10-05',candidates,'동티모르 편입 철회 후. 2026 현행 형상 시간 대리');
+for(const v of [before,papuaPeriod,occupied,post]){
+ v.historicalProvenance={verifiedHistoricalGeometry:false,sourceReferenceDate:'2026-10-06',method:'present-day Natural Earth proxy',notes:v.notes};
+ v.instantiation={mode:'territory-replacement',countryUpdates:{}};
+}
+modern.validFrom='2026-10-06';
+idn.geometryVersions=[before,papuaPeriod,occupied,post,modern];
+fs.writeFileSync(path.join(root,dir+'indonesia.json'),JSON.stringify(indonesia,null,2)+'\n');
+console.log('Indonesian territory periods written: '+idn.geometryVersions.map(v=>v.versionId).join(', '));
