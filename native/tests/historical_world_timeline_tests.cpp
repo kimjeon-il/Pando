@@ -91,7 +91,8 @@ private slots:
         QVERIFY(view.world.find("UKR"));
         QVERIFY(!view.world.find("RUS"));
         QVERIFY(view.world.find("SDN"));QVERIFY(view.world.find("SDS"));
-        QCOMPARE(view.world.entities.size(),std::size_t(4));
+        QVERIFY(view.world.find("IDN"));QVERIFY(view.world.find("TLS"));
+        QCOMPARE(view.world.entities.size(),std::size_t(6));
         QVERIFY(!pandoeditor::isStaticTimeline(loaded.project->document()));
     }
     void currentGeometryAliasesMatchCanonicalPacket() {
