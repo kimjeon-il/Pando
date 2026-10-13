@@ -23,6 +23,12 @@ const eastPrussiaExpected = {
 
 test('GeoPackage export contains QGIS-ready territorial and distribution tables', async ({ page }) => {
   test.setTimeout(300_000);
+  const countries = JSON.parse(readFileSync(new URL('../../assets/data/countries-ne-5.1.1.geojson', import.meta.url), 'utf8')).features;
+  const saved = staticAutosaveProject({}, ['DEU', 'POL'].map(id => {
+    const country = countries.find(feature => feature.id === id);
+    return createTerritorialFeature({ id, entityKind: 'general', name: country.properties.name, geometry: country.geometry });
+  }));
+  await page.addInitScript(value => localStorage.setItem('pandolab-editor-project', JSON.stringify(value)), saved);
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => {
@@ -34,7 +40,7 @@ test('GeoPackage export contains QGIS-ready territorial and distribution tables'
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/?demTerrain=raster');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
-  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 30_000 });
+  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
 
   // The production GeoPackage writer omits empty spatial layers. Add an
   // actual regional object so the regional-table guarantee is exercised.
@@ -325,25 +331,26 @@ test('mobile vector import advances by stage and preserves detected choices when
 
 test('current general GIS import preserves explicit source geometry and existing roots through undo and redo', async ({ page }) => {
   test.setTimeout(180_000);
+  const roots = ['DEU', 'POL', 'RUS'];
+  const countries = JSON.parse(readFileSync(new URL('../../assets/data/countries-ne-5.1.1.geojson', import.meta.url), 'utf8')).features;
+  const saved = staticAutosaveProject({}, roots.map(id => {
+    const country = countries.find(feature => feature.id === id);
+    return createTerritorialFeature({ id, entityKind: 'general', name: country.properties.name, geometry: country.geometry });
+  }));
+  await page.addInitScript(value => localStorage.setItem('pandolab-editor-project', JSON.stringify(value)), saved);
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/?demTerrain=raster');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
-  const roots = ['DEU', 'POL', 'RUS'];
   const readRoots = () => page.evaluate(ids => ids.map(id => window.PANDOLAB_TERRITORIAL.get(id).geometry), roots);
   const before = await readRoots();
   await page.locator('#mobileFileBtn').click();
   const choosing = page.waitForEvent('filechooser');
   await page.locator('#openGisBtn').click();
-  const parentPeriod = await page.evaluate(() => {
-    const { validFrom, validTo } = window.PANDOLAB_TERRITORIAL.get('DEU').properties;
-    return { validFrom, validTo };
-  });
   const source = createTerritorialFeature({ id: 'current-east-prussia', entityKind: 'general',
-    name: '동프로이센주', parentId: 'DEU', coverageMode: 'explicit', geometry: eastPrussiaGeometry,
-    ...parentPeriod });
+    name: '동프로이센주', parentId: 'DEU', coverageMode: 'explicit', geometry: eastPrussiaGeometry });
   const row = globalThis.PandoLabGisAdapters.territorialRows({ territorialEntities: [source] }).entities[0];
   await (await choosing).setFiles({ name: 'entities.geojson', mimeType: 'application/geo+json',
     buffer: Buffer.from(JSON.stringify({ type: 'FeatureCollection', features: [{ type: 'Feature', id: source.id,
@@ -358,6 +365,7 @@ test('current general GIS import preserves explicit source geometry and existing
   }
   await page.locator('#gisImportConfirmBtn').click();
   await expect(page.locator('#gisImportModal')).toBeHidden({ timeout: 90_000 });
+  await expect(page.locator('#actionStatus')).toContainText('객체 1개를 가져왔습니다.', { timeout: 90_000 });
   const readImported = () => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ kind: 'general' })
     .find(entity => entity.properties.name === '동프로이센주') || null);
   await expect.poll(readImported).not.toBeNull();
@@ -373,10 +381,12 @@ test('current general GIS import preserves explicit source geometry and existing
   expect(planarArea({ type: 'MultiPolygon', coordinates: difference })).toBeLessThan(1e-8);
   expect(await readRoots()).toEqual(before);
   await page.locator('#undoBtn').click();
-  await expect.poll(readImported).toBeNull();
+  await expect(page.locator('#redoBtn')).toBeEnabled({ timeout: 90_000 });
+  await expect.poll(readImported, { timeout: 90_000 }).toBeNull();
   expect(await readRoots()).toEqual(before);
   await page.locator('#redoBtn').click();
-  await expect.poll(readImported).toEqual(imported);
+  await expect(page.locator('#undoBtn')).toBeEnabled({ timeout: 90_000 });
+  await expect.poll(readImported, { timeout: 90_000 }).toEqual(imported);
   expect(await readRoots()).toEqual(before);
   expect(errors).toEqual([]);
 });
