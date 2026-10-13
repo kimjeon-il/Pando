@@ -8,7 +8,8 @@ const mapping = JSON.parse(readFileSync(new URL('./report-paths.json', import.me
 export function reportPath(legacy, root = repo) {
   let target = mapping.files[legacy] ?? legacy;
   for (const [old, replacement] of Object.entries(mapping.directories)) {
-    if (legacy === old || legacy.startsWith(old + '/')) {
+    const recursive = ['assets/data/research/siachen', 'native/reports/places'].includes(old);
+    if (legacy === old || (recursive && legacy.startsWith(old + '/'))) {
       target = mapping.files[legacy] ?? replacement + legacy.slice(old.length);
       break;
     }

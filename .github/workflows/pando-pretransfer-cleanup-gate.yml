@@ -100,3 +100,18 @@ jobs:
       - name: Verify Qt place source contract
         run: ctest --test-dir native/build-pretransfer --output-on-failure -R '^(place_sync_contract_tests|core_session_tests)$'
 
+      - name: Verify Qt place contract with the original Pando report layout
+        run: |
+          python - <<'PY'
+          import json, shutil
+          from pathlib import Path
+          mapping=json.loads(Path('tools/report-paths.json').read_text())
+          for legacy, canonical in mapping['files'].items():
+            source=Path(canonical)
+            if source.is_file():
+              destination=Path(legacy)
+              destination.parent.mkdir(parents=True,exist_ok=True)
+              shutil.copyfile(source,destination)
+          Path('reports/places/source-manifest.json').unlink()
+          PY
+          ctest --test-dir native/build-pretransfer --output-on-failure -R '^place_sync_contract_tests$'

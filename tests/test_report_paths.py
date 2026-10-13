@@ -28,8 +28,12 @@ class ReportPathsTests(unittest.TestCase):
         self.assertEqual(self.module.report_path('native/tools/historical-library/land-borders', self.root), self.root / 'reports/geography/germany/north-schleswig')
 
     def test_unrelated_geometry_path_is_preserved(self):
-        path = 'tools/historical-library/sources/german-coastline/change-events.json'
-        self.assertEqual(self.module.report_path(path, self.root), self.root / path)
+        marker = self.root / 'reports/places/source-manifest.json'
+        marker.parent.mkdir(parents=True)
+        marker.write_text('{}')
+        for path in ['tools/historical-library/sources/german-coastline/change-events.json',
+                     'tools/historical-library/land-borders/master.geojson']:
+            self.assertEqual(self.module.report_path(path, self.root), self.root / path)
 
     def test_transitional_file_is_read_from_existing_new_location(self):
         file = self.root / 'reports/research/country-default-colors.json'
