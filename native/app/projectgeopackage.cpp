@@ -113,8 +113,8 @@ void attributeTable(QSqlDatabase& db,const char* name,const char* columns) {
 }
 
 QByteArray exportProjectGeoPackage(const Project& project) {
-    auto root=losslessjson::parse(projectcodec::encode(project));
-    Project persisted;persisted.replace(projectcodec::decode(root.encode()));
+    auto root=losslessjson::parse(::projectcodec::encode(project));
+    Project persisted;persisted.replace(::projectcodec::decode(root.encode()));
     auto assets=stripAssets(root);
     const auto state=root.encode();
     const auto& document=persisted.document();
@@ -193,7 +193,7 @@ QByteArray readProjectGeoPackage(const QString& filePath) {
     require(root.kind==V::Object,"UNSUPPORTED_PROJECT_GPKG_STATE");
     const auto native=root.object.count("format")&&
         root.object.at("format").kind==V::String&&root.object.at("format").string=="pandoeditor-project";
-    if(native)require(member(root,"version").kind==V::Number&&member(root,"version").raw==QByteArray::number(projectcodec::ProjectVersion),
+    if(native)require(member(root,"version").kind==V::Number&&member(root,"version").raw==QByteArray::number(::projectcodec::ProjectVersion),
                       "UNSUPPORTED_PROJECT_GPKG_STATE");
     std::map<std::string,Asset> assets;
     QSqlQuery rows(db);
@@ -225,7 +225,7 @@ QByteArray readProjectGeoPackage(const QString& filePath) {
         expectedMarker.object["version"]=member(root,"version");
         require(marker.encode()==expectedMarker.encode(),"PROJECT_GPKG_SOURCE_MISMATCH");
     }
-    Project candidate;candidate.replace(projectcodec::decode(root.encode()));
+    Project candidate;candidate.replace(::projectcodec::decode(root.encode()));
     if(!isStaticTimeline(candidate.document()))require(vectors.layers.empty(),"PROJECT_GPKG_TIMELINE_VECTORS");
     else {
         const auto& document=candidate.document();
@@ -241,6 +241,6 @@ QByteArray readProjectGeoPackage(const QString& filePath) {
             validateProjectGeoPackageVectors(vectors,readGisGeoPackage(path).layers);
         }
     }
-    return projectcodec::encode(candidate);
+    return ::projectcodec::encode(candidate);
 }
 }
