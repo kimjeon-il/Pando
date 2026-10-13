@@ -933,6 +933,8 @@ jobs:
       - run: python -m pip install -r tools/requirements-historical-library.txt
       - name: Validate JavaScript syntax and shared asset versions
         run: pnpm check:js && pnpm check:version
+      - name: Check shared C++ spherical polygon normalization
+        run: node tools/run-country-validator.mjs --self-test
       - name: Validate canonical country sources and shared boundaries
         run: pnpm check:country-schema && pnpm check:country-default-colors && pnpm check:country-shared-boundaries
       - name: Validate generated preview assets and unified territorial catalog
