@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { createHash } from 'node:crypto';
 import { encodePlaceTile } from '../../assets/js/modules/place-codec.js';
+import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
 
 test.use({ viewport:{width:1440,height:900} });
 
@@ -15,6 +16,7 @@ test('builtin selection is readonly, copy edits separately, and undo restores bu
   const manifest={version:1,revision:'browser-synthetic',stages:[{id:0,minZoom:0,columns:1,rows:1}],tiles:{'0/0-0':row},shards:{test:{url:'test.bin',bytes:bytes.length}},
     search:{'서울':[{...row,first:'서울 synthetic',last:'서울 synthetic'}],lo:[{...row,first:'london synthetic',last:'london synthetic'}]}};
   await context.route('**/assets/data/places/**',route=>route.fulfill({status:200,contentType:route.request().url().includes('manifest.json')?'application/json':'application/octet-stream',body:route.request().url().includes('manifest.json')?JSON.stringify(manifest):bytes}));
+  await page.addInitScript(value => localStorage.setItem('pandolab-editor-project', JSON.stringify(value)), staticAutosaveProject());
   // Exercise the real supported Canvas backend: this gate owns Place/History
   // contracts, not headless software-WebGL throughput. Keep native UI clicks.
   await page.goto('/?renderer=canvas');

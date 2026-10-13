@@ -112,10 +112,12 @@ for (const source of ['dem', 'raster']) {
       }
     };
     const setStyle = async style => {
-      await page.locator(style === 'political' ? '#terrainPoliticalRadio' : '#terrainPhysicalRadio').evaluate(input => {
+      const input = page.locator(style === 'political' ? '#terrainPoliticalRadio' : '#terrainPhysicalRadio');
+      await input.evaluate(input => {
         window.__terrainDraws = []; window.__captureTerrainPixels = true; input.click();
       });
       await expect.poll(async () => (await snapshot(page)).style, { timeout: 30_000 }).toBe(style);
+      await expect(input).toBeChecked({ timeout: 30_000 });
       await nextFrame(page);
       const expectedStyle = style === 'physical' ? 1 : 0;
       await expect.poll(() => page.evaluate(value => window.__terrainDraws.some(draw => draw.style === value && draw.stencil), expectedStyle),
@@ -207,6 +209,8 @@ for (const source of ['dem', 'raster']) {
       }
       await page.locator('#globeBtn').evaluate(button => button.click());
       await expect(page.locator('#globeBtn')).toHaveAttribute('aria-pressed', 'true');
+      await expect.poll(() => page.evaluate(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection),
+        { timeout: 30_000 }).toBe('globe');
       const globeBox = await page.locator('#map').boundingBox();
       for (let turn = 0; turn < 2; turn++) {
         const before = await page.evaluate(() => window.__PANDOLAB_MAP_HOST__.getViewState().rotation);
@@ -214,7 +218,7 @@ for (const source of ['dem', 'raster']) {
         await page.mouse.down();
         await page.mouse.move(globeBox.x + globeBox.width * 0.25, globeBox.y + globeBox.height * 0.5, { steps: 4 });
         await page.mouse.up();
-        await expect.poll(() => page.evaluate(() => window.__PANDOLAB_MAP_HOST__.getViewState().rotation))
+        await expect.poll(() => page.evaluate(() => window.__PANDOLAB_MAP_HOST__.getViewState().rotation), { timeout: 30_000 })
           .not.toEqual(before);
         await nextFrame(page);
         const rotated = await snapshot(page);

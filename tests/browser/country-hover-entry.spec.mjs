@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { readFileSync } from 'node:fs';
 import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
 import {staticTerritorialInput} from '../helpers/timeline-project.mjs';
@@ -146,7 +147,13 @@ for (const width of [1366, 1024]) test(`country hover only identifies; one label
 });
 
 test('area hover, long names, header commands and color use the current editor target', async ({ page }, testInfo) => {
-  test.setTimeout(150_000); await page.setViewportSize({ width: 1366, height: 900 }); await openMap(page);
+  test.setTimeout(150_000); await page.setViewportSize({ width: 1366, height: 900 });
+  const countries = JSON.parse(readFileSync(new URL('../../assets/data/countries-ne-5.1.1.geojson', import.meta.url), 'utf8')).features;
+  const germany = countries.find(feature => feature.id === 'DEU');
+  const saved = staticAutosaveProject({}, [createTerritorialFeature({ id: 'DEU', entityKind: 'general',
+    name: germany.properties.name, geometry: germany.geometry })]);
+  await page.addInitScript(value => localStorage.setItem('pandolab-editor-project', JSON.stringify(value)), saved);
+  await openMap(page);
   const point = await germanAreaPoint(page);
   const before = await view(page), initialRevision = await revision(page);
   await page.mouse.move(point.x, point.y); await assertTooltip(page, '독일');
