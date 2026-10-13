@@ -87,7 +87,7 @@ struct Ui {
     bool open(const ProjectDocument& document,const QString& name="input.json")
     {
         Project project;project.replace(document);QFile file(files.filePath(name));
-        if(!file.open(QIODevice::WriteOnly)||file.write(projectcodec::encode(project))<=0)return false;
+        if(!file.open(QIODevice::WriteOnly)||file.write(::projectcodec::encode(project))<=0)return false;
         file.close();return editor.openFile(QUrl::fromLocalFile(file.fileName()));
     }
     bool start(bool referenceComponent=false)

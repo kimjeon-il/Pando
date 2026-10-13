@@ -19,7 +19,7 @@ QUrl writeProject(const QString& path,bool island=false,bool lockedParent=false)
  appendTerritory(d,{"source","Source","",UnitKind::General,false},ref,"parent");
  staticParentRelation(d,"source").coverageMode="partition";
  d.presentation.objectStyles[territorialRef("source")]={};
- d.units.front().locked=lockedParent;Project p;p.replace(std::move(d));QFile f(path);if(!f.open(QIODevice::WriteOnly))throw std::runtime_error("fixture write failed");f.write(projectcodec::encode(p));f.close();return QUrl::fromLocalFile(path);
+ d.units.front().locked=lockedParent;Project p;p.replace(std::move(d));QFile f(path);if(!f.open(QIODevice::WriteOnly))throw std::runtime_error("fixture write failed");f.write(::projectcodec::encode(p));f.close();return QUrl::fromLocalFile(path);
 }
 // Hold the real calculation pool so a camera change happens after submission
 // and before the cut worker starts, without adding a production test hook.
@@ -42,7 +42,7 @@ private slots:
  void queuedLineDraftUsesFinishTimeViewAndCoarsePointer() {
   QFETCH(bool,mobile);QTemporaryDir dir;EditorController c({mobile,dir.filePath("private.json")});
   QVERIFY(c.openFile(writeProject(dir.filePath("input.json"))));c.selectCountry("source");const auto before=c.documentBytes();const auto revision=c.revision();
-  MapProjection projection;projection.rebuild(projectcodec::decode(before));
+  MapProjection projection;projection.rebuild(::projectcodec::decode(before));
   QVERIFY(c.beginSplitGeometry());QVERIFY(c.geometryAdvanceStage());QVERIFY(c.geometrySelectTerritoryMethod("line"));
   QTRY_VERIFY_WITH_TIMEOUT(!c.geometryEditState()["calculating"].toBool(),10000);
   QVERIFY(c.setProjectionMode("flat"));
@@ -76,7 +76,7 @@ private slots:
  }
  void multipleCrossingsUseSelectableFragmentsAndOneCreatedSibling() {
   QTemporaryDir dir;EditorController c;QVERIFY(c.openFile(writeProject(dir.filePath("input.json"),true)));c.selectCountry("source");
-  const auto before=c.documentBytes();MapProjection projection;projection.rebuild(projectcodec::decode(before));
+  const auto before=c.documentBytes();MapProjection projection;projection.rebuild(::projectcodec::decode(before));
   QVERIFY(c.beginSplitGeometry());QVERIFY(c.geometryAdvanceStage());QVERIFY(c.geometrySelectTerritoryMethod("line"));
   QTRY_VERIFY_WITH_TIMEOUT(!c.geometryEditState().value("calculating").toBool(),10000);
   for(const auto point:{Point{-1,2},Point{11,2},Point{11,5},Point{-1,5},Point{-1,8},Point{11,8}}){const auto p=projection.project(point);QVERIFY(c.geometryAddPoint(p.x,p.y,0));}
@@ -93,26 +93,26 @@ private slots:
   QVERIFY(c.geometryAddTerritoryPart());QTRY_VERIFY_WITH_TIMEOUT(c.geometryEditState().value("canAdvance").toBool(),15000);
   QCOMPARE(c.documentBytes(),before);QVERIFY(c.geometryAdvanceStage());QVERIFY(c.confirmGeometryEdit());
   QTRY_VERIFY_WITH_TIMEOUT(!c.geometryEditState().value("active").toBool(),15000);
-  const auto after=c.documentBytes();const auto document=projectcodec::decode(after);QCOMPARE(document.units.size(),std::size_t(3));
+  const auto after=c.documentBytes();const auto document=::projectcodec::decode(after);QCOMPARE(document.units.size(),std::size_t(3));
   const auto source=document.geometries.get(staticGeometryBinding(document,"source").geometryRef);QVERIFY(source);QVERIFY(geometryContains(*source,rectangle(20,0,2,2)));
   c.undo();QCOMPARE(c.documentBytes(),before);c.redo();QCOMPARE(c.documentBytes(),after);
  }
  void changingChildSelectionAfterPreviewRejectsCommit() {
-  QTemporaryDir dir;EditorController c;QVERIFY(c.openFile(writeProject(dir.filePath("input.json"))));c.selectCountry("source");const auto before=c.documentBytes();MapProjection projection;projection.rebuild(projectcodec::decode(before));
+  QTemporaryDir dir;EditorController c;QVERIFY(c.openFile(writeProject(dir.filePath("input.json"))));c.selectCountry("source");const auto before=c.documentBytes();MapProjection projection;projection.rebuild(::projectcodec::decode(before));
   QVERIFY(c.beginSplitGeometry());QVERIFY(c.geometryAdvanceStage());QVERIFY(c.geometrySelectTerritoryMethod("line"));QTRY_VERIFY_WITH_TIMEOUT(!c.geometryEditState()["calculating"].toBool(),10000);
   for(const auto point:{Point{-1,5},Point{11,5}}){const auto xy=projection.project(point);QVERIFY(c.geometryAddPoint(xy.x,xy.y,0));}
   QVERIFY(c.geometryFinishTerritoryDraft());QTRY_VERIFY_WITH_TIMEOUT(c.geometryEditState()["canAddPart"].toBool(),15000);QVERIFY(c.geometryAddTerritoryPart());QTRY_VERIFY_WITH_TIMEOUT(c.geometryEditState()["canAdvance"].toBool(),15000);QVERIFY(c.geometryAdvanceStage());
   QSignalSpy contextChanged(&c,&EditorController::geometryEditChanged);c.selectCountry("parent");QVERIFY(contextChanged.count()>0);QVERIFY(!c.confirmGeometryEdit());QTest::qWait(100);QCOMPARE(c.documentBytes(),before);c.cancelGeometryEdit();
  }
  void changingRootSelectionAfterPreviewKeepsFixedSource() {
-  QTemporaryDir dir;EditorController c;QVERIFY(c.openFile(writeProject(dir.filePath("input.json"))));c.selectCountry("parent");const auto before=c.documentBytes();MapProjection projection;projection.rebuild(projectcodec::decode(before));
+  QTemporaryDir dir;EditorController c;QVERIFY(c.openFile(writeProject(dir.filePath("input.json"))));c.selectCountry("parent");const auto before=c.documentBytes();MapProjection projection;projection.rebuild(::projectcodec::decode(before));
   QVERIFY(c.beginSplitGeometry());QVERIFY(c.geometryAdvanceStage());QVERIFY(c.geometrySelectTerritoryMethod("line"));QTRY_VERIFY_WITH_TIMEOUT(!c.geometryEditState()["calculating"].toBool(),10000);
   for(const auto point:{Point{-6,15},Point{26,15}}){const auto xy=projection.project(point);QVERIFY(c.geometryAddPoint(xy.x,xy.y,0));}
   QVERIFY(c.geometryFinishTerritoryDraft());QTRY_VERIFY_WITH_TIMEOUT(c.geometryEditState()["canAddPart"].toBool(),15000);QVERIFY(c.geometryAddTerritoryPart());QTRY_VERIFY_WITH_TIMEOUT(c.geometryEditState()["canAdvance"].toBool(),15000);QVERIFY(c.geometryAdvanceStage());
   c.selectCountry("source");QVERIFY(c.confirmGeometryEdit());QTRY_VERIFY_WITH_TIMEOUT(!c.geometryEditState()["active"].toBool(),15000);QVERIFY(c.documentBytes()!=before);c.undo();QCOMPARE(c.documentBytes(),before);
  }
  void splitPolygonCandidateUsesWebTypeAndWinding() {
-  QTemporaryDir dir;EditorController c;QVERIFY(c.openFile(writeProject(dir.filePath("input.json"))));c.selectCountry("source");const auto before=c.documentBytes();MapProjection projection;projection.rebuild(projectcodec::decode(before));
+  QTemporaryDir dir;EditorController c;QVERIFY(c.openFile(writeProject(dir.filePath("input.json"))));c.selectCountry("source");const auto before=c.documentBytes();MapProjection projection;projection.rebuild(::projectcodec::decode(before));
   QVERIFY(c.beginSplitGeometry());QVERIFY(c.geometryAdvanceStage());QVERIFY(c.geometrySelectTerritoryMethod("polygon"));QTRY_VERIFY_WITH_TIMEOUT(!c.geometryEditState()["calculating"].toBool(),10000);
   for(const auto point:{Point{0,1},Point{3,1},Point{3,4},Point{0,4}}){const auto xy=projection.project(point);QVERIFY(c.geometryAddPoint(xy.x,xy.y,0));}
   QVERIFY(c.geometryFinishTerritoryDraft());QTRY_VERIFY_WITH_TIMEOUT(!c.geometryEditState()["calculating"].toBool(),15000);const auto candidates=c.riverSelectionObservation()["candidates"].toList();QCOMPARE(candidates.size(),1);
@@ -120,7 +120,7 @@ private slots:
   const auto ring=geometry["coordinates"].toList().front().toList();QCOMPARE(ring.front().toList(),QVariantList({0.,4.}));QCOMPARE(c.documentBytes(),before);c.cancelGeometryEdit();
  }
  void splitPolygonDraftUndoRedoIsInert() {
-  QTemporaryDir dir;EditorController c;QVERIFY(c.openFile(writeProject(dir.filePath("input.json"))));c.selectCountry("source");const auto before=c.documentBytes();MapProjection projection;projection.rebuild(projectcodec::decode(before));
+  QTemporaryDir dir;EditorController c;QVERIFY(c.openFile(writeProject(dir.filePath("input.json"))));c.selectCountry("source");const auto before=c.documentBytes();MapProjection projection;projection.rebuild(::projectcodec::decode(before));
   QVERIFY(c.beginSplitGeometry());QVERIFY(c.geometryAdvanceStage());QVERIFY(c.geometrySelectTerritoryMethod("polygon"));QTRY_VERIFY_WITH_TIMEOUT(!c.geometryEditState()["calculating"].toBool(),10000);
   for(const auto point:{Point{1,1},Point{3,1},Point{3,3}}){const auto xy=projection.project(point);QVERIFY(c.geometryAddPoint(xy.x,xy.y,0));}
   const auto draft=c.geometryDraftPaths();QVERIFY(c.geometryEditState()["canUndoDraft"].toBool());QVERIFY(c.geometryUndoDraft());QVERIFY(c.geometryDraftPaths()!=draft);QVERIFY(c.geometryRedoDraft());QCOMPARE(c.geometryDraftPaths(),draft);QCOMPARE(c.documentBytes(),before);c.cancelGeometryEdit();QCOMPARE(c.documentBytes(),before);
