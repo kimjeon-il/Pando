@@ -34,6 +34,7 @@ int main(int argc,char** argv) {
     require(normalized.geometry.polygons.front().front().size()==7,"canonical long-edge subdivisions");
     const auto river=normalizeRiverGeometry(square);
     require(river.succeeded()&&river.geometry.has_value(),"river normalization: "+river.detail.toStdString());
+    require(sameGeometryValue(*river.geometry,square),"river normalization changed square geometry");
     RiverBaseComponent base;base.key="base";base.countryId="A";base.componentKey="A:0";
     base.sourcePolygonIndex=7;base.geometry=square;base.attributes={{"custom","retained"}};
     const auto composition=composeRiverPartitionComponents({base},{},{});
