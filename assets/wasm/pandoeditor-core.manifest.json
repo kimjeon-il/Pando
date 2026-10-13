@@ -1,7 +1,7 @@
 {
   "schema": "pandoeditor-core-wasm",
   "abiVersion": 1,
-  "sourceSha256": "3c3681de6df16caaa62bfc133f9a9335935f41dab49ac29598f178120def6cde",
+  "sourceSha256": "66bcabe1b3928bbf8516a31eec5390686e3ea54bdd593c393b6e5f84dc8338c9",
   "compiler": {
     "name": "emscripten",
     "version": "4.0.20"
@@ -13,7 +13,7 @@
     },
     {
       "path": "shared/core/CMakeLists.txt",
-      "sha256": "1886dfcf1dc6f7b8849a9996fcddc5fd75240a4f56aad8783821b2638f0ada15"
+      "sha256": "94116d391a93646faf9616571f4c882bc90a00c8ba0ac50c1c620220409e3fd2"
     },
     {
       "path": "shared/core/include/pandoeditor/commands.h",
@@ -126,6 +126,10 @@
     {
       "path": "shared/core/include/pandoeditor/spatialindex.h",
       "sha256": "67ace6176339753fc4fbb2787982899291a7004c34a0e7f4f80d9b1825776ebe"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/sphericalpolygon.h",
+      "sha256": "2b6e1346f990baf39cc330d21c24cb3af67f2e3e2c188123ae0be920f85ab402"
     },
     {
       "path": "shared/core/include/pandoeditor/temporal.h",
@@ -292,6 +296,10 @@
       "sha256": "d306d9331c2ec7a5bbbf34b81d6f2c3365afc3c498b8650ebcf1c013caee22c9"
     },
     {
+      "path": "shared/core/src/sphericalpolygon.cpp",
+      "sha256": "f8050c109f4d629da2df388eb2e7b5ae99981205612308ec2705e3687783f594"
+    },
+    {
       "path": "shared/core/src/temporal.cpp",
       "sha256": "ee7b0f041d586c1bbf8dd0faf6d09242cbc236b738bdd068b4abfd08ff4fe903"
     },
@@ -407,7 +415,7 @@
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "9121cd9b87a0e898406366d495bb26517d547c60b8807d3381e5bf974dfe1556"
+      "sha256": "57612133d06f0c8dda7fff0508bb4aefcd15152fd39a6376e9ba8b892fa8c89c"
     }
   }
 }
