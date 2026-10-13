@@ -44,4 +44,16 @@
 
 ## 실행 및 검증 결과
 
-작업 완료 후 검증한 명령·좌표 판정·파일 SHA와 완료 커밋을 정확히 추가한다. `main`과 웹 Pages 배포는 작업 범위에서 제외.
+**완료 — 2026-10-13, `work/objects`**
+
+- 구현 커밋: [`7d18b3c`](https://github.com/kimjeon-il/Pando/commit/7d18b3c752d23b2df95f507e799f0140a6724cc0). 다른 작업의 `work/objects` 커밋과 충돌하지 않도록 **비강제 rebase 후 푸시**.
+- [GitHub Actions 최종 실행 성공](https://github.com/kimjeon-il/Pando/actions/runs/38355364545). 첫 시도 [38354798140](https://github.com/kimjeon-il/Pando/actions/runs/38354798140)는 **모든 검증이 통과했으나** 다른 커밋의 선행 푸시로 비강제 push가 거절됨. 최종 재시도에서 커밋까지 성공.
+- 라이브러리 **281개 객체 / 262개 국가계보 유지**, 형상 버전 **290 → 294개**. 인도네시아 `IDN` 5개, 동티모르 `TLS` 2개. 다른 279개 국가·지역 gzip chunk는 이 작업 직전 기준 커밋 `1519f609bd69`와 바이트 동일.
+- 서뉴기니 제거용 mask: 현행 IDN 264개 폴리곤 중 25개가 Papua(`ID-PA`)·West Papua(`ID-PB`) Admin-1 v5.1.1에 **100% 포함**됨을 Shapely 2.1.2로 검사. 1945~1963 근사 다각형은 239개이며 기존 순서·좌표 그대로 보존. 아루·말루쿠의 임의 제거 없음.
+- 동티모르 점령용 기존 합집합 폴리곤의 기하 좌표·레거시 `versionId = state:indonesia:1945-2002-r1`는 참조 안정성을 위해 보존하되, **실제 유효기간은 1975-12-07~1999-10-24로 수정**. ID 문구의 과거 연도 표기를 현재 시간 범위로 오인하지 않는다. 구간 수정 이전 원본 날짜를 `historicalProvenance.originalInterval`에 남김.
+- `state:TLS`의 `lifetime.validFrom = 2002-05-20` 입력. 1999~2002 UNTAET는 이 독립국의 존속기간에 소급 포함하지 않음.
+- 검사 성공: **Node 집중 테스트 13/13**, **Python 라이브러리 10/10**, `node tools/build-territorial-entity-chunks.mjs --check`, `node tools/build-historical-world-timeline.mjs --check`, `node native/tools/sync-historical-world-timeline.mjs --web-root . --check`, `node scripts/check-territorial-library.mjs`, `node scripts/check-version.mjs`.
+- 월말 참조 확인: `1963-04` 서뉴기니 제외 → `1963-05` 포함; `1975-11` 동티모르 제외 → `1975-12` 점령기 포함; `1999-09` 포함 → `1999-10` 제외; `2002-04` 동티모르 독립국 비활성 → `2002-05` `TLS` 별도 국가 활성.
+- Web 및 Native 역사 프로젝트 SHA-256 완전 일치: `6f0932d02afcf55e2aceebc7e4aa524e84a868443e3d2f4036786262e59a0ddc`.
+
+**한계:** 위 통과는 GIS 형상·기간·정본 계약에 대한 집중 검증이다. 실제 UI 브라우저·Qt/C++ 빌드·현장 기기 테스트와 `main` 병합·Pages 배포는 미실행. 네이티브 CMake의 선행 소스 누락 문제는 [GEO-LIFE-003](sudan-ukraine-post-transition-2026-10-13.md)에 기록된 별도 장애다.
