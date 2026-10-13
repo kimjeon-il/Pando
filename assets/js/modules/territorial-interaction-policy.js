@@ -12,11 +12,6 @@ export function subunitSelectionPolicy(units, { adjacent, deferConnectivity = fa
   return { valid: true, message: '선택한 하위단위 사이의 공유 경계를 편집합니다.' };
 }
 
-export function territorialDeletionAllowed(targets, allUnits) {
-  return targets.every(unit => unit && !unit.properties?.locked
-    && !allUnits.some(child => String(child.properties?.parentId) === String(unit.id)));
-}
-
 export function boundaryTouchesGeometry(geometry, point, epsilon = 1e-7) {
   const polygons = geometry?.type === 'Polygon' ? [geometry.coordinates] : geometry?.coordinates || [];
   return polygons.some(polygon => polygon.some(ring => ring.some((b, index) => {

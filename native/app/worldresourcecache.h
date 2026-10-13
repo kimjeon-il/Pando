@@ -14,7 +14,6 @@ public:
     std::shared_ptr<const WorldBaseFrame> get(WorldDetail);
     void protect(WorldDetail,pandoeditor::ResourceProtection,bool);
     void setBudget(std::size_t bytes);
-    void useCompatibilityBudget();
     void reset();
     bool compatibilityBudget() const noexcept {return !override_;}
     pandoeditor::ResourceCacheSnapshot snapshot() const {return policy_.snapshot();}
