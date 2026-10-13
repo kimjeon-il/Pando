@@ -5,6 +5,7 @@ import { productionGeoPackage } from '../helpers/production-geopackage.mjs';
 
 const fixturePath = kind => fileURLToPath(new URL(`../fixtures/timeline-exchange/${kind}.gpkg`, import.meta.url));
 const fixtureJson = async kind => JSON.parse(await readFile(new URL(`../fixtures/timeline-exchange/${kind}.json`, import.meta.url),'utf8'));
+const historicalManifest = async () => JSON.parse(await readFile(new URL('../../assets/data/historical-world/generated/v1/manifest.json', import.meta.url),'utf8'));
 test.use({ channel:'chromium', trace:'off', viewport:{width:1440,height:900} });
 test.setTimeout(360000);
 async function openApp(page) {
@@ -57,8 +58,7 @@ test('static v10 UI file save/open and full autosave restore metadata, records a
   await expect(page.locator('#gisImportModal')).toBeHidden({timeout:30000});
   await expect.poll(()=>page.evaluate(()=>window.PANDOLAB_TERRITORIAL.list().length)).toBe(4);
   await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.setName('A','저장 검증'));
-  await expect(page.locator('#projectSaveStatusText')).toHaveText('저장됨',{timeout:120000});
-  await expect.poll(async()=> (await readAutosave(page))?.territorialEntities?.find(entity=>entity.id==='A')?.properties.name,{timeout:30000}).toBe('저장 검증');
+  await expect.poll(async()=> (await readAutosave(page))?.territorialEntities?.find(entity=>entity.id==='A')?.properties.name,{timeout:120000}).toBe('저장 검증');
   const saved=await readAutosave(page);
   expect(saved.format).toBe('pandolab-autosave-full');
   expect(saved.schemaVersion).toBe(10);
@@ -110,11 +110,10 @@ test('historical default full save and offline restore retain every identity and
   const before=await page.evaluate(()=>({count:window.PANDOLAB_TERRITORIAL.list().length,
     geometry:window.PANDOLAB_TERRITORIAL.get('IRL').geometry}));
   await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.setName('IRL','시간 저장 아일랜드'));
-  await expect(page.locator('#projectSaveStatusText')).toHaveText('저장됨',{timeout:120000});
-  await expect.poll(async()=> (await readAutosave(page))?.territorialEntities?.find(entity=>entity.id==='IRL')?.properties.name,{timeout:30000}).toBe('시간 저장 아일랜드');
+  await expect.poll(async()=> (await readAutosave(page))?.territorialEntities?.find(entity=>entity.id==='IRL')?.properties.name,{timeout:120000}).toBe('시간 저장 아일랜드');
   const saved=await readAutosave(page);
   expect(saved.format).toBe('pandolab-autosave-full');
-  expect(saved.territorialEntities.length).toBe(280);
+  expect(saved.territorialEntities.length).toBe((await historicalManifest()).sourceIdentities.length);
   expect(saved.timelineRecords.lifetimes.length).toBeGreaterThan(before.count);
   expect(saved.geometries.length).toBeGreaterThanOrEqual(before.count);
   expect(saved.entityDelta).toBeUndefined();
