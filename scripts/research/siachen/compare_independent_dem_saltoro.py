@@ -19,7 +19,11 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-OUT=Path("assets/data/research/siachen")
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "tools"))
+from report_paths import report_path
+
+OUT=report_path("assets/data/research/siachen")
 OUT.mkdir(parents=True,exist_ok=True)
 BBOX=(76.715,35.365,76.995,35.610)
 CRS="EPSG:32643"

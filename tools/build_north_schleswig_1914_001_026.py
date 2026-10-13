@@ -4,10 +4,16 @@ from shapely.geometry import shape, Point, LineString, MultiLineString, mapping
 from shapely.ops import unary_union, nearest_points, substring, transform
 from pyproj import Transformer
 
+import sys
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "tools"))
+from report_paths import report_path
+
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 SRC=ROOT/"tools/historical-library/sources/german-empire-1914/north-schleswig-001-026"
 OUT=ROOT/"tools/historical-library/land-borders"
 OUT.mkdir(parents=True,exist_ok=True)
+REPORT_DIR=report_path("tools/historical-library/land-borders")
+REPORT_DIR.mkdir(parents=True,exist_ok=True)
 
 parishes=json.loads((SRC/"dagi-current-parishes-sector.geojson").read_text(encoding="utf-8"))
 candidates=json.loads((SRC/"osm-historic-border-candidates.json").read_text(encoding="utf-8"))
@@ -188,7 +194,7 @@ diag={
    "Current parish geometry is a high-resolution control; historical map-sheet comparison is still required before finalizing this sector."
  ]
 }
-(OUT/"german-denmark-1914-north-schleswig-001-026.diagnostics.json").write_text(
+(REPORT_DIR/"german-denmark-1914-north-schleswig-001-026.diagnostics.json").write_text(
  json.dumps(diag,ensure_ascii=False,indent=2),encoding="utf-8"
 )
 print(json.dumps(diag,ensure_ascii=False,indent=2))
