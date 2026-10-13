@@ -1018,14 +1018,16 @@ jobs:
           node tools/build-territorial-entity-chunks.mjs
           node tools/build-historical-world-timeline.mjs
           node native/tools/sync-historical-world-timeline.mjs --web-root .
+          node native/tools/m97/cut-kernel-generate.mjs
           PANDOLAB_BUILD_ID=ussr-spherical-20261013 node scripts/generate-build-metadata.mjs
       - name: Verify reproducibility, lineage and temporal data contracts
         run: |
           node tools/build-territorial-entity-chunks.mjs --check
           node tools/build-historical-world-timeline.mjs --check
           node native/tools/sync-historical-world-timeline.mjs --web-root . --check
+          node native/tools/m97/cut-kernel-generate.mjs --check
           node scripts/check-version.mjs
-          node --test tests/unit/polygon-geometry.test.mjs tests/unit/territorial-chunks.test.mjs tests/unit/historical-world-publication.test.mjs
+          node --test tests/unit/polygon-geometry.test.mjs tests/unit/territorial-chunks.test.mjs tests/unit/historical-world-publication.test.mjs native/tools/m97/current-geometry-source.test.mjs
       - name: Verify generated output scope
         shell: bash
         run: |
@@ -1035,6 +1037,7 @@ jobs:
             assets/data/historical-world/generated/v1 \
             native/assets/world/historical-world/v1 \
             native/assets/world/manifest.json \
+            native/assets/geometry/current native/resources/current_geometry.qrc \
             assets/js/build-meta.js index.html README.md
           git diff --cached --check
           while IFS= read -r changed; do
@@ -1049,7 +1052,11 @@ jobs:
               native/assets/world/historical-world/v1/world-project.json.gz|\
               native/assets/world/historical-world/v1/coverage-report.json|\
               native/assets/world/historical-world/v1/expected-trace.json|\
-              native/assets/world/manifest.json|assets/js/build-meta.js|index.html|README.md)
+              native/assets/world/manifest.json|assets/js/build-meta.js|index.html|README.md|\
+              native/assets/geometry/current/polygon-geometry.js|\
+              native/assets/geometry/current/cut/polygon-geometry.js|\
+              native/assets/geometry/current/manifest.json|\
+              native/assets/geometry/current/geometryprovenance.h|native/resources/current_geometry.qrc)
                 echo "EXPECTED: $changed" ;;
               *) echo "OUT-OF-SCOPE ASSET CHANGE: $changed" >&2; exit 1 ;;
             esac
