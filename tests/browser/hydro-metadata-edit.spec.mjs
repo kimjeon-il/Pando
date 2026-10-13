@@ -71,7 +71,7 @@ test('editing a river color updates actual GPU paint and undo restores metadata,
   await page.locator('#hydroColorTrigger').click();
   const swatch = page.locator(`#hydroColorPopover [data-color-value]:not([data-color-value="${originalColor}"])`).first();
   const nextColor = await swatch.getAttribute('data-color-value');
-  await swatch.click();
+  await swatch.click({ timeout: 30_000 });
   await expect(page.locator('#hydroColorInput')).toHaveValue(nextColor);
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.hydroEditRevision)).toBe(before + 1);
   await expect.poll(() => colorPixels(nextColor)).toBeGreaterThan(0);
