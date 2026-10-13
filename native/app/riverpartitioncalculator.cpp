@@ -67,7 +67,9 @@ Point point(const QJsonValue& value) {
 Geometry geometry(const QJsonObject& object) {
     Geometry result;result.type=object["type"].toString().toStdString();
     auto polygons=object["coordinates"].toArray();
-    if(result.type=="Polygon")polygons=QJsonArray{polygons};
+    if(result.type=="Polygon"){
+        QJsonArray wrapped;wrapped.append(QJsonValue(polygons));polygons=std::move(wrapped);
+    }
     else if(result.type!="MultiPolygon")throw std::runtime_error("RIVER_INVALID_RESULT_GEOMETRY");
     for(const auto& p:polygons){Polygon polygon;for(const auto& r:p.toArray()){Ring ring;for(const auto& v:r.toArray())ring.push_back(point(v));polygon.push_back(std::move(ring));}result.polygons.push_back(std::move(polygon));}
     return result;
