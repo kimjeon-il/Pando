@@ -1,0 +1,104 @@
+name: Pando reports cleanup verification
+
+on:
+  push:
+    branches: [work/gis]
+    paths:
+      - '.github/workflows/pando-pretransfer-cleanup-gate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-and-paths:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate canonical place reports and live single-tree parity
+        run: |
+          node --test native/tools/place-runtime-contract/live-web-parity.test.mjs
+          node --test native/tools/place-runtime-contract/v2-snapshot.test.mjs
+          node native/tools/place-runtime-contract/live-web-parity.mjs
+      - name: Validate relocated color generator and focused historical GIS tests
+        run: |
+          node tools/build-country-default-colors.mjs --check
+          node --test tests/unit/historical-german-coastline-events.test.mjs tests/unit/historical-netherlands-coast-phase0.test.mjs
+      - name: Python syntax for changed place and GIS research generators
+        run: |
+          python -m compileall -q scripts/research/siachen
+          python -m py_compile tools/build-place-candidates.py tools/build_north_schleswig_1914_001_026.py tools/audit_north_schleswig_1914_001_026.py tools/audit_north_schleswig_1914_stone26_split.py tools/build_german_empire_1914_modern_coast.py native/tools/build_north_schleswig_1914_001_026.py native/tools/audit_north_schleswig_1914_001_026.py native/tools/audit_north_schleswig_1914_stone26_split.py
+      - name: Validate inventory and deleted legacy locations
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import subprocess
+          paths=set(subprocess.check_output(['git','ls-files','-z']).decode().strip('\x00').split('\x00'))
+          assert len(paths)==7067, f'unexpected tracked file count {len(paths)}'
+          reports=[p for p in paths if p.startswith('reports/')]
+          assert len(reports)==1957, f'unexpected report count {len(reports)}'
+          assert len([p for p in paths if p.startswith('reports/research/siachen/')])==54
+          assert not any(p.startswith('assets/data/research/siachen/') for p in paths)
+          assert not any(p.startswith('native/reports/places/') for p in paths)
+          assert not any(p.startswith('.superpowers/') for p in paths)
+          assert 'reports/places/source-manifest.json' in paths
+          assert 'reports/geography/netherlands/phase0-current-representation-inventory.json' in paths
+          for batch in range(152,195):
+            for name in ('results.json','source-notes.json'):
+              path=f'reports/hydro-names/reconstruction-2026-10-09/batch-r{batch}/{name}'
+              assert path in paths, path
+          print('PASS: 7067 tracked files, 1957 reports, 54 Siachen files, 86 hydro-name research JSONs, no legacy copies')
+          PY
+      - name: Inspect remaining old literal paths in executable code
+        run: |
+          python - <<'PY'
+          import pathlib,re
+          roots=[pathlib.Path('.github/workflows'),pathlib.Path('scripts'),pathlib.Path('tools'),pathlib.Path('native/tools'),pathlib.Path('native/tests'),pathlib.Path('tests/unit')]
+          patterns=['assets/data/research/siachen','native/reports/places/','docs/research/country-default-colors.json']
+          matches=[]
+          for root in roots:
+            for file in root.rglob('*'):
+              if not file.is_file() or file.suffix not in {'.mjs','.js','.py','.yml','.yaml','.cpp','.h','.md'} or 'fixtures' in file.parts:continue
+              if file.as_posix()=='.github/workflows/pando-pretransfer-cleanup-gate.yml':continue
+              try: data=file.read_text(encoding='utf-8')
+              except UnicodeError:continue
+              for phrase in patterns:
+                if phrase in data:matches.append((str(file),phrase))
+          if matches:print('Legacy executable-path references:',matches)
+          assert not matches, 'stale executable references remain'
+          PY
+
+  native-place:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      QT_QPA_PLATFORM: offscreen
+      QT_QUICK_BACKEND: software
+      LC_ALL: C.UTF-8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install native dependencies
+        run: sudo apt-get update && sudo apt-get install -y ninja-build zlib1g-dev libegl1-mesa-dev libxkbcommon-x11-0 libxcb-cursor0 fonts-noto-cjk
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.3'
+          modules: 'qtshadertools qtimageformats'
+          cache: true
+      - name: Configure Qt and build focused place contract
+        run: |
+          cmake -S native -B native/build-pretransfer -G Ninja -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON
+          cmake --build native/build-pretransfer --parallel 2 --target place_sync_contract_tests
+      - name: Verify Qt place source contract
+        run: ctest --test-dir native/build-pretransfer --output-on-failure -R '^place_sync_contract_tests$'
