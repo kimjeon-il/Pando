@@ -28,9 +28,19 @@ test('publicationIsDeterministicAndRejectsStaleOutput', () => {
   assert.equal(project.schemaVersion, 10);
   const trace = JSON.parse(first.get('expected-trace.json'));
   const october = trace.months.find(row => row.month === '2012-10');
-  assert.deepEqual(october.entities.map(row => row.entityId), ['state:nagorno-karabakh', 'state:ukraine']);
-  assert.equal(october.points[0].rootIds.join(), 'state:ukraine');
-  assert.deepEqual(trace.months.find(row => row.month === '2015-10').entities.map(row => row.entityId), ['state:nagorno-karabakh']);
+  assert.deepEqual(new Set(october.entities.map(row => row.entityId)),new Set(['IDN','SDN','SDS','TLS','state:nagorno-karabakh','UKR']));
+  assert.equal(october.points[0].rootIds.join(), 'UKR');
+  assert.equal(october.entities.find(row => row.entityId === 'UKR').sourceEntityId, 'state:UKR');
+  assert.equal(trace.months.find(row => row.month === manifest.sourceMonth).entities.find(row => row.entityId === 'UKR').sourceEntityId, 'state:UKR');
+  const byMonth = month => trace.months.find(row => row.month === month);
+  for(const entityId of ['SDN','SDS']){
+    assert.equal(byMonth('2011-06').entities.some(row => row.entityId === entityId),entityId === 'SDN');
+    assert.equal(byMonth('2011-07').entities.some(row => row.entityId === entityId),true);
+  }
+  assert.ok(byMonth('2014-02').points[0].rootIds.includes('UKR'));
+  assert.ok(!byMonth('2014-03').points[0].rootIds.includes('UKR'));
+  assert.ok(byMonth('2014-03').entities.some(row => row.entityId === 'UKR'));
+  assert.ok(byMonth('2015-10').entities.some(row => row.entityId === 'UKR'));
   assert.equal(trace.months.find(row => row.month === manifest.sourceMonth).entities.length, 254);
   const classified = classifyBuiltinCountries(normalizeCountryCollection(buildCurrentWorld()));
   const current = resolvedTimelineViews(project.territorialEntities, project.timelineRecords, createGeometryVersionStore(project.geometries), manifest.sourceMonth);

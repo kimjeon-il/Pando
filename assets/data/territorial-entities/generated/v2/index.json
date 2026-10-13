@@ -1198,8 +1198,7 @@
       },
       "relations": [],
       "entityRefs": [
-        "state:IDN",
-        "state:indonesia"
+        "state:IDN"
       ]
     },
     {
@@ -2423,8 +2422,7 @@
       },
       "relations": [],
       "entityRefs": [
-        "state:SDN",
-        "state:sudan"
+        "state:SDN"
       ]
     },
     {
@@ -2691,8 +2689,7 @@
       "relations": [],
       "entityRefs": [
         "state:soviet-union-ukrainian-ssr",
-        "state:UKR",
-        "state:ukraine"
+        "state:UKR"
       ]
     },
     {
@@ -8919,14 +8916,187 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1945-08-17",
         "validTo": null
       },
       "parentEntityId": "",
       "geometryVersions": [
         {
+          "versionId": "state:IDN:1945-1963-before-west-new-guinea-r1",
+          "validFrom": "1945-08-17",
+          "validTo": "1963-04-30",
+          "datePrecision": "approximate",
+          "certainty": "low",
+          "sourceId": "natural-earth-5.1.1-admin1-papua-island-mask",
+          "notes": "1945~1963년 서뉴기니 행정권 이전 전. 현행 인도네시아 264개 폴리곤 가운데 같은 Natural Earth 5.1.1 파푸아·서파푸아 행정구역과 일치하는 25개 섬 구성요소를 제외한 근사 형상. 1945~1949 독립전쟁 기간의 실제 통제경계까지 복원한 자료는 아님.",
+          "instantiation": {
+            "mode": "territory-replacement",
+            "countryUpdates": {}
+          },
+          "historicalProvenance": {
+            "physicalBoundarySource": "Natural Earth 5.1.1 present-day canonical geometry",
+            "sourceReferenceDate": "2026-10-06",
+            "verifiedHistoricalGeometry": false,
+            "provinceMaskSource": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.1/geojson/ne_10m_admin_1_states_provinces.geojson",
+            "politicalTerritoryBasis": "effective-administration or de-facto proxy, not legal title",
+            "eventDate": "1963-05-01",
+            "event": "West New Guinea administrative transfer UNTEA to Indonesia",
+            "maskSelectedComponents": [
+              3,
+              17,
+              32,
+              130,
+              137,
+              154,
+              169,
+              171,
+              172,
+              177,
+              178,
+              180,
+              182,
+              186,
+              187,
+              188,
+              189,
+              190,
+              192,
+              202,
+              244,
+              245,
+              246,
+              255,
+              258
+            ],
+            "evidence": [
+              "https://peacekeeping.un.org/sites/default/files/past/unsfbackgr.html"
+            ]
+          }
+        },
+        {
+          "versionId": "state:IDN:1963-1975-before-east-timor-r1",
+          "validFrom": "1963-05-01",
+          "validTo": "1975-12-06",
+          "datePrecision": "approximate",
+          "certainty": "low",
+          "sourceId": "natural-earth-5.1.1-post-west-new-guinea-temporal-proxy",
+          "notes": "1963년 5월 1일 유엔 임시행정부의 서뉴기니 행정권 이전 후. 2026년 현재 인도네시아 정식 국경을 1963~1975년의 근사 형상으로 재사용하므로 당대 세부 경계 검증 자료는 아님.",
+          "instantiation": {
+            "mode": "territory-replacement",
+            "countryUpdates": {}
+          },
+          "historicalProvenance": {
+            "physicalBoundarySource": "Natural Earth 5.1.1 present-day canonical geometry",
+            "sourceReferenceDate": "2026-10-06",
+            "verifiedHistoricalGeometry": false,
+            "provinceMaskSource": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.1/geojson/ne_10m_admin_1_states_provinces.geojson",
+            "politicalTerritoryBasis": "effective-administration or de-facto proxy, not legal title",
+            "eventDate": "1963-05-01",
+            "event": "West New Guinea transfer of administration",
+            "evidence": [
+              "https://peacekeeping.un.org/sites/default/files/past/unsfbackgr.html"
+            ]
+          }
+        },
+        {
+          "versionId": "state:indonesia:1945-2002-r1",
+          "validFrom": "1975-12-07",
+          "validTo": "1999-10-24",
+          "datePrecision": "approximate",
+          "certainty": "low",
+          "sourceId": "natural-earth-5.1.1-historical-successor-union",
+          "notes": "동티모르 점령기 실효 지배 범위의 근사 형상. 1975-12-07 침공 개시일부터 동티모르 전체를 한 번에 포함하는 월별 단순화이며, 당시 모든 지역의 점령 완료 또는 합법적인 병합을 뜻하지 않는다. 1976년 정식 편입 주장은 유엔이 인정하지 않았다. 1999-10-25 유엔 과도행정부 출범과 함께 제외.",
+          "instantiation": {
+            "mode": "territory-replacement",
+            "countryUpdates": {}
+          },
+          "historicalProvenance": {
+            "originalEntityId": "state:indonesia",
+            "sourceInfo": {
+              "title": "Natural Earth 5.1.1 Admin 0 with historical territory adjustment",
+              "license": "Natural Earth public domain",
+              "sources": [
+                {
+                  "title": "Natural Earth 5.1.1 Admin 0 Countries",
+                  "license": "Public domain"
+                }
+              ],
+              "notes": "현재 IDN과 TLS를 합쳐 동티모르 독립 전 인도네시아의 참고 경계를 재구성했습니다.",
+              "geometryRecipes": [
+                {
+                  "id": "historical-country:indonesia:1945-2002-r1",
+                  "validFrom": "1945-08-17",
+                  "validTo": "2002-05-19",
+                  "memberCountryIds": [
+                    "IDN",
+                    "TLS"
+                  ],
+                  "datePrecision": "reference-date",
+                  "certainty": "medium",
+                  "sourceId": "natural-earth-5.1.1-historical-successor-union",
+                  "notes": "현재 IDN과 TLS를 합쳐 동티모르 독립 전 인도네시아의 참고 경계를 재구성했습니다."
+                }
+              ],
+              "importProvenance": {
+                "baseSha": "2091ee2c294df237d844e32f9b926449677c45e4",
+                "entityId": "historical-country:indonesia",
+                "versionIds": {
+                  "state:indonesia:1945-2002-r1": "historical-country:indonesia:1945-2002-r1"
+                }
+              }
+            },
+            "metadata": {
+              "geographicRegion": "Asia",
+              "pilot": true,
+              "approximateGeometry": true,
+              "referenceDate": "2001",
+              "defaultFlagDataUrl": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzIDIiIGlkPSJmbGFnLWluZG9uZXNpYSI+PHBhdGggZmlsbD0iI2NlMTEyNiIgZD0iTTAgMGgzdjFIMHoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMCAxaDN2MUgweiIvPjwvc3ZnPg=="
+            },
+            "originalGeometryVersionId": "state:indonesia:1945-2002-r1",
+            "originalInterval": {
+              "validFrom": "1945-08-17",
+              "validTo": "2002-05-19"
+            },
+            "correctedIntervalReason": "Existing union erroneously assigned East Timor throughout 1945-2002; now scoped to 1975 military occupation through 1999 UN transition.",
+            "eventDates": {
+              "begin": "1975-12-07",
+              "end": "1999-10-25"
+            },
+            "evidence": [
+              "https://peacekeeping.un.org/sites/default/files/past/etimor/Untaetchrono.html",
+              "https://peacekeeping.un.org/sites/default/files/past/unmiset/background.html"
+            ],
+            "verifiedHistoricalGeometry": false
+          }
+        },
+        {
+          "versionId": "state:IDN:1999-2026-after-east-timor-r1",
+          "validFrom": "1999-10-25",
+          "validTo": "2026-10-05",
+          "datePrecision": "approximate",
+          "certainty": "low",
+          "sourceId": "natural-earth-5.1.1-post-east-timor-temporal-proxy",
+          "notes": "1999-10-25 UNTAET 설치 이후 동티모르 제외. 현대 Natural Earth 인도네시아 폴리곤을 1999~2026년 기간에 재사용한 잠정 형상으로, 이후의 세부 경계 변화 미검증.",
+          "instantiation": {
+            "mode": "territory-replacement",
+            "countryUpdates": {}
+          },
+          "historicalProvenance": {
+            "physicalBoundarySource": "Natural Earth 5.1.1 present-day canonical geometry",
+            "sourceReferenceDate": "2026-10-06",
+            "verifiedHistoricalGeometry": false,
+            "provinceMaskSource": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.1/geojson/ne_10m_admin_1_states_provinces.geojson",
+            "politicalTerritoryBasis": "effective-administration or de-facto proxy, not legal title",
+            "eventDate": "1999-10-25",
+            "event": "United Nations Transitional Administration in East Timor established",
+            "evidence": [
+              "https://peacekeeping.un.org/sites/default/files/past/etimor/etimor.htm"
+            ]
+          }
+        },
+        {
           "versionId": "state:IDN:natural-earth-5.1.1",
-          "validFrom": null,
+          "validFrom": "2026-10-06",
           "validTo": null,
           "datePrecision": "current",
           "certainty": "high",
@@ -8948,79 +9118,18 @@
       },
       "lineageId": "indonesia",
       "file": "state-IDN.json.gz",
-      "validFrom": null,
-      "validTo": null,
-      "compressedBytes": 171480,
-      "decodedBytes": 1706778,
-      "sha256": "dede05ccaa4d6773d4ddec0762629af83875ffb4b2ade48be248c5ad241f9dc5",
-      "bbox": [
-        95.012706,
-        -10.922621,
-        140.977627,
-        5.910102
-      ],
-      "geometryVersionCount": 1
-    },
-    {
-      "schemaVersion": 2,
-      "entityId": "state:indonesia",
-      "entityKind": "general",
-      "names": {
-        "ko": "인도네시아",
-        "en": "Indonesia"
-      },
-      "alternateNames": [
-        "인도네시아(2002년 이전)",
-        "Indonesia with East Timor",
-        "Indonesia before 2002",
-        "인도네시아(동티모르 분리 전)"
-      ],
-      "lifetime": {
-        "validFrom": "1945-08-17",
-        "validTo": "2002-05-19"
-      },
-      "parentEntityId": "",
-      "geometryVersions": [
-        {
-          "versionId": "state:indonesia:1945-2002-r1",
-          "validFrom": "1945-08-17",
-          "validTo": "2002-05-19",
-          "datePrecision": "reference-date",
-          "certainty": "medium",
-          "sourceId": "natural-earth-5.1.1-historical-successor-union",
-          "notes": "현재 IDN과 TLS를 합쳐 동티모르 독립 전 인도네시아의 참고 경계를 재구성했습니다."
-        }
-      ],
-      "instantiation": {
-        "mode": "territory-replacement",
-        "countryUpdates": {}
-      },
-      "metadata": {
-        "geographicRegion": "Asia",
-        "pilot": true,
-        "approximateGeometry": true,
-        "referenceDate": "2001",
-        "defaultFlagDataUrl": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzIDIiIGlkPSJmbGFnLWluZG9uZXNpYSI+PHBhdGggZmlsbD0iI2NlMTEyNiIgZD0iTTAgMGgzdjFIMHoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMCAxaDN2MUgweiIvPjwvc3ZnPg=="
-      },
-      "sourceInfo": {
-        "title": "Natural Earth 5.1.1 Admin 0 with historical territory adjustment",
-        "license": "Natural Earth public domain",
-        "sourceId": ""
-      },
-      "lineageId": "indonesia",
-      "file": "state-indonesia.json.gz",
       "validFrom": "1945-08-17",
-      "validTo": "2002-05-19",
-      "compressedBytes": 172618,
-      "decodedBytes": 1713702,
-      "sha256": "22d2649d7d9fbc31cda1b18f695fc653249a67e86a3ef650d41abf8abd3a31e1",
+      "validTo": null,
+      "compressedBytes": 832362,
+      "decodedBytes": 8261330,
+      "sha256": "c95c8eaa028fdd80cf2f2a6419b1d56bd31d8f8b6e6567bdbb915a118df5e7cf",
       "bbox": [
         95.012706,
         -10.922621,
         140.977627,
         5.910102
       ],
-      "geometryVersionCount": 1
+      "geometryVersionCount": 5
     },
     {
       "schemaVersion": 2,
@@ -14173,8 +14282,32 @@
       "parentEntityId": "",
       "geometryVersions": [
         {
+          "versionId": "state:SDS:2011-07-09-independence-r1",
+          "validFrom": "2011-07-09",
+          "validTo": "2026-10-05",
+          "datePrecision": "approximate",
+          "certainty": "low",
+          "sourceId": "natural-earth-5.1.1-current-outline-temporal-proxy",
+          "notes": "2011-07-09 독립한 남수단. 현대 Natural Earth 외곽선을 초기 독립국의 잠정 경계로 재사용. 아비에이·미획정 경계의 당대 확정 형상은 아님.",
+          "instantiation": {
+            "mode": "territory-replacement",
+            "countryUpdates": {}
+          },
+          "historicalProvenance": {
+            "classification": "provisional-modern-outline-proxy",
+            "sourceReferenceDate": "2026-10-06",
+            "politicalEventDate": "2011-07-09",
+            "originalGeometryVersionId": "state:SDS:natural-earth-5.1.1",
+            "evidence": [
+              "https://www.un.org/en/node/122910",
+              "https://www.unmissions.org/en/unmis-0/security-council-establishes-abyei-mission"
+            ],
+            "verifiedHistoricalGeometry": false
+          }
+        },
+        {
           "versionId": "state:SDS:natural-earth-5.1.1",
-          "validFrom": null,
+          "validFrom": "2026-10-06",
           "validTo": null,
           "datePrecision": "current",
           "certainty": "high",
@@ -14198,16 +14331,16 @@
       "file": "state-SDS.json.gz",
       "validFrom": "2011-07-09",
       "validTo": null,
-      "compressedBytes": 11379,
-      "decodedBytes": 90240,
-      "sha256": "3d4f820ffefe4f16797418703f401c13f2d049b48c64f0e1ba929c4209780bfd",
+      "compressedBytes": 22861,
+      "decodedBytes": 180479,
+      "sha256": "8c155801107001a8cdd781879c2297bc9afa227d6f73ea2929ebfb7a2e707e6c",
       "bbox": [
         24.121556,
         3.490202,
         35.920835,
         12.216155
       ],
-      "geometryVersionCount": 1
+      "geometryVersionCount": 2
     },
     {
       "schemaVersion": 2,
@@ -15043,14 +15176,94 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1956-01-01",
         "validTo": null
       },
       "parentEntityId": "",
       "geometryVersions": [
         {
+          "versionId": "state:sudan:1956-2011-r1",
+          "validFrom": "1956-01-01",
+          "validTo": "2011-07-08",
+          "datePrecision": "reference-date",
+          "certainty": "medium",
+          "sourceId": "natural-earth-5.1.1-historical-successor-union",
+          "notes": "현재 SDN과 SDS를 합쳐 남수단 독립 전 수단의 외곽선을 재구성한 참고 경계입니다.",
+          "instantiation": {
+            "mode": "territory-replacement",
+            "countryUpdates": {}
+          },
+          "historicalProvenance": {
+            "originalEntityId": "state:sudan",
+            "sourceInfo": {
+              "title": "Natural Earth 5.1.1 Admin 0 with historical territory adjustment",
+              "license": "Natural Earth public domain",
+              "sources": [
+                {
+                  "title": "Natural Earth 5.1.1 Admin 0 Countries",
+                  "license": "Public domain"
+                }
+              ],
+              "notes": "현재 SDN과 SDS를 합쳐 남수단 독립 전 수단의 외곽선을 재구성한 참고 경계입니다.",
+              "geometryRecipes": [
+                {
+                  "id": "historical-country:sudan:1956-2011-r1",
+                  "validFrom": "1956-01-01",
+                  "validTo": "2011-07-08",
+                  "memberCountryIds": [
+                    "SDN",
+                    "SDS"
+                  ],
+                  "datePrecision": "reference-date",
+                  "certainty": "medium",
+                  "sourceId": "natural-earth-5.1.1-historical-successor-union",
+                  "notes": "현재 SDN과 SDS를 합쳐 남수단 독립 전 수단의 외곽선을 재구성한 참고 경계입니다."
+                }
+              ],
+              "importProvenance": {
+                "baseSha": "2091ee2c294df237d844e32f9b926449677c45e4",
+                "entityId": "historical-country:sudan",
+                "versionIds": {
+                  "state:sudan:1956-2011-r1": "historical-country:sudan:1956-2011-r1"
+                }
+              }
+            },
+            "metadata": {
+              "geographicRegion": "Africa",
+              "pilot": true,
+              "approximateGeometry": true,
+              "referenceDate": "2010",
+              "defaultFlagDataUrl": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyIDEiIGlkPSJmbGFnLXN1ZGFuIj48cGF0aCBmaWxsPSIjZDIxMDM0IiBkPSJNMCAwaDJ2LjMzM0gweiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0wIC4zMzNoMnYuMzM0SDB6Ii8+PHBhdGggZD0iTTAgLjY2N2gyVjFIMHoiLz48cGF0aCBmaWxsPSIjMDA3MjI5IiBkPSJNMCAwdjFsLjctLjV6Ii8+PC9zdmc+"
+            }
+          }
+        },
+        {
+          "versionId": "state:SDN:2011-07-09-post-secession-r1",
+          "validFrom": "2011-07-09",
+          "validTo": "2026-10-05",
+          "datePrecision": "approximate",
+          "certainty": "low",
+          "sourceId": "natural-earth-5.1.1-current-outline-temporal-proxy",
+          "notes": "2011-07-09 남수단 독립 뒤 수단 형상 잠정값. 2026-10-06 Natural Earth 외곽선을 2011~2026 구간의 대리 자료로 사용. 아비에이(Abyei) 분쟁지역과 경계 변경을 해당 연도별로 검증한 도형이 아님.",
+          "instantiation": {
+            "mode": "territory-replacement",
+            "countryUpdates": {}
+          },
+          "historicalProvenance": {
+            "classification": "provisional-modern-outline-proxy",
+            "sourceReferenceDate": "2026-10-06",
+            "politicalEventDate": "2011-07-09",
+            "originalGeometryVersionId": "state:SDN:natural-earth-5.1.1",
+            "evidence": [
+              "https://www.un.org/en/node/122910",
+              "https://unmis.unmissions.org/en/unmis-0/more-borderline"
+            ],
+            "verifiedHistoricalGeometry": false
+          }
+        },
+        {
           "versionId": "state:SDN:natural-earth-5.1.1",
-          "validFrom": null,
+          "validFrom": "2026-10-06",
           "validTo": null,
           "datePrecision": "current",
           "certainty": "high",
@@ -15072,80 +15285,18 @@
       },
       "lineageId": "sudan",
       "file": "state-SDN.json.gz",
-      "validFrom": null,
-      "validTo": null,
-      "compressedBytes": 11427,
-      "decodedBytes": 102152,
-      "sha256": "eab2579954a5e31e01fbde7d0ebd421147309d531dd2701d402595986e4cae1c",
-      "bbox": [
-        21.809449,
-        8.681642,
-        38.603852,
-        22.226965
-      ],
-      "geometryVersionCount": 1
-    },
-    {
-      "schemaVersion": 2,
-      "entityId": "state:sudan",
-      "entityKind": "general",
-      "names": {
-        "ko": "수단",
-        "en": "Sudan"
-      },
-      "alternateNames": [
-        "북수단",
-        "수단(2011년 이전)",
-        "Sudan before 2011",
-        "Greater Sudan",
-        "수단(남수단 분리 전)"
-      ],
-      "lifetime": {
-        "validFrom": "1956-01-01",
-        "validTo": "2011-07-08"
-      },
-      "parentEntityId": "",
-      "geometryVersions": [
-        {
-          "versionId": "state:sudan:1956-2011-r1",
-          "validFrom": "1956-01-01",
-          "validTo": "2011-07-08",
-          "datePrecision": "reference-date",
-          "certainty": "medium",
-          "sourceId": "natural-earth-5.1.1-historical-successor-union",
-          "notes": "현재 SDN과 SDS를 합쳐 남수단 독립 전 수단의 외곽선을 재구성한 참고 경계입니다."
-        }
-      ],
-      "instantiation": {
-        "mode": "territory-replacement",
-        "countryUpdates": {}
-      },
-      "metadata": {
-        "geographicRegion": "Africa",
-        "pilot": true,
-        "approximateGeometry": true,
-        "referenceDate": "2010",
-        "defaultFlagDataUrl": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyIDEiIGlkPSJmbGFnLXN1ZGFuIj48cGF0aCBmaWxsPSIjZDIxMDM0IiBkPSJNMCAwaDJ2LjMzM0gweiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0wIC4zMzNoMnYuMzM0SDB6Ii8+PHBhdGggZD0iTTAgLjY2N2gyVjFIMHoiLz48cGF0aCBmaWxsPSIjMDA3MjI5IiBkPSJNMCAwdjFsLjctLjV6Ii8+PC9zdmc+"
-      },
-      "sourceInfo": {
-        "title": "Natural Earth 5.1.1 Admin 0 with historical territory adjustment",
-        "license": "Natural Earth public domain",
-        "sourceId": ""
-      },
-      "lineageId": "sudan",
-      "file": "state-sudan.json.gz",
       "validFrom": "1956-01-01",
-      "validTo": "2011-07-08",
-      "compressedBytes": 17605,
-      "decodedBytes": 151093,
-      "sha256": "a235d97be3a9026e1d714e032fe1fae36ad4fe2fecd0bb95bb1a81e1f140a04a",
+      "validTo": null,
+      "compressedBytes": 39765,
+      "decodedBytes": 355345,
+      "sha256": "1374213dd1ea9679666ea09610d972e6a6985c3d497b3b328fa7e4fa806605be",
       "bbox": [
         21.809449,
         3.490202,
         38.603852,
         22.226965
       ],
-      "geometryVersionCount": 1
+      "geometryVersionCount": 3
     },
     {
       "schemaVersion": 2,
@@ -15990,14 +16141,39 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "2002-05-20",
         "validTo": null
       },
       "parentEntityId": "",
       "geometryVersions": [
         {
+          "versionId": "state:TLS:2002-2026-independence-r1",
+          "validFrom": "2002-05-20",
+          "validTo": "2026-10-05",
+          "datePrecision": "approximate",
+          "certainty": "low",
+          "sourceId": "natural-earth-5.1.1-east-timor-independence-proxy",
+          "notes": "2002-05-20 동티모르 독립 이후 현대 Natural Earth 국경을 임시 적용한 형상. 1999-10-25~2002-05-19 UNTAET 통치기는 독립국 존속기간에 자동 포함하지 않으며 별도의 통치 객체가 필요함.",
+          "instantiation": {
+            "mode": "territory-replacement",
+            "countryUpdates": {}
+          },
+          "historicalProvenance": {
+            "physicalBoundarySource": "Natural Earth 5.1.1 present-day canonical geometry",
+            "sourceReferenceDate": "2026-10-06",
+            "verifiedHistoricalGeometry": false,
+            "provinceMaskSource": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.1/geojson/ne_10m_admin_1_states_provinces.geojson",
+            "politicalTerritoryBasis": "effective-administration or de-facto proxy, not legal title",
+            "eventDate": "2002-05-20",
+            "event": "Timor-Leste independence",
+            "evidence": [
+              "https://peacekeeping.un.org/sites/default/files/past/etimor/etimor.htm"
+            ]
+          }
+        },
+        {
           "versionId": "state:TLS:natural-earth-5.1.1",
-          "validFrom": null,
+          "validFrom": "2026-10-06",
           "validTo": null,
           "datePrecision": "current",
           "certainty": "high",
@@ -16019,18 +16195,18 @@
       },
       "lineageId": "tls",
       "file": "state-TLS.json.gz",
-      "validFrom": null,
+      "validFrom": "2002-05-20",
       "validTo": null,
-      "compressedBytes": 3224,
-      "decodedBytes": 25519,
-      "sha256": "a40cf57e1a0fb0059eb6e1db935400939b8e63362b777c2ed29328aa599ec377",
+      "compressedBytes": 4306,
+      "decodedBytes": 51279,
+      "sha256": "07662ea26bdbeba6f5a6042ed3e68d324b78dc6072f9404aadc9024cf7cf32cf",
       "bbox": [
         124.03004,
         -9.501228,
         127.313243,
         -8.135024
       ],
-      "geometryVersionCount": 1
+      "geometryVersionCount": 2
     },
     {
       "schemaVersion": 2,
@@ -16509,14 +16685,1799 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1991-08-24",
         "validTo": null
       },
       "parentEntityId": "",
       "geometryVersions": [
         {
+          "versionId": "state:ukraine:1991-2014-r1",
+          "validFrom": "1991-08-24",
+          "validTo": "2014-03-17",
+          "datePrecision": "reference-date",
+          "certainty": "medium",
+          "sourceId": "natural-earth-5.1.1-historical-successor-union",
+          "notes": "현재 UKR 외곽선에 Natural Earth RUS의 크림반도 구성요소를 재사용한 2014년 병합 전 경계입니다.",
+          "instantiation": {
+            "mode": "territory-replacement",
+            "countryUpdates": {}
+          },
+          "historicalProvenance": {
+            "originalEntityId": "state:ukraine",
+            "sourceInfo": {
+              "title": "Natural Earth 5.1.1 Admin 0 with historical territory adjustment",
+              "license": "Natural Earth public domain",
+              "sources": [
+                {
+                  "title": "Natural Earth 5.1.1 Admin 0 Countries",
+                  "license": "Public domain"
+                }
+              ],
+              "notes": "현재 UKR 외곽선에 Natural Earth RUS의 크림반도 구성요소를 재사용한 2014년 병합 전 경계입니다.",
+              "geometryRecipes": [
+                {
+                  "id": "historical-country:ukraine:1991-2014-r1",
+                  "validFrom": "1991-08-24",
+                  "validTo": "2014-03-17",
+                  "memberCountryIds": [
+                    "UKR"
+                  ],
+                  "includeGeometry": {
+                    "type": "MultiPolygon",
+                    "coordinates": [
+                      [
+                        [
+                          [
+                            33.628517,
+                            46.124935
+                          ],
+                          [
+                            33.660449,
+                            46.148184
+                          ],
+                          [
+                            33.671456,
+                            46.172951
+                          ],
+                          [
+                            33.661623,
+                            46.21017
+                          ],
+                          [
+                            33.67028,
+                            46.218106
+                          ],
+                          [
+                            33.715726,
+                            46.195743
+                          ],
+                          [
+                            33.755207,
+                            46.193372
+                          ],
+                          [
+                            33.801878,
+                            46.202706
+                          ],
+                          [
+                            33.846216,
+                            46.195705
+                          ],
+                          [
+                            33.892888,
+                            46.177037
+                          ],
+                          [
+                            33.944226,
+                            46.153701
+                          ],
+                          [
+                            33.990898,
+                            46.130365
+                          ],
+                          [
+                            34.025902,
+                            46.116364
+                          ],
+                          [
+                            34.067906,
+                            46.104696
+                          ],
+                          [
+                            34.105243,
+                            46.095361
+                          ],
+                          [
+                            34.161249,
+                            46.090694
+                          ],
+                          [
+                            34.20092,
+                            46.100028
+                          ],
+                          [
+                            34.235923,
+                            46.097695
+                          ],
+                          [
+                            34.273261,
+                            46.083693
+                          ],
+                          [
+                            34.301264,
+                            46.069692
+                          ],
+                          [
+                            34.333934,
+                            46.069692
+                          ],
+                          [
+                            34.361937,
+                            46.055691
+                          ],
+                          [
+                            34.378272,
+                            46.030021
+                          ],
+                          [
+                            34.392273,
+                            46.009019
+                          ],
+                          [
+                            34.410942,
+                            45.988017
+                          ],
+                          [
+                            34.434277,
+                            45.971682
+                          ],
+                          [
+                            34.464614,
+                            45.955347
+                          ],
+                          [
+                            34.504285,
+                            45.95068
+                          ],
+                          [
+                            34.52062,
+                            45.969348
+                          ],
+                          [
+                            34.529954,
+                            45.981016
+                          ],
+                          [
+                            34.569625,
+                            45.976349
+                          ],
+                          [
+                            34.599961,
+                            45.978683
+                          ],
+                          [
+                            34.641966,
+                            45.981016
+                          ],
+                          [
+                            34.688637,
+                            45.974015
+                          ],
+                          [
+                            34.735309,
+                            45.953013
+                          ],
+                          [
+                            34.763312,
+                            45.932011
+                          ],
+                          [
+                            34.784314,
+                            45.899341
+                          ],
+                          [
+                            34.784314,
+                            45.869004
+                          ],
+                          [
+                            34.784314,
+                            45.829334
+                          ],
+                          [
+                            34.788981,
+                            45.803664
+                          ],
+                          [
+                            34.809983,
+                            45.784996
+                          ],
+                          [
+                            34.870656,
+                            45.773328
+                          ],
+                          [
+                            34.917328,
+                            45.747658
+                          ],
+                          [
+                            34.952331,
+                            45.721989
+                          ],
+                          [
+                            34.975667,
+                            45.717322
+                          ],
+                          [
+                            35.001891,
+                            45.729003
+                          ],
+                          [
+                            35.044444,
+                            45.670071
+                          ],
+                          [
+                            35.332205,
+                            45.371243
+                          ],
+                          [
+                            35.480724,
+                            45.297797
+                          ],
+                          [
+                            35.517833,
+                            45.295478
+                          ],
+                          [
+                            35.694998,
+                            45.33039
+                          ],
+                          [
+                            35.715994,
+                            45.340562
+                          ],
+                          [
+                            35.743337,
+                            45.36107
+                          ],
+                          [
+                            35.747406,
+                            45.370754
+                          ],
+                          [
+                            35.748546,
+                            45.379706
+                          ],
+                          [
+                            35.75294,
+                            45.38642
+                          ],
+                          [
+                            35.767426,
+                            45.388983
+                          ],
+                          [
+                            35.772716,
+                            45.392279
+                          ],
+                          [
+                            35.788422,
+                            45.407457
+                          ],
+                          [
+                            35.791759,
+                            45.412299
+                          ],
+                          [
+                            35.794932,
+                            45.430569
+                          ],
+                          [
+                            35.803966,
+                            45.449164
+                          ],
+                          [
+                            35.817149,
+                            45.464057
+                          ],
+                          [
+                            35.833263,
+                            45.470893
+                          ],
+                          [
+                            35.857677,
+                            45.469428
+                          ],
+                          [
+                            35.860037,
+                            45.45954
+                          ],
+                          [
+                            35.852224,
+                            45.444159
+                          ],
+                          [
+                            35.846934,
+                            45.426256
+                          ],
+                          [
+                            35.854015,
+                            45.414008
+                          ],
+                          [
+                            35.871104,
+                            45.40412
+                          ],
+                          [
+                            35.946625,
+                            45.372138
+                          ],
+                          [
+                            35.986013,
+                            45.362738
+                          ],
+                          [
+                            36.022309,
+                            45.368109
+                          ],
+                          [
+                            36.051768,
+                            45.395209
+                          ],
+                          [
+                            36.065278,
+                            45.425482
+                          ],
+                          [
+                            36.068858,
+                            45.429999
+                          ],
+                          [
+                            36.096365,
+                            45.441962
+                          ],
+                          [
+                            36.117931,
+                            45.457099
+                          ],
+                          [
+                            36.137462,
+                            45.462063
+                          ],
+                          [
+                            36.252452,
+                            45.461493
+                          ],
+                          [
+                            36.267833,
+                            45.467231
+                          ],
+                          [
+                            36.284028,
+                            45.47663
+                          ],
+                          [
+                            36.299978,
+                            45.473334
+                          ],
+                          [
+                            36.307384,
+                            45.460924
+                          ],
+                          [
+                            36.298839,
+                            45.44302
+                          ],
+                          [
+                            36.311697,
+                            45.443508
+                          ],
+                          [
+                            36.321056,
+                            45.448391
+                          ],
+                          [
+                            36.329763,
+                            45.45425
+                          ],
+                          [
+                            36.340505,
+                            45.457261
+                          ],
+                          [
+                            36.35963,
+                            45.454495
+                          ],
+                          [
+                            36.391368,
+                            45.439643
+                          ],
+                          [
+                            36.411794,
+                            45.436225
+                          ],
+                          [
+                            36.470551,
+                            45.445787
+                          ],
+                          [
+                            36.490571,
+                            45.44302
+                          ],
+                          [
+                            36.51588,
+                            45.419745
+                          ],
+                          [
+                            36.53297,
+                            45.408922
+                          ],
+                          [
+                            36.548595,
+                            45.412299
+                          ],
+                          [
+                            36.566661,
+                            45.425198
+                          ],
+                          [
+                            36.583263,
+                            45.427395
+                          ],
+                          [
+                            36.598806,
+                            45.42121
+                          ],
+                          [
+                            36.613536,
+                            45.408881
+                          ],
+                          [
+                            36.631114,
+                            45.374742
+                          ],
+                          [
+                            36.638357,
+                            45.351264
+                          ],
+                          [
+                            36.63087,
+                            45.340562
+                          ],
+                          [
+                            36.598318,
+                            45.334296
+                          ],
+                          [
+                            36.586192,
+                            45.333808
+                          ],
+                          [
+                            36.57488,
+                            45.336086
+                          ],
+                          [
+                            36.545177,
+                            45.347398
+                          ],
+                          [
+                            36.521821,
+                            45.349921
+                          ],
+                          [
+                            36.502452,
+                            45.346869
+                          ],
+                          [
+                            36.489268,
+                            45.33633
+                          ],
+                          [
+                            36.484386,
+                            45.316392
+                          ],
+                          [
+                            36.487966,
+                            45.309312
+                          ],
+                          [
+                            36.494395,
+                            45.305243
+                          ],
+                          [
+                            36.497244,
+                            45.300727
+                          ],
+                          [
+                            36.490571,
+                            45.292182
+                          ],
+                          [
+                            36.482107,
+                            45.288804
+                          ],
+                          [
+                            36.459321,
+                            45.287746
+                          ],
+                          [
+                            36.450369,
+                            45.285346
+                          ],
+                          [
+                            36.437266,
+                            45.27204
+                          ],
+                          [
+                            36.426036,
+                            45.251532
+                          ],
+                          [
+                            36.417979,
+                            45.229926
+                          ],
+                          [
+                            36.409434,
+                            45.171129
+                          ],
+                          [
+                            36.408865,
+                            45.149482
+                          ],
+                          [
+                            36.414806,
+                            45.128363
+                          ],
+                          [
+                            36.442231,
+                            45.106513
+                          ],
+                          [
+                            36.455333,
+                            45.09162
+                          ],
+                          [
+                            36.45338,
+                            45.076483
+                          ],
+                          [
+                            36.440115,
+                            45.06745
+                          ],
+                          [
+                            36.367849,
+                            45.048774
+                          ],
+                          [
+                            36.278494,
+                            45.045844
+                          ],
+                          [
+                            36.267751,
+                            45.043687
+                          ],
+                          [
+                            36.257823,
+                            45.038967
+                          ],
+                          [
+                            36.253917,
+                            45.033189
+                          ],
+                          [
+                            36.24822,
+                            45.016099
+                          ],
+                          [
+                            36.244314,
+                            45.010972
+                          ],
+                          [
+                            36.22462,
+                            45.007514
+                          ],
+                          [
+                            36.135997,
+                            45.02143
+                          ],
+                          [
+                            36.079112,
+                            45.046373
+                          ],
+                          [
+                            36.079112,
+                            45.038967
+                          ],
+                          [
+                            36.047862,
+                            45.048774
+                          ],
+                          [
+                            36.025401,
+                            45.032904
+                          ],
+                          [
+                            36.008474,
+                            45.009752
+                          ],
+                          [
+                            35.993419,
+                            44.997992
+                          ],
+                          [
+                            35.91684,
+                            45.00141
+                          ],
+                          [
+                            35.847992,
+                            44.992418
+                          ],
+                          [
+                            35.82781,
+                            44.999213
+                          ],
+                          [
+                            35.819021,
+                            45.021552
+                          ],
+                          [
+                            35.812999,
+                            45.031643
+                          ],
+                          [
+                            35.783214,
+                            45.057522
+                          ],
+                          [
+                            35.771169,
+                            45.065619
+                          ],
+                          [
+                            35.706391,
+                            45.094672
+                          ],
+                          [
+                            35.634044,
+                            45.114691
+                          ],
+                          [
+                            35.590587,
+                            45.119859
+                          ],
+                          [
+                            35.547374,
+                            45.119696
+                          ],
+                          [
+                            35.506196,
+                            45.113511
+                          ],
+                          [
+                            35.469574,
+                            45.10102
+                          ],
+                          [
+                            35.416759,
+                            45.070868
+                          ],
+                          [
+                            35.408051,
+                            45.062486
+                          ],
+                          [
+                            35.405528,
+                            45.050971
+                          ],
+                          [
+                            35.400401,
+                            45.042873
+                          ],
+                          [
+                            35.397309,
+                            45.035061
+                          ],
+                          [
+                            35.400645,
+                            45.024644
+                          ],
+                          [
+                            35.406505,
+                            45.020087
+                          ],
+                          [
+                            35.435395,
+                            45.010972
+                          ],
+                          [
+                            35.435395,
+                            45.004828
+                          ],
+                          [
+                            35.42213,
+                            45.000434
+                          ],
+                          [
+                            35.389415,
+                            45.001939
+                          ],
+                          [
+                            35.374034,
+                            44.997992
+                          ],
+                          [
+                            35.362153,
+                            44.986558
+                          ],
+                          [
+                            35.360606,
+                            44.973578
+                          ],
+                          [
+                            35.367198,
+                            44.943345
+                          ],
+                          [
+                            35.319347,
+                            44.970038
+                          ],
+                          [
+                            35.315278,
+                            44.966051
+                          ],
+                          [
+                            35.304942,
+                            44.960924
+                          ],
+                          [
+                            35.298188,
+                            44.956366
+                          ],
+                          [
+                            35.273204,
+                            44.966986
+                          ],
+                          [
+                            35.256033,
+                            44.958686
+                          ],
+                          [
+                            35.233165,
+                            44.925686
+                          ],
+                          [
+                            35.215099,
+                            44.914374
+                          ],
+                          [
+                            35.171886,
+                            44.907172
+                          ],
+                          [
+                            35.154307,
+                            44.901109
+                          ],
+                          [
+                            35.129731,
+                            44.868598
+                          ],
+                          [
+                            35.108409,
+                            44.824937
+                          ],
+                          [
+                            35.080821,
+                            44.793769
+                          ],
+                          [
+                            35.037608,
+                            44.798774
+                          ],
+                          [
+                            35.027029,
+                            44.809394
+                          ],
+                          [
+                            35.017833,
+                            44.823188
+                          ],
+                          [
+                            35.005707,
+                            44.835191
+                          ],
+                          [
+                            34.986013,
+                            44.840277
+                          ],
+                          [
+                            34.952485,
+                            44.841539
+                          ],
+                          [
+                            34.942068,
+                            44.840277
+                          ],
+                          [
+                            34.930186,
+                            44.836127
+                          ],
+                          [
+                            34.922618,
+                            44.830878
+                          ],
+                          [
+                            34.916026,
+                            44.825344
+                          ],
+                          [
+                            34.907888,
+                            44.820502
+                          ],
+                          [
+                            34.889903,
+                            44.818101
+                          ],
+                          [
+                            34.857188,
+                            44.823717
+                          ],
+                          [
+                            34.842621,
+                            44.816718
+                          ],
+                          [
+                            34.826508,
+                            44.811835
+                          ],
+                          [
+                            34.757009,
+                            44.820502
+                          ],
+                          [
+                            34.720958,
+                            44.810981
+                          ],
+                          [
+                            34.650645,
+                            44.777289
+                          ],
+                          [
+                            34.613048,
+                            44.765204
+                          ],
+                          [
+                            34.533214,
+                            44.752916
+                          ],
+                          [
+                            34.500011,
+                            44.742621
+                          ],
+                          [
+                            34.475271,
+                            44.723619
+                          ],
+                          [
+                            34.474376,
+                            44.726386
+                          ],
+                          [
+                            34.474376,
+                            44.728909
+                          ],
+                          [
+                            34.473318,
+                            44.730292
+                          ],
+                          [
+                            34.469005,
+                            44.729804
+                          ],
+                          [
+                            34.429373,
+                            44.689643
+                          ],
+                          [
+                            34.424001,
+                            44.682685
+                          ],
+                          [
+                            34.414317,
+                            44.673774
+                          ],
+                          [
+                            34.380219,
+                            44.631334
+                          ],
+                          [
+                            34.341156,
+                            44.558498
+                          ],
+                          [
+                            34.331309,
+                            44.545478
+                          ],
+                          [
+                            34.322765,
+                            44.543524
+                          ],
+                          [
+                            34.300304,
+                            44.5456
+                          ],
+                          [
+                            34.286143,
+                            44.545396
+                          ],
+                          [
+                            34.275401,
+                            44.546373
+                          ],
+                          [
+                            34.271007,
+                            44.545478
+                          ],
+                          [
+                            34.266124,
+                            44.541938
+                          ],
+                          [
+                            34.265798,
+                            44.538967
+                          ],
+                          [
+                            34.266124,
+                            44.535834
+                          ],
+                          [
+                            34.26352,
+                            44.531887
+                          ],
+                          [
+                            34.242931,
+                            44.507473
+                          ],
+                          [
+                            34.229828,
+                            44.499905
+                          ],
+                          [
+                            34.182465,
+                            44.492825
+                          ],
+                          [
+                            34.170095,
+                            44.481635
+                          ],
+                          [
+                            34.160818,
+                            44.466457
+                          ],
+                          [
+                            34.147472,
+                            44.449897
+                          ],
+                          [
+                            34.136485,
+                            44.441962
+                          ],
+                          [
+                            34.10255,
+                            44.425116
+                          ],
+                          [
+                            34.088715,
+                            44.422024
+                          ],
+                          [
+                            34.065766,
+                            44.419623
+                          ],
+                          [
+                            33.957856,
+                            44.383002
+                          ],
+                          [
+                            33.937755,
+                            44.381049
+                          ],
+                          [
+                            33.914887,
+                            44.383775
+                          ],
+                          [
+                            33.852061,
+                            44.401516
+                          ],
+                          [
+                            33.83961,
+                            44.40119
+                          ],
+                          [
+                            33.818614,
+                            44.395982
+                          ],
+                          [
+                            33.807628,
+                            44.39468
+                          ],
+                          [
+                            33.741222,
+                            44.395901
+                          ],
+                          [
+                            33.720958,
+                            44.399644
+                          ],
+                          [
+                            33.645356,
+                            44.425116
+                          ],
+                          [
+                            33.631684,
+                            44.434312
+                          ],
+                          [
+                            33.62615,
+                            44.45303
+                          ],
+                          [
+                            33.620128,
+                            44.462226
+                          ],
+                          [
+                            33.590017,
+                            44.490058
+                          ],
+                          [
+                            33.57838,
+                            44.497056
+                          ],
+                          [
+                            33.560395,
+                            44.496283
+                          ],
+                          [
+                            33.539073,
+                            44.491604
+                          ],
+                          [
+                            33.517589,
+                            44.490546
+                          ],
+                          [
+                            33.499522,
+                            44.5008
+                          ],
+                          [
+                            33.487153,
+                            44.510321
+                          ],
+                          [
+                            33.379649,
+                            44.564521
+                          ],
+                          [
+                            33.372325,
+                            44.576483
+                          ],
+                          [
+                            33.371349,
+                            44.587958
+                          ],
+                          [
+                            33.371104,
+                            44.588446
+                          ],
+                          [
+                            33.375011,
+                            44.585395
+                          ],
+                          [
+                            33.405447,
+                            44.590237
+                          ],
+                          [
+                            33.413829,
+                            44.593329
+                          ],
+                          [
+                            33.435883,
+                            44.605292
+                          ],
+                          [
+                            33.444998,
+                            44.60692
+                          ],
+                          [
+                            33.466482,
+                            44.60578
+                          ],
+                          [
+                            33.477387,
+                            44.606635
+                          ],
+                          [
+                            33.485525,
+                            44.610338
+                          ],
+                          [
+                            33.500011,
+                            44.613918
+                          ],
+                          [
+                            33.551117,
+                            44.614651
+                          ],
+                          [
+                            33.571544,
+                            44.620551
+                          ],
+                          [
+                            33.557791,
+                            44.624335
+                          ],
+                          [
+                            33.525157,
+                            44.628852
+                          ],
+                          [
+                            33.516287,
+                            44.634263
+                          ],
+                          [
+                            33.514822,
+                            44.649115
+                          ],
+                          [
+                            33.523611,
+                            44.661444
+                          ],
+                          [
+                            33.535655,
+                            44.672187
+                          ],
+                          [
+                            33.5442,
+                            44.682685
+                          ],
+                          [
+                            33.54835,
+                            44.698676
+                          ],
+                          [
+                            33.546723,
+                            44.70954
+                          ],
+                          [
+                            33.536794,
+                            44.729804
+                          ],
+                          [
+                            33.530447,
+                            44.75731
+                          ],
+                          [
+                            33.525157,
+                            44.772406
+                          ],
+                          [
+                            33.516287,
+                            44.785102
+                          ],
+                          [
+                            33.524181,
+                            44.7897
+                          ],
+                          [
+                            33.52768,
+                            44.793199
+                          ],
+                          [
+                            33.530528,
+                            44.798774
+                          ],
+                          [
+                            33.537364,
+                            44.818996
+                          ],
+                          [
+                            33.546072,
+                            44.8369
+                          ],
+                          [
+                            33.559581,
+                            44.849758
+                          ],
+                          [
+                            33.598318,
+                            44.85932
+                          ],
+                          [
+                            33.609223,
+                            44.871731
+                          ],
+                          [
+                            33.616059,
+                            44.889106
+                          ],
+                          [
+                            33.619884,
+                            44.908637
+                          ],
+                          [
+                            33.61964,
+                            44.931464
+                          ],
+                          [
+                            33.608572,
+                            44.970608
+                          ],
+                          [
+                            33.605642,
+                            44.987454
+                          ],
+                          [
+                            33.602794,
+                            44.993394
+                          ],
+                          [
+                            33.585216,
+                            45.018459
+                          ],
+                          [
+                            33.581798,
+                            45.027493
+                          ],
+                          [
+                            33.57838,
+                            45.053209
+                          ],
+                          [
+                            33.562511,
+                            45.09394
+                          ],
+                          [
+                            33.537446,
+                            45.117377
+                          ],
+                          [
+                            33.469086,
+                            45.14883
+                          ],
+                          [
+                            33.413422,
+                            45.184516
+                          ],
+                          [
+                            33.396495,
+                            45.189765
+                          ],
+                          [
+                            33.355154,
+                            45.185736
+                          ],
+                          [
+                            33.317638,
+                            45.175482
+                          ],
+                          [
+                            33.282563,
+                            45.160549
+                          ],
+                          [
+                            33.259613,
+                            45.156073
+                          ],
+                          [
+                            33.24936,
+                            45.165595
+                          ],
+                          [
+                            33.240082,
+                            45.179633
+                          ],
+                          [
+                            33.218516,
+                            45.187445
+                          ],
+                          [
+                            33.173595,
+                            45.196601
+                          ],
+                          [
+                            33.158376,
+                            45.206773
+                          ],
+                          [
+                            33.123302,
+                            45.23786
+                          ],
+                          [
+                            33.098481,
+                            45.248114
+                          ],
+                          [
+                            33.090017,
+                            45.256659
+                          ],
+                          [
+                            33.078624,
+                            45.271674
+                          ],
+                          [
+                            33.069347,
+                            45.276557
+                          ],
+                          [
+                            33.051768,
+                            45.281643
+                          ],
+                          [
+                            33.043224,
+                            45.285346
+                          ],
+                          [
+                            32.976573,
+                            45.32567
+                          ],
+                          [
+                            32.940603,
+                            45.342515
+                          ],
+                          [
+                            32.899262,
+                            45.354234
+                          ],
+                          [
+                            32.750173,
+                            45.363349
+                          ],
+                          [
+                            32.728526,
+                            45.36107
+                          ],
+                          [
+                            32.712738,
+                            45.353176
+                          ],
+                          [
+                            32.677419,
+                            45.325995
+                          ],
+                          [
+                            32.663097,
+                            45.320136
+                          ],
+                          [
+                            32.591482,
+                            45.320136
+                          ],
+                          [
+                            32.57016,
+                            45.325181
+                          ],
+                          [
+                            32.535411,
+                            45.338039
+                          ],
+                          [
+                            32.512869,
+                            45.340562
+                          ],
+                          [
+                            32.48585,
+                            45.394924
+                          ],
+                          [
+                            32.481619,
+                            45.408881
+                          ],
+                          [
+                            32.495128,
+                            45.435533
+                          ],
+                          [
+                            32.525157,
+                            45.458157
+                          ],
+                          [
+                            32.643565,
+                            45.521674
+                          ],
+                          [
+                            32.663097,
+                            45.52558
+                          ],
+                          [
+                            32.686209,
+                            45.527004
+                          ],
+                          [
+                            32.704845,
+                            45.531073
+                          ],
+                          [
+                            32.72047,
+                            45.53734
+                          ],
+                          [
+                            32.734711,
+                            45.545396
+                          ],
+                          [
+                            32.743826,
+                            45.552883
+                          ],
+                          [
+                            32.749766,
+                            45.559638
+                          ],
+                          [
+                            32.757823,
+                            45.564643
+                          ],
+                          [
+                            32.77296,
+                            45.566555
+                          ],
+                          [
+                            32.783051,
+                            45.565375
+                          ],
+                          [
+                            32.802419,
+                            45.560248
+                          ],
+                          [
+                            32.813975,
+                            45.559068
+                          ],
+                          [
+                            32.827891,
+                            45.562405
+                          ],
+                          [
+                            32.829763,
+                            45.570217
+                          ],
+                          [
+                            32.826427,
+                            45.579413
+                          ],
+                          [
+                            32.82488,
+                            45.586982
+                          ],
+                          [
+                            32.826996,
+                            45.595526
+                          ],
+                          [
+                            32.83074,
+                            45.60102
+                          ],
+                          [
+                            32.837738,
+                            45.6081
+                          ],
+                          [
+                            32.868175,
+                            45.630072
+                          ],
+                          [
+                            32.936778,
+                            45.662502
+                          ],
+                          [
+                            33.163422,
+                            45.736274
+                          ],
+                          [
+                            33.176117,
+                            45.743109
+                          ],
+                          [
+                            33.181,
+                            45.755194
+                          ],
+                          [
+                            33.176443,
+                            45.758938
+                          ],
+                          [
+                            33.166759,
+                            45.7626
+                          ],
+                          [
+                            33.15919,
+                            45.7685
+                          ],
+                          [
+                            33.160655,
+                            45.778795
+                          ],
+                          [
+                            33.1692,
+                            45.78441
+                          ],
+                          [
+                            33.178559,
+                            45.78026
+                          ],
+                          [
+                            33.194835,
+                            45.765123
+                          ],
+                          [
+                            33.230154,
+                            45.750922
+                          ],
+                          [
+                            33.265391,
+                            45.753811
+                          ],
+                          [
+                            33.338145,
+                            45.785631
+                          ],
+                          [
+                            33.374278,
+                            45.796536
+                          ],
+                          [
+                            33.379649,
+                            45.803046
+                          ],
+                          [
+                            33.410004,
+                            45.826606
+                          ],
+                          [
+                            33.424978,
+                            45.830959
+                          ],
+                          [
+                            33.46697,
+                            45.850084
+                          ],
+                          [
+                            33.482188,
+                            45.854478
+                          ],
+                          [
+                            33.489513,
+                            45.852362
+                          ],
+                          [
+                            33.50766,
+                            45.842963
+                          ],
+                          [
+                            33.519867,
+                            45.840888
+                          ],
+                          [
+                            33.530121,
+                            45.841864
+                          ],
+                          [
+                            33.55421,
+                            45.847073
+                          ],
+                          [
+                            33.57838,
+                            45.86815
+                          ],
+                          [
+                            33.598643,
+                            45.877387
+                          ],
+                          [
+                            33.610199,
+                            45.880764
+                          ],
+                          [
+                            33.619884,
+                            45.881822
+                          ],
+                          [
+                            33.630382,
+                            45.880032
+                          ],
+                          [
+                            33.641612,
+                            45.876044
+                          ],
+                          [
+                            33.650564,
+                            45.870673
+                          ],
+                          [
+                            33.654063,
+                            45.864447
+                          ],
+                          [
+                            33.658946,
+                            45.85932
+                          ],
+                          [
+                            33.670177,
+                            45.858547
+                          ],
+                          [
+                            33.691661,
+                            45.860745
+                          ],
+                          [
+                            33.693126,
+                            45.872545
+                          ],
+                          [
+                            33.691091,
+                            45.896226
+                          ],
+                          [
+                            33.693533,
+                            45.914496
+                          ],
+                          [
+                            33.708669,
+                            45.909735
+                          ],
+                          [
+                            33.725271,
+                            45.916083
+                          ],
+                          [
+                            33.759451,
+                            45.922268
+                          ],
+                          [
+                            33.777029,
+                            45.929633
+                          ],
+                          [
+                            33.758637,
+                            45.940863
+                          ],
+                          [
+                            33.739594,
+                            45.947821
+                          ],
+                          [
+                            33.682465,
+                            45.958441
+                          ],
+                          [
+                            33.657237,
+                            45.956936
+                          ],
+                          [
+                            33.645844,
+                            45.953559
+                          ],
+                          [
+                            33.639008,
+                            45.947333
+                          ],
+                          [
+                            33.632009,
+                            45.944403
+                          ],
+                          [
+                            33.619884,
+                            45.950751
+                          ],
+                          [
+                            33.638438,
+                            45.968248
+                          ],
+                          [
+                            33.646821,
+                            45.979722
+                          ],
+                          [
+                            33.643565,
+                            45.984931
+                          ],
+                          [
+                            33.632009,
+                            45.988267
+                          ],
+                          [
+                            33.631114,
+                            45.996527
+                          ],
+                          [
+                            33.636485,
+                            46.006415
+                          ],
+                          [
+                            33.643565,
+                            46.01496
+                          ],
+                          [
+                            33.642263,
+                            46.022162
+                          ],
+                          [
+                            33.629568,
+                            46.056586
+                          ],
+                          [
+                            33.62794,
+                            46.067816
+                          ],
+                          [
+                            33.638845,
+                            46.078315
+                          ],
+                          [
+                            33.648448,
+                            46.090033
+                          ],
+                          [
+                            33.643565,
+                            46.104682
+                          ],
+                          [
+                            33.628517,
+                            46.124935
+                          ]
+                        ]
+                      ]
+                    ]
+                  },
+                  "datePrecision": "reference-date",
+                  "certainty": "medium",
+                  "sourceId": "natural-earth-5.1.1-historical-successor-union",
+                  "notes": "현재 UKR 외곽선에 Natural Earth RUS의 크림반도 구성요소를 재사용한 2014년 병합 전 경계입니다."
+                }
+              ],
+              "importProvenance": {
+                "baseSha": "2091ee2c294df237d844e32f9b926449677c45e4",
+                "entityId": "historical-country:ukraine",
+                "versionIds": {
+                  "state:ukraine:1991-2014-r1": "historical-country:ukraine:1991-2014-r1"
+                }
+              }
+            },
+            "metadata": {
+              "geographicRegion": "Europe",
+              "pilot": true,
+              "approximateGeometry": true,
+              "referenceDate": "2014-03-17",
+              "defaultFlagDataUrl": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzIDIiIGlkPSJmbGFnLXVrcmFpbmUiPjxwYXRoIGZpbGw9IiMwMDU3YjciIGQ9Ik0wIDBoM3YxSDB6Ii8+PHBhdGggZmlsbD0iI2ZmZDcwMCIgZD0iTTAgMWgzdjFIMHoiLz48L3N2Zz4="
+            }
+          }
+        },
+        {
+          "versionId": "state:UKR:2014-03-18-post-crimea-r1",
+          "validFrom": "2014-03-18",
+          "validTo": "2026-10-05",
+          "datePrecision": "approximate",
+          "certainty": "low",
+          "sourceId": "natural-earth-5.1.1-current-outline-temporal-proxy",
+          "notes": "2014-03-18 러시아의 크림반도 병합 조약을 실효 지배 지도상 전환 시점으로 채택. 우크라이나의 크림 제외 영역을 2026-10-06 Natural Earth 외곽선으로 근사. 국제법상 크림 영유권 변화를 승인한 의미가 아니며 동부 전쟁과 2022년 이후 실제 통제선·분쟁지역 경계의 연도별 검증을 뜻하지 않음.",
+          "instantiation": {
+            "mode": "territory-replacement",
+            "countryUpdates": {}
+          },
+          "historicalProvenance": {
+            "classification": "provisional-modern-outline-proxy",
+            "sourceReferenceDate": "2026-10-06",
+            "politicalEventDate": "2014-03-18",
+            "originalGeometryVersionId": "state:UKR:natural-earth-5.1.1",
+            "evidence": [
+              "https://hudoc.echr.coe.int/?i=002-14347",
+              "https://press.un.org/en/2014/ga11493.doc.htm",
+              "https://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-0-countries/"
+            ],
+            "verifiedHistoricalGeometry": false
+          }
+        },
+        {
           "versionId": "state:UKR:natural-earth-5.1.1",
-          "validFrom": null,
+          "validFrom": "2026-10-06",
           "validTo": null,
           "datePrecision": "current",
           "certainty": "high",
@@ -16538,80 +18499,18 @@
       },
       "lineageId": "ukraine",
       "file": "state-UKR.json.gz",
-      "validFrom": null,
-      "validTo": null,
-      "compressedBytes": 24529,
-      "decodedBytes": 229477,
-      "sha256": "a48f142b994d0d1a919345378f43bf3238d325211cad6aed233b4b5dda28388c",
-      "bbox": [
-        22.13284,
-        45.213568,
-        40.159543,
-        52.368949
-      ],
-      "geometryVersionCount": 1
-    },
-    {
-      "schemaVersion": 2,
-      "entityId": "state:ukraine",
-      "entityKind": "general",
-      "names": {
-        "ko": "우크라이나",
-        "en": "Ukraine"
-      },
-      "alternateNames": [
-        "우크라이나(크림반도 포함)",
-        "Ukraine with Crimea",
-        "Ukraine before 2014",
-        "우크라이나(2014년 이전 국경)",
-        "Ukraine (pre-2014 borders)"
-      ],
-      "lifetime": {
-        "validFrom": "1991-08-24",
-        "validTo": "2014-03-17"
-      },
-      "parentEntityId": "",
-      "geometryVersions": [
-        {
-          "versionId": "state:ukraine:1991-2014-r1",
-          "validFrom": "1991-08-24",
-          "validTo": "2014-03-17",
-          "datePrecision": "reference-date",
-          "certainty": "medium",
-          "sourceId": "natural-earth-5.1.1-historical-successor-union",
-          "notes": "현재 UKR 외곽선에 Natural Earth RUS의 크림반도 구성요소를 재사용한 2014년 병합 전 경계입니다."
-        }
-      ],
-      "instantiation": {
-        "mode": "territory-replacement",
-        "countryUpdates": {}
-      },
-      "metadata": {
-        "geographicRegion": "Europe",
-        "pilot": true,
-        "approximateGeometry": true,
-        "referenceDate": "2014-03-17",
-        "defaultFlagDataUrl": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzIDIiIGlkPSJmbGFnLXVrcmFpbmUiPjxwYXRoIGZpbGw9IiMwMDU3YjciIGQ9Ik0wIDBoM3YxSDB6Ii8+PHBhdGggZmlsbD0iI2ZmZDcwMCIgZD0iTTAgMWgzdjFIMHoiLz48L3N2Zz4="
-      },
-      "sourceInfo": {
-        "title": "Natural Earth 5.1.1 Admin 0 with historical territory adjustment",
-        "license": "Natural Earth public domain",
-        "sourceId": ""
-      },
-      "lineageId": "ukraine",
-      "file": "state-ukraine.json.gz",
       "validFrom": "1991-08-24",
-      "validTo": "2014-03-17",
-      "compressedBytes": 32641,
-      "decodedBytes": 299403,
-      "sha256": "6222c36cb64791ba025bed661663e97bc31e0c576ae771885e96991fc682e3cd",
+      "validTo": null,
+      "compressedBytes": 81996,
+      "decodedBytes": 768677,
+      "sha256": "973cfc6afb26809d84761248b3d304521c8969c5db37c362e482b3baceb488fd",
       "bbox": [
         22.13284,
         44.381049,
         40.159543,
         52.368949
       ],
-      "geometryVersionCount": 1
+      "geometryVersionCount": 3
     },
     {
       "schemaVersion": 2,

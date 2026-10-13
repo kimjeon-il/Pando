@@ -23,6 +23,9 @@
 | `GEO-NLD-005` | [Netherlands shoreline pilot — Phase 0 canonical baseline probe](geography/netherlands/phase0-canonical-audit.md) | 2026-10-10 | `investigating` | `not-applied` |
 | `GEO-058` | [Terrain integration validation](geography/terrain/app-terrain-integration-validation.md) | 2026-10-07 | `historical-record` | `unverified` |
 | `GEO-059` | [P2 terrain LOD and demand validation](geography/terrain/app-terrain-p2-validation.md) | 2026-10-07 | `historical-record` | `unverified` |
+| `GEO-IDN-001` | [인도네시아 서뉴기니·동티모르 영토 변화와 시간별 형상](geography/indonesia-west-new-guinea-east-timor-territorial-epochs-2026-10-13.md) | 2026-10-13 | `investigating` | `not-applied` |
+| `GEO-LIFE-003` | [수단 분리·우크라이나 크림반도 전환 이후 타임라인 형상](geography/sudan-ukraine-post-transition-2026-10-13.md) | 2026-10-13 | `investigating` | `not-applied` |
+| `GEO-LIFE-002` | [역사 형상 중복 정체성 정리 — 인도네시아·우크라이나·수단](geography/country-geometry-identity-consolidation-2026-10-13.md) | 2026-10-13 | `investigating` | `not-applied` |
 | `GEO-023` | [Verified entity lifetime additions](geography/verified-entity-lifetimes.md) | 2026-10-08 | `historical-record` | `unverified` |
 
 ## 도시·지명
