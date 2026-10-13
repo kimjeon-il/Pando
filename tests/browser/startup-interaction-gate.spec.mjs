@@ -22,6 +22,17 @@ test('canonical geometry request waits for a complete quiet input window', async
     await route.abort('aborted');
   });
 
+  // Current startup policy does not defer background work for ordinary hover.
+  // Start a real active-pointer interaction at the preview-ready event, before
+  // canonical work can be admitted, then release it after the movement loop.
+  await page.addInitScript(() => {
+    window.addEventListener('pandolab:interactive', () => {
+      document.dispatchEvent(new PointerEvent('pointerdown', {
+        bubbles: true, pointerId: 1, pointerType: 'mouse',
+      }));
+    }, { once: true });
+  });
+
   await page.goto('/');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 45_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'preview');
@@ -46,6 +57,12 @@ test('canonical geometry request waits for a complete quiet input window', async
   expect(geometryRequests).toBe(0);
   expect(meshRequests).toBe(0);
 
+  await map.dispatchEvent('pointerup', {
+    pointerId: 1,
+    pointerType: 'mouse',
+    clientX: 180,
+    clientY: 180,
+  });
   const quietStartedAt = Date.now();
   await expect.poll(() => geometryRequests, { timeout: 3_000 }).toBe(1);
   // The loop includes one final 100ms wait after its last pointer event.
