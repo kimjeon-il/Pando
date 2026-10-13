@@ -12,7 +12,8 @@ def report_path(legacy, root=REPO):
     legacy = str(legacy)
     target = MAPPING['files'].get(legacy, legacy)
     for old, new in MAPPING['directories'].items():
-        if legacy == old or legacy.startswith(old + '/'):
+        recursive = old in ('assets/data/research/siachen', 'native/reports/places')
+        if legacy == old or (recursive and legacy.startswith(old + '/')):
             target = MAPPING['files'].get(legacy, new + legacy[len(old):])
             break
     migrated = (root / 'reports/places/source-manifest.json').is_file()

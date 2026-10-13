@@ -14,4 +14,5 @@ test('report consumers select original inputs before relocation and canonical in
   writeFileSync(join(root, 'reports/places/source-manifest.json'), '{}');
   assert.equal(reportPath('docs/research/country-default-colors.json', root), join(root, 'reports/research/country-default-colors.json'));
   assert.equal(reportPath('native/reports/places/source-manifest.json', root), join(root, 'reports/places/source-manifest.json'));
+  assert.equal(reportPath('tools/historical-library/land-borders/master.geojson', root), join(root, 'tools/historical-library/land-borders/master.geojson'));
 });
