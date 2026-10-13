@@ -26,7 +26,7 @@ void checkCore() {
     const auto normalized=normalizeSphericalPolygonGeometry(original);
     assert(hasCanonicalSphericalWinding(normalized));
     assert(original.polygons[0][0][1].x==2);
-    assert(normalized.polygons[0][0][1].x==0);
+    assert(normalized.polygons[0][0][0].y==2);
 
     // A hole must be retained and rewound; a degenerate hole must fail.
     const auto withHole=polygon({
