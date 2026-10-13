@@ -107,7 +107,7 @@
 - [수계 보정](hydro-calibration/README.md), [연결성](hydro-connectivity/README.md), [v0.12.3](hydro-v0.12.3/README.md), [v0.12.4](hydro-v0.12.4/README.md), [v0.13.0](hydro-v0.13.0/README.md)의 보고서·도판은 증거 묶음의 상대 경로를 유지합니다.
 - [수계 지명 현황](hydro-names/current-web-2026-10-08/README.md)과 [수계 지명 재구성 배치](hydro-names/reconstruction-2026-10-09/)는 원본 출처·검토 자료와 함께 관리합니다.
 - [영토 객체 통합 검증](territorial-integration/final-gate.md)은 검사 결과와 함께 기존 위치에 둡니다.
-- [지명 검토 JSON](places/candidate-review-summary.json), [도시 좌표 교정](places/coordinate-corrections.json), [생성된 도시 후보 감사](../docs/place-data-audit.md), [생성된 ID별 검토](../docs/place-candidate-review.md)는 도구 입력·생성물이라 이동하지 않습니다.
+- [지명 검토 JSON](places/candidate-review-summary.json), [도시 좌표 교정](places/coordinate-corrections.json), [생성된 도시 후보 감사](places/place-data-audit.md), [생성된 ID별 검토](places/place-candidate-review.md)는 `reports/places/` 정본이며, 생성기와 검증기도 이 경로를 사용합니다.
 - [네덜란드 사건·출처 목록](../tools/historical-library/sources/netherlands/change-events.json), [독일 해안선 사건·출처 목록](../tools/historical-library/sources/german-coastline/change-events.json), 역사 도판·probe JSON은 기존 위치의 원본 증거입니다.
 - 앱의 [참조 이미지 검증 실행 증거](https://github.com/kimjeon-il/PandoEditor/tree/f535673993f45957b82d125ff766ed1e18233170/docs/evidence/reference-image-web-parity)는 앱 저장소에 남깁니다.
 

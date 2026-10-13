@@ -7,6 +7,7 @@ on:
     paths:
       - native/tools/audit_north_schleswig_1914_stone26_split.py
       - native/tools/historical-library/land-borders/german-denmark-1914-north-schleswig-001-026.stone26-transition.*
+      - reports/geography/germany/north-schleswig/german-denmark-1914-north-schleswig-001-026.stone26-transition.audit.json
       - .github/workflows/native-north-schleswig-1914-stone26-transition.yml
 
 permissions:
@@ -40,7 +41,7 @@ jobs:
           read=lambda f:json.loads((base/f).read_text(encoding="utf-8"))
           master=read(stem+".geojson")["features"][0]
           segment_features=read(stem+".stone26-transition.provisional.geojson")["features"]
-          audit=read(stem+".stone26-transition.audit.json")
+          audit=json.loads((Path("../reports/geography/germany/north-schleswig")/(stem+".stone26-transition.audit.json")).read_text(encoding="utf-8"))
           assert len(segment_features)==2
           a,b=segment_features
           original=master["geometry"]["coordinates"]

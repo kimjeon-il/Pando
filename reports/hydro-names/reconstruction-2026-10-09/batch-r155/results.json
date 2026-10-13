@@ -1,0 +1,654 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r155",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r154",
+    "commit": "301266d74df0c5c6de32761a36d8f1ccc0ddab0f",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r154/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:90122585",
+    "hydro-system:70608588",
+    "hydro-system:70832638",
+    "hydro-system:61383955"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:90122585",
+      "category": "river_group",
+      "system_id": "90122585",
+      "original_queue_rank": 423,
+      "baseline_logical_fid": 2879,
+      "geometry_fids": [
+        8908
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -44.079167,
+        63.23125,
+        -41.934305,
+        64.035417
+      ],
+      "rendered_mainstem_length_km": 185.135,
+      "rendered_network_length_km": 185.135,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -44.079167,
+          63.23125,
+          -41.934305,
+          64.035417
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": null,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "completion_scope": "All FID 8908 internal parts were read at ordinary generalized component/corridor scale: opening beyond the regional map edge, northern arc, long southeastward ice diagonal, lower eastward ice/nunatak corridor, southern Skinfaxe approach, and actual glacier/fjord-head ending. No precise bank, vertex or present ice-front match is asserted.",
+      "region": "Southeastern Greenland.",
+      "candidate_name_role": "No supported representative natural-river name; glacier, land and fjord labels remain contextual only.",
+      "source_keys": [
+        "r155-geus-greenland-national-1995-retained",
+        "r155-geus-skjoldungen-sheet14-1990"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": "The full selected model connects an extensive mapped Inland Ice route with ice/nunatak/rock terrain and a glacier/fjord-head terminal setting. The sources do not establish one natural river or hydronym across that route.",
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "The ending lies west of the Skjoldungen land/fjord complex in the Skinfaxe–inner Kangertoq setting. Nearby Thrym Gletscher/Graah Fjord to the north and Rimfaxe/Guldfaxe/Sehested Fjord to the west/southwest are distinct geographic context and are not substituted for the selected endpoint or whole route.",
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "contextual_glacier_names": [
+          "Skinfaxe"
+        ],
+        "contextual_land_names": [
+          "Gyldenbørste",
+          "Skjoldungen"
+        ],
+        "terminal_fjord_context": "inner Kangertoq",
+        "terminal_glacier_context": "Skinfaxe sector",
+        "distinct_unassigned_neighbouring_glaciers": [
+          "Thrym Gletscher",
+          "Rimfaxe",
+          "Guldfaxe",
+          "Kong Faxe"
+        ],
+        "distinct_unassigned_neighbouring_fjords": [
+          "Graah Fjord",
+          "Sehested Fjord"
+        ],
+        "regional_associations_are_exact_reach_assignments": false,
+        "no_uniform_scalar_assignment": true,
+        "selected_through_lake_names": [],
+        "selected_tributary_geometry_count": 0,
+        "whole_feature_uniform_name_established": false
+      }
+    },
+    {
+      "aw_id": "hydro-system:70608588",
+      "category": "river_group",
+      "system_id": "70608588",
+      "original_queue_rank": 424,
+      "baseline_logical_fid": 3093,
+      "geometry_fids": [
+        9826
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -102.445833,
+        38.339583,
+        -100.889583,
+        38.666667
+      ],
+      "rendered_mainstem_length_km": 184.986,
+      "rendered_network_length_km": 184.986,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -102.445833,
+          38.339583,
+          -100.889583,
+          38.666667
+        ]
+      },
+      "candidate_name": "White Woman Creek",
+      "research_category": "river_group_source_material_pending",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "candidate_names": [
+        "White Woman Creek"
+      ],
+      "region": "Eastern Colorado and western Kansas, United States; selected inland drainage.",
+      "candidate_name_role": "Supported local name of the principal Kansas trunk and a bounded downstream representative lead only; not an established identity for the entire selected object.",
+      "source_keys": [
+        "USGSTopo",
+        "KGS108-geography"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": "The complete selected Colorado opening and its unnamed channel, wetland and depression transfers into South Fork White Woman Creek remain unestablished by the original maps. The Kansas trunk and Scott Basin terminal are supported separately.",
+      "material_pending_components": [
+        "colorado_headward_opening",
+        "colorado_unnamed_channels_and_depressions"
+      ],
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "The mapped Kansas trunk is White Woman Creek. Its South Fork junction, passage through Greeley and Wichita counties, Sand Creek junction in Scott County, and northeastward ending in the Scott Basin are supported. The selected Colorado opening follows unnamed intermittent channels and depression/wetland settings before reaching South Fork White Woman Creek. Original maps do not establish the selected through-connections between those western channels and the South Fork. The record remains material-pending rather than a completed representative identification or naming-scope hold.",
+      "completion_scope": "The mapped Kansas trunk is White Woman Creek. Its South Fork junction, passage through Greeley and Wichita counties, Sand Creek junction in Scott County, and northeastward ending in the Scott Basin are supported. The selected Colorado opening follows unnamed intermittent channels and depression/wetland settings before reaching South Fork White Woman Creek. Original maps do not establish the selected through-connections between those western channels and the South Fork. The record remains material-pending rather than a completed representative identification or naming-scope hold.",
+      "supported_name_scope": "Supported local name of the principal Kansas trunk and a bounded downstream representative lead only; not an established identity for the entire selected object.",
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "component_scope_limits": [
+          "White Woman Creek is not applied to the unnamed Colorado opening, its unestablished depression transfers, or South Fork White Woman Creek as if they shared one local name.",
+          "The Scott Basin is a terminal receiving depression, not a name for the whole selected watercourse.",
+          "Neither the retained endorheic model label nor the model's connectivity independently establishes the actual route.",
+          "The selected geometry was used only for ordinary corridor orientation. No exact bank, vertex, source-point or mouth-point correspondence is claimed."
+        ]
+      }
+    },
+    {
+      "aw_id": "hydro-system:70832638",
+      "category": "river_group",
+      "system_id": "70832638",
+      "original_queue_rank": 425,
+      "baseline_logical_fid": 3205,
+      "geometry_fids": [
+        10254
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -98.947917,
+        27.15625,
+        -97.632371,
+        27.460417
+      ],
+      "rendered_mainstem_length_km": 184.699,
+      "rendered_network_length_km": 184.699,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -98.947917,
+          27.15625,
+          -97.632371,
+          27.460417
+        ]
+      },
+      "candidate_name": null,
+      "research_category": "river_group_source_material_pending",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "completion_scope": "Research reading is finished for the permitted bounded originals acquired in this turn, but geographic source correspondence is incomplete. One material-pending primary status is required. Optional unavailable publications do not create an extra access-pending count.",
+      "candidate_names": [],
+      "region": "Southern Texas, United States; inland-to-coastal selection.",
+      "candidate_name_role": null,
+      "source_keys": [
+        "r155-usgstopo-south-texas",
+        "r155-glo-baffin2023"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": [
+        {
+          "fids": [
+            10254
+          ],
+          "scope": "Selected initial northward opening and northern turn west of Bruni before the mapped Arroyo de los Angeles corridor.",
+          "needed_evidence": "Applicable primary cartography or direct hydrologic evidence establishing the whole selected initial waterway at ordinary corridor scale."
+        },
+        {
+          "fids": [
+            10254
+          ],
+          "scope": "Selected onward eastward transfer from Cayo Lake across the Sarita area to the final north-trending coastal creek.",
+          "needed_evidence": "Directly applicable primary cartography or hydrologic prose establishing this lake-to-coast through-connection rather than regional watershed association or generalized stream-network modeling."
+        }
+      ],
+      "material_pending_components": [
+        {
+          "fids": [
+            10254
+          ],
+          "scope": "Selected initial northward opening and northern turn west of Bruni before the mapped Arroyo de los Angeles corridor.",
+          "needed_evidence": "Applicable primary cartography or direct hydrologic evidence establishing the whole selected initial waterway at ordinary corridor scale."
+        },
+        {
+          "fids": [
+            10254
+          ],
+          "scope": "Selected onward eastward transfer from Cayo Lake across the Sarita area to the final north-trending coastal creek.",
+          "needed_evidence": "Directly applicable primary cartography or hydrologic prose establishing this lake-to-coast through-connection rather than regional watershed association or generalized stream-network modeling."
+        }
+      ],
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "Five primary USGSTopo views and a GLO-hosted original research map distinguish the Arroyo de los Angeles, Mesquite Creek, Palo Blanco Creek, inland Laguna Salada and Cayo Lake components, followed by a final unnamed coastal creek reaching Baffin Bay. They do not establish the selected initial opening west of Bruni or the broad eastward transfer from Cayo Lake across the Sarita area into that coastal creek. The object remains materially pending, with no supported whole-system candidate or scalar name.",
+      "supported_name_scope": null,
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "component_scope_limits": [
+          "Palo Blanco Creek is a supported interior component name, not an assigned name for the whole selected object.",
+          "Arroyo de los Angeles and Mesquite Creek remain distinct upstream labels; the unresolved initial opening is unnamed.",
+          "Inland Laguna Salada near Falfurrias, Cayo Lake, the coastal Laguna Salada arm and Baffin Bay are distinct waterbodies. The two Laguna Salada names must not be conflated.",
+          "The final mapped coastal creek name is unestablished in the inspected originals. Its Baffin Bay setting does not establish a through-connection from Cayo Lake.",
+          "No official river length, formal registry status, present discharge, flood frequency or exhaustive tributary inventory is established."
+        ]
+      }
+    },
+    {
+      "aw_id": "hydro-system:61383955",
+      "category": "river_group",
+      "system_id": "61383955",
+      "original_queue_rank": 426,
+      "baseline_logical_fid": 3536,
+      "geometry_fids": [
+        13979
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -70.485417,
+        -25.502083,
+        -69.0125,
+        -25.364583
+      ],
+      "rendered_mainstem_length_km": 183.413,
+      "rendered_network_length_km": 183.413,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -70.485417,
+          -25.502083,
+          -69.0125,
+          -25.364583
+        ]
+      },
+      "candidate_name": "Quebrada Taltal",
+      "research_category": "river_group_source_material_pending",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "candidate_names": [
+        "Quebrada Taltal"
+      ],
+      "region": "Antofagasta Region, northern Chile; Taltal dry-valley drainage.",
+      "candidate_name_role": "Supported lower receiving dry-valley/corridor identity only; not a completed representative identity for the entire selected model route",
+      "source_keys": [
+        "r155-mma-taltal-hydro",
+        "r155-igm-taltal-hydrocourses",
+        "r155-ign-taltal500",
+        "r155-mma-taltal-cot",
+        "r155-prc-taltal2011"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": "The complete extreme eastern extension into Chaco Norte and the selected middle-fan transfer between neighboring mapped channel strands east of Agua Verde remain unestablished. Primary originals support the Chaco Norte–Chaco–Taltal component setting and Taltal coastal destination, but do not close those connections.",
+      "material_pending_components": [
+        {
+          "fids": [
+            13979
+          ],
+          "component": "Extreme eastern selected opening",
+          "required_evidence": "Independent primary cartography or a bounded original survey that depicts the selected headward extension joining the Chaco Norte valley; a basin label alone is insufficient."
+        },
+        {
+          "fids": [
+            13979
+          ],
+          "component": "Middle-fan inter-strand transfer east of Agua Verde",
+          "required_evidence": "Primary original channel/alluvial-fan evidence sufficient to establish the selected northward transfer and southwestward return at ordinary corridor scale; exact vertices are not required."
+        }
+      ],
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "The selected dry-valley model is predominantly the Chaco Norte, Chaco and Taltal drainage approach to the Taltal coast. Primary cartography distinguishes these component names and the main joining ravines. Regional geography and the lower coastal destination are established, but the extreme eastern headward extension and a selected middle-fan transfer between mapped channel strands lack complete source correspondence. The sole primary accounting state remains material-pending.",
+      "completion_scope": "The selected dry-valley model is predominantly the Chaco Norte, Chaco and Taltal drainage approach to the Taltal coast. Primary cartography distinguishes these component names and the main joining ravines. Regional geography and the lower coastal destination are established, but the extreme eastern headward extension and a selected middle-fan transfer between mapped channel strands lack complete source correspondence. The sole primary accounting state remains material-pending.",
+      "supported_name_scope": "Supported lower receiving dry-valley/corridor identity only; not a completed representative identity for the entire selected model route",
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "component_scope_limits": [
+          "Quebrada Taltal is supported on the western receiving corridor. It is not applied uniformly to Chaco Norte, Chaco, separate tributaries, the city fan or the seaward extension.",
+          "Chaco Norte is the selected eastern branch; Chaco Sur and the Incaguasi/Incahuasi approach are separate joining branches. The differently spelled Incaguasi and Incahuasi labels are recorded as source-specific readings, without registry normalization.",
+          "Aguada Ojo del Chaco and Agua Verde are spring/water-supply or locality settings in the historical and planning sources, not selected lake passages or river aliases.",
+          "The sources describe intermittent or normally dry channels. Neither a permanent river nor continuous present surface flow to the coast is inferred.",
+          "No precise surveyed source, bank, name-change point, engineered urban outfall or present mouth vertex is established."
+        ]
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [
+      "hydro-system:90122585"
+    ],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [
+      "hydro-system:70608588",
+      "hydro-system:70832638",
+      "hydro-system:61383955"
+    ],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 1,
+    "supported_representative_system_identities": 0,
+    "scope_holds": 1,
+    "access_pending": 0,
+    "material_pending": 3
+  },
+  "totals_after": {
+    "recorded_targets": 563,
+    "non_pending_records": 456,
+    "source_access_pending": 3,
+    "source_material_pending": 104,
+    "source_any_pending": 107,
+    "scope_holds": 146,
+    "river_groups": 465,
+    "lakes": 98,
+    "unrecorded": 3502,
+    "unrecorded_river_groups": 2990,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573",
+    "hydro-system:80032711",
+    "hydro-system:60007816",
+    "hydro-system:80013873",
+    "hydro-system:61501314",
+    "hydro-system:60761631",
+    "hydro-system:70895720",
+    "hydro-system:61398344",
+    "hydro-system:61355098",
+    "hydro-system:70933800",
+    "hydro-system:60026849",
+    "hydro-system:70574060",
+    "hydro-system:70890643",
+    "hydro-system:80064967",
+    "hydro-system:70856797",
+    "hydro-system:60174418",
+    "hydro-system:61547907",
+    "hydro-system:70463083",
+    "hydro-system:61520061",
+    "hydro-system:70895492",
+    "hydro-system:70898394",
+    "hydro-system:70865140",
+    "hydro-system:80072439",
+    "hydro-system:70549678",
+    "hydro-system:70566840",
+    "hydro-system:80048422",
+    "hydro-system:60557376",
+    "hydro-system:61514286",
+    "hydro-system:61509423",
+    "hydro-system:80068731",
+    "hydro-system:80015064",
+    "hydro-system:61520170",
+    "hydro-system:70156165",
+    "hydro-system:70784507",
+    "hydro-system:80067417",
+    "hydro-system:80019756",
+    "hydro-system:70244256",
+    "hydro-system:80060230",
+    "hydro-system:61543259",
+    "hydro-system:60007312",
+    "hydro-system:60022881",
+    "hydro-system:61456098",
+    "hydro-system:70290797",
+    "hydro-system:60441146",
+    "hydro-system:61554706",
+    "hydro-system:70110341",
+    "hydro-system:80067260",
+    "hydro-system:70214162",
+    "hydro-system:80034507",
+    "hydro-system:61536265",
+    "hydro-system:61561008",
+    "hydro-system:80066184",
+    "hydro-system:70202296",
+    "hydro-system:61545841",
+    "hydro-system:61350841",
+    "hydro-system:80064018",
+    "hydro-system:70957614",
+    "hydro-system:70851521",
+    "hydro-system:70049998",
+    "hydro-system:61298121",
+    "hydro-system:80033385",
+    "hydro-system:61205785",
+    "hydro-system:80035867",
+    "hydro-system:70009700",
+    "hydro-system:60440371",
+    "hydro-system:80049373",
+    "hydro-system:70749063",
+    "hydro-system:70844211",
+    "hydro-system:60001814",
+    "hydro-system:61507976",
+    "hydro-system:70834534",
+    "hydro-system:80070226",
+    "hydro-system:61357020",
+    "hydro-system:70846952",
+    "hydro-system:70004800",
+    "hydro-system:80043969",
+    "hydro-system:80165177",
+    "hydro-system:70043276",
+    "hydro-system:60490135",
+    "hydro-system:60237339",
+    "hydro-system:70023641",
+    "hydro-system:70281204",
+    "hydro-system:61570080",
+    "hydro-system:70789628",
+    "hydro-system:80234498",
+    "hydro-system:60016868",
+    "hydro-system:70276504",
+    "hydro-system:70901807",
+    "hydro-system:80086174",
+    "hydro-system:60809372",
+    "hydro-system:60100857",
+    "hydro-system:70026619",
+    "hydro-system:70500400",
+    "hydro-system:60010615",
+    "hydro-system:70608588",
+    "hydro-system:70832638",
+    "hydro-system:61383955"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r155-geus-greenland-national-1995-retained",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r155-geus-skjoldungen-sheet14-1990",
+      "official_url": "https://doi.org/10.22008/FK2/YAEFCL"
+    },
+    {
+      "source_key": "r155-geus-sheet2-1982-extent-check",
+      "official_url": "https://doi.org/10.22008/FK2/F77JXT"
+    },
+    {
+      "source_key": "r155-geus-sheet3-2010-extent-check",
+      "official_url": "https://doi.org/10.22008/FK2/X9U5BF"
+    },
+    {
+      "source_key": "USGSTopo",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "KGS108-geography",
+      "official_url": "https://www.kgs.ku.edu/General/Geology/Wichita/03_geog.html"
+    },
+    {
+      "source_key": "r155-usgstopo-south-texas",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r155-glo-baffin2023",
+      "official_url": "https://www.glo.texas.gov/sites/default/files/2025-10/an-integrated-assessment-final-report.pdf"
+    },
+    {
+      "source_key": "r155-mma-taltal-hydro",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HIDROGRAFIA/MapServer"
+    },
+    {
+      "source_key": "r155-igm-taltal-hydrocourses",
+      "official_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Quebradas_r%C3%ADos/MapServer"
+    },
+    {
+      "source_key": "r155-ign-taltal500",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "r155-mma-taltal-cot",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_COT/MapServer"
+    },
+    {
+      "source_key": "r155-prc-taltal2011",
+      "official_url": "https://eae.mma.gob.cl/storage/documents/04_Anteproyecto_PRC_Taltal.pdf.pdf"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "301266d74df0c5c6de32761a36d8f1ccc0ddab0f",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      423,
+      424,
+      425,
+      426
+    ],
+    "next_unrecorded_id": "hydro-system:80280742",
+    "progress_rule": "Follow the actual continental order: Americas, Asia, Africa, Europe, then other, with all rivers before lakes. Preserve original queue IDs and ranks for continuity; apply documented geographic deferrals without counting them as name research, and place deferred objects into their corrected later phase by length-descending, stable-ID order. Prior candidate and scope-held assessments remain unresolved where stated.",
+    "geographic_deferrals": [
+      {
+        "aw_id": "hydro-system:80061063",
+        "original_queue_rank": 186,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 66.56–68.17°N and 179.97–177.11°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory bounding box and selected-route geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80065687",
+        "original_queue_rank": 349,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at66.725–67.849775°N and178.2–175.960242°W place this object on Chukotka west of Alaska, adjoining the previously corrected Chukotka selection. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory bounding box and selected-route geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80100188",
+        "original_queue_rank": 387,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 64.939583–66.26978°N and 174.05625–173.320833°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory/order bounding box and geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80119243",
+        "original_queue_rank": 391,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 65.451531–66.491667°N and 176.777083–175.672917°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory/order bounding box and geographic placement; geographic classification only, no naming source acquired."
+      }
+    ]
+  }
+}

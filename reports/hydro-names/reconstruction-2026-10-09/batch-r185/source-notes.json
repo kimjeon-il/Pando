@@ -1,0 +1,592 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r185",
+  "sources": [
+    {
+      "source_key": "USGSTOPO_R185_KOYUK_UPPER",
+      "title": "USGSTopo / The National Map: Caviar Creek and upper Koyuk River",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "bibliography": "U.S. Geological Survey. The National Map, USGSTopo multiscale topographic map service. Accessed 12 October 2026.",
+      "actually_read": "The chosen western opening and feeder, labelled Caviar Creek, its Koyuk receiving transition, the upper eastward river and Knowles Creek junction. Original pixels were visually inspected, with bounded clean enlargements and private orientation aids.",
+      "acquisition_outcome": "Original bounded raster completed HTTP200, image/png; terminal result inspected before the next acquisition.",
+      "publication_independence": "Independently maintained National Map cartographic service, distinct from individually held USGS reports, plates and station publications; not a route to their content.",
+      "edition_note": "Composite service. No single field-survey date or formal registry authority is asserted for every mapped feature."
+    },
+    {
+      "source_key": "USGSTOPO_R185_KOYUK_MIDDLE",
+      "title": "USGSTopo / The National Map: middle Koyuk River",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "bibliography": "U.S. Geological Survey. The National Map, USGSTopo multiscale topographic map service. Accessed 12 October 2026.",
+      "actually_read": "Overlapping middle Koyuk corridor, Big Bar and First Chance Creek joins, southward meander belt, Copper and June Creek joins and eastward turn. Original pixels were visually inspected, with bounded clean enlargements and private orientation aids.",
+      "acquisition_outcome": "Original bounded raster completed HTTP200, image/png; terminal result inspected before the next acquisition.",
+      "publication_independence": "Independently maintained National Map cartographic service, distinct from individually held USGS reports, plates and station publications; not a route to their content.",
+      "edition_note": "Composite service. No single field-survey date or formal registry authority is asserted for every mapped feature."
+    },
+    {
+      "source_key": "USGSTOPO_R185_KOYUK_LOWER",
+      "title": "USGSTopo / The National Map: lower Koyuk River floodplain",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "bibliography": "U.S. Geological Survey. The National Map, USGSTopo multiscale topographic map service. Accessed 12 October 2026.",
+      "actually_read": "Continuous lower eastward and southeastward Koyuk floodplain, oxbows, Peace River junction and associated tributary joins. Original pixels were visually inspected, with bounded clean enlargements and private orientation aids.",
+      "acquisition_outcome": "Original bounded raster completed HTTP200, image/png; terminal result inspected before the next acquisition.",
+      "publication_independence": "Independently maintained National Map cartographic service, distinct from individually held USGS reports, plates and station publications; not a route to their content.",
+      "edition_note": "Composite service. No single field-survey date or formal registry authority is asserted for every mapped feature."
+    },
+    {
+      "source_key": "USGSTOPO_R185_KOYUK_TERMINAL",
+      "title": "USGSTopo / The National Map: Koyuk River lower channel and delta",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "bibliography": "U.S. Geological Survey. The National Map, USGSTopo multiscale topographic map service. Accessed 12 October 2026.",
+      "actually_read": "Lower bends and tributary joins, southward lower channel, delta, the actual selected endpoint and the mapped coastal outlet near Koyuk. Original pixels were visually inspected, with bounded clean enlargements and private orientation aids.",
+      "acquisition_outcome": "Original bounded raster completed HTTP200, image/png; terminal result inspected before the next acquisition.",
+      "publication_independence": "Independently maintained National Map cartographic service, distinct from individually held USGS reports, plates and station publications; not a route to their content.",
+      "edition_note": "Composite service. No single field-survey date or formal registry authority is asserted for every mapped feature."
+    },
+    {
+      "source_key": "r185_inegi_g1309",
+      "title": "Información Topográfica 1:250 000: G1309 Torreón, Coahuila de Zaragoza, Durango y Zacatecas",
+      "publisher": "Instituto Nacional de Estadística y Geografía, Dirección General de Geografía y Medio Ambiente",
+      "edition": "Sixth edition 2023; copyright 2024",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/imagen_cartografica/1_250_000/794551154977_geo.pdf",
+      "scale": "1:250 000",
+      "publication_identity": "Standalone national gridded topographic cartography compiled photogrammetrically, with its own title, legend, technical panel and imprint; distinct from the held Durango state condensation, municipal compendia, historical geographic syntheses and CONAGUA publications.",
+      "actually_read": "Original full-sheet overview pixels; extracted title and technical/hydrography legend; sixth-edition and copyright imprint; GeoPDF viewport metadata for orientation. No detailed route crop or orientation overlay was inspected.",
+      "observed_original_outcome": "Completed HTTP 200, application/pdf, before the later related-publication stop.",
+      "evidence_scope": "Regional cartographic context only, not completed selected-channel correspondence."
+    },
+    {
+      "source_key": "r185_inegi_g1308_unread",
+      "title": "Información Topográfica 1:250 000: G1308 Santiago Papasquiaro",
+      "publisher": "Instituto Nacional de Estadística y Geografía",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/imagen_cartografica/1_250_000/794551154960_geo.pdf",
+      "actually_read": "No original prose or map pixels. Only successful acquisition status was observed before the related-publication stop.",
+      "observed_original_outcome": "Completed HTTP 200, application/pdf; body remains uninspected.",
+      "evidence_scope": "Excluded from substantive evidence.",
+      "used_as_substantive_evidence": false
+    },
+    {
+      "source_key": "r185_inegi_g1306_unread",
+      "title": "Información Topográfica 1:250 000: G1306 Tlahualilo de Zaragoza",
+      "publisher": "Instituto Nacional de Estadística y Geografía",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/imagen_cartografica/1_250_000/794551154946_geo.pdf",
+      "actually_read": "No original body or map pixels; the request terminal was not observed.",
+      "observed_original_outcome": "Terminal-status tool call cancelled by automatic approval review; HTTP unknown.",
+      "evidence_scope": "Excluded from substantive evidence.",
+      "used_as_substantive_evidence": false
+    },
+    {
+      "source_key": "USGSTOPO_R185_KASHUNUK_OPENING",
+      "title": "USGS The National Map, USGSTopo: Chosen Kashunuk opening and upper delta meanders",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "normal_urls": [
+        "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+      ],
+      "source_type": "original_multiscale_topographic_map",
+      "accessed_date_utc": "2026-10-12",
+      "access_status": "original_completed_HTTP200_and_visually_inspected",
+      "actual_material_read": "Original upper map and separate orientation comparison covering the chosen opening, northern bend, southwestern continuation and overlap with the middle map.",
+      "independence_basis": "Independently maintained National Map cartographic service with its own publishing purpose; distinct from stopped individual USGS geological, water-resources, station and plate publications.",
+      "limits": "Supports bounded channel and name correspondence; does not establish formal registry names, exact banks, current tidal flow, precise name-change positions or a natural mouth at the selected endpoint. Source images and research derivatives remain private."
+    },
+    {
+      "source_key": "USGSTOPO_R185_KASHUNUK_MIDDLE",
+      "title": "USGS The National Map, USGSTopo: Middle Kashunuk loops, channel arms and southwestern turn",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "normal_urls": [
+        "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+      ],
+      "source_type": "original_multiscale_topographic_map",
+      "accessed_date_utc": "2026-10-12",
+      "access_status": "original_completed_HTTP200_and_visually_inspected",
+      "actual_material_read": "Original middle map and separate orientation comparison covering all selected westward loops, connected arms, southwestern turn and southeastward continuation.",
+      "independence_basis": "Independently maintained National Map cartographic service with its own publishing purpose; distinct from stopped individual USGS geological, water-resources, station and plate publications.",
+      "limits": "Supports bounded channel and name correspondence; does not establish formal registry names, exact banks, current tidal flow, precise name-change positions or a natural mouth at the selected endpoint. Source images and research derivatives remain private."
+    },
+    {
+      "source_key": "USGSTOPO_R185_KASHUNUK_WIDENED_REACH",
+      "title": "USGS The National Map, USGSTopo: Kashunuk southeastern widening, Nanvaranak Choa and broad southern reach",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "normal_urls": [
+        "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+      ],
+      "source_type": "original_multiscale_topographic_map",
+      "accessed_date_utc": "2026-10-12",
+      "access_status": "original_completed_HTTP200_and_visually_inspected",
+      "actual_material_read": "Original map visually read in overlapping upper and lower clean portions, with separate orientation comparisons; covers the complete selected widening, Nanvaranak Choa passage and broad Kashunuk reach.",
+      "independence_basis": "Independently maintained National Map cartographic service with its own publishing purpose; distinct from stopped individual USGS geological, water-resources, station and plate publications.",
+      "limits": "Supports bounded channel and name correspondence; does not establish formal registry names, exact banks, current tidal flow, precise name-change positions or a natural mouth at the selected endpoint. Source images and research derivatives remain private."
+    },
+    {
+      "source_key": "USGSTOPO_R185_KASHUNUK_APHREWN_TERMINAL",
+      "title": "USGS The National Map, USGSTopo: Lower Kashunuk branching, Aphrewn River and actual selected terminal",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "normal_urls": [
+        "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+      ],
+      "source_type": "original_multiscale_topographic_map",
+      "accessed_date_utc": "2026-10-13",
+      "access_status": "original_completed_HTTP200_and_visually_inspected",
+      "actual_material_read": "Original lower map visually read in three overlapping clean portions, with separate orientation comparisons; covers the Kashunuk branch transition, full selected Aphrewn corridor and actual stored endpoint.",
+      "independence_basis": "Independently maintained National Map cartographic service with its own publishing purpose; distinct from stopped individual USGS geological, water-resources, station and plate publications.",
+      "limits": "Supports bounded channel and name correspondence; does not establish formal registry names, exact banks, current tidal flow, precise name-change positions or a natural mouth at the selected endpoint. Source images and research derivatives remain private."
+    },
+    {
+      "source_key": "FEP_R185_FALCON_CH46",
+      "title": "Estado Falcón",
+      "author": "Teodoro Díaz Zavala",
+      "publication": "GeoVenezuela, tomo 6, capítulo 46, pp.198–285",
+      "publisher": "Fundación Empresas Polar",
+      "edition": "Publisher chapter extract; exact publication year not independently established from the acquired extract.",
+      "official_url": "https://bibliofep.fundacionempresaspolar.org/media/1046/gv_t6_c46_p198_285_lres_single_preview.pdf",
+      "normal_urls": [
+        "https://bibliofep.fundacionempresaspolar.org/media/1046/gv_t6_c46_p198_285_lres_single_preview.pdf"
+      ],
+      "source_type": "publisher_issued_authored_regional_geography_chapter_with_thematic_cartography",
+      "accessed_date_utc": "2026-10-12",
+      "access_status": "original_completed_HTTP200_and_read",
+      "actual_material_read": "Chapter title and author page (PDF1/printed198); regional mountain passage prose (PDF14/printed211); hydrography prose (PDF23–26/printed220–223); water-resources prose (PDF40/printed237); Pedregal-basin conservation prose (PDF46/printed243); relevant bibliography (PDF86–87/printed283–284). Original pixels inspected for title page, Figure19 climate map and surrounding text (PDF24/printed221), and Mitare hydrography paragraph (PDF26/printed223). Other original map pixels are not claimed as inspected.",
+      "independence_basis": "The actual chapter title and author identify the Fundación Empresas Polar regional geography project. It is distinct in publishing project and content from the stopped Hackley national geology map, DCN La Victoria sheet, Guanipa biological-paper clue and regional OAS projects. Figure19 credits Rigoberto Andressen’s GeoVenezuela climate-map work; it is used only as broad thematic geography, never as river-course proof.",
+      "limits": "The independently authored chapter provides bounded regional prose but no inspected corridor-scale river map. Separate cartographic-appendix sheets referred to in the text were not acquired or inspected. The extract does not establish present flow, active reservoir operation, precise name boundaries or formal registry status."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:80132141",
+      "source_keys": [
+        "USGSTOPO_R185_KOYUK_UPPER",
+        "USGSTOPO_R185_KOYUK_MIDDLE",
+        "USGSTOPO_R185_KOYUK_LOWER",
+        "USGSTOPO_R185_KOYUK_TERMINAL"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2570
+          ],
+          "component_scope": "Chosen western headward approach and Caviar Creek",
+          "finding": "The chosen opening lies along the western headward approach to the mapped Caviar Creek valley. The original depicts the short western feeder joining the named Caviar Creek channel and its continuous northward course. The selected line is locally displaced onto the valley side and straightens bends; correspondence is at ordinary valley scale. Caviar Creek is labelled on the receiving tributary, while the short initial western feeder has no name established here. The chosen point is not asserted to be the ultimate natural source.",
+          "sources": [
+            "USGSTOPO_R185_KOYUK_UPPER"
+          ],
+          "correspondence": "ordinary_connected_corridor_established_with_cartographic_generalization",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2570
+          ],
+          "component_scope": "Caviar Creek transition into the upper Koyuk corridor",
+          "finding": "The map follows Caviar Creek north and then east into the connected river corridor repeatedly labelled Koyuk River. The western and northern tributary approaches and the intervening confluence setting are visible. The selected northern corner and eastward straight segments generalize the mapped bends and their broad valley; the Caviar name is retained for its distinct tributary reach rather than replaced with Koyuk throughout.",
+          "sources": [
+            "USGSTOPO_R185_KOYUK_UPPER"
+          ],
+          "correspondence": "ordinary_connected_corridor_established_with_cartographic_generalization",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2570
+          ],
+          "component_scope": "Upper Koyuk River and Knowles Creek junction",
+          "finding": "Repeated Koyuk River labels follow the continuous eastward channel through the upper valley, its locally divided channel section and the Knowles Creek junction. Overlapping maps carry the route into the more open, pond-rich floodplain. Adjacent ponds and lateral tributaries do not require a separate lake-to-lake transfer along the selected river corridor.",
+          "sources": [
+            "USGSTOPO_R185_KOYUK_UPPER",
+            "USGSTOPO_R185_KOYUK_MIDDLE"
+          ],
+          "correspondence": "ordinary_connected_corridor_established_with_cartographic_generalization",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2570
+          ],
+          "component_scope": "Middle Koyuk River and Big Bar Creek to First Chance Creek",
+          "finding": "The connected Koyuk channel continues east through large bends, receives Big Bar Creek and reaches the First Chance Creek junction before turning south. All selected intermediate parts are covered by the readable original. The surrounding lakes, oxbows and tributary channels remain distinct from the named through-river.",
+          "sources": [
+            "USGSTOPO_R185_KOYUK_MIDDLE"
+          ],
+          "correspondence": "ordinary_connected_corridor_established_with_cartographic_generalization",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2570
+          ],
+          "component_scope": "Southward middle reach and the Copper and June Creek joins",
+          "finding": "The original depicts Koyuk River continuously through the long southward meander belt, past the Copper Creek and June Creek joins, and around its eastward turn. Selected straight segments cut bends and some floodplain ponds but correspond to the same connected receiving-river corridor at ordinary scale.",
+          "sources": [
+            "USGSTOPO_R185_KOYUK_MIDDLE",
+            "USGSTOPO_R185_KOYUK_LOWER"
+          ],
+          "correspondence": "ordinary_connected_corridor_established_with_cartographic_generalization",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2570
+          ],
+          "component_scope": "Lower Koyuk floodplain and Peace River junction",
+          "finding": "The river continues east and southeast through a wide meander and oxbow belt. The original directly shows the Peace River confluence and the Willow Creek and Stephensons Stream approaches, followed by the downstream Koyuk bends. Repeated labels and continuous mapped channels establish the through-corridor; lateral lakes are not assigned the river name.",
+          "sources": [
+            "USGSTOPO_R185_KOYUK_LOWER",
+            "USGSTOPO_R185_KOYUK_TERMINAL"
+          ],
+          "correspondence": "ordinary_connected_corridor_established_with_cartographic_generalization",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2570
+          ],
+          "component_scope": "Lower bend, tributary joins and southward delta approach",
+          "finding": "The map follows the lower Koyuk past the Kenwood Creek setting, the northeastern tributary junction and the broad bend into the southward channel. Alameda Creek and smaller feeders join the lower course. The main river remains continuously depicted to the delta approach; no reservoir, glacier or managed-water transfer occurs in this selected portion.",
+          "sources": [
+            "USGSTOPO_R185_KOYUK_TERMINAL"
+          ],
+          "correspondence": "ordinary_connected_corridor_established_with_cartographic_generalization",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2570
+          ],
+          "component_scope": "Actual selected endpoint in the Koyuk delta complex",
+          "finding": "The selected lower route enters the mapped Koyuk River delta, where broad channels divide around islands and wetland areas. Its actual endpoint lies inside this delta complex, on the inner side of the lower bend upstream of the coastal outlet near Koyuk. The last straight segment cuts the river bend and island-rich delta setting; it is a generalized terminal representation, not a demonstrated separate cross-island waterway. Ordinary delta-system correspondence is established. The selected endpoint is not called the exact marine mouth, and no particular current distributary or shoreline position is assigned.",
+          "sources": [
+            "USGSTOPO_R185_KOYUK_TERMINAL"
+          ],
+          "correspondence": "ordinary_connected_corridor_established_with_cartographic_generalization",
+          "component_correspondence_completed": true
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70840433",
+      "source_keys": [
+        "r185_inegi_g1309"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10263
+          ],
+          "component_scope": "opening",
+          "finding": "The chosen southwestern opening crosses the western margin of the Torreón sheet. The acquired full-sheet overview was inspected only at regional scale; no sufficiently readable, selected-route comparison of the opening or its join was completed. No headwater name is assigned.",
+          "sources": [
+            "r185_inegi_g1309"
+          ],
+          "correspondence": "material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            10263
+          ],
+          "component_scope": "western_approach",
+          "finding": "The selected western arc requires the adjacent Santiago Papasquiaro cartographic footprint and the join back into Torreón. Its original was obtained before the later stop but never visually or textually read. Geographic and natural-channel continuity are unestablished.",
+          "sources": [],
+          "correspondence": "material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            10263
+          ],
+          "component_scope": "central_turn_and_plain",
+          "finding": "The Torreón overview shows regional relief, populated agricultural plain and a hydrographic/infrastructure network. At the inspected overview scale, the actual selected turn, intermediate joins and eastward path could not be reliably distinguished from neighboring natural channels or managed connections. Neither a named continuous river nor a canal transfer is established.",
+          "sources": [
+            "r185_inegi_g1309"
+          ],
+          "correspondence": "material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            10263
+          ],
+          "component_scope": "northeastern_plain_and_sheet_join",
+          "finding": "The selection continues northeast from the central plain into the Tlahualilo sheet footprint. The required detailed source-to-route correspondence and selected cross-sheet through-link were not observed. Regional drainage membership is not evidence of that connection.",
+          "sources": [
+            "r185_inegi_g1309"
+          ],
+          "correspondence": "material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            10263
+          ],
+          "component_scope": "northern_curve_and_actual_terminal",
+          "finding": "The northern bend and actual terminal lack an inspected primary source. No lake entry, reservoir connection, canal transfer, disappearing-stream end, or named receiving channel is assigned.",
+          "sources": [],
+          "correspondence": "material_pending",
+          "component_correspondence_completed": false
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80220950",
+      "source_keys": [
+        "USGSTOPO_R185_KASHUNUK_OPENING",
+        "USGSTOPO_R185_KASHUNUK_MIDDLE",
+        "USGSTOPO_R185_KASHUNUK_WIDENED_REACH",
+        "USGSTOPO_R185_KASHUNUK_APHREWN_TERMINAL"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2687
+          ],
+          "component_scope": "Chosen eastern opening and initial Kashunuk bend",
+          "finding": "The chosen eastern opening is in the mapped Kashunuk River corridor. The connected channel bends south and west before turning north around the elongated floodplain bend. Direct Kashunuk River labels identify this upper selected channel. The opening is a selected interior river position, not an assertion of the ultimate natural source. The generalized line cuts the large bend, but the original map visibly supplies the connected river corridor.",
+          "sources": [
+            "USGSTOPO_R185_KASHUNUK_OPENING"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale_with_local_generalization",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2687
+          ],
+          "component_scope": "Upper Kashunuk return bend and southwestern continuation",
+          "finding": "The northern turn joins the southwestern continuation of the same repeatedly labelled Kashunuk River. The original shows connected main-channel bends, nearby side-channel junctions and numerous lateral lakes and abandoned-channel shapes. All selected intervals through the long southwestward turn and succeeding westward bend have continuous river-corridor correspondence. No transfer through a separate isolated lake is required; straight selected pieces locally shortcut the meanders.",
+          "sources": [
+            "USGSTOPO_R185_KASHUNUK_OPENING",
+            "USGSTOPO_R185_KASHUNUK_MIDDLE"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale_with_local_generalization",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2687
+          ],
+          "component_scope": "Middle Kashunuk westward loops and branch joins",
+          "finding": "The named Kashunuk course runs through successive broad loops, bends west across a divided river reach and turns southwest. The map shows the bifurcating and rejoining channel arms around intervening islands and floodplain strips. These visible through-links cover every selected intermediate part and join. Adjacent lake-rich wetland is contextual rather than evidence for an invented cross-wetland connection.",
+          "sources": [
+            "USGSTOPO_R185_KASHUNUK_MIDDLE"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale_with_local_generalization",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2687
+          ],
+          "component_scope": "Kashunuk southwestern turn and southeastward widening",
+          "finding": "The connected Kashunuk channel turns south and then southeast into a wider river corridor. Repeated main-channel labels distinguish it from the nearby Kokechik River to the west and other side streams. The mapped main channel and connected lateral arms establish the selected route and its intermediate joins across the full interval. The selection shifts across island and floodplain edges as it generalizes the mapped bends; this does not establish separate channels along those shortcuts.",
+          "sources": [
+            "USGSTOPO_R185_KASHUNUK_MIDDLE",
+            "USGSTOPO_R185_KASHUNUK_WIDENED_REACH"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale_with_local_generalization",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2687
+          ],
+          "component_scope": "Nanvaranak Choa widening and connected southern passage",
+          "finding": "The original depicts an openly connected widening labelled Nanvaranak Choa beside Kashunuk River labels, with a continuous southern passage returning to the broad Kashunuk corridor. The selected passage, including its turn at the south side of the widening, is covered. Nanvaranak Choa is retained as a distinct mapped waterbody label, not renamed as a river or assumed to be an isolated lake.",
+          "sources": [
+            "USGSTOPO_R185_KASHUNUK_WIDENED_REACH"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale_with_local_generalization",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2687
+          ],
+          "component_scope": "Expanded Kashunuk reach past Nushkolik Mountain",
+          "finding": "The river expands into a broad connected waterway east and south of Nushkolik Mountain and then turns west and southwest. The Nungatak River approach and other side-channel openings are visible. Repeated Kashunuk River labels continue across the widening and its narrower connecting reach. Every selected intervening part lies within this ordinary named corridor; no unviewed lake-to-river or wetland transfer remains.",
+          "sources": [
+            "USGSTOPO_R185_KASHUNUK_WIDENED_REACH",
+            "USGSTOPO_R185_KASHUNUK_APHREWN_TERMINAL"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale_with_local_generalization",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2687
+          ],
+          "component_scope": "Lower Kashunuk branching and Aphrewn receiving continuation",
+          "finding": "The original shows the lower Kashunuk bends and a western branch that retains the Kashunuk River name. The selected route instead follows the broad connected southward continuation, which is repeatedly labelled Aphrewn River farther along. Both the channel split and the selected southward through-connection are visible. The two names remain bounded to their mapped reaches; no precise legal or cartographic name-change vertex is assigned.",
+          "sources": [
+            "USGSTOPO_R185_KASHUNUK_APHREWN_TERMINAL"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale_with_local_generalization",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2687
+          ],
+          "component_scope": "Aphrewn River and actual selected terminal",
+          "finding": "The original repeatedly labels the broad southern channel Aphrewn River and depicts its connected meanders through the wetland-and-pond plain. All selected final parts and the actual stored endpoint correspond to that channel at ordinary corridor scale. The endpoint is inside a mapped Aphrewn bend, and the map visibly continues the river farther southwest. It is not identified as the natural ocean mouth. The selected path locally cuts large bends, but the original establishes the continuous receiving channel without any material missing through-link.",
+          "sources": [
+            "USGSTOPO_R185_KASHUNUK_APHREWN_TERMINAL"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale_with_local_generalization",
+          "component_correspondence_completed": true
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60000722",
+      "source_keys": [
+        "FEP_R185_FALCON_CH46"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10749
+          ],
+          "component_scope": "Chosen southwestern opening and first eastward headward corridor",
+          "finding": "The complete chosen opening and eastern sequence were considered from the supplied selection. The chapter identifies the Mitare drainage and its named tributaries but supplies no usable channel map tying this particular opening or its first joins to a named branch. No Pedregal, Japure, Mamón, Paraíso or Juan Negro name is assigned to these selected parts.",
+          "sources": [
+            "FEP_R185_FALCON_CH46"
+          ],
+          "correspondence": "regional_prose_only_selected_through_link_unestablished",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            10749
+          ],
+          "component_scope": "Upper northeastward corridor and intervening bends",
+          "finding": "The selected upper route continues northeast and then north through several bends. Regional prose distinguishes the Pedregal tributary, its Japure and Mamón contributors, and the Paraíso tributary with Juan Negro. These are documented basin relationships, not identification of the particular selected channel or its intervening junctions.",
+          "sources": [
+            "FEP_R185_FALCON_CH46"
+          ],
+          "correspondence": "regional_prose_only_selected_through_link_unestablished",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            10749
+          ],
+          "component_scope": "Middle northeastward corridor and transition toward the northward valley",
+          "finding": "The chapter does not provide ordinary corridor-scale cartography or a route description detailed enough to establish this selected middle interval and its joins. The named tributary relationships cannot establish which tributary the selection follows.",
+          "sources": [
+            "FEP_R185_FALCON_CH46"
+          ],
+          "correspondence": "regional_prose_only_selected_through_link_unestablished",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            10749
+          ],
+          "component_scope": "Northward middle valley and tributary/reservoir relationship",
+          "finding": "The source records a Pedregal reservoir that became silted up, and later describes the protected Pedregal basin. No source material read establishes where this impoundment lies relative to the selected route, or verifies a selected inlet, crossing, outlet or managed through-link. The existence of a reservoir elsewhere in the named basin is not taken as evidence that the selected path crosses it.",
+          "sources": [
+            "FEP_R185_FALCON_CH46"
+          ],
+          "correspondence": "regional_prose_only_selected_through_link_unestablished",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            10749
+          ],
+          "component_scope": "Lower northward corridor toward the coastal plain",
+          "finding": "The chapter describes Mitare passing Sabaneta and then Mitare before reaching Golfete de Coro, and identifies a mountain passage as Mitare or Sabaneta. This supports a regional receiving-river candidate. Without a channel map, correspondence of the selected lower bends and local joins remains unestablished. The regional alias is not assigned to every upstream selected reach.",
+          "sources": [
+            "FEP_R185_FALCON_CH46"
+          ],
+          "correspondence": "regional_prose_only_selected_through_link_unestablished",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            10749
+          ],
+          "component_scope": "Final deltaic passage and actual coastal terminal",
+          "finding": "The actual selected endpoint and final deltaic approach were considered. Source prose puts the Mitare mouth in Golfete de Coro and describes its sedimentary coastal setting near Punta Caimán. The inspected climate map shows broad coast and peninsula geography only. Neither it nor the prose traces the particular final selected channel and terminal through-link. Actual terminal correspondence therefore remains material pending.",
+          "sources": [
+            "FEP_R185_FALCON_CH46"
+          ],
+          "correspondence": "regional_prose_only_selected_through_link_unestablished",
+          "component_correspondence_completed": false
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "INEGI, Información Topográfica 1:250 000, G1306 Tlahualilo de Zaragoza; national gridded topographic publication and related sheets/equivalents",
+      "title": "Información Topográfica 1:250 000: G1306 Tlahualilo de Zaragoza",
+      "observed_outcome": "The original-file request began, but its terminal-status tool call was cancelled by automatic approval review. No terminal HTTP response or original body was observed. The related local reading-aid command was not polled or inspected after this stop.",
+      "outcome_layer": "Tool-layer approval-review cancellation; source HTTP outcome unknown. No origin HTTP 401/403 is asserted.",
+      "restriction_kind": "publication_tool_cancellation_stop",
+      "restriction_scope": "The national Información Topográfica 1:250 000 publication, related G1306/G1308/G1309 content and equivalent original, catalogue, reader, cache, mirror, screenshot and other acquisition routes remain paused. No new output or retained-image reading is permitted. This is not an institution-wide INEGI prohibition.",
+      "earlier_lawful_prose_exception": "Only the already observed G1309 full-sheet overview pixels, technical/hydrography legend and title/imprint metadata remain bounded evidence. G1308 completed HTTP 200 but its original content was never inspected; G1306 supplied no observed terminal response or source body.",
+      "material_effect": "The selected western approach, detailed central through-links, managed/dry-plain passages and complete northern terminal correspondence remain unestablished. One source-material-pending primary state is retained.",
+      "newly_observed_access_failure": true,
+      "aw_id": "hydro-system:70840433",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/imagen_cartografica/1_250_000/794551154946_geo.pdf"
+    },
+    {
+      "publication": "Cocoseco, Mapa del estado Falcón, catalogue listing and unidentified linked map",
+      "official_url": "https://cocoseco.com/doc/mapa-del-estado-falcon/",
+      "observed_outcome": "The sole catalogue web-reader opening returned Internal Error / Cache miss. No catalogue body, linked original map or pixels were obtained.",
+      "outcome_layer": "Web-reader cache availability outcome; origin HTTP status unknown.",
+      "restriction_scope": "This catalogue, its unidentified linked map and equivalent acquisition routes are paused. No original request, retry, alternate format, cache, screenshot or mirror followed. Exact underlying map publisher and edition remain unresolved.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "catalogue_availability_pause_with_unresolved_map_identity",
+      "newly_observed_access_failure": true,
+      "material_effect": "No usable detailed cartography was obtained from this source. No institution-wide or country-wide restriction is inferred.",
+      "aw_id": "hydro-system:60000722"
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "publication": "INEGI Información Topográfica 1:250 000 G1309 Torreón",
+      "url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/imagen_cartografica/1_250_000/794551154977_geo.pdf",
+      "observed_notice": "The original technical margin displays an INEGI copyright notice, 2024.",
+      "aw_id": "hydro-system:70840433",
+      "acquisition_stop": false,
+      "restriction_scope": "Originals and derived images remain private. Only bounded original factual observations and normal bibliography are prepared for publication. This notice is not itself an acquisition denial."
+    },
+    {
+      "source_keys": [
+        "USGSTOPO_R185_KASHUNUK_OPENING",
+        "USGSTOPO_R185_KASHUNUK_MIDDLE",
+        "USGSTOPO_R185_KASHUNUK_WIDENED_REACH",
+        "USGSTOPO_R185_KASHUNUK_APHREWN_TERMINAL"
+      ],
+      "kind": "bounded_cartographic_and_name_scope",
+      "observation": "Readable original maps establish connected named corridors but retain distinct Kashunuk and Aphrewn reach names and a separately labelled widening. The actual terminal is within a continuing river channel.",
+      "material_gap": false,
+      "aw_id": "hydro-system:80220950",
+      "acquisition_stop": false,
+      "restriction_scope": "No exact-bank, current-tidal-flow, legal-name-boundary or natural-mouth inference; only own factual synthesis and ordinary bibliography are public-ready."
+    },
+    {
+      "publication": "GeoVenezuela, Estado Falcón, capítulo46",
+      "official_url": "https://bibliofep.fundacionempresaspolar.org/media/1046/gv_t6_c46_p198_285_lres_single_preview.pdf",
+      "kind": "bounded_regional_prose_and_thematic_cartography_scope",
+      "observed_limit": "The inspected map is a climate map; separate appendix cartography is referenced but unacquired. No explicit restricted-distribution or officials-only notice was found in the pages inspected. This does not grant reproduction rights.",
+      "handling": "Use own factual synthesis and ordinary bibliography only. Original document, crops and orientation aids remain private. Do not treat climate boundaries, parsed map labels or named-basin relationships as selected-channel correspondence.",
+      "material_gap": true,
+      "publication_access_stop": false,
+      "aw_id": "hydro-system:60000722",
+      "acquisition_stop": false
+    }
+  ]
+}

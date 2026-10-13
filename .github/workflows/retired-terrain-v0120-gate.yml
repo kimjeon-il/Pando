@@ -7,7 +7,7 @@ on:
       - 'tools/check-retired-terrain.mjs'
       - 'tests/unit/retired-terrain-audit.test.mjs'
       - '.github/workflows/retired-terrain-v0120-gate.yml'
-      - 'docs/validation/terrain-v0120-retirement-evidence.json'
+      - 'reports/development/testing/terrain-v0120-retirement-evidence.json'
       - 'reports/archive/data-versioning/web-data-versioning-phase11.md'
       - 'reports/archive/data-versioning/progress.md'
       - 'docs/data-url-retention-policy.md'

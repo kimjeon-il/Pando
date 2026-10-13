@@ -1,0 +1,658 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r186",
+  "sources": [
+    {
+      "source_key": "r186-nasa-wollaston-prose",
+      "title": "Wollaston Peninsula, Victoria Island",
+      "publisher": "NASA Earth Observatory",
+      "authors": "Caption by Kathryn Hansen; image credited to Jesse Allen and Robert Simmon using USGS Landsat data",
+      "date": "2015-04-15",
+      "scene_date": "2014-06-21",
+      "official_url": "https://science.nasa.gov/earth/earth-observatory/wollaston-peninsula-victoria-island-85698/",
+      "evidence_kind": "primary_satellite_project_caption_prose_only",
+      "actual_read_scope": "The article body, provenance and bibliography were read. The text identifies Kugaluk River crossing Wollaston Peninsula to Penny Bay. No linked scene pixels were acquired or inspected.",
+      "acquisition_outcome": "Normal article reader succeeded. Subsequent linked riverdelta image request returned web-reader Cache miss, with no pixels and origin HTTP unknown.",
+      "source_independence": "NASA identifies its own Landsat8 OLI image processing and authorship from USGS observations. This is a distinct satellite-image project, not an alternative delivery of Canadian thematic maps or a naming-service record.",
+      "limits": "Regional named-river and receiving-bay context only. The missing image cannot establish selected-course correspondence. Whole scene/publication image acquisition and equivalent routes remain paused."
+    },
+    {
+      "source_key": "r186-sharpe434-context",
+      "title": "Quaternary geology of Wollaston Peninsula, Victoria Island, Northwest Territories",
+      "author": "David R. Sharpe",
+      "publisher": "Geological Survey of Canada",
+      "series": "Memoir434",
+      "year": 1992,
+      "official_url": "https://emrlibrary.gov.yk.ca/gsc/memoirs/434/memoir.pdf",
+      "evidence_kind": "primary_field_project_prose_and_bounded_figures",
+      "actual_read_scope": "Title, copyright page and preface; printed page5 project and fieldwork account; printed page6 Figure1B regional location map; printed pages10–11 topography prose; printed page12 Figure6A historical Landsat overview; printed page15 methods. Figure1B labels Kugaluk River and Penny Bay. No further uninspected figure was read after the later companion-map pause.",
+      "acquisition_outcome": "Normal original completed HTTP200 application/pdf. The complete book PDF has93 pages; the separately listed pocket Map1650A is not included.",
+      "source_independence": "The original identifies Sharpe/Nixon field investigations in1982–1983 with additional1987 work, ground and helicopter traverses from seven camps, and interpretation of aerial photography for Wollaston terrain research. This is affirmative field-project identity distinct from the unresolved PCSP2014, coastal-inventory and other held projects. The related Map1650A/CGM248 family is treated as the same project, not as independent evidence.",
+      "limits": "The observed location figure establishes regional placement only. The landscape overview does not resolve all34 selected parts, lakes, joins or outlet correspondence. Uninspected original figures are not evidence; only observations actually made before the companion-map outcome are retained.",
+      "use_notice": "Copyright Minister of Supply and Services Canada1992. Own bounded observations and ordinary bibliography only; no original or derivative imagery redistributed."
+    },
+    {
+      "source_key": "r186-cgm248-unavailable",
+      "title": "Surficial geology, Wollaston Peninsula, Victoria Island, Nunavut–Northwest Territories, NTS87-D, parts of87-A, B, C, E, and F",
+      "publisher": "Geological Survey of Canada",
+      "series": "Canadian Geoscience Map248, preliminary, Surficial Data Model v2.1 conversion of Map1650A",
+      "year": 2017,
+      "official_url": "https://publications.gc.ca/collections/collection_2017/rncan-nrcan/M183-1-248-2016-eng.pdf",
+      "evidence_kind": "failed_original_map_acquisition_only",
+      "actual_read_scope": "No original map or substantive map content read. Discovery metadata identified the companion conversion; it was not treated as map evidence.",
+      "acquisition_outcome": "Sole normal original ended HTTP200 text/html after redirect to an archived-information page, rather than the advertised PDF.",
+      "source_independence": "Related to Sharpe/Nixon Map1650A and Memoir434; not an independent replacement of that project.",
+      "limits": "Missing map, related project material and equivalent acquisition/output-reading routes paused. No alternate catalogue, original1650A, mirror or equivalent file request followed.",
+      "used_as_substantive_evidence": false
+    },
+    {
+      "source_key": "r186-ntgs2015-023-bluenose",
+      "title": "Inventory of active retrogressive thaw slumps in the Bluenose Moraine, western Nunavut",
+      "authors": "R.A. Segal, T.C. Lantz and S.V. Kokelj",
+      "publisher": "Northwest Territories Geological Survey; University of Victoria contributors",
+      "publication": "NWT Open Report 2015-023",
+      "year": 2016,
+      "actual_material_read": "Complete report prose and imprint; Figure 3, printed page4 (PDF page8), visually inspected at whole-map and bounded inlet, lake, outlet and coastal scales. Cover and Figure2 historical photograph were not visually inspected or used.",
+      "identity_basis": "A specifically identified contemporary remote-inventory project supported by the Northwest Territories Cumulative Impacts Monitoring Program, NTGS and NSERC. The report describes digitizing slumps from 2006 SPOT4/5 imagery in a3653-square-kilometre study region. It is distinct from the July1990 CWS park survey and the1988 moraine-stratigraphy investigation.",
+      "map_provenance": "Original study-region Figure3. Methods identify CanVec hydro features, 1:50,000, for waterbody removal and SPOT imagery for slump mapping; wholly independent underlying hydrographic data are not claimed. No stopped CanMatrix, CBMT or CGN source was requested.",
+      "evidence_scope": "Generalized historical geographic correspondence and the directly printed Bluenose Lake/Amundsen Gulf labels; not current flow, formal naming-registry evidence or hydrological validation.",
+      "official_url": "https://nwtdiscoveryportal.enr.gov.nt.ca/geoportaldocuments/2016-17%20-%20REPORT%20-%20NWT%20Open%20Report%202015-023%20-%20Inventory%20of%20active%20retrogressive%20thaw%20slumps%20in%20the%20Bluenose%20Moraine%2C%20western%20Nunavut.pdf"
+    },
+    {
+      "source_key": "r186-bluenose1999-issue-context",
+      "title": "La Moraine du Lac Bluenose (Territoires du Nord-Ouest), une moraine à noyau de glace de glacier",
+      "authors": "Denis A. St-Onge and Isabelle McMartin",
+      "publisher": "Les Presses de l’Université de Montréal / Érudit",
+      "publication": "Géographie physique et Quaternaire53(2),287–295",
+      "year": 1999,
+      "doi": "10.7202/005696ar",
+      "actual_material_read": "Publisher issue-page bibliographic entry and abstract only. The linked article record failed; no article body or figures read.",
+      "evidence_scope": "Regional Bluenose-moraine setting only; no selected-route correspondence or river-name support.",
+      "official_url": "https://www.erudit.org/en/journals/gpq/1999-v53-n2-gpq151/"
+    },
+    {
+      "source_key": "r186-cws135-unacquired",
+      "title": "A natural resource survey of the Melville Hills region, Northwest Territories",
+      "authors": "S.C. Zoltai, J. Sirois and G.W. Scotter",
+      "publisher": "Canadian Wildlife Service, Western and Northern Region",
+      "publication": "Technical Report Series135",
+      "year": 1992,
+      "actual_material_read": "No source original, report body or map pixels read. Bibliographic discovery only.",
+      "evidence_scope": "Excluded from substantive evidence because original acquisition outcome remains unresolved.",
+      "used_as_substantive_evidence": false,
+      "official_url": "https://publications.gc.ca/collections/collection_2018/eccc/cw69-5/CW69-5-135-eng.pdf"
+    },
+    {
+      "source_key": "r186-geus-greenland-national-1995-local",
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": [
+        "Jan C. Escher",
+        "T. Christopher R. Pulvertaft"
+      ],
+      "year": 1995,
+      "publisher": "Geological Survey of Greenland, Copenhagen; official digital original distributed by GEUS",
+      "scale": "1:2 500 000",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J",
+      "catalogue_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi:10.22008/FK2/SYAL4J",
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16855",
+      "current_acquisition": "No new external acquisition. The physically surviving complete original and catalogue, successfully acquired on 12 October 2026, were reused locally.",
+      "actual_read_scope": "Northern Greenland regional context; enlarged complete selected southern opening, ice and rock corridor and actual Independence Fjord ending; original northern graticule, Inland Ice legend, WGS84 UTM zone 24 projection, imprint, copyright and recommended citation; official catalogue bibliography and Custom Dataset Terms.",
+      "supports": "Complete ordinary terrain correspondence, including the southern opening beyond the regional neatline and overlapping national/regional context.",
+      "limits": "Historical generalized geological and ice/rock cartography. Ice surface contours, thickness isopachs, sub-ice bedrock contours and other thematic linework are not river-channel or hydraulic-connectivity evidence.",
+      "use_notice": "GEUS Custom Dataset Terms permit bounded internal use and processing while restricting redistribution and production or transfer of new maps. Source originals, crops, processed data and comparison or derived cartographic materials remain private. Public-ready content is limited to independently written factual observations and ordinary bibliography with GEUS attribution."
+    },
+    {
+      "source_key": "r186-geus-peary-land-sheet8-1986-local",
+      "title": "Geological map of Greenland, 1:500 000, Sheet 8, Peary Land",
+      "authors": [
+        "Hans Jørgen Bengaard",
+        "Niels Henriksen"
+      ],
+      "year": 1986,
+      "publisher": "Grønlands Geologiske Undersøgelse, Copenhagen; official digital original distributed by GEUS",
+      "scale": "1:500 000",
+      "official_url": "https://doi.org/10.22008/FK2/Q7HIDY",
+      "catalogue_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi:10.22008/FK2/Q7HIDY",
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16494",
+      "current_acquisition": "No new external acquisition. The physically surviving complete original and catalogue, successfully acquired on 12 October 2026, were reused locally.",
+      "actual_read_scope": "Single-sheet overview; southern and southwestern neatline and geographic graticules; enlarged Hagen Bræ, J. C. Christensen Land and Academy Land ice/rock and Quaternary-covered passages; final coastal land crossing and actual Independence Fjord endpoint; Ice and undifferentiated Quaternary-cover legend; original projection, geological compilation, printing and copyright imprint; official catalogue bibliography and Custom Dataset Terms.",
+      "supports": "Finer-scale terrain correspondence for the northern portion of part 0 and all parts 1–52, including every join, rock/ice/Quaternary passage and actual fjord terminal.",
+      "limits": "The southern opening below the regional neatline is outside this publication footprint; no regional-map inference is made there. No continuous named natural river, exact modern coastline or present hydraulic behavior is established.",
+      "source_epoch_note": "Original imprint: International ellipsoid, UTM zone 26; geological compilation by H. J. Bengaard and N. Henriksen in 1984; printed by Geodætisk Institut in 1986.",
+      "use_notice": "GEUS Custom Dataset Terms permit bounded internal use and processing while restricting redistribution and production or transfer of new maps. Source originals, crops, processed data and comparison or derived cartographic materials remain private. Public-ready content is limited to independently written factual observations and ordinary bibliography with GEUS attribution."
+    },
+    {
+      "source_key": "nluis_andrew_gordon_bay_36b_1986",
+      "title": "Land Use Information Series: Andrew Gordon Bay, District of Franklin, Northwest Territories, sheet 36B",
+      "publisher": "Lands Directorate, Environmental Conservation Service, Environment Canada; Indian and Northern Affairs",
+      "edition": "Thematic cartography by the Land Resource Research Institute, Agriculture Canada, 1986; base map NTS36B, edition1,1980",
+      "scale": "1:250,000",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_36b.jpg",
+      "actual_material_read": "Original full-sheet overview, entire selected southern corridor at enlarged reading scale, specific headward and southern joins, printed imprint, introduction, hydrographic legend, and fish-resource notes.",
+      "source_independence": "Separately produced South Baffin environmental land-use mapping project, with its own resource survey, thematic editing and imprint; it is not an alternate copy of CanMatrix or a SWBIG field-report product. Underlying topographic-data independence is not claimed."
+    },
+    {
+      "source_key": "nluis_cory_bay_36g_1986",
+      "title": "Land Use Information Series: Cory Bay, District of Franklin, Northwest Territories, sheet 36G",
+      "publisher": "Lands Directorate, Environmental Conservation Service, Environment Canada; Indian and Northern Affairs",
+      "edition": "Thematic cartography by the Land Resource Research Institute, Agriculture Canada, 1986; base map NTS36G, edition1,1980",
+      "scale": "1:250,000",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_36g.jpg",
+      "actual_material_read": "Original full-sheet overview, selected northern lake corridor and Kommanik terminal reach, map labels, printed imprint, hydrographic legend and fish-resource notes.",
+      "source_independence": "Separately imprinted South Baffin environmental land-use map, produced within the historical NLUIS resource-information program; not a recovery copy of a stopped source. Its relationship to the same series is retained without inferring clearance for other sheets or the held index."
+    },
+    {
+      "source_key": "swbig_project_metadata_2006",
+      "title": "Southwest Baffin Integrated Geoscience Project (SWBIG), Foxe Peninsula, southwest Baffin Island, Nunavut, 2006: project metadata",
+      "publisher": "Natural Resources Canada / Canada-Nunavut Geoscience Office",
+      "authors": "D.J. Utting",
+      "official_url": "https://geochem.nrcan.gc.ca/cdogs/content/prj/prj310002_e.htm",
+      "actual_material_read": "Project description identifying the 2006 surficial-mapping and till-sampling program and GSC Open File5614. No original report or map was read.",
+      "evidence_scope": "Publication/project identity only; no selected-route correspondence.",
+      "used_as_substantive_evidence": false
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:80039501",
+      "source_keys": [
+        "r186-nasa-wollaston-prose",
+        "r186-sharpe434-context"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2355
+          ],
+          "component_scope": "Chosen eastern opening and initial northwestward approach",
+          "finding": "The supplied selection begins in the eastern interior and trends northwest. No actually inspected source establishes the chosen initial waterbody, its outlet, or the first through-going stream connection. The model opening is not asserted to be the natural source of Kugaluk River.",
+          "sources": [],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2355
+          ],
+          "component_scope": "Upper westward interval and possible waterbody transitions",
+          "finding": "The selected upper westward interval was considered, but no readable primary cartography establishes its individual waters, lake entries and exits, or side-stream joins. Broad Kugaluk regional placement does not bridge these connections.",
+          "sources": [],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2355
+          ],
+          "component_scope": "Northern middle arc and intermediate joins",
+          "finding": "The long middle arc lies within the regional Wollaston study setting. The small-scale location figure and historical landscape overview do not distinguish its actual river/lake succession or intermediate joins.",
+          "sources": [
+            "r186-sharpe434-context",
+            "r186-nasa-wollaston-prose"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2355
+          ],
+          "component_scope": "Middle westward continuation and southwestern turn",
+          "finding": "The selected middle continuation and southwestern turn remain without source-to-route correspondence. No nearby lake name or geological landform is assigned to these parts.",
+          "sources": [],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2355
+          ],
+          "component_scope": "Southward reach and return to a westward course",
+          "finding": "The modeled southward transfer and subsequent westward continuation were considered. The surviving permitted observations do not show the actual connecting channels or identify whether any selected passage traverses lake, wetland, or another waterbody.",
+          "sources": [],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2355
+          ],
+          "component_scope": "Lower westward corridor and joins",
+          "finding": "NASA prose identifies a Kugaluk River crossing Wollaston Peninsula to Penny Bay, and the original memoir location figure places that named river in the same southwestern regional setting. Neither source establishes these particular selected lower reaches, their feeder junctions, or all intervening through-links.",
+          "sources": [
+            "r186-sharpe434-context",
+            "r186-nasa-wollaston-prose"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2355
+          ],
+          "component_scope": "Lower southern bend and approach to the coast",
+          "finding": "The final southern bend and western approach require readable corridor material. No observed source resolves the selected passage across the lower coastal setting, and no contemporary tidal condition or channel position is inferred.",
+          "sources": [],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2355
+          ],
+          "component_scope": "Final westward reach and selected sea endpoint",
+          "finding": "Penny Bay is the source-supported receiving bay of the regional Kugaluk River. The exact selected terminal reach has not been independently matched to that named outlet at ordinary corridor scale, so even this final connection remains material-pending rather than completed on the strength of regional naming alone.",
+          "sources": [
+            "r186-sharpe434-context",
+            "r186-nasa-wollaston-prose"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80043520",
+      "source_keys": [
+        "r186-ntgs2015-023-bluenose",
+        "r186-bluenose1999-issue-context"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2366
+          ],
+          "component_scope": "chosen southwestern opening",
+          "finding": "The thematic map shows an unnamed tributary approaching the southwestern end of Bluenose Lake from the west. Its mapped western headward continuation does not unambiguously establish the selected initial northeastward opening before the eastward inlet reach. The nearby small waterbodies are not substituted for that opening.",
+          "sources": [
+            "r186-ntgs2015-023-bluenose"
+          ],
+          "correspondence": "initial_selected_opening_unestablished",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2366
+          ],
+          "component_scope": "eastward feeder and southwestern lake entrance",
+          "finding": "The eastward to southeastward unnamed feeder can be followed into the southwestern bay of the large waterbody directly labeled Bluenose Lake. This supports the inlet reach and lake entrance after the unresolved initial opening.",
+          "sources": [
+            "r186-ntgs2015-023-bluenose"
+          ],
+          "correspondence": "ordinary_corridor_correspondence_supported",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2366
+          ],
+          "component_scope": "Bluenose Lake passage and northern outlet",
+          "finding": "The selection traverses the connected southwestern bay and elongate main body of the directly labeled Bluenose Lake, then approaches its narrower northern end. The figure shows the lake outline and its northward outlet connection. The lake name is retained only as a lake-component identity.",
+          "sources": [
+            "r186-ntgs2015-023-bluenose"
+          ],
+          "correspondence": "ordinary_lake_passage_correspondence_supported",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2366
+          ],
+          "component_scope": "upper outlet river and lake-bearing corridor",
+          "finding": "The map shows a continuous northward outlet watercourse through the small-waterbody surroundings beyond Bluenose Lake, including the transition from the lake-bearing terrain to a more continuous river course. The selected intervening joins follow this mapped corridor; no name is supplied for these river reaches on the inspected figure.",
+          "sources": [
+            "r186-ntgs2015-023-bluenose"
+          ],
+          "correspondence": "ordinary_corridor_correspondence_supported",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2366
+          ],
+          "component_scope": "middle bends and lower northeastward river",
+          "finding": "The characteristic west-returning middle bend, renewed northern course and longer northeastward lower reach agree with the unnamed watercourse shown on the figure. Adjacent eastern drainage and lake strings are distinct from the selected trunk.",
+          "sources": [
+            "r186-ntgs2015-023-bluenose"
+          ],
+          "correspondence": "ordinary_corridor_correspondence_supported",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2366
+          ],
+          "component_scope": "actual coastal terminal",
+          "finding": "The lower watercourse turns northward and visibly reaches the shore of the waterbody labeled Amundsen Gulf. This supports the selected river-to-sea terminal at ordinary corridor scale. No exact active bank, tidal boundary or present distributary is assigned.",
+          "sources": [
+            "r186-ntgs2015-023-bluenose"
+          ],
+          "correspondence": "ordinary_terminal_correspondence_supported",
+          "component_correspondence_completed": true
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:90002319",
+      "source_keys": [
+        "r186-geus-greenland-national-1995-local",
+        "r186-geus-peary-land-sheet8-1986-local"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8829
+          ],
+          "component_scope": "Southern Inland Ice opening, regional-sheet edge crossing and initial northward passage",
+          "finding": "The national original covers the complete southern opening and long initial northward part. The regional original begins at its southern neatline within this same part and overlaps the national map northward through ice, marginal exposed-rock terrain and the Hagen Bræ setting. The opening south of that neatline is not attributed to the regional sheet. The full terrain passage, including the map-edge crossing and its continuation to the first join, is accounted for; neither map establishes a continuous natural-river channel.",
+          "sources": [
+            "r186-geus-greenland-national-1995-local",
+            "r186-geus-peary-land-sheet8-1986-local"
+          ],
+          "correspondence": "complete_geographic_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            8829
+          ],
+          "component_scope": "Short northern turns across the glacier-margin and Quaternary-covered passage",
+          "finding": "The selected short northward and northwestward parts leave the Hagen Bræ ice setting, pass through the mapped Quaternary-covered margin and exposed-rock belt, and reach the adjacent interior-ice setting south of J. C. Christensen Land. All short joins and the turn into the westward continuation are visible in the original regional cartography. The blue dotted legend unit is undifferentiated Quaternary cover; it is not by itself a mapped lake or a named river.",
+          "sources": [
+            "r186-geus-greenland-national-1995-local",
+            "r186-geus-peary-land-sheet8-1986-local"
+          ],
+          "correspondence": "complete_geographic_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            8829
+          ],
+          "component_scope": "Westward middle sequence and its successive short offsets",
+          "finding": "The original regional map accounts for the westward corridor across pale ice terrain bordered by exposed-rock units. The initial margin and all subsequent small bends and joins are visible. No river hydronym is established for these parts, and the modeled line does not turn ice or geological linework into proof of surface or subglacial flow.",
+          "sources": [
+            "r186-geus-greenland-national-1995-local",
+            "r186-geus-peary-land-sheet8-1986-local"
+          ],
+          "correspondence": "complete_geographic_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            8829
+          ],
+          "component_scope": "Northwestern approach and crossing of the intervening rock and Quaternary-covered corridor",
+          "finding": "The northwestern parts approach and cross the narrow exposed-rock and undifferentiated Quaternary-covered passage between the eastern interior-ice setting and the ice within the Academy Land region. The regional original shows the complete intervening terrain and both sides of the crossing. It supports geographic correspondence, without establishing a hydraulic through-link or a shared river name.",
+          "sources": [
+            "r186-geus-greenland-national-1995-local",
+            "r186-geus-peary-land-sheet8-1986-local"
+          ],
+          "correspondence": "complete_geographic_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            8829
+          ],
+          "component_scope": "Academy Land ice and exposed-rock approach to the final northward part",
+          "finding": "The remaining northwestern bends and short westward parts pass through the mapped Academy Land ice and adjoining exposed-rock terrain. Their entire course and the join to the last long northward part are covered. Academy Land is a land-region label, and the separate Academy Gletscher to the west is not substituted for a river name on this selected object.",
+          "sources": [
+            "r186-geus-greenland-national-1995-local",
+            "r186-geus-peary-land-sheet8-1986-local"
+          ],
+          "correspondence": "complete_geographic_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            8829
+          ],
+          "component_scope": "Final northward land-and-coast passage and actual Independence Fjord endpoint",
+          "finding": "The final selected part runs north from the Academy Land ice-margin setting, across the exposed-rock coastal belt and into the water area labeled Independence Fjord. Both originals expose the actual ending in that fjord, rather than only a nearby land or glacier label. The selected line is not shown to follow a named continuous natural river across the intervening land. Independence Fjord identifies the receiving water setting only; neither a precise contemporary river mouth nor current shoreline and ice-front positions are established.",
+          "sources": [
+            "r186-geus-greenland-national-1995-local",
+            "r186-geus-peary-land-sheet8-1986-local"
+          ],
+          "correspondence": "complete_geographic_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "candidate_name": null,
+          "ordinary_river_mouth_established": false,
+          "present_hydraulic_continuity_verified": false
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80125244",
+      "source_keys": [
+        "nluis_andrew_gordon_bay_36b_1986",
+        "nluis_cory_bay_36g_1986"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2568
+          ],
+          "component_scope": "western_headward_opening_and_lake_chain",
+          "finding": "The selected opening and its looping western lake-and-stream corridor can be located among the unnamed waters west of Tessik Lake on the Andrew Gordon Bay sheet. The map does not attach a river name to this headward component. This regional match does not resolve the later southern transfer into Kinguk Lake.",
+          "sources": [
+            "nluis_andrew_gordon_bay_36b_1986"
+          ],
+          "correspondence": "ordinary_scale_component_correspondence",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2568
+          ],
+          "component_scope": "southern_turn_and_transfer_into_kinguk",
+          "finding": "The map depicts the separate lakes and short streams around the selected southern turn west and southwest of Kinguk Lake. It does not establish an unambiguous continuous interpretation of the complete selected transfer from that western lake chain into Kinguk Lake. Nearby water shapes and a common regional setting are insufficient to supply the missing through-link.",
+          "sources": [
+            "nluis_andrew_gordon_bay_36b_1986"
+          ],
+          "correspondence": "material_selected_through_connection_unresolved",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2568
+          ],
+          "component_scope": "kinguk_ameetuk_and_tessik_inlet",
+          "finding": "The selected northward lake passage corresponds at ordinary scale to Kinguk Lake, Ameetuk Lake and the connecting narrow-water corridor entering the southwestern side of Tessik Lake. These are distinct lake components, not evidence that each water carries the downstream river name.",
+          "sources": [
+            "nluis_andrew_gordon_bay_36b_1986"
+          ],
+          "correspondence": "ordinary_scale_component_correspondence",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2568
+          ],
+          "component_scope": "tessik_and_angmaluk_transition",
+          "finding": "The eastern and northward selected run is located through Tessik Lake and its northern lake-and-stream continuation toward Angmaluk Lake at the sheet boundary. The map supplies the ordinary lake passages and intervening joins.",
+          "sources": [
+            "nluis_andrew_gordon_bay_36b_1986",
+            "nluis_cory_bay_36g_1986"
+          ],
+          "correspondence": "ordinary_scale_component_correspondence",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2568
+          ],
+          "component_scope": "angmaluk_shappa_ashuna",
+          "finding": "The Cory Bay sheet shows the selected northern continuation from Angmaluk Lake through the Shappa Lake corridor into the southeastern part of Ashuna Lake. The larger through-water shapes and their connecting reaches correspond without treating adjacent lakes as a single scalar-named river.",
+          "sources": [
+            "nluis_cory_bay_36g_1986"
+          ],
+          "correspondence": "ordinary_scale_component_correspondence",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2568
+          ],
+          "component_scope": "ashuna_to_kavivau",
+          "finding": "The selected westward and then northward passage corresponds to Ashuna Lake and the narrow northern lake corridor labeled Kavivau Lake on the inspected sheet. Kavivau is retained as that historical map spelling only.",
+          "sources": [
+            "nluis_cory_bay_36g_1986"
+          ],
+          "correspondence": "ordinary_scale_component_correspondence",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2568
+          ],
+          "component_scope": "kommanik_selected_terminal_reach",
+          "finding": "The last selected reaches correspond to the outlet of the Kavivau Lake corridor and the broadened reach labeled Kommanik River. The source continues northwest to Gibson Bay beyond the selected endpoint. It therefore supports the selected downstream river setting, while it does not establish that the selected endpoint itself is the sea mouth.",
+          "sources": [
+            "nluis_cory_bay_36g_1986"
+          ],
+          "correspondence": "selected_endpoint_geographic_correspondence_with_terminal_class_caution",
+          "component_correspondence_completed": true
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "NASA Earth Observatory Wollaston Peninsula, Victoria Island;2015 article and June21,2014 Landsat scene",
+      "official_url": "https://science.nasa.gov/earth/earth-observatory/wollaston-peninsula-victoria-island-85698/",
+      "observed_outcome": "The linked riverdelta_oli_2014172_lrg.jpg image request returned web-reader Cache miss, no pixels. The article had already been read successfully.",
+      "outcome_layer": "Web image/cache availability failure; origin HTTP unknown.",
+      "restriction_scope": "Whole missing NASA scene/article image publication and equivalent NASA, USGS or Visible Earth delivery routes paused. No alternate image acquisition.",
+      "earlier_lawful_observations": "Actually read article prose identifying Kugaluk River crossing Wollaston Peninsula to Penny Bay remains regional context only.",
+      "newly_observed_access_failure": true,
+      "material_gap": true,
+      "aw_id": "hydro-system:80039501"
+    },
+    {
+      "publication": "Canadian Geoscience Map248, conversion of Sharpe/Nixon Map1650A; associated Wollaston Quaternary field-project publication family",
+      "official_url": "https://publications.gc.ca/collections/collection_2017/rncan-nrcan/M183-1-248-2016-eng.pdf",
+      "observed_outcome": "Sole normal-original request followed a redirect and completed HTTP200 text/html at an archived-information page, not a PDF. No original map pixels read.",
+      "outcome_layer": "Completed original HTTP response with wrong content type and archive redirect; not HTTP401/403 or an access denial.",
+      "restriction_scope": "Missing CGM248, related Map1650A/Memoir434 project material, and equivalent acquisition/output-reading routes paused. No catalogue, mirror, alternate format or further uninspected retained-output reading followed.",
+      "earlier_lawful_observations": "Only Memoir434 prose and Figures1B/6A actually inspected before the companion outcome remain usable at their recorded regional scope.",
+      "newly_observed_access_failure": true,
+      "material_gap": true,
+      "aw_id": "hydro-system:80039501"
+    },
+    {
+      "publication": "A natural resource survey of the Melville Hills region, Northwest Territories; CWS Technical Report135 (1992)",
+      "observed_outcome": "The terminal-status request was refused at the tool layer. One subsequently authorized identical status retry returned Unknown process. The original HTTP result and content remain unobserved; no reacquisition or output reading followed.",
+      "outcome_layer": "Tool authorization-context refusal followed by session loss; original HTTP unknown.",
+      "restriction_scope": "Whole missing publication and equivalent original, catalogue, reader, cache, mirror, figure, screenshot and output-reading routes remain paused. No reacquisition or file reading.",
+      "earlier_lawful_observations": null,
+      "aw_id": "hydro-system:80043520",
+      "official_url": "https://publications.gc.ca/collections/collection_2018/eccc/cw69-5/CW69-5-135-eng.pdf"
+    },
+    {
+      "publication": "St-Onge and McMartin (1999), La Moraine du Lac Bluenose…, DOI10.7202/005696ar",
+      "observed_outcome": "The publisher issue page opened normally. The sole linked article-record request returned web-reader Cache miss without an HTTP status. No article body, PDF or map pixels acquired.",
+      "outcome_layer": "Web-reader availability failure; origin HTTP unknown.",
+      "restriction_scope": "Whole missing article and figures, equivalent record, original, reader, cache, screenshot, mirror and format routes paused. No alternate request.",
+      "earlier_lawful_observations": "Previously read issue-page bibliography and abstract only, within regional context.",
+      "aw_id": "hydro-system:80043520",
+      "official_url": "https://www.erudit.org/en/journals/gpq/1999-v53-n2-gpq151/005696ar/abstract/"
+    },
+    {
+      "publication": "Utting, D.J., and Brown, O.H.(2007), Till survey results and ice-transport interpretations, Foxe Peninsula, southwest Baffin Island, Nunavut; Geological Survey of Canada Open File5614",
+      "official_url": "https://geochem.nrcan.gc.ca/cdogs/content/pub/pub02065_e.htm",
+      "observed_outcome": "The sole publication-metadata opening returned Cache miss. No publication body or original map pixels were acquired.",
+      "outcome_layer": "Web-reader availability failure; origin HTTP status unknown.",
+      "restriction_scope": "Whole missing publication and equivalent acquisition routes paused. Related SWBIG output was not acquired as substitute content while that publication/project relationship remains unresolved.",
+      "earlier_lawful_observations": "Only the separate, successfully read SWBIG project description and bibliographic identification; no cartographic evidence.",
+      "newly_observed_access_failure": true,
+      "aw_id": "hydro-system:80125244"
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "publication": "Quaternary geology of Wollaston Peninsula, Victoria Island, Northwest Territories",
+      "official_url": "https://emrlibrary.gov.yk.ca/gsc/memoirs/434/memoir.pdf",
+      "observed_limit": "Printed copyright Minister of Supply and Services Canada1992.",
+      "handling": "Only own factual observations and normal bibliography supplied; originals, rendered pages and crops remain private.",
+      "outcome_layer": "Reproduction-rights notice, not an access denial.",
+      "material_gap": false,
+      "aw_id": "hydro-system:80039501",
+      "acquisition_stop": false
+    },
+    {
+      "publication": "NWT Open Report2015-023",
+      "limitation_kind": "explicit_use_and_redistribution_conditions",
+      "observed_notice": "Printed Terms of Use state that data are provided as-is and intended for non-commercial use, with credit; distribution or reproduction of the data and report is not permitted. Copyright is held by NTGS and the Arctic Landscape Ecology Lab unless otherwise indicated.",
+      "handling": "Originals, crops, orientation overlays and extracted content stay private. Public-ready output consists only of own bounded factual observations, short feature labels and ordinary bibliography. No source-data redistribution or product application is authorized.",
+      "aw_id": "hydro-system:80043520",
+      "acquisition_stop": false,
+      "official_url": "https://nwtdiscoveryportal.enr.gov.nt.ca/geoportaldocuments/2016-17%20-%20REPORT%20-%20NWT%20Open%20Report%202015-023%20-%20Inventory%20of%20active%20retrogressive%20thaw%20slumps%20in%20the%20Bluenose%20Moraine%2C%20western%20Nunavut.pdf"
+    },
+    {
+      "publication": "NWT Open Report2015-023",
+      "limitation_kind": "held_source_reproduction_excluded",
+      "observed_notice": "Cover/Figure2 credits a1988 photograph to Denis St-Onge(2006); background cites St-Onge and McMartin(1999).",
+      "handling": "The historical photograph was not visually inspected or used; the held1999 article was not recovered through citations or reproductions. Geographic observations use the report’s own Figure3 and directly visible base geography only.",
+      "aw_id": "hydro-system:80043520",
+      "acquisition_stop": false,
+      "official_url": "https://nwtdiscoveryportal.enr.gov.nt.ca/geoportaldocuments/2016-17%20-%20REPORT%20-%20NWT%20Open%20Report%202015-023%20-%20Inventory%20of%20active%20retrogressive%20thaw%20slumps%20in%20the%20Bluenose%20Moraine%2C%20western%20Nunavut.pdf"
+    },
+    {
+      "publication": "Geological map of Greenland, 1:500 000, Sheet 8, Peary Land, 1986",
+      "official_url": "https://doi.org/10.22008/FK2/Q7HIDY",
+      "limitation_kind": "nonmaterial_regional_map_edge",
+      "observed_outcome": "The regional southern neatline excludes the southern opening and a southern portion of the first selected part.",
+      "material_gap": false,
+      "aw_id": "hydro-system:90002319",
+      "acquisition_stop": false,
+      "restriction_scope": "Regional evidence stops at its actual neatline. The national map fills the omitted opening and overlaps the regional coverage through the initial northward corridor. This is not an access failure."
+    },
+    {
+      "publication": "GEUS national 1995 and Peary Land Sheet 8, 1986 originals",
+      "official_urls": [
+        "https://doi.org/10.22008/FK2/SYAL4J",
+        "https://doi.org/10.22008/FK2/Q7HIDY"
+      ],
+      "limitation_kind": "dataset_use_terms",
+      "observed_outcome": "The retained official catalogue Custom Dataset Terms and original imprints were read.",
+      "material_gap": false,
+      "aw_id": "hydro-system:90002319",
+      "acquisition_stop": false,
+      "restriction_scope": "GEUS Custom Dataset Terms permit bounded internal use and processing while restricting redistribution and production or transfer of new maps. Source originals, crops, processed data and comparison or derived cartographic materials remain private. Public-ready content is limited to independently written factual observations and ordinary bibliography with GEUS attribution."
+    },
+    {
+      "publication": "GEUS national 1995 and Peary Land Sheet 8, 1986 originals",
+      "official_urls": [
+        "https://doi.org/10.22008/FK2/SYAL4J",
+        "https://doi.org/10.22008/FK2/Q7HIDY"
+      ],
+      "limitation_kind": "completed_natural_river_identity_and_name_scope_limitation",
+      "observed_outcome": "The complete opening, ice and exposed-rock transitions, Quaternary-covered passages, all joins, final coastal land passage and actual fjord ending are covered. No representative natural-river hydronym or whole-route hydraulic continuity is established.",
+      "material_gap": false,
+      "aw_id": "hydro-system:90002319",
+      "acquisition_stop": false,
+      "restriction_scope": "The completed geographic correspondence does not establish a continuous natural river, exact modern river mouth, current ice-front position or scalar hydronym."
+    },
+    {
+      "publication": "Land Use Information Series, Andrew Gordon Bay36B and Cory Bay36G,1986",
+      "official_urls": [
+        "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_36b.jpg",
+        "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_36g.jpg"
+      ],
+      "observed_notice": "Crown copyright, historical topographic bases, and interim resource-information caveats. No limited-distribution or officials-only notice was observed.",
+      "aw_id": "hydro-system:80125244",
+      "acquisition_stop": false,
+      "restriction_scope": "Own bounded factual observations and normal bibliography only. Original source maps and working derivatives are not redistributed. The notice is not an acquisition prohibition."
+    }
+  ]
+}

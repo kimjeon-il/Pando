@@ -1,0 +1,646 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r176",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r175",
+    "commit": "2c2a486acac2d6d0c09010e474244fac1e5c65ff",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r175/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:70892034",
+    "hydro-system:90106503",
+    "hydro-system:61533139",
+    "hydro-system:70752635"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:70892034",
+      "category": "river_group",
+      "system_id": "70892034",
+      "original_queue_rank": 508,
+      "baseline_logical_fid": 3267,
+      "geometry_fids": [
+        10435,
+        10436
+      ],
+      "minimum_stage": 2,
+      "bbox": [
+        -97.258333,
+        19.022917,
+        -96.085124,
+        19.152083
+      ],
+      "rendered_mainstem_length_km": 163.851,
+      "rendered_network_length_km": 163.851,
+      "geometry_summary": {
+        "fragment_count": 2,
+        "mainstem_fragment_count": 2,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -97.258333,
+          19.022917,
+          -96.085124,
+          19.152083
+        ]
+      },
+      "candidate_name": "Río Jamapa",
+      "candidate_names": [
+        "Río Jamapa"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "region": "Veracruz, Mexico: northeastern Pico de Orizaba flank, Jamapa valley and Boca del Río Gulf outlet",
+      "candidate_name_role": "representative_system_identity_only",
+      "source_keys": [
+        "r176_70892034_inegi_veracruz2020"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "Representative identity of the selected connected Jamapa mainstem system from its mapped high-volcano opening to Boca del Río. Direct naming is read along the middle course; the connected upstream and estuarine reaches are included as system components, without asserting one formally verified scalar name for every position.",
+      "completion_scope": "Complete source correspondence at ordinary generalized river-corridor scale for both mainstem fragments: actual headward opening, all 32 selected parts, central joining approach, lower southern confluence, distinct lagoon connection, and actual Gulf terminal. The state original supplies a direct Río Jamapa label and a connected route. No remaining material through-link gap was identified.",
+      "supported_name_scope": "Representative identity of the selected connected Jamapa mainstem system from its mapped high-volcano opening to Boca del Río. Direct naming is read along the middle course; the connected upstream and estuarine reaches are included as system components, without asserting one formally verified scalar name for every position.",
+      "naming_scope_details": {
+        "representative_system_identity": "Río Jamapa",
+        "whole_feature_uniform_name_established": false,
+        "scope_limits": [
+          "Formal registry status and an exact whole-feature scalar name remain unverified.",
+          "The mapped opening does not establish current glacier extent, meltwater supply or present perennial discharge.",
+          "Current channel works, water levels, bank positions and exact coastal endpoint placement are outside this historical cartographic finding.",
+          "The optional Calcahualco municipal original was not obtained and supplies no evidence; its unresolved acquisition outcome is preserved separately."
+        ]
+      }
+    },
+    {
+      "aw_id": "hydro-system:90106503",
+      "category": "river_group",
+      "system_id": "90106503",
+      "original_queue_rank": 509,
+      "baseline_logical_fid": 2868,
+      "geometry_fids": [
+        8885
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -51.764611,
+        65.841667,
+        -49.483333,
+        66.24375
+      ],
+      "rendered_mainstem_length_km": 163.765,
+      "rendered_network_length_km": 163.765,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -51.764611,
+          65.841667,
+          -49.483333,
+          66.24375
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_name_scope_hold",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "region": "Southwest Greenland inland ice, the ice/exposed-rock corridor adjoining the southern Tasersiaq setting, and the margin of inner Evighedsfjord.",
+      "candidate_name_role": "No representative natural-river identity established. Tasersiaq and Evighedsfjord are contextual waterbody/coastal-water labels, not river-name candidates.",
+      "source_keys": [
+        "r176-geus-greenland-sheet2-allaart1982"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": "The regional original covers the complete selected geography but establishes neither a representative natural-river identity nor a continuous surveyed surface or subglacial river along the modeled succession. The nearby lake and fjord labels cannot name the whole river group.",
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "The selected opening is in mapped inland ice east and southeast of the Tasersiaq setting. The selected line turns north and west, follows an ice/exposed-rock corridor along the southern side of that waterbody, then bends southwest toward the inner Evighedsfjord ice/rock/coastal-water margin. The model is not treated as an ordinary mapped river merely because its terrain can be located.",
+      "completion_scope": "All 44 selected parts and joins were inspected against contiguous regional original cartography, with clean opening, middle and terminal enlargements, the geographic graticule, ice/rock legend and source imprint. Sheet 2 covers the entire selected footprint; no substantial unviewed geographic interval remains at ordinary regional scale. Selected-path orientation is approximate and is not an exact bank/vertex alignment claim.",
+      "supported_name_scope": "No whole-route natural-river hydronym established.",
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "representative_river_identity_established": false,
+        "surface_or_subglacial_continuity_established": false,
+        "selected_lake_throughflow_established": false,
+        "component_scope_limits": [
+          "Tasersiaq identifies the adjacent mapped waterbody. No continuous selected lake-throughflow, lake outlet or whole-group river name is inferred.",
+          "Evighedsfjord identifies coastal water at the terminal setting. Its label is not extended to the inland modeled group.",
+          "Ice, contours and exposed-rock correspondence do not prove surface or subglacial river connectivity.",
+          "No selected reservoir or managed-channel connector is established.",
+          "Historical regional cartography does not verify current glacier-front position, exact modern terminal placement or present drainage behavior.",
+          "A null candidate means the inspected sources did not establish the name; it does not assert that no local or official name exists."
+        ]
+      }
+    },
+    {
+      "aw_id": "hydro-system:61533139",
+      "category": "river_group",
+      "system_id": "61533139",
+      "original_queue_rank": 510,
+      "baseline_logical_fid": 3601,
+      "geometry_fids": [
+        14503
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -66.15625,
+        -37.464583,
+        -65.722917,
+        -36.51875
+      ],
+      "rendered_mainstem_length_km": 163.521,
+      "rendered_network_length_km": 163.521,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -66.15625,
+          -37.464583,
+          -65.722917,
+          -36.51875
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_source_material_pending",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "region": "Central La Pampa, Argentina; selected northern opening, southwestward and southeastward bends, southern loop and eastern end",
+      "candidate_name_role": "no_supported_whole_system_identity",
+      "source_keys": [
+        "r176-ign-historical500k-la-pampa-catalogue",
+        "r176-ssrh-la-pampa-basin-context"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": "The selected La Pampa corridor remains source-material pending. Independent official prose supplies only province-level drainage context; source access limitations prevented inspection of maps needed to establish the actual opening, intervening connections and terminal. No whole-system name is assigned.",
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "No candidate river, lake or wetland name is supported for the complete selected La Pampa corridor. The independent provincial basin-classification landing supplies regional context only; neither basin membership nor neighboring Atuel, Salado, Chadileuvú or Curacó labels establish selected through-links.",
+      "completion_scope": "The bounded research pass inspected all 26 parts of the single pinned selected fragment for orientation, the retained IGN catalogue before its new cancellation, and the independent SSRH provincial-basin landing and general source-use terms. No source map pixels were actually inspected. The IGN terminal-status cancellation and later distinct SSRH original HTTP403 left opening, middle connections and actual terminal unestablished. This is a material source gap, not a completed name-scope hold.",
+      "supported_name_scope": "No candidate river, lake or wetland name is supported for the complete selected La Pampa corridor. The independent provincial basin-classification landing supplies regional context only; neither basin membership nor neighboring Atuel, Salado, Chadileuvú or Curacó labels establish selected through-links.",
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "whole_feature_uniform_name_established": false,
+        "scope_limits": [
+          "Selected river/lake/wetland identities and all hydrological through-links remain unestablished.",
+          "Source acquisition cancellation does not establish that a river is absent or unnamed.",
+          "Model length is not an official measured river length.",
+          "Current flow, exact banks, shorelines, registry status and Korean forms are unverified."
+        ]
+      }
+    },
+    {
+      "aw_id": "hydro-system:70752635",
+      "category": "river_group",
+      "system_id": "70752635",
+      "original_queue_rank": 512,
+      "baseline_logical_fid": 3134,
+      "geometry_fids": [
+        9899
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -81.45625,
+        32.543209,
+        -80.54375,
+        33.3875
+      ],
+      "rendered_mainstem_length_km": 163.331,
+      "rendered_network_length_km": 163.331,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -81.45625,
+          32.543209,
+          -80.54375,
+          33.3875
+        ]
+      },
+      "candidate_name": "Combahee River",
+      "candidate_names": [
+        "Rosemary Creek",
+        "Salkehatchie River",
+        "Combahee River"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "region": "South Carolina Lowcountry: Rosemary Creek, Salkehatchie River and Combahee River tidal corridor",
+      "candidate_name_role": "representative_system_identity_only",
+      "source_keys": [
+        "USGSTOPO_R176_ROSEMARY_UPPER_SALKEHATCHIE",
+        "USGSTOPO_R176_MIDDLE_SALKEHATCHIE",
+        "USGSTOPO_R176_LOWER_SALKEHATCHIE_CONFLUENCE",
+        "USGSTOPO_R176_COMBAHEE_TIDAL_TERMINAL"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "Completed bounded representative Combahee River system identity for the selected Rosemary Creek opening, Salkehatchie River corridor, mapped Salkehatchie–Little Salkehatchie joining setting and downstream Combahee tidal reach. The actual selected endpoint is in the lower Combahee reach upstream of its mapped connection with Coosaw River, rather than the open Atlantic mouth. Distinct upstream creek and river names are retained.",
+      "completion_scope": "All forty parts of the sole selected mainstem fragment were considered against four overlapping, readable original USGS cartographic views. Coverage includes the chosen Rosemary Creek opening, small mapped on-channel waterbodies and their downstream continuations, the Buck Creek joining setting, Salkehatchie wetland-channel corridor, Barnwell and middle river junctions, the Little Salkehatchie confluence, upper and lower Combahee, tidal bends and the actual rendered terminal. Connected mapped channels and water polygons establish the ordinary through-links. No named-basin inference or model connectivity substitutes for an unobserved transfer. The terminal is a selected cutoff in the broad lower Combahee tidal corridor; a farther seaward mouth is not substituted for it.",
+      "supported_name_scope": "Rosemary Creek for the chosen headward corridor; Salkehatchie River for the substantial middle river; Combahee River for the receiving river below the Little Salkehatchie joining setting and the actual lower tidal terminal.",
+      "naming_scope_details": {
+        "representative_system_identity": "Combahee River",
+        "whole_feature_uniform_name_established": false,
+        "scope_limits": [
+          "Formal registry status, official name-transition vertices, naming history and Korean names are unverified.",
+          "Combahee River is a bounded representative system identity. Rosemary Creek, Salkehatchie River, Little Salkehatchie River and individual waterbodies retain their separate identities.",
+          "The chosen headward opening is not an ultimate or officially designated source; the selected modeled length is not an official river length.",
+          "Mapped wetland channels, ponds and tidal water polygons support geographic correspondence, not current water extent, perennial discharge, tidal stage, water-control operations or levee performance.",
+          "The selected lower endpoint lies on the broad Combahee tidal reach upstream of the mapped Coosaw connection. It is not a verified natural-river mouth or an open-ocean endpoint; local bank and meander simplifications remain outside this bounded result."
+        ]
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [
+      "hydro-system:90106503"
+    ],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [
+      "hydro-system:61533139"
+    ],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 3,
+    "supported_representative_system_identities": 2,
+    "scope_holds": 1,
+    "access_pending": 0,
+    "material_pending": 1
+  },
+  "totals_after": {
+    "recorded_targets": 647,
+    "non_pending_records": 492,
+    "source_access_pending": 3,
+    "source_material_pending": 152,
+    "source_any_pending": 155,
+    "scope_holds": 154,
+    "river_groups": 549,
+    "lakes": 98,
+    "unrecorded": 3418,
+    "unrecorded_river_groups": 2906,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573",
+    "hydro-system:80032711",
+    "hydro-system:60007816",
+    "hydro-system:80013873",
+    "hydro-system:61501314",
+    "hydro-system:60761631",
+    "hydro-system:70895720",
+    "hydro-system:61398344",
+    "hydro-system:61355098",
+    "hydro-system:70933800",
+    "hydro-system:60026849",
+    "hydro-system:70574060",
+    "hydro-system:70890643",
+    "hydro-system:80064967",
+    "hydro-system:70856797",
+    "hydro-system:60174418",
+    "hydro-system:61547907",
+    "hydro-system:70463083",
+    "hydro-system:61520061",
+    "hydro-system:70895492",
+    "hydro-system:70898394",
+    "hydro-system:70865140",
+    "hydro-system:80072439",
+    "hydro-system:70549678",
+    "hydro-system:70566840",
+    "hydro-system:80048422",
+    "hydro-system:60557376",
+    "hydro-system:61514286",
+    "hydro-system:61509423",
+    "hydro-system:80068731",
+    "hydro-system:80015064",
+    "hydro-system:61520170",
+    "hydro-system:70156165",
+    "hydro-system:70784507",
+    "hydro-system:80067417",
+    "hydro-system:80019756",
+    "hydro-system:70244256",
+    "hydro-system:80060230",
+    "hydro-system:61543259",
+    "hydro-system:60007312",
+    "hydro-system:60022881",
+    "hydro-system:61456098",
+    "hydro-system:70290797",
+    "hydro-system:60441146",
+    "hydro-system:61554706",
+    "hydro-system:70110341",
+    "hydro-system:80067260",
+    "hydro-system:70214162",
+    "hydro-system:80034507",
+    "hydro-system:61536265",
+    "hydro-system:61561008",
+    "hydro-system:80066184",
+    "hydro-system:70202296",
+    "hydro-system:61545841",
+    "hydro-system:61350841",
+    "hydro-system:80064018",
+    "hydro-system:70957614",
+    "hydro-system:70851521",
+    "hydro-system:70049998",
+    "hydro-system:61298121",
+    "hydro-system:80033385",
+    "hydro-system:61205785",
+    "hydro-system:80035867",
+    "hydro-system:70009700",
+    "hydro-system:60440371",
+    "hydro-system:80049373",
+    "hydro-system:70749063",
+    "hydro-system:70844211",
+    "hydro-system:60001814",
+    "hydro-system:61507976",
+    "hydro-system:70834534",
+    "hydro-system:80070226",
+    "hydro-system:61357020",
+    "hydro-system:70846952",
+    "hydro-system:70004800",
+    "hydro-system:80043969",
+    "hydro-system:80165177",
+    "hydro-system:70043276",
+    "hydro-system:60490135",
+    "hydro-system:60237339",
+    "hydro-system:70023641",
+    "hydro-system:70281204",
+    "hydro-system:61570080",
+    "hydro-system:70789628",
+    "hydro-system:80234498",
+    "hydro-system:60016868",
+    "hydro-system:70276504",
+    "hydro-system:70901807",
+    "hydro-system:80086174",
+    "hydro-system:60809372",
+    "hydro-system:60100857",
+    "hydro-system:70026619",
+    "hydro-system:70500400",
+    "hydro-system:60010615",
+    "hydro-system:70608588",
+    "hydro-system:70832638",
+    "hydro-system:61383955",
+    "hydro-system:61555573",
+    "hydro-system:80068976",
+    "hydro-system:80048308",
+    "hydro-system:80001778",
+    "hydro-system:70324446",
+    "hydro-system:80051383",
+    "hydro-system:60804761",
+    "hydro-system:70817056",
+    "hydro-system:80032843",
+    "hydro-system:70045452",
+    "hydro-system:70877500",
+    "hydro-system:80042519",
+    "hydro-system:70084321",
+    "hydro-system:61519454",
+    "hydro-system:61546367",
+    "hydro-system:60627295",
+    "hydro-system:61038090",
+    "hydro-system:60407824",
+    "hydro-system:80047056",
+    "hydro-system:70888155",
+    "hydro-system:61189702",
+    "hydro-system:70084119",
+    "hydro-system:70025722",
+    "hydro-system:70001071",
+    "hydro-system:70360842",
+    "hydro-system:70007286",
+    "hydro-system:60001879",
+    "hydro-system:70776067",
+    "hydro-system:61266023",
+    "hydro-system:70806740",
+    "hydro-system:60516711",
+    "hydro-system:80020100",
+    "hydro-system:70835654",
+    "hydro-system:80029665",
+    "hydro-system:61609128",
+    "hydro-system:70853324",
+    "hydro-system:70775288",
+    "hydro-system:70008834",
+    "hydro-system:61422869",
+    "hydro-system:80214289",
+    "hydro-system:70210252",
+    "hydro-system:70091013",
+    "hydro-system:60774621",
+    "hydro-system:61390812",
+    "hydro-system:60613563",
+    "hydro-system:61564085",
+    "hydro-system:70048797",
+    "hydro-system:61533139"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r176_70892034_inegi_veracruz2020",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/ver/889463837121.pdf"
+    },
+    {
+      "source_key": "r176-geus-greenland-sheet2-allaart1982",
+      "official_url": "https://doi.org/10.22008/FK2/F77JXT"
+    },
+    {
+      "source_key": "r176-ign-historical500k-la-pampa-catalogue",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "r176-ssrh-la-pampa-basin-context",
+      "official_url": "https://www.argentina.gob.ar/obras-publicas/recursos-hidricos/mapa-de-cuencas-hidrograficas-de-la-provincia-de-la-pampa"
+    },
+    {
+      "source_key": "USGSTOPO_R176_ROSEMARY_UPPER_SALKEHATCHIE",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "USGSTOPO_R176_MIDDLE_SALKEHATCHIE",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "USGSTOPO_R176_LOWER_SALKEHATCHIE_CONFLUENCE",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "USGSTOPO_R176_COMBAHEE_TIDAL_TERMINAL",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "2c2a486acac2d6d0c09010e474244fac1e5c65ff",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      508,
+      509,
+      510,
+      512
+    ],
+    "next_unrecorded_id": "hydro-system:60000681",
+    "progress_rule": "Follow the actual continental order: Americas, Asia, Africa, Europe, then other, with all rivers before lakes. Preserve original queue IDs and ranks for continuity; apply documented geographic deferrals without counting them as name research, and place deferred objects into their corrected later phase by length-descending, stable-ID order. Prior candidate and scope-held assessments remain unresolved where stated.",
+    "geographic_deferrals": [
+      {
+        "aw_id": "hydro-system:80061063",
+        "original_queue_rank": 186,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 66.56–68.17°N and 179.97–177.11°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory bounding box and selected-route geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80065687",
+        "original_queue_rank": 349,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at66.725–67.849775°N and178.2–175.960242°W place this object on Chukotka west of Alaska, adjoining the previously corrected Chukotka selection. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory bounding box and selected-route geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80100188",
+        "original_queue_rank": 387,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 64.939583–66.26978°N and 174.05625–173.320833°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory/order bounding box and geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80119243",
+        "original_queue_rank": 391,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 65.451531–66.491667°N and 176.777083–175.672917°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory/order bounding box and geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80083978",
+        "original_queue_rank": 470,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained original inventory/order bounds at66.522917–67.00625°N and177.333333–174.842957°W place this current object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Existing fixed-queue bounding box and geographic placement only; no naming source or selected geometry acquired for this correction."
+      },
+      {
+        "aw_id": "hydro-system:80099814",
+        "original_queue_rank": 511,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained original inventory/order bounds at65.952083–66.502083°N and172.004167–170.400621°W place this current object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Existing fixed-queue bounding box and geographic placement only; no naming source or selected geometry acquired for this correction."
+      }
+    ]
+  }
+}

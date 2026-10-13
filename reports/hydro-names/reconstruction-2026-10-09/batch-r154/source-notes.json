@@ -1,0 +1,934 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r154",
+  "sources": [
+    {
+      "title": "USGSTopo, The National Map: bounded Summit Lake–Virgin Creek–Thousand Creek–Pueblo Slough–Alvord corridor views",
+      "publisher": "U.S. Geological Survey",
+      "source_type": "Original composite federal cartography",
+      "acquired_and_read": "Previously retained, successfully acquired service metadata was reused. Four new sequential original bounded map images completed HTTP 200 and were visually read. Local orientation figures and crops assisted comparison only and remain private.",
+      "views": [
+        "Headward southwestern corridor",
+        "Virgin Valley, Thousand Creek and Continental Lake",
+        "Pueblo Valley and Trout Creek junction setting",
+        "Alvord Lake and Alvord Desert terminal"
+      ],
+      "coverage": "The original views overlap and contain every selected component from the eastern opening to the terminal playa. Geographic image coverage does not resolve the two material through-connection gaps.",
+      "limits": "Composite cartography does not establish a single original compilation edition, formal naming status, current flow direction, seasonal connectivity, operation of ditches or precise channel/bank positions. The retained service description identifies September 4, 2026-v1.2 as its data refresh, not a uniform date for all underlying observations. This is an independent cartographic service, distinct from stopped USGS reports.",
+      "source_key": "r154-usgstopo-nevada-oregon",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "use_notice": "The retained service credits USGS The National Map datasets and other federal/public-domain base-map contributors. No original map, crop, overlay or dynamic export URL is for public redistribution in this finding."
+    },
+    {
+      "title": "Summit Lake landslide and geomorphic history of Summit Lake basin, northwestern Nevada",
+      "authors": [
+        "B. Brandon Curry",
+        "W. N. Melhorn"
+      ],
+      "year": 1990,
+      "journal": "Geomorphology",
+      "doi": "10.1016/0169-555X(90)90023-J",
+      "source_type": "Primary research abstract hosted by USGS; prose-only contextual evidence",
+      "acquired_and_read": "One direct web-reader open succeeded. Abstract lines 6–9 and the author/title/year/DOI metadata were actually read. Neither full journal text nor a study map was acquired or claimed inspected.",
+      "observations": "The abstract describes an ancient northward Mahogany Creek valley and subsequent drainage rearrangement, and distinguishes northward pluvial overflow from closed Summit Lake basin conditions during drier climates.",
+      "limits": "Geomorphic history supplies a reason not to equate a former overflow valley with the selected present route. It does not establish present channel continuity, the exact selected connector, or current hydrologic conditions.",
+      "source_key": "r154-curry-melhorn-summit1990-abstract",
+      "official_url": "https://www.usgs.gov/publications/summit-lake-landslide-and-geomorphic-history-summit-lake-basin-northwestern-nevada"
+    },
+    {
+      "title": "Ibatiba – ES, Mapa Municipal, 3202454",
+      "author": "Instituto Brasileiro de Geografia e Estatística, Coordenação de Estruturas Territoriais",
+      "edition": "2020 collection; printed edition 04/2021",
+      "scale": "Graphic scale 0–800–1600 m",
+      "evidence_kind": "primary_original_cartography",
+      "cartographic_reading": true,
+      "material_read": "Selected eastern Ibatiba approach, town passage, southwestward bend and southern Vargem Alegre continuation. Original one-sheet PDF completed HTTP200; original pixels and printed margin inspected.",
+      "use_notice": "Semi-automatic municipal compilation with diverse updates, expressly intended for IBGE statistical collection/tabulation with disclaimer against other uses. Used as historical/generalized reference cartography, not a dedicated hydrological or current-channel survey. IBGE reproduction rights reserved; originals and working figures remain private.",
+      "source_key": "ibge_ibatiba2020",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/ES/ibatiba/3202454_MM.pdf"
+    },
+    {
+      "title": "Muniz Freire – ES, Mapa Municipal, 3203700",
+      "author": "Instituto Brasileiro de Geografia e Estatística, Coordenação de Estruturas Territoriais",
+      "edition": "2020 collection; printed edition 04/2021",
+      "scale": "Graphic scale 0–1200–2400 m",
+      "evidence_kind": "primary_original_cartography",
+      "cartographic_reading": true,
+      "material_read": "Overlapping upper Pardo through Iúna, Terra Corrida and Muniz Freire hydropower setting; Pardo–Norte Esquerdo junction, Itaici and lower continuation. Original one-sheet PDF completed HTTP200; original pixels and printed margin inspected.",
+      "use_notice": "Semi-automatic municipal compilation with diverse updates, expressly intended for IBGE statistical collection/tabulation with disclaimer against other uses. Used as historical/generalized reference cartography, not a dedicated hydrological or current-channel survey. IBGE reproduction rights reserved; originals and working figures remain private.",
+      "source_key": "ibge_muniz2020",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/ES/muniz_freire/3203700_MM.pdf"
+    },
+    {
+      "title": "Alegre – ES, Mapa Municipal, 3200201",
+      "author": "Instituto Brasileiro de Geografia e Estatística, Coordenação de Estruturas Territoriais",
+      "edition": "2020 collection; printed edition 04/2021",
+      "scale": "Graphic scale 0–1000–2000 m",
+      "evidence_kind": "primary_original_cartography",
+      "cartographic_reading": true,
+      "material_read": "Itaici/São Simão valley, selected eastern arm and Barragem Santa Fé, separate western reservoir, natural two-arm confluence, Departamento and Rive. Original one-sheet PDF completed HTTP200; original pixels and printed margin inspected.",
+      "use_notice": "Semi-automatic municipal compilation with diverse updates, expressly intended for IBGE statistical collection/tabulation with disclaimer against other uses. Used as historical/generalized reference cartography, not a dedicated hydrological or current-channel survey. IBGE reproduction rights reserved; originals and working figures remain private.",
+      "source_key": "ibge_alegre2020",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/ES/alegre/3200201_MM.pdf"
+    },
+    {
+      "title": "Cachoeiro de Itapemirim – ES, Mapa Municipal, 3201209",
+      "author": "Instituto Brasileiro de Geografia e Estatística, Coordenação de Estruturas Territoriais",
+      "edition": "2020 collection; printed edition 04/2021",
+      "scale": "Graphic scale 0–1500–3000 m",
+      "evidence_kind": "primary_original_cartography",
+      "cartographic_reading": true,
+      "material_read": "Rive–Pacotuba–Coutinho–Castelo junction, Cachoeiro urban river and southern continuation. Original one-sheet PDF completed HTTP200; original pixels and printed margin inspected.",
+      "use_notice": "Semi-automatic municipal compilation with diverse updates, expressly intended for IBGE statistical collection/tabulation with disclaimer against other uses. Used as historical/generalized reference cartography, not a dedicated hydrological or current-channel survey. IBGE reproduction rights reserved; originals and working figures remain private.",
+      "source_key": "ibge_cachoeiro2020",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/ES/cachoeiro_de_itapemirim/3201209_MM.pdf"
+    },
+    {
+      "title": "Itapemirim – ES, Mapa Municipal, 3202801",
+      "author": "Instituto Brasileiro de Geografia e Estatística, Coordenação de Estruturas Territoriais",
+      "edition": "2020 collection; printed edition 04/2021",
+      "scale": "Graphic scale 0–1000–2000 m",
+      "evidence_kind": "primary_original_cartography",
+      "cartographic_reading": true,
+      "material_read": "Safra/BR-101, lower plain, Paineiras, Muqui junction, Itapemirim estuary and Atlantic outlet. Original one-sheet PDF completed HTTP200; original pixels and printed margin inspected.",
+      "use_notice": "Semi-automatic municipal compilation with diverse updates, expressly intended for IBGE statistical collection/tabulation with disclaimer against other uses. Used as historical/generalized reference cartography, not a dedicated hydrological or current-channel survey. IBGE reproduction rights reserved; originals and working figures remain private.",
+      "source_key": "ibge_itapemirim2020",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/ES/itapemirim/3202801_MM.pdf"
+    },
+    {
+      "title": "Mapa Político dos Estados do Espírito Santo e Rio de Janeiro",
+      "author": "Instituto Brasileiro de Geografia e Estatística, Diretoria de Geociências, Coordenação de Cartografia",
+      "edition": "2015; BCIM 2014",
+      "scale": "1:750,000",
+      "evidence_kind": "primary_original_cartography",
+      "cartographic_reading": true,
+      "material_read": "Lawfully retained original reused locally without reacquisition. Full-sheet context, selected southern Espírito Santo corridor and source margin inspected.",
+      "use_notice": "Historical generalized state map; not a current-channel survey. Reproduction rights reserved. Original and crops remain private.",
+      "source_key": "ibge_rjes2015",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_estaduais_e_distrito_federal/politico/2015/rj_es_politico750k_2015.pdf"
+    },
+    {
+      "title": "Diagnóstico e Prognóstico das Condições de Uso da Água na Bacia Hidrográfica do Rio Itapemirim como Subsídio Fundamental ao Enquadramento e Plano de Recursos Hídricos; Relatório Técnico da Etapa A",
+      "author": "AGERH and Instituto Jones dos Santos Neves technical team, with FAPES and SEAMA",
+      "edition": "Official catalogue update 20/03/2019; hydrography map December 2017; hydropower map August 2017",
+      "evidence_kind": "primary_original_cartography_and_primary_planning_prose",
+      "cartographic_reading": true,
+      "material_read": "Original 583-page PDF completed HTTP200 after explicit reader size limitation. Printed pp2–3 attribution, pp37–40 geographic context, Figure 2.1 p39 hydrography, Figure 2.2 p40 planning units, pp384–389 hydropower inventory and Figure 3.39, and pp390–391 estuarine context read. Land-cover plates pp158/162 are contextual only and do not establish channel connectivity.",
+      "use_notice": "Historical planning/cartographic compilation with differing dates. Proposed hydropower sites are distinguished from sites then described as operating; no current operational, legal or safety claim. No restricted-use notice observed in inspected source pages. Official hosting does not establish redistribution rights.",
+      "source_key": "agerh_itapemirim_rea",
+      "official_url": "https://agerh.es.gov.br/media/Documenta%C3%A7%C3%A3o%20CBHs/Itapemirim/REA_DiagnosticoPrognostico_CBH%20Rio%20Itapemirim.pdf"
+    },
+    {
+      "title": "Pagamento por serviços ambientais e índice de recuperação de áreas na bacia hidrográfica sob a influência da Pequena Central Hidrelétrica de São Simão, Alegre, ES",
+      "author": "Vagner Mauri Quinto, Universidade Federal de Viçosa",
+      "edition": "Doctoral thesis, Viçosa, 2018",
+      "evidence_kind": "primary_research_and_original_cartography",
+      "cartographic_reading": true,
+      "material_read": "Original PDF completed HTTP200. Title/degree page; printed p11 Figure1 and reservoir context, pp12–14 methodological/context maps, and printed p50 Figure14 (2012/2015 land-cover map) visually read; pp51–52 limited water-cover context. Figure14 supplies the reservoir corridor and side-arm geometry, not merely a basin label.",
+      "use_notice": "Historical original thematic research mapping based on GEOBASES hydrography and 2007/2008 versus 2012/2015 aerial surveys; not a modern operating-level map. No officials-only notice observed. No source pixels or full coordinate tables redistributed.",
+      "source_key": "quinto2018",
+      "official_url": "https://poscienciaflorestal.ufv.br/wp-content/uploads/2023/05/VAGNER-MAURI-QUINTO.pdf"
+    },
+    {
+      "title": "Estudo de Impacto Ambiental – PCH Santa Fé; capítulos 1 a 3",
+      "author": "AQUACONSULT Consultoria e Projetos de Engenharia Ltda. for CESA – Castelo Energética S/A; project-basic attribution to SPEC for ESCELSA",
+      "edition": "IEMA EIA-2006 collection; catalogue upload 26/03/2018",
+      "resolved_url": "https://iema.es.gov.br/Media/CQAI/EIA/2006/Pequena%20Central%20Hidrel%C3%A9trica%20PCH%20Santa%20F%C3%A9/2_1PCH%20StaF%C3%A9%20EIA%20Cap1a3.pdf",
+      "evidence_kind": "primary_project_prose_only",
+      "cartographic_reading": false,
+      "material_read": "Web PDF opened normally, then original chapter PDF completed HTTP200. Printed pp1–3,8–13 read for two separate arms, proposed derivation/generation arrangements, residual surface channels and downstream confluence/powerhouse setting. Original pp10,12,14 were visually inspected and contain headings/blank figure placeholders; they are not map evidence.",
+      "use_notice": "Public environmental-impact study for the project stage, independently authored and published for environmental assessment. It is not the later Statkraft PSB nor a copy/version of that excluded safety publication. No proof of current operating details or exact modern structure footprint is inferred.",
+      "source_key": "santafe_eia2006_prose",
+      "official_url": "https://iema.es.gov.br/Media/iema/CQAI/EIA/2006/Pequena%20Central%20Hidrel%C3%A9trica%20PCH%20Santa%20F%C3%A9/2_1PCH%20StaF%C3%A9%20EIA%20Cap1a3.pdf"
+    },
+    {
+      "bibliography": "Rincón Ramírez, José Elí (2017). Estado de conservación de los ríos en la costa occidental del Lago de Maracaibo. Chapter 1, pp. 15–28, in Douglas Rodríguez-Olarte (ed.), Ríos en riesgo de Venezuela, Volumen 1. Colección Recursos Hidrobiológicos de Venezuela, Universidad Centroccidental Lisandro Alvarado, Barquisimeto. First digital edition 15 February 2017. Volume ISBN 978-980-12-9350-7.",
+      "source_kind": "Original expert-authored chapter and regional map, combining own information with cited research.",
+      "read_scope": "Printed pp. 15–17 and 23–24, especially Figure 1 (PDF page 19) and Santa Ana section (PDF page 25).",
+      "primary_map_pixels_read": true,
+      "map_provenance": "Figure 1 is the original chapter regional drainage figure; supporting prose distinguishes Lora, Santa Ana and northern tributaries.",
+      "source_key": "r154-rincon2017",
+      "official_url": "https://acading.org.ve/wp-content/uploads/2023/02/2017_Rios_Riesgo_Venezuela_V1_libro.pdf",
+      "use_notice": "Copyright the authors, 2017; retained original and rendered pages remain private.",
+      "limits": "Figure 1 is generalized and does not resolve the whole selected western opening. Figure 2 is field photography, not a second full-route map. The source-stated length is not substituted for retained rendered length."
+    },
+    {
+      "bibliography": "Urbani Patat, Franco (2022). Tres episodios de la historia petrolera venezolana: Pedernales, Escuque y Perijá. Caracas: Academia Nacional de la Ingeniería y el Hábitat and Fundación Geos–UCV, xi + 404 pp. Chapter 4, Cuenca del río Lora, Sierra de Perijá, Zulia, pp. 280–366. Printed colophon ISBN 978-980-18-2724-5, legal deposit MI2021000478.",
+      "source_kind": "Original historical-geological research monograph containing attributed reproductions of primary historical and national cartography.",
+      "read_scope": "Title/colophon; pp. 281–283 and 287–288, Figures 4.1, 4.3 and 4.4; p. 353 Figures 4.34B–C and adjacent topographic-source discussion.",
+      "primary_map_pixels_read": true,
+      "map_provenance": "Figure 4.3 reproduces Michael O’Shaughnessy, Venezuelan Oil Handbook, 1924, with author annotations, distinguishing Aricuaisá, Lora, Santa Ana and the lake. Figure 4.34 reproduces limited fragments of DCN sheets 5644 and 5744. Those cropped portions alone were read, not entire sheets. Figure 4.1 is a small Hackley2005 reproduction seen before the subsequent national-publication denial; no geographic claim in this finding depends on that figure and no continued map-use exception is asserted.",
+      "source_key": "r154-urbani2022",
+      "official_url": "https://acading.org.ve/wp-content/uploads/2023/02/Urbani-2022-Tres-episodios-historia-petrolera-Pedernales-Escuque-Perija.pdf",
+      "use_notice": "Copyright Franco Urbani Patat. Printed notice permits reproduction with source attribution. This finding nevertheless keeps originals, rendered pages and crops private; it supplies own factual observations and bibliographic citations only.",
+      "limits": "Historical O’Shaughnessy cartography and small DCN topographic fragments are regional/junction context, not current bank positions or complete upper-route coverage. No acquisition of underlying full sheets is claimed. The printed colophon also contains a different ISBN in its header; the explicit ISBN field is transcribed above. The subsequently stopped Hackley reproduction is excluded from substantive correspondence."
+    },
+    {
+      "bibliography": "Apitz de Parra, Alicia. Estado Zulia. GeoVenezuela, volume 7, chapter 59, pp. 490–631. Fundación Empresas Polar. Edition year not established from the acquired standalone chapter extract.",
+      "source_kind": "Original regional geography chapter, with attributed national hydrographic cartography.",
+      "read_scope": "Author/title page; printed pp. 507 and 514–518, particularly Figure 13 Hidrografía at printed p. 515 (PDF page 26).",
+      "primary_map_pixels_read": true,
+      "map_provenance": "Figure 13 source credit: República Bolivariana de Venezuela, Ministerio del Ambiente y de los Recursos Naturales Renovables, Servicio Autónomo de Geografía y Cartografía Nacional, 1996. The displayed figure in this original chapter was read; no acquisition of its entire underlying cartographic source is asserted.",
+      "source_key": "r154-apitz-zulia",
+      "official_url": "https://bibliofep.fundacionempresaspolar.org/media/1378337/gv_t7_c59_p490_631_zulia_lres_single_preview.pdf",
+      "use_notice": "Fundación Empresas Polar publication; no redistribution permission inferred from hosting. Original and local rendering stay private.",
+      "limits": "Regional hydrographic generalization establishes named approaches, junctions, wetland and receiving-lake context. It does not show the entire selected western mountain opening clearly enough to establish that connection. No hydronym registry or precise contemporary channel survey."
+    },
+    {
+      "bibliography": "Rodríguez, Luz María, and Carlos Galán (2010). Las zonas kársticas de la Sierra de Perijá, Venezuela: Cavidades estudiadas y rasgos geológico-estructurales. Boletín de la Sociedad Venezolana de Espeleología 42:7–19. Author re-edition with additional color photographs, 17 PDF pages.",
+      "source_kind": "Primary investigator cartography and field-study prose.",
+      "read_scope": "PDF page 13, southern Perijá prose and Figure 10; relevant regional introduction and map-source caption.",
+      "primary_map_pixels_read": true,
+      "map_provenance": "Figure 10 uses Radar N-C-18-12 MEM1977, Miller1960/Kellogg1984 geological bases and authors’ interpretation of DIGECAFA1991 aerial photography. Only the original authors’ figure is claimed as read.",
+      "source_key": "r154-rodriguez-galan2010",
+      "official_url": "https://www.aranzadi.eus/fileadmin/docs/espeleologia/ZonasKarsticasPerija_Venezuela_2010.pdf",
+      "use_notice": "Source original and locally rendered page remain private.",
+      "limits": "Cave and foothill cartography does not span the complete selected western opening. Cave points and geological structures are not substitutes for a mapped river connector. No exact underground route asserted."
+    },
+    {
+      "title": "Guaratinga – BA, Mapa Municipal, 2911808",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística (IBGE)",
+      "collection": "Coleção de Mapas Municipais 2020",
+      "edition": "04/2021",
+      "pages": [
+        1
+      ],
+      "evidence": "Primary municipal cartography, including adjacent Minas Gerais contextual hydrography.",
+      "coverage": "Western opening, state-frontier continuation, Buranhém settlement, northeast bend east of Alto Cariri, and western Eunápolis overlap.",
+      "attribution": "IBGE; technical/thematic coordination CETE, production by IBGE state units, dissemination CDDI.",
+      "use_notice": "Printed statistical-use-purpose warning and reproduction-rights reservation retained. Not a hydrological survey or formal naming registry. Original/crops remain private.",
+      "source_key": "BR154-GUA",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/BA/guaratinga/2911808_MM.pdf"
+    },
+    {
+      "title": "Eunápolis – BA, Mapa Municipal, 2910727",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística (IBGE)",
+      "collection": "Coleção de Mapas Municipais 2020",
+      "edition": "04/2021",
+      "pages": [
+        1
+      ],
+      "evidence": "Primary municipal cartography.",
+      "coverage": "Overlapping Alto Cariri and northern river bend; south-of-Eunápolis corridor toward Vera Cruz and Porto Seguro.",
+      "attribution": "IBGE; technical/thematic coordination CETE, production by IBGE state units, dissemination CDDI.",
+      "use_notice": "Printed statistical-use-purpose warning and reproduction-rights reservation retained. Not a hydrological survey or formal naming registry. Original/crops remain private.",
+      "source_key": "BR154-EUN",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/BA/eunapolis/2910727_MM.pdf"
+    },
+    {
+      "title": "Porto Seguro – BA, Mapa Municipal, 2925303",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística (IBGE)",
+      "collection": "Coleção de Mapas Municipais 2020",
+      "edition": "04/2021",
+      "pages": [
+        1
+      ],
+      "evidence": "Primary municipal cartography.",
+      "coverage": "Lower looping corridor through the Vera Cruz/Vale Verde setting, terminal estuary, Porto Seguro–Arraial d’Ajuda coast and Atlantic outlet.",
+      "attribution": "IBGE; technical/thematic coordination CETE, production by IBGE state units, dissemination CDDI.",
+      "use_notice": "Printed statistical-use-purpose warning and reproduction-rights reservation retained. Not a hydrological survey or formal naming registry. Original/crops remain private.",
+      "source_key": "BR154-PS",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/BA/porto_seguro/2925303_MM.pdf"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70500400",
+      "source_keys": [
+        "r154-usgstopo-nevada-oregon",
+        "r154-curry-melhorn-summit1990-abstract"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9745
+          ],
+          "component_scope": "Headward Pole Creek and Mahogany Creek setting",
+          "finding": "The selected eastern opening corresponds to the Pole Creek/Mahogany Creek corridor on the northern Black Rock Range side of Summit Lake. It proceeds west past the mapped South Fork Mahogany Creek junction. Original cartography then shows Mahogany Creek turning toward Summit Lake, while the selected line turns away northwest before reaching the lake. This supports the initial local setting, not a whole-object Mahogany Creek identity or a selected passage through Summit Lake.",
+          "sources": [
+            "r154-usgstopo-nevada-oregon"
+          ],
+          "correspondence": "supported_local_corridor_only",
+          "mapped_component_names": [
+            "Pole Creek",
+            "Mahogany Creek"
+          ],
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9745
+          ],
+          "component_scope": "Northwestern transfer from the Summit Lake drainage toward Sand and Virgin creeks",
+          "finding": "The selected route crosses the plain north of Summit Lake and continues northwest through low terrain, small wet areas and a partly mapped unnamed drainage before reaching the Sand/Virgin Creek setting. The original map does not show a continuous selected waterway out of the Mahogany Creek corridor across this interval. Curry and Melhorn's actually read abstract describes an ancient northward Mahogany valley and pluvial overflow, but says the Summit Lake basin has been closed under drier climates. It does not establish this selected connection as a present river route.",
+          "sources": [
+            "r154-usgstopo-nevada-oregon",
+            "r154-curry-melhorn-summit1990-abstract"
+          ],
+          "correspondence": "materially_unresolved",
+          "mapped_component_name": null,
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            9745
+          ],
+          "component_scope": "Sand Creek junction setting and Virgin Creek canyon corridor",
+          "finding": "After the unresolved transfer, the selected line reaches the mapped Sand Creek/Virgin Creek junction setting and follows Virgin Creek north through its canyon and pond/wetland patches. The western Virgin Creek headwater arm and the southwestern Sand Creek reach are lateral to this selected approach. The map establishes the Hell Creek junction from the west and the further northeast continuation beside the Idaho Canyon Range toward the Sagebrush Creek junction and Virgin Valley.",
+          "sources": [
+            "r154-usgstopo-nevada-oregon"
+          ],
+          "correspondence": "supported_at_corridor_scale",
+          "mapped_component_names": [
+            "Sand Creek",
+            "Virgin Creek"
+          ],
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9745
+          ],
+          "component_scope": "Virgin Valley transition to Thousand Creek and its eastward gorge",
+          "finding": "Overlapping original views show the selected route entering the Virgin Valley wetland/pond setting, turning northeast through the narrow gorge labeled Thousand Creek, then continuing east alongside the Highway 140 corridor. The map distinguishes the Sagebrush Creek approach and small water patches from the named downstream Thousand Creek corridor. The images do not support assigning an unshown reservoir name to every pond or extending the Virgin Creek label through the entire gorge and lake system.",
+          "sources": [
+            "r154-usgstopo-nevada-oregon"
+          ],
+          "correspondence": "supported_at_corridor_scale",
+          "mapped_component_names": [
+            "Virgin Creek",
+            "Thousand Creek"
+          ],
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9745
+          ],
+          "component_scope": "Rincon Creek junction and Continental Lake passage",
+          "finding": "The eastward selected route follows the mapped Thousand Creek corridor to the Rincon Creek junction and the southwestern entry setting of Continental Lake. It then traverses the lake/wetland footprint toward its long northeastern extension and the mapped Pueblo Slough corridor. Rincon Creek is a tributary approach from the north, not the selected main opening. The lake passage is a distinct waterbody component rather than uniformly Thousand Creek.",
+          "sources": [
+            "r154-usgstopo-nevada-oregon"
+          ],
+          "correspondence": "supported_at_corridor_scale",
+          "mapped_component_names": [
+            "Thousand Creek",
+            "Continental Lake"
+          ],
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9745
+          ],
+          "component_scope": "Pueblo Slough across the state boundary to Tumtum Lake",
+          "finding": "The selected route corresponds to the Pueblo Slough channel, wetland and pool corridor northeast of Continental Lake, across the Highway 292 and Nevada–Oregon boundary settings, then north along the Sand Hills to Tumtum Lake. The original maps establish the Denio Creek, Van Horn Creek and Cottonwood/Dry Creek junction settings as lateral approaches. The selected passage reaches the mapped Tumtum Lake footprint; neither the slough nor that lake is renamed Trout Creek.",
+          "sources": [
+            "r154-usgstopo-nevada-oregon"
+          ],
+          "correspondence": "supported_at_corridor_scale",
+          "mapped_component_names": [
+            "Pueblo Slough",
+            "Tumtum Lake"
+          ],
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9745
+          ],
+          "component_scope": "Tumtum Lake to Trout Creek selected transfer",
+          "finding": "North and northeast of Tumtum Lake, the original map depicts separate dashed channels, wetland patches and ditch-like features associated with the westward Trout Creek approach and its north-turning trunk. It does not establish the selected direct northward passage out of Tumtum Lake across this setting as a through-connection into that northern trunk. Nearby mapped water and the broad Alvord Valley setting are not substituted for this missing link. This does not assert that all flood or managed connections are absent.",
+          "sources": [
+            "r154-usgstopo-nevada-oregon"
+          ],
+          "correspondence": "materially_unresolved",
+          "mapped_component_name": null,
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            9745
+          ],
+          "component_scope": "Northern Trout Creek corridor and Alvord Lake setting",
+          "finding": "Beyond the unresolved Tumtum transfer, the selected northward line follows the mapped Trout Creek wetland/intermittent-channel corridor east of Fields Road, past the Horse Creek and Steens Creek approach settings, toward the southeastern and eastern margin of Alvord Lake. The maps distinguish that lake from the Borax Lake area to the southwest and the separately mapped Willow, Wildhorse, Miranda and Bone Creek drainage on the lake's western and northern sides. No selected passage through Borax Lake is established.",
+          "sources": [
+            "r154-usgstopo-nevada-oregon"
+          ],
+          "correspondence": "supported_at_corridor_scale",
+          "mapped_component_names": [
+            "Trout Creek",
+            "Alvord Lake"
+          ],
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9745
+          ],
+          "component_scope": "Northeastern intermittent drainage and actual terminal in Alvord Desert",
+          "finding": "From the Alvord Lake eastern/northeastern setting, the selected route turns northeast across the mapped intermittent drainage network toward the southern Alvord Desert margin and continues into the playa interior. The original map supports this generalized terminal setting and distinguishes the desert playa from Alvord Lake. It does not show a named channel continuing along the selected interior line, and it does not establish present overflow frequency or a uniform river name across the lake-to-playa interval. The retained endorheic class is consistent with the mapped inland playa setting, without asserting a precise natural mouth point.",
+          "sources": [
+            "r154-usgstopo-nevada-oregon"
+          ],
+          "correspondence": "supported_generalized_terminal_setting",
+          "mapped_component_name": null,
+          "terminal_setting": "Alvord Desert playa",
+          "component_correspondence_completed": true
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61312366",
+      "source_keys": [
+        "ibge_ibatiba2020",
+        "ibge_muniz2020",
+        "ibge_alegre2020",
+        "ibge_cachoeiro2020",
+        "ibge_itapemirim2020",
+        "ibge_rjes2015",
+        "agerh_itapemirim_rea",
+        "quinto2018",
+        "santafe_eia2006_prose"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13948
+          ],
+          "component_scope": "Selected headward approach east/northeast of Ibatiba",
+          "finding": "The Ibatiba original places the selected upper approach along the valley east/northeast of the Ibatiba urban area, near the BR-262/São José de Meriti setting. It traces the westward approach into Ibatiba and separates the northern São José/Carangola side drainage and southern Santa Maria branch. The AGERH original names this connected upper corridor Rio Pardo. The first generalized model tip is not asserted to be the named river’s natural source.",
+          "sources": [
+            "ibge_ibatiba2020",
+            "agerh_itapemirim_rea"
+          ],
+          "correspondence": "complete at ordinary component/corridor scale",
+          "component_correspondence_completed": true,
+          "mapped_component_name": "Rio Pardo corridor; exact spring or small initial-reach name unassigned"
+        },
+        {
+          "fragments": [
+            13948
+          ],
+          "component_scope": "Ibatiba–Vargem Alegre–Iúna upper river",
+          "finding": "Overlapping Ibatiba and Muniz Freire originals depict the southwestward river leaving Ibatiba, its turn south through the Barra Grande/Boa Esperança and Vargem Alegre settings, and its continuation into Iúna. The western Rio Pardinho joins separately near the Iúna approach. The selected channel continues south past Iúna, Barra do Perdição and the Terra Corrida setting; Pardinho, Ribeirão Perdição and local side streams are not synonyms for the selected whole route.",
+          "sources": [
+            "ibge_ibatiba2020",
+            "ibge_muniz2020",
+            "agerh_itapemirim_rea"
+          ],
+          "correspondence": "complete at ordinary component/corridor scale",
+          "component_correspondence_completed": true,
+          "mapped_component_name": "Rio Pardo"
+        },
+        {
+          "fragments": [
+            13948
+          ],
+          "component_scope": "Muniz Freire hydropower corridor and Pardo–Norte Esquerdo junction",
+          "finding": "The Muniz Freire original traces Pardo south from Terra Corrida through the narrow Alto Cachoeira/Usina Hidrelétrica Muniz Freire corridor. Its surface channel reaches the river arriving separately from the north/northeast on the Muniz Freire side, then continues southwest. AGERH’s hydrography and hydropower originals identify Pardo, the receiving Braço Norte Esquerdo and the Muniz Freire hydropower site on Pardo. This establishes the confined impounded/hydropower valley and surface-river continuation at corridor scale. The small reservoir is not assigned an independent hydronym, and no turbine tunnel or individual dam structure is asserted to coincide with the generalized selected line.",
+          "sources": [
+            "ibge_muniz2020",
+            "agerh_itapemirim_rea"
+          ],
+          "correspondence": "complete at ordinary component/corridor scale",
+          "component_correspondence_completed": true,
+          "mapped_component_name": "Rio Pardo / Rio Braço Norte Esquerdo"
+        },
+        {
+          "fragments": [
+            13948
+          ],
+          "component_scope": "Itaici and upper approach to São Simão",
+          "finding": "The Muniz Freire and Alegre originals continue the same river southwest past Santo Antônio da Floresta, Frei Bento and Guaribu to Itaici, then south through the Pilões/São Simão surroundings. They distinguish the separate western Araraí/Boa Vista tributary and eastern Amorim and São Simão tributary approaches. The AGERH original keeps this as Braço Norte Esquerdo, distinct from the parallel Braço Norte Direito farther west.",
+          "sources": [
+            "ibge_muniz2020",
+            "ibge_alegre2020",
+            "agerh_itapemirim_rea"
+          ],
+          "correspondence": "complete at ordinary component/corridor scale",
+          "component_correspondence_completed": true,
+          "mapped_component_name": "Rio Braço Norte Esquerdo"
+        },
+        {
+          "fragments": [
+            13948
+          ],
+          "component_scope": "São Simão reservoir passage and southern continuation",
+          "finding": "Quinto’s original Figure 14, based on the 2012/2015 aerial-survey period, shows the through-going north–south river widening into the long southern reservoir with short side arms. Its mapped position and shape overlap the selected lower Itaici–Limeira corridor. Figure 1 gives the study setting; the author describes the São Simão reservoir in the accompanying primary research prose. The AGERH original locates São Simão on this arm, while the overlapping Alegre original traces the same valley onward south below the reservoir setting. The thesis’s broad use of Rio Itapemirim is not used to erase AGERH’s local Braço Norte Esquerdo naming. No present shoreline, operating level or precise dam alignment is inferred.",
+          "sources": [
+            "quinto2018",
+            "ibge_alegre2020",
+            "agerh_itapemirim_rea"
+          ],
+          "correspondence": "complete at ordinary component/corridor scale",
+          "component_correspondence_completed": true,
+          "mapped_component_name": "São Simão reservoir setting on Rio Braço Norte Esquerdo"
+        },
+        {
+          "fragments": [
+            13948
+          ],
+          "component_scope": "Santa Fé diversion setting and natural two-arm confluence",
+          "finding": "The Alegre original follows the selected eastern arm south past Limeira and Barra São Lourenço to the Barragem Santa Fé setting, then downstream on the surface river to the junction with the western arm. It separately maps the expanded western Francisco Gross (Antiga Santa Fé) reservoir on Braço Norte Direito; that western approach is not inserted into the selection. The independently authored public Santa Fé EIA describes a derivation on Esquerdo, a generation reservoir on Direito, their tunnel connection, residual-flow surface reaches and the powerhouse below their natural confluence. Only this normally acquired EIA’s prose is used: its referenced map pages are blank placeholders. The municipal original supplies the mapped natural-river connection, and AGERH independently identifies formation of Itapemirim at the two-arm junction.",
+          "sources": [
+            "ibge_alegre2020",
+            "santafe_eia2006_prose",
+            "agerh_itapemirim_rea"
+          ],
+          "correspondence": "complete at ordinary component/corridor scale",
+          "component_correspondence_completed": true,
+          "mapped_component_name": "Rio Braço Norte Esquerdo / Rio Braço Norte Direito / Rio Itapemirim"
+        },
+        {
+          "fragments": [
+            13948
+          ],
+          "component_scope": "Departamento–Rive–Pacotuba eastward corridor",
+          "finding": "The Alegre, Cachoeiro and retained state originals overlap the river south through the Departamento/Fazenda Santa Fé setting, its turn east near the Rio Alegre junction, and continuation past Rive and the northern Jerônimo Monteiro surroundings. The mapped Itapemirim continues east through the Angico/Universo vicinity toward Pacotuba and the Floresta Nacional de Pacotuba. The western Alegre approach and southern local tributaries remain separate from the selected corridor.",
+          "sources": [
+            "ibge_alegre2020",
+            "ibge_cachoeiro2020",
+            "ibge_rjes2015",
+            "agerh_itapemirim_rea"
+          ],
+          "correspondence": "complete at ordinary component/corridor scale",
+          "component_correspondence_completed": true,
+          "mapped_component_name": "Rio Itapemirim"
+        },
+        {
+          "fragments": [
+            13948
+          ],
+          "component_scope": "Pacotuba–Coutinho and Castelo junction",
+          "finding": "The Cachoeiro original traces the eastward river through Pacotuba and Coutinho and the receiving junction with Rio Castelo arriving from the north. The river then bends south toward Cachoeiro de Itapemirim. AGERH’s original basin hydrography separately depicts Castelo and its contribution to Itapemirim, confirming that the selected east-to-south route stays on Itapemirim rather than following Castelo upstream.",
+          "sources": [
+            "ibge_cachoeiro2020",
+            "agerh_itapemirim_rea",
+            "ibge_rjes2015"
+          ],
+          "correspondence": "complete at ordinary component/corridor scale",
+          "component_correspondence_completed": true,
+          "mapped_component_name": "Rio Itapemirim"
+        },
+        {
+          "fragments": [
+            13948
+          ],
+          "component_scope": "Cachoeiro de Itapemirim, Ilha da Luz setting and Safra",
+          "finding": "The Cachoeiro and Itapemirim originals trace the continuous southward river through the Cachoeiro urban corridor and onward through the southern São Geraldo/União, Angola, Lambari and Tijuca settings to Safra and BR-101. AGERH’s hydropower map and table place Ilha da Luz on this same urban river. The source coverage supports that river/hydropower passage without inventing a separate lake crossing or a precise structure-to-model-vertex match.",
+          "sources": [
+            "ibge_cachoeiro2020",
+            "ibge_itapemirim2020",
+            "agerh_itapemirim_rea"
+          ],
+          "correspondence": "complete at ordinary component/corridor scale",
+          "component_correspondence_completed": true,
+          "mapped_component_name": "Rio Itapemirim"
+        },
+        {
+          "fragments": [
+            13948
+          ],
+          "component_scope": "Lower plain, Paineiras and Muqui do Norte junction",
+          "finding": "The Itapemirim original follows the river from Safra east and southeast across the lowland bends, past the Itapecoá/Paineiras and Ilha do Júlio surroundings toward Itapemirim. It separately maps the southern Rio Muqui do Norte approach through the Rio Muqui/Piabanha do Sul side of the plain and its downstream connection to the selected main river. AGERH’s original hydrography corroborates the Muqui contribution. Nearby southern lagoons and other coastal drains are outside the selected through-going line.",
+          "sources": [
+            "ibge_itapemirim2020",
+            "agerh_itapemirim_rea",
+            "ibge_rjes2015"
+          ],
+          "correspondence": "complete at ordinary component/corridor scale",
+          "component_correspondence_completed": true,
+          "mapped_component_name": "Rio Itapemirim"
+        },
+        {
+          "fragments": [
+            13948
+          ],
+          "component_scope": "Itapemirim–Barra do Itapemirim estuary and actual Atlantic terminal",
+          "finding": "The Itapemirim original traces the terminal river past Itapemirim and its northward coastal turn, the wider estuarine reach and the Atlantic opening beside the Barra do Itapemirim/northern Marataízes setting. The retained state original prints Barra do Itapemirim here; AGERH’s hydrography marks the natural river mouth at the Atlantic. This is correspondence to the actual selected estuarine outlet setting, not a reassignment to nearby lagoons, beaches or towns. No exact modern bank, breakwater edge, sandbar or mouth-point agreement is claimed.",
+          "sources": [
+            "ibge_itapemirim2020",
+            "ibge_rjes2015",
+            "agerh_itapemirim_rea"
+          ],
+          "correspondence": "complete at ordinary component/corridor scale",
+          "component_correspondence_completed": true,
+          "mapped_component_name": "Rio Itapemirim / Atlantic estuarine outlet"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60010615",
+      "source_keys": [
+        "r154-rincon2017",
+        "r154-urbani2022",
+        "r154-apitz-zulia",
+        "r154-rodriguez-galan2010"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10828
+          ],
+          "component_scope": "Western mountain opening and east-northeast foothill connector",
+          "finding": "Rincón Figure 1 and Apitz Figure 13 place the Aricuaisá drainage in the southern Sierra de Perijá and distinguish it from the more southerly Lora and Río del Norte drainage. Rodríguez and Galán Figure 10 maps the cave/foothill setting around the Aricuaisá system but does not extend clearly across the entire selected western opening. None of these actually read maps establishes the complete west-to-east-northeast selected opening into the mapped receiving corridor. Nearby cave locations, discovered Baracay labels and basin membership are not used to name or close this gap.",
+          "sources": [
+            "r154-rincon2017",
+            "r154-apitz-zulia",
+            "r154-rodriguez-galan2010"
+          ],
+          "correspondence": "Regional headward setting only; full selected opening and connector remain unestablished.",
+          "component_correspondence_completed": false,
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            10828
+          ],
+          "component_scope": "Southeast-trending Aricuaisá approach across the piedmont and plain",
+          "finding": "Apitz Figure 13 separately labels the Aricuaisá and depicts its southeast-running approach from the Perijá foothills toward the common lowland trunk. Rincón Figure 1 overlaps this regional course. Urbani Figure 4.3 depicts the northern Aricuaisá approach distinctly from the southern Lora. This supports the middle selected approach as Aricuaisá, while leaving the more western selected opening unresolved.",
+          "sources": [
+            "r154-rincon2017",
+            "r154-urbani2022",
+            "r154-apitz-zulia"
+          ],
+          "correspondence": "Generalized original-publication cartographic corridor correspondence.",
+          "component_correspondence_completed": true,
+          "mapped_component_name": "Río Aricuaisá"
+        },
+        {
+          "fragments": [
+            10828
+          ],
+          "component_scope": "Aricuaisá–Lora junction and Santa Ana receiving course",
+          "finding": "Apitz Figure 13 and Urbani Figure 4.3 depict a northern Aricuaisá approach meeting a separate Lora approach from the west/southwest, with Santa Ana continuing toward the lake. Urbani pp. 281–282 and the Figure 4.3 caption explicitly place the naming continuation after the Aricuaisá–Lora meeting. The selection comes down the northern approach and continues on the common receiver; the separate upstream Lora and Río del Norte are not renamed after it. The exact junction or name-transition vertex is not assigned.",
+          "sources": [
+            "r154-rincon2017",
+            "r154-urbani2022",
+            "r154-apitz-zulia"
+          ],
+          "correspondence": "Junction and receiving-course relationship read in original-publication maps and supporting prose.",
+          "component_correspondence_completed": true,
+          "mapped_component_names": [
+            "Río Aricuaisá",
+            "Río Lora",
+            "Río Santa Ana"
+          ]
+        },
+        {
+          "fragments": [
+            10828
+          ],
+          "component_scope": "Santa Ana lowland bends and northern tributary junction settings",
+          "finding": "Apitz Figure 13 carries the common trunk eastward and northeastward along the northern margin of the Juan Manuel wetland complex and separately shows the Santa Rosa and Negro/Tucuco approaches from the north. Rincón Figure 1 supplies overlapping lowland routing. The selected line remains on the receiving Santa Ana corridor rather than following any of those tributaries upstream. No intermediate reservoir or named open-lake crossing is shown on this selected fluvial interval; the broad wetland is its setting, not a whole-feature river alias.",
+          "sources": [
+            "r154-rincon2017",
+            "r154-urbani2022",
+            "r154-apitz-zulia"
+          ],
+          "correspondence": "Continuous regional receiving corridor, major tributary and wetland relationships read.",
+          "component_correspondence_completed": true,
+          "mapped_component_names": [
+            "Río Santa Ana"
+          ]
+        },
+        {
+          "fragments": [
+            10828
+          ],
+          "component_scope": "Lake-facing final reach and actual Lago de Maracaibo receiving setting",
+          "finding": "Rincón Figure 1 and Apitz Figure 13 visibly connect the Santa Ana lowland system to the western/southwestern shore of Lago de Maracaibo. Urbani Figure 4.3 and its caption independently show the lakeward outlet in historical cartography. The actual receiving waterbody is Lago de Maracaibo, not an open Caribbean or Gulf mouth inferred from the retained sea class. Rincón p. 23 discusses Caño Negro and Río Concepción in the lower wetland/outlet system; those prose names are preserved as limited branch context, not used as proven labels for the selected last segment. Exact current channel, bank or mouth-point agreement is outside this generalized correspondence.",
+          "sources": [
+            "r154-rincon2017",
+            "r154-urbani2022",
+            "r154-apitz-zulia"
+          ],
+          "correspondence": "Generalized outlet connection and receiving waterbody established; detailed distributary nomenclature not assigned.",
+          "component_correspondence_completed": true,
+          "mapped_component_names": [
+            "Río Santa Ana",
+            "Lago de Maracaibo"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61225556",
+      "source_keys": [
+        "BR154-GUA",
+        "BR154-EUN",
+        "BR154-PS"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13902
+          ],
+          "component_scope": "Western opening and first connection",
+          "finding": "The opening lies in the mapped Tabocal/Jacutinga setting west of the Bahia frontier. The drawn watercourse continues east through the Cabeceira do Rio do Peixe setting into the frontier river corridor. This establishes geographic continuity without assigning one hydronym to the whole opening.",
+          "sources": [
+            "BR154-GUA"
+          ],
+          "correspondence": "Positive original-map correspondence at generalized corridor/component scale.",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13902
+          ],
+          "component_scope": "Frontier and Buranhém settlement corridor",
+          "finding": "The mapped corridor continues from the frontier east through the Buranhém settlement area, receiving separate side streams and then turning northeast. The settlement label is distinguished from the downstream river labels.",
+          "sources": [
+            "BR154-GUA"
+          ],
+          "correspondence": "Positive original-map correspondence at generalized corridor/component scale.",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13902
+          ],
+          "component_scope": "Alto Cariri northeast bend and eastward turn",
+          "finding": "Overlapping maps show the northward bend east of the Alto Cariri area and the turn east toward Eunápolis. Separate tributary junctions, including the Água Preta setting, join this continuous course; the Guaratinga sheet prints Rio Buranhém ou Peixe on the trunk.",
+          "sources": [
+            "BR154-GUA",
+            "BR154-EUN"
+          ],
+          "correspondence": "Positive original-map correspondence at generalized corridor/component scale.",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13902
+          ],
+          "component_scope": "Middle course south of Eunápolis",
+          "finding": "The same corridor passes south of Eunápolis, crosses the BR-101 setting and continues east toward Vera Cruz, with the selected broad southward loop and return north shown in overlapping sheets.",
+          "sources": [
+            "BR154-GUA",
+            "BR154-EUN",
+            "BR154-PS"
+          ],
+          "correspondence": "Positive original-map correspondence at generalized corridor/component scale.",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13902
+          ],
+          "component_scope": "Lower bends and estuary approach",
+          "finding": "The lower course follows the mapped Vera Cruz/Vale Verde bends, turns east below the BR-367/Pindorama setting and broadens toward Porto Seguro. The Porto Seguro original again prints Rio Buranhém ou Peixe on this connected course.",
+          "sources": [
+            "BR154-EUN",
+            "BR154-PS"
+          ],
+          "correspondence": "Positive original-map correspondence at generalized corridor/component scale.",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13902
+          ],
+          "component_scope": "Lake/reservoir passages and lateral tributaries",
+          "finding": "The inspected selected corridor is depicted as a connected river course with tributary junctions and lower estuarine widening. No intervening named lake or reservoir passage is depicted. Lateral stream labels are not adopted as names for the selected whole.",
+          "sources": [
+            "BR154-GUA",
+            "BR154-EUN",
+            "BR154-PS"
+          ],
+          "correspondence": "Positive original-map correspondence at generalized corridor/component scale.",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13902
+          ],
+          "component_scope": "Actual terminal",
+          "finding": "The final mapped channel opens directly to the Atlantic between the Porto Seguro urban waterfront and the Arraial d’Ajuda/Aldeia Velha side. The selected terminal corresponds to that sea outlet, not an upstream junction or a separate coastal stream.",
+          "sources": [
+            "BR154-PS"
+          ],
+          "correspondence": "Positive original-map correspondence at generalized corridor/component scale.",
+          "component_correspondence_completed": true
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "aw_id": "hydro-system:70500400",
+      "publication": "USGSTopo: bounded Summit Lake–Pueblo Slough–Alvord corridor views",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "observed_outcome": "Four original bounded views completed HTTP 200 and were visually read. They do not establish the selected northwestern transfer from the Mahogany Creek/Summit Lake drainage to Sand/Virgin Creek, or the selected northward through-passage from Tumtum Lake to the Trout Creek trunk.",
+      "outcome_layer": "Substantive cartographic/correspondence limitation, not an HTTP or transport failure.",
+      "restriction_scope": "The two unestablished through-connections only. Other mapped local corridors, lake settings and the actual Alvord Desert terminal remain usable. No service-wide or equivalent-publication acquisition stop is inferred.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "material_headward_and_lake_connector_gaps",
+      "material_gap": true
+    },
+    {
+      "aw_id": "hydro-system:70500400",
+      "publication": "USGS Water-Supply Paper 231",
+      "official_url": "https://pubs.usgs.gov/wsp/0231/report.pdf",
+      "observed_outcome": "The sole direct web-reader open returned Internal Error: Failed to fetch https://pubs.usgs.gov/wsp/0231/report.pdf: (403) Forbidden. No original text, map pixels or response headers were acquired.",
+      "outcome_layer": "HTTP 403 as reported by the web-reader; not independently observed origin headers.",
+      "restriction_scope": "The entire Water-Supply Paper 231 publication, including its maps, metadata/catalogue equivalents, copies, formats and every acquisition route, remains stopped. No retry, download, cache, screenshot, mirror or alternate route was used.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "publication_http403_stop",
+      "material_effect": "The publication cannot supply additional connector evidence. The primary classification remains one source-material-pending record for the substantive unresolved links, with no second access-pending count.",
+      "source_evidence_excluded": "Search snippets are discovery only and are not retained as substantive evidence or map reading."
+    },
+    {
+      "aw_id": "hydro-system:61312366",
+      "publication": "IBGE 2020 Espírito Santo municipal-map state directory",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/ES/",
+      "observed_outcome": "Sole web-reader open returned unexplained Internal Error, with no directory body or origin HTTP status.",
+      "outcome_layer": "Web-reader outcome; origin HTTP unknown",
+      "restriction_scope": "Exact state directory and equivalent directory-acquisition routes paused; no retry. This is not a blanket restriction on independently identified municipal map publications. Ibatiba original was independently discovered in search; separate municipality-specific catalogues and originals completed normally.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "availability_stop",
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:61312366",
+      "publication": "AGERH/IJSN Itapemirim Relatório Técnico da Etapa A",
+      "official_url": "https://agerh.es.gov.br/media/Documenta%C3%A7%C3%A3o%20CBHs/Itapemirim/REA_DiagnosticoPrognostico_CBH%20Rio%20Itapemirim.pdf",
+      "observed_outcome": "The web PDF reader completed an explicit content-size limitation without access denial. One sequential acquisition of the known official original completed HTTP200 application/pdf. Relevant original cartography and prose were read.",
+      "outcome_layer": "Reader size/format limit followed by successful completed original HTTP-client response",
+      "restriction_scope": "Failed reader route was not retried. No authorization denial or publication-wide stop was inferred; original pixels were available and read.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "technical_route_limit_resolved_by_original",
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:61312366",
+      "publication": "Samarco, Comunidade de Muniz Freire recebe estudo sobre peixes da bacia do Rio Pardo, 03/04/2019",
+      "official_url": "https://www.samarco.com/comunidade-de-muniz-freire-recebe-estudo-sobre-peixes-da-bacia-do-rio-pardo/",
+      "observed_outcome": "Sole web-reader open reported Failed to fetch the exact URL: (403) Forbidden.",
+      "outcome_layer": "Web-reader reported HTTP403; no separately captured original-client response",
+      "restriction_scope": "Whole notice and associated linked fish-study acquisition, equivalents, cached/reader/original/mirror/alternate views stopped. No retry. Discovery search excerpts are not substantive evidence.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "publication_access_denial",
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:61312366",
+      "publication": "Statkraft, Plano de Segurança da Barragem – PSB, PCH Francisco Gros, rev.05, 2025",
+      "official_url": "https://www.statkraft.com.br/globalassets/0/.com.br/8-statkraft-brazil/seguranca-de-barragens/plano-de-seguranca-de-barragens-psb/psb-francisco-gros.pdf",
+      "observed_outcome": "Original transfer completed HTTP200 application/pdf. The source first page states Este documento é somente para uso oficial, não para distribuição.",
+      "outcome_layer": "Explicit source-use/distribution notice within successfully acquired original; not an HTTP denial",
+      "restriction_scope": "Entire publication and equivalent copies, formats and figures excluded from substantive evidence; no further source reading or acquisition. No figure pixels were inspected, and no additional source content is relied on.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "official_use_only_exclusion",
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:61312366",
+      "publication": "Sarmento-Soares and Martins-Pinheiro, A fauna de peixes nas bacias do sul do Espírito Santo, Brasil; Sitientibus série Ciências Biológicas13, DOI10.13102/scb218",
+      "official_url": "https://ojs3.uefs.br/index.php/sitientibusBiologia/article/download/218/290/995",
+      "observed_outcome": "The sole original acquisition completed HTTP502 text/html. No article PDF or original map was acquired.",
+      "outcome_layer": "Completed original HTTP-client response; no distinct tunnel error reported",
+      "restriction_scope": "Whole missing journal publication, figures and all equivalent copies, author copies, mirrors, formats and acquisition routes paused. No retry or fallback. This independently identified pre-2016 journal study is distinct from the 2019 Samarco notice/study; neither is substantive evidence here.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "availability_stop",
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:61312366",
+      "publication": "AQUACONSULT/CESA Estudo de Impacto Ambiental – PCH Santa Fé, capítulos1–3, IEMA2006 collection",
+      "official_url": "https://iema.es.gov.br/Media/iema/CQAI/EIA/2006/Pequena%20Central%20Hidrel%C3%A9trica%20PCH%20Santa%20F%C3%A9/2_1PCH%20StaF%C3%A9%20EIA%20Cap1a3.pdf",
+      "observed_outcome": "Normally acquired original pp10,12,14 have the captions for Figures1.2.3.1,2.1.1,2.2.1.1 but otherwise blank figure placeholders; map artwork is absent in this chapter file.",
+      "outcome_layer": "Original-publication content limitation; successful PDF acquisition, no HTTP or transport denial",
+      "restriction_scope": "Those pages are not cartographic evidence. Only actually read prose is used alongside independent original municipal cartography. No map-content retry was undertaken.",
+      "earlier_lawful_prose_exception": "Normally read pp1–3,8–13 provide the bounded project-stage two-arm and natural-channel description.",
+      "limitation_kind": "original_figure_content_absent",
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:60010615",
+      "publication": "Hackley, Urbani, Karlsen and Garrity, Geologic Shaded Relief Map of Venezuela, USGS Open-File Report 2005-1038, version 1.0; equivalent Spanish edition OF2006-1109",
+      "official_url": "https://pubs.usgs.gov/of/2005/1038/index.html",
+      "observed_outcome": "The sole web-reader catalogue open returned Internal Error: Failed to fetch the exact URL, (403) Forbidden. No original national sheet or catalogue body was obtained.",
+      "outcome_layer": "Web-reader fetch result reporting HTTP403; no independent direct-origin receipt.",
+      "restriction_scope": "Whole publication and equivalent English/Spanish editions, original sheets, figures, metadata/catalogue, reader, cache, screenshot, mirror and all other acquisition routes stopped. No retry or alternate acquisition.",
+      "earlier_lawful_prose_exception": "Urbani2022 author prose and independent O’Shaughnessy/DCN figures were already read and remain bounded evidence of those distinct sources. The small Hackley Figure4.1 reproduction had also been seen before denial, but is excluded from substantive correspondence and supplies no geographic claim. No unacquired Hackley catalogue prose or original sheet is asserted; discovery snippets are not map evidence.",
+      "limitation_kind": "http_403_publication_stop",
+      "material_gap": true,
+      "material_effect": "Potential original full regional/headward corroboration unavailable; western opening remains material pending."
+    },
+    {
+      "aw_id": "hydro-system:60010615",
+      "publication": "Wikimedia Commons category, Official topographic maps of Zulia (state)",
+      "official_url": "https://commons.wikimedia.org/wiki/Category%3AOfficial_topographic_maps_of_Zulia_%28state%29",
+      "observed_outcome": "Sole web-reader category open returned Cache miss; no category body or original map pixels obtained through this request, and no HTTP status exposed.",
+      "outcome_layer": "Web-reader cache/fetch availability, not an observed origin denial.",
+      "restriction_scope": "This category and equivalent category/reader/cache discovery routes paused. No further route was used to recover the planned DCN5644/5744 sheets, and no full original sheet was requested. A category failure is not asserted to be a domain-wide denial or new printed restriction on every independent sheet.",
+      "earlier_lawful_prose_exception": "Previously read small DCN5644/5744 excerpts inside independent Urbani2022 remain bounded observations of those excerpts only. Search listings establish possible sheet identities but are not cartographic evidence.",
+      "limitation_kind": "category_availability_stop",
+      "material_gap": true,
+      "material_effect": "No additional original topographic coverage obtained; selected western opening remains unresolved."
+    },
+    {
+      "aw_id": "hydro-system:61225556",
+      "publication": "Guaratinga, SEI municipal map with boundary descriptive table; May2023 compilation, 1:100,000",
+      "official_url": "https://ftp.sei.ba.gov.br/Geoinformacao/mapas/munic/vigente/mapa_com_descritivo_atual_2911808.pdf",
+      "observed_outcome": "The sole original-file request completed with HTTP Error 502: Bad Gateway. No original file bytes or map pixels were acquired.",
+      "outcome_layer": "HTTP error returned to the original-file request; no authorization or security denial was reported.",
+      "restriction_scope": "Publication and equivalent copies, original/reader/cache/catalogue/figure/mirror routes remain paused. No retry or alternate acquisition was performed.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "availability_stop_502",
+      "material_gap": false
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "aw_id": "hydro-system:60010615",
+      "publication": "Urbani Patat2022, Tres episodios de la historia petrolera venezolana: Pedernales, Escuque y Perijá",
+      "official_url": "https://acading.org.ve/wp-content/uploads/2023/02/Urbani-2022-Tres-episodios-historia-petrolera-Pedernales-Escuque-Perija.pdf",
+      "observed_outcome": "Successful original contains author copyright and an express reproduction-with-attribution notice.",
+      "outcome_layer": "Printed source-use notice, not an access failure.",
+      "restriction_scope": "Attribute the author/publication; no source maps or derivatives redistributed in this finding.",
+      "earlier_lawful_prose_exception": "Actually read relevant Urbani author prose and independent figures remain usable within their declared coverage. The separate subsequently stopped Hackley reproduction is excluded from substantive correspondence.",
+      "limitation_kind": "publication_use_notice",
+      "material_gap": false,
+      "material_effect": "No additional geographic gap or source-access-limited count."
+    },
+    {
+      "aw_id": "hydro-system:61225556",
+      "publication": "Guaratinga – BA, Mapa Municipal, 2911808, edição04/2021",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/BA/guaratinga/2911808_MM.pdf",
+      "observed_outcome": "The original prints that the municipal-map collection was prepared for IBGE statistical collection/tabulation and reserves reproduction rights. Original map pixels were lawfully read; no map redistribution is included.",
+      "outcome_layer": "Printed publication-purpose and reproduction notice, not HTTP or transport outcome.",
+      "restriction_scope": "Use as bounded geographic correspondence only; no hydrological-survey precision, legal/administrative conclusion or formal registry claim. Original PDFs, crops and derived working figures remain private.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "publication_use_notice",
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:61225556",
+      "publication": "Eunápolis – BA, Mapa Municipal, 2910727, edição04/2021",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/BA/eunapolis/2910727_MM.pdf",
+      "observed_outcome": "The original prints that the municipal-map collection was prepared for IBGE statistical collection/tabulation and reserves reproduction rights. Original map pixels were lawfully read; no map redistribution is included.",
+      "outcome_layer": "Printed publication-purpose and reproduction notice, not HTTP or transport outcome.",
+      "restriction_scope": "Use as bounded geographic correspondence only; no hydrological-survey precision, legal/administrative conclusion or formal registry claim. Original PDFs, crops and derived working figures remain private.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "publication_use_notice",
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:61225556",
+      "publication": "Porto Seguro – BA, Mapa Municipal, 2925303, edição04/2021",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/BA/porto_seguro/2925303_MM.pdf",
+      "observed_outcome": "The original prints that the municipal-map collection was prepared for IBGE statistical collection/tabulation and reserves reproduction rights. Original map pixels were lawfully read; no map redistribution is included.",
+      "outcome_layer": "Printed publication-purpose and reproduction notice, not HTTP or transport outcome.",
+      "restriction_scope": "Use as bounded geographic correspondence only; no hydrological-survey precision, legal/administrative conclusion or formal registry claim. Original PDFs, crops and derived working figures remain private.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "publication_use_notice",
+      "material_gap": false
+    }
+  ]
+}
