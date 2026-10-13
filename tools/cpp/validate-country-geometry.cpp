@@ -249,8 +249,7 @@ void auditCatalog(Topology& topology,const fs::path& root) {
     if(failed)throw std::runtime_error("Existing catalog contains invalid geometry versions");
 }
 void selfTest() {
-    const auto parse=pandoeditor::codecjson::parse;
-    auto valid=[&](const std::string& raw){validateSphericalPolygon(parse(raw));};
+    auto valid=[&](const std::string& raw){validateSphericalPolygon(pandoeditor::codecjson::parse(raw));};
     valid(R"({"type":"Polygon","coordinates":[[[0,0],[0,2],[2,2],[2,0],[0,0]]]})");
     valid(R"({"type":"Polygon","coordinates":[[[179,-2],[179,2],[-179,2],[-179,-2],[179,-2]]]})");
     valid(R"({"type":"Polygon","coordinates":[[[170,80],[90,85],[0,89],[-90,85],[-170,80],[170,80]]]})");
