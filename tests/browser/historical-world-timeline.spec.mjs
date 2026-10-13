@@ -75,7 +75,7 @@ test('new world reset retains the complete history after an edit', async ({ page
   await expect(page.locator('#confirmModal')).toBeHidden();
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('UKR')?.properties.name), { timeout: 60000 }).toBe('우크라이나');
   await month(page, '2012-10');
-  expect(await page.evaluate(() => window.PANDOLAB_TERRITORIAL.list().map(row => row.id).sort())).toEqual(['state:nagorno-karabakh', 'UKR']);
+  expect(new Set(await page.evaluate(() => window.PANDOLAB_TERRITORIAL.list().map(row => row.id)))).toEqual(new Set(['SDN','SDS','state:nagorno-karabakh','UKR']));
   await expect(page.locator('#undoBtn')).toBeDisabled(); expect(errors).toEqual([]);
 });
 

@@ -90,7 +90,8 @@ private slots:
         const auto view=pandoeditor::timelineDocumentView(loaded.project->document(),"2012-10");
         QVERIFY(view.world.find("UKR"));
         QVERIFY(!view.world.find("RUS"));
-        QCOMPARE(view.world.entities.size(),std::size_t(2));
+        QVERIFY(view.world.find("SDN"));QVERIFY(view.world.find("SDS"));
+        QCOMPARE(view.world.entities.size(),std::size_t(4));
         QVERIFY(!pandoeditor::isStaticTimeline(loaded.project->document()));
     }
     void currentGeometryAliasesMatchCanonicalPacket() {
