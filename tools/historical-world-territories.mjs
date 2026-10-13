@@ -82,7 +82,11 @@ export function adjustHistoricalTerritories(input, policy, clipper = historicalW
       if (!row.geometry || row.currentSnapshot) continue;
       const parent = byId.get(row.parentId);
       if (!parent?.geometry) replace(row, null, 'parent-gap', [row.parentId]);
-      else if (changed.has(parent.entityId) && !kernel.contains(parent.geometry, row.geometry)) replace(row, intersection(row.geometry, parent.geometry), 'parent-clipping', [parent.entityId]);
+      // Match the kernel's containment test using this pipeline's audited
+      // difference normalizer. The kernel's private difference would otherwise
+      // reject even a certified sub-millimetre Boolean sliver before reporting it.
+      else if (changed.has(parent.entityId) && significant(difference(row.geometry, parent.geometry), row.geometry))
+        replace(row, intersection(row.geometry, parent.geometry), 'parent-clipping', [parent.entityId]);
     }
   };
   clipChildren();
