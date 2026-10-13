@@ -33,15 +33,15 @@ int main(int argc,char** argv) {
     require(normalized.status==GeometryOperationStatus::Completed,"spherical clipped normalizer: "+normalized.detail);
     require(normalized.geometry.polygons.front().front().size()==7,"canonical long-edge subdivisions");
     const auto river=normalizeRiverGeometry(square);
-    require(river.succeeded()&&river.geometry.has_value(),river.detail.toStdString());
+    require(river.succeeded()&&river.geometry.has_value(),"river normalization: "+river.detail.toStdString());
     RiverBaseComponent base;base.key="base";base.countryId="A";base.componentKey="A:0";
     base.sourcePolygonIndex=7;base.geometry=square;base.attributes={{"custom","retained"}};
     const auto composition=composeRiverPartitionComponents({base},{},{});
-    require(composition.succeeded()&&composition.components.size()==1,composition.detail.toStdString());
+    require(composition.succeeded()&&composition.components.size()==1,"river composition: "+composition.detail.toStdString());
     require(composition.components.front().key=="base"&&composition.components.front().sourcePolygonIndex==7&&
         composition.components.front().attributes["custom"]=="retained","canonical river fallback metadata");
     const auto metric=calculateRiverAreaKm2(square);
-    require(metric.succeeded()&&metric.areaKm2>0,metric.detail.toStdString());
+    require(metric.succeeded()&&metric.areaKm2>0,"river area: "+metric.detail.toStdString());
 
     QFile fixture(QStringLiteral(PANDO_GEOMETRY_CUT_FIXTURE));
     require(fixture.open(QIODevice::ReadOnly),"tiny cut fixture unavailable");
