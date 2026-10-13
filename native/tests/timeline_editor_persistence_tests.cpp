@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "editorcontroller.h"
 #include "projectgeopackage.h"
 #include "webimport.h"
@@ -597,7 +598,7 @@ private slots:
         if(QString(kind)=="static")QVERIFY(editor.openProjectGeoPackage(QUrl::fromLocalFile(path)));
         else {QVERIFY(!editor.openProjectGeoPackage(QUrl::fromLocalFile(path)));QCOMPARE(editor.documentBytes(),before);}
     }
-    Project empty;empty.replace(ProjectDocument({},{}));const auto path=dir.filePath("empty.gpkg");write(path,exportProjectGeoPackage(empty));Project restored;restored.replace(projectcodec::decode(readProjectGeoPackage(path)));QCOMPARE(projectcodec::encode(restored),projectcodec::encode(empty));
+    Project empty;empty.replace(makeTerritorialDocument({},{}));const auto path=dir.filePath("empty.gpkg");write(path,exportProjectGeoPackage(empty));Project restored;restored.replace(projectcodec::decode(readProjectGeoPackage(path)));QCOMPARE(projectcodec::encode(restored),projectcodec::encode(empty));
  }
  void immutableWorkerHistoryCursorAndFullAutosave() {
     QTemporaryDir dir;QVERIFY(dir.isValid());Project project;project.replace(fixture("static"));const auto before=project.snapshot();
@@ -615,7 +616,8 @@ private slots:
  }
  void canonicalGeometryAndParentCommandsRestoreTogether() {
     const Geometry square{"Polygon",{},{},{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}}};
-    ProjectDocument d({{"A","A",square.polygons,0x123456},{"C","C",square.polygons,0x123456}},{});
+    pandoeditor::ProjectDocument d = makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square.polygons},{0x123456,1},"countries"},
+        {{"C","C","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square.polygons},{0x123456,1},"countries"}},{});
     const GeometryRef shared=staticGeometryBinding(d,"A").geometryRef;
     appendTerritory(d,{"S","S","",UnitKind::General,false},shared,"A");d.presentation.objectStyles[territorialRef("S")]={};
     d.presentation.membership.clear();Project project;project.replace(d);const auto original=projectcodec::encode(project);

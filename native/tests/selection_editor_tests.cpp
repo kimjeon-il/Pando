@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "territorial_fixture.h"
 #include "editorcontroller.h"
 #include <QtTest>
@@ -16,10 +17,8 @@ QStringList ids(const QVariantList& values) {
 void modes() {QTest::addColumn<bool>("mobile");QTest::newRow("desktop")<<false;QTest::newRow("mobile-common")<<true;}
 EditorControllerConfig config(bool mobile,const QString& path) {EditorControllerConfig c;c.mobileMode=mobile;c.privateProjectPath=path;return c;}
 ProjectDocument fixture() {
-    ProjectDocument d({
-        {"A","알파",{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}},0x123456},
-        {"B","베타",{{{{20,0},{30,0},{30,10},{20,10},{20,0}}}},0xabcdef}
-    },{{"countries","국가"},{"other","영역"},{"hidden","숨김",false,false,1}});
+    pandoeditor::ProjectDocument d = makeTerritorialDocument({{{"A","알파","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}}},{0x123456,1},"countries"},
+        {{"B","베타","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{20,0},{30,0},{30,10},{20,10},{20,0}}}}},{0xabcdef,1},"countries"}},{{"countries","국가"},{"other","영역"},{"hidden","숨김",false,false,1}});
     d.documentId="selection-fixture-v1";
     auto add=[&](std::string id,UnitKind kind,const std::string& layer,double left,double right,bool locked){
         Geometry g;g.type="Polygon";g.polygons={{{{left,2},{right,2},{right,4},{left,4},{left,2}}}};

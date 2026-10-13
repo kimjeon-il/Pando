@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "territorial_fixture.h"
 #include <pandoeditor/historicalinstantiation.h>
 #include <pandoeditor/project.h>
@@ -17,7 +18,7 @@ HistoricalEntity entity(std::string id,UnitKind kind,Geometry geometry) {
     e.geometryVersions.push_back(std::move(v));return e;
 }
 Project project() {
-    Project p;ProjectDocument d({{"A","Alpha",square(0,10).polygons,0x123456}},{{"countries","Countries"}});
+    Project p;pandoeditor::ProjectDocument d = makeTerritorialDocument({{{"A","Alpha","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(0,10).polygons},{0x123456,1},"countries"}},{{"countries","Countries"}});
     p.replace(std::move(d));return p;
 }
 }
@@ -167,7 +168,7 @@ int main() {
         transferProject.document().units.front().id=="historical-country:absorber");
     assert(transferProject.undo()&&transferProject.document().units.front().id=="A");
 
-    ProjectDocument referenced({{"A","Alpha",square(0,10).polygons,0x123456}},{{"countries","Countries"}});
+    pandoeditor::ProjectDocument referenced = makeTerritorialDocument({{{"A","Alpha","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(0,10).polygons},{0x123456,1},"countries"}},{{"countries","Countries"}});
     Geometry point;point.type="Point";point.points={{1,1}};
     referenced.geometries.insert({"label-point",1},point);
     PlaceLabel place;place.id="place";place.name="Place";place.geometry={"label-point",1};
@@ -188,7 +189,7 @@ int main() {
     assert(referencedProject.document().labels.front().territory==territorialRef("historical-country:absorber"));
     assert(referencedProject.document().distributionEntries.front().territory==territorialRef("historical-country:absorber"));
     assert(referencedProject.undo()&&referencedProject.document().labels.front().territory==territorialRef("A"));
-    ProjectDocument flagged({{"A","Alpha",square(0,10).polygons,0x123456}},{{"countries","Countries"}});
+    pandoeditor::ProjectDocument flagged = makeTerritorialDocument({{{"A","Alpha","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(0,10).polygons},{0x123456,1},"countries"}},{{"countries","Countries"}});
     flagged.symbols[territorialRef("A")]={FlagPolicy::None,{}};
     Project flaggedProject;flaggedProject.replace(std::move(flagged));
     bool flagBlocked=false;

@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include <pandoeditor/gisexchange.h>
 #include <pandoeditor/project.h>
 #include <cassert>
@@ -7,7 +8,7 @@
 using namespace pandoeditor;
 namespace {
 Geometry square() {Geometry g;g.type="Polygon";g.polygons={Polygon{Ring{{0,0},{1,0},{1,1},{0,1},{0,0}}}};return g;}
-Project project() {Project p;p.replace(ProjectDocument({{"A","Alpha",square().polygons,0x123456}},{{"countries","Countries"}}));return p;}
+Project project() {Project p;p.replace(makeTerritorialDocument({{{"A","Alpha","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square().polygons},{0x123456,1},"countries"}},{{"countries","Countries"}}));return p;}
 bool rejects(const std::function<void()>& fn){try{fn();}catch(const std::invalid_argument&){return true;}return false;}
 }
 int main() {

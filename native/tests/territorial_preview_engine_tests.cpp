@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include <pandoeditor/map/territorialpreview.h>
 #include "territorial_fixture.h"
 #include <cstring>
@@ -27,7 +28,8 @@ Geometry box(double left,double right,double bottom=0,double top=10) {
     Geometry g;g.polygons={{{{left,bottom},{right,bottom},{right,top},{left,top},{left,bottom}}}};return g;
 }
 GeometryOperationResult value(Geometry g) {return {g.polygons.empty()?Status::Empty:Status::Completed,std::move(g),{}};}
-ProjectDocument roots() {return ProjectDocument({{"A","A",box(0,10).polygons,0},{"B","B",box(10,20).polygons,0}},{{"countries","Countries"}});}
+ProjectDocument roots() {return makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},box(0,10).polygons},{0,1},"countries"},
+        {{"B","B","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},box(10,20).polygons},{0,1},"countries"}},{{"countries","Countries"}});}
 void child(ProjectDocument& d,const std::string& id,const std::string& parent,Geometry g,bool locked=false) {
     GeometryRef ref{id,1};d.geometries.insert(ref,std::move(g));appendTerritory(d,{id,id,"",UnitKind::General,locked},ref,parent);
     d.presentation.objectStyles[territorialRef(id)]={};
@@ -148,7 +150,7 @@ void riverAbsentAndEmptyRemnantsStayProtected() {
     }
 }
 void childSplitUsesRawOnlyForReparentedOwner() {
-    ProjectDocument d({{"P","P",box(0,20).polygons,0}},{{"countries","Countries"}});child(d,"A","P",box(0,10));child(d,"carried","A",box(1,2,1,2));child(d,"fixed","carried",box(1.2,1.4,1.2,1.4),true);
+    pandoeditor::ProjectDocument d = makeTerritorialDocument({{{"P","P","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},box(0,20).polygons},{0,1},"countries"}},{{"countries","Countries"}});child(d,"A","P",box(0,10));child(d,"carried","A",box(1,2,1,2));child(d,"fixed","carried",box(1.2,1.4,1.2,1.4),true);
     Work w(d);const auto before=w.project.snapshot();auto callbacks=forbidden();int wrap=0,clip=0,normalized=0,raw=0;
     callbacks.geometry.wrap=[&](const Geometry& g,const GeometryCancellation&) {++wrap;return value(g);};
     callbacks.geometry.clip=[&](const GeometryOperationRequest& r,const GeometryCancellation&) {++clip;require(r.operation==GeometryOperation::Difference&&r.operands.empty(),"child split binary route");if(clip==1){require(exact(r.left,box(0,4))&&exact(r.right,box(0,10)),"child outside inputs");return value({});}require(clip==2&&exact(r.left,box(0,10))&&exact(r.right,box(0,4)),"child difference inputs");return value(box(4,10));};
@@ -161,7 +163,7 @@ void childSplitUsesRawOnlyForReparentedOwner() {
     require(w.ticket.token().progress()==100,"split progress");snapshotUnchanged(w,before);
 }
 void rootExhaustionKeepsIdentityUnionAndInertReceipt() {
-    ProjectDocument d({{"A","A",box(0,10).polygons,0}},{{"countries","Countries"}});Work w(d);auto callbacks=forbidden();int wraps=0,clips=0,normalizes=0;
+    pandoeditor::ProjectDocument d = makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},box(0,10).polygons},{0,1},"countries"}},{{"countries","Countries"}});Work w(d);auto callbacks=forbidden();int wraps=0,clips=0,normalizes=0;
     callbacks.geometry.wrap=[&](const Geometry& g,const GeometryCancellation&) {++wraps;return value(g);};
     callbacks.geometry.normalizeClipped=[&](const Geometry& g,const GeometryCancellation&) {++normalizes;return value(g);};
     callbacks.geometry.clip=[&](const GeometryOperationRequest& r,const GeometryCancellation&) {++clips;require(r.operands.empty()&&r.operation!=GeometryOperation::Union,"one-operand union called runtime");return value(r.operation==GeometryOperation::Intersection?box(0,10):Geometry{});};
@@ -214,7 +216,7 @@ void observationFailuresAndCancellationKeepPartialReceipt() {
     }
 }
 void splitFailuresAndCancellationPreservePolicy() {
-    ProjectDocument d({{"P","P",box(0,20).polygons,0}},{{"countries","Countries"}});child(d,"A","P",box(0,10));
+    pandoeditor::ProjectDocument d = makeTerritorialDocument({{{"P","P","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},box(0,20).polygons},{0,1},"countries"}},{{"countries","Countries"}});child(d,"A","P",box(0,10));
     for(const std::string detail:{"split callback detail","CANCELLED"}) {
         Work w(d);auto callbacks=forbidden();callbacks.geometry.wrap=[&](const Geometry&,const GeometryCancellation&) {return GeometryOperationResult{Status::Cancelled,{},detail};};
         const auto r=calculateSplitGeometryPreview(w.project.snapshot(),{territorialRef("A"),box(0,4),"C","Created"},callbacks,w.ticket.token());

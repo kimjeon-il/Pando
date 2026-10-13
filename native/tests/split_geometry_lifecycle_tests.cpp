@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "territorialpreviewruntime.h"
 #include "territorial_fixture.h"
 #include "territorialgeometry.h"
@@ -27,7 +28,7 @@ void append(ProjectDocument& document,const std::string& id,const Geometry& geom
     document.presentation.objectStyles[territorialRef(id)]={};
 }
 ProjectDocument nested() {
-    ProjectDocument document({{"root","Root",box(0,0,10,10).polygons,0x123456}},{{"countries","Countries"}});
+    pandoeditor::ProjectDocument document = makeTerritorialDocument({{{"root","Root","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},box(0,0,10,10).polygons},{0x123456,1},"countries"}},{{"countries","Countries"}});
     append(document,"source",box(1,1,8,8),"root");append(document,"child",box(2,2,4,4),"source");
     append(document,"grandchild",box(2.5,2.5,1,1),"child");return document;
 }
@@ -280,7 +281,7 @@ private slots:
     }
     void datelineSplitCommitsWithoutRewritingUntouchedParent() {
         QFETCH(bool,childScope);Geometry raw;raw.type="Polygon";raw.polygons={{{{179,-2},{179,2},{-179,2},{-179,-2},{179,-2}}}};
-        ProjectDocument document({{"source","Source",raw.polygons,0x123456}},{{"countries","Countries"}});
+        pandoeditor::ProjectDocument document = makeTerritorialDocument({{{"source","Source","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},raw.polygons},{0x123456,1},"countries"}},{{"countries","Countries"}});
         if(childScope) {Geometry parent;parent.polygons={{{{178,-4},{178,4},{-178,4},{-178,-4},{178,-4}}}};const GeometryRef ref{"parent",1};document.geometries.insert(ref,parent);appendTerritory(document,{"parent","Parent","",UnitKind::General,false},ref,"","explicit");document.presentation.objectStyles[territorialRef("parent")]={};setFixtureParent(document,territorialRef("source"),territorialRef("parent"));}
         Geometry selected=box(179,0,1,2);selected.polygons.push_back(box(-180,0,1,2).polygons.front());
         Project project;project.replace(document);const auto before=projectcodec::encode(project);
