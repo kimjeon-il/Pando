@@ -102,6 +102,22 @@
 | `ARC-021` | [구형 수계 v0.12.2~v0.12.6 — 2단계 삭제 준비 조사](archive/hydro/legacy-hydro-stage2.md) | 2026-10-09 | `historical-record` | `unverified` |
 | `ARC-022` | [구형 수계 전체 정리 — 3단계 실행·복원·배포 검증](archive/hydro/legacy-hydro-stage3.md) | 2026-10-09 | `historical-record` | `unverified` |
 
+## 2026-10-13 보고서 통합 정리 추가 자료
+
+이 단락은 파일 보관 경로를 안내합니다. 조사 완료·지도 반영·실행 검증이 추가로 확인되었다는 뜻은 아닙니다.
+
+| 분야 | 현재 보고서·증거 정본 |
+| --- | --- |
+| 시아첸 지리 조사 | [연구 개요](research/siachen/README.md), [산등성이 원자료 검토](research/siachen/REVIEW_SALTORO_MULTI_SOURCE_2026-10-08.md) |
+| 독일제국 1914년 북슐레스비히 | [사료 검토](geography/germany/north-schleswig/german-denmark-1914-north-schleswig-001-026.review.md) |
+| 네덜란드 간척·해안 | [현행 국가·수역 표현 조사](geography/netherlands/phase0-current-representation-inventory.json), [기존 검증 기록](geography/netherlands/phase0-canonical-audit.md) |
+| 세르비아 역사 경계 | [세르비아 1914년 QA](geography/serbia/serbia-1914-qa.md) |
+| 국가 색상 연구 | [근거 정리](research/country-default-colors.md), [연구 색상표](research/country-default-colors.json) |
+| 지명 조사 원문 | [감사 결과](places/place-data-audit.md), [검토 세부표](places/place-candidate-review.md), [출처 매니페스트](places/source-manifest.json) |
+| 앱 UI·배포 기록 | [UI 통합 검증](development/app/common-ui-integration.md), [경계 분리 배포 근거](development/app/platform-boundaries-deployment.md) |
+| 앱 참조 이미지 | [앱 검증 증거](development/app/evidence/reference-image-web-parity/review.md) |
+| 역사 수계 조사 | [r152~r194 조사 데이터](hydro-names/reconstruction-2026-10-09/) |
+
 ## 기존 원본·생성 자료
 
 - [수계 보정](hydro-calibration/README.md), [연결성](hydro-connectivity/README.md), [v0.12.3](hydro-v0.12.3/README.md), [v0.12.4](hydro-v0.12.4/README.md), [v0.13.0](hydro-v0.13.0/README.md)의 보고서·도판은 증거 묶음의 상대 경로를 유지합니다.
