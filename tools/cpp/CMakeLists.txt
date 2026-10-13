@@ -14,3 +14,15 @@ target_link_libraries(pando-country-geometry-check PRIVATE PkgConfig::GEOS ZLIB:
 if(MSVC)
     target_compile_options(pando-country-geometry-check PRIVATE /utf-8)
 endif()
+
+# Pure core winding normalization remains usable by native and Emscripten;
+# it must not depend on the GEOS/PROJ CLI dependencies.
+add_executable(pando-spherical-polygon-tests
+    spherical-polygon-tests.cpp
+    ../../shared/core/src/sphericalpolygon.cpp)
+target_include_directories(pando-spherical-polygon-tests PRIVATE ../../shared/core/include)
+if(MSVC)
+    target_compile_options(pando-spherical-polygon-tests PRIVATE /utf-8)
+endif()
+enable_testing()
+add_test(NAME spherical-polygon-normalization COMMAND pando-spherical-polygon-tests)
