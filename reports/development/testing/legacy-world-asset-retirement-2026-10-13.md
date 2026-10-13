@@ -25,7 +25,7 @@ The explicit version suffixes above match these paths under `assets/data/`: `cou
 
 - `tests/unit/renderable-outline.test.mjs`: load current v0.36.0 country preview instead of v0.30.0. The boundary assertions and test expectations are unchanged.
 - `tests/unit/mesh-geometry-assets.test.mjs`: validate current v0.36.0 preview mesh instead of removed v0.32.0. The canonical mesh, full numeric assertions and original expectations are unchanged.
-- `tests/browser/startup-interaction-gate.spec.mjs`: derive both canonical request intercepts from the current content-addressed world manifest, rather than dead fixed versioned URLs. Asserted startup/quiet-input timing remains unchanged. Real browser replay is required for a completed runtime parity determination.
+- `tests/browser/startup-interaction-gate.spec.mjs`: derive both canonical request intercepts from the current content-addressed world manifest, rather than dead fixed versioned URLs. Repair the obsolete input fixture: hover must not block current background loading, so the test holds an active pointer from the `pandolab:interactive` event until the movement loop ends, then checks the same 500 ms quiet-window admission. Browser CI is required for acceptance.
 - A targeted GitHub Actions gate checks immutable live/native pins, absence of all retired paths, and current geometry/outlines with the original unit assertions.
 - Previously published legacy version URLs may return HTTP 404 under `docs/data-url-retention-policy.md`. Historic files are recoverable from the exact pre-removal Git commit; no history rewriting or force pushing is performed.
 
