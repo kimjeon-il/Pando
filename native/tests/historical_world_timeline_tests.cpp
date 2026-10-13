@@ -76,7 +76,7 @@ private slots:
         const auto bytes=projectcodec::encode(project);
         Project restored;restored.replace(projectcodec::decode(bytes));restored.setTimelineCursor("2012-10");
         QCOMPARE(projectcodec::encode(restored),bytes);
-        for(const auto& month:{"1900-01","1941-04","1945-11","1991-08","1991-12","2012-09","2012-10","2014-02","2014-03","2015-10","2020-10","2020-11","2026-10"}) {
+        for(const auto& month:{"1900-01","1941-04","1945-11","1991-08","1991-12","2011-06","2011-07","2012-09","2012-10","2014-02","2014-03","2015-10","2020-10","2020-11","2026-10"}) {
             const auto a=project.resolveWorld(month),b=restored.resolveWorld(month);QCOMPARE(a.entities.size(),b.entities.size());
             for(std::size_t i=0;i<a.entities.size();++i) {
                 QCOMPARE(a.entities[i].id,b.entities[i].id);QVERIFY(a.entities[i].geometryRef==b.entities[i].geometryRef);
