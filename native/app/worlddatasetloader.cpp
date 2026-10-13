@@ -96,7 +96,7 @@ WorldPreviewResult WorldDatasetLoader::preview(const QString& root) {
     auto projection=std::make_shared<MapProjection>();projection->rebuild(views);
     return {std::move(frame),std::move(projection)};
 }
-WorldCanonicalResult WorldDatasetLoader::canonical(const QString& root) {
+WorldCanonicalResult WorldDatasetLoader::canonical(const QString& root,const std::string& requestedMonth) {
     WorldDataset source(root);
     CanonicalCountryStore packet(source.decompress("countryCanonical",12*1024*1024));
     auto classified=materializeBuiltinWorld(packet);
@@ -140,10 +140,14 @@ WorldCanonicalResult WorldDatasetLoader::canonical(const QString& root) {
             }
         }
     }
-    const auto month=pandoeditor::initialTimelineMonth(document->timelineRecords,QDate::currentDate().toString("yyyy-MM").toStdString());
-    const auto view=pandoeditor::timelineDocumentView(*document,month);
-    auto projection=std::make_shared<MapProjection>();projection->rebuild(view.document,view.inactiveIds);
-    return {std::move(document),std::move(projection),renderRanges(classified),hydroAvailability};
+    auto project=std::make_shared<pandoeditor::Project>();
+    project->replace(std::move(*document));
+    const auto month=requestedMonth.empty()?pandoeditor::initialTimelineMonth(
+        project->document().timelineRecords,QDate::currentDate().toString("yyyy-MM").toStdString()):requestedMonth;
+    project->setTimelineCursor(month);
+    auto projection=std::make_shared<MapProjection>();
+    projection->rebuild(project->viewDocument(),project->inactiveEntityIds());
+    return {std::move(project),std::move(projection),renderRanges(classified),hydroAvailability};
 }
 std::shared_ptr<const CountryBaseMesh> WorldDatasetLoader::canonicalMesh(const QString& root) {
     WorldDataset source(root);

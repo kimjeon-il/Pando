@@ -1,174 +1,120 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { readFileSync } from 'node:fs';
+import { gzipSync } from 'node:zlib';
+import { createHash } from 'node:crypto';
 import { createProjectDomain } from '../../assets/js/modules/project-domain.js';
-import { createHistoryService } from '../../assets/js/modules/history-service.js';
 import { createSaveStateController } from '../../assets/js/modules/save-state-controller.js';
+import { createNodeCoreProject } from '../helpers/core-project.mjs';
 import { createCommandFixture } from '../../tools/parity/command-history.mjs';
 
-function fixture() {
-  const events = [];
-  let value = { count: 0 };
-  const store = { history: [], historyMeta: [], future: [], futureMeta: [] };
-  const saveState = createSaveStateController();
-  const history = createHistoryService({
-    store, maxEntries: 10, snapshot: () => structuredClone(value),
-    restore: (next, options) => {
-      events.push(options.mode);
-      value = structuredClone(next);
-      if (next.fail) throw new Error('restore failed');
-    },
-    normalizeMetadata: meta => meta,
+const seed=() => JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json',import.meta.url),'utf8'));
+async function fixture(t,{ replaceSnapshot }={}) {
+  const initial=seed(),events=[],decoded=Buffer.from(JSON.stringify(initial)),sourceBytes=gzipSync(decoded);
+  const baseline={ kind: 'stored-asset',sourceBytes,encoding: 'gzip',compressedBytes: sourceBytes.byteLength,decodedBytes: decoded.byteLength,
+    baseDataset: initial.baseDataset,sourceMonth: '2026-10',fingerprint: createHash('sha256').update(sourceBytes).digest('hex') };
+  let owner;
+  const saveState=createSaveStateController({ getDocumentState: () => owner?.client.state() ?? null });
+  owner=await createNodeCoreProject(initial,{
+    appVersion: 'fixture',saveState,
+    prepareEmpty: async () => { events.push('prepare');const accepted=await owner.project.admitStorageBaseline(baseline);return { baselineId:accepted.storageBaselineId,builtinMeshReady: true }; },
+    replaceSnapshot: async (...args) => { events.push('replace');return replaceSnapshot ? replaceSnapshot(...args):true; },
+    restoreReplacement: () => events.push('rollback'),createProjectFile: value => value,
+    persistence: { cancelPending: () => events.push('cancel-pending'),clear: async () => events.push('clear-autosave'),
+      queueProject: (_delay,options) => { assert.equal(options.markDirty,false);events.push('autosave'); } },
+    onProjectReset: () => events.push('reset'),onProjectChanged: () => events.push('event'),
+    invalidateProject: () => events.push('render'),invalidateHistory: () => events.push('render'),
   });
-  const domain = createProjectDomain({
-    getSnapshot: () => value,
-    prepareRestore: structuredClone,
-    history, saveState,
-    persistence: {
-      cancelPending: () => events.push('cancel-pending'),
-      queueProject: (_delay, options) => {
-        assert.equal(options.markDirty, false);
-        events.push('autosave');
-      },
-    },
-    prepareEmpty: async () => { events.push('prepare'); return { count: 0 }; },
-    captureReplacement: () => structuredClone(value),
-    replaceSnapshot: (next, { prepared }) => {
-      events.push('replace');
-      value = structuredClone(next || prepared);
-      if (next?.fail) throw new Error('replacement failed');
-      return true;
-    },
-    restoreReplacement: checkpoint => { value = checkpoint; events.push('rollback'); },
-    createProjectFile: project => project,
-    onProjectReset: () => events.push('reset'),
-    onProjectChanged: () => events.push('event'),
-    invalidateProject: () => events.push('render'),
-    invalidateHistory: () => events.push('render'),
-  });
-  return { domain, store, saveState, events };
+  t.after(() => owner.dispose());
+  return { ...owner,domain: owner.project,saveState,events,initial };
 }
+const rename=(domain,name) => domain.executeCommand({ commandId: 'territorial.metadata',targets: [{ domain: 'territorial',id: 'A' }],
+  payload: { id: 'A',field: 'name',valuePresent: true,value: name } });
 
-test('load/new commit event, render and autosave once after replacement; save state stays clean', async () => {
-  const { domain, store, saveState, events } = fixture();
-  domain.recordHistory();
-  await domain.load({ count: 3 });
-  assert.deepEqual(events, ['cancel-pending', 'reset', 'replace', 'event', 'render', 'autosave']);
-  assert.equal(store.history.length, 0);
-  assert.equal(saveState.snapshot().hasUnsavedChanges, false);
-  events.length = 0;
-  await domain.createEmpty();
-  assert.deepEqual(events, ['prepare', 'cancel-pending', 'reset', 'replace', 'event', 'render', 'autosave']);
-  assert.deepEqual(domain.snapshot(), { count: 0 });
-  assert.equal(saveState.snapshot().file, 'never-saved');
+test('load/new publish one event, render and autosave after Core replacement and remain clean',async t => {
+  const { domain,client,saveState,events,initial }=await fixture(t);
+  await rename(domain,'Before open');events.length=0;
+  await domain.load(initial);
+  assert.deepEqual(events,['cancel-pending','reset','replace','event','render','autosave']);
+  assert.equal(client.state().canUndo,false);assert.equal(saveState.snapshot().hasUnsavedChanges,false);
+  events.length=0;await domain.createEmpty();
+  assert.deepEqual(events,['prepare','cancel-pending','reset','replace','clear-autosave','event','render','autosave']);
+  assert.deepEqual(domain.snapshot(),initial);assert.equal(saveState.snapshot().file,'never-saved');
 });
 
-test('project preview cache operations pass through ProjectDomain', async () => {
-  const project = { format: 'pandolab-autosave-delta' };
-  const calls = [];
-  const domain = createProjectDomain({ persistence: {
-    restorePreview: async value => { calls.push(['restore', value]); return { countryIds: ['DEU'] }; },
-    ensurePreview: value => { calls.push(['ensure', value]); return true; },
+test('project preview cache operations pass through ProjectDomain',async () => {
+  const project={ format: 'pandolab-autosave-delta' },calls=[];
+  const domain=createProjectDomain({ persistence: {
+    restorePreview: async value => { calls.push(['restore',value]);return { countryIds: ['DEU'] }; },
+    ensurePreview: value => { calls.push(['ensure',value]);return true; },
   } });
-  assert.deepEqual(await domain.restorePreview(project), { countryIds: ['DEU'] });
-  assert.equal(domain.ensurePreview(project), true);
-  assert.deepEqual(calls, [['restore', project], ['ensure', project]]);
+  assert.deepEqual(await domain.restorePreview(project),{ countryIds: ['DEU'] });
+  assert.equal(domain.ensurePreview(project),true);assert.deepEqual(calls,[['restore',project],['ensure',project]]);
 });
 
-test('failed replacement restores canonical state and preserves history without success effects', async () => {
-  const { domain, store, events } = fixture();
-  domain.recordHistory();
-  await assert.rejects(domain.load({ fail: true }), /replacement failed/);
-  assert.deepEqual(domain.snapshot(), { count: 0 });
-  assert.equal(store.history.length, 1);
-  assert.equal(domain.getGeneration(), 2, 'failed worker generations cannot become current again');
-  assert.deepEqual(events, ['cancel-pending', 'reset', 'replace', 'reset', 'rollback']);
+test('failed platform replacement restores the canonical full project and history without success effects',async t => {
+  const failure=new Error('replacement failed'),{ domain,client,events,initial }=await fixture(t,{ replaceSnapshot: () => { throw failure; } });
+  await rename(domain,'History before failure');const before=domain.snapshot();events.length=0;
+  await assert.rejects(domain.load(initial),error => error===failure);
+  assert.deepEqual(domain.snapshot(),before);assert.equal(client.state().canUndo,true);
+  assert.equal(domain.getGeneration(),2);assert.equal(domain.isReplacing(),false);
+  assert.deepEqual(events,['cancel-pending','reset','replace','reset','rollback']);
+  assert.equal(await domain.undo(),true);assert.deepEqual(domain.snapshot(),initial);
 });
 
-test('new project keeps replacement active until its prepared visual swap resolves', async () => {
-  const phases = [];
-  const resets = [];
-  let releaseSwap;
-  const domain = createProjectDomain({
-    prepareEmpty: async () => ({ countries: { count: 0 }, builtinMeshReady: true }),
-    replaceSnapshot: () => new Promise(resolve => { releaseSwap = () => resolve(true); }),
-    onProjectReset: event => resets.push(event),
-    onReplacementState: active => phases.push(active),
-  });
-  const pending = domain.createEmpty();
-  await Promise.resolve();
-  await Promise.resolve();
-  assert.equal(domain.isReplacing(), true);
-  assert.deepEqual(phases, [true]);
-  assert.equal(resets.length, 1);
-  assert.equal(resets[0].preserveBuiltinMesh, true);
-  releaseSwap();
-  await pending;
-  assert.equal(domain.isReplacing(), false);
-  assert.deepEqual(phases, [true, false]);
+test('new project retains its replacement boundary until the prepared visual swap acknowledges',async t => {
+  let releaseSwap,signalSwapStarted;
+  const held=new Promise(resolve => { releaseSwap=resolve; }),started=new Promise(resolve => { signalSwapStarted=resolve; });
+  const { domain }=await fixture(t,{ replaceSnapshot: async (_project,options) => {
+    assert.equal(options.preserveBuiltinMesh,true);signalSwapStarted();await held;return true;
+  } });
+  const pending=domain.createEmpty();await started;
+  assert.equal(domain.isReplacing(),true);assert.equal(domain.getGeneration(),1);
+  releaseSwap();await pending;assert.equal(domain.isReplacing(),false);
 });
 
-test('undo/redo emit one lifecycle sequence; empty history has no effects', () => {
-  const { domain, events } = fixture();
-  assert.equal(domain.undo(), false);
-  assert.deepEqual(events, []);
-  domain.recordHistory();
-  assert.equal(domain.undo(), true);
-  assert.deepEqual(events, ['history', 'event', 'render', 'autosave']);
-  events.length = 0;
-  assert.equal(domain.redo(), true);
-  assert.deepEqual(events, ['history', 'event', 'render', 'autosave']);
+test('whole Core undo/redo emit one lifecycle sequence and empty history has no effects',async t => {
+  const { domain,events }=await fixture(t);
+  assert.equal(await domain.undo(),false);assert.deepEqual(events,[]);
+  await rename(domain,'Undo boundary');events.length=0;
+  assert.equal(await domain.undo(),true);assert.deepEqual(events,['event','render','autosave']);
+  events.length=0;assert.equal(await domain.redo(),true);assert.deepEqual(events,['event','render','autosave']);
 });
 
-test('undo and redo restore the saved content token at the saved document', () => {
-  const { service, domain, saveState } = createCommandFixture();
-  service.updateMetadata('A', 'name', 'Beta');
-  saveState.markFileSaved();
-  service.updateMetadata('A', 'name', 'Gamma');
-  assert.equal(saveState.snapshot().documentDirty, true);
-  assert.equal(domain.undo(), true);
-  assert.equal(saveState.snapshot().documentDirty, false);
-  assert.equal(domain.undo(), true);
-  assert.equal(saveState.snapshot().documentDirty, true);
-  assert.equal(domain.redo(), true);
-  assert.equal(saveState.snapshot().documentDirty, false);
-  assert.equal(domain.redo(), true);
-  assert.equal(saveState.snapshot().documentDirty, true);
+test('undo and redo retain the Core saved checkpoint of the complete document',async t => {
+  const owner=await createCommandFixture();t.after(() => owner.dispose());
+  const { service,domain,saveState }=owner;
+  await service.updateMetadata('A','name','Beta');await owner.markSaved();
+  await service.updateMetadata('A','name','Gamma');assert.equal(saveState.snapshot().documentDirty,true);
+  assert.equal(await domain.undo(),true);assert.equal(saveState.snapshot().documentDirty,false);
+  assert.equal(await domain.undo(),true);assert.equal(saveState.snapshot().documentDirty,true);
+  assert.equal(await domain.redo(),true);assert.equal(saveState.snapshot().documentDirty,false);
+  assert.equal(await domain.redo(),true);assert.equal(saveState.snapshot().documentDirty,true);
 });
 
-test('failed history restore rolls back without moving history stacks or scheduling effects', () => {
-  const { domain, store, events } = fixture();
-  domain.commitHistorySnapshot({ fail: true });
-  assert.throws(() => domain.undo(), /restore failed/);
-  assert.deepEqual(domain.snapshot(), { count: 0 });
-  assert.equal(store.history.length, 1);
-  assert.equal(store.future.length, 0);
-  assert.deepEqual(events, ['history', 'rollback']);
+test('invalid file preparation changes no live model, history, generation or platform effects',async t => {
+  const { domain,client,events }=await fixture(t);
+  await rename(domain,'Retained history');const before=domain.snapshot(),state=client.state();events.length=0;
+  await assert.rejects(domain.load({ format: 'pandolab-project-state',schemaVersion: 999 }));
+  assert.equal(domain.snapshot(),before);assert.deepEqual(client.state(),state);
+  assert.equal(domain.getGeneration(),0);assert.equal(domain.isReplacing(),false);assert.deepEqual(events,[]);
 });
 
-test('save owns status, cancellation, and detached export without history/render/autosave', async () => {
-  const { domain, saveState, events } = fixture();
-  saveState.markContentChanged();
-  const before = saveState.checkpoint();
-  await assert.rejects(domain.save(() => { throw Object.assign(new Error('cancel'), { name: 'AbortError' }); }));
-  assert.deepEqual(saveState.checkpoint(), before);
-  assert.equal(await domain.save(project => {
-    project.count = 99;
-    return { downloaded: true };
-  }), true);
-  assert.deepEqual(domain.snapshot(), { count: 0 });
-  assert.equal(saveState.snapshot().file, 'download-created');
-  assert.deepEqual(events, []);
+test('file save owns I/O status and detached Core output without history/render/autosave effects',async t => {
+  const { domain,saveState,events }=await fixture(t);await rename(domain,'Saved name');events.length=0;
+  const before=saveState.checkpoint(),project=domain.snapshot();
+  await assert.rejects(domain.save(() => { throw Object.assign(new Error('cancel'),{ name: 'AbortError' }); }));
+  assert.deepEqual(saveState.checkpoint(),before);
+  assert.equal(await domain.save(body => { body.territorialEntities[0].properties.name='Detached file';return { downloaded: true }; }),true);
+  assert.equal(domain.snapshot(),project);assert.equal(saveState.snapshot().file,'download-created');
+  assert.equal(domain.canUndo(),true);assert.deepEqual(events,[]);
 });
 
-test('edits made while exporting are not marked saved; duplicate saves do not run', async () => {
-  const { domain, saveState } = fixture();
-  let finish;
-  const pending = domain.save(() => new Promise(resolve => { finish = resolve; }));
-  await Promise.resolve();
-  assert.equal(await domain.save(() => assert.fail('duplicate writer')), false);
-  saveState.markPresentationChanged();
-  finish({ downloaded: false });
-  await pending;
-  assert.equal(saveState.snapshot().hasUnsavedChanges, true);
-  assert.equal(saveState.snapshot().file, 'dirty');
+test('new edits during a held device write stay dirty and duplicate saves do not dispatch',async t => {
+  const { domain,saveState }=await fixture(t);let finish,signalWriting;
+  const held=new Promise(resolve => { finish=resolve; }),writing=new Promise(resolve => { signalWriting=resolve; });
+  const pending=domain.save(async () => { signalWriting();await held;return { downloaded: false }; });await writing;
+  assert.equal(await domain.save(() => assert.fail('duplicate writer')),false);
+  await rename(domain,'Changed during export');finish();await pending;
+  assert.equal(saveState.snapshot().hasUnsavedChanges,true);assert.equal(saveState.snapshot().file,'dirty');
 });

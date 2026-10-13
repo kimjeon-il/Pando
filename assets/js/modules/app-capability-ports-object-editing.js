@@ -4,6 +4,7 @@ export const OBJECT_EDITING_OWNER_PORTS = Object.freeze({
   "territorySelectionWorkflow": ["countries","countryCommitFlow","countryEditingA","countryEditingB","countryEditingC","domains","feedback","geometryOperations","interactionPresentation","projectState","riverCandidates","spatialQuery","surfaces","taskUi","territorialEditingA","territorialEditingB","territoryComponentUi","territoryComponents","territorialModel"],
   "countryCommits": ["applicationServicesB","countryEditingA","countryValidation","cutGeometry","cutOperations","domains","draftPresentation","feedback","genericEditingA","geometryModel","geometryOperations","hydroModel","interactionPresentation","landRelations","layers","objectModelA","objectOperationsB","objectPicking","presentation","projectState","propertyEditingA","snapshots","spatialQuery","surfaces","taskUi","territorialEditingA","territorialModel","territorialServicesA","territoryComponents","territoryGeometry","territorySelectionA","toolServices","objectPresentation"],
   "genericCommands": [
+    "countryCommitFlow",
     "applicationServicesA",
     "countryEditingA",
     "countryEditingB",
@@ -69,7 +70,7 @@ export const OBJECT_EDITING_OWNER_PORTS = Object.freeze({
     "taskUi",
     "territorialModel",
     "territorialServicesA",
-    "territorialServicesB",
+
     "workspaceUiA",
     "labelPresentation"
   ],
@@ -97,12 +98,13 @@ export const OBJECT_EDITING_OWNER_PORTS = Object.freeze({
     "taskUi",
     "territorialModel",
     "territorialServicesA",
-    "territorialServicesB",
+
     "territoryGeometry",
     "territorySelectionA",
     "territorySelectionB"
   ],
   "colorPicker": [
+    "readiness",
     "colorModel",
     "colorServices",
     "domains",
@@ -139,7 +141,7 @@ export const OBJECT_EDITING_OWNER_PORTS = Object.freeze({
     "rendering",
     "territorialEditingB",
     "territorialModel",
-    "territorialServicesB",
+
     "territoryGeometry"
   ],
   "territorialConversion": [
@@ -171,9 +173,9 @@ export const OBJECT_EDITING_OWNER_PORTS = Object.freeze({
     "territorialEditingB",
     "territorialModel",
     "territorialServicesA",
-    "territorialServicesB"
+
   ],
-  "projectSnapshots": ["applicationConstantsA","builtinBaseline","builtinCountries","countries","countryEditingB","countryRecords","countryServices","distributionServices","domainControllers","domains","hydroModel","labelPresentation","layerTree","layers","lifecycleUi","modelValidation","objectCatalog","objectOperationsA","platform","platformConfigurationA","platformConfigurationB","presentation","projectServices","projectSession","projectState","rendering","spatialQuery","surfaces","taskUi","territorialModel","territorialServicesA","territorialServicesB","geometryPreview"]
+  "projectSnapshots": ["applicationConstantsA","builtinBaseline","builtinCountries","countries","countryEditingB","countryRecords","countryServices","distributionServices","domainControllers","domains","hydroModel","labelPresentation","layerTree","layers","lifecycleUi","modelValidation","objectCatalog","objectOperationsA","platform","platformConfigurationA","platformConfigurationB","presentation","projectServices","projectSession","projectState","rendering","spatialQuery","surfaces","taskUi","territorialModel","territorialServicesA","geometryPreview"]
 });
 
 const PORT_SPECS = Object.freeze({
@@ -181,7 +183,7 @@ const PORT_SPECS = Object.freeze({
   colorServices: Object.freeze([["normalizeColorValue","runtime","normalizeColorValue"]]),
   countryServices: Object.freeze([["normalizeCountryCollection","runtime","normalizeCountryCollection"],["resolveCountryIdentities","runtime","resolveCountryIdentities"]]),
   countryValidation: Object.freeze([["refreshCountryCentroids","countryValidation","refreshCountryCentroids"],["snapGeometryToGrid","countryValidation","snapGeometryToGrid"]]),
-  cutOperations: Object.freeze([["applyWorkerCountryPatches","cutGeometry","applyWorkerCountryPatches"],["assessCutDraft","cutGeometry","assessCutDraft"],["buildCutSplitCandidates","cutGeometry","buildCutSplitCandidates"]]),
+  cutOperations: Object.freeze([["assessCutDraft","cutGeometry","assessCutDraft"],["buildCutSplitCandidates","cutGeometry","buildCutSplitCandidates"]]),
   labelServices: Object.freeze([["normalizeLabelSettings","runtime","normalizeLabelSettings"],["toolLabel","runtime","toolLabel"]]),
   layerTree: Object.freeze([["layerTreeItems","layerList","layerTreeItems"],["normalizeLayerFolderState","layerList","normalizeLayerFolderState"],["normalizeLayerItemState","layerList","normalizeLayerItemState"],["pruneLayerItemVisibility","layerList","pruneLayerItemVisibility"]]),
   objectMetadata: Object.freeze([["commitTerritorialMetadata","objectMetadata","commitTerritorialMetadata"],["commitGenericFeatureMeta","objectMetadata","commitGenericFeatureMeta"],["commitHydroEdit","objectMetadata","commitHydroEdit"],["commitTerritorialRelation","objectMetadata","commitTerritorialRelation"],["territorialUnitInsideContainer","objectMetadata","territorialUnitInsideContainer"]]),

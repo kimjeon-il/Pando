@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
-import { createStaticTerritorialSnapshot } from '../../assets/js/modules/territorial-entity-store.js';
+import {staticTerritorialInput} from '../helpers/timeline-project.mjs';
 import { assertCurrentProjectSchema } from '../../assets/js/modules/project-state.js';
 
 const viewports = [
@@ -97,7 +97,7 @@ test('flag actions follow the selected object type across entity and river edito
     properties: { pandolab_schema_version: 1, category: 'river', name: '깃발 표시 검증 강',
       editorColor: '#3b82c4', notes: '', source: 'test', locked: false } }] });
   const entityId = '00000000-0000-4000-8000-000000000001';
-  Object.assign(saved, createStaticTerritorialSnapshot([createTerritorialFeature({ id: entityId,
+  Object.assign(saved, staticTerritorialInput([createTerritorialFeature({ id: entityId,
     geometry: { type: 'Polygon', coordinates: [[[2, 40], [2, 50], [12, 50], [12, 40], [2, 40]]] },
     entityKind: 'general', name: '깃발 표시 검증 객체' })]));
   assertCurrentProjectSchema(saved);

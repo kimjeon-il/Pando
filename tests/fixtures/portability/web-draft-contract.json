@@ -1,0 +1,897 @@
+[
+  {
+    "operation": "activate the polygon tool before starting a draft",
+    "result": true,
+    "snapshot": {
+      "revision": 2,
+      "projectGeneration": 1,
+      "phase": "active",
+      "activeTool": "polygon",
+      "reason": "tool-change",
+      "draft": {
+        "active": true,
+        "coords": [],
+        "hover": null,
+        "inputPhase": "draw",
+        "vertexInsertMode": false,
+        "selectedVertexIndex": null,
+        "insertTarget": null,
+        "dragging": false,
+        "issues": [],
+        "historyCount": 0,
+        "futureCount": 0,
+        "strokeActive": false,
+        "cutAssessment": null,
+        "activeSnap": null
+      }
+    }
+  },
+  {
+    "operation": "start polygon in draw phase",
+    "result": true,
+    "snapshot": {
+      "revision": 3,
+      "projectGeneration": 1,
+      "phase": "active",
+      "activeTool": "polygon",
+      "reason": "draft-start",
+      "draft": {
+        "active": true,
+        "coords": [
+          [
+            0,
+            0
+          ],
+          [
+            12,
+            0
+          ],
+          [
+            12,
+            8
+          ]
+        ],
+        "hover": null,
+        "inputPhase": "draw",
+        "vertexInsertMode": false,
+        "selectedVertexIndex": null,
+        "insertTarget": null,
+        "dragging": false,
+        "issues": [],
+        "historyCount": 0,
+        "futureCount": 0,
+        "strokeActive": false,
+        "cutAssessment": null,
+        "activeSnap": null
+      }
+    }
+  },
+  {
+    "operation": "unmoved drag checkpoints the selected vertex before refining",
+    "result": true,
+    "snapshot": {
+      "revision": 4,
+      "projectGeneration": 1,
+      "phase": "active",
+      "activeTool": "polygon",
+      "reason": "draft-vertex-drag-start",
+      "draft": {
+        "active": true,
+        "coords": [
+          [
+            0,
+            0
+          ],
+          [
+            12,
+            0
+          ],
+          [
+            12,
+            8
+          ]
+        ],
+        "hover": null,
+        "inputPhase": "refine",
+        "vertexInsertMode": false,
+        "selectedVertexIndex": 1,
+        "insertTarget": null,
+        "dragging": true,
+        "issues": [],
+        "historyCount": 1,
+        "futureCount": 0,
+        "strokeActive": false,
+        "cutAssessment": null,
+        "activeSnap": null
+      }
+    }
+  },
+  {
+    "operation": "unmoved drag end retains its draft checkpoint",
+    "result": true,
+    "snapshot": {
+      "revision": 5,
+      "projectGeneration": 1,
+      "phase": "active",
+      "activeTool": "polygon",
+      "reason": "draft-vertex-drag-end",
+      "draft": {
+        "active": true,
+        "coords": [
+          [
+            0,
+            0
+          ],
+          [
+            12,
+            0
+          ],
+          [
+            12,
+            8
+          ]
+        ],
+        "hover": null,
+        "inputPhase": "refine",
+        "vertexInsertMode": false,
+        "selectedVertexIndex": 1,
+        "insertTarget": null,
+        "dragging": false,
+        "issues": [],
+        "historyCount": 1,
+        "futureCount": 0,
+        "strokeActive": false,
+        "cutAssessment": null,
+        "activeSnap": null
+      }
+    }
+  },
+  {
+    "operation": "Undo restores selected vertex and draw phase for unchanged coordinates",
+    "result": true,
+    "snapshot": {
+      "revision": 6,
+      "projectGeneration": 1,
+      "phase": "active",
+      "activeTool": "polygon",
+      "reason": "draft-mutated",
+      "draft": {
+        "active": true,
+        "coords": [
+          [
+            0,
+            0
+          ],
+          [
+            12,
+            0
+          ],
+          [
+            12,
+            8
+          ]
+        ],
+        "hover": null,
+        "inputPhase": "draw",
+        "vertexInsertMode": false,
+        "selectedVertexIndex": 1,
+        "insertTarget": null,
+        "dragging": false,
+        "issues": [],
+        "historyCount": 0,
+        "futureCount": 1,
+        "strokeActive": false,
+        "cutAssessment": null,
+        "activeSnap": null
+      }
+    }
+  },
+  {
+    "operation": "Redo restores selected vertex and refine phase",
+    "result": true,
+    "snapshot": {
+      "revision": 7,
+      "projectGeneration": 1,
+      "phase": "active",
+      "activeTool": "polygon",
+      "reason": "draft-mutated",
+      "draft": {
+        "active": true,
+        "coords": [
+          [
+            0,
+            0
+          ],
+          [
+            12,
+            0
+          ],
+          [
+            12,
+            8
+          ]
+        ],
+        "hover": null,
+        "inputPhase": "refine",
+        "vertexInsertMode": false,
+        "selectedVertexIndex": 1,
+        "insertTarget": null,
+        "dragging": false,
+        "issues": [],
+        "historyCount": 1,
+        "futureCount": 0,
+        "strokeActive": false,
+        "cutAssessment": null,
+        "activeSnap": null
+      }
+    }
+  },
+  {
+    "operation": "moved drag starts one checkpoint",
+    "result": true,
+    "snapshot": {
+      "revision": 8,
+      "projectGeneration": 1,
+      "phase": "active",
+      "activeTool": "polygon",
+      "reason": "draft-vertex-drag-start",
+      "draft": {
+        "active": true,
+        "coords": [
+          [
+            0,
+            0
+          ],
+          [
+            12,
+            0
+          ],
+          [
+            12,
+            8
+          ]
+        ],
+        "hover": null,
+        "inputPhase": "refine",
+        "vertexInsertMode": false,
+        "selectedVertexIndex": 2,
+        "insertTarget": null,
+        "dragging": true,
+        "issues": [],
+        "historyCount": 2,
+        "futureCount": 0,
+        "strokeActive": false,
+        "cutAssessment": null,
+        "activeSnap": null
+      }
+    }
+  },
+  {
+    "operation": "first move is queued without changing coordinates",
+    "result": true,
+    "snapshot": {
+      "revision": 8,
+      "projectGeneration": 1,
+      "phase": "active",
+      "activeTool": "polygon",
+      "reason": "draft-vertex-drag-start",
+      "draft": {
+        "active": true,
+        "coords": [
+          [
+            0,
+            0
+          ],
+          [
+            12,
+            0
+          ],
+          [
+            12,
+            8
+          ]
+        ],
+        "hover": null,
+        "inputPhase": "refine",
+        "vertexInsertMode": false,
+        "selectedVertexIndex": 2,
+        "insertTarget": null,
+        "dragging": true,
+        "issues": [],
+        "historyCount": 2,
+        "futureCount": 0,
+        "strokeActive": false,
+        "cutAssessment": null,
+        "activeSnap": null
+      }
+    }
+  },
+  {
+    "operation": "latest queued move replaces the earlier move",
+    "result": true,
+    "snapshot": {
+      "revision": 8,
+      "projectGeneration": 1,
+      "phase": "active",
+      "activeTool": "polygon",
+      "reason": "draft-vertex-drag-start",
+      "draft": {
+        "active": true,
+        "coords": [
+          [
+            0,
+            0
+          ],
+          [
+            12,
+            0
+          ],
+          [
+            12,
+            8
+          ]
+        ],
+        "hover": null,
+        "inputPhase": "refine",
+        "vertexInsertMode": false,
+        "selectedVertexIndex": 2,
+        "insertTarget": null,
+        "dragging": true,
+        "issues": [],
+        "historyCount": 2,
+        "futureCount": 0,
+        "strokeActive": false,
+        "cutAssessment": null,
+        "activeSnap": null
+      }
+    }
+  },
+  {
+    "operation": "drag end flushes the latest pending move before completion",
+    "result": true,
+    "snapshot": {
+      "revision": 10,
+      "projectGeneration": 1,
+      "phase": "active",
+      "activeTool": "polygon",
+      "reason": "draft-vertex-drag-end",
+      "draft": {
+        "active": true,
+        "coords": [
+          [
+            0,
+            0
+          ],
+          [
+            12,
+            0
+          ],
+          [
+            15.125,
+            10.25
+          ]
+        ],
+        "hover": null,
+        "inputPhase": "refine",
+        "vertexInsertMode": false,
+        "selectedVertexIndex": 2,
+        "insertTarget": null,
+        "dragging": false,
+        "issues": [],
+        "historyCount": 2,
+        "futureCount": 0,
+        "strokeActive": false,
+        "cutAssessment": null,
+        "activeSnap": null
+      }
+    }
+  },
+  {
+    "operation": "Undo moved drag restores exact original coordinates and vertex",
+    "result": true,
+    "snapshot": {
+      "revision": 11,
+      "projectGeneration": 1,
+      "phase": "active",
+      "activeTool": "polygon",
+      "reason": "draft-mutated",
+      "draft": {
+        "active": true,
+        "coords": [
+          [
+            0,
+            0
+          ],
+          [
+            12,
+            0
+          ],
+          [
+            12,
+            8
+          ]
+        ],
+        "hover": null,
+        "inputPhase": "refine",
+        "vertexInsertMode": false,
+        "selectedVertexIndex": 2,
+        "insertTarget": null,
+        "dragging": false,
+        "issues": [],
+        "historyCount": 1,
+        "futureCount": 1,
+        "strokeActive": false,
+        "cutAssessment": null,
+        "activeSnap": null
+      }
+    }
+  },
+  {
+    "operation": "insert mode activates without document history",
+    "result": true,
+    "snapshot": {
+      "revision": 12,
+      "projectGeneration": 1,
+      "phase": "active",
+      "activeTool": "polygon",
+      "reason": "draft-insert-mode",
+      "draft": {
+        "active": true,
+        "coords": [
+          [
+            0,
+            0
+          ],
+          [
+            12,
+            0
+          ],
+          [
+            12,
+            8
+          ]
+        ],
+        "hover": null,
+        "inputPhase": "refine",
+        "vertexInsertMode": true,
+        "selectedVertexIndex": 2,
+        "insertTarget": null,
+        "dragging": false,
+        "issues": [],
+        "historyCount": 1,
+        "futureCount": 1,
+        "strokeActive": false,
+        "cutAssessment": null,
+        "activeSnap": null
+      }
+    }
+  },
+  {
+    "operation": "closing polygon segment hover owns an insertion target",
+    "result": true,
+    "snapshot": {
+      "revision": 13,
+      "projectGeneration": 1,
+      "phase": "active",
+      "activeTool": "polygon",
+      "reason": "draft-segment-hover",
+      "draft": {
+        "active": true,
+        "coords": [
+          [
+            0,
+            0
+          ],
+          [
+            12,
+            0
+          ],
+          [
+            12,
+            8
+          ]
+        ],
+        "hover": null,
+        "inputPhase": "refine",
+        "vertexInsertMode": true,
+        "selectedVertexIndex": 2,
+        "insertTarget": {
+          "segmentIndex": 2,
+          "coordinate": [
+            6,
+            4
+          ]
+        },
+        "dragging": false,
+        "issues": [],
+        "historyCount": 1,
+        "futureCount": 1,
+        "strokeActive": false,
+        "cutAssessment": null,
+        "activeSnap": null
+      }
+    }
+  },
+  {
+    "operation": "insert target creates an exact new vertex and clears redo",
+    "result": true,
+    "snapshot": {
+      "revision": 14,
+      "projectGeneration": 1,
+      "phase": "active",
+      "activeTool": "polygon",
+      "reason": "draft-mutated",
+      "draft": {
+        "active": true,
+        "coords": [
+          [
+            0,
+            0
+          ],
+          [
+            12,
+            0
+          ],
+          [
+            12,
+            8
+          ],
+          [
+            6,
+            4
+          ]
+        ],
+        "hover": null,
+        "inputPhase": "refine",
+        "vertexInsertMode": true,
+        "selectedVertexIndex": 3,
+        "insertTarget": null,
+        "dragging": false,
+        "issues": [],
+        "historyCount": 2,
+        "futureCount": 0,
+        "strokeActive": false,
+        "cutAssessment": null,
+        "activeSnap": null
+      }
+    }
+  },
+  {
+    "operation": "delete selected vertex retains preceding selection and refine phase",
+    "result": true,
+    "snapshot": {
+      "revision": 15,
+      "projectGeneration": 1,
+      "phase": "active",
+      "activeTool": "polygon",
+      "reason": "draft-mutated",
+      "draft": {
+        "active": true,
+        "coords": [
+          [
+            0,
+            0
+          ],
+          [
+            12,
+            0
+          ],
+          [
+            12,
+            8
+          ]
+        ],
+        "hover": null,
+        "inputPhase": "refine",
+        "vertexInsertMode": true,
+        "selectedVertexIndex": 2,
+        "insertTarget": null,
+        "dragging": false,
+        "issues": [],
+        "historyCount": 3,
+        "futureCount": 0,
+        "strokeActive": false,
+        "cutAssessment": null,
+        "activeSnap": null
+      }
+    }
+  },
+  {
+    "operation": "Undo deletion restores inserted vertex and selected index",
+    "result": true,
+    "snapshot": {
+      "revision": 16,
+      "projectGeneration": 1,
+      "phase": "active",
+      "activeTool": "polygon",
+      "reason": "draft-mutated",
+      "draft": {
+        "active": true,
+        "coords": [
+          [
+            0,
+            0
+          ],
+          [
+            12,
+            0
+          ],
+          [
+            12,
+            8
+          ],
+          [
+            6,
+            4
+          ]
+        ],
+        "hover": null,
+        "inputPhase": "refine",
+        "vertexInsertMode": true,
+        "selectedVertexIndex": 3,
+        "insertTarget": null,
+        "dragging": false,
+        "issues": [],
+        "historyCount": 2,
+        "futureCount": 1,
+        "strokeActive": false,
+        "cutAssessment": null,
+        "activeSnap": null
+      }
+    }
+  },
+  {
+    "operation": "Redo deletion restores preceding selection",
+    "result": true,
+    "snapshot": {
+      "revision": 17,
+      "projectGeneration": 1,
+      "phase": "active",
+      "activeTool": "polygon",
+      "reason": "draft-mutated",
+      "draft": {
+        "active": true,
+        "coords": [
+          [
+            0,
+            0
+          ],
+          [
+            12,
+            0
+          ],
+          [
+            12,
+            8
+          ]
+        ],
+        "hover": null,
+        "inputPhase": "refine",
+        "vertexInsertMode": true,
+        "selectedVertexIndex": 2,
+        "insertTarget": null,
+        "dragging": false,
+        "issues": [],
+        "historyCount": 3,
+        "futureCount": 0,
+        "strokeActive": false,
+        "cutAssessment": null,
+        "activeSnap": null
+      }
+    }
+  },
+  {
+    "operation": "invalid vertex select is a no-op",
+    "result": false,
+    "snapshot": {
+      "revision": 17,
+      "projectGeneration": 1,
+      "phase": "active",
+      "activeTool": "polygon",
+      "reason": "draft-mutated",
+      "draft": {
+        "active": true,
+        "coords": [
+          [
+            0,
+            0
+          ],
+          [
+            12,
+            0
+          ],
+          [
+            12,
+            8
+          ]
+        ],
+        "hover": null,
+        "inputPhase": "refine",
+        "vertexInsertMode": true,
+        "selectedVertexIndex": 2,
+        "insertTarget": null,
+        "dragging": false,
+        "issues": [],
+        "historyCount": 3,
+        "futureCount": 0,
+        "strokeActive": false,
+        "cutAssessment": null,
+        "activeSnap": null
+      }
+    }
+  },
+  {
+    "operation": "cancelled gesture clears dragging and retains the draft checkpoint",
+    "result": true,
+    "snapshot": {
+      "revision": 19,
+      "projectGeneration": 1,
+      "phase": "active",
+      "activeTool": "polygon",
+      "reason": "fixture-user-cancel",
+      "draft": {
+        "active": true,
+        "coords": [
+          [
+            0,
+            0
+          ],
+          [
+            12,
+            0
+          ],
+          [
+            12,
+            8
+          ]
+        ],
+        "hover": null,
+        "inputPhase": "refine",
+        "vertexInsertMode": true,
+        "selectedVertexIndex": 1,
+        "insertTarget": null,
+        "dragging": false,
+        "issues": [],
+        "historyCount": 4,
+        "futureCount": 0,
+        "strokeActive": false,
+        "cutAssessment": null,
+        "activeSnap": null
+      }
+    }
+  },
+  {
+    "operation": "draft clear resets local edit state",
+    "result": true,
+    "snapshot": {
+      "revision": 20,
+      "projectGeneration": 1,
+      "phase": "active",
+      "activeTool": "polygon",
+      "reason": "draft-cleared",
+      "draft": {
+        "active": true,
+        "coords": [],
+        "hover": null,
+        "inputPhase": "draw",
+        "vertexInsertMode": false,
+        "selectedVertexIndex": null,
+        "insertTarget": null,
+        "dragging": false,
+        "issues": [],
+        "historyCount": 0,
+        "futureCount": 0,
+        "strokeActive": false,
+        "cutAssessment": null,
+        "activeSnap": null
+      }
+    }
+  },
+  {
+    "operation": "empty draft Undo is a no-op",
+    "result": false,
+    "snapshot": {
+      "revision": 20,
+      "projectGeneration": 1,
+      "phase": "active",
+      "activeTool": "polygon",
+      "reason": "draft-cleared",
+      "draft": {
+        "active": true,
+        "coords": [],
+        "hover": null,
+        "inputPhase": "draw",
+        "vertexInsertMode": false,
+        "selectedVertexIndex": null,
+        "insertTarget": null,
+        "dragging": false,
+        "issues": [],
+        "historyCount": 0,
+        "futureCount": 0,
+        "strokeActive": false,
+        "cutAssessment": null,
+        "activeSnap": null
+      }
+    }
+  },
+  {
+    "operation": "bounded history keeps the most recent100 entries",
+    "result": 100,
+    "snapshot": {
+      "revision": 121,
+      "projectGeneration": 1,
+      "phase": "active",
+      "activeTool": "polygon",
+      "reason": "draft-mutated",
+      "draft": {
+        "active": true,
+        "coords": [
+          [
+            100.125,
+            0
+          ],
+          [
+            101.25,
+            1
+          ],
+          [
+            102.5,
+            3
+          ]
+        ],
+        "hover": null,
+        "inputPhase": "refine",
+        "vertexInsertMode": false,
+        "selectedVertexIndex": 1,
+        "insertTarget": null,
+        "dragging": false,
+        "issues": [],
+        "historyCount": 100,
+        "futureCount": 0,
+        "strokeActive": false,
+        "cutAssessment": null,
+        "activeSnap": null
+      }
+    }
+  },
+  {
+    "operation": "Undo bounded history retains exact precision and selected vertex",
+    "result": true,
+    "snapshot": {
+      "revision": 122,
+      "projectGeneration": 1,
+      "phase": "active",
+      "activeTool": "polygon",
+      "reason": "draft-mutated",
+      "draft": {
+        "active": true,
+        "coords": [
+          [
+            99.125,
+            0
+          ],
+          [
+            100.25,
+            1
+          ],
+          [
+            101.5,
+            3
+          ]
+        ],
+        "hover": null,
+        "inputPhase": "refine",
+        "vertexInsertMode": false,
+        "selectedVertexIndex": 1,
+        "insertTarget": null,
+        "dragging": false,
+        "issues": [],
+        "historyCount": 99,
+        "futureCount": 1,
+        "strokeActive": false,
+        "cutAssessment": null,
+        "activeSnap": null
+      }
+    }
+  }
+]

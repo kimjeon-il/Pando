@@ -37,7 +37,7 @@ export function createSelectionRuntime(api, {features=seedSelectionFeatures(api)
     return {result:await plan[method](payload)};
   }};
   const defaultGeometryOperations={
-    discardActiveGeometryPreview(){state.geometryPreview.session=null;effects.push('preview.discard');return true;},
+    async discardActiveGeometryPreview(){state.geometryPreview.session=null;effects.push('preview.discard');return true;},
     async beginWorkerGeometryPreview(request){
       const message={operation:request.operation,...request.payload};
       const before=repository.list();

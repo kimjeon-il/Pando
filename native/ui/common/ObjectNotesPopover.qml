@@ -7,7 +7,7 @@ Popup {
     objectName: "objectNotesPopover"
     parent: Overlay.overlay
     property string ownerId: ""
-    property string ownerType: ""
+    property string ownerKind: ""
     property string editToken: ""
     property bool wasEdited:false
     property string initialText:""
@@ -30,7 +30,7 @@ Popup {
     }
     function showAt(trigger) {
         if(visible) { close();return }
-        ownerId=editor.selectedId;ownerType=editor.primaryObject.type
+        ownerId=editor.selectedId;ownerKind=editor.primaryObject.kind
         const below=trigger.mapToItem(parent,0,trigger.height+4)
         const above=trigger.parent.mapToItem(parent,0,0)
         anchorPoint=Qt.point(below.x,below.y+height<=parent.height-8?below.y:Math.max(8,above.y-height-8))
@@ -52,7 +52,7 @@ Popup {
             Layout.fillWidth:true;Layout.fillHeight:true;clip:true
             UiTextArea {
                 id:textArea
-                objectName: notes.ownerType==="country"?"countryMemo":notes.ownerType==="subunit"?"subunitMemo":"regionMemo"
+                objectName: notes.ownerKind==="country"?"countryMemo":notes.ownerKind==="subunit"?"subunitMemo":"regionMemo"
                 text:editor.memoDraft
                 readOnly:!editor.objectProperties.editable
                 selectByMouse:true;wrapMode:TextEdit.Wrap

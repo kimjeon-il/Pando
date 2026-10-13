@@ -18,12 +18,15 @@ const browserGlobals = {
 };
 
 const nodeGlobals = {
-  Buffer: 'readonly', Response: 'readonly', URL: 'readonly', console: 'readonly', process: 'readonly', performance: 'readonly',
+  Buffer: 'readonly', Response: 'readonly', TextDecoder: 'readonly', URL: 'readonly', console: 'readonly', process: 'readonly', performance: 'readonly',
   setTimeout: 'readonly', clearTimeout: 'readonly', structuredClone: 'readonly',
 };
 
 export default [
-  { ignores: ['node_modules/**', 'playwright-report/**', 'test-results/**', 'assets/js/vendor/**'] },
+  { ignores: ['node_modules/**', 'playwright-report/**', 'test-results/**', 'assets/js/vendor/**',
+    // Immutable Git blob test inputs are admitted by web-oracle.mjs and its
+    // provenance/import-closure tests; they are not active application source.
+    'tests/fixtures/portability/web-9300609-oracle/**'] },
   js.configs.recommended,
   {
     files: ['assets/js/**/*.js'],
@@ -58,11 +61,12 @@ export default [
       'assets/js/workers/data-loader-worker.js',
       'assets/js/workers/place-worker.js',
       'assets/js/workers/river-territory-partition-worker.js',
+      'assets/js/workers/core-session-worker.js',
     ],
     languageOptions: { sourceType: 'module' },
   },
   {
-    files: ['tests/**/*.mjs', 'scripts/**/*.mjs', 'tools/**/*.mjs', '*.config.js'],
+    files: ['tests/**/*.mjs', 'scripts/**/*.mjs', 'tools/**/*.mjs', 'native/tools/**/*.mjs', '*.config.js'],
     languageOptions: { ecmaVersion: 'latest', sourceType: 'module', globals: nodeGlobals },
     rules: { 'no-unused-vars': ['error', { args: 'none', caughtErrors: 'none', ignoreRestSiblings: true }] },
   },

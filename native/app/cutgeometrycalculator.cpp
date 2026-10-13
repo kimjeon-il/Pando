@@ -1,6 +1,7 @@
 #include "cutgeometrycalculator.h"
 #include "geometryruntime_p.h"
 #include "splitgeometrynormalizer.h"
+#include "geometryprovenance.h"
 #include <QCryptographicHash>
 #include <QFile>
 #include <QJSEngine>
@@ -11,7 +12,7 @@
 #include <stdexcept>
 
 static void initializeCutResources() {
-    static const bool initialized=[] {Q_INIT_RESOURCE(m973_cut);Q_INIT_RESOURCE(m972_river);return true;}();
+    static const bool initialized=[] {Q_INIT_RESOURCE(current_geometry);return true;}();
     (void)initialized;
 }
 namespace pandoeditor {
@@ -29,15 +30,14 @@ void jsCheck(const QJSValue& value) {
     if(value.isError())throw std::runtime_error(("CUT_JAVASCRIPT_ERROR: "+value.toString()+"\n"+value.property("stack").toString()).toStdString());
 }
 void verifyModules(const GeometryCancellation& cancelled) {
-    const auto bytes=verified(":/cut/provenance.json","9a447083454e9e382fe4fee7560956794ae42aafa85eec0a1b78fd2bd7204a43");
-    const auto modules=QJsonDocument::fromJson(bytes).object()["modules"].toArray();
-    if(modules.size()!=16)throw std::runtime_error("CUT_MANIFEST_MODULE_COUNT");
+    const auto bytes=verified(":/geometry/current-manifest.json",PANDO_CURRENT_GEOMETRY_MANIFEST_SHA256);
+    const auto modules=QJsonDocument::fromJson(bytes).object()["artifacts"].toArray();
+    int count=0;
     for(const auto& value:modules){check(cancelled);const auto row=value.toObject();
-        verified(":/cut/original/"+row["name"].toString(),row["originalSha256"].toString().toLatin1());
-        verified(":/cut/adapted/"+row["name"].toString(),row["adaptedSha256"].toString().toLatin1());
-        verified(":/cut/"+row["correctedOriginalPath"].toString(),row["correctedOriginalSha256"].toString().toLatin1());
-        verified(":/cut/corrected-adapted/"+row["name"].toString(),row["correctedSha256"].toString().toLatin1());
+        if(row["kind"]!="cutModule")continue;
+        ++count;verified(row["resource"].toString(),row["sha256"].toString().toLatin1());
     }
+    if(count!=16)throw std::runtime_error("CUT_MANIFEST_MODULE_COUNT");
 }
 CutGeometryResult stopped() {CutGeometryResult output;output.status=CutGeometryStatus::Cancelled;return output;}
 }
@@ -46,15 +46,15 @@ CutGeometryResult prepareCutGeometry(const QJsonObject& payload,const GeometryCa
         check(cancelled);initializeCutResources();verifyModules(cancelled);
         // This is the previously browser-verified ES5 redundant-var D3 adapter.
         // Original D3, arithmetic, projection and pinned cut algorithms are intact.
-        verified(":/river/original/d3.min.js","4cdf92091ed0cfdd8b862af1c6d4744bd0458e746b92c1bbd5403a1143ecd538");
-        const auto d3=verified(":/river/adapted/d3.min.js","f273f409d8b1ba4c35d98fb06ca56f06726359d792ad719400d0e46a8c15cd85");
+        verified(":/river/current/d3-original.min.js",PANDO_CURRENT_GEOMETRY_D3_ORIGINAL_SHA256);
+        const auto d3=verified(":/river/current/d3.min.js",PANDO_CURRENT_GEOMETRY_D3_SHA256);
         check(cancelled);QJSEngine engine;engine.globalObject().setProperty("globalThis",engine.globalObject());
-        jsCheck(engine.evaluate(QString::fromUtf8(verified(":/river/platform.js","0438e2d97b9869348f6b660bd94d45cc839e69fb1d3fb4db91c9a5650dc45412")),":/river/platform.js"));
-        jsCheck(engine.evaluate(QString::fromUtf8(verified(":/cut/platform.js","59c674d9618b4f1f01627a78d54f222d2f69e0a5bd5705d71a5118eaf09d15cb")),":/cut/platform.js"));
-        check(cancelled);jsCheck(engine.evaluate(QString::fromUtf8(d3),":/river/adapted/d3.min.js"));
+        jsCheck(engine.evaluate(QString::fromUtf8(verified(":/river/platform.js",PANDO_CURRENT_GEOMETRY_RIVER_PLATFORM_SHA256)),":/river/platform.js"));
+        jsCheck(engine.evaluate(QString::fromUtf8(verified(":/cut/platform.js",PANDO_CURRENT_GEOMETRY_CUT_PLATFORM_SHA256)),":/cut/platform.js"));
+        check(cancelled);jsCheck(engine.evaluate(QString::fromUtf8(d3),":/river/current/d3.min.js"));
         check(cancelled);loadPinnedPolygonClipping(engine);
-        loadApprovedSplitPolygonGeometry(engine);
-        check(cancelled);const auto module=engine.importModule(":/cut/corrected-adapted/cut-worker-preparation.js");check(cancelled);jsCheck(module);
+        loadCanonicalPolygonGeometry(engine);
+        check(cancelled);const auto module=engine.importModule(":/cut/current/cut-worker-preparation.js");check(cancelled);jsCheck(module);
         if(!module.property("prepareCutInWorker").isCallable())throw std::runtime_error("CUT_KERNEL_UNAVAILABLE");
         const auto json=engine.globalObject().property("JSON");
         const auto input=json.property("parse").call({QString::fromUtf8(QJsonDocument(payload).toJson(QJsonDocument::Compact))});

@@ -47,6 +47,7 @@ export function createRenderingDomain({
   refreshRenderResources = null,
   getEditingRenderPacket = () => EMPTY_EDITING_RENDER_PACKET,
   emitEditingInteraction = null,
+  reportEditingOperationError = null,
   renderers = {},
   requestFrame = callback => globalThis.requestAnimationFrame?.(callback) ?? globalThis.setTimeout(callback, 0),
   prepareView = () => null,
@@ -54,6 +55,8 @@ export function createRenderingDomain({
   invalidMaskMode = 'throw',
   reportDiagnostic = () => {},
 } = {}) {
+  if (typeof emitEditingInteraction==='function' && typeof reportEditingOperationError!=='function')
+    throw new TypeError('Editing interaction dispatch requires its operation error reporter.');
   let disposed = false;
   const uploadScheduler = createGpuUploadScheduler({ requestFrame, getByteBudget: () => gpuMapRenderer?.getUploadByteBudget?.() || 2 * 1024 * 1024 });
   gpuMapRenderer?.setUploadScheduler?.(uploadScheduler);
@@ -180,7 +183,7 @@ export function createRenderingDomain({
     });
     return true;
   };
-  const publishEditingInteraction = event => {
+  const publishEditingInteraction = async event => {
     const packet = editingPacket || EMPTY_EDITING_RENDER_PACKET;
     const normalized = Object.freeze({
       ...event,
@@ -193,7 +196,10 @@ export function createRenderingDomain({
       targetRef: event?.targetRef ? Object.freeze({ ...event.targetRef }) : null,
       modifiers: event?.modifiers ? Object.freeze({ ...event.modifiers }) : null,
     });
-    if (typeof emitEditingInteraction === 'function') return emitEditingInteraction(normalized);
+    if (typeof emitEditingInteraction === 'function') {
+      try { return await emitEditingInteraction(normalized); }
+      catch (error) { reportEditingOperationError(error,{ type: normalized.type });return false; }
+    }
     context?.publish?.('editing-interaction', normalized);
     return true;
   };
@@ -336,7 +342,7 @@ export function createRenderingDomain({
     if (!layer) return false;
     const labelStyle = labels.layerStyle?.(state.layerPresentation, 'labels') || {};
     const selectionState = labels.selectionSnapshot?.() || { primaryKey: null };
-    const labelRef = label => labels.normalizeObjectRef?.({ domain: 'label', type: label.kind || 'label', id: label.id });
+    const labelRef = label => labels.normalizeObjectRef({ domain: 'label', type: label.kind || 'label', id: label.id });
     const resolvedLayout = layout;
     const data = state.layerVisibility?.labels ? resolvedLayout.userLabels || [] : [];
     const selection = layer.selectAll('g.user-label').data(data, d => d.id);
@@ -346,9 +352,30 @@ export function createRenderingDomain({
       const point = labels.d3?.mouse?.(labels.svg);
       labels.handleObjectSelectionAt?.(point, { sourceEvent: labels.d3?.event, hitRef: { domain: 'label', type: d.kind || 'label', id: d.id } });
     });
-    enter.on('mouseenter.hover', d => {
-      if (!labels.isMobile?.() && labelState().tool === 'select' && !labelState().mapMoving) selectionDomain?.setHover(labelRef(d), { source: 'map' });
-    }).on('mouseleave.hover', d => selectionDomain?.setHover(null, { source: 'map', expectedKey: labelRef(d)?.key }));
+    enter.on('mouseenter.hover', async d => {
+      try {
+        if (!labels.isMobile() && labelState().tool === 'select' && !labelState().mapMoving) {
+          const ref = labelRef(d);
+          if (!ref) throw new TypeError('An explicit normalized label hover reference is required.');
+          await selectionDomain.setHover(ref, { source: 'map' });
+        }
+      } catch (error) {
+        if (!error.cancelled && error.name !== 'AbortError'
+          && !['STALE_REVISION','PL-CORE-STALE','PL-CORE-CANCELLED','PL-WORKER-RPC-STALE'].includes(error.code))
+          reportDiagnostic({ operation: 'label-hover', stage: 'enter', result: 'failed', code: 'PL-LABEL-HOVER-001', errorCode: error.code || '', message: error.message, error });
+      }
+    }).on('mouseleave.hover', async d => {
+      try {
+        const ref = labelRef(d);
+        if (!ref) throw new TypeError('An explicit normalized label hover reference is required.');
+        await selectionDomain.setHover(null, { source: 'map', expectedKey: ref.key });
+      }
+      catch (error) {
+        if (!error.cancelled && error.name !== 'AbortError'
+          && !['STALE_REVISION','PL-CORE-STALE','PL-CORE-CANCELLED','PL-WORKER-RPC-STALE'].includes(error.code))
+          reportDiagnostic({ operation: 'label-hover', stage: 'leave', result: 'failed', code: 'PL-LABEL-HOVER-001', errorCode: error.code || '', message: error.message, error });
+      }
+    });
     enter.append('circle').attr('class', 'user-label-dot').attr('r', 4);
     enter.append('text').attr('class', 'user-label-text').attr('x', 7).attr('dy', '.35em');
     const all = layer.selectAll('g.user-label');

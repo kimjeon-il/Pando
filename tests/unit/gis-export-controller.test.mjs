@@ -45,7 +45,7 @@ function fixture() {
     window: { requestAnimationFrame: fn => fn(), PandoLabGIS: runtime },
     document: { body: node() }, elements,
     ensureRuntime: async () => {}, requireReady: () => true,
-    getProject: () => ({ title: 'test' }), getCounts: () => counts,
+    getFileSnapshot: () => ({ project:{title:'test'},spatialState:{territorialEntities:[]} }), getCounts: () => counts,
     download: (...args) => downloads.push(args), setStatus() {}, reportError: error => errors.push(error),
   }).bind();
   return { controller, elements, inputs, summary, layers, calls, downloads, errors,

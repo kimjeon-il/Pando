@@ -1,16 +1,5 @@
 import { geometryRevision, touchGeometry } from './geometry-versions.js';
 import {
-  createDraftEditState,
-  deleteDraftVertex,
-  insertDraftVertex,
-  moveDraftVertex,
-  recordDraftSnapshot,
-  redoDraftSnapshot,
-  removeLastDraftVertex,
-  resetDraftEditState,
-  undoDraftSnapshot,
-} from './draft-editor.js';
-import {
   appendDraftStrokeSamples,
   beginDraftStroke as beginRawDraftStroke,
   cancelDraftStroke as cancelRawDraftStroke,
@@ -155,7 +144,7 @@ export function createEditingDomain({
   geometryEditing = null,
   getImportCommitter = null,
   onEditingStateChanged = () => {},
-  maxHistory = 100,
+  commandOwner,
 } = {}) {
   let phase = 'idle';
   let activeTool = 'select';
@@ -164,10 +153,13 @@ export function createEditingDomain({
   let revision = 0;
   let packet = EMPTY_EDITING_RENDER_PACKET;
   let packetRevision = -1;
-  let draftCoords = [];
+  let draftCoords = Object.freeze([]);
   let draftHover = null;
   let draftCutAssessment = null;
-  let draftEdit = createDraftEditState();
+  let draftEdit = Object.freeze({ active: false,revision: 0,inputPhase: 'draw',vertexInsertMode: false,
+    selectedVertexIndex: null,insertTarget: null,dragging: false,historyCount: 0,futureCount: 0 });
+  let draftIssues = [];
+  let draftSplitPreview = null;
   let draftStroke = createDraftStrokeState();
   let activeSnap = null;
   let activeGesture = null;
@@ -176,12 +168,17 @@ export function createEditingDomain({
   let pendingMoveFrame = 0;
   let snapshotCache = null;
   let draftPreparationEpoch = 0;
+  let toolRequestSequence = 0;
 
   const tool = toolController || {};
   const services = draftServices || {};
   if (typeof services.requestFrame !== 'function') throw new TypeError('Editing domain requires requestFrame().');
   if (typeof services.cancelFrame !== 'function') throw new TypeError('Editing domain requires cancelFrame().');
+  if (typeof services.reportOperationError !== 'function') throw new TypeError('Editing domain requires its draft operation error reporter.');
   const geometry = geometryEditing || {};
+  if (typeof commandOwner?.draftApply !== 'function' || typeof commandOwner.subscribeTransitions !== 'function'
+    || typeof commandOwner.state !== 'function')
+    throw new TypeError('Editing domain requires the canonical C++ document draft owner.');
   const active = () => { if (disposed) throw new Error('Editing domain is disposed.'); };
   const toolConfig = () => services.getToolConfig?.(activeTool) || null;
   const draftInputActive = () => !!toolConfig();
@@ -207,9 +204,9 @@ export function createEditingDomain({
           coordinate: Object.freeze(cloneCoordinate(draftEdit.insertTarget.coordinate)),
         }) : null,
         dragging: draftActive && draftEdit.dragging,
-        issues: Object.freeze(draftActive ? [...(draftEdit.issues || [])] : []),
-        historyCount: draftEdit.history.length,
-        futureCount: draftEdit.future.length,
+        issues: Object.freeze(draftActive ? [...draftIssues] : []),
+        historyCount: draftEdit.historyCount,
+        futureCount: draftEdit.futureCount,
         strokeActive: draftActive && draftStroke.active === true,
         cutAssessment: draftActive ? draftCutAssessment : null,
         activeSnap: draftActive ? activeSnap : null,
@@ -240,12 +237,12 @@ export function createEditingDomain({
     if (assessment?.then) {
       const expectedDraft = draftEdit, expectedRevision = draftEdit.revision, expectedTool = activeTool, expectedGeneration = projectGeneration;
       draftCutAssessment = { status: 'pending', valid: false, issues: [], message: '경계선을 계산하고 있습니다.' };
-      draftEdit.splitPreview = null;
+      draftSplitPreview = null;
       assessment.then(result => {
         if (disposed || preparationEpoch !== draftPreparationEpoch || expectedDraft !== draftEdit || !draftCoords.length || expectedRevision !== draftEdit.revision || expectedTool !== activeTool || expectedGeneration !== projectGeneration) return;
         draftCutAssessment = result;
-        draftEdit.issues = result?.issues || [];
-        draftEdit.splitPreview = result?.split ? { revision: expectedRevision, candidates: result.split.candidates } : null;
+        draftIssues = result?.issues || [];
+        draftSplitPreview = result?.split ? { revision: expectedRevision, candidates: result.split.candidates } : null;
         emit('cut-preparation-ready');
       }).catch(error => {
         if (disposed || preparationEpoch !== draftPreparationEpoch || expectedDraft !== draftEdit || !draftCoords.length || expectedRevision !== draftEdit.revision || expectedTool !== activeTool || expectedGeneration !== projectGeneration) return;
@@ -255,39 +252,67 @@ export function createEditingDomain({
       return draftCutAssessment;
     }
     draftCutAssessment = assessment?.cutAssessment || assessment || null;
-    draftEdit.issues = [...(assessment?.issues
+    draftIssues = [...(assessment?.issues
       || draftCutAssessment?.issues
       || services.validateDraft?.(activeTool, draftCoords)
       || defaultDraftIssues(draftCoords, toolConfig()?.shape === 'polygon'))];
-    draftEdit.splitPreview = buildPreview ? (assessment?.splitPreview || null) : null;
+    draftSplitPreview = buildPreview ? (assessment?.splitPreview || null) : null;
     return assessment;
   };
 
   const syncAfterMutation = (options = {}) => {
-    draftEdit.revision += 1;
-    if (draftCoords.length < 2) draftEdit.vertexInsertMode = false;
-    draftEdit.insertTarget = null;
     draftHover = null;
     refreshDerivedState({ buildPreview: options.buildPreview !== false });
     emit(options.reason || 'draft-mutated');
     return true;
   };
 
+  const acceptCoreDraftSnapshot = value => {
+    if (!value || !Array.isArray(value.coords) || !Number.isSafeInteger(value.revision)
+      || !Number.isSafeInteger(value.historyCount) || !Number.isSafeInteger(value.futureCount))
+      throw Object.assign(new Error('A complete C++ draft acknowledgement is required.'), { code: 'PL-CORE-RESPONSE' });
+    const projected={ ...value,coords: value.coords,vertexInsertMode: value.insertMode,
+      insertTarget: value.insertTarget || null };
+    if (JSON.stringify(projected) === JSON.stringify(draftEdit)) return;
+    draftCoords = Object.freeze(value.coords.map(coord => Object.freeze(cloneCoordinate(coord))));
+    draftEdit = Object.freeze({ ...projected,coords: draftCoords,
+      insertTarget: value.insertTarget ? Object.freeze({ ...value.insertTarget,
+        coordinate: Object.freeze(cloneCoordinate(value.insertTarget.coordinate)) }) : null });
+    snapshotCache = null;
+    packetRevision = -1;
+  };
+  const unsubscribeCore = commandOwner.subscribeTransitions((result,operation) => {
+    if (operation === 'core.document-draft-apply') acceptCoreDraftSnapshot(result.snapshot);
+    else if (operation === 'core.document-draft-snapshot') acceptCoreDraftSnapshot(result);
+    else if (['core.document-load','core.document-initialize','core.document-replacement-rollback'].includes(operation))
+      acceptCoreDraftSnapshot(result.draft);
+  });
+  const applyDraft = async (action,payload = {},options = {}) => {
+    active();
+    const expectedGeneration = projectGeneration;
+    const source=commandOwner.state();
+    if (!source) throw Object.assign(new Error('The C++ draft document is not loaded.'),{ code: 'PL-CORE-NOT-LOADED' });
+    const response = await commandOwner.draftApply({ action,expectedEpoch: source.epoch,...payload });
+    if (disposed || expectedGeneration !== projectGeneration) return false;
+    acceptCoreDraftSnapshot(response.snapshot);
+    if (response.result === false) return false;
+    if (options.coordinateMutation) return syncAfterMutation(options);
+    if (options.emit !== false) emit(options.reason || `draft-${action}`,{ render: options.render !== false });
+    return response.result;
+  };
+
   const commitDraftCoords = (nextCoords, selectedVertexIndex = draftEdit.selectedVertexIndex, options = {}) => {
     active();
     if (!draftInputActive()) return false;
-    if (options.record !== false) recordDraftSnapshot(draftEdit, draftCoords, draftEdit.selectedVertexIndex, maxHistory);
-    draftCoords = cloneCoordinates(nextCoords);
-    if (options.inputPhase) draftEdit.inputPhase = options.inputPhase === 'refine' ? 'refine' : 'draw';
-    draftEdit.selectedVertexIndex = Number.isInteger(selectedVertexIndex) && selectedVertexIndex >= 0 && selectedVertexIndex < draftCoords.length
-      ? selectedVertexIndex : null;
-    return syncAfterMutation(options);
+    return applyDraft('replaceCoordinates',{ coords: nextCoords,record: options.record !== false,
+      selectedVertexIndex,inputPhase: options.inputPhase || draftEdit.inputPhase,
+      expectedDraftRevision: draftEdit.revision },{ ...options,coordinateMutation: true });
   };
 
   const appendDraftCoordinate = (coord, options = {}) => {
     if (!draftInputActive() || draftEdit.vertexInsertMode || !Array.isArray(coord)) return false;
     if (options.dedupe && draftCoords.length && coordinateNear(draftCoords.at(-1), coord)) return false;
-    return commitDraftCoords([...draftCoords, coord], draftCoords.length, { inputPhase: 'draw' });
+    return applyDraft('append',{ coordinate: coord },{ coordinateMutation: true });
   };
 
   const appendDraftScreenPoint = (screenPoint, pointerType = 'mouse', options = {}) => {
@@ -304,38 +329,27 @@ export function createEditingDomain({
 
   const performDraftUndo = () => {
     if (!draftInputActive() || draftStroke.active) return false;
-    const value = undoDraftSnapshot(draftEdit, draftCoords);
-    if (!value) return false;
-    draftCoords = cloneCoordinates(value.coords);
-    draftEdit.selectedVertexIndex = value.selectedVertexIndex;
-    return syncAfterMutation({ buildPreview: true });
+    return applyDraft('undo',{}, { coordinateMutation: true,buildPreview: true });
   };
 
   const performDraftRedo = () => {
     if (!draftInputActive() || draftStroke.active) return false;
-    const value = redoDraftSnapshot(draftEdit, draftCoords);
-    if (!value) return false;
-    draftCoords = cloneCoordinates(value.coords);
-    draftEdit.selectedVertexIndex = value.selectedVertexIndex;
-    return syncAfterMutation({ buildPreview: true });
+    return applyDraft('redo',{}, { coordinateMutation: true,buildPreview: true });
   };
 
   const removeLastDraftPoint = () => {
     if (!draftInputActive() || draftStroke.active || !draftCoords.length) return false;
-    const value = removeLastDraftVertex(draftCoords, draftEdit.selectedVertexIndex);
-    return commitDraftCoords(value.coords, value.selectedVertexIndex);
+    return applyDraft('removeLast',{}, { coordinateMutation: true });
   };
 
   const deleteSelectedDraftPoint = () => {
     if (!draftInputActive() || draftStroke.active || !Number.isInteger(draftEdit.selectedVertexIndex)) return false;
-    const value = deleteDraftVertex(draftCoords, draftEdit.selectedVertexIndex);
-    return commitDraftCoords(value.coords, value.selectedVertexIndex, { inputPhase: 'refine' });
+    return applyDraft('deleteSelected',{}, { coordinateMutation: true });
   };
 
   const insertDraftPointAt = (segmentIndex, value) => {
     if (!draftInputActive() || draftStroke.active || !Array.isArray(value)) return false;
-    const result = insertDraftVertex(draftCoords, Number(segmentIndex), value, toolConfig()?.shape === 'polygon');
-    return result.insertedIndex == null ? false : commitDraftCoords(result.coords, result.insertedIndex, { inputPhase: 'refine' });
+    return applyDraft('insertAt',{ segmentIndex: Number(segmentIndex),coordinate: value },{ coordinateMutation: true });
   };
 
   const insertDraftPoint = () => draftEdit.insertTarget
@@ -345,24 +359,13 @@ export function createEditingDomain({
   const setDraftVertexInsertMode = enabled => {
     const next = enabled === true;
     if (next && (!draftInputActive() || draftStroke.active || draftEdit.dragging || draftCoords.length < 2)) return false;
-    if (draftEdit.vertexInsertMode === next) return false;
-    draftEdit.vertexInsertMode = next;
-    draftEdit.insertTarget = null;
     draftHover = null;
-    if (next) draftEdit.inputPhase = 'refine';
-    emit('draft-insert-mode');
-    return true;
+    return applyDraft('setInsertMode',{ insertMode: next },{ reason: 'draft-insert-mode' });
   };
 
   const selectDraftVertex = index => {
     if (!draftInputActive() || draftStroke.active) return false;
-    if (!Number.isInteger(index) || index < 0 || index >= draftCoords.length) return false;
-    if (draftEdit.selectedVertexIndex === index && draftEdit.inputPhase === 'refine' && !draftEdit.insertTarget) return false;
-    draftEdit.selectedVertexIndex = index;
-    draftEdit.inputPhase = 'refine';
-    draftEdit.insertTarget = null;
-    emit('draft-vertex-select');
-    return true;
+    return applyDraft('selectVertex',{ index },{ reason: 'draft-vertex-select' });
   };
 
   const moveSelectedDraftPointByPixels = (dx, dy) => {
@@ -372,7 +375,8 @@ export function createEditingDomain({
     const projected = services.projectCoordinate?.(current);
     const value = projected ? services.screenToCoordinate?.([projected[0] + dx, projected[1] + dy]) : null;
     if (!value) return false;
-    return commitDraftCoords(moveDraftVertex(draftCoords, index, value), index, { inputPhase: 'refine' });
+    return applyDraft('replaceCoordinates',{ coords: draftCoords.map((coord,position) => position===index ? value : coord),
+      record: true,selectedVertexIndex: index,inputPhase: 'refine',expectedDraftRevision: draftEdit.revision },{ coordinateMutation: true });
   };
 
   const resolveCoordinate = (screenPoint, pointerType = 'mouse', options = {}) => {
@@ -398,10 +402,10 @@ export function createEditingDomain({
     return true;
   };
 
-  const clearDraftHover = (reason = 'draft-hover-clear') => {
+  const clearDraftHover = async (reason = 'draft-hover-clear') => {
     if (!draftHover && !draftEdit.insertTarget && !activeSnap) return false;
     draftHover = null;
-    draftEdit.insertTarget = null;
+    if (draftEdit.insertTarget) await applyDraft('setInsertTarget',{ insertTarget: null },{ emit: false });
     activeSnap = null;
     emit(reason);
     return true;
@@ -414,7 +418,8 @@ export function createEditingDomain({
     const sample = services.screenSample?.(screenPoint);
     if (!sample) return false;
     draftHover = null;
-    draftEdit.insertTarget = null;
+    if (draftEdit.insertTarget) applyDraft('setInsertTarget',{ insertTarget: null },{ emit: false })
+      .catch(error => services.reportOperationError(error,'PL-DRAFT-STROKE-001'));
     const started = beginRawDraftStroke(draftStroke, {
       pointerId: event.pointerId,
       pointerType: event.pointerType || 'mouse',
@@ -434,7 +439,7 @@ export function createEditingDomain({
     return !!changed;
   };
 
-  const finishDraftStroke = screenPoint => {
+  const finishDraftStroke = async screenPoint => {
     active();
     if (!draftStroke.active) return false;
     appendDraftStroke([screenPoint]);
@@ -455,8 +460,9 @@ export function createEditingDomain({
       emit('draft-stroke-too-short');
       return false;
     }
-    commitDraftCoords(next, null, { inputPhase: 'refine', buildPreview: true, reason: 'draft-stroke-finish' });
-    services.onFinished?.(config);
+    const changed = await commitDraftCoords(next, null, { inputPhase: 'refine', buildPreview: true, reason: 'draft-stroke-finish' });
+    if (!changed) return false;
+    await services.onFinished?.(config);
     return true;
   };
 
@@ -468,73 +474,92 @@ export function createEditingDomain({
     return true;
   };
 
-  const startDraft = (config = {}) => {
+  const startDraft = async (config = {}) => {
     active();
-    draftCoords = cloneCoordinates(config.coords);
+    await applyDraft('start',{ shape: config.shape || toolConfig()?.shape || 'line',coords: config.coords || [],
+      inputPhase: config.inputPhase === 'refine' ? 'refine' : 'draw' },{ emit: false });
     draftHover = null;
     draftCutAssessment = null;
-    draftEdit = createDraftEditState();
     draftStroke = createDraftStrokeState();
     activeSnap = null;
-    if (config.inputPhase === 'refine') draftEdit.inputPhase = 'refine';
+    draftIssues = [];
+    draftSplitPreview = null;
     emit('draft-start');
     return true;
   };
 
-  const redrawDraft = () => {
+  const redrawDraft = async () => {
     if (!draftInputActive()) return false;
     cancelDraftStroke('redraw-draft');
-    draftCoords = [];
     draftHover = null;
     draftCutAssessment = null;
-    resetDraftEditState(draftEdit);
+    await applyDraft('clear',{}, { emit: false });
+    draftIssues = [];
+    draftSplitPreview = null;
     emit('redraw-draft');
     return true;
   };
 
-  const clearDraft = (options = {}) => {
+  const clearDraft = async (options = {}) => {
     active();
     services.cancelPreparation?.();
     draftPreparationEpoch += 1;
-    const normalizedOptions = typeof options === 'boolean'
-      ? { render: options }
-      : (options || {});
+    if (!options || typeof options !== 'object' || Array.isArray(options)) throw new TypeError('Draft clear requires an options object.');
     pendingMove = null;
     if (pendingMoveFrame) services.cancelFrame(pendingMoveFrame);
     pendingMoveFrame = 0;
     activeGesture = null;
-    draftCoords = [];
     draftHover = null;
     draftCutAssessment = null;
     resetDraftStrokeState(draftStroke);
-    resetDraftEditState(draftEdit);
+    await applyDraft('clear',{}, { emit: false });
+    draftIssues = [];
+    draftSplitPreview = null;
     activeSnap = null;
     previewController?.clear?.();
-    emit(normalizedOptions.reason || 'draft-cleared', { render: normalizedOptions.render !== false });
+    emit(options.reason || 'draft-cleared', { render: options.render !== false });
     return true;
   };
 
-  const setTool = (nextTool, options = {}) => {
+  const setTool = async (nextTool, options = {}) => {
     active();
+    const generation = projectGeneration;
+    const request = ++toolRequestSequence;
+    const current = () => !disposed && generation === projectGeneration && request === toolRequestSequence;
     const name = String(nextTool || 'select');
     if (name !== 'select' && tool.requireCanonicalData && !tool.requireCanonicalData()) return false;
-    cancelActiveGesture('tool-change', { emitChange: false });
-    if (tool.getGeometryPreviewSession?.() && activeTool !== name) tool.discardGeometryPreview?.({ announce: false });
-    if (activeTool !== name) clearDraft({ reason: 'tool-draft-reset', render: false });
-    tool.clearHover?.();
-    tool.resetForTool?.(name);
+    await cancelActiveGesture('tool-change', { emitChange: false });
+    if (!current()) return false;
+    if (tool.getGeometryPreviewSession?.() && activeTool !== name) await tool.discardGeometryPreview({ announce: false });
+    if (!current()) return false;
+    const changedTool = activeTool !== name;
+    if (changedTool) await clearDraft({ reason: 'tool-draft-reset', render: false });
+    if (!current()) return false;
+    await tool.clearHover?.();
+    if (!current()) return false;
+    await tool.resetForTool?.(name);
+    if (!current()) return false;
     activeTool = name;
+    if (changedTool) {
+      const config = toolConfig();
+      await applyDraft(config ? 'start' : 'stop',config ? { shape: config.shape,coords: [],inputPhase: 'draw' } : {},{ emit: false });
+      if (!current()) return false;
+    }
     phase = name === 'select' ? 'idle' : 'active';
     tool.applyToolPresentation?.(name, options);
     emit('tool-change');
     return true;
   };
 
-  function cancelActiveGesture(reason = 'gesture-cancel', { emitChange = true } = {}) {
+  async function cancelActiveGesture(reason = 'gesture-cancel', { emitChange = true } = {}) {
     if (!activeGesture && !previewController?.isActive?.()) return false;
-    if (activeGesture) geometry.cancelGesture?.(activeGesture, reason);
+    const gesture = activeGesture;
+    if (pendingMoveFrame) services.cancelFrame(pendingMoveFrame);
+    pendingMoveFrame = 0;
+    pendingMove = null;
+    if (gesture && gesture.type !== 'draft-vertex-drag-start') await geometry.cancelGesture?.(gesture, reason);
     activeGesture = null;
-    draftEdit.dragging = false;
+    if (gesture?.type === 'draft-vertex-drag-start') await applyDraft('cancelDrag',{}, { emit: false });
     activeSnap = null;
     previewController?.clear?.();
     if (emitChange) emit(reason);
@@ -545,21 +570,17 @@ export function createEditingDomain({
     ? resolveCoordinate(event.screenPoint, event.pointerType || 'mouse', { excludeNodeKey: event.vertexKey, targetRef: event.targetRef })
     : null;
 
-  const beginGesture = event => {
+  const beginGesture = async event => {
     if (Number(event.projectGeneration) !== projectGeneration || Number(event.packetRevision) !== revision) return false;
     if (event.type === 'draft-vertex-drag-start' && (!draftInputActive() || draftStroke.active)) return false;
     const gestureId = String(event.gestureId || `editing-${++gestureSequence}`);
-    cancelActiveGesture('gesture-replaced', { emitChange: false });
+    await cancelActiveGesture('gesture-replaced', { emitChange: false });
     activeGesture = { id: gestureId, type: event.type, targetRef: event.targetRef || null, vertexKey: event.vertexKey || null };
     if (event.type === 'draft-vertex-drag-start') {
       const index = Number(event.vertexIndex);
       if (!Number.isInteger(index) || !draftCoords[index]) return cancelActiveGesture('invalid-draft-gesture', { emitChange: false });
-      recordDraftSnapshot(draftEdit, draftCoords, index, maxHistory);
-      draftEdit.selectedVertexIndex = index;
-      draftEdit.inputPhase = 'refine';
-      draftEdit.insertTarget = null;
-      draftEdit.dragging = true;
-      draftEdit.splitPreview = null;
+      await applyDraft('beginDrag',{ index },{ emit: false });
+      draftSplitPreview = null;
       draftHover = null;
     } else {
       let began;
@@ -603,14 +624,12 @@ export function createEditingDomain({
       && geometry.canEditObject?.(session.source, session.vertex) !== false;
   };
 
-  const applyGestureMove = event => {
+  const applyGestureMove = async event => {
     if (!activeGesture || String(event.gestureId || '') !== activeGesture.id || Number(event.projectGeneration) !== projectGeneration) return false;
     const value = interactionCoordinate(event);
     if (!value) return false;
     if (activeGesture.type === 'draft-vertex-drag-start') {
-      const index = draftEdit.selectedVertexIndex;
-      draftCoords = moveDraftVertex(draftCoords, index, value);
-      draftEdit.revision += 1;
+      await applyDraft('moveDrag',{ coordinate: value },{ emit: false });
       refreshDerivedState({ buildPreview: false });
     } else if (activeGesture.session?.kind === 'object') {
       const session = activeGesture.session;
@@ -632,25 +651,26 @@ export function createEditingDomain({
     return true;
   };
 
-  const flushPendingMove = () => {
+  const flushPendingMove = async () => {
     pendingMoveFrame = 0;
     const event = pendingMove;
     pendingMove = null;
-    if (event) applyGestureMove(event);
+    if (event) await applyGestureMove(event);
   };
 
   const queueGestureMove = event => {
     pendingMove = event;
-    if (!pendingMoveFrame) pendingMoveFrame = services.requestFrame(flushPendingMove);
+    if (!pendingMoveFrame) pendingMoveFrame = services.requestFrame(() =>
+      flushPendingMove().catch(error => services.reportOperationError(error,'PL-DRAFT-MOVE-001')));
     return true;
   };
 
   const endGesture = async event => {
     if (!activeGesture || String(event.gestureId || '') !== activeGesture.id || Number(event.projectGeneration) !== projectGeneration) return false;
-    if (pendingMove) flushPendingMove();
+    if (pendingMove) await flushPendingMove();
     if (!activeGesture) return false;
     if (activeGesture.session?.kind === 'object' && !objectGestureCurrent(activeGesture)) {
-      cancelActiveGesture('object-target-invalidated');
+      await cancelActiveGesture('object-target-invalidated');
       return false;
     }
     const gesture = activeGesture;
@@ -658,7 +678,7 @@ export function createEditingDomain({
     const previewId = previewController?.snapshot?.().id;
     activeGesture = null;
     if (gesture.type === 'draft-vertex-drag-start') {
-      draftEdit.dragging = false;
+      await applyDraft('finishDrag',{}, { emit: false });
       activeSnap = null;
       refreshDerivedState({ buildPreview: true });
       emit(event.type);
@@ -725,9 +745,7 @@ export function createEditingDomain({
       const insert = services.screenToCoordinate?.([start[0] + dx * ratio, start[1] + dy * ratio]);
       if (!insert) return false;
       if (type === 'draft-segment-insert') return insertDraftPointAt(row.segmentIndex, insert);
-      draftEdit.insertTarget = { segmentIndex: row.segmentIndex, coordinate: cloneCoordinate(insert) };
-      emit(type);
-      return true;
+      return applyDraft('setInsertTarget',{ insertTarget: { segmentIndex: row.segmentIndex,coordinate: insert } },{ reason: type });
     }
     if (type === 'draft-segment-leave') return clearDraftHover(type);
     if (type === 'draft-insert-request') return insertDraftPoint();
@@ -795,12 +813,12 @@ export function createEditingDomain({
         selectedVertexIndex: draftEdit.selectedVertexIndex,
         insertTarget: draftEdit.insertTarget,
         dragging: draftEdit.dragging,
-        issues: draftHover ? assessment?.issues || [] : draftEdit.issues,
-        splitCandidates: !draftHover && !draftEdit.dragging && draftEdit.splitPreview?.revision === draftEdit.revision
-          ? draftEdit.splitPreview.candidates : assessment?.splitPreview?.candidates || [],
+        issues: draftHover ? assessment?.issues || [] : draftIssues,
+        splitCandidates: !draftHover && !draftEdit.dragging && draftSplitPreview?.revision === draftEdit.revision
+          ? draftSplitPreview.candidates : assessment?.splitPreview?.candidates || [],
         snapPoints: assessment?.snaps ? Object.entries(assessment.snaps).filter(([, item]) => item?.coordinate).map(([endpoint, item]) => ({ endpoint, ...item })) : [],
         cutStatus: assessment?.status || null,
-        canCommit: assessment ? assessment.valid === true : draftEdit.issues.length === 0,
+        canCommit: assessment ? assessment.valid === true : draftIssues.length === 0,
       } : { active: false },
       objectVertices,
       boundaryEdit: supplemental.boundaryEdit,
@@ -821,23 +839,29 @@ export function createEditingDomain({
     throw error;
   };
 
-  const resetProject = generation => {
-    cancelActiveGesture('project-reset', { emitChange: false });
+  const resetProject = async generation => {
+    await cancelActiveGesture('project-reset', { emitChange: false });
     projectGeneration = Number(generation || 0);
     activeGesture = null;
     activeTool = 'select';
     phase = 'idle';
-    draftCoords = [];
     draftHover = null;
     draftCutAssessment = null;
-    draftEdit = createDraftEditState();
+    await applyDraft('stop',{}, { emit: false });
+    draftIssues = [];
+    draftSplitPreview = null;
     draftStroke = createDraftStrokeState();
     activeSnap = null;
     emit('project-reset');
     return true;
   };
   const dispose = () => {
-    cancelActiveGesture('dispose', { emitChange: false });
+    if (pendingMoveFrame) services.cancelFrame(pendingMoveFrame);
+    pendingMoveFrame = 0;
+    pendingMove = null;
+    activeGesture = null;
+    previewController?.clear?.();
+    unsubscribeCore();
     disposed = true;
     phase = 'idle';
     activeTool = 'select';
@@ -861,9 +885,9 @@ export function createEditingDomain({
 
   return Object.freeze({
     setTool, handleInteraction, createRenderPacket,
-    refreshEditingPresentation: reason => {
+    refreshEditingPresentation: async reason => {
       if (disposed) return false;
-      if (!draftInputActive()) draftEdit.vertexInsertMode = false;
+      if (!draftInputActive() && draftEdit.vertexInsertMode) await applyDraft('setInsertMode',{ insertMode: false },{ emit: false });
       emit(reason || 'editing-presentation-changed');
       return true;
     },
@@ -873,6 +897,7 @@ export function createEditingDomain({
       return true;
     },
     startDraft, replaceDraftCoordinates, clearDraftHover,
+    acceptCoreDraftSnapshot,
     cancelActiveGesture, resetProject,
     dispose, draftInputActive, appendDraftScreenPoint,
     performDraftUndo, performDraftRedo, removeLastDraftPoint, deleteSelectedDraftPoint,

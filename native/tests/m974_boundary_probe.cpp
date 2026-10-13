@@ -30,7 +30,7 @@ ProjectDocument fixture(const QJsonObject& definition){
         const auto parent=properties["parentId"].toString().toStdString();appendTerritory(document,std::move(unit),ref,parent,properties["coverageMode"].toString().toStdString());document.presentation.objectStyles[territorialRef(id)]={0,1,false};
         if(!parent.empty()) {
             DistributionEntry entry;entry.id="entry-"+id;entry.layerId="distribution";entry.territory=territorialRef(id);entry.value=1;document.distributionEntries.push_back(entry);
-            document.presentation.webPresentation.hiddenItems["subunits"].insert(id);document.presentation.webPresentation.labelSettings[territorialRef(id)]={};document.presentation.webPresentation.objectStyles[territorialPresentationKey(id)].opacity=.5;
+            document.presentation.webPresentation.itemVisibility["subunits"][id]=false;document.presentation.webPresentation.labelSettings[territorialRef(id)]={};document.presentation.webPresentation.objectStyles[territorialPresentationKey(id)].opacity=.5;
         }
     }
     validateDocument(document);return document;
@@ -93,7 +93,7 @@ QJsonObject state(EditorController& controller,const QByteArray& before){
     entities=entityRows(document);
     for(const auto& entry:document.distributionEntries){QJsonObject row{{"id",QString::fromStdString(entry.id)},{"layerId",QString::fromStdString(entry.layerId)},{"value",entry.value}};if(entry.territory){row["territorialUnitId"]=QString::fromStdString(entry.territory->id);refs.append(QJsonObject{{"kind","distribution"},{"id",QString::fromStdString(entry.id)},{"target",QString::fromStdString(entry.territory->id)}});}entries.append(row);}
     for(const auto& [ref,settings]:document.presentation.webPresentation.labelSettings){refs.append(QJsonObject{{"kind","label-settings"},{"id",QString::fromStdString(ref.id)},{"target",QString::fromStdString(ref.id)}});labels.append(QJsonObject{{"id",QString::fromStdString(ref.id)},{"pinned",settings.pinned},{"collisionGroup",QString::fromStdString(settings.collisionGroup)}});}
-    for(const auto& [group,ids]:document.presentation.webPresentation.hiddenItems)for(const auto& id:ids)hidden.append(QJsonObject{{"group",QString::fromStdString(group)},{"id",QString::fromStdString(id)}});
+    for(const auto& [group,items]:document.presentation.webPresentation.itemVisibility)for(const auto& [id,visible]:items)if(!visible)hidden.append(QJsonObject{{"group",QString::fromStdString(group)},{"id",QString::fromStdString(id)}});
     for(const auto& [key,style]:document.presentation.webPresentation.objectStyles){QJsonObject row{{"key",QString::fromStdString(key)}};if(style.opacity)row["opacity"]=*style.opacity;styles.append(row);}
     return {{"document",QJsonObject{{"entities",entities},{"distributionEntries",entries}}},{"references",refs},{"presentation",QJsonObject{{"hiddenItems",hidden},{"objectStyles",styles},{"labelSettings",labels}}},{"history",QJsonObject{{"canUndo",controller.canUndo()},{"canRedo",controller.canRedo()}}},{"nativeCanonicalDocument",QJsonDocument::fromJson(bytes).object()},{"canonicalBytesBase64",QString::fromLatin1(bytes.toBase64())},{"documentSha256",QString::fromLatin1(QCryptographicHash::hash(bytes,QCryptographicHash::Sha256).toHex())},{"unchangedFromBefore",bytes==before}};
 }

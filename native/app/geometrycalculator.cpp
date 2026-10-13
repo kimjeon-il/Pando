@@ -1,5 +1,6 @@
 #include "geometrycalculator.h"
 #include "geometryruntime_p.h"
+#include "geometryprovenance.h"
 #include <pandoeditor/geometrypredicates.h>
 #include <QFile>
 #include <QCryptographicHash>
@@ -17,7 +18,7 @@
 Q_LOGGING_CATEGORY(geometryStageLog,"pando.geometry.stages",QtWarningMsg)
 
 static void initializeGeometryResource() {
-    static const bool initialized=[] { Q_INIT_RESOURCE(m4_geometry);return true; }();
+    static const bool initialized=[] { Q_INIT_RESOURCE(current_geometry);return true; }();
     (void)initialized;
 }
 
@@ -75,7 +76,7 @@ void loadPinnedPolygonClipping(QJSEngine& engine) {
     if(!source.open(QIODevice::ReadOnly))throw std::runtime_error("GEOMETRY_KERNEL_UNAVAILABLE");
     const auto original=source.readAll();
     if(QCryptographicHash::hash(original,QCryptographicHash::Sha256).toHex()!=
-       "8c1ed56df8b1f97b047f82d91b910aacdaff67d8d9a55f2495eb26e8369186f7")
+       PANDO_CURRENT_GEOMETRY_POLYGON_CLIPPING_SHA256)
         throw std::runtime_error("GEOMETRY_KERNEL_HASH_MISMATCH");
     auto script=QString::fromUtf8(original);
     // Qt 6.8.3 loses the _root assignment in this comma-return expression.
@@ -109,47 +110,14 @@ void validateRiverIntermediate(const Geometry& geometry) {
         }
     }
 }
-QJSValue loadPinnedRiverQuantizer(QJSEngine& engine) {
-    // Pinned polygon-clipping-calculation.js, unchanged source bytes. Only the
-    // quantizer is evaluated: C++ owns the identical retry order so cancellation
-    // can win between synchronous clipping calls. No retry on the ordinary path.
-    const QByteArray original=R"RETRY(const RETRY_PRECISIONS = [9, 8, 7, 6];
-const retryableClippingError = error => /SweepLine tree|Unable to find segment/i.test(String(error?.message || error || ''));
-
-export function quantizePolygonCoordinates(value, precision) {
-  const factor = 10 ** precision;
-  const visit = item => {
-    if (Array.isArray(item) && item.length >= 2
-      && Number.isFinite(Number(item[0])) && Number.isFinite(Number(item[1]))) {
-      return [
-        Math.round(Number(item[0]) * factor) / factor,
-        Math.round(Number(item[1]) * factor) / factor,
-      ];
-    }
-    return Array.isArray(item) ? item.map(visit) : item;
-  };
-  return visit(value);
-}
-
-/** Runs one polygon-clipping method and retries only its known sweep failures. */
-export function clippingOperationWithPrecisionRetry(clipper, method, ...inputs) {
-  let originalError = null;
-  for (const precision of [null, ...RETRY_PRECISIONS]) {
-    try {
-      const operationInputs = precision == null
-        ? inputs
-        : inputs.map(input => quantizePolygonCoordinates(input, precision));
-      return clipper[method](...operationInputs);
-    } catch (error) {
-      if (!retryableClippingError(error)) throw error;
-      originalError ||= error;
-    }
-  }
-  throw originalError;
-}
-)RETRY";
+QJSValue loadCurrentRiverRetry(QJSEngine& engine) {
+    // Canonical JS owns rounding, retryable errors and precision order. C++
+    // retains cancellation boundaries between synchronous clipping calls.
+    QFile source(":/geometry/polygon-clipping-calculation.js");
+    if(!source.open(QIODevice::ReadOnly))throw std::runtime_error("RIVER_CLIPPING_RETRY_UNAVAILABLE");
+    const auto original=source.readAll();
     if(QCryptographicHash::hash(original,QCryptographicHash::Sha256).toHex()!=
-        "79095890e49875610f27585c694a3f05e6c3322ef6a8b3e57c4a087236339406")
+        PANDO_CURRENT_GEOMETRY_RETRY_SHA256)
         throw std::runtime_error("RIVER_CLIPPING_RETRY_HASH_MISMATCH");
     const auto boundary=original.indexOf("\n/** Runs one polygon-clipping method");
     if(boundary<0)throw std::runtime_error("RIVER_CLIPPING_RETRY_EXPORT_MISMATCH");
@@ -157,15 +125,17 @@ export function clippingOperationWithPrecisionRetry(clipper, method, ...inputs) 
     if(script.count("export function quantizePolygonCoordinates(")!=1)
         throw std::runtime_error("RIVER_CLIPPING_RETRY_EXPORT_MISMATCH");
     script.replace("export function quantizePolygonCoordinates(","function quantizePolygonCoordinates(");
-    const auto loaded=engine.evaluate(script,"pinned-polygon-clipping-calculation.js");
+    const auto loaded=engine.evaluate(script,source.fileName());
     if(loaded.isError())throw std::runtime_error(loaded.toString().toStdString());
-    auto quantize=engine.globalObject().property("quantizePolygonCoordinates");
-    if(!quantize.isCallable())throw std::runtime_error("RIVER_CLIPPING_RETRY_EXPORT_MISMATCH");
-    return quantize;
+    const auto api=engine.evaluate("({quantize:quantizePolygonCoordinates,retryable:retryableClippingError,precisions:RETRY_PRECISIONS})");
+    if(api.isError()||!api.property("quantize").isCallable()||!api.property("retryable").isCallable()||
+       !api.property("precisions").isArray())throw std::runtime_error("RIVER_CLIPPING_RETRY_EXPORT_MISMATCH");
+    return api;
 }
-bool retryableRiverClippingError(const QJSValue& error) {
-    const auto detail=error.toString();
-    return detail.contains("SweepLine tree",Qt::CaseInsensitive)||detail.contains("Unable to find segment",Qt::CaseInsensitive);
+bool retryableRiverClippingError(const QJSValue& api,const QJSValue& error) {
+    const auto retryable=api.property("retryable").call({error});
+    if(retryable.isError())throw std::runtime_error(retryable.toString().toStdString());
+    return retryable.toBool();
 }
 void validateAreaOutput(const Geometry& geometry) {
     for(const auto& polygon:geometry.polygons) {
@@ -217,9 +187,13 @@ GeometryOperationResult calculateWithValidation(const GeometryOperationRequest& 
         // The synchronous kernel is not interrupted mid-call. Cancellation wins
         // over success AND errors and prevents a result entering a candidate.
         if(isCancelled())return {GeometryOperationStatus::Cancelled,{},{}};
-        if(riverRetry&&result.isError()&&retryableRiverClippingError(result)) {
-            const auto originalError=result;auto quantize=loadPinnedRiverQuantizer(engine);
-            for(const auto precision:{9,8,7,6}) {
+        if(riverRetry&&result.isError()) {
+            const auto retry=loadCurrentRiverRetry(engine);
+            if(retryableRiverClippingError(retry,result)) {
+            const auto originalError=result;auto quantize=retry.property("quantize");
+            const auto precisions=retry.property("precisions");
+            for(quint32 index=0;index<precisions.property("length").toUInt();++index) {
+                const auto precision=precisions.property(index);
                 if(isCancelled())return {GeometryOperationStatus::Cancelled,{},{}};
                 QJSValueList rounded;rounded.reserve(arguments.size());
                 for(const auto& argument:arguments) {
@@ -230,9 +204,10 @@ GeometryOperationResult calculateWithValidation(const GeometryOperationRequest& 
                 result=function.call(rounded);
                 if(isCancelled())return {GeometryOperationStatus::Cancelled,{},{}};
                 if(!result.isError())break;
-                if(!retryableRiverClippingError(result))throw std::runtime_error(result.toString().toStdString());
+                if(!retryableRiverClippingError(retry,result))throw std::runtime_error(result.toString().toStdString());
             }
             if(result.isError())result=originalError;
+            }
         }
         if(result.isError())throw std::runtime_error(result.toString().toStdString());
         auto geometry=decode(result);

@@ -27,6 +27,12 @@ function fixture() {
   put(root, 'assets/data/hydro/v0.13.2/manifest.json', '{}');
   put(root, 'reports/a.md', 'report');
   put(root, 'native/CMakeLists.txt', 'project(native)');
+  put(root, 'shared/core/CMakeLists.txt', 'project(shared)');
+  put(root, 'shared/core/src/project.cpp', '// native and wasm source');
+  put(root, 'assets/js/workers/core-session-worker.js', '// required core worker');
+  put(root, 'assets/wasm/pandoeditor-core.js', 'export default function Core() {}');
+  put(root, 'assets/wasm/pandoeditor-core.wasm', Buffer.from([0, 97, 115, 109, 1, 0, 0, 0]));
+  put(root, 'assets/wasm/pandoeditor-core.manifest.json', '{}');
   assert.equal(run('git', ['add', '.'], root).status, 0);
   assert.equal(run('git', ['commit', '-q', '-m', 'fixture'], root).status, 0);
   return { parent, root, stage: join(parent, 'site'), manifest: join(parent, 'evidence.json') };
@@ -39,10 +45,24 @@ test('stages committed Web bytes and reports while excluding native source', () 
   assert.equal(readFileSync(join(stage, 'index.html'), 'utf8'), '<h1>Web</h1>');
   assert.equal(readFileSync(join(stage, 'reports/a.md'), 'utf8'), 'report');
   assert.equal(existsSync(join(stage, 'native')), false);
+  assert.equal(existsSync(join(stage, 'shared')), false);
+  assert.deepEqual(readFileSync(join(stage, 'assets/wasm/pandoeditor-core.wasm')),
+    Buffer.from([0, 97, 115, 109, 1, 0, 0, 0]));
   const evidence = JSON.parse(readFileSync(manifest, 'utf8'));
-  assert.equal(evidence.fileCount, 5);
+  assert.equal(evidence.fileCount, 9);
   assert.equal(evidence.excludedNativeFiles, 1);
+  assert.equal(evidence.excludedSharedFiles, 2);
   assert.equal(evidence.files.some(file => file.path.startsWith('native/')), false);
+});
+
+test('required Worker cannot publish with a missing WASM pair member', () => {
+  const {root,stage,manifest}=fixture();
+  assert.equal(run('git',['rm','-q','assets/wasm/pandoeditor-core.wasm'],root).status,0);
+  assert.equal(run('git',['commit','-q','-m','broken core assets'],root).status,0);
+  const result=run(process.execPath,[script,'--root',root,'--stage',stage,'--manifest',manifest],root);
+  assert.notEqual(result.status,0);
+  assert.match(result.stderr,/Missing protected Web URL: assets\/wasm\/pandoeditor-core.wasm/);
+  assert.equal(existsSync(stage),false);
 });
 
 test('rejects a modified Web file before creating a site', () => {

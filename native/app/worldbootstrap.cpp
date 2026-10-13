@@ -11,6 +11,12 @@
 #include <pandoeditor/timeline-view.h>
 
 namespace {
+struct PreparedWorldStartup {
+    WorldCanonicalResult world;
+    GeometryPacketCache packets;
+    std::shared_ptr<const WorldBaseFrame> base;
+    std::shared_ptr<const RenderScene> scene;
+};
 struct RecoveredStartup {
     pandoeditor::Project project;
     MapProjection projection;
@@ -18,6 +24,8 @@ struct RecoveredStartup {
     std::shared_ptr<const WorldBaseFrame> base;
     std::shared_ptr<const WorldBaseFrame> preview;
     std::optional<MapViewState> view;
+    MapViewState preparedView;
+    std::shared_ptr<const RenderScene> scene;
     QString error;
 };
 }
@@ -93,14 +101,22 @@ void EditorController::reloadWorldDetail(WorldDetail detail) {
 
 void EditorController::startAutosaveRecovery(bool useWorldBase) {
     const auto initial=project_.snapshot();
+    const auto generation=++worldGeneration_;
+    const auto requestedMonth=project_.timelineCursor();
+    const auto initialView=sceneBridge_.viewState();
     const auto profile=quality_.profile();
     const auto projectPath=autosave_->projectPath(),viewPath=autosave_->viewPath();
     auto* watcher=new QFutureWatcher<std::shared_ptr<RecoveredStartup>>(this);
     connect(watcher,&QFutureWatcher<std::shared_ptr<RecoveredStartup>>::finished,this,
-        [this,watcher,initial] {
+        [this,watcher,initial,generation,requestedMonth,initialView,profile,useWorldBase] {
         const auto result=watcher->result();watcher->deleteLater();
+        if(generation!=worldGeneration_)return;
         if(!initial.matches(project_)) {
             startupBusy_=false;emit startupBusyChanged();return;
+        }
+        if(requestedMonth!=project_.timelineCursor()||initialView.mode!=sceneBridge_.viewState().mode||
+           profile.backgroundLod!=quality_.profile().backgroundLod) {
+            startAutosaveRecovery(useWorldBase);return;
         }
         if(!result->error.isEmpty()) {
             worldStatus_=QStringLiteral("recovery-failed");
@@ -110,7 +126,7 @@ void EditorController::startAutosaveRecovery(bool useWorldBase) {
             return;
         }
         const auto viewport=sceneBridge_.viewState();
-        project_=std::move(result->project);
+        coreSession_.adoptPreparedProject(std::move(result->project));
         projection_=std::move(result->projection);
         packetCache_=std::move(result->packets);sceneInstance_=project_.instanceId();
         worldBase_=std::move(result->base);cacheWorldFrame(worldBase_);
@@ -122,19 +138,23 @@ void EditorController::startAutosaveRecovery(bool useWorldBase) {
         if(viewport.viewportWidth>1&&viewport.viewportHeight>1)
             camera_.resize(viewport.viewportWidth,viewport.viewportHeight,viewport.devicePixelRatio);
         sceneBridge_.publishView(camera_.view());
+        sceneBuilder_.setQuality(profile);
+        sceneBridge_.publishScene(result->scene);
+        sceneBuilder_.adoptPreparation(project_.snapshotForView(),camera_.view(),sceneBridge_.sceneSnapshot());
         // Loading and viewport setup must never autosave the temporary empty document/view.
         autosaveInstance_=project_.instanceId();autosaveRevision_=project_.revision();
         startupBusy_=false;
         publish(false);emit geometryChanged();emit worldStatusChanged();emit startupBusyChanged();
-        ensureHydroBootstrap();syncHydroData();
+        schedulePhysicalCacheMaintenance();
+        syncHydroData();
     });
-    watcher->setFuture(QtConcurrent::run([projectPath,viewPath,profile,useWorldBase,root=worldDataRoot_] {
+    watcher->setFuture(QtConcurrent::run([projectPath,viewPath,profile,useWorldBase,initialView,root=worldDataRoot_] {
         auto result=std::make_shared<RecoveredStartup>();
         try {
             ProjectAutosave source(projectPath,viewPath);
             const auto bytes=source.restoreDocument();
             if(bytes.isEmpty())throw std::runtime_error("자동저장 파일이 비어 있거나 손상되었습니다. 원본은 보존됩니다.");
-            result->project.replace(projectcodec::decode(bytes));
+            result->project.replace(::projectcodec::decode(bytes));
             if(!pandoeditor::isStaticTimeline(result->project.document()))
                 result->project.setTimelineCursor(pandoeditor::initialTimelineMonth(result->project.document().timelineRecords,
                     QDate::currentDate().toString("yyyy-MM").toStdString()));
@@ -154,11 +174,20 @@ void EditorController::startAutosaveRecovery(bool useWorldBase) {
                 // A missing optional base mesh must not discard a valid saved document.
             }
             result->packets.setBudget(profile.renderPacketCacheBudgetBytes);
+            const auto view=result->view.value_or(initialView);
+            result->preparedView=view;
+            MapCamera restoredCamera;
+            restoredCamera.setMetrics({result->projection.width,result->projection.height,
+                result->projection.cosLatitudeValue(),result->projection.minXValue(),
+                result->projection.maxLatitudeValue()});
+            restoredCamera.adoptView(view);
+            // Build against the detail that the restored camera will display.
+            if(result->preview&&restoredCamera.display().zoom<=(view.mode==ProjectionMode::Globe?1.8:2.2))
+                std::swap(result->base,result->preview);
             MapSceneBuilder builder(result->packets);
             builder.setWorldBase(result->base);builder.setQuality(profile);
-            const auto view=result->view.value_or(MapViewState{});
             // Warm the fallback packets on this worker too, including edited/imported shapes.
-            builder.build(result->project.snapshotForView(),view,{},{});
+            result->scene=builder.build(result->project.snapshotForView(),view,{},{});
         } catch(const std::exception& error) {result->error=QString::fromUtf8(error.what());}
           catch(...) {result->error=QStringLiteral("지도 복구 중 알 수 없는 오류가 발생했습니다.");}
         return result;
@@ -235,33 +264,47 @@ void EditorController::startWorldBootstrap() {
 }
 
 void EditorController::startCanonicalWorld(std::uint64_t generation) {
-    auto* watcher=new QFutureWatcher<WorldCanonicalResult>(this);
-    connect(watcher,&QFutureWatcher<WorldCanonicalResult>::finished,this,
-        [this,watcher,generation] {
+    const auto initial=project_.snapshot();
+    const auto requestedMonth=project_.timelineCursor();
+    const auto view=sceneBridge_.viewState();
+    const auto profile=quality_.profile();
+    auto preview=std::make_shared<WorldBaseFrame>(*worldResources_.get(WorldDetail::Preview));
+    preview->documentReady=true;
+    auto* watcher=new QFutureWatcher<std::shared_ptr<PreparedWorldStartup>>(this);
+    connect(watcher,&QFutureWatcher<std::shared_ptr<PreparedWorldStartup>>::finished,this,
+        [this,watcher,generation,initial,requestedMonth,view,profile] {
         watcher->deleteLater();
         if(generation!=worldGeneration_)return;
         try {
-            const auto prepared=watcher->result();
+            // The active bootstrap must finish even if an edit superseded its
+            // input. Only an obsolete generation can leave silently.
+            if(!initial.matches(project_))
+                throw std::runtime_error("World bootstrap project changed");
+            if(requestedMonth!=project_.timelineCursor()||view.mode!=sceneBridge_.viewState().mode||
+               profile.backgroundLod!=quality_.profile().backgroundLod) {startCanonicalWorld(generation);return;}
+            const auto result=watcher->result();
+            auto& prepared=result->world;
             if(!worldBase_||prepared.ranges!=worldRanges_||project_.revision()!=0)
                 throw std::runtime_error("World bootstrap country order or project changed");
-            pandoeditor::Project candidate;
-            candidate.replace(*prepared.document);
-            candidate.setTimelineCursor(project_.timelineCursor().empty()
-                ?pandoeditor::initialTimelineMonth(candidate.document().timelineRecords,QDate::currentDate().toString("yyyy-MM").toStdString())
-                :project_.timelineCursor());
-            MapProjection nextProjection;nextProjection.rebuild(candidate.viewDocument(),candidate.inactiveEntityIds());
             cancelPreview();cancelStructureMutation();
-            project_=std::move(candidate);
-            projection_=std::move(nextProjection);
-            auto preview=std::make_shared<WorldBaseFrame>(*worldResources_.get(WorldDetail::Preview));
-            preview->documentReady=true;worldBase_=preview;cacheWorldFrame(std::move(preview));
+            coreSession_.adoptPreparedProject(std::move(*prepared.project));
+            projection_=*prepared.projection;
+            worldBase_=result->base;cacheWorldFrame(worldBase_);
+            packetCache_=std::move(result->packets);
+            sceneInstance_=project_.instanceId();pendingSceneImpact_.reset();
+            sceneBuilder_.setQuality(profile);
+            sceneBridge_.publishScene(result->scene);
+            sceneBuilder_.adoptPreparation(project_.snapshotForView(),view,sceneBridge_.sceneSnapshot());
+            placeRuntime_.close(QString::fromStdString(project_.instanceId()));
+            initializePlaceRuntime();
             worldHydroNotice_=prepared.hydroAvailability;
             filePath_.clear();importedDirty_=false;
             refreshHistoricalCatalog();
             worldStatus_=QStringLiteral("canonical-pending-mesh");emit worldStatusChanged();
             // While preview is displayed, no canonical country override is
             // shown on top of it. Edits made now stay in ProjectDocument.
-            emit geometryChanged();publish(false);ensureHydroBootstrap();syncHydroData();
+            emit geometryChanged();publish(false);syncHydroData();
+            schedulePhysicalCacheMaintenance();
             startCanonicalWorldMesh(generation);
         } catch(const std::exception& error) {
             cancelWorldBootstrap();refreshTypedScene();emit geometryChanged();
@@ -270,7 +313,14 @@ void EditorController::startCanonicalWorld(std::uint64_t generation) {
                 QString::fromUtf8(error.what()));
         }
     });
-    watcher->setFuture(QtConcurrent::run([root=worldDataRoot_] {return WorldDatasetLoader::canonical(root);}));
+    watcher->setFuture(QtConcurrent::run([root=worldDataRoot_,requestedMonth,preview,view,profile] {
+        auto result=std::make_shared<PreparedWorldStartup>();
+        result->world=WorldDatasetLoader::canonical(root,requestedMonth);
+        result->base=preview;result->packets.setBudget(profile.renderPacketCacheBudgetBytes);
+        MapSceneBuilder builder(result->packets);builder.setQuality(profile);builder.setWorldBase(preview);
+        result->scene=builder.build(result->world.project->snapshotForView(),view,{},{});
+        return result;
+    }));
 }
 
 void EditorController::startCanonicalWorldMesh(std::uint64_t generation) {

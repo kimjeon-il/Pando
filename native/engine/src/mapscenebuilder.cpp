@@ -129,6 +129,14 @@ std::uint64_t interactionSignature(const InteractionRenderPacket& interaction) {
 }
 }
 
+void MapSceneBuilder::adoptPreparation(const ProjectSnapshot& snapshot,const MapViewState& view,
+                                     const std::shared_ptr<const RenderScene>& scene) {
+    if(!scene||!scene->preparationIdentity||!validMapViewState(view)||
+       scene->revisions.document!=snapshot.revision())
+        throw std::invalid_argument("invalid prepared scene");
+    worldBase_=scene->worldBase;
+    remember(snapshot,view,scene);
+}
 void MapSceneBuilder::remember(const ProjectSnapshot& snapshot,const MapViewState& view,
                               const std::shared_ptr<const RenderScene>& scene) {
     cache_.setActiveScene(scene);
@@ -140,7 +148,8 @@ bool MapSceneBuilder::canReusePreparation(const ProjectSnapshot& snapshot,const 
     return preparationMatchesView(view,previous)&&preparedSnapshot_&&
         &preparedSnapshot_->document()==&snapshot.document()&&
         preparedSnapshot_->instanceId()==snapshot.instanceId()&&
-        preparedSnapshot_->revision()==snapshot.revision();
+        preparedSnapshot_->revision()==snapshot.revision()&&
+        preparedSnapshot_->timelineMonth()==snapshot.timelineMonth();
 }
 bool MapSceneBuilder::preparationMatchesView(const MapViewState& view,
                                            const std::shared_ptr<const RenderScene>& previous) const {

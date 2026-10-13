@@ -1,7 +1,8 @@
 /** Rebuildable IndexedDB display cache. This Worker never shares the edit Worker. */
 import { matchesDefaultPreview } from './project-preview-policy.js';
 
-export function createProjectPreviewCache({ storage, scheduler, getGeometry, getBaseline, onWarning = () => {} }) {
+export function createProjectPreviewCache({ storage, scheduler, getGeometry, getBaseline, getPreviewSource, onWarning = () => {} }) {
+  if(typeof getPreviewSource!=='function')throw new TypeError('Preview caching requires a pure C++ project geometry query.');
   let worker = null;
   let nextId = 0;
   let epoch = 0;
@@ -66,12 +67,16 @@ export function createProjectPreviewCache({ storage, scheduler, getGeometry, get
   }
 
   async function restore(project) {
+    const requestedEpoch = epoch;
     const baseline = getBaseline();
     if (!project || !baseline?.sourceSha256) return null;
     try {
       const cache = await storage.readPreview();
-      if (!cache) return null;
-      return await run('validate', { project, baseline, cache });
+      if (!cache || requestedEpoch !== epoch) return null;
+      const source=await getPreviewSource(project);
+      if(requestedEpoch!==epoch)return null;
+      const result = await run('validate', { source, baseline, cache });
+      return requestedEpoch === epoch ? result : null;
     } catch (error) {
       onWarning('Project preview cache rejected', error);
       return null;
@@ -80,29 +85,37 @@ export function createProjectPreviewCache({ storage, scheduler, getGeometry, get
     }
   }
 
-  async function ensure(project, expectedEpoch = epoch) {
+  async function ensure(project, expectedEpoch = epoch, preparedSource = null) {
     const baseline = getBaseline();
-    if (!project || !baseline?.sourceSha256 || expectedEpoch !== epoch
-      || matchesDefaultPreview(project, baseline)) return false;
+    if (!project || !baseline?.sourceSha256 || expectedEpoch !== epoch) return false;
     try {
-      const key = await run('key', { project, baseline });
+      const source=preparedSource || await getPreviewSource(project);
+      if(expectedEpoch!==epoch || matchesDefaultPreview(source,baseline))return false;
+      const key = await run('key', { source, baseline });
       if (expectedEpoch !== epoch) return false;
       const existing = await storage.readPreview();
+      if (expectedEpoch !== epoch) return false;
       if (existing?.geometryKey === key && existing?.baseSourceSha256 === baseline.sourceSha256
-        && await run('validate', { project, baseline, cache: existing })) return true;
-      const geometry = getGeometry();
-      if (!geometry?.entities?.length) return false;
+        && await run('validate', { source, baseline, cache: existing })) return expectedEpoch === epoch;
+      if (expectedEpoch !== epoch) return false;
+      const geometry = await getGeometry();
+      if (expectedEpoch !== epoch || !geometry?.entities?.length) return false;
       // A save can finish while a later edit is already in progress. Only
       // preview the persisted shape, never a newer unsaved state.
       const currentProject = geometry.project;
-      if (currentProject && await run('key', { project: currentProject, baseline }) !== key) return false;
-      const cache = await run('build', { project, baseline,
+      if (currentProject) {
+        const currentSource=await getPreviewSource(currentProject);
+        if(expectedEpoch!==epoch || await run('key',{source:currentSource,baseline})!==key)return false;
+      }
+      const cache = await run('build', { source, baseline,
         entities: geometry.entities });
       if (expectedEpoch !== epoch) return false;
       const latest = await storage.readProject();
-      if (!latest || await run('key', { project: latest, baseline }) !== key || expectedEpoch !== epoch) return false;
+      if (expectedEpoch !== epoch || !latest) return false;
+      const latestSource=await getPreviewSource(latest);
+      if(expectedEpoch!==epoch || await run('key',{source:latestSource,baseline})!==key || expectedEpoch!==epoch)return false;
       await storage.writePreview(cache);
-      return true;
+      return expectedEpoch === epoch;
     } catch (error) {
       onWarning('Project preview cache unavailable', error);
       return false;
@@ -118,14 +131,23 @@ export function createProjectPreviewCache({ storage, scheduler, getGeometry, get
     if (inFlight) stopWorker();
     const requestedEpoch = epoch;
     scheduler.cancel('project-preview-cache');
-    if (matchesDefaultPreview(project, baseline)) {
-      void storage.deletePreview?.().catch(error => onWarning('Project preview cache cleanup failed', error));
-      return;
-    }
-    scheduler.scheduleIdle('project-preview-cache', () => {
-      if (requestedEpoch !== epoch) return;
-      inFlight = ensure(project, requestedEpoch).finally(() => { inFlight = null; });
-    }, 1500);
+    let query;
+    query=(async()=>{
+      const source=await getPreviewSource(project);
+      if(requestedEpoch!==epoch)return;
+      if(matchesDefaultPreview(source,baseline)) {
+        await storage.deletePreview?.().catch(error=>onWarning('Project preview cache cleanup failed',error));
+        return;
+      }
+      scheduler.scheduleIdle('project-preview-cache',()=>{
+        if(requestedEpoch!==epoch)return;
+        let work;
+        work=ensure(project,requestedEpoch,source).finally(()=>{if(inFlight===work)inFlight=null;});
+        inFlight=work;
+      },1500);
+    })().catch(error=>onWarning('Project preview cache unavailable',error))
+      .finally(()=>{if(inFlight===query)inFlight=null;});
+    inFlight=query;
   }
 
   function cancel() {

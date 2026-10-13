@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { readFile, writeFile } from 'node:fs/promises';
-import { productionGeoPackage } from '../helpers/production-geopackage.mjs';
+import { productionGeoPackage,coreFileProjection } from '../helpers/production-geopackage.mjs';
 import { currentCountryFlagUrl } from '../../assets/js/modules/country-flags.js';
 import { selectUiOption } from './helpers/ui-select.mjs';
 
@@ -35,7 +35,8 @@ test('editor derives live hierarchy in Relations, focuses only via GPS and prese
   }
   const flag = currentCountryFlagUrl('DEU');
   for (const feature of project.territorialEntities) feature.properties.metadata.flagDataUrl = flag.slice(flag.indexOf('/assets/'));
-  const file = await productionGeoPackage('write', new ArrayBuffer(0), project);
+  const receipt=await coreFileProjection(project);
+  const file = await productionGeoPackage('write',new ArrayBuffer(0),receipt.project,receipt.spatialState);
   const filePath = testInfo.outputPath('info-project.gpkg');
   await writeFile(filePath, new Uint8Array(file.buffer));
   await page.locator('#mobileFileBtn').click();

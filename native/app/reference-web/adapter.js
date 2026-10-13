@@ -1,5 +1,5 @@
-import {buildReferenceImageCalibrationWarp,buildReferenceImageProjectiveWarpFromQuad,buildReferenceImageMesh,referenceImageWarpQuad} from './reference-image-georef.js';
-import {alignReferenceImageAnchor,applyReferenceImageFreeTransformDrag} from './reference-image-transform.js';
+import {buildReferenceImageCalibrationWarp,buildReferenceImageProjectiveWarpFromQuad,buildReferenceImageMesh,referenceImageWarpQuad} from '../../../assets/js/modules/reference-image-georef.js';
+import {alignReferenceImageAnchor,applyReferenceImageFreeTransformDrag} from '../../../assets/js/modules/reference-image-transform.js';
 export function calibration(record) {
  const calibrated=buildReferenceImageCalibrationWarp({...record,mode:record.warpMode});
  let warp=calibrated;
@@ -34,8 +34,8 @@ export function anchor(input) {
  return {ok,mapQuad:record.mapQuad,anchor:record.anchor};
 }
 
-import {buildReferenceImageLiveWireField,buildLiveWireTree,traceLiveWirePath,simplifyLiveWireSegments,analysisPointFromUv,sourcePixelsFromAnalysis} from './reference-image-live-wire.js';
-import {buildReferenceImageSourceMapping} from './reference-image-source-mapping.js';
+import {buildReferenceImageLiveWireField,buildLiveWireTree,traceLiveWirePath,simplifyLiveWireSegments,analysisPointFromUv,sourcePixelsFromAnalysis} from '../../../assets/js/modules/reference-image-live-wire.js';
+import {buildReferenceImageSourceMapping} from '../../../assets/js/modules/reference-image-source-mapping.js';
 export function trace(input) {
  const field=buildReferenceImageLiveWireField(input.image,{sourceWidth:input.sourceWidth,sourceHeight:input.sourceHeight});
  const warp=buildReferenceImageSourceMapping(input.record);
@@ -53,7 +53,7 @@ export function trace(input) {
  return {ok:true,reason:'',coordinates,uv};
 }
 
-import {buildReferenceImageGradientField,refineReferenceImageLine,referenceImagePixelsToCoordinates} from './reference-image-line-refiner.js';
+import {buildReferenceImageGradientField,refineReferenceImageLine,referenceImagePixelsToCoordinates} from '../../../assets/js/modules/reference-image-line-refiner.js';
 export function refine(input) {
  const field=buildReferenceImageGradientField(input.image,{sourceWidth:input.sourceWidth,sourceHeight:input.sourceHeight});
  const warp=buildReferenceImageSourceMapping(input.record);
@@ -63,7 +63,7 @@ export function refine(input) {
  return result.ok?{ok:true,coordinates:referenceImagePixelsToCoordinates(result.points,{sourceWidth:input.sourceWidth,sourceHeight:input.sourceHeight,warp}),uv:result.points.map(p=>[p[0]/Math.max(1,input.sourceWidth-1),p[1]/Math.max(1,input.sourceHeight-1)])}:{ok:false,reason:result.reason};
 }
 
-import {defaultReferenceImageMapQuad,setReferenceImagePlacementRotation,referenceImagePlacementRotation} from './reference-image-transform.js';
+import {defaultReferenceImageMapQuad,setReferenceImagePlacementRotation,referenceImagePlacementRotation} from '../../../assets/js/modules/reference-image-transform.js';
 function nativeHost(projection) {
  return {project:c=>{const p=projection.referenceScreenAtCoordinate(c[0],c[1]);return p.visible?[p.x,p.y]:null},unproject:p=>JSON.parse(JSON.stringify(projection.referenceCoordinateAtScreen(p[0],p[1]))),getProjectionKind:()=>projection.projectionMode};
 }

@@ -108,9 +108,9 @@ private slots:
     QFETCH(QJsonObject,visibility);
     auto input=QJsonDocument::fromJson(read(QStringLiteral(PANDOEDITOR_EXCHANGE_FIXTURES)+"/static.json")).object();input["itemVisibility"]=visibility;
     auto document=projectcodec::decodeWeb(QJsonDocument(input).toJson());
-    QCOMPARE(document.presentation.webPresentation.hiddenItems.size(),std::size_t(visibility.size()));
+    QCOMPARE(document.presentation.webPresentation.itemVisibility.size(),std::size_t(visibility.size()));
     normalizePresentation(document);
-    QCOMPARE(document.presentation.webPresentation.hiddenItems.size(),std::size_t(visibility.size()));
+    QCOMPARE(document.presentation.webPresentation.itemVisibility.size(),std::size_t(visibility.size()));
     Project project;project.replace(std::move(document));
     for(int cycle=0;cycle<2;++cycle) {
         const auto native=projectcodec::encode(project);project.replace(projectcodec::decode(native));QCOMPARE(projectcodec::encode(project),native);
@@ -133,7 +133,7 @@ private slots:
         return;
     }
     Project restored;restored.replace(projectcodec::decode(QJsonDocument(input).toJson()));
-    QCOMPARE(restored.document().presentation.webPresentation.hiddenItems.size(),std::size_t(hidden.size()));
+    QCOMPARE(restored.document().presentation.webPresentation.itemVisibility.size(),std::size_t(hidden.size()));
     const auto output=QJsonDocument::fromJson(projectcodec::encode(restored)).object();
     QCOMPARE(output["presentation"].toObject()["webPresentation"].toObject()["hiddenItems"].toObject(),hidden);
  }
@@ -246,10 +246,10 @@ private slots:
         EditorController editor({false,dir.filePath(QString(name)+"-private.json")});
         Project current;current.replace(fixture("static"));const auto currentPath=dir.filePath(QString(name)+"-current.json");write(currentPath,projectcodec::encode(current));
         QVERIFY(editor.openFile(QUrl::fromLocalFile(currentPath)));editor.selectCountry("A");editor.setColor("#123456");editor.setColor("#223456");editor.undo();
-        const auto before=editor.documentBytes();const auto selection=editor.primaryObject();const auto paths=editor.paths();const auto instance=editor.projectInstanceId();const auto scene=editor.renderQuality();
+        const auto before=editor.documentBytes();const auto selection=editor.primaryObject();const auto paths=editor.objectBounds();const auto instance=editor.projectInstanceId();const auto scene=editor.renderQuality();
         QSignalSpy errors(&editor,&EditorController::errorOccurred);QVERIFY(!editor.openFile(QUrl::fromLocalFile(source)));
         QCOMPARE(errors.count(),1);QVERIFY(errors.first().first().toString().contains("UNSUPPORTED_VERSION"));
-        QCOMPARE(read(source),old);QVERIFY(!QFile::exists(saved));QCOMPARE(editor.documentBytes(),before);QCOMPARE(editor.primaryObject(),selection);QCOMPARE(editor.paths(),paths);QCOMPARE(editor.projectInstanceId(),instance);
+        QCOMPARE(read(source),old);QVERIFY(!QFile::exists(saved));QCOMPARE(editor.documentBytes(),before);QCOMPARE(editor.primaryObject(),selection);QCOMPARE(editor.objectBounds(),paths);QCOMPARE(editor.projectInstanceId(),instance);
         QVERIFY(editor.dirty());QVERIFY(editor.canUndo());QVERIFY(editor.canRedo());
         const auto after=editor.renderQuality();for(const auto* key:{"scenePublicationCount","scenePreparationCount","viewportResourceGeneration"})QCOMPARE(after.value(key),scene.value(key));
         editor.redo();editor.undo();QCOMPARE(editor.documentBytes(),before);QCOMPARE(read(source),old);
@@ -408,7 +408,7 @@ private slots:
  void nativeOnlyVisibilitySurvivesNativeSaveButRefusesWebExport_data() {visibilityBoundaryData();}
  void nativeOnlyVisibilitySurvivesNativeSaveButRefusesWebExport() {
     QFETCH(QString,key);QFETCH(bool,item);auto document=fixture("static");
-    if(item)document.presentation.webPresentation.hiddenItems[key.toStdString()].insert("A");
+    if(item)document.presentation.webPresentation.itemVisibility[key.toStdString()]["A"]=false;
     else document.presentation.webPresentation.visibility[key.toStdString()]=false;
     Project original;original.replace(document);const auto before=projectcodec::encode(original);
     Project reopened;reopened.replace(projectcodec::decode(before));QCOMPARE(projectcodec::encode(reopened),before);
@@ -421,7 +421,7 @@ private slots:
     auto document=fixture("static");auto& presentation=document.presentation.webPresentation;
     // Pinned real-web project-state.js uses distinct layer, item and style namespaces.
     for(const auto* key:{"countries","subunits","regions","distributions","rivers","lakes","genericFeatures","labels","basemapLabels","countryFlags","subunitLabels","subunitFlags","regionLabels","regionFlags"})presentation.visibility[key]=false;
-    for(const auto* key:{"countries","subunits","regions","distributions","hydro","genericFeatures","labels","countryLabels"})presentation.hiddenItems[key].insert("A");
+    for(const auto* key:{"countries","subunits","regions","distributions","hydro","genericFeatures","labels","countryLabels"})presentation.itemVisibility[key]["A"]=false;
     for(const auto* key:{"countries","subunits","regions","distributions","rivers","lakes","hydro","genericFeatures","labels","countryLabels","terrain"})presentation.styles[key].opacity=0.5;
     Project original;original.replace(document);const auto before=projectcodec::encode(original);
     Project reopened;reopened.replace(projectcodec::decodeWeb(projectcodec::encodeWeb(original.snapshot())));
@@ -549,12 +549,12 @@ private slots:
     EditorController editor(EditorControllerConfig{false,dir.filePath("private.json")});
     QVERIFY(editor.openFile(QUrl::fromLocalFile(input)));editor.selectCountry("A");editor.setColor("#123456");
     QVERIFY(editor.saveFile(QUrl::fromLocalFile(saved)));QCOMPARE(QJsonDocument::fromJson(read(saved)).object()["version"].toInt(),10);
-    editor.setColor("#654321");const auto previous=editor.documentBytes();editor.setColor("#abcdef");const auto future=editor.documentBytes();editor.undo();QVERIFY(editor.canUndo());QVERIFY(editor.canRedo());QVERIFY(editor.dirty());
-    const auto bytes=editor.documentBytes();const auto selection=editor.primaryObject();const auto paths=editor.paths();
+    editor.setColor("#654321");const auto previous=editor.documentBytes();editor.setColor("#abcdef");const auto future=editor.documentBytes();editor.undo();QVERIFY(editor.selectionItems().isEmpty());editor.selectCountry("A");QVERIFY(editor.canUndo());QVERIFY(editor.canRedo());QVERIFY(editor.dirty());
+    const auto bytes=editor.documentBytes();const auto selection=editor.primaryObject();const auto paths=editor.objectBounds();
     QCOMPARE(bytes,previous);const auto instance=editor.projectInstanceId();const auto documentId=editor.documentId();
     const auto scene=editor.renderQuality();
     const auto unchanged=[&]{
-        QCOMPARE(editor.documentBytes(),bytes);QCOMPARE(editor.primaryObject(),selection);QCOMPARE(editor.paths(),paths);
+        QCOMPARE(editor.documentBytes(),bytes);QCOMPARE(editor.primaryObject(),selection);QCOMPARE(editor.objectBounds(),paths);
         QCOMPARE(editor.projectInstanceId(),instance);QCOMPARE(editor.documentId(),documentId);
         QVERIFY(editor.canUndo());QVERIFY(editor.canRedo());QVERIFY(editor.dirty());
         const auto after=editor.renderQuality();
@@ -573,15 +573,15 @@ private slots:
     QTemporaryDir dir;QVERIFY(dir.isValid());const auto privatePath=dir.filePath("private.json"),input=dir.filePath("input.json");
     Project source;source.replace(fixture("static"));write(input,projectcodec::encode(source));
     EditorController editor(EditorControllerConfig{true,privatePath});QVERIFY(editor.openFile(QUrl::fromLocalFile(input)));
-    editor.selectCountry("A");editor.setColor("#123456");editor.setColor("#654321");const auto future=editor.documentBytes();editor.undo();
-    const auto bytes=editor.documentBytes();const auto selection=editor.primaryObject();const auto paths=editor.paths();
+    editor.selectCountry("A");editor.setColor("#123456");editor.setColor("#654321");const auto future=editor.documentBytes();editor.undo();QVERIFY(editor.selectionItems().isEmpty());editor.selectCountry("A");
+    const auto bytes=editor.documentBytes();const auto selection=editor.primaryObject();const auto paths=editor.objectBounds();
     const auto instance=editor.projectInstanceId();const auto scene=editor.renderQuality();
     Project complex;complex.replace(fixture("complex"));
     auto invalid=QJsonDocument::fromJson(bytes).object();invalid["geometries"]=QJsonArray{};
     for(const auto& rejected:{projectcodec::encode(complex),QJsonDocument(invalid).toJson()}) {
         write(privatePath,rejected);QVERIFY(!editor.restorePrivateProject());
         QCOMPARE(read(privatePath),rejected);QCOMPARE(editor.documentBytes(),bytes);QCOMPARE(editor.primaryObject(),selection);
-        QCOMPARE(editor.paths(),paths);QCOMPARE(editor.projectInstanceId(),instance);QVERIFY(editor.dirty());QVERIFY(editor.canUndo());QVERIFY(editor.canRedo());
+        QCOMPARE(editor.objectBounds(),paths);QCOMPARE(editor.projectInstanceId(),instance);QVERIFY(editor.dirty());QVERIFY(editor.canUndo());QVERIFY(editor.canRedo());
         const auto after=editor.renderQuality();for(const auto* key:{"scenePublicationCount","scenePreparationCount","viewportResourceGeneration"})QCOMPARE(after.value(key),scene.value(key));
     }
     editor.redo();QCOMPARE(editor.documentBytes(),future);editor.undo();QCOMPARE(editor.documentBytes(),bytes);
@@ -640,7 +640,7 @@ private slots:
  void malformedNativeOwnershipIsRejectedBeforePublication() {
     QTemporaryDir dir;Project source;source.replace(fixture("static"));const auto valid=projectcodec::encode(source);
     const auto path=dir.filePath("current.json"),invalidPath=dir.filePath("invalid.json");write(path,valid);
-    EditorController editor({false,dir.filePath("private.json")});QVERIFY(editor.openFile(QUrl::fromLocalFile(path)));editor.selectCountry("A");editor.setColor("#123456");editor.setColor("#654321");editor.undo();
+    EditorController editor({false,dir.filePath("private.json")});QVERIFY(editor.openFile(QUrl::fromLocalFile(path)));editor.selectCountry("A");editor.setColor("#123456");editor.setColor("#654321");editor.undo();QVERIFY(editor.selectionItems().isEmpty());editor.selectCountry("A");
     const auto current=editor.documentBytes();const auto selection=editor.primaryObject();QVERIFY(editor.dirty());QVERIFY(editor.canUndo());QVERIFY(editor.canRedo());
     const std::vector<std::function<void(QJsonObject&)>> mutations={
         [](auto& root){auto rows=root["units"].toArray();auto unit=rows[0].toObject();auto metadata=unit["metadata"].toObject();metadata["sovereignId"]="A";unit["metadata"]=metadata;rows[0]=unit;root["units"]=rows;},

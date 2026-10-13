@@ -38,22 +38,21 @@ QVariantMap EditorController::objectProperties() const {
 }
 QVariantMap EditorController::computeObjectProperties() const {
  QVariantMap result{{"count",int(selection_.items().size())},{"busy",propertyBusy()}};
- if(std::any_of(selection_.items().begin(),selection_.items().end(),[this](const auto& ref){if(ref.domain=="placeBuiltin")return !placeRuntime_.recordById(q(ref.id)).has_value();return ref.domain=="hydroBuiltin"?
-   !hydroRuntime_.recordById(q(ref.id)).has_value():!project_.index().objects.count(ref);})) {
+ if(std::any_of(selection_.items().begin(),selection_.items().end(),[this](const auto& ref){return !selectionRefFor(asObjectRef(ref));})) {
   result["count"]=0;result["lockEnabled"]=false;result["colorEnabled"]=false;result["editable"]=false;
   return result;
  }
  if(std::any_of(selection_.items().begin(),selection_.items().end(),[](const auto& ref){return ref.domain!="territorial";})) {
   result["lockEnabled"]=false;result["colorEnabled"]=false;result["editable"]=false;
-  if(selection_.items().size()==1){const auto& ref=selection_.items().front();const auto view=project_.propertyView(ref);result["id"]=q(ref.id);result["type"]=q(ref.domain);if(view)result["displayName"]=q(view->displayName);
+  if(selection_.items().size()==1){const auto& ref=selection_.items().front();const auto view=project_.propertyView(asObjectRef(ref));result["id"]=q(ref.id);result["type"]=q(ref.domain);if(view)result["displayName"]=q(view->displayName);
    if(ref.domain=="hydroBuiltin")if(const auto record=hydroRuntime_.recordById(q(ref.id)))result["displayName"]=record->name;
-   if(ref.domain=="placeBuiltin")if(const auto record=placeRuntime_.recordById(q(ref.id))){result["displayName"]=record->name;result["sourceName"]=record->name;result["kind"]=record->kind;result["builtinSource"]=true;result["copyAvailable"]=objectVisible(ref)&&!propertyBusy();result["locked"]=true;}}
+   if(ref.domain=="placeBuiltin")if(const auto record=placeRuntime_.recordById(q(ref.id))){result["displayName"]=record->name;result["sourceName"]=record->name;result["kind"]=record->kind;result["builtinSource"]=true;result["copyAvailable"]=objectVisible(asObjectRef(ref))&&!propertyBusy();result["locked"]=true;}}
   return result;
  }
  bool allLocked=!selection_.items().empty(),anyLocked=false,layerLocked=false;
  for(const auto& ref:selection_.items()){
-  const auto& u=project_.document().units.at(project_.index().objects.at(ref));allLocked=allLocked&&u.locked;anyLocked=anyLocked||u.locked;
-  auto layer=project_.layer(nativeLayerId(project_.viewDocument(),ref));layerLocked=layerLocked||(layer&&layer->locked);
+  const auto object=asObjectRef(ref);const auto& u=project_.document().units.at(project_.index().objects.at(object));allLocked=allLocked&&u.locked;anyLocked=anyLocked||u.locked;
+  auto layer=project_.layer(nativeLayerId(project_.viewDocument(),object));layerLocked=layerLocked||(layer&&layer->locked);
  }
  result["allLocked"]=allLocked;result["someLocked"]=anyLocked&&!allLocked;result["layerLocked"]=layerLocked;
  result["lockEnabled"]=!selection_.items().empty()&&!propertyBusy()&&!layerLocked;
@@ -103,11 +102,11 @@ bool EditorController::runPropertyCommand(const std::string& id,CommandAction ac
  if(propertyBusy()){emit errorOccurred("PROJECT_BUSY: 현재 작업을 마친 뒤 변경하세요.");return false;}
  try {
   CommandArguments args;args.action=std::move(action);auto request=CommandProcessor::makeRequest(project_,id,std::move(args));
-  auto result=CommandProcessor::prepare(project_,request);
+  auto result=prepareCoreRequest(request);
   if(!result.ok()){emit errorOccurred(QString::fromLatin1(commandErrorCode(result.error))+": "+q(result.detail));return false;}
   parkDrafts();
   if(result.preview){
-   auto confirmed=CommandProcessor::confirm(project_,*result.preview);
+   auto confirmed=confirmCorePreview(*result.preview,coreEpoch());
    if(!confirmed.ok()){emit errorOccurred(QString::fromLatin1(commandErrorCode(confirmed.error)));return false;}
    noteAppliedImpact(confirmed.impact);
    cancelPreview();
@@ -150,21 +149,19 @@ bool EditorController::commitTerritorialPeriod(const QString& token,const QStrin
  const auto found=fieldSessions_.find(token);if(found==fieldSessions_.end()||found->second.field!="validity")return false;
  const auto session=found->second;fieldSessions_.erase(found);refreshTypedScene();
  if(fieldCommitInProgress_||selectionTransition_||selection_.items().size()!=1||
-    !session.base.matches(project_)||session.ref!=selection_.items().front()||!selectedEditable())return false;
+     !session.base.matches(project_)||session.epoch!=coreEpoch()||session.ref!=asObjectRef(selection_.items().front())||!selectedEditable())return false;
  if(propertyBusy()){emit errorOccurred("PROJECT_BUSY: 현재 작업을 마친 뒤 변경하세요.");return false;}
  const auto parsed=parseTerritorialPeriodInput(input);
  if(!parsed.value("ok").toBool()){emit errorOccurred(parsed.value("error").toString());return false;}
  QScopedValueRollback<bool> guard(fieldCommitInProgress_,true);
  try {
-  CommandArguments args;
-  args.properties.fields={{session.ref,TerritorialField::ValidFrom,parsed.value("validFrom").toString().toStdString()},
-      {session.ref,TerritorialField::ValidTo,parsed.value("validTo").toString().toStdString()}};
-  // Both endpoints enter one unpublished candidate. Existing applyField rejects
-  // any dated static edit with TIMELINE_ACTIVATION; no temporal editing is added.
-  auto prepared=CommandProcessor::prepare(project_,CommandProcessor::makeRequest(project_,"edit.properties",std::move(args)));
+  using V=codecjson::Value;auto payload=V::obj();payload.object["id"]=V::str(session.ref.id);
+  payload.object["field"]=V::str("validity");payload.object["valuePresent"]=V::boolean(true);
+  payload.object["value"]=coreInputValue(QVariantMap{{"validFrom",parsed.value("validFrom")},{"validTo",parsed.value("validTo")}});
+  auto prepared=prepareCoreRequest(readWebMetadataCommand(project_.snapshot(),payload,coreCodecPorts()));
   if(!prepared.ok()){emit errorOccurred(QString::fromLatin1(commandErrorCode(prepared.error))+": "+q(prepared.detail));return false;}
   if(prepared.preview) {
-   const auto confirmed=CommandProcessor::confirm(project_,*prepared.preview);
+   const auto confirmed=confirmCorePreview(*prepared.preview,coreEpoch());
    if(!confirmed.ok()){emit errorOccurred(QString::fromLatin1(commandErrorCode(confirmed.error)));return false;}
    noteAppliedImpact(confirmed.impact);
   }
@@ -177,10 +174,10 @@ QString EditorController::beginPropertyEdit(const QString& field) {
  if(field=="validity"&&(!selectedEditable()||propertyBusy()))return {};
  if((field=="validFrom"||field=="validTo")&&u->kind!=UnitKind::Regional)return {};
  const auto token=QUuid::createUuid().toString(QUuid::WithoutBraces);
- fieldSessions_.emplace(token,FieldSession{project_.snapshot(),territorialRef(u->id),field});refreshTypedScene();return token;
+ fieldSessions_.emplace(token,FieldSession{project_.snapshot(),territorialRef(u->id),field,coreEpoch()});refreshTypedScene();return token;
 }
 bool EditorController::updatePropertyEdit(const QString& token,const QString& value) {
- auto it=fieldSessions_.find(token);if(it==fieldSessions_.end()||!it->second.base.matches(project_)||it->second.ref.id!=selectedId().toStdString())return false;
+ auto it=fieldSessions_.find(token);if(it==fieldSessions_.end()||!it->second.base.matches(project_)||it->second.epoch!=coreEpoch()||it->second.ref.id!=selectedId().toStdString())return false;
  const auto field=it->second.field;
  if(field=="validity")return false; // Its complete input is owned by the QML field.
  if(field=="name")setNameDraft(value);else if(field=="notes")setMemoDraft(value);else if(field=="validFrom")setValidFromDraft(value);else setValidToDraft(value);
@@ -190,17 +187,17 @@ bool EditorController::confirmPropertyEdit(const QString& token) {
  auto it=fieldSessions_.find(token);if(it==fieldSessions_.end())return false;
  const auto session=it->second;fieldSessions_.erase(it);
  refreshTypedScene();
- if(!session.base.matches(project_) || session.ref.id!=selectedId().toStdString())return false;
+ if(!session.base.matches(project_) || session.epoch!=coreEpoch() || session.ref.id!=selectedId().toStdString())return false;
  return commitObjectField(session.field);
 }
 void EditorController::endPropertyEdit(const QString& token){if(fieldSessions_.erase(token))refreshTypedScene();}
 bool EditorController::beginColorEdit() {
  if(!objectProperties()["colorEnabled"].toBool())return false;
- colorSession_=project_.snapshot();colorTargets_=selection_.items();emit colorEditChanged();return true;
+  colorSession_=project_.snapshot();colorSessionEpoch_=coreEpoch();colorTargets_=selectedObjectRefs();emit colorEditChanged();return true;
 }
 void EditorController::cancelColorEdit(){screenColorPicker_.cancel();if(colorSession_){colorSession_.reset();colorTargets_.clear();emit colorEditChanged();}}
 bool EditorController::confirmColorEdit(const QString& color,bool reset) {
- if(!colorSession_ || !colorSession_->matches(project_) || colorTargets_!=selection_.items()){
+  if(!colorSession_ || !colorSession_->matches(project_) || colorSessionEpoch_!=coreEpoch() || colorTargets_!=selectedObjectRefs()){
   cancelColorEdit();emit errorOccurred("STALE_COLOR_SESSION: 편집 대상이 변경되었습니다.");return false;
  }
  const auto refs=colorTargets_;if(reset&&refs.size()!=1)return false;
@@ -211,5 +208,5 @@ bool EditorController::confirmColorEdit(const QString& color,bool reset) {
 }
 bool EditorController::toggleObjectLock() {
  const auto state=objectProperties();if(!state["lockEnabled"].toBool())return false;
- return runPropertyCommand("territorial.lock",TerritorialLockEdit{selection_.items(),!state["allLocked"].toBool()});
+  return runPropertyCommand("territorial.lock",TerritorialLockEdit{selectedObjectRefs(),!state["allLocked"].toBool()});
 }

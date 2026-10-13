@@ -24,23 +24,23 @@ BoundaryEntry entry(const ProjectDocument& document,const DocumentIndex& index,
 }
 bool EditorController::canBeginSharedBoundaryGeometry() const {
     return !geometryEdit_&&!structureDialogOpen()&&!hasPendingEdits()
-        &&!entry(project_.viewDocument(),project_.viewIndex(),selection_.items(),project_.inactiveEntityIds()).owners.empty();
+        &&!entry(project_.viewDocument(),project_.viewIndex(),selectedObjectRefs(),project_.inactiveEntityIds()).owners.empty();
 }
 bool EditorController::beginSharedBoundaryGeometry(){
     if(!canBeginSharedBoundaryGeometry())return false;
-    const auto primary=selection_.primary();if(!primary)return false;
-    const auto selected=entry(project_.viewDocument(),project_.viewIndex(),selection_.items(),project_.inactiveEntityIds());auto target=*primary;
+    const auto primary=primaryObjectRef();if(!primary)return false;
+    const auto selected=entry(project_.viewDocument(),project_.viewIndex(),selectedObjectRefs(),project_.inactiveEntityIds());auto target=*primary;
     // Child entry uses the original first selected sibling as its return seed,
     // independently of the current selection primary or the dragged owners.
     if(!staticParentRelation(project_.viewDocument(),selected.owners.front().id).parentId.empty())target=selected.owners.front();
     const auto geometry=project_.viewDocument().geometries.get(staticGeometryBinding(project_.viewDocument(),target.id).geometryRef);if(!geometry)return false;
-    geometryEdit_=GeometryEditSession{project_.snapshotForView(),target,*geometry,QStringLiteral("boundary"),{}};
+    geometryEdit_=GeometryEditSession{coreSession_,project_.snapshotForView(),target,*geometry,QStringLiteral("boundary"),{}};
     geometryEdit_->boundaryOwners=selected.owners;geometryEdit_->boundaryAutoSeed=selected.autoSeed;geometryEdit_->generation=++nextGeometrySession_;
     if(staticParentRelation(project_.viewDocument(),selected.owners.front().id).parentId.empty()) {
         // Explicit root entry preserves item order but makes the last item the
         // visible primary. Whole-tool cancel restores the original snapshot.
         geometryEdit_->boundaryInitialSelection=selection_;
-        auto entered=selection_;entered.setMany(selected.owners,selected.owners.back(),"map");applySelection(std::move(entered));
+        const auto refs=selectionRefsFor(selected.owners);auto entered=selection_;entered.setMany(refs,refs.back(),"map");applySelection(std::move(entered));
     }
     prepareBoundaryGeometry();return true;
 }
@@ -54,7 +54,7 @@ void EditorController::prepareBoundaryGeometry(){
     // The pinned Worker client synchronizes edit sources before boundary-prepare.
     const auto sourceEpoch=snapProvider_?snapProvider_->beginWorkerOperation(project_.snapshot()):0;
     auto& edit=*geometryEdit_;if(edit.boundaryCancelled)edit.boundaryCancelled->store(true);
-    edit.boundaryCancelled=std::make_shared<std::atomic_bool>(false);edit.boundarySession.reset();edit.boundaryStatus="preparing";edit.error.clear();edit.vertex=-1;
+    edit.boundaryCancelled=std::make_shared<std::atomic_bool>(false);edit.boundarySession.reset();edit.boundaryStatus="preparing";edit.error.clear();edit.boundaryNode=-1;
     const auto cancelled=edit.boundaryCancelled;const auto base=edit.base;const auto owners=edit.boundaryOwners;const auto autoSeed=edit.boundaryAutoSeed;const auto generation=edit.generation;const auto epoch=++edit.computationEpoch;
     auto* watcher=new QFutureWatcher<std::shared_ptr<sharedboundary::Session>>(this);
     connect(watcher,&QFutureWatcherBase::finished,this,[this,watcher,cancelled,generation,epoch,sourceEpoch]{
@@ -90,6 +90,6 @@ void EditorController::geometryCancelBoundaryImpacts(){
     if(!geometryEdit_||geometryEdit_->tool!="boundary"||!geometryEdit_->boundaryImpactConfirmation)return;
     if(geometryEdit_->preview)CommandProcessor::cancel(*geometryEdit_->preview);
     geometryEdit_->preview.reset();geometryEdit_->boundaryImpactConfirmation=false;geometryEdit_->boundaryImpactsApproved=false;
-    if(geometryEdit_->boundarySession){geometryEdit_->boundarySession->resetDraft();geometryEdit_->draft=geometryEdit_->boundarySession->drafts().at(geometryEdit_->target.id);geometryEdit_->vertex=-1;}
+    if(geometryEdit_->boundarySession){geometryEdit_->boundarySession->resetDraft();coreSession_.draft().replaceGeometry(geometryEdit_->boundarySession->drafts().at(geometryEdit_->target.id));geometryEdit_->boundaryNode=-1;}
     geometryEdit_->stage="selection";geometryEdit_->error.clear();++geometryEdit_->request;emit geometryEditChanged();
 }

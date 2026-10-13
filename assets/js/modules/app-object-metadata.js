@@ -11,10 +11,14 @@ export function createObjectMetadata() {
     if (dependencies) throw new Error('object-metadata already connected');
     dependencies = ports;
   }
+  const currentProject = generation => !dependencies.projectState.state.projectReplacing
+    && dependencies.domains.projectDomain.getGeneration() === generation;
 
-  function commitTerritorialMetadata(ref, field, value) {
+  async function commitTerritorialMetadata(ref, field, value) {
     if (ref?.domain !== 'territorial') return { ok: false, code: 'invalid-ref' };
-    const result = dependencies.objectModelB.territorialApplicationService.updateMetadata(ref.id, field, value);
+    const generation = dependencies.domains.projectDomain.getGeneration();
+    const result = await dependencies.objectModelB.territorialApplicationService.updateMetadata(ref.id, field, value);
+    if (!currentProject(generation)) return result;
     if (!result.ok) {
       dependencies.feedback.setActionStatus(result.issues?.[0] || '영역 정보를 변경할 수 없습니다.', 'error', 4200);
       return result;
@@ -35,36 +39,38 @@ export function createObjectMetadata() {
     return result;
   }
 
-  function commitGenericFeatureMeta(field, value) {
+  async function commitGenericFeatureMeta(field, value) {
     if (dependencies.projectState.state.selected?.domain !== 'generic') return;
     const f = dependencies.projectState.state.genericFeatures.find(x => String(x.id) === dependencies.projectState.state.selected.id);
     if (!f) return;
-    const result = dependencies.objectModelA.genericFeatureService.updateMetadata(f.id, field, value);
+    const generation = dependencies.domains.projectDomain.getGeneration();
+    const result = await dependencies.objectModelA.genericFeatureService.updateMetadata(f.id, field, value);
+    if (!currentProject(generation)) return;
     if (!result.ok) return;
     if (field === 'name') (0, dependencies.layers.markLayerTreeDirty)();
-    (0, dependencies.propertyEditingA.applyGenericSelectionIntent)(dependencies.projectState.state.selected.id, true);
+    if (dependencies.projectState.state.selected?.domain === 'generic' && String(dependencies.projectState.state.selected.id) === String(f.id))
+      await (0, dependencies.propertyEditingA.applyGenericSelectionIntent)(String(f.id), true);
     (0, dependencies.feedback.setActionStatus)('기타 객체 정보를 변경했습니다.', 'success');
   }
 
-  function commitHydroEdit(field, value) {
+  async function commitHydroEdit(field, value) {
     if (dependencies.projectState.state.selected?.domain !== 'hydro') return;
     const feature = (0, dependencies.hydroPresentation.hydroEditById)(dependencies.projectState.state.selected.id);
     if (!feature || feature.properties?.locked === true) {
       if (feature?.properties?.locked === true) (0, dependencies.feedback.setActionStatus)(`잠금을 해제한 뒤 ${(0, dependencies.hydroPresentation.hydroCategoryLabel)(feature.properties.category)} 정보를 변경하세요.`, 'error', 3200);
       return;
     }
-    const nextValue = field === 'editorColor'
-      ? (0, dependencies.colorModel.normalizeEditorColor)(value, dependencies.hydroPresentation.HYDRO_TOOL_CONFIG[feature.properties.category].color)
-      : value;
-    if (feature.properties[field] === nextValue) return false;
-    dependencies.domains.projectDomain.recordHistory();
-    feature.properties[field] = nextValue;
-    dependencies.projectState.state.stateRevision += 1;
+    const generation=dependencies.domains.projectDomain.getGeneration();
+    const result=await dependencies.domains.projectDomain.executeCommand({ commandId: 'hydro.metadata',
+      targets: [{ domain: 'hydro',id: String(feature.id) }],payload: { id: String(feature.id),field,value } });
+    if (!currentProject(generation) || !result.ok || !result.changed) return false;
     if (field === 'name') (0, dependencies.layers.markLayerTreeDirty)();
     if (field === 'editorColor') dependencies.domains.renderingDomain.invalidateHydroPatch('hydro-color-edited');
-    (0, dependencies.propertyEditingA.applyHydroSelectionIntent)(String(feature.id), true);
-    dependencies.domains.projectDomain.queueAutosave();
+    const selected=dependencies.projectState.state.selected;
+    if (selected?.domain==='hydro' && String(selected.id)===String(feature.id))
+      await (0, dependencies.propertyEditingA.applyHydroSelectionIntent)(String(feature.id), true);
     (0, dependencies.feedback.setActionStatus)(`${(0, dependencies.hydroPresentation.hydroCategoryLabel)(feature.properties.category)} 정보를 변경했습니다.`, 'success');
+    return true;
   }
 
   function territorialUnitInsideContainer(feature, container) {
@@ -74,16 +80,20 @@ export function createObjectMetadata() {
     return (0, dependencies.territoryGeometry.multiPolygonPlanarArea)(outside) <= Math.max(1e-9, (0, dependencies.territoryGeometry.multiPolygonPlanarArea)(feature.geometry.coordinates) * 1e-9);
   }
 
-  function commitTerritorialRelation(ref, field, value) {
+  async function commitTerritorialRelation(ref, field, value) {
     const feature = ref?.domain === 'territorial' ? dependencies.territorialModel.entityRepository.get(ref.id) : null;
     if (!feature || ref.type !== 'entity' || field !== 'parentId') return { ok: false, code: 'invalid-ref' };
-    const result = dependencies.objectModelB.territorialApplicationService.changeAdministrativeParent(feature.id, value, {
+    const generation = dependencies.domains.projectDomain.getGeneration();
+    const result = await dependencies.objectModelB.territorialApplicationService.changeAdministrativeParent(feature.id, value, {
       validateCandidate: ({ candidateUnits, previousUnits }) => {
         globalThis.PandoLabTerritorialEdit.createKernel(window.polygonClipping).validate(candidateUnits, previousUnits, [feature.id]);
         return true;
       },
     });
-    dependencies.domains.selectionUiController.presentPrimary({ refreshOnly: true });
+    if (!currentProject(generation)) return result;
+    const primary = dependencies.projectState.state.selected;
+    if (primary?.domain === ref.domain && primary.type === ref.type && String(primary.id) === String(ref.id))
+      dependencies.domains.selectionUiController.presentPrimary({ refreshOnly: true });
     if (!result.ok) {
       dependencies.feedback.setActionStatus(result.issues?.[0] || '상위 객체를 변경할 수 없습니다.', 'error', 4200);
       return result;

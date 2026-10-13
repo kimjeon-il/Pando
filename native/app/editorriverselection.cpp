@@ -163,7 +163,7 @@ QVariantMap EditorController::riverSelectionObservation() const {
     // reconstruct editing geometry from rounded screen/SVG representations.
     QVariantList candidates,inputLine;
     for(const auto& candidate:state.candidates){QVariantMap row{{"id",QString::fromStdString(candidate.id)},{"geometry",encode(candidate.geometry)}};if(candidate.area)row["area"]=*candidate.area;candidates.append(row);}
-    for(const auto point:geometryEdit_->lineDraft)inputLine.append(QVariant(QVariantList{point.x,point.y}));
+    if(coreSession_.draft().geometry().type=="LineString")for(const auto point:coreSession_.draft().coordinates())inputLine.append(QVariant(QVariantList{point.x,point.y}));
     result["candidates"]=candidates;result["inputLine"]=inputLine;
     if(geometryEdit_->splitIntent){
         result["combinedGeometry"]=QVariant();result["remainingGeometry"]=QVariant();result["splitPreview"]=QVariant();result["splitPreviewPresent"]=false;result["splitPreviewReceiptPresent"]=false;result["currentGeometry"]=state.currentGeometry?QVariant(encode(*state.currentGeometry)):QVariant();

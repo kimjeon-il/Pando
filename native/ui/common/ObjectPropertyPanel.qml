@@ -97,8 +97,8 @@ Rectangle {
                     UiButton {objectName:"editorGeometryAction";text:"도형 편집";symbol:"edit";description:"지도에서 점과 경계를 편집합니다.";outlined:true;Layout.fillWidth:true;enabled:contentFields.selectionContent ? contentFields.editState.active && !contentFields.editState.previewReady && !contentFields.editState.drawing && contentFields.editState.domain!=="distributionLayer" : editor.selectedEditable;onClicked:contentFields.selectionContent ? editor.beginContentGeometry() : editor.beginGeometryEdit("edit")}
                     UiButton {text:"다시 그리기";symbol:"country";description:"현재 대상의 모양을 새로 그립니다.";visible:editor.primaryObject.domain==="territorial";outlined:true;Layout.fillWidth:true;enabled:editor.selectedEditable && editor.primaryObject.domain==="territorial";onClicked:editor.beginGeometryDraw()}
                     UiButton {objectName:"editorMergeAction";text:"합병";symbol:"plus";description:"같은 종류의 제공 영역을 대상에 합칩니다.";visible:editor.primaryObject.domain==="territorial";outlined:true;Layout.fillWidth:true;enabled:editor.selectionItems.length===1&&editor.selectedEditable&&editor.primaryObject.domain==="territorial";onClicked:editor.beginMergeSelection()}
-                    UiButton {objectName:"editorAnnexAction";text:"영역 편입";symbol:"region";description:editor.primaryObject.type==="general"&&!editor.objectProperties.parentId?"절단선, 다각형, 구성 영역으로 편입할 영토를 선택합니다.":"제공 영역 중 직접 그린 범위를 편입합니다.";visible:editor.primaryObject.domain==="territorial";outlined:true;Layout.fillWidth:true;enabled:editor.selectionItems.length===1&&editor.selectedEditable&&editor.primaryObject.domain==="territorial";onClicked:editor.beginAnnexGeometry()}
-                    UiButton {objectName:"editorSplitAction";text:"절단선 분할";symbol:"subunit";description:"선택한 영역을 새 객체로 나눕니다.";visible:editor.primaryObject.domain==="territorial";outlined:true;Layout.fillWidth:true;enabled:editor.selectionItems.length===1&&editor.selectedEditable&&editor.primaryObject.domain==="territorial"&&editor.primaryObject.type==="general";onClicked:editor.beginSplitGeometry()}
+                    UiButton {objectName:"editorAnnexAction";text:"영역 편입";symbol:"region";description:editor.primaryObject.kind==="general"&&!editor.objectProperties.parentId?"절단선, 다각형, 구성 영역으로 편입할 영토를 선택합니다.":"제공 영역 중 직접 그린 범위를 편입합니다.";visible:editor.primaryObject.domain==="territorial";outlined:true;Layout.fillWidth:true;enabled:editor.selectionItems.length===1&&editor.selectedEditable&&editor.primaryObject.domain==="territorial";onClicked:editor.beginAnnexGeometry()}
+                    UiButton {objectName:"editorSplitAction";text:"절단선 분할";symbol:"subunit";description:"선택한 영역을 새 객체로 나눕니다.";visible:editor.primaryObject.domain==="territorial";outlined:true;Layout.fillWidth:true;enabled:editor.selectionItems.length===1&&editor.selectedEditable&&editor.primaryObject.domain==="territorial"&&editor.primaryObject.kind==="general";onClicked:editor.beginSplitGeometry()}
                     UiButton {text:"공유 국경";symbol:"country";description:"선택한 두 개 이상 영토의 공유 경계를 함께 조정합니다.";visible:editor.selectionItems.length>=1&&editor.selectionItems.every(function(ref){return ref.domain==="territorial"});outlined:true;Layout.fillWidth:true;enabled:editor.canBeginSharedBoundaryGeometry();onClicked:editor.beginSharedBoundaryGeometry()}
                     UiButton {text:"삭제";symbol:"close";description:"검토 후 선택 객체를 삭제합니다.";outlined:true;Layout.fillWidth:true;enabled:editor.selectionItems.length>0;onClicked:{if(contentFields.selectionContent){tabs.currentIndex=0;editor.previewContentEdit(true)}else editor.beginDeleteSelection()}}
                 }
@@ -107,7 +107,7 @@ Rectangle {
                     Label {textFormat:Text.PlainText;objectName:"relationParent";text:"상위 단위: "+(editor.objectProperties.parentName||"없음");Layout.fillWidth:true;wrapMode:Text.Wrap}
                     UiComboBox {
                         objectName:"relationParentPicker"
-                        visible:editor.primaryObject.domain==="territorial"&&editor.primaryObject.type==="general"
+                        visible:editor.primaryObject.domain==="territorial"&&editor.primaryObject.kind==="general"
                         enabled:editor.selectedEditable
                         Layout.fillWidth:true
                         model:editor.relationParentOptions
@@ -117,7 +117,7 @@ Rectangle {
                     }
                     UiComboBox {
                         objectName:"relationChildPicker"
-                        visible:editor.primaryObject.domain==="territorial"&&editor.primaryObject.type==="general"
+                        visible:editor.primaryObject.domain==="territorial"&&editor.primaryObject.kind==="general"
                         enabled:editor.selectedEditable
                         Layout.fillWidth:true
                         model:{editor.objectProperties;return editor.relationChildOptions()}

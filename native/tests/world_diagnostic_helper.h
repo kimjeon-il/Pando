@@ -19,7 +19,7 @@ struct ProjectionDiagnostic {
 inline bool projectionPathsFinite(const MapProjection& projection) {
     if(!std::isfinite(projection.width)||!std::isfinite(projection.height)||
        projection.width<=0||projection.height<=0) return false;
-    for(const auto& value:projection.paths) {
+    for(const auto& value:projection.objects) {
         const auto path=value.toMap();
         for(const auto* key:{"left","top","width","height"})
             if(!std::isfinite(path.value(QString::fromLatin1(key)).toDouble())) return false;
@@ -55,7 +55,7 @@ inline std::vector<ProjectionDiagnostic> diagnoseCurrentProjection(const pandoed
         for(const auto& line:geometry.lines) segment(line);
         for(const auto& point:geometry.points) segment({point});
         bool pathFound=false;
-        for(const auto& value:projection.paths) {
+        for(const auto& value:projection.objects) {
             const auto path=value.toMap();if(path.value(QStringLiteral("countryId")).toString()!=pathId)continue;
             pathFound=true;row.projectedWidth=path.value(QStringLiteral("width")).toDouble();
             const auto text=path.value(QStringLiteral("path")).toString();
