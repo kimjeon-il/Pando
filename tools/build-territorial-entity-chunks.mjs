@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
-import {gzipSync,gunzipSync} from 'node:zlib';
+import {selectTerritorialChunkBytes} from './territorial-chunk-compression.mjs';
 import {readTerritorialSources,readTerritorialLineages,entityFileName,territorialDataRoot} from './territorial-entity-sources.mjs';
 import {parseTemporal} from '../assets/js/modules/temporal.js';
 const output=path.join(territorialDataRoot,'generated/v2');
@@ -19,9 +19,10 @@ const index={schemaVersion:2,lineages:readTerritorialLineages().map(({entities,.
  const bytes=Buffer.from(`${JSON.stringify(entity,null,2)}\n`);
  const file=`${entityFileName(entity.entityId)}.gz`;expectedFiles.add(file);
  const destination=path.join(output,file);
- let stored;
- if(check){stored=fs.readFileSync(destination);if(!gunzipSync(stored).equals(bytes))throw new Error(`Stale territorial chunk: ${file}`);}
- else{stored=gzipSync(bytes,{level:9,mtime:0});fs.writeFileSync(destination,stored);}
+ const previous=fs.existsSync(destination)?fs.readFileSync(destination):null;
+ const {stored,changed}=selectTerritorialChunkBytes(bytes,previous);
+ if(check&&changed)throw new Error(`Stale territorial chunk: ${file}`);
+ if(!check&&changed)fs.writeFileSync(destination,stored);
  const allBounds=entity.geometryVersions.map(v=>bounds(v.geometry));
  return {...entity,geometryVersions:entity.geometryVersions.map(({geometry,...version})=>version),sourceInfo:{title:entity.sourceInfo.title||'',license:entity.sourceInfo.license||'',sourceId:entity.sourceInfo.sourceId||''},
    file,validFrom:entity.lifetime.validFrom,validTo:entity.lifetime.validTo,compressedBytes:stored.length,decodedBytes:bytes.length,sha256:sha(stored),
