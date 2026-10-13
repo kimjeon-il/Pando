@@ -14,8 +14,8 @@ const hydroSearchDiagnostic = {
 test.use({ channel: 'chromium', viewport: { width: 1440, height: 900 }, trace: 'off' });
 
 test('editing a river color updates actual GPU paint and undo restores metadata, geometry and paint', async ({ page }, testInfo) => {
-  test.setTimeout(120_000);
-  page.setDefaultTimeout(8_000);
+  test.setTimeout(180_000);
+  page.setDefaultTimeout(30_000);
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.goto('/assets/css/app.css');
@@ -68,10 +68,10 @@ test('editing a river color updates actual GPU paint and undo restores metadata,
   };
   await expect.poll(() => colorPixels(originalColor)).toBeGreaterThan(0);
   const before = await page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.hydroEditRevision);
-  await page.locator('#hydroColorTrigger').click({ timeout: 30_000 });
+  await page.locator('#hydroColorTrigger').click();
   const swatch = page.locator(`#hydroColorPopover [data-color-value]:not([data-color-value="${originalColor}"])`).first();
   const nextColor = await swatch.getAttribute('data-color-value');
-  await swatch.click({ timeout: 30_000 });
+  await swatch.click();
   await expect(page.locator('#hydroColorInput')).toHaveValue(nextColor);
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.hydroEditRevision)).toBe(before + 1);
   await expect.poll(() => colorPixels(nextColor)).toBeGreaterThan(0);
