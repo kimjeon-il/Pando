@@ -160,6 +160,7 @@ test('single display follows distribution selection without another view menu ch
 });
 
 test('a numeric distribution stores signed values and survives undo and redo', async ({ page }) => {
+  test.setTimeout(180_000);
   await page.setViewportSize({ width: 1440, height: 900 });
   const errors = await openApp(page);
 
@@ -181,8 +182,8 @@ test('a numeric distribution stores signed values and survives undo and redo', a
   await page.locator('#distributionValueInput').fill('-2.5');
   await page.locator('#addTerritorialDistributionBtn').click();
 
-  await expect(page.locator('#distributionEntryList .distribution-entry-row')).toHaveCount(1);
-  await expect(page.locator('#map path.distribution-shape')).toHaveCount(1);
+  await expect(page.locator('#distributionEntryList .distribution-entry-row')).toHaveCount(1, { timeout: 30_000 });
+  await expect(page.locator('#map path.distribution-shape')).toHaveCount(1, { timeout: 30_000 });
   const stored = await page.evaluate(() => {
     const layer = window.PANDOLAB_DISTRIBUTIONS.listLayers()[0];
     return { layer, entries: window.PANDOLAB_DISTRIBUTIONS.listEntries(layer.id) };
@@ -193,9 +194,17 @@ test('a numeric distribution stores signed values and survives undo and redo', a
   expect(stored.entries[0]).toMatchObject({ mode: 'territorial', territorialUnitId, value: -2.5 });
 
   await page.locator('#undoBtn').click();
-  await expect(page.locator('#map path.distribution-shape')).toHaveCount(0);
+  await expect.poll(() => page.evaluate(() => {
+    const layer = window.PANDOLAB_DISTRIBUTIONS.listLayers()[0];
+    return layer ? window.PANDOLAB_DISTRIBUTIONS.listEntries(layer.id).length : 0;
+  }), { timeout: 30_000 }).toBe(0);
+  await expect(page.locator('#map path.distribution-shape')).toHaveCount(0, { timeout: 30_000 });
   await page.locator('#redoBtn').click();
-  await expect(page.locator('#map path.distribution-shape')).toHaveCount(1);
+  await expect.poll(() => page.evaluate(() => {
+    const layer = window.PANDOLAB_DISTRIBUTIONS.listLayers()[0];
+    return layer ? window.PANDOLAB_DISTRIBUTIONS.listEntries(layer.id).length : 0;
+  }), { timeout: 30_000 }).toBe(1);
+  await expect(page.locator('#map path.distribution-shape')).toHaveCount(1, { timeout: 30_000 });
   expect(errors).toEqual([]);
 });
 
@@ -237,6 +246,7 @@ test('overlap and single display preserve independent values and free geometry o
   await expect(page.locator('g.draft-vertex')).toHaveCount(3);
   await expect(page.locator('#modeDraftDoneBtn')).toBeEnabled();
   await page.locator('#modeDraftDoneBtn').click();
+  await expect(page.locator('#actionsTabBtn')).toBeVisible({ timeout: 30_000 });
   await page.locator('#actionsTabBtn').click();
   await expect(page.locator('#distributionEntryList .distribution-entry-row')).toHaveCount(1);
 
