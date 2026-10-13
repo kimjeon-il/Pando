@@ -186,8 +186,49 @@
   // Clipping may remove collinear vertices and leave a >180-degree planar
   // edge. Retain its path with intermediate vertices so subsequent geographic
   // wrapping cannot reinterpret that edge as the shorter route across the seam.
-  function normalizeClippedPolygonGeometry(value) {
-    const normalized = normalizePolygonGeometry(value);
+  // Some Boolean intersections emit a 3-point sliver at their numerical
+  // precision boundary. Only a caller that explicitly records the discarded
+  // area may omit a certified sub-decimetre-square clipping artifact. Ordinary
+  // shells, holes, islands and all malformed source geometry still fail.
+  function certifiedClipArtifact(polygon) {
+    if (!Array.isArray(polygon) || polygon.length !== 1) return null;
+    const ring = polygon[0];
+    if (!Array.isArray(ring) || ring.length !== 4 || ring.some(point =>
+      !Array.isArray(point) || point.length !== 2 || point.some(n => typeof n !== 'number' || !Number.isFinite(n))
+        || Math.abs(point[0]) > 180 || Math.abs(point[1]) > 90)) return null;
+    if (ring[0][0] !== ring[3][0] || ring[0][1] !== ring[3][1]) return null;
+    const [a, b, c] = ring;
+    const xs = [a[0], b[0], c[0]], ys = [a[1], b[1], c[1]];
+    if (Math.max(...xs) - Math.min(...xs) > 1 || Math.max(...ys) - Math.min(...ys) > 1
+      || Math.max(...ys.map(Math.abs)) >= 85) return null;
+    const smallestEdge = Math.min(Math.hypot(a[0] - b[0], a[1] - b[1]),
+      Math.hypot(b[0] - c[0], b[1] - c[1]), Math.hypot(c[0] - a[0], c[1] - a[1]));
+    if (smallestEdge > 1e-9) return null;
+    const areaDegrees = Math.abs((b[0] - a[0]) * (c[1] - a[1]) - (c[0] - a[0]) * (b[1] - a[1])) / 2;
+    const latitude = (a[1] + b[1] + c[1]) / 3;
+    const areaM2 = areaDegrees * (111195 ** 2) * Math.cos(latitude * Math.PI / 180);
+    return Number.isFinite(areaM2) && areaM2 <= 0.1 ? areaM2 : null;
+  }
+
+  function normalizeClippedPolygonGeometry(value, { onPrecisionDiscard } = {}) {
+    let normalized;
+    try { normalized = normalizePolygonGeometry(value); }
+    catch (error) {
+      if (typeof onPrecisionDiscard !== 'function') throw error;
+      const kept = [], discarded = [];
+      for (const [index, polygon] of multiPolygonCoordinates(value).entries()) {
+        try {
+          normalizePolygonGeometry([polygon]);
+          kept.push(polygon);
+        } catch (error) {
+          const areaM2 = certifiedClipArtifact(polygon);
+          if (areaM2 === null) throw error;
+          discarded.push({ polygonIndex: index, areaM2, ringCount: 1, vertexCount: 4 });
+        }
+      }
+      normalized = normalizePolygonGeometry(kept);
+      for (const item of discarded) onPrecisionDiscard(item);
+    }
     if (!normalized) return null;
     const polygons = multiPolygonCoordinates(normalized).map(polygon => polygon.map(ring => {
       const segmented = [ring[0]];
@@ -281,7 +322,7 @@
           const area = sphericalInteriorArea(ring);
           return index === 0 ? area < 2 * Math.PI : area > 2 * Math.PI;
         }));
-    } catch { return false; }
+    } catch (error) { return false; }
   }
 
   root.PandoLabPolygonGeometry = Object.freeze({

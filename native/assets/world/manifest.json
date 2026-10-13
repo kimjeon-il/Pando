@@ -96,17 +96,17 @@
   "historicalTimelineManifest": {
     "path": "historical-world/v1/manifest.json",
     "version": "1",
-    "gitBlobSha": "cd243bb39272db79eb32f0f6cdec279d9a8cdbd8",
-    "sha256": "0927e5f581454d32fc87c776c2079f26266c605bd3554c9afdd16986db7c8e0f",
+    "gitBlobSha": "a38a05065ca154b6dea444c7b1ccffa2d1ad9014",
+    "sha256": "9ed1b70c54d7b46558aa7820bb8d01498d1fe198c07a652e98837dc434955f16",
     "required": true,
     "bytes": 59226
   },
   "historicalTimeline": {
     "path": "historical-world/v1/world-project.json.gz",
     "version": "1",
-    "gitBlobSha": "e07b98ea9c08c051690dc0299857fe9053942ed2",
-    "sha256": "6f0932d02afcf55e2aceebc7e4aa524e84a868443e3d2f4036786262e59a0ddc",
+    "gitBlobSha": "1f4c898ecda3a9eaf7d0a8038299c85081c3d296",
+    "sha256": "0f0f8af994d41a7e6e4115a1df94d6f991db77044e9f48dee16b1d559195222a",
     "required": true,
-    "bytes": 6339827
+    "bytes": 6340225
   }
 }
