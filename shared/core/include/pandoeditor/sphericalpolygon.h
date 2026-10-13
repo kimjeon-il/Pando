@@ -10,3 +10,4 @@ void requireCanonicalSphericalWinding(const Geometry& geometry);
 bool hasCanonicalSphericalWinding(const Geometry& geometry) noexcept;
 Geometry normalizeSphericalPolygonGeometry(const Geometry& geometry);
 Geometry normalizeClippedSphericalPolygonGeometry(const Geometry& geometry);
+} // namespace pandoeditor
