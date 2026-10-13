@@ -1001,6 +1001,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Install pinned D3 AST parser for deterministic Qt geometry regeneration
+        run: npm ci --prefix native/tools/m97/river/d3-adapter --ignore-scripts
       - name: Verify corrected USSR canonical source
         run: |
           node --input-type=module <<'JS'
