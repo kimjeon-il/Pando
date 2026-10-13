@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "territorial_fixture.h"
 #include "territorialgeometry.h"
 #include "territorialpreviewruntime.h"
@@ -46,8 +47,8 @@ Geometry rectangle(double x,double y,double width,double height) {
     Geometry geometry;geometry.polygons={{{{x,y},{x+width,y},{x+width,y+height},{x,y+height},{x,y}}}};return geometry;
 }
 ProjectDocument fixture() {
-    return ProjectDocument({{"A","A",rectangle(0,0,10,10).polygons,0xabcdef},
-                            {"B","B",rectangle(10,0,10,10).polygons,0x123456}},{{"countries","Countries"}});
+    return makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},rectangle(0,0,10,10).polygons},{0xabcdef,1},"countries"},
+        {{"B","B","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},rectangle(10,0,10,10).polygons},{0x123456,1},"countries"}},{{"countries","Countries"}});
 }
 void addUnit(ProjectDocument& document,const std::string& id,Geometry geometry,const std::string& parent="") {
     const GeometryRef ref{id,1};document.geometries.insert(ref,std::move(geometry));
@@ -90,8 +91,8 @@ AnnexGeometryPreviewRequest sliverRequest(const std::vector<Geometry>& leftovers
     return request;
 }
 ProjectDocument sliverFixture(Geometry donor=rectangle(0,0,.01,.01)) {
-    return ProjectDocument({{"D","D",donor.polygons,0x123456},
-                            {"T","T",rectangle(-.02,0,.01,.01).polygons,0xabcdef}},{{"countries","Countries"}});
+    return makeTerritorialDocument({{{"D","D","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},donor.polygons},{0x123456,1},"countries"},
+        {{"T","T","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},rectangle(-.02,0,.01,.01).polygons},{0xabcdef,1},"countries"}},{{"countries","Countries"}});
 }
 Geometry decodePolygon(const QJsonObject& row) {
     Geometry geometry;geometry.type=row["type"].toString().toStdString();auto polygons=row["coordinates"].toArray();
@@ -117,8 +118,8 @@ int compareBrowserAnnex(const QString& reportPath,const QString& payloadPath,con
         if(identity.isEmpty()||browser["identity"].toObject()!=identity)throw std::runtime_error("BROWSER_NATIVE_IDENTITY_MISMATCH");
         const auto world=QJsonDocument::fromJson(payload["world"].toObject()["source"].toString().toUtf8()).object()["features"].toArray();
         if(world.size()!=258||browser["annex"].toArray().size()!=4)throw std::runtime_error("INCOMPLETE_BROWSER_ANNEX_CORPUS");
-        std::vector<Country> countries;for(const auto& value:world) {const auto feature=value.toObject();
-            const auto id=feature["id"].toString().toStdString();countries.push_back({id,id,decodePolygon(feature["geometry"].toObject()).polygons,0xabcdef});}
+        std::vector<TerritorialDocumentFixture> countries;for(const auto& value:world) {const auto feature=value.toObject();
+            const auto id=feature["id"].toString().toStdString();countries.push_back({{id,id,"",UnitKind::General},decodePolygon(feature["geometry"].toObject()),{0xabcdef,1}});}
         for(const auto& value:browser["annex"].toArray()) {
             const auto evidence=value.toObject(),scenario=evidence["selection"].toObject();QJsonObject row{{"name",evidence["name"]}};
             try {
@@ -150,7 +151,7 @@ int compareBrowserAnnex(const QString& reportPath,const QString& payloadPath,con
                 QJsonArray unselected;for(const auto& geometry:context.unselectedGeometries)unselected.append(encodePolygon(geometry));
                 const auto expectedInput=evidence["input"].toObject();const bool inputExact=encodePolygon(request.selection)==expectedInput["transferredGeometry"].toObject()
                     &&unselected==expectedInput["riverSliverContext"].toArray()[0].toObject()["unselectedGeometries"].toArray();
-                Project project;project.replace(ProjectDocument(countries,{{"countries","Countries"}}));const auto before=projectcodec::encode(project);
+                Project project;project.replace(makeTerritorialDocument(countries,{{"countries","Countries"}}));const auto before=projectcodec::encode(project);
                 const auto result=preview(project,request);const auto expected=evidence["result"].toObject();
                 row["selectedCellsExact"]=selectedExact;row["inputExact"]=inputExact;row["previewOk"]=result.ok();row["detail"]=QString::fromStdString(result.detail);
                 row["count"]=int(result.autoIncludedSliverCount);row["areaM2"]=result.autoIncludedSliverAreaM2;
@@ -186,7 +187,7 @@ class TerritorialGeometryPreviewTests:public QObject {
 private slots:
     void sixteenAdjacentOwnersPreserveExactDrafts() {
         const Ring perimeter{{-4,-4},{-2,-4},{0,-4},{2,-4},{4,-4},{4,-2},{4,0},{4,2},{4,4},{2,4},{0,4},{-2,4},{-4,4},{-4,2},{-4,0},{-4,-2}};
-        ProjectDocument document({},{});
+        pandoeditor::ProjectDocument document = makeTerritorialDocument({},{});
         SharedBoundaryIntent intent;
         for(std::size_t i=0;i<perimeter.size();++i) {
             Geometry source;source.polygons={{{{0,0},perimeter[i],perimeter[(i+1)%16],{0,0}}}};
@@ -413,8 +414,9 @@ private slots:
         }
         // Construct named donors directly so every timeline binding remains
         // canonical, independently of the requested traversal order.
-        auto document=ProjectDocument({{"A","A",donors[0].polygons,0x123456},{"B","B",donors[1].polygons,0x654321},
-            {"T","T",rectangle(-.02,0,.01,.01).polygons,0xabcdef}},{{"countries","Countries"}});
+        auto document=makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},donors[0].polygons},{0x123456,1},"countries"},
+        {{"B","B","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},donors[1].polygons},{0x654321,1},"countries"},
+        {{"T","T","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},rectangle(-.02,0,.01,.01).polygons},{0xabcdef,1},"countries"}},{{"countries","Countries"}});
         Project project;project.replace(document);const auto before=projectcodec::encode(project);
         std::vector<ObjectRef> order{territorialRef("A"),territorialRef("B")};if(reverseDonors)std::reverse(order.begin(),order.end());
         // Context order is also unrelated to donor or polygon traversal.
@@ -516,7 +518,8 @@ private slots:
         targetIsland.front().insert(targetIsland.front().begin()+1,targetIsland.front().front());
         target.polygons.push_back(targetIsland);
         auto donor=rectangle(10,0,10,10);const auto donorIsland=rectangle(60,0,2,2).polygons.front();donor.polygons.push_back(donorIsland);
-        ProjectDocument document({{"A","A",target.polygons,0xabcdef},{"B","B",donor.polygons,0x123456}},{{"countries","Countries"}});
+        pandoeditor::ProjectDocument document = makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},target.polygons},{0xabcdef,1},"countries"},
+        {{"B","B","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},donor.polygons},{0x123456,1},"countries"}},{{"countries","Countries"}});
         Project project;project.replace(document);
         const auto result=preview(project,{territorialRef("A"),{territorialRef("B")},rectangle(10,0,5,10)});
         QVERIFY2(result.ok(),result.detail.c_str());QVERIFY(result.issues.empty());

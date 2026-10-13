@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "territorial_fixture.h"
 #include <pandoeditor/map/mapscenebuilder.h>
 #include <pandoeditor/commands.h>
@@ -63,7 +64,7 @@ void distributionRangeRestylesUnchangedPeersInPatch() {
     require(packet!=after->polygons.end()&&std::abs(packet->style.alpha-.265)<1e-6,"range change restyles unchanged peer");
 }
 void worldRangesKeepSourceSlotsAndLogicalOwnersSeparate() {
-    pandoeditor::ProjectDocument doc({},{{"countries","Countries"}});
+    pandoeditor::ProjectDocument doc = makeTerritorialDocument({},{{"countries","Countries"}});
     appendTerritory(doc,{"OWNER","Owner",{},pandoeditor::UnitKind::General,false},{"world-country-OWNER",1});
     doc.geometries.insert({"world-country-OWNER",1},square(0));
     doc.presentation.membership.emplace(pandoeditor::territorialRef("OWNER"),"countries");
@@ -107,7 +108,7 @@ std::shared_ptr<WorldBaseFrame> zoomPreviewFrame(bool documentReady) {
 }
 pandoeditor::ProjectDocument zoomPreviewDocument() {
     using namespace pandoeditor;
-    ProjectDocument doc({},{{"countries","Countries"}});
+    pandoeditor::ProjectDocument doc = makeTerritorialDocument({},{{"countries","Countries"}});
     for(const auto& id:{"A","B","C"}) {
         const GeometryRef ref{"world-country-"+std::string(id),1};
         appendTerritory(doc,{id,id,{},UnitKind::General,false},ref);
@@ -201,7 +202,7 @@ void canonicalPreviewSwitchPublishesCorrectResourceAndDocumentState() {
 }
 void immutableSnapshotsReusePreparationButRespectInvalidation() {
     using namespace pandoeditor;
-    ProjectDocument doc({},{{"countries","Countries"}});
+    pandoeditor::ProjectDocument doc = makeTerritorialDocument({},{{"countries","Countries"}});
     appendTerritory(doc,{"C","Country",{},UnitKind::General,false},{"C",1});
     doc.geometries.insert({"C",1},square(0));
     doc.presentation.membership.emplace(territorialRef("C"),"countries");
@@ -250,7 +251,7 @@ void immutableSnapshotsReusePreparationButRespectInvalidation() {
 }
 void interactionOnlyPreparesActualFallbackLodChanges() {
     using namespace pandoeditor;
-    ProjectDocument doc({},{{"countries","Countries"}});doc.documentId="m92-fallback";
+    pandoeditor::ProjectDocument doc = makeTerritorialDocument({},{{"countries","Countries"}});doc.documentId="m92-fallback";
     appendTerritory(doc,{"C","Country",{},UnitKind::General},{"C",1});
     doc.presentation.membership[territorialRef("C")]="countries";
     doc.presentation.objectStyles[territorialRef("C")]={};
@@ -293,7 +294,7 @@ void resourceIdentityCannotBeHiddenByEqualRevisions() {
 }
 pandoeditor::ProjectDocument patchFixture() {
     using namespace pandoeditor;
-    ProjectDocument doc({},{{"countries","Countries"}});doc.documentId="m93-patch-fixture";
+    pandoeditor::ProjectDocument doc = makeTerritorialDocument({},{{"countries","Countries"}});doc.documentId="m93-patch-fixture";
     for(const auto& id:{"A","B","C"}) {
         appendTerritory(doc,{id,id,{},UnitKind::General},{id,1});
         doc.geometries.insert({id,1},square(id[0]=='A'?0:id[0]=='B'?20:40));

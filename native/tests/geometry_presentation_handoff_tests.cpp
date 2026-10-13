@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "editorcontroller.h"
 #include "projectcodec.h"
 #include "gpumapitem.h"
@@ -12,7 +13,7 @@ struct Fixture {
     QTemporaryDir directory;
     EditorController editor{[&]{EditorControllerConfig c;c.appearancePath=directory.filePath("appearance.json");return c;}()};
     bool open() {
-        ProjectDocument d({{"A","Alpha",{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}},0xabcdef}},{{"countries","Countries"}});
+        pandoeditor::ProjectDocument d = makeTerritorialDocument({{{"A","Alpha","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}}},{0xabcdef,1},"countries"}},{{"countries","Countries"}});
         Geometry line;line.type="LineString";line.lines={{{1,1},{5,1},{9,1}}};
         d.geometries.insert({"river",1},line);HydroFeature h;h.id="river";h.name="River";h.geometry={"river",1};h.source.kind="user";d.hydro.push_back(h);
         Project p;p.replace(std::move(d));QFile f(directory.filePath("project.json"));if(!f.open(QIODevice::WriteOnly))return false;

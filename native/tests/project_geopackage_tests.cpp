@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include <projectgeopackage.h>
 #include <gisgeopackage.h>
 #include <projectcodec.h>
@@ -93,7 +94,9 @@ int main(int argc,char** argv){
     stateCopy(web,old,[](V& root){root.object["schemaVersion"]=V::num(5);});assert(rejected([&]{readProjectGeoPackage(old);}));
     const auto unknown=directory.filePath("unknown-web.gpkg");
     stateCopy(web,unknown,[](V& root){root.object["future"]=V::boolean(true);});assert(rejected([&]{readProjectGeoPackage(unknown);}));
-    Project source;source.replace(ProjectDocument({{"A","Alpha",{{{{0,0},{2,0},{2,2},{0,2},{0,0}}}},0x123456},{"B","Beta",{{{{3,0},{5,0},{5,2},{3,2},{3,0}}}},0x654321},{"C","Gamma",{{{{6,0},{8,0},{8,2},{6,2},{6,0}}}},0xabcdef}},{{"countries","Countries"}}));
+    Project source;source.replace(makeTerritorialDocument({{{"A","Alpha","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{2,0},{2,2},{0,2},{0,0}}}}},{0x123456,1},"countries"},
+        {{"B","Beta","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{3,0},{5,0},{5,2},{3,2},{3,0}}}}},{0x654321,1},"countries"},
+        {{"C","Gamma","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{6,0},{8,0},{8,2},{6,2},{6,0}}}}},{0xabcdef,1},"countries"}},{{"countries","Countries"}}));
     auto doc=source.document();doc.units.front().libraryOrigin=LibraryOrigin{"history:A","v1","1945","archive","2","high","year",false,{}};
     doc.units.front().sourceEntityId="catalog:A";doc.units.front().sourceGeometryVersion="source-v2";
     doc.symbols[territorialRef("B")].policy=FlagPolicy::None;doc.symbols[territorialRef("C")]=webDocument.symbols.at(territorialRef("A"));source.replace(doc);

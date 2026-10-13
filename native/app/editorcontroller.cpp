@@ -110,8 +110,10 @@ EditorController::EditorController(EditorControllerConfig config,QObject* parent
     bootstrapWorldEnabled_=config.bootstrapWorld;
     initializePhysicalData();
     if(startupBusy_||config.bootstrapWorld) {
-        pandoeditor::Project initial;initial.replace(pandoeditor::ProjectDocument(
-            std::vector<pandoeditor::Country>{},std::vector<pandoeditor::Layer>{{"countries","국가"}}));
+        pandoeditor::ProjectDocument document;
+        document.documentId=QUuid::createUuid().toString(QUuid::WithoutBraces).toStdString();
+        document.presentation.userLayers={{"countries","국가"}};
+        pandoeditor::Project initial;initial.replace(std::move(document));
         initial.setTimelineCursor(QDate::currentDate().toString("yyyy-MM").toStdString(),false);
         coreSession_.adoptPreparedProject(std::move(initial));
         projection_.setWorldExtent();
@@ -1061,9 +1063,10 @@ bool EditorController::newProject()
             if(!sample.open(QIODevice::ReadOnly))return false;
             if(!replaceFromBytes(sample.readAll(),false,{}))return false;
         }else{
-            pandoeditor::Project initial;
-            initial.replace(pandoeditor::ProjectDocument(std::vector<pandoeditor::Country>{},
-                std::vector<pandoeditor::Layer>{{"countries","국가"}}));
+            pandoeditor::ProjectDocument document;
+        document.documentId=QUuid::createUuid().toString(QUuid::WithoutBraces).toStdString();
+        document.presentation.userLayers={{"countries","국가"}};
+        pandoeditor::Project initial;initial.replace(std::move(document));
             if(!replaceFromBytes(::projectcodec::encode(initial),false,{}))return false;
             startWorldBootstrap();
         }

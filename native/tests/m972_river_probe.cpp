@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "riverpartitioncalculator.h"
 #include <QCoreApplication>
 #include <QFile>
@@ -50,7 +51,7 @@ int main(int argc,char** argv){QCoreApplication app(argc,argv);const auto args=a
         for(const auto& entry:cases){const auto row=entry.toObject();const auto name=row["name"].toString();logStage(name,"begin");RiverPartitionResult result;
             if(providerArg<0){const auto bytes=QJsonDocument(row).toJson(QJsonDocument::Compact);result=std::async(std::launch::async,[bytes]{return calculateRiverPartitionsJson(bytes);}).get();}
             else {std::vector<GeoBounds> bounds;for(const auto& d:row["request"].toObject()["donors"].toArray()){const auto b=riverPartitionQueryBounds(geometry(d.toObject()["geometry"].toObject()));bounds.insert(bounds.end(),b.begin(),b.end());}
-                Project project;project.replace(std::vector<Country>{{"A","Alpha",{{{{0,0},{2,0},{2,2},{0,2},{0,0}}}},0x123456}});JobScheduler scheduler;auto ticket=scheduler.enqueue(project.snapshot(),"river-differential");scheduler.takeNext();
+                Project project;project.replace(makeTerritorialDocument({{{"A","Alpha","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{2,0},{2,2},{0,2},{0,0}}}}},{0x123456,1},"countries"}}));JobScheduler scheduler;auto ticket=scheduler.enqueue(project.snapshot(),"river-differential");scheduler.takeNext();
                 const auto sourceJob=provider.riverPartitionSourceJob(bounds,{});const auto source=std::async(std::launch::async,[sourceJob,ticket]{return sourceJob(ticket.token());}).get();
                 logStage(name,"source-loaded");
                 if(source.status!=HydroRiverSourceStatus::Ready||source.diagnostics.failedRiverLoads)throw std::runtime_error(("Required complete source failed: "+source.detail).toStdString());

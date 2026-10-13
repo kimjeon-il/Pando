@@ -35,7 +35,6 @@ std::vector<GisGeoPackageLayer> webVectors(const ProjectDocument& d,const V& sta
             const auto& id=field(entity,"id").string;const auto& parent=staticParentRelation(d,id);
             p.object["parentId"]=V::str(parent.parentId);p.object["coverageMode"]=V::str(parent.coverageMode);
             p.object["validFrom"]=V{};p.object["validTo"]=V{};
-            p.object.erase("adminLevel");p.object.erase("isRemainder");p.object["metadata"].object.erase("legacyTerritorialPartition");
             const auto& style=field(p,"style");
             auto row=webjson::obj({{"id",V::str(id)},{"name",text(field(p,"name"))},{"entity_kind",V::str(kind)},
                 {"parent_id",V::str(parent.parentId)},{"valid_from",V::str("")},{"valid_to",V::str("")},
@@ -56,14 +55,14 @@ std::vector<GisGeoPackageLayer> webVectors(const ProjectDocument& d,const V& sta
     }
     for(const auto* name:{"generic_features_point","generic_features_line","generic_features_polygon"}) {
         auto& layer=table(name,std::string(name)=="generic_features_point"?"POINT":std::string(name)=="generic_features_line"?"MULTILINESTRING":"MULTIPOLYGON",
-            {"id","name","role","owner_id","parent_id","topology_group","land_binding","color","notes","locked","properties_json"});
+            {"id","name","color","notes","locked","properties_json"});
         for(const auto& feature:field(state,"genericFeatures").array) {
             const auto& id=field(feature,"id").string;const auto& p=field(feature,"properties");
             const auto item=std::find_if(d.genericFeatures.begin(),d.genericFeatures.end(),[&](const auto& row){return row.id==id;});
             require(item!=d.genericFeatures.end(),"PROJECT_VECTOR_ROW_MISMATCH");const auto& shape=*d.geometries.get(item->geometry);
             const auto expected=shape.type=="Point"||shape.type=="MultiPoint"?"generic_features_point":shape.type=="LineString"||shape.type=="MultiLineString"?"generic_features_line":"generic_features_polygon";
             if(std::string(name)!=expected)continue;
-            auto row=webjson::obj({{"id",V::str(id)},{"name",field(p,"name")},{"role",V::str("generic")},{"owner_id",V::str("")},{"parent_id",V::str("")},{"topology_group",V::str("")},{"land_binding",V::str("none")},
+            auto row=webjson::obj({{"id",V::str(id)},{"name",field(p,"name")},
                 {"color",field(p,"color")},{"notes",field(p,"notes")},{"locked",V::num(field(p,"locked").raw=="true"?1:0)},{"properties_json",json(p)}});
             add(layer,id,shape,std::move(row));
         }

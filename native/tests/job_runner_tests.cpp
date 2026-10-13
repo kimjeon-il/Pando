@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "commandjobrunner.h"
 #include <QSemaphore>
 #include <QSignalSpy>
@@ -6,7 +7,7 @@
 #include <atomic>
 using namespace pandoeditor;
 namespace {
-Project sample() { Project p; p.replace(std::vector<Country>{{"A","Alpha",{{{{0,0},{1,0},{1,1},{0,1},{0,0}}}},0x123456}}); return p; }
+Project sample() { Project p; p.replace(makeTerritorialDocument({{{"A","Alpha","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{1,0},{1,1},{0,1},{0,0}}}}},{0x123456,1},"countries"}})); return p; }
 CommandRequest request(const Project& p) { CommandArguments a; a.action=SetCountryColor{"A",0x102030}; return CommandProcessor::makeRequest(p,"country.color",a); }
 struct Gate { QSemaphore started,release,finished; };
 // The guard is separate from the shared worker gate: any early test return

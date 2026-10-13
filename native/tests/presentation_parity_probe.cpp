@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "territorial_fixture.h"
 #include <pandoeditor/presentationcommands.h>
 #include <QJsonDocument>
@@ -8,7 +9,7 @@ using namespace pandoeditor;
 int main(){
     std::string line;while(std::getline(std::cin,line))try{
         auto input=QJsonDocument::fromJson(QByteArray::fromStdString(line)).object();
-        ProjectDocument d({{"A","A",{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}},0x112233}},{{"countries","Countries"}});
+        pandoeditor::ProjectDocument d = makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}}},{0x112233,1},"countries"}},{{"countries","Countries"}});
         for(auto id:{"S","T"}){auto u=d.units.front();u.id=id;u.kind=UnitKind::General;appendTerritory(d,u,staticGeometryBinding(d,d.units.front().id).geometryRef,u.kind==UnitKind::General?"A":"");d.presentation.membership[territorialRef(id)]="countries";d.presentation.objectStyles[territorialRef(id)]={};setFixtureParent(d,territorialRef(id),territorialRef("A"));}
         auto& w=d.presentation.webPresentation;w.visibility["subunits"]=input["master"].toBool(true);
         w.styles["countries"].opacity=input["countryOpacity"].toDouble(1);w.styles["subunits"].opacity=input["groupOpacity"].toDouble(1);

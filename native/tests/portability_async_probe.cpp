@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "commandjobrunner.h"
 #include <QCoreApplication>
 #include <QEventLoop>
@@ -12,7 +13,7 @@
 #include <stdexcept>
 using namespace pandoeditor;
 static ProjectDocument document(const std::string& name) {
-    return ProjectDocument({{"A",name,{{{{0,0},{8,0},{8,8},{0,8},{0,0}}}},0xcccccc}},{{"countries","Countries"}});
+    return makeTerritorialDocument({{{"A",name,"",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{8,0},{8,8},{0,8},{0,0}}}}},{0xcccccc,1},"countries"}},{{"countries","Countries"}});
 }
 struct Gate {QSemaphore started,release;};
 struct Release {std::shared_ptr<Gate> gate;~Release(){gate->release.release();}};

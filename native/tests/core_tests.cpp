@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include <pandoeditor/project.h>
 #include <iostream>
 #include <stdexcept>
@@ -10,10 +11,10 @@ int main()
         Ring outer{{0,0},{10,0},{10,10},{0,10},{0,0}};
         Ring hole{{3,3},{7,3},{7,7},{3,7},{3,3}};
         Ring island{{20,0},{22,0},{22,2},{20,2},{20,0}};
-        std::vector<Country> countries{{"A","Alpha",{{outer,hole},{island}},0x123456},
-                                       {"B","Beta",{{{{10,0},{12,0},{12,10},{10,10},{10,0}}}},0xabcdef}};
+        std::vector<TerritorialDocumentFixture> countries{{{"A","Alpha","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{outer,hole},{island}}},{0x123456,1},"countries"},
+        {{"B","Beta","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{10,0},{12,0},{12,10},{10,10},{10,0}}}}},{0xabcdef,1},"countries"}};
         Project p;
-        p.replace(countries);
+        p.replace(makeTerritorialDocument(countries));
         check(p.pick({1,1}) == "A");
         check(p.pick({5,5}).empty());
         check(p.pick({21,1}) == "A");
@@ -33,16 +34,16 @@ int main()
         check(p.setColor("A",0x00ff00));
         check(!p.canRedo() && p.dirty());
         auto broken = countries;
-        broken[1].id = "A";
+        broken[1].identity.id = "A";
         bool rejected = false;
-        try { p.replace(broken); } catch (const std::exception&) { rejected = true; }
+        try { p.replace(makeTerritorialDocument(broken)); } catch (const std::exception&) { rejected = true; }
         check(rejected && p.countries()[0].color == 0x00ff00);
         broken = countries;
-        broken[0].polygons[0][0][0].x = 181;
+        broken[0].geometry.polygons[0][0][0].x = 181;
         rejected = false;
-        try { Project::validate(broken); } catch (const std::exception&) { rejected = true; }
+        try { Project::validate(makeTerritorialDocument(broken)); } catch (const std::exception&) { rejected = true; }
         check(rejected);
-        p.replace(countries);
+        p.replace(makeTerritorialDocument(countries));
         check(!p.dirty() && !p.canUndo() && !p.canRedo());
         const auto geometryAddress=p.countries()[0].polygons.data();
         check(p.renameCountry("A","  이름  "));
@@ -85,8 +86,8 @@ int main()
         check(p.renameLayer("countries","  기본  "));
         check(p.layer("countries")->name=="기본");
         auto overlap=countries;
-        overlap[1].polygons=overlap[0].polygons;
-        p.replace(overlap);
+        overlap[1].geometry.polygons=overlap[0].geometry.polygons;
+        p.replace(makeTerritorialDocument(overlap));
         check(p.addLayer("top","Top") && p.moveCountry("B","top"));
         check(p.pick({1,1})=="B");
         check(p.moveLayer("top",-1) && p.pick({1,1})=="A");
