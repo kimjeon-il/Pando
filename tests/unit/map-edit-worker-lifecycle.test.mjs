@@ -23,6 +23,7 @@ const execute = (requestId, operation, payload, revisions = { sourceRevision: 1 
 // and timer delivery are gated, so state-changing messages can interleave deterministically.
 function rawWorker(t, heldModule = '') {
   const script = new URL('../../assets/js/workers/map-edit-worker.js', import.meta.url).href;
+  const coreAdapter = new URL('../helpers/node-core-wasm-loader.mjs', import.meta.url).href;
   const worker = new Worker(`
     const { parentPort } = require('node:worker_threads');
     const fs = require('node:fs'), vm = require('node:vm');
@@ -41,6 +42,7 @@ function rawWorker(t, heldModule = '') {
     vm.runInThisContext(fs.readFileSync(self.location, 'utf8'), {
       filename: self.location.href,
       importModuleDynamically: async specifier => {
+        if (new URL(specifier).pathname.endsWith('/core-wasm-loader.js')) return import(${JSON.stringify(coreAdapter)});
         if (!importHeld && ${JSON.stringify(heldModule)} && specifier.endsWith(${JSON.stringify(heldModule)})) {
           importHeld = true;
           await new Promise(resolve => {

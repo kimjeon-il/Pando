@@ -4882,3 +4882,4 @@ export function createGpuMapRenderer(deps) {
     };
   })();
 }
+// @worker-transport dedicated: main renderer owns Canvas frame and country boundary channels while RPC jobs own mesh requests

@@ -43,6 +43,7 @@
     "check:architecture": "node scripts/check-runtime-boundaries.mjs && pnpm check:commands && pnpm check:provenance && pnpm check:versioning && pnpm check:workers && pnpm check:renderer-v2 && pnpm check:domains && pnpm check:startup-performance",
     "test:python": "python -m unittest discover -s tests -p \"test_*.py\" && python -m unittest discover -s tests/python -p \"test_*.py\"",
     "test:unit": "node --test \"tests/unit/*.test.mjs\"",
+    "check:core-prerequisite": "node scripts/check-core-prerequisite.mjs",
     "test:browser": "playwright test",
     "test": "pnpm lint && pnpm check:js && pnpm check:version && pnpm check:architecture && pnpm check:country-schema && pnpm check:territorial-library && pnpm test:python && pnpm check:ui && node --test \"tests/unit/*.test.mjs\" && playwright test",
     "build:territorial-geometry": "node tools/build-territorial-geometry.mjs",
@@ -67,8 +68,10 @@
     "@playwright/test": "1.62.1",
     "esbuild": "0.25.10",
     "eslint": "10.9.1",
+    "postcss": "8.5.30",
     "topojson-client": "3.1.0",
     "topojson-server": "3.0.1",
-    "topojson-simplify": "3.0.3"
+    "topojson-simplify": "3.0.3",
+    "yaml": "2.9.1"
   }
 }
