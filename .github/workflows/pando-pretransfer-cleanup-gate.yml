@@ -96,6 +96,11 @@ jobs:
           version: '6.8.3'
           modules: 'qtshadertools qtimageformats'
           cache: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install pinned D3 adapter parser for Qt geometry preflight
+        run: npm ci --prefix native/tools/m97/river/d3-adapter --ignore-scripts --no-audit --no-fund
       - name: Configure Qt and build focused place contract
         run: |
           cmake -S native -B native/build-pretransfer -G Ninja -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON
