@@ -102,15 +102,6 @@ export function createEditPreviewController(options) {
 }`;
     expect(body).not.toBe(original); await route.fulfill({ response, body });
   });
-  await page.route('**/modules/history-service.js*', async route => {
-    const response = await route.fetch(), original = await response.text();
-    const body = original.replace('export function createHistoryService(', 'function createObservedHistory(') + `
-export function createHistoryService(options) {
-  window.__m2History = () => ({ history: options.store.history.length, future: options.store.future.length });
-  return createObservedHistory(options);
-}`;
-    expect(body).not.toBe(original); await route.fulfill({ response, body });
-  });
   await page.route('**/modules/map-edit-worker-client.js*', async route => {
     const response = await route.fetch(), original = await response.text();
     const body = original.replace('export function createMapEditWorkerClient(', 'function createObservedClient(') + `
@@ -168,6 +159,8 @@ if (editPreviewController?.snapshot().status === 'successor-ready') window.__m2.
         return accepted;`) + `
 export function createRenderingDomain(options) {
   window.__m2State = () => options.hydroResources.getState();
+  window.__m2CommandState = () => ({ revision: window.__m2State().stateRevision,
+    canUndo: !document.querySelector('#undoBtn').disabled, canRedo: !document.querySelector('#redoBtn').disabled });
   window.__m2EditingPacket = options.getEditingRenderPacket;
   window.__m2Frames = new Map();
   const domain = createObservedRendering({ ...options, prepareView(...args) {
@@ -310,6 +303,7 @@ async function loadProjectFile(page, project, name) {
   await expect(page.locator('#gisImportError')).toBeEmpty();
   await page.locator('#gisImportConfirmBtn').click();
   await expect(page.locator('#gisImportModal')).toBeHidden({ timeout: 30_000 });
+  await expect(page.locator('#actionStatus')).toContainText('새 프로젝트로 열었습니다.', { timeout: 30_000 });
 }
 
 async function openApp(page, renderer, { staticInput = false, focusCountry = true } = {}) {
@@ -526,12 +520,12 @@ for (const renderer of ['webgl2', 'canvas']) {
     await page.evaluate(() => window.__m2Release());
     if (cancel) {
       await expect.poll(async () => (await snapshot(page)).status, { timeout: 60_000 }).toBe('successor-ready');
-      const history = await page.evaluate(() => window.__m2History());
+      const history = await page.evaluate(() => window.__m2CommandState());
       await page.keyboard.press('Escape');
       await expect.poll(async () => (await snapshot(page)).status).toBe('idle');
       await expect.poll(() => page.evaluate(() => window.__m2State().geometryPreview.session)).toBeNull();
       await expect(page.locator('.map-direct-preview')).toHaveCount(0);
-      expect(await page.evaluate(() => window.__m2History())).toEqual(history);
+      expect(await page.evaluate(() => window.__m2CommandState())).toEqual(history);
       expect(errors).toEqual([]);
       await writeFile(test.info().outputPath('m7-outline-off-discard.json'), JSON.stringify(await page.evaluate(() => ({
         continuity: window.__m7, preview: window.__m2Preview().snapshot(), tool: window.__m2State().tool,
@@ -597,11 +591,11 @@ for (const renderer of ['webgl2', 'canvas']) {
       expect(continuity.frames.some(row => row.frameId === handoff.frame.frameId && (row.svg.length || row.gpu.length))).toBe(true);
       if (renderer === 'webgl2') expect(continuity.frames.some(row => row.phase === 'gpu-upload')).toBe(true);
     }
-    const history = await page.evaluate(() => window.__m2History());
+    const history = await page.evaluate(() => window.__m2CommandState());
     await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
     await page.locator('#modePrimaryBtn').click();
     await expect.poll(() => page.evaluate(() => window.__m2State().geometryPreview.session), { timeout: 60_000 }).toBeNull();
-    expect((await page.evaluate(() => window.__m2History())).history).toBe(history.history + 1);
+    expect((await page.evaluate(() => window.__m2CommandState())).revision).toBe(history.revision + 1);
     expect(errors).toEqual([]);
     await writeFile(test.info().outputPath(`${renderer}-${kind}-handoff.json`), JSON.stringify({ moved, handoff,
       final: await snapshot(page), observed: await page.evaluate(() => window.__m2), scope: 'M2 direct stroke handoff; GPU resource replacement is M3' }, null, 2));
@@ -619,7 +613,8 @@ for (const renderer of ['webgl2', 'canvas']) {
     project.hydroEdits = [{ type: 'Feature', id: '00000000-0000-4000-8000-000000000005',
       geometry: kind === 'river' ? { type: 'LineString', coordinates: [[2, 5], [4, 6], [6, 5]] }
         : { type: 'Polygon', coordinates: [[[2, 5], [2, 7], [4, 7], [4, 5], [2, 5]]] },
-      properties: { category: kind, pandolab_schema_version: 1, name: `M2 ${kind}`, editorColor: '#3b82c4', notes: '' } }];
+      properties: { pandolab_domain: 'hydro', pandolab_id: '00000000-0000-4000-8000-000000000005',
+        category: kind, pandolab_schema_version: 1, name: `M2 ${kind}`, editorColor: '#3b82c4', notes: '', locked: false } }];
     await loadProjectFile(page, project, kind);
     await page.locator('#terrainNoneRadio').evaluate(input => input.click());
     await page.locator('#objectSearchBtn').click();
@@ -630,7 +625,7 @@ for (const renderer of ['webgl2', 'canvas']) {
       domain: 'hydro', type: kind, id: project.hydroEdits[0].id,
     });
     const before = await page.evaluate(() => ({ feature: structuredClone(window.__m2State().hydroEdits.at(-1)),
-      history: window.__m2History(), sessions: window.__m2Preview().stats().sessionCount }));
+      history: window.__m2CommandState(), sessions: window.__m2Preview().stats().sessionCount }));
     const handle = page.locator('.vertex-handle:not(.country-vertex)').first();
     await expect(handle).toBeVisible({ timeout: 60_000 });
     const box = await handle.boundingBox();
@@ -647,9 +642,9 @@ for (const renderer of ['webgl2', 'canvas']) {
     await page.mouse.up();
     await expect.poll(async () => (await snapshot(page)).status, { timeout: 60_000 }).toBe('idle');
     const after = await page.evaluate(id => ({ feature: structuredClone(window.__m2State().hydroEdits.find(feature => feature.id === id)),
-      history: window.__m2History(), sessions: window.__m2Preview().stats().sessionCount, observed: window.__m2 }), before.feature.id);
+      history: window.__m2CommandState(), sessions: window.__m2Preview().stats().sessionCount, observed: window.__m2 }), before.feature.id);
     expect(after.feature.geometry).not.toEqual(before.feature.geometry);
-    expect(after.history.history).toBe(before.history.history + 1);
+    expect(after.history.revision).toBe(before.history.revision + 1);
     expect(after.sessions).toBe(before.sessions + 1);
     expect(after.observed.handoffs).toHaveLength(1);
     const handoff = after.observed.handoffs[0];
@@ -678,11 +673,11 @@ for (const renderer of ['webgl2', 'canvas']) {
     await page.locator('#layerSearchInput').fill(`M2 ${kind}`);
     await page.locator('#layerSearchResults .layer-search-result-select').first().click();
     await focusSelectedObject(page, renderer);
-    const unchanged = await page.evaluate(() => window.__m2History());
+    const unchanged = await page.evaluate(() => window.__m2CommandState());
     const originalHandle = page.locator('.vertex-handle:not(.country-vertex)').first();
     await expect(originalHandle).toBeVisible();
     await originalHandle.click();
-    expect(await page.evaluate(() => window.__m2History())).toEqual(unchanged);
+    expect(await page.evaluate(() => window.__m2CommandState())).toEqual(unchanged);
     await page.locator('#redoBtn').click();
     await expect.poll(geometry, { timeout: 60_000 }).toEqual(after.feature.geometry);
     if (kind === 'lake') {
@@ -690,7 +685,7 @@ for (const renderer of ['webgl2', 'canvas']) {
       await page.locator('#layerSearchInput').fill(`M2 ${kind}`);
       await page.locator('#layerSearchResults .layer-search-result-select').first().click();
       await focusSelectedObject(page, renderer);
-      const valid = await geometry(), history = await page.evaluate(() => window.__m2History());
+      const valid = await geometry(), history = await page.evaluate(() => window.__m2CommandState());
       const handle = page.locator('.vertex-handle:not(.country-vertex)').first();
       await expect(handle).toBeVisible();
       const box = await handle.boundingBox();
@@ -704,7 +699,7 @@ for (const renderer of ['webgl2', 'canvas']) {
       await expect.poll(async () => (await snapshot(page)).status).toBe('idle');
       await expect(page.locator('#actionStatus')).toContainText('교차', { timeout: 8_000 });
       expect(await geometry()).toEqual(valid);
-      expect(await page.evaluate(() => window.__m2History())).toEqual(history);
+      expect(await page.evaluate(() => window.__m2CommandState())).toEqual(history);
     }
     expect(errors).toEqual([]);
     await page.screenshot({ path: test.info().outputPath(`${renderer}-${kind}-committed.png`) });

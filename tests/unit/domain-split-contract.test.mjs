@@ -416,6 +416,7 @@ test('selection domain keeps large multi-selection snapshots cached and resets a
   assert.equal(renderRequests, 1);
   await selection.setHover(refs[0]);
   const beforeReset = selection.snapshot();
+  owner.setGeneration(9);
   const reset = await selection.resetProject(9);
   assert.equal(reset.projectGeneration, 9);
   assert.equal(reset.selection.items.length, 0);
