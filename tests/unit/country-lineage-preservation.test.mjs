@@ -13,11 +13,11 @@ const extended=new Map([
  ['state:SDS',{from:'2011-07-09',to:'2026-10-05',id:'state:SDS:2011-07-09-independence-r1'}],
 ]);
 
-test('281 identities preserve 287 original versions and add exactly three low-confidence period proxies',()=>{
+test('281 identities preserve all original coordinates and 294 validated territorial geometry versions',()=>{
  const entities=readTerritorialSources();
  assert.equal(entities.length,281);
  assert.equal(new Set(entities.map(e=>e.lineageId)).size,262);
- assert.equal(entities.reduce((n,e)=>n+e.geometryVersions.length,0),290);
+ assert.equal(entities.reduce((n,e)=>n+e.geometryVersions.length,0),294);
  for(const removed of Object.values(merged))assert.ok(!entities.some(e=>e.entityId===removed));
  for(const e of entities){
   const prior=baseline.entities[e.entityId];assert.ok(prior,e.entityId);
@@ -26,6 +26,40 @@ test('281 identities preserve 287 original versions and add exactly three low-co
   assert.equal(sha(e.sourceInfo),prior.sourceInfoHash);
   assert.deepEqual(e.names,prior.names);
   assert.deepEqual(e.alternateNames,[...new Set([...prior.alternateNames,...(!Object.values(prior.names).includes(prior.canonicalName)?[prior.canonicalName]:[])])]);
+  if(e.entityId==='state:IDN'){
+   const mask=JSON.parse(fs.readFileSync(new URL('../../tools/historical-library/sources/indonesia/west-new-guinea-component-mask-v5.1.1.json',import.meta.url),'utf8'));
+   const versions=e.geometryVersions;
+   assert.equal(versions.length,5);
+   assert.deepEqual(e.lifetime,{validFrom:'1945-08-17',validTo:null});
+   assert.deepEqual(versions.map(v=>[v.validFrom,v.validTo]),[
+    ['1945-08-17','1963-04-30'],['1963-05-01','1975-12-06'],
+    ['1975-12-07','1999-10-24'],['1999-10-25','2026-10-05'],
+    ['2026-10-06',null]]);
+   const presentHash=prior.versions[0].geometryHash;
+   assert.equal(sha(versions[4].geometry),presentHash);
+   assert.equal(sha(versions[3].geometry),presentHash);
+   assert.equal(sha(versions[1].geometry),presentHash);
+   assert.equal(sha(versions[2].geometry),baseline.entities['state:indonesia'].versions[0].geometryHash);
+   assert.deepEqual(versions[2].historicalProvenance.originalInterval,{validFrom:'1945-08-17',validTo:'2002-05-19'});
+   assert.equal(versions[0].geometry.type,'MultiPolygon');
+   assert.equal(versions[4].geometry.coordinates.length,264);
+   assert.equal(versions[0].geometry.coordinates.length,239);
+   assert.equal(mask.excludedModernPolygonIndices.length,25);
+   const excluded=new Set(mask.excludedModernPolygonIndices);
+   assert.deepEqual(versions[0].geometry.coordinates,versions[4].geometry.coordinates.filter((_,i)=>!excluded.has(i)));
+   assert.deepEqual(versions.slice(0,4).map(v=>[v.datePrecision,v.certainty]),Array.from({length:4},()=>['approximate','low']));
+   continue;
+  }
+  if(e.entityId==='state:TLS'){
+   assert.deepEqual(e.lifetime,{validFrom:'2002-05-20',validTo:null});
+   assert.equal(e.geometryVersions.length,2);
+   assert.equal(sha(e.geometryVersions[0].geometry),prior.versions[0].geometryHash);
+   assert.equal(sha(e.geometryVersions[1].geometry),prior.versions[0].geometryHash);
+   assert.deepEqual(e.geometryVersions.map(v=>[v.validFrom,v.validTo]),[
+    ['2002-05-20','2026-10-05'],['2026-10-06',null]]);
+   assert.equal(e.geometryVersions[0].certainty,'low');
+   continue;
+  }
   const previousHistoric=merged[e.entityId];
   const extension=extended.get(e.entityId);
   if(!previousHistoric&&!extension){
