@@ -171,6 +171,11 @@ test('single display follows distribution selection without another view menu ch
 test('a numeric distribution stores signed values and survives undo and redo', async ({ page }) => {
   test.setTimeout(180_000);
   await page.setViewportSize({ width: 1440, height: 900 });
+  const countries = JSON.parse(readFileSync(new URL('../../assets/data/countries-ne-5.1.1.geojson', import.meta.url), 'utf8')).features;
+  const germany = countries.find(feature => feature.id === 'DEU');
+  const saved = staticAutosaveProject({}, [createTerritorialFeature({ id: 'DEU', entityKind: 'general',
+    name: germany.properties.name, geometry: germany.geometry })]);
+  await page.addInitScript(value => localStorage.setItem('pandolab-editor-project', JSON.stringify(value)), saved);
   const errors = await openApp(page);
 
   await createDistribution(page, '인구 변화');
@@ -185,8 +190,8 @@ test('a numeric distribution stores signed values and survives undo and redo', a
   await expect(page.locator('#distributionColorInput')).toHaveValue('#3b82f6');
   await page.locator('#actionsTabBtn').click();
 
-  const territorialUnitId = await page.locator('#distributionTerritorialUnitInput option').nth(1).getAttribute('value');
-  expect(territorialUnitId).toBeTruthy();
+  const territorialUnitId = 'DEU';
+  await expect(page.locator('#distributionTerritorialUnitInput option[value="DEU"]')).toHaveCount(1);
   await selectUiOption(page, '#distributionTerritorialUnitInput', territorialUnitId);
   await page.locator('#distributionValueInput').fill('-2.5');
   await page.locator('#addTerritorialDistributionBtn').click();
