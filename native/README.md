@@ -1,6 +1,6 @@
 # Pandoeditor
 
-Qt 앱은 통합 `Pando` 저장소의 `native/`에 있습니다. 웹은 저장소 루트, 사람이 읽는 조사·검증 보고서는 루트 `reports/`가 정본입니다. `native/reports/places/*.json`은 앱 빌드와 검증에서 사용하는 입력 자료이므로 그대로 유지합니다. 앱만 빌드하려면 이 디렉터리를 CMake 소스 루트로 지정하세요. Windows에서는 `Pandoeditor-local.bat`로 로컬 빌드·실행할 수 있으며 포터블 패키지는 만들지 않습니다.
+Qt 앱은 통합 `Pando` 저장소의 `native/`에 있습니다. 웹은 저장소 루트, 사람이 읽는 조사·검증 보고서는 루트 `reports/`가 정본입니다. `../reports/places/*.json`은 웹·앱 지명 검증에서 공유하는 정본이며, 앱의 중복 복사본은 사용하지 않습니다. 앱만 빌드하려면 이 디렉터리를 CMake 소스 루트로 지정하세요. Windows에서는 `Pandoeditor-local.bat`로 로컬 빌드·실행할 수 있으며 포터블 패키지는 만들지 않습니다.
 
 판도연구소의 C++ / Qt Quick 크로스플랫폼 지도 편집 앱 기반입니다.
 기본 세계지도에서 영토를 선택하고 색을 바꾸며,

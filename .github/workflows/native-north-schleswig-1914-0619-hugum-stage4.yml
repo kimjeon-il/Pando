@@ -6,6 +6,7 @@ on:
     branches: [work/gis]
     paths:
       - native/tools/historical-library/land-borders/german-denmark-1914-north-schleswig-001-026.0619-hugum-stage4.*
+      - reports/geography/germany/north-schleswig/german-denmark-1914-north-schleswig-001-026.0619-hugum-stage4.review.md
       - native/tools/verify_north_schleswig_1914_0619_hugum.py
       - .github/workflows/native-north-schleswig-1914-0619-hugum-stage4.yml
 

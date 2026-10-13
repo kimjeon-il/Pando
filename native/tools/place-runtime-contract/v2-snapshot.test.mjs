@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 
 const repo = new URL('../../', import.meta.url);
-const file = path => readFileSync(new URL(path, repo));
+const file = path => readFileSync(new URL(path.startsWith('reports/places/') ? '../' + path : path, repo));
 const json = path => JSON.parse(file(path).toString('utf8'));
 const blobId = bytes => createHash('sha1').update('blob ' + bytes.length + '\0').update(bytes).digest('hex');
 const checkedOutTextBlobId = bytes => {

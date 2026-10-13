@@ -18,7 +18,7 @@ from shapely.geometry import LineString, Point, mapping, shape
 from shapely import set_precision
 from shapely.ops import split, transform, unary_union
 
-OUT = Path("assets/data/research/siachen")
+OUT = Path("reports/research/siachen")
 OUT.mkdir(parents=True, exist_ok=True)
 OSM_SOURCE_URL = ("https://raw.githubusercontent.com/"
     "uncovering-world/travel-regions-extraction/"

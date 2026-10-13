@@ -12,7 +12,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-OUT=Path("assets/data/research/siachen")
+OUT=Path("reports/research/siachen")
 FILE_G="siachen_glacier_rgi7.geojson"
 FILE_L="siachen_agpl_osm_candidate.geojson"
 FILE_P="siachen_control_split_ne_10m.geojson"

@@ -38,5 +38,5 @@ test('changed upstream JSON and newly added batches are detected',()=>{
 test('local bytes inconsistent with the pinned source fail independently of upstream',()=>{
   const {manifest,upstream}=sample();
   const result=compareCurrentWeb(manifest,upstream,()=>Buffer.from('corrupted'));
-  assert.ok(result.errors.some(e=>e.includes('Local mirror differs from pinned Git blob')));
+  assert.ok(result.errors.some(e=>e.includes('Canonical report differs from pinned Git blob')));
 });
