@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { writeFile } from 'node:fs/promises';
 import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
+import { defaultUserPreferences, STORAGE_KEY } from '../../assets/js/modules/user-preferences.js';
 import { withNativeActionDiagnostics } from './helpers/native-action-diagnostics.mjs';
 
 const hydroSearchDiagnostic = {
@@ -21,9 +22,14 @@ test('editing a river color updates actual GPU paint and undo restores metadata,
   const saved = staticAutosaveProject({
       hydroEdits: [{ type: 'Feature', id: '00000000-0000-4000-8000-000000000005',
         geometry: { type: 'LineString', coordinates: [[5, 45], [8, 46], [10, 45]] },
-        properties: { pandolab_schema_version: 1, category: 'river', name: '메타데이터 검증 강', editorColor: '#3b82c4', notes: '', source: 'test', locked: false } }],
+        properties: { pandolab_domain: 'hydro', pandolab_id: '00000000-0000-4000-8000-000000000005',
+          pandolab_schema_version: 1, category: 'river', name: '메타데이터 검증 강', editorColor: '#3b82c4', notes: '', locked: false } }],
   });
-  await page.evaluate(saved => localStorage.setItem('pandolab-editor-project', JSON.stringify(saved)), saved);
+  const preferences = defaultUserPreferences(); preferences.selection.outlineVisible = false;
+  await page.evaluate(({ saved, preferences, key }) => {
+    localStorage.setItem('pandolab-editor-project', JSON.stringify(saved));
+    localStorage.setItem(key, JSON.stringify(preferences));
+  }, { saved, preferences, key: STORAGE_KEY });
   await page.goto('/?debug=1');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 30_000 });
   await page.locator('#objectSearchBtn').click();
@@ -38,7 +44,7 @@ test('editing a river color updates actual GPU paint and undo restores metadata,
   for (let index = 0; index < 2 && await page.locator('#mapDisplaySurface').isVisible(); index++) await page.keyboard.press('Escape');
   await expect(page.locator('#mapDisplaySurface')).toBeHidden();
   await page.locator('#focusSelectedObjectBtn').click();
-  await page.addStyleTag({ content: '#map .map-selection-outline, #map .map-selection-fill { visibility: hidden !important; }' });
+  await page.addStyleTag({ content: '#map .map-selection-outline, #map .map-selection-fill, #map .object-edit-outline { visibility: hidden !important; }' });
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.hydroEditBatchCount)).toBe(1);
   const originalColor = await page.locator('#hydroColorInput').inputValue();
   const original = await page.locator('path.hydro-edit-shape').evaluate(node => structuredClone(node.__data__));
