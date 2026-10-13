@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Verify canonical root place reports against their source pins in the same commit.
 // The pinned SHA-only snapshot test is intentionally separate from this live-drift gate.
+import { reportPath } from '../../../tools/report-paths.mjs';
 import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import {readFileSync} from 'node:fs';
@@ -9,7 +10,7 @@ import {fileURLToPath} from 'node:url';
 
 const root=resolve(fileURLToPath(new URL('../../',import.meta.url)));
 const monorepoRoot=resolve(root,'..');
-const manifest=JSON.parse(readFileSync(resolve(monorepoRoot,'reports/places/source-manifest.json'),'utf8'));
+const manifest=JSON.parse(readFileSync(reportPath('native/reports/places/source-manifest.json',monorepoRoot),'utf8'));
 const sha1=bytes=>createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
 
 export function parseGitTree(text) {

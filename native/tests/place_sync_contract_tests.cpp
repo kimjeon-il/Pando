@@ -125,8 +125,9 @@ private slots:
         QCOMPARE(source.value("fixtures").toArray().size(),4);
     }
     void reviewedSourceMirrorIsIdenticalToPinnedWebGitBlobs() {
-        const auto root=QString::fromUtf8(PLACE_SYNC_REPOSITORY_ROOT);
-        QFile manifest(root+"/../reports/places/source-manifest.json");
+        const auto nativeRoot=QString::fromUtf8(PLACE_SYNC_REPOSITORY_ROOT);
+        const auto root=QFile::exists(nativeRoot+"/../reports/places/source-manifest.json") ? nativeRoot+"/.." : nativeRoot;
+        QFile manifest(root+"/reports/places/source-manifest.json");
         QVERIFY(manifest.open(QIODevice::ReadOnly));
         const auto report=QJsonDocument::fromJson(manifest.readAll()).object();
         const auto sourceCommit=report.value("webCommit").toString();
@@ -154,7 +155,7 @@ private slots:
             const auto relative=meta.value("path").toString();
             QVERIFY(relative.startsWith("reports/places/tier1-major-cities-batch")&&!relative.contains(".."));
             QVERIFY(mirroredFiles.contains(relative));
-            QFile reviewed(root+"/../"+relative);QVERIFY(reviewed.open(QIODevice::ReadOnly));
+            QFile reviewed(root+"/"+relative);QVERIFY(reviewed.open(QIODevice::ReadOnly));
             const auto rows=QJsonDocument::fromJson(reviewed.readAll()).object().value("records").toArray();
             QCOMPARE(rows.size(),meta.value("recordCount").toInt());
             examined+=rows.size();
@@ -170,7 +171,7 @@ private slots:
             const auto row=value.toObject();
             const auto path=row.value("path").toString();
             QVERIFY(path.startsWith("reports/places/")&&!path.contains(".."));
-            QFile data(root+"/../"+path);QVERIFY2(data.open(QIODevice::ReadOnly),qPrintable(path));
+            QFile data(root+"/"+path);QVERIFY2(data.open(QIODevice::ReadOnly),qPrintable(path));
             const auto raw=data.readAll();
             QByteArray blob="blob "+QByteArray::number(raw.size());
             blob.append(char(0));blob.append(raw);
@@ -182,7 +183,7 @@ private slots:
             const auto provenance=fixture.value("sourceReview").toObject();
             const auto relative=provenance.value("reviewFile").toString();
             QVERIFY(relative.startsWith("reports/places/tier1-major-cities-batch")&&!relative.contains(".."));
-            QFile original(root+"/../"+relative);QVERIFY(original.open(QIODevice::ReadOnly));
+            QFile original(root+"/"+relative);QVERIFY(original.open(QIODevice::ReadOnly));
             const auto rows=QJsonDocument::fromJson(original.readAll()).object().value("records").toArray();
             const auto id=provenance.value("geonameId").toInt();
             QJsonObject reviewed;
@@ -197,7 +198,7 @@ private slots:
     }
     void batch11CityIdsAndPodgoricaHistoricalKoreanTimeline() {
         const QString root=QString::fromUtf8(PLACE_SYNC_REPOSITORY_ROOT);
-        QFile file(root+"/../reports/places/tier1-major-cities-batch11-western-balkans-capitals.json");
+        QFile file(root+"/reports/places/tier1-major-cities-batch11-western-balkans-capitals.json");
         QVERIFY(file.open(QIODevice::ReadOnly));
         const auto document=QJsonDocument::fromJson(file.readAll()).object();
         QCOMPARE(document.value("status").toString(),
@@ -259,7 +260,7 @@ private slots:
 
     void batch12BratislavaNameChangeAndLanguageVariants() {
         const QString root=QString::fromUtf8(PLACE_SYNC_REPOSITORY_ROOT);
-        QFile file(root+"/../reports/places/tier1-major-cities-batch12-central-eastern-europe-capitals.json");
+        QFile file(root+"/reports/places/tier1-major-cities-batch12-central-eastern-europe-capitals.json");
         QVERIFY(file.open(QIODevice::ReadOnly));
         const auto dataset=QJsonDocument::fromJson(file.readAll()).object();
         QCOMPARE(dataset.value("status").toString(),
@@ -319,7 +320,7 @@ private slots:
 
     void batch13FiveCapitalsAndNicosiaMultilingualNames() {
         const QString root=QString::fromUtf8(PLACE_SYNC_REPOSITORY_ROOT);
-        QFile file(root+"/../reports/places/tier1-major-cities-batch13-european-microstates-mediterranean.json");
+        QFile file(root+"/reports/places/tier1-major-cities-batch13-european-microstates-mediterranean.json");
         QVERIFY(file.open(QIODevice::ReadOnly));
         const auto document=QJsonDocument::fromJson(file.readAll()).object();
         QCOMPARE(document.value("status").toString(),QStringLiteral("verified-source-staging-not-runtime"));
@@ -395,7 +396,7 @@ private slots:
 
     void batch14OmittedVaticanAndYearPrecisionLabels() {
         const QString root=QString::fromUtf8(PLACE_SYNC_REPOSITORY_ROOT);
-        QFile file(root+"/../reports/places/tier1-major-cities-batch14-north-atlantic-anatolia-caucasus.json");
+        QFile file(root+"/reports/places/tier1-major-cities-batch14-north-atlantic-anatolia-caucasus.json");
         QVERIFY(file.open(QIODevice::ReadOnly));
         const QJsonObject dataset=QJsonDocument::fromJson(file.readAll()).object();
         QCOMPARE(dataset.value("status").toString(),QStringLiteral("verified-source-staging-not-runtime"));
@@ -490,7 +491,7 @@ private slots:
 
     void batch15CentralAsiaKoreanHistoricalNameSelections() {
         const QString root=QString::fromUtf8(PLACE_SYNC_REPOSITORY_ROOT);
-        QFile file(root+"/../reports/places/tier1-major-cities-batch15-central-asia-capitals.json");
+        QFile file(root+"/reports/places/tier1-major-cities-batch15-central-asia-capitals.json");
         QVERIFY(file.open(QIODevice::ReadOnly));
         const auto data=QJsonDocument::fromJson(file.readAll()).object();
         QCOMPARE(data.value("status").toString(),QStringLiteral("verified-source-staging-not-runtime"));
