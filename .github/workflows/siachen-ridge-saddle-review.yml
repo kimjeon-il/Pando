@@ -29,7 +29,7 @@ jobs:
           python - <<'PY'
           import json
           from pathlib import Path
-          path=Path('assets/data/research/siachen')
+          path=Path('reports/research/siachen')
           v=json.loads((path/'siachen_saltoro_ridge_terrain_diagnostics.json').read_text())
           assert set(v['studies'])=={'mid_ridge_90km','sia_la','bilafond_north'}
           assert len(v['saddle_site_points'])==5
@@ -44,10 +44,10 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/data/research/siachen/siachen_saltoro_ridge_terrain_diagnostics.json
-          git add assets/data/research/siachen/siachen_saltoro_ridge_terrain_diagnostics.geojson
-          git add assets/data/research/siachen/README_saltoro_terrain_continuity.md
-          git add assets/data/research/siachen/siachen_terrain_90km_profile_*.png
+          git add reports/research/siachen/siachen_saltoro_ridge_terrain_diagnostics.json
+          git add reports/research/siachen/siachen_saltoro_ridge_terrain_diagnostics.geojson
+          git add reports/research/siachen/README_saltoro_terrain_continuity.md
+          git add reports/research/siachen/siachen_terrain_90km_profile_*.png
           if ! git diff --cached --quiet; then
             git commit -m "research: save Saltoro DEM crest and pass-saddle diagnostic"
             git fetch origin work/gis
@@ -58,6 +58,6 @@ jobs:
         with:
           name: siachen-ridge-saddle-review
           path: |
-            assets/data/research/siachen/siachen_saltoro_ridge_terrain_diagnostics.*
-            assets/data/research/siachen/siachen_terrain_90km_profile_*.png
-            assets/data/research/siachen/README_saltoro_terrain_continuity.md
+            reports/research/siachen/siachen_saltoro_ridge_terrain_diagnostics.*
+            reports/research/siachen/siachen_terrain_90km_profile_*.png
+            reports/research/siachen/README_saltoro_terrain_continuity.md

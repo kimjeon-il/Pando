@@ -28,7 +28,7 @@ from scipy.ndimage import gaussian_filter1d, map_coordinates
 from shapely.geometry import Point, mapping, shape
 from shapely.ops import transform as transform_geom
 
-OUT = Path("assets/data/research/siachen")
+OUT = Path("reports/research/siachen")
 OUT.mkdir(parents=True, exist_ok=True)
 TILE = "Copernicus_DSM_COG_10_N35_00_E076_00_DEM"
 DEM_URL = "https://copernicus-dem-30m.s3.amazonaws.com/" + TILE + "/" + TILE + ".tif"

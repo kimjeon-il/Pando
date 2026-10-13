@@ -30,7 +30,7 @@ jobs:
           python - <<'PY'
           import json
           from pathlib import Path
-          p=Path('assets/data/research/siachen')
+          p=Path('reports/research/siachen')
           x=json.loads((p/'siachen_multidem_ridge_comparison.json').read_text())
           assert 'COP30' in x['sources']
           assert len(x['sources'])>=2
@@ -47,14 +47,14 @@ jobs:
         with:
           name: siachen-saltoro-dem-cross-source
           path: |
-            assets/data/research/siachen/siachen_multidem_*.png
-            assets/data/research/siachen/siachen_multidem_ridge_comparison.json
-            assets/data/research/siachen/README_multidem_ridge.md
+            reports/research/siachen/siachen_multidem_*.png
+            reports/research/siachen/siachen_multidem_ridge_comparison.json
+            reports/research/siachen/README_multidem_ridge.md
       - name: Commit source data to research branch
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/data/research/siachen/siachen_multidem_* assets/data/research/siachen/README_multidem_ridge.md
+          git add reports/research/siachen/siachen_multidem_* reports/research/siachen/README_multidem_ridge.md
           if ! git diff --cached --quiet; then
             git commit -m "research: source-record independent Saltoro DEM comparison"
             for attempt in 1 2 3 4; do
