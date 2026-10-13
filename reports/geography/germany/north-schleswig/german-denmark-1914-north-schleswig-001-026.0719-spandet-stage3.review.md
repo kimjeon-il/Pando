@@ -8,7 +8,7 @@
 - 시작(0718 Hvidding 접합): **(8.833333333333332, 55.27205685739951)**.
 - 끝(0619 Hügum 접합): **(8.926995045276211, 55.3)**.
 - 브랜치: 웹·앱 **work/gis**; main은 수정하지 않음.
-- 적용 정책: [역사적 국경 복원 공통 규칙](../../../docs/historical-border-reconstruction-policy.md), 2560 CSS px·flatZoom64·0.5px. 국경 시점·영토 귀속·수계·접합 오류는 픽셀 크기와 무관하게 검증한다.
+- 적용 정책: [역사적 국경 복원 공통 규칙](../../../../docs/historical-border-reconstruction-policy.md), 2560 CSS px·flatZoom64·0.5px. 국경 시점·영토 귀속·수계·접합 오류는 픽셀 크기와 무관하게 검증한다.
 
 ## 1. 역사 지형도 대조: 실제로 확인한 내용
 
