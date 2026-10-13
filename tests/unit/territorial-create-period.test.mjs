@@ -7,11 +7,11 @@ import { capabilityPortsForFixture } from './helpers/capability-port-fixture.mjs
 
 const geometry = { type: 'Polygon', coordinates: [[[0, 0], [2, 0], [2, 2], [0, 0]]] };
 
-for (const interval of [
-  { validFrom: '2026-10-01', validTo: '2026-10-31' },
-  { validFrom: null, validTo: null },
+for (const { interval, timelineEditsEnabled } of [
+  { interval: { validFrom: '1949-05-23', validTo: null }, timelineEditsEnabled: true },
+  { interval: { validFrom: null, validTo: null }, timelineEditsEnabled: false },
 ]) {
-  test(`new child uses the active parent interval ${JSON.stringify(interval)}`, async () => {
+  test(`new child has no explicit dates when parent interval is ${JSON.stringify(interval)}`, async () => {
     const parent = createTerritorialFeature({ id: 'DEU', entityKind: 'general', geometry, ...interval });
     const workflow = {
       kind: 'entity', generatedId: 'child', name: 'Child', combinedGeometry: geometry,
@@ -37,13 +37,13 @@ for (const interval of [
         },
         discard() {},
       },
-      projectDomain: { state: () => ({ epoch: 1 }), prepareCommand: async () => ({ ok: true, changed: false }) },
+      projectDomain: { state: () => ({ epoch: 1, timelineEditsEnabled }), prepareCommand: async () => ({ ok: true, changed: false }) },
       setActionStatus() {}, setModeBanner() {}, reportOperationError(error) { throw error; },
     }));
 
     assert.equal(await owner.prepareTerritorialSelectionPreview(workflow, 'current'), false);
     assert.equal(requested.newFeature.properties.parentId, 'DEU');
     assert.deepEqual({ validFrom: requested.newFeature.properties.validFrom,
-      validTo: requested.newFeature.properties.validTo }, interval);
+      validTo: requested.newFeature.properties.validTo }, { validFrom: null, validTo: null });
   });
 }

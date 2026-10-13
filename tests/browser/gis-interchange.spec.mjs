@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
 import { expect, test } from '@playwright/test';
 import { selectUiOption } from './helpers/ui-select.mjs';
+import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
 import '../../assets/js/gis-adapters.js';
 
@@ -104,14 +105,17 @@ test('GeoPackage export contains QGIS-ready territorial and distribution tables'
   await page.locator('#createMenuBtn').click();
   page.once('dialog', dialog => dialog.accept('스모크 값'));
   await page.locator('#addDistributionBtn').click();
+  await expect(page.locator('#distributionNameInput')).toBeVisible({ timeout: 30_000 });
+  await expect(page.locator('#distributionNameInput')).toHaveValue('스모크 값', { timeout: 30_000 });
   await page.locator('#actionsTabBtn').click();
   const territorialUnitId = 'DEU';
   await selectUiOption(page, '#distributionTerritorialUnitInput', territorialUnitId);
   await page.locator('#distributionValueInput').fill('73');
   await page.locator('#addTerritorialDistributionBtn').click();
-  expect(await page.evaluate(() => window.PANDOLAB_DISTRIBUTIONS.listLayers()
-    .flatMap(layer => window.PANDOLAB_DISTRIBUTIONS.listEntries(layer.id))))
-    .toContainEqual(expect.objectContaining({ mode: 'territorial', territorialUnitId, value: 73 }));
+  await expect.poll(() => page.evaluate(() => window.PANDOLAB_DISTRIBUTIONS.listLayers()
+    .flatMap(layer => window.PANDOLAB_DISTRIBUTIONS.listEntries(layer.id))
+    .find(entry => entry.mode === 'territorial' && entry.territorialUnitId === 'DEU')?.value),
+  { timeout: 30_000 }).toBe(73);
 
   await page.locator('#mobileFileBtn').click();
   await expect(page.locator('#saveProjectBtn')).toBeVisible();
@@ -210,6 +214,11 @@ test('GeoPackage export contains QGIS-ready territorial and distribution tables'
 
 test('GIS data export writes only selected layers and omits project-only metadata', async ({ page }) => {
   test.setTimeout(300_000);
+  const countries = JSON.parse(readFileSync(new URL('../../assets/data/countries-ne-5.1.1.geojson', import.meta.url), 'utf8')).features;
+  const germany = countries.find(feature => feature.id === 'DEU');
+  const saved = staticAutosaveProject({}, [createTerritorialFeature({ id: 'DEU', entityKind: 'general',
+    name: germany.properties.name, geometry: germany.geometry })]);
+  await page.addInitScript(value => localStorage.setItem('pandolab-editor-project', JSON.stringify(value)), saved);
   await page.addInitScript(() => {
     Object.defineProperty(window, 'showSaveFilePicker', { configurable: true, value: undefined });
   });
@@ -328,8 +337,13 @@ test('current general GIS import preserves explicit source geometry and existing
   await page.locator('#mobileFileBtn').click();
   const choosing = page.waitForEvent('filechooser');
   await page.locator('#openGisBtn').click();
+  const parentPeriod = await page.evaluate(() => {
+    const { validFrom, validTo } = window.PANDOLAB_TERRITORIAL.get('DEU').properties;
+    return { validFrom, validTo };
+  });
   const source = createTerritorialFeature({ id: 'current-east-prussia', entityKind: 'general',
-    name: '동프로이센주', parentId: 'DEU', coverageMode: 'explicit', geometry: eastPrussiaGeometry });
+    name: '동프로이센주', parentId: 'DEU', coverageMode: 'explicit', geometry: eastPrussiaGeometry,
+    ...parentPeriod });
   const row = globalThis.PandoLabGisAdapters.territorialRows({ territorialEntities: [source] }).entities[0];
   await (await choosing).setFiles({ name: 'entities.geojson', mimeType: 'application/geo+json',
     buffer: Buffer.from(JSON.stringify({ type: 'FeatureCollection', features: [{ type: 'Feature', id: source.id,
