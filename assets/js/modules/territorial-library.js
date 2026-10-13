@@ -144,6 +144,6 @@ export function instantiateLibraryEntity(entity, referenceDate) {
     name: entity.names.ko || entity.names.en || Object.values(entity.names)[0], parentEntityId: entity.parentEntityId,
     geometry: structuredClone(version.geometry), validFrom: null, validTo: null,
     metadata: {...structuredClone(entity.metadata), sourceInfo: structuredClone(entity.sourceInfo), sourceLifetime:structuredClone(entity.lifetime), sourceGeometryValidity:{validFrom:version.validFrom,validTo:version.validTo}, sourceReferenceDate:referenceDate, geometryCertainty: version.certainty, geometryDatePrecision: version.datePrecision},
-    instantiation: structuredClone(entity.instantiation),
+    instantiation: structuredClone(version.instantiation || entity.instantiation),
   };
 }

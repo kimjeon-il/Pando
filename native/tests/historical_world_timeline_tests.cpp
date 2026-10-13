@@ -35,7 +35,7 @@ private slots:
         using namespace pandoeditor;
         const auto loaded=WorldDatasetLoader::canonical(QStringLiteral(PANDOEDITOR_WORLD_ASSET_DIR));
         Project project;project.replace(loaded.project->document());project.setTimelineCursor("2012-10");
-        const std::string id="state:ukraine";
+        const std::string id="UKR";
         const auto symbol=project.document().symbols.find(territorialRef(id));
         QVERIFY(symbol!=project.document().symbols.end());QCOMPARE(symbol->second.policy,FlagPolicy::Embedded);
         QVERIFY(symbol->second.embeddedDataUrl.rfind("data:image/",0)==0);
@@ -88,7 +88,7 @@ private slots:
     void nativeWorldContainsHistoricalRecords() {
         const auto loaded=WorldDatasetLoader::canonical(QStringLiteral(PANDOEDITOR_WORLD_ASSET_DIR));
         const auto view=pandoeditor::timelineDocumentView(loaded.project->document(),"2012-10");
-        QVERIFY(view.world.find("state:ukraine"));
+        QVERIFY(view.world.find("UKR"));
         QVERIFY(!view.world.find("RUS"));
         QCOMPARE(view.world.entities.size(),std::size_t(2));
         QVERIFY(!pandoeditor::isStaticTimeline(loaded.project->document()));
