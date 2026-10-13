@@ -77,13 +77,13 @@ private slots:
   Project p;p.replace(fixture());auto ref=territorialRef("A");
   QVERIFY(run(p,"territorial.field",TerritorialFieldEdit{ref,TerritorialField::Name,""}).changed());
   QVERIFY(p.document().units[0].nameExplicit);
-  QVERIFY(!projectcodec::decode(projectcodec::encode(p)).units[0].nameExplicit);
+  QVERIFY(!::projectcodec::decode(::projectcodec::encode(p)).units[0].nameExplicit);
   QVERIFY(p.undo());QVERIFY(p.redo());QVERIFY(!p.document().units[0].nameExplicit);
   QVERIFY(run(p,"territorial.field",TerritorialFieldEdit{ref,TerritorialField::Notes,"  raw\nnotes  "}).changed());
-  p.markSaved();const auto bytes=projectcodec::encode(p);const auto geometry=staticGeometryBinding(p.document(),p.document().units[0].id).geometryRef;
+  p.markSaved();const auto bytes=::projectcodec::encode(p);const auto geometry=staticGeometryBinding(p.document(),p.document().units[0].id).geometryRef;
   QVERIFY(run(p,"territorial.field",TerritorialFieldEdit{ref,TerritorialField::Name,"Next"}).changed());
   QVERIFY(p.undo());QCOMPARE(p.document().units[0].notes,std::string("raw\nnotes"));
-  QCOMPARE(projectcodec::encode(p),bytes);QVERIFY(!p.dirty());QVERIFY(staticGeometryBinding(p.document(),p.document().units[0].id).geometryRef==geometry);
+  QCOMPARE(::projectcodec::encode(p),bytes);QVERIFY(!p.dirty());QVERIFY(staticGeometryBinding(p.document(),p.document().units[0].id).geometryRef==geometry);
   QVERIFY(p.redo());QCOMPARE(p.document().units[0].notes,std::string("raw\nnotes"));
  }
  void emptyTerritorialNamesAreDataNotInvalidUnits() {
@@ -108,7 +108,7 @@ private slots:
   QVERIFY(p.undo());QCOMPARE(p.propertyView(ref)->effectiveColor,0x336699u);
   QVERIFY(p.redo());QCOMPARE(p.propertyView(ref)->effectiveColor,0xff0000u);
   QVERIFY(p.document().geometries.get(staticGeometryBinding(p.document(),p.document().units[1].id).geometryRef)==g);
-  auto decoded=projectcodec::decode(projectcodec::encode(p));
+  auto decoded=::projectcodec::decode(::projectcodec::encode(p));
   QVERIFY(!decoded.presentation.objectStyles.at(ref).explicitColor);
  }
  void fieldsNormalizePerKindAndPreserveRelations() {
@@ -120,12 +120,12 @@ private slots:
   for(auto id:{"A","S","R"})QVERIFY(run(p,"territorial.field",TerritorialFieldEdit{territorialRef(id),TerritorialField::Notes,"  one\ntwo  "}).changed());
   QCOMPARE(p.document().units[0].notes,std::string("  one\ntwo  "));
   QCOMPARE(p.document().units[1].notes,std::string("  one\ntwo  "));
-  QCOMPARE(projectcodec::decode(projectcodec::encode(p)).units[0].notes,std::string("one\ntwo"));
+  QCOMPARE(::projectcodec::decode(::projectcodec::encode(p)).units[0].notes,std::string("one\ntwo"));
   QVERIFY(!run(p,"territorial.field",TerritorialFieldEdit{territorialRef("R"),TerritorialField::ValidFrom,"-0001"}).ok());
-  const auto before=projectcodec::encode(p);const auto revision=p.revision();
+  const auto before=::projectcodec::encode(p);const auto revision=p.revision();
   QVERIFY(!run(p,"territorial.field",TerritorialFieldEdit{territorialRef("R"),TerritorialField::ValidTo,"0000"}).ok());
   QVERIFY(!run(p,"territorial.field",TerritorialFieldEdit{territorialRef("S"),TerritorialField::ValidTo,"2000"}).ok());
-  QCOMPARE(p.revision(),revision);QCOMPARE(projectcodec::encode(p),before);
+  QCOMPARE(p.revision(),revision);QCOMPARE(::projectcodec::encode(p),before);
   QVERIFY(staticGeometryBinding(p.document(),p.document().units[2].id).geometryRef==geometry);QCOMPARE(p.document().timelineRecords.parentRelations.size(),rel.size());
   QCOMPARE(trimWebText("\xef\xbb\xbf  text\xe3\x80\x80"),std::string("text"));
  }
@@ -134,9 +134,9 @@ private slots:
   QVERIFY(run(p,"territorial.lock",TerritorialLockEdit{refs,true}).changed());
   QVERIFY(!run(p,"territorial.color",TerritorialColorEdit{{refs[0]},0x112233}).ok());
   QVERIFY(run(p,"territorial.batch-color",TerritorialColorEdit{refs,0x112233}).changed());
-  p.markSaved();const auto bytes=projectcodec::encode(p);const auto rev=p.revision();
+  p.markSaved();const auto bytes=::projectcodec::encode(p);const auto rev=p.revision();
   QVERIFY(run(p,"territorial.batch-color",TerritorialColorEdit{refs,0x112233}).changed());
-  QCOMPARE(projectcodec::encode(p),bytes);QCOMPARE(p.revision(),rev+1);QVERIFY(p.dirty());
+  QCOMPARE(::projectcodec::encode(p),bytes);QCOMPARE(p.revision(),rev+1);QVERIFY(p.dirty());
   QVERIFY(p.undo());QVERIFY(!p.dirty());QVERIFY(p.canRedo());
   QVERIFY(run(p,"territorial.batch-color",TerritorialColorEdit{refs,0x112233}).changed());QVERIFY(!p.canRedo());
   QVERIFY(run(p,"territorial.lock",TerritorialLockEdit{refs,false}).changed());
@@ -146,9 +146,9 @@ private slots:
  void batchExceptionsNeverBypassLayerOrPreservationProtection() {
   auto d=fixture();d.presentation.userLayers[0].locked=true;Project p;p.replace(d);
   const std::vector<ObjectRef> refs={territorialRef("A"),territorialRef("S")};
-  auto bytes=projectcodec::encode(p);
+  auto bytes=::projectcodec::encode(p);
   QCOMPARE(run(p,"territorial.batch-color",TerritorialColorEdit{refs,0x112233}).error,CommandError::Locked);
-  QCOMPARE(projectcodec::encode(p),bytes);QVERIFY(!p.canUndo());
+  QCOMPARE(::projectcodec::encode(p),bytes);QVERIFY(!p.canUndo());
   d.presentation.userLayers[0].locked=false;
   PreservedExtension e;e.id="opaque";e.payload="9007199254740993";e.dependencies=refs;d.extensions.push_back(e);p.replace(d);
   QCOMPARE(run(p,"territorial.batch-color",TerritorialColorEdit{refs,0x112233}).error,CommandError::UnsupportedDependency);
@@ -157,15 +157,15 @@ private slots:
  void staleAndCancelledPropertyPreviewsRemainAtomic() {
   Project p;p.replace(fixture());CommandArguments args;args.action=TerritorialColorEdit{{territorialRef("S")},0x111111};
   auto preview=CommandProcessor::prepare(p,CommandProcessor::makeRequest(p,"territorial.color",args));QVERIFY(preview.preview);
-  auto bytes=projectcodec::encode(p);CommandProcessor::cancel(*preview.preview);
-  QCOMPARE(CommandProcessor::confirm(p,*preview.preview).error,CommandError::PreviewConsumed);QCOMPARE(projectcodec::encode(p),bytes);
+  auto bytes=::projectcodec::encode(p);CommandProcessor::cancel(*preview.preview);
+  QCOMPARE(CommandProcessor::confirm(p,*preview.preview).error,CommandError::PreviewConsumed);QCOMPARE(::projectcodec::encode(p),bytes);
   preview=CommandProcessor::prepare(p,CommandProcessor::makeRequest(p,"territorial.color",args));
   QVERIFY(run(p,"territorial.lock",TerritorialLockEdit{{territorialRef("R")},true}).changed());
   QCOMPARE(CommandProcessor::confirm(p,*preview.preview).error,CommandError::StaleRevision);
  }
  void controllerDraftOwnershipIndependentFieldsAndSave() {
   QTemporaryDir dir;Project p;p.replace(fixture());const auto path=QUrl::fromLocalFile(dir.filePath("fixture.json"));
-  QFile f(path.toLocalFile());QVERIFY(f.open(QIODevice::WriteOnly));f.write(projectcodec::encode(p));f.close();
+  QFile f(path.toLocalFile());QVERIFY(f.open(QIODevice::WriteOnly));f.write(::projectcodec::encode(p));f.close();
   EditorController c;QVERIFY(c.openFile(path));
   QVERIFY(c.selectObject({{"domain","territorial"},{"type","entity"},{"id","S"}}));
   auto token=c.beginPropertyEdit("notes");QVERIFY(!token.isEmpty());QVERIFY(c.updatePropertyEdit(token,"  parked S  "));
@@ -173,7 +173,7 @@ private slots:
   c.selectCountry("A");QVERIFY(!c.confirmPropertyEdit(token));QCOMPARE(c.documentBytes(),bytes);QCOMPARE(c.revision(),revision);
   QVERIFY(c.beginColorEdit());QVERIFY(c.confirmColorEdit("#ff0000"));
   QVERIFY(c.hasPendingEdits());QVERIFY(c.saveFile(path));
-  auto saved=projectcodec::decode(c.documentBytes());QCOMPARE(saved.units[1].notes,std::string("parked S"));
+  auto saved=::projectcodec::decode(c.documentBytes());QCOMPARE(saved.units[1].notes,std::string("parked S"));
   QVERIFY(!saved.presentation.objectStyles.at(territorialRef("S")).explicitColor);
   QCOMPARE(effectiveObjectColor(saved,territorialRef("S")),0xff0000u);
   QVERIFY(c.selectObject({{"domain","territorial"},{"type","entity"},{"id","R"}}));
@@ -184,13 +184,13 @@ private slots:
   auto color=c.documentBytes();QVERIFY(c.beginColorEdit());c.selectCountry("A");QVERIFY(!c.confirmColorEdit("#00ff00"));QCOMPARE(c.documentBytes(),color);
  }
  void v3MigrationDoesNotReplayArchiveOverRecentValues() {
-  Project p;p.replace(fixture());auto obj=QJsonDocument::fromJson(projectcodec::encode(p)).object();obj["version"]=3;
+  Project p;p.replace(fixture());auto obj=QJsonDocument::fromJson(::projectcodec::encode(p)).object();obj["version"]=3;
   auto units=obj["units"].toArray();
   for(int i=0;i<units.size();++i){auto u=units[i].toObject();u.remove("baseName");u.remove("nameExplicit");if(i==0)u["name"]="Recent native name";units[i]=u;}
   obj["units"]=units;auto presentation=obj["presentation"].toObject();auto domains=presentation["objectStyles"].toObject();auto styles=domains["territorial"].toObject();
   for(auto id:styles.keys()){auto v=styles[id].toObject();if(v["color"].isNull())v["color"]="#123456";styles[id]=v;}
   domains["territorial"]=styles;presentation["objectStyles"]=domains;obj["presentation"]=presentation;
-  QVERIFY_EXCEPTION_THROWN(projectcodec::decode(QJsonDocument(obj).toJson()),std::invalid_argument);
+  QVERIFY_EXCEPTION_THROWN(::projectcodec::decode(QJsonDocument(obj).toJson()),std::invalid_argument);
  }
  void cleanWebImportPreservesSemanticsAndCanEdit() {
   QFile f(QStringLiteral(M32_FIXTURES)+"/../web-v10-exchange/static.json");QVERIFY(f.open(QIODevice::ReadOnly));const auto input=f.readAll();
@@ -201,7 +201,7 @@ private slots:
   QVERIFY2(color.ok(),color.detail.c_str());QCOMPARE(p.propertyView(child)->effectiveColor,0xff0000u);
   QVERIFY(!run(p,"territorial.field",TerritorialFieldEdit{region,TerritorialField::ValidFrom,"1900"}).ok());
   QVERIFY(run(p,"territorial.lock",TerritorialLockEdit{{child},true}).ok());
-  Project reopened;reopened.replace(projectcodec::decode(projectcodec::encode(p)));
+  Project reopened;reopened.replace(::projectcodec::decode(::projectcodec::encode(p)));
   QCOMPARE(reopened.propertyView(child)->effectiveColor,0xff0000u);QVERIFY(reopened.document().units[1].locked);
   auto opaque=QJsonDocument::fromJson(input).object();opaque["future"]=QJsonObject{{"colorOwner","A"}};
   QVERIFY_EXCEPTION_THROWN(webimport::prepare(QJsonDocument(opaque).toJson()),std::invalid_argument);
