@@ -303,7 +303,13 @@ async function loadProjectFile(page, project, name) {
   await expect(page.locator('#gisImportError')).toBeEmpty();
   await page.locator('#gisImportConfirmBtn').click();
   await expect(page.locator('#gisImportModal')).toBeHidden({ timeout: 30_000 });
-  await expect(page.locator('#actionStatus')).toContainText('새 프로젝트로 열었습니다.', { timeout: 30_000 });
+  const expected = { territorial: project.territorialEntities.map(entity => entity.id),
+    hydro: project.hydroEdits.map(feature => feature.id) };
+  await expect.poll(() => page.evaluate(({ territorial, hydro }) => {
+    const state = window.__m2State();
+    return territorial.every(id => window.PANDOLAB_TERRITORIAL.get(id))
+      && hydro.every(id => state.hydroEdits.some(feature => feature.id === id));
+  }, expected), { timeout: 60_000 }).toBe(true);
 }
 
 async function openApp(page, renderer, { staticInput = false, focusCountry = true } = {}) {

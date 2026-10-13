@@ -8,6 +8,7 @@ import hashlib
 import json
 import math
 import pathlib
+import subprocess
 import sys
 from dataclasses import dataclass
 from typing import Any, Iterable
@@ -105,6 +106,20 @@ def round_coordinates(value: Any, digits: int = 7) -> Any:
             return [round(float(item), digits) for item in value]
         return [round_coordinates(item, digits) for item in value]
     return value
+
+
+def normalize_with_cpp(geometry: dict[str, Any]) -> dict[str, Any]:
+    result = subprocess.run(
+        ["node", str(ROOT / "tools" / "run-country-validator.mjs"), "--normalize-stdin"],
+        input=json.dumps(geometry, ensure_ascii=False), text=True, capture_output=True,
+        cwd=ROOT, check=False,
+    )
+    if result.returncode != 0:
+        raise RuntimeError(f"C++ polygon normalization failed: {result.stderr.strip()}")
+    normalized = json.loads(result.stdout)
+    if normalized["type"] != geometry["type"]:
+        raise RuntimeError("C++ polygon normalization changed the geometry type")
+    return {"type": normalized["type"], "coordinates": normalized["coordinates"]}
 
 
 def coordinate_count(geometry) -> int:
@@ -353,6 +368,7 @@ def east_germany_entity(recipe: dict[str, Any], geometry) -> dict[str, Any]:
     # Preserve enough precision for the noded Berlin linework. Seven decimal
     # places can collapse nearby nodes and reintroduce self-intersections.
     mapped["coordinates"] = round_coordinates(mapped["coordinates"], 12)
+    mapped = normalize_with_cpp(mapped)
     return {
         "schemaVersion": 2,
         "entityId": recipe["entityId"],

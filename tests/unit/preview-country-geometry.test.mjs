@@ -6,6 +6,7 @@ import test from 'node:test';
 import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 import { topology } from 'topojson-server';
+import '../helpers/spherical-core.mjs';
 
 import { validateGeometry } from '../../assets/js/modules/geometry-validation.js';
 await import('../../assets/js/modules/polygon-geometry.js');

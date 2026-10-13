@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
+import '../helpers/spherical-core.mjs';
 
 await import('../../assets/js/modules/polygon-geometry.js');
 
@@ -40,7 +41,8 @@ test('country geometry normalizer never promotes a surviving hole when the outer
   assert.throws(() => normalizePolygonGeometry({ type: 'Polygon', coordinates: [degenerateOuter, validHole] }), /INVALID_POLYGON_RING/);
 
   const validOuter = [[0, 0], [0, 2], [2, 2], [2, 0], [0, 0]];
-  assert.throws(() => normalizePolygonGeometry({ type: 'Polygon', coordinates: [validOuter, degenerateOuter] }), /INVALID_POLYGON_HOLE/);
+  assert.throws(() => normalizePolygonGeometry({ type: 'Polygon', coordinates: [validOuter, degenerateOuter] }),
+    /INVALID_POLYGON: component 0 ring 1: INVALID_POLYGON_RING/);
 });
 
 test('legacy counter-clockwise country geometry is detected before project restore', () => {
@@ -52,7 +54,7 @@ test('legacy counter-clockwise country geometry is detected before project resto
 
 test('normalizer rejects invalid coordinates rather than silently changing the border', () => {
   const ring = [[0, 0], [1, 0], [1, Number.NaN], [0, 1], [0, 0]];
-  assert.throws(() => normalizePolygonGeometry({ type: 'Polygon', coordinates: [ring] }), /INVALID_POLYGON_COORDINATE/);
+  assert.throws(() => normalizePolygonGeometry({ type: 'Polygon', coordinates: [ring] }), /INVALID_JSON: expected numeric value/);
   assert.equal(hasCanonicalPolygonWinding({ type: 'Polygon', coordinates: [ring] }), false);
 });
 

@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
+import '../helpers/spherical-core.mjs';
 vm.runInThisContext(readFileSync(new URL('../../assets/js/vendor/d3.min.js', import.meta.url), 'utf8'));
 import '../../assets/js/vendor/polygon-clipping.min.js';
 import '../../assets/js/modules/polygon-geometry.js';

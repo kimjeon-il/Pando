@@ -4,6 +4,7 @@ import runpy
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from shapely.geometry import MultiPolygon, box
 
@@ -33,12 +34,8 @@ class HistoricalGeneratorContracts(unittest.TestCase):
                        "entities": [original, sibling], "relations": []}
             source = json.dumps(lineage).encode("utf-8")
             path.write_bytes(source)
-            previous_root = build.__globals__["ROOT"]
-            build.__globals__["ROOT"] = root
-            try:
+            with patch.dict(build.__globals__, {"ROOT": root, "normalize_with_cpp": lambda geometry: geometry}):
                 result = json.loads(build(recipe, MultiPolygon([box(0, 0, 1, 1)])))
-            finally:
-                build.__globals__["ROOT"] = previous_root
             self.assertEqual(path.read_bytes(), source, "building a candidate must not mutate its source")
         generated = result["entities"][0]
         self.assertEqual(generated["sourceInfo"]["importProvenance"], original["sourceInfo"]["importProvenance"])
@@ -51,3 +48,17 @@ class HistoricalGeneratorContracts(unittest.TestCase):
         self.assertEqual(generated["metadata"]["defaultFlagDataUrl"], "curated-flag")
         self.assertEqual(generated["metadata"]["referenceDate"], recipe["referenceDate"])
         self.assertEqual(generated["geometryVersions"][0]["versionId"], recipe["id"])
+
+    def test_cpp_normalizer_is_required_and_failure_is_reported(self):
+        normalize = BUILDER["normalize_with_cpp"]
+        polygon = {"type": "Polygon", "coordinates": [[[0, 0], [1, 0], [0, 1], [0, 0]]]}
+        with patch.object(normalize.__globals__["subprocess"], "run") as run:
+            run.return_value.returncode = 0
+            run.return_value.stdout = json.dumps(polygon)
+            self.assertEqual(normalize(polygon), polygon)
+            self.assertEqual(run.call_args.args[0][-1], "--normalize-stdin")
+            self.assertEqual(json.loads(run.call_args.kwargs["input"]), polygon)
+            run.return_value.returncode = 1
+            run.return_value.stderr = "INVALID_POLYGON_RING"
+            with self.assertRaisesRegex(RuntimeError, "INVALID_POLYGON_RING"):
+                normalize(polygon)

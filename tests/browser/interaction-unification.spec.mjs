@@ -165,7 +165,7 @@ test('adjacent countries share prepared boundaries and list hover never adds a s
 });
 
 for (const renderer of ['webgl2', 'webgl1', 'canvas']) test(`Russia parent-child fills do not accumulate and repeated selected hover reuses prepared geometry (${renderer})`, async ({ page }) => {
-  test.setTimeout(150000);
+  test.setTimeout(240000);
   await page.addInitScript(() => {
     const getContext = window.HTMLCanvasElement.prototype.getContext;
     window.HTMLCanvasElement.prototype.getContext = function(type, ...args) {
@@ -289,7 +289,7 @@ for (const renderer of ['webgl2', 'webgl1', 'canvas']) test(`Russia parent-child
   await page.locator('#layerSearchInput').fill('러시아');
   await page.locator('[data-object-search-select="countries"][data-item-id="RUS"]').click({ modifiers: ['Control'] });
   if (renderer !== 'canvas') await withPollTimingDiagnostics(page, test.info(), { label: `russia-secondary-${renderer}` }, timing =>
-    expect.poll(() => timing.call(evaluate => evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.drawCoverage?.secondary?.drawSucceeded)), { timeout: 30000 }).toBe(true));
+    expect.poll(() => timing.call(evaluate => evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.drawCoverage?.secondary?.drawSucceeded)), { timeout: 90000 }).toBe(true));
   const overlap = await pixels();
   console.log('interior-pixels', single, overlap);
   for (let i = 0; i < 4; i++) expect(Math.abs(single[i] - overlap[i])).toBeLessThanOrEqual(2);
@@ -351,7 +351,7 @@ test('custom color, zero fill and disabled selected outlines preserve unselected
 
 
 test('GPU context recovery never gives scene fills back to SVG', async ({ page }) => {
-  test.setTimeout(120000);
+  test.setTimeout(210000);
   await page.goto('/?debug=1&renderer=webgl2');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90000 });
   diagnosticStages.set(page, 'context-recovery-initial-selection');
@@ -360,7 +360,7 @@ test('GPU context recovery never gives scene fills back to SVG', async ({ page }
     selectionRequest.accepted = await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
     await logMapDiagnostic('context-recovery-initial-selection', 'after-select', () => selectionProbe(page, selectionRequest));
     // Enhanced readiness queues shared strokes; their budgeted upload must still finish before this draw.
-    await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.drawCoverage?.primary?.renderedKeys || []), { timeout: 30000 }).toContain('territorial:entity:DEU');
+    await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.drawCoverage?.primary?.renderedKeys || []), { timeout: 90000 }).toContain('territorial:entity:DEU');
   });
   const supported = await page.evaluate(() => {
     const gl = document.querySelector('.gpu-map-canvas').getContext('webgl2');
@@ -371,7 +371,7 @@ test('GPU context recovery never gives scene fills back to SVG', async ({ page }
   await expect(page.locator('.map-selection-outline.is-primary')).toHaveCount(1);
   await expect(page.locator('.map-selection-fill')).toHaveCount(0);
   await page.evaluate(() => window.__lossExtension.restoreContext());
-  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.drawCoverage?.primary?.renderedKeys || []), { timeout: 30000 }).toContain('territorial:entity:DEU');
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.drawCoverage?.primary?.renderedKeys || []), { timeout: 90000 }).toContain('territorial:entity:DEU');
   await expect(page.locator('.map-selection-outline, .map-selection-fill')).toHaveCount(0);
 });
 

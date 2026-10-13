@@ -10,6 +10,7 @@ import { distanceKm, geometryAreaKm2, lineDistanceKm } from '../../assets/js/mod
 import * as partitions from '../../assets/js/modules/river-territory-partition.js';
 import { validateCollection } from '../../assets/js/modules/gis-geometry-validation.js';
 import { createGisWorkerHarness } from './helpers/gis-worker-harness.mjs';
+import { sphericalCore } from '../helpers/spherical-core.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const read = relativePath => fs.readFileSync(path.join(root, relativePath), 'utf8');
@@ -130,7 +131,7 @@ test('main validator and actual GIS Worker agree on normal, empty, invalid, prec
 });
 
 test('country normalizer and GPU mesh preserve winding, finite packets and owner ranges', () => {
-  const classicContext = vm.createContext({ console, self: null });
+  const classicContext = vm.createContext({ console, self: null, PandoLabSphericalCore: sphericalCore });
   classicContext.self = classicContext;
   const countryGeometry = loadClassic('assets/js/modules/polygon-geometry.js', 'PandoLabPolygonGeometry', classicContext);
   const earcut = loadClassic('assets/js/vendor/earcut.min.js', 'earcut', classicContext);
