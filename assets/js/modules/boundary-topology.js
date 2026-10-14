@@ -1,4 +1,5 @@
-import { buildRenderableBoundarySegments } from './geographic-boundary.js';
+import { buildRenderableBoundarySegments, normalizeLongitudeNear } from './geographic-boundary.js';
+import './polygon-geometry.js';
 import { createBoundarySpatialIndex, segmentBounds, padBoundaryBounds } from './boundary-spatial-index.js';
 import { countryGeometrySignature } from './country-shared-boundary-cache.js';
 import { territorialRootId } from './territorial-units.js';
@@ -49,13 +50,14 @@ export function boundarySourceSegments(feature, fallbackId = 0) {
   for (const polygon of polygonRings(feature)) {
     (polygon.rings || []).forEach((ring, ringIndex) => {
       const limit = Math.max(0, ring.length - 1);
-      let area = 0;
-      const origin = ring[0];
-      for (let index = 1; index < ring.length; index++) {
-        const a = ring[index - 1], b = ring[index];
-        area += (a[0] - origin[0]) * (b[1] - origin[1]) - (b[0] - origin[0]) * (a[1] - origin[1]);
-      }
-      const interiorSide = Math.sign(area) * (ringIndex ? -1 : 1);
+      if (!limit) return;
+      let area = globalThis.PandoLabPolygonGeometry.sphericalSignedArea(ring);
+      // The common spherical integral may include a full turn around a pole.
+      // Use its signed smaller region, without offsetting ordinary tiny areas.
+      if (area > 2 * Math.PI) area -= 4 * Math.PI;
+      else if (area < -2 * Math.PI) area += 4 * Math.PI;
+      // Spherical winding has the opposite sign to the former planar area.
+      const interiorSide = -Math.sign(area) * (ringIndex ? -1 : 1);
       for (let index = 0; index < limit; index++) rows.push({
         featureId: id, polygonIndex: polygon.polygonIndex, ringIndex,
         segmentIndex: index, endVertexIndex: (index + 1) % limit,
@@ -427,11 +429,13 @@ function pointSegmentDistance(point, a, b) {
 // Coincident edges on the same filled side are an exterior shared by an
 // overlapping parent/child, rather than a boundary separating their land.
 export function hasOpposingBoundaryInteriors(segment, ownerIds = segment.ownerIds) {
-  const dx = segment.end[0] - segment.start[0], dy = segment.end[1] - segment.start[1];
+  const dx = normalizeLongitudeNear(segment.end[0], segment.start[0]) - segment.start[0];
+  const dy = segment.end[1] - segment.start[1];
   const sides = ownerIds.map(id => {
     const edge = segment.refs?.find(ref => String(ref.featureId) === String(id));
     if (!edge) throw new Error(`공유 경계의 원본 구간이 없습니다: ${id}`);
-    const direction = Math.sign((edge.b[0] - edge.a[0]) * dx + (edge.b[1] - edge.a[1]) * dy);
+    const edgeDx = normalizeLongitudeNear(edge.b[0], edge.a[0]) - edge.a[0];
+    const direction = Math.sign(edgeDx * dx + (edge.b[1] - edge.a[1]) * dy);
     return direction * edge.interiorSide;
   });
   return new Set(sides).size > 1;

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { Worker } from 'node:worker_threads';
 import { createCountrySharedBoundaryState, prepareCountrySharedBoundaryPacket } from '../../assets/js/modules/country-shared-boundary-packet.js';
-import { buildCountrySharedBoundarySegments, serializeCountrySharedBoundarySegments, hasOpposingBoundaryInteriors } from '../../assets/js/modules/boundary-topology.js';
+import { boundarySourceSegments, buildCountrySharedBoundarySegments, serializeCountrySharedBoundarySegments, hasOpposingBoundaryInteriors } from '../../assets/js/modules/boundary-topology.js';
 import { countryGeometrySignature } from '../../assets/js/modules/country-shared-boundary-cache.js';
 import { geometryRevisionKey } from '../../assets/js/modules/geometry-versions.js';
 
@@ -12,6 +12,49 @@ const rectangle = (id, west, south, east, north, root = id) => {
     boundaryGeometryRevision: geometryRevisionKey(geometry) };
 };
 const coordinates = state => serializeCountrySharedBoundarySegments(state.segments());
+
+test('parent-child exterior classification is unchanged by equivalent dateline longitude representations', () => {
+  const child = rectangle('CHILD', 179, 0, 179.5, 1, 'ROOT');
+  for (const east of [-179, 181]) {
+    const parent = rectangle('ROOT', 179, 0, east, 1);
+    const before = structuredClone([parent, child]);
+    const state = createCountrySharedBoundaryState(); state.replace([parent, child]);
+    const west = state.segments().find(segment => segment.start[0] === 179 && segment.end[0] === 179);
+    assert.ok(west);
+    assert.equal(hasOpposingBoundaryInteriors(west), false, `parent east ${east}`);
+    assert.deepEqual([parent, child], before, 'classification must preserve source coordinates');
+  }
+});
+
+test('both polar caps classify their coincident child perimeter as an exterior', () => {
+  for (const latitude of [80, -80]) {
+    const north = latitude > 0;
+    const ring = (north ? [[-135, latitude], [135, latitude], [45, latitude], [-45, latitude], [-135, latitude]]
+      : [[-135, latitude], [-45, latitude], [45, latitude], [135, latitude], [-135, latitude]]);
+    const parent = { id: 'ROOT', geometry: { type: 'Polygon', coordinates: [ring] } };
+    const childRing = north ? [[45, 80], [45, 85], [135, 85], [135, 80], [45, 80]]
+      : [[-45, -80], [-45, -85], [45, -85], [45, -80], [-45, -80]];
+    const child = { id: 'CHILD', geometry: { type: 'Polygon', coordinates: [childRing] } };
+    const edge = boundarySourceSegments(parent).find(row => row.segmentIndex === 1);
+    const childEdge = boundarySourceSegments(child).find(row => row.segmentIndex === 3);
+    const segment = { start: edge.a, end: edge.b, ownerIds: ['ROOT', 'CHILD'], refs: [edge, childEdge] };
+    assert.equal(hasOpposingBoundaryInteriors(segment), false, `polar cap ${latitude}`);
+    const hole = { id: 'HOLE', geometry: { type: 'Polygon', coordinates: [ring, childRing] } };
+    const holeEdge = boundarySourceSegments(hole).find(row => row.ringIndex === 1 && row.segmentIndex === 3);
+    assert.equal(hasOpposingBoundaryInteriors({ ...segment, ownerIds: ['HOLE', 'CHILD'], refs: [holeEdge, childEdge] }), true,
+      'the hole and its occupant have land on opposite sides');
+  }
+});
+
+test('a dateline-crossing source edge retains its direction relative to a short shared segment', () => {
+  const parent = rectangle('ROOT', 179, 0, -179, 1);
+  const child = rectangle('CHILD', 179.2, 0.5, 179.8, 1, 'ROOT');
+  const parentEdge = boundarySourceSegments(parent).find(row => row.segmentIndex === 2);
+  const childEdge = boundarySourceSegments(child).find(row => row.segmentIndex === 2);
+  const segment = { start: [179.2, 1], end: [179.8, 1], ownerIds: ['ROOT', 'CHILD'], refs: [parentEdge, childEdge] };
+  assert.equal(hasOpposingBoundaryInteriors(segment), false);
+  assert.equal(hasOpposingBoundaryInteriors({ ...segment, start: segment.end, end: segment.start }), false);
+});
 
 test('unchanged replacement and metadata preserve geometry preparation and source references', () => {
   const rows = [rectangle('A', 0, 0, 1, 1), rectangle('B', 1, 0, 2, 1)];
