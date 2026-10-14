@@ -34,7 +34,7 @@ for (const renderer of ['webgl2', 'canvas']) {
 
 
 test.describe('mobile country-border handoff', () => {
-  test.use({ viewport: { width: 390, height: 844 }, isMobile: true, deviceScaleFactor: 2 });
+  test.use({ viewport: { width: 390, height: 844 }, isMobile: true, deviceScaleFactor: 2, trace: 'off' });
 
   for (const renderer of ['webgl2', 'canvas']) {
     test(`keeps precise borders visible through zoom without mesh switching (${renderer})`, async ({ page }) => {
@@ -64,7 +64,7 @@ test.describe('mobile country-border handoff', () => {
             const map = document.getElementById('map');
             const rect = map.getBoundingClientRect();
             const current = window.__PANDOLAB_VIEW_DEBUG__.snapshot().zoom;
-            map.dispatchEvent(new window.WheelEvent('wheel', {
+            map.dispatchEvent(new WheelEvent('wheel', {
               bubbles: true, cancelable: true,
               clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2,
               deltaY: -Math.log(zoom / current) / 0.0013,
