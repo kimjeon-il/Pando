@@ -1,0 +1,713 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r178",
+  "sources": [
+    {
+      "source_key": "r178-prior-gsc8149-regional-context",
+      "title": "Report of 2016 Activities for the Bedrock Geology and Economic Potential of the Tehery-Wager Area: GEM 2 Rae Project",
+      "authors": "N. Wodicka, H.M. Steenkamp, O.M. Weller, J. Kendrick, V.L. Tschirhart, T.D. Peterson and É. Girard",
+      "publisher": "Geological Survey of Canada, Natural Resources Canada",
+      "series": "Open File8149",
+      "actual_inspected_material": "Recovered account of earlier lawful prose reading only: regional Lorillard River field-use context. No original report or map was reacquired or newly read. No geographic correspondence for this target is derived.",
+      "use_notice": "Earlier recorded reproduction restriction retained. Own bounded facts and bibliography only; no source pages, figures or derivatives.",
+      "evidence_kind": "previously_recorded_context_only",
+      "supports_selected_route": false,
+      "official_url": "https://publications.gc.ca/collections/collection_2018/rncan-nrcan/m183-2/M183-2-8149-eng.pdf"
+    },
+    {
+      "source_key": "r178-nluis-index-excluded",
+      "title": "Northern Land Use Information Series, Northern Land Use map index",
+      "publisher": "Agriculture and Agri-Food Canada",
+      "acquisition_outcome": "The held index was erroneously reacquired through the web reader, which returned text normally. This does not resolve its earlier unconfirmed direct-request outcome or lift the inherited hold.",
+      "actual_inspected_material": "Fresh index text was exposed before the inherited hold was recognized. All fresh content is excluded from source evidence. No further index reading or acquisition followed.",
+      "evidence_kind": "excluded_held_index_reacquisition",
+      "supports_selected_route": false,
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html"
+    },
+    {
+      "source_key": "r178-nluis56g-unused",
+      "title": "NLUIS sheet56G; original printed title, edition and imprint uninspected",
+      "publisher": "Official NLUIS scan hosted by Agriculture and Agri-Food Canada",
+      "acquisition_outcome": "The one subsequent normal original request completed HTTP200 with image/jpeg. Acquisition and use are paused pending the unresolved relationship in this acquisition sequence.",
+      "actual_inspected_material": "No output-file content, headers, map pixels, imprint, labels or image crops were read. The acquired map remains unused.",
+      "evidence_kind": "acquired_original_unread_excluded",
+      "supports_selected_route": false,
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_56g.jpg"
+    },
+    {
+      "source_key": "r178-ibge-ceara2015",
+      "title": "Mapa Político do Estado do Ceará",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística, Diretoria de Geociências / Coordenação de Cartografia",
+      "edition": "2015",
+      "scale": "1:650,000",
+      "publication_identity": "Independently issued state political-map project, derived from IBGE Base Cartográfica Contínua do Brasil ao Milionésimo (BCIM), 2014. Its publisher, purpose and underlying national compilation distinguish it from the held IPECE municipal-divisas atlas, COGERH basin diagnosis and municipal statistical products.",
+      "actually_read_scope": "Complete original single sheet at overview scale; northwestern corridor enlarged from the selected opening through Frecheirinha, Coreaú, Moraújo, Campanário, Granja and Camocim to the Atlantic. Title, scale, legend, BCIM2014 attribution and reproduction notice read.",
+      "original_map_pixels_inspected": true,
+      "source_use_limits": "IBGE reproduction rights reserved. Only bounded own factual observations and normal bibliography are prepared. Original maps, source crops, orientation overlays and full coordinate paths remain private. Historical generalized cartography does not establish current flows, shorelines, infrastructure operation or a formal name registry.",
+      "acquisition_outcome": "One normal direct original-file request completed HTTP200 application/pdf. The completed file was then read locally; no partial body, fallback or retry was used.",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_estaduais_e_distrito_federal/politico/2015/ce_politico650k_2015.pdf"
+    },
+    {
+      "source_key": "r178-ibge-mucambo2010",
+      "title": "Mucambo – CE, Mapa Municipal Estatístico",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística, Diretoria de Geociências",
+      "municipal_product_code": "2309003",
+      "collection": "Censo Demográfico 2010, Mapas Municipais Estatísticos",
+      "edition_as_printed": "07/06/2010",
+      "scale": "1:100,000",
+      "publication_identity": "Individually issued IBGE Censo Demográfico 2010 municipal statistical compilation, with its own geographic footprint, municipal geocode and CCAR/CETE credits. It is distinct from the IPECE Atlas de Divisas Municipais project, COGERH Curu diagnosis, INEMA regional plans and the held Breves/Glória municipal products. Shared systematic-map inputs mean these are not claimed as independent hydrological surveys.",
+      "actually_read_scope": "Complete original single-sheet map overview; selected opening near Poço Verde, the small waterbody sequence, road crossing and Riacho Jatobá reach enlarged; legend, compilation note, chronology and reproduction notice read.",
+      "original_map_pixels_inspected": true,
+      "source_use_limits": "IBGE reproduction rights reserved. Only bounded own factual observations and normal bibliography are prepared. Original maps, source crops, orientation overlays and full coordinate paths remain private. Historical generalized cartography does not establish current flows, shorelines, infrastructure operation or a formal name registry. The municipal compilation note states that systematic mapping and the municipal mesh were combined semi-automatically, without full integration/completeness treatment.",
+      "acquisition_outcome": "One normal direct original-file request completed HTTP200 application/pdf. The completed file was then read locally; no partial body, fallback or retry was used.",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/ce/mucambo_v2.pdf"
+    },
+    {
+      "source_key": "r178-ibge-frecheirinha2010",
+      "title": "Frecheirinha – CE, Mapa Municipal Estatístico",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística, Diretoria de Geociências",
+      "municipal_product_code": "2304509",
+      "collection": "Censo Demográfico 2010, Mapas Municipais Estatísticos",
+      "edition_as_printed": "07/06/2010",
+      "scale": "1:100,000",
+      "publication_identity": "Individually issued IBGE Censo Demográfico 2010 municipal statistical compilation, with its own geographic footprint, municipal geocode and CCAR/CETE credits. It is distinct from the IPECE Atlas de Divisas Municipais project, COGERH Curu diagnosis, INEMA regional plans and the held Breves/Glória municipal products. Shared systematic-map inputs mean these are not claimed as independent hydrological surveys.",
+      "actually_read_scope": "Complete original single-sheet map overview and enlarged mapped eastern corridor from the southern Caiçara de Cima/Contenda setting through the road-crossing and Caiçara de Baixo/Jenipapo continuation. The separate Juazeiro-side route was distinguished. Legend, compilation note, chronology and reproduction notice read.",
+      "original_map_pixels_inspected": true,
+      "source_use_limits": "IBGE reproduction rights reserved. Only bounded own factual observations and normal bibliography are prepared. Original maps, source crops, orientation overlays and full coordinate paths remain private. Historical generalized cartography does not establish current flows, shorelines, infrastructure operation or a formal name registry. The municipal compilation note states that systematic mapping and the municipal mesh were combined semi-automatically, without full integration/completeness treatment.",
+      "acquisition_outcome": "One normal direct original-file request completed HTTP200 application/pdf. The completed file was then read locally; no partial body, fallback or retry was used.",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/ce/frecheirinha_v2.pdf"
+    },
+    {
+      "source_key": "r178-ibge-granja2010",
+      "title": "Granja – CE, Mapa Municipal Estatístico",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística, Diretoria de Geociências",
+      "municipal_product_code": "2304707",
+      "collection": "Censo Demográfico 2010, Mapas Municipais Estatísticos",
+      "edition_as_printed": "7/14/2011",
+      "scale": "1:100,000",
+      "publication_identity": "Individually issued IBGE Censo Demográfico 2010 municipal statistical compilation, with its own geographic footprint, municipal geocode and CCAR/CETE credits. It is distinct from the IPECE Atlas de Divisas Municipais project, COGERH Curu diagnosis, INEMA regional plans and the held Breves/Glória municipal products. Shared systematic-map inputs mean these are not claimed as independent hydrological surveys.",
+      "actually_read_scope": "All four original sheets viewed at overview scale to locate the selection. Detailed geography read on sheets3/4 and4/4: Coreaú and Juazeiro junction, Moraújo, Enjeitado junction, Campanário, Estreito, Palestina, Granja and the lower saline/floodplain continuation. Sheet2/4 was viewed for orientation, not used to extend selected coverage westward. Title, sheet articulation, scale, chronology and compilation/reproduction notices read.",
+      "original_map_pixels_inspected": true,
+      "source_use_limits": "IBGE reproduction rights reserved. Only bounded own factual observations and normal bibliography are prepared. Original maps, source crops, orientation overlays and full coordinate paths remain private. Historical generalized cartography does not establish current flows, shorelines, infrastructure operation or a formal name registry. The municipal compilation note states that systematic mapping and the municipal mesh were combined semi-automatically, without full integration/completeness treatment.",
+      "acquisition_outcome": "One normal direct original-file request completed HTTP200 application/pdf. The completed file was then read locally; no partial body, fallback or retry was used.",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/ce/granja_v2.pdf"
+    },
+    {
+      "source_key": "r178-ibge-camocim2010",
+      "title": "Camocim – CE, Mapa Municipal Estatístico",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística, Diretoria de Geociências",
+      "municipal_product_code": "2302602",
+      "collection": "Censo Demográfico 2010, Mapas Municipais Estatísticos",
+      "edition_as_printed": "7/18/2011",
+      "scale": "1:100,000",
+      "publication_identity": "Individually issued IBGE Censo Demográfico 2010 municipal statistical compilation, with its own geographic footprint, municipal geocode and CCAR/CETE credits. It is distinct from the IPECE Atlas de Divisas Municipais project, COGERH Curu diagnosis, INEMA regional plans and the held Breves/Glória municipal products. Shared systematic-map inputs mean these are not claimed as independent hydrological surveys.",
+      "actually_read_scope": "Complete original single-sheet overview; enlarged lower Coreaú, Salina Santo Antônio surroundings, Ilha da Trindade channel setting, Camocim and Barra do Camocim into the Atlantic. Title, scale, chronology, compilation and reproduction notices read.",
+      "original_map_pixels_inspected": true,
+      "source_use_limits": "IBGE reproduction rights reserved. Only bounded own factual observations and normal bibliography are prepared. Original maps, source crops, orientation overlays and full coordinate paths remain private. Historical generalized cartography does not establish current flows, shorelines, infrastructure operation or a formal name registry. The municipal compilation note states that systematic mapping and the municipal mesh were combined semi-automatically, without full integration/completeness treatment.",
+      "acquisition_outcome": "One normal direct original-file request completed HTTP200 application/pdf. The completed file was then read locally; no partial body, fallback or retry was used.",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/ce/camocim_v2.pdf"
+    },
+    {
+      "source_key": "r178-pena-huaura-masters-2008",
+      "title": "Hidrogeología de la cuenca del río Huaura – Perú",
+      "author": "Fluguer Peña Laureano",
+      "institutional_context": "Master Oficial en Hidrología y Gestión de Recursos Hídricos, Universidad de Alcalá / Universidad Rey Juan Carlos, with INGEMMET support; tutor Irene de Bustamante.",
+      "publisher_or_host": "INGEMMET library hosts the university project original, library identifier TE0085.",
+      "edition": "Cover: España 2008; inspected project maps: Mayo 2008. PDF file metadata carries a later 2011 generation date, not used as publication date.",
+      "official_url": "https://app.ingemmet.gob.pe/biblioteca/pdf/TE0085.pdf",
+      "source_type": "Original university field-hydrogeology project and accompanying original project cartography.",
+      "original_acquired": true,
+      "original_read": true,
+      "map_pixels_read": true,
+      "actual_read_scope": [
+        "Cover and title/imprint, PDF p1; contents and map list, PDF pp2–3 and p6.",
+        "Project background, objectives and field methodology, PDF pp9–14; independent July 2007 and January–February 2008 inventory and subsequent project-map preparation.",
+        "Figure 2.1, Ubicación de la cuenca río Huaura, PDF p16; Figure 3.1, Geomorfológico, PDF p23 (regional orientation).",
+        "Figure 3.3, Isoyetas de la cuenca del río Huaura, PDF p38, including separate northern-opening, upper, middle and lower readable enlargements.",
+        "Section 3.3.1.5, Escorrentía superficial, PDF p41 / printed p33; relevant lake and upper-river naming prose.",
+        "Mapa 2, Inventario de fuentes, PDF p44 / printed p36; full original map, credits/legend and separate upper, middle and lower readable enlargements.",
+        "Mapa 6, Vulnerabilidad de acuíferos, PDF p79 / printed p71; whole map, credits and northern lake-corridor enlargement.",
+        "Only the relevant Quichas–Ushpa/Surasaca/Pucarangra field-inventory rows in the appendix were text-inspected for source context; these are not asserted as independently surveyed channel geometry."
+      ],
+      "map_provenance": "Inspected map titleblocks identify this university Huaura project, its author, tutor and May 2008 date. Mapa 2 and Mapa 6 credit geological bases by J. A. Cobbing and J. J. Garayar (1971), Darwin Romero Fernández and Oswaldo Omar La Torre Borda (2003), and digital version Mario Sánchez Díaz (2007). Figure 3.1 states INGEMMET 2008. Map grids identify UTM zone 18 and WGS84; Mapa 2 and Mapa 6 show 1:500,000. These ordinary regional bases are not treated as exact modern hydrography.",
+      "distinct_publication_basis": "The actual cover and methods affirm a university degree project based on a Huaura basin field inventory and its own thematic-map preparation. It is neither the Ica H3 hydrogeology publication, the Santa Ana/Laramate quadrangle revisions, the stopped Pativilca flood-treatment study, a MTC road-map publication, nor the held ANA Chancay-Lambayeque plan/service. No unresolved held-publication figure identity was observed in the materials used.",
+      "use_limits": "No special officials-only, distribution-limited or permission-before-citation notice was observed in the inspected cover, methods or map titleblocks. No general redistribution license is asserted. Only bounded own factual observations and normal bibliography are public-ready; originals, extracted maps and all private reading aids remain excluded."
+    },
+    {
+      "source_key": "USGSTOPO_R178_SILVIES_OPENING_SENECA",
+      "title": "USGS Topo, upper Silvies River opening, Bear Valley and Seneca",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Independently maintained National Map USGSTopo seamless multiscale reference-cartography project, affirmatively identified in retained service metadata. These five views are bounded readings of one service, not five independent publications. The project is distinct from held USGS reports, plates and station publications.",
+      "access_date_utc": "2026-10-12",
+      "acquisition_outcome": "Direct bounded original PNG acquisition completed HTTP200. All five requests were serialized and terminated successfully; no retry, alternate route or partial reading was used.",
+      "actual_material_read": "Four original-pixel crops spanning the chosen western opening, northern and eastern Bear Valley, Seneca, Soda Valley, Fisk Gulch and Silvies; source channels and labels were visually read.",
+      "evidence_type": "Original primary cartography",
+      "limits": "Ordinary geographic and named-component correspondence only. No registry, exact bank, present flow, water-level, navigation or managed-operation verification. Originals and private orientation aids are not public deliverables."
+    },
+    {
+      "source_key": "USGSTOPO_R178_SILVIES_VALLEY_CANYON",
+      "title": "USGS Topo, Silvies valley, westward canyon bend and lower canyon",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Independently maintained National Map USGSTopo seamless multiscale reference-cartography project, affirmatively identified in retained service metadata. These five views are bounded readings of one service, not five independent publications. The project is distinct from held USGS reports, plates and station publications.",
+      "access_date_utc": "2026-10-12",
+      "acquisition_outcome": "Direct bounded original PNG acquisition completed HTTP200. All five requests were serialized and terminated successfully; no retry, alternate route or partial reading was used.",
+      "actual_material_read": "Four original-pixel crops spanning Silvies valley, the westward Trout Creek vicinity turn, canyon tributary joins, the Myrtle Creek bend and the southward river corridor.",
+      "evidence_type": "Original primary cartography",
+      "limits": "Ordinary geographic and named-component correspondence only. No registry, exact bank, present flow, water-level, navigation or managed-operation verification. Originals and private orientation aids are not public deliverables."
+    },
+    {
+      "source_key": "USGSTOPO_R178_SILVIES_BURNS",
+      "title": "USGS Topo, Silvies Canyon and Burns valley",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Independently maintained National Map USGSTopo seamless multiscale reference-cartography project, affirmatively identified in retained service metadata. These five views are bounded readings of one service, not five independent publications. The project is distinct from held USGS reports, plates and station publications.",
+      "access_date_utc": "2026-10-12",
+      "acquisition_outcome": "Direct bounded original PNG acquisition completed HTTP200. All five requests were serialized and terminated successfully; no retry, alternate route or partial reading was used.",
+      "actual_material_read": "Three original-pixel crops spanning lower canyon joins, Charlie Creek and Thousand Spring Creek surroundings, Burns, side reservoirs and the divided floodplain channel setting.",
+      "evidence_type": "Original primary cartography",
+      "limits": "Ordinary geographic and named-component correspondence only. No registry, exact bank, present flow, water-level, navigation or managed-operation verification. Originals and private orientation aids are not public deliverables."
+    },
+    {
+      "source_key": "USGSTOPO_R178_SILVIES_MALHEUR_TERMINAL",
+      "title": "USGS Topo, Burns eastern branch network and Malheur Lake terminal",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Independently maintained National Map USGSTopo seamless multiscale reference-cartography project, affirmatively identified in retained service metadata. These five views are bounded readings of one service, not five independent publications. The project is distinct from held USGS reports, plates and station publications.",
+      "access_date_utc": "2026-10-12",
+      "acquisition_outcome": "Direct bounded original PNG acquisition completed HTTP200. All five requests were serialized and terminated successfully; no retry, alternate route or partial reading was used.",
+      "actual_material_read": "Four original-pixel crops spanning the Burns marsh transfer, Embree Slough and East Fork joining setting, lower East and West Fork surroundings, named sloughs, northern lake margin and actual selected lake endpoint.",
+      "evidence_type": "Original primary cartography",
+      "limits": "Ordinary geographic and named-component correspondence only. No registry, exact bank, present flow, water-level, navigation or managed-operation verification. Originals and private orientation aids are not public deliverables."
+    },
+    {
+      "source_key": "USGSTOPO_R178_SILVIES_LOWER_TRANSFER_DETAIL",
+      "title": "USGS Topo, lower Silvies fork and slough transfer detail",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Independently maintained National Map USGSTopo seamless multiscale reference-cartography project, affirmatively identified in retained service metadata. These five views are bounded readings of one service, not five independent publications. The project is distinct from held USGS reports, plates and station publications.",
+      "access_date_utc": "2026-10-12",
+      "acquisition_outcome": "Direct bounded original PNG acquisition completed HTTP200. All five requests were serialized and terminated successfully; no retry, alternate route or partial reading was used.",
+      "actual_material_read": "Two original-pixel crops spanning East Fork, Square Well Slough, Black Slough, the intervening terrain toward West Fork, Lawen Lane and the northern Malheur Lake fringe.",
+      "evidence_type": "Original primary cartography",
+      "limits": "Ordinary geographic and named-component correspondence only. No registry, exact bank, present flow, water-level, navigation or managed-operation verification. Originals and private orientation aids are not public deliverables."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:80148544",
+      "source_keys": [],
+      "correspondence": [
+        {
+          "fragments": [
+            2574
+          ],
+          "component_scope": "Chosen northwestern opening and eastward upper approach",
+          "finding": "The pinned selection opens in the northwestern interior and runs eastward. No permitted original map has established its actual feeder, initial lake or wetland passage, or the entry into the following selected reach.",
+          "sources": [],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2574
+          ],
+          "component_scope": "Southeastern upper continuation and northern-to-middle transfer",
+          "finding": "The selection bends southeast and continues into the central corridor. Source correspondence for the complete through-link, any intervening lakes or wet ground, and lateral junctions is missing.",
+          "sources": [],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2574
+          ],
+          "component_scope": "Westward middle bend and return toward the east",
+          "finding": "The selected course bends southwest before returning southeast. No permissible original observation distinguishes a genuine connected river/lake passage from a modeled transfer between neighboring waters.",
+          "sources": [],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2574
+          ],
+          "component_scope": "Eastward middle passage",
+          "finding": "The selected course follows a comparatively long eastward corridor. Its water-body identities, intervening narrows, lateral joins and connection to the southbound continuation are unestablished.",
+          "sources": [],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2574
+          ],
+          "component_scope": "Southbound continuation",
+          "finding": "The selection turns south through several short stored parts. Independent cartographic correspondence has not established the continuous channel or any lake/wetland connectors in this portion.",
+          "sources": [],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2574
+          ],
+          "component_scope": "Southeastern lower approach",
+          "finding": "The selected lower approach runs southeast, turns east, then south. The connected natural watercourse, tributary entries and any distinct named reaches remain unverified.",
+          "sources": [],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2574
+          ],
+          "component_scope": "Lower southbound reach and actual selected terminal",
+          "finding": "The final selected course turns south and then southeast toward the coastal region. No permitted original map establishes the actual outlet channel, receiving bay, intervening estuarine waters, or the relationship between the last rendered position and the true coastal water passage. The model sea classification is not independent terminal evidence.",
+          "sources": [],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60596037",
+      "source_keys": [
+        "r178-ibge-ceara2015",
+        "r178-ibge-mucambo2010",
+        "r178-ibge-frecheirinha2010",
+        "r178-ibge-granja2010",
+        "r178-ibge-camocim2010"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13764
+          ],
+          "component_scope": "Actual chosen headward opening and small waterbodies",
+          "finding": "The chosen opening is the mapped local drainage near Poço Verde, continuing northeast through the Muriçoca/Aquiraz and Tiraíde road-corridor setting. Small filled waterbodies interrupt the mapped stream. Their connected approach and exit corridors are depicted; no individual reservoir name or present operation is assigned. The separate Ibiapina and Pedra de Fogo waterbodies east of this approach are not inserted into the selection.",
+          "sources": [
+            "r178-ibge-mucambo2010",
+            "r178-ibge-ceara2015"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13764
+          ],
+          "component_scope": "Distinct upper named reach and northern seam",
+          "finding": "The selected upper continuation follows the Jatobá-labelled drainage by Tingui and Pé do Morro toward Água Branca. The municipal footprints and regional sheet establish its northward continuation. Jatobá is retained as a distinct component name; a precise Jatobá-to-Coreaú naming boundary is not asserted.",
+          "sources": [
+            "r178-ibge-mucambo2010",
+            "r178-ibge-frecheirinha2010",
+            "r178-ibge-ceara2015"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13764
+          ],
+          "component_scope": "Frecheirinha eastern passage",
+          "finding": "The selected route is the eastern river corridor past Caiçara de Cima, the Frecheirinha road-crossing setting and Caiçara de Baixo/Jenipapo. Its joins with local drainage and continuation northeast are visible. The west-side Juazeiro, Lagoa do Barro and other ponds remain separate geographical features.",
+          "sources": [
+            "r178-ibge-frecheirinha2010",
+            "r178-ibge-ceara2015"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13764
+          ],
+          "component_scope": "Northeastern continuation into Coreaú",
+          "finding": "The state original directly labels and continuously maps the selected river from the Frecheirinha continuation toward Coreaú. Its river bends, town-side passage and northern continuation correspond at regional scale. This interval relies partly on the generalized 1:650,000 sheet; the more detailed Granja sheet overlaps the Coreaú end, rather than supplying nonexistent detailed coverage of the entire southern interval.",
+          "sources": [
+            "r178-ibge-ceara2015",
+            "r178-ibge-granja2010"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13764
+          ],
+          "component_scope": "Coreaú, tributary joins and Moraújo",
+          "finding": "The original follows Coreaú past the distinct western Rio Juazeiro approach, through Moraújo and the Enjeitado junction, then past Várzea Redonda and Jordão. Várzea da Volta waterbody to the east and western tributary impoundments are off the selected through-route. No managed transfer is needed to explain the depicted river connection.",
+          "sources": [
+            "r178-ibge-granja2010",
+            "r178-ibge-ceara2015"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13764
+          ],
+          "component_scope": "Campanário, Estreito and Palestina",
+          "finding": "The river continues through the Campanário crossing, enlarged channel bends and side-channel reaches toward Estreito and Palestina. Salão/Porcos-side drainage and other local joins are depicted separately. The selected through-course is a continuous mapped river corridor, not an inferred connection between nearby labels; no distinct lake name is assigned to widened reaches.",
+          "sources": [
+            "r178-ibge-granja2010",
+            "r178-ibge-ceara2015"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13764
+          ],
+          "component_scope": "Lower bends and Granja passage",
+          "finding": "Adjoining Granja sheets follow the northwestern river bends and the separately mapped Saíri, Campo Grande and Gangorra-side approaches, then the Granja crossing and Cachoeira/Torrão continuation. Sheet overlap and the Camocim original establish the downstream continuation. Adjacent ponds and tributaries are not treated as selected fragments.",
+          "sources": [
+            "r178-ibge-granja2010",
+            "r178-ibge-camocim2010",
+            "r178-ibge-ceara2015"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13764
+          ],
+          "component_scope": "Lower saline and floodplain corridor",
+          "finding": "The named lower river passes the flood-prone/saline mapped landscape near Salina Santo Antônio, Cândido Silva and Morro Vermelho, then the widening channel toward Camocim. Saline areas and side channels are separately visible. The evidence establishes the ordinary through-river geography, not a presently operating saltworks transfer or perennial freshwater continuity.",
+          "sources": [
+            "r178-ibge-granja2010",
+            "r178-ibge-camocim2010"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13764
+          ],
+          "component_scope": "True selected coastal terminal",
+          "finding": "The actual final selected part is followed through the Ilha da Trindade estuarine channel setting toward Barra do Camocim and the Atlantic transition northeast of Camocim. The connected estuarine branches are depicted on the original. The endpoint is not relocated to Guriú or another coastal outlet. No exact modern bank, surveyed mouth point or current tidal state is claimed.",
+          "sources": [
+            "r178-ibge-camocim2010",
+            "r178-ibge-ceara2015"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61052628",
+      "source_keys": [
+        "r178-pena-huaura-masters-2008"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13871
+          ],
+          "component_scope": "Actual northern selected opening and lake passage",
+          "finding": "The northern blue drainage in Figure 3.3 and the inventory map matches the chosen opening and southeastward approach to the elongated Surasaca lake. The waterbody and its southern continuation are distinguishable in the project maps, including the less symbol-obscured vulnerability map. The initial small channel is not separately named.",
+          "sources": [
+            "r178-pena-huaura-masters-2008"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            13871
+          ],
+          "component_scope": "Lake outlet and southward upper valley to Oyón",
+          "finding": "The lake-side southern continuation proceeds through the Fundición/Quichas upper valley toward Oyón. The selected route is distinct from the western Ushpa-side drainage and eastern Pampahuay–Patón branch. Section 3.3.1.5 calls the upper river Quichas until the Oyón/Pampahuay junction setting; it does not supply an exact naming vertex.",
+          "sources": [
+            "r178-pena-huaura-masters-2008"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "candidate_name": "Río Quichas"
+        },
+        {
+          "fragments": [
+            13871
+          ],
+          "component_scope": "Upper Huaura bend, Churín approach and receiving junctions",
+          "finding": "The selected course turns southwest below Oyón, continues by the Churín setting and joins the eastern Checras drainage before its westward bend near Pampa Libre. The inventory map separates the Pampahuay–Patón, Huaura–Churín and Checras subbasins while showing their actual blue-channel connections. The named tributary branches are not relabeled as the selected trunk.",
+          "sources": [
+            "r178-pena-huaura-masters-2008"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "candidate_name": "Río Huaura"
+        },
+        {
+          "fragments": [
+            13871
+          ],
+          "component_scope": "Middle southwestern valley and approach to Sayán",
+          "finding": "The continuous receiving channel runs southwest from the western bend past the Pampa Libre/Alco corridor toward Aquia and Sayán. Both the inventory map and the isohyet map expose the intermediate bends and side-drainage joins along the chosen course.",
+          "sources": [
+            "r178-pena-huaura-masters-2008"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "candidate_name": "Río Huaura"
+        },
+        {
+          "fragments": [
+            13871
+          ],
+          "component_scope": "Sayán junction and westward lower-valley turn",
+          "finding": "The selected northeast approach reaches the Sayán confluence setting and turns west through the Andahuasi valley. The southeastern Río Chico–Auquimarca branch is distinguishable from the selected incoming course and joins the common lower Huaura. The selected westward continuation is visible across the turn and lower tributary junctions.",
+          "sources": [
+            "r178-pena-huaura-masters-2008"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "candidate_name": "Río Huaura"
+        },
+        {
+          "fragments": [
+            13871
+          ],
+          "component_scope": "Lower Huaura and selected Pacific terminal",
+          "finding": "The original maps label the lower westward river Huaura and depict its continuous route through the Humaya/Huaura setting to the Pacific coast. The chosen terminal corresponds to that mouth, rather than to the separate drainage farther south near Huacho. The final westward and southwestward coastal approach is covered.",
+          "sources": [
+            "r178-pena-huaura-masters-2008"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "candidate_name": "Río Huaura"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70478140",
+      "source_keys": [
+        "USGSTOPO_R178_SILVIES_OPENING_SENECA",
+        "USGSTOPO_R178_SILVIES_VALLEY_CANYON",
+        "USGSTOPO_R178_SILVIES_BURNS",
+        "USGSTOPO_R178_SILVIES_MALHEUR_TERMINAL",
+        "USGSTOPO_R178_SILVIES_LOWER_TRANSFER_DETAIL"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9737
+          ],
+          "component_scope": "Chosen western opening and upper Silvies River approach",
+          "finding": "The chosen opening is in the mapped upper Silvies River valley southwest of its Wickiup Creek joining setting. Original cartography labels the river on this northern approach and depicts a connected channel past the Snowshoe Creek, Wickiup Creek and Cold Creek joining settings toward Bear Valley. The simplified initial northeast segment clips local bends and hillsides; this finding establishes the ordinary valley and joining relationships, not an exact all-water straight line or the official ultimate river source.",
+          "sources": [
+            "USGSTOPO_R178_SILVIES_OPENING_SENECA"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9737
+          ],
+          "component_scope": "Bear Valley eastward bend and southward river",
+          "finding": "The named Silvies River enters the western Bear Valley wetland setting, continues east through a depicted meandering channel, and turns south near Camp Creek and Windy Point. The original shows the Jack Creek, Scotty Creek and Damon Creek joining surroundings and an uninterrupted trunk toward Seneca. Sproul Reservoir is a separate side waterbody in the Hay Creek/Swamp Creek surroundings and is not the selected mainstem passage.",
+          "sources": [
+            "USGSTOPO_R178_SILVIES_OPENING_SENECA"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9737
+          ],
+          "component_scope": "Seneca, Soda Valley and the upper canyon",
+          "finding": "The river receives the Bear Creek channel north of Seneca and continues through Seneca into Soda Valley. Mapped river water and successive canyon bends establish the selected southward route past Soda Spring and Fisk Gulch to the Silvies valley. Southworth Ditch is distinguished from Bear Creek. Pronghorn Reservoir lies east of the selected trunk and is not a through-reservoir component.",
+          "sources": [
+            "USGSTOPO_R178_SILVIES_OPENING_SENECA",
+            "USGSTOPO_R178_SILVIES_VALLEY_CANYON"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9737
+          ],
+          "component_scope": "Silvies valley and the westward canyon turn",
+          "finding": "The mapped Silvies River continues south past Silvies and its airport, the Jump Creek and Bridge Creek surroundings, then through the broad wetland valley across the Grant–Harney county boundary. Buffalo Lake lies west of the river and is not a selected lake crossing. Near the Trout Creek joining setting, the selected river turns west into the canyon; the original depicts the river connection itself rather than merely a valley label.",
+          "sources": [
+            "USGSTOPO_R178_SILVIES_OPENING_SENECA",
+            "USGSTOPO_R178_SILVIES_VALLEY_CANYON"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9737
+          ],
+          "component_scope": "Canyon through the western bend and lower north–south reach",
+          "finding": "The original river continues west and southwest past the Boulder Creek, Bellows Creek, Sage Hen Creek and Starrcliff Creek joining settings, then through the major western bend below the Myrtle Creek surroundings. It subsequently turns south along a confined valley and receives the Emigrant Creek and Landing Creek approaches. The selected geometry clips individual canyon meanders, while the continuous mapped channel establishes the same ordinary through-corridor. These tributaries retain separate identities.",
+          "sources": [
+            "USGSTOPO_R178_SILVIES_VALLEY_CANYON",
+            "USGSTOPO_R178_SILVIES_BURNS"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9737
+          ],
+          "component_scope": "Silvies Canyon and the approach to Burns",
+          "finding": "The selected main corridor continues through Silvies Canyon, the Charlie Creek joining setting and the Thousand Spring Creek surroundings into the broad valley north of Burns. The original distinguishes the Silvies River trunk, Foley Slough and other floodplain channels. Arntz Reservoir and Paiute Reservoir are separately mapped side waterbodies, not selected through-reservoir passages. The main trunk is established to the Burns-area wetland setting; the subsequent modeled eastern route is considered separately below.",
+          "sources": [
+            "USGSTOPO_R178_SILVIES_BURNS",
+            "USGSTOPO_R178_SILVIES_MALHEUR_TERMINAL"
+          ],
+          "correspondence": "supported_main_trunk_and_local_branch_context",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9737
+          ],
+          "component_scope": "Burns wetland passage toward the eastern branch network",
+          "finding": "The source distinguishes the Silvies River through Burns, the named East Fork farther south, Foley Slough east of the trunk and Embree Slough farther east. The selected route leaves the established trunk corridor, crosses the Burns-area marsh between the separately depicted channels and heads toward the Embree Slough surroundings. The inspected originals show wetlands, drainage lines and canals but do not establish all of this selected through-transfer. Marsh symbols, common basin context and the nearby East Fork name are not treated as a substitute for the missing connection.",
+          "sources": [
+            "USGSTOPO_R178_SILVIES_BURNS",
+            "USGSTOPO_R178_SILVIES_MALHEUR_TERMINAL"
+          ],
+          "correspondence": "material_selected_transfer_not_established",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            9737
+          ],
+          "component_scope": "Embree Slough, East Fork and the lower southeast corridor",
+          "finding": "Embree Slough is separately labelled and its lower channel joins the East Fork Silvies River near the Embree Bridge Road setting. The original shows the East Fork continuing southeast through the broad wetland corridor toward Lawen and South Harney Road. These local channels and their joining relationship are supported, while the preceding selected Burns-to-Embree passage remains unresolved. West Fork Silvies River is a distinct western channel, not an alternate label applied indiscriminately to the East Fork.",
+          "sources": [
+            "USGSTOPO_R178_SILVIES_MALHEUR_TERMINAL"
+          ],
+          "correspondence": "supported_local_corridors_and_join_with_upstream_transfer_pending",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9737
+          ],
+          "component_scope": "East Fork, Square Well Slough and Black Slough surroundings",
+          "finding": "The detailed original distinguishes the East Fork continuing east and southeast, Square Well Slough in its looped western setting and Black Slough in the intervening wetland network. A mapped side-channel relationship and the named slough surroundings can be read, but they do not establish the selected southward through-passage from this network toward the West Fork. The selected extension crosses intervening patchy wetland, channel and non-wetland terrain; no continuous corresponding transfer is established by the regional or final detailed original.",
+          "sources": [
+            "USGSTOPO_R178_SILVIES_MALHEUR_TERMINAL",
+            "USGSTOPO_R178_SILVIES_LOWER_TRANSFER_DETAIL"
+          ],
+          "correspondence": "local_named_features_supported_full_selected_southward_transfer_not_established",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            9737
+          ],
+          "component_scope": "West Fork approach, lake-margin wetland and actual terminal",
+          "finding": "The source clearly labels West Fork Silvies River near Lawen Lane and in the northern Malheur Lake wetland fringe. The actual selected endpoint is inside the cartographically depicted Malheur Lake waterbody. This terminal identification comes from the inspected original and the supplied endpoint location, rather than substituting a familiar closed-basin lake. However, the unresolved incoming transfer from the East Fork/Black Slough surroundings and the full selected continuation across the lake-margin wetland are not established as a continuous source-depicted route. The mapped lake extent is cartographic evidence, not a statement of current water level or contemporary shoreline.",
+          "sources": [
+            "USGSTOPO_R178_SILVIES_MALHEUR_TERMINAL",
+            "USGSTOPO_R178_SILVIES_LOWER_TRANSFER_DETAIL"
+          ],
+          "correspondence": "actual_terminal_supported_selected_approach_incomplete",
+          "component_correspondence_completed": false
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "AAFC NLUIS Northern Land Use map index",
+      "observed_outcome": "Erroneous new web-reader acquisition of an index already held for an unresolved older direct-request outcome. Text was returned, then excluded; no new HTTP denial is asserted.",
+      "outcome_layer": "Inherited historical outcome uncertainty plus erroneous fresh reader acquisition.",
+      "newly_observed_access_failure": false,
+      "earlier_lawful_observations": "Only already recorded pre-hold bibliography, within its stated scope.",
+      "aw_id": "hydro-system:80148544",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html",
+      "restriction_scope": "Whole index and equivalent acquisition routes remain held pending affirmative reconciliation. Fresh index content cannot establish clearance or be used as research evidence. This is not a blanket NLUIS-series ban."
+    },
+    {
+      "publication": "NLUIS sheet56G original map",
+      "observed_outcome": "One subsequent direct original request completed HTTP200 image/jpeg; no source content was read or used.",
+      "outcome_layer": "Completed direct HTTP transfer; no source access-control denial observed.",
+      "newly_observed_access_failure": false,
+      "earlier_lawful_observations": null,
+      "aw_id": "hydro-system:80148544",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_56g.jpg",
+      "restriction_scope": "Further acquisition and any output/map reading remain paused pending the unresolved index-to-map acquisition relationship. Successful transfer does not authorize content use or resolve the held index."
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "source_key": "r178-ibge-ceara2015",
+      "kind": "Reproduction and cartographic-interpretation limits, not access denial",
+      "limits": "IBGE reproduction rights reserved. Only bounded own factual observations and normal bibliography are prepared. Original maps, source crops, orientation overlays and full coordinate paths remain private. Historical generalized cartography does not establish current flows, shorelines, infrastructure operation or a formal name registry.",
+      "aw_id": "hydro-system:60596037",
+      "acquisition_stop": false
+    },
+    {
+      "source_key": "r178-ibge-mucambo2010",
+      "kind": "Reproduction and cartographic-interpretation limits, not access denial",
+      "limits": "IBGE reproduction rights reserved. Only bounded own factual observations and normal bibliography are prepared. Original maps, source crops, orientation overlays and full coordinate paths remain private. Historical generalized cartography does not establish current flows, shorelines, infrastructure operation or a formal name registry. The municipal compilation note states that systematic mapping and the municipal mesh were combined semi-automatically, without full integration/completeness treatment.",
+      "aw_id": "hydro-system:60596037",
+      "acquisition_stop": false
+    },
+    {
+      "source_key": "r178-ibge-frecheirinha2010",
+      "kind": "Reproduction and cartographic-interpretation limits, not access denial",
+      "limits": "IBGE reproduction rights reserved. Only bounded own factual observations and normal bibliography are prepared. Original maps, source crops, orientation overlays and full coordinate paths remain private. Historical generalized cartography does not establish current flows, shorelines, infrastructure operation or a formal name registry. The municipal compilation note states that systematic mapping and the municipal mesh were combined semi-automatically, without full integration/completeness treatment.",
+      "aw_id": "hydro-system:60596037",
+      "acquisition_stop": false
+    },
+    {
+      "source_key": "r178-ibge-granja2010",
+      "kind": "Reproduction and cartographic-interpretation limits, not access denial",
+      "limits": "IBGE reproduction rights reserved. Only bounded own factual observations and normal bibliography are prepared. Original maps, source crops, orientation overlays and full coordinate paths remain private. Historical generalized cartography does not establish current flows, shorelines, infrastructure operation or a formal name registry. The municipal compilation note states that systematic mapping and the municipal mesh were combined semi-automatically, without full integration/completeness treatment.",
+      "aw_id": "hydro-system:60596037",
+      "acquisition_stop": false
+    },
+    {
+      "source_key": "r178-ibge-camocim2010",
+      "kind": "Reproduction and cartographic-interpretation limits, not access denial",
+      "limits": "IBGE reproduction rights reserved. Only bounded own factual observations and normal bibliography are prepared. Original maps, source crops, orientation overlays and full coordinate paths remain private. Historical generalized cartography does not establish current flows, shorelines, infrastructure operation or a formal name registry. The municipal compilation note states that systematic mapping and the municipal mesh were combined semi-automatically, without full integration/completeness treatment.",
+      "aw_id": "hydro-system:60596037",
+      "acquisition_stop": false
+    },
+    {
+      "source_key": "r178-pena-huaura-masters-2008",
+      "kind": "bounded_source_use_only",
+      "access_stop": false,
+      "aw_id": "hydro-system:61052628",
+      "acquisition_stop": false,
+      "restriction_scope": "Only own factual synthesis and bibliography; no original PDF, source map, derivative crop/overlay, full coordinate trace, source fingerprint or private acquisition material is public-ready."
+    },
+    {
+      "publication": "USGSTopo, The National Map",
+      "observed_outcome": "Five bounded original view requests completed HTTP200 and image content, and the originals were visually inspected.",
+      "outcome_layer": "Substantive cartographic correspondence limitation, not an access, transport, reader or HTTP failure.",
+      "limitation_kind": "material_lower_wetland_and_interbranch_connector_gaps",
+      "use_boundary": "Own bounded factual synthesis and ordinary bibliography only. Source images, derivatives and full selected coordinates are not redistributed.",
+      "aw_id": "hydro-system:70478140",
+      "acquisition_stop": false,
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "restriction_scope": "Only the unestablished selected lower transfers and lake-margin continuation. Supported upper and middle river observations, named lower components and actual lake endpoint remain usable. No service-wide acquisition restriction is inferred."
+    }
+  ]
+}

@@ -1,0 +1,630 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r179",
+  "sources": [
+    {
+      "source_key": "r179-cehq-regions0713-annual-2014",
+      "title": "Débits spécifiques d’étiage annuels — Régions hydrographiques 07 et 13",
+      "publisher": "Gouvernement du Québec, Centre d’expertise hydrique du Québec",
+      "authors": [
+        "Marie-Lise Paquin, cartographie",
+        "Eric Levasseur, cartographie"
+      ],
+      "approval_credit": "Joëlle Bérubé",
+      "edition": "July 2011; updated December 2014",
+      "scale": "1:2,250,000",
+      "cartographic_base": "BDGA 1:1,000,000; NAD83 Québec Lambert",
+      "official_url": "https://www.cehq.gouv.qc.ca/debit-etiage/cartes/debit_etiage_07_13specifique_annuel.pdf",
+      "access_date_utc": "2026-10-12",
+      "acquired_scope": "Complete normal-original PDF request terminated successfully with HTTP200 and application/pdf. No partial-download reading or alternate acquisition occurred.",
+      "actually_inspected": "Single-sheet whole-map overview; original readable Manitou corridor from selected opening to coast; title, legend and cartographic credits. Private selected-path orientation was checked against the unmarked original.",
+      "supports": "Named Manitou corridor, separate Lac Manitou and Lac des Eudistes passages, intervening river and neighboring-drainage separation.",
+      "limits": "Generalized regional mapping omits the opening connection and does not resolve the actual final estuarine connection. Low-flow estimates, regulation and present operating conditions are outside this finding.",
+      "publication_independence": "The exact independently issued CEHQ hydrologic low-flow-map project and credits were positively documented in earlier r65/r68/r77 bibliography; it is not a substitute format of geological companion maps, CanMatrix or CBMT3978.",
+      "source_use_limits": "No redistribution permission inferred. Original map and private reading aids are excluded from public output; only bounded factual observations and normal bibliography may be published."
+    },
+    {
+      "source_key": "r179-archambault-parkscanada-2002",
+      "title": "Région naturelle n° 20 « Les Hautes-terres boréales laurentiennes » : Synthèse des connaissances et analyse comparative de trois sites d’intérêt, rivières Manitou, Magpie et Mingan",
+      "authors": [
+        "Sylvain Archambault"
+      ],
+      "commissioning_body": "Ministère du Patrimoine canadien, Agence Parcs Canada",
+      "edition": "May 2002",
+      "bibliographic_extent": "viii, 212 pages; BAPE Magpie deposit DB10",
+      "official_url": "https://archives.bape.gouv.qc.ca/sections/mandats/magpie/documents/DB10.pdf",
+      "access_date_utc": "2026-10-12",
+      "acquired_scope": "Complete normal-original PDF request terminated successfully with HTTP200 and application/pdf.",
+      "actually_inspected": "Cover/imprint, abstract and contents; methodology sections3.2 and3.4.2, printed pp8 and13; printed pp68–69, section5.5.4; Figures4 and12 visually inspected only for overview and source-credit assessment.",
+      "substantive_scope": "Bounded report-authored prose describes the northwestern small-lake headwater network and lower triangular estuary. This does not identify the exact selected headward link or final estuary-entry point.",
+      "cartographic_evidence_used": false,
+      "excluded_map_reason": "Methodology refers to federal1:50,000 topographic maps without identifying sheets/editions. The inspected Figures4 and12 provide no map-specific base credits sufficient to resolve borrowed-map identity against inherited holds. Their linework is not used to close the gaps or as a recovery of stopped mapping.",
+      "publication_independence": "The commissioned natural-region park-selection comparison has its own biophysical/conservation project purpose and report authorship, distinct from geological-survey reports, OBV Duplessis basin portraits and the Minganie wetland/hydric plan.",
+      "source_use_limits": "No restricted-distribution or citation-permission notice was found in the inspected front matter and notice search; no redistribution right is inferred. Original figures remain private. Excluding uncertain map lineage is an evidence-use boundary, not a newly invented access ban."
+    },
+    {
+      "source_key": "r179-databc-base-metadata-only",
+      "title": "Base, DataBC base/base MapServer",
+      "publisher": "DataBC, Province of British Columbia",
+      "official_url": "https://delivery.maps.gov.bc.ca/arcgis/rest/services/base/base/MapServer",
+      "source_type": "Primary provincial cartographic service; metadata only actually read",
+      "actual_read_scope": "The top-level service metadata opened normally before the first layer failure. It lists Government of BC/DataBC attribution and1:20,000 hydrographic layers21–24. No map exports, original images, raster pixels, vector features or hydronym records were acquired.",
+      "supports": "Publication identity and metadata only; no geographic correspondence or candidate name.",
+      "limits": "The service says it was built for a specific purpose and may change. Its later layer21 reader failure paused this entire publication/equivalents. Later layer22/24 metadata, acquired by an erroneous loop, is excluded.",
+      "use_notice": "DataBC, Province of British Columbia copyright attribution. No original source map or derivative is redistributed."
+    },
+    {
+      "source_key": "USGSTOPO_R179_ANGLE_OPENING",
+      "title": "USGS Topo, Angle Creek glaciated opening and Takayofo Creek junction",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Current National Map USGSTopo seamless multiscale reference-cartography project, positively identified by retained service-description metadata. The four views are bounded readings of one project, not four independent publications. The project is distinct from held USGS reports, plates and station publications.",
+      "access_date_utc": "2026-10-12",
+      "actual_material_read": "One full original overview plus four overlapping original-pixel crops covering the chosen ice-field opening, upper channels, Angle Creek braided corridor and its lower Takayofo Creek joining setting.",
+      "evidence_type": "Original primary cartography",
+      "acquisition_outcome": "Initial direct request ended in a pure connection timeout with no HTTP response or content. The sole identical-URL retry completed HTTP200 with the original PNG, which was read only after termination.",
+      "limits": "Ordinary mapped geographic and named-component correspondence only. No formal-registry verification, exact bank, current ice margin, present flow, water-level, tidal-stage, navigation or operation inference. Original images and private orientation aids are not public deliverables."
+    },
+    {
+      "source_key": "USGSTOPO_R179_TAKAYOFO_KING_SALMON_UPPER",
+      "title": "USGS Topo, Takayofo Creek, Contact Creek and upper King Salmon River",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Current National Map USGSTopo seamless multiscale reference-cartography project, positively identified by retained service-description metadata. The four views are bounded readings of one project, not four independent publications. The project is distinct from held USGS reports, plates and station publications.",
+      "access_date_utc": "2026-10-12",
+      "actual_material_read": "One full original overview plus four overlapping original-pixel crops covering the Takayofo–Contact joining setting, upper King Salmon River, Gertrude Creek and Granite Creek joins and central braids.",
+      "evidence_type": "Original primary cartography",
+      "acquisition_outcome": "One serial direct original PNG request completed HTTP200; original read after termination.",
+      "limits": "Ordinary mapped geographic and named-component correspondence only. No formal-registry verification, exact bank, current ice margin, present flow, water-level, tidal-stage, navigation or operation inference. Original images and private orientation aids are not public deliverables."
+    },
+    {
+      "source_key": "USGSTOPO_R179_KING_SALMON_MIDDLE",
+      "title": "USGS Topo, middle and lower King Salmon River",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Current National Map USGSTopo seamless multiscale reference-cartography project, positively identified by retained service-description metadata. The four views are bounded readings of one project, not four independent publications. The project is distinct from held USGS reports, plates and station publications.",
+      "access_date_utc": "2026-10-12",
+      "actual_material_read": "One full original overview plus four overlapping original-pixel crops covering the entire middle-to-lower braided and meandering river corridor, tributary settings and adjacent lakes.",
+      "evidence_type": "Original primary cartography",
+      "acquisition_outcome": "One serial direct original PNG request completed HTTP200; original read after termination.",
+      "limits": "Ordinary mapped geographic and named-component correspondence only. No formal-registry verification, exact bank, current ice margin, present flow, water-level, tidal-stage, navigation or operation inference. Original images and private orientation aids are not public deliverables."
+    },
+    {
+      "source_key": "USGSTOPO_R179_KING_SALMON_TERMINAL",
+      "title": "USGS Topo, lower King Salmon River and Egegik River receiving-estuary context",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Current National Map USGSTopo seamless multiscale reference-cartography project, positively identified by retained service-description metadata. The four views are bounded readings of one project, not four independent publications. The project is distinct from held USGS reports, plates and station publications.",
+      "access_date_utc": "2026-10-12",
+      "actual_material_read": "One full original overview plus four overlapping original-pixel crops covering the lower braided reach, widening river bends, actual rendered terminal, King Salmon Island and the distinct Egegik River joining surroundings.",
+      "evidence_type": "Original primary cartography",
+      "acquisition_outcome": "One serial direct original PNG request completed HTTP200; original read after termination.",
+      "limits": "Ordinary mapped geographic and named-component correspondence only. No formal-registry verification, exact bank, current ice margin, present flow, water-level, tidal-stage, navigation or operation inference. Original images and private orientation aids are not public deliverables."
+    },
+    {
+      "source_key": "r179-rp11-project-and-drainage-prose",
+      "title": "Ruta Provincial N°11, Provincia de Buenos Aires, Tramo Gral. Conesa–San Clemente del Tuyú: Estudios de Ingeniería y Ambientales / Estudios de Impacto Ambiental",
+      "project_title": "Proyecto de Segunda Calzada y Readecuación de las intersecciones de Gral. Conesa, San Clemente del Tuyú, y Acceso a Gral. Lavalle",
+      "publisher": "Dirección de Vialidad, Ministerio de Infraestructura, Provincia de Buenos Aires",
+      "official_url": "https://www.ambiente.gba.gob.ar/sites/default/files/PCAbstract/PC_EsIA_RP11%20Info%20Proyecto%20%282%29.pdf",
+      "edition": "Cover and project title page: September2014; internal footers: November2013.185pages.",
+      "publication_identity_basis": "An independently issued road-engineering environmental-assessment project, positively identified by its cover, institutional marks and project statement. It is not the IGN topographic mosaic, ADA basin atlas/A4 report or a SEGEMAR geological-sheet publication. Embedded material was separately identified before substantive figure use.",
+      "actual_originals_inspected": "The normal official original completed successfully as a PDF. Front matter/project text on pp.1–12, source-credit and regional-context text on pp.44–57 and60–61, local-drainage prose on pp.61–72, road-corridor text on pp.107 and116–118, and bibliography on p.185 were actually read. Front-matter pp.1–2, credited Figure32 on p.67 and Images4–5 on p.117 were visually inspected. Unrelated basin-atlas and protected-area figures were not used; extracting the PDF text does not imply all pages or figures were read.",
+      "supports": "Historical regional context: the EIA reproduces a2008 General Lavalle fishing-wharf assessment and the2003 UNLP rural-plan drainage account, distinguishing Ría de Ajó discharge from the Rincón de las Tijeras saltmarsh route. It describes Canal2/El Palenque, managed lagoon connections, sluices and tidal constraints. These contextual names are not assigned to the selected system.",
+      "limits": "Regional prose does not establish the selected opening, all19 parts, intervening transfers or final coastal connection. Report dates and cited older works are retained; operating conditions are not treated as current.",
+      "use_notice": "No explicit distribution-limited or citation-permission condition was encountered in the inspected front matter and source-credit material. Only bounded factual synthesis and normal bibliography are supplied; no original or derivative imagery is redistributed."
+    },
+    {
+      "source_key": "r179-unlp-lavalle2003-figure32-in-rp11",
+      "title": "Figure32, Antecedentes – Ubicación y límites de la zona de estudio, reproduced in the RP11 environmental assessment",
+      "credited_publication": "Plan Rural Participativo del Partido de General Lavalle",
+      "credited_publisher": "Departamento de Hidráulica, Facultad de Ingeniería, Universidad Nacional de La Plata; provided to the road study by DIPSOH",
+      "edition": "Underlying municipal rural-drainage study2003; reproduction in the September2014 RP11 assessment with November2013 page footers.",
+      "official_url": "https://www.ambiente.gba.gob.ar/sites/default/files/PCAbstract/PC_EsIA_RP11%20Info%20Proyecto%20%282%29.pdf",
+      "source_locator": "Printed p.67, Figure32; source attribution on p.65, footnote2, and p.185 bibliography.",
+      "publication_identity_basis": "The report explicitly names a municipal rural-drainage planning project, its UNLP department and2003 date. This is affirmative project identity distinct from the held ADA Atlas Cuencas–Etapa I, A4 and provincial protected-area material. The separate underlying report was not requested.",
+      "actual_originals_inspected": "The figure was visually inspected on the completed original PDF page and at native embedded-image resolution, with its legend, caption and source-credit passages.",
+      "supports": "Generalized rural-study context from the Madariaga/lagoon area toward General Lavalle and Bahía Samborombón, with road and place references.",
+      "limits": "This is a low-detail location/study-boundary map rather than proof of every selected hydrological connection. It does not continuously depict or uniquely identify the19-part selected route. No unseen underlying report map is claimed.",
+      "use_notice": "Reproduced figure and all private reading aids remain unshared; credit to the named underlying project is preserved."
+    },
+    {
+      "source_key": "r179-rp11-historical-drainage-images",
+      "title": "Images4–5, Planimetría del sistema de drenajes de la región / Ampliación de mosaico general, in the RP11 environmental assessment",
+      "publisher": "Dirección de Vialidad, Ministerio de Infraestructura, Provincia de Buenos Aires; imagery visibly credited to Google Earth",
+      "official_url": "https://www.ambiente.gba.gob.ar/sites/default/files/PCAbstract/PC_EsIA_RP11%20Info%20Proyecto%20%282%29.pdf",
+      "source_locator": "Printed p.117; Google Earth also listed in p.185 bibliography.",
+      "edition": "Historical image reproduction in the September2014 report; exact source-image acquisition dates not established.",
+      "publication_identity_basis": "Report-assembled, visibly credited satellite views, not a recovery of IGN/ADA/SEGEMAR or protected-area mapping. No request was made to the underlying imagery service.",
+      "actual_originals_inspected": "Both complete image panels and accompanying caption/prose were visually read from the completed original PDF.",
+      "supports": "Visible wet lowland/channel terrain in the vicinity of the road corridor and General Lavalle.",
+      "limits": "The panels have limited geographic extent and resolution; they are not an independent hydrological survey, named through-route, selected-position registration or evidence of current hydraulic operation. The southern opening and outer selected terminal are not established.",
+      "use_notice": "Original imagery, crops and derivatives remain private; only bounded own geographic observations and attribution are retained."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70243977",
+      "source_keys": [
+        "r179-cehq-regions0713-annual-2014",
+        "r179-archambault-parkscanada-2002"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9319
+          ],
+          "component_scope": "Chosen western opening and connection to the depicted upper river",
+          "finding": "The CEHQ original does not depict a continuous watercourse through the chosen western opening. The next eastward reach converges on its mapped upper Manitou, but the omitted link cannot be inferred. Archambault describes a poorly defined northwestern headwater network; this is regional context only.",
+          "sources": [
+            "r179-cehq-regions0713-annual-2014",
+            "r179-archambault-parkscanada-2002"
+          ],
+          "correspondence": "material_gap",
+          "component_correspondence_completed": false,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            9319
+          ],
+          "component_scope": "Upper Manitou valley and approach to the first large lake",
+          "finding": "The selected eastward turn and subsequent southward bends follow the depicted, labeled Manitou corridor toward Lac Manitou. Adjacent western lake-fed and eastern Magpie routes remain distinct.",
+          "sources": [
+            "r179-cehq-regions0713-annual-2014"
+          ],
+          "correspondence": "supported_at_ordinary_regional_corridor_scale",
+          "component_correspondence_completed": true,
+          "candidate_name": "Rivière Manitou"
+        },
+        {
+          "fragments": [
+            9319
+          ],
+          "component_scope": "Lac Manitou approach, longitudinal passage and southern outlet",
+          "finding": "The selected path enters the long north-south lake and continues through its southern outlet. The lake label is separate from the river label; western neighboring Lac Tortue is not substituted for this passage.",
+          "sources": [
+            "r179-cehq-regions0713-annual-2014"
+          ],
+          "correspondence": "supported_lake_passage_at_ordinary_regional_scale",
+          "component_correspondence_completed": true,
+          "candidate_name": "Lac Manitou"
+        },
+        {
+          "fragments": [
+            9319
+          ],
+          "component_scope": "Inter-lake southward corridor, eastern bend and western return",
+          "finding": "The original depicts the connected southward, southeastward and returning westward corridor. Broadened intermediate waters remain unnamed here; no tributary or lake name is supplied from proximity alone.",
+          "sources": [
+            "r179-cehq-regions0713-annual-2014"
+          ],
+          "correspondence": "supported_corridor_with_unnamed_lacustrine_reaches",
+          "component_correspondence_completed": true,
+          "candidate_name": "Rivière Manitou"
+        },
+        {
+          "fragments": [
+            9319
+          ],
+          "component_scope": "Lac des Eudistes passage and southern outlet vicinity",
+          "finding": "The selected eastern-side passage reaches the depicted southern lake outlet and lower river. Lac des Eudistes retains its distinct identity.",
+          "sources": [
+            "r179-cehq-regions0713-annual-2014"
+          ],
+          "correspondence": "supported_lake_passage_at_ordinary_regional_scale",
+          "component_correspondence_completed": true,
+          "candidate_name": "Lac des Eudistes"
+        },
+        {
+          "fragments": [
+            9319
+          ],
+          "component_scope": "Lower Manitou descent and coastal approach",
+          "finding": "The CEHQ river line follows the selected lower descent toward the Saint-Laurent coast. Archambault describes the lower falls and a triangular estuary. These support the receiving coastal setting without identifying the selected endpoint as an exact mouth or tidal boundary.",
+          "sources": [
+            "r179-cehq-regions0713-annual-2014",
+            "r179-archambault-parkscanada-2002"
+          ],
+          "correspondence": "supported_lower_corridor_with_terminal_limit",
+          "component_correspondence_completed": true,
+          "candidate_name": "Rivière Manitou"
+        },
+        {
+          "fragments": [
+            9319
+          ],
+          "component_scope": "Actual selected final point and estuarine connection",
+          "finding": "The final selected point lies on the mapped coastal approach before the generalized coastline. The inspected admissible cartography does not distinguish its relation to the estuary entrance and downstream outlet. A modeled sea-terminal class is not used as physical-source proof.",
+          "sources": [
+            "r179-cehq-regions0713-annual-2014",
+            "r179-archambault-parkscanada-2002"
+          ],
+          "correspondence": "material_gap",
+          "component_correspondence_completed": false,
+          "candidate_name": null
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70170668",
+      "source_keys": [],
+      "correspondence": [
+        {
+          "fragments": [
+            9239
+          ],
+          "component_scope": "eastern_chosen_opening",
+          "finding": "The entire eastern chosen headward part, including its turn toward the west, lacks independently read cartographic correspondence. No source proves its name or connection to a named receiving lake/channel.",
+          "sources": [],
+          "correspondence": "material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            9239
+          ],
+          "component_scope": "upper_westward_parts",
+          "finding": "All seven westward selected parts, potential lake passages, and inter-part receiving links remain unestablished from source cartography. The model route supplies orientation only.",
+          "sources": [],
+          "correspondence": "material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            9239
+          ],
+          "component_scope": "upper_southern_bend",
+          "finding": "The southwestern bend and subsequent northward parts remain unestablished. Nearby or remembered lake names are not assigned; actual through-lake and outlet links have not been observed.",
+          "sources": [],
+          "correspondence": "material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            9239
+          ],
+          "component_scope": "northward_middle_parts",
+          "finding": "All nine northward/northwestern selected parts and any intermediate lake or tributary joins remain without source correspondence.",
+          "sources": [],
+          "correspondence": "material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            9239
+          ],
+          "component_scope": "westward_receiving_join",
+          "finding": "The westward middle corridor, its southwest bend, and receiving-trunk transition lack independent map evidence. No single river name is extended across the modeled junction.",
+          "sources": [],
+          "correspondence": "material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            9239
+          ],
+          "component_scope": "lower_westward_corridor",
+          "finding": "All14 downstream selected parts through the northern bend and westward lower corridor remain unestablished from cartography. No present hydraulic connection or component hydronym is inferred.",
+          "sources": [],
+          "correspondence": "material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            9239
+          ],
+          "component_scope": "coastal_approach_and_fragment_join",
+          "finding": "The final three parts of the larger fragment and their link to FID9240 require source evidence. A modeled adjacency is not proof of the actual coastal connection.",
+          "sources": [],
+          "correspondence": "material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            9240
+          ],
+          "component_scope": "actual_selected_terminal",
+          "finding": "The separate terminal fragment requires ordinary-scale proof of the actual river-mouth/fjord or coastal link. No receiving fjord name, precise mouth, or current shoreline is established.",
+          "sources": [],
+          "correspondence": "material_pending",
+          "component_correspondence_completed": false
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80290543",
+      "source_keys": [
+        "USGSTOPO_R179_ANGLE_OPENING",
+        "USGSTOPO_R179_TAKAYOFO_KING_SALMON_UPPER",
+        "USGSTOPO_R179_KING_SALMON_MIDDLE",
+        "USGSTOPO_R179_KING_SALMON_TERMINAL"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2768
+          ],
+          "component_scope": "Chosen glaciated opening and first approach to Angle Creek",
+          "finding": "The actual chosen opening is within the blue-stippled glaciated terrain southeast of the mapped Angle Creek headward channel. The selection proceeds northwest across the ice and ice-margin setting before meeting the channel network. Original cartography depicts the glacier, adjacent relief and streams beyond its margin, but does not depict a watercourse establishing the full selected opening across the ice. Glacier proximity, topographic descent and model connectivity are insufficient to infer a mapped surface or subglacial hydraulic link. The glacier is not assigned a name.",
+          "sources": [
+            "USGSTOPO_R179_ANGLE_OPENING"
+          ],
+          "correspondence": "material_initial_glacier_to_channel_link_not_established",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2768
+          ],
+          "component_scope": "Angle Creek upper valley, braided reach and southward joining reach",
+          "finding": "Beyond the initial glaciated passage, repeated Angle Creek labels and connected mapped channels establish the westward upper valley, broad braided reach and lower southwest-turning channel. The source distinguishes nearby Windy Creek and the River Lethe drainage on the eastern side of the relief. Angle Creek continues through its lower bends into the separate Takayofo Creek channel. Minor unnamed feeders, braid branches and nearby small lakes retain their distinct component scope; no individual braid is selected as the current active channel.",
+          "sources": [
+            "USGSTOPO_R179_ANGLE_OPENING"
+          ],
+          "correspondence": "mapped_channel_corridor_and_join_supported_after_unestablished_initial_ice_passage",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2768
+          ],
+          "component_scope": "Takayofo Creek and Contact Creek joining setting",
+          "finding": "The selected westward route follows the separately labelled Takayofo Creek below the Angle Creek junction. The mapped Contact Creek channel approaches from the north and joins this westward river. The downstream channel is repeatedly labelled King Salmon River. These original mapped connections establish the tributary-to-receiving-river transition; they do not establish an exact legal name-change vertex. Contact Creek is a distinct incoming tributary, not a selected headwater name.",
+          "sources": [
+            "USGSTOPO_R179_ANGLE_OPENING",
+            "USGSTOPO_R179_TAKAYOFO_KING_SALMON_UPPER"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2768
+          ],
+          "component_scope": "Upper King Salmon River and tributary joins",
+          "finding": "The King Salmon River proceeds west along the mapped valley, turns northwest and enters a broad braided corridor. The Gertrude Creek approach from the south and Granite Creek approach from the north are separately labelled, and their joining settings are visible in the continuous river network. The selected geometry simplifies bends, but the original establishes the same receiving-river corridor and through-connection.",
+          "sources": [
+            "USGSTOPO_R179_TAKAYOFO_KING_SALMON_UPPER"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2768
+          ],
+          "component_scope": "Central braided King Salmon River corridor",
+          "finding": "Overlapping originals show the named King Salmon River continuing west and northwest through interconnected braided channels and islands. Numerous small lakes and wetland areas lie beside the river. The selected main corridor remains within the continuous mapped river valley and does not require an unsupported lake-to-lake or cross-wetland transfer. Side lakes are not renamed as King Salmon River.",
+          "sources": [
+            "USGSTOPO_R179_TAKAYOFO_KING_SALMON_UPPER",
+            "USGSTOPO_R179_KING_SALMON_MIDDLE"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2768
+          ],
+          "component_scope": "Middle river bends and lake-rich surroundings",
+          "finding": "The named river continues through successive broad bends, local channel divisions and the western boundary surroundings of Becharof National Wildlife Refuge. The original depicts the channel links themselves across this entire interval. Adjacent lakes and ponds are separate side waterbodies; no selected through-lake passage or reservoir is shown in this interval.",
+          "sources": [
+            "USGSTOPO_R179_KING_SALMON_MIDDLE"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2768
+          ],
+          "component_scope": "Lower braided river and southwest transition",
+          "finding": "The two western originals overlap across the lower braided reach and establish its continuous transition into the wider, more sinuous southwest-flowing King Salmon River. Nearby floodplain lakes, abandoned-looking loops and small side channels are distinguished from the selected through-corridor. The generalized selection clips local meanders, without creating a regional through-link gap in the inspected mapped river.",
+          "sources": [
+            "USGSTOPO_R179_KING_SALMON_MIDDLE",
+            "USGSTOPO_R179_KING_SALMON_TERMINAL"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2768
+          ],
+          "component_scope": "Lower King Salmon estuarine reach and actual selected terminal",
+          "finding": "The original depicts the final King Salmon River bends widening into a lower estuarine reach beside King Salmon Island. The actual rendered endpoint lies at the eastern margin surroundings of that lower King Salmon reach, north of the island and upstream of the visible joining area with the separately labelled Egegik River. The Egegik River and settlement provide receiving-estuary context, but the selected endpoint is not relocated to their junction, a more distant bay mouth or the open sea. A precise bank, tidal line, distributary choice or legal river-mouth boundary is not assigned.",
+          "sources": [
+            "USGSTOPO_R179_KING_SALMON_TERMINAL"
+          ],
+          "correspondence": "ordinary_terminal_corridor_supported_exact_bank_and_tidal_boundary_unassigned",
+          "component_correspondence_completed": false
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61524461",
+      "source_keys": [
+        "r179-rp11-project-and-drainage-prose",
+        "r179-unlp-lavalle2003-figure32-in-rp11",
+        "r179-rp11-historical-drainage-images"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14482
+          ],
+          "component_scope": "Actual southeastern opening, southwestward reach and southern turn",
+          "finding": "The supplied path begins east of the main southern lagoon district and turns southwest before its southern return. Figure32 is a generalized rural-study location map and does not delineate the chosen opening or its connection into the long northward selected reach. The RP11 satellite panels do not cover this southern opening. No lagoon or channel name is assigned.",
+          "sources": [
+            "r179-unlp-lavalle2003-figure32-in-rp11"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            14482
+          ],
+          "component_scope": "Southern turn and long straight northward corridor",
+          "finding": "The pinned parts are long, nearly north-south segments. The rural map and prose supply a regional lagoon/drainage setting but do not continuously register these particular segments as a mapped channel, canal or connected water route. Straight modeled geometry alone does not establish a drainage-work identity. The southern link and any intervening lagoon passage remain unresolved.",
+          "sources": [
+            "r179-unlp-lavalle2003-figure32-in-rp11",
+            "r179-rp11-project-and-drainage-prose"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            14482
+          ],
+          "component_scope": "Eastern middle corridor and short connecting bends",
+          "finding": "The available rural-study map is too generalized to establish the chosen series of local bends and joins. Regional drainage descriptions cannot distinguish this selected strand from adjacent roads, drains or wetland channels. No named component is supported for the full selected interval.",
+          "sources": [
+            "r179-unlp-lavalle2003-figure32-in-rp11",
+            "r179-rp11-project-and-drainage-prose"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            14482
+          ],
+          "component_scope": "Northward eastern approach and northern westward turn",
+          "finding": "The inspected historical images show the low-lying drainage landscape around the RP11 and General Lavalle area. They lack a selected-route registration or a sufficiently clear continuous depiction of these parts. The regional distinction between an estuarine outlet and the separate coastal saltmarsh outlet cannot be used to choose the selected transfer between them.",
+          "sources": [
+            "r179-unlp-lavalle2003-figure32-in-rp11",
+            "r179-rp11-historical-drainage-images",
+            "r179-rp11-project-and-drainage-prose"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            14482
+          ],
+          "component_scope": "Long southward return west of the preceding selected strand",
+          "finding": "This southward return is materially distinct from the preceding northward reach. Neither the rural map nor the limited historical satellite panels establishes the full return, its southern reversal or its connection to the next northward strand. Named neighboring drainage and report-wide regional flow descriptions do not supply these links.",
+          "sources": [
+            "r179-unlp-lavalle2003-figure32-in-rp11",
+            "r179-rp11-historical-drainage-images",
+            "r179-rp11-project-and-drainage-prose"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            14482
+          ],
+          "component_scope": "Western northward corridor and final coastal approach",
+          "finding": "The available sources identify multiple managed and natural drainage components at regional scale, but their specific correspondence to this western selected strand remains unestablished. No continuous source path across its joins, sluices or wetland transitions is demonstrated. Historical sluice descriptions are not current operating evidence.",
+          "sources": [
+            "r179-unlp-lavalle2003-figure32-in-rp11",
+            "r179-rp11-historical-drainage-images",
+            "r179-rp11-project-and-drainage-prose"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            14482
+          ],
+          "component_scope": "Actual selected northern terminal, including its final short adjustment",
+          "finding": "The rural map provides broader bay and estuarine context. The historical satellite panels concentrate around the road corridor and do not resolve the actual selected terminal at the outer coastal end. A regional receiving-water name or a modeled sea-terminal classification is insufficient to prove the selected final connection. No mouth or saltmarsh-channel identity is assigned.",
+          "sources": [
+            "r179-unlp-lavalle2003-figure32-in-rp11",
+            "r179-rp11-historical-drainage-images",
+            "r179-rp11-project-and-drainage-prose"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "candidate_name": null
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "DataBC Base, base/base MapServer, provincial TRIM1:20,000 hydrographic layers21–24",
+      "related_urls": [
+        "https://delivery.maps.gov.bc.ca/arcgis/rest/services/base/base/MapServer/21?f=pjson",
+        "https://delivery.maps.gov.bc.ca/arcgis/rest/services/base/base/MapServer/22?f=pjson",
+        "https://delivery.maps.gov.bc.ca/arcgis/rest/services/base/base/MapServer/23?f=pjson",
+        "https://delivery.maps.gov.bc.ca/arcgis/rest/services/base/base/MapServer/24?f=pjson"
+      ],
+      "observed_outcome": "Service metadata opened normally. In an erroneous sequential loop lacking stop-on-error handling, layer21 metadata returned an unexplained web-reader Internal Error: URL is not accessible via this tool. Layer22 then returned normal metadata; layer23 returned the same unexplained availability error; layer24 returned normal metadata. No HTTP status or access-control reason was exposed by either failure. No map exports or source pixels were requested. Responses after the initial layer21 failure are excluded from substantive use.",
+      "outcome_layer": "Web-reader unexplained availability failures; origin HTTP unknown; acquisition-sequence error.",
+      "restriction_scope": "Whole DataBC base/base MapServer publication/service and equivalent acquisition or content-use routes remain paused after the first unexplained layer21 metadata failure. No later layer metadata is used, and no new original or alternate route may be requested. This is not an HTTP403 or an institution-wide ban.",
+      "earlier_lawful_observations": "Only the pre-failure top-level service metadata was lawfully read: Government of BC/DataBC attribution, the service warning that it may change, and the list of1:20,000 hydrographic layers21–24. No map pixels or selected-route geographic evidence were acquired.",
+      "newly_observed_access_failure": true,
+      "acquisition_sequence_exception": true,
+      "aw_id": "hydro-system:70170668",
+      "official_url": "https://delivery.maps.gov.bc.ca/arcgis/rest/services/base/base/MapServer"
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "publication": "RG163 companion maps, including No.1780 Lac Manitou, packageRG163PLAN_1-4.pdf",
+      "official_url": "https://gq.mines.gouv.qc.ca/documents/examine/RG163/RG163PLAN_1-4.pdf",
+      "status": "inherited_companion_map_availability_hold_preserved",
+      "observed_outcome": "Earlier HTTP200 application/pdf response ended in an incomplete transfer timeout; no complete companion original was read.",
+      "aw_id": "hydro-system:70243977",
+      "acquisition_stop": false,
+      "restriction_scope": "Missing companion package, individual equivalent sheets and alternate acquisition routes remain paused. Not requested in this pass."
+    },
+    {
+      "publication": "Lac Manitou, NTS22I CanMatrix sheet and continuing related CanMatrix publication hold",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/022/i/canmatrix_022i_tif.zip",
+      "status": "inherited_access_stop_preserved",
+      "observed_outcome": "Earlier22I original acquisition returned HTTP403; the broader related-publication CanMatrix hold also remains in force.",
+      "aw_id": "hydro-system:70243977",
+      "acquisition_stop": false,
+      "restriction_scope": "No original, alternate format, equivalent sheet route or retained-image recovery was requested."
+    },
+    {
+      "publication": "Plan régional des milieux humides et hydriques de la MRC de Minganie, version2024-04-10",
+      "official_url": "https://mrc.minganie.org/wp-content/uploads/2024/05/PRMHH-Minganie_2024.04.10.pdf",
+      "status": "inherited_access_stop_preserved",
+      "observed_outcome": "Earlier original acquisition followed a redirect and ended HTTP403; final responding endpoint was not retained.",
+      "aw_id": "hydro-system:70243977",
+      "acquisition_stop": false,
+      "restriction_scope": "Whole publication/maps and equivalent routes remain stopped. Not requested in this pass."
+    },
+    {
+      "publication": "USGSTopo, The National Map",
+      "observed_outcome": "Four bounded original PNG views completed HTTP200 and were visually inspected. The first attempt at the eastern view ended in a pure connection timeout; its sole identical-URL retry succeeded before any original reading.",
+      "outcome_layer": "Resolved transport timeout plus substantive cartographic correspondence limit; no HTTP or tool access denial.",
+      "limitation_kind": "material_glaciated_opening_connector_gap",
+      "use_boundary": "Own bounded factual synthesis and normal bibliography only. Source images, derivatives, full coordinates, private acquisition details and fingerprints are not redistributed.",
+      "aw_id": "hydro-system:80290543",
+      "acquisition_stop": false,
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "restriction_scope": "Only the unestablished chosen glaciated opening. Supported downstream named channels, joins and terminal-corridor observations remain usable. No service-wide or equivalent-publication acquisition ban is inferred."
+    },
+    {
+      "publication": "RP11 Gral. Conesa–San Clemente del Tuyú road-project environmental assessment",
+      "official_url": "https://www.ambiente.gba.gob.ar/sites/default/files/PCAbstract/PC_EsIA_RP11%20Info%20Proyecto%20%282%29.pdf",
+      "observed_outcome": "The original PDF was acquired successfully and the identified relevant prose, rural-study figure and historical satellite panels were inspected. They do not establish the whole selected route.",
+      "outcome_layer": "Geographic source-content/scale limitation, not an HTTP, transport, approval or publication-access denial.",
+      "restriction_scope": "Use only the actual inspected regional context; do not promote nearby names, general outlet relationships or historical imagery into complete selected-route correspondence. No new publication-wide stop is created.",
+      "material_effect": "Actual opening, multiple inter-strand transfers, lagoon/managed/saltmarsh connections and the selected outer terminal remain unresolved.",
+      "aw_id": "hydro-system:61524461",
+      "acquisition_stop": false
+    }
+  ]
+}

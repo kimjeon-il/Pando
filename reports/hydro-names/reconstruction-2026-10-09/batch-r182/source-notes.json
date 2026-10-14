@@ -1,0 +1,586 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r182",
+  "sources": [
+    {
+      "source_key": "r182-ign-cordoba-physical2016",
+      "title": "Provincia de Córdoba — Mapa Físico",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "date": "September 2016",
+      "official_url": "https://www.ign.gob.ar/images/MapasWeb/CORDOBA/CORDOBA-FISICO-WEB.jpg",
+      "material_read": "Complete standalone original sheet received and visually inspected, including southern Córdoba wetland country and the printed title and edition.",
+      "supports": "Regional physical setting and separation of the Quinto/La Amarga landscape from the selected eastern corridor.",
+      "limits": "Province-scale generalization does not depict the selected local drain; adjoining eastern terrain and the terminal have insufficient useful detail. No individual selected river or managed connector is named from this sheet.",
+      "publication_identity": "Independently issued provincial physical-map sheet, identified in prior actual r69/r95 readings and confirmed in the current printed sheet. It is not the stopped Argenmap basemap or historical topographic mosaic.",
+      "use_notice": "Printed Ley11.723 property notice retained. Bounded factual reading only; no original sheet or derivative map is redistributed."
+    },
+    {
+      "source_key": "r182-ponce-picasa2022",
+      "title": "Application of hydrological and hydraulic models to quantify surface runoff in the endorheic system of the La Picasa Lagoon basin / Aplicación de modelos hidrológicos e hidráulicos para cuantificación de escurrimientos superficiales del sistema endorreico cuenca Laguna La Picasa",
+      "authors": [
+        "Gabriela Alejandra Ponce",
+        "Sebastián Grande",
+        "Matías Eder",
+        "Alejo Juan Sebastián Testa-Tacchino",
+        "Claudio Alejandro Carignano",
+        "Andrés Rodriguez"
+      ],
+      "publisher": "Instituto Mexicano de Tecnología del Agua, Tecnología y ciencias del agua",
+      "date": "2022",
+      "bibliography": "13(5),136–199; DOI10.24850/j-tyca-13-05-05",
+      "official_url": "https://www.revistatyca.org.mx/index.php/tyca/article/view/2885",
+      "original_url": "https://www.revistatyca.org.mx/index.php/tyca/article/download/2885/2483",
+      "material_read": "Complete63-page English original received. Actually read front matter, study-area and hydraulic-works prose on PDFpp.7–17, modelling background on pp.20–22 and29–32, and visually inspected original Figures1,2,5,8 on PDFpp.10,12,23,32. Other generated but uninspected page renders are not evidence.",
+      "supports": "Original basin/reservoir/channel figures establish the La Picasa receiving lake, selected local regulation-lagoon settings and the distinction between the modeled path and the documented managed drainage network. Prose explains intermittent depression overflow and engineered connections in a plain without a developed hierarchical natural river network.",
+      "limits": "Its basin and model figures do not establish all selected inter-depression links or a whole-route hydronym. Study conditions are historical; current water extent, discharge or operation is not asserted.",
+      "publication_identity": "Independent UNC Hydraulics Laboratory investigation published as an IMTA peer-reviewed research article. It uses its own hydrological/hydraulic models and field-related measurements; its relevant figures are study diagrams, not a reproduction of the held Achiras EIA, La Pampa provincial map or IGN historical mosaic.",
+      "use_notice": "The original displays CC BY-NC-SA4.0 and IMTA2022 attribution. Only bounded own factual observations and normal bibliographic links are included; source pages and private orientation aids are not redistributed."
+    },
+    {
+      "source_key": "r182-lima-marajo-2005",
+      "title": "Ilha do Marajó: revisão histórica, hidroclimatologia, bacias hidrográficas e propostas de gestão",
+      "authors": [
+        "A. M. M. Lima",
+        "L. L. Oliveira",
+        "R. L. Fontinhas",
+        "R. J. S. Lima"
+      ],
+      "publisher": "HOLOS Environment",
+      "edition": "2005, volume 5, number 1, pages 65–80",
+      "doi": "https://doi.org/10.14295/holos.v5i1.331",
+      "actually_inspected": "Parsed PDF front matter, methodology and hydrographic prose, especially printed pages 65,68,74–75. No map pixels.",
+      "evidence_scope": "Regional seasonal-waterway and Lago Arari context only.",
+      "independence": "University/state hydroclimatology study, identified as a SECTAM/NHM technical report project in its front matter; methods describe its own synthesis and drainage/altimetry extraction from satellite-derived terrain. It is not an IBGE Breves municipal map, Navy news article or CHM4351 reissue.",
+      "access_status": "Paused after the sole figure screenshot Cache miss; only previously read prose retained.",
+      "official_url": "https://www.cea-unesp.org.br/holos/article/download/331/290"
+    },
+    {
+      "source_key": "r182-souza-rossetti-2011",
+      "title": "Caracterização da rede de drenagem na porção leste da Ilha do Marajó e implicações tectônicas",
+      "authors": [
+        "Lena Simone Barata Souza",
+        "Dilce de Fátima Rossetti"
+      ],
+      "publisher": "Revista Brasileira de Geomorfologia; União da Geomorfologia Brasileira",
+      "edition": "2011, volume 12, number 1, pages 69–83",
+      "landing_url": "https://rbgeomorfologia.org.br/rbg/article/view/220",
+      "doi": "https://doi.org/10.20502/rbg.v12i1.220",
+      "actually_inspected": "Official landing and abstract; complete 15-page original acquired successfully. Relevant parsed front matter/methods/prose and original PDF pages 3,5,6 (printed pages 71,73,74), Figures 1,3,4,5, visually inspected.",
+      "original_acquisition_result": "Completed HTTP200 application/pdf.",
+      "evidence_scope": "Direct depiction of Lago Arari, nearby river distinctions and northern lake branches; detailed coverage boundary excludes most of the selected western and northern routes.",
+      "independence": "Independent USP/INPE morphostructural research project. Methods and Figure 3 credit IBGE/SIVAM SA-22 digital mapping combined with the authors’ Landsat2001 interpretation. This is an independently analyzed map product, not a reproduction of the held Breves municipal compilation or the HOLOS figure.",
+      "use_notice": "The official landing states author-retained copyright and Creative Commons Attribution licensing with attribution to authors and initial journal publication. Historical morphostructural mapping is not a contemporary hydrological survey or formal hydronym registry. Originals and private reading aids are not redistributed.",
+      "access_status": "Successful; no new access stop.",
+      "official_url": "https://rbgeomorfologia.org.br/rbg/article/download/220/174/870"
+    },
+    {
+      "source_key": "r182-cehq-regions0713-annual-2014",
+      "title": "Débits spécifiques d’étiage annuels — Régions hydrographiques 07 et 13",
+      "publisher": "Gouvernement du Québec, Centre d’expertise hydrique du Québec",
+      "authors": [
+        "Marie-Lise Paquin, cartographie",
+        "Eric Levasseur, cartographie"
+      ],
+      "approval_credit": "Joëlle Bérubé",
+      "edition": "July2011; updated December2014",
+      "scale": "1:2,250,000",
+      "cartographic_base": "BDGA1:1,000,000; NAD83 Québec Lambert",
+      "official_url": "https://www.cehq.gouv.qc.ca/debit-etiage/cartes/debit_etiage_07_13specifique_annuel.pdf",
+      "access_date_utc": "2026-10-12",
+      "acquired_scope": "A normally acquired complete original from the earlier r179 pass survived and was read locally; no new external CEHQ request occurred. The recorded original acquisition had completed HTTP200 application/pdf.",
+      "actually_inspected": "The complete single-sheet overview, eastern Côte-Nord source crop, unmarked selected-corridor crop, actual lower junction and the source title, scale, legend and credits. The pinned selected fragment was used privately for orientation against the original embedded map projection; original pixels were separately inspected without the orientation line.",
+      "supports": "Ordinary regional correspondence of most of the selected unlabelled southward/eastward tributary corridor, its lateral joins and final receiving-river junction.",
+      "limits": "The first chosen opening link is omitted, and a lower link is obscured by the station076201 annotation. No label naming the selected tributary is visible. Station quantities, low-flow estimates, modern shoreline, navigation and operating conditions are outside this finding.",
+      "publication_independence": "A separately issued CEHQ hydrologic low-flow mapping project using its credited BDGA cartographic base; not a replacement CanMatrix sheet, CBMT3978 export or geological companion map.",
+      "source_use_limits": "Original source and reading aids remain private. Only bounded factual observations and normal bibliography are public-ready; no redistribution right is inferred."
+    },
+    {
+      "source_key": "BCGS_GM2002_03",
+      "title": "Geology of the Beece Creek–Niut Mountain Area, British Columbia; Geoscience Map 2002-3",
+      "authors": [
+        "P. Schiarizza",
+        "J. Riddell",
+        "R. G. Gaba",
+        "D. M. Melville",
+        "P. J. Umhoefer",
+        "M. J. Robinson",
+        "B. K. Jennings",
+        "D. Hick"
+      ],
+      "publisher": "British Columbia Ministry of Energy and Mines, Geological Survey Branch",
+      "edition": "2002; scale 1:100,000",
+      "actual_material_read": "Completed original one-sheet PDF; original overview, full Tatlayoko Lake and adjoining upper-valley/outlet map region, title panel, legend, and publication/compilation inset were visually inspected.",
+      "publication_independence": "The original identifies B.C. Geological Survey Branch and Northern Arizona University geological mapping from 1992–1995, digital cartography by V. Vilos, and its geological source-compilation framework. This is an independently issued geological project map, not a CanMatrix archive, DataBC service export, fisheries report, park brochure, grizzly study or forest-licence/FSP sheet.",
+      "limits": "Northern selected opening is beyond the map edge; most western and downstream corridor is also outside its footprint. Geological reference mapping supplies geographic correspondence at corridor scale, not a current-flow or operating-conditions survey.",
+      "official_url": "https://cmscontent.nrs.gov.bc.ca/geoscience/PublicationCatalogue/GeoscienceMap/BCGS_GM2002-03.pdf"
+    },
+    {
+      "source_key": "BCP_HOMATHKO_ESTUARY_MDS1999",
+      "title": "Management Direction Statement for Homathko Estuary Provincial Park",
+      "publisher": "BC Parks Division, Ministry of Environment, Lands and Parks, Garibaldi/Sunshine Coast District",
+      "edition": "June 1999",
+      "actual_material_read": "Completed original PDF; front matter, setting/context and access prose; Figures 1 and 2, printed pages 3 and 4, visually inspected. Figure 2 supplies the detailed estuary and river-mouth observation.",
+      "publication_independence": "A separately authored park-management planning project for the estuary, with its own location/boundary figures and strategic management text. Its substantive map is a bespoke estuary and park-boundary composition, not the stopped Tweedsmuir visitor brochure or DataBC map-service response.",
+      "limits": "Figure 2 covers the terminal vicinity only. Figure 1 locates the park regionally but does not map the intervening selected river corridor in useful detail. The document explicitly marks several photographs unavailable; those photographs were not used.",
+      "official_url": "https://nrs.objectstore.gov.bc.ca/kuwyyf/homathko_estuary_pk_mds_19990610_95bde03871.pdf"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:61508438",
+      "source_keys": [
+        "r182-ign-cordoba-physical2016",
+        "r182-ponce-picasa2022"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14442
+          ],
+          "component_scope": "61508438-opening-laboulaye",
+          "finding": "The selected opening is immediately south of Laboulaye and turns east across its southeastern rural plain. The original basin figure locates this land within the western La Picasa study area, but does not draw a corresponding watercourse from the chosen opening to the Rosales reservoir approach. The system canal entering from farther southwest near reservoir R1 is a different approach and is not substituted.",
+          "sources": [
+            "r182-ponce-picasa2022"
+          ],
+          "correspondence": "regional_setting_established_selected_connection_pending",
+          "component_correspondence_completed": false,
+          "supported_name": null
+        },
+        {
+          "fragments": [
+            14442
+          ],
+          "component_scope": "61508438-rosales-reservoir",
+          "finding": "The selected southeastward descent crosses the reservoir mapped as R2 west of Rosales and continues into the low country to its south. R2 is a study label for a regulation lagoon. It is not presented as a verified natural hydronym, and its identification does not establish the preceding headward connection.",
+          "sources": [
+            "r182-ponce-picasa2022"
+          ],
+          "correspondence": "bounded_regulation_lagoon_setting_supported",
+          "component_correspondence_completed": true,
+          "supported_name": null,
+          "contextual_feature_name": "Reservoir R2, Rosales setting"
+        },
+        {
+          "fragments": [
+            14442
+          ],
+          "component_scope": "61508438-southern-middle-corridor",
+          "finding": "Beyond the Rosales passage the selection runs east and southeast through depressed agricultural country north and northeast of Villa Rossi, then southwest of Rufino toward the provincial boundary. Figures 1, 2 and 8 distinguish this long southern selection from the engineered corridor farther north through the Leguizamón system and reservoirs R3, R4 and R5. Basin membership and scattered depressions do not establish the selected through-links.",
+          "sources": [
+            "r182-ponce-picasa2022"
+          ],
+          "correspondence": "material_pending",
+          "component_correspondence_completed": false,
+          "supported_name": null
+        },
+        {
+          "fragments": [
+            14442
+          ],
+          "component_scope": "61508438-lower-depression-chain",
+          "finding": "The lower selection reaches the reservoir R6 setting south of Rufino, makes a pronounced southern excursion, and turns northeast toward the R7 lagoon group. The study maps establish these local depressions and a managed inter-reservoir canal, but the southern loop and subsequent selected eastward passage are not shown as one continuous corresponding channel. The numbered reservoirs and their connecting works are not a river name.",
+          "sources": [
+            "r182-ponce-picasa2022"
+          ],
+          "correspondence": "local_depression_correspondence_with_interconnecting_gaps",
+          "component_correspondence_completed": false,
+          "supported_name": null,
+          "contextual_feature_name": "Reservoirs R6 and R7 surroundings"
+        },
+        {
+          "fragments": [
+            14442
+          ],
+          "component_scope": "61508438-final-approach",
+          "finding": "West of Aarón Castellanos the selection bends south and east toward the southwestern La Picasa depression, then turns northeast. The research distinguishes a direct channel toward the lake from the southern diversion and pumping works. Neither those nearby engineered routes nor the general eastward basin slope proves the full selected final loop.",
+          "sources": [
+            "r182-ponce-picasa2022"
+          ],
+          "correspondence": "material_pending",
+          "component_correspondence_completed": false,
+          "supported_name": null
+        },
+        {
+          "fragments": [
+            14442
+          ],
+          "component_scope": "61508438-actual-terminal",
+          "finding": "The final northeastward portion enters the western La Picasa lake/depression area and its actual endpoint lies within the waterbody depicted and named in the original study-area map. The selected feature stops there. The lake name does not identify the upstream modeled river, and no continuation to the Salado or Paraná is assigned.",
+          "sources": [
+            "r182-ponce-picasa2022"
+          ],
+          "correspondence": "receiving_lake_correspondence_supported",
+          "component_correspondence_completed": true,
+          "supported_name": "Laguna La Picasa",
+          "supported_name_role": "Receiving lake only"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60412032",
+      "source_keys": [
+        "r182-lima-marajo-2005",
+        "r182-souza-rossetti-2011"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            11664
+          ],
+          "component_scope": "Western opening, southward bend and long northeastward interior approach",
+          "finding": "The far western opening is outside the detailed study map. No inspected source establishes its channel identity, intervening wetlands or continuous northeastward connection toward the lake.",
+          "sources": [
+            "r182-souza-rossetti-2011"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            11664
+          ],
+          "component_scope": "Approach to Lago Arari from the southwest",
+          "finding": "The original distinguishes Rio Anajás Mirim, Rio Arari and Lago Arari. These neighboring labels do not establish the selected oblique approach or its chosen entry into the lake.",
+          "sources": [
+            "r182-souza-rossetti-2011"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            11664,
+            11665
+          ],
+          "component_scope": "Lago Arari passage and first fragment transition",
+          "finding": "Figures 1 and 3 identify Lago Arari and its continuous elongated waterbody. The northward lake interval and transition between the first two selected fragments lie in this same waterbody at ordinary corridor scale. This component is a lake passage, not proof of a uniform river name.",
+          "sources": [
+            "r182-souza-rossetti-2011"
+          ],
+          "correspondence": "supported_bounded_component",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            11665,
+            11666
+          ],
+          "component_scope": "Northern lake opening and second fragment transition",
+          "finding": "Figure 1 depicts more than one northern branch, with Rio Jenipapacu named in the vicinity. It does not establish the selected outgoing through-link into the long northern coastal continuation. Neither that label nor broad lake membership resolves the branch selection.",
+          "sources": [
+            "r182-souza-rossetti-2011"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            11666
+          ],
+          "component_scope": "Northern channel, direction changes and actual terminal",
+          "finding": "The inspected detailed mapping does not cover most of the northern continuation, its lower westward and return turns, or the actual selected terminal. No terminal receiver or named canal is assigned.",
+          "sources": [
+            "r182-souza-rossetti-2011"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            11664,
+            11665,
+            11666
+          ],
+          "component_scope": "Tidal, wetland and possible engineered connections",
+          "finding": "The regional prose establishes seasonal interconnectedness as context only. It does not establish the selected western wetland transfers or a specific canal connection north of the lake; contemporary flow direction, navigation and operating conditions are not inferred.",
+          "sources": [
+            "r182-lima-marajo-2005",
+            "r182-souza-rossetti-2011"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70209891",
+      "source_keys": [
+        "r182-cehq-regions0713-annual-2014"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9283
+          ],
+          "component_scope": "Chosen northern opening and first southeastward connection",
+          "finding": "The selected opening lies near the provincial-boundary line. The source begins its depicted tributary farther along the southeastward approach, leaving the actual opening-to-river connection absent. This is an omitted through-link, not a demand for exact banks or a precise headwater vertex.",
+          "sources": [
+            "r182-cehq-regions0713-annual-2014"
+          ],
+          "correspondence": "material_gap",
+          "component_correspondence_completed": false,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            9283
+          ],
+          "component_scope": "Upper eastward bow and return to the southward valley",
+          "finding": "The selected upper bends correspond to the depicted unlabeled tributary line, including its eastern bow and southwestward return. Nearby Saint-Augustin and Matse labels belong to separate main-river geography and are not transferred to this reach.",
+          "sources": [
+            "r182-cehq-regions0713-annual-2014"
+          ],
+          "correspondence": "supported_at_ordinary_regional_corridor_scale",
+          "component_correspondence_completed": true,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            9283
+          ],
+          "component_scope": "Long middle southward corridor and lateral lake-fed joins",
+          "finding": "The source depicts the continuing long southward river line and the lateral lake-fed branches that meet it before its major eastward turn. No lake or tributary name is assigned from proximity, and no reservoir, glacial or managed connector is inferred.",
+          "sources": [
+            "r182-cehq-regions0713-annual-2014"
+          ],
+          "correspondence": "supported_at_ordinary_regional_corridor_scale",
+          "component_correspondence_completed": true,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            9283
+          ],
+          "component_scope": "Eastward elbow and intermediate tributary joins",
+          "finding": "The selected eastward elbow and subsequent northeastward and eastward bends follow the continuous depicted river. North- and south-side feeder joins remain distinguishable at this regional scale; the map supplies no supported name for their waters.",
+          "sources": [
+            "r182-cehq-regions0713-annual-2014"
+          ],
+          "correspondence": "supported_at_ordinary_regional_corridor_scale",
+          "component_correspondence_completed": true,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            9283
+          ],
+          "component_scope": "Southeastward descent toward the lower annotation",
+          "finding": "The selected southeastward continuation follows the visible unlabeled river through several bends up to the station annotation area. This source correspondence ends where the printed annotation begins to conceal the watercourse.",
+          "sources": [
+            "r182-cehq-regions0713-annual-2014"
+          ],
+          "correspondence": "supported_at_ordinary_regional_corridor_scale",
+          "component_correspondence_completed": true,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            9283
+          ],
+          "component_scope": "Lower connecting reach beneath station076201 annotation",
+          "finding": "A substantial lower connecting section is covered by the opaque station076201 data box. Short visible pieces on either side do not establish the concealed through-link, and the modeled continuity is not used to fill it.",
+          "sources": [
+            "r182-cehq-regions0713-annual-2014"
+          ],
+          "correspondence": "material_gap",
+          "component_correspondence_completed": false,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            9283
+          ],
+          "component_scope": "Final visible reach and actual receiving-river junction",
+          "finding": "Below the station annotation the final selected reach is visible, approaching and joining the larger north-south river in the Saint-Augustin coastal corridor. This ordinary junction correspondence does not require an exact bank or modern tidal boundary, and it does not prove the tributary name or the hidden upstream connection.",
+          "sources": [
+            "r182-cehq-regions0713-annual-2014"
+          ],
+          "correspondence": "supported_terminal_geography_at_ordinary_regional_scale",
+          "component_correspondence_completed": true,
+          "candidate_name": null
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70221206",
+      "source_keys": [
+        "BCGS_GM2002_03",
+        "BCP_HOMATHKO_ESTUARY_MDS1999"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9308
+          ],
+          "component_scope": "chosen_northeastern_opening_and_initial_joins",
+          "finding": "The selected opening and its westward-then-southward initial connection fall north of the acquired geological map. No independent source map was inspected for this opening, possible small-waterbody transfers, or the complete connection into the mapped upper valley. Nearby or general river names do not close this gap.",
+          "sources": [],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            9308
+          ],
+          "component_scope": "mapped_upper_valley_and_Tatlayoko_northern_inlet",
+          "finding": "The geological map labels the southward Homathko River in the valley north of Tatlayoko Lake and depicts its connection into the north end of the lake. The mapped valley arrangement corresponds at ordinary corridor scale to the selection immediately above the lake; the map does not cover the entire chosen opening.",
+          "sources": [
+            "BCGS_GM2002_03"
+          ],
+          "correspondence": "bounded_reach_correspondence_complete",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9308
+          ],
+          "component_scope": "Tatlayoko_Lake_through_passage_and_southern_outlet",
+          "finding": "The original map shows the full long north-south waterbody labelled Tatlayoko Lake, with the Homathko inlet at its northern end and a southern outlet continuing into the labelled Homathko River corridor. The selected north-south lake passage and outlet agree with this mapped arrangement. The lake name is retained as a distinct component rather than applied as a river name.",
+          "sources": [
+            "BCGS_GM2002_03"
+          ],
+          "correspondence": "bounded_lake_and_outlet_correspondence_complete",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9308
+          ],
+          "component_scope": "intermediate_mountain_corridor_and_tributary_joins",
+          "finding": "The geological map reaches only a short distance south of the Tatlayoko outlet. The long westward and southwestward corridor, its principal tributary junctions, and the later southward-to-southeastward lower course are not continuously covered by the inspected originals. The estuary location figure is too generalized to substitute for this missing corridor evidence.",
+          "sources": [
+            "BCGS_GM2002_03",
+            "BCP_HOMATHKO_ESTUARY_MDS1999"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            9308
+          ],
+          "component_scope": "lower_estuarine_terminal",
+          "finding": "Figure 2 of the park management statement depicts the labelled Homathko River approaching from the northwest, turning south beside the estuary, and entering Waddington Harbour, explicitly identified as Bute Inlet. Teaquahan River is separately mapped on the eastern side. This river-mouth configuration corresponds to the selected terminal at ordinary estuarine-corridor scale.",
+          "sources": [
+            "BCP_HOMATHKO_ESTUARY_MDS1999"
+          ],
+          "correspondence": "terminal_correspondence_complete",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9308
+          ],
+          "component_scope": "glacial_reservoir_and_managed_connections",
+          "finding": "The inspected lake passage is mapped as Tatlayoko Lake and river connections. No on-route glacier transfer, reservoir passage or managed diversion is established by the inspected material. Such features cannot be exhaustively excluded in the uncovered opening and mountain intervals, and nearby icefields are not used as evidence of an on-route transfer.",
+          "sources": [
+            "BCGS_GM2002_03",
+            "BCP_HOMATHKO_ESTUARY_MDS1999"
+          ],
+          "correspondence": "uncovered_intervals_remain_pending",
+          "component_correspondence_completed": false
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "Lima, Oliveira, Fontinhas and Lima (2005), Ilha do Marajó: revisão histórica, hidroclimatologia, bacias hidrográficas e propostas de gestão, HOLOS Environment 5(1):65–80; associated SECTAM/NHM 2004 technical report identity stated in the front matter",
+      "doi": "https://doi.org/10.14295/holos.v5i1.331",
+      "observed_outcome": "The PDF reader opened successfully as a 16-page article. Front matter, methods and bounded regional hydrography prose were read. The sole requested screenshot, PDF page 12 (zero-based page 11), printed page 76 containing Figures 6 and 7, then returned Failed to fetch: Cache miss. No figure pixels were returned or inspected. No fallback, retry, equivalent copy or further reading followed.",
+      "outcome_layer": "Completed web-reader screenshot/fetch availability failure; origin HTTP status unknown, not an observed HTTP403.",
+      "restriction_scope": "Whole article, associated figures/report equivalents and original, reader, catalogue, cache, screenshot, mirror, alternative-format and other acquisition routes remain paused.",
+      "earlier_lawful_prose_exception": "Only the already-read front matter, methods and regional prose: low-lying furos and paranás may interconnect seasonally; Lago Arari is a central feature in a drainage setting with more than one outlet direction. These facts do not establish the selected through-links.",
+      "limitation_kind": "cache_miss_availability_pause",
+      "material_gap": true,
+      "newly_observed_access_failure": true,
+      "aw_id": "hydro-system:60412032",
+      "official_url": "https://www.cea-unesp.org.br/holos/article/download/331/290"
+    },
+    {
+      "source_key": "r182-et8510-unavailable",
+      "publication": "Géologie de la région de Saint-Augustin (Basse-Côte-Nord), ET85-10; original imprint uninspected",
+      "official_url": "https://gq.mines.gouv.qc.ca/documents/examine/ET8510/ET8510.pdf",
+      "observed_outcome": "The first normal-original request completed HTTP502 with text/html. One permitted retry at the identical exact URL also completed HTTP502 with text/html. Both transfers terminated; neither returned body was read. No companion, translation, alternate format or route followed.",
+      "outcome_layer": "Completed direct HTTP-client responses; pure HTTP502 availability failures, not an access-control denial.",
+      "restriction_scope": "Whole ET85-10 report, companions and equivalent copies, formats, figures, original, reader, cache, mirror and acquisition routes remain paused after the one bounded retry failed.",
+      "earlier_lawful_observations": null,
+      "substantive_evidence_used": false,
+      "material_gap": true,
+      "publication_distinction": "Discovery identified the independent 1982–83 Saint-Augustin reconnaissance project covering the eastern coastal study region, distinct from the held Lac Bohier RG97-07 field project and RG163 companions. The report itself was not read.",
+      "post_stop_event": "An exact ET8510 bibliographic search term was inadvertently included after the pause. It returned no matching source material; no report or companion was reopened, and no evidence from that search is used.",
+      "aw_id": "hydro-system:70209891"
+    },
+    {
+      "source_key": "r182-justice-schedule6-unavailable",
+      "publication": "Justice Canada, Quebec Fishery Regulations, 1990 / Règlement de pêche du Québec (1990), Schedule6 / Annexe6",
+      "official_url": "https://laws-lois.justice.gc.ca/fra/reglements/DORS-90-214/section-sched910791.html",
+      "observed_outcome": "The sole page-opening request returned web-reader Internal Error: URL not accessible via this tool. No substantive page body or source map was exposed. No retry or alternate acquisition followed.",
+      "outcome_layer": "Unexplained web-reader availability failure; origin HTTP unknown, not an asserted HTTP403 or access-control denial.",
+      "restriction_scope": "This regulation publication and equivalent original, reader, cache, PDF, mirror and alternate-route acquisitions remain paused.",
+      "earlier_lawful_observations": null,
+      "substantive_evidence_used": false,
+      "material_gap": false,
+      "publication_distinction": "An independently promulgated fisheries regulation, not the CGN naming service, federal topographic archives or a geological-map companion. Its unread river-name entry is not evidence.",
+      "aw_id": "hydro-system:70209891"
+    },
+    {
+      "publication": "Nature Conservancy of Canada, Water Supply and Water Quality monitoring in the Homathko River basin; 2006 monitoring project",
+      "observed_outcome": "The sole original-PDF web-reader opening returned Internal Error and stated that the URL was not accessible via this tool. No report body or map pixels were read.",
+      "outcome_layer": "web-reader unexplained availability failure",
+      "origin_http_status": null,
+      "restriction_scope": "Whole publication, companions and equivalent acquisition/content-use routes paused; no alternate acquisition or later-edition substitution.",
+      "earlier_lawful_prose_exception": null,
+      "substantive_search_snippets_used": false,
+      "material_effect": "Potential evidence for the selected opening and upper watershed remains unavailable.",
+      "aw_id": "hydro-system:70221206",
+      "official_url": "https://www.natureconservancy.ca/assets/documents/bc/tatlayoko/Water_Supply_and_Quality_Monitoring_in_the_Homathko_Rive.pdf"
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "publication": "Provincia de Córdoba — Mapa Físico, September2016",
+      "url": "https://www.ign.gob.ar/images/MapasWeb/CORDOBA/CORDOBA-FISICO-WEB.jpg",
+      "observed_outcome": "Readable standalone original with ordinary property notice.",
+      "limitation_kind": "ordinary_reproduction_notice",
+      "access_denial": false,
+      "aw_id": "hydro-system:61508438",
+      "acquisition_stop": false,
+      "restriction_scope": "Factual synthesis and bibliography only; original and derivative imagery remain private."
+    },
+    {
+      "publication": "Ponce et al.2022, La Picasa basin hydrological/hydraulic study",
+      "url": "https://www.revistatyca.org.mx/index.php/tyca/article/download/2885/2483",
+      "observed_outcome": "Readable complete original with CC BY-NC-SA4.0 notice.",
+      "limitation_kind": "source_license_and_scope",
+      "access_denial": false,
+      "aw_id": "hydro-system:61508438",
+      "acquisition_stop": false,
+      "restriction_scope": "Bounded factual reading; no source images or derivative maps redistributed. Source regional/model detail does not close the specific selected-connection gaps."
+    },
+    {
+      "source_key": "r182-souza-rossetti-2011",
+      "publication": "Caracterização da rede de drenagem na porção leste da Ilha do Marajó e implicações tectônicas",
+      "url": "https://rbgeomorfologia.org.br/rbg/article/download/220/174/870",
+      "observed_notice": "The official landing states author-retained copyright and Creative Commons Attribution licensing with attribution to authors and initial journal publication. Historical morphostructural mapping is not a contemporary hydrological survey or formal hydronym registry. Originals and private reading aids are not redistributed.",
+      "outcome_layer": "Read official publication licensing and map-methodology context; not an access failure.",
+      "aw_id": "hydro-system:60412032",
+      "acquisition_stop": false,
+      "restriction_scope": "Attribution and historical interpretive limitations only; no acquisition ban."
+    },
+    {
+      "source_keys": [
+        "BCGS_GM2002_03",
+        "BCP_HOMATHKO_ESTUARY_MDS1999"
+      ],
+      "observation": "No officials-only or limited-distribution restriction was observed in the inspected front matter, map imprint or relevant pages. Official hosting is not treated as a redistribution licence.",
+      "aw_id": "hydro-system:70221206",
+      "acquisition_stop": false,
+      "restriction_scope": "Only bounded original factual synthesis and ordinary bibliographic links may propagate; originals, map crops, overlays and private working material remain local."
+    }
+  ]
+}

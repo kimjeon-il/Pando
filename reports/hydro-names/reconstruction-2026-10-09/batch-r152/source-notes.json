@@ -1,0 +1,886 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r152",
+  "sources": [
+    {
+      "title": "The study on integrated rural development project of Yaque del Sur River basin in the Dominican Republic; Vol. 2, Annex-1: master plan study on the agricultural development project in the Yaque del Sur River basin",
+      "publisher": "Japan International Cooperation Agency; Nippon Koei Co., Ltd.; Pasco International Inc.",
+      "issue_date": "1999-07",
+      "original_url": "https://openjicareport.jica.go.jp/pdf/11511920_08.pdf",
+      "source_type": "Primary project-report original cartography, historically dated",
+      "observed": "Known original part 08 acquired with completed HTTP200, application/pdf. Original map figures visually read before the later part01 cover-screenshot failure.",
+      "map_pixels_observed": true,
+      "figures_read": [
+        "Figure 3.2.4 Hydrological Stations, printed F-4, PDF part08 page5",
+        "Figure 3.2.5 River System, printed F-5, PDF part08 page6",
+        "Figure 3.5.2 Irrigation Area in San Juan Valley Irrigation District, printed F-23, PDF part08 page24",
+        "Figure 3.5.3 Irrigation Area in Azua Valley Irrigation District, printed F-24, PDF part08 page26",
+        "Figure 3.5.4 Irrigation Area in Yaque del Sur and Lago Enriquillo Irrigation District, printed F-25, PDF part08 page27"
+      ],
+      "bounded_observation": "Original river and irrigation maps establish San Juan as a distinct western branch, the junction below the separate Sabana Yegua setting, the receiving Yaque corridor, incoming Mijo/Los Baos context, and the lower coastal approach east of Rincón Lagoon.",
+      "limits": "Some figures bear Interim Report labels inside the 1999 annex. Mountain linework is crowded/generalized. Historical mapping predates Montegrande's reported2024 operation. No contemporary reservoir extent, exact mouth, current hydraulic operation or formal registry status established. All further publication acquisition paused after later part01 screenshot Cache miss.",
+      "use_notice": "Catalogue footer: Copyright JICA, all rights reserved. No source images, crops or overlays are for public redistribution.",
+      "source_key": "r152-jica-yaque-annex1-1999",
+      "official_url": "https://openjicareport.jica.go.jp/807/807/807_608_11511920.html"
+    },
+    {
+      "title": "Presa de Sabaneta",
+      "publisher": "Instituto Nacional de Recursos Hídraulicos (INDRHI)",
+      "source_type": "Primary operator HTML; bounded supporting facts",
+      "observed": "Official operator page opened normally.",
+      "map_pixels_observed": false,
+      "bounded_observation": "Identifies Sabaneta as a dam on Río San Juan in the Yaque del Sur hydrographic region, with operation beginning in1981.",
+      "limits": "A dam fact sheet is not evidence for the unresolved selected mountain or reservoir connector.",
+      "source_key": "r152-indrhi-sabaneta",
+      "official_url": "https://indrhi.gob.do/presa-sabaneta/"
+    },
+    {
+      "title": "Presa de Sabana Yegua",
+      "publisher": "INDRHI",
+      "source_type": "Primary operator HTML; bounded supporting facts",
+      "observed": "Official operator page opened normally.",
+      "map_pixels_observed": false,
+      "bounded_observation": "Identifies Sabana Yegua as a dam on Río Yaque del Sur, with operation beginning in1979.",
+      "limits": "Does not mean the selected San Juan route passes through the reservoir; junction placement comes from original JICA maps.",
+      "source_key": "r152-indrhi-sabana-yegua",
+      "official_url": "https://indrhi.gob.do/presa-sabana-yegua/"
+    },
+    {
+      "title": "Presa Montegrande",
+      "publisher": "INDRHI",
+      "source_type": "Primary operator HTML; bounded supporting facts",
+      "observed": "Official operator page opened normally.",
+      "map_pixels_observed": false,
+      "bounded_observation": "Identifies Montegrande on Río Yaque del Sur in Azua/Bahoruco and gives2024 as the operation-start year.",
+      "limits": "The fact sheet establishes a newer impoundment that the1999 map cannot depict. It supplies no cartographic correspondence for the selected reservoir passage.",
+      "source_key": "r152-indrhi-montegrande",
+      "official_url": "https://indrhi.gob.do/presa-montegrande/"
+    },
+    {
+      "title": "Zonificación del municipio, año2023; map compilation including Ciudad de San Juan de la Maguana",
+      "publisher": "Ayuntamiento Municipal de San Juan de la Maguana, Oficina Municipal de Planificación y Programación, Departamento de Catastro",
+      "compiler": "Ing. Ernesto Melo Rodríguez",
+      "source_type": "Primary municipal compilation containing a scanned city map",
+      "observed": "Original six-page PDF acquired HTTP200. City map on PDFpage3 visually read; map-list/text extraction read for scope.",
+      "map_pixels_observed": true,
+      "bounded_observation": "City map depicts the San Juan river beside the western part of San Juan de la Maguana, consistent with the selected middle-city corridor.",
+      "limits": "The compilation's2023 cover date does not establish the date of every incorporated map. Other maps include2018 metadata. This is supplementary city-scale evidence only, without upper catchment, reservoir or coast coverage. Source-map redistribution permission is unestablished.",
+      "source_key": "r152-san-juan-municipal-maps",
+      "official_url": "https://www.sismap.gob.do/Municipal/uploads/evidencias/638186176853953634-2.03_16-21_Mapas-de-Zonificacion_-Municipio-San-Juan-de-la-Maguana.pdf"
+    },
+    {
+      "title": "Plan de manejo ambiental de una reserva natural en República Dominicana; PNJCR plan material for2005–2009",
+      "author": "Marvin Melgar Ceballos",
+      "publisher": "Gestiopolis, author-attributed publication",
+      "publication_date": "2006-09-11",
+      "source_type": "Author-attributed plan prose; supporting historical context only",
+      "observed": "HTML plan body read normally before linked-original ZIP Cache miss.",
+      "map_pixels_observed": false,
+      "bounded_observation": "The plan describes the upper San Juan running southeast to northwest, distinguishes the Limón drainage south of its divide, and identifies San Juan as an important tributary of Yaque del Sur.",
+      "limits": "The hydrological discussion cites INDRHI2002; the underlying INDRHI source was not separately acquired. This wording does not establish exact selected-headwater correspondence. No plan-map pixels were obtained.",
+      "source_key": "r152-melgar-pnjcr-plan",
+      "official_url": "https://www.gestiopolis.com/plan-de-manejo-ambiental-de-una-reserva-natural-en-republica-dominicana/"
+    },
+    {
+      "title": "Miertsching Lake, Northwest Territories, Land Use Information Series, sheet 46N",
+      "publisher": "Environment Canada, Lands Directorate / Indian and Northern Affairs Canada",
+      "year": 1984,
+      "year_qualification": "Printed thematic-cartography credit is 1984; series introduction states information current as of December 1983.",
+      "scale": "1:250,000",
+      "catalogue_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html",
+      "cartographic_credits": "Thematic cartography: Land Resource Research Institute, Research Branch, Agriculture Canada, 1984. Produced by Lands Directorate, Environmental Conservation Service, Environment Canada; base National Topographic Series sheet 46N, edition 1, 1980, Energy, Mines and Resources Canada.",
+      "source_kind": "primary_original_cartography",
+      "map_pixels_inspected": true,
+      "prose_read": true,
+      "scope": "Selected initial pond-and-stream corridor; Nagvaak western arm and intervening lakes; Qukuttalik Lake; lower inland lake chain; Ujarasugjulik–Kannak junction; Niuninga and northern Tasers Lake. The original map and the printed fish-resource notes were actually read.",
+      "limits": "Historical generalized cartography, not current official-name verification, flow gauging, a surveyed mouth point, or a uniform name for the selected model feature.",
+      "source_key": "r152-nluis-46n",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_46n.jpg",
+      "use_notice": "Crown copyright printed on original. No redistribution permission inferred. The series describes its information as interim and partly preliminary/reconnaissance-based; thematic boundaries are approximate. Originals, crops, orientation copies, coordinates and receipts remain private; only own factual observations and normal citations may be consolidated publicly."
+    },
+    {
+      "title": "Barrow River, Northwest Territories, Land Use Information Series, sheet 46O/P",
+      "publisher": "Environment Canada, Lands Directorate / Indian and Northern Affairs Canada",
+      "year": 1984,
+      "year_qualification": "Printed thematic-cartography credit is 1984; series introduction states information current as of December 1983.",
+      "scale": "1:250,000",
+      "catalogue_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html",
+      "cartographic_credits": "Thematic cartography: Land Resource Research Institute, Research Branch, Agriculture Canada, 1984. Produced by Lands Directorate, Environmental Conservation Service, Environment Canada; base National Topographic Series sheet 46O & P, edition 1, 1980, Energy, Mines and Resources Canada.",
+      "source_kind": "primary_original_cartography",
+      "map_pixels_inspected": true,
+      "prose_read": false,
+      "scope": "Eastern upper reach, the northern arm and passage through Nagvaak Lake, its side feeders and its western arm across the sheet edge. Original map pixels inspected; the sheet title is not used to name this selected river.",
+      "limits": "Historical generalized cartography, not current official-name verification, flow gauging, a surveyed mouth point, or a uniform name for the selected model feature.",
+      "source_key": "r152-nluis-46o_p",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_46o_p.jpg",
+      "use_notice": "Crown copyright printed on original. No redistribution permission inferred. The series describes its information as interim and partly preliminary/reconnaissance-based; thematic boundaries are approximate. Originals, crops, orientation copies, coordinates and receipts remain private; only own factual observations and normal citations may be consolidated publicly."
+    },
+    {
+      "title": "Hurd Channel, Northwest Territories, Land Use Information Series, sheet 46K",
+      "publisher": "Environment Canada, Lands Directorate / Indian and Northern Affairs Canada",
+      "year": 1984,
+      "year_qualification": "Printed thematic-cartography credit is 1984; series introduction states information current as of December 1983.",
+      "scale": "1:250,000",
+      "catalogue_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html",
+      "cartographic_credits": "Thematic cartography: Land Resource Research Institute, Research Branch, Agriculture Canada, 1984. Produced by Lands Directorate, Environmental Conservation Service, Environment Canada; base National Topographic Series sheet 46K, edition 1, 1980, Energy, Mines and Resources Canada.",
+      "source_kind": "primary_original_cartography",
+      "map_pixels_inspected": true,
+      "prose_read": true,
+      "scope": "Tasers Lake, its southern channel, side-channel junctions and the actual terminal at the western shore of Ross Bay. Original map pixels and the coastal context were actually inspected.",
+      "limits": "Historical generalized cartography, not current official-name verification, flow gauging, a surveyed mouth point, or a uniform name for the selected model feature.",
+      "source_key": "r152-nluis-46k",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_46k.jpg",
+      "use_notice": "Crown copyright printed on original. No redistribution permission inferred. The series describes its information as interim and partly preliminary/reconnaissance-based; thematic boundaries are approximate. Originals, crops, orientation copies, coordinates and receipts remain private; only own factual observations and normal citations may be consolidated publicly."
+    },
+    {
+      "title": "Niuninga Lake, Nunavut, Canadian topographic maps 46-N/3, ed.02 version00 (2010), M116-2/046N03-PDF",
+      "publisher": "Natural Resources Canada, Centre for Topographic Information",
+      "year": 2010,
+      "scale": "1:50,000",
+      "source_kind": "unavailable_targeted_primary_cartography",
+      "map_pixels_inspected": false,
+      "prose_read": false,
+      "scope": "Potential detailed coverage of the lower lake/junction question. Search-discovery bibliographic information only; no original or catalogue body acquired.",
+      "limits": "Entire missing publication/map and equivalent acquisition routes paused. No original PDF, alternate catalogue, CanMatrix equivalent, screenshot, mirror or fallback requested.",
+      "source_key": "r152-topo-46n03-unavailable",
+      "official_url": "https://publications.gc.ca/site/eng/9.583785/publication.html"
+    },
+    {
+      "title": "Mapa Vial de la Provincia de Lambayeque",
+      "publisher": "Ministerio de Transportes y Comunicaciones, Dirección General de Caminos y Ferrocarriles, Dirección de Caminos, E.T. Mapas Viales",
+      "edition": "Abril de 2017; SINAC, Clasificador de Rutas D.S. N° 011-2016-MTC",
+      "sheet_code": "LA-03",
+      "scale": "1:435,000",
+      "primary_original": true,
+      "original_map_read": true,
+      "pages_read": "Single-sheet original, legend and bounded headward, Motupe, Pampa de Lino, lower desert, lagoon and coastal enlargements.",
+      "map_evidence": "Mapped headward dashed feeder, Río Chinama, Chóchope junction and Motupe corridor; broad lower Laguna La Niña setting and coast.",
+      "limits": "Generalized road-map hydrography. Several selected lower desert connectors and the selected final coast crossing are not represented by readable hydrographic linework. Their absence is a coverage gap, not proof that no transient connection has ever existed. Credits include DGCF, PVN, PVD, GTT, OGPP, IGN, INEI, SERNANP and MINEDU. Original and private working crops are not distributed.",
+      "source_key": "r152-mtc-lambayeque-2017",
+      "official_url": "https://portal.mtc.gob.pe/transportes/caminos/normas_carreteras/Mapas%20Provinciales/Lambayeque/LA-03%20Lambayeque.pdf"
+    },
+    {
+      "title": "Mapa Vial de la Provincia de Sechura",
+      "publisher": "Ministerio de Transportes y Comunicaciones, Dirección General de Caminos y Ferrocarriles, Dirección de Caminos, E.T. Mapas Viales",
+      "edition": "Abril de 2017; SINAC, Clasificador de Rutas D.S. N° 011-2016-MTC",
+      "sheet_code": "PI-08",
+      "scale": "1:325,000",
+      "primary_original": true,
+      "original_map_read": true,
+      "pages_read": "Single-sheet original and legend; southern lagoon/coastal setting.",
+      "map_evidence": "Independent adjoining provincial sheet shows extensive waterbody/depression mapping along the southern Sechura coastal margin, overlapping the selected lower lake/depression setting.",
+      "limits": "Does not establish the selected final shore crossing as a river or lagoon outlet. Same MTC mapping family as LA-03, not counted as an independent hydrological investigation. Credits and private-original boundary as LA-03.",
+      "source_key": "r152-mtc-sechura-2017",
+      "official_url": "https://portal.mtc.gob.pe/transportes/caminos/normas_carreteras/Mapas%20Provinciales/Piura/PI-08%20Sechura.pdf"
+    },
+    {
+      "title": "Plan de Ordenamiento Territorial del Distrito de Olmos, Volumen III: Mapa Base Región Lambayeque (RG-01); supporting map RG-06, Mapa Ubicación de Elementos Arqueológicos Región Lambayeque",
+      "publisher": "Municipalidad Distrital de Olmos / Proyecto Especial Olmos Tinajones (PEOT), Gobierno Regional de Lambayeque",
+      "edition": "Setiembre 2010",
+      "scale": "1:350,000",
+      "primary_original": true,
+      "original_map_read": true,
+      "pages_read": "Retained original PDF p. 2, RG-01 Mapa Base Región Lambayeque, including a new private enlargement of the Chinama–Chóchope/Motupe and Chotoque relationships.",
+      "map_evidence": "Regional original separates the selected Chinama–Chóchope/Motupe corridor from the western Chotoque bypass and Río Olmos, and labels the receiving southward Motupe course.",
+      "limits": "Regional cartography; no coverage of the selected final western lagoon/coastal connection is claimed. The retained original was already established as an independent municipal/PEOT planning map rather than a copy of the stopped ANA plan/service. Original and private crops remain private.",
+      "source_key": "r143-peot-olmos-base-2010",
+      "official_url": "https://www.muniolmos.gob.pe/files/recursos_infor/POT_OLMOS_VOLUMEN_III.pdf"
+    },
+    {
+      "title": "Peligros geológicos y geo-hidrológicos detonados por el Niño Costero 2017 en las regiones Lambayeque-Cajamarca: análisis geológico, geomorfológico y de peligros en sector Jayanca-Pacora-Illimo afectados por inundación fluvial",
+      "publisher": "Instituto Geológico, Minero y Metalúrgico (INGEMMET), Dirección de Geología Ambiental y Riesgo Geológico",
+      "authors": [
+        "Segundo Núñez Juárez",
+        "Julio Lara Calderón",
+        "Daniel Torres González",
+        "Dante Soberón Ortíz"
+      ],
+      "edition": "Informe Técnico N° A6788, cover dated Diciembre 2017; annex Mapa N° 1 states digital version 2017 and printing Enero 2018.",
+      "primary_original": true,
+      "original_map_read": true,
+      "prose_read": true,
+      "pages_read": "Cover; printed pp. 18, 20, 27–31, 33–36; original figures 2, 9 and 10 (PDF pp. 20, 36, 38); annex Mapa N° 1 (PDF p. 134). Only directly viewed figures supply map observations.",
+      "map_evidence": "Original geological/flood interpretation maps distinguish the Pampa de Lino bifurcation and western Motupe arm through the San Juan/Santa Lucía setting from the eastern Jayanca–Pacora/Las Juntas arm. Regional map distinguishes the Motupe, Chotoque and adjoining river settings.",
+      "bounded_prose_observation": "Printed pp. 31 and 35 describe the right arm reaching the Laguna La Niña sector, meeting an artificial canal diverted from Río La Leche; the left arm joins La Leche at Las Juntas. Printed p. 20 records La Niña recharge from Motupe during the 1997–1998 event.",
+      "limits": "The field report covers the flood-affected Jayanca–Pacora–Íllimo sector. Its figure extent and regional generalization do not trace the entire selected western desert connector, lagoon transit or final coastal outlet. Prose is not substituted for missing original linework. No restriction notice was observed in the inspected cover/prose/maps; that is not permission to distribute originals or annotated imagery.",
+      "source_key": "r152-ingemmet-a6788-2017",
+      "official_url": "https://sigrid.cenepred.gob.pe/sigridv3/storage/biblioteca/3967_informe-tecnico-n0-a6788-peligros-geologicos-y-geo-hidrologicos-detonados-por-el-nino-costero-2017-en-las-regiones-lambayeque-cajamarca-analisis-geolo.pdf"
+    },
+    {
+      "title": "SIMBIO_HIDROGRAFIA — Red Hidrografica, layer 0",
+      "publisher": "Ministerio del Medio Ambiente, Chile",
+      "layer_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HIDROGRAFIA/MapServer/0",
+      "edition": "Undated active service; bounded views read 12 October 2026.",
+      "evidence_type": "Primary original agency hydrographic cartography",
+      "material_read": "Retained successful layer metadata reused locally; three sequential bounded original raster exports (whole selection, eastern/mainstem-and-Cáceres detail, southern/coastal detail), all terminal HTTP 200 image/png. Originals and local crops inspected.",
+      "cartographic_method": "Published source line renderer; server-rendered labels from the source NOMBRE field. No source vector or complete dataset acquired.",
+      "supports": "Upper Cisnes and its western turn; Cáceres tributary and confluence; Pedregoso, Moro, Grande/Carante, Torcaza, Las Torres/Travieso and western tributary junction context; continuous western trunk; lower Picacho approach; Cisnes mouth-channel network and distinct Río Sur o María.",
+      "limits": "Line-only source does not map lake surfaces or open sea. The very short extreme selected opening is covered by IGN, not this linework. Source labels do not name every fragment or lake interior.",
+      "use_notice": "Retained description and copyright fields are blank; no redistribution permission inferred. Originals and derivatives remain private.",
+      "source_key": "r152-mma-cisnes-hydro",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HIDROGRAFIA/MapServer"
+    },
+    {
+      "title": "SIMBIO_HUMEDALES — Inventario Nacional de Humedales, layer 0",
+      "publisher": "Ministerio del Medio Ambiente, Chile",
+      "layer_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HUMEDALES/MapServer/0",
+      "edition": "Undated active inventory service; read 12 October 2026.",
+      "evidence_type": "Primary original agency wetland cartography",
+      "material_read": "Retained successful metadata/renderer reused; one bounded original whole-selection export completed HTTP 200 image/png and was visually read, including a local coastal crop.",
+      "supports": "Continental wetland and river/lake surface corridor, especially southern elongated waterbodies and lower Cisnes floodplain.",
+      "limits": "The legend category is Continentales. Most displayed name attributes read Sin Información or 0, neither of which is a hydronym. This source alone does not classify all wetland polygons as permanent open-water lakes or establish individual names.",
+      "use_notice": "Retained description/copyright fields blank. Original imagery and local derivatives remain private.",
+      "source_key": "r152-mma-cisnes-wetlands",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HUMEDALES/MapServer"
+    },
+    {
+      "title": "SIMBIO_COT — COT 2020, layer 1, southern Cisnes lake-and-coastal corridor",
+      "publisher": "Ministerio del Medio Ambiente, Chile",
+      "layer_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_COT/MapServer/1",
+      "edition": "COT 2020; service view read 12 October 2026.",
+      "evidence_type": "Primary original agency land-cover/waterbody cartography",
+      "material_read": "Retained layer metadata and full categorical renderer read before interpretation; one bounded original southern/coastal export completed HTTP 200 image/png.",
+      "supports": "Two elongated southern waterbody passages, narrower intervening connections, lower river corridor, surrounding wetlands and forest, and coastal land/water opening.",
+      "limits": "Cuerpos de agua is the blue-green water category; grey-purple is vegetation-free ground, and the differently coloured agricultural category is not water. The broad white seaward area is outside terrestrial mapping. These polygons do not establish exact present shoreline or water levels.",
+      "use_notice": "Retained metadata description/copyright fields blank; no redistribution permission inferred.",
+      "source_key": "r152-mma-cisnes-cot",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_COT/MapServer"
+    },
+    {
+      "title": "Mosaico cartas 1:250.000, historical Cisnes eastern headward corridor",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "edition": "Historical composite; constituent sheet edition date not established in this bounded view.",
+      "evidence_type": "Primary original official topographic cartography",
+      "material_read": "One bounded original view completed HTTP 200 image/png. Original, local opening crop and private orientation comparison inspected. Retained successful historical-service capabilities identify the publication.",
+      "supports": "Selected eastern opening west of the international divide, channel bending west then north through the mapped wet headward valley, joining the upper Cisnes corridor mapped by MMA.",
+      "limits": "Narrow white rendering strips excluded; independent MMA covers the affected connecting reach. No name is invented for the initial small feeder. Generalized historical terrain and hydrography are not a current survey. This is distinct from the stopped IGN Argenmap publication.",
+      "use_notice": "Retained service access/reuse notice references Argentina Law 27.275, Article 2. No formal hydronym registry status inferred; originals and derivatives remain private.",
+      "source_key": "r152-ign-cisnes-head250",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "title": "Análisis de las condicionantes para el desarrollo hidroeléctrico en las cuencas de los ríos Palena, Cisnes, Aysén, Baker y Pascua, desde el potencial de generación a las dinámicas socio-ambientales — Informe Final",
+      "publisher": "Centro de Ciencias Ambientales EULA-Chile, Universidad de Concepción, prepared for Ministerio de Energía, Chile",
+      "date": "December 2016, verified on original cover",
+      "document_id": "584105-40-LP15",
+      "evidence_type": "Original agency-commissioned report; supporting basin map and bounded hydrographic prose",
+      "material_read": "Original PDF acquired once to terminal HTTP 200 application/pdf. Cover and Figure 2.7 (printed page 22, PDF page 52) rendered and inspected; printed pages 20–22 and Table 2.9 read.",
+      "supports": "Río Cisnes basin and coastal identity, upper tributary convergence, Cáceres as separate tributary, lower Picacho/Presidente Roosevelt and Desaguadero La Escondida subbasin roles, and Cisnes outlet to Puerto Cisnes bay on eastern Canal Puyuhuapi.",
+      "limits": "Figure 2.7 is a basin/subbasin map, not detailed evidence for every selected channel. Its regional cartography and prose support, but do not replace, finer MMA and IGN correspondence. Historical lengths, flows, areas, water-rights and project claims are not adopted. The report is the separately identified, previously lawfully used r81 publication; no blocked underlying DGA publication is requested.",
+      "use_notice": "No restrictive use notice found in the cover and bounded sections read. No unrestricted reproduction asserted; only own factual summaries and ordinary citation released.",
+      "source_key": "r152-minenergia-cisnes2016",
+      "official_url": "https://bibliotecadigital.ciren.cl/server/api/core/bitstreams/96e056da-8221-4e13-a73b-371a93396c05/content"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70901807",
+      "source_keys": [
+        "r152-jica-yaque-annex1-1999",
+        "r152-indrhi-sabaneta",
+        "r152-indrhi-sabana-yegua",
+        "r152-indrhi-montegrande",
+        "r152-san-juan-municipal-maps",
+        "r152-melgar-pnjcr-plan"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10526
+          ],
+          "component_scope": "initial mountain headward run",
+          "finding": "JICA's original regional hydrological and river-system figures show the upper San Juan catchment, but their generalized and crowded linework does not securely resolve the entire selected starting branch and its westward turn. The PNJCR author's prose describes the upper San Juan running southeast to northwest and distinguishes the Río Limón basin farther south, but no plan-map pixels were obtained. This prose does not promote a regional description into exact selected-component correspondence.",
+          "sources": [
+            "r152-jica-yaque-annex1-1999",
+            "r152-melgar-pnjcr-plan"
+          ],
+          "correspondence": "material_pending",
+          "mapped_component_names": [],
+          "component_correspondence_completed": false,
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            10526
+          ],
+          "component_scope": "mountain connector and sabaneta approach",
+          "finding": "The historical irrigation map places Sabaneta Dam on the San Juan corridor and shows its downstream continuity toward San Juan town. However, the selected northern approach, the reservoir/inlet interval and their branch decisions are not all legible enough for a complete component-level correspondence. INDRHI independently identifies Sabaneta as a dam on Río San Juan; its operator facts do not supply a missing map connector.",
+          "sources": [
+            "r152-jica-yaque-annex1-1999",
+            "r152-indrhi-sabaneta"
+          ],
+          "correspondence": "material_pending",
+          "mapped_component_names": [],
+          "component_correspondence_completed": false,
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            10526
+          ],
+          "component_scope": "san juan upper valley",
+          "finding": "JICA Figures 3.2.4, 3.2.5 and 3.5.2 place the south-flowing San Juan river between the Sabaneta setting and the San Juan valley. The river can be distinguished from the separately symbolized irrigation canals and roads. This supports the generalized selected valley corridor, without deciding the unresolved northern inlet interval.",
+          "sources": [
+            "r152-jica-yaque-annex1-1999"
+          ],
+          "correspondence": "bounded_historical_correspondence_supported",
+          "mapped_component_names": [],
+          "component_correspondence_completed": true,
+          "mapped_component_name": "Río San Juan"
+        },
+        {
+          "fragments": [
+            10526
+          ],
+          "component_scope": "san juan town and southeastern valley",
+          "finding": "The original JICA maps trace San Juan past the town and southeast through the agricultural valley, with Río Mijo entering from the north and Río Los Baos from the southwest. Those incoming rivers are separate components, rather than alternate names for the selected line. The municipality's compiled city map independently depicts the San Juan channel beside the western side of San Juan de la Maguana, but contributes no mountain or terminal coverage.",
+          "sources": [
+            "r152-jica-yaque-annex1-1999",
+            "r152-san-juan-municipal-maps"
+          ],
+          "correspondence": "bounded_historical_correspondence_supported",
+          "mapped_component_names": [],
+          "component_correspondence_completed": true,
+          "mapped_component_name": "Río San Juan"
+        },
+        {
+          "fragments": [
+            10526
+          ],
+          "component_scope": "san juan yaque junction",
+          "finding": "The regional river-system and irrigation maps establish the San Juan branch joining Yaque del Sur downstream of the separate Sabana Yegua dam setting. The selected line follows the western San Juan approach and then the common southeastward receiving trunk, rather than the Yaque's upstream mountain branch. A generalized junction interval is supported; no precise name-boundary vertex or through-Sabana-Yegua reservoir passage is asserted.",
+          "sources": [
+            "r152-jica-yaque-annex1-1999",
+            "r152-indrhi-sabana-yegua"
+          ],
+          "correspondence": "bounded_historical_correspondence_supported",
+          "mapped_component_names": [
+            "Río San Juan",
+            "Río Yaque del Sur"
+          ],
+          "component_correspondence_completed": true,
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            10526
+          ],
+          "component_scope": "middle yaque and modern impoundment context",
+          "finding": "JICA Figures 3.2.5, 3.5.3 and 3.5.4 support the historical Yaque del Sur corridor downstream of Villarpando toward Los Guiros and the lower valley. Roads and irrigation transfers toward Azua remain distinct. INDRHI's current operator page identifies Montegrande on this river and gives 2024 as its operation-start year. The historical map does not depict that impoundment, and no contemporary primary map was read that resolves the selected reservoir approach, passage and outlet. The exact subset of these retained parts affected by the modern reservoir is not established.",
+          "sources": [
+            "r152-jica-yaque-annex1-1999",
+            "r152-indrhi-montegrande"
+          ],
+          "correspondence": "material_pending_for_modern_impoundment_correspondence",
+          "mapped_component_names": [],
+          "component_correspondence_completed": false,
+          "mapped_component_name": "Río Yaque del Sur"
+        },
+        {
+          "fragments": [
+            10526
+          ],
+          "component_scope": "tamayo vicente noble lower valley",
+          "finding": "JICA's regional and lower irrigation-district maps trace the Yaque through the lower plain between the Tamayo and Vicente Noble settings. The selected westward-to-southward course agrees at corridor scale. Irrigation headworks and canals are separately symbolized; their operating arrangements or present diversion flows are not inferred.",
+          "sources": [
+            "r152-jica-yaque-annex1-1999"
+          ],
+          "correspondence": "bounded_historical_correspondence_supported",
+          "mapped_component_names": [],
+          "component_correspondence_completed": true,
+          "mapped_component_name": "Río Yaque del Sur"
+        },
+        {
+          "fragments": [
+            10526
+          ],
+          "component_scope": "laguna rincon eastern side and actual terminal setting",
+          "finding": "JICA Figures 3.2.4, 3.2.5 and 3.5.4 show the lower river passing east of the separately depicted Laguna Rincón and reaching the Bahía de Neiba/Caribbean coastal setting north of Barahona. This supports the selected final southern and eastward approach to the coast rather than a terminal in Lago Enriquillo or Laguna Rincón. The generalized map does not establish an exact present mouth position, bank alignment or active distributary configuration.",
+          "sources": [
+            "r152-jica-yaque-annex1-1999"
+          ],
+          "correspondence": "bounded_historical_terminal_correspondence_supported",
+          "mapped_component_names": [],
+          "component_correspondence_completed": true,
+          "mapped_component_name": "Río Yaque del Sur"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80086174",
+      "source_keys": [
+        "r152-nluis-46n",
+        "r152-nluis-46o_p",
+        "r152-nluis-46k"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2541
+          ],
+          "component_scope": "Eastern Miertsching Lake sheet to western Barrow River sheet — initial ponds and southeast streams",
+          "finding": "The initial selected setting is a small unnamed upland lake/pond group. Short mapped channels, including intermittent sections, link the ponds southeast across the sheet edge toward the northern Nagvaak approach. Side feeders and adjacent disconnected ponds are distinguished. No hydronym is established for this initial feeder.",
+          "sources": [
+            "r152-nluis-46n",
+            "r152-nluis-46o_p"
+          ],
+          "correspondence": "bounded_component_correspondence",
+          "mapped_component_name": null,
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2541
+          ],
+          "component_scope": "Western Barrow River sheet and adjoining eastern Miertsching Lake sheet — nagvaak northern arm and lake passage",
+          "finding": "The selected corridor enters the long northern arm of Nagvaak Lake, turns south through its connected arms, and follows its western lake passage across the sheet edge. Other arms and a rapids-marked feeder from the east are visible. The lake label identifies the lake, not a representative name for the entire selected line.",
+          "sources": [
+            "r152-nluis-46o_p",
+            "r152-nluis-46n"
+          ],
+          "correspondence": "bounded_component_correspondence",
+          "mapped_component_name": "Nagvaak Lake",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2541
+          ],
+          "component_scope": "Eastern margin of Miertsching Lake sheet — southwest lake transfers",
+          "finding": "The selected passage continues from the western Nagvaak arm through the short southward lake/channel chain associated with Tasiruluk Lake, then turns southwest through the elongated waterbody immediately south of it toward Qukuttalik Lake. The narrow links and neighboring parallel lake arms are readable. Lake names are not converted into river names.",
+          "sources": [
+            "r152-nluis-46n"
+          ],
+          "correspondence": "bounded_component_correspondence",
+          "mapped_component_name": null,
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2541
+          ],
+          "component_scope": "Southeastern Miertsching Lake sheet — qukuttalik lake and southern outlet",
+          "finding": "The selected corridor traverses Qukuttalik Lake toward its southwestern arm, leaves through a rapids-marked narrow reach and continues through the smaller southern lake chain. A substantial northern lake/river inlet, other western tributary lakes and eastern side waters are separately depicted.",
+          "sources": [
+            "r152-nluis-46n"
+          ],
+          "correspondence": "bounded_component_correspondence",
+          "mapped_component_name": "Qukuttalik Lake",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2541
+          ],
+          "component_scope": "South-central Miertsching Lake sheet — lower inland loop and ujarasugjulik approach",
+          "finding": "The source depicts the southwestward sequence of short streams and irregular lakes, its westward then northward bend and its turn south into the lake chain approaching Ujarasugjulik Lake. The relevant stream reaches, lake narrows and side feeders are visible at ordinary corridor scale. This observation does not close the following junction into Kannak/Niuninga.",
+          "sources": [
+            "r152-nluis-46n"
+          ],
+          "correspondence": "bounded_component_correspondence",
+          "mapped_component_name": null,
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2541
+          ],
+          "component_scope": "Ujarasugjulik Lake, Kannak Lake and the labelled Tasirjuaq/Tasirjuak river junction — ujarasugjulik kannak selected transfer",
+          "finding": "The original maps the Ujarasugjulik approach near the separately labelled river connecting the Miertsching/Kannak lake area with Tuurvik Lake toward Lyon Inlet. The printed fish-resource note explicitly associates Kannak, Miertsching and Ujarasugjulik lakes with Tasirjuak River. The selected model turns southwest toward Kannak/Niuninga instead of following the eastward river corridor. At this junction, thematic overprinting and the generalized channel drawing do not unambiguously establish the selected transfer from the Ujarasugjulik approach into Kannak/Niuninga, or distinguish it from the adjacent river branch. The model line and the prose association cannot supply that missing correspondence. This is not a claim that an actual connection is absent.",
+          "sources": [
+            "r152-nluis-46n"
+          ],
+          "correspondence": "material_pending",
+          "mapped_component_name": null,
+          "name_scope": "Separately mapped river component; not adopted as a representative name for the selected chain.",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2541
+          ],
+          "component_scope": "Southern Miertsching Lake sheet and northern Hurd Channel sheet — niuninga to tasers lake",
+          "finding": "Niuninga Lake and its southern arm are mapped separately from the named eastward river corridor. The selected southern continuation corresponds to the lake passage and short connection into Tasers Lake across the sheet edge. This downstream local correspondence is independent of the unresolved entrance through the Kannak junction.",
+          "sources": [
+            "r152-nluis-46n",
+            "r152-nluis-46k"
+          ],
+          "correspondence": "bounded_component_correspondence",
+          "mapped_component_name": null,
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2541
+          ],
+          "component_scope": "Northern Hurd Channel sheet, western Ross Bay — tasers outlet and western ross bay terminal",
+          "finding": "The selected lower reach corresponds to the southern Tasers Lake outlet channel, its southward approach past the slope/hachure-marked reach and its junction with a western side stream before entering western Ross Bay. The receiving bay connects to Lyon Inlet. This actual terminal is geographically distinct from the more northeasterly Tuurvik Lake/Tasirjuaq river setting. No river hydronym is printed on this final selected outlet in the inspected source; no surveyed mouth point or present tidal boundary is asserted.",
+          "sources": [
+            "r152-nluis-46k"
+          ],
+          "correspondence": "bounded_component_correspondence",
+          "mapped_component_name": null,
+          "component_correspondence_completed": true
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60809372",
+      "source_keys": [
+        "r152-mtc-lambayeque-2017",
+        "r152-mtc-sechura-2017",
+        "r143-peot-olmos-base-2010",
+        "r152-ingemmet-a6788-2017"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13810
+          ],
+          "component_scope": "Headward dashed feeder in the Hacienda Huanana–Laguna–Santa Rosa setting into the named Chinama course near Burras/Carrizal",
+          "finding": "The original MTC sheet shows a dashed northern headward drainage passing the Hacienda Huanana/Laguna and Santa Rosa setting and joining the river at the Burras–Carrizal reach. The selected opening follows this generalized setting. The isolated settlement named Laguna is not treated as evidence of a lake passage. The feeder has no independently read local hydronym.",
+          "sources": [
+            "r152-mtc-lambayeque-2017"
+          ],
+          "correspondence": "mapped_corridor_supported",
+          "mapped_component_name": null,
+          "material_gap": null
+        },
+        {
+          "fragments": [
+            13810
+          ],
+          "component_scope": "Río Chinama west through Cruz Verde, El Higuerón, Cordal and Marripón/La Arena to the Chóchope junction near Motupe",
+          "finding": "MTC maps the named westward river and its southwesterly approach through Marripón, La Arena and El Arrozal. Near Motupe the selected receiving corridor joins the eastern Río Chóchope course before continuing past Puente Motupe. PEOT independently separates this selected eastern approach from the Chotoque bypass farther west. The name Chinama is confined to its mapped reach; no formal transition point is asserted.",
+          "sources": [
+            "r152-mtc-lambayeque-2017",
+            "r143-peot-olmos-base-2010"
+          ],
+          "correspondence": "mapped_corridor_supported",
+          "mapped_component_name": "Río Chinama",
+          "material_gap": null
+        },
+        {
+          "fragments": [
+            13810
+          ],
+          "component_scope": "Motupe south through the Motupe and Chicoma bridge settings, Anchovira/Puerto Rico and Pampa de Lino",
+          "finding": "MTC and PEOT trace the selected southward receiving course from Motupe through the bridge and valley sequence, past the eastern tributary junction in the Anchovira/Salas setting, to the bend north of Jayanca. PEOT prints Motupe on this trunk and distinguishes the western Chotoque channel. No adjacent reservoir or separate Olmos channel is transferred onto the selected route.",
+          "sources": [
+            "r152-mtc-lambayeque-2017",
+            "r143-peot-olmos-base-2010",
+            "r152-ingemmet-a6788-2017"
+          ],
+          "correspondence": "mapped_corridor_supported",
+          "mapped_component_name": "Río Motupe",
+          "material_gap": null
+        },
+        {
+          "fragments": [
+            13810
+          ],
+          "component_scope": "Pampa de Lino bifurcation, western Motupe arm through San Juan/Santa Lucía, and continuation toward the Panamericana crossing",
+          "finding": "INGEMMET figures 2, 9 and 10 identify the bifurcation and western arm, distinct from the eastern branch past Jayanca and Pacora toward Las Juntas. The selected line follows the western setting. INGEMMET prose says this arm meets a canal diverted from La Leche and reaches the La Niña sector. The far-west continuation and its precise material canal/river connection are not traced throughout the selected corridor in the inspected originals; the MTC sheet omits much of this linework.",
+          "sources": [
+            "r152-ingemmet-a6788-2017",
+            "r152-mtc-lambayeque-2017"
+          ],
+          "correspondence": "partially_mapped_connector_pending",
+          "mapped_component_name": "Río Motupe",
+          "material_gap": "Original-map correspondence remains incomplete between the mapped western arm and the selected downstream road-crossing/depression connector. Prose establishes a destination relationship but does not close that mapping gap."
+        },
+        {
+          "fragments": [
+            13810
+          ],
+          "component_scope": "Selected lower southwest and northward bend beyond the Motupe/Mórrope road crossing toward the southern La Niña depression",
+          "finding": "MTC places the selected line in the lower Mórrope desert near the mapped Panamericana bridge sequence and southern lagoon/depression margin. It does not depict a continuous hydrographic connector following the selected southwest bend and subsequent northward course. The candidate Motupe name is not extended across these unverified segments.",
+          "sources": [
+            "r152-mtc-lambayeque-2017"
+          ],
+          "correspondence": "source_material_pending",
+          "mapped_component_name": null,
+          "material_gap": "Continuous selected desert-to-lagoon connector and its relation to the mapped waterbody margins remain unresolved."
+        },
+        {
+          "fragments": [
+            13810
+          ],
+          "component_scope": "Northwestern transit through the Laguna La Niña depression toward the coast",
+          "finding": "The Lambayeque and Sechura sheets depict broad lagoon/depression waterbodies and the La Niña label in this lower setting. These originals give geographic context for much of the selected northwestern course, but do not establish its entire passage and connectors as one flowing channel. The flood report supports Motupe water reaching La Niña, not the selected internal lake route.",
+          "sources": [
+            "r152-mtc-lambayeque-2017",
+            "r152-mtc-sechura-2017",
+            "r152-ingemmet-a6788-2017"
+          ],
+          "correspondence": "source_material_pending",
+          "mapped_component_name": null,
+          "material_gap": "A basin label or broad waterbody polygon does not establish all selected lake/depression connectors."
+        },
+        {
+          "fragments": [
+            13810
+          ],
+          "component_scope": "Final selected southwest turn from the La Niña margin to the Pacific shore",
+          "finding": "Both adjoining MTC originals show the lagoon/coastal setting. No readable river or outlet line establishes the selected final crossing of the coast. The retained model terminal class sea is not independent hydrographic evidence. This observation does not claim that a transient overflow could never occur.",
+          "sources": [
+            "r152-mtc-lambayeque-2017",
+            "r152-mtc-sechura-2017"
+          ],
+          "correspondence": "source_material_pending",
+          "mapped_component_name": null,
+          "material_gap": "The actual terminal connection to the Pacific is unestablished; this is a material source-correspondence gap, not merely unresolved naming scope."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61582367",
+      "source_keys": [
+        "r152-mma-cisnes-hydro",
+        "r152-mma-cisnes-wetlands",
+        "r152-mma-cisnes-cot",
+        "r152-ign-cisnes-head250",
+        "r152-minenergia-cisnes2016"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14625
+          ],
+          "component_scope": "Extreme eastern headward opening and northward approach",
+          "finding": "The selected initial short reach lies west of the international divide and follows a small headward drainage westward, then turns north through the mapped wet valley toward upper Cisnes. IGN independently depicts this opening and turn. MMA starts slightly farther downstream, then follows the same northward valley and places Río Cisnes labels on the connected upper course. Nearby Los Materos and Los Perdidos are separate entering streams; the selection does not follow Arroyo Los Patos as its first branch. The starting point is not declared the official river source, and its small-feeder name remains unassigned.",
+          "sources": [
+            "r152-ign-cisnes-head250",
+            "r152-mma-cisnes-hydro"
+          ],
+          "correspondence": "covered_at_generalized_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            14625
+          ],
+          "component_scope": "Upper Cisnes westward turn to Cáceres junction",
+          "finding": "After the northward approach, the selected trunk turns west past the Arroyo Los Patos and La Turbina surroundings, then southwest along the repeatedly mapped Cisnes course. It receives separate Las Lagunas, Angostura, Winchester and Pedregoso drainage approaches before the Cáceres junction. The continuous mapped corridor, junction sequence and distinctive bend establish geographic correspondence rather than reliance on a nearby name. No selected major lake passage is shown on this upper mainstem.",
+          "sources": [
+            "r152-mma-cisnes-hydro",
+            "r152-mma-cisnes-wetlands"
+          ],
+          "correspondence": "covered_at_generalized_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            14631,
+            14625,
+            14626
+          ],
+          "component_scope": "Selected Cáceres branch and Cisnes junction",
+          "finding": "The selected northern branch begins on the mapped Cáceres corridor, bends southeast and then south to meet the Cisnes near the transition between the two mainstem fragments. MMA explicitly distinguishes Río Cáceres from the receiving Cisnes and depicts its continuation beyond the selected beginning. Upstream Estero Carlota and other unselected tributaries are not made part of the selected branch. No lake interior is selected on this fragment.",
+          "sources": [
+            "r152-mma-cisnes-hydro",
+            "r152-mma-cisnes-wetlands",
+            "r152-minenergia-cisnes2016"
+          ],
+          "correspondence": "covered_at_generalized_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            14626
+          ],
+          "component_scope": "Cáceres junction to middle Cisnes",
+          "finding": "Below the Cáceres confluence, the selected trunk continues west along the mapped Cisnes corridor, with separate south-side Moro and later Carante o Grande approaches and north-side small drainage junctions. The original overview depicts the entire inter-fragment connection. The model fragment boundary is not used as a hydronym-change point.",
+          "sources": [
+            "r152-mma-cisnes-hydro",
+            "r152-mma-cisnes-wetlands",
+            "r152-minenergia-cisnes2016"
+          ],
+          "correspondence": "covered_at_generalized_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            14627
+          ],
+          "component_scope": "Middle and lower Cisnes",
+          "finding": "The long western fragment follows the mapped Cisnes through its alternating bends and constricted valley settings. The source separately depicts the Torcaza, Las Torres/Travieso, Grande, Sandoval and western smaller tributary approaches. The selected line remains on the receiving Cisnes, rather than turning south toward the Las Torres lake drainage or the separate Picacho branch. Original wetland mapping corroborates its connected river/floodplain corridor; no broad mainstem lake traversal is inferred.",
+          "sources": [
+            "r152-mma-cisnes-hydro",
+            "r152-mma-cisnes-wetlands",
+            "r152-minenergia-cisnes2016"
+          ],
+          "correspondence": "covered_at_generalized_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            14629
+          ],
+          "component_scope": "Southern Picacho approach and first elongated waterbody passage",
+          "finding": "The southern selected branch begins within the lower Picacho drainage corridor, downstream from a readable Río Picacho label, and proceeds west to northwest through a widening water-and-wetland valley. The mapped stream approaches and the COT Cuerpos de agua polygons together show the selected passage into and along an elongated waterbody, followed by a narrower northward connection. Estero El Quique and other surrounding tributaries are distinct. A single river name is not assigned to the full waterbody passage; the report places this area within the Picacho/Presidente Roosevelt and Escondida receiving drainage, but it does not establish an exact name boundary for this selected fragment.",
+          "sources": [
+            "r152-mma-cisnes-hydro",
+            "r152-mma-cisnes-cot",
+            "r152-mma-cisnes-wetlands",
+            "r152-minenergia-cisnes2016"
+          ],
+          "correspondence": "covered_at_generalized_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            14630
+          ],
+          "component_scope": "Southern lake passage to lower Cisnes",
+          "finding": "From the previous southern fragment, the selected route turns north through a narrow water corridor and then a broader north–south elongated lake surface. COT explicitly classifies the selected broad surface as Cuerpos de agua, while the wetland inventory corroborates the linked continental-water corridor. The selection exits its northern end toward the lower Cisnes mouth-channel network. This is the Escondida-drainage connection described by the report, not an extension of the Cisnes name over each lake interior. The separately mapped Río Sur o María enters from the southwest and is not the selected southern source branch. Exact lake/river name-change points and current inlet/outlet positions remain unassigned.",
+          "sources": [
+            "r152-mma-cisnes-hydro",
+            "r152-mma-cisnes-cot",
+            "r152-mma-cisnes-wetlands",
+            "r152-minenergia-cisnes2016"
+          ],
+          "correspondence": "covered_at_generalized_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            14627,
+            14630,
+            14628
+          ],
+          "component_scope": "Lower Cisnes convergence and actual selected coastal terminal",
+          "finding": "The western trunk reaches the Cisnes meander-and-floodplain network, where the selected southern lake drainage joins near the coastal outlet. MMA maps the receiving river and its distinct lower loops; COT and wetland originals locate the connected lower water corridor and landward coastal opening. The short terminal fragment extends from this confluence/outlet setting into the immediate coastal water at Puerto Cisnes bay on the eastern side of Canal Puyuhuapi. It is not extended through the whole canal or to the open Pacific. Generalized model shortcuts across lower bends are not treated as exact current channels, and the sea metadata is supported at coastal-setting scale rather than at an exact mouth vertex.",
+          "sources": [
+            "r152-mma-cisnes-hydro",
+            "r152-mma-cisnes-cot",
+            "r152-mma-cisnes-wetlands",
+            "r152-minenergia-cisnes2016"
+          ],
+          "correspondence": "covered_at_generalized_corridor_scale",
+          "component_correspondence_completed": true
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "aw_id": "hydro-system:70901807",
+      "publication": "Ministerio de Medio Ambiente, Cuenca Río Yaque del Sur, November2015 flood-vulnerability map, nominal scale1:175,000",
+      "official_url": "https://ambiente.gob.do/app/uploads/2016/12/Yaque-del-Sur-Zona-Vulnerable-a-Inundaciones.pdf",
+      "observed_outcome": "Sole web-reader open returned (500) Internal Server Error. No original map pixels read.",
+      "outcome_layer": "Web-reader fetch result; origin HTTP status not independently observed.",
+      "restriction_scope": "Whole missing publication and equivalent copies, formats, original, reader/cache, screenshot and alternate acquisition routes paused. No retry.",
+      "earlier_lawful_prose_exception": null,
+      "discovery_only": "Search-title/edition/scale metadata identifies the unavailable publication; map-label snippets excluded from substantive evidence."
+    },
+    {
+      "aw_id": "hydro-system:70901807",
+      "publication": "SGN, Mapa de procesos activos de la República Dominicana, Arroyo Limón sheet5973,1:100,000; edition uninspected",
+      "official_url": "https://www.sgn.gob.do/index.php/geologia-y-tematicos/info-procesos-activos-geologicos/category/80-mapas-1-100-000?download=1031%3Ahoja-arroyo-limon-5973",
+      "observed_outcome": "Sole web-reader open returned Cache miss. No HTTP status or original map body supplied.",
+      "outcome_layer": "Web-reader availability result; origin HTTP unobserved.",
+      "restriction_scope": "Whole missing map publication and equivalent copies, formats, catalogue/original/reader/cache/screenshot/mirror and other routes paused. No retry.",
+      "earlier_lawful_prose_exception": null,
+      "discovery_only": "Title/sheet/scale metadata retained to identify the stop; indexed label lists not used as map observations."
+    },
+    {
+      "aw_id": "hydro-system:70901807",
+      "publication": "SGN Cartografía Geológica catalogue at cgeo_rd",
+      "official_url": "https://sgn.gob.do/images/mapas/cartog_geologica_sgn/cgeo_rd/",
+      "observed_outcome": "Sole web-reader open returned (403) Forbidden. No catalogue body or linked geological-map original acquired.",
+      "outcome_layer": "Web-reader fetch result reporting403; direct origin HTTP status not independently observed.",
+      "restriction_scope": "Catalogue and equivalent routes stopped. No geological sheet, memoir or alternate host was used to recover the denied catalogue's linked content. This is not treated as a ban on all independently published Dominican sources.",
+      "earlier_lawful_prose_exception": null
+    },
+    {
+      "aw_id": "hydro-system:70901807",
+      "publication": "U.S. Army Topographic Command, Santiago, Dominican Republic; Haiti, Joint Operations Graphic (Ground), Series1501, sheet NE19-1, edition1,1970, printed1972",
+      "official_url": "https://maps.lib.utexas.edu/maps/jog/haiti/haiti_ne19-1_small.jpg",
+      "observed_outcome": "Original JPEG acquired with completed HTTP200. Inspected margin states DISTRIBUTION LIMITED—DESTROY WHEN NO LONGER NEEDED. Whole sheet excluded from substantive hydrographic evidence.",
+      "outcome_layer": "Printed distribution restriction on successfully acquired original; not an HTTP denial.",
+      "restriction_scope": "Whole publication and equivalent copies, formats, crops and replacement editions excluded from substantive reading and further acquisition. No alternate or larger version requested.",
+      "earlier_lawful_prose_exception": "Catalogue title, edition, print-year and not-for-navigation metadata only. The Commons public-domain label is not treated as overriding the printed distribution restriction.",
+      "catalogue_url": "https://commons.wikimedia.org/wiki/File:Santiago,_Dominican_Republic;_Haiti_-_1-250,000_Joint_Operations_Graphic_(Not_for_Navigational_use),_U.S._Army_Topographic_Command._Series_1501,_Sheet_NE_19-1,_Edition_1,_1970,_printed_1972_-_PCL_Map_Collection_-_haiti_ne19-1_small.jpg"
+    },
+    {
+      "aw_id": "hydro-system:70901807",
+      "publication": "JICA1999 Yaque del Sur study, Vol.2 Annex1, cover in part11511920_01.pdf; same publication as previously acquired part08 figures",
+      "official_url": "https://openjicareport.jica.go.jp/pdf/11511920_01.pdf",
+      "observed_outcome": "Catalogue and part01 PDF reader opened normally, the latter reporting58 pages without extracted text. Sole cover-page screenshot returned Cache miss; no cover pixels supplied.",
+      "outcome_layer": "Web-reader screenshot availability result; origin HTTP unobserved.",
+      "restriction_scope": "All further acquisition of this publication, its parts, figures and equivalent copies/formats/routes paused. No original fallback or screenshot retry after failure.",
+      "earlier_lawful_prose_exception": "Earlier catalogue title, publishers and1999-07 date retained.",
+      "related_urls": [
+        "https://openjicareport.jica.go.jp/pdf/11511920_08.pdf",
+        "https://openjicareport.jica.go.jp/807/807/807_608_11511920.html"
+      ],
+      "earlier_lawful_map_exception": "Before the failure, part08 original had completed HTTP200 and Figures3.2.4,3.2.5,3.5.2,3.5.3,3.5.4 were visually read. Only those already observed historical map facts are retained; no missing cover content or unseen later figure is used."
+    },
+    {
+      "aw_id": "hydro-system:70901807",
+      "publication": "Marvin Melgar Ceballos, Plan de manejo del Parque Nacional José del Carmen Ramírez; linked original plan archive",
+      "official_url": "https://www.gestiopolis.com/wp-content/uploads/2012/04/plan-de-manejo-del-parque-nacional-del-carmen.zip",
+      "observed_outcome": "After successful author-attributed HTML plan reading, the original-download link returned Cache miss. No archive body or plan-map pixels acquired.",
+      "outcome_layer": "Web-reader availability result; origin HTTP unobserved.",
+      "restriction_scope": "Whole missing original plan content, archive members, maps and equivalent copies/formats/readers/screenshots/alternate acquisition routes paused. No retry or technical-format fallback inferred from the unexplained cache failure.",
+      "earlier_lawful_prose_exception": "Previously read HTML hydrological discussion only, bounded to upper-San-Juan orientation, distinct Limón drainage and San Juan's tributary relation to Yaque del Sur.",
+      "related_urls": [
+        "https://www.gestiopolis.com/plan-de-manejo-ambiental-de-una-reserva-natural-en-republica-dominicana/"
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80086174",
+      "publication": "Niuninga Lake, Nunavut, Canadian topographic maps 46-N/3, ed.02 version00 (2010), M116-2/046N03-PDF",
+      "official_url": "https://publications.gc.ca/site/eng/9.583785/publication.html",
+      "observed_outcome": "The sole exact catalogue open returned web-reader Cache miss. No catalogue body, original PDF or map pixels were acquired.",
+      "outcome_layer": "Web-reader availability failure; origin HTTP status unobserved.",
+      "restriction_scope": "Missing Niuninga Lake NTS46-N/3 publication/map and all equivalent copies, formats, figures, catalogue/reader/cache/original/screenshot/mirror and acquisition routes paused. No retry or fallback. Distinct NLUIS46N observations already acquired remain usable within their actual reading scope.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "availability_stop",
+      "material_gap": true,
+      "material_effect": "The attempted detailed source did not resolve the Ujarasugjulik–Kannak/Niuninga selected transfer."
+    },
+    {
+      "aw_id": "hydro-system:61582367",
+      "publication": "Decreto 1032, Ministerio de Obras Públicas; Diario Oficial, 15 September 2017, CVE 1272150",
+      "official_url": "https://www.diariooficial.interior.gob.cl/publicaciones/2017/09/15/41861/01/1272150.pdf",
+      "observed_outcome": "The sole direct web-reader open returned Cache miss. No HTTP response status, PDF body or original map was exposed.",
+      "outcome_layer": "Web-reader/cache availability failure; origin HTTP status unknown.",
+      "restriction_scope": "Missing publication and all equivalent copies, formats, mirrors, figures, original, reader, cache and screenshot routes paused. No retry or alternate acquisition. The separately surfaced Ley Chile version is equivalent and was not opened.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "cache_miss",
+      "material_gap": false,
+      "material_effect": "Optional supporting source only. Independent original MMA and IGN cartography plus the successfully acquired 2016 Ministry of Energy report cover the selected scope. Search excerpts from the stopped decree are not used as substantive evidence."
+    },
+    {
+      "aw_id": "hydro-system:61582367",
+      "publication": "IGN historical Mosaico cartas 1:250.000, selected Cisnes eastern headward extent",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms",
+      "observed_outcome": "The original bounded view completed HTTP 200 image/png. Narrow horizontal and vertical white rendering strips omit limited map content.",
+      "outcome_layer": "Successful original HTTP response with bounded rendering omissions, not an access denial.",
+      "restriction_scope": "The missing strip content is excluded and was not retried. The independently successful MMA hydrography original covers the affected northward connecting reach; the IGN view supplies the extreme opening omitted by the MMA linework. No publication-wide stop inferred.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "bounded_image_rendering_limit_with_independent_original_coverage",
+      "material_gap": false,
+      "material_effect": "No unresolved geographic connector. Original sources are complementary at ordinary corridor scale."
+    },
+    {
+      "aw_id": "hydro-system:61582367",
+      "publication": "MMA SIMBIO_HIDROGRAFIA, selected extreme Cisnes headward opening",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HIDROGRAFIA/MapServer",
+      "observed_outcome": "Successful original overview and detailed view depict the northern connection but their source line ends short of the extreme eastern selected opening.",
+      "outcome_layer": "Source-cartographic detail/coverage limit on successful originals.",
+      "restriction_scope": "No source line is invented for the omitted short opening. The historical IGN 1:250,000 original independently maps the same headward drainage and west-to-north connection. No service-wide availability stop inferred.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "bounded_headward_line_coverage_limit",
+      "material_gap": false,
+      "material_effect": "Geographic scope is completed using the independent original, without asserting a precise surveyed source point."
+    }
+  ],
+  "additional_source_use_notices": []
+}

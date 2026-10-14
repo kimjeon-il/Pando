@@ -42,7 +42,7 @@ Web `assets/data/historical-world/generated/v1/`와 App `assets/world/historical
 - 전체 기본 세계 파일 저장·열기, full autosave, 역사 asset 요청 차단 후 offline 복원: 별도 단일 실행 1/1 통과 (`timeline-persistence.spec.mjs`, 2.7분).
 - 통합 browser 실행은 위 8개 성공 후 메모리 부족으로 마지막 persistence worker를 직접 중단했다. 마지막 사례의 별도 성공 결과를 사용하며 통합 9/9 성공으로 기록하지 않는다.
 
-화면: [Web 2012년 크림반도](https://github.com/kimjeon-il/Pando/blob/work/objects/docs/validation/historical-world-timeline/web-crimea-2012.png).
+화면: [Web 2012년 크림반도](historical-world-timeline/web-crimea-2012.png) ([과거 원본 경로](https://github.com/kimjeon-il/Pando/blob/work/objects/docs/validation/historical-world-timeline/web-crimea-2012.png)).
 
 ### App
 

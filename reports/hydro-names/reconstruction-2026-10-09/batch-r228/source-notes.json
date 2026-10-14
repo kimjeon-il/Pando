@@ -1,0 +1,829 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r228",
+  "sources": [
+    {
+      "source_key": "r228-ign-france-plan",
+      "title": "Plan IGN, GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2, Géoplateforme WMS-Raster",
+      "publisher": "Institut national de l’information géographique et forestière (IGN), France",
+      "official_url": "https://data.geopf.fr/wms-r/wms",
+      "metadata_url": "https://cartes.gouv.fr/rechercher-une-donnee/dataset/IGNF_PLAN-IGN",
+      "accessed_date": "2026-10-13",
+      "material_read": "The service capabilities and three sequential original PNG views were acquired with completed HTTP200 results. All original headward, middle and lower/terminal map pixels were read, with selected local crops used privately for labels and joining settings. Capabilities identify regularly updated automated multi-scale cartography derived from IGN vector databases.",
+      "actual_scope": "Complete selected geographic corridor across all three fragments, both fragment joins, the Brodel headward creek and receiving trunk, named Comté and Oyak reaches, Tour de l’Île connection and actual inner-Mahury-estuary ending.",
+      "independence": "Positively identified IGN France base-map service, previously documented independently in r115 and reconfirmed by current capabilities; distinct from the held Guiana2013 ecological Map9 and from Argentine IGN services.",
+      "limits": "Composite multiscale map, not a fixed survey edition or formal naming register. Generalized rendered paths are compared at ordinary corridor scale. Source maps, coordinates, view parameters and derivatives remain private."
+    },
+    {
+      "source_key": "r228-monfort-ruf-hydrologie",
+      "title": "Régime hydrologique des fleuves guyanais : étude fréquentielle des débits",
+      "authors": [
+        "Maxime Monfort",
+        "Laurent Ruf"
+      ],
+      "publisher": "Direction régionale de l’Environnement de Guyane, with participation of Institut de Recherche pour le Développement",
+      "publication_year": 2005,
+      "edition": "Réédition2009",
+      "official_url": "https://www.guyane.developpement-durable.gouv.fr/IMG/pdf/regime_hydrologique_fleuves_guyane.pdf",
+      "accessed_date": "2026-10-13",
+      "material_read": "Completed40-page original PDF. Title, authorial bibliography/imprint and contents read; the Mahury-basin section opener and printed pages25–26 (PDF pages26–28) visually read. The Saut Bief/Comté and Saut Bernard/Orapu station identities and their Mahury-basin context were used.",
+      "actual_scope": "Independent corroboration of Comté at Saut Bief and distinction of the Comté and Orapu within the Mahury basin. Hydrometric tables are historical context and are not used as current conditions or proof of the chosen head or terminal.",
+      "independence": "A named river-discharge frequency study with its own1969–2003 and1995–2003 observation series, authorship and2005/2009 publication identity; not the2013 Biotope ecological-map project or a replacement for Map9.",
+      "limits": "No original pages, photo, map or tables are redistributed. No present-flow or current-risk conclusion."
+    },
+    {
+      "source_key": "r228-esri-patagonia-imagery",
+      "title": "World Imagery: Southern Patagonian Icefield selected-corridor overview and two overlapping detail views",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "read_date": "2026-10-13",
+      "publication_identity_basis": "Independently maintained global imagery mosaic and a new Patagonia selected-area view, not recovery of a held topographic or hydrographic map. The separate unresolved northern Ellesmere view is not reused.",
+      "actual_read_scope": "Three completed original images: complete corridor overview; interior opening through the rocky eastern lake approach; broad intermediate lake, northwestern outlet, second glacier-front lake and actual coastal approach. Original pixels and private orientation aids inspected.",
+      "supports": "All selected terrain classes, intervening joins and the actual terminal geography.",
+      "limitations": "Mosaic dates and seasons vary and the imagery is not a gazetteer. It does not establish current glacier-front positions, natural-river hydraulic continuity across ice or rocks, or one name for the entire selection.",
+      "use_notice": "Source originals and all derived reading aids stay private; no redistribution permission inferred."
+    },
+    {
+      "source_key": "r228-hata2022-prestop-prose",
+      "title": "Abrupt drainage of Lago Greve, a large proglacial lake in Chilean Patagonia, observed by satellite in 2020",
+      "authors": "Shuntaro Hata, Shin Sugiyama and Kosuke Heki",
+      "publisher": "Communications Earth & Environment",
+      "year": 2022,
+      "volume": 3,
+      "article_number": 190,
+      "doi": "10.1038/s43247-022-00531-5",
+      "official_url": "https://www.nature.com/articles/s43247-022-00531-5",
+      "publication_identity_basis": "Original 2020 lake-outburst research using independent satellite analyses; not a reissue of the held USGS glacier atlas or Chilean national hydrographic service.",
+      "actual_read_scope": "Successfully read HTML title, authors, abstract, study-site paragraphs, drainage and outlet-change discussion, figure captions and lake-area methods before the image failure. No figure pixels or PDF read.",
+      "supports": "Lago Greve contextual identity and northwestern gorge-to-marginal-lake drainage; distinct historical southern Río Greve mention is not assigned to the northwest-going selection.",
+      "limitations": "Prior prose only after the Figure1 availability failure; no unseen-map claim, exact glacier/fjord assignment, or current channel survey."
+    },
+    {
+      "source_key": "r228-carrion2025-authorial-context",
+      "title": "Evolution of glacial lakes in Southern Patagonian Icefield between 1986 and 2023",
+      "authors": "Daniela Carrión, Jorge Berkhoff, Thomas Loriaux, Ryan Wilson, Camilo Rada, Felipe Ugalde and Claudio Bravo",
+      "publisher": "Frontiers in Earth Science",
+      "year": 2025,
+      "volume": 13,
+      "article_number": "1534451",
+      "doi": "10.3389/feart.2025.1534451",
+      "official_url": "https://www.frontiersin.org/journals/earth-science/articles/10.3389/feart.2025.1534451/full",
+      "publication_identity_basis": "Separate peer-reviewed multi-temporal satellite lake-analysis project; own authorial observations are distinguishable from credited historical map/name inputs.",
+      "actual_read_scope": "HTML authors, abstract, study area, mapping methods and the relevant lake-dynamics/discussion paragraphs, plus captions and the Hata2022 bibliographic reference. No figure pixels or PDF acquired.",
+      "supports": "Context that ice-marginal lake outlines and drainage can change between observation epochs.",
+      "limitations": "Historical IGM outline input and names taken from unspecified IGM/Argentine maps are excluded from correspondence and name assignment while their underlying publication relation is unresolved. No whole-article or institution-wide ban inferred.",
+      "used_as_substantive_evidence": false
+    },
+    {
+      "source_key": "r228-usgstopo-overview",
+      "title": "USGSTopo, The National Map: eastern Mojave corridor overview",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "material_read": "One successfully completed original raster, visually inspected across the whole selected corridor, including the opening, upper eastern branch, western Watson Wash tributary, Goffs/Fenner joins, Essex and lower valley, Cadiz Lake approach and terminal setting. Private reading crops were also inspected. Retained successful metadata establishes independent multiscale service identity.",
+      "supports": "Direct Watson Wash label on the western branch, mapped intermittent-channel correspondence, regional collecting corridor and Cadiz Lake identity.",
+      "limits": "The near-playa intermittent line ends before the lake margin, so that view alone does not resolve detailed flow spreading. Independently read imagery supplies ordinary continuous fan-to-playa correspondence. No whole-system hydronym or present-flow assertion. Original maps, crops and orientation aids are not public."
+    },
+    {
+      "source_key": "r228-usgstopo-details",
+      "title": "USGSTopo, The National Map: upper Fenner, middle Essex and lower Cadiz corridor views",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "material_read": "Three successfully completed original rasters, all visually inspected; upper and lower private orientation aids also inspected.",
+      "supports": "Relief, valley, road/rail crossings, settlement and Cadiz Lake setting.",
+      "limits": "These detailed cartographic display levels omit most intermittent hydrography. Their omission is not proof that the mapped washes are absent and is not an access failure."
+    },
+    {
+      "source_key": "r228-essex-quarry2025",
+      "title": "Essex Overhead Quarry Initial Study/Mitigated Negative Declaration, May2025",
+      "publisher": "County of San Bernardino Department of Public Works and Land Use Services; technical assistance Lilburn Corporation",
+      "official_url": "https://lus.sbcounty.gov/wp-content/uploads/sites/48/PROJ-2024-00100-Essex-Quarry-DPW-MND-May-2025-Final-CEQAnet-Final.pdf",
+      "material_read": "Original PDF completed normally. Cover, contents, project identification, printed p33 including its footnotes, p39 geographic paragraph and p75 Environmental Setting were read as text; printed p33 also visually inspected. References and pertinent use/notice matches were examined. No appendix original or source map is asserted read.",
+      "supports": "The project identifies Watson Wash west of the Essex quarry site as an intermittent northeast-to-southwest desert drainage ultimately reaching Cadiz Lake. It cites separate2023 biological and2024 jurisdictional site investigations.",
+      "limits": "This site-specific prose does not name the selected northern branch, resolve the entire dry-wash network or show the actual selected lake-entry route. Jurisdictional conclusions are not used as legal advice or name evidence. No whole-publication restricted-distribution notice found in inspected cover/text scope."
+    },
+    {
+      "source_key": "r228-esri-head",
+      "title": "World Imagery: bounded northern Fenner-area wash opening",
+      "publisher": "Esri and credited imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "material_read": "One independently acquired original image completed normally and was visually inspected; a private selected-path orientation aid was also inspected.",
+      "supports": "Gullied opening, eastward dry-wash bend along the northern rock margin and the turn into the eastern southbound valley.",
+      "limits": "No hydronym, present discharge, exact-bank or formal-registry inference. Only the northern portion of the longer eastern corridor is covered."
+    },
+    {
+      "source_key": "r228-esri-terminal",
+      "title": "World Imagery: bounded lower Fenner alluvial approach and Cadiz Lake",
+      "publisher": "Esri and credited imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "material_read": "One independently acquired original image completed normally and was visually inspected; a private selected-path orientation aid was also inspected.",
+      "supports": "Lower alluvial collector and spreading traces, dune/vegetated margin, Cadiz playa receiving setting and final selected ending.",
+      "limits": "The collector becomes diffuse across the same receiving fan/dune margin and playa; individual current flow threads and flood routing are not determined. This does not prevent ordinary geographic correspondence. No imagery-derived hydronym or original/derivative redistribution."
+    },
+    {
+      "source_key": "r228-esri-neuquen-upper",
+      "title": "World Imagery: bounded Neuquén upper corridor view",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "material_type": "Original bounded satellite-imagery mosaic",
+      "acquired_scope": "Normal original image request completed with HTTP200, image/jpeg; original pixels read locally after terminal completion.",
+      "actual_read_scope": "Original pixels covering the chosen plateau opening, eastward ravine, upper tributary joins and southward upper valley; stored parts0–10 and overlapping start of the middle corridor.",
+      "geographic_role": "Ordinary corridor, landform and receiving-setting correspondence only.",
+      "publication_identity_basis": "Independently maintained Esri imagery mosaic, distinct from the held IGN map publications, geological studies, groundwater thesis and petroleum-development EIA.",
+      "limits": "Unlabelled mosaic with no independently established scene dates for this corridor. Does not establish hydronyms, legal name status, year-round flow, exact banks, current hydraulic operations or a surveyed endpoint.",
+      "reuse_limit": "Original images and all crops or comparison aids remain private. Only independently written observations and the normal service bibliography are public-ready."
+    },
+    {
+      "source_key": "r228-esri-neuquen-middle",
+      "title": "World Imagery: bounded Neuquén middle corridor view",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "material_type": "Original bounded satellite-imagery mosaic",
+      "acquired_scope": "Normal original image request completed with HTTP200, image/jpeg; original pixels read locally after terminal completion.",
+      "actual_read_scope": "Original pixels covering the overlapping upper valley, larger tributary junction, middle bends, lower valley and road-crossed approach; stored parts8–20 with overlap into21.",
+      "geographic_role": "Ordinary corridor, landform and receiving-setting correspondence only.",
+      "publication_identity_basis": "Independently maintained Esri imagery mosaic, distinct from the held IGN map publications, geological studies, groundwater thesis and petroleum-development EIA.",
+      "limits": "Unlabelled mosaic with no independently established scene dates for this corridor. Does not establish hydronyms, legal name status, year-round flow, exact banks, current hydraulic operations or a surveyed endpoint.",
+      "reuse_limit": "Original images and all crops or comparison aids remain private. Only independently written observations and the normal service bibliography are public-ready."
+    },
+    {
+      "source_key": "r228-esri-neuquen-terminal",
+      "title": "World Imagery: bounded Neuquén terminal corridor view",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "material_type": "Original bounded satellite-imagery mosaic",
+      "acquired_scope": "Normal original image request completed with HTTP200, image/jpeg; original pixels read locally after terminal completion.",
+      "actual_read_scope": "Original pixels covering the lower channel, fan, playa entry, all final stored parts and actual selected ending; stored parts20–28 and the full surrounding receiving setting.",
+      "geographic_role": "Ordinary corridor, landform and receiving-setting correspondence only.",
+      "publication_identity_basis": "Independently maintained Esri imagery mosaic, distinct from the held IGN map publications, geological studies, groundwater thesis and petroleum-development EIA.",
+      "limits": "Unlabelled mosaic with no independently established scene dates for this corridor. Does not establish hydronyms, legal name status, year-round flow, exact banks, current hydraulic operations or a surveyed endpoint.",
+      "reuse_limit": "Original images and all crops or comparison aids remain private. Only independently written observations and the normal service bibliography are public-ready."
+    },
+    {
+      "source_key": "r228-esri-neuquen-fan",
+      "title": "World Imagery: bounded Neuquén fan corridor view",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "material_type": "Original bounded satellite-imagery mosaic",
+      "acquired_scope": "Normal original image request completed with HTTP200, image/jpeg; original pixels read locally after terminal completion.",
+      "actual_read_scope": "Original higher-detail pixels covering the southern sandy-fan continuation, diffuse wash/distributary traces, road crossing and entry into the smoother playa floor; stored parts21–23 with adjacent context.",
+      "geographic_role": "Ordinary corridor, landform and receiving-setting correspondence only.",
+      "publication_identity_basis": "Independently maintained Esri imagery mosaic, distinct from the held IGN map publications, geological studies, groundwater thesis and petroleum-development EIA.",
+      "limits": "Unlabelled mosaic with no independently established scene dates for this corridor. Does not establish hydronyms, legal name status, year-round flow, exact banks, current hydraulic operations or a surveyed endpoint.",
+      "reuse_limit": "Original images and all crops or comparison aids remain private. Only independently written observations and the normal service bibliography are public-ready."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:60154000",
+      "source_keys": [
+        "r228-ign-france-plan",
+        "r228-monfort-ruf-hydrologie"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            11513
+          ],
+          "component_scope": "Chosen southwestern opening and first eastward creek approach",
+          "finding": "The selected opening lies on the small eastward creek corridor southwest of Montagne Soufflet. The original map depicts the opening, its eastward bends and the connected approach to the named Crique Brodel reach. The first selected vertex is not treated as an official source or a separately named spring. Unlabeled initial subreaches remain unnamed.",
+          "sources": [
+            "r228-ign-france-plan"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stages": [
+            3
+          ],
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            11513
+          ],
+          "component_scope": "Crique Brodel and its northeastward receiving-channel connection",
+          "finding": "The original headward map prints crique brodel along the selected east-to-northeast creek. The mapped blue watercourse continues around the southern and eastern side of the Montagne Soufflet setting and joins the larger northward receiving corridor. Crique La Folie and Crique Blanche are separately depicted branches; their labels are not transferred to the selected opening. The named Brodel component is bounded to this headward approach.",
+          "sources": [
+            "r228-ign-france-plan"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stages": [
+            3
+          ],
+          "candidate_name": "Crique Brodel"
+        },
+        {
+          "fragments": [
+            11513,
+            11514
+          ],
+          "component_scope": "Upper northward receiving trunk and first fragment join",
+          "finding": "The selected river continues north and northeast along a continuously mapped, widening river valley, past the separate Roche Fendé-side drainage setting and into the Sainte-Anne/Étienne upper Comté corridor. The overlapping head and middle originals cover the entire intervening valley and the FID11513/11514 join. The named Comté receiving trunk is distinguished from the earlier Brodel creek; no exact naming-transition vertex is asserted.",
+          "sources": [
+            "r228-ign-france-plan"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stages": [
+            3,
+            2
+          ],
+          "candidate_name": "Comté"
+        },
+        {
+          "fragments": [
+            11514
+          ],
+          "component_scope": "Comté from the upper settled valley through Saut Bief and Cacao",
+          "finding": "The middle original labels Rivière Comté and shows its continuous corridor through the Bagot/Grand Bassin surroundings, Saut Bief, Cacao and Sainte-Anne. The selected generalized line cuts across some river bends and the Cacao settlement-side curve but stays within this same river corridor. Monfort and Ruf independently identify Saut Bief as a station on the Comté within the Mahury basin. The modeled segment is not substituted for the individual source-map meanders.",
+          "sources": [
+            "r228-ign-france-plan",
+            "r228-monfort-ruf-hydrologie"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stages": [
+            2
+          ],
+          "candidate_name": "Comté"
+        },
+        {
+          "fragments": [
+            11514
+          ],
+          "component_scope": "Middle and lower Comté bends to Saint-Régis",
+          "finding": "North of Cacao the selection follows the Comté past the Roche Diamant setting, turns through the Cap Mocy/Mont Diablo bend and continues northeast by Roche Tablon toward Îlets Saint-Régis and the road crossing. The original map follows all these connected river reaches and separates the Nancibo and surrounding creek inflows from the selected trunk. No lake or reservoir transit is depicted.",
+          "sources": [
+            "r228-ign-france-plan"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stages": [
+            2
+          ],
+          "candidate_name": "Comté"
+        },
+        {
+          "fragments": [
+            11514,
+            11515
+          ],
+          "component_scope": "Lower Comté loop, joining river and transition to Oyak",
+          "finding": "The overlapping middle and lower originals show the selected lower Comté approach beside Pointe Maripa, the returning Comté loop and the southern/eastern incoming river connection, followed by the northward watercourse repeatedly labeled Rivière Oyak. The selected FID11514/11515 join lies on this connected receiving corridor. Its generalized line abbreviates the Pointe Maripa loop; the source supplies the actual connected river geography. The Orapu is independently identified as a separate Mahury-basin river in the hydrometric study and is not renamed Comté or adopted as the selected headward branch.",
+          "sources": [
+            "r228-ign-france-plan",
+            "r228-monfort-ruf-hydrologie"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stages": [
+            2,
+            1
+          ],
+          "bounded_component_names": [
+            "Comté",
+            "Oyak"
+          ],
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            11515
+          ],
+          "component_scope": "Oyak northward valley past Roura",
+          "finding": "The lower original repeatedly labels Rivière Oyak on the selected northward watercourse between the Maripa setting and Roura. It shows the complete sequence of bends beside Mont de la Cordelière and Montagnes de Roura, the separate short creek inflows, and the continuation past Roura. Oyak is a bounded reach identity, not an alias assigned to Brodel or the whole selected feature.",
+          "sources": [
+            "r228-ign-france-plan"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stages": [
+            1
+          ],
+          "candidate_name": "Oyak"
+        },
+        {
+          "fragments": [
+            11515
+          ],
+          "component_scope": "Tour de l’Île branch setting and lower Mahury",
+          "finding": "North of Roura the mapped river meets the distinct western Rivière du Tour de l’Île connection. The selected route continues on the broad north/northeast channel repeatedly labeled le Mahury, past the road crossing, Pointe Logoa and the Paramana-side margins. The western connection is visible but is not a separately selected tributary fragment. Adjacent wetland channels and the former Marianne polder drainage remain separate from the selected estuarine trunk.",
+          "sources": [
+            "r228-ign-france-plan"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stages": [
+            1
+          ],
+          "candidate_name": "Mahury"
+        },
+        {
+          "fragments": [
+            11515
+          ],
+          "component_scope": "Actual selected estuarine terminal",
+          "finding": "The lower original covers the entire selected approach and actual ending: the route turns east within the broad Mahury estuary south of Dégrad des Cannes and Pointe du Mahury. Its endpoint lies in estuarine open water before the farther seaward entrance. That actual ending is retained; it is not moved offshore or equated with a surveyed ocean-mouth point. The map supports the Mahury receiving-estuary identity and the river-to-estuary connection without a present tidal-flow, navigability or bank-side claim.",
+          "sources": [
+            "r228-ign-france-plan"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stages": [
+            1
+          ],
+          "candidate_name": "Mahury"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61600403",
+      "source_keys": [
+        "r228-esri-patagonia-imagery",
+        "r228-hata2022-prestop-prose"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14652
+          ],
+          "component_scope": "Interior icefield opening",
+          "finding": "The chosen eastern opening first runs west, dips south and returns northwest across a continuous snow- and ice-covered interior. The surrounding rock ridges and textured glacier surface are visible throughout. No open-water river or exact glacier-source name is demonstrated along this initial modeled line.",
+          "sources": [
+            "r228-esri-patagonia-imagery"
+          ],
+          "correspondence": "completed_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            14652
+          ],
+          "component_scope": "Northward and northwestward ice traverse",
+          "finding": "The next selected parts turn north and then northwest across the broad ice surface toward the western mountain margin. The bends and joins remain geographically covered; no separate tributary fragment is selected. This is ice-terrain correspondence, not proof of a natural surface or subglacial river following the model.",
+          "sources": [
+            "r228-esri-patagonia-imagery"
+          ],
+          "correspondence": "completed_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            14652
+          ],
+          "component_scope": "Ice-margin bends and rocky lake approaches",
+          "finding": "The route bends northeast and then north along a complex margin of exposed ridges, glacier tongues and narrow water-filled embayments before turning west into the larger lake setting. Several short selected intervals cross visibly rocky or ice-covered terrain rather than one demonstrated continuous river channel. The imagery resolves these land/ice/water settings; their mismatch with a uniform river interpretation is a feature-class limitation, not missing source coverage.",
+          "sources": [
+            "r228-esri-patagonia-imagery"
+          ],
+          "correspondence": "completed_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            14652
+          ],
+          "component_scope": "Broad lake passage and northwestern arm",
+          "finding": "The straight westward passage crosses the broad turbid lake, then the selection turns northwest along its arm beside a large rock island and the eastern valley wall. Hata and colleagues identify this intermediate waterbody as Lago Greve and describe drainage through its northwestern margin. That lake identity is contextual; it does not name the selected icefield-to-coast group.",
+          "sources": [
+            "r228-esri-patagonia-imagery",
+            "r228-hata2022-prestop-prose"
+          ],
+          "correspondence": "completed_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            14652
+          ],
+          "component_scope": "Northwestern lake outlet and connecting valley",
+          "finding": "The selected corridor leaves the lake arm through a narrow exposed outlet valley and continues toward the next glacier-front waterbody. The intervening rocky narrows, stream and local joins are visible. Hata and colleagues describe a gorge and steep outlet stream connecting Lago Greve to a marginal lake of Glaciar Occidental. No precise historical or present channel position is imposed on the model.",
+          "sources": [
+            "r228-esri-patagonia-imagery",
+            "r228-hata2022-prestop-prose"
+          ],
+          "correspondence": "completed_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            14652
+          ],
+          "component_scope": "Second lake and glacier-front margin",
+          "finding": "The route passes through the lower glacier-front lake and its western margin, beside a large ice tongue entering from the east, then reaches the lake outflow. These lake, ice-front and outwash settings are completely visible. The glacier label is not assigned to a selected exact point, and this lake is not treated as another name for the entire river group.",
+          "sources": [
+            "r228-esri-patagonia-imagery"
+          ],
+          "correspondence": "completed_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            14652
+          ],
+          "component_scope": "Braided outwash and actual coastal approach",
+          "finding": "The final selected parts continue northwest through a broad pale braided outwash valley between exposed hills. The actual rendered endpoint lies at the lowermost outwash/coastal-entrance margin, immediately beside the inner coastal water, rather than tracing the whole fjord onward. The ending and its neighboring channel bars are visible. No exact fjord name, tidal boundary, surveyed mouth or current preferred distributary is assigned.",
+          "sources": [
+            "r228-esri-patagonia-imagery"
+          ],
+          "correspondence": "completed_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70712301",
+      "source_keys": [
+        "r228-usgstopo-overview",
+        "r228-usgstopo-details",
+        "r228-essex-quarry2025",
+        "r228-esri-head",
+        "r228-esri-terminal"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9872
+          ],
+          "component_scope": "Chosen northern opening and eastward upper bend",
+          "finding": "The overview maps a small north-to-south wash at the selected opening, bending east along the northern side of the local hills and then entering the southbound eastern valley. The separately named Watson Wash passes to the west of those hills. The independent imagery visibly shows the dry wash gathering the opening gullies, following the eastward rock-margin bend and turning into the eastern valley.",
+          "sources": [
+            "r228-usgstopo-overview",
+            "r228-usgstopo-details",
+            "r228-esri-head"
+          ],
+          "correspondence": "completed_ordinary_corridor_and_join_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            9872
+          ],
+          "component_scope": "Eastern upper valley to Goffs turn",
+          "finding": "The chosen branch continues down the valley west of the Vonttrigger Hills and alongside Lanfair Road, then turns southwest near Goffs into the receiving valley. The mapped dry-wash network supplies ordinary corridor correspondence. The imagery corroborates the northern portion of this southbound valley only; the overview supplies continuation to Goffs.",
+          "sources": [
+            "r228-usgstopo-overview",
+            "r228-usgstopo-details",
+            "r228-esri-head"
+          ],
+          "correspondence": "completed_ordinary_corridor_and_join_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            9872
+          ],
+          "component_scope": "Goffs–Fenner southwest corridor and Interstate40 collecting joins",
+          "finding": "The mapped wash continues southwest beside the Goffs road/rail corridor and merges with western wash channels near the Interstate40 crossing. Watson Wash is directly named upstream on that western contributing system. The selected eastern branch and its collecting joins are not assumed to share one name.",
+          "sources": [
+            "r228-usgstopo-overview",
+            "r228-usgstopo-details"
+          ],
+          "correspondence": "completed_ordinary_corridor_and_join_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            9872
+          ],
+          "component_scope": "Essex and downstream Fenner Valley corridor",
+          "finding": "The overview shows the southwest collecting wash and entering side drainages beside the National Trails Highway and railroad, continuing along the valley between the Clipper/Marble side and the Old Woman/Ship Mountains. The independent county study identifies the wash adjacent to Essex as Watson Wash draining toward Cadiz Lake, without resolving whole-system nomenclature.",
+          "sources": [
+            "r228-usgstopo-overview",
+            "r228-usgstopo-details",
+            "r228-essex-quarry2025"
+          ],
+          "correspondence": "completed_ordinary_corridor_and_join_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            9872
+          ],
+          "component_scope": "Lower alluvial approach north of Cadiz Lake",
+          "finding": "Below the rail crossing west of the Ship Mountains, mapped and visible wash traces spread across a continuous lower alluvial receiving fan. Imagery shows the selected western approach within the same fan and dune-margin setting meeting the northwestern Cadiz playa lobe. There is no observed intervening divide or separate corridor transfer. Regional map linework stops short of the lake, but the ordinary fan-to-playa entry is supported by the imagery together with the county destination prose. Absence of a distinct wetted thread is not a material gap.",
+          "sources": [
+            "r228-usgstopo-overview",
+            "r228-usgstopo-details",
+            "r228-essex-quarry2025",
+            "r228-esri-terminal"
+          ],
+          "correspondence": "completed_ordinary_receiving_fan_and_playa_entry_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            9872
+          ],
+          "component_scope": "Cadiz Lake receiving playa and final selected ending",
+          "finding": "Cadiz Lake is directly named and mapped as a dry lake. The imagery confirms the pale playa surface, its northwestern receiving lobe and the final selected ending within that lake setting, amid visible salt-working features. The preceding continuous receiving fan meets this lobe. No river trace across the playa floor is required.",
+          "sources": [
+            "r228-usgstopo-overview",
+            "r228-usgstopo-details",
+            "r228-esri-terminal"
+          ],
+          "correspondence": "completed_receiving_playa_and_selected_ending_identification",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": "Cadiz Lake"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61539365",
+      "source_keys": [
+        "r228-esri-neuquen-upper",
+        "r228-esri-neuquen-middle",
+        "r228-esri-neuquen-terminal",
+        "r228-esri-neuquen-fan"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14507
+          ],
+          "component_scope": "Chosen opening and eastward plateau ravine",
+          "finding": "The chosen opening lies in a broad pale dry ravine cut into the plateau. The selected route follows the ravine eastward, past successive side gullies and wider sandy reaches, to its eastward bend and turn into a southward valley. The opening, all six stored parts and their internal joins are covered by the original imagery. The orientation line is not used as naming or channel evidence.",
+          "sources": [
+            "r228-esri-neuquen-upper"
+          ],
+          "correspondence": "completed_geographic_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            14507
+          ],
+          "component_scope": "Southward upper valley and its side-gully joins",
+          "finding": "A continuous broad dry-channel valley runs south and then southeast beside dissected plateau margins. Numerous side gullies enter it. The selected turn and internal joins correspond to this visible valley corridor; overlapping upper and middle views cover both sides of the transition. No intervening lake or reservoir is visible at the inspected scale.",
+          "sources": [
+            "r228-esri-neuquen-upper",
+            "r228-esri-neuquen-middle"
+          ],
+          "correspondence": "completed_geographic_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            14507
+          ],
+          "component_scope": "Middle valley bends and larger tributary junction",
+          "finding": "The pale alluvial channel continues southeast between eroded plateau edges, bends south at a larger side-valley junction, then curves around a projecting plateau spur. The visible junction and all four selected parts are covered. Side-valley names remain unestablished; no neighboring label is applied to them.",
+          "sources": [
+            "r228-esri-neuquen-middle"
+          ],
+          "correspondence": "completed_geographic_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            14507
+          ],
+          "component_scope": "Lower confined valley and road-crossed approach",
+          "finding": "The dry channel turns southeast along the foot of the plateau and receives additional side gullies before the lower open plain. Its sandy channel belt remains visible through the bends and across a road crossing. No reservoir impoundment or separate managed-channel transfer is needed to explain this ordinary corridor correspondence. No engineering or present operational condition is inferred.",
+          "sources": [
+            "r228-esri-neuquen-middle",
+            "r228-esri-neuquen-terminal"
+          ],
+          "correspondence": "completed_geographic_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            14507
+          ],
+          "component_scope": "Valley exit, sandy fan and southern fan-to-playa entry",
+          "finding": "At the valley exit, the formerly confined sandy channel spreads into a branching alluvial fan. A conspicuous branch trends east, while the selected southern continuation occupies the adjoining pale, partly vegetated fan with shallow distributary and wash traces. The detailed view covers this entire transition across the road-cut fan into the smoother playa floor. The fan is partly masked by sandy hummocks and vegetation, so no continuously active wetted thread or exact modern bank is asserted. This is geographic fan-entry correspondence rather than a transfer across an unseen divide.",
+          "sources": [
+            "r228-esri-neuquen-terminal",
+            "r228-esri-neuquen-fan"
+          ],
+          "correspondence": "completed_fan_entry_and_receiving_setting_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            14507
+          ],
+          "component_scope": "Playa continuation, final northeastward bend and actual ending",
+          "finding": "The final stored parts continue within the same broad low-gradient playa and its marginal flats, first southeast and then northeast into a darker patch on the playa floor. The whole bend, actual selected ending and surrounding receiving basin are visible in the terminal view, including nearby pale salt-crusted surfaces and minor marginal pools. No distinct channel across every part of the saline floor is claimed or required. The receiving depression is kept separate from any natural-river identity, and neither the depression nor the selected ending receives an established name here.",
+          "sources": [
+            "r228-esri-neuquen-terminal"
+          ],
+          "correspondence": "completed_terminal_playa_setting_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "Hata, Sugiyama and Heki (2022), Abrupt drainage of Lago Greve, a large proglacial lake in Chilean Patagonia, observed by satellite in 2020; Communications Earth & Environment3:190",
+      "official_url": "https://www.nature.com/articles/s43247-022-00531-5",
+      "doi": "10.1038/s43247-022-00531-5",
+      "failed_url": "https://media.springernature.com/lw685/springer-static/image/art%3A10.1038%2Fs43247-022-00531-5/MediaObjects/43247_2022_531_Fig1_HTML.png",
+      "observed_outcome": "Article HTML opened normally. The sole normally linked Figure1 image opening returned web-reader Failed to fetch: Cache miss. No original image pixels or origin HTTP response were exposed.",
+      "outcome_layer": "Web-reader/cache availability failure; origin HTTP unknown.",
+      "origin_http_status": null,
+      "restriction_scope": "Whole exact article, figures and equivalent further acquisition/uninspected-output reading paused. No original-client, PDF, full-size-image, mirror or other fallback followed.",
+      "earlier_lawful_observations": "Only the actually read HTML title/author/abstract/study-site/outlet/methods prose and captions remain usable. No map pixels were read.",
+      "newly_observed_access_failure": true,
+      "explicit_access_denial": false,
+      "acquisition_stop": true,
+      "material_gap": false,
+      "aw_id": "hydro-system:61600403"
+    },
+    {
+      "publication": "Cadiz Valley Water Conservation, Recovery and Storage Project EIR, Section4.9 Hydrology and Water Quality; original imprint uninspected",
+      "official_url": "https://www.cadizwaterproject.com/wp-content/uploads/2015/07/4_09_Hydrology.pdf",
+      "observed_outcome": "Sole normal-original request redirected to https://cadizinc.com/solutions/ and completed HTTP200 Content-Type text/html; charset=UTF-8 instead of the expected PDF. Returned body was not read.",
+      "outcome_layer": "Completed direct HTTP-client redirect and wrong-body response, not HTTP401/403 or asserted access-control denial",
+      "restriction_scope": "Whole identified EIR/project-equivalent further acquisition and unread-output recovery paused, including alternative host copies, sections and same-project appendices. No retry or alternate acquisition.",
+      "earlier_lawful_prose_exception": null,
+      "newly_observed_access_failure": true,
+      "explicit_access_denial": false,
+      "material_gap": false,
+      "source_evidence_excluded": "All discovery excerpts and unpublished unseen map or prose claims. SMWD appendices and related final-EIR addendum were discovery-only and unrequested.",
+      "aw_id": "hydro-system:70712301"
+    },
+    {
+      "publication": "Toth, Alina (October2022), Estimación de la recarga de los acuíferos en el Dorso de los Chihuidos mediante Sistema de Información Geográfica, Licenciatura en Ciencias Geológicas, Universidad Nacional del Comahue, item16889; discovery bibliography, original imprint uninspected",
+      "official_url": "https://rdi.uncoma.edu.ar/bitstream/handle/uncomaid/16889/TFL_TothAlina.pdf?isAllowed=y&sequence=1",
+      "observed_outcome": "The sole normal-original request completed HTTP200 with Content-Type text/html; charset=utf-8 rather than the expected PDF. No returned body, thesis text, original imprint or map was read.",
+      "outcome_layer": "Completed direct HTTP-client wrong-body response. No authentication challenge or other body content was inspected, so none is asserted.",
+      "restriction_scope": "Whole exact thesis and equivalent original, catalogue, reader/cache, mirror, figure and alternative-format acquisition routes and unread outputs paused.",
+      "publication_identity_basis": "An independently submitted geoscience degree project on spatial aquifer recharge, supervised by Ana Cecilia Dufilho and José Ricardo Gatica, distinguished before acquisition from the held Sevastei biology thesis and the specific SEGEMAR/CFI studies.",
+      "newly_observed_access_failure": true,
+      "explicit_access_denial": false,
+      "earlier_lawful_prose_exception": null,
+      "aw_id": "hydro-system:61539365",
+      "acquisition_stop": true
+    },
+    {
+      "publication": "Shell Argentina S.A., Estudio de Impacto Ambiental: Proyecto Pre Desarrollo Bajada de Añelo, Área de Concesión Bajada de Añelo, Province of Neuquén, June2021; discovery bibliography, original imprint uninspected",
+      "official_url": "https://ambiente.neuquen.gov.ar/wp-content/uploads/2021/06/EIA-Pre-Desarrollo-Bajada-de-Anelo.pdf",
+      "observed_outcome": "The first normal-original request completed directHTTP502 text/html. After actual termination, the single identical exact-URL retry also completed directHTTP502 text/html. No response body, report text, original imprint or map was read.",
+      "outcome_layer": "Two completed direct HTTP-client availability responses; no authentication or access-control denial observed.",
+      "restriction_scope": "Whole exact Pre Desarrollo Bajada de Añelo EIA and project-equivalent original, catalogue, reader/cache, mirror, figure and alternative-format acquisition routes and unread outputs paused.",
+      "publication_identity_basis": "A project-specific petroleum-concession development environmental assessment for Shell, with separate declared proponent and environmental responsibility, distinguished before acquisition from held geology publications and CFI regional groundwater studies.",
+      "newly_observed_access_failure": true,
+      "explicit_access_denial": false,
+      "earlier_lawful_prose_exception": null,
+      "aw_id": "hydro-system:61539365",
+      "acquisition_stop": true
+    },
+    {
+      "publication": "Neuquén Informa, La Provincia inició la licitación para el nuevo puente sobre el arroyo Carranza,15November2025; discovery bibliography only",
+      "official_url": "https://www.neuqueninforma.gob.ar/amp/noticias/2025/11/15/252595-la-provincia-inicio-la-licitacion-para-el-nuevo-puente-sobre-el-arroyo-carranza",
+      "observed_outcome": "The sole normal discovered article opening returned web-reader Failed to fetch: Cache miss. No article body or image pixels were supplied or read.",
+      "outcome_layer": "Web-reader availability failure; originHTTP unknown.",
+      "restriction_scope": "Whole exact article and equivalent original, non-AMP/AMP, reader/cache, mirror and linked-image recovery routes and unread outputs paused.",
+      "publication_identity_basis": "An original provincial announcement about a particular bridge procurement, editorially distinct from the held petroleum EIA and geological or groundwater reports. No equivalent copy of any held report was proposed.",
+      "newly_observed_access_failure": true,
+      "explicit_access_denial": false,
+      "earlier_lawful_prose_exception": null,
+      "aw_id": "hydro-system:61539365",
+      "acquisition_stop": true
+    },
+    {
+      "publication": "Province of Neuquén, Decreto N°1446, Auca Mahuida reserve-boundary instrument; date and original printed imprint uninspected",
+      "official_url": "https://www.anp.gob.ar/pdf/1446.pdf",
+      "observed_outcome": "The first normal-original request completed directHTTP502 text/html. After actual termination, the single identical exact-URL retry also completed directHTTP502 text/html. No response body, decree text, original imprint or map was read.",
+      "outcome_layer": "Two completed direct HTTP-client availability responses; no authentication or access-control denial observed.",
+      "restriction_scope": "Whole exact decree and equivalent original, catalogue, reader/cache, mirror, attached-map and alternative-format acquisition routes and unread outputs paused.",
+      "publication_identity_basis": "A provincial legal geographic-boundary instrument for the reserve, distinguished from the held groundwater, geology, petroleum-development and bridge-news publications.",
+      "newly_observed_access_failure": true,
+      "explicit_access_denial": false,
+      "earlier_lawful_prose_exception": null,
+      "aw_id": "hydro-system:61539365",
+      "acquisition_stop": true
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "source_key": "r228-ign-france-plan",
+      "kind": "bounded_reading_and_no_source_redistribution",
+      "observation": "Only own geographic observations and ordinary bibliography are public-ready. Original map views, crops, overlays, full coordinates and dynamic service parameters remain private.",
+      "publication": "Plan IGN, GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2, Géoplateforme WMS-Raster",
+      "official_url": "https://data.geopf.fr/wms-r/wms",
+      "aw_id": "hydro-system:60154000",
+      "acquisition_stop": false
+    },
+    {
+      "source_key": "r228-monfort-ruf-hydrologie",
+      "kind": "bounded_reading_and_no_source_redistribution",
+      "observation": "Printed photo/cartographic credits are retained; PDF reports copying/editing restrictions while printing is allowed. Only bounded own station-identity and bibliographic observations are used; no source pages, photographs, tables or map material are reproduced.",
+      "publication": "Régime hydrologique des fleuves guyanais : étude fréquentielle des débits",
+      "official_url": "https://www.guyane.developpement-durable.gouv.fr/IMG/pdf/regime_hydrologique_fleuves_guyane.pdf",
+      "aw_id": "hydro-system:60154000",
+      "acquisition_stop": false
+    },
+    {
+      "publication": "Carrión et al.2025, Evolution of glacial lakes in Southern Patagonian Icefield between1986 and2023",
+      "official_url": "https://www.frontiersin.org/journals/earth-science/articles/10.3389/feart.2025.1534451/full",
+      "kind": "unresolved_borrowed_cartographic_input_excluded",
+      "observation": "Methods explicitly credit a1954 IGM1:250000 outline for the1945 glacier extent and unspecified IGM1:50000/Argentine geographic maps for lake names. Those borrowed inputs are not used to recover held or unresolved cartography. Own authorial satellite-study prose remains bounded context; no whole-report ban.",
+      "aw_id": "hydro-system:61600403",
+      "acquisition_stop": false
+    },
+    {
+      "publication": "World Imagery selected Patagonia views",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "kind": "imagery_scope_and_redistribution_boundary",
+      "observation": "Geographic terrain correspondence only. No source image, crop, overlay, dynamic export URL, full selected coordinates or private acquisition receipt is public-ready.",
+      "aw_id": "hydro-system:61600403",
+      "acquisition_stop": false
+    },
+    {
+      "source_key": "r228-usgstopo-details",
+      "kind": "scale_dependent_cartographic_content_limit",
+      "observation": "Detailed views omit intermittent-channel linework visible in the broader original. This is a source-display limitation, not an acquisition stop.",
+      "acquisition_stop": false,
+      "publication": "USGSTopo, The National Map: upper Fenner, middle Essex and lower Cadiz corridor views",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "aw_id": "hydro-system:70712301"
+    },
+    {
+      "source_key": "r228-essex-quarry2025",
+      "kind": "bounded_authorial_prose_scope",
+      "observation": "Only actually inspected authorial prose and bibliography are used; uninspected companion studies, borrowed cartographic layers and legal determinations are not substituted for selected-route evidence.",
+      "acquisition_stop": false,
+      "publication": "Essex Overhead Quarry Initial Study/Mitigated Negative Declaration, May2025",
+      "official_url": "https://lus.sbcounty.gov/wp-content/uploads/sites/48/PROJ-2024-00100-Essex-Quarry-DPW-MND-May-2025-Final-CEQAnet-Final.pdf",
+      "aw_id": "hydro-system:70712301"
+    },
+    {
+      "source_key": "r228-esri-terminal",
+      "kind": "diffuse_receiving_fan_and_playa_scope",
+      "observation": "The original successfully shows one continuous lower fan/dune-margin-to-playa setting. No precise or currently wetted stream thread is inferred; diffuse linework alone is not counted as a material gap.",
+      "acquisition_stop": false,
+      "publication": "World Imagery: bounded lower Fenner alluvial approach and Cadiz Lake",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "aw_id": "hydro-system:70712301"
+    },
+    {
+      "publication": "World Imagery: four bounded Neuquén corridor views",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "kind": "geographic_not_naming_or_current_hydraulic_proof",
+      "observation": "The imagery supports dry-valley, fan and terminal-playa correspondence only. It does not establish a representative hydronym, continuous present flow or current infrastructure operations.",
+      "access_stop": false,
+      "aw_id": "hydro-system:61539365",
+      "acquisition_stop": false
+    }
+  ]
+}

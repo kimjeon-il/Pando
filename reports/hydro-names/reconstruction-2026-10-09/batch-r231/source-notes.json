@@ -1,0 +1,1104 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r231",
+  "sources": [
+    {
+      "source_key": "r231-ineter-pfafstetter2014",
+      "title": "Cuencas Hidrográficas de Nicaragua bajo la metodología Pfafstetter: Álbum de mapas",
+      "creator": "INETER, Autoridad Nacional del Agua, Universidad Nacional de Ingeniería and GIZ-PROATAS",
+      "year": 2014,
+      "place": "Managua, Nicaragua",
+      "official_url": "https://cira.unan.edu.ni/wp-content/uploads/2016/07/Album-Cuencas-Nic-Revisado_ANA.pdf",
+      "publication_identity_basis": "Original credits explicitly identify the interinstitutional PROATAS project Delimitación de Cuencas Hidrográficas en Nicaragua bajo la metodología de Pfafstetter. This same exact atlas was previously identified as a permitted factual-reading source, separate from the held IDE Base Cartográfica Nacional service and MARENA ENDE-REDD+ atlas. Its project identity is not inferred merely from another date or sheet number.",
+      "read_scope": "Original PDF cover, credits and contents; printed page12 (PDFpage18), section8 and Tables11–12; original Map5, printedpage13 (PDFpage19), at full-sheet and bounded Punta Gorda corridor scale.",
+      "map_scope": "Institutional1:1,000,000 map depicts the continuous Punta Gorda drainage, western headward hook, eastward middle course, southern lower bend, coastal wetland route and Caribbean mouth. Maíz is separately mapped to the south.",
+      "prose_scope": "Punta Gorda is identified with hydrographic unit95196, origins in the Yolaina hills and a reported115km river length; regional waters drain to the Caribbean and the low-relief coastal continental/littoral interface is mainly wetland.",
+      "outcome": "Normal-original acquisition completed directHTTP200 application/pdf.",
+      "limitations": "Generalized regional cartography, not bank-survey, present-flow or official-name-registry evidence. The reported115km is not substituted for the pinned model length.",
+      "use_notice": "Original publication and reproduction rights are reserved; commercial content use/reproduction prohibited and educational/divulgative reproduction requires prior INETER permission. Only bounded own factual observations and bibliography are provided; original maps and derivatives remain private."
+    },
+    {
+      "source_key": "r231-esri-punta-gorda",
+      "title": "World Imagery, selected Río Punta Gorda corridor views",
+      "creator": "Esri World Imagery and contributing imagery providers",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "publication_identity_basis": "Independently maintained photographic imagery service with target-specific Nicaragua views, distinct from held national cartographic publications and the exact paused northern Ellesmere view.",
+      "read_scope": "Three successful original image views: whole selected corridor, western opening/upper valley, and lower valley/coastal wetland/mouth. Each original was visually inspected after actual completedHTTP200 image/png.",
+      "observations": "Visible valley/channel configurations corroborate the atlas through the selected western opening, intermediate and lower meanders, wetland passage and sea mouth.",
+      "limitations": "Imagery supplies geographic correspondence only and no river-name labels. Acquisition/scene dates are not established; clouds obscure some overview patches and canopy conceals small wetted threads. The continuous institutional mapping supplies those corridor through-links. No current-flow or operations claim.",
+      "use_notice": "All original imagery, crops, orientation overlays and request parameters remain private. Bounded geographic facts only."
+    },
+    {
+      "source_key": "r231-ibge-campo2020",
+      "title": "Campo Alegre – SC, Mapa Municipal, 4203303",
+      "publisher": "IBGE, Diretoria de Geociências; Coordenação de Estruturas Territoriais (CETE)",
+      "edition": "Coleção 2020; printed edition 04/2021",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/SC/campo_alegre/4203303_MM.pdf",
+      "actual_read_scope": "Completed original single-page PDF. Title, municipal code, geographic frame, lower/southern headward drainage and original legend/implementation/use notice inspected.",
+      "observation": "The southern Campo Alegre margin depicts the small selected opening drainage and its west/southwest continuation toward the channel labelled Rio Humboldt ou Vermelho near Rio Vermelho settlement.",
+      "independence_basis": "Individually issued geographic municipal compilation for Campo Alegre4203303, with its own frame and CETE editorial imprint; not an equivalent edition of any held municipal product, AMVALI map or basin plan."
+    },
+    {
+      "source_key": "r231-ibge-saobento2022",
+      "title": "São Bento do Sul – SC, Mapa Municipal, 4215802",
+      "publisher": "IBGE, Diretoria de Geociências; CETE",
+      "edition": "2022",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2022/SC/sao_bento_do_sul/A0_4215802_MM.pdf",
+      "actual_read_scope": "Completed original single-page PDF, including title/code, coordinate frame, eastern Rio Vermelho/Humboldt corridor, Rio Natal convergence, downstream valley toward Corupá, and original legend/imprint/use notice.",
+      "observation": "The mapped upper river continues south through the Rio Vermelho protection-area setting, then southeast past the Rio Natal drainage into the Humboldt corridor. This accounts for the chosen route through the forested, locally managed valley at ordinary corridor scale.",
+      "independence_basis": "Separately issued São Bento do Sul4215802 municipal compilation with its own geographic extent and CETE2022 imprint. It neither reproduces the held AMVALI river-map publication nor reacquires any held IBGE municipality."
+    },
+    {
+      "source_key": "r231-ibge-corupa2010",
+      "title": "Corupá – SC, Mapa Municipal Estatístico, 4204509",
+      "publisher": "IBGE, Diretoria de Geociências; Coordenação de Cartografia and CETE",
+      "edition": "Malha Territorial2010; printed edition 7/25/2011; scale1:50,000",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/sc/corupa_v2.pdf",
+      "actual_read_scope": "Completed original single-page PDF. Title/code, full regional overview, northern Rabo do Macaco/Rio Natal–Humboldt corridor, Corupá urban confluence, eastward Itapocu exit, and complete lower compilation/chronology panels inspected.",
+      "observation": "The detailed map depicts the descending northern river through the Rio Natal join and Humboldt valley into Corupá, where the receiving Itapocu continues east from the Rio Novo convergence.",
+      "independence_basis": "Corupá4204509 is a distinct municipality-specific statistical compilation, with its own extent, scale, chronology and compilation notice; not a substitute edition of a held municipality or basin study."
+    },
+    {
+      "source_key": "r231-ibge-guaramirim2022",
+      "title": "Guaramirim – SC, Mapa Municipal, 4206504",
+      "publisher": "IBGE, Diretoria de Geociências; CETE",
+      "edition": "2022",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2022/SC/guaramirim/A0_4206504_MM.pdf",
+      "actual_read_scope": "Completed original single-page PDF; title/code, full corridor overview and central/eastern mainstem and tributary approaches, original legend, geographic frame and imprint/use panel inspected.",
+      "observation": "The selected river traverses the Jaraguá do Sul/Guaramirim lowland, passes the tributary convergences and continues through broad southern and eastern bends into the Araquari/São João do Itaperiú boundary setting.",
+      "independence_basis": "Own Guaramirim4206504 municipal extent and editorial identity, independently issued in2022; no recovery of a stopped map or national-project original."
+    },
+    {
+      "source_key": "r231-ibge-barravelha2020",
+      "title": "Barra Velha – SC, Mapa Municipal, 4202107",
+      "publisher": "IBGE, Diretoria de Geociências; CETE",
+      "edition": "Coleção2020; printed edition04/2021",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/SC/barra_velha/4202107_MM.pdf",
+      "actual_read_scope": "Completed original single-page PDF; title/code, northern Itapocu lower bend and estuary, Atlantic opening, adjoining north/south coastal-lagoon geography, original geographic frame and legend/imprint/use notice inspected.",
+      "observation": "The lower Rio Itapocu bends east and northeast along the Araquari–Barra Velha boundary to a direct Atlantic outlet. The adjacent elongated coastal lagoons are separate features and are not substituted for the selected river ending.",
+      "independence_basis": "Separately issued Barra Velha4202107 municipal compilation with original extent, code and CETE imprint; unrelated to held municipal originals and not an equivalent AMVALI product."
+    },
+    {
+      "source_key": "r231-ibge-sc2015",
+      "title": "Mapa Político do Estado de Santa Catarina",
+      "publisher": "IBGE, Diretoria de Geociências / Coordenação de Cartografia",
+      "edition": "2015; scale1:550,000; based on BCIM2014",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_estaduais_e_distrito_federal/politico/2015/sc_politico550k_2015.pdf",
+      "actual_read_scope": "Previously successfully retained original read locally, without a new acquisition. Northeastern Santa Catarina panel from the upper river districts through Corupá, Jaraguá do Sul, Guaramirim and Itapocu coast, plus original legend and rights/base notice inspected.",
+      "observation": "Regional cartography depicts the continuous Itapocu trunk from Corupá through Jaraguá do Sul and Guaramirim to the Atlantic, and distinguishes the Jaraguá, Itapocuzinho and Piraí drainage context.",
+      "independence_basis": "Previously established, retained2015 state political-map original; its BCIM2014 compilation identity is separate from the unavailable2024 dam-operation manual, Tubarão plan and held IBGE news release."
+    },
+    {
+      "source_key": "r231-amvali-prose",
+      "title": "Materiais: Bacia Hidrográfica do Itapocu",
+      "publisher": "AMVALI – Associação dos Municípios do Vale do Itapocu",
+      "edition": "Web publication; attachment catalogue dates24September2014",
+      "official_url": "https://amvali.org.br/pagina-6747/",
+      "actual_read_scope": "Authorial HTML basin prose read before the later linked-map visual failure. No linked map pixels read.",
+      "observation": "AMVALI identifies the Vermelho headward contribution and the formation of Rio Itapocu from Humboldt and Novo at Corupá, with its ending at Barra Velha.",
+      "independence_basis": "The association’s own basin-information prose, distinct from the held Tubarão plan and ANA Capibaribe reservoir publication. Only the actual pre-failure prose is used."
+    },
+    {
+      "source_key": "r231-urve-prose",
+      "title": "Usina Rio Vermelho de Energia",
+      "publisher": "URVE, self-published project website",
+      "edition": "Undated web page; includes historical inauguration account",
+      "official_url": "https://urve---usina-rio-vermelho-de-energia.webnode.page/",
+      "actual_read_scope": "Main HTML text only. Linked images, technical studies and maps were not opened.",
+      "observation": "The operator locates its PCH and CGH on Rio Vermelho and describes further Rio Vermelho and Rio Natal hydroelectric projects. This establishes managed-river context without assigning current operating status to any installation.",
+      "independence_basis": "Operator’s own project-description publication and explicit river placement, not a recovered state dam manual, ANA inventory or unavailable AMVALI map.",
+      "limitations": "Self-published, undated account; inauguration and proposed-investment wording are historical context only. No present capacity, completion, release schedule or diversion-operation conclusion."
+    },
+    {
+      "source_key": "r231-esri-upper",
+      "title": "World Imagery: selected Rio Vermelho–Humboldt upper corridor",
+      "publisher": "Esri and imagery contributors",
+      "edition": "Online mosaic inspected13October2026; individual acquisition epochs unverified",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "actual_read_scope": "One completed original selected-area image inspected, covering the chosen upper setting, small impounded water surface and forested valley toward Rio Natal/Humboldt. Retained service description and copyright credits also read locally.",
+      "observation": "Imagery supports the mapped upper valley and its local small impounded/engineered setting, with continuation through the same descending gorge corridor. Tree canopy limits visibility of individual wetted threads; municipal linework supplies the through-corridor context.",
+      "independence_basis": "New target-specific current imagery view, independent of the held Ellesmere and Nevada views and of unavailable thematic-map products.",
+      "limitations": "No hydronym labels. Mixed epochs and vegetation cover preclude current-flow or plant-operation inference."
+    },
+    {
+      "source_key": "r231-esri-coast",
+      "title": "World Imagery: selected lower Itapocu and Atlantic estuary",
+      "publisher": "Esri and imagery contributors",
+      "edition": "Online mosaic inspected13October2026; individual acquisition epochs unverified",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "actual_read_scope": "One completed original lower-corridor image inspected, from the Araquari floodplain bends through the estuarine channel and actual Atlantic opening.",
+      "observation": "The broad continuous river passes the lower floodplain, bridge corridor and terminal northeastward bend to an open sea outlet. It does not terminate in the nearby pits, oxbows or parallel coastal lagoon arms.",
+      "independence_basis": "Independent target-specific imagery view, acquired after the preceding request had terminated. No unavailable-map recovery.",
+      "limitations": "Some western cloud patches and mosaic seams; complementary original cartography covers their ordinary corridor setting. No precise present shoreline or hydraulic-operation claim."
+    },
+    {
+      "source_key": "r231-usgstopo-nevada-overview",
+      "title": "USGSTopo, The National Map: Hicks Station Wash–Hot Creek–southern Railroad Valley overview",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "normal_urls": [
+        "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+      ],
+      "original_acquisition": "New target-specific original completed direct HTTP200 image/png; visually read only after terminal completion.",
+      "actual_material_read": "Complete regional original and bounded local enlargements: opening, every selected corridor and join, canyon/slough passage, southern fan/pan chain and actual playa ending.",
+      "originality": "Independently maintained multiscale reference cartography, not a plate recovery from a stopped report or recovery of an old unconfirmed response.",
+      "limits": "Source originals and all reading derivatives remain private. Display scale affects minor-channel detail. No exact-bank, current-flow or formal-registry claim."
+    },
+    {
+      "source_key": "r231-usgstopo-nevada-upper",
+      "title": "USGSTopo, The National Map: upper Hicks Station Wash corridor",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "normal_urls": [
+        "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+      ],
+      "original_acquisition": "New target-specific original completed direct HTTP200 image/png; visually read only after terminal completion.",
+      "actual_material_read": "Complete upper original, including Hicks Spring surroundings, Hicks Station Wash, Pritchards Station passage and the southward axial valley continuation.",
+      "originality": "Independently maintained multiscale reference cartography, not a plate recovery from a stopped report or recovery of an old unconfirmed response.",
+      "limits": "Source originals and all reading derivatives remain private. Display scale affects minor-channel detail. No exact-bank, current-flow or formal-registry claim."
+    },
+    {
+      "source_key": "r231-usgstopo-nevada-middle",
+      "title": "USGSTopo, The National Map: Moores Station Wash and Hot Creek junction corridor",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "normal_urls": [
+        "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+      ],
+      "original_acquisition": "New target-specific original completed direct HTTP200 image/png; visually read only after terminal completion.",
+      "actual_material_read": "Complete middle original: Moores Station Wash, the Hot Creek and Tybo Creek joins and U.S. Highway 6 crossing.",
+      "originality": "Independently maintained multiscale reference cartography, not a plate recovery from a stopped report or recovery of an old unconfirmed response.",
+      "limits": "Source originals and all reading derivatives remain private. Display scale affects minor-channel detail. No exact-bank, current-flow or formal-registry claim."
+    },
+    {
+      "source_key": "r231-usgstopo-nevada-lower",
+      "title": "USGSTopo, The National Map: lower Hot Creek, Twin Springs Slough and terminal playa",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "normal_urls": [
+        "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+      ],
+      "original_acquisition": "New target-specific original completed direct HTTP200 image/png; visually read only after terminal completion.",
+      "actual_material_read": "Complete lower original and bounded enlargement: lower creek, small water patches, Twin Springs Slough, outlet fan, distinct east-northeast branch, southern pan chain and unnamed terminal playa.",
+      "originality": "Independently maintained multiscale reference cartography, not a plate recovery from a stopped report or recovery of an old unconfirmed response.",
+      "limits": "Source originals and all reading derivatives remain private. Display scale affects minor-channel detail. No exact-bank, current-flow or formal-registry claim."
+    },
+    {
+      "source_key": "r231-rush-everett1966-recon38",
+      "title": "Water-resources appraisal of Little Fish Lake, Hot Creek, and Little Smoky Valleys, Nevada",
+      "authors": [
+        "F. Eugene Rush",
+        "Duane E. Everett"
+      ],
+      "publisher": "State of Nevada Department of Conservation and Natural Resources, cooperatively with the U.S. Geological Survey",
+      "series": "Water Resources–Reconnaissance Series Report 38",
+      "edition": "May 1966",
+      "official_url": "https://data.nbmg.unr.edu/public/Geothermal/GreyLiterature/Rush_LttlFsh_HtCrk_LttlSmky_Vllys_WtrApp_1966.pdf",
+      "normal_urls": [
+        "https://data.nbmg.unr.edu/public/Geothermal/GreyLiterature/Rush_LttlFsh_HtCrk_LttlSmky_Vllys_WtrApp_1966.pdf"
+      ],
+      "bibliography": "Rush, F. E., and Everett, D. E. (1966). Water-resources appraisal of Little Fish Lake, Hot Creek, and Little Smoky Valleys, Nevada. Water Resources–Reconnaissance Series Report 38, May 1966. Printed pp. 4, 8–9 and 25; Figure 2.",
+      "original_acquisition": "Normal original completed direct HTTP200 application/pdf; complete 48-page scan received.",
+      "actual_material_read": "Cover and printed imprint, introduction/purpose and location (printed p.4), Figure2 on PDF page7, authorial Physiography and Drainage (printed pp.8–9; p.8 also visually read), and Twin Springs surface-water/irrigation paragraph on printed p.25, also visually read.",
+      "originality": "Separate state-cooperative local reconnaissance appraisal, identified by original Report38 imprint and its own local study scope. Distinct from held WSP423, Walker WRI88-4048 and Diamond SIR2006-5249 projects.",
+      "supports": "Northern tributary joins Hot Creek in midvalley; Hot Creek exits southeast through the Pancake Range at Twin Springs into Railroad Valley. Infrequent tributary flow is compatible with dry-wash correspondence.",
+      "limits": "Historical reconnaissance prose and schematic Figure2 only. Referenced Plate1 is absent from this complete scan and was not sought through another copy. Cover property/removal stamp concerns office-library custody and is not a distribution prohibition. No current irrigation or water-availability claim."
+    },
+    {
+      "source_key": "r231-doe2008-retained-rail-assessment",
+      "title": "Final Environmental Impact Statement for a Rail Alignment for the Construction and Operation of a Railroad in Nevada to a Geologic Repository at Yucca Mountain, Nye County, Nevada; Volume V, Appendix F: Floodplain and Wetlands Assessment",
+      "publisher": "U.S. Department of Energy, Office of Civilian Radioactive Waste Management",
+      "series": "DOE/EIS-0369, published with DOE/EIS-0250F-S2",
+      "edition": "2008",
+      "official_url": "https://www.energy.gov/sites/prod/files/edg/media/EIS0250F-S2_0369_Volume_V_Part_2.pdf",
+      "normal_urls": [
+        "https://www.energy.gov/sites/prod/files/edg/media/EIS0250F-S2_0369_Volume_V_Part_2.pdf"
+      ],
+      "bibliography": "U.S. Department of Energy (2008). DOE/EIS-0369, Volume V, Appendix F, section F.3.2.4 and F.3.2.5, printed p.F-44, and Figure F-10, printed p.F-45.",
+      "original_acquisition": "Previously successfully acquired complete 298-page Part2 original reused locally; no new external acquisition.",
+      "actual_material_read": "Authorial Caliente Common Segment2 and South Reveille drainage prose on printed p.F-44; original FigureF-10 on printed p.F-45 and its BSC2008 attribution visually read.",
+      "originality": "Independent rail-alignment environmental-assessment/floodplain project; retained acquisition and report scope positively established before local reading.",
+      "supports": "Regional identity and nearby drainage of the southern Railroad Valley receiving playa. The upper Hot Creek outlet is outside the figure and is not claimed from it.",
+      "limits": "Historical project planning/floodplain context only, not present flood-risk or legal advice; not evidence for a railway being built. No map redistribution."
+    },
+    {
+      "source_key": "r231-usgstopo-overview",
+      "title": "USGSTopo: Budd Lake–South Branch Raritan–Raritan estuarine corridor overview",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "source_type": "Official multiscale topographic cartography",
+      "accessed_date_utc": "2026-10-13",
+      "material_actually_read": "One successfully acquired original raster read across the complete selected corridor, followed by its private orientation copy.",
+      "observations_supported": "Regional continuity, distinct upper branch, mainstem and lower estuary.",
+      "publication_independence": "Independently maintained National Map reference service, not a route to held USGS/state report figures. New target-specific views only; no historical unknown Nevada or Alaska outputs read or recovered.",
+      "limits": "Composite cartography; no single underlying feature edition, formal registry status, exact banks, present flow, current operations or precise channel-name transitions asserted.",
+      "use_scope": "Own bounded observations and normal bibliography only; originals, crops, orientation aids, coordinates and dynamic requests remain private."
+    },
+    {
+      "source_key": "r231-usgstopo-head",
+      "title": "USGSTopo: Budd Lake outlet, Bartley and Long Valley detail",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "source_type": "Official multiscale topographic cartography",
+      "accessed_date_utc": "2026-10-13",
+      "material_actually_read": "One successfully acquired original raster and its private orientation copy read from the chosen lake opening through the Drakes Brook junction and Long Valley.",
+      "observations_supported": "Budd Lake outlet, upper branch, Drakes Brook and Electric Brook joins.",
+      "publication_independence": "Independently maintained National Map reference service, not a route to held USGS/state report figures. New target-specific views only; no historical unknown Nevada or Alaska outputs read or recovered.",
+      "limits": "Composite cartography; no single underlying feature edition, formal registry status, exact banks, present flow, current operations or precise channel-name transitions asserted.",
+      "use_scope": "Own bounded observations and normal bibliography only; originals, crops, orientation aids, coordinates and dynamic requests remain private."
+    },
+    {
+      "source_key": "r231-usgstopo-upper-middle",
+      "title": "USGSTopo: Long Valley–Califon–Lake Solitude–Clinton detail",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "source_type": "Official multiscale topographic cartography",
+      "accessed_date_utc": "2026-10-13",
+      "material_actually_read": "One successfully acquired original raster and its private orientation copy; an enlarged original crop was read for Lake Solitude and its High Bridge outlet.",
+      "observations_supported": "Entire middle branch, Lake Solitude through-passage and Clinton approach.",
+      "publication_independence": "Independently maintained National Map reference service, not a route to held USGS/state report figures. New target-specific views only; no historical unknown Nevada or Alaska outputs read or recovered.",
+      "limits": "Composite cartography; no single underlying feature edition, formal registry status, exact banks, present flow, current operations or precise channel-name transitions asserted.",
+      "use_scope": "Own bounded observations and normal bibliography only; originals, crops, orientation aids, coordinates and dynamic requests remain private."
+    },
+    {
+      "source_key": "r231-usgstopo-south-branch",
+      "title": "USGSTopo: Clinton–Stanton–Three Bridges–Neshanic–branch confluence detail",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "source_type": "Official multiscale topographic cartography",
+      "accessed_date_utc": "2026-10-13",
+      "material_actually_read": "One successfully acquired original raster and its private orientation copy read across the southern bend and North Branch junction.",
+      "observations_supported": "Clinton/Hamden tributaries, southern mainstem bend, Neshanic and North Branch joins.",
+      "publication_independence": "Independently maintained National Map reference service, not a route to held USGS/state report figures. New target-specific views only; no historical unknown Nevada or Alaska outputs read or recovered.",
+      "limits": "Composite cartography; no single underlying feature edition, formal registry status, exact banks, present flow, current operations or precise channel-name transitions asserted.",
+      "use_scope": "Own bounded observations and normal bibliography only; originals, crops, orientation aids, coordinates and dynamic requests remain private."
+    },
+    {
+      "source_key": "r231-usgstopo-raritan",
+      "title": "USGSTopo: Raritan–Manville–Millstone junction–Bound Brook–Fieldville detail",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "source_type": "Official multiscale topographic cartography",
+      "accessed_date_utc": "2026-10-13",
+      "material_actually_read": "One successfully acquired original raster and its private orientation copy read across the complete mapped reach.",
+      "observations_supported": "Raritan Water Power Canal distinction, mainstem, Millstone confluence and separate Delaware and Raritan Canal.",
+      "publication_independence": "Independently maintained National Map reference service, not a route to held USGS/state report figures. New target-specific views only; no historical unknown Nevada or Alaska outputs read or recovered.",
+      "limits": "Composite cartography; no single underlying feature edition, formal registry status, exact banks, present flow, current operations or precise channel-name transitions asserted.",
+      "use_scope": "Own bounded observations and normal bibliography only; originals, crops, orientation aids, coordinates and dynamic requests remain private."
+    },
+    {
+      "source_key": "r231-usgstopo-terminal",
+      "title": "USGSTopo: New Brunswick–Sayreville–Perth Amboy and South Amboy estuary detail",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "source_type": "Official multiscale topographic cartography",
+      "accessed_date_utc": "2026-10-13",
+      "material_actually_read": "One successfully acquired original raster and its private orientation copy read through all lower parts to the actual ending.",
+      "observations_supported": "Lawrence Brook and South River mouths, tidal river corridor, islands and actual estuarine ending.",
+      "publication_independence": "Independently maintained National Map reference service, not a route to held USGS/state report figures. New target-specific views only; no historical unknown Nevada or Alaska outputs read or recovered.",
+      "limits": "Composite cartography; no single underlying feature edition, formal registry status, exact banks, present flow, current operations or precise channel-name transitions asserted.",
+      "use_scope": "Own bounded observations and normal bibliography only; originals, crops, orientation aids, coordinates and dynamic requests remain private."
+    },
+    {
+      "source_key": "r231-njwsa-raritan2005",
+      "title": "Raritan Basin Water Supply System: Safe Yield Evaluation and Operation Model",
+      "author": "Amy L. Shallcross, PE",
+      "publisher": "New Jersey Water Supply Authority",
+      "date": "December 2005",
+      "official_url": "https://www.njwsa.org/uploads/1/0/8/0/108064771/raritan_basin_riverware_model.pdf",
+      "source_type": "Authority-authored water-supply system study",
+      "accessed_date_utc": "2026-10-13",
+      "material_actually_read": "Original cover, contents, acknowledgements and executive summary; authorial system-configuration prose printed pp.6 and 9, river/canal configuration printed p.23; original Figure 1 Geography of the Raritan Basin (p.7) and Figure 2 system schematic (p.8). Printed pp.3 and 47 inspected only for earlier-study bibliography and publication identity.",
+      "observations_supported": "South Branch, North Branch and Millstone relationships; separate Spruce Run inflow, off-line Round Valley reservoir and Delaware and Raritan Canal; terminal Raritan River and Bay context.",
+      "publication_independence": "The original identifies Shallcross and NJWSA as preparer of a new RiverWare model, separate from earlier NJIT and USGS modelling studies. Figure 1 and Figure 2 are presented as this report’s system geography and schematic, with no attribution to a stopped publication.",
+      "limits": "Historical configuration context and schematic only, not evidence of current operating rules, present dam conditions, exact selected banks or flow timing. Prior referenced studies were not requested or used as substitute evidence.",
+      "use_scope": "Own factual synthesis and ordinary bibliography only. Original study, figures and private reading copies are not redistributed."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70969973",
+      "source_keys": [
+        "r231-ineter-pfafstetter2014",
+        "r231-esri-punta-gorda"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10684
+          ],
+          "component_scope": "selected western opening",
+          "finding": "The atlas depicts the western Punta Gorda drainage turning south and then east into the main valley. The opening-detail imagery shows the corresponding vegetated drainage corridor within the same hill-and-clearing setting. The selected opening belongs to this continuous depicted route; individual canopy-obscured wetted threads are not required to be visible.",
+          "sources": [
+            "r231-ineter-pfafstetter2014",
+            "r231-esri-punta-gorda"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stages": [
+            3
+          ],
+          "name_scope": "No separate headward reach name assigned."
+        },
+        {
+          "fragments": [
+            10684
+          ],
+          "component_scope": "upper eastward mainstem",
+          "finding": "Map5 continuously traces the western hook and eastward valley below Las Delicias, then the intermediate bends and receiving tributary junctions. Its Punta Gorda label lies on the same main drainage, rather than on a nearby parallel river. Overview and western-detail imagery corroborate the corresponding river-valley course.",
+          "sources": [
+            "r231-ineter-pfafstetter2014",
+            "r231-esri-punta-gorda"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stages": [
+            3
+          ],
+          "component_name": "Río Punta Gorda",
+          "name_scope": "Named main-river corridor; no independent scalar assignment to every tiny headward segment."
+        },
+        {
+          "fragments": [
+            10684,
+            10685
+          ],
+          "component_scope": "middle bends and fragment join",
+          "finding": "The atlas follows the main river eastward and northward through its middle bends and tributary-receiving setting before the lower southeastward course. The overview and lower-detail imagery show the corresponding broad river valley through the shared fragment join. The stored boundary is not treated as a separate watercourse or name change.",
+          "sources": [
+            "r231-ineter-pfafstetter2014",
+            "r231-esri-punta-gorda"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stages": [
+            3,
+            2
+          ],
+          "component_name": "Río Punta Gorda",
+          "name_scope": "Same receiving main-river identity through the stored-fragment boundary."
+        },
+        {
+          "fragments": [
+            10685
+          ],
+          "component_scope": "lower southward valley",
+          "finding": "The river turns south through a sinuous valley before bending east across the coastal lowland. This configuration is continuously drawn on Map5 and independently visible in lower-detail imagery, including the lower receiving-junction setting. No unselected tributary is added to the naming candidate.",
+          "sources": [
+            "r231-ineter-pfafstetter2014",
+            "r231-esri-punta-gorda"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stages": [
+            2
+          ],
+          "component_name": "Río Punta Gorda",
+          "name_scope": "Lower main-river reach."
+        },
+        {
+          "fragments": [
+            10685
+          ],
+          "component_scope": "coastal wetland through passage",
+          "finding": "The lower eastward channel remains continuously mapped and visible through the vegetated coastal lowland and terminal meanders. The atlas describes the regional continental-to-littoral setting as low relief and predominantly wetland. No lake, reservoir, glacier, engineered canal or managed impoundment passage is required by this selected corridor at the inspected scale.",
+          "sources": [
+            "r231-ineter-pfafstetter2014",
+            "r231-esri-punta-gorda"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stages": [
+            2
+          ],
+          "component_name": "Río Punta Gorda",
+          "name_scope": "River passing through coastal wetland, not a name assigned to the wetland itself."
+        },
+        {
+          "fragments": [
+            10685
+          ],
+          "component_scope": "actual caribbean terminal",
+          "finding": "Map5 takes the named Punta Gorda channel directly to the Caribbean shoreline. The lower-detail image shows the same final meanders, widened mouth and open sea beyond the coastal edge. Both the source-ending reach and short rendered coastal extension are within this same mouth-to-sea receiving setting; no additional lake or alongshore outlet needs to be inferred.",
+          "sources": [
+            "r231-ineter-pfafstetter2014",
+            "r231-esri-punta-gorda"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stages": [
+            2
+          ],
+          "component_name": "Mar Caribe",
+          "name_scope": "Receiving sea, not a river alias."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61402304",
+      "source_keys": [
+        "r231-ibge-campo2020",
+        "r231-ibge-saobento2022",
+        "r231-ibge-corupa2010",
+        "r231-ibge-guaramirim2022",
+        "r231-ibge-barravelha2020",
+        "r231-ibge-sc2015",
+        "r231-amvali-prose",
+        "r231-urve-prose",
+        "r231-esri-upper",
+        "r231-esri-coast"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13985
+          ],
+          "component_scope": "Chosen small Campo Alegre headward opening",
+          "finding": "The short headward line and its westward continuation lie in the mapped small-stream setting on the southern Campo Alegre side. The source drainage continues southwest into the named Vermelho/Humboldt channel. A separate scalar hydronym for the initial small feeder is not established.",
+          "sources": [
+            "r231-ibge-campo2020",
+            "r231-ibge-saobento2022",
+            "r231-esri-upper"
+          ],
+          "correspondence": "completed_ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_component_names": [],
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            13985
+          ],
+          "component_scope": "Rio Vermelho / upper Humboldt corridor, including managed passage",
+          "finding": "The selected route follows the mapped channel south through the Rio Vermelho locality and forested protection-area valley. Municipal cartography uses Rio Humboldt ou Vermelho for the upper river; the operator’s own account places small hydropower installations on Rio Vermelho. The image depicts the local impounded/engineered river setting and continued descending valley. No new river, reservoir name or hydraulic separation is inferred from plant works.",
+          "sources": [
+            "r231-ibge-campo2020",
+            "r231-ibge-saobento2022",
+            "r231-esri-upper",
+            "r231-urve-prose"
+          ],
+          "correspondence": "completed_ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_component_names": [
+            "Rio Vermelho",
+            "Rio Humboldt"
+          ],
+          "candidate_name": "Rio Vermelho"
+        },
+        {
+          "fragments": [
+            13985
+          ],
+          "component_scope": "Humboldt and Rio Natal convergence to the Rio Novo/Itapocu join",
+          "finding": "The selected southeastward descent follows Humboldt through the Rio Natal drainage convergence into Corupá. Detailed municipal cartography and AMVALI prose establish the connection to Rio Novo and the eastward receiving Rio Itapocu. Rio Natal and Rio Novo are joining rivers, not aliases assigned to the whole selection.",
+          "sources": [
+            "r231-ibge-saobento2022",
+            "r231-ibge-corupa2010",
+            "r231-amvali-prose"
+          ],
+          "correspondence": "completed_ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_component_names": [
+            "Rio Humboldt",
+            "Rio Itapocu"
+          ],
+          "candidate_name": "Rio Humboldt"
+        },
+        {
+          "fragments": [
+            13985
+          ],
+          "component_scope": "Itapocu from Corupá through Jaraguá do Sul",
+          "finding": "The source maps continue the same eastward then southeastward valley into Jaraguá do Sul and the Jaraguá tributary convergence. The stage3 model remains a single generalized mainstem across this named reach; no point-by-point bank agreement is required.",
+          "sources": [
+            "r231-ibge-corupa2010",
+            "r231-ibge-sc2015",
+            "r231-ibge-guaramirim2022"
+          ],
+          "correspondence": "completed_ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_component_names": [
+            "Rio Itapocu"
+          ],
+          "candidate_name": "Rio Itapocu"
+        },
+        {
+          "fragments": [
+            13985
+          ],
+          "component_scope": "Guaramirim lowland and connected trunk bends",
+          "finding": "The river continues east through Guaramirim, receiving the mapped tributary network including the Itapocuzinho context, then turns through the broader lowland bends along the Araquari and São João do Itaperiú setting. The selected through-river is distinguished from tributary branches and nearby floodplain drains.",
+          "sources": [
+            "r231-ibge-guaramirim2022",
+            "r231-ibge-sc2015"
+          ],
+          "correspondence": "completed_ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_component_names": [
+            "Rio Itapocu"
+          ],
+          "candidate_name": "Rio Itapocu"
+        },
+        {
+          "fragments": [
+            13985
+          ],
+          "component_scope": "Araquari lower river and turn toward Barra Velha",
+          "finding": "Regional and municipal cartography, joined by the lower imagery view, account for the broad eastward meanders and subsequent southward turn through the lower floodplain and bridge corridor. All intermediate selected joins remain in the same river/receiving setting. Nearby oxbows and extraction ponds are not treated as route connectors or aliases.",
+          "sources": [
+            "r231-ibge-guaramirim2022",
+            "r231-ibge-sc2015",
+            "r231-ibge-barravelha2020",
+            "r231-esri-coast"
+          ],
+          "correspondence": "completed_ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_component_names": [
+            "Rio Itapocu"
+          ],
+          "candidate_name": "Rio Itapocu"
+        },
+        {
+          "fragments": [
+            13985
+          ],
+          "component_scope": "Terminal Itapocu estuary and Atlantic opening",
+          "finding": "The final south-to-northeast bend follows the named Itapocu estuary on the Araquari–Barra Velha boundary into its actual open Atlantic outlet. The adjacent north/south coastal lagoon arms remain distinct; the selected endpoint is not replaced with a nearby lagoon or the Babitonga system farther north.",
+          "sources": [
+            "r231-ibge-barravelha2020",
+            "r231-esri-coast",
+            "r231-amvali-prose"
+          ],
+          "correspondence": "completed_ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_component_names": [
+            "Rio Itapocu"
+          ],
+          "candidate_name": "Rio Itapocu"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70619211",
+      "source_keys": [
+        "r231-usgstopo-nevada-overview",
+        "r231-usgstopo-nevada-upper",
+        "r231-usgstopo-nevada-middle",
+        "r231-usgstopo-nevada-lower",
+        "r231-rush-everett1966-recon38",
+        "r231-doe2008-retained-rail-assessment"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9842
+          ],
+          "component_scope": "Chosen northern opening and Hicks Station Wash",
+          "finding": "The regional original depicts the chosen opening in the same north-south valley drainage that is labeled Hicks Station Wash. The upper detail identifies the wash beside Hicks Spring and follows its southward valley bend around the western side of the Park Range. The broader original supplies minor headward linework that is less visible in the detailed display. This is the selected valley opening, not a nearby spring or an unselected mountain tributary substituted for it.",
+          "sources": [
+            "r231-usgstopo-nevada-overview",
+            "r231-usgstopo-nevada-upper"
+          ],
+          "correspondence": "completed_ordinary_corridor_join_and_receiving_setting_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Hicks Station Wash is the bounded upper reach; Hicks Spring is a neighboring point feature, not an alternative river name."
+        },
+        {
+          "fragments": [
+            9842
+          ],
+          "component_scope": "Upper wash continuation and entry into the broader Hot Creek Valley",
+          "finding": "The selected southward continuation remains on the mapped axial wash through the Pritchards Station surroundings, west of the Rhyolite Hills and Needle Range. Side washes and the axial continuation are continuously depicted in the overview, while the detail shows the same valley passage and drainage joins. No lake, mountain divide or lateral interbasin transfer is needed for this link.",
+          "sources": [
+            "r231-usgstopo-nevada-overview",
+            "r231-usgstopo-nevada-upper"
+          ],
+          "correspondence": "completed_ordinary_corridor_join_and_receiving_setting_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "The upper named wash continues toward the differently named middle collector; an exact hydronym-change point is not asserted."
+        },
+        {
+          "fragments": [
+            9842
+          ],
+          "component_scope": "Moores Station Wash middle collector",
+          "finding": "The broader valley corridor is repeatedly labeled Moores Station Wash on the middle original. The selected southwestward bend follows that same drainage west of Halligan Mesa toward the Hot Creek junction. The surrounding dry tributary fans are ordinary parts of this mapped collecting corridor; present surface flow is not required.",
+          "sources": [
+            "r231-usgstopo-nevada-overview",
+            "r231-usgstopo-nevada-middle"
+          ],
+          "correspondence": "completed_ordinary_corridor_join_and_receiving_setting_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Moores Station Wash is a distinct selected middle reach, not an alias of Hicks Station Wash or Hot Creek."
+        },
+        {
+          "fragments": [
+            9842
+          ],
+          "component_scope": "Moores Station Wash–Hot Creek join, Tybo junction and U.S. Highway 6 crossing",
+          "finding": "The middle original explicitly depicts Moores Station Wash joining Hot Creek from the north, followed by the Tybo Creek junction and a southeastward Hot Creek continuation across U.S. Highway 6. The selected route uses the northern collector and then the receiving Hot Creek trunk; it does not follow the western Hot Creek headwaters or Tybo Creek. Rush and Everett independently describe a northern main tributary joining Hot Creek in midvalley.",
+          "sources": [
+            "r231-usgstopo-nevada-overview",
+            "r231-usgstopo-nevada-middle",
+            "r231-rush-everett1966-recon38"
+          ],
+          "correspondence": "completed_ordinary_corridor_join_and_receiving_setting_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Hot Creek is the receiving trunk and representative system identity. Tybo Creek and the western Hot Creek headwater reach are unselected tributary context."
+        },
+        {
+          "fragments": [
+            9842
+          ],
+          "component_scope": "Lower Hot Creek valley and shallow-water/slough approach",
+          "finding": "The regional and lower originals continuously depict the selected lower Hot Creek corridor beside the western foot of the Pancake Range, including the small water patches before the State Route 375 bend. The channel passes through this lowland into the canyon/slough approach. No selected reservoir crossing or separate canal-system transfer is established or needed.",
+          "sources": [
+            "r231-usgstopo-nevada-overview",
+            "r231-usgstopo-nevada-lower"
+          ],
+          "correspondence": "completed_ordinary_corridor_join_and_receiving_setting_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "The receiving creek remains Hot Creek; the small water patches are not independently named."
+        },
+        {
+          "fragments": [
+            9842
+          ],
+          "component_scope": "Twin Springs Slough and the Pancake Range outlet",
+          "finding": "The selected southeastward passage corresponds to the water-bearing corridor labeled Twin Springs Slough beside State Route 375 and continues through the narrow opening into Railroad Valley. The 1966 report explicitly describes Hot Creek leaving Hot Creek Valley at Twin Springs Ranch through a narrow Pancake Range canyon. Its historical irrigation remarks provide context only and are not used to infer present diversions or operating conditions.",
+          "sources": [
+            "r231-usgstopo-nevada-overview",
+            "r231-usgstopo-nevada-lower",
+            "r231-rush-everett1966-recon38"
+          ],
+          "correspondence": "completed_ordinary_corridor_join_and_receiving_setting_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Twin Springs Slough is a distinct named passage within the receiving system, not a whole-system alias."
+        },
+        {
+          "fragments": [
+            9842
+          ],
+          "component_scope": "Southern outlet fan and minor-pan chain",
+          "finding": "Downstream of the canyon, the originals depict an east-northeast branch labeled Hot Creek and a separate southward drainage continuation beside State Route 375 into a chain of small pans and the northern margin of the terminal playa. The selected southern course stays within this continuously mapped low receiving floor. Cartographic drainage and the enclosing lowland establish fan-to-playa correspondence at ordinary scale; neither an exact wet thread nor a present-day transfer between individual shallow pans is asserted. The mapped eastern Hot Creek branch is not substituted for the selected southern ending.",
+          "sources": [
+            "r231-usgstopo-nevada-overview",
+            "r231-usgstopo-nevada-lower"
+          ],
+          "correspondence": "completed_ordinary_corridor_join_and_receiving_setting_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "The southern fan/pan continuation has no independently established reach name; Hot Creek is retained only as the representative receiving-system identity."
+        },
+        {
+          "fragments": [
+            9842
+          ],
+          "component_scope": "Actual unnamed Railroad Valley playa terminal",
+          "finding": "The selected final continuation enters the northern side of the large playa east of State Route 375 and ends within its mapped floor. This is the same receiving floor approached from the outlet fan, without an intervening ridge or a separate selected basin crossing at the examined scale. The DOE rail assessment independently places this playa in Railroad Valley and describes nearby washes terminating in it; that context does not replace the topographic evidence for the selected northern approach.",
+          "sources": [
+            "r231-usgstopo-nevada-overview",
+            "r231-usgstopo-nevada-lower",
+            "r231-doe2008-retained-rail-assessment"
+          ],
+          "correspondence": "completed_ordinary_corridor_join_and_receiving_setting_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "The terminal playa name is unconfirmed and remains null. Railroad Valley is a regional valley label, not a newly assigned lake name."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70555805",
+      "source_keys": [
+        "r231-usgstopo-overview",
+        "r231-usgstopo-head",
+        "r231-usgstopo-upper-middle",
+        "r231-usgstopo-south-branch",
+        "r231-usgstopo-raritan",
+        "r231-usgstopo-terminal",
+        "r231-njwsa-raritan2005"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9790
+          ],
+          "component_scope": "Chosen Budd Lake opening and upper South Branch to Bartley",
+          "finding": "The selected opening lies in the southwestern Budd Lake setting. The detailed original depicts the lake, its southwestern outlet under the road corridor and the connected South Branch Raritan River running south and southeast through the wooded valley to Bartley. Repeated river labels distinguish this outlet route from nearby lake feeders and Mine Brook. The entire chosen opening and collecting corridor are established without assigning exact banks or a hydronym boundary.",
+          "sources": [
+            "r231-usgstopo-head",
+            "r231-usgstopo-overview"
+          ],
+          "correspondence": "completed_ordinary_corridor_join_and_receiving_setting_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Budd Lake is the initial lake; South Branch Raritan River is the distinct downstream branch name."
+        },
+        {
+          "fragments": [
+            9790
+          ],
+          "component_scope": "Drakes Brook junction, Long Valley and Middle Valley",
+          "finding": "Original cartography depicts Drakes Brook arriving from the east near the Bartley–Four Bridges setting and joining the South Branch, which continues southwest through Naughright and Long Valley toward Middle Valley. Electric Brook meets the river at Long Valley. The selected parts remain in this continuously mapped receiving valley; the branch is not renamed after its tributaries.",
+          "sources": [
+            "r231-usgstopo-head",
+            "r231-usgstopo-upper-middle",
+            "r231-usgstopo-overview"
+          ],
+          "correspondence": "completed_ordinary_corridor_join_and_receiving_setting_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "South Branch Raritan River, with Drakes Brook and Electric Brook as separate tributary joins."
+        },
+        {
+          "fragments": [
+            9790
+          ],
+          "component_scope": "Califon, narrow valley, Lake Solitude and High Bridge",
+          "finding": "The upper-middle original continuously depicts the South Branch south from Middle Valley through Califon and the constricted river valley to Readingsburg, into Lake Solitude and out through High Bridge. The lake passage and downstream outlet are visible on the original and an enlarged local reading. The same river continues toward the northern Clinton approach. No present dam operation or exact shoreline is inferred.",
+          "sources": [
+            "r231-usgstopo-upper-middle",
+            "r231-usgstopo-overview"
+          ],
+          "correspondence": "completed_ordinary_corridor_join_and_receiving_setting_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "South Branch Raritan River is the named branch; Lake Solitude is a separate through-lake component."
+        },
+        {
+          "fragments": [
+            9790
+          ],
+          "component_scope": "Clinton tributary joins and Hamden corridor",
+          "finding": "The South Branch passes Clinton and continues south through the Landsdown–Hamden corridor. The map shows Spruce Run arriving from its separate reservoir to the west, Beaver Brook entering from the east, and Cakepoulin Creek meeting the river farther south. The NJWSA authorial configuration and system schematic independently distinguish the Spruce Run inflow and off-line Round Valley storage from the selected South Branch. The selected path does not pass through either large reservoir.",
+          "sources": [
+            "r231-usgstopo-upper-middle",
+            "r231-usgstopo-south-branch",
+            "r231-njwsa-raritan2005"
+          ],
+          "correspondence": "completed_ordinary_corridor_join_and_receiving_setting_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "South Branch Raritan River; Spruce Run, Beaver Brook and Cakepoulin Creek remain separate tributaries. Spruce Run Reservoir and Round Valley Reservoir are contextual water-supply components, not river aliases."
+        },
+        {
+          "fragments": [
+            9790
+          ],
+          "component_scope": "Stanton, Flemington Junction, Three Bridges and Neshanic turn",
+          "finding": "The original maps the South Branch past Stanton and the Rowland Mills–Flemington Junction corridor, then east past Three Bridges and Neshanic Station before its northward turn. The Neshanic River enters this southern South Branch reach; the NJWSA river-configuration prose confirms that join lies upstream of the North Branch confluence. The selected path stays in the depicted river corridor throughout the bend and northward continuation.",
+          "sources": [
+            "r231-usgstopo-south-branch",
+            "r231-usgstopo-raritan",
+            "r231-njwsa-raritan2005"
+          ],
+          "correspondence": "completed_ordinary_corridor_join_and_receiving_setting_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "South Branch Raritan River; Neshanic River is a distinct joining tributary."
+        },
+        {
+          "fragments": [
+            9790
+          ],
+          "component_scope": "North Branch junction, Raritan river corridor and water-power canal setting",
+          "finding": "The map depicts the South Branch reaching the North Branch from the southwest; their receiving Raritan River continues east through the Duke Island–Raritan setting. Holland Brook joins the South Branch near this approach. The Raritan Water Power Canal is separately labeled along the northern side of the connected river corridor. Original river and canal linework establish the shared corridor and connected junctions; the generalized selection is not used to assign every position to an exact channel or canal bank.",
+          "sources": [
+            "r231-usgstopo-south-branch",
+            "r231-usgstopo-raritan",
+            "r231-njwsa-raritan2005"
+          ],
+          "correspondence": "completed_ordinary_corridor_join_and_receiving_setting_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Raritan River is the receiving mainstem and representative system identity; North Branch Raritan River and Raritan Water Power Canal are separate components."
+        },
+        {
+          "fragments": [
+            9790
+          ],
+          "component_scope": "Somerville–Manville, Millstone junction and Bound Brook",
+          "finding": "The original depicts the Raritan east past the Somerville–Manville corridor, receiving the Millstone River from the south and continuing toward Bound Brook. The mapped Delaware and Raritan Canal runs separately beside the Millstone and lower Raritan. NJWSA configuration prose and Figure 2 confirm the Millstone join and distinguish river intakes, canal releases and the canal terminus. These managed connections provide context; no unselected canal journey or reservoir transfer is substituted for the selected receiving-river corridor.",
+          "sources": [
+            "r231-usgstopo-raritan",
+            "r231-njwsa-raritan2005"
+          ],
+          "correspondence": "completed_ordinary_corridor_join_and_receiving_setting_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Raritan River, distinct Millstone River tributary and separately named Delaware and Raritan Canal."
+        },
+        {
+          "fragments": [
+            9790
+          ],
+          "component_scope": "Bound Brook bend, Fieldville and New Brunswick approach",
+          "finding": "The mapped Raritan turns south beside South Bound Brook, passes Fieldville and continues southeast toward New Brunswick. The adjoining canal remains distinguishable beside the river, and the river is continuously mapped through the bridge corridors. This is an established connected river setting rather than an unresolved transfer between watersheds.",
+          "sources": [
+            "r231-usgstopo-raritan",
+            "r231-usgstopo-terminal",
+            "r231-njwsa-raritan2005"
+          ],
+          "correspondence": "completed_ordinary_corridor_join_and_receiving_setting_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Raritan River; the adjoining Delaware and Raritan Canal is not a synonym."
+        },
+        {
+          "fragments": [
+            9790
+          ],
+          "component_scope": "New Brunswick, Lawrence Brook join and upper tidal meanders",
+          "finding": "The terminal original shows the widening Raritan downstream of New Brunswick, past the Lawrence Brook mouth and through the island-bearing tidal meanders eastward. Lawrence Brook and the smaller shore creeks remain separate tributaries. All selected intervals fall within the continuously depicted lower-river corridor; individual tidal subchannels and present inundation are not assigned.",
+          "sources": [
+            "r231-usgstopo-terminal",
+            "r231-usgstopo-overview"
+          ],
+          "correspondence": "completed_ordinary_corridor_join_and_receiving_setting_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Lower Raritan River and distinct tributary mouths."
+        },
+        {
+          "fragments": [
+            9790
+          ],
+          "component_scope": "South River mouth, Crab Island reach and actual estuarine ending",
+          "finding": "The lower original depicts the South River joining the Raritan estuarine corridor near Sayreville, the connected waters around Crab Island and the widening lower river through the major bridge crossings toward Perth Amboy and South Amboy. The actual rendered ending lies in this same broad Raritan mouth-water setting, immediately upstream of its opening to the bay. NJWSA Figure 2 identifies the receiving Raritan River and Bay system. No selected cross-watershed transfer or unexplained inland terminal remains. The two supplied terminal descriptors are retained as distinct source and rendered endpoints; neither is silently replaced by a more easterly coastal point.",
+          "sources": [
+            "r231-usgstopo-terminal",
+            "r231-usgstopo-overview",
+            "r231-njwsa-raritan2005"
+          ],
+          "correspondence": "completed_ordinary_corridor_join_and_receiving_setting_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Raritan River estuary; South River is a joining tributary and Raritan Bay is the receiving coastal setting, not a river alias."
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "AMVALI, Materiais: Mapa Rios (catalogued 24 September 2014)",
+      "official_url": "https://amvali.org.br/uploads/sites/563/2023/04/298346_Mapa_rios-scaled.jpg",
+      "catalogue_url": "https://amvali.org.br/pagina-6747/",
+      "observed_outcome": "The sole normal catalogue-linked image opening returned a bare web reference, without observable image pixels or an explicit completed technical size/format limit. Origin HTTP status unknown.",
+      "outcome_layer": "Unresolved visual web-reader outcome; not an asserted HTTP denial.",
+      "restriction_scope": "Whole exact map and equivalent further original, catalogue, reader, cache, screenshot, mirror, alternative-format and output-reading routes paused. No fallback or substitute map acquisition.",
+      "earlier_lawful_prose_exception": "Prior Materiais page authorial prose only: Vermelho as headward Itapocu contributor; Humboldt and Novo meet at Corupá; Itapocu ends at Barra Velha. No map pixels.",
+      "newly_observed_access_failure": false,
+      "unresolved_acquisition_outcome": true,
+      "source_key": "AMVALI_MAPA_RIOS_UNAVAILABLE",
+      "material_gap": false,
+      "acquisition_stop": true,
+      "aw_id": "hydro-system:61402304"
+    },
+    {
+      "publication": "World Imagery: selected lower Hot Creek outlet fan and southern Railroad Valley playa view",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "observed_outcome": "The normal-original image request reported HTTP200 image/png but terminated with a transport timeout before the response body was complete. No image, partial body or header output was read.",
+      "outcome_layer": "Direct HTTP-client incomplete transfer after HTTP200; not HTTP401/403 or an access-control denial.",
+      "restriction_scope": "This exact selected Nevada view and equivalent recovery or unread-output routes remain paused. No retry, alternative view for recovery, format substitution or partial-output reading followed. This does not assert a permanent service-wide or institution-wide stop.",
+      "earlier_lawful_prose_exception": null,
+      "explicit_access_denial": false,
+      "newly_observed_access_failure": false,
+      "availability_failure": true,
+      "acquisition_stop": true,
+      "material_gap": false,
+      "material_effect": "Optional photographic corroboration excluded. Four confirmed USGSTopo originals establish the continuous selected corridor and receiving setting, so this does not create a second or unresolved primary status.",
+      "aw_id": "hydro-system:70619211"
+    },
+    {
+      "publication": "NJDEP New Jersey Natural Lands Trust, Budd Lake Bog Preserve",
+      "official_url": "https://dep.nj.gov/njnlt/budd-lake-bog-preserve/",
+      "observed_outcome": "Sole normal web-reader opening returned Failed to fetch: Cache miss. No page body or map pixels read.",
+      "outcome_layer": "Web-reader availability/cache; origin HTTP unknown",
+      "restriction_scope": "Whole exact preserve-account publication and equivalent copies, alternate URLs, cached/reader/original formats and further acquisition paused. No retry or alternative acquisition.",
+      "earlier_lawful_prose_exception": null,
+      "source_evidence_excluded": "Search-discovery snippets excluded from substantive evidence.",
+      "explicit_access_denial": false,
+      "newly_observed_access_failure": true,
+      "acquisition_stop": true,
+      "material_gap": false,
+      "material_effect": "Optional preserve account unavailable. Independently inspected cartography establishes Budd Lake and its outlet, so the pause creates no required correspondence gap and no second pending state.",
+      "aw_id": "hydro-system:70555805"
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "source_key": "r231-ineter-pfafstetter2014",
+      "kind": "ordinary_reproduction_and_use_notice",
+      "previously_recorded_notice": true,
+      "observation": "Inspected original reiterates reserved publication rights, prohibition on commercial content use/reproduction and prior-permission requirement for educational/divulgative reproduction. Factual reading remains within the previously recorded permitted scope; no originals or derivatives are published.",
+      "acquisition_stop": false,
+      "publication": "Cuencas Hidrográficas de Nicaragua bajo la metodología Pfafstetter: Álbum de mapas",
+      "official_url": "https://cira.unan.edu.ni/wp-content/uploads/2016/07/Album-Cuencas-Nic-Revisado_ANA.pdf",
+      "aw_id": "hydro-system:70969973"
+    },
+    {
+      "source_key": "r231-esri-punta-gorda",
+      "kind": "photographic_evidence_scope",
+      "observation": "Geographic correspondence only, without name-label, image-date or current-flow inference; original imagery and all reading aids stay private.",
+      "acquisition_stop": false,
+      "publication": "World Imagery, selected Río Punta Gorda corridor views",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "aw_id": "hydro-system:70969973"
+    },
+    {
+      "source_key": "r231-ibge-campo2020",
+      "publication": "Campo Alegre – SC, Mapa Municipal, 4203303",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/SC/campo_alegre/4203303_MM.pdf",
+      "observed_notice": "Municipal/statistical cartographic compilation with varied updates and reproduction rights reserved. The2020/2022 originals state statistical collection/tabulation purpose and disclaim fitness or responsibility for other uses; Corupá2010 notes semi-automatic compilation and incomplete cartographic integration.",
+      "restriction_scope": "Historical/generalized factual naming correspondence only. No source original, crop, overlay or derivative redistribution; no legal-boundary, precision-survey or current-operation use.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:61402304"
+    },
+    {
+      "source_key": "r231-ibge-saobento2022",
+      "publication": "São Bento do Sul – SC, Mapa Municipal, 4215802",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2022/SC/sao_bento_do_sul/A0_4215802_MM.pdf",
+      "observed_notice": "Municipal/statistical cartographic compilation with varied updates and reproduction rights reserved. The2020/2022 originals state statistical collection/tabulation purpose and disclaim fitness or responsibility for other uses; Corupá2010 notes semi-automatic compilation and incomplete cartographic integration.",
+      "restriction_scope": "Historical/generalized factual naming correspondence only. No source original, crop, overlay or derivative redistribution; no legal-boundary, precision-survey or current-operation use.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:61402304"
+    },
+    {
+      "source_key": "r231-ibge-corupa2010",
+      "publication": "Corupá – SC, Mapa Municipal Estatístico, 4204509",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/sc/corupa_v2.pdf",
+      "observed_notice": "Municipal/statistical cartographic compilation with varied updates and reproduction rights reserved. The2020/2022 originals state statistical collection/tabulation purpose and disclaim fitness or responsibility for other uses; Corupá2010 notes semi-automatic compilation and incomplete cartographic integration.",
+      "restriction_scope": "Historical/generalized factual naming correspondence only. No source original, crop, overlay or derivative redistribution; no legal-boundary, precision-survey or current-operation use.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:61402304"
+    },
+    {
+      "source_key": "r231-ibge-guaramirim2022",
+      "publication": "Guaramirim – SC, Mapa Municipal, 4206504",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2022/SC/guaramirim/A0_4206504_MM.pdf",
+      "observed_notice": "Municipal/statistical cartographic compilation with varied updates and reproduction rights reserved. The2020/2022 originals state statistical collection/tabulation purpose and disclaim fitness or responsibility for other uses; Corupá2010 notes semi-automatic compilation and incomplete cartographic integration.",
+      "restriction_scope": "Historical/generalized factual naming correspondence only. No source original, crop, overlay or derivative redistribution; no legal-boundary, precision-survey or current-operation use.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:61402304"
+    },
+    {
+      "source_key": "r231-ibge-barravelha2020",
+      "publication": "Barra Velha – SC, Mapa Municipal, 4202107",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/SC/barra_velha/4202107_MM.pdf",
+      "observed_notice": "Municipal/statistical cartographic compilation with varied updates and reproduction rights reserved. The2020/2022 originals state statistical collection/tabulation purpose and disclaim fitness or responsibility for other uses; Corupá2010 notes semi-automatic compilation and incomplete cartographic integration.",
+      "restriction_scope": "Historical/generalized factual naming correspondence only. No source original, crop, overlay or derivative redistribution; no legal-boundary, precision-survey or current-operation use.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:61402304"
+    },
+    {
+      "source_key": "r231-ibge-sc2015",
+      "publication": "Mapa Político do Estado de Santa Catarina2015",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_estaduais_e_distrito_federal/politico/2015/sc_politico550k_2015.pdf",
+      "observed_notice": "BCIM2014 source, informative non-state boundaries and IBGE reproduction rights reserved.",
+      "restriction_scope": "Bounded geographic facts only; source map and derivatives remain private.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:61402304"
+    },
+    {
+      "source_keys": [
+        "r231-esri-upper",
+        "r231-esri-coast"
+      ],
+      "publication": "Esri World Imagery",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "observed_notice": "Retained service credits Esri, Vantor, Earthstar Geographics and the GIS User Community; mixed-resolution mosaic.",
+      "restriction_scope": "Own bounded observations and normal bibliography only. Original imagery and reading derivatives remain private. No names inferred from imagery and no present-operation guarantee.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:61402304"
+    },
+    {
+      "publication": "USGSTopo, The National Map: selected Nevada views",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "kind": "scale_dependent_cartographic_detail_and_receiving_floor_scope",
+      "observation": "The overview retains headward and minor-channel detail less visible at the detailed display scale. The southern fan and pan chain are assessed as one continuously mapped receiving floor; no exact wetted thread across the playa is required or asserted.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70619211"
+    },
+    {
+      "publication": "Rush and Everett (1966), Nevada Water Resources–Reconnaissance Report38",
+      "official_url": "https://data.nbmg.unr.edu/public/Geothermal/GreyLiterature/Rush_LttlFsh_HtCrk_LttlSmky_Vllys_WtrApp_1966.pdf",
+      "kind": "complete_report_scan_missing_referenced_plate",
+      "observation": "The complete48-page scan lacks referenced Plate1. This is a content limitation, not an access stop. Only inspected original prose and Figure2 are used; no unseen plate observations.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70619211"
+    },
+    {
+      "publication": "DOE/EIS-0369 Volume V Appendix F (2008)",
+      "official_url": "https://www.energy.gov/sites/prod/files/edg/media/EIS0250F-S2_0369_Volume_V_Part_2.pdf",
+      "kind": "bounded_historical_project_context",
+      "observation": "Only inspected project drainage prose and FigureF-10 support the regional playa context. The figure does not show the Hot Creek outlet and is not treated as proof of that connection.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70619211"
+    },
+    {
+      "publication": "USGSTopo, The National Map: selected New Jersey corridor views",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "kind": "bounded_cartographic_and_connected_corridor_scope",
+      "observation": "The Raritan Water Power Canal and Delaware and Raritan Canal are mapped separately beside parts of the selected receiving corridor. Generalized selected positions support ordinary connected-corridor correspondence without assigning every position to a specific parallel channel or precise bank. No unresolved interbasin transfer is inferred.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70555805"
+    },
+    {
+      "publication": "Raritan Basin Water Supply System: Safe Yield Evaluation and Operation Model, December 2005",
+      "official_url": "https://www.njwsa.org/uploads/1/0/8/0/108064771/raritan_basin_riverware_model.pdf",
+      "kind": "historical_managed_system_configuration_scope",
+      "observation": "The authorial configuration and schematic distinguish reservoir and canal links. Historic operations, model outputs and discharge values are not asserted as current conditions and are not required for representative naming.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70555805"
+    }
+  ]
+}

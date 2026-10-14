@@ -1,0 +1,641 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r208",
+  "sources": [
+    {
+      "source_key": "r208-iba-on129-ekwan-lakitusaki",
+      "bibliography": "Birds Canada and Nature Canada, IBA Canada. Ekwan to Lakitusaki Shores, James Bay, Ontario; Important Bird Area ON129. Undated online site account, read 13 October 2026.",
+      "title": "Ekwan to Lakitusaki Shores",
+      "publisher": "IBA Canada; Canadian co-partners Birds Canada and Nature Canada",
+      "publication_date": null,
+      "official_url": "https://www.ibacanada.ca/site.jsp?siteID=ON129",
+      "source_type": "Primary conservation-site account",
+      "actual_read_scope": "Opened HTML site summary, Site Description, relevant conservation context and programme attribution. No linked printable map, map service or source image was requested.",
+      "original_map_pixels_inspected": false,
+      "supports": "Explicit Lakitusaki River mouth reference and northwestern James Bay regional coastal setting.",
+      "limits": "Site-scale prose does not establish selected channel continuity, headwater identity, internal joins or actual selected terminal. Historical bird counts and current park boundaries are not asserted in this finding.",
+      "publication_identity": "A separately identified ornithological assessment for the Ekwan–Lakitusaki coastal tract, with its own site description and survey context. It is not the Polar Bear park management plan, the unresolved Winisk optional park source, a provincial topographic service or the unrelated Foam Lake IBA account.",
+      "use_notice": "Birds Canada copyright notice observed. Only independently written bounded facts and ordinary bibliography are supplied; no page, map or image reproduction."
+    },
+    {
+      "source_key": "r208-kataquapit-ghost-towns",
+      "bibliography": "Kataquapit, Xavier. Ghost Towns. Under The Northern Sky, author’s website. Undated chapter, read 13 October 2026.",
+      "title": "Ghost Towns",
+      "author": "Xavier Kataquapit",
+      "publisher": "Under The Northern Sky, author’s website",
+      "publication_date": null,
+      "official_url": "https://underthenorthernsky.com/the-book/ghost-towns/",
+      "source_type": "Firsthand travel recollection",
+      "actual_read_scope": "The complete short online chapter and author identification, including the coastal journey and visit to the former trading post at Lakitusaki River.",
+      "original_map_pixels_inspected": false,
+      "supports": "Independent firsthand use of the Lakitusaki River name in the James Bay coastal setting.",
+      "limits": "A personal recollection, not a hydronym registry or route survey. It supplies no inland through-route, selected junctions, lake passage or precise terminal correspondence; the historic buildings are not asserted to remain today.",
+      "publication_identity": "An independently authored account of a family journey published on the writer’s own website, not a geological map, sailing directions, gazetteer, park-management document or cartographic-service reproduction.",
+      "use_notice": "No unrestricted redistribution permission inferred. No quotations or images reproduced; bounded own factual synthesis only."
+    },
+    {
+      "source_key": "r208-martini1981-jamesbay-unavailable",
+      "bibliography": "Martini, I.P. (1981), Morphology and Sediments of the Emergent Ontario Coast of James Bay, Canada. Geografiska Annaler, Series A: Physical Geography 63(1–2):81–94. DOI 10.1080/04353676.1981.11880021.",
+      "title": "Morphology and Sediments of the Emergent Ontario Coast of James Bay, Canada",
+      "author": "I.P. Martini",
+      "publisher": "Geografiska Annaler, Series A: Physical Geography; Taylor & Francis online host",
+      "year": 1981,
+      "official_url": "https://www.tandfonline.com/doi/abs/10.1080/04353676.1981.11880021",
+      "source_type": "Independent authored coastal-geomorphology study; unavailable original",
+      "actual_read_scope": "Bibliographic discovery only. The publisher opening was denied; no article body or map was read.",
+      "original_map_pixels_inspected": false,
+      "supports": "No substantive evidence.",
+      "limits": "Whole exact article/equivalents stopped after the web-reader403. Discovery abstract and snippets are excluded from substantive findings.",
+      "publication_identity": "Bibliography identifies a named university-author coastal-geomorphology article in a research journal, distinct from the held government map/service and park publications.",
+      "used_as_substantive_evidence": false
+    },
+    {
+      "source_key": "r208-igm-san-jose-natural-watercourses",
+      "title": "SIIE_v3 Quebradas ríos — Hidrocursos_naturales, layer 40",
+      "publisher": "Instituto Geográfico Militar, Chile",
+      "official_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Quebradas_r%C3%ADos/MapServer",
+      "layer_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Quebradas_r%C3%ADos/MapServer/40",
+      "edition": "Undated active service; selected original read 13 October 2026",
+      "evidence_type": "Primary official natural-watercourse cartography",
+      "material_read": "One bounded original full-corridor raster completed HTTP 200 image/png. Whole view and overlapping headward, middle and western original reading crops were inspected. Retained successful layer metadata was read locally. Source nombre labels were server-rendered. No vector geometry or full dataset acquired.",
+      "publication_identity_basis": "The exact independent SIIE_v3 project has explicit lawful read history in r98/r99/r155/r196/r201, distinct from the held IGM 250K sign-in folder and stopped MMA hydrography service.",
+      "limits": "The layer omits the final urban/coastal segment; independent municipal material closes it. Regional linework does not prove current flow or surveyed banks.",
+      "use_notice": "Retained metadata copyright field is blank. No unrestricted redistribution is inferred; originals and derivatives remain private."
+    },
+    {
+      "source_key": "r208-igm-san-jose-waterbodies",
+      "title": "SIIE_v3 Cuerpos de agua, polygon layer 37",
+      "publisher": "Instituto Geográfico Militar, Chile",
+      "official_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Cuerpos_de_agua/MapServer",
+      "layer_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Cuerpos_de_agua/MapServer/37",
+      "edition": "Undated active service; selected original read 13 October 2026",
+      "evidence_type": "Primary official surface cartography",
+      "material_read": "One bounded full-corridor original raster completed HTTP 200 image/png and was visually inspected; retained layer metadata read locally. No polygon coordinates or full dataset acquired.",
+      "publication_identity_basis": "The independent SIIE_v3 surface publication is established by prior successful r196/r201 records, separately from held IGM250K and MMA hydrography sources.",
+      "limits": "Absence of a mapped surface is not proof of absent seasonal wetness or small impoundments.",
+      "use_notice": "Copyright field blank; source originals and derivatives not redistributed."
+    },
+    {
+      "source_key": "r208-arica-municipal-plan2017",
+      "title": "Modificación Plan Regulador Comunal de Arica, Expediente del Plan, I. Memoria Explicativa",
+      "publisher": "Ilustre Municipalidad de Arica",
+      "edition": "April 2017; acquired file also contains III. Ordenanza",
+      "official_url": "https://eae.mma.gob.cl/storage/documents/04_Anteproyecto_PRC_Arica.pdf.pdf",
+      "evidence_type": "Primary municipal land-use-planning publication with urban cartography and satellite-image interpretation",
+      "material_read": "Complete 271-page PDF acquired normally with HTTP 200 application/pdf. Contents, project introduction and selected relevant prose read. Municipal Images 2-2, 3.1-2, 3.1-5, 3.1-10, 3.1-11, 3.1-12, 3.2-7, 3.2-11 and 3.2-12 inspected on PDF pages 11,57,59,64,66,68,114,124,125. Geographic conclusion relies on the urban-growth map at printed65/PDF68 and mouth imagery/prose at printed111/PDF114, with surrounding city context.",
+      "publication_identity_basis": "The original identifies the municipality’s own 2017 urban-plan project and separate planning purpose. Image 3.1-12 credits municipal preparation using digital cartography, Google Earth and MINVU June2005 urban-project advice; this is separate editorial context from the held northern hydrology/portal works.",
+      "limits": "Risk-zone polygons on Image 3.2-11 trace an unspecified DOH study and are not used as recovered hydrographic proof. Proposed zoning is not represented as present law. Other rendered but uninspected pages are not evidence.",
+      "use_notice": "Published map/imagery attribution retained; bounded factual observations only. No original PDF, map, crop or derivative redistributed."
+    },
+    {
+      "source_key": "r208-canal-jeddore-profile",
+      "bibliography": "Government of Newfoundland and Labrador. Canada Newfoundland Water Quality Station Profile NF02ZE0018, Jeddore Lake near generating station. Undated web profile, read 13 October 2026.",
+      "official_url": "https://www.canal.gov.nl.ca/root/main/station_details_e.asp?envirodat=NF02ZE0018",
+      "actual_material_read": "Station identity, description, watershed and hydroelectric-development paragraphs in the normally opened official HTML profile. No linked map or image was opened.",
+      "publication_independence": "Provincial chemical-monitoring station account describing its own site and watershed, distinct from WSC reference-index5470, held Labrador reports, and topographic-map services.",
+      "supports": "Jeddore Lake is the Bay d’Espoir headpond; Great Burnt Lake, North Salmon River and Round Pond belong to the described contributing system.",
+      "limits": "Watershed prose does not locate every selected lake passage, the chosen northern feeder, or the exact stored terminal; profile information is not a statement of current operations."
+    },
+    {
+      "source_key": "r208-nlhydro-north-salmon-advisory2019",
+      "bibliography": "Newfoundland and Labrador Hydro. Public Advisory: Controlled release of water ended in Upper Salmon area. 15 March 2019, retaining the preceding 25 February 2019 notice.",
+      "official_url": "https://nlhydro.com/public-advisory-controlled-release-of-water-continuing-in-upper-salmon-area/",
+      "actual_material_read": "Full short dated operator advisory, including its update and preceding release notice, in normally opened HTML.",
+      "publication_independence": "First-party account of a particular February–March2019 spillway-release event; not a republication of Kiell1982 reservoir-preparation research.",
+      "supports": "Great Burnt Lake/North Salmon Dam spillway releases enter North Salmon River; Round Pond and Long Pond are identified as downstream affected areas.",
+      "limits": "Historical connection context only; no current flow, release, operational or safety claim and no detailed selected-route map."
+    },
+    {
+      "source_key": "r208-nlhydro-ea2369-unit8-2025",
+      "bibliography": "Newfoundland and Labrador Hydro. Bay d’Espoir Unit8:150MW (Nominal) Hydroelectric Generating Unit, Environmental Assessment Registration. 28 July2025. EA2369; BDE-NLH-40000-EV-PLN-0001-01, RevA.",
+      "official_url": "https://www.gov.nl.ca/eccc/files/EA-2369-Bay-dEspoir-hydroelectric-Generating-Unit-8-registration.pdf",
+      "actual_material_read": "Completed original PDF: cover, contents, printed pp1–3 project/system description, p37 surface-water overview and Figure3-1, p38 data-source description, and reference identity of Hatch2020. Figure1-1 on printed p2 and Figure3-1 on p37 visually inspected. Other maps and appendices are not claimed as reviewed.",
+      "original_acquisition": "Sole normal-original request completed HTTP200 application/pdf.",
+      "publication_independence": "Public registration for a new150MW generating-unit expansion with its own design/assessment identity. It identifies Hatch2020 hydrology/feasibility work and a unit-specific hydraulic study, not the held1979 Upper Salmon reservoir-preparation project, forestry plans or provincial bedrock maps.",
+      "supports": "System-level arrangement of reservoirs and managed diversions; existing Bay d’Espoir powerhouses and a separate tailrace to tidewater. The facility overview visually shows intakes, penstocks, powerhouses and tailrace.",
+      "limits": "Figure3-1 is a small island-wide drainage-area overview, insufficient for selected tributary/lake through-links. Figure1-1 concerns the power-station site, not the selected southwestern lower corridor. The2025 proposal is not evidence that Unit8 has been built or that current operations match proposed conditions."
+    },
+    {
+      "source_key": "r208-donnet-coast-of-bays2018",
+      "bibliography": "Donnet,S., Ratsimandresy,A.W., Goulet,P., Doody,C., Burke,S., and Cross,S.2018. Coast of Bays Metrics: Geography, Hydrology and Physical Oceanography of an Aquaculture Area of the South Coast of Newfoundland. DFO Canadian Science Advisory Secretariat Research Document2017/076, x+109pp.",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/40654473.pdf",
+      "actual_material_read": "Completed original PDF: cover, foreword/copyright/citation, contents, methods pp4–6 and8–9, bounded geographic/hydrologic discussion, limitations p42, FigureB1 caption on p78, and TableB1 river categories. FigureB1 pixels and other borrowed cartographic linework were not viewed or used.",
+      "original_acquisition": "Sole normal-original request completed HTTP200 application/pdf.",
+      "publication_independence": "The identified DFO aquaculture-oceanography baseline project combines its own analyses of bathymetry, topography and hydrology. This differs from held Labrador fisheries surveys and CHS regional pilots. Underlying cartography is assessed separately.",
+      "supports": "The authors distinguish Salmon River(East Bay) from Salmon River(powerhouse); regulated powerhouse discharge and natural regional drainage cannot be treated as the same named channel solely from basin membership.",
+      "limits": "Methods attribute coastlines to NRCan NTS1:50,000 vector mapping and rivers to CCOG NHN/CanVec+; their relation to held map content is unresolved. That borrowed geometry is excluded. The independently authored labels, caption and table distinguish components but do not prove their placement on the complete selected line."
+    },
+    {
+      "source_key": "r208-chs-atl103-202607",
+      "bibliography": "Canadian Hydrographic Service. Canadian Sailing Directions ATL103: Newfoundland, Southwest Coast.2026/07. CatalogueFs74-45E-PDF, ISSN2816-4652. Chapter3, printed p3-8, paragraphs86 and96–98.",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/chs-shc-ATL103-eng-202607-41337232.pdf",
+      "actual_material_read": "Direct local reading of the lawfully retained original: Chapter3 coastal description on printed p3-8 and page visually inspected. Prior cover/reproduction notice and acquisition provenance verified in the completed earlier record. No new external acquisition.",
+      "publication_independence": "Distinct Newfoundland Southwest Coast coastal pilot with its own catalogue/ISSN and geographic remit, previously normally acquired independently of held ATL120/ARC401 and topographic-map services.",
+      "supports": "East Bay is an inlet of Northern Arm of Bay d’Espoir, entered by Raymond Island and Stone Point. This provides bounded coastal receiving-water context.",
+      "limits": "The consulted prose does not itself map the selected river mouth or all lower river bends. No navigation, depth, current hazard or present operating advice is supplied."
+    },
+    {
+      "source_key": "r208-caslys-nunavut-elc-project-prose",
+      "title": "Nunavut Ecological Land Classification (ELC)",
+      "publisher": "Caslys Consulting Ltd.",
+      "official_url": "https://www.caslys.ca/portfolio/nunavut-elc/",
+      "source_type": "primary_project_description",
+      "actual_read_scope": "Complete short public project-description prose in the web reader. No linked image or atlas original inspected.",
+      "observation": "Caslys describes a multispectral remote-sensing land-cover classification prepared for the Government of Nunavut Department of Environment, supporting wildlife management and environmental planning. This establishes its own ELC project description only.",
+      "cartographic_correspondence": false,
+      "naming_evidence": false,
+      "publication_relationship_limit": "This distinct project description does not identify the historical Pitz overview map or settle whether the proposed atlas overlaps that unresolved source.",
+      "use_notice": "No separate distribution or citation-permission condition was exposed in the inspected project prose. No linked image or source text is republished.",
+      "used_as_substantive_evidence": false
+    },
+    {
+      "source_key": "r208-gsc2003-c23-unavailable",
+      "title": "Structural geology of the northeastern Committee Bay belt, Ellice Hills area, central Nunavut",
+      "year": 2003,
+      "publisher": "Geological Survey of Canada, Natural Resources Canada",
+      "series": "Current Research 2003-C23",
+      "official_url": "https://publications.gc.ca/collections/collection_2013/rncan-nrcan/M44-2003-C23-eng.pdf",
+      "source_type": "unavailable_primary_field_report",
+      "actual_read_scope": "No report body, imprint, original map, or returned HTML body inspected. Only bibliographic discovery and the completed transfer metadata were available.",
+      "publication_independence": "Before acquisition, bibliographic discovery affirmatively identified the Committee Bay TGI bedrock field-mapping project, including the Ellice Hills 2002 field season. This supported a distinct initial request; it did not clear related project publications after the wrong-content response.",
+      "cartographic_correspondence": false,
+      "naming_evidence": false,
+      "discovery_only": true,
+      "used_as_substantive_evidence": false
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70105802",
+      "source_keys": [
+        "r208-iba-on129-ekwan-lakitusaki",
+        "r208-kataquapit-ghost-towns"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9157
+          ],
+          "component_scope": "Selected southwestern opening and first northeastward approach",
+          "finding": "The supplied selection begins on a southwestern lowland feeder and runs northeast. Neither read source identifies this opening or establishes its connection into the candidate river. A natural source, named headwater, lake outlet or wetland passage is not inferred from the modeled line.",
+          "sources": [],
+          "correspondence": "unestablished",
+          "component_correspondence_completed": false,
+          "component_name": null,
+          "candidate_name_role": null
+        },
+        {
+          "fragments": [
+            9157
+          ],
+          "component_scope": "Upper east-northeast course and first long eastward interval",
+          "finding": "The selected upper course, intermediate joins and any waterbody or wetland-channel passages lack independently read corridor evidence. No coastal river name is extended upstream through this interval.",
+          "sources": [],
+          "correspondence": "unestablished",
+          "component_correspondence_completed": false,
+          "component_name": null,
+          "candidate_name_role": null
+        },
+        {
+          "fragments": [
+            9157
+          ],
+          "component_scope": "Middle northeastward rise and long eastward course",
+          "finding": "The middle northeastward turn and following long eastward interval have not been matched to an original map or an adequately descriptive primary account. Neither local junctions nor the continuous through-route are established.",
+          "sources": [],
+          "correspondence": "unestablished",
+          "component_correspondence_completed": false,
+          "component_name": null,
+          "candidate_name_role": null
+        },
+        {
+          "fragments": [
+            9157
+          ],
+          "component_scope": "Lower east-northeast approach toward the coast",
+          "finding": "The named Lakitusaki River is established in the regional coastal literature, but that name has not been tied to these selected lower-route parts by independently read geographic correspondence. The approaching bends, tributary joins and any intervening wetland connections remain unresolved.",
+          "sources": [],
+          "correspondence": "unestablished",
+          "component_correspondence_completed": false,
+          "component_name": null,
+          "candidate_name_role": null
+        },
+        {
+          "fragments": [
+            9157
+          ],
+          "component_scope": "Final bend and actual selected terminal",
+          "finding": "The IBA account establishes that Lakitusaki River has a mouth in the western James Bay coastal-marsh region. It does not identify the exact selected ending or establish the final selected channel, estuarine passage or its connection to the receiving bay. The modeled sea-terminal classification is not independent proof that the selected endpoint is already open James Bay.",
+          "sources": [],
+          "correspondence": "unestablished",
+          "component_correspondence_completed": false,
+          "component_name": null,
+          "candidate_name_role": null
+        },
+        {
+          "fragments": [],
+          "component_scope": "Named coastal candidate and receiving-region context",
+          "finding": "The IBA Ekwan to Lakitusaki Shores account explicitly places the Lakitusaki mouth at the northern end of a coastal-marsh tract on northwestern James Bay. Kataquapit’s firsthand account independently describes visiting a former Hudson Bay trading post on Lakitusaki River during a journey along the James Bay coast. These facts identify a real named river in the relevant coastal setting, without proving the selected upstream route or actual terminal.",
+          "sources": [
+            "r208-iba-on129-ekwan-lakitusaki",
+            "r208-kataquapit-ghost-towns"
+          ],
+          "correspondence": "supported_regional_context_only",
+          "component_correspondence_completed": true,
+          "component_name": "Lakitusaki River",
+          "candidate_name_role": "Named coastal river candidate only; not a confirmed component assignment to the selected geometry.",
+          "selected_route_correspondence_completed": false
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61267216",
+      "source_keys": [
+        "r208-igm-san-jose-natural-watercourses",
+        "r208-igm-san-jose-waterbodies",
+        "r208-arica-municipal-plan2017"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13916
+          ],
+          "component_scope": "Chosen southeastern opening and upper northwestward course",
+          "finding": "The selected opening lies on the depicted upper channel, continuing northwest along the course labeled Río Tignamar. The source accounts for the opening and intervening joins at corridor scale; it does not designate a surveyed river source.",
+          "sources": [
+            "r208-igm-san-jose-natural-watercourses"
+          ],
+          "correspondence": "covered_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "component_name": "Río Tignamar"
+        },
+        {
+          "fragments": [
+            13916
+          ],
+          "component_scope": "Northern Tignamar corridor and eastern tributary settings",
+          "finding": "The selection remains on the connected northward trunk through the Oxa and eastern tributary settings. Belén and Lupica identify separate approaching drainage, not aliases imposed on the selected trunk.",
+          "sources": [
+            "r208-igm-san-jose-natural-watercourses"
+          ],
+          "correspondence": "covered_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "component_name": "Río Tignamar"
+        },
+        {
+          "fragments": [
+            13916
+          ],
+          "component_scope": "Río Seco junction and southwestward receiving bend",
+          "finding": "Río Seco approaches from the north at the selected bend. The Tignamar approach joins the southwestward receiving channel; the selection does not ascend Seco.",
+          "sources": [
+            "r208-igm-san-jose-natural-watercourses"
+          ],
+          "correspondence": "covered_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "component_name": "Río San José"
+        },
+        {
+          "fragments": [
+            13916
+          ],
+          "component_scope": "Southwestward canyon and westward receiving valley",
+          "finding": "Continuous source linework follows the selected southwestern descent and subsequent westward course. The downstream trunk carries the Río San Jose label. Stored-part boundaries are not hydronym boundaries.",
+          "sources": [
+            "r208-igm-san-jose-natural-watercourses"
+          ],
+          "correspondence": "covered_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "component_name": "Río San José"
+        },
+        {
+          "fragments": [
+            13916
+          ],
+          "component_scope": "Lower Azapa valley approaching Arica",
+          "finding": "The selection continues west and northwest along the mapped lower trunk and tributary approaches. No lake or separate basin transfer is needed to connect these parts.",
+          "sources": [
+            "r208-igm-san-jose-natural-watercourses"
+          ],
+          "correspondence": "covered_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "component_name": "Río San José"
+        },
+        {
+          "fragments": [
+            13916
+          ],
+          "component_scope": "Lower-valley transition, Arica urban corridor and actual coastal terminal",
+          "finding": "The IGM channel ends before the city crossing. Municipal Image 3.1-12 supplies the continuous urban continuation and Pacific ending; Image 3.2-7 and its prose place the mouth beside Chinchorro beach. The selected ending matches that coastal corridor. The imagery, city context and connected route are used, not a current bank or wet-mouth claim.",
+          "sources": [
+            "r208-igm-san-jose-natural-watercourses",
+            "r208-arica-municipal-plan2017"
+          ],
+          "correspondence": "covered_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "component_name": "Río San José"
+        },
+        {
+          "fragments": [
+            13916
+          ],
+          "component_scope": "Lake, reservoir, wetland and managed-passage scope",
+          "finding": "The surface layer shows a small separate eastern waterbody outside the selection. No selected lake or reservoir traversal is depicted. The continuous mapped river and municipal urban corridor suffice without assuming an engineered bypass. These sources do not inventory small irrigation works, prove current flow, or establish a wetland boundary.",
+          "sources": [
+            "r208-igm-san-jose-natural-watercourses",
+            "r208-igm-san-jose-waterbodies",
+            "r208-arica-municipal-plan2017"
+          ],
+          "correspondence": "covered_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "component_name": null
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70331549",
+      "source_keys": [
+        "r208-canal-jeddore-profile",
+        "r208-nlhydro-north-salmon-advisory2019",
+        "r208-nlhydro-ea2369-unit8-2025",
+        "r208-donnet-coast-of-bays2018",
+        "r208-chs-atl103-202607"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9450
+          ],
+          "component_scope": "chosen northern opening",
+          "finding": "The chosen opening and southward then eastward headward connection were examined in the supplied selection. None of the actually read independent sources locates this particular feeder and its entry into the northern lake chain.",
+          "sources": [],
+          "correspondence": "material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            9450
+          ],
+          "component_scope": "northern lake chain and eastward join",
+          "finding": "Official station and operator prose identify Great Burnt Lake and North Salmon River within this system. The selected eastward lake/river chain and its turn into the southerly corridor have no independently inspected corridor-scale through-link coverage. Crooked Lake is a discovery lead only, not a confirmed selected component.",
+          "sources": [
+            "r208-canal-jeddore-profile",
+            "r208-nlhydro-north-salmon-advisory2019"
+          ],
+          "correspondence": "bounded_context_only_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            9450
+          ],
+          "component_scope": "north salmon round pond corridor",
+          "finding": "The operator’s historical notice connects Great Burnt Lake spillway releases with North Salmon River and downstream Round Pond/Long Pond context. The chosen continuous route through the intervening river/lake passages is not individually established by the inspected map material.",
+          "sources": [
+            "r208-nlhydro-north-salmon-advisory2019",
+            "r208-canal-jeddore-profile",
+            "r208-nlhydro-ea2369-unit8-2025"
+          ],
+          "correspondence": "bounded_context_only_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            9450,
+            9451
+          ],
+          "component_scope": "jeddore long pond reservoir and fragment join",
+          "finding": "The sources establish a managed Long Pond/Jeddore headpond system and a powerhouse outlet distinct from the lower Salmon River(East Bay) category. They do not establish the selection’s particular reservoir passage, cross-fragment connection and southwestern continuation at corridor scale. Contiguous stored geometry alone is not source proof.",
+          "sources": [
+            "r208-canal-jeddore-profile",
+            "r208-nlhydro-ea2369-unit8-2025",
+            "r208-donnet-coast-of-bays2018"
+          ],
+          "correspondence": "bounded_context_only_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            9451
+          ],
+          "component_scope": "lower river and actual stored terminal",
+          "finding": "Salmon River(East Bay) is a documented distinct river category, and the coastal pilot identifies East Bay within Northern Arm of Bay d’Espoir. This supports the lower-corridor candidate, but no permitted inspected corridor map traces all of the selected lower route to its actual stored endpoint. The endpoint is not silently replaced with the powerhouse/tailrace outlet.",
+          "sources": [
+            "r208-donnet-coast-of-bays2018",
+            "r208-chs-atl103-202607"
+          ],
+          "correspondence": "bounded_context_only_material_pending",
+          "component_correspondence_completed": false
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80081015",
+      "source_keys": [],
+      "correspondence": [
+        {
+          "fragments": [
+            2535
+          ],
+          "component_scope": "Chosen southwestern opening and initial eastward sequence",
+          "finding": "The pinned selection begins with several short eastward links. No independently read original establishes the actual chosen opening, intervening waterbody passages, or its join into the subsequent northeastern course. The modeled line alone is not evidence of a Curtis River headwater.",
+          "sources": [],
+          "correspondence": "material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2535
+          ],
+          "component_scope": "Upper northeastern course and successive joins",
+          "finding": "No usable primary map was inspected for these six selected parts, their joins, or any narrow lake/channel or wetland passages. Discovery of an Ellice Hills geological publication does not establish these through-links.",
+          "sources": [],
+          "correspondence": "material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2535
+          ],
+          "component_scope": "Northward bend and long eastward middle sequence",
+          "finding": "The selected northward bend followed by the eastward sequence remains without independent source correspondence. A regional name lead cannot establish the intervening joins or distinguish a continuous channel from separate lake or wetland passages.",
+          "sources": [],
+          "correspondence": "material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2535
+          ],
+          "component_scope": "Lower southeastern turn and southward course",
+          "finding": "No successfully inspected original establishes this lower selected sequence, including the eastward-to-southward turns and connections between consecutive parts. No named lake, natural-river or managed passage is inferred from the source discovery snippets.",
+          "sources": [],
+          "correspondence": "material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2535
+          ],
+          "component_scope": "Final eastward reach, northeastern approach and stored terminal",
+          "finding": "The selected terminal has a sea class in the supplied model metadata. No permitted original map or route-specific primary prose was inspected that establishes the final selected links, actual waterbody passage, mouth, or relation to the Curtis River discovery lead. The source and rendered terminal are not silently conflated.",
+          "sources": [],
+          "correspondence": "material_pending",
+          "component_correspondence_completed": false
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "source_key": "r208-martini1981-jamesbay-unavailable",
+      "publication": "Martini, I.P. (1981), Morphology and Sediments of the Emergent Ontario Coast of James Bay, Canada. Geografiska Annaler, Series A: Physical Geography 63(1–2):81–94. DOI 10.1080/04353676.1981.11880021.",
+      "official_url": "https://www.tandfonline.com/doi/abs/10.1080/04353676.1981.11880021",
+      "observed_outcome": "The sole normal publisher-page opening returned web-reader Failed to fetch: (403) Forbidden. No article body or original figure was acquired or read.",
+      "outcome_layer": "HTTP403 reported by the web reader; origin response headers were not independently exposed.",
+      "restriction_scope": "Whole exact article and equivalent DOI, publisher, original, figure, format, reader, cache, mirror and acquisition or unread-output routes stopped. No retry or alternate acquisition followed.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "http_403_denial",
+      "used_as_evidence": false,
+      "aw_id": "hydro-system:70105802"
+    },
+    {
+      "publication": "Geophysical Series 7275G, Lakitusaki River, District of Kenora, Ontario, airborne magnetic total field; Ontario catalogue M07275G,1969,1:253440.",
+      "discovery_bibliography_url": "https://www.geologyontario.mndm.gov.on.ca/mndmfiles/dl/data/records/OGSDataListing_BMA_542_823.html",
+      "original_url": null,
+      "observed_outcome": "Not requested. Discovery establishes bibliographic title and sheet identity but does not resolve the actual survey-project relationship to held historical geophysical mapping, including M03761G.",
+      "outcome_layer": "Unresolved publication/project relationship; no new HTTP or tool failure.",
+      "restriction_scope": "The proposed map and equivalent acquisition remain unrequested pending affirmative project-identity resolution. A changed number, place or year is insufficient; no OGS-wide or geophysical-series-wide ban is asserted.",
+      "used_as_evidence": false,
+      "official_url": "https://www.geologyontario.mndm.gov.on.ca/mndmfiles/dl/data/records/OGSDataListing_BMA_542_823.html",
+      "acquisition_attempted": false,
+      "newly_observed_access_failure": false,
+      "aw_id": "hydro-system:70105802"
+    },
+    {
+      "publication": "Biodiversidad terrestre de la Región de Arica y Parinacota, edited by Jaime Hernández Palma, Cristián Estades Marfán, Luis Faúndez Yancas and Jorge Herreros de Lartundo; 2014, ISBN 978-956-19-0847-5. Original imprint uninspected.",
+      "publisher": "Universidad de Chile / Ministerio del Medio Ambiente; proposed official MINEDUC copy",
+      "official_url": "https://www.curriculumnacional.cl/614/articles-143462_recurso_pdf.pdf",
+      "related_urls": [
+        "https://educacion.mma.gob.cl/wp-content/uploads/2019/07/Libro_Biodiversidad_Arica_Parinacota.pdf"
+      ],
+      "catalogue_url": "https://forestal.uchile.cl/publicaciones/108151/biodiversidad-terrestre-de-la-region-de-arica-y-parinacota",
+      "observed_outcome": "First normal-original request completed direct HTTP 502, Content-Type text/html. After actual termination, one identical exact-URL retry also completed direct HTTP 502, Content-Type text/html. No report body, original imprint, prose or map pixels were read.",
+      "outcome_layer": "Completed direct HTTP-client availability responses; no access-control denial observed.",
+      "restriction_scope": "Whole book, figures, companion/equivalent copies and all original, catalogue, reader, cache, mirror and alternate-format acquisition routes paused, including unread outputs. No MMA-copy fallback or other recovery followed.",
+      "publication_identity_basis": "The normally opened university catalogue identifies the GORE-requested Universidad de Chile 2012–2013 biodiversity investigation and its regional mapping project, distinct from the stopped northern hydrology/road-map publications. This establishes project identity, not source correspondence.",
+      "earlier_lawful_observations": "University catalogue bibliography and field-project identity only. Discovery excerpts and uninspected figures are excluded from geographic or hydrological evidence.",
+      "newly_observed_access_failure": true,
+      "explicit_access_denial": false,
+      "material_gap_remaining": false,
+      "aw_id": "hydro-system:61267216"
+    },
+    {
+      "publication": "Kiell,David J.(1982). Development of a Reservoir Preparation Strategy. Canadian Water Resources Journal7(2):112–131. DOI10.4296/cwrj0702112.",
+      "official_url": "https://www.tandfonline.com/doi/pdf/10.4296/cwrj0702112",
+      "observed_outcome": "The sole normal-original request completed HTTP403 with text/html. No returned body, article text or map was read.",
+      "outcome_layer": "Completed direct HTTP response; not a separately characterized origin/intermediary identity.",
+      "restriction_scope": "Whole exact article/publication and equivalent copies, figures, formats, publisher/DOI/reader/cache/catalogue/mirror routes and unread-output reading stopped. No retry or alternate route followed.",
+      "earlier_lawful_observations": "Bibliographic identity and project remit from initial discovery only; no substantive article evidence.",
+      "explicit_access_denial": true,
+      "material_gap": true,
+      "aw_id": "hydro-system:70331549"
+    },
+    {
+      "publication": "Structural geology of the northeastern Committee Bay belt, Ellice Hills area, central Nunavut; Geological Survey of Canada Current Research 2003-C23 (2003). Complete original imprint and author list uninspected.",
+      "official_url": "https://publications.gc.ca/collections/collection_2013/rncan-nrcan/M44-2003-C23-eng.pdf",
+      "observed_outcome": "The sole normal-original request completed HTTP 200 with Content-Type text/html; charset=utf-8, not the requested PDF. No original body, header content, report prose or map pixels were inspected.",
+      "outcome_layer": "Completed HTTP-client response and wrong-content availability outcome; not an asserted access-control denial.",
+      "restriction_scope": "Whole exact publication and equivalent acquisition/output-reading routes paused. Further C22 or CGM63 acquisition is unrequested while the related Committee Bay TGI project relationship is unresolved. No different route, edition, companion, mirror or screenshot requested.",
+      "earlier_lawful_observations": null,
+      "newly_observed_access_failure": false,
+      "availability_failure": true,
+      "material_gap": true,
+      "aw_id": "hydro-system:80081015"
+    },
+    {
+      "publication": "Kivalliq Ecological Land Classification Map Atlas: A wildlife perspective; discovery identifies Campbell, Shaw and Blyth (2012), Nunavut Department of Environment Technical Report 1-2012",
+      "related_urls": [
+        "https://www.gov.nu.ca/sites/default/files/publications/2022-01/kivalliq_ecological_land_classification_map_atlas_section_4p1-25.pdf"
+      ],
+      "acquisition_performed": false,
+      "new_access_failure": false,
+      "observed_outcome": "The exact field/editorial identity of the historically stopped Pitz Kivalliq overview map remains unidentified. The independently read Caslys project description does not settle that relationship. No atlas section was acquired or read. This is an unresolved publication relationship, not a Caslys- or Nunavut-wide ban.",
+      "newly_observed_access_failure": false,
+      "restriction_scope": "Unrequested publication/equivalent acquisition remains paused pending resolution of the identified relationship. No new HTTP or tool failure is asserted.",
+      "aw_id": "hydro-system:80081015",
+      "official_url": "https://www.gov.nu.ca/sites/default/files/publications/2022-01/kivalliq_ecological_land_classification_map_atlas_section_1.pdf"
+    },
+    {
+      "publication": "Surficial geology, Curtis River, Nunavut; Canadian Geoscience Map 63, together with related Committee Bay TGI Ellice Hills field outputs",
+      "acquisition_performed": false,
+      "new_access_failure": false,
+      "observed_outcome": "Discovery identifies Committee Bay TGI-1 fieldwork in 2002 and GEM Multiple Metals–Melville Peninsula work in 2010. The relation to unavailable Current Research 2003-C23 and related Committee Bay project material remains unresolved; no catalogue, original or companion map was acquired as substitute content.",
+      "newly_observed_access_failure": false,
+      "restriction_scope": "Unrequested publication/equivalent acquisition remains paused pending resolution of the identified relationship. No new HTTP or tool failure is asserted.",
+      "aw_id": "hydro-system:80081015",
+      "official_url": "https://publications.gc.ca/site/eng/408012/publication.html"
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "source_key": "r208-iba-on129-ekwan-lakitusaki",
+      "official_url": "https://www.ibacanada.ca/site.jsp?siteID=ON129",
+      "observation": "Birds Canada copyright notice. Own factual synthesis only; no source map or image redistribution.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70105802"
+    },
+    {
+      "source_key": "r208-kataquapit-ghost-towns",
+      "official_url": "https://underthenorthernsky.com/the-book/ghost-towns/",
+      "observation": "No general redistribution permission established; only bounded own factual observations used.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70105802"
+    },
+    {
+      "publication": "Municipalidad de Arica2017 Memoria Explicativa, Image3.2-11 risk polygons",
+      "official_url": "https://eae.mma.gob.cl/storage/documents/04_Anteproyecto_PRC_Arica.pdf.pdf",
+      "observation": "Risk-zone polygons credit an unspecified DOH study. Their relation to earlier regional hydrology material is unresolved.",
+      "restriction_scope": "These borrowed polygons are excluded from hydrographic correspondence. Independent municipal urban-growth imagery/map and mouth context remain evidence; this is not a publication-wide acquisition stop.",
+      "aw_id": "hydro-system:61267216",
+      "acquisition_stop": false
+    },
+    {
+      "publication": "Canadian Hydrographic Service. Canadian Sailing Directions ATL102: Newfoundland, East and South Coasts.2026/06. Fs74-44E-PDF.",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/chs-shc-ATL102-eng-202606-41334140.pdf",
+      "actual_material_read": "Cover, reproduction notice and contents/coverage text in the completed original.",
+      "observed_outcome": "Official catalogue linked original. Web reader completed an explicit content-length technical limit; the one same-original direct fallback completed HTTP200 application/pdf.",
+      "reason_unused": "The consulted volume does not provide the needed Bay d’Espoir corridor coverage; distinct ATL103 supplies coastal context. No new source access stop.",
+      "aw_id": "hydro-system:70331549",
+      "acquisition_stop": false
+    },
+    {
+      "source_key": "r208-donnet-coast-of-bays2018",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/40654473.pdf",
+      "notice": "Methods identify borrowed NTS1:50,000 coastline and NHN/CanVec+ river geometry; relationship to held cartographic content remains unresolved.",
+      "effect": "No FigureB1 pixels or borrowed geographic linework read or used. Independently authored prose, figure caption and river categories remain bounded evidence. This is not a publication-wide access stop or an agency-wide ban.",
+      "aw_id": "hydro-system:70331549",
+      "acquisition_stop": false
+    },
+    {
+      "source_key": "r208-chs-atl103-202607",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/chs-shc-ATL103-eng-202607-41337232.pdf",
+      "notice": "Personal non-commercial reproduction allowed; commercial reproduction requires permission.",
+      "effect": "Only own factual synthesis and bibliography supplied; no original pages, maps, photos or derivatives redistributed.",
+      "aw_id": "hydro-system:70331549",
+      "acquisition_stop": false
+    },
+    {
+      "source_key": "r208-canal-jeddore-profile",
+      "official_url": "https://www.canal.gov.nl.ca/root/main/station_details_e.asp?envirodat=NF02ZE0018",
+      "notice": "Government of Newfoundland and Labrador copyright; unauthorized copying or redeployment prohibited.",
+      "effect": "Bounded own factual synthesis and bibliography only, with no source reproduction.",
+      "aw_id": "hydro-system:70331549",
+      "acquisition_stop": false
+    }
+  ]
+}

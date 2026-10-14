@@ -1,0 +1,762 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r216",
+  "sources": [
+    {
+      "source_key": "r216-parks-ukkusiksalik2018",
+      "title": "Ukkusiksalik National Park of Canada Management Plan",
+      "publisher": "Parks Canada",
+      "year": 2018,
+      "catalogue_number": "R64-496/2018E-PDF",
+      "isbn": "978-0-660-08911-9",
+      "actual_inspected_material": "Normal original completed HTTP200 application/pdf. Original title/imprint and relevant planning prose were read; original pixels of Map2 (printedpage2), Map3 (page12), Map7 (page20), and MapA (page16) were inspected. Map7’s Brown River label and highlighted management corridor are substantive evidence.",
+      "source_independence": "An independently issued Parks Canada park-management and Inuit co-management planning publication. Its own zoning/fishery thematic presentation and authorial prose are used; no stopped NLUIS, CanMatrix, CGN or CBMT material was retrieved. No specific borrowed-cartography credit was visible in the inspected panels or imprint, and no claim of wholly independent underlying geographic datasets is made.",
+      "supports": "Bounded Brown River name/corridor; separate Brown Lake and Ford Lake setting; Ford Lake–Wager Bay tidal connection.",
+      "limits": "Schematic park-wide cartography establishes ordinary named-corridor and lake/outlet relationships, but does not resolve the actual selected headward feeder and its entry into the trunk. No current fishery rights, navigation safety or legal advice is derived.",
+      "use_notice": "Crown copyright2018, represented by Parks Canada. Source originals and derivatives remain private; only own bounded factual synthesis and normal bibliography may be shared.",
+      "evidence_kind": "original_primary_park_management_publication",
+      "supports_selected_route": true,
+      "official_url": "https://parks.canada.ca/pn-np/nu/ukkusiksalik/info/index/-/media/57ecaf09dd9e4bfe9a9b45dc92c66072.ashx"
+    },
+    {
+      "source_key": "r216-eccc-reference-index5482-excluded",
+      "title": "Station Reference Index, selected index view5482",
+      "publisher": "Environment and Climate Change Canada / Water Survey of Canada",
+      "actual_inspected_material": "The reader returned fresh text from an index view while the publication remained paused after the earlier r204 view5470 Cache miss. All fresh content is excluded from evidence; the successful reader response does not resolve the existing hold.",
+      "evidence_kind": "excluded_held_index_reacquisition",
+      "supports_selected_route": false,
+      "used_as_substantive_evidence": false,
+      "official_url": "https://wateroffice.ec.gc.ca/station_metadata/reference_index_e.html?stnIndex=5482"
+    },
+    {
+      "source_key": "r216-cicy-graniel2010-hidrologia",
+      "title": "Hidrología",
+      "author": "Eduardo Graniel Castro",
+      "publication": "In Durán, R., and Méndez, M. (eds.), Biodiversidad y Desarrollo Humano en Yucatán, 2010, pp.12–13",
+      "publisher": "CICY, PPD-FMAM, CONABIO and SEDUMA",
+      "official_url": "https://www.cicy.mx/documentos/CICY/sitios/Biodiversidad/pdfs/Cap1/04%20Hidrologia.pdf",
+      "catalogue_url": "https://www.cicy.mx/sitios/biodiversidad-y-desarrollo-humano-en-yucatan",
+      "publication_identity_basis": "Separately coordinated CICY state-biodiversity editorial project, assembled through state-study workshops and authored thematic contributions; the publisher contents page identifies this chapter and author. It is not an INEGI national topographic sheet or a CONAGUA aquifer availability report.",
+      "acquisition": "Normal original completed HTTP200 application/pdf.",
+      "actually_read": "Publisher book contents and bibliographic introduction; original chapter prose on printed pages12–13. No detailed route map occurs in this two-page chapter.",
+      "evidence_scope": "Regional karst drainage, temporary surface waters, and groundwater emergence supplying northern coastal lagoons. No selected-route or inland river-name correspondence.",
+      "used_as_evidence": true
+    },
+    {
+      "source_key": "r216-cicy-herrera-morales2010-lagunas",
+      "title": "Lagunas costeras",
+      "authors": [
+        "Jorge Herrera Silveira",
+        "Sara Morales Ojeda"
+      ],
+      "publication": "In Durán, R., and Méndez, M. (eds.), Biodiversidad y Desarrollo Humano en Yucatán, 2010, pp.24–26",
+      "publisher": "CICY, PPD-FMAM, CONABIO and SEDUMA",
+      "official_url": "https://www.cicy.mx/documentos/CICY/sitios/Biodiversidad/pdfs/Cap1/08%20Lagunas%20costeras.pdf",
+      "publication_identity_basis": "Authored coastal-lagoon contribution to the same independent CICY biodiversity editorial project. Figure2 expressly credits POETCY2007; it is a lagoon-condition diagram, not replacement INEGI national cartography or the paused reserve-management plan.",
+      "acquisition": "Normal original completed HTTP200 application/pdf, sequentially after the other chapter request terminated.",
+      "actually_read": "Original prose on pp.24–26, Dzilam subsection and lagoon table; original Figure2 on printed p.25 visually inspected, including its POETCY2007 attribution, legend, regional locator and Dzilam panel.",
+      "evidence_scope": "The lagoon name Dzilam and local usage Las Bocas; spring/marine input and broad northern coastal setting. Figure2 does not map the selected inland path or establish the actual selected outlet.",
+      "used_as_evidence": true
+    },
+    {
+      "source_key": "r216-ahuatzin2020-dzilam",
+      "title": "Hydromedusae (Cnidaria: Hydrozoa) from the coastal lagoon of Bocas de Dzilam, Yucatán",
+      "authors": [
+        "José María Ahuatzin-Hernández",
+        "Jesús Andrés Canul-Cabrera",
+        "Candita Mariana Eúan-Canul",
+        "Lorena Violeta León-Deniz"
+      ],
+      "publication": "Hidrobiológica30(3):221–231, December2020",
+      "publisher": "Universidad Autónoma Metropolitana, Hidrobiológica; SciELO México distribution",
+      "doi": "https://doi.org/10.24275/uam/izt/dcbs/hidro/2020v30n3/Ahuatzin",
+      "official_url": "https://www.scielo.org.mx/pdf/hbio/v30n3/0188-8897-hbio-30-03-221.pdf",
+      "publication_identity_basis": "Independent Universidad Autónoma de Yucatán Marine Invertebrates field-course sampling on7March2017 and5March2018, with six inner and eight outer lagoon stations. Figure1 depicts the study stations and uses Herrera-Silveira1997 isobaths. This is new field research, not a revised copy of the paused reserve-management plan.",
+      "acquisition": "Normal original completed HTTP200 application/pdf.",
+      "actually_read": "Original title, author, imprint and abstract on p.221; study-area and methods prose on p.222; complete Figure1, grid, scale, legend and caption on p.223, visually inspected. Taxonomic descriptions and later figures are not used as correspondence evidence.",
+      "evidence_scope": "Local Dzilam lagoon and depicted Gulf entrance. The selected endpoint is in its northeastern interior/barrier sector, not at the depicted southwestern entrance; most selected inland parts lie outside the map. The study-area coordinate printed in prose differs from the figure grid, so the prose coordinate is not used for source orientation.",
+      "used_as_evidence": true
+    },
+    {
+      "source_key": "r216-dzilam2006-unread",
+      "title": "Programa de Manejo de la Reserva Estatal de Dzilam",
+      "publisher": "Gobierno del Estado de Yucatán, Secretaría de Ecología",
+      "edition": "First edition2006, identified by bibliographic discovery only; original imprint uninspected",
+      "official_url": "https://sds.yucatan.gob.mx/areas-naturales/documentos/Pm_Dzilam.pdf",
+      "publication_identity_basis": "Local reserve-planning publication, with edition/design credited in discovery to Adán Waldemar Echeverría García and reserve-planning antecedents. No original imprint or substantive content was obtained.",
+      "actually_read": "None. Discovery identification only; all snippets and unread outputs excluded from substantive evidence.",
+      "used_as_evidence": false,
+      "used_as_substantive_evidence": false
+    },
+    {
+      "source_key": "r216-eakin1962-recon12",
+      "title": "Ground-water appraisal of Ralston and Stonecabin Valleys, Nye County, Nevada",
+      "author": "Thomas E. Eakin",
+      "publisher": "State of Nevada, Department of Conservation and Natural Resources; prepared cooperatively by the U.S. Geological Survey",
+      "series": "Ground-Water Resources – Reconnaissance Series Report 12",
+      "edition": "October 1962",
+      "official_url": "https://images.water.nv.gov/images/publications/recon%20reports/rpt12-ralston_stonecabin_valleys.pdf",
+      "normal_urls": [
+        "https://images.water.nv.gov/images/publications/recon%20reports/rpt12-ralston_stonecabin_valleys.pdf",
+        "https://water.nv.gov/index.php/library/reconnaissance-series-reports"
+      ],
+      "bibliography": "Eakin, T. E. (1962). Ground-water appraisal of Ralston and Stonecabin Valleys, Nye County, Nevada. Ground-Water Resources – Reconnaissance Series Report 12. Carson City: State of Nevada, Department of Conservation and Natural Resources, October 1962. Plate 1 and pp. 3, 7, 10.",
+      "original_acquisition": "Completed direct HTTP200, application/pdf; complete 44-page original received.",
+      "actual_material_read": "Cover, original title page and foreword, contents, Plate 1 including northern/middle/southern portions and legend/credits, and authorial location/drainage text on printed pp. 3, 7 and 10. PDF pages 4 and 5 confirm October 1962; Plate 1 is PDF page 3.",
+      "originality": "Independent Nevada reconnaissance study initiated under the 1960 state program. Plate 1 is signed T. E. Eakin 1962 and credits the historical USGS Goldfield 1958 and Tonopah 1959 1:250,000 quadrangles. It is not the held WSP 423, SIR 2006-5249, WRI 88-4048 or the present USGSTopo composite service.",
+      "supports": "Selected opening, whole axial corridor, Willow Creek labels, upper/lower bedrock passages, lower westward surface-water route and actual Mud Lake terminal.",
+      "limits": "Historical reconnaissance map and qualitative drainage descriptions. Most runoff is described as lost by seepage/evaporation; reaching Mud Lake is conditional on sufficient runoff. No current-flow, exact-bank or formal-name-registry claim."
+    },
+    {
+      "source_key": "r216-doe2008-rail-floodplain",
+      "title": "Final Environmental Impact Statement for a Rail Alignment for the Construction and Operation of a Railroad in Nevada to a Geologic Repository at Yucca Mountain, Nye County, Nevada; Volume V, Appendix F: Floodplain and Wetlands Assessment",
+      "publisher": "U.S. Department of Energy, Office of Civilian Radioactive Waste Management",
+      "series": "DOE/EIS-0369, published with DOE/EIS-0250F-S2",
+      "edition": "2008; publisher landing dated June2,2008",
+      "official_url": "https://www.energy.gov/sites/prod/files/edg/media/EIS0250F-S2_0369_Volume_V_Part_2.pdf",
+      "normal_urls": [
+        "https://www.energy.gov/sites/prod/files/edg/media/EIS0250F-S2_0369_Volume_V_Part_2.pdf",
+        "https://www.energy.gov/nepa/articles/eis-0250-s2-and-eis-0369-final-supplemental-environmental-impact-statement"
+      ],
+      "bibliography": "U.S. Department of Energy (2008). Final Environmental Impact Statement for a Rail Alignment for the Construction and Operation of a Railroad in Nevada to a Geologic Repository at Yucca Mountain, Nye County, Nevada, DOE/EIS-0369. Volume V, Appendix F, Table F-1 (p. F-5), section F.3.2.6 (p. F-46), Figures F-10 and F-11 (pp. F-45 and F-47). Official Volume V Part2 distribution.",
+      "original_acquisition": "Completed direct HTTP200, application/pdf; complete 298-page Part2 original received.",
+      "actual_material_read": "PDF original Table F-1 page 129/printed F-5 visually read, authorial section F.3.2.6 PDF page 170/printed F-46, Figures F-10/F-11 PDF pages 169/171 and their attribution, plus floodplain-method authorial text printed F-2–F-3. Publisher landing read for exact combined-report identity.",
+      "originality": "Independent DOE rail-corridor/rail-alignment environmental-assessment project. Floodplain figures credit DIRS185440-BSC2008 and FEMA mapping, while the authorial assessment describes its own rail-project drainage review and field-reconnaissance basis. No held USGS report or unconfirmed USGSTopo output is used.",
+      "supports": "Explicit Willow Creek/Stone Cabin Creek equivalence and the creek/tributary floodplain connection to Mud Lake Playa; map panels provide lower regional context.",
+      "limits": "Historical planning and floodplain evidence only, not current flood-risk, operating-railway or regulatory advice. The map panels do not independently cover the entire northern selected route; Eakin Plate1 supplies that corridor evidence."
+    },
+    {
+      "source_key": "r216-masswildlife-hamilton2016",
+      "title": "Hamilton Reservoir",
+      "publisher": "Massachusetts Division of Fisheries & Wildlife (MassWildlife)",
+      "edition": "Map updated May 2016",
+      "official_url": "https://www.mass.gov/doc/hamilton-reservoir/download",
+      "bibliography": "MassWildlife. Hamilton Reservoir, Holland, Quinebaug River Watershed. Bathymetric map, updated May 2016.",
+      "material_actually_read": "Complete one-page original PDF visually inspected, including both basin panels, title, legend, dam and stream-flow symbols, and survey note.",
+      "source_identity": "Independent MassWildlife lake-survey publication; printed bathymetry is based on 11,854 depth soundings. It is not a recovery copy of the USGSTopo service, a stopped USGS report, the Housatonic TMDL or the Last Green Valley guide.",
+      "access_status": "Original completed HTTP200 application/pdf.",
+      "use_limits": "Map explicitly says Not for navigational purposes. Only bounded factual observations and ordinary bibliography are supplied; the original and all reading aids remain private."
+    },
+    {
+      "source_key": "r216-trbp-quinebaug-prior-prose",
+      "title": "Quinebaug River",
+      "publisher": "Thames River Basin Partnership",
+      "official_url": "https://thamesriverbasinpartnership.org/quinebaug/",
+      "bibliography": "Thames River Basin Partnership. Quinebaug River. Undated authorial watershed web profile, read 13 October 2026.",
+      "material_actually_read": "Successful initial web-reader HTML prose on the Mashapaug northern outlet, Quinebaug/Shetucket relationship, named tributaries and East Brimfield, Westville and West Thompson managed lakes. No page image read.",
+      "source_identity": "Local watershed partnership’s own river profile, distinct from linked outside reports and map publications.",
+      "access_status": "Earlier successful prose reading only. Subsequent normal direct HTML request completed HTTP403; entire identified page/equivalents now stopped.",
+      "use_limits": "Only specifically earlier-read authorial prose remains usable; no new reading, unseen image claim or discovery-excerpt evidence."
+    },
+    {
+      "source_key": "r216-trbp-shetucket-prose",
+      "title": "Shetucket River",
+      "publisher": "Thames River Basin Partnership",
+      "official_url": "https://thamesriverbasinpartnership.org/shetucket/",
+      "bibliography": "Thames River Basin Partnership. Shetucket River. Undated authorial watershed web profile, read 13 October 2026.",
+      "material_actually_read": "Successful web-reader HTML prose concerning Shetucket formation and tributaries, Norwich/Yantic/Thames junction, named dam sites and lower flood-control reach. No image or linked report read.",
+      "source_identity": "Distinct authorial river profile; not the Quinebaug page image or a copy of the stopped paddle guide.",
+      "access_status": "HTML read normally.",
+      "use_limits": "Bounded own factual synthesis. Historic or descriptive fish-passage text is not a claim of current operational conditions."
+    },
+    {
+      "source_key": "r216-trbp-thames-prose",
+      "title": "Thames River",
+      "publisher": "Thames River Basin Partnership",
+      "official_url": "https://thamesriverbasinpartnership.org/thames/",
+      "bibliography": "Thames River Basin Partnership. Thames River. Undated authorial watershed web profile, read 13 October 2026.",
+      "material_actually_read": "Successful web-reader HTML prose concerning Norwich Harbor origin, tidal-estuary nature, named coves, lower harbor/channel setting and Long Island Sound connection. No image or linked report read.",
+      "source_identity": "Distinct authorial estuary profile; not the Quinebaug page image or a copy of the stopped paddle guide.",
+      "access_status": "HTML read normally.",
+      "use_limits": "Bounded own factual synthesis only; no current dredging, bank position, navigability or exact mouth assertion."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:80107981",
+      "source_keys": [
+        "r216-parks-ukkusiksalik2018"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2562
+          ],
+          "component_scope": "Chosen northwestern opening and southeast-to-south upper descent",
+          "finding": "The original park maps show a northern headward approach to the labeled Brown River corridor. They do not establish that this is the actual selected farther-western feeder, or show how that selected opening enters the mapped trunk. This is a branch/through-link identity gap, not a demand for an exact initial vertex, every small pond or individual bank.",
+          "sources": [
+            "r216-parks-ukkusiksalik2018"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "component_name": null
+        },
+        {
+          "fragments": [
+            2562
+          ],
+          "component_scope": "Eastward upper-to-middle bend and successive joins",
+          "finding": "Below the unresolved headward approach, the park maps show the Brown River turning from its northern corridor toward the east. Map7 highlights and names the connected river course. This supports the selected upper-to-middle trunk at ordinary corridor scale; the feeder-to-trunk entry remains the separate unresolved component above.",
+          "sources": [
+            "r216-parks-ukkusiksalik2018"
+          ],
+          "correspondence": "broad_named_trunk_corridor_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "component_name": "Brown River"
+        },
+        {
+          "fragments": [
+            2562
+          ],
+          "component_scope": "Southeastern middle approach to the Brown Lake setting",
+          "finding": "The selected southeastern middle approach corresponds to the mapped Brown River corridor northwest of Brown Lake. The continuous highlighted river on Map7, read with the park-setting and zoning maps, supports this connected regional reach. The source does not name every lateral tributary, and none is independently selected as an additional fragment.",
+          "sources": [
+            "r216-parks-ukkusiksalik2018"
+          ],
+          "correspondence": "named_river_corridor_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "component_name": "Brown River"
+        },
+        {
+          "fragments": [
+            2562
+          ],
+          "component_scope": "Lower eastward passage beside the Brown Lake basin",
+          "finding": "Maps2,3 and7 distinguish Brown Lake from Ford Lake and show the river continuing east along the northern side of the Brown Lake water complex. The selected lower eastward passage follows this same connected lake/river setting rather than detouring into the prominent southern basin. Brown Lake remains a component name, not a uniform river name. Generalized banks and subsidiary narrows do not prevent corridor-level correspondence.",
+          "sources": [
+            "r216-parks-ukkusiksalik2018"
+          ],
+          "correspondence": "lake_and_river_passage_supported_at_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "component_name": "Brown Lake (lower passage)"
+        },
+        {
+          "fragments": [
+            2562
+          ],
+          "component_scope": "Final eastward reach and western Ford Lake terminal setting",
+          "finding": "The final selected eastward reach corresponds to the mapped lower Brown River approach into western Ford Lake. Ford Lake is the supported actual receiving-water setting; the separate reversing-falls connection to Wager Bay lies farther east, beyond the selected ending. This is ordinary outlet-setting correspondence, without an exact shoreline or tidal-boundary claim.",
+          "sources": [
+            "r216-parks-ukkusiksalik2018"
+          ],
+          "correspondence": "actual_terminal_setting_supported_at_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "component_name": "Ford Lake"
+        },
+        {
+          "fragments": [],
+          "component_scope": "Receiving water connection beyond the selected terminal",
+          "finding": "The plan’s own prose and MapA show that Ford Lake connects to Wager Bay through reversing tidal rapids. This passage is east of the selected ending and is contextual receiving-water evidence, not an added selected fragment or proof of the missing upstream links.",
+          "sources": [
+            "r216-parks-ukkusiksalik2018"
+          ],
+          "correspondence": "regional_receiving_water_relation_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "component_name": "Ford Lake–Wager Bay",
+          "selected_route_correspondence_completed": false
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70871537",
+      "source_keys": [
+        "r216-cicy-graniel2010-hidrologia",
+        "r216-cicy-herrera-morales2010-lagunas",
+        "r216-ahuatzin2020-dzilam"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10413
+          ],
+          "component_scope": "Chosen southwestern opening and first northeastward chain.",
+          "finding": "Graniel’s independent regional synthesis describes karst-dominated inland drainage and temporary surface water. It provides no map or locality description identifying the selected opening or connecting these first five parts as a surface river. A regional groundwater-flow direction does not establish this particular selected path.",
+          "sources": [
+            "r216-cicy-graniel2010-hidrologia"
+          ],
+          "correspondence": "regional_context_only_selected_opening_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem"
+        },
+        {
+          "fragments": [
+            10413
+          ],
+          "component_scope": "Selected southern inland continuation, directional changes and intervening part joins.",
+          "finding": "No acquired source maps a named or unnamed through-channel along this inland chain. The source’s general description of a connected karst aquifer is not transferred to the rendered mainstem or its intermediate joins.",
+          "sources": [
+            "r216-cicy-graniel2010-hidrologia"
+          ],
+          "correspondence": "selected_inland_through_links_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem"
+        },
+        {
+          "fragments": [
+            10413
+          ],
+          "component_scope": "Central inland northward corridor and joins.",
+          "finding": "The regional hydrology chapter supplies a relevant karst setting but no corridor-scale channel, lake, cenote or managed-passage connection for these selected parts. Neither a uniform river name nor named reach identities have been established.",
+          "sources": [
+            "r216-cicy-graniel2010-hidrologia"
+          ],
+          "correspondence": "selected_central_correspondence_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem"
+        },
+        {
+          "fragments": [
+            10413
+          ],
+          "component_scope": "Northeastward inland approach, northern turn and first northwestward approach toward the coast.",
+          "finding": "Graniel describes groundwater emerging near the north coast and supplying esteros and coastal lagoons. The two inspected coastal maps do not extend far enough inland to establish this selected approach. No particular marsh, cenote, canal or river connection is inferred from that regional process.",
+          "sources": [
+            "r216-cicy-graniel2010-hidrologia",
+            "r216-cicy-herrera-morales2010-lagunas",
+            "r216-ahuatzin2020-dzilam"
+          ],
+          "correspondence": "inland_to_coastal_transition_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem"
+        },
+        {
+          "fragments": [
+            10413
+          ],
+          "component_scope": "Northwestward bend and northward approach to the Dzilam coastal-lagoon vicinity.",
+          "finding": "The CICY coastal-lagoon chapter establishes Dzilam as a named coastal lagoon supplied by freshwater springs and marine water. The Ahuatzin field map gives a local lagoon setting, but its limited footprint does not map the selected southern approach or establish its joins through any intervening wetlands. No managed passage is identified.",
+          "sources": [
+            "r216-cicy-herrera-morales2010-lagunas",
+            "r216-ahuatzin2020-dzilam"
+          ],
+          "correspondence": "regional_receiving_setting_known_selected_approach_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem"
+        },
+        {
+          "fragments": [
+            10413
+          ],
+          "component_scope": "Selected final northward and westward bends and actual endpoint, without replacing it with a nearby mapped opening.",
+          "finding": "Figure 1 in Ahuatzin and colleagues places the selected terminal toward the lagoon’s northeastern interior and barrier margin at ordinary local-map scale. Its depicted lagoon–Gulf opening lies southwest of this terminal sector. The map therefore supports the coastal-lagoon context but does not establish the selected final chain as that opening or as a through-going Gulf outlet. Exact shoreline alignment is not asserted.",
+          "sources": [
+            "r216-cicy-herrera-morales2010-lagunas",
+            "r216-ahuatzin2020-dzilam"
+          ],
+          "correspondence": "named_lagoon_context_observed_actual_terminal_connection_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70621996",
+      "source_keys": [
+        "r216-eakin1962-recon12",
+        "r216-doe2008-rail-floodplain"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9843
+          ],
+          "component_scope": "Chosen northern opening and upper Stonecabin valley approach",
+          "finding": "The selected opening lies on the upper mapped Willow Creek drainage in the northern Stonecabin valley. Plate 1 depicts the descending mountain-valley channel and tributary convergence into the southward axial trunk over these selected parts. The opening is within the same mapped drainage; a new headwater river identity is not inferred from neighboring labels.",
+          "sources": [
+            "r216-eakin1962-recon12"
+          ],
+          "correspondence": "established_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            9843
+          ],
+          "component_scope": "Upper axial Willow Creek and shallow-groundwater valley reach",
+          "finding": "The selected continuation follows the mapped Willow Creek axial corridor past the Point Rock/Side Hill Spring surroundings and the marked evapotranspiration area toward the Stonecabin constriction. The shaded shallow-groundwater area is not treated as a lake or as proof of current surface flow.",
+          "sources": [
+            "r216-eakin1962-recon12"
+          ],
+          "correspondence": "established_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            9843
+          ],
+          "component_scope": "Upper-to-lower Stonecabin valley bedrock passage",
+          "finding": "The selected southeastward then southward passage corresponds to the mapped Willow Creek corridor around the southern end of the internal ridge. The author describes overflow from the upper valley into the lower valley through the gaps near Stonecabin and Five-Mile Springs. This supplies a source-described surface connection in addition to the map, without requiring perennial flow or an exact bank match.",
+          "sources": [
+            "r216-eakin1962-recon12"
+          ],
+          "correspondence": "established_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            9843
+          ],
+          "component_scope": "Lower named trunk and tributary joins",
+          "finding": "The lower selected corridor follows the mapped Willow Creek south and southwest through Stonecabin Valley, including the joins shown along that corridor. DOE explicitly identifies Willow Creek as also called Stone Cabin Creek and separately describes Stone Cabin Creek and Saulsbury Wash as converging on Mud Lake Playa. The tributary name is not imposed on the whole selected trunk.",
+          "sources": [
+            "r216-eakin1962-recon12",
+            "r216-doe2008-rail-floodplain"
+          ],
+          "correspondence": "established_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            9843
+          ],
+          "component_scope": "Western alluvial and playa-complex approach to Mud Lake",
+          "finding": "Plate 1 depicts the lower drainage entering the westward lowland and playa complex between the Monitor Hills and Cactus Range, with Mud Lake at the western end. Eakin explicitly describes surface water moving westward through that gap toward Mud Lake, and DOE describes the corresponding named creek floodplain reaching the Mud Lake Playa system. Together the mapped corridor and authorial surface-drainage statements establish this selected connection at ordinary scale; the inference is not based on basin membership or modeled drainage alone. Individual distributary threads within the playa complex are not assigned separate names.",
+          "sources": [
+            "r216-eakin1962-recon12",
+            "r216-doe2008-rail-floodplain"
+          ],
+          "correspondence": "established_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            9843
+          ],
+          "component_scope": "Actual Mud Lake terminal",
+          "finding": "The actual selected terminal lies within the Mud Lake playa shown on Plate 1. The terminal is part of the source-described Stonecabin-to-Mud Lake surface-drainage system. Mud Lake is retained as the terminal lake/playa name, not relabeled as a river reach.",
+          "sources": [
+            "r216-eakin1962-recon12",
+            "r216-doe2008-rail-floodplain"
+          ],
+          "correspondence": "established_at_ordinary_terminal_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70530540",
+      "source_keys": [
+        "r216-masswildlife-hamilton2016",
+        "r216-trbp-quinebaug-prior-prose",
+        "r216-trbp-shetucket-prose",
+        "r216-trbp-thames-prose"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9761
+          ],
+          "component_scope": "Chosen southern opening and incoming passage toward Hamilton Reservoir.",
+          "finding": "The already-read partnership prose identifies a northern outlet of Mashapaug Pond as the Quinebaug headward connection. The acquired reservoir map shows southern incoming channels but does not provide enough exterior coverage to establish the actual selected initial point and its complete connection. A named regional outlet is not substituted for that missing selected link.",
+          "sources": [
+            "r216-trbp-quinebaug-prior-prose",
+            "r216-masswildlife-hamilton2016"
+          ],
+          "correspondence": "selected_opening_through_link_not_fully_established",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "bounded_component_names": [
+            "Mashapaug Pond, contextual upstream source",
+            "Quinebaug River, contextual headward identity"
+          ]
+        },
+        {
+          "fragments": [
+            9761
+          ],
+          "component_scope": "Hamilton Reservoir water-body passage within the headward selection; the listed parts are an orientation window, not exact name-boundary assignments.",
+          "finding": "The original MassWildlife map directly labels Hamilton Reservoir and its South Basin and North Basin. Both panels show the continuous water body, the open connecting passage at Causeway/Mashapaug Road, and the northern dam with an outgoing stream-flow arrow. These observations support the internal reservoir passage at ordinary map scale. They do not establish the entire exterior incoming or downstream reach covered by the orientation window.",
+          "sources": [
+            "r216-masswildlife-hamilton2016"
+          ],
+          "correspondence": "internal_reservoir_causeway_and_northern_dam_passage_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "bounded_component_names": [
+            "Hamilton Reservoir",
+            "South Basin",
+            "North Basin"
+          ]
+        },
+        {
+          "fragments": [
+            9761
+          ],
+          "component_scope": "Northward Holland approach, eastward Massachusetts turn and succeeding southeastward valley toward the state boundary.",
+          "finding": "The prior partnership prose places East Brimfield and Westville dams and lakes along the Quinebaug. It does not map every selected bend, the Holland approach, or the inlet-to-outlet passages of those impoundments. The unavailable guide and master plan were not inspected and supply no correspondence evidence.",
+          "sources": [
+            "r216-trbp-quinebaug-prior-prose"
+          ],
+          "correspondence": "upper_river_and_two_managed_through_links_unestablished",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "bounded_component_names": [
+            "Quinebaug River, provisional selected-corridor candidate",
+            "East Brimfield Lake, contextual managed water body",
+            "Westville Lake, contextual managed water body"
+          ]
+        },
+        {
+          "fragments": [
+            9761
+          ],
+          "component_scope": "Northern Connecticut approach and the West Thompson/Putnam portion of the selected southward corridor.",
+          "finding": "The prior partnership prose identifies West Thompson Dam and Lake on the Quinebaug, and lists the French River at Thompson and Little River at Putnam as tributaries. This establishes named regional relationships but does not supply a readable map of the selected reservoir passage, adjacent course or actual intermediate joins.",
+          "sources": [
+            "r216-trbp-quinebaug-prior-prose"
+          ],
+          "correspondence": "selected_reservoir_and_join_correspondence_unestablished",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "bounded_component_names": [
+            "Quinebaug River, provisional corridor candidate",
+            "West Thompson Lake, contextual managed water body",
+            "French River, contextual tributary",
+            "Little River, contextual tributary"
+          ]
+        },
+        {
+          "fragments": [
+            9761
+          ],
+          "component_scope": "Selected middle and lower eastern Connecticut corridor toward the receiving Shetucket reach.",
+          "finding": "The prior Quinebaug page identifies tributaries at Pomfret, Canterbury, Danielson, Plainfield and Griswold, and states that the Quinebaug enters the Shetucket in Norwich. The inspected prose supports the overall river sequence. No usable corridor map was read to establish all selected intermediate segments, local impoundment passages or the selected approach to that confluence.",
+          "sources": [
+            "r216-trbp-quinebaug-prior-prose",
+            "r216-trbp-shetucket-prose"
+          ],
+          "correspondence": "middle_lower_through_links_and_selected_confluence_approach_unestablished",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "bounded_component_names": [
+            "Quinebaug River, provisional corridor candidate",
+            "Mashamoquet Brook",
+            "Blackwell Brook",
+            "Five Mile River",
+            "Moosup River",
+            "Pachaug River"
+          ]
+        },
+        {
+          "fragments": [
+            9761
+          ],
+          "component_scope": "Westward lower reach and Norwich river-junction setting before the southward estuary.",
+          "finding": "The Shetucket and Thames pages expressly identify the Shetucket–Yantic junction at Norwich Harbor as the beginning of the Thames. The Shetucket page describes Greenville and Taftville among its dam sites. This is useful authorial junction and managed-setting evidence, but no inspected map establishes the selected lower-river passage through those settings or its ordinary alignment with the chosen joins.",
+          "sources": [
+            "r216-trbp-shetucket-prose",
+            "r216-trbp-thames-prose"
+          ],
+          "correspondence": "named_junction_supported_selected_passage_not_fully_established",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "bounded_component_names": [
+            "Shetucket River",
+            "Yantic River, receiving-junction context",
+            "Thames River",
+            "Greenville Dam, contextual managed site",
+            "Taftville Dam, contextual managed site"
+          ]
+        },
+        {
+          "fragments": [
+            9761
+          ],
+          "component_scope": "Final southward estuarine portion, including the actual rendered terminal toward New London/Groton.",
+          "finding": "The Thames page describes a tidal estuary beginning at Norwich Harbor, continuing to Long Island Sound, with named tidal coves and the lower New London/Groton harbor setting. It also describes the maintained lower channel. This supports regional estuary identity, but the actual final selected segment and terminal were not compared with readable original cartography. No exact mouth position or complete terminal correspondence is claimed.",
+          "sources": [
+            "r216-trbp-thames-prose"
+          ],
+          "correspondence": "estuary_identity_supported_actual_selected_terminal_correspondence_unestablished",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "bounded_component_names": [
+            "Thames River",
+            "Long Island Sound, regional receiving-water context"
+          ]
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "Environment and Climate Change Canada / Water Survey of Canada, Station Reference Index and equivalent index views",
+      "official_url": "https://wateroffice.ec.gc.ca/station_metadata/reference_index_e.html?stnIndex=5482",
+      "related_urls": [
+        "https://wateroffice.ec.gc.ca/station_metadata/reference_index_e.html?stnIndex=5470"
+      ],
+      "observed_outcome": "Index view5482 was opened while the reference-index publication and equivalent views remained paused. The reader returned normal text, which is wholly excluded from evidence. The earlier view5470 availability hold remains; no further request or reading followed.",
+      "outcome_layer": "Successful reader response from a previously paused publication; no new direct origin HTTP measurement or denial.",
+      "restriction_scope": "Existing whole reference-index publication/equivalent index-view acquisition and unread-output-reading hold remains. No original, catalogue, reader, cache, station-page substitute or alternate route is authorized by the successful response. No WSC-wide ban is asserted.",
+      "earlier_lawful_observations": null,
+      "newly_observed_access_failure": false,
+      "acquisition_sequence_exception": true,
+      "acquisition_performed": true,
+      "fresh_content_excluded": true,
+      "aw_id": "hydro-system:80107981"
+    },
+    {
+      "source_key": "r216-dzilam2006-unread",
+      "publication": "Gobierno del Estado de Yucatán, Secretaría de Ecología, Programa de Manejo de la Reserva Estatal de Dzilam, first edition 2006; bibliographic discovery identity, original imprint uninspected",
+      "official_url": "https://sds.yucatan.gob.mx/areas-naturales/documentos/Pm_Dzilam.pdf",
+      "observed_outcome": "The initial normal-original request completed direct HTTP502 with Content-Type text/html. One identical-URL retry began, but terminal-status confirmation was interrupted; a later identical status check could not recover its transfer session. The retry HTTP and transfer outcome remain unknown. No response body, original text, imprint, map or output was read.",
+      "outcome_layer": "Initial direct-client server availability response followed by unresolved transfer-status interruption and lost session; no HTTP401/403 or origin access-control denial asserted.",
+      "restriction_scope": "Whole identified Dzilam reserve-management publication, companion/equivalent project content, further original/catalogue/reader/cache/mirror/figure routes and unread outputs remain paused. No new request, file reading or alternate acquisition followed the unrecoverable status check.",
+      "earlier_lawful_prose_exception": null,
+      "newly_observed_access_failure": true,
+      "explicit_origin_access_denial": false,
+      "unresolved_acquisition_outcome": true,
+      "material_effect": "The missing plan supplies no evidence. This is not a Yucatán-government-wide or ecological-publication-wide restriction. Independent CICY editorial and UADY field-project materials were acquired normally, but they do not resolve the selected inland through-route.",
+      "aw_id": "hydro-system:70871537"
+    },
+    {
+      "publication": "The Last Green Valley, Paddle Guide for the Quinebaug, Willimantic and Shetucket River Water Trails (2016 version; original imprint uninspected)",
+      "official_url": "https://thelastgreenvalley.org/wp-content/uploads/2014/02/PaddleGuide2016xweb.pdf",
+      "observed_outcome": "The sole normal-original acquisition completed direct HTTP404 with Content-Type text/html; charset=UTF-8. No returned body, guide prose, original imprint or map pixels were read.",
+      "outcome_layer": "Direct-client HTTP response; no access-control denial asserted.",
+      "restriction_scope": "Whole identified guide and equivalent versions, originals, figures, catalogue, reader/cache, mirror, alternate-format and unread-output routes paused. No retry or alternative route.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "original_http404_availability_pause",
+      "newly_observed_access_failure": true,
+      "aw_id": "hydro-system:70530540"
+    },
+    {
+      "publication": "Thames River Basin Partnership, Quinebaug River web publication",
+      "official_url": "https://thamesriverbasinpartnership.org/quinebaug/",
+      "observed_outcome": "The web-reader HTML opening succeeded and authorial prose was read. A later sole normal direct HTML request completed direct HTTP403 with Content-Type text/plain; charset=UTF-8. No returned response body or page image was read.",
+      "outcome_layer": "Subsequent direct-client HTTP403; earlier web-reader success is retained separately.",
+      "restriction_scope": "Whole identified Quinebaug page publication, linked image and equivalent originals, reader/cache, mirror and unread-output routes stopped. No retry or further acquisition. This is not a general partnership-site prohibition.",
+      "earlier_lawful_prose_exception": "Only actually read prose identifying northern Mashapaug outlet, Quinebaug to Shetucket, named tributaries and three managed lakes. No map/image correspondence.",
+      "limitation_kind": "http403_publication_stop",
+      "newly_observed_access_failure": true,
+      "aw_id": "hydro-system:70530540"
+    },
+    {
+      "publication": "U.S. Army Corps of Engineers, New England District, East Brimfield Lake Draft Master Plan, June 2025 revision; original imprint uninspected",
+      "official_url": "https://www.nae.usace.army.mil/Portals/74/EBL%20MP_Draft.pdf",
+      "observed_outcome": "The sole normal-original acquisition completed direct HTTP403 with Content-Type text/html. No returned body, original imprint, plan prose or map pixels were read.",
+      "outcome_layer": "Direct-client HTTP response; not an inferred web-reader status.",
+      "restriction_scope": "Whole identified East Brimfield master-plan/project publication and equivalent originals, associated figures, catalogue, reader/cache, mirror, alternate-format and unread-output routes stopped. No retry or alternate acquisition. This is not an agency-wide USACE prohibition.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "http403_publication_stop",
+      "newly_observed_access_failure": true,
+      "aw_id": "hydro-system:70530540"
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "source_keys": [
+        "r216-parks-ukkusiksalik2018"
+      ],
+      "kind": "historical_schematic_map_scope",
+      "observation": "The2018 park-wide management maps support a regional connected corridor but do not identify the actual selected northwestern headward feeder and its entry into the named trunk.",
+      "effect": "Keep the result source-material pending; no implication of exact banks or current flow, and no whole-publication access ban.",
+      "aw_id": "hydro-system:80107981",
+      "acquisition_stop": false
+    },
+    {
+      "source_keys": [
+        "r216-parks-ukkusiksalik2018"
+      ],
+      "kind": "ordinary_copyright_and_private_working_material",
+      "observation": "The original carries Crown copyright2018 represented by Parks Canada.",
+      "effect": "No source pages, maps, crops, overlays, full coordinates, private file paths, tool receipts or fingerprints are public-ready.",
+      "aw_id": "hydro-system:80107981",
+      "acquisition_stop": false
+    },
+    {
+      "publication": "Dredge, L.A., and McMartin, I. (2005), Postglacial marine deposits and marine limit determinations, inner Wager Bay area, Kivalliq region, Nunavut; GSC Current Research2005-B3",
+      "official_url": "https://publications.gc.ca/collections/Collection/M44-2005-B3E.pdf",
+      "observed_outcome": "Unrequested. Discovery identifies a regional Quaternary field project with2004 mapping, but its relation to the unidentified historical NRCan2014 hold was not affirmatively resolved. No original, catalogue or substitute figure acquired; no new access failure.",
+      "restriction_scope": "No new acquisition while the unidentified historical publication relationship remains unresolved.",
+      "newly_observed_access_failure": false,
+      "aw_id": "hydro-system:80107981",
+      "acquisition_stop": false
+    },
+    {
+      "publication": "CICY Biodiversidad y Desarrollo Humano en Yucatán, Hidrología and Lagunas costeras chapter PDFs",
+      "official_urls": [
+        "https://www.cicy.mx/documentos/CICY/sitios/Biodiversidad/pdfs/Cap1/04%20Hidrologia.pdf",
+        "https://www.cicy.mx/documentos/CICY/sitios/Biodiversidad/pdfs/Cap1/08%20Lagunas%20costeras.pdf"
+      ],
+      "observed_notice": "The original PDFs are viewable and printable but carry document permissions disabling copying, changes and added notes.",
+      "restriction_scope": "Respect the document-use boundary; no original, source image, crop, overlay or extracted passage is redistributed. Findings contain original factual paraphrase and ordinary bibliography. This is not an acquisition denial.",
+      "outcome_layer": "Document permission settings on successfully acquired originals.",
+      "new_access_stop": false,
+      "aw_id": "hydro-system:70871537",
+      "acquisition_stop": false
+    },
+    {
+      "source_key": "r216-usgstopo-north-request-unconfirmed",
+      "publication": "USGSTopo, The National Map; one bounded northern Stonecabin corridor original-image request",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "observed_outcome": "One original-image request began, but its terminal/session result was unavailable. HTTP status, response type and transfer completion remain unknown. Its response file was not read and supplies no evidence.",
+      "outcome_layer": "Unconfirmed execution/session outcome; origin HTTP and transfer outcome unknown.",
+      "restriction_scope": "This exact unconfirmed request and its response output remain unused. No recovery request, output reading, retry or further USGSTopo acquisition was made for this work. The event is not a permanent whole-service access denial or an institution-wide ban.",
+      "earlier_lawful_prose_exception": "Only previously read retained service metadata; no map observation from this request.",
+      "limitation_kind": "unconfirmed_original_request_output_excluded",
+      "newly_observed_access_failure": false,
+      "explicit_access_denial": false,
+      "material_gap": false,
+      "material_effect": "Independent Eakin1962 and DOE2008 originals establish the selected corridor and representative identity.",
+      "aw_id": "hydro-system:70621996",
+      "acquisition_stop": false
+    },
+    {
+      "publication": "Nevada Ground-Water Resources Reconnaissance Series Report12 (1962)",
+      "official_url": "https://images.water.nv.gov/images/publications/recon%20reports/rpt12-ralston_stonecabin_valleys.pdf",
+      "observed_notice": "The scanned cover bears an office-property/do-not-remove stamp. The report and state series page identify a public reconnaissance-information publication; the stamp is not treated as a limited-distribution or citation-permission restriction.",
+      "use_scope": "Own bounded factual observations and normal bibliography only; original pages/maps and all reading derivatives remain private. Historical and reconnaissance-scale limits are preserved.",
+      "access_stop": false,
+      "aw_id": "hydro-system:70621996",
+      "acquisition_stop": false
+    },
+    {
+      "publication": "DOE/EIS-0369 VolumeV AppendixF (2008)",
+      "official_url": "https://www.energy.gov/sites/prod/files/edg/media/EIS0250F-S2_0369_Volume_V_Part_2.pdf",
+      "observed_notice": "FiguresF-10/F-11 identify FEMA floodplain mapping derived from DIRS185440-BSC2008; original report content is used only within its historical planning scope.",
+      "use_scope": "Own factual observations, bounded name equivalence and normal bibliography only. No original figure redistribution, current flood determination or present railway claim.",
+      "access_stop": false,
+      "aw_id": "hydro-system:70621996",
+      "acquisition_stop": false
+    },
+    {
+      "source_key": "r216-masswildlife-hamilton2016",
+      "publication": "MassWildlife, Hamilton Reservoir, May2016",
+      "official_url": "https://www.mass.gov/doc/hamilton-reservoir/download",
+      "observed_notice": "Not for navigational purposes; depth contours based on 11,854 depth soundings.",
+      "restriction_scope": "Navigational-use boundary and bounded factual synthesis. The lake-survey original and reading derivatives remain private. No acquisition ban is inferred.",
+      "access_stop": false,
+      "aw_id": "hydro-system:70530540",
+      "acquisition_stop": false
+    }
+  ]
+}

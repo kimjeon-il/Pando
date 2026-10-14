@@ -1,0 +1,766 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r227",
+  "sources": [
+    {
+      "source_key": "r227-esri-chubut-imagery",
+      "title": "Esri World Imagery, selected western feeder to Gran Laguna Salada corridor",
+      "publisher": "Esri",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "material_actually_read": "Four complete original images: whole-corridor overview, western opening and upper-pan detail, middle-corridor detail, lower corridor and receiving-basin detail. Originals and private orientation aids were visually read. Retained successful service metadata from r221 was also read locally.",
+      "facts_used": "Visible ravines, alluvial corridors, upper small-pan geography, middle bends and joins, lower alluvial approach, receiving playa and actual ending.",
+      "publication_identity_basis": "Independently maintained multi-provider aerial/satellite imagery, positively identified in normal service metadata; distinct from IGN mosaics, SEGEMAR geology and Chubut/CFI field-study maps. This is a new Chubut scene, not recovery of the held northern Ellesmere view.",
+      "attribution": "Esri, Vantor, Earthstar Geographics, and the GIS User Community.",
+      "limits": "Unlabelled imagery does not establish hydronyms. Target-specific provider, scene dates and current flow are unverified. Seasonal/mosaic differences and small clouds are content limits. No original or derivative is redistributed."
+    },
+    {
+      "source_key": "r227-slr-laguna-salada2024",
+      "title": "S-K 1300 Technical Report Summary on the Laguna Salada Project, Chubut Province, Argentina",
+      "author": "SLR International Corporation for Jaguar Uranium Corp.",
+      "date": "2024-10-29",
+      "effective_date": "2024-08-13",
+      "publication_id": "SLR123.020480.00001; SEC Exhibit96.2",
+      "official_url": "https://www.sec.gov/Archives/edgar/data/2039273/000121390025119290/ea021948714ex96-2_jaguar.htm",
+      "material_actually_read": "Normal publisher-file HTML: title/imprint, project and field-visit identity (sections1–3), physiography4.5 and lake references in6.2–6.3. Figures and geological base maps were not read.",
+      "facts_used": "Western-margin Laguna Salada/Gran Laguna Salada lake and ephemeral drainage setting; no selected river hydronym.",
+      "publication_identity_basis": "Separate company-commissioned exploration assessment, supported by SLR July2024 site visit and project observations.",
+      "limits": "Authorial site context only. Borrowed regional geology and uninspected maps are excluded; this does not recover Panza1981 or held Chubut studies. Not a naming register or contemporary operational assessment."
+    },
+    {
+      "source_key": "r227-esri-labrador-imagery",
+      "title": "World Imagery: three bounded Labrador river-corridor views",
+      "publisher": "Esri; service credits Esri, Vantor, Earthstar Geographics and the GIS User Community",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "edition": "Live mosaic accessed13October2026; individual scene dates not established.",
+      "material_actually_read": "Three completed originalJPEG views covering the selected western, middle and eastern corridor; each original image and local reading enlargements were visually inspected. Retained service description and credits were read.",
+      "supports": "Lake and channel shapes, selected outlet passages, southern tributary confluence, lower meanders, road crossing and delta/bay terminal geography.",
+      "independence": "Separately maintained satellite/aerial-image mosaic, not a new acquisition of held CanMatrix, CBMT, CGN records, CHS directions or a reproduced study map. The earlier failed Ellesmere view is a different exact selected-area view and was not recovered.",
+      "limits": "No hydronym labels, current flow/operation proof, exact banks or guaranteed uniform imagery epoch. Small western feeder continuity remains incomplete. Original imagery and all derivatives remain private.",
+      "acquisition_outcome": "All three sequential original views completed HTTP200 image/jpeg; no new imagery access stop."
+    },
+    {
+      "source_key": "r227-nl-ti-goose-bridge2022",
+      "title": "Contracts Awarded for Highway Improvements in Labrador",
+      "publisher": "Government of Newfoundland and Labrador, Transportation and Infrastructure / Executive Council",
+      "date": "2022-08-19",
+      "official_url": "https://www.gov.nl.ca/releases/2022/ti/0819n02/",
+      "material_actually_read": "Normally opened officialHTML title/date and Route520/Goose River Bridge project paragraphs.",
+      "supports": "Goose River Bridge is on Route520 in the highway setting north of Happy Valley-Goose Bay.",
+      "independence": "An independently issued2022 bridge-rehabilitation announcement; no recovery of a stopped fisheries, geological or navigation publication.",
+      "limits": "Infrastructure naming and locality only; not a map of the upper tributary or proof of present bridge condition.",
+      "acquisition_outcome": "NormalHTML reader success."
+    },
+    {
+      "source_key": "r227-ecvoyageurs2019",
+      "title": "Forty-Four Days, Forty-Four Memories: July23 to September4,2019; Canoeing Labrador’s Goose River section",
+      "publisher": "ecvoyageurs.com, first-person travel account",
+      "date": "2019",
+      "official_url": "https://www.ecvoyageurs.com/canada-2019/f-d-f-p-t3.html",
+      "material_actually_read": "Normally openedHTML trip dates and the Goose River paddling paragraph. No linked photograph was requested or used.",
+      "supports": "First-hand account describes paddling Goose River from Welbourne Bay Campground on Lake Melville, supporting lower-river/receiving-shore usage.",
+      "independence": "Separately authored2019 personal paddle experience, not the held historical fisheries/navigation or delta-study publication.",
+      "limits": "Qualitative lower-river corroboration; no upper-route map, formal hydronym verification or current-flow inference.",
+      "acquisition_outcome": "NormalHTML reader success."
+    },
+    {
+      "source_key": "r227-amec-rffa2014-context",
+      "title": "Regional Flood Frequency Analysis for Newfoundland and Labrador,2014 Update",
+      "authors": "AMEC Environment & Infrastructure",
+      "publisher": "Prepared for Government of Newfoundland and Labrador, Water Resources Management Division",
+      "date": "September2014, revisedMay2015",
+      "project": "TP114024; submission letter prints TC114024",
+      "official_url": "https://www.gov.nl.ca/mpa/files/waterres-reports-rffa-2014-rffa-update-2014-07-05-2015.pdf",
+      "material_actually_read": "PDF reader cover/submission/Important Notice and printedpp8–11 data-screening prose, including the03OE009 name; no map pixels or geographic coordinate table read.",
+      "supports": "Context-only existence of the Peters River below Lindo Lake station label; no selected component assignment.",
+      "independence": "A separately commissioned provincial regression/data-screening project using theApril2014 HYDAT dataset, distinct from the held WSC web reference-index publication, southern-Labrador2013 report and older fisheries/geological studies.",
+      "limits": "Notice identifies the provincial proponent and makes third-party use/reliance that party’s risk. Only bounded factual context is retained, without flood-design advice or reliance on its analytical equations. Borrowed maps were not used.",
+      "acquisition_outcome": "Normal117-pagePDF reader opening and successful cached text find; no acquisition failure.",
+      "used_as_substantive_evidence": false
+    },
+    {
+      "source_key": "r227-inegi-patzcuaro2010",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "edition": "2010; municipal code 16066",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/16/16066.pdf",
+      "material_read": "Title/code and geographic scope, hydrography table; complete Relieve page, legend and margins, especially the eastern Cuanajo headward tributary.",
+      "acquisition_outcome": "Normal original completed direct HTTP200, application/pdf; original prose and rendered map pixels read locally.",
+      "publication_identity": "Distinct municipality-specific integrated geographic compilation identified by original title, code, mapped extent and editorial unit. It is not a copy or replacement edition of a held municipality elsewhere or the held 2023 national topographic publication.",
+      "provenance": "Relief compilation cites the 2010 municipal geographic framework, older 1:250,000 digital topographic series II/III or III, physiographic mapping and INEGI–CONAGUA2007 hydrographic network.",
+      "limits": "Generalized historical municipal footprint. Neither present channel operations nor exact naming-transition points are established. Printed title, attribution and map margins inspected; no officials-only, limited-distribution or citation-clearance notice observed. Originals and working derivatives remain private.",
+      "title": "Compendio de información geográfica municipal 2010: Pátzcuaro, Michoacán de Ocampo"
+    },
+    {
+      "source_key": "r227-inegi-huiramba2010",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "edition": "2010; municipal code 16039",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/16/16039.pdf",
+      "material_read": "Title/code and hydrography table; complete Relieve page, legend and margins, including Canacucho, Tupatarol, El Pedregal and the northern boundary continuation.",
+      "acquisition_outcome": "Normal original completed direct HTTP200, application/pdf; original prose and rendered map pixels read locally.",
+      "publication_identity": "Distinct municipality-specific integrated geographic compilation identified by original title, code, mapped extent and editorial unit. It is not a copy or replacement edition of a held municipality elsewhere or the held 2023 national topographic publication.",
+      "provenance": "Relief compilation cites the 2010 municipal geographic framework, older 1:250,000 digital topographic series II/III or III, physiographic mapping and INEGI–CONAGUA2007 hydrographic network.",
+      "limits": "Generalized historical municipal footprint. Neither present channel operations nor exact naming-transition points are established. Printed title, attribution and map margins inspected; no officials-only, limited-distribution or citation-clearance notice observed. Originals and working derivatives remain private.",
+      "title": "Compendio de información geográfica municipal 2010: Huiramba, Michoacán de Ocampo"
+    },
+    {
+      "source_key": "r227-inegi-morelia2010",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "edition": "2010; municipal code 16053",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/16/16053.pdf",
+      "material_read": "Title/code and geographic scope, hydrography table; Localidades e Infraestructura page6 and complete Relieve page7, legend and margins, including Tupátaro, Cointzio, Grande de Morelia and Chiquito.",
+      "acquisition_outcome": "Normal original completed direct HTTP200, application/pdf; original prose and rendered map pixels read locally.",
+      "publication_identity": "Distinct municipality-specific integrated geographic compilation identified by original title, code, mapped extent and editorial unit. It is not a copy or replacement edition of a held municipality elsewhere or the held 2023 national topographic publication.",
+      "provenance": "Relief compilation cites the 2010 municipal geographic framework, older 1:250,000 digital topographic series II/III or III, physiographic mapping and INEGI–CONAGUA2007 hydrographic network.",
+      "limits": "Generalized historical municipal footprint. Neither present channel operations nor exact naming-transition points are established. Printed title, attribution and map margins inspected; no officials-only, limited-distribution or citation-clearance notice observed. Originals and working derivatives remain private.",
+      "title": "Compendio de información geográfica municipal 2010: Morelia, Michoacán de Ocampo"
+    },
+    {
+      "source_key": "r227-inegi-alvaro-obregon2010",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "edition": "2010; municipal code 16003",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/16/16003.pdf",
+      "material_read": "Title/code, geographic scope and hydrography table; complete Relieve page, legend and margins, including the selected central/eastern channel, separate Viejo de Morelia and Lago de Cuitzeo.",
+      "acquisition_outcome": "Normal original completed direct HTTP200, application/pdf; original prose and rendered map pixels read locally.",
+      "publication_identity": "Distinct municipality-specific integrated geographic compilation identified by original title, code, mapped extent and editorial unit. It is not a copy or replacement edition of a held municipality elsewhere or the held 2023 national topographic publication.",
+      "provenance": "Relief compilation cites the 2010 municipal geographic framework, older 1:250,000 digital topographic series II/III or III, physiographic mapping and INEGI–CONAGUA2007 hydrographic network.",
+      "limits": "Generalized historical municipal footprint. Neither present channel operations nor exact naming-transition points are established. Printed title, attribution and map margins inspected; no officials-only, limited-distribution or citation-clearance notice observed. Originals and working derivatives remain private.",
+      "title": "Compendio de información geográfica municipal 2010: Álvaro Obregón, Michoacán de Ocampo"
+    },
+    {
+      "source_key": "r227-inegi-cuitzeo-study2023",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "edition": "Printed copyright and running imprint2023; catalogue-in-publication line c2022; product889463906353",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/nueva_estruc/889463906353.pdf",
+      "material_read": "Title, copyright, presentation and contents; printed p31/PDF38 hydrology prose; original Map4.2, printed p33/PDF40, full view and enlarged southwestern/central/lower details; printed pp43–50 infrastructure prose and tables in their inspected scope. Other extracted map labels are not map-pixel evidence.",
+      "acquisition_outcome": "Normal original completed direct HTTP200, application/pdf; complete84-page PDF acquired and selected prose/map pixels read locally.",
+      "publication_identity": "Integrated five-basin hydrological study under the Estudios de Información Integrada de Cuencas Hidrográficas de México project, with own2013 field-photo context. Original imprint confirms the distinct publication and product identity.",
+      "map_provenance": "Map4.2: Magnitud de orden Horton-Strahler, scale1:450,000, source INEGI Red Hidrográfica Escala1:50,000, Edición2.0,2010; Lambert Conformal Conic/ITRF92.",
+      "limits": "The basin study supports representative identity and mapped links. Its regional scale and historical hydrography do not establish current flow, operations or exact banks. Ordinary copyright preserved; no source original or derivative is distributed.",
+      "title": "Estudio de información integrada de la Cuenca Lago Cuitzeo y otras"
+    },
+    {
+      "source_key": "r227-geus-greenland-national-1995",
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": [
+        "Jan C. Escher",
+        "T. Christopher R. Pulvertaft"
+      ],
+      "year": 1995,
+      "publisher": "Geological Survey of Greenland; official digital original distributed by GEUS",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J",
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16855",
+      "scale": "1:2 500 000",
+      "material_type": "Original one-sheet geological map",
+      "acquired_scope": "Previously completed official original is physically retained and was read locally; no external request for this batch.",
+      "actual_read_scope": "Original map pixels covering the full 27-part selected corridor and surrounding terrain; enlarged complete terminal setting; Inland Ice legend, printed projection information, 1995 imprint, copyright and recommended citation.",
+      "geographic_role": "Complete ordinary glacial, exposed-rock and coastal-water terrain correspondence, including every join and the actual selected ending.",
+      "limits": "Historical national-scale geological/topographic compilation. Surface contours, ice-thickness isopachs, sub-ice bedrock contours and aeromagnetic lineaments are not river-channel proof. No modern ice-front, exact river mouth, hydraulic-continuity or scalar naming assertion.",
+      "reuse_limit": "GEUS Custom Dataset Terms restrict redistribution and new processed maps. Originals, crops and comparison aids remain private; public use is limited to independently written factual observations and ordinary bibliography."
+    },
+    {
+      "source_key": "r227-geus-greenland-national-catalogue-retained",
+      "title": "GEUS Dataverse catalogue and Custom Dataset Terms for Geological map of Greenland 1:2 500 000",
+      "publisher": "Geological Survey of Denmark and Greenland",
+      "official_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi:10.22008/FK2/SYAL4J",
+      "acquired_scope": "Previously completed official catalogue is physically retained and was read locally.",
+      "actual_read_scope": "Exact title, authors, 1995 map production date, scale, public original-file identity, publication context and full Custom Dataset Terms.",
+      "geographic_role": "Bibliography and source-use scope only; catalogue metadata is not route evidence.",
+      "reuse_limit": "Internal use and processing subject to the printed terms; no original or derived-map redistribution.",
+      "used_as_substantive_evidence": false
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:61579517",
+      "source_keys": [
+        "r227-esri-chubut-imagery",
+        "r227-slr-laguna-salada2024"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14624
+          ],
+          "component_scope": "Chosen western headward ravine",
+          "finding": "The first selected reach follows a recognizable southeastward ravine cut through the western hills, with converging minor washes, into the headward alluvial depression. Small clouds lie around this terrain, but the chosen ravine and its receiving valley are visible. No local stream name is supplied.",
+          "sources": [
+            "r227-esri-chubut-imagery"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_complete",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": null,
+          "name_scope": "no river name established"
+        },
+        {
+          "fragments": [
+            14624
+          ],
+          "component_scope": "Upper small-pan complex and southward transfer",
+          "finding": "The selection enters a broad pale alluvial/pan floor, bends east and south beside an elongated water-filled depression, then turns toward a separate southern collector. The images show these landforms and several local wash traces, but do not establish the whole selected inter-pan passage and onward southward transfer as one connected channel. This is a substantive connection gap rather than a missing name or an exact-bank mismatch.",
+          "sources": [
+            "r227-esri-chubut-imagery"
+          ],
+          "correspondence": "material_through_link_unestablished",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": null,
+          "name_scope": "no river name established"
+        },
+        {
+          "fragments": [
+            14624
+          ],
+          "component_scope": "Southern collector and southeastward valley",
+          "finding": "From the southern wash junction, the selected route follows an observable pale incised drainage southeastward between low ridges. Its several bends and arrival at the larger eastward corridor are visible; this downstream correspondence does not resolve the preceding inter-pan transfer.",
+          "sources": [
+            "r227-esri-chubut-imagery"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_complete",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": null,
+          "name_scope": "no river name established"
+        },
+        {
+          "fragments": [
+            14624
+          ],
+          "component_scope": "Middle valley, northward dogleg and southern loop",
+          "finding": "The selected middle bends, northward dogleg, eastward passage and broad southern loop lie within the same observable incised alluvial corridor. Joining ravines and the return northeastward are recognizable at ordinary corridor scale. Isolated small cloud shadows and generalized bend placement do not create another material gap. No selected reservoir, glacier or managed passage is established here.",
+          "sources": [
+            "r227-esri-chubut-imagery"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_complete",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": null,
+          "name_scope": "no river name established"
+        },
+        {
+          "fragments": [
+            14624
+          ],
+          "component_scope": "Lower braided/alluvial approach to the receiving basin",
+          "finding": "The lower west-to-east wash broadens into a pale braided/alluvial floor, passes north of the separate small southern pond and turns northeast into the main receiving basin. The lower joins and basin entry are geographically supported; adjacent ponds are not silently treated as named river reaches.",
+          "sources": [
+            "r227-esri-chubut-imagery"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_complete",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": null,
+          "name_scope": "no river name established"
+        },
+        {
+          "fragments": [
+            14624
+          ],
+          "component_scope": "Receiving lake/playa interior and actual selected ending",
+          "finding": "The final selected northward continuation and short westward ending lie within the broad receiving lake/playa floor. Geographic entry and receiving-setting correspondence are complete. No river line across the lake floor, contemporary water level, or through-flow to another basin is required or asserted. The report identifies this western project-margin lake as Laguna Salada, also Lago Gran Laguna Salada.",
+          "sources": [
+            "r227-esri-chubut-imagery",
+            "r227-slr-laguna-salada2024"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_complete",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": "Gran Laguna Salada",
+          "name_scope": "receiving lake only"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70136698",
+      "source_keys": [
+        "r227-esri-labrador-imagery",
+        "r227-nl-ti-goose-bridge2022",
+        "r227-ecvoyageurs2019"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9206
+          ],
+          "component_scope": "Westernmost pond/wetland feeder and first lake entry",
+          "finding": "The selected opening lies in an upland mosaic of narrow ponds, wet ground and rocky/vegetated terrain. Some dark-water segments and the receiving lake are visible, but the entire small southeastward feeder and its final entry are insufficiently exposed to establish a continuous selected through-link.",
+          "sources": [
+            "r227-esri-labrador-imagery"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            9206
+          ],
+          "component_scope": "First large lake passage and northward outlet chain",
+          "finding": "The selection continues across the eastern side of the first larger lake, turns north and then northeast through a visible constricted chain of open water and channel. The lake passage and its northern exit correspond at ordinary regional scale. Individual waterbody names are not established.",
+          "sources": [
+            "r227-esri-labrador-imagery"
+          ],
+          "correspondence": "ordinary_corridor_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            9206
+          ],
+          "component_scope": "Upper elongated lake and eastward stream/lake succession",
+          "finding": "The northeastern outlet leads through a sinuous connecting corridor into an elongated east-west waterbody and then successive narrow eastward water/channel reaches. The image shows the selected sequence and joins; generalized lake-centerline placement is not treated as a shoreline or name-boundary claim.",
+          "sources": [
+            "r227-esri-labrador-imagery"
+          ],
+          "correspondence": "ordinary_corridor_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            9206
+          ],
+          "component_scope": "Long middle lake and south-turning outlet",
+          "finding": "The middle image exposes the long narrow waterbody, its eastern outlet, the channel across the pale sandy/rocky margin and the pronounced southward bend into the lower tributary valley. All intervening stored part joins lie within this visible connected corridor. Peters River and Lindo Lake are not spatially assigned from an unlocated name list.",
+          "sources": [
+            "r227-esri-labrador-imagery"
+          ],
+          "correspondence": "ordinary_corridor_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            9206
+          ],
+          "component_scope": "Eastward southern tributary and confluence",
+          "finding": "A narrow meandering watercourse continues east through the vegetated and wetland-fringed valley and visibly joins the broader river approaching from the northwest. This correspondence keeps the southern tributary separate from the receiving river; its local name remains unassigned.",
+          "sources": [
+            "r227-esri-labrador-imagery"
+          ],
+          "correspondence": "ordinary_corridor_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            9206
+          ],
+          "component_scope": "Receiving Goose River lower meanders",
+          "finding": "After the confluence, the selection follows the wider river east and northeast toward the settled lower valley. The official2022 road-works account identifies Goose River Bridge on Route520; the independently authored2019 paddle account uses Goose River at the adjacent lake shore. These support the receiving identity, together with the visible lower corridor.",
+          "sources": [
+            "r227-esri-labrador-imagery",
+            "r227-nl-ti-goose-bridge2022",
+            "r227-ecvoyageurs2019"
+          ],
+          "correspondence": "ordinary_corridor_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": "Goose River"
+        },
+        {
+          "fragments": [
+            9206
+          ],
+          "component_scope": "Bridge, delta passage and actual selected terminal",
+          "finding": "The eastern image shows the road crossing, downstream meanders, sandy mouth channel and receiving inner bay. The selected endpoint reaches that mouth corridor rather than ending at the upstream confluence or bridge. Adjacent side channels and bay-margin wetlands do not require an exact present-day tidal shoreline assignment.",
+          "sources": [
+            "r227-esri-labrador-imagery",
+            "r227-nl-ti-goose-bridge2022",
+            "r227-ecvoyageurs2019"
+          ],
+          "correspondence": "ordinary_corridor_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": "Goose River"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70884272",
+      "source_keys": [
+        "r227-inegi-patzcuaro2010",
+        "r227-inegi-huiramba2010",
+        "r227-inegi-morelia2010",
+        "r227-inegi-alvaro-obregon2010",
+        "r227-inegi-cuitzeo-study2023"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10426
+          ],
+          "component_scope": "Chosen southwestern headward opening",
+          "finding": "The selected opening south of Cuanajo follows the northward tributary shown in the eastern Pátzcuaro relief map and basin map. It crosses into Huiramba through the same branching corridor. The short opening has no separately established name.",
+          "sources": [
+            "r227-inegi-patzcuaro2010",
+            "r227-inegi-huiramba2010",
+            "r227-inegi-cuitzeo-study2023"
+          ],
+          "correspondence": "ordinary_corridor_and_receiving_setting_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_component_names": [],
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            10426
+          ],
+          "component_scope": "Canacucho and Huiramba–Lagunillas feeder",
+          "finding": "Huiramba relief mapping follows the selected western tributary into the reach labelled Canacucho, then the northeastern continuation labelled Tupatarol. The adjoining El Pedregal tributary remains separate. The basin map supplies the continuation past Huiramba toward Lagunillas.",
+          "sources": [
+            "r227-inegi-huiramba2010",
+            "r227-inegi-cuitzeo-study2023"
+          ],
+          "correspondence": "ordinary_corridor_and_receiving_setting_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_component_names": [
+            "Canacucho",
+            "Tupatarol"
+          ],
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            10426
+          ],
+          "component_scope": "Lagunillas bend and Tupátaro approach",
+          "finding": "The selected eastward bend south of Lagunillas and continuing approach toward Tiripetío correspond to connected source linework. Morelia relief mapping labels this upper corridor Tupátaro. The Huiramba spelling Tupatarol is preserved as a source-specific label rather than silently imposed throughout.",
+          "sources": [
+            "r227-inegi-huiramba2010",
+            "r227-inegi-morelia2010",
+            "r227-inegi-cuitzeo-study2023"
+          ],
+          "correspondence": "ordinary_corridor_and_receiving_setting_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_component_names": [
+            "Tupátaro"
+          ],
+          "candidate_name": "Tupátaro"
+        },
+        {
+          "fragments": [
+            10426
+          ],
+          "component_scope": "Upper junction and Cointzio reservoir passage",
+          "finding": "The selected northeastern tributary meets the separately mapped southeastern approach and enters Cointzio at its southwestern arm. The waterbody and northern outlet align with the continuing channel toward Morelia. The reservoir retains its own identity.",
+          "sources": [
+            "r227-inegi-morelia2010",
+            "r227-inegi-cuitzeo-study2023"
+          ],
+          "correspondence": "ordinary_corridor_and_receiving_setting_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_component_names": [
+            "Presa Cointzio"
+          ],
+          "candidate_name": "Presa Cointzio"
+        },
+        {
+          "fragments": [
+            10426
+          ],
+          "component_scope": "Grande de Morelia through the city",
+          "finding": "Morelia relief mapping directly labels Grande de Morelia along the selected northward and then eastward city corridor. It depicts the continuing channel and the joining Chiquito drainage separately; Chiquito is not the selected headward feeder.",
+          "sources": [
+            "r227-inegi-morelia2010",
+            "r227-inegi-cuitzeo-study2023"
+          ],
+          "correspondence": "ordinary_corridor_and_receiving_setting_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_component_names": [
+            "Río Grande de Morelia"
+          ],
+          "candidate_name": "Río Grande de Morelia"
+        },
+        {
+          "fragments": [
+            10426
+          ],
+          "component_scope": "Charo corridor and lower northward turn",
+          "finding": "The basin map follows the selected southern, meandering corridor past Charo and its lower junction into the northward channel beside Álvaro Obregón. Parallel northern drainage and irrigation lines are distinguished from this selected route.",
+          "sources": [
+            "r227-inegi-morelia2010",
+            "r227-inegi-alvaro-obregon2010",
+            "r227-inegi-cuitzeo-study2023"
+          ],
+          "correspondence": "ordinary_corridor_and_receiving_setting_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_component_names": [
+            "Río Grande de Morelia"
+          ],
+          "candidate_name": "Río Grande de Morelia"
+        },
+        {
+          "fragments": [
+            10426
+          ],
+          "component_scope": "Lower straightened channel and lake entry",
+          "finding": "Álvaro Obregón relief mapping depicts the selected long, straightened northward channel and its northeastern bend into the eastern lake margin. Viejo de Morelia is labelled on a separate western route and is not assigned to this selected channel. The local lower-channel name is left unset.",
+          "sources": [
+            "r227-inegi-alvaro-obregon2010",
+            "r227-inegi-cuitzeo-study2023"
+          ],
+          "correspondence": "ordinary_corridor_and_receiving_setting_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_component_names": [],
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            10426
+          ],
+          "component_scope": "Receiving lake and actual rendered ending",
+          "finding": "The mapped entry leads into Lago de Cuitzeo. The final westward and northwestern display continuation ends within that same receiving waterbody. Lake-entry and terminal-setting correspondence are complete; the lake interior is not asserted to be a separately named river channel.",
+          "sources": [
+            "r227-inegi-alvaro-obregon2010",
+            "r227-inegi-cuitzeo-study2023"
+          ],
+          "correspondence": "ordinary_corridor_and_receiving_setting_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_component_names": [
+            "Lago de Cuitzeo"
+          ],
+          "candidate_name": "Lago de Cuitzeo"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:90084442",
+      "source_keys": [
+        "r227-geus-greenland-national-1995"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8862
+          ],
+          "component_scope": "Chosen opening and northeastward upper passage",
+          "finding": "The chosen opening lies in the original's ice-covered terrain among small exposed-rock projections and elongated rock bodies south of the Geikie Plateau label. The initial northeastward turn and all six stored parts are covered in the continuous original view. Ice contours and geological boundaries are not interpreted as river channels.",
+          "sources": [
+            "r227-geus-greenland-national-1995"
+          ],
+          "correspondence": "completed_geographic_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "natural_river_continuity_established": false
+        },
+        {
+          "fragments": [
+            8862
+          ],
+          "component_scope": "Eastward upper corridor and northernmost arc",
+          "finding": "The selection continues east through the mapped ice/exposed-rock mosaic and reaches its northernmost arc beside successive elongated rock bodies. Every intervening stored join is covered. The original establishes the regional terrain sequence without supplying a natural-river name for it.",
+          "sources": [
+            "r227-geus-greenland-national-1995"
+          ],
+          "correspondence": "completed_geographic_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "natural_river_continuity_established": false
+        },
+        {
+          "fragments": [
+            8862
+          ],
+          "component_scope": "Southeastward middle turn",
+          "finding": "The southeastward turn and short intermediate parts pass through the same continuously depicted mixed ice and exposed-rock setting. The source covers the whole turn and its entry and exit joins; no lake, reservoir or managed-channel identity is established for these parts.",
+          "sources": [
+            "r227-geus-greenland-national-1995"
+          ],
+          "correspondence": "completed_geographic_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "natural_river_continuity_established": false
+        },
+        {
+          "fragments": [
+            8862
+          ],
+          "component_scope": "Eastward lower connector and final southward turn",
+          "finding": "The selected eastward connector, its slight northward bend and the ensuing turn toward the coast are geographically accounted for among the original's rock-bounded ice passages. Both sides of each internal join are in the inspected map area. No named river through-link is inferred from neighboring geographic labels.",
+          "sources": [
+            "r227-geus-greenland-national-1995"
+          ],
+          "correspondence": "completed_geographic_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "natural_river_continuity_established": false
+        },
+        {
+          "fragments": [
+            8862
+          ],
+          "component_scope": "Long southward coastal approach",
+          "finding": "The long southward component runs through the original's narrow ice/exposed-rock belt between elongated coastal rock bodies. Its full length, bends and join to the final stored part were read in the continuous selected-corridor view and enlarged terminal setting. This is terrain correspondence, not evidence of surface or subglacial hydraulic continuity.",
+          "sources": [
+            "r227-geus-greenland-national-1995"
+          ],
+          "correspondence": "completed_geographic_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "natural_river_continuity_established": false
+        },
+        {
+          "fragments": [
+            8862
+          ],
+          "component_scope": "Final part and actual selected ending",
+          "finding": "The final southward part and all of its bends remain covered through the narrow historical ice/rock coastal passage. The actual selected ending is at the mapped ice-front/coastal-water transition between exposed-rock headlands, with the receiving coastal-water setting visible beyond it. No exact glacier or fjord name is assigned. The modeled sea class does not independently establish a surveyed river mouth or present-day ice-front position.",
+          "sources": [
+            "r227-geus-greenland-national-1995"
+          ],
+          "correspondence": "completed_geographic_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "natural_river_continuity_established": false
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "Panza, José Luis Alberto (1981), Descripción geológica de las hojas 46e Gran Laguna Salada y 47f Meseta Cuadrada (Provincia del Chubut),244pp, Servicio Geológico Nacional",
+      "official_url": "https://repositorio.segemar.gov.ar/handle/308849217/4606",
+      "observed_outcome": "Sole normal catalogue opening returned web-reader (400) Timeout fetching. No catalogue body, original report or maps acquired/read.",
+      "outcome_layer": "Web-reader fetch availability result; origin HTTP unknown.",
+      "restriction_scope": "Whole exact field-survey report and equivalent/project-companion catalogue, original, figures, maps, cache, mirror and alternate acquisition routes and uninspected outputs paused. No retry or alternate request.",
+      "earlier_lawful_prose_exception": null,
+      "newly_observed_access_failure": true,
+      "explicit_access_denial": false,
+      "publication_identity_basis": "The bibliographic identity describes a Panza/Sacomani local field survey and aerial-photo planimetry for the named Chubut sheets.",
+      "aw_id": "hydro-system:61579517"
+    },
+    {
+      "publication": "Nijhuis, Austin (2013). Fluvio-deltaic response to relative sea-level fall: A case study of the Goose River delta, Labrador, Canada. Boston College thesis, handle 2345/bc-ir:104083.",
+      "official_url": "http://hdl.handle.net/2345/bc-ir:104083",
+      "observed_outcome": "The sole normal handle/catalogue opening returned web-reader Internal Error: URL is not accessible via this tool. No thesis body, map or original HTTP status supplied.",
+      "outcome_layer": "Web-reader availability error; origin HTTP unknown; no explicit completed size/format limit.",
+      "restriction_scope": "Whole thesis and equivalent same Goose River field-study outputs, including Nijhuis et al.2015 Geology43(8):719–722 DOI10.1130/G36788.1, further acquisition and unread outputs paused. No alternate catalogue, original, mirror, reproduced figure or other recovery.",
+      "earlier_lawful_observations": "Earlier independently opened coauthor institution Illinois Experts catalogue/abstract for the2015 article establishes authorship, original Goose River fieldwork/modeling project, and study of delta-lobe avulsions. No original article or thesis map was read.",
+      "availability_failure": true,
+      "explicit_access_denial": false,
+      "aw_id": "hydro-system:70136698"
+    },
+    {
+      "publication": "Wildlife Division, Government of Newfoundland and Labrador. Muskrat Falls Labrador Moose Management Area53, July9,2020 map edition; original imprint uninspected.",
+      "official_url": "https://www.gov.nl.ca/ffa/files/MMA53_y2020m07d09pm_17by22.pdf",
+      "observed_outcome": "The sole normal-original acquisition completed HTTP200 with Content-Type text/html rather than the requested PDF. No returned body, map pixels or original imprint was read.",
+      "outcome_layer": "Completed direct HTTP/content wrong-body availability outcome; not an access-control denial.",
+      "restriction_scope": "Whole exact MMA53 map/boundary publication and equivalent copies, department paths, editions offered as recovery, catalogue, reader, cache, screenshot, mirror and unread output routes paused. No fallback.",
+      "earlier_lawful_observations": null,
+      "availability_failure": true,
+      "explicit_access_denial": false,
+      "aw_id": "hydro-system:70136698"
+    },
+    {
+      "publication": "Sediment and particulate organic carbon budgets of a subarctic estuarine fjard: Lake Melville, Labrador (2020). Marine Geology, PII S0025322720300426; full original imprint uninspected.",
+      "official_url": "https://www.sciencedirect.com/science/article/pii/S0025322720300426",
+      "observed_outcome": "Sole normal publisher landing opening returned web-reader Failed to fetch:(403)Forbidden. No article body, map or original imprint was acquired or read.",
+      "outcome_layer": "Web-reader reported HTTP403; independently measured origin HTTP unavailable.",
+      "restriction_scope": "Whole exact article and project-equivalent original, catalogue, reader, cache, figures, mirror and output-reading routes stopped. No retry or alternate acquisition.",
+      "earlier_lawful_observations": null,
+      "availability_failure": false,
+      "explicit_access_denial": true,
+      "aw_id": "hydro-system:70136698"
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "publication": "SLR2024 Laguna Salada technical report",
+      "official_url": "https://www.sec.gov/Archives/edgar/data/2039273/000121390025119290/ea021948714ex96-2_jaguar.htm",
+      "aw_id": "hydro-system:61579517",
+      "acquisition_stop": false,
+      "restriction_scope": "Authorial project/site context used only. Borrowed regional geology and uninspected map figures excluded; no whole-report access ban."
+    },
+    {
+      "source_key": "r227-amec-rffa2014-context",
+      "kind": "client_purpose_and_third_party_reliance_caution",
+      "observation": "The report was prepared for the provincial proponent; any third-party use or reliance is at that party’s risk. This is recorded as a bounded-use/fitness caution, not an HTTP failure or a new distribution prohibition.",
+      "acquisition_stop": false,
+      "publication": "Regional Flood Frequency Analysis for Newfoundland and Labrador,2014 Update",
+      "official_url": "https://www.gov.nl.ca/mpa/files/waterres-reports-rffa-2014-rffa-update-2014-07-05-2015.pdf",
+      "aw_id": "hydro-system:70136698"
+    },
+    {
+      "source_key": "r227-esri-labrador-imagery",
+      "kind": "imagery_scope_and_redistribution_boundary",
+      "observation": "Geographic reading only. No imagery-derived naming or hydraulic claim; no original images, crops, overlays or full selected coordinates are public-ready.",
+      "acquisition_stop": false,
+      "publication": "World Imagery: three bounded Labrador river-corridor views",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "aw_id": "hydro-system:70136698"
+    },
+    {
+      "publication": "INEGI Estudio de información integrada de la Cuenca Lago Cuitzeo y otras and four municipal Compendios2010",
+      "limitation_kind": "historical_generalized_factual_reference",
+      "access_stop": false,
+      "acquisition_stop": false,
+      "restriction_scope": "Bounded independently written factual observations and bibliography only. Original PDFs, map pixels, working crops and orientation aids remain private; no present-flow, exact-bank or formal-registry claim.",
+      "aw_id": "hydro-system:70884272"
+    },
+    {
+      "publication": "Geological map of Greenland 1:2 500 000",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J",
+      "limitation_kind": "existing_custom_dataset_terms_confirmed_locally",
+      "access_stop": false,
+      "aw_id": "hydro-system:90084442",
+      "acquisition_stop": false,
+      "restriction_scope": "Originals, processed data, crops and comparison/derived maps remain private. Independently written factual observations and ordinary bibliography only."
+    },
+    {
+      "publication": "Geological map of Greenland 1:2 500 000",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J",
+      "limitation_kind": "naming_scope_and_source_epoch",
+      "observed_outcome": "Complete selected terrain and historical terminal-setting coverage without a representative natural-river name or surveyed river continuity.",
+      "material_gap": false,
+      "access_stop": false,
+      "aw_id": "hydro-system:90084442",
+      "acquisition_stop": false,
+      "restriction_scope": "Naming and feature-type scope hold; no exact mouth, modern ice-front or hydraulic-continuity claim."
+    }
+  ]
+}

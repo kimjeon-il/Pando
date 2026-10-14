@@ -1,0 +1,738 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r221",
+  "sources": [
+    {
+      "source_key": "r221-esri-world-imagery-south-baffin",
+      "title": "World Imagery: southern Baffin Island selected corridor, headward detail and coastal-terminal detail",
+      "publisher": "Esri",
+      "attribution": "Esri, Vantor, Earthstar Geographics, and the GIS User Community",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "accessed_date": "2026-10-13",
+      "actual_read_scope": "Normal service metadata and three completed original imagery views were inspected: entire selected corridor, opening and upper pond bend, and final inland branch with coastal flat. Private local crops and orientation aids were also read.",
+      "source_independence": "Independently maintained satellite and aerial imagery mosaic, not a reproduction of a held Canadian topographic, naming-record, NLUIS or wildlife-report map. This is a new southern-Baffin scene, separate from the held northern-Ellesmere scene.",
+      "supports": "Visible terrain, ponds, wetland channels, separation from the large northern coastal river, and selected receiving-shore setting.",
+      "limits": "Imagery has no local hydronym labels. The service-level description does not identify the acquisition date of each local scene. Cloud and small-channel ambiguity leave material route links unresolved. No source imagery or derivatives are republished."
+    },
+    {
+      "source_key": "r221-oliver1964-nettilling",
+      "title": "A Limnological Investigation of a Large Arctic Lake, Nettilling Lake, Baffin Island",
+      "author": "D. R. Oliver",
+      "publisher": "Arctic Institute of North America; Arctic",
+      "publication_year": 1964,
+      "volume_issue_pages": "17(2):69–83",
+      "official_url": "https://pubs.aina.ucalgary.ca/arctic/Arctic17-2-69.pdf",
+      "accessed_date": "2026-10-13",
+      "actual_read_scope": "Original introduction and survey-method/morphometry prose on printed pages 69–72; Figure 1 on page 71 was visually inspected, including the regional inset. Historical geographical prose on page 70 was inspected for attribution but its Soper-derived material is excluded from correspondence evidence.",
+      "source_independence": "Oliver and J. A. Thomson's own approximately five-month 1956 limnological field survey, including measured lake soundings and sampling stations. This project is distinct from the held Soper expedition article and Stewart–Bernier southern-Baffin aquatic-resource survey.",
+      "supports": "Independent Nettilling Lake survey context and the regional Baffin Island–Foxe Basin setting; Figure 1 depicts the lake and its western outlet context.",
+      "limits": "The lake-centred sampling map does not show the complete selected southern interior-to-coast route. Historical Soper-derived river descriptions do not establish selected correspondence and were not used to recover held content. No source page or derivative map is republished."
+    },
+    {
+      "source_key": "r221-opatoro-e752",
+      "title": "Opatoro, Honduras 1:50,000, Series E752, sheet 2658 III, Edition 2-DMA",
+      "publisher": "U.S. Defense Mapping Agency Hydrographic/Topographic Center; preserved by University of Texas Perry-Castañeda Library",
+      "edition_note": "Map information as of 1982; inspected original carries NGA reprint 11-05.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/opatoro-honduras-50k-2658iii-1982.pdf",
+      "material_read": "Original map margins, complete overview and enlarged selected eastern upper-valley portions. Directly read Río Cancire and Río Quebrada Honda labels, their joined valley, side-stream distinctions and southward sheet exit.",
+      "supports": "Chosen opening near the Guajiquiro/El Recrecimiento setting, Cancire southward past Vegas del Paraíso, its downstream Quebrada Honda-labeled continuation and the approach to El Guanacaste.",
+      "limits": "Historical ordinary corridor correspondence only; not a current flow/bank survey or exact legal name-transition point. No limited-distribution/officials-only notice observed in inspected margins.",
+      "source_acquisition": "Normal original completed HTTP200 application/pdf; inspected only after completion."
+    },
+    {
+      "source_key": "r221-mercedes-e752",
+      "title": "Mercedes de Oriente, Honduras 1:50,000, Series E752, sheet 2657 IV, Edition 3-NIMA",
+      "publisher": "U.S. National Imagery and Mapping Agency; preserved by University of Texas Perry-Castañeda Library",
+      "edition_note": "Map information as of 1994; NIMA reprint 05-01.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/mercedes_de_oriente-honduras-50k-2657iv-1994.pdf",
+      "material_read": "Original margins and complete overview, with enlarged northeastern headward connector and Río Palagua junction/corridor.",
+      "supports": "The Quebrada Honda approach descends from El Guanacaste and meets the Palagua corridor; the selected line turns east along the directly labelled Río Palagua through Paso del Limón/El Último Sitio toward the eastern sheet edge.",
+      "limits": "Only the selected upper northern part intersects this map. It does not establish the east-of-sheet turn or the missing continuation toward the later Goascorán receiving reach. No limited-distribution/officials-only notice observed in inspected margins.",
+      "source_acquisition": "Normal original completed HTTP200 application/pdf; inspected only after completion."
+    },
+    {
+      "source_key": "r221-aramecina-e752",
+      "title": "Aramecina, Honduras; El Salvador 1:50,000, Series E752, sheet 2657 II, Edition 1-DMA",
+      "publisher": "U.S. Defense Mapping Agency Hydrographic/Topographic Center; preserved by University of Texas Perry-Castañeda Library",
+      "edition_note": "Map information as of 1982; NIMA reprint 5-01.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/aramecina-honduras-50k-2657ii-1982.pdf",
+      "material_read": "Original margins, complete overview and enlarged western river corridor. Repeated Río Goascorán labels, Caridad/Pescado junction setting, Concepción de Oriente, Aramecina bends and separate Apasapo approach inspected.",
+      "supports": "Southern end of FID10644 and northern/middle FID10645 follow the mapped Goascorán receiving channel past Concepción de Oriente and west of Aramecina.",
+      "limits": "The selected river leaves the western sheet edge before all of FID10645 is completed. The mapped Apasapo is an arriving eastern watercourse, not a replacement for the selected mainstem. No restricted-distribution/officials-only notice observed in inspected margins.",
+      "source_acquisition": "Normal original completed HTTP200 application/pdf; inspected only after completion."
+    },
+    {
+      "source_key": "r221-globalcommunities-pah",
+      "title": "Plan de acción hídrica de la Cuenca del Río Goascorán",
+      "publisher": "Global Communities, Programa de Gestión Comunitaria de Cuencas-nuestra cuenca Goascorán Fase II; facilitated by GFA-SRK with COSUDE support",
+      "edition_note": "Own methods identify the 2019–2023 program phase. Exact original publication date not printed in the inspected front matter; official repository places the file under March 2023.",
+      "official_url": "https://sigmof.icf.gob.hn/wp-content/uploads/2023/03/24.-PAH-Cuenca-del-Rio-Goascoran.pdf",
+      "material_read": "Original front matter/credits, pp13–18 project methods and regional prose, selected contents and bibliography.",
+      "supports": "Independent field/planning-project identity and bounded binational Goascorán basin/Gulf of Fonseca receiving context.",
+      "limits": "Hydrographic GIS, map layers and subdivision facts credited to Agua de Honduras are not used to bridge selected-path gaps because their relation to held national2017 subcuencas mapping remains unresolved. No map pixels from this report are used. Its prose alone cannot identify the chosen opening, joins or western terminal.",
+      "source_acquisition": "Normal original completed HTTP200 application/pdf."
+    },
+    {
+      "source_key": "r221-chs-arc402-2025",
+      "title": "Canadian Sailing Directions, ARC402: Eastern Arctic",
+      "publisher": "Canadian Hydrographic Service, Fisheries and Oceans Canada",
+      "edition": "January2025",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/chs-shc-ARC402-eng-202501-41273515.pdf",
+      "actual_read_scope": "Surviving original cover, copyright/reproduction notice, chapter4 Milne Inlet coastal prose, especially printed page4-11 paragraph176; no chart reproduced or consulted.",
+      "observation": "Robertson River enters the northwestern corner of Koluktoo Bay through an extensive delta and drying alluvial flats. This supports the selected marine terminal setting and a receiving/downstream river name, but supplies no geography of the far southern selected opening.",
+      "source_independence": "Separately edited CHS coastal-description volume with its own coastline prose, not a naming database or recovery of held CanMatrix/CBMT/field-study figures. Surviving original was acquired successfully in r220 and not subject to subsequent stop.",
+      "use_notice": "Commercial reproduction requires prior CHS permission; original and any derivatives remain private. Own bounded factual summary with normal bibliography only."
+    },
+    {
+      "source_key": "r221-esri-world-imagery",
+      "title": "World Imagery, northern Baffin Robertson River–Koluktoo Bay corridor",
+      "publisher": "Esri",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "attribution": "Esri, Vantor, Earthstar Geographics, and the GIS User Community",
+      "actual_read_scope": "Shared normally completed service metadata plus two normally completed target-specific original images: full corridor overview and southern-half detail. Original imagery and private unchanged-pixel crops were visually inspected; pinned positions were used only as a private orientation aid.",
+      "source_independence": "Independently maintained satellite/aerial imagery mosaic with image-provider attribution. It is not held CanMatrix/CBMT cartography or a reproduced figure from a stopped study.",
+      "limits": [
+        "Individual scene capture dates are not established; mosaic has differing source seams and local cloud/snow/ice.",
+        "Image colors and water visible in one composite do not establish current flow, exact banks, water levels or exact lake-name boundaries.",
+        "No original image, reading crop or orientation overlay is for redistribution."
+      ],
+      "observation": "The middle river, broad lake approach, large through-lake and narrow northern outlet, northern junction, lower eastward valley and actual coastal delta can be followed at ordinary corridor scale. The southern detail shows upper waterbodies and valley sections but does not establish every chosen upstream connection."
+    },
+    {
+      "source_key": "r221-nluis-washburn77e1983",
+      "title": "Land Use Information Series: Washburn Lake, District of Franklin, Northwest Territories, sheet77E",
+      "publisher": "Environment Canada, Lands Directorate, Environmental Conservation Service, with Indian and Northern Affairs; thematic cartography by Agriculture Canada, Land Resource Research Institute",
+      "year": 1983,
+      "information_date": "December1982",
+      "scale": "1:250,000",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_77e.jpg",
+      "evidence_kind": "primary_original_cartography",
+      "actual_material_read": "Surviving lawful original: overview, selected southern-edge opening and cross-sheet return, upper Ekalluk label, southern graticule and adjoining-sheet context.",
+      "acquisition_outcome": "No new acquisition; actual surviving original read locally.",
+      "source_independence": "Independently issued Environment Canada land-resource thematic publication, previously established by its original imprint. Not a CanMatrix delivery, CBMT3978 image, naming-record request or recovery of a held geological project.",
+      "limits": "Historical regional map; does not establish the unobserved eastern continuation or present flow."
+    },
+    {
+      "source_key": "r221-nluis-cambridge77d1983",
+      "title": "Land Use Information Series: Cambridge Bay, District of Franklin, Northwest Territories, sheet77D",
+      "publisher": "Environment Canada, Lands Directorate, Environmental Conservation Service, with Indian and Northern Affairs; thematic cartography by Agriculture Canada, Land Resource Research Institute",
+      "year": 1983,
+      "information_date": "December1982",
+      "scale": "1:250,000",
+      "base_map": "National Topographic Series77D, Edition1",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_77d.jpg",
+      "evidence_kind": "primary_original_cartography_and_map_margin_prose",
+      "actual_material_read": "Original overview, title/imprint, introduction, fish-resource methods and dating; selected upper lake approaches, named Ekalluk river, Ekalluk Lake and its southern outlet, eastern parallel waters, and eastern neatline. Unmarked original detail views were inspected.",
+      "acquisition_outcome": "One normal-original request completed HTTP200 with an image/jpeg body. Original read only after completion.",
+      "source_independence": "Exact separately issued thematic publication and 1983 imprint were established by the previously lawful original-reading record before acquisition, then directly inspected in this original. Its land-resource editorial project and 1982 fish survey distinguish it from held CanMatrix/CBMT products and later geological projects. A Polar Continental Shelf Project logistical credit is not an identification with the held 2014 report.",
+      "limits": "Interim cartography with incomplete or reconnaissance information and generalized thematic boundaries. Eastern sheet coverage ends before the coast. No supported eastward connection from Ekalluk Lake is shown."
+    },
+    {
+      "source_key": "r221-kristofferson2002",
+      "title": "Identification of Arctic char stocks in the Cambridge Bay Area, Nunavut Territory, and evidence of stock mixing during overwintering",
+      "author": "Allan H. Kristofferson",
+      "publisher": "University of Manitoba, Department of Zoology, PhD thesis",
+      "year": 2002,
+      "official_url": "https://mspace.lib.umanitoba.ca/bitstream/handle/1993/19912/Kristofferson_Identification_of.pdf",
+      "evidence_kind": "independent_primary_field_study_maps_and_prose",
+      "actual_material_read": "Surviving original title/copyright pages; printed pp15 and19 upper Ekalluk account; printed p18 Figure3; pp26–29 Jayco and adjacent Char/Fish Trap system account; Figures7 and8 and their outlet/sampling insets.",
+      "acquisition_outcome": "No new external acquisition; surviving original from the earlier completed lawful acquisition read locally.",
+      "source_independence": "Author’s independently issued stock-identification/overwintering field study, with its own drainage maps and sampling descriptions. Distinct from the held Hammer2022 article, Nunavut coastal inventories and geological/PCSP publications.",
+      "limits": "The broad middle lake is described as unnamed, whereas the older thematic map supplies a local name. The thesis shows the named Ekalluk system’s southern continuation, but cannot establish the selection’s proposed eastern transfer. Neighboring sampling-lake names do not prove selected passage."
+    },
+    {
+      "source_key": "r221-chs-arc4032024",
+      "title": "Canadian Sailing Directions, ARC403: Western Arctic",
+      "publisher": "Canadian Hydrographic Service, Fisheries and Oceans Canada",
+      "edition": "2024/03",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/chs-shc-ARC403-eng-202403-41232306.pdf",
+      "evidence_kind": "primary_coastal_prose",
+      "actual_material_read": "Surviving original text, Chapter9 printed p9-5, paragraphs28–32 describing Albert Edward Bay, its entrance and surrounding coast.",
+      "acquisition_outcome": "No new external acquisition; actual surviving original located and read locally.",
+      "source_independence": "Separately issued CHS Western Arctic sailing-directions volume, not held ARC401, CGN, CanMatrix, CBMT3978 or geological-field-project material.",
+      "limits": "Regional receiving-coast context only; not inland lake/channel correspondence or present navigation advice."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:80092693",
+      "source_keys": [
+        "r221-esri-world-imagery-south-baffin",
+        "r221-oliver1964-nettilling"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2548
+          ],
+          "component_scope": "Chosen opening and initial northward drainage",
+          "finding": "Detailed imagery shows small ponds and narrow dark drainage traces in the initial rocky terrain. The selected northward corridor is located, but a continuous connection from the chosen opening through every initial pond is not securely established.",
+          "sources": [
+            "r221-esri-world-imagery-south-baffin"
+          ],
+          "correspondence": "partial_setting_correspondence_material_links_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2548
+          ],
+          "component_scope": "Upper pond sequence and northward bend",
+          "finding": "The upper detail shows a cluster of elongated waterbodies near the selected bend. Cloud partly obscures the continuation, and multiple narrow surface traces prevent treating proximity to those ponds as proof of the complete selected passage.",
+          "sources": [
+            "r221-esri-world-imagery-south-baffin"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2548
+          ],
+          "component_scope": "Northwestward transition from rocky terrain to wetland",
+          "finding": "The overview locates a northwest-trending drainage setting across the rocky margin into the lowland. It does not distinguish all selected small channels and joins along this transition.",
+          "sources": [
+            "r221-esri-world-imagery-south-baffin"
+          ],
+          "correspondence": "partial_corridor_correspondence_material_links_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2548
+          ],
+          "component_scope": "Lower pond-rich wetland corridor",
+          "finding": "Numerous rounded ponds and several shallow drainage corridors are visible in the lower plain. The image establishes the wetland setting, while the selected sequence of pond passages and its connection to the final coastal branch remain ambiguous.",
+          "sources": [
+            "r221-esri-world-imagery-south-baffin"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2548
+          ],
+          "component_scope": "Final coastal approach and actual receiving shore",
+          "finding": "The terminal detail shows a small drainage meeting a broad coastal flat, with several neighboring inland channels. The selected receiving shore is on Foxe Basin, south of the separate large northern river mouth. The specific connection from the chosen lower branch into the observed small outlet remains unresolved.",
+          "sources": [
+            "r221-esri-world-imagery-south-baffin",
+            "r221-oliver1964-nettilling"
+          ],
+          "correspondence": "terminal_setting_supported_final_branch_link_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70961272",
+      "source_keys": [
+        "r221-opatoro-e752",
+        "r221-mercedes-e752",
+        "r221-aramecina-e752",
+        "r221-globalcommunities-pah"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10644
+          ],
+          "component_scope": "Chosen Cancire opening, Quebrada Honda and Palagua upper corridor, missing eastern connection, and Goascorán receiving interval",
+          "finding": "The actual northern opening is on the Cancire-labeled valley near Guajiquiro, not an assumed source of the lower Goascorán name. The selected upper line continues south along the Quebrada Honda-labeled valley into the Mercedes sheet and meets Río Palagua, then follows Palagua east to that sheet edge. The end of this fragment reappears on the independently inspected Aramecina sheet in the Goascorán receiving corridor. The intervening eastern upper/middle turn is not established by an allowed original.",
+          "sources": [
+            "r221-opatoro-e752",
+            "r221-mercedes-e752",
+            "r221-aramecina-e752"
+          ],
+          "correspondence": "partially_corresponded_material_gap",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_component_names": [
+            "Río Cancire",
+            "Río Quebrada Honda",
+            "Río Palagua",
+            "Río Goascorán"
+          ]
+        },
+        {
+          "fragments": [
+            10645
+          ],
+          "component_scope": "Mapped middle Goascorán interval and unresolved late southwestern continuation",
+          "finding": "The first six stored path parts and the beginning of the next correspond at corridor scale to the repeatedly labelled Río Goascorán: below the Caridad/Pescado confluence setting, past Concepción de Oriente and around the bends west of Aramecina. The selected line remains on Goascorán rather than taking the eastern Apasapo approach. The later southwestward continuation leaves the western coverage of the inspected Aramecina map.",
+          "sources": [
+            "r221-aramecina-e752"
+          ],
+          "correspondence": "partially_corresponded_material_gap",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_component_names": [
+            "Río Goascorán"
+          ]
+        },
+        {
+          "fragments": [
+            10646
+          ],
+          "component_scope": "Separate short mainstem fragment and both joining connections",
+          "finding": "This short separate selected mainstem fragment is retained as its own component. Neither its beginning and ending joins nor its intervening channel was observed in an allowed primary map; a nearby/receiving Goascorán label is not extended over it by inference.",
+          "sources": [],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            10647
+          ],
+          "component_scope": "Lower river bends and delta approach",
+          "finding": "The selected lower southward and eastward-turning corridor, followed by its delta approach, was not established by allowed originals. The originally selected Langue and Bahía Chismuyo sheets both carry restrictive distribution notices, so their geography is excluded.",
+          "sources": [],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            10648
+          ],
+          "component_scope": "Western terminal passage and actual ending",
+          "finding": "The actual terminal-bearing fragment turns northwest and then west before its final southwestward ending. This distinctive selected terminal cannot be replaced by a generic Goascorán-to-Gulf statement. Both relevant coastal-sheet originals were excluded for printed restricted distribution; the independent ICJ1992 judgment original was unavailable after HTTP403, and no discovery excerpt is used as evidence.",
+          "sources": [],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80021745",
+      "source_keys": [
+        "r221-chs-arc402-2025",
+        "r221-esri-world-imagery"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2311
+          ],
+          "component_scope": "chosen_headward_opening",
+          "finding": "The chosen eastern opening lies among small upland waterbodies and pale snow/ice-bearing channels. Readable imagery shows these features and the larger lake to the southwest, but local cloud and ambiguous branching prevent establishing the selected continuous opening-to-lake connection. Nearby waterbodies are not used as proof of that through-link.",
+          "sources": [
+            "r221-esri-world-imagery"
+          ],
+          "correspondence": "partially_observed_material_throughlink_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2311
+          ],
+          "component_scope": "upper_lake_passage",
+          "finding": "The selected corridor corresponds at ordinary scale to the western side of the upper large lake and its southwestern lake margin. The lake itself is geographically readable; no lake name is assigned. Its selected incoming connection is separately pending.",
+          "sources": [
+            "r221-esri-world-imagery"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2311
+          ],
+          "component_scope": "southern_transfer_and_turn",
+          "finding": "The upper lake has a readable westward outlet-valley setting, but the acquired southern-half detail does not establish the selected extended southwest-to-west-to-north U-shaped transfer. Parts of the terrain are cloudy and show branching shallow channels. A nearby visible westward valley is not substituted for the chosen southern route.",
+          "sources": [
+            "r221-esri-world-imagery"
+          ],
+          "correspondence": "partially_observed_material_throughlink_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2311
+          ],
+          "component_scope": "western_rejoining_valley",
+          "finding": "Farther northwest, a chain of small elongated waterbodies and a visible valley channel correspond to the selected approach to the westernmost turn, followed by the northeast continuation. Patchy snow/ice is visible in this corridor; no glacier-crossing or current-flow claim is made. The upstream connection from the southern loop remains separately pending.",
+          "sources": [
+            "r221-esri-world-imagery"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2311
+          ],
+          "component_scope": "middle_northeast_corridor",
+          "finding": "The selected northeast corridor follows a visible river through a confined-to-braided valley. Side-stream joins are visible, including a larger eastern-side join before the broad alluvial approach to the next lake. The local source correspondence does not resolve the distant opening.",
+          "sources": [
+            "r221-esri-world-imagery"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2311
+          ],
+          "component_scope": "large_through_lake",
+          "finding": "The river reaches the southern embayment of a large irregular lake across an alluvial plain. The selected northward passage traverses its western basin and long narrow northern arm. The continuous waterbody is readable; no lake name is assigned.",
+          "sources": [
+            "r221-esri-world-imagery"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2311
+          ],
+          "component_scope": "northern_lake_outlet_and_join",
+          "finding": "A visible outlet continues north from the long narrow lake arm into the lower eastward river corridor. The junction with the separate valley arriving from the northwest is visible at ordinary scale.",
+          "sources": [
+            "r221-esri-world-imagery"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2311
+          ],
+          "component_scope": "lower_eastward_corridor",
+          "finding": "The selected corridor turns east at the northern junction and continues along the visibly connected broad lower river valley toward Koluktoo Bay. The separate incoming northwest valley is not treated as the selected path.",
+          "sources": [
+            "r221-esri-world-imagery"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2311
+          ],
+          "component_scope": "actual_marine_terminal",
+          "finding": "The lower river reaches the extensive alluvial/delta margin in the northwestern corner of Koluktoo Bay. ARC402 chapter4 paragraph176 independently names the river entering this corner as Robertson River. Together the prose and imagery support the actual sea terminal and downstream identity at ordinary regional scale.",
+          "sources": [
+            "r221-esri-world-imagery",
+            "r221-chs-arc402-2025"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80038868",
+      "source_keys": [
+        "r221-nluis-washburn77e1983",
+        "r221-nluis-cambridge77d1983",
+        "r221-kristofferson2002",
+        "r221-chs-arc4032024"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2350
+          ],
+          "component_scope": "Chosen western small-water opening",
+          "finding": "The chosen opening is in the small-lake and stream country at the southern edge of the Washburn Lake sheet. The original accounts for its southward small-water approach into the Cambridge Bay sheet. No independent name for this initial feeder or ultimate natural source is established.",
+          "sources": [
+            "r221-nluis-washburn77e1983"
+          ],
+          "correspondence": "established_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2350
+          ],
+          "component_scope": "Upper lake succession and northward return",
+          "finding": "The original adjoining sheets show the selected upper small waters, larger elongated waters and eastward/northward approach into the upper Ekalluk corridor. The sheet boundary is a cartographic boundary, not a river barrier. Individual feeder and lake names are unestablished.",
+          "sources": [
+            "r221-nluis-washburn77e1983",
+            "r221-nluis-cambridge77d1983"
+          ],
+          "correspondence": "established_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2350
+          ],
+          "component_scope": "Named upper Ekalluk River and elongated water passage",
+          "finding": "Both land-resource maps label the upper river Ekalluk River. The Cambridge Bay original depicts the southeastward elongated water passage, narrowing and eastward continuation. The thesis independently describes this narrow upper lake and the following eastward river reach. This establishes a named upper component without naming the selected eastern continuation.",
+          "sources": [
+            "r221-nluis-washburn77e1983",
+            "r221-nluis-cambridge77d1983",
+            "r221-kristofferson2002"
+          ],
+          "correspondence": "established_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_component_name": "Ekalluk River"
+        },
+        {
+          "fragments": [
+            2350
+          ],
+          "component_scope": "Eastward channel, side arrivals and broad-lake entry",
+          "finding": "The mapped eastward river and side-stream arrivals lead into the northwestern arm of the broad middle lake. The two sources agree on this river-to-lake connection at ordinary corridor scale.",
+          "sources": [
+            "r221-nluis-cambridge77d1983",
+            "r221-kristofferson2002"
+          ],
+          "correspondence": "established_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_component_name": "Ekalluk River"
+        },
+        {
+          "fragments": [
+            2350
+          ],
+          "component_scope": "Broad middle lake and selected eastern passage",
+          "finding": "The selection crosses the northern and northeastern waters of the broad lake labelled Ekalluk Lake, with the qualifier locally known as, on the 1983 map. The thesis describes the corresponding broad lake as unnamed. Its lake arms and adjacent waters are distinguishable, but a through-going eastern exit matching the selection is not established. The historical local map name is retained as a bounded lake component.",
+          "sources": [
+            "r221-nluis-cambridge77d1983",
+            "r221-kristofferson2002"
+          ],
+          "correspondence": "established_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_component_name": "Ekalluk Lake"
+        },
+        {
+          "fragments": [
+            2350
+          ],
+          "component_scope": "Transfer from Ekalluk Lake to the parallel eastern lake-and-stream corridor",
+          "finding": "The selection heads east and southeast from the broad Ekalluk Lake area into a separate parallel lake-and-stream corridor. The original map does not establish that through-link. Instead, it depicts the broad lake outlet to the south; the thesis explicitly traces that continuation southeast toward Wishbone Lake and then southwest into Ferguson Lake, whose outlet is to Wellington Bay. This is a material connection question between identifiable water corridors, not a demand for exact model-to-bank agreement.",
+          "sources": [
+            "r221-nluis-cambridge77d1983",
+            "r221-kristofferson2002"
+          ],
+          "correspondence": "material_through_link_not_established",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2350
+          ],
+          "component_scope": "Lower inland lake chain and eastward sheet crossing",
+          "finding": "The Cambridge Bay map shows the distinct elongated lake and intervening stream setting east of the Ekalluk Lake outlet. Parts of the chosen southeastern/eastward route can be located in that setting, but the entire selected sequence of lake entries, exits and its continuation over the eastern neatline is not established by the inspected material. The Ekalluk name is not extended over this interval.",
+          "sources": [
+            "r221-nluis-cambridge77d1983",
+            "r221-kristofferson2002"
+          ],
+          "correspondence": "material_through_link_not_established",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2350
+          ],
+          "component_scope": "Eastern continuation and coastal-system join",
+          "finding": "The thesis maps show a separate drainage entering western Albert Edward Bay, near the Jayco system, and distinguish Char and Fish Trap lakes within it. They do not establish the complete selected eastward transfer from the upper Ekalluk component through every lower lake/channel join. Char Lake, Fish Trap Lake and Jayco Lake therefore remain nearby disambiguation names, not adopted selected-component names.",
+          "sources": [
+            "r221-kristofferson2002"
+          ],
+          "correspondence": "material_through_link_not_established",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2350
+          ],
+          "component_scope": "Final northward approach and actual coastal terminal",
+          "finding": "The selected terminal is in the western Albert Edward Bay coastal setting. The thesis depicts the separate adjacent drainage mouth and Jayco mouth; ARC403 describes Albert Edward Bay as a Victoria Strait embayment. Receiving-bay identity is supported at ordinary regional scale, but the exact selected lower channel and its upstream continuity into that coast are not established. No complete terminal-through-link finding is claimed.",
+          "sources": [
+            "r221-kristofferson2002",
+            "r221-chs-arc4032024"
+          ],
+          "correspondence": "material_through_link_not_established",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_component_name": "Albert Edward Bay"
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "International Court of Justice, Land, Island and Maritime Frontier Dispute (El Salvador/Honduras: Nicaragua intervening), Judgment of 11 September 1992, case75",
+      "official_url": "https://api.icj-cij.org/sites/default/files/case-related/75/075-19920911-JUD-01-00-EN.pdf",
+      "effective_url": "https://icj-cij.org/sites/default/files/case-related/75/075-19920911-JUD-01-00-EN.pdf",
+      "observed_outcome": "Sole normal original redirected to the court host and completed direct HTTP403, text/html; no response body, original judgment text, imprint or maps read.",
+      "outcome_layer": "Completed direct HTTP-client response",
+      "restriction_scope": "Whole exact judgment publication, attached maps and equivalent original, catalogue, reader, mirror, format, cache and output-reading routes stopped.",
+      "earlier_lawful_observations": "Discovery bibliographic identity only; discovery excerpts excluded from substantive evidence.",
+      "material_gap": true,
+      "aw_id": "hydro-system:70961272"
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "source_key": "r221-oliver1964-nettilling",
+      "kind": "bounded_authorial_evidence_scope",
+      "observation": "Own 1956 survey observations and the lake-centred Figure 1 are distinguished from cited historical Soper material. The latter is excluded from selected-route evidence; this is not a new whole-article access ban.",
+      "aw_id": "hydro-system:80092693",
+      "acquisition_stop": false
+    },
+    {
+      "source_key": "r221-esri-world-imagery-south-baffin",
+      "kind": "cartographic_content_and_naming_limit",
+      "observation": "Cloud, unresolved small-channel joins and absence of hydronym labels are evidence limitations, not access failures. All source images, crops and orientation aids remain private.",
+      "aw_id": "hydro-system:80092693",
+      "acquisition_stop": false
+    },
+    {
+      "publication": "San Antonio del Norte, Honduras; El Salvador, Series E752, sheet2657I, Edition1-DMA, map information1982, NIMA reprint12-98",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/san_antonio_del_norte-honduras-50k-2657i-1982.pdf",
+      "observed_outcome": "Normal original completed directHTTP200 application/pdf. Inspected bottom margin displays LIMITED DISTRIBUTION, authorized Department of Defense/contractor distribution, For Official Use Only treatment and cover reproduction restriction.",
+      "outcome_layer": "Printed source-use/distribution restriction, not HTTP denial",
+      "restriction_scope": "Whole exact sheet and equivalent editions, replacements, formats, crops and acquisition routes excluded from substantive correspondence and further acquisition.",
+      "earlier_lawful_observations": "Bibliographic imprint and printed restriction only. Rendered full sheet was not displayed/read; no substantive map pixels used.",
+      "acquisition_stop": true,
+      "whole_publication_use_excluded": true,
+      "aw_id": "hydro-system:70961272"
+    },
+    {
+      "publication": "Global Communities, Plan de acción hídrica de la Cuenca del Río Goascorán, PGCC-ncG FaseII2019–2023",
+      "official_url": "https://sigmof.icf.gob.hn/wp-content/uploads/2023/03/24.-PAH-Cuenca-del-Rio-Goascoran.pdf",
+      "observed_outcome": "Original acquired direct200. Methods on p15 explicitly credit Agua de Honduras GIS morphometric inputs; p18 attributes hydrographic subdivisions to that platform. Underlying relation to held nationalSubcuencas2017 remains unresolved.",
+      "restriction_scope": "Borrowed hydrographic GIS/map layers excluded from correspondence; own authorial project/prose remains usable as actually read. No whole-publication access stop.",
+      "outcome_layer": "Unresolved borrowed-content relationship; not an acquisition failure",
+      "aw_id": "hydro-system:70961272",
+      "acquisition_stop": false
+    },
+    {
+      "publication": "Langue, Honduras; El Salvador, SeriesE752, sheet2656I, Edition2-DMA, map information1982, NIMA reprint5-99",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/langue-honduras-50k-2656i-1982.pdf",
+      "observed_outcome": "Normal original completed directHTTP200 application/pdf. Inspected bottom margin displays LIMITED DISTRIBUTION, authorized Department of Defense/contractor distribution, For Official Use Only treatment and cover reproduction restriction.",
+      "outcome_layer": "Printed source-use/distribution restriction, not HTTP denial",
+      "restriction_scope": "Whole exact sheet and equivalent editions, replacements, formats, crops and acquisition routes excluded from substantive correspondence and further acquisition.",
+      "earlier_lawful_observations": "Bibliographic imprint and printed restriction only; no map-body pixels rendered or read.",
+      "acquisition_stop": true,
+      "whole_publication_use_excluded": true,
+      "aw_id": "hydro-system:70961272"
+    },
+    {
+      "publication": "Bahía Chismuyo, Honduras; El Salvador, SeriesE752, sheet2656II, Edition2-DMA, revised1983, NIMA reprint12-98",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/bahia_chismuyo-honduras-50k-2656ii-1983.pdf",
+      "observed_outcome": "Normal original completed directHTTP200 application/pdf. Inspected bottom margin displays LIMITED DISTRIBUTION, authorized Department of Defense/contractor distribution, For Official Use Only treatment and cover reproduction restriction.",
+      "outcome_layer": "Printed source-use/distribution restriction, not HTTP denial",
+      "restriction_scope": "Whole exact sheet and equivalent editions, replacements, formats, crops and acquisition routes excluded from substantive correspondence and further acquisition.",
+      "earlier_lawful_observations": "Bibliographic imprint and printed restriction only; no map-body pixels rendered or read.",
+      "acquisition_stop": true,
+      "whole_publication_use_excluded": true,
+      "aw_id": "hydro-system:70961272"
+    },
+    {
+      "publication": "La Unión, El Salvador, Series E753, sheet 2656 III, Edition 2-DMA, revised 1983, DMA reprint 10-83",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/el_salvador/la_union-el_salvador-50k-1983.pdf",
+      "observed_outcome": "The sole normal-original acquisition completed HTTP200, application/pdf. The inspected bottom margin prints DISTRIBUTION LIMITED and DESTROY WHEN NO LONGER NEEDED.",
+      "outcome_layer": "Printed source-use/distribution restriction on a successfully acquired original; not an HTTP denial.",
+      "restriction_scope": "Whole identified sheet and equivalent copies, replacement editions, formats, crops and acquisition routes excluded from substantive correspondence and further acquisition.",
+      "earlier_lawful_observations": "Catalogue identity, original bibliographic imprint and printed restriction only. No geographic map-body pixels read or used.",
+      "acquisition_stop": true,
+      "whole_publication_use_excluded": true,
+      "aw_id": "hydro-system:70961272"
+    },
+    {
+      "publication": "R. W. Moshenko (December 1981), A preliminary assessment of the Arctic charr sport fishery on the Robertson River (Koluktoo Bay), Northwest Territories, 1979. Canadian Data Report of Fisheries and Aquatic Sciences306; Fs97-13/306.",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/Library/74223.pdf",
+      "observed_outcome": "Normal original completed direct HTTP200 application/pdf. Printed preliminary series notice limits general distribution and requires prior written clearance from the issuing establishment before report contents are referred to in other publications.",
+      "outcome_layer": "Explicit source-use notice after successful acquisition; not an HTTP or access-control failure.",
+      "restriction_scope": "Entire exact report, body, maps/figures and equivalent copies excluded from research evidence and further reading/acquisition. Text exposed together with the notice in the initial extraction output is also excluded. No original map pixels were viewed.",
+      "newly_observed_access_failure": false,
+      "availability_failure": false,
+      "source_use_limited": true,
+      "substantive_evidence_used": false,
+      "earlier_lawful_prose_exception": null,
+      "acquisition_stop": true,
+      "whole_publication_use_excluded": true,
+      "aw_id": "hydro-system:80021745"
+    },
+    {
+      "source_keys": [
+        "r221-nluis-washburn77e1983",
+        "r221-nluis-cambridge77d1983"
+      ],
+      "observation": "Thematic maps are historical interim/reconnaissance publications with generalized boundaries. Crown copyright is retained.",
+      "effect": "Own bounded factual synthesis only. These are interpretation and redistribution limits, not acquisition bans.",
+      "aw_id": "hydro-system:80038868",
+      "acquisition_stop": false
+    },
+    {
+      "source_keys": [
+        "r221-kristofferson2002"
+      ],
+      "observation": "Thesis reserves publication rights and requires written permission for reproduction of the thesis or extensive extracts.",
+      "effect": "Only own concise factual observations and ordinary bibliography are supplied; no source pages or extensive extracts.",
+      "aw_id": "hydro-system:80038868",
+      "acquisition_stop": false
+    },
+    {
+      "source_keys": [
+        "r221-chs-arc4032024"
+      ],
+      "observation": "CHS volume distinguishes personal non-commercial reproduction from commercial reproduction requiring permission.",
+      "effect": "Only own geographic synthesis and ordinary bibliography; no chart/page republication.",
+      "aw_id": "hydro-system:80038868",
+      "acquisition_stop": false
+    }
+  ]
+}

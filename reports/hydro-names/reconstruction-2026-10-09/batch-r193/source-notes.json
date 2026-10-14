@@ -1,0 +1,663 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r193",
+  "sources": [
+    {
+      "source_key": "r193-geus-greenland-national-1995-local",
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": [
+        "Jan C. Escher",
+        "T. Christopher R. Pulvertaft"
+      ],
+      "year": 1995,
+      "publisher": "Geological Survey of Greenland, Copenhagen; official digital original distributed by GEUS",
+      "scale": "1:2 500 000",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J",
+      "catalogue_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi:10.22008/FK2/SYAL4J",
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16855",
+      "current_acquisition": "Previously acquired official original and catalogue reused without a new request.",
+      "actual_read_scope": "Retained catalogue bibliography and Custom Dataset Terms; original southeastern Greenland cartographic pixels at broad and enlarged selected-corridor scales; chosen opening, all 49 stored parts and intermediate joins, each ice/exposed-rock transition, final lower-ice approach and actual ending; geographic graticule, Inland Ice legend, printing/copyright imprint and recommended citation. The national original is sufficient for this ordinary terrain correspondence.",
+      "supports": "Complete ordinary regional/corridor-scale terrain correspondence, including the actual selected terminal.",
+      "limits": "Historical generalized geological and glaciological cartography, not a river survey. It establishes no representative natural-river hydronym, continuous surveyed river or surface/subglacial hydraulic connectivity. Exact glacier assignment, present glacier fronts, flow, banks and modern endpoint land/ice/water status remain unverified.",
+      "use_notice": "GEUS Custom Dataset Terms permit bounded internal use and processing while restricting redistribution and production or transfer of new maps. Original, crops and derived or comparison maps remain private. Public-ready content is independently written factual observations and ordinary bibliography with GEUS attribution."
+    },
+    {
+      "source_key": "r193-cehq08-2011",
+      "title": "Débits spécifiques d’étiage annuels — Région hydrographique 08",
+      "publisher": "Gouvernement du Québec, Centre d’expertise hydrique du Québec",
+      "year": 2011,
+      "official_url": "https://www.cehq.gouv.qc.ca/debit-etiage/cartes/debit_etiage_08_specifique_annuel.pdf",
+      "bibliography": "July 2011; cartography Marie-Lise Paquin and Eric Levasseur, approved Joëlle Bérubé; scale 1:1,750,000; BDGA 1:1,000,000 base; NAD83 Québec Lambert.",
+      "publication_identity": "Independently issued CEHQ low-flow thematic cartography with its own imprint, purpose, legend and scale. It is not a SIGEOM report, Cree conservation plan, Hydro-Québec study, Canadian gazetteer or stopped federal basemap.",
+      "acquisition_outcome": "Surviving original previously acquired in r171: complete HTTP200 application/pdf. Reused locally without new acquisition.",
+      "actual_material_read": "Original overview, selected northeastern opening vicinity, continuous east-to-west corridor, intermediate branch and joining settings, final northward turn and coastward ending, and imprint. Clean source-pixel enlargements were read separately from private orientation aids.",
+      "supports": "Mapped watercourse correspondence downstream of the missing opening; the Jolicoeur corridor and distinction from neighboring named drainages.",
+      "limits": "Generalized headwater linework omits the beginning of the selected opening. Small wetlands or lakelets are not resolved; no present-flow, legal-name-boundary or exact-bank conclusion.",
+      "evidence_type": "Primary original regional cartography"
+    },
+    {
+      "source_key": "r193-cehq09-2011",
+      "title": "Débits spécifiques d’étiage estivaux — Région hydrographique 09",
+      "publisher": "Gouvernement du Québec, Centre d’expertise hydrique du Québec",
+      "year": 2011,
+      "official_url": "https://www.cehq.gouv.qc.ca/debit-etiage/cartes/debit_etiage_09_specifique_estival.pdf",
+      "bibliography": "July 2011; cartography Marie-Lise Paquin and Eric Levasseur, approved Joëlle Bérubé; scale 1:2,300,000; BDGA 1:1,000,000 base; NAD83 Québec Lambert.",
+      "publication_identity": "Independent CEHQ hydrological-statistical editorial map, positively identified and acquired in r171. It shares base geography with region08 and is not claimed as a second independent field survey.",
+      "acquisition_outcome": "Surviving complete HTTP200 application/pdf original from r171, reused locally with no new acquisition.",
+      "actual_material_read": "Clean original enlargement covering the whole selected corridor and neighboring drainage context, plus separate private orientation comparison.",
+      "supports": "Rivière Jolicoeur label directly on the lower northward corridor and continuity toward Baie James; distinguishes Jolicoeur Nord-Est, Rivière à la Truite, Maquet, Pontax and Eastmain.",
+      "limits": "Same generalized base omits the initial selected headwater. Names are not assigned to every upstream branch merely from label proximity.",
+      "evidence_type": "Primary original regional cartography"
+    },
+    {
+      "source_key": "r193-bg202103-bibliography",
+      "title": "Synthèse géologique de la Sous-province de Nemiscau, Eeyou Istchee Baie-James, Québec, Canada, BG 2021-03",
+      "authors": "Daniel Bandyayera, Emmanuel Caron-Côté, Rocío Pedreira Pérez, Myriam Côté-Roberge and William Chartier-Montreuil",
+      "publisher": "Géologie Québec, Gouvernement du Québec",
+      "official_url": "https://gq.mines.gouv.qc.ca/bulletins-geologiques/nemiscau/",
+      "publication_identity": "A Superior-province Nemiscau geological synthesis integrating named field campaigns and earlier Basse/Moyenne-Eastmain mapping, independently distinguished from the held Nunavik/Churchill and Côte-Nord projects.",
+      "acquisition_outcome": "Official HTML article opened successfully.",
+      "actual_material_read": "Article title, summary and the Méthode de travail / Travaux antérieurs sections, especially the named Moukhsil and collaborators 1:50,000 Basse/Moyenne-Eastmain mapping program and linked RG 2001-08 reference.",
+      "supports": "Project identity and bibliography only.",
+      "limits": "No selected-river geographic correspondence is taken from this prose. Its geological map was not requested.",
+      "evidence_type": "Primary bibliographic and project-context prose",
+      "used_as_substantive_evidence": false
+    },
+    {
+      "source_key": "r193-rg200108-unavailable",
+      "title": "Moukhsil, Voicu, Dion, David, Davis and Parent, Géologie de la région de la Basse-Eastmain centrale (33C03, 33C04, 33C05 et 33C06), RG 2001-08, 2001, and companion geological plans",
+      "publisher": "Gouvernement du Québec, Ministère des Ressources naturelles",
+      "year": 2001,
+      "official_url": "https://sigeom.mines.gouv.qc.ca/signet/classes/I1103_index?alias_table_crit=EXADOC&entt=LG&format=RESUME&l=f&mnen_crit=NUMR_RAPR&mode=NOUVELLE&oper_crit=EGAL&type_reqt=U&valr_crit=RG+2001-08",
+      "publication_identity": "The specifically identified Basse-Eastmain centrale mapping project of sheets33C03/04/05/06, within the Basse/Moyenne-Eastmain volcanosedimentary-belt program. This affirmative project context, rather than a different author/year alone, distinguishes it from the held northern and Côte-Nord publications.",
+      "acquisition_outcome": "The sole official catalogue-link request returned web-reader Failed to fetch: Cache miss. No catalogue body, report original or companion-map pixels were exposed. No retry, original-file request, alternate route or further reading followed.",
+      "actual_material_read": "None from the report, catalogue or companion maps.",
+      "supports": "No substantive geographic evidence.",
+      "limits": "Whole publication and equivalents paused after the sole catalogue Cache miss.",
+      "evidence_type": "Unavailable proposed source, not evidence",
+      "used_as_substantive_evidence": false
+    },
+    {
+      "source_key": "r193-usgstopo-overview",
+      "title": "USGS The National Map, USGSTopo: Deep Creek Mountains, Curlew Valley and northern Great Salt Lake",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Independently maintained seamless multiscale National Map reference cartography, combining National Map and other public-domain data. This is not a copy, plate, edition or recovery route of a stopped USGS investigation or report.",
+      "edition_note": "Service metadata reports a September 4, 2026-v1.2 data refresh; no single compilation date is assigned to all mapped features.",
+      "actual_reading_scope": "The complete overview original and three overlapping original-image crops were visually read, with separate private orientation aids. This supplies regional placement and overlap, not proof from the modeled line.",
+      "acquisition_outcome": "Original bounded raster completed HTTP 200 and was visually inspected.",
+      "evidence_kind": "primary_cartography",
+      "limits": "Generalized composite cartography. No present water level, discharge, operating state, exact bank or formal naming boundary is established."
+    },
+    {
+      "source_key": "r193-usgstopo-upper",
+      "title": "USGS The National Map, USGSTopo: Bull Canyon approach and upper Deep Creek to Holbrook",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Independently maintained seamless multiscale National Map reference cartography, combining National Map and other public-domain data. This is not a copy, plate, edition or recovery route of a stopped USGS investigation or report.",
+      "edition_note": "Service metadata reports a September 4, 2026-v1.2 data refresh; no single compilation date is assigned to all mapped features.",
+      "actual_reading_scope": "Both overlapping original-image crops covering the selected upper route were visually read. Deep Creek labels, the Bull Canyon valley/road setting, Sheep Creek junction and the whole eastward feeder-to-trunk approach were inspected.",
+      "acquisition_outcome": "Original bounded raster completed HTTP 200 and was visually inspected.",
+      "evidence_kind": "primary_cartography",
+      "limits": "Generalized composite cartography. No present water level, discharge, operating state, exact bank or formal naming boundary is established."
+    },
+    {
+      "source_key": "r193-usgstopo-middle",
+      "title": "USGS The National Map, USGSTopo: Holbrook, Stone Reservoir, Stone and Snowville",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Independently maintained seamless multiscale National Map reference cartography, combining National Map and other public-domain data. This is not a copy, plate, edition or recovery route of a stopped USGS investigation or report.",
+      "edition_note": "Service metadata reports a September 4, 2026-v1.2 data refresh; no single compilation date is assigned to all mapped features.",
+      "actual_reading_scope": "Both overlapping original-image crops were visually read, including Stone Reservoir inlet/outlet corridor, the state-border channel, Snowville and the Rose Ranch Reservoirs bend.",
+      "acquisition_outcome": "Original bounded raster completed HTTP 200 and was visually inspected.",
+      "evidence_kind": "primary_cartography",
+      "limits": "Generalized composite cartography. No present water level, discharge, operating state, exact bank or formal naming boundary is established."
+    },
+    {
+      "source_key": "r193-usgstopo-lower",
+      "title": "USGS The National Map, USGSTopo: Rose Ranch Reservoirs, lower Deep Creek and Curlew Valley wetlands",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Independently maintained seamless multiscale National Map reference cartography, combining National Map and other public-domain data. This is not a copy, plate, edition or recovery route of a stopped USGS investigation or report.",
+      "edition_note": "Service metadata reports a September 4, 2026-v1.2 data refresh; no single compilation date is assigned to all mapped features.",
+      "actual_reading_scope": "Both overlapping original-image crops were visually read, including the southwest channel, the wetland entrance, West Lake, East Lake and nearby separately labeled sloughs.",
+      "acquisition_outcome": "Original bounded raster completed HTTP 200 and was visually inspected.",
+      "evidence_kind": "primary_cartography",
+      "limits": "Generalized composite cartography. No present water level, discharge, operating state, exact bank or formal naming boundary is established."
+    },
+    {
+      "source_key": "r193-usgstopo-terminal",
+      "title": "USGS The National Map, USGSTopo: West Lake marsh margin and northern Great Salt Lake interior",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Independently maintained seamless multiscale National Map reference cartography, combining National Map and other public-domain data. This is not a copy, plate, edition or recovery route of a stopped USGS investigation or report.",
+      "edition_note": "Service metadata reports a September 4, 2026-v1.2 data refresh; no single compilation date is assigned to all mapped features.",
+      "actual_reading_scope": "Both overlapping original-image crops were visually read, including the wetland-to-lake transition, the Great Salt Lake label, all remaining modeled lakeward parts and the actual selected endpoint.",
+      "acquisition_outcome": "Original bounded raster completed HTTP 200 and was visually inspected.",
+      "evidence_kind": "primary_cartography",
+      "limits": "Generalized composite cartography. No present water level, discharge, operating state, exact bank or formal naming boundary is established."
+    },
+    {
+      "source_key": "r193-idfg-bull-canyon",
+      "title": "Bull Canyon | Idaho Fishing Planner",
+      "publisher": "Idaho Department of Fish and Game",
+      "official_url": "https://idfg.idaho.gov/ifwis/fishingplanner/water/1126485423566",
+      "publication_identity": "IDFG Fishing Planner water entry for Bull Canyon, an independently maintained recreational-water publication, not a USGS report or report derivative.",
+      "actual_reading_scope": "Successfully opened page heading and introductory description: Bull Canyon is identified as a tributary of Deep Creek in Oneida and Power Counties, with a stated length of 9.8 miles. The interactive map and downloadable KMZ were not requested or inspected; fishing rules are not used as hydrographic evidence.",
+      "acquisition_outcome": "Normal complete web-reader page; no explicit HTTP header status was exposed.",
+      "evidence_kind": "primary_agency_prose",
+      "limits": "The general tributary relationship does not establish every selected headward or eastward through-connection. Not a formal naming-registry determination."
+    },
+    {
+      "source_key": "r193-inegi-san-luis-rio-colorado-compendio2010",
+      "title": "Compendio de información geográfica municipal 2010: San Luis Río Colorado, Sonora",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "edition": "2010; municipal geographic compilation, clave geoestadística 26055; 10-page PDF",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/26/26055.pdf",
+      "publication_identity": "Independently issued municipal geographic/statistical compilation. It cites multiple physiographic, hydrographic, topographic and municipal-framework datasets; it is not an alternate sheet or edition of the held national Información Topográfica publication.",
+      "actually_read": "PDF title and municipal physiography/geography/hydrography prose on pages 1–3; parsed map titles, legends and source attribution. Relieve pixels were not observable and no map observation is claimed.",
+      "evidence_role": "Municipal-scale context only.",
+      "limits": "The hydrography table and parsed map labels do not tie a name or connected channel to any selected part. No source original or derivative is redistributed."
+    },
+    {
+      "source_key": "r193-gran-desierto-pozos-2019-unread",
+      "title": "Evaluation of Groundwater Sources, Flow Paths, and Residence Time of the Gran Desierto Pozos, Sonora, Mexico",
+      "publisher": "MDPI, Geosciences",
+      "edition": "2019; 9(9), 378",
+      "official_url": "https://www.mdpi.com/2076-3263/9/9/378",
+      "publication_identity": "Independent groundwater field-research article, distinct from municipal cartography and the held national topographic publication.",
+      "actually_read": "No article body or figures; discovery bibliographic metadata only.",
+      "evidence_role": "Excluded after HTTP 429.",
+      "used_as_substantive_evidence": false
+    },
+    {
+      "source_key": "r193-conanp-alto-golfo-2007-unread",
+      "title": "Programa de Conservación y Manejo Reserva de la Biosfera Alto Golfo de California y Delta del Río Colorado",
+      "publisher": "Comisión Nacional de Áreas Naturales Protegidas, SEMARNAT",
+      "edition": "2007",
+      "official_url": "https://www.conanp.gob.mx/que_hacemos/pdf/programas_manejo/Final_AltoGolfo.pdf",
+      "publication_identity": "Independent conservation-management project for the Alto Golfo reserve, distinct from the held Piaxtla–Tayoltita proposed-reserve study and national INEGI topographic publication.",
+      "actually_read": "No original body, prose or maps. Discovery bibliographic identity only.",
+      "evidence_role": "Excluded after two completed same-URL HTTP 502 responses.",
+      "used_as_substantive_evidence": false
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:90095993",
+      "source_keys": [
+        "r193-geus-greenland-national-1995-local"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8872
+          ],
+          "component_scope": "Chosen opening and first southward ice leg",
+          "finding": "The chosen opening and entire initial southward-to-southeastward leg lie in the generalized Inland Ice setting west of the exposed-rock belt southwest of Kangerlussuaq. The original exposes the opening, first long part and its join to the northeastward return. Surface contours, sub-ice bedrock contours and thickness shading are thematic ice information, not a named river.",
+          "sources": [
+            "r193-geus-greenland-national-1995-local"
+          ],
+          "correspondence": "complete_ordinary_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "candidate_name": null,
+          "hydraulic_continuity_established": false
+        },
+        {
+          "fragments": [
+            8872
+          ],
+          "component_scope": "Northeastward return through inland ice and nunatak margins",
+          "finding": "All eleven successive parts of the eastward and northeastward return are covered through the mapped ice and scattered exposed-rock outliers. The approach reaches the more densely exposed nunatak margin before the southeastward turn. Every intervening stored join is within the readable original coverage. The map does not identify this succession as a natural river or establish flow between the modeled parts.",
+          "sources": [
+            "r193-geus-greenland-national-1995-local"
+          ],
+          "correspondence": "complete_ordinary_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "candidate_name": null,
+          "hydraulic_continuity_established": false
+        },
+        {
+          "fragments": [
+            8872
+          ],
+          "component_scope": "Southeastward turn through the ice and exposed-rock corridor",
+          "finding": "The southeastward turn, long descending part and short continuations occupy the generalized ice and exposed-rock corridor west of the Kangerlussuaq coastal area. Both the ice passages and neighboring or intersected bedrock outcrops are distinguished by the original. The full turn and all joins are geographically accounted for, without interpreting crossings of geological or ice symbols as hydraulic connections.",
+          "sources": [
+            "r193-geus-greenland-national-1995-local"
+          ],
+          "correspondence": "complete_ordinary_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "candidate_name": null,
+          "hydraulic_continuity_established": false
+        },
+        {
+          "fragments": [
+            8872
+          ],
+          "component_scope": "Eastward middle-to-lower ice and rock-margin sequence",
+          "finding": "The eastward succession after the southern turn is fully covered among elongated exposed-rock outcrops and intervening ice. The original includes all short stepped parts, their joins and the transition toward the broader lower-ice setting. No selected lake-throughflow, reservoir, managed channel or continuous named river is established by the cartography.",
+          "sources": [
+            "r193-geus-greenland-national-1995-local"
+          ],
+          "correspondence": "complete_ordinary_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "candidate_name": null,
+          "hydraulic_continuity_established": false
+        },
+        {
+          "fragments": [
+            8872
+          ],
+          "component_scope": "Lower southeastward steps and eastward leg",
+          "finding": "All lower southeastward steps and the following eastward leg remain within readable mapping of the ice and exposed-rock margin southwest of the Kap Edvard Holm context label. The source accounts for their complete geographic succession and both bounding joins. It supplies generalized historical terrain correspondence, not a precise glacier assignment or present hydraulic behavior.",
+          "sources": [
+            "r193-geus-greenland-national-1995-local"
+          ],
+          "correspondence": "complete_ordinary_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "candidate_name": null,
+          "hydraulic_continuity_established": false
+        },
+        {
+          "fragments": [
+            8872
+          ],
+          "component_scope": "Final approach and actual selected terminal",
+          "finding": "The final eastward and southeastward steps, last stored part and actual rendered endpoint are covered within the generalized historical lower-ice and exposed-rock coastal-margin setting southwest of Kap Edvard Holm. The endpoint is in the mapped ice setting between exposed-rock outliers, inland of the generalized outer coast at this source scale. Neither the supplied sea-terminal classification nor nearby coastal place labels establish an ordinary river mouth. Exact modern ice-front position and present land, ice or water assignment are not asserted.",
+          "sources": [
+            "r193-geus-greenland-national-1995-local"
+          ],
+          "correspondence": "complete_ordinary_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "candidate_name": null,
+          "hydraulic_continuity_established": false,
+          "ordinary_river_mouth_established": false,
+          "exact_terminal_land_ice_water_assignment_verified": false
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70184883",
+      "source_keys": [
+        "r193-cehq08-2011",
+        "r193-cehq09-2011"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9251
+          ],
+          "component_scope": "Chosen northeastern opening",
+          "finding": "The selected opening descends southwest through a headwater segment that is not depicted continuously on either CEHQ original. The mapped upstream line begins farther down the selected corridor. No specific source lake, wetland passage or intervening headwater connection is established, and a nearby blue line is not substituted for the selection.",
+          "sources": [
+            "r193-cehq08-2011",
+            "r193-cehq09-2011"
+          ],
+          "correspondence": "material_opening_through_link_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            9251
+          ],
+          "component_scope": "Headward descent into the east–west corridor",
+          "finding": "Below the missing opening, the mapped watercourse follows the selected southwestward descent and bends into the westward corridor. The two regional originals support this connected reach at ordinary corridor scale. Its separate upstream name is not established.",
+          "sources": [
+            "r193-cehq08-2011",
+            "r193-cehq09-2011"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9251
+          ],
+          "component_scope": "Eastern and central westward corridor",
+          "finding": "The selection follows the mapped westward watercourse through the intermediate joining settings. Nearby northern and southern branches remain distinct; label proximity does not assign Jolicoeur to every tributary. No substantial through-lake or reservoir passage is depicted on this supported section.",
+          "sources": [
+            "r193-cehq08-2011",
+            "r193-cehq09-2011"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9251
+          ],
+          "component_scope": "Southern bend and western joining corridor",
+          "finding": "The selected southern bend, return toward the west/northwest and successive connecting reaches are represented by the original watercourse network. Where the regional map depicts closely spaced branches and junctions, the selected continuous corridor remains traceable without demanding bank-level coincidence. No separate scalar name is assigned to an individual branch.",
+          "sources": [
+            "r193-cehq08-2011",
+            "r193-cehq09-2011"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9251
+          ],
+          "component_scope": "Lower confluence setting and northward Jolicoeur",
+          "finding": "The selected western approach enters the mapped northward river corridor in the tributary-confluence setting. Region09 prints Rivière Jolicoeur along this lower river. Region08 and09 distinguish neighboring Rivière à la Truite and Maquet and the eastern Jolicoeur Nord-Est tributary; those labels are not substitutes for the selected corridor.",
+          "sources": [
+            "r193-cehq08-2011",
+            "r193-cehq09-2011"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9251
+          ],
+          "component_scope": "Actual coastward ending",
+          "finding": "After the eastern-tributary joining setting, the selection follows the mapped northwestward continuation to Baie James. The source-supported coastal ending belongs to the same lower Jolicoeur corridor. This is ordinary corridor correspondence, not a claim about an exact surveyed mouth, present tidal channels or shoreline position.",
+          "sources": [
+            "r193-cehq08-2011",
+            "r193-cehq09-2011"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70531357",
+      "source_keys": [
+        "r193-usgstopo-overview",
+        "r193-usgstopo-upper",
+        "r193-usgstopo-middle",
+        "r193-usgstopo-lower",
+        "r193-usgstopo-terminal",
+        "r193-idfg-bull-canyon"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9762
+          ],
+          "component_scope": "Bull Canyon headward opening and eastward approach to Deep Creek",
+          "finding": "The chosen northern opening follows the Bull Canyon valley setting in the Deep Creek Mountains, then turns east and southeast toward mapped Deep Creek. Readable cartography shows the terrain, roads and nearby drainage but does not establish a continuous selected watercourse across the complete northern opening and eastward transfer. IDFG independently calls Bull Canyon a Deep Creek tributary, supporting the general feeder relationship without supplying the missing selected-route connection.",
+          "sources": [
+            "r193-usgstopo-overview",
+            "r193-usgstopo-upper",
+            "r193-idfg-bull-canyon"
+          ],
+          "correspondence": "material_headward_and_transfer_connection_unestablished",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            9762
+          ],
+          "component_scope": "Upper Deep Creek, Sheep Creek junction and Holbrook approach",
+          "finding": "The selected southward corridor corresponds to repeatedly labeled Deep Creek along the Arbon Valley setting. The map depicts Sheep Creek joining from the east and carries the Deep Creek corridor to Holbrook. Local model simplification does not prevent ordinary corridor correspondence.",
+          "sources": [
+            "r193-usgstopo-upper",
+            "r193-usgstopo-middle"
+          ],
+          "correspondence": "bounded_corridor_and_junction_established",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9762
+          ],
+          "component_scope": "Holbrook to Stone Reservoir and downstream continuation",
+          "finding": "Deep Creek continues south from Holbrook into the elongated Stone Reservoir setting and reappears along its mapped downstream channel. Both reservoir approach and exit are visible; separate western drainage and diversion lines are not substituted for the selected route.",
+          "sources": [
+            "r193-usgstopo-middle"
+          ],
+          "correspondence": "bounded_reservoir_passage_established",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9762
+          ],
+          "component_scope": "Stone, Idaho–Utah crossing and Snowville",
+          "finding": "The mapped Deep Creek channel and surrounding riparian/wetland corridor continue past Stone, cross the Idaho–Utah boundary and reach Snowville. The selected southward approach and westward turn below the road crossing are covered at corridor scale.",
+          "sources": [
+            "r193-usgstopo-middle"
+          ],
+          "correspondence": "bounded_corridor_and_join_established",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9762
+          ],
+          "component_scope": "Rose Ranch Reservoirs and western bend",
+          "finding": "Below Snowville the route bends west through the mapped Rose Ranch Reservoirs setting, then resumes a labeled Deep Creek corridor toward the southwest. Both sides of the impounded setting are depicted. This does not establish current storage, release or irrigation operations.",
+          "sources": [
+            "r193-usgstopo-middle",
+            "r193-usgstopo-lower"
+          ],
+          "correspondence": "bounded_impoundment_passage_established",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9762
+          ],
+          "component_scope": "Southwest Curlew Valley Deep Creek",
+          "finding": "The selected southwest and southward leg follows a repeatedly labeled Deep Creek channel across Curlew Valley, past the Wildcat Hills/Cedar Hill setting and toward the lower wetland entrance. The source depicts much of this leg with an interrupted blue channel symbol; no perennial-flow claim is made.",
+          "sources": [
+            "r193-usgstopo-lower"
+          ],
+          "correspondence": "bounded_named_corridor_established",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9762
+          ],
+          "component_scope": "Lower Deep Creek, West Lake-side wetlands and selected lakeward transfer",
+          "finding": "The maps carry a Deep Creek label into the broad lower wetland setting west of West Lake. West Lake, East Lake and several sloughs are separately depicted to the east. The selected line then continues south beyond mapped local channels across a broad patterned lake-margin area into the main lake. The sources do not establish that complete selected through-connection. Nearby sloughs and contiguous wetland/lake-margin shading are not treated as proof of the selected transfer.",
+          "sources": [
+            "r193-usgstopo-lower",
+            "r193-usgstopo-terminal"
+          ],
+          "correspondence": "material_wetland_to_lake_connection_unestablished",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            9762
+          ],
+          "component_scope": "Great Salt Lake continuation and actual modeled endpoint",
+          "finding": "Beyond the northern lake-margin interval, the selected line continues south and southeast within the mapped Great Salt Lake waterbody to its actual endpoint. All remaining parts and the endpoint were visually inspected. The endpoint is an interior terminal-lake location on this cartography, not an open-sea mouth, a mapped river mouth or proof of an onward Deep Creek channel.",
+          "sources": [
+            "r193-usgstopo-overview",
+            "r193-usgstopo-terminal"
+          ],
+          "correspondence": "terminal_waterbody_geographic_setting_established",
+          "component_correspondence_completed": true
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70768467",
+      "source_keys": [
+        "r193-inegi-san-luis-rio-colorado-compendio2010"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9927
+          ],
+          "component_scope": "Chosen eastern opening and initial southwestern descent",
+          "finding": "No original map pixels were available to associate the chosen opening and first southwestern passage with a named watercourse. The municipal hydrography list does not establish which, if any, of its names belongs to these selected parts.",
+          "sources": [
+            "r193-inegi-san-luis-rio-colorado-compendio2010"
+          ],
+          "correspondence": "material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            9927
+          ],
+          "component_scope": "First westward and northwestern arc with successive joins",
+          "finding": "The selected return to the northwest and subsequent western bends have not been matched to independently inspected mapped channels. Neither a nearby basin name nor the municipal stream list establishes these through-links.",
+          "sources": [
+            "r193-inegi-san-luis-rio-colorado-compendio2010"
+          ],
+          "correspondence": "material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            9927
+          ],
+          "component_scope": "Central western route, northern bends and intermediate joins",
+          "finding": "No original cartography was inspected for the extended westward interval and its alternating northern bends. The municipality-wide description of dune fields is regional context only and does not prove the selected surface-water connection.",
+          "sources": [
+            "r193-inegi-san-luis-rio-colorado-compendio2010"
+          ],
+          "correspondence": "material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            9927
+          ],
+          "component_scope": "Western turn and southwestern approach to the long southern course",
+          "finding": "The southwestward turn and its joins into the following southern interval remain uncorresponded. The presence of separately named streams and canals in the municipal table is insufficient to identify a natural or managed passage here.",
+          "sources": [
+            "r193-inegi-san-luis-rio-colorado-compendio2010"
+          ],
+          "correspondence": "material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            9927
+          ],
+          "component_scope": "Long southern interval, western bend and return toward the southeast",
+          "finding": "The selected long southern course and westernmost bend lack original-map comparison. Any connection across dry ground, irrigation or drainage works, or wetland margins must remain unresolved rather than be inferred from the regional Colorado River and canal names.",
+          "sources": [
+            "r193-inegi-san-luis-rio-colorado-compendio2010"
+          ],
+          "correspondence": "material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            9927
+          ],
+          "component_scope": "Southeastern lower course and successive near-terminal joins",
+          "finding": "No source map established the southeastward lower through-links or their relationship to coastal plain and marsh features. No selected lake, wetland, managed connection or naming transition is assumed absent merely because the map was unavailable.",
+          "sources": [
+            "r193-inegi-san-luis-rio-colorado-compendio2010"
+          ],
+          "correspondence": "material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            9927
+          ],
+          "component_scope": "Final eastward interval and actual modeled coastal ending",
+          "finding": "The model classifies the final endpoint as sea, but no original coastal map was inspected to establish the actual selected river-to-coast connection. The municipal statement that its boundary reaches the Gulf of California cannot supply the missing outlet identity.",
+          "sources": [
+            "r193-inegi-san-luis-rio-colorado-compendio2010"
+          ],
+          "correspondence": "material_pending",
+          "component_correspondence_completed": false
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "Moukhsil, Voicu, Dion, David, Davis and Parent, Géologie de la région de la Basse-Eastmain centrale (33C03, 33C04, 33C05 et 33C06), RG 2001-08, 2001, and companion geological plans",
+      "official_url": "https://sigeom.mines.gouv.qc.ca/signet/classes/I1103_index?alias_table_crit=EXADOC&entt=LG&format=RESUME&l=f&mnen_crit=NUMR_RAPR&mode=NOUVELLE&oper_crit=EGAL&type_reqt=U&valr_crit=RG+2001-08",
+      "observed_outcome": "The sole official catalogue-link request returned web-reader Failed to fetch: Cache miss. No catalogue body, report original or companion-map pixels were exposed. No retry, original-file request, alternate route or further reading followed.",
+      "outcome_layer": "Web-reader cache/availability failure; origin HTTP outcome unknown. No access-control denial is asserted.",
+      "restriction_scope": "Whole RG 2001-08 report, its companion maps and equivalent catalogue, original, reader, cache, screenshot, mirror and other acquisition routes paused.",
+      "earlier_lawful_observations": "A separate successfully read BG 2021-03 Nemiscau article identifies the authors’ Basse/Moyenne-Eastmain 1:50,000 mapping program. This is bibliographic/project context only, with no RG 2001-08 original geographic evidence.",
+      "newly_observed_access_failure": false,
+      "availability_failure": true,
+      "material_gap": true,
+      "material_effect": "The possible detailed source for the selected northeastern opening remained unavailable.",
+      "aw_id": "hydro-system:70184883"
+    },
+    {
+      "publication": "Compendio de información geográfica municipal 2010: San Luis Río Colorado, Sonora",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/26/26055.pdf",
+      "observed_outcome": "The web reader opened the 10-page PDF normally. The sole requested Relieve map screenshot, PDF page index 5 (page 6), returned only a source reference, with no observable pixels, explicit success, technical size/format limit or explicit failure result. No subsequent original, screenshot, alternate reader or equivalent acquisition was attempted.",
+      "outcome_layer": "Unresolved screenshot presentation/reader outcome; origin HTTP status unknown. No access denial is inferred.",
+      "restriction_scope": "Whole identified municipal publication and equivalent original, reader, map, cache, mirror, screenshot and unread-output routes paused.",
+      "earlier_lawful_prose_exception": "Only the actually read pre-pause title, municipal geographic/physiographic and hydrography prose on PDF pages 1–3, and parsed map titles, legends and attribution. Parsed map-label text is not observed cartography and does not establish selected-route correspondence.",
+      "newly_observed_access_failure": false,
+      "unresolved_acquisition_outcome": true,
+      "material_effect": "Required source-to-route map connections remain unestablished.",
+      "aw_id": "hydro-system:70768467"
+    },
+    {
+      "publication": "Evaluation of Groundwater Sources, Flow Paths, and Residence Time of the Gran Desierto Pozos, Sonora, Mexico. Geosciences 9(9), 378 (2019)",
+      "official_url": "https://www.mdpi.com/2076-3263/9/9/378",
+      "observed_outcome": "The sole article opening returned a web-reader-reported HTTP 429 Too Many Requests. No article body or figure was read. Discovery excerpts are excluded from substantive findings.",
+      "outcome_layer": "Web-reader HTTP 429 response; no separate direct-origin measurement.",
+      "restriction_scope": "Whole article, figures, supplements and equivalent acquisition or unread-output routes paused; no retry, mirror or alternative format.",
+      "earlier_lawful_prose_exception": null,
+      "newly_observed_access_failure": true,
+      "material_effect": "The potential independent groundwater and desert-context source supplied no substantive evidence.",
+      "aw_id": "hydro-system:70768467"
+    },
+    {
+      "publication": "Programa de Conservación y Manejo Reserva de la Biosfera Alto Golfo de California y Delta del Río Colorado (2007)",
+      "official_url": "https://www.conanp.gob.mx/que_hacemos/pdf/programas_manejo/Final_AltoGolfo.pdf",
+      "observed_outcome": "The initial normal-original request terminated with direct HTTP 502 and text/html. The single permitted identical-URL retry also terminated with HTTP 502 and text/html. No PDF body, prose or map was obtained or read.",
+      "outcome_layer": "Completed direct HTTP-client availability responses; origin-versus-intermediary responsibility not independently established. No HTTP 401/403 or authorization refusal occurred.",
+      "restriction_scope": "Whole conservation-management publication and equivalent originals, maps, catalogue, reader, cache, mirror and unread-output acquisition routes paused after the unsuccessful identical retry.",
+      "earlier_lawful_prose_exception": null,
+      "newly_observed_access_failure": true,
+      "material_effect": "The potential coastal and wetland cartography supplied no correspondence evidence.",
+      "aw_id": "hydro-system:70768467"
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "publication": "Geological map of Greenland 1:2 500 000, GEUS Custom Dataset Terms",
+      "official_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi:10.22008/FK2/SYAL4J",
+      "limitation_kind": "dataset_use_terms",
+      "observed_outcome": "Retained actual catalogue terms and map copyright read.",
+      "outcome_layer": "Published source-use notice, not an acquisition denial.",
+      "material_gap": false,
+      "aw_id": "hydro-system:90095993",
+      "acquisition_stop": false,
+      "restriction_scope": "Original, crops, processed data and comparison/derived maps remain private; own factual observations and normal bibliography only."
+    },
+    {
+      "publication": "Geological map of Greenland 1:2 500 000",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J",
+      "limitation_kind": "naming_scope_source_epoch_and_theme",
+      "observed_outcome": "The complete selected geography is exposed, but no representative named natural river or hydraulic continuity is established.",
+      "outcome_layer": "Substantive feature-type and naming scope, not source-access failure.",
+      "material_gap": false,
+      "aw_id": "hydro-system:90095993",
+      "acquisition_stop": false,
+      "restriction_scope": "Complete ordinary terrain and actual-ending correspondence. No exact glacier, current ice-front, banks, present terminal land/ice/water assignment or ordinary river-mouth claim."
+    },
+    {
+      "publication": "USGS The National Map, USGSTopo: bounded Bull Canyon–Deep Creek–Great Salt Lake views",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "observed_outcome": "All five originals completed HTTP 200 and were visually read. The northern selected opening/eastward transfer and lower wetland-to-lake through-connection remain unestablished on the acquired cartography.",
+      "outcome_layer": "Substantive source-to-selection correspondence, not an access, HTTP, transport or readability failure.",
+      "restriction_scope": "Only the unsupported through-connection claims. The readable named corridor, reservoir and terminal-lake observations remain usable; no publication/service acquisition stop is inferred.",
+      "limitation_kind": "material_headward_and_wetland_connector_gaps",
+      "material_gap": true,
+      "aw_id": "hydro-system:70531357",
+      "acquisition_stop": false
+    }
+  ]
+}

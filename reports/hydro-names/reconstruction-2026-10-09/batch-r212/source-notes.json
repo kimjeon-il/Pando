@@ -1,0 +1,613 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r212",
+  "sources": [
+    {
+      "source_key": "r212_70882065_inegi_veracruz2020",
+      "title": "Condensado Estatal Veracruz de Ignacio de la Llave",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI), Dirección General de Geografía y Medio Ambiente",
+      "edition": "First edition 2020; copyright 2021; product 889463837121",
+      "scale": "1:820,000",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/ver/889463837121.pdf",
+      "actually_read": "Surviving complete single-sheet original: enlarged overlapping views of the selected Perote–Las Vigas opening, Piedra Parada approach, upper Bobos valley, Zapotitlán–Santiago–Tlapacoyan corridor, Atenco bend, Martínez de la Torre, Felipe Carrillo Puerto, El Pital, San Rafael and the Nautla coastal setting; direct Río Bobos labels; hydrographic legend, technical information, edition and reproduction notice.",
+      "evidence_scope": "Independent state cartographic publication, using earlier INEGI 1:250,000 series III planimetry. Supports the named connected middle/lower corridor and ordinary coastal setting; does not establish the selected initial through-link or current flow and shoreline conditions."
+    },
+    {
+      "source_key": "r212_70882065_inegi_perote2010",
+      "title": "Compendio de información geográfica municipal 2010: Perote, Veracruz de Ignacio de la Llave",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "edition": "2010; municipality 30128",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/30/30128.pdf",
+      "actually_read": "Complete ten-page original obtained normally. Title page; page 3 hydrography table; page 6 Relieve map, hydrographic legend, neighboring municipalities, Cofre de Perote relief and Puerco/Frío/western drainage, with enlarged eastern opening-sector reading.",
+      "evidence_scope": "Municipal geographic-information compilation, using 1:250,000 series III topography and the INEGI–CONAGUA 2007 hydrographic network. Independently issued municipal project, distinct from the held 2023 national topographic and exact other-municipality publications. The regional Bobos subbasin listing is not substituted for proof of the selected opening connection."
+    },
+    {
+      "source_key": "r212_70882065_inegi_nautla2010",
+      "title": "Compendio de información geográfica municipal 2010: Nautla, Veracruz de Ignacio de la Llave",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "edition": "2010; municipality 30114",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/30/30114.pdf",
+      "actually_read": "Complete ten-page original obtained normally. Title page; page 3 hydrography table; page 6 Relieve map and legend, enlarged San Rafael boundary bends, Bobos (Nautla) waterbody and Gulf connection, separate Misantla drainage and coastal setting.",
+      "evidence_scope": "Municipal geographic-information compilation with 1:250,000 series II/III topography and INEGI–CONAGUA 2007 hydrography. The direct Bobos (Nautla) label belongs to the river/estuarine waterbody, not merely to the town or a regional basin. Supports lower identity and generalized terminal setting, not exact modern mouth geometry."
+    },
+    {
+      "source_key": "r212-geus-greenland-national-1995-local",
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": [
+        "Jan C. Escher",
+        "T. Christopher R. Pulvertaft"
+      ],
+      "year": 1995,
+      "publisher": "Geological Survey of Greenland, Copenhagen; official digital original distributed by GEUS",
+      "scale": "1:2 500 000",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J",
+      "catalogue_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi:10.22008/FK2/SYAL4J",
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16855",
+      "current_acquisition": "No external request. Read the physically surviving complete original and official catalogue previously acquired normally after the workspace loss.",
+      "actual_read_scope": "Retained official catalogue bibliography and actual Custom Dataset Terms; complete original overview, freshly rendered northern regional and clean full selected-corridor cartography, enlarged southern opening and northern terminal views, original geographic graticules, Inland Ice legend, topographic compilation notice, WGS84/UTM zone24 projection imprint, printing/copyright imprint and recommended citation. All38 selected parts and104 supplied positions were considered in their original order using a private orientation aid. Older crop files or observations of other selections were not used as a substitute for current original-pixel inspection.",
+      "supports": "Complete ordinary regional/corridor-scale geographic correspondence for the selected Inland Ice–Warming Land terrain sequence and actual ending.",
+      "limits": "Historical geological and glaciological cartography, not a river registry, hydraulic-connectivity survey or modern glacier-front map. The map supports terrain correspondence but establishes no whole-route natural-river hydronym.",
+      "use_notice": "GEUS Custom Dataset Terms permit bounded internal use and processing, while restricting redistribution and production or transfer of new maps. Originals, crops, processed data and comparison or derived maps remain private. Public-ready content is independently written factual observations and ordinary bibliography, acknowledging GEUS."
+    },
+    {
+      "source_key": "r212-nluis-spence57c1983",
+      "title": "Spence Bay, Northwest Territories; Land Use Information Series, sheet 57C",
+      "publisher": "Lands Directorate, Environmental Conservation Service, Environment Canada; Indian and Northern Affairs Canada",
+      "year": 1983,
+      "scale": "1:250,000",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_57c.jpg",
+      "bibliography": "Environment Canada, Lands Directorate (1983). Spence Bay, Northwest Territories. Land Use Information Series, sheet 57C, 1:250,000. Thematic cartography by Land Resource Research Institute, Research Branch, Agriculture Canada; printed by Surveys and Mapping Branch, Energy, Mines and Resources Canada.",
+      "base_map_history": "The printed imprint identifies National Topographic Series 57C, Edition 1, Energy, Mines and Resources Canada. No base-map year is inferred.",
+      "source_independence": "The exact 1983 thematic publication and actual publishing credits had been established by the prior lawful original reading. The newly inspected imprint confirms that independently produced Environment Canada land-resource map and its Agriculture Canada thematic cartography. It was acquired through its known normal original URL, not the held index, CanMatrix archive, CBMT service, CGN records or a held geological/coastal-inventory publication. Historical Polar Continental Shelf Project logistical credit does not identify it with the later held PCSP report.",
+      "actual_material_read": "Complete original overview; title, scale, publishing and base-map imprint; full introduction; enlarged eastern-edge continuation into Lady Melville Lake, western small-lake/channel transfer, Netsilik Lake passage, labelled Netsilik River and actual Willersted Inlet terminal. Source-only pixels were inspected independently of private rough orientation aids. A bounded marginal resource paragraph was also read for context, but no current ecological or use claim is adopted.",
+      "observed_outcome": "One normal original acquisition completed HTTP200 with image/jpeg before reading.",
+      "supports": "Ordinary geographic correspondence of the mapped western lake–stream corridor, direct lake and lower-river labels, and actual coastal terminal.",
+      "limits": "The chosen opening and early eastern bends are outside this sheet. Historical map labels do not verify current formal registry status or a whole-system name. The selected straight lake passages are generalized orientation, not surveyed bank or island crossings.",
+      "use_notice": "Printed Crown copyright. The introduction describes interim information, some incomplete or preliminary/reconnaissance-based, approximate thematic boundaries and information current to December1982. Only own factual synthesis and bibliography are supplied; the original map and reading derivatives are not redistributed."
+    },
+    {
+      "source_key": "r212-retained-arc4032024",
+      "title": "Canadian Sailing Directions, ARC403: Western Arctic",
+      "publisher": "Canadian Hydrographic Service, Fisheries and Oceans Canada",
+      "edition": "2024/03",
+      "catalogue_number": "Fs74-40E-PDF",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/chs-shc-ARC403-eng-202403-41232306.pdf",
+      "actual_material_read": "Physically retained complete lawful original and its text were identified. Cover/publication notice and Chapter8 printed page8-18 paragraph249 were read locally. No new external acquisition, chart or coastal photograph reading was performed.",
+      "source_independence": "Separately issued CHS Western Arctic sailing-directions volume, affirmatively identified by retained original and prior lawful acquisition. It is distinct from held ARC401 and is not a route to held map or naming-record content.",
+      "supports": "Willersted Inlet joins the south side of Spence Bay near its head.",
+      "limits": "Receiving-coast context only. This passage supplies no selected inland course, lake transfer or river-name boundary. Used for geography, not current navigation advice.",
+      "use_notice": "The original permits personal non-commercial reproduction and requires prior permission for commercial reproduction. Public-ready work contains only own concise facts and normal bibliography; no pages or images are redistributed."
+    },
+    {
+      "source_key": "r212-lac-nluis-photographs18663-unavailable",
+      "title": "Northern Land Use Information Series photographic transparencies [graphic material]",
+      "publisher": "Library and Archives Canada",
+      "collection_number": "18663",
+      "official_url": "https://recherche-collection-search.bac-lac.gc.ca/eng/home/record?app=fonandcol&idnumber=18663&resource=folderlist",
+      "actual_material_read": "None. Search discovery identified an archival photographic collection, but the sole normal catalogue open returned Cache miss. Search snippets are not substantive source evidence.",
+      "cartographic_correspondence": false,
+      "naming_evidence": false,
+      "observed_outcome": "The sole normal archival catalogue opening returned web-reader Failed to fetch: Cache miss. No catalogue body, photograph, map or other source content was acquired or read.",
+      "used_as_substantive_evidence": false
+    },
+    {
+      "source_key": "r212-agguttinni-master-plan-prose",
+      "title": "Agguttinni Territorial Park Master Plan",
+      "publisher": "Government of Nunavut, Department of Environment, Nunavut Parks and Special Places; Clyde River Community Joint Planning and Management Committee",
+      "edition_note": "Publicly released PDF in the publisher’s March 2022 collection; inspected map credits are dated August and November 2021. A separate overall publication imprint date was not established.",
+      "official_url": "https://nunavutparks.com/wp-content/uploads/2022/03/2022_-Agguttinni_-Master_Plan_Reduced.pdf",
+      "normal_urls": [
+        "https://nunavutparks.com/wp-content/uploads/2022/03/2022_-Agguttinni_-Master_Plan_Reduced.pdf"
+      ],
+      "actual_material_read": "Original PDF text: cover, acknowledgements and planning identity, planning purpose and park-boundary summary, printed page 18 (PDF page 40), printed page 20 (PDF page 42), printed page 21 (PDF page 43), and map-credit text on PDF pages 15, 26 and 47. No map pixels used.",
+      "observed_outcome": "The single normal-original request completed HTTP 200, application/pdf.",
+      "own_source_observations": [
+        "The Clyde River joint committee’s master plan describes the Gibbs/Clark Fiord area and identifies Tay and Erik rivers as entering Gibbs Fiord from the Conn/Bieler lake region.",
+        "The plan describes Barnes Plateau terrain and distinguishes Gibbs/Clark from the Sam Ford Fiord/Walker Arm region.",
+        "Map-credit text identifies NVision Insight Group Inc. and data from Natural Resources Canada and the Nunavut Department of Environment."
+      ],
+      "source_independence": "The inspected acknowledgements and planning-purpose text establish a community territorial-park planning publication. Its original prose is distinct from mineral-exploration, glacier-inventory and historical base-map projects. Shared NRCan map data are not claimed independent.",
+      "evidence_limits": "Own planning prose supplies bounded regional naming context only. The exact borrowed cartographic-data relationship is unresolved; map linework and parsed map labels are not used as selected-route evidence.",
+      "use_boundary": "Only independently written factual observations and ordinary bibliography are released. No source PDF, figure, map crop, coordinates, or derivative is redistributed."
+    },
+    {
+      "source_key": "r212-matthew2025-unavailable",
+      "title": "Matthew, Maureen (2025), A Land to Sea Perspective on Coastal Geohazards in Northeastern Canadian Fjords, Dalhousie University doctoral thesis; repository handle 10222/85362. Original imprint uninspected.",
+      "official_url": "https://dalspaceb.library.dal.ca/server/api/core/bitstreams/f96504c8-00b4-4d24-9c16-616bd7864dac/content",
+      "normal_urls": [
+        "https://dalspace.library.dal.ca/items/7561d819-c4bb-4da1-a3c4-d7e9b2cce228",
+        "https://dalspaceb.library.dal.ca/server/api/core/bitstreams/f96504c8-00b4-4d24-9c16-616bd7864dac/content"
+      ],
+      "actual_material_read": "None. Bibliographic identity and research-project description were discovery metadata only.",
+      "source_independence_assessment": "Discovery identifies a Dalhousie doctoral project on fjord geohazards and catchment-scale sediment flux, rather than the held North Baffin mineral-exploration or southern Barnes glacier-recession projects. The original could not be inspected.",
+      "substantive_evidence_used": false,
+      "observed_outcome": "The first normal-original request completed direct HTTP 502 with text/html. After actual termination, the one identical exact-URL retry also completed direct HTTP 502 with text/html. No response body, thesis text, original imprint, or map pixels were read.",
+      "used_as_substantive_evidence": false
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70882065",
+      "source_keys": [
+        "r212_70882065_inegi_veracruz2020",
+        "r212_70882065_inegi_perote2010",
+        "r212_70882065_inegi_nautla2010"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10425
+          ],
+          "component_scope": "Chosen opening on the Perote–Villa Aldama side",
+          "finding": "The Perote relief original depicts the Puerco feeder descending north from the Cofre de Perote slope and a separate western drainage pattern toward the Perote plain. The selected opening and its northwestward excursion lie west of the depicted Puerco route, across the intervening slope/plain setting. Neither this municipal map nor the state original depicts a stream connecting that chosen excursion through to the northbound feeder. This is more than an unresolved precise source point or minor bend. The later return toward the Las Vigas de Ramírez approach is visible, but the initial through-link remains unestablished. No claim is made that a real local connection cannot exist.",
+          "sources": [
+            "r212_70882065_inegi_veracruz2020",
+            "r212_70882065_inegi_perote2010"
+          ],
+          "correspondence": "selected_initial_through_link_not_established",
+          "component_correspondence_completed": false,
+          "role": "mainstem"
+        },
+        {
+          "fragments": [
+            10425
+          ],
+          "component_scope": "Las Vigas de Ramírez to Piedra Parada and the northbound valley",
+          "finding": "After the opening excursion, the selection follows the depicted northeast-running feeder through the Las Vigas de Ramírez setting toward Piedra Parada. The source shows its joining approach from the southwest, the separate eastern Tatatila approach, and the turn north into the Bobos valley. These joins and the intervening selected parts correspond at ordinary cartographic scale.",
+          "sources": [
+            "r212_70882065_inegi_veracruz2020"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem"
+        },
+        {
+          "fragments": [
+            10425
+          ],
+          "component_scope": "Named Bobos valley through Zapotitlán, Santiago and the Tlapacoyan approach",
+          "finding": "The selected northward valley follows the blue river directly labeled Río Bobos east of Altotonga and through the Zapotitlán and Santiago setting. Its bends toward the Tlapacoyan approach remain on the connected river. The western Jalacingo/Altotonga drainage and other joining approaches are geographically distinct; their upstream courses are not selected tributary fragments.",
+          "sources": [
+            "r212_70882065_inegi_veracruz2020"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem"
+        },
+        {
+          "fragments": [
+            10425
+          ],
+          "component_scope": "Atenco bend, Martínez de la Torre and the northeast plain approach",
+          "finding": "The original depicts the broad eastward bend by Atenco and repeats Río Bobos directly on the selected course into the Martínez de la Torre–Independencia setting. The selected continuation turns northeast across the plain. Separate northern and southern joining channels are visible; the continuous selected river is distinguished from the more northerly Río El Potrero corridor.",
+          "sources": [
+            "r212_70882065_inegi_veracruz2020"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem"
+        },
+        {
+          "fragments": [
+            10425
+          ],
+          "component_scope": "Felipe Carrillo Puerto to El Pital and San Rafael",
+          "finding": "The northeast and eastward selected bends follow the connected river through the Felipe Carrillo Puerto setting to El Pital and the southern approach to San Rafael. All intervening selected parts have a mapped river correspondence. No selected lake, reservoir, canal-transfer or other through-water connector is depicted interrupting this corridor.",
+          "sources": [
+            "r212_70882065_inegi_veracruz2020"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem"
+        },
+        {
+          "fragments": [
+            10425
+          ],
+          "component_scope": "San Rafael bends, Bobos (Nautla) estuary and actual Gulf terminal setting",
+          "finding": "The state map and Nautla relief map depict the selected San Rafael bends continuing into the estuarine waterbody explicitly labeled Bobos (Nautla), with an opening to the Gulf of Mexico. The separate Misantla river lies southeast of this corridor. The final rendered extension reaches the Gulf beside the mapped estuary; it is treated as a generalized coastal extension, without moving its endpoint to the mapped mouth or asserting that its straight last segment traces the exact estuarine channel, bank or shoreline crossing. The ordinary receiving-water and lower-river correspondence is supported.",
+          "sources": [
+            "r212_70882065_inegi_veracruz2020",
+            "r212_70882065_inegi_nautla2010"
+          ],
+          "correspondence": "supported_at_ordinary_estuarine_and_coastal_setting_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:90001507",
+      "source_keys": [
+        "r212-geus-greenland-national-1995-local"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8822
+          ],
+          "component_scope": "Chosen opening and initial westward hook",
+          "finding": "The actual southern opening and the complete short northward, westward and reversing sequence lie in mapped Inland Ice south of Warming Land. The original distinguishes this broad ice terrain from the colored exposed-rock tract farther north. The blue ice contours and dashed sub-ice information are not mapped river channels and do not name this selected opening.",
+          "sources": [
+            "r212-geus-greenland-national-1995-local"
+          ],
+          "correspondence": "completed_ordinary_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "candidate_name": null,
+          "hydraulic_continuity_established": false
+        },
+        {
+          "fragments": [
+            8822
+          ],
+          "component_scope": "Northward passage from Inland Ice into southern Warming Land",
+          "finding": "The long northward part and its westward step continue through the mapped ice terrain to the indented southern exposed-rock margin of Warming Land. The original covers the entire ice-to-land transition and each stored join. The selected passage is geographically accounted for, without inferring a surveyed surface or subglacial stream through the transition.",
+          "sources": [
+            "r212-geus-greenland-national-1995-local"
+          ],
+          "correspondence": "completed_ordinary_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "candidate_name": null,
+          "hydraulic_continuity_established": false
+        },
+        {
+          "fragments": [
+            8822
+          ],
+          "component_scope": "Middle northward to northeastward exposed-land sequence",
+          "finding": "All thirteen selected parts occupy the southern and middle exposed-rock tract of Warming Land, east of its larger enclosed local-ice area. Original cartography continuously exposes the intervening land, geological boundaries and neighboring ice patches. Those geological lines and nearby pale patches are not evidence for a named natural river or an established lake-throughflow.",
+          "sources": [
+            "r212-geus-greenland-national-1995-local"
+          ],
+          "correspondence": "completed_ordinary_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "candidate_name": null,
+          "hydraulic_continuity_established": false
+        },
+        {
+          "fragments": [
+            8822
+          ],
+          "component_scope": "Long northern passage among local ice and rock margins",
+          "finding": "The selected long northward continuation passes through the eastern Warming Land rock and local-ice-margin tract, including the small enclosed ice-area setting before the final westward bend. The complete passage is visible on the original, with nearby blue ice contours and colored land boundaries distinguishable. Its terrain correspondence does not establish river continuity across those land-and-ice surfaces.",
+          "sources": [
+            "r212-geus-greenland-national-1995-local"
+          ],
+          "correspondence": "completed_ordinary_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "candidate_name": null,
+          "hydraulic_continuity_established": false
+        },
+        {
+          "fragments": [
+            8822
+          ],
+          "component_scope": "Final westward bend and actual northern ending",
+          "finding": "The final westward series and short northward ending lie in the northern Warming Land exposed-rock setting, west of Sherard Osborn Fjord and north of the local-ice cluster. The original covers the actual supplied ending. At this generalized source scale the ending is in the mapped land tract; it is not independently established as a fjord shoreline or ordinary river mouth. The model sea classification is therefore not promoted to a hydrological claim, and exact modern bank or ice-front positions are not needed for this terrain correspondence.",
+          "sources": [
+            "r212-geus-greenland-national-1995-local"
+          ],
+          "correspondence": "completed_ordinary_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "candidate_name": null,
+          "hydraulic_continuity_established": false,
+          "ordinary_river_mouth_established": false
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80042509",
+      "source_keys": [
+        "r212-nluis-spence57c1983",
+        "r212-retained-arc4032024"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2363
+          ],
+          "component_scope": "chosen-eastern-opening",
+          "finding": "The selected opening and initial feeder lie east of the successfully read Spence Bay sheet. No permitted inspected original establishes its initial waterbody/channel setting or first joins. The selected geometry supplies orientation only, and nearby lake labels are not evidence of this missing opening.",
+          "sources": [],
+          "correspondence": "material_component_correspondence_pending",
+          "component_correspondence_completed": false,
+          "role": "Chosen eastern opening and first northwestern feeder turns"
+        },
+        {
+          "fragments": [
+            2363
+          ],
+          "component_scope": "eastern-bend-and-lake-approach",
+          "finding": "The early western/southwestern turns and the approach to the eastern Spence Bay sheet boundary remain outside the inspected cartography, apart from the continuation at the boundary. The short visible continuation into the western lake does not establish the omitted upstream joins. The first portion of part 6 belongs to this unresolved approach; its mapped western continuation is recorded separately.",
+          "sources": [
+            "r212-nluis-spence57c1983"
+          ],
+          "correspondence": "material_component_correspondence_pending",
+          "component_correspondence_completed": false,
+          "role": "Eastern northward bend, southwestern return and approach to the sheet boundary"
+        },
+        {
+          "fragments": [
+            2363
+          ],
+          "component_scope": "lady-melville-lake-passage",
+          "finding": "At the eastern sheet edge, short blue channels and small connected waters lead into the lake explicitly labelled Lady Melville Lake. The selected western continuation crosses that lake and turns toward its western arm. The lake body and the selected within-sheet corridor are visible together. Straight modeled portions are treated as generalized lake passages rather than exact shoreline crossings; this completes the mapped portion only, without asserting the missing eastern feeder.",
+          "sources": [
+            "r212-nluis-spence57c1983"
+          ],
+          "correspondence": "bounded_component_correspondence_complete",
+          "component_correspondence_completed": true,
+          "role": "Mapped eastern lake entry, Lady Melville Lake passage and western-arm approach",
+          "bounded_component_names": [
+            "Lady Melville Lake"
+          ]
+        },
+        {
+          "fragments": [
+            2363
+          ],
+          "component_scope": "lady-melville-to-netsilik-transfer",
+          "finding": "The original depicts a narrow connection from the western Lady Melville Lake arm through a succession of small unnamed lakes and connecting streams. The route turns northwest through the elongated intermediate waters, continues west through a larger irregular lake and a short stream, and enters the eastern side of Netsilik Lake. These through-links and lateral inflows were followed in enlarged source pixels; continuity is not inferred from the two large-lake names. Colored and gray thematic boundaries were distinguished from blue hydrography.",
+          "sources": [
+            "r212-nluis-spence57c1983"
+          ],
+          "correspondence": "bounded_component_correspondence_complete",
+          "component_correspondence_completed": true,
+          "role": "Western lake outlet, small-waterbody succession and connection into Netsilik Lake"
+        },
+        {
+          "fragments": [
+            2363
+          ],
+          "component_scope": "netsilik-lake-passage",
+          "finding": "The selected route enters the long waterbody explicitly labelled Netsilik Lake and continues northwest toward its outlet sector. The main waterbody, irregular shoreline arms and outlet approach are shown continuously. This is a named lake component, not proof that its whole lake crossing and all upstream feeders share the river name.",
+          "sources": [
+            "r212-nluis-spence57c1983"
+          ],
+          "correspondence": "bounded_component_correspondence_complete",
+          "component_correspondence_completed": true,
+          "role": "Netsilik Lake entry and northwestern lake passage",
+          "bounded_component_names": [
+            "Netsilik Lake"
+          ]
+        },
+        {
+          "fragments": [
+            2363
+          ],
+          "component_scope": "netsilik-river-outlet",
+          "finding": "A connected outlet leaves northwestern Netsilik Lake and runs west/southwest through small widenings. The map explicitly places the label Netsilik River on this outlet reach. The lake-to-river transition and selected turns correspond at ordinary corridor scale, supporting Netsilik River as a lower-reach name.",
+          "sources": [
+            "r212-nluis-spence57c1983"
+          ],
+          "correspondence": "bounded_component_correspondence_complete",
+          "component_correspondence_completed": true,
+          "role": "Lake outlet and named lower river",
+          "bounded_component_names": [
+            "Netsilik River"
+          ]
+        },
+        {
+          "fragments": [
+            2363
+          ],
+          "component_scope": "actual-coastal-terminal",
+          "finding": "The final mapped Netsilik River channel passes through the low, marsh-marked outlet area into Willersted Inlet. The source depicts the water connection and the receiving inlet directly. Independently read ARC403 paragraph 249 places Willersted Inlet on the south side of Spence Bay near its head. That prose supplies receiving-coast context only; the terminal-channel correspondence comes from the map. No exact tidal limit or modern bank position is asserted.",
+          "sources": [
+            "r212-nluis-spence57c1983",
+            "r212-retained-arc4032024"
+          ],
+          "correspondence": "bounded_component_correspondence_complete",
+          "component_correspondence_completed": true,
+          "role": "Final southwestward channel and actual coastal terminal",
+          "bounded_component_names": [
+            "Netsilik River",
+            "Willersted Inlet"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80031210",
+      "source_keys": [
+        "r212-agguttinni-master-plan-prose"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2324
+          ],
+          "component_scope": "Chosen northern opening and early eastward bend",
+          "finding": "No independently inspected map or field observation identifies the chosen opening or its first receiving waterbody. The source does not establish whether this portion follows a river, lake margin, or glacial passage.",
+          "sources": [],
+          "correspondence": "material_source_gap",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2324
+          ],
+          "component_scope": "Long southwestward upper descent",
+          "finding": "The selected upper descent and its incoming tributary connections lack original geographic correspondence. Regional Barnes Plateau context cannot establish a continuous selected feeder.",
+          "sources": [],
+          "correspondence": "material_source_gap",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2324
+          ],
+          "component_scope": "Southwestern elbow and subsequent eastward segment",
+          "finding": "The turn and adjoining passages are not identified by an inspected independent source. Any glacier-edge or lake transfer here remains unestablished rather than assumed from the model.",
+          "sources": [],
+          "correspondence": "material_source_gap",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2324
+          ],
+          "component_scope": "Southern loop and eastward lake-oriented passage",
+          "finding": "A regional plan names Conn and Bieler lakes in the drainage region, but does not identify this selected southern loop or establish its entry, lake passage, and outlet. Bieler Lake is contextual only.",
+          "sources": [
+            "r212-agguttinni-master-plan-prose"
+          ],
+          "correspondence": "material_source_gap",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2324
+          ],
+          "component_scope": "Northward return and turn east",
+          "finding": "No read original establishes the northward return, its intervening lake/channel transitions, or its connection into a named downstream reach.",
+          "sources": [],
+          "correspondence": "material_source_gap",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2324
+          ],
+          "component_scope": "Eastward lower approach and intermediate joins",
+          "finding": "Erik River remains a provisional lower-river candidate. The read prose does not map this selected approach, its intermediate joins, or the Erik-versus-Tay distinction.",
+          "sources": [
+            "r212-agguttinni-master-plan-prose"
+          ],
+          "correspondence": "material_source_gap",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": "Erik River",
+          "candidate_name_role": "unconfirmed_selected_correspondence"
+        },
+        {
+          "fragments": [
+            2324
+          ],
+          "component_scope": "Final northward reach and actual terminal",
+          "finding": "The plan identifies Gibbs Fiord as receiving Tay and Erik rivers. It does not independently locate the selected final bend or show which river mouth the endpoint reaches. Actual terminal correspondence is therefore incomplete.",
+          "sources": [
+            "r212-agguttinni-master-plan-prose"
+          ],
+          "correspondence": "material_source_gap",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": "Erik River",
+          "candidate_name_role": "unconfirmed_selected_correspondence"
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "Library and Archives Canada, Northern Land Use Information Series photographic transparencies [graphic material], collection 18663",
+      "official_url": "https://recherche-collection-search.bac-lac.gc.ca/eng/home/record?app=fonandcol&idnumber=18663&resource=folderlist",
+      "observed_outcome": "The sole normal archival catalogue opening returned web-reader Failed to fetch: Cache miss. No catalogue body, photograph, map or other source content was acquired or read.",
+      "outcome_layer": "Web-reader availability failure; origin HTTP response unknown.",
+      "restriction_scope": "The exact archival photograph-collection description and equivalent acquisition routes remain paused. No retry, alternate catalogue, photograph or cached-body recovery was attempted. This is not a refusal of the Harrison Islands 57D cartographic original and not a NLUIS-wide restriction.",
+      "earlier_lawful_observations": null,
+      "newly_observed_access_failure": false,
+      "availability_failure": true,
+      "acquisition_performed": true,
+      "aw_id": "hydro-system:80042509"
+    },
+    {
+      "publication": "Matthew, Maureen (2025), A Land to Sea Perspective on Coastal Geohazards in Northeastern Canadian Fjords, Dalhousie University doctoral thesis; repository handle 10222/85362. Original imprint uninspected.",
+      "official_url": "https://dalspaceb.library.dal.ca/server/api/core/bitstreams/f96504c8-00b4-4d24-9c16-616bd7864dac/content",
+      "catalogue_url": "https://dalspace.library.dal.ca/items/7561d819-c4bb-4da1-a3c4-d7e9b2cce228",
+      "observed_outcome": "The first normal-original request completed direct HTTP 502 with text/html. After actual termination, the one identical exact-URL retry also completed direct HTTP 502 with text/html. No response body, thesis text, original imprint, or map pixels were read.",
+      "outcome_layer": "Two completed original HTTP-client responses; availability failure, not an asserted access-control denial.",
+      "restriction_scope": "Whole exact thesis and equivalent acquisition/output-reading routes remain paused. No alternate repository host, catalogue, format, mirror, screenshot, or companion content was requested after the second failure.",
+      "earlier_lawful_observations": null,
+      "newly_observed_access_failure": false,
+      "availability_failure": true,
+      "material_gap": true,
+      "aw_id": "hydro-system:80031210"
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "publication": "Condensado Estatal Veracruz de Ignacio de la Llave",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/ver/889463837121.pdf",
+      "observed_outcome": "The retained original requires prior written authorization for total or partial reproduction.",
+      "outcome_layer": "Printed publication-use notice, not an acquisition denial.",
+      "restriction_scope": "Source originals, map views and orientation derivatives are excluded from public-ready material. Only own factual observations and normal bibliography are supplied.",
+      "new_access_stop": false,
+      "newly_observed_or_reobserved": "Reobserved previously recorded notice.",
+      "aw_id": "hydro-system:70882065",
+      "acquisition_stop": false
+    },
+    {
+      "publication": "Geological map of Greenland 1:2 500 000, GEUS Custom Dataset Terms",
+      "official_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi:10.22008/FK2/SYAL4J",
+      "limitation_kind": "dataset_use_terms",
+      "observed_outcome": "Retained official terms and original copyright imprint actually read.",
+      "outcome_layer": "Published source-use notice, not an access refusal.",
+      "material_gap": false,
+      "aw_id": "hydro-system:90001507",
+      "acquisition_stop": false,
+      "restriction_scope": "GEUS Custom Dataset Terms permit bounded internal use and processing, while restricting redistribution and production or transfer of new maps. Originals, crops, processed data and comparison or derived maps remain private. Public-ready content is independently written factual observations and ordinary bibliography, acknowledging GEUS."
+    },
+    {
+      "publication": "Geological map of Greenland 1:2 500 000",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J",
+      "limitation_kind": "source_epoch_theme_and_naming_scope",
+      "observed_outcome": "The complete selected terrain is accounted for, but no whole-route natural-river name, surface or subglacial hydraulic continuity, or ordinary river-mouth identity is established.",
+      "outcome_layer": "Substantive name and feature-type limitation; no acquisition failure.",
+      "material_gap": false,
+      "aw_id": "hydro-system:90001507",
+      "acquisition_stop": false,
+      "restriction_scope": "No exact modern ice front or bank, physical-flow, selected lake-throughflow or surveyed river-length claim."
+    },
+    {
+      "source_keys": [
+        "r212-nluis-spence57c1983"
+      ],
+      "observation": "Interim historical land-resource map with incomplete or reconnaissance-based information and approximate thematic boundaries.",
+      "effect": "Ordinary historic correspondence only; not a current hydrological or registry determination.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:80042509"
+    },
+    {
+      "source_keys": [
+        "r212-nluis-spence57c1983",
+        "r212-retained-arc4032024"
+      ],
+      "observation": "Originals and research derivatives remain private; public-ready fields contain only own factual observations and ordinary bibliography.",
+      "effect": "No source map, original figure, coordinates or research receipt is supplied as a public artifact.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:80042509"
+    },
+    {
+      "publication": "Agguttinni Territorial Park Master Plan, map panels",
+      "official_url": "https://nunavutparks.com/wp-content/uploads/2022/03/2022_-Agguttinni_-Master_Plan_Reduced.pdf",
+      "kind": "unresolved_borrowed_cartographic_data_relationship",
+      "observed_outcome": "Inspected map-credit text names Natural Resources Canada and the Government of Nunavut as data sources without identifying the actual base-map publication.",
+      "new_network_failure": false,
+      "aw_id": "hydro-system:80031210",
+      "acquisition_stop": false,
+      "restriction_scope": "No borrowed linework, parsed map label or unseen map panel is used for correspondence while its relationship to held cartography is unresolved. Independently authored planning prose remains usable in its actual read scope."
+    }
+  ]
+}
