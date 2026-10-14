@@ -314,7 +314,10 @@ const StrokeDrawPacket& patchStroke(const RenderScene& scene,const char* id) {
 void requirePatchStorageShared(const RenderScene& before,const RenderScene& after,const char* id) {
     const auto& a=patchFill(before,id).geometryPacket;const auto& b=patchFill(after,id).geometryPacket;
     require(a.positions==b.positions&&a.indices==b.indices&&a.unitSpherePositions==b.unitSpherePositions&&
-            a.globeIndices==b.globeIndices&&a.ringOffsets==b.ringOffsets&&a.polygonOffsets==b.polygonOffsets,
+            a.globeIndices==b.globeIndices&&a.ringCoordinates==b.ringCoordinates&&
+            a.boundaryStartsEnds==b.boundaryStartsEnds&&
+            a.unitSphereBoundaryStartsEnds==b.unitSphereBoundaryStartsEnds&&
+            a.ringOffsets==b.ringOffsets&&a.polygonOffsets==b.polygonOffsets,
             "unchanged fill retains all immutable geometry storage");
     const auto& sa=patchStroke(before,id).geometryPacket;const auto& sb=patchStroke(after,id).geometryPacket;
     require(sa.startsEnds==sb.startsEnds&&sa.unitSphereStartsEnds==sb.unitSphereStartsEnds,
@@ -355,7 +358,8 @@ void singleTerritorialGeometryPatchRetainsUnrelatedStorageThroughHistory() {
             "edited fill replaces immutable positions");
     require(patchStroke(*changed,"A").geometryPacket.startsEnds!=patchStroke(*original,"A").geometryPacket.startsEnds,
             "edited boundary replaces immutable endpoints");
-    require(cache.stats().builds==counters.builds+2,"single geometry edit builds only fill and boundary packets");
+    require(cache.stats().builds==counters.builds+1,
+            "single geometry edit builds one shared fill/outline polygon packet");
     require(cache.stats().hits==counters.hits,"single geometry edit never visits unrelated geometry cache entries");
     std::cout<<"M93_BUILDER_DELTA single-geometry geometry-build-delta="<<cache.stats().builds-counters.builds
              <<" unrelated-hit-delta="<<cache.stats().hits-counters.hits<<'\n';
