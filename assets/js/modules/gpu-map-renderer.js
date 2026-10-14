@@ -3819,7 +3819,7 @@ export function createGpuMapRenderer(deps) {
       return {
         type: 'view', width: frame.cssViewport[0], height: frame.cssViewport[1], dpr: frame.dpr,
         terrainDpr: Math.min(isMobile() ? 2 : 3, Math.max(1, Number(view.sourceDpr || frame.dpr))),
-        meshQuality: activeMeshQuality, projection: frame.projection,
+        projection: frame.projection,
         view: { flatCenter: view.projectionCenter || view.flatCenter, globeRotation: view.rotation,
           flatZoom: view.flatZoom, globeZoom: view.globeZoom },
         renderProjection: { translate: frame.cssTranslate, scale: frame.cssScale,
