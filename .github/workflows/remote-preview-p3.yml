@@ -180,6 +180,23 @@ jobs:
       - uses: pnpm/action-setup@v4
       - name: Install existing native JS geometry adapters
         run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Check or regenerate branch-local Qt geometry for the test build
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! node native/tools/m97/cut-kernel-generate.mjs --check; then
+            echo "::warning::Stale tracked Qt adapters; regenerate from this branch's own JS sources in the isolated CI checkout"
+            node native/tools/m97/cut-kernel-generate.mjs
+            node native/tools/m97/cut-kernel-generate.mjs --check
+            git diff --binary -- native/assets/geometry/current native/resources/current_geometry.qrc > p3-qt-regenerated-geometry.patch
+            git status --short -- native/assets/geometry/current native/resources/current_geometry.qrc
+            test -s p3-qt-regenerated-geometry.patch || {
+              echo "::error::Qt generator changed untracked outputs only; cannot capture full patch"
+              exit 1
+            }
+            echo "### Qt generated inputs repaired for this CI build" >> "$GITHUB_STEP_SUMMARY"
+            echo "The branch still contains outdated generated assets. Review the p3-qt-regenerated-geometry.patch artifact before merging." >> "$GITHUB_STEP_SUMMARY"
+          fi
       - uses: actions/setup-python@v5
         with:
           python-version-file: .python-version
@@ -269,6 +286,7 @@ jobs:
           path: |
             p3-qt-build.log
             p3-ctest.log
+            p3-qt-regenerated-geometry.patch
             test-results/p3-qt
             build-native/p3/${{ matrix.preset }}/native/build-provenance.json
             build-native/p3/${{ matrix.preset }}/Testing/Temporary/LastTest.log
