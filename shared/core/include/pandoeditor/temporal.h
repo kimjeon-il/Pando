@@ -34,6 +34,8 @@ TemporalValue parseTemporal(const std::string&);
 TemporalValue temporalMonthEnd(const std::string&);
 // Navigate calendar months across BCE/CE without a year zero. Offsets are signed months.
 std::string shiftTemporalMonth(const std::string& month, int offset);
+// Inclusive timeline event scheduling: the next day may be an out-of-range end sentinel.
+TemporalKey temporalFollowingDay(const TemporalKey& date);
 std::optional<std::string> normalizeTemporal(const std::optional<std::string>&);
 int compareTemporal(const TemporalValue&,const TemporalValue&,
                     TemporalBoundary left=TemporalBoundary::Start,

@@ -148,6 +148,22 @@ bool temporalIntervalsOverlapForWeb(val fromA,val toA,val fromB,val toB) {
 std::string temporalShiftMonthForWeb(const std::string& month,int delta) {
     return boundary([&]{return shiftTemporalMonth(month,delta);});
 }
+int integer(const val& value,const char* code); // Shared strict JS-number validator below.
+TemporalKey temporalKeyFromWeb(const val& input) {
+    array(input,"PL-TEMPORAL-001");
+    if(input["length"].as<unsigned>()!=3)fail("PL-TEMPORAL-001","A year/month/day tuple is required.");
+    return {integer(input[0],"PL-TEMPORAL-001"),integer(input[1],"PL-TEMPORAL-001"),
+        integer(input[2],"PL-TEMPORAL-001")};
+}
+int temporalCompareKeysForWeb(val a,val b) {
+    return boundary([&] {
+        const auto left=temporalKeyFromWeb(a),right=temporalKeyFromWeb(b);
+        return left==right?0:left<right?-1:1;
+    });
+}
+val temporalFollowingDayForWeb(val date) {
+    return boundary([&]{return temporalKeyForWeb(temporalFollowingDay(temporalKeyFromWeb(date)));});
+}
 // P5-1: source of truth is sphericalRingSignedArea in shared/core.
 // Keep this Web boundary read-only; later migration can remove the separate
 // browser JavaScript integral after fixture parity is established.
@@ -694,6 +710,8 @@ EMSCRIPTEN_BINDINGS(pandoeditor_document_session) {
     emscripten::function("temporalContains",&temporalContainsForWeb);
     emscripten::function("temporalIntervalsOverlap",&temporalIntervalsOverlapForWeb);
     emscripten::function("temporalShiftMonth",&temporalShiftMonthForWeb);
+    emscripten::function("temporalCompareKeys",&temporalCompareKeysForWeb);
+    emscripten::function("temporalFollowingDay",&temporalFollowingDayForWeb);
     emscripten::function("normalizePolygonGeometry",&polygonGeometry);
     emscripten::function("normalizePolygonRing",&polygonRing);
     emscripten::function("hasCanonicalPolygonWinding",&canonicalPolygonGeometry);

@@ -148,4 +148,13 @@ int main() {
     invalid([]{shiftTemporalMonth("1914-07-01",1);});
     invalid([]{shiftTemporalMonth("+999999-12",1);});
     invalid([]{shiftTemporalMonth("-999999-01",-1);});
+    assert((temporalFollowingDay(TemporalKey{1916,2,28})==TemporalKey{1916,2,29}));
+    assert((temporalFollowingDay(TemporalKey{1916,2,29})==TemporalKey{1916,3,1}));
+    assert((temporalFollowingDay(TemporalKey{1900,2,28})==TemporalKey{1900,3,1}));
+    assert((temporalFollowingDay(TemporalKey{2000,2,28})==TemporalKey{2000,2,29}));
+    assert((temporalFollowingDay(TemporalKey{-1,12,31})==TemporalKey{1,1,1}));
+    assert((temporalFollowingDay(TemporalKey{-2,12,31})==TemporalKey{-1,1,1}));
+    assert((temporalFollowingDay(TemporalKey{999999,12,31})==TemporalKey{1000000,1,1}));
+    invalid([]{temporalFollowingDay(TemporalKey{1900,2,29});});
+    invalid([]{temporalFollowingDay(TemporalKey{0,1,1});});
 }

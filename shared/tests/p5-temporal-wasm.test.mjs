@@ -20,7 +20,8 @@ const bad=['','0000','-0000','+0000-07','1945-2-1','12000','1900-02-29',
 
 test('P5-3 exported C++ calendar ABI keeps source precision and BCE/CE boundaries',()=>{
   for(const name of ['temporalParse','temporalMonthEnd','temporalCompare',
-    'temporalNormalizeInterval','temporalContains','temporalIntervalsOverlap','temporalShiftMonth'])
+    'temporalNormalizeInterval','temporalContains','temporalIntervalsOverlap','temporalShiftMonth',
+    'temporalCompareKeys','temporalFollowingDay'])
     assert.equal(typeof core[name],'function',name);
   assert.equal(core.coreAbiVersion,1);
   for(const input of endpoints) {
@@ -81,4 +82,19 @@ test('P5-3 shared month navigation crosses year zero and extended years correctl
   ])assert.equal(core.temporalShiftMonth(input,offset),expected);
   assert.throws(()=>core.temporalShiftMonth('1914',1),error=>error?.code==='PL-TEMPORAL-001');
   assert.throws(()=>core.temporalShiftMonth('+999999-12',1),error=>error?.code==='PL-TEMPORAL-001');
+});
+
+test('P5-3 C++ timeline event keys include leap days and maximum-year sentinel',()=>{
+  for(const [key, expected] of [
+    [[1916,2,28],[1916,2,29]],[[1916,2,29],[1916,3,1]],
+    [[1900,2,28],[1900,3,1]],[[2000,2,28],[2000,2,29]],
+    [[-1,12,31],[1,1,1]],[[-2,12,31],[-1,1,1]],
+    [[999999,12,31],[1000000,1,1]]
+  ])assert.deepEqual(core.temporalFollowingDay(key),expected);
+  for(const [a,b,result] of [
+    [[1914,7,31],[1914,8,1],-1],[[-1,12,31],[1,1,1],-1],
+    [[1000000,1,1],[999999,12,31],1],[[2000,2,29],[2000,2,29],0]
+  ])assert.equal(core.temporalCompareKeys(a,b),result);
+  assert.throws(()=>core.temporalFollowingDay([1900,2,29]),error=>error?.code==='PL-TEMPORAL-001');
+  assert.throws(()=>core.temporalFollowingDay([0,1,1]),error=>error?.code==='PL-TEMPORAL-001');
 });
