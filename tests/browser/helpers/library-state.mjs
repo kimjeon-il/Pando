@@ -113,6 +113,7 @@ export async function importFiniteSource(page, testInfo, id, errors, { reference
   const source=await page.evaluate(id=>window.PANDOLAB_TERRITORIAL_LIBRARY.get(id),id);
   expect(source.lifetime.validFrom || source.lifetime.validTo).toBeTruthy();
   const inputDate=await page.locator('#territorialLibraryReferenceDateInput').inputValue();
+  const editMonth=await page.locator('#timelineMonthInput').inputValue();
   const selected=await page.evaluate(async({id,referenceDate})=>{
     const {selectGeometryVersion}=await import('/assets/js/modules/territorial-library.js');
     return selectGeometryVersion(await window.PANDOLAB_TERRITORIAL_LIBRARY.get(id),referenceDate);
@@ -126,7 +127,7 @@ export async function importFiniteSource(page, testInfo, id, errors, { reference
   const added=await page.evaluate(id=>window.PANDOLAB_TERRITORIAL.list().filter(e=>e.properties.sourceEntityId===id),id);
   expect(added).toHaveLength(1);expect(added[0].id).not.toBe(id);
   expect(added[0].geometry).toEqual(selected.geometry);
-  expect(added[0].properties).toMatchObject({validFrom:null,validTo:null,sourceGeometryVersion:selected.versionId,
+  expect(added[0].properties).toMatchObject({validFrom:editMonth,validTo:null,sourceGeometryVersion:selected.versionId,
     metadata:{sourceLifetime:source.lifetime,sourceGeometryValidity:{validFrom:selected.validFrom,validTo:selected.validTo},
       sourceReferenceDate:referenceDate,sourceInfo:source.sourceInfo,geometryCertainty:selected.certainty,geometryDatePrecision:selected.datePrecision}});
   await expect(page.locator('#territorialLibraryReferenceDateInput')).toHaveValue(inputDate);

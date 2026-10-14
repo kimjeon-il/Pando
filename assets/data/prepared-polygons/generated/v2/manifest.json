@@ -1,0 +1,2464 @@
+{
+  "schema": "pandolab-prepared-polygon-meshes",
+  "schemaVersion": 2,
+  "meshFormatVersion": 2,
+  "algorithmVersion": 4,
+  "algorithmSourceSha256": "ab8912ce2e683e1c933137f4787afa80ab9d718afd4b2f3f545fdc4a34949f10",
+  "maxEdgeDegrees": 0.499,
+  "inputHashes": {
+    "assets/data/historical-world/generated/v1/world-project.json.gz": "407dc470779fd4f53219cfa77002253ea7a3c10e4d75b12133108f69c65bfe99",
+    "assets/data/territorial-entities/generated/current-world.geojson": "6d29c349478cb2a7899573544ba580da70bd902c12ee86a4a93662ca6e94ad72",
+    "assets/data/territorial-entities/generated/v2/state-ABW.json.gz": "a427e103fb240c1ec95b44216defbd79ab97e1a0c9ba260b4600dd4385acc831",
+    "assets/data/territorial-entities/generated/v2/state-AFG.json.gz": "daf94898d403323e51259b3e4a7a3b75c43ee5ab8c70fc0a88c2860a004925f7",
+    "assets/data/territorial-entities/generated/v2/state-AGO.json.gz": "ea7ce10dc29ca3ac528379b67ef2484ad16b664861da15e42ffaa1d275acc18e",
+    "assets/data/territorial-entities/generated/v2/state-AIA.json.gz": "9f82172105418acb244d4c71298af616975976839b7ba76a32176b6a1b270bab",
+    "assets/data/territorial-entities/generated/v2/state-ALB.json.gz": "ef0d4b29644c27a023fdde4f953fa2d831b0d6cda6b37c98b1f9ce67e8542415",
+    "assets/data/territorial-entities/generated/v2/state-ALD.json.gz": "2e834aab8ab2cdab1966803d34bf2a6da44dfa04ec94d38eb13e9649e4e64676",
+    "assets/data/territorial-entities/generated/v2/state-AND.json.gz": "5c279d5f995771daf248218cfb187ab9f067f360c1461732e44eccbda1a8639c",
+    "assets/data/territorial-entities/generated/v2/state-ARE.json.gz": "f7e195bd8c0a098d369be9bc48a9a677c31caee5abec2a579e339aae91ca1973",
+    "assets/data/territorial-entities/generated/v2/state-ARG.json.gz": "c9a8eb6d1e131622b4aba8c604c5bbbf950c72cd3143007d7753653b2a34f298",
+    "assets/data/territorial-entities/generated/v2/state-ARM.json.gz": "105af14159c1f6cd862ea95cdce3b679298d86d47ea0d70e263bbbbf22cc718f",
+    "assets/data/territorial-entities/generated/v2/state-soviet-union-armenian-ssr.json.gz": "bff7f7cea54e74785b720769d639bd7a352866c9e67daec297997e2985ddfdf9",
+    "assets/data/territorial-entities/generated/v2/state-ASM.json.gz": "c470779f040f618b1d5546c0ec875454ea96f23376e7f0a644af5bf54c8fcad4",
+    "assets/data/territorial-entities/generated/v2/state-ATA.json.gz": "fa3ae392c7e73ed9566aaae7477f1dfabbe30b111b4f113fbdb6f00348eb0518",
+    "assets/data/territorial-entities/generated/v2/state-ATC.json.gz": "e590f35c516cce7f88977efe592a04154cfafdd40c93ad4b45a4ae82b747b979",
+    "assets/data/territorial-entities/generated/v2/state-ATF.json.gz": "70bbe3f2627564284bf1c3dd0918cf0d2d7644250dea1be4ec83138ae6bbaa4d",
+    "assets/data/territorial-entities/generated/v2/state-ATG.json.gz": "6dcf8fec5d74ca2384afde7e67e8b7519fab9ba4c49a8163fef2e3181084e1c8",
+    "assets/data/territorial-entities/generated/v2/state-AUS.json.gz": "e2e63a847ece4ea19176e1dadf410039fa8e874d23a96b037b89c21472b3d49b",
+    "assets/data/territorial-entities/generated/v2/state-AUT.json.gz": "53325529c92b6f472b1bbe190084354412c80f4df8bd0af7dec994c691ef2c5e",
+    "assets/data/territorial-entities/generated/v2/state-AZE.json.gz": "2a11ab22e11f31eec6905fcdf3b21979626b049aa64c28c53802dbed386a4ab4",
+    "assets/data/territorial-entities/generated/v2/state-soviet-union-azerbaijan-ssr.json.gz": "380ea2636ad23cda29e812e4d6644321ede17545b0bd326a3e2c7e5ba4d44e99",
+    "assets/data/territorial-entities/generated/v2/state-BDI.json.gz": "750768be297a411fb0b406eacb7f6569d5cf4273ff36963e6d5c6e3741c5dd1d",
+    "assets/data/territorial-entities/generated/v2/state-BEL.json.gz": "3ed6fff1a9a51ca4fcb1db3dd2c47507ad3847a99f7bbb0af24ba3516ed3e366",
+    "assets/data/territorial-entities/generated/v2/state-BEN.json.gz": "5733ea918dea1c67abf7be874848b7b1a4ef18a53dec3b4e682806f9b82ee040",
+    "assets/data/territorial-entities/generated/v2/state-BFA.json.gz": "931ff354b669cd07d66c1783d5ee7c90197291a619c737be0d45069560d6ca8d",
+    "assets/data/territorial-entities/generated/v2/state-BGD.json.gz": "bedd7b4b73cda43c2b9b14ac396d5de0912bf748f0a9768554815b0c1aec67f7",
+    "assets/data/territorial-entities/generated/v2/state-BGR.json.gz": "7a39937043b61db448462c9e70dc5d531e6a6431e3ba945286da8bcf0163fb43",
+    "assets/data/territorial-entities/generated/v2/state-BHR.json.gz": "41aa632fcc0a5fa1d87154cf3d2d1bd6e92c2bbe55b29540cef74d0f5b95b3af",
+    "assets/data/territorial-entities/generated/v2/state-BHS.json.gz": "b07d42fbadab9d6b14b34a266cc1442fe08804c5453cdfb057a67fdfc0768d7e",
+    "assets/data/territorial-entities/generated/v2/state-BIH.json.gz": "fa4a855dccdedfa33ea1dce7ca87276008f32f2c6990d6e4ce0f24abe1716ab0",
+    "assets/data/territorial-entities/generated/v2/state-BJN.json.gz": "6c1024327d82bc2f74210afcfd44f4113a74b91f544a48d2eb4b4f010fa615c5",
+    "assets/data/territorial-entities/generated/v2/state-BLM.json.gz": "341515cc74223a0d0220eaa5a462fd5d52d53f7d051b8694b58b223ee2ed8975",
+    "assets/data/territorial-entities/generated/v2/state-BLR.json.gz": "ff266ce9ab7bcdf3c90a331ff4b660c128535b425ab346273ef5d7d6db8f595a",
+    "assets/data/territorial-entities/generated/v2/state-soviet-union-byelorussian-ssr.json.gz": "efe6773ab12e5ea042413b73f6a8c4fd46fb6df0be4a3cfb7eca6c6dbfd0e543",
+    "assets/data/territorial-entities/generated/v2/state-BLZ.json.gz": "f0448e8e910b5ceffa1ad040f238dc8a0ebd7c29debb85f1939da6d6fd6ae0c6",
+    "assets/data/territorial-entities/generated/v2/state-BMU.json.gz": "4581a155809bec79efaa66cffd56ebcbbeddae7049f67e72525450fd4bd0a825",
+    "assets/data/territorial-entities/generated/v2/state-BOL.json.gz": "15f2bffc5e541b2963d7b4acd55c25cc017378fe9ac4b633e8ef6b65392d1097",
+    "assets/data/territorial-entities/generated/v2/state-BRA.json.gz": "0895f4db8cb70dcc227630595575d6215dfef9cc208beb6c00065041c1657574",
+    "assets/data/territorial-entities/generated/v2/state-BRB.json.gz": "1a1efa2c3d18a84d6d048fe8256e05e46a7ab11b271aa4ab58ef52607edfd607",
+    "assets/data/territorial-entities/generated/v2/state-BRI.json.gz": "c5264d76af952284012beb90cb6b41371a4514a7cd27b39be31ebb8f3144345d",
+    "assets/data/territorial-entities/generated/v2/state-BRN.json.gz": "199a8956368d74c2a36c95436022082ab6b1989c9059f8a698be3bbf2f9823dd",
+    "assets/data/territorial-entities/generated/v2/state-BRT.json.gz": "4d0b71434054f624e69b81cb3847340c5645f7f5116685a6a91f2c38de969c97",
+    "assets/data/territorial-entities/generated/v2/state-BTN.json.gz": "a9f9d59bffa473528739a5d33637b91a77ed32c9b2959059f100104dba8fe515",
+    "assets/data/territorial-entities/generated/v2/state-BWA.json.gz": "e37318a3bba2ff38efcff3fa7219381049d71006a1a10f23c7a1151600c4d5e7",
+    "assets/data/territorial-entities/generated/v2/state-CAF.json.gz": "ebb4f11ec58db5da88b7cf5b68625037f2090b585618c2fa989ba33cf223e16d",
+    "assets/data/territorial-entities/generated/v2/state-CAN.json.gz": "0c1e264e69ab39bb71b463ed15cc1a4e765a1f75a552ea979ae47ad0a114413c",
+    "assets/data/territorial-entities/generated/v2/state-CHE.json.gz": "eabba068e90a9628b81a84b8f5088dea2ed06ffd7091b0a872f352b8daa49daf",
+    "assets/data/territorial-entities/generated/v2/state-CHL.json.gz": "cc14e59536afe78920066ae9cd420f76f04d8acf619a21ef6083de6480f0c4ce",
+    "assets/data/territorial-entities/generated/v2/state-CHN.json.gz": "0a827269888c1adb34c1a12f1c072a4c95d5360c683e98a5f10d28f7c399dcb7",
+    "assets/data/territorial-entities/generated/v2/state-CIV.json.gz": "519d5005a689d82c58b104c84081ac242f5bbbc132fa76a3f724c467c66e9a59",
+    "assets/data/territorial-entities/generated/v2/state-CLP.json.gz": "d28783300db27d9a90488ac4a3bb0c0b93e6384db041250ed4d8d078a60f36e2",
+    "assets/data/territorial-entities/generated/v2/state-CMR.json.gz": "5d639627933475a768342fcbe24aacaf88f51cb915bc594f7dcecd7fb30e9f15",
+    "assets/data/territorial-entities/generated/v2/state-CNM.json.gz": "37acb3c19beb56f8a1a0146c25c54932984404b545c0cad45990baec45e74943",
+    "assets/data/territorial-entities/generated/v2/state-COD.json.gz": "f8d72e5055b875b42ae3f127be2c65b21603eb1af8045221b378aa45639c2ef2",
+    "assets/data/territorial-entities/generated/v2/state-COG.json.gz": "536063f00edd9fa3a51643ee42196c52e1b0f9427f9963e834e29a6d477f8b45",
+    "assets/data/territorial-entities/generated/v2/state-COK.json.gz": "ca06a89656b72fea2756ac2770659b9648cb4a4e788a53d81962d53529c685cd",
+    "assets/data/territorial-entities/generated/v2/state-COL.json.gz": "b61a592fe9cc116771f9b59ec539a97a855503886869b89e1660e8d6ad2f0e90",
+    "assets/data/territorial-entities/generated/v2/state-COM.json.gz": "526bc46a15257e15cdd798f1f0b28e88d9ee7babf704e78434fa83c9e9e9720f",
+    "assets/data/territorial-entities/generated/v2/state-CPV.json.gz": "6d7987510e6a677918e3b43bdd69022f7a78001d6a4e2c13aafba3ecabaf06a7",
+    "assets/data/territorial-entities/generated/v2/state-CRI.json.gz": "343d10542ab995220f4f9985f3798b5ea436bb014c713566460dab0066708c33",
+    "assets/data/territorial-entities/generated/v2/state-CSI.json.gz": "18d5afaea7fb984f685471dd39dbdb50e91562198a1b648ca111f38d0141c86d",
+    "assets/data/territorial-entities/generated/v2/state-CUB.json.gz": "3aaf1d6a317746fbb9ff07b968ab021c55880d5dc4c737c4ba21d57ff5246e1a",
+    "assets/data/territorial-entities/generated/v2/state-CUW.json.gz": "d865daa602d1143705cd8d29bf94d10210fb943d4f0c9208b839a71ad85a8bce",
+    "assets/data/territorial-entities/generated/v2/state-CYM.json.gz": "6522113d02128c39816b0d2b418c47e04eab56ab841260310d6ff586c21bbf1d",
+    "assets/data/territorial-entities/generated/v2/state-CYN.json.gz": "4f91fa809f258406493d77a75c85cde0de854ef69542720f26a7dd7da2d4b214",
+    "assets/data/territorial-entities/generated/v2/state-CYP.json.gz": "ca9e87376aac801c2b6a51481eb4a2abb0178c74dd3ae71afa5c59d204963c1f",
+    "assets/data/territorial-entities/generated/v2/state-CZE.json.gz": "5f25c49c2b78cd684175b205e2e88d84eb8e1809cf15d5b2d4b16c73c714abbc",
+    "assets/data/territorial-entities/generated/v2/state-czechoslovakia.json.gz": "fbf193a14ccd3fdab8977e236788d1caa60f336fbbf9028232e70ae25e04940b",
+    "assets/data/territorial-entities/generated/v2/state-DJI.json.gz": "4fc640e0ded6c3068c6ecf60037ff9884ad4dfd0b52c3aae63752d94491cfaac",
+    "assets/data/territorial-entities/generated/v2/state-DMA.json.gz": "70eb267d0401ae150604bfcf2290b8840cd87e065c6cc653ec0740c52bfbba11",
+    "assets/data/territorial-entities/generated/v2/state-DNK.json.gz": "dfe19d3b565390c285651d19c1ab048090894de3cf6d4962679ae2b141d70f1c",
+    "assets/data/territorial-entities/generated/v2/state-DOM.json.gz": "ffa082eb8065ffde43bd8cc55747429371fcabb5e33e8c2bdec0bf0ceaebb303",
+    "assets/data/territorial-entities/generated/v2/state-DZA.json.gz": "2a6f50a2e24dc2bba10273f257a588410ceb80a7d2d0e9e0a4ad31be39558720",
+    "assets/data/territorial-entities/generated/v2/state-ECU.json.gz": "f6518ad3687e1e2434baa2f314253030443f0723a8905ebeea6e2921698f5e8e",
+    "assets/data/territorial-entities/generated/v2/state-EGY.json.gz": "bf941f3d03ea1bf5d7a19560831acb30862b44a1fd853c9644356e98d936526b",
+    "assets/data/territorial-entities/generated/v2/state-ERI.json.gz": "173dd7320a289edea82c06f421f27edc3516b397e585ff976a0e84cb65361965",
+    "assets/data/territorial-entities/generated/v2/state-ESB.json.gz": "130d6fa5bc8c11b8c58e30cf4eb6ba2ab16a5d6be8b28cb5aa08a74fd383997a",
+    "assets/data/territorial-entities/generated/v2/state-ESP.json.gz": "25fc794f73786606c342578eed1eb446808a5d2f968223138525d143e30940ce",
+    "assets/data/territorial-entities/generated/v2/state-EST.json.gz": "0a2af6db1c8b63c2b5e0a3b9b8289d08daac14725e9cf1bc0318baf37e1dd9f9",
+    "assets/data/territorial-entities/generated/v2/state-soviet-union-estonian-ssr.json.gz": "81fc4a65f6a76edbcf1371712eee09186b86d125deaa15320837119bafbe36a5",
+    "assets/data/territorial-entities/generated/v2/state-ETH.json.gz": "b38e6b67462eb812a751cffec02e7a13091d12352dfa1b0da269e3ca4053a5db",
+    "assets/data/territorial-entities/generated/v2/state-FIN.json.gz": "8c4a4a3552c15bd13df3b29f89e1ccc8fb023db1d896dc5edf93aff09205046a",
+    "assets/data/territorial-entities/generated/v2/state-FJI.json.gz": "8f0d8d4b943fb606f733210005c7654f837b726612973a35aa564237bf26232a",
+    "assets/data/territorial-entities/generated/v2/state-FLK.json.gz": "46fb259c5f998e4a24d0740ad83895415a9f32bd8eda5539568de1e919fb1444",
+    "assets/data/territorial-entities/generated/v2/state-FRA.json.gz": "8e2d9cd3c837dcd63b592f83d115858cd955a887ba24567749e338ed9932b6ae",
+    "assets/data/territorial-entities/generated/v2/state-FRO.json.gz": "5d8c0f4356f8542ec79186e71054786a88bc8fefa3290df79e56b2ac3981e115",
+    "assets/data/territorial-entities/generated/v2/state-FSM.json.gz": "25ef4e6017971d23f24ef644a8b27730034a6e9e9586d5e872627e4a508d9d7e",
+    "assets/data/territorial-entities/generated/v2/state-GAB.json.gz": "bc29946a02520e967d282f548a0bef57643fb1f5813e367dc298fa45a2ff02da",
+    "assets/data/territorial-entities/generated/v2/state-GBR.json.gz": "9b2dbfccd3de54ba642473a9eace00f363dd340b52216e299ff523108eef18af",
+    "assets/data/territorial-entities/generated/v2/state-GEO.json.gz": "40de1b966c88be9c6b9729c299e30eaffcc3b1c1bb960e8abebc5746dce5cd47",
+    "assets/data/territorial-entities/generated/v2/state-soviet-union-georgian-ssr.json.gz": "ea441b2114f3b75ca01a1354af8c14b734e7b4d3bf1feee29d131c47683950eb",
+    "assets/data/territorial-entities/generated/v2/state-DEU.json.gz": "162641c60ea19d33ead9f0255cb071e570a7e7a0940f94c9585bba89ba6eae1f",
+    "assets/data/territorial-entities/generated/v2/state-deutsche-demokratische-republik.json.gz": "10a670724733767a7c44c07a7bcbbc35c9787a9f491d4f8925350c21ae3151c9",
+    "assets/data/territorial-entities/generated/v2/state-east-prussia.json.gz": "c2ca5dd036b8434896fe1db16e96f57a9faa77abe3841983fdd89cb6f161567c",
+    "assets/data/territorial-entities/generated/v2/state-west-prussia.json.gz": "45369b30be6c978e6e685fa96b037640a99973b294553d300e22bda7789ecc42",
+    "assets/data/territorial-entities/generated/v2/state-GGY.json.gz": "111cb6a4302248e2eb27946cb3691d55679a7a00a52ccef8095e7faeb2838418",
+    "assets/data/territorial-entities/generated/v2/state-GHA.json.gz": "b72b1cab74d784f73972dc99e9fcfb80d3db0ac6dee1c9ecd0ea64cb38b01c3b",
+    "assets/data/territorial-entities/generated/v2/state-GIB.json.gz": "1c4b62363827a74edf706c37fbb2386f56e1faf2d88c7d301043e82f42b9f706",
+    "assets/data/territorial-entities/generated/v2/state-GIN.json.gz": "30daaabbd90e4f2052e47a4e22360cab7a1dbe071af669be45cb398a94485433",
+    "assets/data/territorial-entities/generated/v2/state-GMB.json.gz": "b9dc4de5f2c8ade3591fc84db3c4d6f1921e6f2fb38138362607182df373af88",
+    "assets/data/territorial-entities/generated/v2/state-GNB.json.gz": "ff4537545fdefa038a6fcc6f09529a190df68429717da32d6aafc86659ffa042",
+    "assets/data/territorial-entities/generated/v2/state-GNQ.json.gz": "d59c44e2044ea82d472b195adb9160ce5060ee024811c3626f3eab6dc8d92272",
+    "assets/data/territorial-entities/generated/v2/state-GRC.json.gz": "90fa48a625a83267a9598e62477a4395675b85ebb17f6cd95a93d061464027ad",
+    "assets/data/territorial-entities/generated/v2/state-GRD.json.gz": "b64702c554ce6991830ccf39bc35adf561ada3356b1d072c1db6cf36b7f77708",
+    "assets/data/territorial-entities/generated/v2/state-GRL.json.gz": "b68970bf0e5788589d3fe931179dfc9ea030ad80115a7d53b9c3266f60efbe6f",
+    "assets/data/territorial-entities/generated/v2/state-GTM.json.gz": "60f2c2efb6183ccf6f578a6e1adbea42e63315d4fe2a57e753f8da0e07949bcb",
+    "assets/data/territorial-entities/generated/v2/state-GUM.json.gz": "18a254193968d9e6bd8937361f47c5ea7e2c9328c7f18cf822f75d82fcb5644b",
+    "assets/data/territorial-entities/generated/v2/state-GUY.json.gz": "98f87c14ea7551ade71e74d2a2ebe5e0310f1104704cddae8fd8415d4d1d3dc2",
+    "assets/data/territorial-entities/generated/v2/state-HKG.json.gz": "ac35d601455a5711c94ee0cb02bea224efd6dfaa588ac0f24d2b8120e2227316",
+    "assets/data/territorial-entities/generated/v2/state-HMD.json.gz": "44aba0b72afad7c9ed35c0a2056fde4f7abf8847684e67999abc409812b5b936",
+    "assets/data/territorial-entities/generated/v2/state-HND.json.gz": "dc220b7eff2e3c9b2202d68a06eeb85460219833b745e6de0007138777bd0ae5",
+    "assets/data/territorial-entities/generated/v2/state-HRV.json.gz": "fbd54b99e8e276997c62ac2a7186c77d51e84af385a5cb1f813701f3db835a4d",
+    "assets/data/territorial-entities/generated/v2/state-HTI.json.gz": "baa16413a27b4396e0148ee78418c0af465b392209f81dc194a28c9e213bf2cc",
+    "assets/data/territorial-entities/generated/v2/state-HUN.json.gz": "bdb95010574943363adf6569d8ce97da1b907d5fba1ea879544fff69a4f1550f",
+    "assets/data/territorial-entities/generated/v2/state-IMN.json.gz": "2e1ab1082746211fed8ef52c0535dc82659c102ff879fd3b5c59d71e6b2030cc",
+    "assets/data/territorial-entities/generated/v2/state-IND.json.gz": "972739f757c6329282440ae0aba3dc27c34b2c908e8984ebd7c28629b2290e1c",
+    "assets/data/territorial-entities/generated/v2/state-IDN.json.gz": "c95c8eaa028fdd80cf2f2a6419b1d56bd31d8f8b6e6567bdbb915a118df5e7cf",
+    "assets/data/territorial-entities/generated/v2/state-IOA.json.gz": "24ae56d0a62fd6587dfec617176819c08982e55a4367edb37321037968b13be1",
+    "assets/data/territorial-entities/generated/v2/state-IOT.json.gz": "a508b595a8893a396228ae4fad983955d7ae113c22f0787258def1bc9901cd22",
+    "assets/data/territorial-entities/generated/v2/state-IRL.json.gz": "5726a5bb14f11a5343fd99d2c7a96ff7ef66a5e7fdf4aa5f0eecb88e1d437d79",
+    "assets/data/territorial-entities/generated/v2/state-IRN.json.gz": "0e10bceb2f2f84259eaa2787d3ba24d1bff0e3a39ff31a27307974fd6f6b1d5e",
+    "assets/data/territorial-entities/generated/v2/state-IRQ.json.gz": "b73e1ac82669ec03881df31487d8f8f0a1121937ca132e73bee712607b07dcb1",
+    "assets/data/territorial-entities/generated/v2/state-ISL.json.gz": "bc7afbceec5a896f2d8547aff159c4253e5911615165bdc69bff8605a467c46c",
+    "assets/data/territorial-entities/generated/v2/state-ISR.json.gz": "14501789666cb6ab35066f621828d1d2b75b20d0f0783860c178c0b313dc286b",
+    "assets/data/territorial-entities/generated/v2/state-ITA.json.gz": "5f9dbfa52748f17031ac227fdb3048fa2c95f55e610a51996f53af8c35c0198b",
+    "assets/data/territorial-entities/generated/v2/state-JAM.json.gz": "0827a208b448bdc2f44040e090f50a57e29ae0e2ed7c8250435437ba9fa97804",
+    "assets/data/territorial-entities/generated/v2/state-JEY.json.gz": "9e3b25460ce1ad520a7e43a5f40d2c04b0957f4e31009cb505258af95490ddd5",
+    "assets/data/territorial-entities/generated/v2/state-JOR.json.gz": "40c45ecb41ca8badbf951285c256b8dcd6a62bb1a76ab3efd71c6be99afafcee",
+    "assets/data/territorial-entities/generated/v2/state-JPN.json.gz": "9fda5496bc8c26faa1ba24b10a6d860a288cdd876ff8e67c2cbcc79d070948bc",
+    "assets/data/territorial-entities/generated/v2/state-KAB.json.gz": "6780d6367421f16c0af887b5abd9582fc72551b76e36bfc6270d8c4cdfb1731a",
+    "assets/data/territorial-entities/generated/v2/state-KAS.json.gz": "9da03394c9d08b5463d63633789c9e75024920dd2a22db8c4cf55fd28c06301a",
+    "assets/data/territorial-entities/generated/v2/state-KAZ.json.gz": "25786c1e54ef4f701a777eedb050e45e6a16d88bd84ec7e61b6dc514d55adf67",
+    "assets/data/territorial-entities/generated/v2/state-soviet-union-kazakh-ssr.json.gz": "756d472ca64fc0dedf11f496579fcb456a13cfed72bc2ee794d42d668789cd50",
+    "assets/data/territorial-entities/generated/v2/state-KEN.json.gz": "7e5f65f49f67cb04a306c4f4dd7a6724b53f7b220f02d14ec5e9243bd92cf2c9",
+    "assets/data/territorial-entities/generated/v2/state-KGZ.json.gz": "e5a2dc52fb1974ba585c5ca876fee9700fb6d55d8a6f5e5d7df9dc77df5527eb",
+    "assets/data/territorial-entities/generated/v2/state-soviet-union-kirghiz-ssr.json.gz": "5b8c4d56c1f6d5dd4fe303db5cda0f70b2b0eef7b873c9e505f94ff853df416f",
+    "assets/data/territorial-entities/generated/v2/state-KHM.json.gz": "8bf3e6f58bc91ef65e49344075b1add67461615f609bdfedbc54a35326886fb0",
+    "assets/data/territorial-entities/generated/v2/state-KIR.json.gz": "dae1cc2f1e71e173a0f8b12b1327c8d849392b560f2307fac577fa0b18c16917",
+    "assets/data/territorial-entities/generated/v2/state-KNA.json.gz": "f22f67275eda444194ffc1a897e21dc5ae4f39bb114344a76817a23cab476f91",
+    "assets/data/territorial-entities/generated/v2/state-KOR.json.gz": "43546573a5c204476d66b6fb7682d5ee635962335bd51ce6666867baab8feae8",
+    "assets/data/territorial-entities/generated/v2/state-PRK.json.gz": "2781aa88802ad83447c8f88191e18e17abeeaa12245d3f1d21a828dfe2ad29b4",
+    "assets/data/territorial-entities/generated/v2/state-KOS.json.gz": "7eab789a1e08b02a8e4ccdb8a6afb4d4db20d823ab82b0fc4350ced57fa8cb55",
+    "assets/data/territorial-entities/generated/v2/state-KWT.json.gz": "c47e938cf8e7ce7821782ad7310cc7db19f991f769bdc9cbc556291738a46e7e",
+    "assets/data/territorial-entities/generated/v2/state-LAO.json.gz": "f1261fcd90ce89759a59e52d0be04d378831ae9cf2964ce887014998061aeca9",
+    "assets/data/territorial-entities/generated/v2/state-LBN.json.gz": "55ce27963525b8a73af54f4856ec8f2af1abce4afd7a419937817d1552525131",
+    "assets/data/territorial-entities/generated/v2/state-LBR.json.gz": "6ac0a8a5ed351699c5855b17d25da301ff54804e3bcacd513c23c73b2439b19a",
+    "assets/data/territorial-entities/generated/v2/state-LBY.json.gz": "da253eb452c7c084f479b3ee96d166ed3ca21d29857433061fd5e60338f4820e",
+    "assets/data/territorial-entities/generated/v2/state-LCA.json.gz": "7a3108a2288b3df63be854358088c4cd4d50c792c973d6c44ddb7626e52977ba",
+    "assets/data/territorial-entities/generated/v2/state-LIE.json.gz": "232ec1f49f15463cb163290189a0f505990f880f1ecaebd2c11be50a1a3fdba3",
+    "assets/data/territorial-entities/generated/v2/state-LKA.json.gz": "243b1072a6d5d8ca99bbfa83f8affbc779b29932165cb13dfbe06531164e114f",
+    "assets/data/territorial-entities/generated/v2/state-LSO.json.gz": "a846b65e1c137aa2a9471b77406889c941ac337b631ece75204e155f77e9c985",
+    "assets/data/territorial-entities/generated/v2/state-LTU.json.gz": "584f0d83dcb7f964b728c3fbbb7ca359663b0c4c1990a35d14edb59ad02eb8ff",
+    "assets/data/territorial-entities/generated/v2/state-soviet-union-lithuanian-ssr.json.gz": "5ec911805ba43a8f772d97fea59ff423a5ba113b212f1e0f6e3c2fec3e5c329c",
+    "assets/data/territorial-entities/generated/v2/state-LUX.json.gz": "464247de032d2b0cbe3142f75d5b01a0986ab76013104ce2281c9757231321a4",
+    "assets/data/territorial-entities/generated/v2/state-LVA.json.gz": "669233b04a9fa3ff909f913cd23af6de309b614dfbf768da087c5d8df849ecd6",
+    "assets/data/territorial-entities/generated/v2/state-soviet-union-latvian-ssr.json.gz": "6977fb7ce384a1dc0b46d621b25a50008762c07bfc4b49b9becc74b59365a763",
+    "assets/data/territorial-entities/generated/v2/state-MAC.json.gz": "4a8216a54351ddd7a2489644b83a2f691fd703bfd104da5c66f86819bab9394a",
+    "assets/data/territorial-entities/generated/v2/state-MAF.json.gz": "9f2be5165e8a75c5f637a0aa8b675ec7873fea3448d1b5f1c8df1f912462883a",
+    "assets/data/territorial-entities/generated/v2/state-MAR.json.gz": "4f6cb18731ba6d6613e5906906accc8c4ffc388b7830776aef092c750b3dcc92",
+    "assets/data/territorial-entities/generated/v2/state-MCO.json.gz": "0d4b1f43ccce40058418d3b53ca0ab64488ae70f0f215dfe7aa23d33e9ce146e",
+    "assets/data/territorial-entities/generated/v2/state-MDA.json.gz": "0c57b6df790371442281321e3daad7ede04b4baaceeb1b93add06f89316e95c2",
+    "assets/data/territorial-entities/generated/v2/state-soviet-union-moldavian-ssr.json.gz": "066171bdb591f62840428d7e9a3676e2ec771d629fe26ba224224d88c1059305",
+    "assets/data/territorial-entities/generated/v2/state-MDG.json.gz": "f8e11f78dc1bd164daec76e886addd9c0afc4f4ab1aad82bc0ce6af9e7eb1c81",
+    "assets/data/territorial-entities/generated/v2/state-MDV.json.gz": "f7789ddb4335af7958cd05ebeadf4824e3936ca2eb3aad77ae93ff2e14e31847",
+    "assets/data/territorial-entities/generated/v2/state-MEX.json.gz": "ea010277d65f6d417d94e8126850e1ca833a59393ac25cb937663f471cb03524",
+    "assets/data/territorial-entities/generated/v2/state-MHL.json.gz": "57fd9228770b64a11b334780b3b652c173c7e8d9748475ee689fe3f2f59a46bc",
+    "assets/data/territorial-entities/generated/v2/state-MKD.json.gz": "618382d4e84d11fedd5369f44f6dcd67dd4d016da364d2bed895190dbcf978b4",
+    "assets/data/territorial-entities/generated/v2/state-MLI.json.gz": "6a2f1956637b0bf76f299f26590b81a61dfcbbd8ad9cd85390ea3ace383dc57e",
+    "assets/data/territorial-entities/generated/v2/state-MLT.json.gz": "eda86a7be8c8d846381240f2c66fff3051e2659b749d5dd0df6b161279b43d8b",
+    "assets/data/territorial-entities/generated/v2/state-MMR.json.gz": "fa35dc7cf17372663c06f50d5ef3c2416f02aa75b0b1e30993f1183bf70c50b5",
+    "assets/data/territorial-entities/generated/v2/state-MNE.json.gz": "6abf3435e26882ff9539617b7acd141c0356f0b11230e30e091d824dfe666bca",
+    "assets/data/territorial-entities/generated/v2/state-MNG.json.gz": "8e9af1c5ae1b7301f245a817947ce96076d2577c58653a4c3f52c9d26e936874",
+    "assets/data/territorial-entities/generated/v2/state-MNP.json.gz": "081415d3c3df47507e651dfd0ac33ca4211556f26e9388e549ba13d8f3d734c9",
+    "assets/data/territorial-entities/generated/v2/state-MOZ.json.gz": "c6840cfb8566c6ed101ce3283803714410ae816a5626d86781749608c77e0c48",
+    "assets/data/territorial-entities/generated/v2/state-MRT.json.gz": "25041969e06bc53b09d5530463483437157bc1023a659e58c57815edd8df68e5",
+    "assets/data/territorial-entities/generated/v2/state-MSR.json.gz": "40c8ca38c9f37b03270ea1313564902996bdb12b3a021054235e001849302b34",
+    "assets/data/territorial-entities/generated/v2/state-MUS.json.gz": "37f0c5d98c9846f685c6b33b01d61f9a01064a688e5384b6355e6804e5f08dcc",
+    "assets/data/territorial-entities/generated/v2/state-MWI.json.gz": "0fa335fc7a198f6d2227607c446a6ecb36cacb0f7312699ba89ad9b95bcb7e3a",
+    "assets/data/territorial-entities/generated/v2/state-MYS.json.gz": "2e45ecd13ace1d78f9d6f0ac15f648986413036a9cc5b77269a403b3bf0e44aa",
+    "assets/data/territorial-entities/generated/v2/state-nagorno-karabakh.json.gz": "f16acbeb7d0a164fd87bba190dba403d08cc148df1cfa8ffba29e394b50aa4a5",
+    "assets/data/territorial-entities/generated/v2/state-NAM.json.gz": "00e420f90757e8ae6987a779208cf2b9e2bcdbe02d7a0ddfe83029ff4e0def70",
+    "assets/data/territorial-entities/generated/v2/state-NCL.json.gz": "0e9d4365ae9396287585ee7bd888aa1b8269624587ee9d11056d3984e7306ef8",
+    "assets/data/territorial-entities/generated/v2/state-NER.json.gz": "2aa90cc2b31a88279acb72f98eafe7a8750664515bb690ab45f1cb393ba8b750",
+    "assets/data/territorial-entities/generated/v2/state-NFK.json.gz": "abc6f1b5e31118b5616fbc4509352c5fe06f86ad89d856ae1e5e93e6891c772b",
+    "assets/data/territorial-entities/generated/v2/state-NGA.json.gz": "fedf00bdd95d615c0b255da8ff65c229959ceaafef418e92dbea7457408e0786",
+    "assets/data/territorial-entities/generated/v2/state-NIC.json.gz": "75cc72ef560974583fd711ffd152099e339ad2ebeb791108d47d52e3be76bd3a",
+    "assets/data/territorial-entities/generated/v2/state-NIU.json.gz": "f109d8143a053aa8588fcdce613c9b560a851d0568cb5d7cee8d59fb12b2a5b7",
+    "assets/data/territorial-entities/generated/v2/state-NLD.json.gz": "25c90d94e93501a37edc66bc9fae1e9d6204459b5ac1afb7c71624c8adce156e",
+    "assets/data/territorial-entities/generated/v2/state-NOR.json.gz": "18648db682b87c92f871af9192a578d73326ddd96e3bcf24a4410980d4bdc810",
+    "assets/data/territorial-entities/generated/v2/state-north-schleswig.json.gz": "24cd653e5adac4123fc5867f30bac926d7733abd4c86a9bca86958268733211b",
+    "assets/data/territorial-entities/generated/v2/state-NPL.json.gz": "142629752ec5122b19db3953edc1ea805aacc4b461d77cdce3f26b2875316587",
+    "assets/data/territorial-entities/generated/v2/state-NRU.json.gz": "c14ce3323ccd95ef2c064fd98cc81e012b86b67e02ef922a8ef3df025f8320e6",
+    "assets/data/territorial-entities/generated/v2/state-NZL.json.gz": "5cd427252216a9d1df4fef5b1442b6ff458699ce311bb0ddcd1bc27201882424",
+    "assets/data/territorial-entities/generated/v2/state-OMN.json.gz": "0a420a0bdb0e58f8fce0e4a7869037baedcedbc0c7beeffef4f8856c38b08f84",
+    "assets/data/territorial-entities/generated/v2/state-PAK.json.gz": "f12e3a8b1a89a12a272ea65bfb045da4001efbd0d73fea0aded3cf9faff5ba5d",
+    "assets/data/territorial-entities/generated/v2/state-PAN.json.gz": "a5b5235f4bbed11a22b394c40958bef536dac7c3675c997fe7972df7ceea45be",
+    "assets/data/territorial-entities/generated/v2/state-PCN.json.gz": "a48f7175f5875abcd30f097b898157fde38532c63a05a95d3760b2006c09f863",
+    "assets/data/territorial-entities/generated/v2/state-PER.json.gz": "37220b8543157414fe2d785b932260713420491b90352cd112a1595c4a6d6e83",
+    "assets/data/territorial-entities/generated/v2/state-PGA.json.gz": "05ee49df3dbeb5cc4678706f488c7d2faf7d3af5501b111c1596bd20026af999",
+    "assets/data/territorial-entities/generated/v2/state-PHL.json.gz": "58918f75a852c099e92eb0748ec7a29bee043e6264a154ca821920b857494cd9",
+    "assets/data/territorial-entities/generated/v2/state-PLW.json.gz": "c89739fe945070ab1f087e5e6adb823ce2e16b51fa3d4f3d58bb206e39b4445d",
+    "assets/data/territorial-entities/generated/v2/state-PNG.json.gz": "57b73cf78c6a070be55395aa8500671a4e1e15ce683d52c011c9f02749df970c",
+    "assets/data/territorial-entities/generated/v2/state-POL.json.gz": "b99e6d126442cf9b05f6a5b8a25c026efaaf73a9d8ebabc723e98b9777c21af0",
+    "assets/data/territorial-entities/generated/v2/state-PRI.json.gz": "f089e5c5921ffa290d19280b8bc0f1154f45c9f66cbbf5fd0ef467462c750bc1",
+    "assets/data/territorial-entities/generated/v2/state-PRT.json.gz": "1c8c4dde3c1cbe8ff1592f95ec5a5aaccfbe779cea9bf181d3d4d59232a47c84",
+    "assets/data/territorial-entities/generated/v2/state-PRY.json.gz": "846aedfc465c599ca4cbbf515d18dd10dbe28c24c9d6b13ab2158fb4dd74ab12",
+    "assets/data/territorial-entities/generated/v2/state-PSX.json.gz": "599fa6293f7cc3b6dec595119093c8ae1ae3ea6ecb451d1c98e7c21473c71d12",
+    "assets/data/territorial-entities/generated/v2/state-PYF.json.gz": "bde2090df7c38ee9342a21271a3da99b2f10e4cca960e66bb8e3e8d9a41e74e1",
+    "assets/data/territorial-entities/generated/v2/state-QAT.json.gz": "d6f84d3fc464aa39c90cbc8f68a45c37c36766f8d2b65ded958efe7cdca72cf3",
+    "assets/data/territorial-entities/generated/v2/state-ROU.json.gz": "ca9428c7dc086f82e18bff0b10de7d0e0df479690cd186bbcffdda36764144cd",
+    "assets/data/territorial-entities/generated/v2/state-RUS.json.gz": "a8b6585d7deb97fd6993bb0ccfbf7d11fa7ca125786e0f011aba83bad881b5d1",
+    "assets/data/territorial-entities/generated/v2/state-soviet-union-russian-sfsr.json.gz": "28fb7ed41dfc2d806dd2d24a97c4090c7eb0494f413a53277ee7214be0d930bf",
+    "assets/data/territorial-entities/generated/v2/state-RWA.json.gz": "f00e317276d052548d8c34ae58598bb5af6c74e3a10e54127e57c1bc13c52487",
+    "assets/data/territorial-entities/generated/v2/state-SAH.json.gz": "85301a87860d7e920c6b958ed2f714c3ba1bdce367b687e48a72d3f87a9063bc",
+    "assets/data/territorial-entities/generated/v2/state-SAU.json.gz": "95028d8bcc7dbe322ec3422ba51369b5fa058bfdfd186ce75ef9ff9e2a830e23",
+    "assets/data/territorial-entities/generated/v2/state-SCR.json.gz": "38f422d1466179bc7e34509678f7776f5c656e9211c3b871065507f0f6fff0cd",
+    "assets/data/territorial-entities/generated/v2/state-SDS.json.gz": "8c155801107001a8cdd781879c2297bc9afa227d6f73ea2929ebfb7a2e707e6c",
+    "assets/data/territorial-entities/generated/v2/state-SEN.json.gz": "69b209fb806addcc4067d10ed838ad20f662c046da8a95fe3ce7c0ea431adc59",
+    "assets/data/territorial-entities/generated/v2/state-SER.json.gz": "6aa02b858751f440774ae2a5f2b7100c7eadf5a007fe572b56abc8c156cef601",
+    "assets/data/territorial-entities/generated/v2/state-SGP.json.gz": "40fa36f29116560d8e4f83a36487484678382f03cdb8b56b34ed1069cbfc57d1",
+    "assets/data/territorial-entities/generated/v2/state-SGS.json.gz": "102f2f10ba4266c30d77d743a0d9678e8802d58e9e1823cf6fea064b1fd6ba20",
+    "assets/data/territorial-entities/generated/v2/state-SHN.json.gz": "a6cafc8bd8f10e960aafd85652823c139fb47c3166d42b493d05eae5e321524b",
+    "assets/data/territorial-entities/generated/v2/state-SLB.json.gz": "020b25a6b5f29f58045b0ed76964aad2a680579b6d83ced6b5b2d1cef200bbc5",
+    "assets/data/territorial-entities/generated/v2/state-SLE.json.gz": "5feabd0dab082d81fea58e9faafec3c1706329e10c356feeba2664899d028d24",
+    "assets/data/territorial-entities/generated/v2/state-SLV.json.gz": "81182b7ccd8477ac2f9c7e04687d093335a6e3f1a05dc437f06f6ae9f6fc5d2f",
+    "assets/data/territorial-entities/generated/v2/state-SMR.json.gz": "29ef84eb8ef989f3dec464e0fa3c980f41a5965f435bf5adf3695071a0fe376d",
+    "assets/data/territorial-entities/generated/v2/state-SOL.json.gz": "7dfdba003b1350c542ab4e42a2fc116258669c8c7ba1fdce948cb64330b52749",
+    "assets/data/territorial-entities/generated/v2/state-SOM.json.gz": "05ab032f8fa051817341993eb6d2cb768f62c491620875d9ab71bc3883df0939",
+    "assets/data/territorial-entities/generated/v2/state-soviet-union.json.gz": "cb4355e6c08ef42ac3d8b214680761624099d9dea659901b8c762d6191802eaf",
+    "assets/data/territorial-entities/generated/v2/state-SPI.json.gz": "80931cf8ffe1459ca623471e1c38c7e9e9389f19c7ab02f5b143d602164aa784",
+    "assets/data/territorial-entities/generated/v2/state-SPM.json.gz": "46d89aca1b51fb6e130dd0424e1e962bae1f911fe4b1d2f64ad8707e4418931b",
+    "assets/data/territorial-entities/generated/v2/state-SRB.json.gz": "147ca02bf82024e2af9ac9ad8265fb1fb47dbd979dbd643d964f505dc9ef28ca",
+    "assets/data/territorial-entities/generated/v2/state-STP.json.gz": "ef75b920988992b93d831f2fe7dc182b62f0d5f87b0311b78af70077f044450b",
+    "assets/data/territorial-entities/generated/v2/state-SDN.json.gz": "1374213dd1ea9679666ea09610d972e6a6985c3d497b3b328fa7e4fa806605be",
+    "assets/data/territorial-entities/generated/v2/state-SUR.json.gz": "1f518a26dfe2458ed1ed06d886041c60b631aa01c6b6569c6218247ae3d1ae37",
+    "assets/data/territorial-entities/generated/v2/state-SVK.json.gz": "351fdf38ff97dd3d5367da3284e7967a52ac177c95541b812279138b6bb40758",
+    "assets/data/territorial-entities/generated/v2/state-SVN.json.gz": "7ac95869689603ed817bd2f55cb80adc2905798ce1a2de33eac3e37c6721e696",
+    "assets/data/territorial-entities/generated/v2/state-SWE.json.gz": "439447c2fd00c728130bfd1a79c7fb22336c5fac7ba9d9f5bf49290a2a21963e",
+    "assets/data/territorial-entities/generated/v2/state-SWZ.json.gz": "5c8414ed02c5d2ba8f4d4c941fc0e24d20451aedbf3a702e050ce1bc57106219",
+    "assets/data/territorial-entities/generated/v2/state-SXM.json.gz": "65a1ff9542c0e9136e768566db78a4cbc180cb710354957b6c632ecd0493d03f",
+    "assets/data/territorial-entities/generated/v2/state-SYC.json.gz": "5f59242887507cb568e54b6f3939b3d02d1ebe44c39bfe2b402c13ca0ba0244f",
+    "assets/data/territorial-entities/generated/v2/state-SYR.json.gz": "0a2287e0618608a0827090666fbc3066f7ee28ebcc794b00573d66061f384980",
+    "assets/data/territorial-entities/generated/v2/state-TCA.json.gz": "d3f1483be6876bc71c7fd527c030e212541e52ed6d50908773adbf19ba78ee6b",
+    "assets/data/territorial-entities/generated/v2/state-TCD.json.gz": "3add81fba5944fe57e4fdb67c980ad929f35afc26f39f197ad3d4da4af866f35",
+    "assets/data/territorial-entities/generated/v2/state-TGO.json.gz": "a5708625f05690f1f49e128a52a95b812aeb3abf20455c70b14a4429a6d64b36",
+    "assets/data/territorial-entities/generated/v2/state-THA.json.gz": "a4c34eff427a7263d7810593631897d99e5e20b3ee9cb728c6f57ca1cb7fe92a",
+    "assets/data/territorial-entities/generated/v2/state-soviet-union-tajik-ssr.json.gz": "64de1e93105009bc059cf5d6546faf581cc0b2481863422187f08019f2ae813c",
+    "assets/data/territorial-entities/generated/v2/state-TJK.json.gz": "9193cab31dd7c530aa70fe4e41f8b68dcaef9b3d84174ff8534f5c96825d769c",
+    "assets/data/territorial-entities/generated/v2/state-soviet-union-turkmen-ssr.json.gz": "222dd068b3f07bc70374a35cbdea30e42806a506dc13ae708ee3372d34dce48d",
+    "assets/data/territorial-entities/generated/v2/state-TKM.json.gz": "4ae5713f1fa0d0320c2692b904c1bb3538c18145afe77bdaf66b6502b5f49250",
+    "assets/data/territorial-entities/generated/v2/state-TLS.json.gz": "07662ea26bdbeba6f5a6042ed3e68d324b78dc6072f9404aadc9024cf7cf32cf",
+    "assets/data/territorial-entities/generated/v2/state-TON.json.gz": "6e62494152012e6cecd44abccf9a68fea4c1b3c4fbceb7803e293033fbc59b6d",
+    "assets/data/territorial-entities/generated/v2/state-TTO.json.gz": "0a76b791f3e31508ca0eb4e72e0d49678a41c2c20b68acb8b8c7c15c8189693c",
+    "assets/data/territorial-entities/generated/v2/state-TUN.json.gz": "d72c22f9dbb335606041c373d42f7ab6c3d847afa80875625e9a0ff28d8a604c",
+    "assets/data/territorial-entities/generated/v2/state-TUR.json.gz": "11050917b1d00c50143f20d0ef5ca2b9e60f2fb9b2f18549dea471443821e918",
+    "assets/data/territorial-entities/generated/v2/state-TUV.json.gz": "a28d03e1dd22ef37acfda86a178bbed663e62dfd4ae7af52d89aef7dc3794f80",
+    "assets/data/territorial-entities/generated/v2/state-TWN.json.gz": "0622c9bda5f6ceff1b782e320d8c4727b2e12e2c881056908b224a541a70e025",
+    "assets/data/territorial-entities/generated/v2/state-TZA.json.gz": "ecbaf2160db65fbf13291c4f0524c284d61ba3f04744c8a63c4788e1a2b3d77f",
+    "assets/data/territorial-entities/generated/v2/state-UGA.json.gz": "5f1e5545ed5ddedfae349fec692756d23da054fd2ebfb0b904b1044f44b777da",
+    "assets/data/territorial-entities/generated/v2/state-soviet-union-ukrainian-ssr.json.gz": "cfd95d8e93a598d6a36052d78ac0949877972d98bfeafaac83e181c2ee9c2f78",
+    "assets/data/territorial-entities/generated/v2/state-UKR.json.gz": "973cfc6afb26809d84761248b3d304521c8969c5db37c362e482b3baceb488fd",
+    "assets/data/territorial-entities/generated/v2/state-UMI.json.gz": "7e9c4cd0785ed8f9f40de1d7768e5bde6b19f317f2f1a116b56f9668300d0d39",
+    "assets/data/territorial-entities/generated/v2/state-URY.json.gz": "9a846231ab93b2397b4c54c58e976b1e07f8dd8a165857e41c3469fe4a5f8006",
+    "assets/data/territorial-entities/generated/v2/state-USA.json.gz": "a0237bb7e49c5cb488d49d1d7fac984790264ffe96f915808ea9348c3552aa95",
+    "assets/data/territorial-entities/generated/v2/state-USG.json.gz": "471eafd9a99c274d1469fb28c9922e48c751ccff82d4e47cc62dfe49f70897c4",
+    "assets/data/territorial-entities/generated/v2/state-soviet-union-uzbek-ssr.json.gz": "2cf46b783b44a02484c9e50bae5593a4ddd46ed062fd1fe7fea264aa11f4fb7e",
+    "assets/data/territorial-entities/generated/v2/state-UZB.json.gz": "818afb50d0b43fb6c706b0fb7a08ca393d5eba943c59cb5fd7510d04b24185d1",
+    "assets/data/territorial-entities/generated/v2/state-VAT.json.gz": "9b9d06ae54c7082a12beb95e6af1b7985a6e884947971d418a78c54f85d17c2c",
+    "assets/data/territorial-entities/generated/v2/state-VCT.json.gz": "14b1231640913811bcd14a95ed321951011551cee157ce6bf447739e97d19d70",
+    "assets/data/territorial-entities/generated/v2/state-VEN.json.gz": "37531721274f91671592610a38afd23245cc6a815e92e87b48fbe44272dd649b",
+    "assets/data/territorial-entities/generated/v2/state-VGB.json.gz": "dc75c8bd9be17c0120c3f5d36c74b9a6da26da28226f4debc116d93f7d0e2889",
+    "assets/data/territorial-entities/generated/v2/state-VIR.json.gz": "076eaaa075adaa43d2d9b81ad5558d70626983be3781af77391cf00a7df5be1a",
+    "assets/data/territorial-entities/generated/v2/state-VNM.json.gz": "5f4c5723a560795b1d6adcdeff496aa6c3118e1754a3a98ae1275ac0a40c00ac",
+    "assets/data/territorial-entities/generated/v2/state-VUT.json.gz": "aea4fe3b0604124e68f75d66c9eaa5e6c2a8c4412d0f8dfb64e6c2977d71c0d2",
+    "assets/data/territorial-entities/generated/v2/state-WLF.json.gz": "ffb50fc067d57d5e5af8ca168c3ef77a074795e8516e5cd6dc37e2ef52b60148",
+    "assets/data/territorial-entities/generated/v2/state-WSB.json.gz": "796471c12f86c063eb0378004d077d1f7489285f452cd642f400ced671bc84b8",
+    "assets/data/territorial-entities/generated/v2/state-WSM.json.gz": "5c31bafc09afc93ea2e124c9046d77418c9723c4441c65bc3dd23637eba81dcf",
+    "assets/data/territorial-entities/generated/v2/state-YEM.json.gz": "49cb24e203dba1f0a0b952a9fc7dde94a75b3b6c97b7b73af122cecd96f79ba9",
+    "assets/data/territorial-entities/generated/v2/state-yugoslavia.json.gz": "407ab95e52e1e732dd5a32089a348cfb967b38a54b856d91df2baa33b9dc89d6",
+    "assets/data/territorial-entities/generated/v2/state-ZAF.json.gz": "dc0d247a2e2b4c699b0b15b67b9d1bda76be76b938e1047803d80a36f28e0928",
+    "assets/data/territorial-entities/generated/v2/state-ZMB.json.gz": "c63ca5d39b6f82c1d488a6302346eb0896abb18d74206b8cf89607f4a9f34162",
+    "assets/data/territorial-entities/generated/v2/state-ZWE.json.gz": "621db46e53d692da70cc0924bf2282500856756433b5bde1d1745a7664777a69"
+  },
+  "precisionDiscards": [
+    {
+      "id": "state:soviet-union",
+      "month": "1991-09",
+      "discards": [
+        {
+          "operation": "difference",
+          "polygonIndex": 0,
+          "areaM2": 7.491165075920275e-8,
+          "ringCount": 1,
+          "vertexCount": 4
+        }
+      ]
+    },
+    {
+      "id": "state:soviet-union",
+      "month": "1991-10",
+      "discards": [
+        {
+          "operation": "difference",
+          "polygonIndex": 0,
+          "areaM2": 7.491165075920275e-8,
+          "ringCount": 1,
+          "vertexCount": 4
+        }
+      ]
+    },
+    {
+      "id": "state:soviet-union",
+      "month": "1991-11",
+      "discards": [
+        {
+          "operation": "difference",
+          "polygonIndex": 0,
+          "areaM2": 7.491165075920275e-8,
+          "ringCount": 1,
+          "vertexCount": 4
+        }
+      ]
+    }
+  ],
+  "meshes": {
+    "00238ed92de0e11a41b39f9e0d89e0310a01b9a3ee35bcc29f10667420b4f21d": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-7460aee4232f41cc30cc64ae749c767c73ae329caefa10422be1aae6bffc1146.bin.gz",
+      "sha256": "7460aee4232f41cc30cc64ae749c767c73ae329caefa10422be1aae6bffc1146",
+      "encoding": "gzip",
+      "compressedBytes": 1215,
+      "decodedBytes": 1936
+    },
+    "016b6d3903b9178615b059174108dea022a52bc51a1aa1aff2c3ef90b3a05a52": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-bc89810be0c36d88c7d7f125380448ae1ece3bcc09ac83eb4fd7c0f85b3f87a9.bin.gz",
+      "sha256": "bc89810be0c36d88c7d7f125380448ae1ece3bcc09ac83eb4fd7c0f85b3f87a9",
+      "encoding": "gzip",
+      "compressedBytes": 6241,
+      "decodedBytes": 11288
+    },
+    "01cf3acb0ee94b1d799bb4299e5030f934d5832e05ce9a122440d63dca50d352": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-186d8324e51fb791c340c49f2c5a3145222b20f91698956befdd0a67a5ec8650.bin.gz",
+      "sha256": "186d8324e51fb791c340c49f2c5a3145222b20f91698956befdd0a67a5ec8650",
+      "encoding": "gzip",
+      "compressedBytes": 1433,
+      "decodedBytes": 2504
+    },
+    "01e20ddb2e3faddddf10547822d6f9c294349ed9109772c06ada23bd8949dfec": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-7023857caec9abbf8ce5d18754bf7031de250fa2beb3eaf4195aaeb060b1fee3.bin.gz",
+      "sha256": "7023857caec9abbf8ce5d18754bf7031de250fa2beb3eaf4195aaeb060b1fee3",
+      "encoding": "gzip",
+      "compressedBytes": 98999,
+      "decodedBytes": 193624
+    },
+    "020139021f73e8c123a18d40dbb5dff692f7db6aa383add396108cd034ae8b31": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-e1d33a6bebf05171321599c5b8ba48dfb76dbe92f4e2084d9b23100e74d206ae.bin.gz",
+      "sha256": "e1d33a6bebf05171321599c5b8ba48dfb76dbe92f4e2084d9b23100e74d206ae",
+      "encoding": "gzip",
+      "compressedBytes": 83983,
+      "decodedBytes": 197544
+    },
+    "02da33ae05c62d88afd9ab3efe01edb52b7d03979fb3e2da0be52086c5b353fe": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-92c0a883952eb131bd036b7701ecb085f35df2a6116feb6bc0078806941b56fa.bin.gz",
+      "sha256": "92c0a883952eb131bd036b7701ecb085f35df2a6116feb6bc0078806941b56fa",
+      "encoding": "gzip",
+      "compressedBytes": 54766,
+      "decodedBytes": 118048
+    },
+    "02f743b5bae12d3be889c752eaceadace5a85088e4b7197dabf0f89cc35415d7": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-c910e8f24471152ff42023880cacd12008026a0eda34da61d0afa54b63dbe857.bin.gz",
+      "sha256": "c910e8f24471152ff42023880cacd12008026a0eda34da61d0afa54b63dbe857",
+      "encoding": "gzip",
+      "compressedBytes": 46485,
+      "decodedBytes": 98328
+    },
+    "0303c2ac16f4df26686b60e93592c0636281f01482da85aefca3d5a4c30d8a70": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-6a07d0c4f04e532260ad33b167e0ae9a4d31e68306414bcddd2e255411c2c968.bin.gz",
+      "sha256": "6a07d0c4f04e532260ad33b167e0ae9a4d31e68306414bcddd2e255411c2c968",
+      "encoding": "gzip",
+      "compressedBytes": 66585,
+      "decodedBytes": 150256
+    },
+    "044295de6d87eca63fce63a3fe9ac031cbb5e35063fdcfba5acad83208277671": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-8b01bc04412e126a17d55b3c1334b5edd5e40207ad02badce62dfaa763b32beb.bin.gz",
+      "sha256": "8b01bc04412e126a17d55b3c1334b5edd5e40207ad02badce62dfaa763b32beb",
+      "encoding": "gzip",
+      "compressedBytes": 35123,
+      "decodedBytes": 62192
+    },
+    "04b7cf5b9df3fab1ec488e8b54832c59f1d5c8325014e577ff32b015bf79f079": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-e65141e824e8002d2fedad308bd73c89cbe7f828607a732d58360b8b3883af29.bin.gz",
+      "sha256": "e65141e824e8002d2fedad308bd73c89cbe7f828607a732d58360b8b3883af29",
+      "encoding": "gzip",
+      "compressedBytes": 949626,
+      "decodedBytes": 2223456
+    },
+    "05be080dbce672da22c52d7994fcf0ba0d16c37784a31e03129e6822573d637e": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-bcc82548794e02ce28c2c7ef09550fa354c4caec0c2838671f6369a3a2764a69.bin.gz",
+      "sha256": "bcc82548794e02ce28c2c7ef09550fa354c4caec0c2838671f6369a3a2764a69",
+      "encoding": "gzip",
+      "compressedBytes": 78610,
+      "decodedBytes": 160064
+    },
+    "06935b2bdc4c92fa166201ee39bb47da642c7d70c2ca85a7e36568b54ffb4be6": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-3bb9c688c55d36550dfcd5404e099484a6c82ca00821d7ab2b53d572b3872253.bin.gz",
+      "sha256": "3bb9c688c55d36550dfcd5404e099484a6c82ca00821d7ab2b53d572b3872253",
+      "encoding": "gzip",
+      "compressedBytes": 11532,
+      "decodedBytes": 19336
+    },
+    "06bc166fece19bb302485327306c9c848e949e92a04bfe87dd58063580d98168": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-0492fde6ef763a05f05ae898bf5f3b3bf7198ab9d6020d7c7c3abb84b437eb4a.bin.gz",
+      "sha256": "0492fde6ef763a05f05ae898bf5f3b3bf7198ab9d6020d7c7c3abb84b437eb4a",
+      "encoding": "gzip",
+      "compressedBytes": 118495,
+      "decodedBytes": 249464
+    },
+    "06d8bcf4076216a3164f4a8ab9572a61b6955d2dd870314facb13f2b71b64be5": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-c4ea61eaaa321e9c84829cdcafbdf76abe6d42789294707d698bd0d5e5cb19ac.bin.gz",
+      "sha256": "c4ea61eaaa321e9c84829cdcafbdf76abe6d42789294707d698bd0d5e5cb19ac",
+      "encoding": "gzip",
+      "compressedBytes": 335708,
+      "decodedBytes": 742712
+    },
+    "076e1493defaa958137b7beb2407191b35f9d34ab0646cd9682490f64e72fcdf": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-1fe3b782cd9c99beb02a455e934ac11e32a2fd2c8891cf8e5950c2e1ad2be90a.bin.gz",
+      "sha256": "1fe3b782cd9c99beb02a455e934ac11e32a2fd2c8891cf8e5950c2e1ad2be90a",
+      "encoding": "gzip",
+      "compressedBytes": 93441,
+      "decodedBytes": 200688
+    },
+    "0826170ad5dc2b4dfd7f3851ab637d407ec1bff0a2e0ab8a3083c5fb3cb871b0": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-c0f545db4f78fa6fd140a5136ebf246855c6abaf1b4123be32809cd9b823e5f2.bin.gz",
+      "sha256": "c0f545db4f78fa6fd140a5136ebf246855c6abaf1b4123be32809cd9b823e5f2",
+      "encoding": "gzip",
+      "compressedBytes": 14778,
+      "decodedBytes": 25496
+    },
+    "091f0c0658cee2cbb184ff2165b42f3454bbf1c45bb1527dfb14953864171687": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-0c98971072b81282e3a1ed518526f6b5e9c9cb5e5eceaf4ad1cc11790c6eae37.bin.gz",
+      "sha256": "0c98971072b81282e3a1ed518526f6b5e9c9cb5e5eceaf4ad1cc11790c6eae37",
+      "encoding": "gzip",
+      "compressedBytes": 1359,
+      "decodedBytes": 2264
+    },
+    "093f53f1d20e2f3fc1b70ed908e72d972ef7e82c7e957ddca1b6e376214cb1af": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-921029b69e463f89ab88895303a1b2944a8deb745277ddcf57b217851b0dd105.bin.gz",
+      "sha256": "921029b69e463f89ab88895303a1b2944a8deb745277ddcf57b217851b0dd105",
+      "encoding": "gzip",
+      "compressedBytes": 28415,
+      "decodedBytes": 50408
+    },
+    "0a7c1f851e185fab40729e2322752c15851e07079c405663f99921f0e7d0cd34": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-ec96da8df66233b2e43cb01ab141fdba1dea53a9fe6306d127537882fe73bcde.bin.gz",
+      "sha256": "ec96da8df66233b2e43cb01ab141fdba1dea53a9fe6306d127537882fe73bcde",
+      "encoding": "gzip",
+      "compressedBytes": 60951,
+      "decodedBytes": 125672
+    },
+    "0be1feab8c40cd1d206dc80a4de3a89a06b59eeed95ee0a2de6e064ce54f923d": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-00c1c37a6749fe0208bc11dafdeba63de1298d310d1e5e572f0221468fc6b09c.bin.gz",
+      "sha256": "00c1c37a6749fe0208bc11dafdeba63de1298d310d1e5e572f0221468fc6b09c",
+      "encoding": "gzip",
+      "compressedBytes": 5173,
+      "decodedBytes": 9752
+    },
+    "0c368b37617ec040bc8cf0d939fc071078127b96430b423d2605a6ba8abcf84f": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-8da3933583e9f86d794f6fee760460e8ddeabf3c9f4be4ea9c7041e35c51d2cb.bin.gz",
+      "sha256": "8da3933583e9f86d794f6fee760460e8ddeabf3c9f4be4ea9c7041e35c51d2cb",
+      "encoding": "gzip",
+      "compressedBytes": 19517,
+      "decodedBytes": 35144
+    },
+    "0c50f723354a276053f7a92524e692df0722719d52ec8f8516eb19e7350879e9": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-b3ea73023f2e886521707b0e9b2613adfc8d7bc503c890c3d530c6ef133b8ea9.bin.gz",
+      "sha256": "b3ea73023f2e886521707b0e9b2613adfc8d7bc503c890c3d530c6ef133b8ea9",
+      "encoding": "gzip",
+      "compressedBytes": 36207,
+      "decodedBytes": 76168
+    },
+    "0c51656c3e4c3a8b10f45ff93f7da6517903af9448ab3d8a9df2c24309326ddd": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-9afa2bc3603a91bed23056a07bb336d87134908505b7a47406850112aced7b52.bin.gz",
+      "sha256": "9afa2bc3603a91bed23056a07bb336d87134908505b7a47406850112aced7b52",
+      "encoding": "gzip",
+      "compressedBytes": 1640,
+      "decodedBytes": 2744
+    },
+    "0dab339755bfd22f47d884af671e583d4669059804da8cbc6b04b089b2ef49f8": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-0660f83d6ed5ea43d01439802fae82cf36ec7e1fc250a8ec61d9f910ce760ffc.bin.gz",
+      "sha256": "0660f83d6ed5ea43d01439802fae82cf36ec7e1fc250a8ec61d9f910ce760ffc",
+      "encoding": "gzip",
+      "compressedBytes": 513129,
+      "decodedBytes": 1146160
+    },
+    "0dcec8df1cdcbf5964a2e0ee1af863b0a263501d122c06ed5e276e7301b2ddf5": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-cfb2ae007553ebbf05486d303f6345d2be4f16b5e41676f6b9be47d0a1e6b476.bin.gz",
+      "sha256": "cfb2ae007553ebbf05486d303f6345d2be4f16b5e41676f6b9be47d0a1e6b476",
+      "encoding": "gzip",
+      "compressedBytes": 2723,
+      "decodedBytes": 4568
+    },
+    "0e4a91a211b7afa5aff577e54a99928ab770b47476dde0ac05d2019a3fc057da": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-3fd0b44fbdaf9a878a2cd4619ef4270bce6365baf693869ef6232cfc5f15663d.bin.gz",
+      "sha256": "3fd0b44fbdaf9a878a2cd4619ef4270bce6365baf693869ef6232cfc5f15663d",
+      "encoding": "gzip",
+      "compressedBytes": 3881,
+      "decodedBytes": 6776
+    },
+    "0e7a6e237ad941988296cec05cd750b35091a46424831287b3349dbf827676d8": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-fa2c0d32d7abe909dbb255b0d6d894129ac0a562a2a416b6052830842a3e9f97.bin.gz",
+      "sha256": "fa2c0d32d7abe909dbb255b0d6d894129ac0a562a2a416b6052830842a3e9f97",
+      "encoding": "gzip",
+      "compressedBytes": 25940,
+      "decodedBytes": 52264
+    },
+    "0faf7fc5d7c2f0731ff428c735d77b9cac479bd44bc8dd25b1426728598951e6": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-ff74dec44fac77b0d1ff6b4f2375d7492d36c8287f11fa640861e05c720bf90c.bin.gz",
+      "sha256": "ff74dec44fac77b0d1ff6b4f2375d7492d36c8287f11fa640861e05c720bf90c",
+      "encoding": "gzip",
+      "compressedBytes": 1230,
+      "decodedBytes": 2024
+    },
+    "105321d038cdf551cd2ae1ad8fe84b92be6ab9df6c12915d47383d650ac4a6ad": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-e0c5299ca1c5fa9be8517540a2322c854e5a2bd56059f567605e4cb7040947d1.bin.gz",
+      "sha256": "e0c5299ca1c5fa9be8517540a2322c854e5a2bd56059f567605e4cb7040947d1",
+      "encoding": "gzip",
+      "compressedBytes": 55698,
+      "decodedBytes": 103304
+    },
+    "107ed1999f2e412c7719ca3255dd80181e40977afd812bf50611e023594f3c9b": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-696d1c50d87b2567c0146436520c6a7cc32017f0c06172bf846cd0e1dd74aa2e.bin.gz",
+      "sha256": "696d1c50d87b2567c0146436520c6a7cc32017f0c06172bf846cd0e1dd74aa2e",
+      "encoding": "gzip",
+      "compressedBytes": 177592,
+      "decodedBytes": 373880
+    },
+    "110be4326924acd4175c7609998ff1a17f977019f8886f8e2cca2954b0c61bd9": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-f65160d1313b9f4e725f535589cbd228e8a053994488520157069ee1fcfd2f90.bin.gz",
+      "sha256": "f65160d1313b9f4e725f535589cbd228e8a053994488520157069ee1fcfd2f90",
+      "encoding": "gzip",
+      "compressedBytes": 2219,
+      "decodedBytes": 4376
+    },
+    "118ac62e3470d9d37998f4fde1521ddae932da9655f5856c9e92ae507506c411": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-45d51ffe3dc1ecd76d7ae91fc03fd9f158aa7f87aa6f7c290cd753858772945b.bin.gz",
+      "sha256": "45d51ffe3dc1ecd76d7ae91fc03fd9f158aa7f87aa6f7c290cd753858772945b",
+      "encoding": "gzip",
+      "compressedBytes": 10991,
+      "decodedBytes": 21944
+    },
+    "11c8fe75889b68bc4a0ac10c7aa5d65b367e4e19d9b3f40c4abab9688cfebde8": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-03f080ebad27a5fe3452d509edce244ccc46528c54ad2d17c3887e37d05d8923.bin.gz",
+      "sha256": "03f080ebad27a5fe3452d509edce244ccc46528c54ad2d17c3887e37d05d8923",
+      "encoding": "gzip",
+      "compressedBytes": 31512,
+      "decodedBytes": 64712
+    },
+    "129bdd77f12afb8ec495bf0f46bd4bd1dd2fe4bae857acec86ce4b5c9fea27d6": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-d2934053cf27785c7c1f834531afeb5033195e3d273cbf2a9ab6ec068eb6500b.bin.gz",
+      "sha256": "d2934053cf27785c7c1f834531afeb5033195e3d273cbf2a9ab6ec068eb6500b",
+      "encoding": "gzip",
+      "compressedBytes": 3007,
+      "decodedBytes": 5336
+    },
+    "12eae368a7dc035ae7559417c4392f1bb9527ea1a3ca013e7de8fb7e69584336": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-f234d7fcbb724ee24a63a575dc18092d90ec274cbf3a2224ce950de3c50094bf.bin.gz",
+      "sha256": "f234d7fcbb724ee24a63a575dc18092d90ec274cbf3a2224ce950de3c50094bf",
+      "encoding": "gzip",
+      "compressedBytes": 136321,
+      "decodedBytes": 249008
+    },
+    "135d8b7ae5ba6cbbcf4176b945f57a6cc263e70af5676e7571f5098434575f87": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-eb0408145fb9eba171c5aad4724c30872ec7257f626d3a923703e43f8bea228a.bin.gz",
+      "sha256": "eb0408145fb9eba171c5aad4724c30872ec7257f626d3a923703e43f8bea228a",
+      "encoding": "gzip",
+      "compressedBytes": 50535,
+      "decodedBytes": 99512
+    },
+    "13979f313d9d15f8a3ce2ae0fcaf56561f4d80268facce8fc6d014e6fb05ff0f": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-c7c5d9f44f682835a1cae0e9111e715f4f932cbf3d2b62e787c90265e1c8a773.bin.gz",
+      "sha256": "c7c5d9f44f682835a1cae0e9111e715f4f932cbf3d2b62e787c90265e1c8a773",
+      "encoding": "gzip",
+      "compressedBytes": 18110,
+      "decodedBytes": 32408
+    },
+    "14dc02a9c5bb8fbb2e7a1bb004ff0d8374a61b77d5a5912b198edc4bdf23a5d8": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-4170b5d4b013f30a9f6e01fb4dcf13052226a8df3c8c6119b873c81b1a2408dc.bin.gz",
+      "sha256": "4170b5d4b013f30a9f6e01fb4dcf13052226a8df3c8c6119b873c81b1a2408dc",
+      "encoding": "gzip",
+      "compressedBytes": 46074,
+      "decodedBytes": 103144
+    },
+    "15a888c18e49d8c342bf1a6689d332808730100c07de9258ed70e304569662ce": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-609673a169ef1542c4a2cf2c942486333b6a5073722104f9f1a2927509af21ab.bin.gz",
+      "sha256": "609673a169ef1542c4a2cf2c942486333b6a5073722104f9f1a2927509af21ab",
+      "encoding": "gzip",
+      "compressedBytes": 59336,
+      "decodedBytes": 126296
+    },
+    "16d1b1cb4b3038d08d00e55b00c65e7f083a5883319f7861cba97a2c5f32a212": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-23a5f9b5c8ba39a68d75cff2e11b5d2700326fe829cad9987aec3b0e9e0fefe4.bin.gz",
+      "sha256": "23a5f9b5c8ba39a68d75cff2e11b5d2700326fe829cad9987aec3b0e9e0fefe4",
+      "encoding": "gzip",
+      "compressedBytes": 11079,
+      "decodedBytes": 19120
+    },
+    "1701efd363f286e3a569ffd871347ddb27ef84b0eb21aefb3b69c9968a6a34df": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-73f6d91ac88c7d484c6d9d67ce1ad47d6a6e653d9d3b4886789a8e77ef76429f.bin.gz",
+      "sha256": "73f6d91ac88c7d484c6d9d67ce1ad47d6a6e653d9d3b4886789a8e77ef76429f",
+      "encoding": "gzip",
+      "compressedBytes": 774951,
+      "decodedBytes": 1757368
+    },
+    "1740ed83808bf61f15ec9825c805df09b578146df010294b1ba918f8f019ae18": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-fa5b63afd6d729a727de9acc27a36fab83310b08ea9ade32d14a0291be38dc3a.bin.gz",
+      "sha256": "fa5b63afd6d729a727de9acc27a36fab83310b08ea9ade32d14a0291be38dc3a",
+      "encoding": "gzip",
+      "compressedBytes": 18358,
+      "decodedBytes": 31216
+    },
+    "17a71856e5e9b52c472901b31a4230fa48f9480bea7c3eb40e0b5519acf6969c": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-794212b61f06a538284f734600f961b17a1b9074ae7cf60fb31976d7b2a80a64.bin.gz",
+      "sha256": "794212b61f06a538284f734600f961b17a1b9074ae7cf60fb31976d7b2a80a64",
+      "encoding": "gzip",
+      "compressedBytes": 18378,
+      "decodedBytes": 30808
+    },
+    "1851bd4f9673ed524e4f156757ff442a6ccbb55d96ceb125779db1b8d6ebf28b": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-081f90d288ff4bd3e2beaf8075278ef41bb3670b0abc1f2e6b1119d7bfd27313.bin.gz",
+      "sha256": "081f90d288ff4bd3e2beaf8075278ef41bb3670b0abc1f2e6b1119d7bfd27313",
+      "encoding": "gzip",
+      "compressedBytes": 3739,
+      "decodedBytes": 6584
+    },
+    "198aa4f34d612387ff767b8fc4dc41c2907b7fa2cdd7e0f67e53dd32eb6d4731": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-59a55a02982831e62e6ff32d14d42f0f06d7eda36c021a60792abe9adbb65b3c.bin.gz",
+      "sha256": "59a55a02982831e62e6ff32d14d42f0f06d7eda36c021a60792abe9adbb65b3c",
+      "encoding": "gzip",
+      "compressedBytes": 61778,
+      "decodedBytes": 121184
+    },
+    "19d9210af799dd146f7f54e1b7d2f8df2cac1a832704e0c070c91571b9d6da7d": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-493d3768ebe42f397f6d2f50d3d5446787e824aef9d863e95f7f7035a588330e.bin.gz",
+      "sha256": "493d3768ebe42f397f6d2f50d3d5446787e824aef9d863e95f7f7035a588330e",
+      "encoding": "gzip",
+      "compressedBytes": 1756,
+      "decodedBytes": 2936
+    },
+    "19dc7b5e806a769fb11396efbd3e8a626f71d8e8ff2b50a9b02181db3fd604a7": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-72f0c8cfdf9d411443e529ecf065b4e6f58ac680429eadd816c7d9cc61a052ce.bin.gz",
+      "sha256": "72f0c8cfdf9d411443e529ecf065b4e6f58ac680429eadd816c7d9cc61a052ce",
+      "encoding": "gzip",
+      "compressedBytes": 26552,
+      "decodedBytes": 47120
+    },
+    "1a8e352ade156d63e12aebcda671d4bbc9d78cb38b707737caa2dd271989dd4c": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-d6a454ac9d453dde8fc359c4399197835de8594b2ed6fc65b805aa8907a23d2b.bin.gz",
+      "sha256": "d6a454ac9d453dde8fc359c4399197835de8594b2ed6fc65b805aa8907a23d2b",
+      "encoding": "gzip",
+      "compressedBytes": 38293,
+      "decodedBytes": 70336
+    },
+    "1c43922dfcaff0804ad608d9ebc24ec360ef451e17aad40313fb1f30ed959d1c": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-fb1548b0ff7d8a97324e4c4dbadefb3ff6663fa273ce0385550592555c433a0f.bin.gz",
+      "sha256": "fb1548b0ff7d8a97324e4c4dbadefb3ff6663fa273ce0385550592555c433a0f",
+      "encoding": "gzip",
+      "compressedBytes": 27538,
+      "decodedBytes": 47840
+    },
+    "1dafd4488f9518e27d82451e22b3c8c584951653a035c5f992fe6623d88bd5ae": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-764f955a24ebcf17a4e0d2d1b272ccacf72000003616b76584f5f159ed96fa6b.bin.gz",
+      "sha256": "764f955a24ebcf17a4e0d2d1b272ccacf72000003616b76584f5f159ed96fa6b",
+      "encoding": "gzip",
+      "compressedBytes": 117275,
+      "decodedBytes": 241480
+    },
+    "26ae4acf7f126603def5f373ce052a616b83b9a06929e974f0df7d3914f6a38c": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-6001c2cc7c3b60e195617c662e8a8194145fd13656000d8bf890a6f4c7857ce7.bin.gz",
+      "sha256": "6001c2cc7c3b60e195617c662e8a8194145fd13656000d8bf890a6f4c7857ce7",
+      "encoding": "gzip",
+      "compressedBytes": 19777,
+      "decodedBytes": 32912
+    },
+    "26c14baf04d2260446b92996e70ac7a1bc4897e0e1d7c5a8435902c3de0f7dc6": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-d992eecea49ae942b7d00c9f538cbe2a9ff2d184a6a5a154ef02189632b26ac0.bin.gz",
+      "sha256": "d992eecea49ae942b7d00c9f538cbe2a9ff2d184a6a5a154ef02189632b26ac0",
+      "encoding": "gzip",
+      "compressedBytes": 23040,
+      "decodedBytes": 39872
+    },
+    "26ff4e54483ee4f3e84f9be0ea1df98d43399ab630207a959abbc28b3f34eca2": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-35f9e42fbecc919e2ce34d2b2a16a2e8ec26428a762dad155aa21c7a0dda3316.bin.gz",
+      "sha256": "35f9e42fbecc919e2ce34d2b2a16a2e8ec26428a762dad155aa21c7a0dda3316",
+      "encoding": "gzip",
+      "compressedBytes": 4612,
+      "decodedBytes": 8264
+    },
+    "27282268933b5d9a1fabc577ec64afbea3b3d1ba7c47cee9d2f92ce1762d7877": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-96530ff53aa72347062c6619d49026b77871500ca5845bbb98164110628da74a.bin.gz",
+      "sha256": "96530ff53aa72347062c6619d49026b77871500ca5845bbb98164110628da74a",
+      "encoding": "gzip",
+      "compressedBytes": 19226,
+      "decodedBytes": 34120
+    },
+    "273464678f8f0f25d8847fdda65021bda633c66fd4269d2f696f90760ab7df84": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-8cf562b22d1d6451ecb8571578dcb35ca66ef781d40c25ea901a06445600d31e.bin.gz",
+      "sha256": "8cf562b22d1d6451ecb8571578dcb35ca66ef781d40c25ea901a06445600d31e",
+      "encoding": "gzip",
+      "compressedBytes": 350010,
+      "decodedBytes": 754648
+    },
+    "289a1335ecd75ede6f85053c9f18db42bde9da1548194a50654974845c4a2e6b": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-3b4172f612a9226cdf5389c31e05b40a215838b911390d0cf96262e4e7a72f2b.bin.gz",
+      "sha256": "3b4172f612a9226cdf5389c31e05b40a215838b911390d0cf96262e4e7a72f2b",
+      "encoding": "gzip",
+      "compressedBytes": 38977,
+      "decodedBytes": 76520
+    },
+    "2a6994a2d84500569036844b405a8d0b27c9724f2617d6fc68365b63346d7e1f": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-58c60bcbf0f46cd6046cd74c274d7d3d7e114c95772e356bec59aac41f0bc133.bin.gz",
+      "sha256": "58c60bcbf0f46cd6046cd74c274d7d3d7e114c95772e356bec59aac41f0bc133",
+      "encoding": "gzip",
+      "compressedBytes": 111228,
+      "decodedBytes": 246088
+    },
+    "2af42c717d428709166d7ef4459cf19011c5aac3d41d7c07fb7128f416c85c23": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-387ffede686bf4096ee47f3b90b7b50b479bd9215747f43601a93a428f77033f.bin.gz",
+      "sha256": "387ffede686bf4096ee47f3b90b7b50b479bd9215747f43601a93a428f77033f",
+      "encoding": "gzip",
+      "compressedBytes": 8957,
+      "decodedBytes": 15560
+    },
+    "2c7010b3e9b7f4c03e699ccec47b0d41f8f0ab9a20e8fde212c1f0f394b987b1": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-52d44cb7e27f39dd469e3594b933eda9fe67444a6a4dba8310a6a69c654f20e6.bin.gz",
+      "sha256": "52d44cb7e27f39dd469e3594b933eda9fe67444a6a4dba8310a6a69c654f20e6",
+      "encoding": "gzip",
+      "compressedBytes": 2367,
+      "decodedBytes": 4040
+    },
+    "2d85e498dc4dfd156215dc2af013b134587c3a518e9ed94f659627e29c22a91d": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-7bc71681f005e22a7043f2852e545240b1bbf2a94f5e490d1b4fc5a1ed985e4d.bin.gz",
+      "sha256": "7bc71681f005e22a7043f2852e545240b1bbf2a94f5e490d1b4fc5a1ed985e4d",
+      "encoding": "gzip",
+      "compressedBytes": 3178,
+      "decodedBytes": 5576
+    },
+    "2e8da7e5fcac6a2464a494166bab9a84a5509f7934debe07f508df5e967f83bf": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-e0d9603f9b3f607fe5a38829b44192d0d030b1ec021cae06ed203c3eeeac7312.bin.gz",
+      "sha256": "e0d9603f9b3f607fe5a38829b44192d0d030b1ec021cae06ed203c3eeeac7312",
+      "encoding": "gzip",
+      "compressedBytes": 177,
+      "decodedBytes": 248
+    },
+    "30506dbea67be53ef5dda567afe30143698e41dbd30bd4dd60d5f77ae24c40d9": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-8e77c71e240772a43fff898aa9b2a3d2e18820e686b358e0b803fa44bacff070.bin.gz",
+      "sha256": "8e77c71e240772a43fff898aa9b2a3d2e18820e686b358e0b803fa44bacff070",
+      "encoding": "gzip",
+      "compressedBytes": 29593,
+      "decodedBytes": 61400
+    },
+    "305876eb3280a22bd21fa248090bf7f7607110f5b6f92a4d268a209752aaddcd": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-e694e3240a9d2e49df37472143f8286f30f9a6e51fd541353ad4cca17b68cbc6.bin.gz",
+      "sha256": "e694e3240a9d2e49df37472143f8286f30f9a6e51fd541353ad4cca17b68cbc6",
+      "encoding": "gzip",
+      "compressedBytes": 2313,
+      "decodedBytes": 3800
+    },
+    "334ab68fcdd00915c547f6d302c88f19e1e8ee18920a507dd9603150841d0c56": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-2ff1bd92ddd36b73707a0c89b52fd9033a48bf78288003a0559a1d214a5a4326.bin.gz",
+      "sha256": "2ff1bd92ddd36b73707a0c89b52fd9033a48bf78288003a0559a1d214a5a4326",
+      "encoding": "gzip",
+      "compressedBytes": 53980,
+      "decodedBytes": 100256
+    },
+    "33d30d0d29e799754fdcb5b7a08929fd58155ed3a5391062d1078e21129af696": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-478225d837e8c16e6c02d7048d17fc90034e91f152a90d00e1a48a9798b655e6.bin.gz",
+      "sha256": "478225d837e8c16e6c02d7048d17fc90034e91f152a90d00e1a48a9798b655e6",
+      "encoding": "gzip",
+      "compressedBytes": 98583,
+      "decodedBytes": 217008
+    },
+    "346a2f61e7621112b495c0b06752b5c0def3a04769b707c855967a24953de648": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-26eb707f931e4fc214a5d7a416a36231a20aaef0e3f82510af26002ab7d64c78.bin.gz",
+      "sha256": "26eb707f931e4fc214a5d7a416a36231a20aaef0e3f82510af26002ab7d64c78",
+      "encoding": "gzip",
+      "compressedBytes": 2147,
+      "decodedBytes": 3608
+    },
+    "34e3e70d98c13102129f38e29033bc9c642d3cdb3177a74cc0e17d7e0b0a5935": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-0085762491ab3e85151d90d3c1d6e7201267ed917743413009d7b4b58f748033.bin.gz",
+      "sha256": "0085762491ab3e85151d90d3c1d6e7201267ed917743413009d7b4b58f748033",
+      "encoding": "gzip",
+      "compressedBytes": 142585,
+      "decodedBytes": 282972
+    },
+    "35a2cbe36881862786edd4d7480bfcf44a6e9a80f130828c847e55c4df70a92d": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-05763ff3a5c1af8a3bf50c5aabd145dd68766e3b83f1854f6cab65618d5a296a.bin.gz",
+      "sha256": "05763ff3a5c1af8a3bf50c5aabd145dd68766e3b83f1854f6cab65618d5a296a",
+      "encoding": "gzip",
+      "compressedBytes": 125450,
+      "decodedBytes": 261176
+    },
+    "35cb73f26801915a07add25ba078fac530a34d7bb79ca47fe0a323a48fe780b5": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-a63806ba98e055d7a182b526643d064471ce7134d42f13ccb5982af5203e0b69.bin.gz",
+      "sha256": "a63806ba98e055d7a182b526643d064471ce7134d42f13ccb5982af5203e0b69",
+      "encoding": "gzip",
+      "compressedBytes": 57483,
+      "decodedBytes": 115648
+    },
+    "35f7687d751356fba18ec22906f13fba531661a908b50e74fc3a5d98549242dc": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-bdb08828811a5a6f1b68a26e556051c23b692104354be95dd635e2ba58bd7dd0.bin.gz",
+      "sha256": "bdb08828811a5a6f1b68a26e556051c23b692104354be95dd635e2ba58bd7dd0",
+      "encoding": "gzip",
+      "compressedBytes": 543956,
+      "decodedBytes": 1271560
+    },
+    "3785c28aaba67df4f4e04f6d51acf7e1ef6b1176efbbd1e25fae69cad24cdf0e": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-0558dfc4650a312fadd30a417e994898701c34c1cc0b2531d93a0a6354e0871b.bin.gz",
+      "sha256": "0558dfc4650a312fadd30a417e994898701c34c1cc0b2531d93a0a6354e0871b",
+      "encoding": "gzip",
+      "compressedBytes": 22763,
+      "decodedBytes": 45896
+    },
+    "3793d1e4d573cab073016443d88842f38f4c2bf438aebfb7dcd9f79c23cd42bd": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-8a84cff268049ded1f184b4eeb99b14e76d34795c23ac8234d1e6a91f9786c77.bin.gz",
+      "sha256": "8a84cff268049ded1f184b4eeb99b14e76d34795c23ac8234d1e6a91f9786c77",
+      "encoding": "gzip",
+      "compressedBytes": 86687,
+      "decodedBytes": 172696
+    },
+    "395c440f35f89483f8b597815ef6918cb407bbb56a337628931247f90d524ef0": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-80ff6cf24a415689d7ca9f13559ad56bf5d7db072f5b15414360d962240ebf96.bin.gz",
+      "sha256": "80ff6cf24a415689d7ca9f13559ad56bf5d7db072f5b15414360d962240ebf96",
+      "encoding": "gzip",
+      "compressedBytes": 1318,
+      "decodedBytes": 2072
+    },
+    "3aaecea6c6329c11d8db1d853f78ff2299ad4427c88ad49548f44bdcb600fc52": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-6e450be1c7bc928e463a4f6a1274deb4592650d1bae89f8fc21ecce421f1c7b7.bin.gz",
+      "sha256": "6e450be1c7bc928e463a4f6a1274deb4592650d1bae89f8fc21ecce421f1c7b7",
+      "encoding": "gzip",
+      "compressedBytes": 2093,
+      "decodedBytes": 3512
+    },
+    "3b775b33702252c2cda01c39d3cdded70dcaa7401d002b0d602c1ba7c27d78f4": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-b5df416d5fa09c672a06716c4e006dcbf63c36410b7ea38d366ea8e6077e4d65.bin.gz",
+      "sha256": "b5df416d5fa09c672a06716c4e006dcbf63c36410b7ea38d366ea8e6077e4d65",
+      "encoding": "gzip",
+      "compressedBytes": 13325,
+      "decodedBytes": 24464
+    },
+    "3cc5cdeaccd01c4ce7a1ba67db1f060c2ceb8dfd1ff44fde8f36ef31f8ebce9a": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-43ce3dff80dd3b9e443a9208a2787ebad1b78e022ab20ef02903f61e37f34a21.bin.gz",
+      "sha256": "43ce3dff80dd3b9e443a9208a2787ebad1b78e022ab20ef02903f61e37f34a21",
+      "encoding": "gzip",
+      "compressedBytes": 145362,
+      "decodedBytes": 316832
+    },
+    "3ec8ecd63254b5ebda3b6a770d18e46e8b18bb26e17143fa66fb535a560246fc": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-e0999aa0f7c58a4e1a1351ba500750556e5e2759f6bd6380e367b8f553400ed8.bin.gz",
+      "sha256": "e0999aa0f7c58a4e1a1351ba500750556e5e2759f6bd6380e367b8f553400ed8",
+      "encoding": "gzip",
+      "compressedBytes": 11579,
+      "decodedBytes": 19104
+    },
+    "3ef93e8172f6ec1d2a1e47b2955c7caf42b7028b0e9f5f03d3bff4b633cc31cd": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-a654fe0190828a69ed5019e99204c7d38ce4a2900c48bb6c157416d180b6af12.bin.gz",
+      "sha256": "a654fe0190828a69ed5019e99204c7d38ce4a2900c48bb6c157416d180b6af12",
+      "encoding": "gzip",
+      "compressedBytes": 226,
+      "decodedBytes": 344
+    },
+    "3fcd6d12ab96a0d776e5e7db69bcc9a02335d1d6573d800d6d21df05c113e04e": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-ec3179f5118e73157898ba3e7233b6f1281164ae45e009bbc3a6cc8a22c2d040.bin.gz",
+      "sha256": "ec3179f5118e73157898ba3e7233b6f1281164ae45e009bbc3a6cc8a22c2d040",
+      "encoding": "gzip",
+      "compressedBytes": 610,
+      "decodedBytes": 920
+    },
+    "41bd1cdb313303139c6f850e6881ea1c81ae545de6462790f3a8a14cf581bfd0": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-a206e892c95cd66bf721629eb09c66c3e92f837cb4c33286a109f48474ccd709.bin.gz",
+      "sha256": "a206e892c95cd66bf721629eb09c66c3e92f837cb4c33286a109f48474ccd709",
+      "encoding": "gzip",
+      "compressedBytes": 7833,
+      "decodedBytes": 13808
+    },
+    "428d4fd5d638c3281a327d0183572f8f0255c662f2c41b260b16addcdadae101": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-ccfc5cef51e87ac582e251a86b3f9fbd2eba23ed415b949282e1309c693a36b8.bin.gz",
+      "sha256": "ccfc5cef51e87ac582e251a86b3f9fbd2eba23ed415b949282e1309c693a36b8",
+      "encoding": "gzip",
+      "compressedBytes": 253581,
+      "decodedBytes": 560780
+    },
+    "4363a17aeac99fcaff591b8ea7076430758f69c7950959be4215f4ed6b43f598": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-22a1e44fe0625afd602cbeb3c9a0062a0c826eaf6338fae990e5a2f07d75ceb8.bin.gz",
+      "sha256": "22a1e44fe0625afd602cbeb3c9a0062a0c826eaf6338fae990e5a2f07d75ceb8",
+      "encoding": "gzip",
+      "compressedBytes": 399,
+      "decodedBytes": 584
+    },
+    "43b8a582c8ac98c673b01a8b1f0d7de3d2a931c093d5235b0c191323f4a3db92": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-c1fc99df7a8fc13ea047bd987323d3c4a1cbe873995d358a7fbab708cf57336e.bin.gz",
+      "sha256": "c1fc99df7a8fc13ea047bd987323d3c4a1cbe873995d358a7fbab708cf57336e",
+      "encoding": "gzip",
+      "compressedBytes": 22311,
+      "decodedBytes": 49408
+    },
+    "44769f9df1234c0368945c09e6067d9f52f6ec620dca7e6a99ef1827c4d48add": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-fc2aa3428875d7ae334bfa1048187852eb65e4caa6dde7a2b33735352bae8407.bin.gz",
+      "sha256": "fc2aa3428875d7ae334bfa1048187852eb65e4caa6dde7a2b33735352bae8407",
+      "encoding": "gzip",
+      "compressedBytes": 22788,
+      "decodedBytes": 46368
+    },
+    "488f79e7754527a4a74a803057ee5a00de50a35d5695058c81544c378af0235f": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-793825d5e3d7591c6dd4ece311e58a8563387fe072d87e75a55ba12be1655862.bin.gz",
+      "sha256": "793825d5e3d7591c6dd4ece311e58a8563387fe072d87e75a55ba12be1655862",
+      "encoding": "gzip",
+      "compressedBytes": 88436,
+      "decodedBytes": 192312
+    },
+    "49ebfd1a0c1449665aa7c3a91e75af67be8351b0348110ea48a881b487294f24": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-9d4eaaa34666c7ba2b60321ea1b3a765d2bb4cad877c79c4b4fe1e2873545f9d.bin.gz",
+      "sha256": "9d4eaaa34666c7ba2b60321ea1b3a765d2bb4cad877c79c4b4fe1e2873545f9d",
+      "encoding": "gzip",
+      "compressedBytes": 59861,
+      "decodedBytes": 110528
+    },
+    "49f91de0280054631a568206e3bce3935b0b0d4ac453eae4927687c37f73e67d": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-39ae673cd25174516994ec03ccd80adbb9fe94bb41be373c2bf83d1130354a95.bin.gz",
+      "sha256": "39ae673cd25174516994ec03ccd80adbb9fe94bb41be373c2bf83d1130354a95",
+      "encoding": "gzip",
+      "compressedBytes": 44809,
+      "decodedBytes": 81688
+    },
+    "4a0f6b0b7854f75b1f8dda23ea1759ce67575ae446621a9f01b3e2162f97d5df": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-0c07503d67801eecaf55c8d0bb90d7271a8a1a8e04729d49d16ad0e4cb9459a9.bin.gz",
+      "sha256": "0c07503d67801eecaf55c8d0bb90d7271a8a1a8e04729d49d16ad0e4cb9459a9",
+      "encoding": "gzip",
+      "compressedBytes": 26449,
+      "decodedBytes": 48520
+    },
+    "4e0e0b0fe2cdaed5bba89e05ba5a521ce3ff7c27b9eb72763faf45ccdbbb96d7": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-ff8a5c92727af52689f555b0c7886277644e0461873c60e7d653ea493a199657.bin.gz",
+      "sha256": "ff8a5c92727af52689f555b0c7886277644e0461873c60e7d653ea493a199657",
+      "encoding": "gzip",
+      "compressedBytes": 136,
+      "decodedBytes": 200
+    },
+    "4e1e7e4f5a08d44d41d472f71394b43faf7a30c2bbc5756d1ff1e32c0f5c6df6": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-9f8162fc2de740ad6758304fcf749740b69a76fc80bb0c213e9f3b05d6e0c33d.bin.gz",
+      "sha256": "9f8162fc2de740ad6758304fcf749740b69a76fc80bb0c213e9f3b05d6e0c33d",
+      "encoding": "gzip",
+      "compressedBytes": 1417,
+      "decodedBytes": 2360
+    },
+    "4ea609426e9d483b54dfa68f023fc1bd0cd46e279b3b73e39c46f19e52f87596": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-2ecaae6f38132ff59492e9abfea5905448fe3397f22a42320a7d2d59542ce9c2.bin.gz",
+      "sha256": "2ecaae6f38132ff59492e9abfea5905448fe3397f22a42320a7d2d59542ce9c2",
+      "encoding": "gzip",
+      "compressedBytes": 2501,
+      "decodedBytes": 4232
+    },
+    "4f61868ad87c3dbfb9b6b9a2036853f2134424d2899e337e235e33e9e9665496": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-34d59da73be4680154e2e087000728ec38caa509cf2bd44e4aa59a81a5813b75.bin.gz",
+      "sha256": "34d59da73be4680154e2e087000728ec38caa509cf2bd44e4aa59a81a5813b75",
+      "encoding": "gzip",
+      "compressedBytes": 107799,
+      "decodedBytes": 216808
+    },
+    "4f832ee5d9cc8e162c9fb0485533047fc6d1b931258ad365fe90e138fddb3f63": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-58aa6508a4222099462d03663ff954bb50b756af63078e390a47cdd58c7c835e.bin.gz",
+      "sha256": "58aa6508a4222099462d03663ff954bb50b756af63078e390a47cdd58c7c835e",
+      "encoding": "gzip",
+      "compressedBytes": 775056,
+      "decodedBytes": 1757560
+    },
+    "4f930d9deb016ea396d36ff9f9a6919a16f5e8ec3e804ed35666beb15a2b6175": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-be6e57311f40ad155ba76b7046c9c93d88d7a1d1b0c4027fda3015f1a168121f.bin.gz",
+      "sha256": "be6e57311f40ad155ba76b7046c9c93d88d7a1d1b0c4027fda3015f1a168121f",
+      "encoding": "gzip",
+      "compressedBytes": 6463,
+      "decodedBytes": 12224
+    },
+    "4fff21d2f41fcbe9e9e23223473b0ca96ca3dbfa27e529c217491ca223c16e2a": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-61f62965d6791ca33628becf6f66020592f1c66ac4c3969241ab6dd515732b12.bin.gz",
+      "sha256": "61f62965d6791ca33628becf6f66020592f1c66ac4c3969241ab6dd515732b12",
+      "encoding": "gzip",
+      "compressedBytes": 68953,
+      "decodedBytes": 156304
+    },
+    "5297faf7b7cdd18168a6ebd3f345f5a20342b2af8b420bc1b1f46347f90a40f5": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-d781724f29051fb24457f5f0b49fc4068317d01e9bf86b4e80ae295bc7b2cfda.bin.gz",
+      "sha256": "d781724f29051fb24457f5f0b49fc4068317d01e9bf86b4e80ae295bc7b2cfda",
+      "encoding": "gzip",
+      "compressedBytes": 6807,
+      "decodedBytes": 11944
+    },
+    "53672a9aa03e00ea4d77eac52585813285adbffb9896e887e7a058ad40a78e74": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-dca1c510c9d5c74a03ac4cff948df1eb3e8d7c6d4231446c6dc28efbf61bc430.bin.gz",
+      "sha256": "dca1c510c9d5c74a03ac4cff948df1eb3e8d7c6d4231446c6dc28efbf61bc430",
+      "encoding": "gzip",
+      "compressedBytes": 10978,
+      "decodedBytes": 21944
+    },
+    "549a331b01b490bc588cf59197a3e4a87ecf473f94f95222dda39ad07b80dc74": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-8bfe780a16ba055c7e00f5ef43c0d089143c42f3e131e109030d4e4060d3e36c.bin.gz",
+      "sha256": "8bfe780a16ba055c7e00f5ef43c0d089143c42f3e131e109030d4e4060d3e36c",
+      "encoding": "gzip",
+      "compressedBytes": 77563,
+      "decodedBytes": 156872
+    },
+    "5590383b6578f784b33bd60aa945093c97e7eb3616c618b748ecbf96ef4a5e5d": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-1f07e66f86df3728cc901665ec09f24dcfbac248c53e99949debcf042a727917.bin.gz",
+      "sha256": "1f07e66f86df3728cc901665ec09f24dcfbac248c53e99949debcf042a727917",
+      "encoding": "gzip",
+      "compressedBytes": 2487698,
+      "decodedBytes": 5770632
+    },
+    "5609e6fdd17aa20d4e75d7ef21e329b16449644b8665858be3f3e933f6cf0e6a": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-f9e67b115472cdb2f8a786299859b8aea900086d82e30b5edba09037aff1517b.bin.gz",
+      "sha256": "f9e67b115472cdb2f8a786299859b8aea900086d82e30b5edba09037aff1517b",
+      "encoding": "gzip",
+      "compressedBytes": 8513,
+      "decodedBytes": 15128
+    },
+    "5616a67213a0b503eb81a022b34c9149786c19d2d72eda00cf3c5a5798852169": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-a037f114cbdd839e63a81382e94bde44c02e7e1238ea5bb232ffb6c6246808be.bin.gz",
+      "sha256": "a037f114cbdd839e63a81382e94bde44c02e7e1238ea5bb232ffb6c6246808be",
+      "encoding": "gzip",
+      "compressedBytes": 2439747,
+      "decodedBytes": 5670624
+    },
+    "561dc4dd41ab0c84582b4624d0d88724bed4b2808d0f04f4cf06a136a58c5485": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-4d69974cccd72801b8126aa20edef5e1bb06336749fafc97b3f1d2942cd7fccf.bin.gz",
+      "sha256": "4d69974cccd72801b8126aa20edef5e1bb06336749fafc97b3f1d2942cd7fccf",
+      "encoding": "gzip",
+      "compressedBytes": 1073,
+      "decodedBytes": 1688
+    },
+    "574f122e2a61df70cb55085dae525eb85d786071f2cee7dab3bedf04463a6a4f": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-ea7cb9f6516488e6d6b3f6c861e61a89497b7f8bf31ce38100cf98fd86099342.bin.gz",
+      "sha256": "ea7cb9f6516488e6d6b3f6c861e61a89497b7f8bf31ce38100cf98fd86099342",
+      "encoding": "gzip",
+      "compressedBytes": 2308,
+      "decodedBytes": 3848
+    },
+    "577f45fd652127c5212783dd694e1e7dcfec40d732e6808054eaa662bb1fc25b": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-16eb7bccf49599f15c65f1db68adf0a7e075843819c1fbc5dd7a1327ef531184.bin.gz",
+      "sha256": "16eb7bccf49599f15c65f1db68adf0a7e075843819c1fbc5dd7a1327ef531184",
+      "encoding": "gzip",
+      "compressedBytes": 133985,
+      "decodedBytes": 282512
+    },
+    "583e6ec6b703aeaa8497a95125464fec62139ad527bf745dc5b45af412aca94b": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-372f58894da51e79cec8bc3e5787c439460b3ebfe0b17fdade2fc261bd9bbd51.bin.gz",
+      "sha256": "372f58894da51e79cec8bc3e5787c439460b3ebfe0b17fdade2fc261bd9bbd51",
+      "encoding": "gzip",
+      "compressedBytes": 68069,
+      "decodedBytes": 142516
+    },
+    "59d9710ffa7e6d4a07b55277fd3913c93f47e6f11a7a46e569f15037c0fa92dc": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-c6ee3b434484677c7ee489ce99f27dab56179e35825a10afeec11b959e64297a.bin.gz",
+      "sha256": "c6ee3b434484677c7ee489ce99f27dab56179e35825a10afeec11b959e64297a",
+      "encoding": "gzip",
+      "compressedBytes": 213107,
+      "decodedBytes": 461880
+    },
+    "59ee3bc9906bd092a7fc7e9e09b38a745ddaffec9eec1c7b34de23139a4c511b": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-1937e51a5e507c20e782d865b2744e82bb8cfb200047edc9c1f093579cd2e7b2.bin.gz",
+      "sha256": "1937e51a5e507c20e782d865b2744e82bb8cfb200047edc9c1f093579cd2e7b2",
+      "encoding": "gzip",
+      "compressedBytes": 1477,
+      "decodedBytes": 2408
+    },
+    "5bc8fac10b10934abe154e0c96266571b3274cadb99effe68fc2f442e0d5d9a6": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-dfb0bad3d7b5bfcf2d536465b793d8f3172bb0768f44c57d3bdb72972d840b81.bin.gz",
+      "sha256": "dfb0bad3d7b5bfcf2d536465b793d8f3172bb0768f44c57d3bdb72972d840b81",
+      "encoding": "gzip",
+      "compressedBytes": 11100,
+      "decodedBytes": 20312
+    },
+    "5bd3180cb54fd1946b4ea796ea7a166c271bb95b3c523437a4ae9fc6ff0d11d3": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-b401ba8c64469795b9e10fbfc690779792a5619801417fe0eda503b8bf109035.bin.gz",
+      "sha256": "b401ba8c64469795b9e10fbfc690779792a5619801417fe0eda503b8bf109035",
+      "encoding": "gzip",
+      "compressedBytes": 7254,
+      "decodedBytes": 12880
+    },
+    "5c6574f2c840815253b053fd0c2b18c99583851d41939640bc585ba6d1108c1d": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-e8886a69ab22c2486f7039a320cb22e4aaba629a1edc0e93cba48e5da6463157.bin.gz",
+      "sha256": "e8886a69ab22c2486f7039a320cb22e4aaba629a1edc0e93cba48e5da6463157",
+      "encoding": "gzip",
+      "compressedBytes": 115574,
+      "decodedBytes": 254536
+    },
+    "5c8007be8c9d4ed442118417d69e31d104f6cfd1439723ca2d08116db5441f99": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-1891536ff37eba215a6b661f796c67d95c0d093e11c39fa4abf840e14204baf3.bin.gz",
+      "sha256": "1891536ff37eba215a6b661f796c67d95c0d093e11c39fa4abf840e14204baf3",
+      "encoding": "gzip",
+      "compressedBytes": 1044,
+      "decodedBytes": 1784
+    },
+    "5c9c09461545c1b320371b54da2fb3faee0f399436923cd054ac3470f56c5144": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-c068dcd4ef74d550642aff8dbbfd5179bc819ea67c3f171ccf5c82d459902f0f.bin.gz",
+      "sha256": "c068dcd4ef74d550642aff8dbbfd5179bc819ea67c3f171ccf5c82d459902f0f",
+      "encoding": "gzip",
+      "compressedBytes": 14842,
+      "decodedBytes": 25928
+    },
+    "5cab4f22eb836f950b4c17675c39f5032f0cf5ea7476551cf1a173b69c20425f": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-a33a7ba84791e50e96ed0fd1f02cfc0b62af4b60390f960ab27842d998758e1c.bin.gz",
+      "sha256": "a33a7ba84791e50e96ed0fd1f02cfc0b62af4b60390f960ab27842d998758e1c",
+      "encoding": "gzip",
+      "compressedBytes": 49531,
+      "decodedBytes": 96400
+    },
+    "5d2de3299401a2b50c8af57d689a7d0ea6175f84d7b04241cc6064f75dd860db": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-77e7efd8c10688994a8fe3aa949fca85e4304ca5d8f117bf5029861823772420.bin.gz",
+      "sha256": "77e7efd8c10688994a8fe3aa949fca85e4304ca5d8f117bf5029861823772420",
+      "encoding": "gzip",
+      "compressedBytes": 8408,
+      "decodedBytes": 15320
+    },
+    "5db044b52854718e675dd8571a063873ffdda9069c30362f251c8ee0101ba8de": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-c73640e7fe4c1ebd18f734cf49f8a894f2c335e25717a170c909ba552dcba895.bin.gz",
+      "sha256": "c73640e7fe4c1ebd18f734cf49f8a894f2c335e25717a170c909ba552dcba895",
+      "encoding": "gzip",
+      "compressedBytes": 23152,
+      "decodedBytes": 43880
+    },
+    "5de714161575fabfae8191aba5d7ac7eacdb7d05b387c1cd11b6335cf6eb62e6": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-a46f46784935244cf936b9c27c6b943f50cddac105c40ff2cc3d3f07e512172e.bin.gz",
+      "sha256": "a46f46784935244cf936b9c27c6b943f50cddac105c40ff2cc3d3f07e512172e",
+      "encoding": "gzip",
+      "compressedBytes": 62074,
+      "decodedBytes": 126832
+    },
+    "5ded82ad4ffb9b02ebf6d2e0695763b90a58c258c69b9269ff4ed28f3e9aa037": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-9aa9ec69945877c639da90febd710b256a84d59f01e263ddb1ad87a238889190.bin.gz",
+      "sha256": "9aa9ec69945877c639da90febd710b256a84d59f01e263ddb1ad87a238889190",
+      "encoding": "gzip",
+      "compressedBytes": 147,
+      "decodedBytes": 200
+    },
+    "609fd4134eb3ed459f366e81cb2df49c8b9fc6c30a89d6618acae2be4da7b906": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-649b51e9dc018c5338a858547ef0993f595682e64749bd3c7dd3ac7aa7f9a25a.bin.gz",
+      "sha256": "649b51e9dc018c5338a858547ef0993f595682e64749bd3c7dd3ac7aa7f9a25a",
+      "encoding": "gzip",
+      "compressedBytes": 44472,
+      "decodedBytes": 89600
+    },
+    "61a4e4bd0fc4ebec4ab9f1d87af1b0f75618a620a38418ce3f0f4153eb0bdfc8": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-ad17446d390612f7df0c6fe2c7c41c5d4e21884e35b376b8aebd8dca594a1ce4.bin.gz",
+      "sha256": "ad17446d390612f7df0c6fe2c7c41c5d4e21884e35b376b8aebd8dca594a1ce4",
+      "encoding": "gzip",
+      "compressedBytes": 1195,
+      "decodedBytes": 1928
+    },
+    "61be509103b9aa9edb99c86e324037c58602d04001c6ad2bc0d5fb838426c44f": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-e14a559ae0b97e2408b2eca11b57df9b40d6398fe886140dcc3e6d0c1411ae90.bin.gz",
+      "sha256": "e14a559ae0b97e2408b2eca11b57df9b40d6398fe886140dcc3e6d0c1411ae90",
+      "encoding": "gzip",
+      "compressedBytes": 32515,
+      "decodedBytes": 62392
+    },
+    "63253302b06bbbf1131db556d0b44808c96e842e5130fe651edbb2afae34cb6b": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-63719baed4163ee76d8714a537b14989814b5fce239a178f94678678e7de659f.bin.gz",
+      "sha256": "63719baed4163ee76d8714a537b14989814b5fce239a178f94678678e7de659f",
+      "encoding": "gzip",
+      "compressedBytes": 45683,
+      "decodedBytes": 87104
+    },
+    "638b8c5988593e8ee2ab6e7865368f87bf85c23f2e374a091f2227abce370c01": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-a0a76ec1516f30df531554b789116a287dee0f92a43c866b8e3893ea8ea34f22.bin.gz",
+      "sha256": "a0a76ec1516f30df531554b789116a287dee0f92a43c866b8e3893ea8ea34f22",
+      "encoding": "gzip",
+      "compressedBytes": 16209,
+      "decodedBytes": 30520
+    },
+    "645895987d2cd0e0aba1f3b7ec514fb5d6b636a2a393cae0013436ea9f4ff870": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-f0cc428848cbe81dee9aa7a89c7c7105815c7c1aef212c389d68f3513b47e3e1.bin.gz",
+      "sha256": "f0cc428848cbe81dee9aa7a89c7c7105815c7c1aef212c389d68f3513b47e3e1",
+      "encoding": "gzip",
+      "compressedBytes": 159123,
+      "decodedBytes": 376376
+    },
+    "651e3c730fbe78bba4b3fd19483e88c172bc5b81ae2607743ff880f072e6a7ce": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-a29f4c1cd10c960c1a9e7ce150ffc87cf353cc900ab49bf83c44f2398cbe0f60.bin.gz",
+      "sha256": "a29f4c1cd10c960c1a9e7ce150ffc87cf353cc900ab49bf83c44f2398cbe0f60",
+      "encoding": "gzip",
+      "compressedBytes": 17487,
+      "decodedBytes": 33776
+    },
+    "659973193bb8d994b879c14117de5890cd293b02194affebf7eb19b9d2b05afc": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-4f653077658e156d150381e16f2f9739b5fae05ea1e1ab56c75a408a005954cb.bin.gz",
+      "sha256": "4f653077658e156d150381e16f2f9739b5fae05ea1e1ab56c75a408a005954cb",
+      "encoding": "gzip",
+      "compressedBytes": 46400,
+      "decodedBytes": 106528
+    },
+    "65faa93bd37dae9745bb3c1c4386ea15ab5d8751f34e65d881fde4659fe53147": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-76b9c8716c7b27b18f691373ec30828ca9a2caf6060902d9e3bd5357702d401f.bin.gz",
+      "sha256": "76b9c8716c7b27b18f691373ec30828ca9a2caf6060902d9e3bd5357702d401f",
+      "encoding": "gzip",
+      "compressedBytes": 127055,
+      "decodedBytes": 301312
+    },
+    "668b61def4ca839fb4f30810a113f8d8c93b5f749c166eb5fd155ce7bf5a108f": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-fc58a45cf4ba2e23f183dee0154516435d855756134af54f856ec9bceeca3aec.bin.gz",
+      "sha256": "fc58a45cf4ba2e23f183dee0154516435d855756134af54f856ec9bceeca3aec",
+      "encoding": "gzip",
+      "compressedBytes": 77185,
+      "decodedBytes": 160040
+    },
+    "674590ebae6c6fe8f8453cf80f6023c34d38d5067f4398ea6e2796a6a5594e6c": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-e1680c52369aa48698d785794aff65b6d3a1a6454893dce43e7b3fdf5de8672a.bin.gz",
+      "sha256": "e1680c52369aa48698d785794aff65b6d3a1a6454893dce43e7b3fdf5de8672a",
+      "encoding": "gzip",
+      "compressedBytes": 112612,
+      "decodedBytes": 235616
+    },
+    "695d0744f41a3ebcd9614b91ba72c421d758db5d111cca2f491fa2aae0b1f326": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-a7c094f562330b7514ebd8ce36a4ddf2592f3b9b556b585a419b3f94a4ecc749.bin.gz",
+      "sha256": "a7c094f562330b7514ebd8ce36a4ddf2592f3b9b556b585a419b3f94a4ecc749",
+      "encoding": "gzip",
+      "compressedBytes": 5477,
+      "decodedBytes": 9800
+    },
+    "6a8d53ba4e9a9c66fd04f5f4c7565a2f97ef40373019a9f9cf2d0bcc13d62594": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-620ba419844b1b198c114f45f353aa7f380f8097356a58f66471aa1c94c0056c.bin.gz",
+      "sha256": "620ba419844b1b198c114f45f353aa7f380f8097356a58f66471aa1c94c0056c",
+      "encoding": "gzip",
+      "compressedBytes": 10069,
+      "decodedBytes": 16792
+    },
+    "6a935375810c28ac866f32947978a339ea64324faee74172235c6cb569a81761": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-004ae3688b11aa8574ee9982ce5d78d173b5f4cd65243d933aa915c88eee1a7c.bin.gz",
+      "sha256": "004ae3688b11aa8574ee9982ce5d78d173b5f4cd65243d933aa915c88eee1a7c",
+      "encoding": "gzip",
+      "compressedBytes": 26002,
+      "decodedBytes": 50704
+    },
+    "6bc6161427f5c8bc87cedb7de1f116bfdd30e26a506ca270d1d08bba623ba717": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-fca9b3aff675d0b36922e2b25f4499184d4c19af9cae98c018dec7086d113fa5.bin.gz",
+      "sha256": "fca9b3aff675d0b36922e2b25f4499184d4c19af9cae98c018dec7086d113fa5",
+      "encoding": "gzip",
+      "compressedBytes": 51857,
+      "decodedBytes": 103568
+    },
+    "6bdb55e2d3db48a5df846a9dc86b1285a504b02f1bfcd12c4572ee7aed9f1b96": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-9dd5d581c2b57b7308dc7b82ea4ee17297cd11e0fabc802e877a74b6a943cc8c.bin.gz",
+      "sha256": "9dd5d581c2b57b7308dc7b82ea4ee17297cd11e0fabc802e877a74b6a943cc8c",
+      "encoding": "gzip",
+      "compressedBytes": 31724,
+      "decodedBytes": 69632
+    },
+    "6c353724f65f86e27401a1a059321a941b36f3e103ae0aa397897f6b0c67f507": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-155d4372cfc2d581ffcde33bcd05c5001199828234de4e499615ae5a3236799c.bin.gz",
+      "sha256": "155d4372cfc2d581ffcde33bcd05c5001199828234de4e499615ae5a3236799c",
+      "encoding": "gzip",
+      "compressedBytes": 757,
+      "decodedBytes": 1256
+    },
+    "6cbfd41c8c5158030ea876c622612bfcbce97fe464d2792a027626afab163c63": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-7d0b23ab6951726d1c244157fb8066b5ea1d076673df6151066403fe8bf4088a.bin.gz",
+      "sha256": "7d0b23ab6951726d1c244157fb8066b5ea1d076673df6151066403fe8bf4088a",
+      "encoding": "gzip",
+      "compressedBytes": 16007,
+      "decodedBytes": 26360
+    },
+    "6d4e04b3732e815b40783fd20798342575022dfd147d21120312db9cb1b197e2": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-87dacbe43b37095b721202a6844b28fadd1cc16a6014c289f06b116584a2820e.bin.gz",
+      "sha256": "87dacbe43b37095b721202a6844b28fadd1cc16a6014c289f06b116584a2820e",
+      "encoding": "gzip",
+      "compressedBytes": 2487697,
+      "decodedBytes": 5770664
+    },
+    "6e1f52698d0267b5cacff41985481ee79a29b68a5cc78df22d2e63378d87f2c3": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-efe35813ffa9054df817dd5735bb68e0b7689793d7252b3f7db967a9abba881b.bin.gz",
+      "sha256": "efe35813ffa9054df817dd5735bb68e0b7689793d7252b3f7db967a9abba881b",
+      "encoding": "gzip",
+      "compressedBytes": 22960,
+      "decodedBytes": 41096
+    },
+    "6e5c6d717bc641928b2daa3746ad28a15052dcee53707e2ebac1fd08ce9c9517": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-934a935b5c39bba8e40aae531326e3f7f8e5d4b0d815ff4f2d1f8fe7cacd4f6d.bin.gz",
+      "sha256": "934a935b5c39bba8e40aae531326e3f7f8e5d4b0d815ff4f2d1f8fe7cacd4f6d",
+      "encoding": "gzip",
+      "compressedBytes": 1833277,
+      "decodedBytes": 4352240
+    },
+    "6ecd586512e1a52f15812f5e4290fecf3d8afbd94a4abe553f0276b52961f3bc": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-29f1a77382e80a777383840a8c2e840a02820b1e53d0707f83588d5b259ff8d1.bin.gz",
+      "sha256": "29f1a77382e80a777383840a8c2e840a02820b1e53d0707f83588d5b259ff8d1",
+      "encoding": "gzip",
+      "compressedBytes": 123165,
+      "decodedBytes": 274128
+    },
+    "6f8f84daacf1f5f3e6e63355dbf359a9929ce3331361bd5b230dd877dc992c23": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-00d1fceab3c91ad0e495a040328f75e7d9b6a8434d85396107948e05ec0e477d.bin.gz",
+      "sha256": "00d1fceab3c91ad0e495a040328f75e7d9b6a8434d85396107948e05ec0e477d",
+      "encoding": "gzip",
+      "compressedBytes": 30744,
+      "decodedBytes": 55336
+    },
+    "70a13403b9943b40b9d6fc5afb0cdd3964b0c1189b067735a08e6d853ed008b3": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-2425d01dd21261b1565c1b386a78f9096780d24183fcab30427e15694aeb14b7.bin.gz",
+      "sha256": "2425d01dd21261b1565c1b386a78f9096780d24183fcab30427e15694aeb14b7",
+      "encoding": "gzip",
+      "compressedBytes": 28284,
+      "decodedBytes": 63832
+    },
+    "73bf0fc30d685c2669a4f9697d950612f018e8d0e80b1fc8468b04835f55a2a1": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-63e7a60b2bd07c10e0101e863df8735c61b20c4cd9589cfffa41475c3f7ea404.bin.gz",
+      "sha256": "63e7a60b2bd07c10e0101e863df8735c61b20c4cd9589cfffa41475c3f7ea404",
+      "encoding": "gzip",
+      "compressedBytes": 1547,
+      "decodedBytes": 2456
+    },
+    "7434aee5a7515ee0a08b07587b22011a92cc0d8b0380b7cac07a9e166ed2074f": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-79c524e53f112110c1f781e7eba77073d16373eb16adf9012419ce8c8a778d75.bin.gz",
+      "sha256": "79c524e53f112110c1f781e7eba77073d16373eb16adf9012419ce8c8a778d75",
+      "encoding": "gzip",
+      "compressedBytes": 1314,
+      "decodedBytes": 2120
+    },
+    "7441ff980e0dfdc8800f75c954ca0031b238ed6d3e04d5109c5906c8f65fc3a7": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-ee8890d42246fe0d64d9293364fd8c88b24ac916041bd50e953758fc72afad1b.bin.gz",
+      "sha256": "ee8890d42246fe0d64d9293364fd8c88b24ac916041bd50e953758fc72afad1b",
+      "encoding": "gzip",
+      "compressedBytes": 774,
+      "decodedBytes": 1256
+    },
+    "7564b0aa260cade95553f637c0cbb78e71429e29cd498f6524d96acfb554b3f7": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-321a4be67c9791e73d824bc89bada475a46fb958bf8c42d261be98ba1b002793.bin.gz",
+      "sha256": "321a4be67c9791e73d824bc89bada475a46fb958bf8c42d261be98ba1b002793",
+      "encoding": "gzip",
+      "compressedBytes": 500401,
+      "decodedBytes": 1165016
+    },
+    "75e63ff8489555ee2839a3e34140a0e93e05a5563cc59e22e24a2bfd732efab1": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-c8255b6fc2ba692930269d1bcee05c8799c5833e5ffa994e32709a301b7b1015.bin.gz",
+      "sha256": "c8255b6fc2ba692930269d1bcee05c8799c5833e5ffa994e32709a301b7b1015",
+      "encoding": "gzip",
+      "compressedBytes": 120033,
+      "decodedBytes": 242384
+    },
+    "76e218773fe7000db4ca6da5407f0f8a15695336150feac6c9c47c91e331a4e0": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-1baf92aece573a18649ae4c7a519e5d8542633b890bb20df8f38a2c44594a1b8.bin.gz",
+      "sha256": "1baf92aece573a18649ae4c7a519e5d8542633b890bb20df8f38a2c44594a1b8",
+      "encoding": "gzip",
+      "compressedBytes": 13853,
+      "decodedBytes": 25648
+    },
+    "77b4dccc2b2aa2aac02d66371079cca1b2ddfb674e18be8a761245cdb0fbb569": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-03fcee5b37892f29da2a8f0855f1935fda98d3a508eb27fa04cd7b7ec1982808.bin.gz",
+      "sha256": "03fcee5b37892f29da2a8f0855f1935fda98d3a508eb27fa04cd7b7ec1982808",
+      "encoding": "gzip",
+      "compressedBytes": 23774,
+      "decodedBytes": 42064
+    },
+    "784ae2c560b07ddf37d537dbcaafb42524b4601e43a4aacbe215ff0eee516d01": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-6703d3e14a924d6a42a06e6bf5ac00a96267604ad02dc64c0e54ffdbdbfe6ef6.bin.gz",
+      "sha256": "6703d3e14a924d6a42a06e6bf5ac00a96267604ad02dc64c0e54ffdbdbfe6ef6",
+      "encoding": "gzip",
+      "compressedBytes": 1336993,
+      "decodedBytes": 3165160
+    },
+    "79151910bbe24d554c4b9641190a51efe5ce3c31d979b90940f9650f0da25218": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-4631563cfebac8765ec9f841ae5e1277ba55b571f6e2beef857790674a964d21.bin.gz",
+      "sha256": "4631563cfebac8765ec9f841ae5e1277ba55b571f6e2beef857790674a964d21",
+      "encoding": "gzip",
+      "compressedBytes": 649989,
+      "decodedBytes": 1546760
+    },
+    "799249701b7281a15ae102dadfdb871e9a63ec9016aac2709abe682a2a44c70f": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-1186b93627edb4bd6e491c535082e768ca37d0dd92fcc46aac76d9cf2d2eb29c.bin.gz",
+      "sha256": "1186b93627edb4bd6e491c535082e768ca37d0dd92fcc46aac76d9cf2d2eb29c",
+      "encoding": "gzip",
+      "compressedBytes": 51193,
+      "decodedBytes": 102616
+    },
+    "79d6b520a28746ba28e855c64b11584a0942dd278f249c1c4a187d9ab7ea2363": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-89509f7796b582169c12fa93eb664e4d40f364206335e78e263c4ff4ebd4b72c.bin.gz",
+      "sha256": "89509f7796b582169c12fa93eb664e4d40f364206335e78e263c4ff4ebd4b72c",
+      "encoding": "gzip",
+      "compressedBytes": 117743,
+      "decodedBytes": 254440
+    },
+    "7a69f9ba1e7afc399ef16c152adee9759b20b295193dd0780bc442147bf4ace4": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-0561a9ffd297514f558a4944e449d6b5b180614255290a16793cfcfa33278cda.bin.gz",
+      "sha256": "0561a9ffd297514f558a4944e449d6b5b180614255290a16793cfcfa33278cda",
+      "encoding": "gzip",
+      "compressedBytes": 59240,
+      "decodedBytes": 113800
+    },
+    "7abe688134a6acea5bf012b215fb0c2737f9d2d24a388451fbcc0bf840980f54": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-1454ab1d3902e30cf60b4cc71d9691e0e4d2141a7d3c456225194137d3d3296d.bin.gz",
+      "sha256": "1454ab1d3902e30cf60b4cc71d9691e0e4d2141a7d3c456225194137d3d3296d",
+      "encoding": "gzip",
+      "compressedBytes": 2263,
+      "decodedBytes": 3800
+    },
+    "7bdfa63e16535cc2f00d1c6c2a97b1f5acdb77cb02e9a99877d5c73ef32d8f5e": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-ed8f871dcc96066fb429af221afffacdab1beb31a356b478f0d7d8858241ec3d.bin.gz",
+      "sha256": "ed8f871dcc96066fb429af221afffacdab1beb31a356b478f0d7d8858241ec3d",
+      "encoding": "gzip",
+      "compressedBytes": 23742,
+      "decodedBytes": 40456
+    },
+    "7c98062a63329b941345bd33679a25c789d70de60a59b8058c0e297462f32d97": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-8d3e41f89d902fbcda5bcba52d56ac0cec37161a5db2222da4245d3ab57981e0.bin.gz",
+      "sha256": "8d3e41f89d902fbcda5bcba52d56ac0cec37161a5db2222da4245d3ab57981e0",
+      "encoding": "gzip",
+      "compressedBytes": 69356,
+      "decodedBytes": 122256
+    },
+    "7ca357da74504b96714c4da9f374130dc6e391afa5725232b0365969fdc7d08b": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-e4434e31429a53483726cb80a0ca61ddd856f1a9b2417368dad867770f52aaa7.bin.gz",
+      "sha256": "e4434e31429a53483726cb80a0ca61ddd856f1a9b2417368dad867770f52aaa7",
+      "encoding": "gzip",
+      "compressedBytes": 2506,
+      "decodedBytes": 4472
+    },
+    "7da668ad78656d0663a5d0920bee0740b183b2f7ba3979747787004325493c4d": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-3c450348331c03d4fa1fffc1a7002cd9294fba195569b5106c42a79d1dab4b3c.bin.gz",
+      "sha256": "3c450348331c03d4fa1fffc1a7002cd9294fba195569b5106c42a79d1dab4b3c",
+      "encoding": "gzip",
+      "compressedBytes": 36367,
+      "decodedBytes": 65560
+    },
+    "802dc2c10f3c3f2ee4c2bc564a562508ee9ea6008bc4ef6d1eb3a8eb27f4c99f": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-123a7e3dde8be92f729c5b66f4e96a0ce08327ffb48edb83d87825e4163d533d.bin.gz",
+      "sha256": "123a7e3dde8be92f729c5b66f4e96a0ce08327ffb48edb83d87825e4163d533d",
+      "encoding": "gzip",
+      "compressedBytes": 1316,
+      "decodedBytes": 2072
+    },
+    "805b18a98fe4320cc6f5f450fad04bbe06d2be52db421acc8a854d8512d6de7c": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-54b9e7a471ddd11d9e3937394ef128b6d53fe617385e2cf7c607b3fb7ab86012.bin.gz",
+      "sha256": "54b9e7a471ddd11d9e3937394ef128b6d53fe617385e2cf7c607b3fb7ab86012",
+      "encoding": "gzip",
+      "compressedBytes": 16258,
+      "decodedBytes": 28432
+    },
+    "83c4110187d4fa1dd82b86af649bc55e4bf806b94bcecf122debebcfd61d283a": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-6ccd345f060c9dded74263742750a586f9a3b2cc76c604d2b2085e25ecaf8d3e.bin.gz",
+      "sha256": "6ccd345f060c9dded74263742750a586f9a3b2cc76c604d2b2085e25ecaf8d3e",
+      "encoding": "gzip",
+      "compressedBytes": 53636,
+      "decodedBytes": 104040
+    },
+    "845421dd00d73b03e6106ad1578559e11b80b28b271c3c470fa8ba8876174205": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-408716b53d554965f33b75fc118910ac6c7aa07d81b36090eff5fec462a657ae.bin.gz",
+      "sha256": "408716b53d554965f33b75fc118910ac6c7aa07d81b36090eff5fec462a657ae",
+      "encoding": "gzip",
+      "compressedBytes": 177133,
+      "decodedBytes": 328664
+    },
+    "84c3f42079abb3d874a9a417481c12c793536a91aac414ec8fcd18ad595875bd": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-03341a7bb6c66a1218e3068111fb1db53354cccf02bc976cffca402173878b7e.bin.gz",
+      "sha256": "03341a7bb6c66a1218e3068111fb1db53354cccf02bc976cffca402173878b7e",
+      "encoding": "gzip",
+      "compressedBytes": 2050,
+      "decodedBytes": 3320
+    },
+    "84d3cad10a7c3234270d682651ac76c2cf49165cb00221217d92139884efd6c9": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-69726cb4b250c67fd960c397c62f28c112070da70f73800ec2b1b90a9a992014.bin.gz",
+      "sha256": "69726cb4b250c67fd960c397c62f28c112070da70f73800ec2b1b90a9a992014",
+      "encoding": "gzip",
+      "compressedBytes": 719,
+      "decodedBytes": 1112
+    },
+    "8647261fd22bc128c2b4cc5dca1f607964484a50b5cd4ce1c508fd81173ff81a": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-825a91dc720939f7f6a2af96199b241b717f22cfed3f72c8453350685eaf2097.bin.gz",
+      "sha256": "825a91dc720939f7f6a2af96199b241b717f22cfed3f72c8453350685eaf2097",
+      "encoding": "gzip",
+      "compressedBytes": 8537,
+      "decodedBytes": 15336
+    },
+    "889356df75d113cf2880d1c0ad2f43a4471a6f63f6233ba8422f450a32485e95": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-6aa8fed2988c9560db62e46ed94e9294e87e251206789ac46ae6acc50ed5a77f.bin.gz",
+      "sha256": "6aa8fed2988c9560db62e46ed94e9294e87e251206789ac46ae6acc50ed5a77f",
+      "encoding": "gzip",
+      "compressedBytes": 1509,
+      "decodedBytes": 3304
+    },
+    "88dbdb53d74be7ad0514855ae0e5d5c516889449f70d866726cbca568eef894b": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-a8ade01be9d93dd63c54d5d5a09724bed62f0c91ad5a3e94f2baed0bae5dbc3c.bin.gz",
+      "sha256": "a8ade01be9d93dd63c54d5d5a09724bed62f0c91ad5a3e94f2baed0bae5dbc3c",
+      "encoding": "gzip",
+      "compressedBytes": 1511,
+      "decodedBytes": 3304
+    },
+    "89ed756bfc1e7e3ecf4eed347f78d651bfdf353ac6bb9f38c7527b010d6eecbf": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-6aa990a77211d44b636e205c493e95a6760614b5cf00214d739db7c905fd5cee.bin.gz",
+      "sha256": "6aa990a77211d44b636e205c493e95a6760614b5cf00214d739db7c905fd5cee",
+      "encoding": "gzip",
+      "compressedBytes": 1219,
+      "decodedBytes": 1928
+    },
+    "8a8c1f050e67855b1b4449f43591469fc2d124dd843d30898315af8df732a3eb": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-485dd5e1a0e2294dd5a867d9993405f90df60d3703078584a7e6485a32786fc2.bin.gz",
+      "sha256": "485dd5e1a0e2294dd5a867d9993405f90df60d3703078584a7e6485a32786fc2",
+      "encoding": "gzip",
+      "compressedBytes": 48016,
+      "decodedBytes": 89824
+    },
+    "8ad23ce65ce8f9d1630a6dd5a904e8c7b8d0ad9d236378c960756d2aa907c444": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-544b2dbaef26b80dd4ff32d25ae13ccae6a71233ff13b281f25721c82123eebc.bin.gz",
+      "sha256": "544b2dbaef26b80dd4ff32d25ae13ccae6a71233ff13b281f25721c82123eebc",
+      "encoding": "gzip",
+      "compressedBytes": 123195,
+      "decodedBytes": 268976
+    },
+    "8c78304704b46f83dd98625e40452ea90501ae2b90b9d8703767d4c6f2781273": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-1602f7f313ac25b783ca15501258576b0860e0a15e795433bd2afcef9157aa87.bin.gz",
+      "sha256": "1602f7f313ac25b783ca15501258576b0860e0a15e795433bd2afcef9157aa87",
+      "encoding": "gzip",
+      "compressedBytes": 130772,
+      "decodedBytes": 264680
+    },
+    "8c9d257d11bfb4ae3367bc5cdce143873fd2ddfa1e4fdedeeea123bf1a8c8f98": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-05ef4b2372b44862b60df690c521e59f1f2e222e32ccb1f75cee4f5016bcf9e8.bin.gz",
+      "sha256": "05ef4b2372b44862b60df690c521e59f1f2e222e32ccb1f75cee4f5016bcf9e8",
+      "encoding": "gzip",
+      "compressedBytes": 6734,
+      "decodedBytes": 11480
+    },
+    "8dbdeb5ed25ce46bd7a2e36786beb7d5fd696d080985fbf3423b07f6a4cfb33a": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-f8b331d900cea0792de159d67bc13e95b67d9e7a0f77c509651ec7a3e523ee65.bin.gz",
+      "sha256": "f8b331d900cea0792de159d67bc13e95b67d9e7a0f77c509651ec7a3e523ee65",
+      "encoding": "gzip",
+      "compressedBytes": 198632,
+      "decodedBytes": 408460
+    },
+    "8ed16441b2f43aee3e55d889a9177369f9be30166989a3fad361962a9f905c31": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-11d6ad5915278e9e08e3c9cb6d186fa608d5f6a3ee4071441448aa4dbf782764.bin.gz",
+      "sha256": "11d6ad5915278e9e08e3c9cb6d186fa608d5f6a3ee4071441448aa4dbf782764",
+      "encoding": "gzip",
+      "compressedBytes": 72739,
+      "decodedBytes": 142896
+    },
+    "8f93c166df759340192f5c86bf764cea42d6106398ad505dfbdc3aa7f7d70596": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-3ad3ac9608fe4ad640d338175dc01b8a9e8758fbf2bda43f41471c52980e3bec.bin.gz",
+      "sha256": "3ad3ac9608fe4ad640d338175dc01b8a9e8758fbf2bda43f41471c52980e3bec",
+      "encoding": "gzip",
+      "compressedBytes": 430522,
+      "decodedBytes": 943360
+    },
+    "90d6dcd5ec6112090e834573aea989b22e4f850a2af876a802a5b59fa4ba48bd": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-2fc9b7921281c7a96437164c84d6838aff358beb5b2c895d4007e4f6325acaea.bin.gz",
+      "sha256": "2fc9b7921281c7a96437164c84d6838aff358beb5b2c895d4007e4f6325acaea",
+      "encoding": "gzip",
+      "compressedBytes": 18047,
+      "decodedBytes": 32128
+    },
+    "918ac82146fa76f5896785a87fe875078725564aeb96c1857dd09f8756e328be": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-81d16a86ecbbdeb08457aa81b739e178af3b34714ca95f375b9c8c5eb4d111e9.bin.gz",
+      "sha256": "81d16a86ecbbdeb08457aa81b739e178af3b34714ca95f375b9c8c5eb4d111e9",
+      "encoding": "gzip",
+      "compressedBytes": 28340,
+      "decodedBytes": 50772
+    },
+    "91e0fddb0fe09fb6c9e041bab39747a8ea9ec042bc45618a6bdc86204f697c1d": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-fdd4c5cf59985ac1ec83b56f8d7a3e2280a366e0a3db95d7ad077f3a7ea45033.bin.gz",
+      "sha256": "fdd4c5cf59985ac1ec83b56f8d7a3e2280a366e0a3db95d7ad077f3a7ea45033",
+      "encoding": "gzip",
+      "compressedBytes": 83628,
+      "decodedBytes": 164896
+    },
+    "934445dc7aa6d4209a321a7d19d7a5b4231a5469bd48f804fe89343a6de92f36": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-cb7df75e081ef651af06b2b7aab198b061602f2df41957d68dce9ffe1dba4ad8.bin.gz",
+      "sha256": "cb7df75e081ef651af06b2b7aab198b061602f2df41957d68dce9ffe1dba4ad8",
+      "encoding": "gzip",
+      "compressedBytes": 1737,
+      "decodedBytes": 2840
+    },
+    "93892c7e63cbe678b231267c60d31ac1290a9e6f1e1ef66eb86282f055e507f5": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-37ee841f63ca0719164c28c9bcc9281b0c4cd221af971fbee4a3520854b38770.bin.gz",
+      "sha256": "37ee841f63ca0719164c28c9bcc9281b0c4cd221af971fbee4a3520854b38770",
+      "encoding": "gzip",
+      "compressedBytes": 11455,
+      "decodedBytes": 22664
+    },
+    "9594a5c54dce24a72828fb08527b314a861883937521e5c8faa406e1948f573a": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-f2a10437dee7e6fe14ed58609bfdc096dd5adcb06f3a357ce8ea6490bed96088.bin.gz",
+      "sha256": "f2a10437dee7e6fe14ed58609bfdc096dd5adcb06f3a357ce8ea6490bed96088",
+      "encoding": "gzip",
+      "compressedBytes": 69265,
+      "decodedBytes": 153928
+    },
+    "95ceca7d8ae160b313486e1215c4724ea224f869ccf1c5fa26318e4132dda4e3": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-34cf056c8bd9a5e68b8148d6f4c1b2cefe414078722b19c6020ee912da893bcb.bin.gz",
+      "sha256": "34cf056c8bd9a5e68b8148d6f4c1b2cefe414078722b19c6020ee912da893bcb",
+      "encoding": "gzip",
+      "compressedBytes": 917,
+      "decodedBytes": 1400
+    },
+    "961cbdedf877f7fb4910212a42dec7f221a8b6e629dfbb21d2c148aa514856b9": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-6c620d1eaec21d5ef27a9c93f474d997f3fd7ce1f0dad39d8daac3e59ed19ed6.bin.gz",
+      "sha256": "6c620d1eaec21d5ef27a9c93f474d997f3fd7ce1f0dad39d8daac3e59ed19ed6",
+      "encoding": "gzip",
+      "compressedBytes": 43390,
+      "decodedBytes": 77000
+    },
+    "99bab6feeb6dacef1a7275bdfb30d377821f8d2cd1fdbf3fb45c3540403aba0f": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-7e1ab1826d01695659b0561d73207071fbf8770ba318d5da96a84ce1c5648a51.bin.gz",
+      "sha256": "7e1ab1826d01695659b0561d73207071fbf8770ba318d5da96a84ce1c5648a51",
+      "encoding": "gzip",
+      "compressedBytes": 81089,
+      "decodedBytes": 163664
+    },
+    "9b3216097d52bb305b24f87fd49d3221813d54482e526561972214c1c907c39c": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-330adc7e502787227dcf25ff3f4c93b36bec8c7c7c991cd9efe8a9ecb1b23b0a.bin.gz",
+      "sha256": "330adc7e502787227dcf25ff3f4c93b36bec8c7c7c991cd9efe8a9ecb1b23b0a",
+      "encoding": "gzip",
+      "compressedBytes": 32612,
+      "decodedBytes": 57320
+    },
+    "9b40f57f87e212d09369dee60548f0775282d9fe52c4bddb9aed0016466101ab": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-7f482115afb15a4ea24ffb71272b77b6e363c315fd6ebf9f7519ca9a8cb0ea75.bin.gz",
+      "sha256": "7f482115afb15a4ea24ffb71272b77b6e363c315fd6ebf9f7519ca9a8cb0ea75",
+      "encoding": "gzip",
+      "compressedBytes": 3286,
+      "decodedBytes": 6008
+    },
+    "9b8408ca622f1b79cd2a60f68e9c0a0064e8ff8f36f02f2815f2a268dfc2fef6": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-500864fcd076a7d5042746fd7e0cc39e70f1e364731514019999b4ed828b1c19.bin.gz",
+      "sha256": "500864fcd076a7d5042746fd7e0cc39e70f1e364731514019999b4ed828b1c19",
+      "encoding": "gzip",
+      "compressedBytes": 1006,
+      "decodedBytes": 1688
+    },
+    "9c4b96ee0f9883b142aabfbdebd5d05177e70696454bae5fc9a4c288544569cd": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-5204fc5cf8cda6e53054d67588b627d97d75bf19d00b569639c63300987a4ec9.bin.gz",
+      "sha256": "5204fc5cf8cda6e53054d67588b627d97d75bf19d00b569639c63300987a4ec9",
+      "encoding": "gzip",
+      "compressedBytes": 30602,
+      "decodedBytes": 53800
+    },
+    "9cabffac837a564bfd1e88f81f1379a02b1a13301774a180155c6fe8f7614430": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-2892a39e69dfcaa9836ecd71fe6668dc8a465c3e067f8106306fd387cc590fcf.bin.gz",
+      "sha256": "2892a39e69dfcaa9836ecd71fe6668dc8a465c3e067f8106306fd387cc590fcf",
+      "encoding": "gzip",
+      "compressedBytes": 41137,
+      "decodedBytes": 74344
+    },
+    "9cb3ca38393bde859380bef568837c284095a6a7bcbd32398ff16eefe267a777": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-b613ac8be961ada49ec0f915df7588a414b0b942d3a329aaaf970161ee58f646.bin.gz",
+      "sha256": "b613ac8be961ada49ec0f915df7588a414b0b942d3a329aaaf970161ee58f646",
+      "encoding": "gzip",
+      "compressedBytes": 16053,
+      "decodedBytes": 31784
+    },
+    "9ec30776f7b19156157ceae970f39942dfcef21fc232f51a4632aa2e89f60f82": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-340692a32375e8fca2c3cc25c6400885eca12bae7f4694c8db70ab70261a0c7b.bin.gz",
+      "sha256": "340692a32375e8fca2c3cc25c6400885eca12bae7f4694c8db70ab70261a0c7b",
+      "encoding": "gzip",
+      "compressedBytes": 22824,
+      "decodedBytes": 42080
+    },
+    "9fbff7695b8cf305dd09e452de891b8961a2371af69dc023a7ed2580c07a97d5": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-43193144eccd38e22780b4b4ad1fb1f832aeb496685ca06a572e4b7d935aceee.bin.gz",
+      "sha256": "43193144eccd38e22780b4b4ad1fb1f832aeb496685ca06a572e4b7d935aceee",
+      "encoding": "gzip",
+      "compressedBytes": 90457,
+      "decodedBytes": 193312
+    },
+    "a0da162d151a64088085f06ad3ff0f6c6c18077c6c680469e9495b7f70e3a5ed": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-d44599b7bf2b00c1650ae3b0e11c371646f13bdb4f57d11c9cc62ec4c838bc5d.bin.gz",
+      "sha256": "d44599b7bf2b00c1650ae3b0e11c371646f13bdb4f57d11c9cc62ec4c838bc5d",
+      "encoding": "gzip",
+      "compressedBytes": 1993089,
+      "decodedBytes": 4605592
+    },
+    "a0e417a6b4c7437883e1a55756fc7f80d8795b3e25205f0f5c7f88b66862e4ff": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-0f413ca7811ee51a3a2bd717376441894ba1bcbbe92e97d5c5ade2dc964249c4.bin.gz",
+      "sha256": "0f413ca7811ee51a3a2bd717376441894ba1bcbbe92e97d5c5ade2dc964249c4",
+      "encoding": "gzip",
+      "compressedBytes": 26567,
+      "decodedBytes": 51208
+    },
+    "a10e630eadbb525d72fe6071f3a649429e8f307ccfe9b9de76d76aed95a3fabc": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-e6679cb305721be824e8c651cf198b970f3416e62137a44aad660f625a37d423.bin.gz",
+      "sha256": "e6679cb305721be824e8c651cf198b970f3416e62137a44aad660f625a37d423",
+      "encoding": "gzip",
+      "compressedBytes": 779157,
+      "decodedBytes": 1770672
+    },
+    "a2363467524a00611f7eb7c71843300b9121e5f6b55288fc396cea3711a0ef97": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-916954bb7d46d4696bf3446cda35c1a4afc68cfa43bff299fedf14c03aa5d27c.bin.gz",
+      "sha256": "916954bb7d46d4696bf3446cda35c1a4afc68cfa43bff299fedf14c03aa5d27c",
+      "encoding": "gzip",
+      "compressedBytes": 4164,
+      "decodedBytes": 7544
+    },
+    "a2a1ba52fd5f3cb36d618c3056827f2e5fa08d240668307a5453eb5238164d9e": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-e741820e714b27d9f78d9e92665c5fbddfc968e655263d07d3c7123e1aab55e0.bin.gz",
+      "sha256": "e741820e714b27d9f78d9e92665c5fbddfc968e655263d07d3c7123e1aab55e0",
+      "encoding": "gzip",
+      "compressedBytes": 162352,
+      "decodedBytes": 366896
+    },
+    "a3c9ce50f9b3c9bc0710960199962619336460c1ea852eb4242905e6d1bed7b6": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-647db75df0e7fe94b66e0a2bfd52e1f157b10fd30a666ad9157d224f85f0e286.bin.gz",
+      "sha256": "647db75df0e7fe94b66e0a2bfd52e1f157b10fd30a666ad9157d224f85f0e286",
+      "encoding": "gzip",
+      "compressedBytes": 26567,
+      "decodedBytes": 47104
+    },
+    "a4e114c40c445c1ad1c341f572ec9e75ce33c64bbb0843d2b196128859828456": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-25599ae4684127d4154427cfcf2b9dc058a0272df4f105037e674a6e4e2a1283.bin.gz",
+      "sha256": "25599ae4684127d4154427cfcf2b9dc058a0272df4f105037e674a6e4e2a1283",
+      "encoding": "gzip",
+      "compressedBytes": 2439905,
+      "decodedBytes": 5670608
+    },
+    "a69a90b7bc02e24cb29e67c81e6bf5512f5f43ab65e157b1ac8da8c3fa3a5daa": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-02bf94c1b36c7b8b0286cb2b3f67a1783e39d46fab614613c7bcb70228c6fe57.bin.gz",
+      "sha256": "02bf94c1b36c7b8b0286cb2b3f67a1783e39d46fab614613c7bcb70228c6fe57",
+      "encoding": "gzip",
+      "compressedBytes": 114440,
+      "decodedBytes": 255280
+    },
+    "a6f775f30c53efca9cdfcfa950e591b9d394db8349e0cd187b1433a60bc54e35": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-99c08873e076ccba7771f00233f38f47d456fbbb4839f1d5edc583209fc5e8d0.bin.gz",
+      "sha256": "99c08873e076ccba7771f00233f38f47d456fbbb4839f1d5edc583209fc5e8d0",
+      "encoding": "gzip",
+      "compressedBytes": 5180,
+      "decodedBytes": 9704
+    },
+    "a74137194cd5bca5822c0fcc53ae0828483dde0b19e2a4a3c028bd9b6e7b5093": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-47bdc53ba8c421cb9bcd3671c929f40c5ab3f9d49e2e2c3ad222914a12c6bad9.bin.gz",
+      "sha256": "47bdc53ba8c421cb9bcd3671c929f40c5ab3f9d49e2e2c3ad222914a12c6bad9",
+      "encoding": "gzip",
+      "compressedBytes": 1311,
+      "decodedBytes": 2264
+    },
+    "a7a47c23cefeb4856ffe2eb705259f3a901b2ec8d66c2e1574b46c8dfe4294b8": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-ecc7c5374271446772b8881141b7012a7ef39795e0beb75e6980da1ae140feaa.bin.gz",
+      "sha256": "ecc7c5374271446772b8881141b7012a7ef39795e0beb75e6980da1ae140feaa",
+      "encoding": "gzip",
+      "compressedBytes": 46491,
+      "decodedBytes": 86384
+    },
+    "a9899c02f5c4fbc6ea36c776453119a088c7dc0d0572109955b2945730a64aa3": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-443c8836d81aae263dc72e20529a3edbfd00f3f5347b41d5702ffb8c098f0f95.bin.gz",
+      "sha256": "443c8836d81aae263dc72e20529a3edbfd00f3f5347b41d5702ffb8c098f0f95",
+      "encoding": "gzip",
+      "compressedBytes": 1541,
+      "decodedBytes": 2600
+    },
+    "aa27b67bcd0181b7fad1b72e4ca2c1d6da4f86201f52af652f0c75e3843ab225": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-630c0830553cfb67a71294f31e8d141c5cffe31232d48c877b189f36db0f8ded.bin.gz",
+      "sha256": "630c0830553cfb67a71294f31e8d141c5cffe31232d48c877b189f36db0f8ded",
+      "encoding": "gzip",
+      "compressedBytes": 491230,
+      "decodedBytes": 1151008
+    },
+    "aab57527c50def01acade50da9a42b0017f0f040db6be9bdea12585214d895ec": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-a03615fcae6b7a148d197cf13ed1b04e2c55271570d2d401e87bcbcf21f6cbda.bin.gz",
+      "sha256": "a03615fcae6b7a148d197cf13ed1b04e2c55271570d2d401e87bcbcf21f6cbda",
+      "encoding": "gzip",
+      "compressedBytes": 116237,
+      "decodedBytes": 216260
+    },
+    "abc0773dfd8741ca7752d94c63802bf77c08d980ee9e9321a5b3e5bb958ed07c": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-241ebb4818945e96289f6026322aba64c36cf600558f254f3676aa7e110b33af.bin.gz",
+      "sha256": "241ebb4818945e96289f6026322aba64c36cf600558f254f3676aa7e110b33af",
+      "encoding": "gzip",
+      "compressedBytes": 99568,
+      "decodedBytes": 198584
+    },
+    "ad1d7c7fad449636cdbaf57571252ce5fd84ae7d954b4c6f5bc77a9300da1d93": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-f584e49af30c1041c1dddd2b27918d833db0846e20471ad42ccc3469bce2dec5.bin.gz",
+      "sha256": "f584e49af30c1041c1dddd2b27918d833db0846e20471ad42ccc3469bce2dec5",
+      "encoding": "gzip",
+      "compressedBytes": 340764,
+      "decodedBytes": 797824
+    },
+    "add75feed36438ebeafa9d13171b2201f5aad6f243c338e95bf3646d62d679ca": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-3bfe597f578b038c91743c17d4bc84ad0e4c340593257ce57f01f225b76d6d51.bin.gz",
+      "sha256": "3bfe597f578b038c91743c17d4bc84ad0e4c340593257ce57f01f225b76d6d51",
+      "encoding": "gzip",
+      "compressedBytes": 86935,
+      "decodedBytes": 186280
+    },
+    "ae9bcac75e33cb39be9e272d60766d9f5c55be0cac5a7a3a9c6306210badd036": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-be5bffd319fc36ed7d6b2154ac787154f5c4b074d37ebfee467f48884007090a.bin.gz",
+      "sha256": "be5bffd319fc36ed7d6b2154ac787154f5c4b074d37ebfee467f48884007090a",
+      "encoding": "gzip",
+      "compressedBytes": 8605,
+      "decodedBytes": 14648
+    },
+    "b1131155864137a0d218586cbbe68af1ba2157e8ca8d73d8de7cba263967cab3": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-755d02c2be801ac59836ca7081e1b66ce107cd674d31442750bd1e146cb1b185.bin.gz",
+      "sha256": "755d02c2be801ac59836ca7081e1b66ce107cd674d31442750bd1e146cb1b185",
+      "encoding": "gzip",
+      "compressedBytes": 1603,
+      "decodedBytes": 2696
+    },
+    "b2b17e736407e91950a495a6a91df4c37bfeb197fe54a98bc8d6e98138ecb142": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-0dd2f6a862e9d6c1327c03f3e2236ba2c8cbad20eef9264e9ee613154db99793.bin.gz",
+      "sha256": "0dd2f6a862e9d6c1327c03f3e2236ba2c8cbad20eef9264e9ee613154db99793",
+      "encoding": "gzip",
+      "compressedBytes": 27283,
+      "decodedBytes": 49052
+    },
+    "b30f5393e4c8c2059a5d83e576f559d5823cced3593895efc03b827fd7742edc": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-b926ebbea953a956d7e12cf815445354f281405d8da218ee1620f57a8f57657d.bin.gz",
+      "sha256": "b926ebbea953a956d7e12cf815445354f281405d8da218ee1620f57a8f57657d",
+      "encoding": "gzip",
+      "compressedBytes": 296,
+      "decodedBytes": 440
+    },
+    "b3cd81d7f3fe805dcb2b943774ee4d6c4993d1f729327aa4e12f494e7253e347": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-1e95b779469d8f06ea36e467fc22f4b68dc0c30b571df7c4526e66a4a5c9e7ef.bin.gz",
+      "sha256": "1e95b779469d8f06ea36e467fc22f4b68dc0c30b571df7c4526e66a4a5c9e7ef",
+      "encoding": "gzip",
+      "compressedBytes": 93731,
+      "decodedBytes": 185632
+    },
+    "b43316c04d848d0fe46d93e77f293c67e678a190a1fb4719e418e5b7f32b7a9e": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-66980f07f37c5a8d3c9cf24bbaee0e99a286c00fbd746aee1a03d7c4abb77816.bin.gz",
+      "sha256": "66980f07f37c5a8d3c9cf24bbaee0e99a286c00fbd746aee1a03d7c4abb77816",
+      "encoding": "gzip",
+      "compressedBytes": 59463,
+      "decodedBytes": 134576
+    },
+    "b46e546380264bb2126c51351fcebc981dbf3ba522d5f70fdc5ffa6464867479": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-6bd1bc09ef242e0eb504c8ab17aa14ec74947f3be6f380343b6def45727464de.bin.gz",
+      "sha256": "6bd1bc09ef242e0eb504c8ab17aa14ec74947f3be6f380343b6def45727464de",
+      "encoding": "gzip",
+      "compressedBytes": 3198,
+      "decodedBytes": 5720
+    },
+    "b5883d3417db77fd8d8af685a5beeed00339e8afa77ba741d12bae716b0c0c9e": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-b796e6d87d59fdf9fc4ba4bb22847338dc45189b1c17a5bcf84e2b044fb204b7.bin.gz",
+      "sha256": "b796e6d87d59fdf9fc4ba4bb22847338dc45189b1c17a5bcf84e2b044fb204b7",
+      "encoding": "gzip",
+      "compressedBytes": 40405,
+      "decodedBytes": 85956
+    },
+    "b5a5d799c78e895a7fc4c7c3286495cf706e559b30c0a167133e9bbc2ae8b57c": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-eb56db8f3a97f6d6182f3cc3e7f674003392ac4e15cb3e1985b9bb2b3970c5b9.bin.gz",
+      "sha256": "eb56db8f3a97f6d6182f3cc3e7f674003392ac4e15cb3e1985b9bb2b3970c5b9",
+      "encoding": "gzip",
+      "compressedBytes": 35682,
+      "decodedBytes": 62560
+    },
+    "b875100e2f0502628e2c2bbc12e7d44da1c1f12aa3560c1f535fbcba4ee31ca2": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-9cd639eed627dc3b4a8a7e05ea34ab09eb6b1b0f1e669c9096ecc22dbf5a7c9d.bin.gz",
+      "sha256": "9cd639eed627dc3b4a8a7e05ea34ab09eb6b1b0f1e669c9096ecc22dbf5a7c9d",
+      "encoding": "gzip",
+      "compressedBytes": 6502,
+      "decodedBytes": 11192
+    },
+    "bbd654b4a7b0f23c5999b995b9081d4eeacb1a0e9d7d4d1eb57a09fc497edca1": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-76a38be19ac4497038f98c5f2aabd12210921abf1b3042b5d699940e3cb37be7.bin.gz",
+      "sha256": "76a38be19ac4497038f98c5f2aabd12210921abf1b3042b5d699940e3cb37be7",
+      "encoding": "gzip",
+      "compressedBytes": 73115,
+      "decodedBytes": 151192
+    },
+    "bc54285e2e310d93b05efe84706f259f2b8a9b6c06be84be390e582ae66c725e": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-8fe5199b2a499e97d42f7bb74c6d14c4e24293a67467176181534167d539e536.bin.gz",
+      "sha256": "8fe5199b2a499e97d42f7bb74c6d14c4e24293a67467176181534167d539e536",
+      "encoding": "gzip",
+      "compressedBytes": 12019,
+      "decodedBytes": 24848
+    },
+    "bc994ec68729d4e899f01a6a5bf56e7bd191c968202000d096748642221fc070": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-197974d6cf5c4427306a84c33d6c28e54d172c10bf244735d6d44ddb98054dfd.bin.gz",
+      "sha256": "197974d6cf5c4427306a84c33d6c28e54d172c10bf244735d6d44ddb98054dfd",
+      "encoding": "gzip",
+      "compressedBytes": 20328,
+      "decodedBytes": 34648
+    },
+    "bcc0cb4230ae60ac602f53c4b050feb58d9e3ee28c0b623d53cc2dd31c72ec9a": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-d0465df3d64a0af9b849d34f2ef3cbb32985e7f3dbde734b4de3660c3cf9c7d0.bin.gz",
+      "sha256": "d0465df3d64a0af9b849d34f2ef3cbb32985e7f3dbde734b4de3660c3cf9c7d0",
+      "encoding": "gzip",
+      "compressedBytes": 47452,
+      "decodedBytes": 88768
+    },
+    "bcc346ab28272c4be1a39bbd0952eb677f27090c8a0c4ad67077530cea326fbc": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-b2c6c842bf5f648b9338a85d147921186e3af2e3dbbda1533b22715dbaa2cf48.bin.gz",
+      "sha256": "b2c6c842bf5f648b9338a85d147921186e3af2e3dbbda1533b22715dbaa2cf48",
+      "encoding": "gzip",
+      "compressedBytes": 120423,
+      "decodedBytes": 276208
+    },
+    "bd011f21b8b0f9c5af2a5700dbb9e132b50411342289fa7402da1b95b7cf9cd4": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-27f60f7646c2f3b221c2185fa98ac0efe299ec72de80756ebd178e41fbdff3e1.bin.gz",
+      "sha256": "27f60f7646c2f3b221c2185fa98ac0efe299ec72de80756ebd178e41fbdff3e1",
+      "encoding": "gzip",
+      "compressedBytes": 67420,
+      "decodedBytes": 151184
+    },
+    "bf21074782b12805a498cbc9752516031143f9cdad60522afb77d4d283a26c95": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-17c0da60d005391207f5958799d7ca1cc44a10dffd450cd6dec5414d6344a1a1.bin.gz",
+      "sha256": "17c0da60d005391207f5958799d7ca1cc44a10dffd450cd6dec5414d6344a1a1",
+      "encoding": "gzip",
+      "compressedBytes": 15883,
+      "decodedBytes": 34432
+    },
+    "c11a1c101f9782d83032a97a685e3435c0ddd3131232f3b6ff9dc6c2b44f32bb": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-19e7f26ef48d03487cf7dba92bc382a1e66258de5bf8c7fd1da1f5a73c276526.bin.gz",
+      "sha256": "19e7f26ef48d03487cf7dba92bc382a1e66258de5bf8c7fd1da1f5a73c276526",
+      "encoding": "gzip",
+      "compressedBytes": 2247,
+      "decodedBytes": 3896
+    },
+    "c2089f35aa8ce2c23f93863c5fe4429b60470ad9c8d983e4c8e6643da085d5d0": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-fbfaa48fbc7e33811e046baa5084524442bc9554bdb0b2c75128496c7c479ebd.bin.gz",
+      "sha256": "fbfaa48fbc7e33811e046baa5084524442bc9554bdb0b2c75128496c7c479ebd",
+      "encoding": "gzip",
+      "compressedBytes": 8819,
+      "decodedBytes": 18968
+    },
+    "c26d7c1f0387bb79b0c7b8651d154b5444a1697dab8f3108125934583622b831": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-feceab82416d5fa349f6e141a4acf28ed18ada886f2e28110220c554634eefb6.bin.gz",
+      "sha256": "feceab82416d5fa349f6e141a4acf28ed18ada886f2e28110220c554634eefb6",
+      "encoding": "gzip",
+      "compressedBytes": 35997,
+      "decodedBytes": 62920
+    },
+    "c4c6bedc894af0d76fba3bfd3e778288a41cf7ba9368bfc1ce46ab4f3dce09e7": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-a6bcb1629d5c74b9fbce2168f2015a99fb9cde509f2ece1820f6d97c13e03517.bin.gz",
+      "sha256": "a6bcb1629d5c74b9fbce2168f2015a99fb9cde509f2ece1820f6d97c13e03517",
+      "encoding": "gzip",
+      "compressedBytes": 98387,
+      "decodedBytes": 201560
+    },
+    "c608f127c9906f0eaa742dadf29698c934c45d407f0baa2f4aaf2838d08384d3": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-0b0bdf07f6e76902035d5c09ab8307479ef3183c28d270c48dc0c89dbe706f1b.bin.gz",
+      "sha256": "0b0bdf07f6e76902035d5c09ab8307479ef3183c28d270c48dc0c89dbe706f1b",
+      "encoding": "gzip",
+      "compressedBytes": 39959,
+      "decodedBytes": 78784
+    },
+    "c6267ec01a4752b59ef4eabfdc314790a1b6a5c0a597daa5b34ac05a52a2c076": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-dd460058493c9228a2d8c406cdcfcebf67c1dc03b908ebdac8d8ed264b9ed5f0.bin.gz",
+      "sha256": "dd460058493c9228a2d8c406cdcfcebf67c1dc03b908ebdac8d8ed264b9ed5f0",
+      "encoding": "gzip",
+      "compressedBytes": 128185,
+      "decodedBytes": 289448
+    },
+    "c63aff57b35644ca93b8417f6450422ad4b8797913d404accd97db92acfafeb4": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-29ad796f7f540cc18eb847026745fc6f8bd684b1d0fbd79cd1f8ed165feedf78.bin.gz",
+      "sha256": "29ad796f7f540cc18eb847026745fc6f8bd684b1d0fbd79cd1f8ed165feedf78",
+      "encoding": "gzip",
+      "compressedBytes": 30028,
+      "decodedBytes": 55984
+    },
+    "c65157bea248994c5b217abd0d50549216a525383f928977e55fab7c3fc7cf2f": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-5ec26b000e2cd3bfea1891465cc8928a59da16ff28873395604b8b7f646bf319.bin.gz",
+      "sha256": "5ec26b000e2cd3bfea1891465cc8928a59da16ff28873395604b8b7f646bf319",
+      "encoding": "gzip",
+      "compressedBytes": 5656,
+      "decodedBytes": 10568
+    },
+    "c6af26db76495c6caf0ded4fa54dda5ff4f64d9dfe2238372765a2a3c5659ccf": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-15e36db2c8e5f863e330c924ac2b17b47769934f7e1f5c7f2f2902bcbfd89650.bin.gz",
+      "sha256": "15e36db2c8e5f863e330c924ac2b17b47769934f7e1f5c7f2f2902bcbfd89650",
+      "encoding": "gzip",
+      "compressedBytes": 21865,
+      "decodedBytes": 39184
+    },
+    "c76ef3bc77f78697e1da221e8e73e3b40246f52a865f9b98a69997e76dfd9b55": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-70cadc399100978b8ac5ea823d5d46bdc955ac03cfd2ae8c5d871c9c4d0a0b13.bin.gz",
+      "sha256": "70cadc399100978b8ac5ea823d5d46bdc955ac03cfd2ae8c5d871c9c4d0a0b13",
+      "encoding": "gzip",
+      "compressedBytes": 1514,
+      "decodedBytes": 2600
+    },
+    "c7bff85d5889318b02fc47b65b7b7f0dfcc274fd76e4ef0b4ce1e39f887e4a43": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-e445d581fb6fb54860b3bfd0929ed378859cdd88f5004a6f4c342f256e00c79d.bin.gz",
+      "sha256": "e445d581fb6fb54860b3bfd0929ed378859cdd88f5004a6f4c342f256e00c79d",
+      "encoding": "gzip",
+      "compressedBytes": 515982,
+      "decodedBytes": 1140688
+    },
+    "ca2fef8ea0b6ffa5a3905fb295fb2f69d6ff778a0ac7e8c22d6fe866c5ea268b": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-9f6f1a084dd56a6c083fcaf2786b67d7c52bd7f554a5fc189596bcca6cb301e4.bin.gz",
+      "sha256": "9f6f1a084dd56a6c083fcaf2786b67d7c52bd7f554a5fc189596bcca6cb301e4",
+      "encoding": "gzip",
+      "compressedBytes": 242,
+      "decodedBytes": 344
+    },
+    "caf96bad244a52a01a808fa6f61a27977e249a345684950e3a96563d5d92399f": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-7207a2e5fa88f69a98900f24247fb33f51c7be31399e01a43ed3dab5da6a6b2a.bin.gz",
+      "sha256": "7207a2e5fa88f69a98900f24247fb33f51c7be31399e01a43ed3dab5da6a6b2a",
+      "encoding": "gzip",
+      "compressedBytes": 102124,
+      "decodedBytes": 244352
+    },
+    "cbc45baebaeb6034cfb24b750ae693c4c0c624f77f9d72009a90616d4d11fcb7": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-53d9a3ef4ddc104f3e63e12bc42baa5b9de169c54c626bdc1100ef66a5e47330.bin.gz",
+      "sha256": "53d9a3ef4ddc104f3e63e12bc42baa5b9de169c54c626bdc1100ef66a5e47330",
+      "encoding": "gzip",
+      "compressedBytes": 24130,
+      "decodedBytes": 46836
+    },
+    "cc79281542e94c6da80662af59d842b30fdb8b9b14323b0594fccd7d0e4f4850": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-c993f01f4f8062c0528b3ead87a7ca4de10399a1f37c173fdfdf8049dbf102d0.bin.gz",
+      "sha256": "c993f01f4f8062c0528b3ead87a7ca4de10399a1f37c173fdfdf8049dbf102d0",
+      "encoding": "gzip",
+      "compressedBytes": 2438,
+      "decodedBytes": 4376
+    },
+    "cc9967a8e39a58ca6f15a6a0d92dbc1312cbb40f8a71c7e507a4534ab6edca04": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-7763cb320682da8df85b535933cc51237325ff2d1513fb24d5392f8136166a56.bin.gz",
+      "sha256": "7763cb320682da8df85b535933cc51237325ff2d1513fb24d5392f8136166a56",
+      "encoding": "gzip",
+      "compressedBytes": 10363,
+      "decodedBytes": 17144
+    },
+    "cd26c4f7ab6b8d72cea44b5cecb0a406b2254688a898ff8cd90c64f4b29e88c4": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-5dc566a95385112f09f6635341a0222d2f19fd1157037bbddf757e2343e4165e.bin.gz",
+      "sha256": "5dc566a95385112f09f6635341a0222d2f19fd1157037bbddf757e2343e4165e",
+      "encoding": "gzip",
+      "compressedBytes": 3013,
+      "decodedBytes": 5288
+    },
+    "cd679c23e758105a4545cfb349cfc31f3c45f9416325e12b4fc037e7654c8659": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-e0e040bbde2a20bd8224bbe6034f086515eb812e39e7ea3792c04c65e4ac6203.bin.gz",
+      "sha256": "e0e040bbde2a20bd8224bbe6034f086515eb812e39e7ea3792c04c65e4ac6203",
+      "encoding": "gzip",
+      "compressedBytes": 246549,
+      "decodedBytes": 520568
+    },
+    "cf7a698a50c45584b66d30855afbc858eff52c28dd90563da815bfdb850b1c3e": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-7e7a20ceba7d05d4b03e75149a8e8d34091f8051882491e5e5d2b620a67c0d69.bin.gz",
+      "sha256": "7e7a20ceba7d05d4b03e75149a8e8d34091f8051882491e5e5d2b620a67c0d69",
+      "encoding": "gzip",
+      "compressedBytes": 431,
+      "decodedBytes": 704
+    },
+    "cf9e4dc0cb6e6129ba44ea53503a39b3c9c3b6baa76394e657ad3215d61d5b8a": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-f6922f51227235a4160e5556c738e86c19bab518ab049b1e191c4ccaf4ce3cad.bin.gz",
+      "sha256": "f6922f51227235a4160e5556c738e86c19bab518ab049b1e191c4ccaf4ce3cad",
+      "encoding": "gzip",
+      "compressedBytes": 10685,
+      "decodedBytes": 23096
+    },
+    "d20b40e66bfdb5cdb0c9ff1dc889fd60a25edcbd6ab2ae4919cefdc2ed2b79ce": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-9eabc61a0eb701527bd2e764bc021d3d5ac123302e4076f4aaa725f8cf6f6019.bin.gz",
+      "sha256": "9eabc61a0eb701527bd2e764bc021d3d5ac123302e4076f4aaa725f8cf6f6019",
+      "encoding": "gzip",
+      "compressedBytes": 535664,
+      "decodedBytes": 1169344
+    },
+    "d31618f3fcc486a4f30a1329dc62fb7fa59e458615248aed05edd01084d624d8": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-6713867b3e4b2f2fa1cf6f17915acd9953a518dc58a74d6ac446ea4914f7e060.bin.gz",
+      "sha256": "6713867b3e4b2f2fa1cf6f17915acd9953a518dc58a74d6ac446ea4914f7e060",
+      "encoding": "gzip",
+      "compressedBytes": 92757,
+      "decodedBytes": 198984
+    },
+    "d50577b6d1844e41961743d54cc4d29108906af93d00d02fc00099cc355fdab0": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-76ca55c5b301dc80d433db5fb3a11fe55f37601e19aa13f4cc4320734db8d4e5.bin.gz",
+      "sha256": "76ca55c5b301dc80d433db5fb3a11fe55f37601e19aa13f4cc4320734db8d4e5",
+      "encoding": "gzip",
+      "compressedBytes": 11493,
+      "decodedBytes": 22808
+    },
+    "d507e9f484cc99e8d1c850e737f5801e30f595ad1557f68f1ff157646050978f": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-a63638f7dd0f074bf532cf637fa166c819efb131d418b22447541dd3a79eecf0.bin.gz",
+      "sha256": "a63638f7dd0f074bf532cf637fa166c819efb131d418b22447541dd3a79eecf0",
+      "encoding": "gzip",
+      "compressedBytes": 297,
+      "decodedBytes": 440
+    },
+    "d59b95855064d99a1683185a31ba77f2441bfaaed446678ae375de7da95e7db8": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-e7b2e58ad9179b7f73b29f7a16e071ba175dbba607914c9468a7e723afd26441.bin.gz",
+      "sha256": "e7b2e58ad9179b7f73b29f7a16e071ba175dbba607914c9468a7e723afd26441",
+      "encoding": "gzip",
+      "compressedBytes": 24551,
+      "decodedBytes": 43712
+    },
+    "d61f0928df98e6300fb0344c761f7c11b51eee9a28a8cb7eff924c28e5e469f8": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-4663d23c9fb6d173b558ac07006f168a8668d5ca0e04a5c0db799230cbfc901d.bin.gz",
+      "sha256": "4663d23c9fb6d173b558ac07006f168a8668d5ca0e04a5c0db799230cbfc901d",
+      "encoding": "gzip",
+      "compressedBytes": 1056,
+      "decodedBytes": 1736
+    },
+    "d63518f42b709b7313c1062328427b02b888ae16d5783308162dc0b7c5fe23a7": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-77016995302cb77ce7fa8bfa911602a8464832fa97eab2db1f45308562557e84.bin.gz",
+      "sha256": "77016995302cb77ce7fa8bfa911602a8464832fa97eab2db1f45308562557e84",
+      "encoding": "gzip",
+      "compressedBytes": 226696,
+      "decodedBytes": 509116
+    },
+    "d684d8a2fe6e45e15abd217813ba9ba52d041efa8c119d3305b21bbce8491829": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-7ab546e2736656d0820383e1175b7281705f3a66378bd82972b35c4f4f6fa7ee.bin.gz",
+      "sha256": "7ab546e2736656d0820383e1175b7281705f3a66378bd82972b35c4f4f6fa7ee",
+      "encoding": "gzip",
+      "compressedBytes": 5112,
+      "decodedBytes": 9128
+    },
+    "d6e0e9fc505718fe3e53da7606c98d022ad7e48c790fab85ebf8cad0fdfa2799": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-749761c3bcd03e64ead7ad3a915a66dcbf1dfe7f2e6e6304c57162f840ec4b08.bin.gz",
+      "sha256": "749761c3bcd03e64ead7ad3a915a66dcbf1dfe7f2e6e6304c57162f840ec4b08",
+      "encoding": "gzip",
+      "compressedBytes": 2815,
+      "decodedBytes": 5140
+    },
+    "d76200c6bf6fa3a283619aa6ca0390cf03c83f2a3b6d9c17aa0997212fad16cd": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-a1c647041819b2b13c003c01ea390825b3e12c240d37d6fbc5aaa1eca6022351.bin.gz",
+      "sha256": "a1c647041819b2b13c003c01ea390825b3e12c240d37d6fbc5aaa1eca6022351",
+      "encoding": "gzip",
+      "compressedBytes": 5790,
+      "decodedBytes": 9536
+    },
+    "d78f9c0b0d61f22641d06440746cc12ba12a78932b5961d67d312f549a862ff6": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-9f94ffcbac969d2753edc5b9e5ab373a2452d358f4e80e325504299bd146a149.bin.gz",
+      "sha256": "9f94ffcbac969d2753edc5b9e5ab373a2452d358f4e80e325504299bd146a149",
+      "encoding": "gzip",
+      "compressedBytes": 76158,
+      "decodedBytes": 154780
+    },
+    "d7a418b6365b3c5573f023c2c504f26c61989ddeea2d0dc8ed608468fc1e6b73": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-ceef9788efd7b6dc5ec4a2ada1d34c4e92528b93271fc339634aafdee5f259db.bin.gz",
+      "sha256": "ceef9788efd7b6dc5ec4a2ada1d34c4e92528b93271fc339634aafdee5f259db",
+      "encoding": "gzip",
+      "compressedBytes": 68124,
+      "decodedBytes": 134968
+    },
+    "d80dcdc27f1e97f957995ce368fd326d8d9a365be5b087eeefc4217abb78d4a9": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-d5d05987b19824f0b7e614ed2432971f598f9db2018d63f6acfb3dfa28869a4a.bin.gz",
+      "sha256": "d5d05987b19824f0b7e614ed2432971f598f9db2018d63f6acfb3dfa28869a4a",
+      "encoding": "gzip",
+      "compressedBytes": 10807,
+      "decodedBytes": 18112
+    },
+    "d82f87307c812730347d763cebd3ce4f48475855504a26c2be07bfb6523411dd": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-7c175e667bb70888caff66a43057b743771444e95f84f2ad99080a46f7aa8d8a.bin.gz",
+      "sha256": "7c175e667bb70888caff66a43057b743771444e95f84f2ad99080a46f7aa8d8a",
+      "encoding": "gzip",
+      "compressedBytes": 17745,
+      "decodedBytes": 30320
+    },
+    "d89c706f7a995eecf9beb7bd50e4445c2fc9e303e2aece30baed3949a3f34d7a": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-5b5cccb62c7c9e03525e6700776a3bd31bfb62f836ac45f9114acb455ce7e540.bin.gz",
+      "sha256": "5b5cccb62c7c9e03525e6700776a3bd31bfb62f836ac45f9114acb455ce7e540",
+      "encoding": "gzip",
+      "compressedBytes": 8330,
+      "decodedBytes": 13736
+    },
+    "d8beed877a5600ff50fe802ecc3f89df25ad35fc6262dc12b57cd8a2b3c9e785": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-85de90bfb46993ed01446d10fb73dfc84c50dc97259fed2e807d4f8d61bd5797.bin.gz",
+      "sha256": "85de90bfb46993ed01446d10fb73dfc84c50dc97259fed2e807d4f8d61bd5797",
+      "encoding": "gzip",
+      "compressedBytes": 38834,
+      "decodedBytes": 73024
+    },
+    "d9f64a0dc019c06b5cb3cda6c552f64b0a94731fd775a4b99d19537ae7141a44": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-bf5067bff3a6914ad1a18e3aa1d6a839922c449161525c79ca6dc2ac3daef3dd.bin.gz",
+      "sha256": "bf5067bff3a6914ad1a18e3aa1d6a839922c449161525c79ca6dc2ac3daef3dd",
+      "encoding": "gzip",
+      "compressedBytes": 5339,
+      "decodedBytes": 9656
+    },
+    "da46d5855dbb1f250721c73b75b092bdfa604d5b784dd220d1bf6770083ebefe": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-c45dcc2a2f68595da36be6412a4c564f15056551d74962b4c74555ca1b9f77b5.bin.gz",
+      "sha256": "c45dcc2a2f68595da36be6412a4c564f15056551d74962b4c74555ca1b9f77b5",
+      "encoding": "gzip",
+      "compressedBytes": 42030,
+      "decodedBytes": 77036
+    },
+    "db985563ba4a075273b6f8d8540b286b920bb091eff57a1b8d1beacad38ab5d6": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-36b1df2e7b35b97c653d6bad3644396ed6ed6851cb85b72dcd19548706f4470e.bin.gz",
+      "sha256": "36b1df2e7b35b97c653d6bad3644396ed6ed6851cb85b72dcd19548706f4470e",
+      "encoding": "gzip",
+      "compressedBytes": 690,
+      "decodedBytes": 1064
+    },
+    "dce6e1e493b9ea55478f98ba1cc9b34e46aea7de6aa3986fc0b9053771119f58": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-c380fd3e9ee7535131acd962276512bd9f7c6ef176704b96def0e00dcbb17e28.bin.gz",
+      "sha256": "c380fd3e9ee7535131acd962276512bd9f7c6ef176704b96def0e00dcbb17e28",
+      "encoding": "gzip",
+      "compressedBytes": 2010918,
+      "decodedBytes": 4653464
+    },
+    "def502fc9f7474f3ef3f3c382eafea5598bea552390528411663b168e412afed": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-4ddc1c4487ff8bc495ad06c031811e44949618eaa61c7a6d68fa6d1772c8898f.bin.gz",
+      "sha256": "4ddc1c4487ff8bc495ad06c031811e44949618eaa61c7a6d68fa6d1772c8898f",
+      "encoding": "gzip",
+      "compressedBytes": 55372,
+      "decodedBytes": 103280
+    },
+    "dfbffa3c328deda88b00b04146d993c5fd200d66f6b530288eab2da8fbbae85e": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-77fb941edfb762c6fa2bc81242ee491eb0f91be1a8cbf3e6b16475e2426e2abe.bin.gz",
+      "sha256": "77fb941edfb762c6fa2bc81242ee491eb0f91be1a8cbf3e6b16475e2426e2abe",
+      "encoding": "gzip",
+      "compressedBytes": 94793,
+      "decodedBytes": 223408
+    },
+    "e0fb5bf052a456445012b22b396ad9ac880d5fb83ff12de13713d968d9b05740": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-45a35e5cb1412e7ddc591f756cc7f5556d0d9a767b340cb80415a9157dd3c469.bin.gz",
+      "sha256": "45a35e5cb1412e7ddc591f756cc7f5556d0d9a767b340cb80415a9157dd3c469",
+      "encoding": "gzip",
+      "compressedBytes": 375,
+      "decodedBytes": 536
+    },
+    "e1e65e0c1834721e77caef333af007a40d5b53c51733ac7905c6e010cb8f956b": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-87541c5897dc9ff7e4b7187134c61de6fa51015f373de5a8b8584cac3b74d4c0.bin.gz",
+      "sha256": "87541c5897dc9ff7e4b7187134c61de6fa51015f373de5a8b8584cac3b74d4c0",
+      "encoding": "gzip",
+      "compressedBytes": 8372,
+      "decodedBytes": 14032
+    },
+    "e2a0c09da2d2ba6334e343893539b817d861632eb20d6653581f09678535f0d9": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-d8d21dfa9753dd77e273e7ba8086f63dbd06ba92ab79f63e2ecfdba914f07d39.bin.gz",
+      "sha256": "d8d21dfa9753dd77e273e7ba8086f63dbd06ba92ab79f63e2ecfdba914f07d39",
+      "encoding": "gzip",
+      "compressedBytes": 7219,
+      "decodedBytes": 13024
+    },
+    "e3da612b71c9a41ae768cc4da00d5d84ffd900f579a22a49d993d454e44dd3a4": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-1358ffabb1a39c47b2fec4109a208af59ee65a76271b6c25c4c45c563bdd03d3.bin.gz",
+      "sha256": "1358ffabb1a39c47b2fec4109a208af59ee65a76271b6c25c4c45c563bdd03d3",
+      "encoding": "gzip",
+      "compressedBytes": 2481999,
+      "decodedBytes": 5761784
+    },
+    "e57d85134da7eb55da767e1eda140e33e8a6fd1c41856d314e6cf4ebf9c02813": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-921972fa10c75a5e8edfe8c82b897a8651e63defe28bde86f169337dcbdd85b1.bin.gz",
+      "sha256": "921972fa10c75a5e8edfe8c82b897a8651e63defe28bde86f169337dcbdd85b1",
+      "encoding": "gzip",
+      "compressedBytes": 4568,
+      "decodedBytes": 7664
+    },
+    "e581751db6a698347ecc702244eb41cf9e1abfb6d477eb64a8f7b11ed3361447": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-38c51fb195147c03f30dc1bf0fb68f4bcc9e98f88cbb1b7a2f56b410a87c4c5f.bin.gz",
+      "sha256": "38c51fb195147c03f30dc1bf0fb68f4bcc9e98f88cbb1b7a2f56b410a87c4c5f",
+      "encoding": "gzip",
+      "compressedBytes": 91286,
+      "decodedBytes": 204712
+    },
+    "e59654ed8d36683109c58dda75900be79f3c002ed76169217a84683ebb7ab252": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-80e916689dce2c0b3e7f407b821b31c844266e50ea32b22bfb5c95808526690a.bin.gz",
+      "sha256": "80e916689dce2c0b3e7f407b821b31c844266e50ea32b22bfb5c95808526690a",
+      "encoding": "gzip",
+      "compressedBytes": 535547,
+      "decodedBytes": 1169152
+    },
+    "e66c19cdde2a16f02bcdeab5cde057b1c6ecb8451f824316789f8cb61a46a1fd": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-bdb844aed0110debcf5284c2b0cf8aeb05d2b9f22e370f596ed0e4d0b604ff2c.bin.gz",
+      "sha256": "bdb844aed0110debcf5284c2b0cf8aeb05d2b9f22e370f596ed0e4d0b604ff2c",
+      "encoding": "gzip",
+      "compressedBytes": 1266392,
+      "decodedBytes": 2915776
+    },
+    "e690e389947b10ccb381a452d1b8be48f3e192158c2d4c328a92057768a73e67": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-ea2bac6cd73a33ac5bd20b4779c8528c8d792e2463edafa43d5c69c6c1457ebe.bin.gz",
+      "sha256": "ea2bac6cd73a33ac5bd20b4779c8528c8d792e2463edafa43d5c69c6c1457ebe",
+      "encoding": "gzip",
+      "compressedBytes": 3435,
+      "decodedBytes": 6296
+    },
+    "e749be2e310fdf0cabe43f33ec9eb4a8b740c14d9135447c139ef21231bb98c9": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-f934472f6a28689590ff9636dc9c752e4c13013654ac8a1a246939f298d3274e.bin.gz",
+      "sha256": "f934472f6a28689590ff9636dc9c752e4c13013654ac8a1a246939f298d3274e",
+      "encoding": "gzip",
+      "compressedBytes": 2207,
+      "decodedBytes": 3704
+    },
+    "e8989549979ea3710f3a54aaa17f85884e97608b84d37ae01da588baf85188d5": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-7a64650c78d35ed578b4b238f57690ec436b5ffa5627503f4084265f4f8e02b9.bin.gz",
+      "sha256": "7a64650c78d35ed578b4b238f57690ec436b5ffa5627503f4084265f4f8e02b9",
+      "encoding": "gzip",
+      "compressedBytes": 11874,
+      "decodedBytes": 20288
+    },
+    "ea97ba7b810827736e0ba21093c9f7a8a81b2dd6410237642cf7a108c81043ab": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-9e543bf189dcdd7f65a17458170ea6475f98e5d4c44ee5c592591f30a0d61b02.bin.gz",
+      "sha256": "9e543bf189dcdd7f65a17458170ea6475f98e5d4c44ee5c592591f30a0d61b02",
+      "encoding": "gzip",
+      "compressedBytes": 238,
+      "decodedBytes": 344
+    },
+    "eadeb72f978819c5af4a086e7e4c5ffe2331adf7860b12cff7b79c246ccb342b": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-2ce087cd8dc918b355ba2ca1080b4762e680a94299a0236c72d760af7050939e.bin.gz",
+      "sha256": "2ce087cd8dc918b355ba2ca1080b4762e680a94299a0236c72d760af7050939e",
+      "encoding": "gzip",
+      "compressedBytes": 56853,
+      "decodedBytes": 122696
+    },
+    "eb71a6b6892b7dab2448f85dd6166fa9f815e83919a527486e2962d7f3dd0dfc": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-d24762c123093c621cb94058e74523873ece3f52ec88dcb84d999e227ee2c028.bin.gz",
+      "sha256": "d24762c123093c621cb94058e74523873ece3f52ec88dcb84d999e227ee2c028",
+      "encoding": "gzip",
+      "compressedBytes": 3178,
+      "decodedBytes": 5528
+    },
+    "ebc215899035b29e1f6a1fa931b88ff552d0232051f2daa0c5d19908fdb3836c": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-f7f88c1106251d4caca2eee3f8073885f468b132b468f100b4feee1f26f373f5.bin.gz",
+      "sha256": "f7f88c1106251d4caca2eee3f8073885f468b132b468f100b4feee1f26f373f5",
+      "encoding": "gzip",
+      "compressedBytes": 13680,
+      "decodedBytes": 27712
+    },
+    "eca849bec193b8b61709df54f236392cabc8a56ddd821fa9dfddad1e02d57464": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-b3d4dc30b76d9c9d0febd40e52f97f9e1c2a77cb388d87a63a692c865ad193dd.bin.gz",
+      "sha256": "b3d4dc30b76d9c9d0febd40e52f97f9e1c2a77cb388d87a63a692c865ad193dd",
+      "encoding": "gzip",
+      "compressedBytes": 654055,
+      "decodedBytes": 1555664
+    },
+    "edcb93cb96eb25ca5787f30d8caf8d9cf966cf4b14f316f60f3968d65973d4b0": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-ee24af4e0d421b5136c35dd83fadad3b2ee827821fbccd63193789e6f4ad02f8.bin.gz",
+      "sha256": "ee24af4e0d421b5136c35dd83fadad3b2ee827821fbccd63193789e6f4ad02f8",
+      "encoding": "gzip",
+      "compressedBytes": 70894,
+      "decodedBytes": 150616
+    },
+    "edd02842e51f78dc0015e084e3852a20cfb2a6048e943535f777fd90239d3712": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-f9704f9a75b09c4c23dd5db6b9462651766124ccc6185d43d4417956f90f1416.bin.gz",
+      "sha256": "f9704f9a75b09c4c23dd5db6b9462651766124ccc6185d43d4417956f90f1416",
+      "encoding": "gzip",
+      "compressedBytes": 130948,
+      "decodedBytes": 265016
+    },
+    "ee7272be9a9ef5a01dfc4b0fa9de331a27f3ca07543823013f61bf8fe618395c": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-53625522bb3a18cfd9d7afd7f422fa11ae28ecba9aff04217f8b40735906897a.bin.gz",
+      "sha256": "53625522bb3a18cfd9d7afd7f422fa11ae28ecba9aff04217f8b40735906897a",
+      "encoding": "gzip",
+      "compressedBytes": 7936,
+      "decodedBytes": 14456
+    },
+    "eea60086bbafcbc93c7541d3852c41281c6557df29da404cafcb1a089fb4274c": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-0c7cc7df945ef8f3dea16ef6c3a625e273bc71014598ccb5fdd2e78bf558b8b6.bin.gz",
+      "sha256": "0c7cc7df945ef8f3dea16ef6c3a625e273bc71014598ccb5fdd2e78bf558b8b6",
+      "encoding": "gzip",
+      "compressedBytes": 60495,
+      "decodedBytes": 121400
+    },
+    "ef527d06c0ac79bfadc3224830caee5d5d46b7aad7b9317b494ed0783b23565d": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-8624a30e54179bf47080fc1da8affb10ad48d3a7bb051021d07cd05a344ac325.bin.gz",
+      "sha256": "8624a30e54179bf47080fc1da8affb10ad48d3a7bb051021d07cd05a344ac325",
+      "encoding": "gzip",
+      "compressedBytes": 40481,
+      "decodedBytes": 71840
+    },
+    "efd5224d7e6612bb41a59767d45aa2e7058897a887eee98ac8e45f3379a190d3": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-41016d634d8594fce4923d06a857ba0194d498b3f4479bd6f0c47976b2014507.bin.gz",
+      "sha256": "41016d634d8594fce4923d06a857ba0194d498b3f4479bd6f0c47976b2014507",
+      "encoding": "gzip",
+      "compressedBytes": 179,
+      "decodedBytes": 248
+    },
+    "f2a96bbcacace5f7966289350f9d6234e568b70eb4fd9b026100a9672af0bf79": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-62313fdcf6b6bc727cab616f9c36835a2f79acac2d6a6ac9f527c11314efc843.bin.gz",
+      "sha256": "62313fdcf6b6bc727cab616f9c36835a2f79acac2d6a6ac9f527c11314efc843",
+      "encoding": "gzip",
+      "compressedBytes": 177738,
+      "decodedBytes": 399604
+    },
+    "f3000b76f3ef945434f58c307651808dded59260d6071c77192a6d5fa2684e95": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-dc71f0ce6bdc20664f30e8478be0fd11a8c0d44c2964b0b3b22dae02efd553fd.bin.gz",
+      "sha256": "dc71f0ce6bdc20664f30e8478be0fd11a8c0d44c2964b0b3b22dae02efd553fd",
+      "encoding": "gzip",
+      "compressedBytes": 456134,
+      "decodedBytes": 1086064
+    },
+    "f4af09821c78f92700b259d3fd2059b065c9718cc1400f93af014b013d3d5bf6": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-9cd94896db9b613fd3879ede4ad01769be98e1e25bd7b4fc84b3f2491d8255ca.bin.gz",
+      "sha256": "9cd94896db9b613fd3879ede4ad01769be98e1e25bd7b4fc84b3f2491d8255ca",
+      "encoding": "gzip",
+      "compressedBytes": 179,
+      "decodedBytes": 248
+    },
+    "f4cc620a8401522d1675ce702325d6cb21556cb5d8b4c73d55cd2f785652bbf3": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-7e223ba6b2bc6f2d7dc0c723652b3f26615a814e358ebd3ba9873e9aa8ae1ed0.bin.gz",
+      "sha256": "7e223ba6b2bc6f2d7dc0c723652b3f26615a814e358ebd3ba9873e9aa8ae1ed0",
+      "encoding": "gzip",
+      "compressedBytes": 41454,
+      "decodedBytes": 75296
+    },
+    "f82768d351c9739413e4f2037b79798047a2b334da78c66fa91cfddafb58de79": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-df2018f269e580b59196ac4dbfccf67cceda68deb9678920bd27b73b00670dec.bin.gz",
+      "sha256": "df2018f269e580b59196ac4dbfccf67cceda68deb9678920bd27b73b00670dec",
+      "encoding": "gzip",
+      "compressedBytes": 19239,
+      "decodedBytes": 31264
+    },
+    "f8712600fb97da5836088ee18599f0964486e17cf1e3e4529cd2849c230fd47e": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-dd2e7ee5dadfa46e657362d988150a02dd1d941ab15292ca1e04dbab10027c75.bin.gz",
+      "sha256": "dd2e7ee5dadfa46e657362d988150a02dd1d941ab15292ca1e04dbab10027c75",
+      "encoding": "gzip",
+      "compressedBytes": 22152,
+      "decodedBytes": 47584
+    },
+    "f88bb1436c0cdd4020ca0b3df16fef8dac262e7c8cd886b1d82d58a7e986a65f": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-4a6f3a68dad988875bb430934d48d7a752775a3e33714c69dd3a6c31675038d3.bin.gz",
+      "sha256": "4a6f3a68dad988875bb430934d48d7a752775a3e33714c69dd3a6c31675038d3",
+      "encoding": "gzip",
+      "compressedBytes": 25431,
+      "decodedBytes": 44600
+    },
+    "f8c044e339492c4c81b30ce4867d82708c63ba89ab8158167476296a3c86dc9d": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-72d4b05fd3474548a5bdbb191364f3b0a222ff57b13e7126a5dc93df63dd8c49.bin.gz",
+      "sha256": "72d4b05fd3474548a5bdbb191364f3b0a222ff57b13e7126a5dc93df63dd8c49",
+      "encoding": "gzip",
+      "compressedBytes": 10806,
+      "decodedBytes": 18128
+    },
+    "fb3151261bc5f3313b396a59a6d5ea047c4383e6845dfa06f2a93f5cc688d8e5": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-20bb5c617f50d6c4dc51d2ecb191dc4fe4396580dcac416d5cc69722162fb04c.bin.gz",
+      "sha256": "20bb5c617f50d6c4dc51d2ecb191dc4fe4396580dcac416d5cc69722162fb04c",
+      "encoding": "gzip",
+      "compressedBytes": 178308,
+      "decodedBytes": 367696
+    },
+    "fbfcd89bbdff45e63a6dacfa35bb42be3b34e9386c09335c1a54c794a4e886be": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-07da14157adff0f7bb3a7846518223c7d50d7a60c66932d5664211f57320abb2.bin.gz",
+      "sha256": "07da14157adff0f7bb3a7846518223c7d50d7a60c66932d5664211f57320abb2",
+      "encoding": "gzip",
+      "compressedBytes": 154,
+      "decodedBytes": 248
+    },
+    "fc63e8b29c2a3d0bd8ad4584df2fafad957c0efdddffc6a63e336befd3d89c72": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-dae7ed1b0e1f47c28394fce95e2d49c2465fc6ab80321f55bc15c261025ebb5b.bin.gz",
+      "sha256": "dae7ed1b0e1f47c28394fce95e2d49c2465fc6ab80321f55bc15c261025ebb5b",
+      "encoding": "gzip",
+      "compressedBytes": 1823,
+      "decodedBytes": 3032
+    },
+    "fd26949f443167d139fc071b60160ed999cd7a24da34987889ebef191f8091fe": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-78bd41c126c46866b96961c84de164fb8af8ce580ca8bdec079478d5e0c57b51.bin.gz",
+      "sha256": "78bd41c126c46866b96961c84de164fb8af8ce580ca8bdec079478d5e0c57b51",
+      "encoding": "gzip",
+      "compressedBytes": 100542,
+      "decodedBytes": 214416
+    },
+    "fe3a201df894262a71ee9035e8e1dd1585ede6ed482c10058aa6b971289331dc": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-d2e4c45e73002a85206ace91674392d853bd95ad9dba3e7a23f93f36a32cbf21.bin.gz",
+      "sha256": "d2e4c45e73002a85206ace91674392d853bd95ad9dba3e7a23f93f36a32cbf21",
+      "encoding": "gzip",
+      "compressedBytes": 29528,
+      "decodedBytes": 51784
+    },
+    "fecdfb74e68403bc62d0b8414816c14212dc6fe54d4259fabd184517cd544790": {
+      "url": "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-5cee1c691e2f507a545f189dcecd9d16e89aed5833baa841da43e2e379671e2a.bin.gz",
+      "sha256": "5cee1c691e2f507a545f189dcecd9d16e89aed5833baa841da43e2e379671e2a",
+      "encoding": "gzip",
+      "compressedBytes": 15795,
+      "decodedBytes": 31192
+    }
+  }
+}

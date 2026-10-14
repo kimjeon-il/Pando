@@ -74,10 +74,11 @@ export function createNavigationBindings() {
       if (!e.target.closest('#objectChooser, #map')) (0, dependencies.objectPicking.closeObjectChooser)();
     });
     (0, dependencies.platform.$)('objectChooserCloseBtn')?.addEventListener('click', () => (0, dependencies.objectPicking.closeObjectChooser)({ restoreFocus: true }));
-    (0, dependencies.platform.$)('objectChooserList')?.addEventListener('click', event => {
+    (0, dependencies.platform.$)('objectChooserList')?.addEventListener('click', async event => {
       const button = event.target.closest('[data-object-chooser-index]');
       if (!button) return;
-      (0, dependencies.objectPicking.chooseObjectCandidate)(button.dataset.objectChooserIndex, { toggle: event.ctrlKey || event.metaKey });
+      try { await dependencies.objectPicking.chooseObjectCandidate(button.dataset.objectChooserIndex,{ toggle: event.ctrlKey || event.metaKey }); }
+      catch(error) { dependencies.feedback.reportOperationError(error,'겹친 객체를 선택하지 못했습니다.','PL-SELECTION-CHOOSER-001',4200); }
     });
     (0, dependencies.platform.$)('objectChooserList')?.addEventListener('keydown', event => {
       const items = [...event.currentTarget.querySelectorAll('[data-object-chooser-index]')];
@@ -166,8 +167,14 @@ export function createNavigationBindings() {
     document.addEventListener('pointerup', () => { searchToolbarPointer = false; });
     document.addEventListener('pointercancel', () => { searchToolbarPointer = false; });
     (0, dependencies.platform.$)('mapDisplayBtn')?.addEventListener('click', event => toggleWorkspaceSurface('display', event.currentTarget));
-    (0, dependencies.platform.$)('objectLockBtn')?.addEventListener('click', () => dependencies.objectOperationsA.batchToggleLocked());
-    (0, dependencies.platform.$)('objectVisibilityBtn')?.addEventListener('click', () => dependencies.objectOperationsA.batchSetVisibility());
+    (0, dependencies.platform.$)('objectLockBtn')?.addEventListener('click', async () => {
+      try { await dependencies.objectOperationsA.batchToggleLocked(); }
+      catch (error) { dependencies.feedback.reportOperationError(error, '객체 잠금을 변경하지 못했습니다.', 'PL-OBJECT-LOCK-001', 4200); }
+    });
+    (0, dependencies.platform.$)('objectVisibilityBtn')?.addEventListener('click', async () => {
+      try { await dependencies.objectOperationsA.batchSetVisibility(); }
+      catch(error) { dependencies.feedback.reportOperationError(error,'객체 표시를 변경하지 못했습니다.','PL-VIEW-COMMAND-001',4200); }
+    });
     (0, dependencies.platform.$)('objectDeleteBtn')?.addEventListener('click', () => dependencies.objectOperationsA.deleteSelectedFromObjectMenu());
     (0, dependencies.platform.$)('mobileBackdrop')?.addEventListener('click', () => {
       (0, dependencies.workspaceUiA.closeFileMenu)({ restoreFocus: true });

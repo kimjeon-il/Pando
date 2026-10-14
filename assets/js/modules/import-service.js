@@ -9,44 +9,6 @@ export const GIS_GEOMETRY_TIMEOUT_MS = 60_000;
 
 const text = value => String(value ?? '');
 
-function createLegacyGisGeometryCodec() {
-  return Object.freeze({
-    encodeRequest(envelope) {
-      return {
-        id: envelope.requestId,
-        action: envelope.operation === 'gis.validate' ? 'validate' : envelope.operation,
-        collection: envelope.payload?.collection,
-        affectedIds: envelope.payload?.affectedIds || null,
-        projectRevision: envelope.projectRevision,
-        priority: envelope.priority,
-      };
-    },
-    encodeCancel(envelope) {
-      return { id: envelope.requestId, action: 'cancel', reason: envelope.reason || 'cancelled' };
-    },
-    encodeEvent(envelope) {
-      return { action: envelope.operation, ...(envelope.payload || {}) };
-    },
-    decodeMessage(message) {
-      if (!message || message.id == null) return null;
-      const { id, ok, error, ...result } = message;
-      return {
-        kind: 'result',
-        requestId: Number(id || 0),
-        operation: 'gis.validate',
-        projectRevision: Number(message.projectRevision || 0),
-        ok: ok === true,
-        result,
-        error: ok === true ? null : {
-          category: WORKER_RPC_ERROR_CATEGORIES.OPERATION,
-          code: 'PL-GIS-GEOMETRY',
-          message: error || 'GIS 지오메트리 검증에 실패했습니다.',
-        },
-      };
-    },
-  });
-}
-
 export function createGisGeometryValidator({ createWorker, timeoutMs = GIS_GEOMETRY_TIMEOUT_MS }) {
   let rpc = null;
 
@@ -54,7 +16,6 @@ export function createGisGeometryValidator({ createWorker, timeoutMs = GIS_GEOME
     if (rpc) return rpc;
     rpc = createWorkerRpcClient({
       createWorker,
-      codec: createLegacyGisGeometryCodec(),
       defaultTimeoutMs: timeoutMs,
       restartOnCrash: true,
     });

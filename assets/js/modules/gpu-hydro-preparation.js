@@ -479,3 +479,4 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
       hydroCacheBytes: [...hydroPacks.values()].reduce((sum, entry) => sum + Number(entry.byteLength || 0), 0) }),
   });
 }
+// @worker-transport dedicated: hydro resource preparation owns tile delivery and resource release messages

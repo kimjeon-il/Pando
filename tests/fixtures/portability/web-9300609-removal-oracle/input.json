@@ -1,0 +1,199 @@
+{
+  "format": "pandolab-project-state",
+  "schemaVersion": 10,
+  "version": "0.34.0",
+  "savedAt": "2026-10-04T00:00:00.000Z",
+  "baseDataset": "external-territorial-entities",
+  "landObjectModel": {
+    "schemaVersion": 2,
+    "coastlineAuthority": "territorialEntities",
+    "purpose": "lossless-fallback",
+    "directCreation": false,
+    "sourceProvenanceSchemaVersion": 1,
+    "canonicalProperties": [
+      "name",
+      "notes",
+      "color",
+      "locked",
+      "source"
+    ]
+  },
+  "territorialModel": {
+    "schemaVersion": 6,
+    "coastlineAuthority": "territorialEntities",
+    "storage": "territorialEntities",
+    "kinds": [
+      "general",
+      "regional"
+    ],
+    "coverageModes": [
+      "partition",
+      "explicit"
+    ]
+  },
+  "distributionModel": {
+    "schemaVersion": 3,
+    "sourceModes": [
+      "territorial",
+      "geometry"
+    ],
+    "valueKind": "finite-number"
+  },
+  "timelineRecords": {
+    "schemaVersion": 1,
+    "lifetimes": [
+      {
+        "id": "lifetime:A",
+        "entityId": "A",
+        "validFrom": null,
+        "validTo": null
+      }
+    ],
+    "geometryBindings": [
+      {
+        "id": "geometry:A",
+        "entityId": "A",
+        "validFrom": null,
+        "validTo": null,
+        "geometryRef": {
+          "id": "territorial-geometry:A",
+          "version": 1
+        }
+      }
+    ],
+    "parentRelations": [
+      {
+        "id": "parent:A",
+        "entityId": "A",
+        "validFrom": null,
+        "validTo": null,
+        "parentId": "",
+        "coverageMode": "explicit"
+      }
+    ]
+  },
+  "geometries": [
+    {
+      "id": "territorial-geometry:A",
+      "version": 1,
+      "geojson": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              0,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              0,
+              0
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "sourceInfo": {
+    "provider": "web-worker",
+    "schemaVersion": 1,
+    "fixture": {
+      "checked": true,
+      "precision": 1.2345678901234567,
+      "nested": [
+        "first",
+        {
+          "value": "retained"
+        }
+      ]
+    }
+  },
+  "labels": [
+    {
+      "id": "12345678-1234-4234-8234-123456789abc",
+      "name": "linked",
+      "kind": "custom",
+      "notes": "",
+      "coordinates": [
+        1,
+        1
+      ],
+      "territorialUnitId": "A",
+      "source": {
+        "schemaVersion": 1,
+        "kind": "user",
+        "dataset": "",
+        "sourceId": "",
+        "sourceFormat": "",
+        "sourceType": "",
+        "version": "",
+        "importedAt": "",
+        "details": {}
+      }
+    }
+  ],
+  "genericFeatures": [],
+  "hydroEdits": [],
+  "distributionLayers": [],
+  "distributionEntries": [],
+  "labelSettings": {},
+  "distributionSettings": {
+    "renderMode": "overlap",
+    "activeLayerId": "",
+    "boundaryVisible": false
+  },
+  "layerPresentation": {
+    "schemaVersion": 4,
+    "styles": {},
+    "objectStyles": {},
+    "objectOrder": []
+  },
+  "physicalSettings": {},
+  "layerVisibility": {
+    "countries": true,
+    "rivers": false,
+    "lakes": true,
+    "labels": true
+  },
+  "itemVisibility": {},
+  "territorialEntities": [
+    {
+      "type": "Feature",
+      "id": "A",
+      "geometry": null,
+      "properties": {
+        "schemaVersion": 6,
+        "entityKind": "general",
+        "name": "A",
+        "style": {
+          "color": "#abcdef"
+        },
+        "locked": false,
+        "notes": "",
+        "metadata": {},
+        "sourceFolderId": "",
+        "sourceEntityId": "",
+        "sourceGeometryVersion": ""
+      }
+    }
+  ],
+  "physicalSourceInfo": {
+    "terrain": {
+      "dataset": "terrain",
+      "version": "0.12.6"
+    },
+    "hydro": {
+      "dataset": "hydro",
+      "version": "0.34.0",
+      "coordinatePolicy": "selected source coordinates retained without simplification",
+      "selection": {}
+    }
+  }
+}

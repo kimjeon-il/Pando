@@ -1,0 +1,41 @@
+{
+  "schema": "pandoeditor-web-removal-test-oracle",
+  "baseline": "930060923889d17134e36e152c29f4adbb2e60a9",
+  "files": [
+    {
+      "path": "assets/js/modules/builtin-territory-policy.js",
+      "blob": "060b493a91de49a68e88222d2b91fe83d6959b68",
+      "sha256": "ca5d8cb2fdcc4c7797bc9f114082f7824bcac630a4109b4fe0678fa9643e5dd7"
+    },
+    {
+      "path": "assets/js/modules/builtin-subunits.js",
+      "blob": "e6701fe111751d070dda11a9e3b32b3a716f6df7",
+      "sha256": "1681be766cc7179185cf897e19299aa458a14adbc28ffcd9202e41346fa02673"
+    },
+    {
+      "path": "assets/js/modules/territorial-interaction-policy.js",
+      "blob": "99923f7cde8f9ed29095d04ab6b50c435db6e405",
+      "sha256": "11c27a4e815b62fa0b12193ae1ebc41694d58fd07c4ec0d5b59c2de5bc09cf4d"
+    },
+    {
+      "path": "assets/js/modules/place-contract.js",
+      "blob": "fed564f37fc604d60453650b19eb5884a820d411",
+      "sha256": "f9b7248b16ebfcbcadcc008edf22dbf464bf5b3c3df811bc8e9c533ff7b4454e"
+    },
+    {
+      "path": "assets/js/modules/app-object-commands.js",
+      "blob": "cd2812eb00777f7e16328c40e55140a13f7d4771",
+      "sha256": "aed6f587c1f9304f4671ca2a7d0707ce97d230304c12e3eed090b545b5792c86"
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "input.json",
+      "sha256": "7b981d4e3facc3e8263c08245cca97407b9e5150ddc5bbf31a9a5b05bf69fc04"
+    },
+    {
+      "path": "expected.json",
+      "sha256": "3102005be0e6bd76e349c4e4e3462a84904e71ab98b441b5a508bc08806efdf5"
+    }
+  ]
+}

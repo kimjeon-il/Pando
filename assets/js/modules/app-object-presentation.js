@@ -11,7 +11,6 @@ export function createObjectPresentation() {
   let territorialApplicationService;
   let distributionService;
   let genericFeatureService;
-  let projectCommandPipeline;
   let LAYER_GROUP_KEYS;
   let LAYER_SEARCH_GROUP_KEYS;
   let layerGroupNames;
@@ -30,8 +29,8 @@ export function createObjectPresentation() {
     return (0, dependencies.colorModel.readDomainColor)(dependencies.colorModel.COLOR_DOMAINS.GENERIC, { feature }, { fallback: defaultGenericFeatureColor(feature) }).value;
   }
 
-  function genericFeatureRoleLabel(feature) {
-    return dependencies.objectCatalog.GENERIC_FEATURE_ROLE_RULES[feature?.properties?.role]?.label || '기타 객체';
+  function genericFeatureRoleLabel() {
+    return '기타 객체';
   }
 
   function genericFeatureRoleHelp(feature) {
@@ -195,8 +194,6 @@ export function createObjectPresentation() {
     get hydroFallbackName() { return hydroFallbackName; },
     get layerGroupNames() { return layerGroupNames; },
     get layerNameCollator() { return layerNameCollator; },
-    get projectCommandPipeline() { return projectCommandPipeline; },
-    set projectCommandPipeline(value) { projectCommandPipeline = value; },
 
     get syncMapObjectCategoryLabels() { return syncMapObjectCategoryLabels; },
     get territorialApplicationService() { return territorialApplicationService; },

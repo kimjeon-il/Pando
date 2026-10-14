@@ -15,9 +15,14 @@ from pyproj import Transformer
 from shapely.geometry import LineString, Point, shape
 from shapely.ops import substring, transform
 
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
+from report_paths import report_path
+
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "tools/historical-library/sources/german-empire-1914/north-schleswig-001-026"
 BORDER = ROOT / "tools/historical-library/land-borders"
+REPORT_DIR = report_path("reports/geography/germany/north-schleswig")
 PREFIX = "german-denmark-1914-north-schleswig-001-026"
 EJERLAV_PATH = SOURCE / "seem-by-ejerlav-current.geojson"
 EJERLAV_META_PATH = SOURCE / "seem-by-ejerlav-current.provenance.json"
@@ -103,7 +108,7 @@ def main():
         fetch_ejerlav()
 
     geo = read_json(BORDER / f"{PREFIX}.geojson")
-    diagnostic = read_json(BORDER / f"{PREFIX}.diagnostics.json")
+    diagnostic = read_json(REPORT_DIR / f"{PREFIX}.diagnostics.json")
     collected = read_json(SOURCE / "collection-summary.json")
     features = geo.get("features", [])
     if len(features) != 1:
@@ -228,13 +233,13 @@ def main():
     elif args.require_seem_ejerlav:
         raise RuntimeError("Seem By polygon required but no cached source is present")
 
-    write_json(BORDER / f"{PREFIX}.audit.json", out)
+    write_json(REPORT_DIR / f"{PREFIX}.audit.json", out)
     print(json.dumps({
         "status": out["candidateStatus"],
         "geometry": out["geometry"],
         "markerChecks": len(marker_rows),
         "cadastralStatus": out["modernCadastralCheck"]["status"],
-        "output": str(BORDER / f"{PREFIX}.audit.json"),
+        "output": str(REPORT_DIR / f"{PREFIX}.audit.json"),
     }, ensure_ascii=False, indent=2))
 
 

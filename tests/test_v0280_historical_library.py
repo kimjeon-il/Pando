@@ -85,27 +85,36 @@ class V0280HistoricalLibraryTests(unittest.TestCase):
             self.assertEqual(entity["geometryVersions"][0]["certainty"], "low")
 
     def test_supplemental_historical_countries_have_territory_replacement_versions(self):
-        expected = {
-            "state:ukraine": ("1991-08-24", "2014-03-17"),
-            "state:yugoslavia": ("1918-12-01", "2003-02-04"),
-            "state:sudan": ("1956-01-01", "2011-07-08"),
-            "state:indonesia": ("1945-08-17", "2002-05-19"),
-        }
         by_id = {entity["entityId"]: entity for entity in PILOT["entities"]}
-        for library_id, dates in expected.items():
-            entity = by_id[library_id]
+        for root_id, version_id, from_day, to_day in (
+            ("state:IDN", "state:indonesia:1945-2002-r1", "1975-12-07", "1999-10-24"),
+            ("state:UKR", "state:ukraine:1991-2014-r1", "1991-08-24", "2014-03-17"),
+            ("state:SDN", "state:sudan:1956-2011-r1", "1956-01-01", "2011-07-08"),
+        ):
+            entity = by_id[root_id]
+            versions = {version["versionId"]: version for version in entity["geometryVersions"]}
+            historic = versions[version_id]
             self.assertEqual(entity["entityKind"], "general")
-            self.assertEqual(entity["instantiation"]["mode"], "territory-replacement")
-            self.assertEqual((entity["lifetime"]["validFrom"], entity["lifetime"]["validTo"]), dates)
-            if library_id == "state:yugoslavia":
-                self.assertEqual(len(entity["geometryVersions"]), 3)
-                self.assertEqual(entity["geometryVersions"][0]["validFrom"], "1918-12-01")
-                self.assertEqual(entity["geometryVersions"][-1]["validTo"], "2003-02-04")
-            else:
-                self.assertEqual(len(entity["geometryVersions"]), 1)
-                self.assertEqual(entity["geometryVersions"][0]["validFrom"], dates[0])
-                self.assertEqual(entity["geometryVersions"][0]["validTo"], dates[1])
-            self.assertTrue(entity["metadata"]["approximateGeometry"])
+            self.assertEqual(historic["instantiation"]["mode"], "territory-replacement")
+            self.assertEqual((historic["validFrom"], historic["validTo"]), (from_day, to_day))
+            self.assertNotIn("state:indonesia", by_id)
+            self.assertNotIn("state:ukraine", by_id)
+            self.assertNotIn("state:sudan", by_id)
+        indonesia = by_id["state:IDN"]
+        self.assertEqual(indonesia["lifetime"], {"validFrom": "1945-08-17", "validTo": None})
+        self.assertEqual(len(indonesia["geometryVersions"]), 5)
+        self.assertEqual(indonesia["geometryVersions"][0]["validTo"], "1963-04-30")
+        self.assertEqual(indonesia["geometryVersions"][1]["validFrom"], "1963-05-01")
+        self.assertEqual(indonesia["geometryVersions"][3]["validFrom"], "1999-10-25")
+        self.assertEqual(indonesia["geometryVersions"][-1]["validFrom"], "2026-10-06")
+        timor = by_id["state:TLS"]
+        self.assertEqual(timor["lifetime"], {"validFrom": "2002-05-20", "validTo": None})
+        self.assertEqual(len(timor["geometryVersions"]), 2)
+        self.assertEqual(timor["geometryVersions"][0]["validFrom"], "2002-05-20")
+        yugoslavia = by_id["state:yugoslavia"]
+        self.assertEqual(yugoslavia["instantiation"]["mode"], "territory-replacement")
+        self.assertEqual(yugoslavia["lifetime"], {"validFrom": "1918-12-01", "validTo": "2003-02-04"})
+        self.assertEqual(len(yugoslavia["geometryVersions"]), 3)
 
     def test_soviet_union_has_fifteen_flagged_constituent_republics(self):
         children = [

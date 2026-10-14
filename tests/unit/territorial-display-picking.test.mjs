@@ -1,4 +1,5 @@
-import { initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
+import { normalizeLayerPresentation } from '../../assets/js/modules/layer-presentation.js';
+import { executeTerritorialTestCommand, testCoreProject, initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createObjectPicking } from '../../assets/js/modules/app-object-picking.js';
@@ -9,15 +10,15 @@ import { createTerritorialEntityRepository } from '../../assets/js/modules/terri
 import { createTerritorialScopeResolver } from '../../assets/js/modules/territorial-scope.js';
 
 const square = (x, size) => ({ type: 'Polygon', coordinates: [[[x, 0], [x, size], [x + size, size], [x + size, 0], [x, 0]]] });
-test('canonical geometry drives precise territorial hits independently of display phase', () => {
+test('canonical geometry drives precise territorial hits independently of display phase', async () => {
   const A = createTerritorialFeature({ id: 'A', entityKind: 'general', geometry: square(0, 10) });
   const B = createTerritorialFeature({ id: 'B', entityKind: 'general', parentId: 'A', coverageMode: 'explicit', geometry: square(0, 10) });
   const R = createTerritorialFeature({ id: 'R', entityKind: 'regional', geometry: square(0, 10) });
   const state = { territorialEntities: [A, B, R], layerVisibility: {}, countryVisualPhase: 'preview',
     auditPreviewCountries: { features: [{ ...A, geometry: square(20, 10) }] },
-    auditPreviewTerritorialUnits: [B, R], layerPresentation: { overlayOrder: ['regions', 'subunits'] } };
-  initializeTestTerritorialState(state);
-const store = createTerritorialEntityStore({ getState: () => state });
+    auditPreviewTerritorialUnits: [B, R], layerPresentation: normalizeLayerPresentation({ overlayOrder: ['regions', 'subunits'] }) };
+  await initializeTestTerritorialState(state);
+const store = createTerritorialEntityStore({ documentModel:testCoreProject(state).documentModel,commandOwner:testCoreProject(state).client });
   const entityRepository = createTerritorialEntityRepository({ entityStore: store });
   const territorialScope = createTerritorialScopeResolver({ entityRepository, getState: () => state, clipper: () => null });
   const picking = createObjectPicking();
@@ -38,15 +39,17 @@ const store = createTerritorialEntityStore({ getState: () => state });
   const records = ['A', 'B', 'R'].map(id => ({ domain: 'territorial', id }));
   const hits = () => picking.territorialObjectsAt([5, 5], [5, 5], records);
   assert.deepEqual(hits().map(item => item.ref.key), ['territorial:entity:R', 'territorial:entity:B', 'territorial:entity:A']);
-  state.layerVisibility.regions = false;
+  await testCoreProject(state).project.executeCommand({ commandId:'presentation.apply',targets:[],
+    payload:{ action:'visibility',key:'regions',visible:false } });
   assert.deepEqual(hits().map(item => item.ref.id), ['B', 'A']);
   assert.deepEqual(picking.territorialObjectsAt([25, 5], [25, 5], records), []);
   assert.deepEqual(hits().find(item => item.ref.id === 'A').feature.geometry, A.geometry);
   state.countryVisualPhase = 'canonical';
   assert.deepEqual(hits().map(item => item.ref.id), ['B', 'A']);
-  state.layerVisibility.subunits = false;
+  await testCoreProject(state).project.executeCommand({ commandId:'presentation.apply',targets:[],
+    payload:{ action:'visibility',key:'subunits',visible:false } });
   assert.deepEqual(hits().map(item => item.ref.id), ['A']);
-  store.setField('B', 'parentId', '');
+  await executeTerritorialTestCommand(state,'territorial.parent',{ id:'B',parentId:'' });
   assert.deepEqual(hits().map(item => item.ref.id), ['A', 'B']);
   assert.deepEqual(A.geometry, square(0, 10));
 });

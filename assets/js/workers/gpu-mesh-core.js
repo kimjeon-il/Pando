@@ -3,7 +3,7 @@
 ((scope) => {
   const MAX_RENDER_EDGE_DEGREES = 0.499;
   const MAX_REFINEMENT_PASSES = 40;
-  const MESH_ALGORITHM_REVISION = 3;
+  const MESH_ALGORITHM_REVISION = 4;
   const DEG_TO_RAD = Math.PI / 180;
   const PARAM_EPSILON = 1e-12;
   const AREA_EPSILON = 1e-20;
@@ -136,6 +136,26 @@
     return area;
   }
 
+  function ringArea(points) {
+    const origin = points[0];
+    let sum = 0;
+    for (let index = 0; index < points.length; index++) {
+      const a = points[index], b = points[(index + 1) % points.length];
+      sum += (a[0] - origin[0]) * (b[1] - origin[1]) - (b[0] - origin[0]) * (a[1] - origin[1]);
+    }
+    return Math.abs(sum / 2);
+  }
+
+  function checkedTriangulation(points, rings, indices, owner) {
+    const expected = ringArea(rings[0].parameter) - rings.slice(1).reduce((sum, ring) => sum + ringArea(ring.parameter), 0);
+    const fail = message => { throw Object.assign(new Error(`GPU 삼각분할 실패 (${owner}): ${message}`), { code: 'PL-MESH-TRIANGULATION' }); };
+    if (!indices?.length || indices.length % 3 || expected <= AREA_EPSILON) fail('빈 면 또는 퇴화된 원본');
+    for (const index of indices) if (!Number.isInteger(index) || index < 0 || index >= points.length) fail('원본 정점 참조 범위');
+    const actual = triangleAreaSum(points, indices);
+    if (Math.abs(actual - expected) > Math.max(1e-9, expected * 1e-8)) fail(`구멍/외곽 면적 불일치 ${expected} → ${actual}`);
+    return indices;
+  }
+
   function makeParameterSpace(outerRing) {
     const longitudes = outerRing.map(point => point[0]);
     const latitudes = outerRing.map(point => point[1]);
@@ -189,7 +209,7 @@
     return cleanGeo.length >= 3 ? { geo: cleanGeo, parameter } : null;
   }
 
-  function refineTriangles(geoPoints, parameterPoints, sourceTriangles, parameterSpace, validate, maxEdgeDegrees = MAX_RENDER_EDGE_DEGREES) {
+  function refineTriangles(geoPoints, parameterPoints, sourceTriangles, parameterSpace, validate, maxEdgeDegrees = MAX_RENDER_EDGE_DEGREES, boundaryChains = [], removedTriangles = []) {
     const vectors = geoPoints.map(unitVector);
     const minimumEdgeDot = Math.cos(Math.max(0.01, Number(maxEdgeDegrees) - 0.000002) * DEG_TO_RAD);
     let triangles = [];
@@ -197,7 +217,10 @@
       const a = sourceTriangles[index];
       const b = sourceTriangles[index + 1];
       const c = sourceTriangles[index + 2];
-      if (Math.abs(signedArea(parameterPoints[a], parameterPoints[b], parameterPoints[c])) <= AREA_EPSILON) continue;
+      if (Math.abs(signedArea(parameterPoints[a], parameterPoints[b], parameterPoints[c])) <= AREA_EPSILON) {
+        removedTriangles.push([a, b, c]);
+        continue;
+      }
       triangles.push(a, b, c);
     }
     const sourceArea = validate ? triangleAreaSum(parameterPoints, triangles) : 0;
@@ -254,9 +277,30 @@
         midpointIndices.set(key, midpointIndex);
       }
 
+      // Carry each boundary midpoint into the line mesh as triangle edges
+      // split. Preserve visibility inherited from the original ring edge.
+      for (const chain of boundaryChains) {
+        const vertices = [];
+        const visible = [];
+        for (let index = 0; index < chain.vertices.length; index += 1) {
+          const a = chain.vertices[index];
+          const b = chain.vertices[(index + 1) % chain.vertices.length];
+          const midpoint = midpointIndices.get(edgeKey(a, b));
+          vertices.push(a);
+          visible.push(chain.visible[index]);
+          if (midpoint !== undefined) {
+            vertices.push(midpoint);
+            visible.push(chain.visible[index]);
+          }
+        }
+        chain.vertices = vertices;
+        chain.visible = visible;
+      }
+
       const next = [];
       const add = (a, b, c) => {
         if (Math.abs(signedArea(parameterPoints[a], parameterPoints[b], parameterPoints[c])) > AREA_EPSILON) next.push(a, b, c);
+        else removedTriangles.push([a, b, c]);
       };
       for (let index = 0; index < triangles.length; index += 3) {
         const a = triangles[index];
@@ -352,6 +396,7 @@
 
   function removePackedDegenerateTriangles(points, triangles, parameterSpace) {
     const output = [];
+    const removedTriangles = [];
     let removed = 0;
     const triangleKeys = new Set();
     for (let index = 0; index < triangles.length; index += 3) {
@@ -364,6 +409,7 @@
       const packedKeys = packedInteger.map(point => `${point[0]},${point[1]}`);
       if (new Set(packedKeys).size < 3) {
         removed += 1;
+        removedTriangles.push(indices);
         continue;
       }
       const sourceArea = signedArea(sourceParameter[0], sourceParameter[1], sourceParameter[2]);
@@ -379,17 +425,119 @@
         : Math.abs(packedArea) <= AREA_EPSILON;
       if (packedAreaIsZero || sourceArea * packedArea <= 0) {
         removed += 1;
+        removedTriangles.push(indices);
         continue;
       }
       const triangleKey = indices.slice().sort((a, b) => a - b).join(':');
       if (triangleKeys.has(triangleKey)) {
         removed += 1;
+        removedTriangles.push(indices);
         continue;
       }
       triangleKeys.add(triangleKey);
       output.push(...indices);
     }
-    return { triangles: output, removed };
+    return { triangles: output, removed, removedTriangles };
+  }
+
+  function finalTriangleBoundaryEdges(points, triangles, chains, removedTriangles) {
+    // Source rings decide which coast/seam edges exist. Final fill triangles
+    // decide which vertices may actually represent those visible edges.
+    const MICRO = 1e6, WORLD = 360 * MICRO, HALF = 180 * MICRO;
+    const packed = points.map(point => [Math.round(point[0] * MICRO), Math.round(point[1] * MICRO)]);
+    const normalized = packed.map(([longitude, latitude]) =>
+      `${((longitude + HALF) % WORLD + WORLD) % WORLD - HALF},${latitude}`);
+    const key = (a, b) => normalized[a] < normalized[b]
+      ? `${normalized[a]}|${normalized[b]}` : `${normalized[b]}|${normalized[a]}`;
+
+    const sources = new Map(), hidden = new Set();
+    const candidates = new Map();
+    for (const chain of chains) {
+      for (let index = 0; index < chain.vertices.length; index += 1) {
+        const a = chain.vertices[index], b = chain.vertices[(index + 1) % chain.vertices.length];
+        if (packed[a][0] === packed[b][0] && packed[a][1] === packed[b][1]) continue;
+        const pair = key(a, b);
+        if (!chain.visible[index]) { hidden.add(pair); continue; }
+        // Quantization can collapse a narrow polygon into a retraced path.
+        // Cancel paired edges just as the discarded-triangle perimeter does.
+        if (sources.has(pair)) sources.delete(pair);
+        else sources.set(pair, { a, b, pair });
+        if (!candidates.has(pair)) candidates.set(pair, new Map());
+      }
+    }
+    if (!sources.size) return [];
+
+    // A packed sliver can flip or collapse and be discarded. Its source
+    // boundary must move to the exposed retained triangle edges, rather
+    // than drawing the old ring through a part of the fill that no longer
+    // exists. Use triangle connectivity, never a coordinate tolerance.
+    const discardedByEdge = new Map();
+    const triangleEdges = ([a, b, c]) => [[a, b], [b, c], [c, a]];
+    removedTriangles.forEach((triangle, index) => {
+      for (const [a, b] of triangleEdges(triangle)) {
+        const pair = key(a, b);
+        if (!discardedByEdge.has(pair)) discardedByEdge.set(pair, []);
+        discardedByEdge.get(pair).push(index);
+        if (!candidates.has(pair)) candidates.set(pair, new Map());
+      }
+    });
+
+    for (let i = 0; i < triangles.length; i += 3) {
+      const a = triangles[i], b = triangles[i + 1], c = triangles[i + 2];
+      for (const [left, right] of [[a, b], [b, c], [c, a]]) {
+        const pair = key(left, right);
+        const matches = candidates.get(pair);
+        if (!matches) continue;
+        const triangleEdge = edgeKey(left, right);
+        const previous = matches.get(triangleEdge);
+        if (previous) previous.count++;
+        else matches.set(triangleEdge, { a: left, b: right, count: 1 });
+      }
+    }
+
+    const isRetainedBoundary = pair => [...candidates.get(pair).values()].some(edge => edge.count === 1);
+    const visited = new Set();
+    for (const { pair } of [...sources.values()]) {
+      if (isRetainedBoundary(pair)) continue;
+      const queue = [...(discardedByEdge.get(pair) || [])];
+      const perimeter = new Map();
+      for (let index = 0; index < queue.length; index++) {
+        const triangleIndex = queue[index];
+        if (visited.has(triangleIndex)) continue;
+        visited.add(triangleIndex);
+        for (const [a, b] of triangleEdges(removedTriangles[triangleIndex])) {
+          const edge = key(a, b);
+          if (perimeter.has(edge)) perimeter.delete(edge);
+          else perimeter.set(edge, { a, b, pair: edge });
+          for (const neighbor of discardedByEdge.get(edge)) if (!visited.has(neighbor)) queue.push(neighbor);
+        }
+      }
+      for (const [edge, source] of perimeter) {
+        if (sources.has(edge)) sources.delete(edge);
+        else if (normalized[source.a] !== normalized[source.b]
+          && !hidden.has(edge) && !isArtificialPolarClosureEdge(points[source.a], points[source.b]))
+          sources.set(edge, source);
+      }
+    }
+
+    return [...sources.values()].map(({ a, b, pair }) => {
+      const boundary = [...candidates.get(pair).values()].filter(edge => edge.count === 1);
+      if (!boundary.length) {
+        throw Object.assign(new Error(`GPU 외곽선과 채색 경계 불일치: ${points[a].join(',')} → ${points[b].join(',')}`),
+          { code: 'PL-MESH-BOUNDARY' });
+      }
+      let chosen = null, bestDistance = Infinity;
+      for (const edge of boundary) {
+        const forward = normalized[edge.a] === normalized[a];
+        const start = forward ? edge.a : edge.b, end = forward ? edge.b : edge.a;
+        const distance = Math.abs(packed[a][0] - packed[start][0])
+          + Math.abs(packed[a][1] - packed[start][1])
+          + Math.abs(packed[b][0] - packed[end][0])
+          + Math.abs(packed[b][1] - packed[end][1]);
+        if (distance < bestDistance) { bestDistance = distance; chosen = [start, end]; }
+      }
+      return chosen;
+    });
   }
 
   function buildGpuMeshFeatures(features, earcutImpl, options = {}) {
@@ -432,11 +580,12 @@
         const parameterSpace = makeParameterSpace(outer);
         const rings = [];
         const outerRing = prepareRing(polygon[0], null, parameterSpace);
-        if (!outerRing) continue;
+        if (!outerRing) throw Object.assign(new Error(`GPU 삼각분할 실패: ${countryId} shell`), { code: 'PL-MESH-TRIANGULATION' });
         rings.push(outerRing);
         for (let ringIndex = 1; ringIndex < polygon.length; ringIndex += 1) {
           const hole = prepareRing(polygon[ringIndex], anchor, parameterSpace);
-          if (hole) rings.push(hole);
+          if (!hole) throw Object.assign(new Error(`GPU 삼각분할 실패: ${countryId} hole ${ringIndex}`), { code: 'PL-MESH-TRIANGULATION' });
+          rings.push(hole);
         }
 
         const parameterFlat = [];
@@ -458,13 +607,23 @@
           }
         }
 
+        // Keep the original artificial pole/seam edges hidden even when
+        // their triangles gain new boundary vertices during refinement.
+        const boundaryChains = ringStarts.map((start, ringIndex) => {
+          const vertices = Array.from({ length: ringCounts[ringIndex] }, (_, index) => start + index);
+          return { vertices, visible: vertices.map((a, index) =>
+            !isArtificialPolarClosureEdge(geoPoints[a], geoPoints[vertices[(index + 1) % vertices.length]])) };
+        });
+        const removedTriangles = [];
         let localTriangles = refineTriangles(
           geoPoints,
           parameterPoints,
-          earcutImpl(parameterFlat, holes, 2),
+          checkedTriangulation(parameterPoints, rings, earcutImpl(parameterFlat, holes, 2), countryId),
           parameterSpace,
           validate,
           maxEdgeDegrees,
+          boundaryChains,
+          removedTriangles,
         );
         localTriangles = unwrapTriangleLongitudes(geoPoints, localTriangles);
         const packedTriangles = removePackedDegenerateTriangles(geoPoints, localTriangles, parameterSpace);
@@ -477,17 +636,17 @@
           countryIndices.push(countryIndex);
         }
         for (const index of localTriangles) triangleIndices.push(vertexOffset + index);
-        for (let ringIndex = 0; ringIndex < rings.length; ringIndex += 1) {
-          const start = vertexOffset + ringStarts[ringIndex];
-          const count = ringCounts[ringIndex];
-          for (let index = 0; index < count; index += 1) {
-            const next = (index + 1) % count;
-            const a = geoPoints[ringStarts[ringIndex] + index];
-            const b = geoPoints[ringStarts[ringIndex] + next];
-            if (isArtificialPolarClosureEdge(a, b)) continue;
-            lineIndices.push(start + index, start + next);
-            strokeStartsEnds.push(a[0], a[1], b[0], b[1]);
-          }
+        // Longitude unwrap can duplicate a vertex for a fill triangle
+        // without updating the original boundary chain. Reconcile display
+        // strokes with the FINAL packed triangle boundary after those clones
+        // and discarded degenerate triangles have been decided.
+        for (const [a, b] of finalTriangleBoundaryEdges(geoPoints, localTriangles, boundaryChains,
+          removedTriangles.concat(packedTriangles.removedTriangles))) {
+          const start = vertexOffset + a, end = vertexOffset + b;
+          const ax = positions[start * 2], ay = positions[start * 2 + 1];
+          const bx = positions[end * 2], by = positions[end * 2 + 1];
+          lineIndices.push(start, end);
+          strokeStartsEnds.push(ax * 1e-6, ay * 1e-6, bx * 1e-6, by * 1e-6);
         }
 
         for (let index = 0; index < localTriangles.length; index += 3) {
@@ -535,6 +694,28 @@
     };
   }
 
+  function buildPolygonGeometryPacket(geometry, options = {}) {
+    const mesh = buildGpuMeshFeatures([{ id: options.ownerId || 'overlay', geometry }], options.triangulate || scope.earcut,
+      { validate: true, maxEdgeDegrees: MAX_RENDER_EDGE_DEGREES });
+    if (!mesh.triangleIndices.length) throw Object.assign(new Error('GPU 삼각분할 실패: empty polygon'), { code: 'PL-MESH-TRIANGULATION' });
+    const ringCoordinates = [], ringOffsets = [0], polygonOffsets = [0];
+    for (const polygon of polygonsFor(geometry)) {
+      for (const ring of polygon) {
+        for (const point of ring) ringCoordinates.push(Number(point[0]), Number(point[1]));
+        ringOffsets.push(ringCoordinates.length / 2);
+      }
+      polygonOffsets.push(ringOffsets.length - 1);
+    }
+    return Object.freeze({ positions: Float32Array.from(mesh.positions, value => value * 1e-6),
+      indices: mesh.triangleIndices, boundaryIndices: mesh.lineIndices,
+      startsEnds: mesh.strokeStartsEnds, segmentCount: mesh.lineIndices.length / 2,
+      featureIds: Uint32Array.from(mesh.countryIndices),
+      vertexCount: mesh.positions.length / 2, triangleCount: mesh.triangleIndices.length / 3,
+      ringCoordinates: new Float64Array(ringCoordinates), ringOffsets: new Uint32Array(ringOffsets),
+      polygonOffsets: new Uint32Array(polygonOffsets), algorithmVersion: MESH_ALGORITHM_REVISION,
+      maxEdgeDegrees: mesh.stats.maxEdgeDegrees });
+  }
+
   const api = {
     MAX_RENDER_EDGE_DEGREES,
     MESH_ALGORITHM_REVISION,
@@ -543,6 +724,7 @@
     isArtificialPolarClosureEdge,
     countryGeographicBounds,
     buildGpuMeshFeatures,
+    buildPolygonGeometryPacket,
   };
   scope.PandoLabGpuMeshCore = api;
   if (typeof module === 'object' && module?.exports) module.exports = api;

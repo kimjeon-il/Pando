@@ -1,7 +1,6 @@
 import { projectForStorage } from '../helpers/timeline-project.mjs';
-import { initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
-import { createStaticTerritorialSnapshot } from '../../assets/js/modules/territorial-entity-store.js';
-import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
+import {createGisCoreFixture} from '../helpers/gis-core-fixture.mjs';
+import {staticTerritorialInput} from '../helpers/timeline-project.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { assertCurrentProjectSchema, PROJECT_SCHEMA_VERSION } from '../../assets/js/modules/project-state.js';
@@ -10,14 +9,12 @@ import { createProjectSerializer } from '../../assets/js/modules/project-seriali
 import { normalizeSourceProvenance } from '../../assets/js/modules/source-provenance.js';
 import { DISTRIBUTION_MODEL_SCHEMA_VERSION, LAYER_PRESENTATION_SCHEMA_VERSION, TERRITORIAL_MODEL_SCHEMA_VERSION } from '../../assets/js/modules/version-contract.js';
 import { createGisImportTransactionCommitter } from '../../assets/js/modules/gis-import-transaction.js';
-import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
-import { normalizeGenericFeatureSemantics } from '../../assets/js/modules/generic-feature-service.js';
 
 const uuid = number => `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`;
 
 test('GIS committer requires the canonical store instead of creating a second state adapter', () => {
   const state = { territorialEntities: [] };
-  assert.throws(() => createGisImportTransactionCommitter({ state }), /엔티티 저장소/);
+  assert.throws(() => createGisImportTransactionCommitter({ state }), /accepted territorial read projection/);
   assert.deepEqual(state, { territorialEntities: [] });
 });
 
@@ -27,27 +24,41 @@ test('generic GeoJSON reimport preserves provenance and arbitrary attributes whi
   const original = { type: 'Feature', id: uuid(10), geometry: { type: 'Point', coordinates: [1, 2] },
     properties: { schemaVersion: 2, name: 'River', notes: 'memo', color: '#123456', locked: false,
       source, custom: { rank: 2 } } };
-  const state = { territorialEntities: [] };
-  let output;
-  initializeTestTerritorialState(state);
-const fixtureEntityStore1 = createTerritorialEntityStore({ getState: () => state });
-  const importer = createGisImportTransactionCommitter({ state, uid: () => uuid(11), deepClone: structuredClone,
-    entityStore: fixtureEntityStore1, territorialEntityRepository: createTerritorialEntityRepository({ entityStore: fixtureEntityStore1 }),
-    GENERIC_FEATURE_SCHEMA_VERSION: 2, DEFAULT_GENERIC_FEATURE_COLOR: '#999999', normalizeGenericFeatureSemantics,
-    validateStructuredGeometry: () => [], genericFeatureService: { addMany: values => { output = values; } },
-    activeLayerFolderKeys: () => ['genericFeatures'], markLayerTreeDirty() {}, setActionStatus() {} });
+  let nextId=11;
+  const f=await createGisCoreFixture([],{runtime:{uid:()=>uuid(nextId++)}}),importer=f.committer;
   await importer.importGeoJson({ name: 'export.geojson' }, { parsed: JSON.parse(JSON.stringify(original)) });
+  let output=f.documentModel.list('generic');
   assert.equal(output[0].id, uuid(11));
   assert.equal(output[0].properties.source.sourceId, 'upstream-9');
   assert.equal(output[0].properties.source.dataset, 'rivers');
   assert.deepEqual(output[0].properties.source.details.nested, { original: true });
-  assert.deepEqual(output[0].properties.source.details.legacyProperties.custom, { rank: 2 });
+  assert.deepEqual(output[0].properties.source.details.attributes.custom, { rank: 2 });
   assert.equal(output[0].properties.notes, 'memo');
   assert.equal(original.properties.source.sourceId, 'upstream-9');
-  output[0].properties.source = normalizeSourceProvenance({ ...source, sourceId: '' });
-  await importer.importGeoJson({ name: 'export.geojson' }, { parsed: output[0] });
-  assert.equal(output[0].properties.source.sourceId, uuid(11));
+  const reimport=structuredClone(output[0]);reimport.properties.source=normalizeSourceProvenance({...source,sourceId:''});
+  await importer.importGeoJson({name:'export.geojson'},{parsed:reimport});
+  output=f.documentModel.list('generic');
+  assert.equal(output[1].id,uuid(12));assert.equal(output[1].properties.source.sourceId,uuid(11));
+  assert.equal(await f.project.undo(),true);assert.equal(f.documentModel.list('generic').length,1);
+  assert.equal(await f.project.redo(),true);assert.equal(f.documentModel.list('generic').length,2);
 });
+test('external GeoJSON source attributes remain opaque GIS data', async () => {
+  let nextId=40;
+  const f=await createGisCoreFixture([],{runtime:{uid:()=>uuid(nextId++)}});
+  const sources=['OpenStreetMap',null,{type:'survey',id:'source-7'}];
+  for(const source of sources) {
+    const input={type:'Feature',id:'external-9',geometry:{type:'Point',coordinates:[1,2]},
+      properties:{name:'Sample',source}};
+    const before=structuredClone(input);
+    await f.committer.importGeoJson({name:'external.geojson'},{parsed:input});
+    const imported=f.documentModel.list('generic').at(-1);
+    assert.equal(imported.properties.source.kind,'gis');
+    assert.equal(imported.properties.source.sourceId,'external-9');
+    assert.deepEqual(imported.properties.source.details.attributes.source,source);
+    assert.deepEqual(input,before);
+  }
+});
+
 const generic = source => ({
   type: 'Feature', id: uuid(1), geometry: { type: 'Point', coordinates: [1, 2] },
   properties: { schemaVersion: 2, name: 'fallback', notes: '', color: '#123456', locked: false, source },
@@ -68,7 +79,7 @@ const project = feature => ({
   distributionSettings: { renderMode: 'overlap', activeLayerId: '', boundaryVisible: true },
   layerPresentation: { schemaVersion: LAYER_PRESENTATION_SCHEMA_VERSION, overlayOrder: [], styles: {} },
   territorialEntities: [],
-  ...createStaticTerritorialSnapshot([]),
+  ...staticTerritorialInput([]),
   genericFeatures: feature ? [feature] : [],
 });
 
@@ -105,7 +116,7 @@ test('serializer publishes Generic Feature as lossless fallback with provenance 
     hydroDataset: 'hydro',
     readSnapshot: () => ({
       territorialEntities: [],
-      projectFields: { ...projectForStorage().projectFields, genericFeatures: [], ...createStaticTerritorialSnapshot([]) },
+      projectFields: { ...projectForStorage().projectFields, genericFeatures: [], ...staticTerritorialInput([]) },
       entityDelta: { changed: [], removedIds: [] },
       fullAutosave: false,
       terrainManifest: null,

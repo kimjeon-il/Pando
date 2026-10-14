@@ -1,6 +1,6 @@
 # 판도편집기 조사·검증 보고서
 
-웹 `Pando` 저장소의 이 폴더가 웹·앱 사람이 읽는 조사·검증 보고서의 정본입니다. 지도 데이터, 앱 실행 증거, 생성기 입력은 각 소유 저장소의 원래 위치에 둡니다. 보고서만으로 지도 반영이나 검증 통과를 뜻하지 않습니다.
+통합 `Pando` 저장소의 이 폴더가 웹·앱 사람이 읽는 조사·검증 보고서의 정본입니다. 웹 데이터는 루트 `assets/`, 앱 소스와 실행 입력·증거는 `native/`의 각 소유 위치에 둡니다. 보고서만으로 지도 반영이나 검증 통과를 뜻하지 않습니다.
 
 | 표기 | 뜻 |
 | --- | --- |
@@ -23,6 +23,9 @@
 | `GEO-NLD-005` | [Netherlands shoreline pilot — Phase 0 canonical baseline probe](geography/netherlands/phase0-canonical-audit.md) | 2026-10-10 | `investigating` | `not-applied` |
 | `GEO-058` | [Terrain integration validation](geography/terrain/app-terrain-integration-validation.md) | 2026-10-07 | `historical-record` | `unverified` |
 | `GEO-059` | [P2 terrain LOD and demand validation](geography/terrain/app-terrain-p2-validation.md) | 2026-10-07 | `historical-record` | `unverified` |
+| `GEO-IDN-001` | [인도네시아 서뉴기니·동티모르 영토 변화와 시간별 형상](geography/indonesia-west-new-guinea-east-timor-territorial-epochs-2026-10-13.md) | 2026-10-13 | `investigating` | `not-applied` |
+| `GEO-LIFE-003` | [수단 분리·우크라이나 크림반도 전환 이후 타임라인 형상](geography/sudan-ukraine-post-transition-2026-10-13.md) | 2026-10-13 | `investigating` | `not-applied` |
+| `GEO-LIFE-002` | [역사 형상 중복 정체성 정리 — 인도네시아·우크라이나·수단](geography/country-geometry-identity-consolidation-2026-10-13.md) | 2026-10-13 | `investigating` | `not-applied` |
 | `GEO-023` | [Verified entity lifetime additions](geography/verified-entity-lifetimes.md) | 2026-10-08 | `historical-record` | `unverified` |
 
 ## 도시·지명
@@ -36,6 +39,12 @@
 
 | ID | 보고서 | 원문 수정일 | 상태 | 지도 반영 |
 | --- | --- | --- | --- | --- |
+| `DEV-071` | [P1 — 원격 개발환경 표준화·검증](development/testing/p1-remote-development-validation-2026-10-14.md) | 2026-10-14 | `implemented` | `not-applicable` |
+| `DEV-070` | [P0 — 원격 개발 체계·도구 의존성·성능 기준 조사](development/testing/remote-toolchain-p0-audit-2026-10-14.md) | 2026-10-14 | `investigating` | `not-applicable` |
+| `DEV-069` | [Git 대용량 이력 정리 — 격리 검증 및 PR 참조 제약](development/testing/git-history-readonly-audit-2026-10-13.md) | 2026-10-13 | `historical-record` | `not-applicable` |
+| `DEV-068` | [미사용 세계지도 구버전 대용량 자산 정리 — 의존성 검증](development/testing/legacy-world-asset-retirement-2026-10-13.md) | 2026-10-13 | `historical-record` | `not-applicable` |
+| `DEV-067` | [통합 저장소 현행 파일 정리 — 비활성 앱 워크플로](development/testing/current-file-cleanup-2026-10-13.md) | 2026-10-13 | `historical-record` | `not-applicable` |
+| `DEV-066` | [공통 C++·WASM 코어와 앱 시작 경로 개선 — 진행 기록](development/testing/shared-core-startup-implementation-2026-10-12.md) | 2026-10-12 | `investigating` | `not-applicable` |
 | `DEV-028` | [Android storage and shared UI report](development/app/android-storage-report.md) | 2026-09-17 | `historical-record` | `not-applicable` |
 | `DEV-029` | [M7.7 migration release gate — open](development/app/final-parity-report.md) | 2026-09-27 | `historical-record` | `not-applicable` |
 | `DEV-030` | [Flag output contract — 2026-10-04](development/app/flag-web-parity-20261004.md) | 2026-10-04 | `historical-record` | `not-applicable` |
@@ -68,7 +77,8 @@
 | `DEV-061` | [T2-2 native persistence validation (2026-10-04)](development/app/timeline-persistence-validation.md) | 2026-10-04 | `historical-record` | `not-applicable` |
 | `DEV-062` | [웹판 기능 조사 및 Qt 대응표](development/app/web-feature-audit.md) | 2026-09-17 | `historical-record` | `not-applicable` |
 | `DEV-063` | [Windows 32px 프레임 검증 (2026-09-18)](development/app/windows-frame-validation.md) | 2026-09-18 | `historical-record` | `not-applicable` |
-| `DEV-064` | [웹·앱 저장소 파일 및 Git 이력 정리 — 1~3단계](development/testing/repository-cleanup-2026-10-12.md) | 2026-10-12 | `investigating` | `not-applicable` |
+| `DEV-064` | [웹·앱 저장소 파일 및 Git 이력 정리 — 1~3단계](development/testing/repository-cleanup-2026-10-12.md) | 2026-10-12 | `historical-record` | `not-applicable` |
+| `DEV-065` | [웹·앱 저장소 통합 — 4단계](development/testing/repository-unification-stage4-2026-10-12.md) | 2026-10-12 | `historical-record` | `not-applicable` |
 | `DEV-010` | [Country lineage storage 실행 기록](development/testing/country-lineage-storage.md) | 2026-10-06 | `historical-record` | `not-applicable` |
 | `DEV-003` | [기본 세계 역사 타임라인 검증](development/testing/historical-world-timeline-validation.md) | 2026-10-12 | `historical-record` | `not-applicable` |
 | `DEV-002` | [러시아 상세 형상 편집: 구현 및 검증 기록](development/testing/russia-edit-responsiveness.md) | 2026-09-16 | `historical-record` | `not-applicable` |

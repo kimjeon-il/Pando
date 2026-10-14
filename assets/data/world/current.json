@@ -11,7 +11,7 @@
     "previewSourceScale": "derived",
     "simplificationQuantile": 0.16,
     "coordinateCount": 105884,
-    "meshAlgorithmRevision": 3
+    "meshAlgorithmRevision": 4
   },
   "defaultClassification": {
     "countries": {
@@ -474,27 +474,27 @@
   },
   "assets": {
     "previewCountries": {
-      "url": "world/objects/countries-preview-sha256-25b8ad594f7a64e6b8089f7b7e8b0dbc187f8432816b81012b00b3dd4b6dcd38.geojson.gz",
+      "url": "world/objects/countries-preview-sha256-079587b1e4154d6d7cebaf843841a8852bcb888bcb43633c418301d7946c93a5.geojson.gz",
       "encoding": "gzip",
-      "compressedBytes": 917549,
+      "compressedBytes": 917509,
       "decodedBytes": 2438942,
-      "sha256": "25b8ad594f7a64e6b8089f7b7e8b0dbc187f8432816b81012b00b3dd4b6dcd38"
+      "sha256": "079587b1e4154d6d7cebaf843841a8852bcb888bcb43633c418301d7946c93a5"
     },
     "previewMesh": {
-      "url": "world/objects/world-mesh-preview-sha256-a90951c3171706bab9af4ff9e94fbc50d1ebc66f0cd53f67a4481ccd6d9e9f48.bin.gz",
+      "url": "world/objects/world-mesh-preview-sha256-64881cfbf1b42b125b8ff23524a59497f52d76ca2bef77afc6381d74a3b21129.bin.gz",
       "encoding": "gzip",
-      "compressedBytes": 1733548,
-      "decodedBytes": 3763240,
-      "sha256": "a90951c3171706bab9af4ff9e94fbc50d1ebc66f0cd53f67a4481ccd6d9e9f48",
+      "compressedBytes": 1734076,
+      "decodedBytes": 3764504,
+      "sha256": "64881cfbf1b42b125b8ff23524a59497f52d76ca2bef77afc6381d74a3b21129",
       "header": [
         1129137969,
         2,
         258,
         125463,
         421656,
-        203162,
+        203478,
         105884,
-        3,
+        4,
         516,
         516,
         1032,
@@ -502,11 +502,11 @@
       ]
     },
     "canonicalCountryPacket": {
-      "url": "world/objects/countries-canonical-sha256-753e21400c5a9123169379ba023ccce00d604ae15faf4963cf40ab6cc1652845.pcg.gz",
+      "url": "world/objects/countries-canonical-sha256-638c6f4868b9d270a62cd66ca13a18dc8a4215fa7c48ff9280a089e433f81dd1.pcg.gz",
       "encoding": "gzip",
       "compressedBytes": 5122041,
       "decodedBytes": 8826208,
-      "sha256": "753e21400c5a9123169379ba023ccce00d604ae15faf4963cf40ab6cc1652845",
+      "sha256": "638c6f4868b9d270a62cd66ca13a18dc8a4215fa7c48ff9280a089e433f81dd1",
       "header": [
         826753872,
         1,
@@ -531,20 +531,20 @@
       ]
     },
     "canonicalMesh": {
-      "url": "world/objects/world-mesh-sha256-9fe1f686728e83d4615998a7b023db680b3b561b0a26e7f2f4357b7fe8bcfb86.bin.gz",
+      "url": "world/objects/world-mesh-sha256-c7f687e9d14325ae9c8334cb4fabc3afd016e1a1231cf16b1c0729499a713ec8.bin.gz",
       "encoding": "gzip",
-      "compressedBytes": 14619043,
-      "decodedBytes": 32644700,
-      "sha256": "9fe1f686728e83d4615998a7b023db680b3b561b0a26e7f2f4357b7fe8bcfb86",
+      "compressedBytes": 14619919,
+      "decodedBytes": 32644044,
+      "sha256": "c7f687e9d14325ae9c8334cb4fabc3afd016e1a1231cf16b1c0729499a713ec8",
       "header": [
         1129137969,
         2,
         258,
         1026976,
         4504629,
-        1086772,
+        1086608,
         548454,
-        3,
+        4,
         516,
         516,
         1032,
@@ -561,8 +561,8 @@
   },
   "compatibility": {
     "sharedBoundaries": {
-      "preview": "countries-preview-shared-v0.34.0.json.gz",
-      "canonical": "countries-canonical-shared-v0.34.0.json.gz"
+      "preview": "countries-preview-shared-v0.36.1.json.gz",
+      "canonical": "countries-canonical-shared-v0.36.1.json.gz"
     }
   }
 }

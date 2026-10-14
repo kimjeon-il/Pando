@@ -1,8 +1,8 @@
 # Web / App parity
 
 `tests/fixtures/portability/index.json` is the sole feature registry. The App
-runner (`tools/run-final-oracles.mjs`) reads it from an explicitly supplied Web
-checkout. Registry entries link owners, relevant sources, dependencies, tests
+runner (`native/tools/run-final-oracles.mjs`) reads it from the Web root in the
+same commit. Registry entries link owners, relevant sources, dependencies, tests
 and observation axes. Markdown matrices are generated, never maintained by hand.
 
 ## Evidence levels
@@ -22,21 +22,22 @@ behavioral coverage.
 
 ## Running
 
-From the App checkout (use absolute paths for local builds):
+From the unified repository root (use an absolute, worktree-specific build path):
 
 ```text
-node tools/run-final-oracles.mjs --web-root WEB --list
-node tools/run-final-oracles.mjs --web-root WEB --features selection,timeline --build-dir BUILD --build --out REPORT.json
-node tools/run-final-oracles.mjs --web-root WEB --changed CHANGES.json --build-dir BUILD --build --out REPORT.json
-node tools/run-final-oracles.mjs --web-root WEB --build-dir BUILD --build --ui --official --out REPORT.json
+node native/tools/run-final-oracles.mjs --root native --web-root . --list
+node native/tools/run-final-oracles.mjs --root native --web-root . --features selection,timeline --build-dir BUILD --build --out REPORT.json
+node native/tools/run-final-oracles.mjs --root native --web-root . --changed CHANGES.json --build-dir BUILD --build --out REPORT.json
+node native/tools/run-final-oracles.mjs --root native --web-root . --build-dir BUILD --build --ui --official --out REPORT.json
 ```
 
-`CHANGES.json` contains repository-relative `web` and `app` path arrays.
+`CHANGES.json` contains `web` paths relative to the repository root and `app`
+paths relative to `native/`. CI derives both from one commit diff.
 Unmapped relevant source paths fail classification. Shared infrastructure changes
 select every feature. `--features` is an explicit diagnostic subset and cannot
 establish complete behavioral parity. Omitting both selects all features.
 
-`--official` requires clean checkouts. Local dirty results contain fingerprints
+`--official` requires a clean unified checkout with App under `native/` at the same commit as Web. Local dirty results contain fingerprints
 and remain distinguishable from committed evidence. Native observations require
 a source- and executable-matching build receipt. A receipt from another checkout
 state is rejected. Output includes JSON, a Markdown matrix and raw evidence logs.
@@ -59,7 +60,7 @@ An exception that disappears also requires review rather than silently persistin
 
 ## Provenance and approval
 
-The App's `docs/platform-portability-pin.json` names the approved Web commit and
+`native/docs/platform-portability-pin.json` names the approved Web commit and
 raw file SHA-256 values. New registry/corpus files must first be committed and
 reviewed as a candidate; the approved pin must not silently follow HEAD. Retain
 the previous commit and corpus so historical runs remain reproducible. Windows
