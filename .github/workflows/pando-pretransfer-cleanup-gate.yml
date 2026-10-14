@@ -1,21 +1,7 @@
 name: Pando reports cleanup verification
 
 on:
-  push:
-    branches: [work/gis]
-    paths:
-      - '.github/workflows/pando-pretransfer-cleanup-gate.yml'
-      - 'native/app/projectgeopackage.cpp'
-      - 'native/tests/core/CMakeLists.txt'
-      - 'tools/report*'
-      - 'tests/test_report_paths.py'
-      - 'tests/unit/report-paths.test.mjs'
-      - 'native/tests/place_sync_contract_tests.cpp'
-      - 'assets/js/modules/adaptive-render-quality.js'
-      - 'assets/js/modules/country-mesh-zoom-policy.js'
-      - 'assets/js/modules/gpu-map-renderer.js'
-      - 'tests/browser/country-shared-boundary.spec.mjs'
-      - 'tests/browser/startup-performance.spec.mjs'
+  # Historical repository-inventory audit; explicit manual invocation only.
   workflow_dispatch:
 
 permissions:
