@@ -13,18 +13,6 @@ export function webObjectRefToCore(value) {
   return Object.freeze({ domain: nativeDomain[ref.domain], id: ref.id });
 }
 
-export function coreObjectRefToWeb(value, project) {
-  if (typeof value?.id !== 'string' || !value.id.length) invalid();
-  const domain = { territorial: 'territorial', generic: 'generic', distributionLayer: 'distribution', label: 'label', hydro: 'hydro' }[value.domain];
-  if (!domain) invalid();
-  const type = domain === 'territorial' ? 'entity' : domain === 'generic' ? 'feature'
-    : domain === 'distribution' ? 'distribution' : domain === 'label'
-      ? project.labels.find(row => row.id === value.id)?.kind
-      : project.hydroEdits.find(row => row.id === value.id)?.properties.category;
-  if (!type) invalid();
-  return normalizeObjectRef({ domain, type, id: value.id });
-}
-
 /** Selection retains its captured type, independently of document ref identity. */
 export function webSelectionRefToCore(value, { isStoredHydro } = {}) {
   const ref = normalizeObjectRef(value);

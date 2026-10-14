@@ -6,11 +6,6 @@ function priorMonth(value) {
   if (!month) { month = 12; year = year === 1 ? -1 : year - 1; }
   return `${year < 0 ? '-' : year > 9999 ? '+' : ''}${String(Math.abs(year)).padStart(4, '0')}-${String(month).padStart(2, '0')}`;
 }
-export function timelinePriorMonth(cursor) {
-  const value = parseTemporal(cursor, { nullable: false });
-  if (value.precision !== 'month') throw Object.assign(new Error('Timeline cursor requires month precision.'), { code: 'INVALID_TIMELINE_CURSOR' });
-  return priorMonth(value);
-}
 function active(row, month) {
   const interval = normalizeTemporalInterval(row.validFrom, row.validTo);
   return (!interval.start || compareTemporal(interval.start, month, { rightBoundary: 'end' }) <= 0)

@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "editorcontroller.h"
 #include "territorial_fixture.h"
 #include "windowsframe.h"
@@ -18,9 +19,9 @@ namespace {
 Geometry polygon(Ring ring){Geometry g;g.polygons={{std::move(ring)}};return g;}
 Geometry box(double x,double y,double w,double h){return polygon({{x,y},{x+w,y},{x+w,y+h},{x,y+h},{x,y}});}
 ProjectDocument fixture(bool child){
-    ProjectDocument d({{"A","A",polygon({{0,0},{1,0},{1,.5},{1,1},{0,1},{0,0}}).polygons,0xabcdef},
-        {"B","B",polygon({{1,0},{2,0},{2,1},{1,1},{1,.5},{1,0}}).polygons,0x123456},
-        {"C","C",polygon({{0,1},{1,1},{2,1},{2,2},{0,2},{0,1}}).polygons,0x654321}},{{"countries","Countries"}});
+    pandoeditor::ProjectDocument d = makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},polygon({{0,0},{1,0},{1,.5},{1,1},{0,1},{0,0}}).polygons},{0xabcdef,1},"countries"},
+        {{"B","B","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},polygon({{1,0},{2,0},{2,1},{1,1},{1,.5},{1,0}}).polygons},{0x123456,1},"countries"},
+        {{"C","C","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},polygon({{0,1},{1,1},{2,1},{2,2},{0,2},{0,1}}).polygons},{0x654321,1},"countries"}},{{"countries","Countries"}});
     if(child){d.geometries.insert({"child",1},box(.7,.2,.3,.6));appendTerritory(d,{"child","Child","",UnitKind::General,false},{"child",1},"A");d.presentation.objectStyles[territorialRef("child")]={};}return d;
 }
 QQuickItem* boundaryButton(QQuickItem* root){
@@ -41,7 +42,7 @@ struct Ui {
     QTemporaryDir files;ProjectDocument document;QStringList warnings;EditorController editor;QQmlApplicationEngine engine;QQuickWindow* window=nullptr;QQuickItem* map=nullptr;MapProjection projection;QByteArray before;int width;
     Ui(int w,bool child=false):document(fixture(child)),editor([&]{EditorControllerConfig c;c.mobileMode=w==360;c.bootstrapWorld=false;c.autosaveEnabled=false;c.privateProjectPath=files.filePath("private.json");return c;}()),width(w){QObject::connect(&engine,&QQmlEngine::warnings,&engine,[this](const auto& errors){for(const auto& error:errors)warnings.append(error.toString());});}
     bool start(bool all=true){
-        Project project;project.replace(document);QFile file(files.filePath("input.json"));if(!file.open(QIODevice::WriteOnly))return false;file.write(projectcodec::encode(project));file.close();if(!editor.openFile(QUrl::fromLocalFile(file.fileName()))||!editor.setProjectionMode("flat"))return false;
+        Project project;project.replace(document);QFile file(files.filePath("input.json"));if(!file.open(QIODevice::WriteOnly))return false;file.write(::projectcodec::encode(project));file.close();if(!editor.openFile(QUrl::fromLocalFile(file.fileName()))||!editor.setProjectionMode("flat"))return false;
         QVariantList selected{QVariantMap{{"domain","territorial"},{"id","A"}},QVariantMap{{"domain","territorial"},{"id","B"}}};if(all)selected.append(QVariantMap{{"domain","territorial"},{"id","C"}});editor.setSelection(selected,selected.front().toMap(),"map");
         engine.rootContext()->setContextProperty("editor",&editor);const auto root=qEnvironmentVariable("M974_TEST_UI_ROOT");engine.load(root.isEmpty()?QUrl("qrc:/common/Main.qml"):QUrl::fromLocalFile(root+"/common/Main.qml"));if(engine.rootObjects().isEmpty())return false;window=qobject_cast<QQuickWindow*>(engine.rootObjects().front());if(!window)return false;window->resize(width,760);window->show();QTest::qWait(180);window->grabWindow();map=navigationItem(window->contentItem(),"mapView");if(!map)return false;projection.rebuild(document);before=editor.documentBytes();return true;
     }

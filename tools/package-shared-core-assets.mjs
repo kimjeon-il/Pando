@@ -39,8 +39,8 @@ export async function packageSharedCoreAssets(rootInput,buildInput,{check=false}
     assets:{js:{file:'pandoeditor-core.js',sha256:sha256(js)},wasm:{file:'pandoeditor-core.wasm',sha256:sha256(wasm)}}};
   const destination=join(root,'assets/wasm');
   if(check) {
-    assert.deepEqual(readFileSync(join(destination,manifest.assets.js.file)),js,'WASM JavaScript artifact stale');
-    assert.deepEqual(readFileSync(join(destination,manifest.assets.wasm.file)),wasm,'WASM binary artifact stale');
+    assert.equal(sha256(readFileSync(join(destination,manifest.assets.js.file))),manifest.assets.js.sha256,'WASM JavaScript artifact stale');
+    assert.equal(sha256(readFileSync(join(destination,manifest.assets.wasm.file))),manifest.assets.wasm.sha256,'WASM binary artifact stale');
     assert.deepEqual(JSON.parse(readFileSync(join(destination,'pandoeditor-core.manifest.json'))),manifest,'WASM manifest stale');
   } else {
     mkdirSync(destination,{recursive:true});

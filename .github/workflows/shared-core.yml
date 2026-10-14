@@ -299,6 +299,8 @@ jobs:
           path: |
             build-native/shared-core-evidence.json
             build-native/core-session/Testing/Temporary/
+            build-native/wasm/wasm/pandoeditor-core.js
+            build-native/wasm/wasm/pandoeditor-core.wasm
           if-no-files-found: error
   qt-core-adapters:
     runs-on: windows-2022

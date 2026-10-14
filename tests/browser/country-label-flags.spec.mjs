@@ -75,6 +75,7 @@ test('country flags zoom with labels and preserve selection and missing-flag fal
   await expect(page.locator('#entityProperties')).toBeVisible();
   await page.locator('#flagMenuBtn').click();
   await page.locator('#flagRemoveBtn').click();
+  await expect(flag).toHaveCount(0);
   const removal = await page.evaluate(id => ({
     id, feature: { id: window.PANDOLAB_TERRITORIAL.get(id).id,
       metadata: window.PANDOLAB_TERRITORIAL.get(id).properties.metadata },
@@ -89,7 +90,6 @@ test('country flags zoom with labels and preserve selection and missing-flag fal
   expect(removal.feature.id).toBe(id);
   expect(removal.selection).toBe(selectedKey);
   expect(removal.feature.metadata.flagDataUrl).toBeNull();
-  await expect(flag).toHaveCount(0);
   await expect(label.locator('text')).toHaveText('독일');
   await expect(page.locator('#entityNameInput')).toHaveValue('독일');
   expect(errors).toEqual([]);

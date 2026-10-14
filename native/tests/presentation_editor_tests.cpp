@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "editorcontroller.h"
 #include "defaultflagresolver.h"
 #include <QTemporaryDir>
@@ -25,8 +26,8 @@ private slots:
         const auto box=[](double x,double y,double size) {
             Geometry g;g.type="Polygon";g.polygons={Polygon{Ring{{x,y},{x+size,y},{x+size,y+size},{x,y+size},{x,y}}}};return g;
         };
-        ProjectDocument document({{"DEU","Germany",box(0,0,10).polygons,0x112233},
-                                  {"FRA","France",box(-5,-5,40).polygons,0x334455}},{{"countries","Countries"}});
+        pandoeditor::ProjectDocument document = makeTerritorialDocument({{{"DEU","Germany","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},box(0,0,10).polygons},{0x112233,1},"countries"},
+        {{"FRA","France","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},box(-5,-5,40).polygons},{0x334455,1},"countries"}},{{"countries","Countries"}});
         QString expected="qrc:/defaults/flags/native/de.svg";
         if(overridePolicy=="none") {document.symbols[territorialRef("DEU")]={FlagPolicy::None,{}};expected.clear();}
         if(overridePolicy=="embedded") {
@@ -44,7 +45,7 @@ private slots:
         QCOMPARE(resolveDefaultFlag(project.document(),territorialRef("DEU")).source,expected);
         QVERIFY(project.undo());QVERIFY(project.redo());
         QFile file(dir.filePath("converted.json"));QVERIFY(file.open(QIODevice::WriteOnly));
-        file.write(projectcodec::encode(project));file.close();
+        file.write(::projectcodec::encode(project));file.close();
         EditorController editor({false,dir.filePath("converted-private.json")});
         QVERIFY(editor.openFile(QUrl::fromLocalFile(file.fileName())));
         QVERIFY(editor.selectObject({{"domain","territorial"},{"id","DEU"}},"replace","map"));
@@ -123,7 +124,7 @@ private slots:
         if(!accepted) {QCOMPARE(editor.contentEditState(),session);QCOMPARE(editor.documentBytes(),before);return;}
         QVERIFY(editor.commitContentField("flagSource"));editor.cancelContentEdit();
         const auto saved=editor.documentBytes();
-        const auto reopened=projectcodec::decode(saved);
+        const auto reopened=::projectcodec::decode(saved);
         QCOMPARE(reopened.symbols.at(pandoeditor::territorialRef("DEU")).embeddedDataUrl,
                  QString::fromLatin1("data:image/png;base64,"+bytes.toBase64()).toStdString());
     }
@@ -167,10 +168,10 @@ private slots:
     }
     void countryFlagRemainsWhenNameChannelIsHidden() {
         QTemporaryDir dir;
-        pandoeditor::ProjectDocument document({{"DEU","Germany",{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}},0x112233}},{{"countries","Countries"}});
+        pandoeditor::ProjectDocument document = makeTerritorialDocument({{{"DEU","Germany","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}}},{0x112233,1},"countries"}},{{"countries","Countries"}});
         pandoeditor::Project project;project.replace(document);
         QFile file(dir.filePath("flag-only.json"));QVERIFY(file.open(QIODevice::WriteOnly));
-        file.write(projectcodec::encode(project));file.close();
+        file.write(::projectcodec::encode(project));file.close();
         EditorController editor({false,dir.filePath("private.json")});
         QVERIFY(editor.openFile(QUrl::fromLocalFile(file.fileName())));
         QVERIFY(editor.resizeMapCamera(800,600));
@@ -202,12 +203,11 @@ private slots:
         using namespace pandoeditor;
         for(const bool mobile:{false,true}) {
             QTemporaryDir dir;
-            ProjectDocument document({{"A","Alpha",{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}},0x112233}},
-                                     {{"countries","Countries"}});
+            pandoeditor::ProjectDocument document = makeTerritorialDocument({{{"A","Alpha","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}}},{0x112233,1},"countries"}},{{"countries","Countries"}});
             document.documentId=mobile?"safe-area-mobile":"safe-area-desktop";
             Project project;project.replace(document);
             const auto path=dir.filePath("safe-area.json");QFile file(path);
-            QVERIFY(file.open(QIODevice::WriteOnly));QVERIFY(file.write(projectcodec::encode(project))>0);file.close();
+            QVERIFY(file.open(QIODevice::WriteOnly));QVERIFY(file.write(::projectcodec::encode(project))>0);file.close();
             EditorController editor({mobile,dir.filePath("private.json")});
             QVERIFY(editor.openFile(QUrl::fromLocalFile(path)));
             QVERIFY(editor.resizeMapCamera(600,400));
@@ -244,8 +244,7 @@ private slots:
     void visibleContentDomainsHoverAndHiddenHoverExpires() {
         using namespace pandoeditor;
         QTemporaryDir dir;
-        ProjectDocument document({{"A","Alpha",{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}},0x112233}},
-                                 {{"countries","Countries"}});
+        pandoeditor::ProjectDocument document = makeTerritorialDocument({{{"A","Alpha","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}}},{0x112233,1},"countries"}},{{"countries","Countries"}});
         document.documentId="content-hover-domains";
         Geometry point;point.type="Point";point.points={{30,5}};
         document.geometries.insert({"place-point",1},point);
@@ -264,7 +263,7 @@ private slots:
         document.genericFeatures.push_back(generic);
         Project project;project.replace(document);
         const auto path=dir.filePath("content.json");QFile file(path);
-        QVERIFY(file.open(QIODevice::WriteOnly));QVERIFY(file.write(projectcodec::encode(project))>0);file.close();
+        QVERIFY(file.open(QIODevice::WriteOnly));QVERIFY(file.write(::projectcodec::encode(project))>0);file.close();
         EditorController editor({false,dir.filePath("private.json")});
         QVERIFY(editor.openFile(QUrl::fromLocalFile(path)));
         QVERIFY(editor.resizeMapCamera(800,600));

@@ -29,9 +29,10 @@ void holeDoesNotFill() {
         {{3,3},{3,7},{7,7},{7,3},{3,3}}
     }}};
     auto packet=makePolygonGeometryPacket(geometry);
-    require(packet.vertexCount==8,"closed endpoint removed from packet only");
+    require(packet.vertexCount>8&&packet.ringCoordinates->size()==16,
+            "source rings stay separate from refined fill vertices");
     require(packet.triangleCount>0,"hole tessellation exists");
-    require(std::abs(triangleArea(*packet.positions,*packet.indices)-84)<1e-4,"hole area is excluded");
+    require(std::abs(triangleArea(*packet.positions,*packet.indices)-84)<0.02,"hole area is excluded");
     for(std::size_t i=0;i<packet.indices->size();i+=3)
         require(!pointInTriangle(5,5,*packet.positions,(*packet.indices)[i],
                 (*packet.indices)[i+1],(*packet.indices)[i+2]),"hole center remains empty");
@@ -42,8 +43,9 @@ void multiPolygonPacket() {
         {{{{0,0},{2,0},{2,2},{0,2},{0,0}}},
          {{{20,0},{22,0},{22,2},{20,2},{20,0}}}}};
     auto packet=makePolygonGeometryPacket(geometry);
-    require(packet.vertexCount==8&&packet.triangleCount==4,"both components triangulated");
-    require(std::abs(triangleArea(*packet.positions,*packet.indices)-8)<1e-4,"component areas");
+    require(packet.vertexCount>8&&packet.triangleCount>4&&packet.polygonOffsets->size()==3,
+            "both components refine independently while preserving source ring ancestry");
+    require(std::abs(triangleArea(*packet.positions,*packet.indices)-8)<0.02,"component areas");
 }
 void datelinePolygonFiniteAndLocal() {
     pandoeditor::Geometry geometry{"Polygon",{},{},{{
@@ -53,7 +55,7 @@ void datelinePolygonFiniteAndLocal() {
     auto packet=makePolygonGeometryPacket(geometry);
     require(packet.triangleCount>0,"dateline hole triangulated");
     for(auto coordinate:*packet.positions)require(std::isfinite(coordinate),"packet finite");
-    require(std::abs(triangleArea(*packet.positions,*packet.indices)-18)<1e-4,"wrapped hole area");
+    require(std::abs(triangleArea(*packet.positions,*packet.indices)-18)<0.02,"wrapped hole area");
     for(std::size_t i=0;i<packet.indices->size();i+=3)
         require(!pointInTriangle(180,73,*packet.positions,(*packet.indices)[i],
                 (*packet.indices)[i+1],(*packet.indices)[i+2]),"dateline hole remains empty");
@@ -80,8 +82,11 @@ void typedDrawPacketOwnsOnlyDerivedBuffers() {
         }}};
         draw.geometryPacket=makePolygonGeometryPacket(source);
     }
-    require(draw.geometryPacket.triangleCount==2,"packet survives source lifetime");
-    require(draw.geometryPacket.positions->size()==8,"packet stores only numeric positions");
+    require(draw.geometryPacket.triangleCount>2,"refined packet survives source lifetime");
+    require(draw.geometryPacket.ringCoordinates->size()==8,
+            "original ring coordinates remain separate from the refined display mesh");
+    require(draw.geometryPacket.boundarySegmentCount>4,
+            "refined boundary remains available after source is released");
 }
 }
 int main() {

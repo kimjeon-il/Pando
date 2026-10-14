@@ -35,7 +35,7 @@ private slots:
         using namespace pandoeditor;
         const auto loaded=WorldDatasetLoader::canonical(QStringLiteral(PANDOEDITOR_WORLD_ASSET_DIR));
         Project project;project.replace(loaded.project->document());project.setTimelineCursor("2012-10");
-        const std::string id="state:ukraine";
+        const std::string id="UKR";
         const auto symbol=project.document().symbols.find(territorialRef(id));
         QVERIFY(symbol!=project.document().symbols.end());QCOMPARE(symbol->second.policy,FlagPolicy::Embedded);
         QVERIFY(symbol->second.embeddedDataUrl.rfind("data:image/",0)==0);
@@ -73,10 +73,10 @@ private slots:
         QVERIFY(project.resolveWorld("2012-09").find(id)->parentId.empty());
         QCOMPARE(project.resolveWorld("2012-10").find(id)->parentId,parentId);
         QVERIFY(project.undo());QVERIFY(project.resolveWorld("2012-10").find(id)->parentId.empty());QVERIFY(project.redo());
-        const auto bytes=projectcodec::encode(project);
-        Project restored;restored.replace(projectcodec::decode(bytes));restored.setTimelineCursor("2012-10");
-        QCOMPARE(projectcodec::encode(restored),bytes);
-        for(const auto& month:{"1900-01","1941-04","1945-11","1991-08","1991-12","2012-09","2012-10","2014-02","2014-03","2015-10","2020-10","2020-11","2026-10"}) {
+        const auto bytes=::projectcodec::encode(project);
+        Project restored;restored.replace(::projectcodec::decode(bytes));restored.setTimelineCursor("2012-10");
+        QCOMPARE(::projectcodec::encode(restored),bytes);
+        for(const auto& month:{"1900-01","1941-04","1945-11","1991-08","1991-12","2011-06","2011-07","2012-09","2012-10","2014-02","2014-03","2015-10","2020-10","2020-11","2026-10"}) {
             const auto a=project.resolveWorld(month),b=restored.resolveWorld(month);QCOMPARE(a.entities.size(),b.entities.size());
             for(std::size_t i=0;i<a.entities.size();++i) {
                 QCOMPARE(a.entities[i].id,b.entities[i].id);QVERIFY(a.entities[i].geometryRef==b.entities[i].geometryRef);
@@ -88,9 +88,11 @@ private slots:
     void nativeWorldContainsHistoricalRecords() {
         const auto loaded=WorldDatasetLoader::canonical(QStringLiteral(PANDOEDITOR_WORLD_ASSET_DIR));
         const auto view=pandoeditor::timelineDocumentView(loaded.project->document(),"2012-10");
-        QVERIFY(view.world.find("state:ukraine"));
+        QVERIFY(view.world.find("UKR"));
         QVERIFY(!view.world.find("RUS"));
-        QCOMPARE(view.world.entities.size(),std::size_t(2));
+        QVERIFY(view.world.find("SDN"));QVERIFY(view.world.find("SDS"));
+        QVERIFY(view.world.find("IDN"));QVERIFY(view.world.find("TLS"));
+        QCOMPARE(view.world.entities.size(),std::size_t(6));
         QVERIFY(!pandoeditor::isStaticTimeline(loaded.project->document()));
     }
     void currentGeometryAliasesMatchCanonicalPacket() {

@@ -64,12 +64,10 @@ class V0260DistributionModelTests(unittest.TestCase):
         self.assertIn('applyDistributionSelectionIntent(layer.id)', creation)
 
     def test_old_thematic_genericFeature_categories_are_not_exposed_for_new_genericFeatures(self):
-        rules = GENERIC_FEATURE_SERVICE[GENERIC_FEATURE_SERVICE.index("export const GENERIC_FEATURE_ROLE_RULES"):GENERIC_FEATURE_SERVICE.index("export const GENERIC_FEATURE_ROLE_LABELS")]
         self.assertNotIn('id="genericFeatureCategoryInput"', INDEX)
-        for value in ("language", "ethnicity", "religion"):
-            self.assertNotIn(f"{value}:", rules)
-        normalizer = APP[APP.index("function normalizeProjectObjects"):APP.index("function normalizeHistoryMetadata")]
-        self.assertNotIn("migrateThematicGenericFeatures", normalizer)
+        self.assertNotIn('GENERIC_FEATURE_ROLE_RULES', GENERIC_FEATURE_SERVICE)
+        self.assertNotIn('GENERIC_FEATURE_ROLE_LABELS', GENERIC_FEATURE_SERVICE)
+        self.assertNotIn("migrateThematicGenericFeatures", APP)
 
     def test_render_modes_are_data_driven_and_territorial_changes_are_independent(self):
         actual = node_json(ROOT, """

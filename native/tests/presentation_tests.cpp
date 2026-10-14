@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "territorial_fixture.h"
 #include <pandoeditor/presentationcommands.h>
 #include <iostream>
@@ -5,7 +6,7 @@
 using namespace pandoeditor;
 void check(bool b,const char* message){if(!b)throw std::runtime_error(message);}
 ProjectDocument fixture(){
-    ProjectDocument d({{"A","A",{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}},0x112233}},{{"countries","Countries"}});
+    pandoeditor::ProjectDocument d = makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}}},{0x112233,1},"countries"}},{{"countries","Countries"}});
     for(auto id:{"S","T","R"}){auto u=d.units.front();u.id=id;u.kind=std::string(id)=="R"?UnitKind::Regional:UnitKind::General;appendTerritory(d,u,staticGeometryBinding(d,d.units.front().id).geometryRef,u.kind==UnitKind::General?"A":"");auto ref=territorialRef(id);d.presentation.membership[ref]="countries";d.presentation.objectStyles[ref]={};if(u.kind==UnitKind::General)setFixtureParent(d,ref,territorialRef("A"));}
     return d;
 }

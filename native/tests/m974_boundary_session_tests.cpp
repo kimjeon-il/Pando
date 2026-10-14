@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "editorcontroller.h"
 #include "projectcodec.h"
 #include "territorial_fixture.h"
@@ -21,10 +22,13 @@ ProjectDocument triple() {
     auto a=polygon({{0,0},{1,0},{1,.5},{1,1},{0,1},{0,0}});
     auto b=polygon({{1,0},{2,0},{2,1},{1,1},{1,.5},{1,0}});
     auto c=polygon({{0,1},{1,1},{2,1},{2,2},{0,2},{0,1}});
-    return ProjectDocument({{"A","A",a.polygons,0xabcdef},{"B","B",b.polygons,0x123456},{"C","C",c.polygons,0x654321},{"U","Unrelated",box(5,0,1,1).polygons,0x123456}},{{"countries","Countries"}});
+    return makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},a.polygons},{0xabcdef,1},"countries"},
+        {{"B","B","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},b.polygons},{0x123456,1},"countries"},
+        {{"C","C","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},c.polygons},{0x654321,1},"countries"},
+        {{"U","Unrelated","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},box(5,0,1,1).polygons},{0x123456,1},"countries"}},{{"countries","Countries"}});
 }
 bool open(EditorController& c,const ProjectDocument& d,QTemporaryDir& dir) {
-    Project p;p.replace(d);QFile f(dir.filePath("input.json"));if(!f.open(QIODevice::WriteOnly))return false;f.write(projectcodec::encode(p));f.close();return c.openFile(QUrl::fromLocalFile(f.fileName()));
+    Project p;p.replace(d);QFile f(dir.filePath("input.json"));if(!f.open(QIODevice::WriteOnly))return false;f.write(::projectcodec::encode(p));f.close();return c.openFile(QUrl::fromLocalFile(f.fileName()));
 }
 bool select(EditorController& c,std::initializer_list<const char*> ids) {bool first=true;for(const auto id:ids){if(!c.selectObject({{"domain","territorial"},{"id",id}},first?"replace":"toggle"))return false;first=false;}return true;}
 QVariantMap handle(EditorController& c,const MapProjection& projection,Point coordinate) {
@@ -120,7 +124,7 @@ private slots:
         QVERIFY2(c.geometryEditState().value("previewReady").toBool(),qPrintable(c.geometryEditState().value("error").toString()));
         QCOMPARE(c.geometryDraftPaths().size(),3);QCOMPARE(c.documentBytes(),before);QCOMPARE(c.revision(),revision);QVERIFY(c.confirmGeometryEdit());
         const auto after=c.documentBytes();QVERIFY(after!=before);QCOMPARE(c.revision(),revision+1);
-        const auto result=projectcodec::decode(after);for(const auto id:{"A","B","C"})QVERIFY(!sameGeometry(geometry(result,id),geometry(d,id)));QVERIFY(sameGeometry(geometry(result,"U"),geometry(d,"U")));
+        const auto result=::projectcodec::decode(after);for(const auto id:{"A","B","C"})QVERIFY(!sameGeometry(geometry(result,id),geometry(d,id)));QVERIFY(sameGeometry(geometry(result,"U"),geometry(d,"U")));
         c.undo();QCOMPARE(c.documentBytes(),before);c.redo();QCOMPARE(c.documentBytes(),after);
     }
     void allOwnerDragCancelAndNoOp() {
@@ -149,7 +153,7 @@ private slots:
         QCOMPARE(targetIds(c),targets);QCOMPARE(c.selectedId(),ambient);QCOMPARE(c.documentBytes(),before);QCOMPARE(c.revision(),revision);QVERIFY(!c.canUndo());
         QVERIFY(moveOriginalNode(c,d));QVERIFY(c.geometryUndoDraft());QVERIFY(c.geometryRedoDraft());QVERIFY(c.requestGeometryPreview());
         QTRY_VERIFY_WITH_TIMEOUT(c.geometryEditState()["previewReady"].toBool(),5000);QVERIFY(c.confirmGeometryEdit());
-        const auto after=c.documentBytes();const auto result=projectcodec::decode(after);for(const auto* id:{"A","B","C"})QVERIFY(!sameGeometry(geometry(result,id),geometry(d,id)));
+        const auto after=c.documentBytes();const auto result=::projectcodec::decode(after);for(const auto* id:{"A","B","C"})QVERIFY(!sameGeometry(geometry(result,id),geometry(d,id)));
         QVERIFY(sameGeometry(geometry(result,"U"),geometry(d,"U")));if(mode!="root")QVERIFY(sameGeometry(geometry(result,"P"),geometry(d,"P")));
         c.undo();QCOMPARE(c.documentBytes(),before);c.redo();QCOMPARE(c.documentBytes(),after);
     }
@@ -205,7 +209,7 @@ private slots:
         QVERIFY(std::any_of(options.begin(),options.end(),[](const QVariant& raw){return raw.toMap().value("id")==QStringLiteral("C");}));
         const auto before=c.documentBytes();const auto revision=c.revision();
         QVERIFY(c.commitSelectedChild(QStringLiteral("C")));
-        QCOMPARE(staticParentRelation(projectcodec::decode(c.documentBytes()),"C").parentId,std::string("P"));
+        QCOMPARE(staticParentRelation(::projectcodec::decode(c.documentBytes()),"C").parentId,std::string("P"));
         QCOMPARE(c.revision(),revision+1);QVERIFY(!c.structureDialogOpen());
         const auto changed=c.documentBytes();QVERIFY(changed!=before);
         c.undo();QCOMPARE(c.documentBytes(),before);c.redo();QCOMPARE(c.documentBytes(),changed);
@@ -269,7 +273,7 @@ private slots:
     void midpointWithThreeSelectedPreviewsOnlyTwoActualOwners() {
         QTemporaryDir dir;const auto d=triple();EditorController c({false,dir.filePath("private.json")});QVERIFY(open(c,d,dir));QVERIFY(select(c,{"A","B","C"}));QVERIFY(c.beginSharedBoundaryGeometry());QTRY_COMPARE_WITH_TIMEOUT(c.geometryEditState().value("boundaryStatus").toString(),QString("ready"),3000);
         MapProjection projection;projection.rebuild(d);const auto p=projection.project({1,.5}),next=projection.project({1.1,.5});QVERIFY(c.geometrySelectNearest(p.x,p.y,.001));QVERIFY(c.geometryMoveSelectedVertex(next.x,next.y,0));QVERIFY(c.requestGeometryPreview());QTRY_VERIFY_WITH_TIMEOUT(!c.geometryEditState().value("calculating").toBool(),5000);QVERIFY2(c.geometryEditState().value("previewReady").toBool(),qPrintable(c.geometryEditState().value("error").toString()));
-        QSet<QString> owners;for(const auto& row:c.geometryDraftPaths())owners.insert(row.toMap().value("ownerId").toString());QCOMPARE(owners,QSet<QString>({"A","B"}));QVERIFY(c.confirmGeometryEdit());const auto result=projectcodec::decode(c.documentBytes());QVERIFY(sameGeometry(geometry(result,"C"),geometry(d,"C")));QVERIFY(sameGeometry(geometry(result,"U"),geometry(d,"U")));
+        QSet<QString> owners;for(const auto& row:c.geometryDraftPaths())owners.insert(row.toMap().value("ownerId").toString());QCOMPARE(owners,QSet<QString>({"A","B"}));QVERIFY(c.confirmGeometryEdit());const auto result=::projectcodec::decode(c.documentBytes());QVERIFY(sameGeometry(geometry(result,"C"),geometry(d,"C")));QVERIFY(sameGeometry(geometry(result,"U"),geometry(d,"U")));
     }
     void invalidOuterUnionRemainsRetryableAndCancelPreviewIsInert() {
         QTemporaryDir dir;const auto d=triple();EditorController c({false,dir.filePath("private.json")});QVERIFY(open(c,d,dir));QVERIFY(select(c,{"A","B","C"}));const auto before=c.documentBytes();const auto revision=c.revision();QVERIFY(c.beginSharedBoundaryGeometry());QTRY_COMPARE_WITH_TIMEOUT(c.geometryEditState().value("boundaryStatus").toString(),QString("ready"),3000);const auto originalPaths=c.geometryDraftPaths();

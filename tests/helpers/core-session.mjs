@@ -1,10 +1,9 @@
 import { Worker } from 'node:worker_threads';
-import { resolve } from 'node:path';
 import { createCoreDocumentClient } from '../../assets/js/modules/core-document-client.js';
 
 function createNodeCoreWorker() {
   const worker = new Worker(new URL('./core-session-node-worker.mjs', import.meta.url), { workerData: {
-    modulePath: resolve(process.env.PANDOEDITOR_WASM_MODULE || 'build-native/wasm/wasm/pandoeditor-core.js'),
+    modulePath: process.env.PANDOEDITOR_WASM_MODULE,
   } });
   const port = { postMessage: message => worker.postMessage(message), terminate: () => worker.terminate() };
   worker.on('message', data => port.onmessage?.({ data }));
