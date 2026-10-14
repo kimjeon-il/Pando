@@ -29,7 +29,7 @@ test('validated preview geometry reaches the render packet without another coord
   assertDeepFrozen(packet.preview);
 });
 
-test('asynchronous territory results replace cached packets for every active territory tool', () => {
+test('asynchronous territory results replace cached packets for every active territory tool', async () => {
   for (const tool of ['annex-territory', 'new-country', 'draw-territorial-unit']) {
     const requests = [];
     let territoryOperation = null;
@@ -37,7 +37,7 @@ test('asynchronous territory results replace cached packets for every active ter
       context: { requestRender: request => requests.push(request) },
       geometryEditing: { renderPacket: () => ({ territoryOperation }) },
     });
-    editing.setTool(tool);
+    await editing.setTool(tool);
     const loading = editing.createRenderPacket();
     territoryOperation = { kind: tool, phase: 'components', components: [{ key: 'north', selected: false }] };
     requests.length = 0;
@@ -96,7 +96,7 @@ test('draft packet normalizes semantic values without retaining source arrays', 
   assertDeepFrozen(packet);
 });
 
-test('editing domain reuses packet identity until an actual state mutation', () => {
+test('editing domain reuses packet identity until an actual state mutation', async () => {
   let invalidations = 0;
   const editing = createEditingDomain({
     context: { requestRender: () => { invalidations += 1; } },
@@ -107,16 +107,16 @@ test('editing domain reuses packet identity until an actual state mutation', () 
   });
   const initial = editing.createRenderPacket();
   assert.strictEqual(editing.createRenderPacket(), initial);
-  assert.equal(editing.appendDraftScreenPoint([1, 2]), true);
+  assert.equal(await editing.appendDraftScreenPoint([1, 2]), true);
   const changed = editing.createRenderPacket();
   assert.notStrictEqual(changed, initial);
   assert.strictEqual(editing.createRenderPacket(), changed);
-  assert.equal(editing.appendDraftScreenPoint([1, 2], 'mouse', { dedupe: true }), false);
+  assert.equal(await editing.appendDraftScreenPoint([1, 2], 'mouse', { dedupe: true }), false);
   assert.strictEqual(editing.createRenderPacket(), changed);
   assert.equal(invalidations, 1);
 });
 
-test('inactive draft hides render and feedback channels without losing coordinates or undo history', () => {
+test('inactive draft hides render and feedback channels without losing coordinates or undo history', async () => {
   for (const shape of ['line', 'polygon']) {
     let stage = 'selection';
     const editing = createEditingDomain({
@@ -134,10 +134,10 @@ test('inactive draft hides render and feedback channels without losing coordinat
         }),
       },
     });
-    editing.setTool('annex-territory');
-    for (const point of [[0, 0], [10, 0], [10, 10]]) editing.appendDraftScreenPoint(point);
-    editing.performDraftUndo();
-    editing.handleInteraction({
+    await editing.setTool('annex-territory');
+    for (const point of [[0, 0], [10, 0], [10, 10]]) await editing.appendDraftScreenPoint(point);
+    await editing.performDraftUndo();
+    await editing.handleInteraction({
       type: 'draft-hover-move', screenPoint: [12, 12],
       packetRevision: editing.createRenderPacket().revision, projectGeneration: 0,
     });
@@ -172,7 +172,7 @@ test('inactive draft hides render and feedback channels without losing coordinat
     editing.refreshTerritorySelection({ tool: 'annex-territory', reason: 'resume-selection' });
     assert.equal(editing.snapshot().draft.active, true);
     assert.deepEqual(editing.createRenderPacket().draft, visible);
-    assert.equal(editing.performDraftRedo(), true);
+    assert.equal(await editing.performDraftRedo(), true);
     assert.deepEqual(editing.snapshot().draft.coords, [[0, 0], [10, 0], [10, 10]]);
     editing.dispose();
   }
@@ -243,16 +243,16 @@ test('one coordinator frame reads one editing packet for every editing pass', ()
   rendering.dispose();
 });
 
-test('object selection and deselection refresh vertex packets without an active draft', () => {
+test('object selection and deselection refresh vertex packets without an active draft', async () => {
   let target = null;
   const editing = createEditingDomain({ geometryEditing: { getObjectVertexTarget: () => target } });
   assert.equal(editing.createRenderPacket().objectVertices, null);
   target = { targetRef: { domain: 'hydro', type: 'river', id: 'river-1' }, mode: 'hydro',
     feature: { type: 'Feature', geometry: { type: 'LineString', coordinates: [[0, 0], [1, 1]] } } };
-  assert.equal(editing.refreshEditingPresentation('selection-target'), true);
+  assert.equal(await editing.refreshEditingPresentation('selection-target'), true);
   assert.equal(editing.createRenderPacket().objectVertices.handles.length, 2);
   target = null;
-  assert.equal(editing.refreshEditingPresentation('selection-target'), true);
+  assert.equal(await editing.refreshEditingPresentation('selection-target'), true);
   assert.equal(editing.createRenderPacket().objectVertices, null);
   editing.dispose();
 });
@@ -261,7 +261,7 @@ const testFrame = (frameId = 1, viewRevision = 1, projectPath = () => 'M0,0L1,1'
   frameId, viewRevision, projectionRevision: 1,
   viewState: { projection: 'flat', size: { width: 800, height: 600 }, translate: [400, 300], scale: 100, dpr: 1 }, projectPath });
 
-function draftHandlerFixture(t) {
+async function draftHandlerFixture(t) {
   const joins = new Map(), handlers = new Map(), frames = [], published = [];
   const root = { contains: node => node === root || node?.owner === root,
     appendChild: node => { node.parentNode = root; return node; } };
@@ -285,17 +285,19 @@ function draftHandlerFixture(t) {
     getToolConfig: () => ({ shape: 'line' }),
     projectCoordinate: value => value, screenToCoordinate: value => value,
   } });
-  editing.replaceDraftCoordinates([[0, 0], [10, 0]], { inputPhase: 'refine' });
+  await editing.replaceDraftCoordinates([[0, 0], [10, 0]], { inputPhase: 'refine' });
   let frameId = 0;
   const rendering = createRenderingDomain({
     requestFrame: callback => { frames.push(callback); return frames.length; },
     prepareView: () => testFrame(++frameId),
     getEditingRenderPacket: () => editing.createRenderPacket(),
-    emitEditingInteraction: event => { published.push(event); return editing.handleInteraction(event); },
+    emitEditingInteraction: event => { published.push(event); const operation=editing.handleInteraction(event);pendingInteractions.push(operation);return operation; },
+    reportEditingOperationError: error => { throw error; },
     interactionResources: { draftLayer: layer, d3, isMobile: () => false },
   });
   const render = () => { rendering.invalidateEditingOverlays('draft-handler-test'); frames.shift()(); };
-  const dispatch = (selector, type, relatedTarget = null) => {
+  const pendingInteractions=[];
+  const dispatch = async (selector, type, relatedTarget = null) => {
     const handler = handlers.get(`${selector}:${type}`);
     assert.equal(typeof handler, 'function', `${selector} must expose its real ${type} handler`);
     const event = { relatedTarget, prevented: false, stopped: false,
@@ -303,40 +305,41 @@ function draftHandlerFixture(t) {
     d3.event = event;
     handler.call(selector === 'g.draft-insert-handle' ? handle : segment, joins.get(selector)[0]);
     d3.event = null;
+    await Promise.all(pendingInteractions.splice(0));
     return event;
   };
-  const hover = () => { render(); dispatch('path.draft-segment-hit', 'mousemove'); render(); };
+  const hover = async () => { render(); await dispatch('path.draft-segment-hit', 'mousemove'); render(); };
   t.after(() => { rendering.dispose(); editing.dispose(); });
   return { editing, joins, published, segment, handle, hit, render, dispatch, hover,
     setScreenPoint: value => { screenPoint = value; } };
 }
 
-test('rendered draft segment transfers hover to its insertion handle and inserts once with undo', t => {
-  const h = draftHandlerFixture(t);
-  h.hover();
+test('rendered draft segment transfers hover to its insertion handle and inserts once with undo', async t => {
+  const h = await draftHandlerFixture(t);
+  await h.hover();
   const before = h.editing.snapshot().draft;
   assert.deepEqual(before.insertTarget, { segmentIndex: 0, coordinate: [5, 0] });
   assert.equal(h.joins.get('g.draft-insert-handle').length, 1);
-  h.dispatch('path.draft-segment-hit', 'mouseleave', h.hit);
+  await h.dispatch('path.draft-segment-hit', 'mouseleave', h.hit);
   assert.deepEqual(h.editing.snapshot().draft.insertTarget, before.insertTarget);
   assert.equal(h.published.at(-1).type, 'draft-segment-hover');
   h.render();
   assert.equal(h.joins.get('g.draft-insert-handle').length, 1);
-  const click = h.dispatch('g.draft-insert-handle', 'click');
+  const click = await h.dispatch('g.draft-insert-handle', 'click');
   assert.equal(click.prevented, true);
   assert.equal(click.stopped, true);
   assert.equal(h.published.at(-1).type, 'draft-insert-request');
   assert.deepEqual(h.editing.snapshot().draft.coords, [[0, 0], [5, 0], [10, 0]]);
   assert.equal(h.editing.snapshot().draft.historyCount, before.historyCount + 1);
-  assert.equal(h.editing.performDraftUndo(), true);
+  assert.equal(await h.editing.performDraftUndo(), true);
   assert.deepEqual(h.editing.snapshot().draft.coords, before.coords);
 });
 
-test('rendered draft insertion handle clears its target when the pointer leaves the draft', t => {
-  const h = draftHandlerFixture(t);
-  h.hover();
+test('rendered draft insertion handle clears its target when the pointer leaves the draft', async t => {
+  const h = await draftHandlerFixture(t);
+  await h.hover();
   const before = h.editing.snapshot().draft;
-  h.dispatch('g.draft-insert-handle', 'mouseleave', null);
+  await h.dispatch('g.draft-insert-handle', 'mouseleave', null);
   assert.equal(h.editing.snapshot().draft.insertTarget, null);
   assert.equal(h.published.at(-1).type, 'draft-segment-leave');
   assert.deepEqual(h.editing.snapshot().draft.coords, before.coords);
@@ -345,31 +348,31 @@ test('rendered draft insertion handle clears its target when the pointer leaves 
   assert.deepEqual(h.joins.get('g.draft-insert-handle'), []);
 });
 
-test('rendered draft insertion handle returns hover to its segment and inserts the latest coordinate once', t => {
-  const h = draftHandlerFixture(t);
-  h.hover();
+test('rendered draft insertion handle returns hover to its segment and inserts the latest coordinate once', async t => {
+  const h = await draftHandlerFixture(t);
+  await h.hover();
   const before = h.editing.snapshot().draft;
-  h.dispatch('g.draft-insert-handle', 'mouseleave', h.segment);
+  await h.dispatch('g.draft-insert-handle', 'mouseleave', h.segment);
   assert.deepEqual(h.editing.snapshot().draft.insertTarget, before.insertTarget);
   assert.equal(h.published.at(-1).type, 'draft-segment-hover');
   h.setScreenPoint([7, 2]);
-  h.dispatch('path.draft-segment-hit', 'mousemove');
+  await h.dispatch('path.draft-segment-hit', 'mousemove');
   assert.deepEqual(h.editing.snapshot().draft.insertTarget, { segmentIndex: 0, coordinate: [7, 0] });
   h.render();
-  h.dispatch('path.draft-segment-hit', 'mouseleave', h.hit);
-  h.dispatch('g.draft-insert-handle', 'click');
+  await h.dispatch('path.draft-segment-hit', 'mouseleave', h.hit);
+  await h.dispatch('g.draft-insert-handle', 'click');
   assert.equal(h.published.at(-1).type, 'draft-insert-request');
   assert.deepEqual(h.editing.snapshot().draft.coords, [[0, 0], [7, 0], [10, 0]]);
   assert.equal(h.editing.snapshot().draft.historyCount, before.historyCount + 1);
-  assert.equal(h.editing.performDraftUndo(), true);
+  assert.equal(await h.editing.performDraftUndo(), true);
   assert.deepEqual(h.editing.snapshot().draft.coords, before.coords);
 });
 
-test('rendered draft segment clears hover outside its own layer, including a foreign insertion handle', t => {
+test('rendered draft segment clears hover outside its own layer, including a foreign insertion handle', async t => {
   for (const relatedTarget of [null, { closest: () => ({ parentNode: {}, owner: {} }) }]) {
-    const h = draftHandlerFixture(t);
-    h.hover();
-    h.dispatch('path.draft-segment-hit', 'mouseleave', relatedTarget);
+    const h = await draftHandlerFixture(t);
+    await h.hover();
+    await h.dispatch('path.draft-segment-hit', 'mouseleave', relatedTarget);
     assert.equal(h.editing.snapshot().draft.insertTarget, null);
     assert.equal(h.published.at(-1).type, 'draft-segment-leave');
     h.render();

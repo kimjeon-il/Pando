@@ -7,7 +7,7 @@ function sortResult(result) {
   };
 }
 
-test('isolated browser river partition and Worker compatibility contracts agree', async ({ page }) => {
+test('isolated browser river partition and Worker RPC contracts agree', async ({ page }) => {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
@@ -44,11 +44,11 @@ test('isolated browser river partition and Worker compatibility contracts agree'
         const timer = setTimeout(() => reject(new Error('river partition contract Worker timeout')), 15_000);
         worker.addEventListener('error', event => { clearTimeout(timer); reject(new Error(event.message || 'Worker error')); }, { once: true });
         worker.addEventListener('message', event => {
-          if (event.data?.type === 'error') { clearTimeout(timer); reject(new Error(event.data.message)); return; }
+          if (event.data?.ok === false) { clearTimeout(timer); reject(new Error(event.data.error.message)); return; }
           clearTimeout(timer);
           resolve(event.data?.result || null);
         }, { once: true });
-        worker.postMessage({ type: 'compute', requestId: 1, payload });
+        worker.postMessage({ rpc: 'pandolab-worker-rpc', protocolVersion: 1, type: 'request', operation: 'river.partition', requestId: 1, payload });
       });
     } finally {
       worker.terminate();

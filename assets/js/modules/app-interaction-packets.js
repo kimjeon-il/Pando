@@ -2,6 +2,8 @@ import { INTERACTION_ROLE_PRIORITY } from './layer-presentation.js';
 import { territorialSymbolGroup } from './layer-presentation.js';
 import { interactionNodeRole, resolveMapStrokeStyle, resolveMapInteractionStyle } from './map-interaction-style.js';
 import { applySvgInteractionOwnership } from './render-channel-ownership.js';
+import { createGpuMeshWorkerJobs } from './gpu-mesh-worker-jobs.js';
+import { geometryRevisionKey } from './geometry-versions.js';
 /** InteractionPackets: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -15,21 +17,15 @@ export function createInteractionPackets() {
   let currentGpuDraftPackets;
   let gpuInteractionPacketRevision;
   let gpuInteractionPacketSignatures;
-  let territorialBoundaryGeometryTokens;
-  let territorialBoundaryGeometryTokenSequence;
+  const interactionInputs = new Map(), interactionLayers = new Map();
+  let pendingPreparation = null;
   function connect(ports) {
     if (dependencies) throw new Error('interaction-packets already connected');
     dependencies = ports;
   }
 
   function territorialBoundaryGeometryToken(geometry) {
-    if (!geometry || typeof geometry !== 'object') return 'none';
-    let token = territorialBoundaryGeometryTokens.get(geometry);
-    if (!token) {
-      token = String(++territorialBoundaryGeometryTokenSequence);
-      territorialBoundaryGeometryTokens.set(geometry, token);
-    }
-    return token;
+    return geometryRevisionKey(geometry);
   }
 
   function applyOverlayStackOrder() {
@@ -145,11 +141,40 @@ export function createInteractionPackets() {
       }
       if (resourceKeys.length) node.setAttribute('data-gpu-interaction-keys', resourceKeys.join(' '));
     });
-    const scene = interactionSceneBuilder.build({
+    const input = {
       revision: ++gpuInteractionPacketRevision,
+      projection: dependencies.projectState.state.projection,
       polygons,
       strokes,
-    });
+    };
+    interactionInputs.set(domain, input); interactionLayers.set(domain, layer);
+    const polygonStrokes = items => items.filter(item =>
+      item.geometry?.type === 'Polygon' || item.geometry?.type === 'MultiPolygon');
+    const allPolygons = [...interactionInputs.values()].flatMap(value =>
+      [...value.polygons, ...polygonStrokes(value.strokes)]);
+    const missing = interactionSceneBuilder.missingPolygons(allPolygons, input);
+    if (missing.length) {
+      const signature = missing.map(item => item.cacheKey).join('|');
+      if (pendingPreparation?.signature !== signature) {
+        const builder = interactionSceneBuilder, pending = { signature };
+        pendingPreparation = pending;
+        builder.preparePolygons(allPolygons, input).then(() => {
+          if (pendingPreparation !== pending || builder !== interactionSceneBuilder) return;
+          pendingPreparation = null;
+          for (const [name, currentLayer] of interactionLayers) syncGpuInteractionLayer(name, currentLayer);
+          builder.releasePrepared();
+        }).catch(error => {
+          if (pendingPreparation !== pending) return;
+          pending.failed = true;
+          if (!error.cancelled && error.name !== 'AbortError')
+            dependencies.feedback.reportOperationError(error, '편집 미리보기 면을 준비하지 못했습니다.', 'PL-MESH-PREPARE', 4200);
+        });
+      }
+      if (interactionSceneBuilder.missingPolygons([...polygons, ...polygonStrokes(strokes)], input).length) return [];
+    } else if (pendingPreparation) {
+      pendingPreparation = null; interactionSceneBuilder.cancelPreparation();
+    }
+    const scene = interactionSceneBuilder.build(input);
     return [
       ...scene.polygons.map(packet => ({ kind: 'polygon', packet })),
       ...scene.strokes.map(packet => ({ kind: 'stroke', packet })),
@@ -172,7 +197,11 @@ export function createInteractionPackets() {
   }
 
   function initializeInteractionSceneBuilder() {
-    (interactionSceneBuilder = (0, dependencies.renderScene.createRenderSceneBuilder)({ triangulate: (...args) => window.earcut(...args), cacheLimit: 256 }));
+    interactionSceneBuilder?.clear(); pendingPreparation = null;
+    interactionInputs.clear(); interactionLayers.clear();
+    (interactionSceneBuilder = (0, dependencies.renderScene.createRenderSceneBuilder)({ cacheLimit: 256,
+      meshJobs: createGpuMeshWorkerJobs({ isCurrent: () => true,
+        createWorker: () => new Worker(dependencies.platform.runtimeAssetUrl('workers/gpu-mesh-worker.js'), { name: 'pandolab-interaction-mesh' }) }) }));
   }
 
   function initializeCurrentGpuInteractionFillItems() {
@@ -189,17 +218,10 @@ export function createInteractionPackets() {
     (gpuInteractionPacketSignatures = { preview: '', draft: '' });
   }
 
-  function initializeTerritorialBoundaryGeometryTokens() {
-    (territorialBoundaryGeometryTokens = new WeakMap());
-
-    (territorialBoundaryGeometryTokenSequence = 0);
-  }
-
   return Object.freeze({
     connect,
     initializeInteractionSceneBuilder,
     initializeCurrentGpuInteractionFillItems,
-    initializeTerritorialBoundaryGeometryTokens,
     get applyOverlayStackOrder() { return applyOverlayStackOrder; },
     get currentGpuDraftPackets() { return currentGpuDraftPackets; },
     get currentGpuEditPreviewPackets() { return currentGpuEditPreviewPackets; },

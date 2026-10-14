@@ -53,7 +53,7 @@ test('task surface synchronization rejects a missing required editor command', t
   assert.throws(() => task.syncMapContextSurfaces(), TypeError);
 });
 
-test('global Escape rejects a missing required editor command instead of falling through', t => {
+test('global Escape rejects a missing required editor command instead of falling through', async t => {
   const { listeners } = environment(t);
   const owner = createGlobalInputBindings();
   owner.connect({
@@ -65,7 +65,57 @@ test('global Escape rejects a missing required editor command instead of falling
   });
   owner.bindGlobalInputUI();
   const escape = Object.assign(new Event('keydown', { cancelable: true }), { key: 'Escape' });
-  assert.throws(() => listeners.get('keydown')(escape), TypeError);
+  await assert.rejects(listeners.get('keydown')(escape), TypeError);
+});
+
+for (const operation of ['delete','save','draft-delete','draft-move']) {
+  test(`global keyboard ${operation} awaits its command and reports the underlying Worker failure`, async t => {
+    const { listeners } = environment(t), errors = [];
+    let reject;
+    const pending = new Promise((resolve, fail) => { reject = fail; });
+    const owner = createGlobalInputBindings();
+    owner.connect(capabilityPortsForFixture(LIFECYCLE_UI_OWNER_PORTS.globalInputBindings, {
+      state: { tool: 'select', selected: { domain: 'generic', type: 'feature', id: 'G' }, projectReplacing: false },
+      $: () => null, systemThemeQuery: { addEventListener() {} },
+      editingDraftSnapshot: () => ({ selectedVertexIndex: operation === 'draft-move' ? 0 : null }),
+      editingDomain: { draftInputActive: () => operation.startsWith('draft-'),
+        deleteSelectedDraftPoint: () => pending, moveSelectedDraftPointByPixels: () => pending }, selectionDomain: { size: () => 1 },
+      deleteSelected: () => pending,
+      getGisFileController: async () => ({ saveProject: () => pending }),
+      reportOperationError: (...args) => errors.push(args),
+    }));
+    owner.bindGlobalInputUI();
+    const event = Object.assign(new Event('keydown', { cancelable: true }),
+      { key: operation === 'draft-move' ? 'ArrowLeft' : operation.includes('delete') ? 'Delete' : 's', ctrlKey: operation === 'save' });
+    const completion = listeners.get('keydown')(event);
+    assert.equal(event.defaultPrevented, true); assert.deepEqual(errors, []);
+    const error = Object.assign(new Error('Worker unavailable'), { code: 'PL-CORE-LOAD' });
+    reject(error); await completion;
+    assert.equal(errors.length, 1); assert.equal(errors[0][0], error);
+    assert.equal(errors[0][2], { delete: 'PL-OBJECT-DELETE-001', save: 'PL-PROJECT-SAVE-001',
+      'draft-delete': 'PL-DRAFT-DELETE-001', 'draft-move': 'PL-DRAFT-MOVE-001' }[operation]);
+  });
+}
+
+test('global blur contains a rejected asynchronous draft cancellation and retains its technical error', async t => {
+  const { window }=environment(t),errors=[];
+  let reject,reported;
+  const pending=new Promise((resolve,fail) => { reject=fail; });
+  const reportDone=new Promise(resolve => { reported=resolve; });
+  const owner=createGlobalInputBindings();
+  owner.connect(capabilityPortsForFixture(LIFECYCLE_UI_OWNER_PORTS.globalInputBindings,{
+    state: { tool: 'select',projectReplacing: false,spacePanActive: true },
+    $: () => null,systemThemeQuery: { addEventListener() {} },
+    mapInteractionGate: { setForcedPan() {} },
+    editingDomain: { cancelActiveGesture: () => pending },
+    reportOperationError: (...args) => { errors.push(args);reported(); },
+  }));
+  owner.bindGlobalInputUI();
+  window.dispatchEvent(new Event('blur'));
+  assert.deepEqual(errors,[]);
+  const error=Object.assign(new Error('Core cancel rejected'),{ code: 'STALE_REVISION' });
+  reject(error);await reportDone;
+  assert.equal(errors.length,1);assert.equal(errors[0][0],error);assert.equal(errors[0][2],'PL-DRAFT-CANCEL-001');
 });
 
 test('real lifecycle assembly creates editor capabilities before startup task synchronization and Escape', async t => {

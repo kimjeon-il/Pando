@@ -22,13 +22,17 @@ export function createFileBindings() {
       }
     });
     (0, dependencies.platform.$)('saveProjectBtn').addEventListener('click', () => {
-      void (0, dependencies.gisRuntime.getGisFileController)().then(controller => controller.saveProject());
+      (0, dependencies.gisRuntime.getGisFileController)().then(controller => controller.saveProject())
+        .catch(error => dependencies.feedback.reportOperationError(error,'프로젝트 저장을 완료하지 못했습니다.','PL-FILE-SAVE-001',4200));
     });
     (0, dependencies.platform.$)('openGisBtn').addEventListener('click', event => {
-      void (0, dependencies.gisRuntime.getGisFileController)().then(controller => controller.openPicker({ trigger: event.currentTarget }));
+      const trigger=event.currentTarget;
+      (0, dependencies.gisRuntime.getGisFileController)().then(controller => controller.openPicker({ trigger }))
+        .catch(error => dependencies.feedback.reportOperationError(error,'GIS 파일 열기를 완료하지 못했습니다.','PL-FILE-GIS-001',4200));
     });
     (0, dependencies.platform.$)('openProjectBtn').addEventListener('click', () => {
-      void (0, dependencies.gisRuntime.getGisFileController)().then(controller => controller.openProjectPicker());
+      (0, dependencies.gisRuntime.getGisFileController)().then(controller => controller.openProjectPicker())
+        .catch(error => dependencies.feedback.reportOperationError(error,'프로젝트 열기를 완료하지 못했습니다.','PL-FILE-OPEN-001',4200));
     });
 
     (0, dependencies.platform.$)('newProjectBtn').addEventListener('click', (...args) => dependencies.lifecycleUi.projectUi.requestNew(...args));

@@ -1,0 +1,100 @@
+name: P4 immutable mesh asset publication
+
+on:
+  push:
+    branches: [work/objects]
+    paths:
+      - '.github/workflows/p4-immutable-mesh-assets.yml'
+      - 'tools/regenerate-render-mesh-assets-p4.mjs'
+      - 'tools/verify-render-mesh-assets-p4.mjs'
+      - 'assets/js/workers/gpu-mesh-core.js'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: p4-immutable-mesh-assets-work-objects
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      NODE_OPTIONS: --max-old-space-size=6144
+      PANDOLAB_BUILD_ID: p4-mesh4-world-0.36.1
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install build dependencies
+        run: |
+          pnpm install --frozen-lockfile --ignore-scripts
+          python -m pip install --disable-pip-version-check 'shapely==2.1.2'
+      - name: Generate next-version country, shared-boundary and prepared polygon assets
+        run: node tools/regenerate-render-mesh-assets-p4.mjs
+      - name: Validate generated manifests, checksums, shared boundary and selected geometry
+        run: |
+          node tools/verify-render-mesh-assets-p4.mjs
+          node tools/build-country-shared-boundaries.mjs --check
+          node scripts/check-version.mjs
+          node --test tests/unit/gpu-mesh-country-strokes.test.mjs tests/unit/prepared-polygon-mesh.test.mjs tests/unit/mesh-geometry-assets.test.mjs tests/unit/world-bundle-runtime.test.mjs tests/unit/country-shared-boundary-state.test.mjs
+      - name: Stage only newly published map assets and metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -- \
+            assets/data/world/build-input.json \
+            assets/data/world/current.json \
+            assets/data/world-preview-v0.36.1.json \
+            assets/data/countries-preview-v0.36.1.geojson.gz \
+            assets/data/world-mesh-preview-v0.36.1.bin.gz \
+            assets/data/world-mesh-v0.36.1.bin.gz \
+            assets/data/countries-canonical-v0.36.1.pcg.gz \
+            assets/data/countries-preview-shared-v0.36.1.json.gz \
+            assets/data/countries-canonical-shared-v0.36.1.json.gz \
+            assets/data/world/objects \
+            assets/data/prepared-polygons/generated/v2 \
+            assets/js/build-meta.js index.html README.md
+          git diff --cached --check
+          while IFS= read -r file; do
+            case "$file" in
+              assets/data/world/build-input.json|assets/data/world/current.json|\
+              assets/data/world-preview-v0.36.1.json|assets/data/countries-preview-v0.36.1.geojson.gz|\
+              assets/data/world-mesh-preview-v0.36.1.bin.gz|assets/data/world-mesh-v0.36.1.bin.gz|\
+              assets/data/countries-canonical-v0.36.1.pcg.gz|\
+              assets/data/countries-preview-shared-v0.36.1.json.gz|\
+              assets/data/countries-canonical-shared-v0.36.1.json.gz|\
+              assets/data/world/objects/*|assets/data/prepared-polygons/generated/v2/*|\
+              assets/js/build-meta.js|index.html|README.md)
+                ;;
+              *) echo "P4 out-of-scope change: $file" >&2; exit 1 ;;
+            esac
+          done < <(git diff --cached --name-only)
+          echo "P4 staged asset count: $(git diff --cached --name-only | wc -l)"
+      - name: Commit validated immutable assets only to work/objects
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if git diff --cached --quiet; then
+            echo "No newly generated assets"
+            exit 0
+          fi
+          git commit -m 'build(p4): publish v0.36.1 world and v2 prepared boundary meshes [skip ci]'
+          git push origin HEAD:refs/heads/work/objects
+          echo "P4 asset commit: $(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"

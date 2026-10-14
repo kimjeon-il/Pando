@@ -6,12 +6,12 @@ import { normalizePlace, PLACE_LIMITS } from '../../assets/js/modules/place-cont
 const deferred = () => { let resolve, reject; const promise = new Promise((a,b) => { resolve=a; reject=b; }); return { promise, resolve, reject }; };
 const tick = () => new Promise(resolve => setImmediate(resolve));
 test('manifest URL crosses the Worker boundary as a string', () => {
-  assert.throws(() => createPlaceRuntime({ manifestUrl: new URL('http://localhost/manifest.json'), rpc: { stop() {} } }), /string/u);
+  assert.throws(() => createPlaceRuntime({ admitReferences:async ()=>{}, manifestUrl: new URL('http://localhost/manifest.json'), rpc: { stop() {} } }), /string/u);
 });
 test('interaction cancels viewport work and latest settled snapshot publishes atomically', async () => {
   const jobs = [], published = [];
   const rpc = { request(operation, payload) { const job=deferred(); jobs.push({ ...job, operation, payload }); return job.promise; }, cancelAll() {}, stop() {} };
-  const runtime = createPlaceRuntime({ rpc, onSnapshot: value => published.push(value) });
+  const runtime = createPlaceRuntime({ admitReferences:async ()=>{}, rpc, onSnapshot: value => published.push(value) });
   const first = runtime.prepare({ threshold: 1 }); await tick();
   runtime.beginInteraction(); jobs[0].resolve({ result: { records: [], signature: 'old' } }); await first; await tick();
   assert.equal(published.length, 0);
@@ -26,7 +26,7 @@ test('interaction cancels viewport work and latest settled snapshot publishes at
 test('canonical selection remains resolvable after bounded search retention eviction', async () => {
   const selected=normalizePlace({ source:'synthetic', sourceId:'selected', name:'Selected', kind:'city', coordinates:[0,0] });
   let sequence=0;
-  const runtime=createPlaceRuntime({ getProtectedIds:()=>[selected.id], rpc:{
+  const runtime=createPlaceRuntime({ admitReferences:async ()=>{}, getProtectedIds:()=>[selected.id], rpc:{
     request:async()=>({result:{records:Array.from({length:50},()=>normalizePlace({source:'synthetic',sourceId:String(sequence++),name:'Search',kind:'city',coordinates:[0,0]}))}}), stop(){} } });
   runtime.retain(selected);
   for(let i=0;i<8;i++) await runtime.search('Search');
@@ -36,7 +36,7 @@ test('canonical selection remains resolvable after bounded search retention evic
 });
 test('out of order viewport completion and async failure cannot replace current snapshot', async () => {
   const jobs = [], errors=[];
-  const runtime = createPlaceRuntime({ rpc: { request() { const job=deferred(); jobs.push(job); return job.promise; }, cancelAll() {}, stop() {} }, onError: error => errors.push(error) });
+  const runtime = createPlaceRuntime({ admitReferences:async ()=>{}, rpc: { request() { const job=deferred(); jobs.push(job); return job.promise; }, cancelAll() {}, stop() {} }, onError: error => errors.push(error) });
   const first=runtime.prepare({ threshold: 1 }); await tick(); const second=runtime.prepare({ threshold: 2 });
   jobs[0].resolve({ result: { records: [], signature: 'stale' } }); await first; await tick();
   assert.equal(runtime.snapshot().signature, 'empty');

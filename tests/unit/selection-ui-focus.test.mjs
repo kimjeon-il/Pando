@@ -1,15 +1,17 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 /* global Event, EventTarget */
-import { createSelectionDomain } from '../../assets/js/modules/selection-domain.js';
+import { createNodeSelection } from '../helpers/core-selection.mjs';
 import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
 import { createSelectionUiController } from '../../assets/js/modules/selection-ui-controller.js';
 import { createPropertyEditorBindings } from '../../assets/js/modules/property-editor-bindings.js';
 
 const country = id => normalizeObjectRef({ domain: 'territorial', type: 'entity', id });
 
-function setup() {
-  const domain = createSelectionDomain();
+async function setup(t) {
+  const owner = await createNodeSelection();
+  t.after(() => owner.dispose());
+  const domain = owner.domain;
   const focused = [];
   const presented = [];
   const opened = [];
@@ -30,28 +32,28 @@ function setup() {
   return { domain, ui, focused, presented, opened, presentationEvents };
 }
 
-test('toggle removal immediately reconciles the remaining presenter', () => {
-  const state = setup();
+test('toggle removal reconciles the remaining presenter after the actual Core ACK', async t => {
+  const state = await setup(t);
   const a = country('A');
   const b = country('B');
-  assert.equal(state.ui.applyIntent(a), true);
-  assert.equal(state.ui.applyIntent(b, { mode: 'toggle' }), true);
-  assert.equal(state.ui.applyIntent(b, { mode: 'toggle' }), false);
-  assert.equal(state.ui.applyIntent(a, { mode: 'toggle' }), false);
+  assert.equal(await state.ui.applyIntent(a), true);
+  assert.equal(await state.ui.applyIntent(b, { mode: 'toggle' }), true);
+  assert.equal(await state.ui.applyIntent(b, { mode: 'toggle' }), false);
+  assert.equal(await state.ui.applyIntent(a, { mode: 'toggle' }), false);
   assert.deepEqual(state.presentationEvents.map(event => event.kind === 'single' ? event.key : event.kind), [a.key, 'multiple', a.key, 'clear']);
   assert.deepEqual(state.focused, []);
   assert.deepEqual(state.opened, [a.key]);
 });
 
-test('snapshot sync reconciles multi, single and empty presenters without interaction side effects', () => {
-  const state = setup();
+test('snapshot sync reconciles multi, single and empty presenters without interaction side effects', async t => {
+  const state = await setup(t);
   const a = country('A');
   const b = country('B');
-  state.domain.setMany([a, b], { primary: b });
+  await state.domain.setMany([a, b], { primary: b });
   state.ui.syncNow(state.domain.snapshot());
-  state.domain.toggle(b);
+  await state.domain.toggle(b);
   state.ui.syncNow(state.domain.snapshot());
-  state.domain.clear();
+  await state.domain.clear();
   state.ui.syncNow(state.domain.snapshot());
   assert.deepEqual(state.presentationEvents.map(event => event.kind === 'single' ? event.key : event.kind), ['multiple', a.key, 'clear']);
   assert.equal(state.presentationEvents[1].refreshOnly, true);
@@ -59,35 +61,35 @@ test('snapshot sync reconciles multi, single and empty presenters without intera
   assert.deepEqual(state.opened, []);
 });
 
-test('removing a non-territorial primary presents the remaining object without focusing or reopening it', () => {
-  const state = setup();
+test('removing a non-territorial primary presents the remaining object without focusing or reopening it', async t => {
+  const state = await setup(t);
   const a = normalizeObjectRef({ domain: 'generic', type: 'polygon', id: 'A' });
   const b = normalizeObjectRef({ domain: 'label', type: 'label', id: 'B' });
-  state.ui.applyIntent(a);
-  state.ui.applyIntent(b, { mode: 'toggle' });
+  await state.ui.applyIntent(a);
+  await state.ui.applyIntent(b, { mode: 'toggle' });
   const focusCount = state.focused.length;
   const openCount = state.opened.length;
-  state.ui.applyIntent(b, { mode: 'toggle' });
+  await state.ui.applyIntent(b, { mode: 'toggle' });
   assert.equal(state.presentationEvents.at(-1).key, a.key);
   assert.equal(state.presentationEvents.at(-1).refreshOnly, true);
   assert.equal(state.focused.length, focusCount);
   assert.equal(state.opened.length, openCount);
 });
 
-for (const type of ['entity']) test(`${type} selection, reselection, toggle and range do not move the map`, () => {
+for (const type of ['entity']) test(`${type} selection, reselection, toggle and range do not move the map`, async t => {
   for (const scope of ['map', 'layer', 'chooser']) {
-    const { domain, ui, focused, presented, opened, presentationEvents } = setup();
+    const { domain, ui, focused, presented, opened, presentationEvents } = await setup(t);
     const a = normalizeObjectRef({ domain: 'territorial', type, id: 'A' });
     const b = normalizeObjectRef({ domain: 'territorial', type, id: 'B' });
-    ui.applyIntent(a, { scope });
-    ui.applyIntent(a, { scope });
+    await ui.applyIntent(a, { scope });
+    await ui.applyIntent(a, { scope });
     assert.equal(domain.size(), 1);
-    ui.applyIntent(b, { scope, mode: 'toggle' });
+    await ui.applyIntent(b, { scope, mode: 'toggle' });
     assert.equal(domain.size(), 2);
-    ui.applyIntent(b, { scope, mode: 'toggle' });
+    await ui.applyIntent(b, { scope, mode: 'toggle' });
     assert.equal(domain.size(), 1);
-    ui.applyIntent(a, { scope });
-    ui.applyIntent(b, { scope, mode: 'range', orderedRefs: [a, b] });
+    await ui.applyIntent(a, { scope });
+    await ui.applyIntent(b, { scope, mode: 'range', orderedRefs: [a, b] });
     assert.equal(domain.size(), 2);
     assert.equal(domain.primary().key, b.key);
     assert.deepEqual(focused, []);
@@ -97,20 +99,20 @@ for (const type of ['entity']) test(`${type} selection, reselection, toggle and 
   }
 });
 
-test('non-territorial selection retains automatic focus', () => {
-  const { ui, focused } = setup();
+test('non-territorial selection retains automatic focus', async t => {
+  const { ui, focused } = await setup(t);
   for (const [domain, type] of [['generic', 'polygon'], ['hydro', 'river'], ['label', 'label'], ['distribution', 'distribution']]) {
     const ref = normalizeObjectRef({ domain, type, id: '1' });
-    ui.applyIntent(ref);
+    await ui.applyIntent(ref);
     assert.equal(focused.at(-1), ref.key);
   }
   assert.equal(focused.length, 4);
 });
 
-test('a single territorial map click opens the editor without moving the map', () => {
-  const { ui, opened, focused } = setup();
+test('a single territorial map click opens the editor without moving the map', async t => {
+  const { ui, opened, focused } = await setup(t);
   const ref = country('DEU');
-  ui.applyIntent(ref, { scope: 'map' });
+  await ui.applyIntent(ref, { scope: 'map' });
   assert.deepEqual(opened, [ref.key]);
   assert.deepEqual(focused, []);
 });
@@ -127,6 +129,7 @@ for (const type of ['entity']) test(`explicit show-on-map button focuses the sel
     },
     getPrimary: () => ref,
     bindColorPickers: () => {},
+    reportOperationError: error => assert.fail(error.stack),
     focusObjectRef: value => focused.push(value),
   });
   bindings.bind();
@@ -135,10 +138,10 @@ for (const type of ['entity']) test(`explicit show-on-map button focuses the sel
   bindings.dispose();
 });
 
-test('explicit territorial edit entrypoint still opens the editor without moving the map', () => {
-  const { ui, opened, focused } = setup();
+test('explicit territorial edit entrypoint still opens the editor without moving the map', async t => {
+  const { ui, opened, focused } = await setup(t);
   const ref = country('DEU');
-  ui.applyIntent(ref, { scope: 'layer', openEditor: true });
+  await ui.applyIntent(ref, { scope: 'layer', openEditor: true });
   assert.deepEqual(opened, [ref.key]);
   assert.deepEqual(focused, []);
 });

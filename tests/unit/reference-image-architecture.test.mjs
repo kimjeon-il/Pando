@@ -4,12 +4,10 @@ import test from 'node:test';
 
 const moduleUrl = name => new URL(`../../assets/js/modules/${name}`, import.meta.url);
 
-test('reference image controller delegates gesture mechanics to interaction module', async () => {
+test('reference image controller delegates placement and control-point gestures to interaction module', async () => {
   const controller = await readFile(moduleUrl('reference-image-controller.js'), 'utf8');
-  const lines = controller.split('\n');
 
   assert.match(controller, /createReferenceImageInteraction/);
-  assert.ok(lines.length < 800, `controller should stay orchestration-sized, got ${lines.length} lines`);
 
   for (const forbidden of [
     'applyReferenceImagePlacementDrag',

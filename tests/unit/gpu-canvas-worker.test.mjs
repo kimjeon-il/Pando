@@ -227,12 +227,13 @@ for (const nativeError of [false, true]) {
 
 // Execute the real classic Worker and imported rendering modules. Canvas pixels
 // and timer delivery are the only browser facilities replaced for this protocol test.
-function canvasRuntime({ renderError = null } = {}) {
+function canvasRuntime({ renderError = null, features = [], theme = {}, visualOrder = { base: [], hydro: [] } } = {}) {
   const replies = [], timers = [];
   const script = new URL('../../assets/js/workers/canvas-render-worker.js', import.meta.url);
   class Canvas {
     constructor(width, height) { this.width = width; this.height = height; }
-    getContext() { return { canvas: this, setTransform() {}, clearRect() {}, drawImage() {} }; }
+    getContext() { return { canvas: this, setTransform() {}, clearRect() {}, drawImage() {},
+      save() {}, restore() {}, beginPath() {}, moveTo() {}, lineTo() {}, arc() {}, closePath() {}, stroke() {}, setLineDash() {} }; }
     transferToImageBitmap() {
       if (renderError) throw renderError;
       return { close() {} };
@@ -244,11 +245,36 @@ function canvasRuntime({ renderError = null } = {}) {
   scope.self = scope;
   scope.importScripts = (...urls) => urls.forEach(url => vm.runInContext(readFileSync(new URL(url), 'utf8'), scope));
   vm.runInContext(readFileSync(script, 'utf8'), scope);
+  const buildBoundary = scope.PandoLabGeographicBoundary.buildRenderableBoundarySegments;
+  let boundaryBuildCount = 0;
+  scope.PandoLabGeographicBoundary.buildRenderableBoundarySegments = (...args) => { boundaryBuildCount++; return buildBoundary(...args); };
   const send = message => scope.onmessage({ data: message });
   send({ type: 'init', projectGeneration: 2, revision: 2, viewRevision: 2, styleRevision: 1,
-    width: 20, height: 20, theme: {}, visualOrder: { base: [], hydro: [] } });
-  return { replies, send, runTimer: () => timers.shift()() };
+    width: 20, height: 20, theme, features, visible: true, visualOrder });
+  return { replies, send, runTimer: () => timers.shift()(), boundaryBuildCount: () => boundaryBuildCount };
 }
+
+test('the real Canvas Worker keeps unchanged monthly country geometry and outlines across replace-data', () => {
+  const row = (key, east = 1) => ({ type: 'Feature', id: 'ROOT', boundaryGeometryRevision: key, properties: {},
+    geometry: { type: 'Polygon', coordinates: [[[0, 0], [east, 0], [east, 1], [0, 1], [0, 0]]] } });
+  const { replies, send, boundaryBuildCount } = canvasRuntime({ features: [row('allocation:0')],
+    theme: { border: '#ffffff', borderAlpha: 1, strokes: { country: { width: 1 } } },
+    visualOrder: { base: ['country-boundary'], hydro: [] } });
+  const paint = (projectGeneration = 2) => {
+    send({ type: 'view', renderRequestId: 1, frameId: 1, revision: 2, viewRevision: 2, projectGeneration });
+    assert.equal(replies.at(-1).message.type, 'frame', replies.at(-1).message.message);
+  };
+  paint(); assert.equal(boundaryBuildCount(), 1);
+  send({ type: 'replace-data', geometryRevision: 0, projectGeneration: 2,
+    features: [structuredClone(row('allocation:0'))] });
+  paint(); assert.equal(boundaryBuildCount(), 1);
+  send({ type: 'patch', geometryRevision: 1, projectGeneration: 2,
+    features: [row('new-allocation:0', 2)] });
+  paint(); assert.equal(boundaryBuildCount(), 2);
+  send({ type: 'replace-data', geometryRevision: 1, projectGeneration: 3,
+    features: [row('new-allocation:0', 2)] });
+  paint(3); assert.equal(boundaryBuildCount(), 3);
+});
 
 test('the Worker echoes a submission identity only for its direct view result, never a hydro redraw', () => {
   const { replies, send, runTimer } = canvasRuntime();

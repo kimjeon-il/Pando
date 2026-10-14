@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { generatePlaceRelease, validateRuntimeApproval } from '../../tools/build-place-runtime.mjs';
+import { canonicalPlaceTextBytes, generatePlaceRelease, validateRuntimeApproval } from '../../tools/build-place-runtime.mjs';
 import { decodePlaceTile } from '../../assets/js/modules/place-codec.js';
 import { normalizePlace, resolvePlaceLabelRows, hasPlaceNameCoverage } from '../../assets/js/modules/place-contract.js';
 import { createPlaceWorkerStore } from '../../assets/js/modules/place-worker-store.js';
@@ -15,6 +15,13 @@ const approvals = JSON.parse(readFileSync(new URL('../../reports/places/runtime-
 const publishedBytes = read('places-v1.bin');
 const triple = { ko: true, en: true, native: true };
 const record = id => catalog.records.find(row => row.sourceId === String(id));
+
+test('release provenance uses Git LF bytes for either checkout line ending', () => {
+  const lf = Buffer.from('{"name":"니코시아"}\n');
+  const crlf = Buffer.from('{"name":"니코시아"}\r\n');
+  assert.deepEqual(canonicalPlaceTextBytes(lf), lf);
+  assert.deepEqual(canonicalPlaceTextBytes(crlf), lf);
+});
 
 test('only approved source-verified cities in 22 batches are reproducibly published', () => {
   const generated = generatePlaceRelease();
@@ -30,9 +37,9 @@ test('only approved source-verified cities in 22 batches are reproducibly publis
   assert.equal(catalog.approval.approvedIds, 163);
   assert.deepEqual(catalog.records.map(row => Number(row.sourceId)),
     approvals.approvedSourceIds);
-  assert.equal(generated.catalogText, read('reviewed-records-v1.json').toString('utf8'));
+  assert.equal(generated.catalogText, canonicalPlaceTextBytes(read('reviewed-records-v1.json')).toString('utf8'));
   assert.ok(generated.bytes.equals(publishedBytes));
-  assert.equal(generated.manifestText, read('manifest.json').toString('utf8'));
+  assert.equal(generated.manifestText, canonicalPlaceTextBytes(read('manifest.json')).toString('utf8'));
   assert.equal(manifest.shards['places-v1'].bytes, publishedBytes.byteLength);
   assert.equal(createHash('sha256').update(publishedBytes).digest('hex'), manifest.shards['places-v1'].sha256);
   assert.equal(manifest.tiles['0/0-0'].sha256, manifest.shards['places-v1'].sha256);

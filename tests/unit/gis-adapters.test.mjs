@@ -85,6 +85,9 @@ test('the canonical general entity table imports a child with the current schema
   assert.equal(imported.properties.entityKind, 'general');
   assert.equal(imported.properties.parentId, 'GR');
   assert.equal(imported.properties.coverageMode, 'partition');
+  assert.deepEqual(imported.properties.style, {});
+  assert.deepEqual(adapters.importTerritorialFeature({ ...source, properties: { ...source.properties,
+    color: '#123456' } }, 'entities', 0, 6).properties.style, { color: '#123456' });
   const normalized = normalizeTerritorialFeature(imported);
   assert.equal(normalized.id, 'admin-1');
   assert.deepEqual(normalized.geometry, source.geometry);

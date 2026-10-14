@@ -274,3 +274,4 @@ export function createCountryIndex() {
     get validLabelAnchor() { return validLabelAnchor; },
   });
 }
+// @worker-transport dedicated: country label indexing owns a single persistent geometry index channel

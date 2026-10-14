@@ -4,8 +4,7 @@ import { normalizeTerritorialLibraryEntity, selectGeometryVersion } from '../../
 import { restoreTimelineStorage, snapshotTimelineStorage } from '../../assets/js/modules/timeline-storage.js';
 import { createProjectSerializer } from '../../assets/js/modules/project-serializer.js';
 import { assertCurrentProjectSchema } from '../../assets/js/modules/project-state.js';
-import { createEmptyTerritorialState, createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
-import { projectForStorage } from '../helpers/timeline-project.mjs';
+import { projectForStorage,initializeTestTerritorialState,testCoreProject } from '../helpers/timeline-project.mjs';
 
 const polygon = east => ({type:'Polygon',coordinates:[[[0,0],[0,1],[east,1],[east,0],[0,0]]]});
 function completeCatalog() {
@@ -42,11 +41,11 @@ test('catalog versions retain explicit identities, records and whole archive thr
   }
   assert.deepEqual(catalog,before);
 });
-test('complex catalog storage activates without losing its historical identities',()=>{
+test('complex catalog storage activates in the current Core without losing its historical identities',async()=>{
   const row=storageInput(completeCatalog()),snapshot=projectForStorage(row);
-  const state={...createEmptyTerritorialState(),history:['preserved'],future:['preserved'],dirty:true,selection:'preserved',saveTarget:'preserved'};
-  const store=createTerritorialEntityStore({getState:()=>state});
-  store.restoreProject({territorialEntities:snapshot.territorialEntities,timelineRecords:row.input.records,geometries:row.input.geometries});
+  const input=createProjectSerializer({appVersion:'test',distributionModes:['territorial','geometry'],readSnapshot:()=>snapshot}).buildProject();
+  const state={territorialEntities:[]};await initializeTestTerritorialState(state,null,{project:input});
+  const store=testCoreProject(state).entityStore;
   assert.deepEqual(store.identities().map(entity=>entity.id),snapshot.territorialEntities.map(entity=>entity.id));
   assert.deepEqual(state.timelineRecords,row.input.records);
 });

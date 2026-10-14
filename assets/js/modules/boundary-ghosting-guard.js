@@ -164,3 +164,4 @@ export function installBoundaryGhostingGuard() {
   exposed.installed = true;
   return exposed;
 }
+// @worker-transport dedicated: capture diagnostics owns guarded message instrumentation and restores native transport hooks

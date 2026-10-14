@@ -8,3 +8,16 @@ tests/fixtures/timeline-*-cases.mjs text eol=lf
 tools/check-platform-portability.mjs text eol=lf
 docs/architecture/platform-boundaries.md text eol=lf
 assets/data/historical-world/**/*.json text eol=lf
+assets/data/world/*.json text eol=lf
+assets/data/world/objects/*.json text eol=lf
+native/app/reference-web/runtime.js text eol=lf
+native/app/reference-web/manifest.json text eol=lf
+native/assets/geometry/current/** text eol=lf
+native/resources/current_geometry.qrc text eol=lf
+assets/wasm/pandoeditor-core.js text eol=lf
+assets/wasm/pandoeditor-core.manifest.json text eol=lf
+assets/wasm/pandoeditor-core.wasm binary
+tests/fixtures/portability/web-9300609-oracle/** text eol=lf
+tests/fixtures/portability/web-9300609-hydro-create/** -text
+tests/fixtures/portability/web-9300609-hydro-hidden/** -text
+tests/fixtures/portability/web-9300609-hydro-copy/** -text

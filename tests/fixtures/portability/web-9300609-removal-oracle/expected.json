@@ -1,0 +1,59 @@
+{
+  "requested": true,
+  "applied": true,
+  "stateRevision": 1,
+  "undo": true,
+  "autosaves": 1,
+  "remainingIds": [],
+  "label": {
+    "id": "12345678-1234-4234-8234-123456789abc",
+    "name": "linked",
+    "kind": "custom",
+    "notes": "",
+    "coordinates": [
+      1,
+      1
+    ],
+    "territorialUnitId": "A",
+    "source": {
+      "schemaVersion": 1,
+      "kind": "user",
+      "dataset": "",
+      "sourceId": "",
+      "sourceFormat": "",
+      "sourceType": "",
+      "version": "",
+      "importedAt": "",
+      "details": {}
+    }
+  },
+  "invariants": {
+    "ok": true,
+    "issues": []
+  },
+  "schemaError": null,
+  "serializerError": null,
+  "savedLabel": {
+    "id": "12345678-1234-4234-8234-123456789abc",
+    "name": "linked",
+    "kind": "custom",
+    "notes": "",
+    "coordinates": [
+      1,
+      1
+    ],
+    "territorialUnitId": "A",
+    "source": {
+      "schemaVersion": 1,
+      "kind": "user",
+      "dataset": "",
+      "sourceId": "",
+      "sourceFormat": "",
+      "sourceType": "",
+      "version": "",
+      "importedAt": "",
+      "details": {}
+    }
+  },
+  "errors": []
+}

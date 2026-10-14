@@ -135,8 +135,8 @@ class ObjectEditorV0303Tests(unittest.TestCase):
         self.assertIn('untouched.push(clone(polygon))', merge)
         self.assertIn('normalizePolygonGeometry([...untouched, ...merged])', merge)
         self.assertIn('MultiPolygon', APP)
-        self.assertIn('const mutateDocument = createDocumentMutationRunner({ commandPipeline })', TERRITORIAL_SERVICE)
-        self.assertIn('createHistoryService', read_module(ROOT,'app-project-snapshots.js'))
+        self.assertIn("commandOwner.executeCommand({ commandId,targets:", TERRITORIAL_SERVICE)
+        self.assertIn('Project::travelHistory', (ROOT/'shared/core/src/project.cpp').read_text(encoding='utf-8'))
         self.assertIn("undo: metadata => travelHistory('undo', metadata)", read_module(ROOT,'project-domain.js'))
         self.assertIn("redo: metadata => travelHistory('redo', metadata)", read_module(ROOT,'project-domain.js'))
 

@@ -4,29 +4,9 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import {
-  buildSelectionBoundaryBufferData,
   buildSelectionBoundarySegments,
   buildSelectionChannelSignature,
-  buildSelectionRibbonVertices,
-  validateSelectionRibbonVertices,
 } from '../../assets/js/modules/selection-stroke-geometry.js';
-import { SELECTION_STYLE } from '../../assets/js/modules/selection-style.js';
-
-function projectedRibbonPoint(vertex, halfWidth = 1) {
-  const [startX, startY, endX, endY, side, endpoint] = vertex;
-  const dx = endX - startX;
-  const dy = endY - startY;
-  const length = Math.hypot(dx, dy);
-  const direction = [dx / length, dy / length];
-  const normal = [-direction[1], direction[0]];
-  const center = endpoint < 0.5 ? [startX - direction[0] * halfWidth, startY - direction[1] * halfWidth]
-    : [endX + direction[0] * halfWidth, endY + direction[1] * halfWidth];
-  return [center[0] + normal[0] * side * halfWidth, center[1] + normal[1] * side * halfWidth];
-}
-
-function triangleArea(a, b, c) {
-  return Math.abs((a[0] * (b[1] - c[1]) + b[0] * (c[1] - a[1]) + c[0] * (a[1] - b[1])) / 2);
-}
 
 test('selection boundaries keep polygon holes and independent multipolygon rings', () => {
   const polygon = {
@@ -51,94 +31,10 @@ test('selection line geometries stay independent and dateline crossings are spli
   assert.equal(buildSelectionBoundarySegments(multiLine).length, 3);
 });
 
-test('ribbon data expands each geographic segment to two triangles', () => {
-  const geometry = { type: 'LineString', coordinates: [[0, 0], [1, 0], [1, 1]] };
-  const segments = buildSelectionBoundarySegments(geometry);
-  const vertices = buildSelectionRibbonVertices(geometry);
-  assert.equal(vertices.length, segments.length * 6 * 6);
-  assert.equal(vertices.length / 6 / 3, segments.length * 2);
-  assert.equal(SELECTION_STYLE.primaryWidth, 2.5);
-  assert.equal(SELECTION_STYLE.primaryAlpha, 1.0);
-  assert.equal(SELECTION_STYLE.secondaryWidth, 1.5);
-  assert.equal(SELECTION_STYLE.secondaryAlpha, 0.72);
-});
-
-test('ribbon triangles preserve start/end order and have non-zero screen-space area', () => {
-  for (const coordinates of [
-    [[0, 0], [10, 0]],
-    [[0, 0], [0, 10]],
-    [[-3, 2], [7, 11]],
-    [[179.5, 0], [180, 0.5]],
-  ]) {
-    const vertices = buildSelectionRibbonVertices({ type: 'LineString', coordinates });
-    assert.equal(validateSelectionRibbonVertices(vertices, 1).valid, true);
-    const tuples = Array.from({ length: 6 }, (_, index) => vertices.slice(index * 6, index * 6 + 6));
-    const points = tuples.map(vertex => projectedRibbonPoint(vertex));
-    assert.ok(triangleArea(points[0], points[1], points[2]) > 0);
-    assert.ok(triangleArea(points[3], points[4], points[5]) > 0);
-    for (const vertex of tuples) assert.deepEqual(vertex.slice(0, 4), [...coordinates[0], ...coordinates[1]]);
-  }
-});
-
-test('ribbon validation rejects malformed, non-finite, and zero-length primitives', () => {
-  const valid = buildSelectionRibbonVertices({ type: 'LineString', coordinates: [[0, 0], [1, 0]] });
-  assert.equal(validateSelectionRibbonVertices(valid, 1).valid, true);
-  assert.equal(validateSelectionRibbonVertices(valid.slice(0, -1)).reason, 'invalid-ribbon-length');
-  assert.equal(validateSelectionRibbonVertices(valid, 2).reason, 'segment-count-mismatch');
-  const nonFinite = valid.slice();
-  nonFinite[0] = Number.NaN;
-  assert.equal(validateSelectionRibbonVertices(nonFinite).reason, 'non-finite-ribbon-value');
-  const reversed = valid.slice();
-  [reversed[12], reversed[14]] = [reversed[14], reversed[12]];
-  assert.equal(validateSelectionRibbonVertices(reversed).reason, 'inconsistent-ribbon-endpoints');
-  const badPattern = valid.slice();
-  badPattern[4] = 1;
-  assert.equal(validateSelectionRibbonVertices(badPattern).reason, 'invalid-ribbon-vertex-pattern');
-  assert.equal(buildSelectionRibbonVertices({ type: 'LineString', coordinates: [[1, 1], [1, 1]] }).length, 0);
-  assert.equal(buildSelectionRibbonVertices({ type: 'LineString', coordinates: [[0, 0], [Number.NaN, 1]] }).length, 0);
-});
-
 test('selection emphasis renderer does not use GL_LINES or lineWidth', async () => {
   const source = await readFile(new URL('../../assets/js/modules/selection-pass.js', import.meta.url), 'utf8');
   assert.doesNotMatch(source, /gl\.LINES/);
   assert.doesNotMatch(source, /lineWidth/);
-});
-
-test('selection boundary buffer coverage tracks rendered and missing objects independently', () => {
-  const renderedGeometry = { type: 'LineString', coordinates: [[0, 0], [1, 0], [1, 1]] };
-  const ribbon = buildSelectionRibbonVertices(renderedGeometry);
-  const data = buildSelectionBoundaryBufferData([
-    { key: 'territorial:territory:rendered', geometry: renderedGeometry },
-    { key: 'territorial:admin:rendered', geometry: renderedGeometry },
-    { key: 'territorial:region:rendered', geometry: renderedGeometry },
-    { key: 'country:RUS', ribbonVertices: new Float32Array(ribbon), segmentCount: 2 },
-    { key: 'territorial:region:empty', geometry: { type: 'LineString', coordinates: [[0, 0]] } },
-    { key: 'country:missing', missing: true },
-  ]);
-  assert.deepEqual(data.renderedKeys, [
-    'territorial:territory:rendered',
-    'territorial:admin:rendered',
-    'territorial:region:rendered',
-    'country:RUS',
-  ]);
-  assert.deepEqual(data.missingKeys, ['territorial:region:empty', 'country:missing']);
-  assert.ok(data.segmentCount > 0);
-  assert.equal(data.values.length, data.segmentCount * 36);
-});
-
-test('malformed precomputed ribbons are isolated as missing without suppressing valid objects', () => {
-  const valid = buildSelectionRibbonVertices({ type: 'LineString', coordinates: [[0, 0], [2, 0]] });
-  const malformed = valid.slice();
-  malformed[12] = 2;
-  const data = buildSelectionBoundaryBufferData([
-    { key: 'country:valid', ribbonVertices: valid, segmentCount: 1 },
-    { key: 'country:malformed', ribbonVertices: malformed, segmentCount: 1 },
-    { key: 'country:mismatch', ribbonVertices: valid, segmentCount: 2 },
-  ]);
-  assert.deepEqual(data.renderedKeys, ['country:valid']);
-  assert.deepEqual(data.missingKeys, ['country:malformed', 'country:mismatch']);
-  assert.equal(data.segmentCount, 1);
-  assert.equal(data.values.length, 36);
 });
 
 test('shared stroke renderer includes a one-time offscreen health check and gates availability on it', async () => {

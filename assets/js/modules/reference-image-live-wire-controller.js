@@ -343,6 +343,7 @@ export function installReferenceImageLiveWire() {
     undo.hidden = !tracking;
     undo.disabled = !(state?.anchors?.length);
     apply.hidden = !preview;
+    apply.disabled = !!state?.applying;
     redraw.hidden = !preview;
     cancel.hidden = !active;
 
@@ -652,22 +653,36 @@ export function installReferenceImageLiveWire() {
     return true;
   }
 
-  function applyPreview() {
-    if (!state || state.phase !== 'preview' || state.previewCoordinates.length < 2) return false;
+  async function applyPreview() {
+    if (!state || state.applying || state.phase !== 'preview' || state.previewCoordinates.length < 2) return false;
     const bridge = globalThis.__PANDOLAB_REFERENCE_IMAGE_EDITING__;
     if (!bridge?.isDraftActive?.()) {
       setMessage('먼저 지도 편집 도구를 켠 뒤 적용하세요. 자동 추적 결과는 그대로 유지됩니다.', 'error');
       return false;
     }
-    const applied = bridge.applyDraftCoordinates?.(state.previewCoordinates, {
-      source: 'reference-image-live-wire',
-    }) === true;
-    if (!applied) {
-      setMessage('현재 편집선에 자동 추적 결과를 적용하지 못했습니다. 편집 상태를 확인하세요.', 'error');
+    const applyingState = state;
+    const coordinates = state.previewCoordinates;
+    applyingState.applying = true;
+    scheduleSync();
+    try {
+      const applied = await bridge.applyDraftCoordinates(coordinates, { source: 'reference-image-live-wire' });
+      if (disposed || state !== applyingState || state.previewCoordinates !== coordinates) return false;
+      if (!applied) {
+        setMessage('현재 편집선에 자동 추적 결과를 적용하지 못했습니다. 편집 상태를 확인하세요.', 'error');
+        return false;
+      }
+      cancelLiveWire({ message: '자동 추적선을 도형 편집 초안에 반영했습니다. 지도 미리보기에서 확인한 뒤 기존 편집 확정 흐름을 사용하세요.', tone: 'success' });
+      return true;
+    } catch (error) {
+      console.error('[PL-REFERENCE-DRAFT-001]', error);
+      if (!disposed && state === applyingState && state.previewCoordinates === coordinates) {
+        setMessage(error?.message || '자동 추적선을 편집 초안에 적용하지 못했습니다.', 'error');
+      }
       return false;
+    } finally {
+      applyingState.applying = false;
+      if (!disposed && state === applyingState) scheduleSync();
     }
-    cancelLiveWire({ message: '자동 추적선을 도형 편집 초안에 반영했습니다. 지도 미리보기에서 확인한 뒤 기존 편집 확정 흐름을 사용하세요.', tone: 'success' });
-    return true;
   }
 
 
@@ -722,7 +737,7 @@ export function installReferenceImageLiveWire() {
     if (action === 'start' && recordId) void startLiveWire(recordId);
     if (action === 'finish') finishTrace();
     if (action === 'undo') undoLastSegment();
-    if (action === 'apply') applyPreview();
+    if (action === 'apply') void applyPreview();
     if (action === 'redraw') redraw();
     if (action === 'cancel') cancelLiveWire({ message: '자동 추적을 취소했습니다.' });
   }

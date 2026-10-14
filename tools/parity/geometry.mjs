@@ -1,3 +1,4 @@
+import '../load-spherical-core.mjs';
 import '../../assets/js/vendor/polygon-clipping.min.js';
 import '../../assets/js/modules/polygon-geometry.js';
 import '../../assets/js/modules/territorial-edit-plan.js';

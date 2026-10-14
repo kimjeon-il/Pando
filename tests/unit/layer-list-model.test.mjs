@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createLayerListModel, visibleLayerRows, setScopedItemVisibility } from '../../assets/js/modules/layer-list-model.js';
-import { createObjectSelectionController } from '../../assets/js/modules/object-selection-controller.js';
+import { createNodeSelection } from '../helpers/core-selection.mjs';
 
 const collator = new Intl.Collator('ko', { numeric: true, sensitivity: 'base' });
 const fixture = (data, builtinSession = true) => createLayerListModel({
@@ -93,12 +93,13 @@ test('source geometry is never inspected or cloned to classify rows', () => {
   Object.defineProperty(source, 'geometry', { get() { throw new Error('geometry read'); } });
   assert.equal(fixture({ countries: [source] }).bundles[0].items[0].id, 'DEU');
 });
-test('mixed-type range is delegated to the normal selection controller with a shared scope', () => {
-  const controller = createObjectSelectionController();
+test('mixed-type range is delegated to the actual Core selection owner with a shared scope', async t => {
+  const owner = await createNodeSelection();t.after(() => owner.dispose());
+  const controller = owner.domain;
   const refs = [{ domain: 'territorial', type: 'entity', id: 'DEU' }, { domain: 'distribution', type: 'distribution', id: 'de' }, { domain: 'label', type: 'label', id: 'x' }];
-  controller.replace(refs[0], { scope: 'layer-list' });
-  controller.selectRange(refs[2], refs, { scope: 'layer-list' });
+  await controller.replace(refs[0], { scope: 'layer-list' });
+  await controller.selectRange(refs[2], refs, { scope: 'layer-list' });
   assert.equal(controller.size(), 3);
-  assert.deepEqual(controller.snapshot().items.map(ref => ref.id), ['DEU', 'de', 'x']);
+  assert.deepEqual(controller.snapshot().selection.items.map(ref => ref.id), ['DEU', 'de', 'x']);
   assert.equal(controller.primary().id, 'x');
 });

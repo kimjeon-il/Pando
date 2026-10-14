@@ -1,5 +1,6 @@
 import { isBuiltinPlaceId } from './place-contract.js';
-import { subunitSelectionPolicy, removeTerritorialEntities } from './territorial-interaction-policy.js';
+import { subunitSelectionPolicy } from './territorial-interaction-policy.js';
+import { webObjectRefToCore,webSelectionRefToCore } from './core-object-ref.js';
 import './territorial-edit-plan.js';
 /** ObjectCommands: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
@@ -231,27 +232,16 @@ export function createObjectCommands() {
     syncObjectActionsMenu();
   }
 
-  function batchSetVisibility(nextVisible = null) {
+  async function batchSetVisibility(nextVisible = null) {
     const refs = dependencies.domains.selectionDomain.snapshot().selection.items;
     if (dependencies.projectState.state.projectReplacing || !refs.length || refs.some(ref => !objectRefExists(ref)) || !commonBatchCapabilities(refs).has('visible')) return;
-    const allVisible = refs.every(objectRefVisible);
-    const visible = typeof nextVisible === 'boolean' ? nextVisible : !allVisible;
-    if (refs.every(ref => objectRefVisible(ref) === visible)) return;
-    for (const ref of refs) {
-      if (ref.domain === 'hydro' && !(0, dependencies.hydroPresentation.hydroEditById)(ref.id)) {
-        const feature = (0, dependencies.hydroModel.hydroFeatureById)(ref.id);
-        const id = String(feature.properties?.pandolab_id || feature.id);
-        const hidden = dependencies.projectState.state.physicalSettings.hiddenHydroIds ||= {};
-        if (visible) delete hidden[id];
-        else hidden[id] = true;
-        continue;
-      }
-      const group = layerGroupForObjectRef(ref);
-      if (!group) continue;
-      dependencies.projectState.state.itemVisibility[group] ||= {};
-      if (visible) delete dependencies.projectState.state.itemVisibility[group][ref.id];
-      else dependencies.projectState.state.itemVisibility[group][ref.id] = false;
-    }
+    const generation=dependencies.domains.projectDomain.getGeneration();
+    const result=await dependencies.domains.projectDomain.executeCommand({ commandId: 'presentation.apply',targets: [],
+      payload: { action: 'objectVisibility',refs: refs.map(ref => webSelectionRefToCore(ref,{
+        isStoredHydro: id => !!dependencies.hydroPresentation.hydroEditById(id),
+      })),visible: typeof nextVisible==='boolean' ? nextVisible:null } });
+    if(!result.ok)throw Object.assign(new Error(result.error.message),{ code: result.error.code });
+    if(!result.changed || dependencies.projectState.state.projectReplacing || generation!==dependencies.domains.projectDomain.getGeneration())return false;
     if (refs.some(ref => ref.domain === 'territorial' && (dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.parentId))) {
       dependencies.rendering.gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'batch-country-visibility');
     }
@@ -261,18 +251,19 @@ export function createObjectCommands() {
     dependencies.domains.renderingDomain?.invalidateBaseScene?.('object-visibility');
     dependencies.domains.renderingDomain?.invalidateLabels?.('object-visibility');
     dependencies.domains.renderingDomain?.invalidateSelection?.('object-visibility');
-    dependencies.domains.projectDomain.queuePresentationAutosave();
     syncBatchActionAvailability();
+    return true;
   }
 
-  function batchSetLocked(nextLocked = null) {
+  async function batchSetLocked(nextLocked = null) {
     const refs = dependencies.domains.selectionDomain.snapshot().selection.items;
     if (!refs.length || refs.some(ref => !objectRefExists(ref)) || !commonBatchCapabilities(refs).has('lock')) return;
     const locked = typeof nextLocked === 'boolean' ? nextLocked : !refs.every(objectRefLocked);
     if (refs.every(ref => objectRefLocked(ref) === locked)) return;
     const territorialOnly = refs.every(ref => ref.domain === 'territorial');
     if (territorialOnly) {
-      const result = dependencies.objectModelB.territorialApplicationService.setLockedBatch(
+      const generation = dependencies.domains.projectDomain.getGeneration();
+      const result = await dependencies.objectModelB.territorialApplicationService.setLockedBatch(
         refs.map(ref => ({ type: ref.type, id: ref.id })),
         locked,
         {
@@ -282,6 +273,7 @@ export function createObjectCommands() {
           },
         },
       );
+      if (dependencies.projectState.state.projectReplacing || generation !== dependencies.domains.projectDomain.getGeneration()) return;
       if (!result.ok || !result.changed) return;
       dependencies.domains.layerTreeController?.syncLocks(refs);
       dependencies.domains.renderingDomain?.invalidateSelection?.('batch-lock');
@@ -290,22 +282,12 @@ export function createObjectCommands() {
       syncBatchActionAvailability();
       return;
     }
-    dependencies.domains.projectDomain.recordHistory({ type: 'batch-lock', description: `${refs.length}개 객체 ${locked ? '잠금' : '잠금 해제'}`, affectedIds: refs.map(ref => ref.id) });
-    for (const ref of refs) {
-      if (ref.domain === 'territorial') dependencies.territorialModel.entityStore.setLocked(ref.id, locked);
-      else if (ref.domain === 'distribution') (0, dependencies.propertyEditingA.distributionLayerById)(ref.id).locked = locked;
-      else if (ref.domain === 'generic') {
-        const feature = dependencies.projectState.state.genericFeatures.find(item => String(item.id) === ref.id);
-        if (feature) feature.properties.locked = locked;
-      } else if (ref.domain === 'hydro') {
-        const feature = (0, dependencies.hydroPresentation.hydroEditById)(ref.id);
-        if (feature) feature.properties.locked = locked;
-      }
-    }
-    dependencies.projectState.state.stateRevision += 1;
+    const generation=dependencies.domains.projectDomain.getGeneration(),targets=refs.map(webObjectRefToCore);
+    const result=await dependencies.domains.projectDomain.executeCommand({ commandId: 'objects.lock',targets,payload: { refs: targets,locked } });
+    if(!result.ok)throw Object.assign(new Error(result.error.message),{ code: result.error.code });
+    if(!result.changed || generation!==dependencies.domains.projectDomain.getGeneration() || dependencies.projectState.state.projectReplacing)return;
     dependencies.domains.layerTreeController?.syncLocks(refs);
     dependencies.domains.renderingDomain?.invalidateSelection?.('batch-lock');
-    dependencies.domains.projectDomain.queueAutosave();
     const primary = dependencies.domains.selectionDomain.primary();
     if (primary) dependencies.domains.selectionUiController.presentPrimary({ refreshOnly: true });
     syncBatchActionAvailability();
@@ -460,13 +442,14 @@ export function createObjectCommands() {
     }
   }
 
-  function batchSetColor(color) {
+  async function batchSetColor(color) {
     const refs = dependencies.domains.selectionDomain.snapshot().selection.items;
     if (!refs.length || !commonBatchCapabilities(refs).has('color')) return;
     const normalizedColor = (0, dependencies.colorModel.normalizeEditorColor)(color, dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR);
     const territorialOnly = refs.every(ref => ref.domain === 'territorial');
     if (territorialOnly) {
-      const result = dependencies.objectModelB.territorialApplicationService.setColorBatch(
+      const generation = dependencies.domains.projectDomain.getGeneration();
+      const result = await dependencies.objectModelB.territorialApplicationService.setColorBatch(
         refs.map(ref => ({ type: ref.type, id: ref.id })),
         normalizedColor,
         {
@@ -476,6 +459,7 @@ export function createObjectCommands() {
           },
         },
       );
+      if (dependencies.projectState.state.projectReplacing || generation !== dependencies.domains.projectDomain.getGeneration()) return;
       if (!result.ok || !result.changed) return;
       if (refs.some(ref => (dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.parentId))) {
         dependencies.rendering.gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'batch-country-color');
@@ -485,27 +469,15 @@ export function createObjectCommands() {
       syncBatchActionAvailability();
       return;
     }
-    dependencies.domains.projectDomain.recordHistory({ type: 'batch-color', description: `${refs.length}개 객체 색상 변경`, affectedIds: refs.map(ref => ref.id) });
-    for (const ref of refs) {
-      if (ref.domain === 'territorial') {
-        dependencies.territorialModel.entityStore.setField(ref.id, 'color', normalizedColor);
-      } else if (ref.domain === 'distribution') {
-        const layer = (0, dependencies.propertyEditingA.distributionLayerById)(ref.id);
-        if (layer) (0, dependencies.colorModel.writeDomainColor)(dependencies.colorModel.COLOR_DOMAINS.DISTRIBUTION, { layer }, normalizedColor, { fallback: dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR });
-      } else if (ref.domain === 'generic') {
-        const feature = dependencies.projectState.state.genericFeatures.find(item => String(item.id) === ref.id);
-        if (feature) (0, dependencies.colorModel.writeDomainColor)(dependencies.colorModel.COLOR_DOMAINS.GENERIC, { feature }, normalizedColor, { fallback: (0, dependencies.objectModelA.defaultGenericFeatureColor)(feature) });
-      } else if (ref.domain === 'hydro') {
-        const feature = (0, dependencies.hydroPresentation.hydroEditById)(ref.id);
-        if (feature) feature.properties.color = normalizedColor;
-      }
-    }
+    const generation=dependencies.domains.projectDomain.getGeneration(),targets=refs.map(webObjectRefToCore);
+    const result=await dependencies.domains.projectDomain.executeCommand({ commandId: 'objects.color',targets,payload: { refs: targets,color: normalizedColor } });
+    if(!result.ok)throw Object.assign(new Error(result.error.message),{ code: result.error.code });
+    if(!result.changed || generation!==dependencies.domains.projectDomain.getGeneration() || dependencies.projectState.state.projectReplacing)return;
     if (refs.some(ref => ref.domain === 'territorial' && (dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.parentId))) {
       dependencies.rendering.gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'batch-country-color');
     }
     (0, dependencies.layers.markLayerTreeDirty)();
     dependencies.domains.renderingDomain?.invalidateBaseScene?.('batch-country-color');
-    dependencies.domains.projectDomain.queueAutosave();
     syncBatchActionAvailability();
   }
 
@@ -525,59 +497,38 @@ export function createObjectCommands() {
       impacts: [...typeCounts].map(([type, count]) => `${type} ${count}개 삭제`),
       confirmText: '선택 객체 삭제',
       danger: true,
-      onConfirm: () => {
+      onConfirm: async () => {
         if (generation !== dependencies.domains.projectDomain.getGeneration() || dependencies.projectState.state.projectReplacing || refs.some(ref => !objectRefExists(ref) || objectRefLocked(ref)) || !commonBatchCapabilities(refs).has('delete')) {
           (0, dependencies.feedback.setActionStatus)('객체의 잠금 또는 자식 관계가 바뀌어 삭제를 중단했습니다.', 'error', 3600);
           return false;
         }
-        const snapshot = (0, dependencies.snapshots.snapshotEditable)();
         try {
-          const removedDistributionIds = new Set(refs.filter(ref => ref.domain === 'distribution').map(ref => ref.id));
-          const removedHydroEditIds = new Set(refs.filter(ref => ref.domain === 'hydro').map(ref => ref.id));
-          const removedGenericFeatureIds = new Set(refs.filter(ref => ref.domain === 'generic').map(ref => ref.id));
-          const removedLabelIds = new Set(refs.filter(ref => ref.domain === 'label').map(ref => ref.id));
           const removedCountryIds = refs.filter(ref => ref.domain === 'territorial' && (dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.parentId)).map(ref => ref.id);
-          const removedUnitIds = new Set(refs.filter(ref => ref.domain === 'territorial' && !(dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.parentId)).map(ref => ref.id));
-          dependencies.projectState.state.distributionLayers = dependencies.projectState.state.distributionLayers.filter(layer => !removedDistributionIds.has(String(layer.id)));
-          dependencies.projectState.state.distributionEntries = dependencies.projectState.state.distributionEntries.filter(entry => !removedDistributionIds.has(String(entry.layerId))
-            && (entry.mode !== dependencies.territorialModel.DISTRIBUTION_MODES.TERRITORIAL || !removedUnitIds.has(String(entry.territorialUnitId))));
-          const restoredHydroSourceIds = dependencies.projectState.state.hydroEdits.filter(feature => removedHydroEditIds.has(String(feature.id))).map(feature => String(feature.properties?.sourceFeatureId || '')).filter(Boolean);
-          dependencies.projectState.state.hydroEdits = dependencies.projectState.state.hydroEdits.filter(feature => !removedHydroEditIds.has(String(feature.id)));
-          for (const sourceId of restoredHydroSourceIds) {
-            if (!dependencies.projectState.state.hydroEdits.some(feature => String(feature.properties?.sourceFeatureId || '') === sourceId)) delete dependencies.projectState.state.physicalSettings.hiddenHydroIds[sourceId];
-          }
-          if (restoredHydroSourceIds.length) dependencies.rendering.gpuMapRenderer.invalidateHydroVisibility();
-          for (const layer of dependencies.projectState.state.distributionLayers) if (removedDistributionIds.has(String(layer.parentId))) layer.parentId = '';
-          (0, dependencies.landRelations.reassignGenericFeatureParents)([...removedGenericFeatureIds]);
-          dependencies.projectState.state.genericFeatures = dependencies.projectState.state.genericFeatures.filter(feature => !removedGenericFeatureIds.has(String(feature.id)));
-          dependencies.projectState.state.labels = dependencies.projectState.state.labels.filter(label => !removedLabelIds.has(String(label.id)));
-          for (const id of removedLabelIds) delete dependencies.projectState.state.labelSettings[(0, dependencies.labelPresentation.labelKey)('label', id)];
-          removeTerritorialEntities(
-            dependencies.projectState.state,
-            { countryIds: removedCountryIds, unitIds: removedUnitIds },
-            dependencies.territorialModel.DISTRIBUTION_MODES.TERRITORIAL,
-            { entityStore: dependencies.territorialModel.entityStore },
-          );
-          if (removedCountryIds.length) {
-            (0, dependencies.spatialQuery.markCountryGeometriesChanged)(removedCountryIds);
-            dependencies.domains.renderingDomain?.invalidateCountryPatch?.('batch-delete');
-          }
-          dependencies.projectState.state.boundaryPreparation?.cancel();
-          dependencies.projectState.state.boundaryPreparation = null;
-          dependencies.projectState.state.stateRevision += 1;
-          dependencies.domains.renderingDomain?.invalidateTerritorialPatch?.('batch-delete');
-          dependencies.domains.selectionUiController.clear({ reason: 'object-delete-clear' });
-          (0, dependencies.layers.markLayerTreeDirty)();
-          dependencies.domains.renderingDomain?.invalidateOverlayGeometry?.('batch', 'batch-delete');
-          dependencies.domains.renderingDomain?.invalidateSelection?.('batch-delete');
-          dependencies.domains.renderingDomain?.invalidateLabels?.('batch-delete');
-          dependencies.domains.projectDomain.commitHistorySnapshot(snapshot);
-          dependencies.domains.projectDomain.queueAutosave();
+          const wasSelected=dependencies.domains.selectionDomain.size()>0,targets=refs.map(webObjectRefToCore);
+          const result=await dependencies.domains.projectDomain.executeCommand({ commandId: 'objects.remove',targets,payload: { refs: targets } },{
+            applyAccepted: () => {
+              if(generation!==dependencies.domains.projectDomain.getGeneration() || dependencies.projectState.state.projectReplacing)return;
+              if(refs.some(ref => ref.domain==='hydro'))dependencies.rendering.gpuMapRenderer.invalidateHydroVisibility();
+              if (removedCountryIds.length) {
+                (0, dependencies.spatialQuery.markCountryGeometriesChanged)(removedCountryIds);
+                dependencies.domains.renderingDomain.invalidateCountryPatch('batch-delete');
+              }
+              dependencies.projectState.state.boundaryPreparation?.cancel();
+              dependencies.projectState.state.boundaryPreparation = null;
+              dependencies.domains.renderingDomain.invalidateTerritorialPatch('batch-delete');
+              if(wasSelected && dependencies.domains.selectionDomain.size()===0)dependencies.domains.selectionUiController.presentPrimary({ refreshOnly: false });
+              dependencies.layers.markLayerTreeDirty();
+              dependencies.domains.renderingDomain.invalidateOverlayGeometry('batch','batch-delete');
+              dependencies.domains.renderingDomain.invalidateSelection('batch-delete');
+              dependencies.domains.renderingDomain.invalidateLabels('batch-delete');
+            },
+          });
+          if(!result.ok)throw Object.assign(new Error(result.error.message),{ code: result.error.code });
+          if(!result.changed || generation!==dependencies.domains.projectDomain.getGeneration() || dependencies.projectState.state.projectReplacing)return false;
           (0, dependencies.feedback.setActionStatus)(`${refs.length}개 객체 삭제 완료`, 'success', 2800);
           return true;
         } catch (error) {
-          (0, dependencies.projectSnapshots.restoreEditable)(snapshot);
-          dependencies.feedback.reportOperationError(error, '삭제를 적용하지 못해 전체 변경을 복구했습니다.', 'PL-TERRITORIAL-DELETE-001', 4000);
+          dependencies.feedback.reportOperationError(error, '객체 삭제를 적용하지 못했습니다.', 'PL-TERRITORIAL-DELETE-001', 4000);
           return false;
         }
       },

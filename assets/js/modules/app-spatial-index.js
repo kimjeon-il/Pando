@@ -223,7 +223,6 @@ export function createSpatialIndex() {
       const id = String(rawId || '');
       if (!id) continue;
       changed.add(id);
-      dependencies.projectState.state.historyDirtyEntityIds.add(id);
       dependencies.projectState.state.pendingCountryRenderIds.add(id);
     }
     const currentFeatures = new Map((dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' })).map(feature => [
@@ -238,9 +237,6 @@ export function createSpatialIndex() {
       else removedIds.push(id);
     }
     invalidateGeometryCaches(changed);
-    if (changed.size) {
-      dependencies.projectState.state.stateRevision += 1;
-    }
     (0, dependencies.countryCommands.bumpLandRevision)();
     dependencies.geometryPreview.boundarySelectionAnalysisCache.clear();
     dependencies.projectState.state.boundaryPreparation?.cancel();

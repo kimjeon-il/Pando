@@ -1,0 +1,121 @@
+#pragma once
+#include <pandoeditor/projectcodec.h>
+#include <pandoeditor/selection.h>
+#include <pandoeditor/geometrydraft.h>
+#include <pandoeditor/presentationcommands.h>
+#include <pandoeditor/webstorage.h>
+
+namespace pandoeditor {
+enum class DocumentSessionProfile {Web,Native};
+struct NativeDocumentPorts {std::function<bool(const SelectionRef&)> builtinRefExists;};
+struct SelectionCatalogEntry {SelectionRef ref;std::optional<std::string> logicalId;std::vector<std::string> sourceIds;};
+struct DocumentSessionState {
+    std::uint32_t epoch=0,stateRevision=0;
+    std::uint64_t revision=0,checkpoint=0;
+    bool dirty=false,canUndo=false,canRedo=false;
+    std::string timelineCursor;
+    std::uint64_t presentationRevision=0,presentationCheckpoint=0;
+    bool documentDirty=false,presentationDirty=false;
+    bool timelineEditsEnabled=false;
+    std::vector<std::string> dirtyTerritorialIds;
+    std::uint32_t storageBaselineId=0;
+};
+struct DocumentSessionOutcome {
+    CommandResult result;
+    std::uint32_t candidateId=0;
+    std::string delta;
+    std::string domainErrorCode;
+};
+struct ImportInspection {std::string project;ResolvedWorld world;};
+// The WASM document owner is the same Project/CommandProcessor used by Qt.
+// Snapshots returned by Project remain immutable; this boundary never owns a
+// second JSON document, a JS-computed candidate, or another undo ledger.
+class DocumentSession {
+public:
+    explicit DocumentSession(projectcodec::PlatformPorts,DocumentSessionProfile profile=DocumentSessionProfile::Web,NativeDocumentPorts={});
+    DocumentSessionState adoptPreparedProject(Project&&);
+    DocumentSessionOutcome adoptPreparedCommand(PrepareResult&&,std::uint32_t expectedEpoch);
+    PrepareResult prepareNativeCommand(const CommandRequest&,std::uint32_t expectedEpoch) const;
+    const CommandPreview* candidatePreview(std::uint32_t candidateId) const;
+    DocumentSessionState documentLoad(const std::string& currentWebJson,const std::string& currentMonth);
+    DocumentSessionState documentLoadBaseline(std::uint32_t baselineId,const std::string& currentMonth);
+    DocumentSessionState documentInitialize(const std::string& currentWebJson,const std::string& currentMonth,bool preserveCursor,
+        const std::optional<codecjson::Value>& features,const std::optional<std::string>& territorialSource,std::uint32_t expectedEpoch,
+        std::optional<std::uint32_t> baselineId={});
+    std::string documentSnapshot() const;
+    DocumentSessionState storageBaselineLoad(const codecjson::Value&,std::uint32_t expectedEpoch);
+    DocumentSessionState storageBaselineLoad(const projectcodec::WebStorageAssetSource&,std::uint32_t expectedEpoch);
+    DocumentSessionState admitExternalBaseline(std::uint32_t expectedEpoch);
+    std::string validateImport(const std::string&,std::optional<std::uint32_t> baselineId={}) const;
+    ImportInspection inspectImport(const std::string&,std::optional<std::uint32_t> baselineId,const std::string& currentMonth) const;
+    std::uint32_t captureReplacement(std::uint32_t expectedEpoch);
+    DocumentSessionState rollbackReplacement(std::uint32_t checkpointId,std::uint32_t expectedEpoch);
+    bool releaseReplacement(std::uint32_t checkpointId);
+    std::string storageSnapshot() const;
+    std::string exportSnapshot(const projectcodec::WebStorageContext&,std::uint32_t expectedEpoch) const;
+    DocumentSessionState projectState() const;
+    const Project& project() const { return project_; }
+    DocumentSessionOutcome prepareCommand(std::string commandId,CommandArguments,
+        std::vector<ObjectRef> targets,std::uint32_t expectedEpoch);
+    DocumentSessionOutcome prepareBatch(std::size_t count,const CommandBatchBuilder&,std::uint32_t expectedEpoch,const std::string& operation="document.batch");
+    DocumentSessionOutcome confirmCandidate(std::uint32_t candidateId,std::uint32_t expectedEpoch);
+    bool cancelCandidate(std::uint32_t candidateId);
+    DocumentSessionOutcome executeCommand(std::string commandId,CommandArguments,
+        std::vector<ObjectRef> targets,std::uint32_t expectedEpoch);
+    DocumentSessionOutcome undo(std::uint32_t expectedEpoch);
+    DocumentSessionOutcome redo(std::uint32_t expectedEpoch);
+    DocumentSessionOutcome labelGestureApply(const std::string& action,const std::string& id,std::optional<Point>,std::uint32_t expectedEpoch);
+    DocumentSessionState markSaved(std::uint32_t expectedEpoch);
+    DocumentSessionOutcome applyPresentation(const PresentationAction&,std::uint32_t expectedEpoch);
+    DocumentSessionOutcome presentationCatalogLoad(PresentationCatalog,std::uint32_t expectedEpoch);
+    ResolvedWorld resolveWorld(const std::string& month) const;
+    bool setTimelineCursor(const std::string& month,std::uint32_t expectedEpoch);
+    SelectionState& selection() { return selection_; }
+    const SelectionState& selection() const { return selection_; }
+    DocumentSessionOutcome selectionCatalogLoad(const std::string& domain,const std::vector<SelectionCatalogEntry>&,std::uint32_t expectedEpoch);
+    void requireEpoch(std::uint32_t expectedEpoch) const;
+    bool selectionRefExists(const SelectionRef&) const;
+    GeometryDraft& draft() { requireLoaded();return draft_; }
+    const GeometryDraft& draft() const { requireLoaded();return draft_; }
+    bool draftActive() const { requireLoaded();return draftActive_; }
+    bool startDraft(const std::string& shape,const Ring&,const std::string& phase);
+    void installNativeDraft(Geometry,std::uint32_t expectedEpoch);
+    void clearDraft(bool deactivate=false);
+    void requireDraftRevision(std::uint64_t expectedRevision) const;
+private:
+    struct Replacement {
+        ProjectReplacementState project;
+        SelectionState selection;
+        GeometryDraft draft;
+        bool draftActive;
+        std::map<SelectionRef,std::optional<std::string>> externalSelectionRefs;
+        std::optional<projectcodec::WebStorageBaseline> storageBaseline;
+        std::optional<projectcodec::WebStorageBaseline> activeBaseline;
+        std::uint32_t storageBaselineId;
+        std::uint32_t stateRevision;
+    };
+    DocumentSessionOutcome rejected(CommandError,const std::string&) const;
+    void requireLoaded() const;
+    void clearPreview();
+    DocumentSessionOutcome retainPreview(PrepareResult&&);
+    DocumentSessionOutcome history(bool forward,std::uint32_t expectedEpoch);
+    Project project_;
+    SelectionState selection_;
+    GeometryDraft draft_;
+    bool draftActive_=false;
+    std::map<SelectionRef,std::optional<std::string>> externalSelectionRefs_;
+    std::optional<projectcodec::WebStorageBaseline> storageBaseline_;
+    std::optional<projectcodec::WebStorageBaseline> activeBaseline_;
+    std::uint32_t storageBaselineSequence_=0,storageBaselineId_=0;
+    projectcodec::PlatformPorts ports_;
+    DocumentSessionProfile profile_;
+    NativeDocumentPorts nativePorts_;
+    std::optional<CommandPreview> preview_;
+    std::uint32_t epoch_=0,stateRevision_=0,candidateSequence_=0,candidateId_=0,candidateEpoch_=0,sourceEpoch_=0;
+    bool loaded_=false;
+    std::optional<Replacement> replacement_;
+    std::uint32_t replacementSequence_=0,replacementId_=0;
+    struct LabelGesture {ObjectRef ref;std::string instanceId;std::uint64_t checkpoint;};
+    std::optional<LabelGesture> labelGesture_;
+};
+}

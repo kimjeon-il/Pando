@@ -1,4 +1,5 @@
-import { createEmptyTerritorialState, createStaticTerritorialSnapshot } from '../../assets/js/modules/territorial-entity-store.js';
+import {createEmptyTerritorialState} from '../../assets/js/modules/territorial-entity-store.js';
+import {staticTerritorialInput} from '../helpers/timeline-project.mjs';
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -98,7 +99,7 @@ const currentProject = () => { const project = {
   }],
   hydroEdits: [{ type: 'Feature', id: uuid(6), geometry: { type:'LineString', coordinates:[[0,0],[1,1]] }, properties: { pandolab_schema_version: 1, category:'river' } }],
   labels: [{ id: uuid(7) }],
-}; return { ...project, ...createStaticTerritorialSnapshot(project.territorialEntities) }; };
+}; return { ...project, ...staticTerritorialInput(project.territorialEntities) }; };
 
 test('current project schema accepts only explicit current versions and UUID object IDs', () => {
   assert.equal(assertCurrentProjectSchema(currentProject()).schemaVersion, PROJECT_SCHEMA_VERSION);

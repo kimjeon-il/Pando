@@ -39,11 +39,12 @@ class StateScopeContractTests(unittest.TestCase):
         settings = read_module(ROOT, 'app-map-settings.js')
         for name in ('setLayerVisibility', 'updateLayerPresentationStyle'):
             operation = function_source(settings, name)
-            self.assertIn('queuePresentationAutosave', operation)
+            self.assertIn('executePresentation', operation)
             self.assertNotIn('recordHistory', operation)
-        self.assertIn('markPresentationChanged', SAVE_STATE)
-        self.assertIn('documentDirty: false', SAVE_STATE)
-        self.assertIn('presentationDirty: false', SAVE_STATE)
+        self.assertIn("commandId: 'presentation.apply'", settings)
+        self.assertIn('core.documentDirty || core.presentationDirty', SAVE_STATE)
+        self.assertIn('documentDirty: core?.documentDirty ?? false', SAVE_STATE)
+        self.assertIn('presentationDirty: core?.presentationDirty ?? false', SAVE_STATE)
 
     def test_folder_expansion_is_session_only(self):
         fields = node_json(ROOT, """

@@ -28,9 +28,13 @@ jobs:
       - name: Verify provenance, georegistration and generated assets
         run: |
           python - <<'PY'
+          import sys
+          from pathlib import Path
+          sys.path.insert(0, str(Path("tools").resolve()))
+          from report_paths import report_path
           import json
           from pathlib import Path
-          p=Path('assets/data/research/siachen')
+          p=report_path("reports/research/siachen")
           x=json.loads((p/'siachen_s2_optical_comparison.json').read_text())
           assert set(x['scenes']) == {'2025','2026'}
           for year,record in x['scenes'].items():
@@ -45,9 +49,9 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/data/research/siachen/siachen_s2_*_optical.png
-          git add assets/data/research/siachen/siachen_s2_optical_comparison.json
-          git add assets/data/research/siachen/README_s2_optical.md
+          git add reports/research/siachen/siachen_s2_*_optical.png
+          git add reports/research/siachen/siachen_s2_optical_comparison.json
+          git add reports/research/siachen/README_s2_optical.md
           if ! git diff --cached --quiet; then
             git commit -m "research: record Sentinel-2 georeferenced optical comparisons"
             git fetch origin work/gis
@@ -59,6 +63,9 @@ jobs:
         with:
           name: siachen-sentinel2-optical
           path: |
-            assets/data/research/siachen/siachen_s2_*_optical.png
-            assets/data/research/siachen/siachen_s2_optical_comparison.json
-            assets/data/research/siachen/README_s2_optical.md
+            reports/research/siachen/siachen_s2_*_optical.png
+            reports/research/siachen/siachen_s2_*_optical.png
+            reports/research/siachen/siachen_s2_optical_comparison.json
+            reports/research/siachen/siachen_s2_optical_comparison.json
+            reports/research/siachen/README_s2_optical.md
+            reports/research/siachen/README_s2_optical.md
