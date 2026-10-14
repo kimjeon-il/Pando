@@ -48,3 +48,11 @@ test('phase changes are explicit and revisioned', () => {
   assert.equal(controller.endInteraction(), true);
   assert.equal(controller.profile().phase, 'settle');
 });
+
+test('mobile sharpness uses DPR two at normal tiers while preserving a low-memory tier', () => {
+  assert.equal(renderQualityProfile('medium', { mobile: true }).dprCap, 2);
+  assert.equal(renderQualityProfile('high', { mobile: true }).dprCap, 2);
+  assert.equal(renderQualityProfile('coarse', { mobile: true }).dprCap, 1.5);
+  assert.equal(renderQualityProfile('medium', { mobile: false }).dprCap, 1.75);
+  assert.equal(renderQualityProfile('coarse', { mobile: false }).dprCap, 1.25);
+});
