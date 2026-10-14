@@ -6,6 +6,7 @@ import { dirname, join } from 'node:path';
 import test from 'node:test';
 import { classifyP3, previewSlug } from '../../scripts/p3-plan-remote.mjs';
 import { stagePreview } from '../../scripts/p3-stage-preview.mjs';
+import { createRuntimePerformanceMetrics } from '../../assets/js/modules/runtime-performance-metrics.js';
 
 const full={native:true,web:true},webOnly={native:false,web:true};
 test('Web-only changes select preview and browser, not Qt compiler',()=>{
@@ -79,4 +80,26 @@ test('preview never writes over the repository checkout',t=>{
   const x=fixture(t);
   assert.throws(()=>stagePreview({root:x.root,output:join(x.root,'public'),
     branch:'work/objects'}),/P3_PREVIEW_OUTPUT_INSIDE_SOURCE/);
+});
+
+test('P3 startup telemetry preserves late interactive, editable and ready milestones', () => {
+  const markers = Object.fromEntries(Array.from({ length: 45 }, (_, i) => ['detail'+i, i]));
+  const globalObject = { __PANDOLAB_STARTUP_METRICS__: {
+    ...markers, interactiveMs: 1750.125, editableMs: 3800,
+    readyMs: null, rendererStatus: 'enhanced', geometryError: '',
+  } };
+  const metrics = createRuntimePerformanceMetrics({
+    globalObject, performanceObject: { now: () => 0, getEntriesByType: () => [] },
+    PerformanceObserverCtor: null,
+  });
+  const start = metrics.snapshot().startup;
+  assert.equal(start.detail0, 0);
+  assert.equal(start.interactiveMs, 1750.13);
+  assert.equal(start.editableMs, 3800);
+  assert.equal(start.readyMs, null, 'pending readiness remains null, not a fabricated zero');
+  assert.equal(start.rendererStatus, 'enhanced');
+  assert.equal(Object.hasOwn(start, 'detail44'), false, 'unknown diagnostics stay bounded');
+  globalObject.__PANDOLAB_STARTUP_METRICS__.readyMs = 4811.5;
+  assert.equal(metrics.snapshot().startup.readyMs, 4811.5);
+  metrics.dispose();
 });
