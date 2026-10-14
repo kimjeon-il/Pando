@@ -23,18 +23,18 @@ test('release provenance uses Git LF bytes for either checkout line ending', () 
   assert.deepEqual(canonicalPlaceTextBytes(crlf), lf);
 });
 
-test('only approved source-verified cities in 22 batches are reproducibly published', () => {
+test('only approved source-verified cities in 23 batches are reproducibly published', () => {
   const generated = generatePlaceRelease();
-  assert.equal(generated.recordCount, 163);
-  assert.equal(catalog.reviewBatches.length, 22);
-  assert.equal(catalog.stats.cityCount, 163);
-  assert.equal(catalog.stats.stagedCount, 264);
-  assert.equal(catalog.stats.withheldCount, 101);
-  assert.equal(catalog.stats.unrankedCount, 163);
+  assert.equal(generated.recordCount, 173);
+  assert.equal(catalog.reviewBatches.length, 23);
+  assert.equal(catalog.stats.cityCount, 173);
+  assert.equal(catalog.stats.stagedCount, 289);
+  assert.equal(catalog.stats.withheldCount, 116);
+  assert.equal(catalog.stats.unrankedCount, 173);
   assert.equal(catalog.stats.timelineEntries,
     catalog.records.reduce((sum, row) => sum + row.nameTimeline.length, 0));
-  assert.equal(new Set(catalog.records.map(row => row.sourceId)).size, 163);
-  assert.equal(catalog.approval.approvedIds, 163);
+  assert.equal(new Set(catalog.records.map(row => row.sourceId)).size, 173);
+  assert.equal(catalog.approval.approvedIds, 173);
   assert.deepEqual(catalog.records.map(row => Number(row.sourceId)),
     approvals.approvedSourceIds);
   assert.equal(generated.catalogText, canonicalPlaceTextBytes(read('reviewed-records-v1.json')).toString('utf8'));
@@ -47,7 +47,7 @@ test('only approved source-verified cities in 22 batches are reproducibly publis
 
 test('published PLAC v3 bytes decode every place with historical name transitions', () => {
   const decoded = decodePlaceTile(publishedBytes);
-  assert.equal(decoded.length, 163);
+  assert.equal(decoded.length, 173);
   const byId = new Map(decoded.map(row => [row.sourceId, row]));
   for (const raw of catalog.records) assert.deepEqual(byId.get(raw.sourceId), normalizePlace(raw));
   const peter = byId.get('498817');
@@ -55,6 +55,13 @@ test('published PLAC v3 bytes decode every place with historical name transition
     ['1913-08-31', '1914-08-31', '1924-01-26', '1991-09-06'].map(date =>
       resolvePlaceLabelRows(peter, triple, date)[0]?.text),
     ['상트페테르부르크', '페트로그라드', '레닌그라드', '상트페테르부르크']);
+  const volgograd = byId.get('472757');
+  assert.deepEqual(
+    ['1924-01-01', '1930-01-01', '1970-01-01'].map(date =>
+      resolvePlaceLabelRows(volgograd, triple, date)[0]?.text),
+    ['차리친', '스탈린그라드', '볼고그라드']);
+  assert.ok(!hasPlaceNameCoverage(byId.get('524305'), '1915-01-01'));
+  assert.ok(hasPlaceNameCoverage(byId.get('524305'), '1916-12-31'));
   const minsk = byId.get('625144');
   assert.deepEqual(resolvePlaceLabelRows(minsk, triple, '1995-12-31').map(x => x.text).filter(x => x === 'Минск'), []);
   assert.ok(resolvePlaceLabelRows(minsk, triple, '1997-01-01').map(x => x.text).includes('Минск'));
