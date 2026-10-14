@@ -18,15 +18,9 @@ bool replace(losslessjson::Value& value,const ReferenceRewrite& rewrite) {
 }
 bool rewriteArray(losslessjson::Value& root,const ReferenceRewrite& rewrite) {
     if(root.kind!=losslessjson::Value::Array)return false;bool changed=false;
-    auto out=root.array;out.clear();for(auto row:root.array) {bool remove=false,ownerMatched=false;if(row.kind==losslessjson::Value::Object) {
+    auto out=root.array;out.clear();for(auto row:root.array) {bool remove=false;if(row.kind==losslessjson::Value::Object) {
         for(auto key:{"territorialUnitId","ownerId"}) {auto it=row.object.find(key);if(it!=row.object.end()) {if(rewrite.operation==ReferenceRewriteOperation::RemoveEntry&&it->second.kind==losslessjson::Value::String&&it->second.string==rewrite.fromId)remove=true;changed=replace(it->second,rewrite)||changed;}}
-        auto props=row.object.find("properties");if(props!=row.object.end()&&props->second.kind==losslessjson::Value::Object) {auto owner=props->second.object.find("ownerId");if(owner!=props->second.object.end()) {ownerMatched=owner->second.kind==losslessjson::Value::String&&owner->second.string==rewrite.fromId;if(rewrite.operation==ReferenceRewriteOperation::RemoveEntry&&owner->second.kind==losslessjson::Value::String&&owner->second.string==rewrite.fromId)remove=true;changed=replace(owner->second,rewrite)||changed;}}
-        if(ownerMatched&&rewrite.sourcePath=="/genericFeatures"&&rewrite.operation==ReferenceRewriteOperation::ReplaceId&&props!=row.object.end()&&props->second.kind==losslessjson::Value::Object) {
-            auto topology=props->second.object.find("topologyGroup");
-            if(topology!=props->second.object.end()&&topology->second.kind==losslessjson::Value::String&&topology->second.string=="land:"+rewrite.fromId) {
-                topology->second=losslessjson::Value::str("land:"+rewrite.toId);changed=true;
-            }
-        }
+        auto props=row.object.find("properties");if(props!=row.object.end()&&props->second.kind==losslessjson::Value::Object) {auto owner=props->second.object.find("ownerId");if(owner!=props->second.object.end()) {if(rewrite.operation==ReferenceRewriteOperation::RemoveEntry&&owner->second.kind==losslessjson::Value::String&&owner->second.string==rewrite.fromId)remove=true;changed=replace(owner->second,rewrite)||changed;}}
       }if(!remove)out.push_back(std::move(row));else changed=true;}root.array=std::move(out);return changed;
 }
 std::optional<std::string> rewrittenKey(const std::string& key,const std::string& path,const ReferenceRewrite& rewrite) {
@@ -34,12 +28,6 @@ std::optional<std::string> rewrittenKey(const std::string& key,const std::string
     // Canonical v9 label settings use this exact namespace. Visibility keys
     // additionally require their category context (handled by rewriteKeys).
     if(path=="/labelSettings"&&key=="territorial:"+rewrite.fromId)return "territorial:"+rewrite.toId;
-    if(path=="/labelSettings") {
-        for(const auto* prefix:{"territorial:entity:","country:","subunit:","region:","territorial:country:","territorial:subunit:","territorial:region:"}) {
-            const std::string p(prefix);
-            if(key==p+rewrite.fromId) return p+rewrite.toId;
-        }
-    }
     return std::nullopt;
 }
 bool rewriteKeys(losslessjson::Value& root,const std::string& path,const ReferenceRewrite& rewrite,const std::string& visibilityGroup={}) {

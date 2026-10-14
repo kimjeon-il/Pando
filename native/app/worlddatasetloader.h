@@ -4,7 +4,7 @@
 #include "../renderer/countrymesh.h"
 #include "../renderer/mapprojection.h"
 #include <pandoeditor/map/renderscene.h>
-#include <pandoeditor/document.h>
+#include <pandoeditor/project.h>
 #include <memory>
 
 struct WorldPreviewResult {
@@ -12,7 +12,7 @@ struct WorldPreviewResult {
     std::shared_ptr<const MapProjection> projection;
 };
 struct WorldCanonicalResult {
-    std::shared_ptr<const pandoeditor::ProjectDocument> document;
+    std::shared_ptr<pandoeditor::Project> project;
     std::shared_ptr<const MapProjection> projection;
     std::vector<WorldBaseRange> ranges;
     QString hydroAvailability;
@@ -21,7 +21,7 @@ struct WorldCanonicalResult {
 class WorldDatasetLoader final {
 public:
     static WorldPreviewResult preview(const QString& root);
-    static WorldCanonicalResult canonical(const QString& root);
+    static WorldCanonicalResult canonical(const QString& root, const std::string& month = {});
     static std::shared_ptr<const CountryBaseMesh> canonicalMesh(const QString& root);
     static std::shared_ptr<const WorldBaseFrame> matchingBaseFrame(
         const pandoeditor::ProjectDocument& document,const QString& root,const std::string& month);

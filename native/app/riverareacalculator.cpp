@@ -1,4 +1,5 @@
 #include "riverareacalculator.h"
+#include "geometryprovenance.h"
 #include <QCryptographicHash>
 #include <QFile>
 #include <QJSEngine>
@@ -7,7 +8,7 @@
 #include <stdexcept>
 
 static void initializeRiverAreaResources() {
-    static const bool initialized=[] {Q_INIT_RESOURCE(m972_river);return true;}();
+    static const bool initialized=[] {Q_INIT_RESOURCE(current_geometry);return true;}();
     (void)initialized;
 }
 namespace pandoeditor {
@@ -20,22 +21,20 @@ void jsCheck(const QJSValue& value) {
     if(value.isError())throw std::runtime_error(
         ("RIVER_AREA_JAVASCRIPT_ERROR: "+value.toString()+"\n"+value.property("stack").toString()).toStdString());
 }
-QByteArray verifiedResource(const QString& path,qsizetype size,const QByteArray& sha256) {
+QByteArray verifiedResource(const QString& path,const QByteArray& sha256) {
     QFile file(path);
     if(!file.open(QIODevice::ReadOnly))throw std::runtime_error(("RIVER_AREA_RESOURCE_UNAVAILABLE: "+path).toStdString());
     const auto bytes=file.readAll();
-    if(bytes.size()!=size||QCryptographicHash::hash(bytes,QCryptographicHash::Sha256).toHex()!=sha256)
+    if(QCryptographicHash::hash(bytes,QCryptographicHash::Sha256).toHex()!=sha256)
         throw std::runtime_error(("RIVER_AREA_RESOURCE_HASH_MISMATCH: "+path).toStdString());
     return bytes;
 }
 QByteArray verifiedD3() {
     initializeRiverAreaResources();
-    verifiedResource(":/river/original/d3.min.js",151144,
-        "4cdf92091ed0cfdd8b862af1c6d4744bd0458e746b92c1bbd5403a1143ecd538");
+    verifiedResource(":/river/current/d3-original.min.js",PANDO_CURRENT_GEOMETRY_D3_ORIGINAL_SHA256);
     // The checked-in, independently reviewed adapter only inserts redundant
     // ES5 function-scope var declarations. No original byte/math is changed.
-    return verifiedResource(":/river/adapted/d3.min.js",158242,
-        "f273f409d8b1ba4c35d98fb06ca56f06726359d792ad719400d0e46a8c15cd85");
+    return verifiedResource(":/river/current/d3.min.js",PANDO_CURRENT_GEOMETRY_D3_SHA256);
 }
 QJSValue geometryValue(QJSEngine& engine,const Geometry& input,const GeometryCancellation& cancelled) {
     if((input.type!="Polygon"&&input.type!="MultiPolygon")||
@@ -72,7 +71,7 @@ RiverAreaResult calculateRiverAreaKm2(const Geometry& input,const GeometryCancel
     try {
         check(cancelled);QJSEngine engine;const auto geometry=geometryValue(engine,input,cancelled);
         check(cancelled);const auto bytes=verifiedD3();check(cancelled);
-        jsCheck(engine.evaluate(QString::fromUtf8(bytes),":/river/adapted/d3.min.js"));
+        jsCheck(engine.evaluate(QString::fromUtf8(bytes),":/river/current/d3.min.js"));
         check(cancelled);const auto d3=engine.globalObject().property("d3");
         if(d3.property("version").toString()!="3.5.6"||!d3.property("geo").property("area").isCallable())
             throw std::runtime_error("RIVER_AREA_D3_UNAVAILABLE");

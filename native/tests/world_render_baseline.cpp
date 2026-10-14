@@ -114,7 +114,7 @@ QJsonObject run(const QString& root,const QString& name) {
     const auto document=scenarioDocument(full,wanted);
     const double fixtureMs=timer.nsecsElapsed()/1e6;
     timer.restart();
-    MapProjection projection;projection.rebuild(document);
+    MapProjection projection;projection.rebuild(document,{},ProjectionContent::SvgPreview);
     const double projectionMs=timer.nsecsElapsed()/1e6;
     const auto rows=m71fixture::diagnoseCurrentProjection(document);
     for(const auto& row:rows) if(row.hasNonFinite) throw std::runtime_error("non-finite projection: "+row.id);
@@ -125,7 +125,7 @@ QJsonObject run(const QString& root,const QString& name) {
     if(image.isNull()) throw std::runtime_error("paint image allocation failed");
     MapRenderItem item;item.setWidth(imageWidth);item.setHeight(imageHeight);
     std::size_t pathChars=0;
-    for(const auto& value:projection.paths)
+    for(const auto& value:projection.objects)
         pathChars+=std::size_t(value.toMap().value(QStringLiteral("path")).toString().size());
 
     const double scale=std::min((imageWidth-48)/projection.width,
@@ -178,7 +178,7 @@ QJsonObject run(const QString& root,const QString& name) {
     const QJsonObject structure{{"objectCounts",counts},{"countryCount",int(countryCount)},
         {"polygonCount",double(polygons)},{"ringCount",double(rings)},{"holeCount",double(holes)},
         {"coordinateCount",double(positions)},{"geometryVersionCount",int(document.geometries.versions().size())},
-        {"projectionPathCount",projection.paths.size()},{"totalPathCharacters",double(pathChars)},
+        {"projectionPathCount",projection.objects.size()},{"totalPathCharacters",double(pathChars)},
         {"hydroCount",int(document.hydro.size())},{"genericCount",int(document.genericFeatures.size())},
         {"labelCount",int(document.labels.size())},{"imageWidth",imageWidth},{"imageHeight",imageHeight}};
     const QJsonObject timing{{"fixtureLoadMs",fixtureMs},{"projectionRebuildMs",projectionMs},

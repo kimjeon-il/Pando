@@ -1,0 +1,39 @@
+<RCC>
+  <qresource prefix="/cut">
+    <file alias="current/app-country-validation.js">../assets/geometry/current/cut/app-country-validation.js</file>
+    <file alias="current/app-cut-geometry.js">../assets/geometry/current/cut/app-cut-geometry.js</file>
+    <file alias="current/app-land-relations.js">../assets/geometry/current/cut/app-land-relations.js</file>
+    <file alias="current/app-territory-components.js">../assets/geometry/current/cut/app-territory-components.js</file>
+    <file alias="current/boundary-spatial-index.js">../assets/geometry/current/cut/boundary-spatial-index.js</file>
+    <file alias="current/coordinate-bounds.js">../assets/geometry/current/cut/coordinate-bounds.js</file>
+    <file alias="current/cut-preparation-cache.js">../assets/geometry/current/cut/cut-preparation-cache.js</file>
+    <file alias="current/cut-worker-preparation.js">../assets/geometry/current/cut/cut-worker-preparation.js</file>
+    <file alias="current/editing-render-packet.js">../assets/geometry/current/cut/editing-render-packet.js</file>
+    <file alias="current/geometry-segment-index.js">../assets/geometry/current/cut/geometry-segment-index.js</file>
+    <file alias="current/geometry-versions.js">../assets/geometry/current/cut/geometry-versions.js</file>
+    <file alias="current/map-edit-geometry.js">../assets/geometry/current/cut/map-edit-geometry.js</file>
+    <file alias="current/planar-graph-faces.js">../assets/geometry/current/cut/planar-graph-faces.js</file>
+    <file alias="current/polygon-geometry.js">../assets/geometry/current/cut/polygon-geometry.js</file>
+    <file alias="current/ring-hit-test.js">../assets/geometry/current/cut/ring-hit-test.js</file>
+    <file alias="current/territorial-geometry.js">../assets/geometry/current/cut/territorial-geometry.js</file>
+    <file alias="platform.js">../assets/geometry/cut/platform.js</file>
+  </qresource>
+  <qresource prefix="/geometry">
+    <file alias="LICENSE.polygon-clipping.txt">../assets/geometry/LICENSE.polygon-clipping.txt</file>
+    <file alias="polygon-clipping-0.15.7.js">../assets/geometry/current/polygon-clipping.min.js</file>
+    <file alias="polygon-clipping-calculation.js">../assets/geometry/current/polygon-clipping-calculation.js</file>
+    <file alias="polygon-geometry.js">../assets/geometry/current/polygon-geometry.js</file>
+    <file alias="current-manifest.json">../assets/geometry/current/manifest.json</file>
+  </qresource>
+  <qresource prefix="/river">
+    <file alias="bridge.js">../assets/geometry/river/bridge.js</file>
+    <file alias="current/d3-original.min.js">../assets/geometry/current/d3-original.min.js</file>
+    <file alias="current/d3.min.js">../assets/geometry/current/d3.min.js</file>
+    <file alias="current/planar-graph-faces.js">../assets/geometry/current/river/planar-graph-faces.js</file>
+    <file alias="current/river-territory-partition.js">../assets/geometry/current/river/river-territory-partition.js</file>
+    <file alias="LICENSE.d3.txt">../assets/geometry/river/LICENSE.d3.txt</file>
+    <file alias="platform.js">../assets/geometry/river/platform.js</file>
+    <file alias="presentation.js">../assets/geometry/river/presentation.js</file>
+    <file alias="workspace-observation.js">../assets/geometry/river/workspace-observation.js</file>
+  </qresource>
+</RCC>

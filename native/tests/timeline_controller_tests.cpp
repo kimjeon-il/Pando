@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "editorcontroller.h"
 #include "projectcodec.h"
 #include <pandoeditor/project.h>
@@ -14,11 +15,9 @@ class TimelineControllerTests final : public QObject {
 private slots:
     void datedSharedBoundaryPreservesEarlierMonth() {
         try {
-        pandoeditor::ProjectDocument document({
-            {"A","Alpha",{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}},0x336699},
-            {"B","Beta",{{{{2,2},{5,2},{5,3},{5,4},{2,4},{2,2}}}},0x993366},
-            {"D","Delta",{{{{5,2},{8,2},{8,4},{5,4},{5,3},{5,2}}}},0x993399}},
-            {{"countries","Countries"}});
+        pandoeditor::ProjectDocument document = makeTerritorialDocument({{{"A","Alpha","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}}},{0x336699,1},"countries"},
+        {{"B","Beta","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{2,2},{5,2},{5,3},{5,4},{2,4},{2,2}}}}},{0x993366,1},"countries"},
+        {{"D","Delta","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{5,2},{8,2},{8,4},{5,4},{5,3},{5,2}}}}},{0x993399,1},"countries"}},{{"countries","Countries"}});
         pandoeditor::staticParentRelation(document,"B").parentId="A";
         pandoeditor::staticParentRelation(document,"D").parentId="A";
         const auto geometry=pandoeditor::staticGeometryBinding(document,"A").geometryRef;
@@ -59,9 +58,7 @@ private slots:
     }
     void datedSplitCreatesHistoricalSibling() {
         try {
-        pandoeditor::ProjectDocument document({
-            {"A","Alpha",{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}},0x336699}},
-            {{"countries","Countries"}});
+        pandoeditor::ProjectDocument document = makeTerritorialDocument({{{"A","Alpha","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}}},{0x336699,1},"countries"}},{{"countries","Countries"}});
         const auto ref=pandoeditor::staticGeometryBinding(document,"A").geometryRef;
         pandoeditor::staticGeometryBinding(document,"A").validity.to="1914-06";
         document.timelineRecords.geometryBindings.push_back({"A:1914-07","A",{{"1914-07"},{}},ref});
@@ -101,12 +98,10 @@ private slots:
     }
     void datedTransferKeepsEarlierMonth() {
         try {
-        pandoeditor::ProjectDocument document({
-            {"A","Alpha",{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}},0x336699},
-            {"B","Beta",{{{{2,2},{5,2},{5,5},{2,5},{2,2}}}},0x993366},
-            {"C","Gamma",{{{{20,0},{30,0},{30,10},{20,10},{20,0}}}},0x339966},
-            {"D","Delta",{{{{5,2},{8,2},{8,4},{5,4},{5,2}}}},0x993399}},
-            {{"countries","Countries"}});
+        pandoeditor::ProjectDocument document = makeTerritorialDocument({{{"A","Alpha","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}}},{0x336699,1},"countries"},
+        {{"B","Beta","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{2,2},{5,2},{5,5},{2,5},{2,2}}}}},{0x993366,1},"countries"},
+        {{"C","Gamma","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{20,0},{30,0},{30,10},{20,10},{20,0}}}}},{0x339966,1},"countries"},
+        {{"D","Delta","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{5,2},{8,2},{8,4},{5,4},{5,2}}}}},{0x993399,1},"countries"}},{{"countries","Countries"}});
         pandoeditor::staticParentRelation(document,"B").parentId="A";
         pandoeditor::staticParentRelation(document,"B").coverageMode="partition";
         pandoeditor::staticParentRelation(document,"D").parentId="A";

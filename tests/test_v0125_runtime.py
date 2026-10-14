@@ -8,7 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).parents[1]
 APP = read_application_sources(ROOT)
 RENDERER = (ROOT / "assets" / "js" / "modules" / "gpu-map-renderer.js").read_text(encoding="utf-8")
-TRANSACTION = (ROOT / "assets" / "js" / "modules" / "map-edit-transaction.js").read_text(encoding="utf-8")
+TRANSACTION = read_module(ROOT, "app-geometry-preview.js")
 COUNTRY_COMMANDS = (ROOT / "assets" / "js" / "modules" / "map-edit-country-commands.js").read_text(encoding="utf-8")
 WORKER = (ROOT / "assets" / "js" / "workers" / "hydro-tile-worker.js").read_text(encoding="utf-8")
 CANVAS_WORKER = (ROOT / "assets" / "js" / "workers" / "canvas-render-worker.js").read_text(encoding="utf-8")
@@ -52,7 +52,10 @@ class V0125RuntimeTests(unittest.TestCase):
         self.assertRegex(patch, r"applyCountryPatch\(\s*\{ ids: \[\.\.\.changed\], features, removedIds \},\s*\{ presentation \}")
         annex = function_source(COMMITS, "prepareAnnexSelectionPreview")
         self.assertIn("operation: 'annex'", annex)
-        self.assertIn("client.execute(operation, payload)", TRANSACTION)
+        transaction = function_source(TRANSACTION, "transactMapEdit")
+        self.assertIn("dependencies.spatialQuery.mapEditClient.execute(operation,payload)", transaction)
+        self.assertIn("dependencies.domains.projectDomain.confirmCandidate(prepared.candidateId,prepared.state.epoch", transaction)
+        self.assertIn("dependencies.spatialQuery.mapEditClient.commit(requestId)", transaction)
         self.assertIn("overlap > Number(baseline.overlaps.get(key) || 0) + tolerance", COUNTRY_COMMANDS)
         self.assertIn("boundaryLength || 0) * 2e-7", COUNTRY_COMMANDS)
 

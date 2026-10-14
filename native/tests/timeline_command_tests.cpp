@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include <pandoeditor/project.h>
 #include <pandoeditor/timeline-resolver.h>
 #include <iostream>
@@ -7,10 +8,8 @@ using namespace pandoeditor;
 int main() {
     int failures=0;
     const auto check=[&](bool okay,const char* detail){if(!okay){++failures;std::cerr<<detail<<'\n';}};
-    ProjectDocument document({
-        {"A","Alpha",{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}},0x336699},
-        {"B","Beta",{{{{2,2},{5,2},{5,5},{2,5},{2,2}}}},0x993366}},
-        {{"countries","Countries"}});
+    pandoeditor::ProjectDocument document = makeTerritorialDocument({{{"A","Alpha","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}}},{0x336699,1},"countries"},
+        {{"B","Beta","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{2,2},{5,2},{5,5},{2,5},{2,2}}}}},{0x993366,1},"countries"}},{{"countries","Countries"}});
     auto old=staticGeometryBinding(document,"A");
     auto second=*document.geometries.get(old.geometryRef);
     second.polygons.front().front()[1].x=11;

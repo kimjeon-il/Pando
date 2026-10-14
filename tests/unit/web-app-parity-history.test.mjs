@@ -5,8 +5,8 @@ import { commandHistoryTrace } from '../../tools/parity/command-history.mjs';
 import { compareObservations } from '../../tools/parity/contract.mjs';
 const corpus = JSON.parse(readFileSync(new URL('../fixtures/portability/command-history.json', import.meta.url)));
 
-test('current command/history observer matches the saved-state contract', () => {
-  const trace = commandHistoryTrace(corpus);
+test('current command/history observer matches the saved-state contract', async () => {
+  const trace = await commandHistoryTrace(corpus);
   assert.equal(trace.length, corpus.operations.length);
   for (const [index, operation] of corpus.operations.entries()) {
     assert.deepEqual(trace[index], operation.expected);
@@ -14,7 +14,7 @@ test('current command/history observer matches the saved-state contract', () => 
     assert.deepEqual(differences, []);
   }
 });
-test('unsupported scenario operations cannot silently become observations', () => {
+test('unsupported scenario operations cannot silently become observations', async () => {
   const invalid = structuredClone(corpus); invalid.operations[0].op = 'invented';
-  assert.throws(() => commandHistoryTrace(invalid), /Unknown operation/);
+  await assert.rejects(commandHistoryTrace(invalid), /Unknown operation/);
 });

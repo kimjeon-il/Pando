@@ -1,0 +1,275 @@
+name: P3 Remote preview and Qt verification
+on:
+  push:
+    branches: [work/ui, work/objects, work/gis, work/places]
+    paths:
+      - '.github/workflows/remote-preview-p3.yml'
+      - 'scripts/p3-plan-remote.mjs'
+      - 'scripts/p3-stage-preview.mjs'
+      - 'tests/unit/p3-remote-plan.test.mjs'
+      - 'tests/browser/p3-remote-preview.spec.mjs'
+      - 'tests/browser/performance-observability.spec.mjs'
+      - 'index.html'
+      - '.nojekyll'
+      - 'assets/**'
+      - 'contracts/**'
+      - 'shared/**'
+      - 'native/**'
+      - 'cmake/**'
+      - 'CMakeLists.txt'
+      - 'CMakePresets.json'
+      - 'config/toolchain-versions.json'
+      - 'playwright.config.js'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: Run changed scopes only (auto), or select a diagnostic
+        type: choice
+        required: false
+        default: auto
+        options: [auto, preview, browser, qt, all]
+permissions:
+  contents: read
+concurrency:
+  group: p3-preview-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  plan:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    outputs:
+      preview: ${{ steps.scope.outputs.preview }}
+      browser: ${{ steps.scope.outputs.browser }}
+      qt: ${{ steps.scope.outputs.qt }}
+      slug: ${{ steps.scope.outputs.slug }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Check preview and build plan without installing SDKs
+        run: node --test tests/unit/p3-remote-plan.test.mjs
+      - name: Resolve changed scopes using the actual Git history
+        id: scope
+        env:
+          PANDO_P3_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || '' }}
+          PANDO_P3_BRANCH: ${{ github.head_ref || github.ref_name }}
+          PANDO_P3_SCOPE: ${{ inputs.scope || 'auto' }}
+        run: node scripts/p3-plan-remote.mjs --github-output
+
+  web-snapshot:
+    needs: plan
+    if: needs.plan.outputs.preview == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Stage a reproducible branch Web snapshot without deploying Pages
+        env:
+          PREVIEW_PATH: ${{ runner.temp }}/p3-preview/${{ needs.plan.outputs.slug }}
+          PREVIEW_BRANCH: ${{ github.head_ref || github.ref_name }}
+        run: |
+          node scripts/p3-stage-preview.mjs --root . --output "$PREVIEW_PATH" --branch "$PREVIEW_BRANCH"
+      - name: Upload runnable static Web preview for this branch
+        uses: actions/upload-artifact@v4
+        with:
+          name: p3-web-${{ needs.plan.outputs.slug }}-${{ github.sha }}
+          path: ${{ runner.temp }}/p3-preview/${{ needs.plan.outputs.slug }}
+          retention-days: 5
+          compression-level: 0
+          include-hidden-files: true
+          if-no-files-found: error
+      - name: Point developers to the branch-specific preview artifact
+        env:
+          P3_SLUG: ${{ needs.plan.outputs.slug }}
+        run: |
+          echo "### Branch Web preview: $P3_SLUG" >> "$GITHUB_STEP_SUMMARY"
+          echo "Download **p3-web-$P3_SLUG-$GITHUB_SHA** from this run's Artifacts." >> "$GITHUB_STEP_SUMMARY"
+          echo "This is an offline-served static snapshot, not a live Pages URL; production Pages remains unchanged." >> "$GITHUB_STEP_SUMMARY"
+
+  browser-regression:
+    needs: plan
+    if: needs.plan.outputs.browser == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - name: Install JS test framework only for browser regression
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Install Chromium and OS dependencies
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Verify the active built-in world mesh decoder contract
+        run: node --test tests/unit/country-mesh-codec-runtime.test.mjs
+      - name: Run real desktop and emulated mobile screenshots plus startup observability
+        shell: bash
+        env:
+          PANDO_P3_BRANCH: ${{ github.head_ref || github.ref_name }}
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: |
+          set -euo pipefail
+          mkdir -p test-results/p3-browser
+          pnpm exec playwright test \
+            tests/browser/p3-remote-preview.spec.mjs \
+            tests/browser/performance-observability.spec.mjs \
+            --workers=1 --retries=0 --output=test-results/p3-browser \
+            2>&1 | tee test-results/p3-browser.log
+      - name: Archive screenshots, test output and failure evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p3-browser-${{ needs.plan.outputs.slug }}-${{ github.sha }}
+          path: |
+            test-results/p3-browser
+            test-results/p3-browser.log
+            playwright-report
+          if-no-files-found: warn
+          retention-days: 10
+
+  qt-build-and-ctest:
+    needs: plan
+    if: needs.plan.outputs.qt == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            os_id: linux
+            preset: pando-native-qt-ci-linux
+            qt_arch: linux_gcc_64
+          - os: windows-2022
+            os_id: windows
+            preset: pando-native-qt-ci-windows
+            qt_arch: win64_msvc2022_64
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 75
+    env:
+      PANDO_P3_QT_PRESET: ${{ matrix.preset }}
+      QT_QPA_PLATFORM: offscreen
+      QT_QUICK_BACKEND: software
+    steps:
+      - name: Retain exact checked-out source data
+        shell: bash
+        run: git config --global core.autocrlf false
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - name: Install existing native JS geometry adapters
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: '3.31.6'
+      - name: Install Linux Qt/native build and display dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build zlib1g-dev libegl1-mesa-dev libxkbcommon-x11-0 libxcb-cursor0 xvfb xauth xdotool imagemagick fonts-noto-cjk
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.3'
+          arch: ${{ matrix.qt_arch }}
+          modules: qtshadertools qtimageformats
+          cache: true
+      - name: Install Windows zlib from vcpkg
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: vcpkg install zlib:x64-windows
+      - name: Configure pinned Linux Qt app and selected CTests
+        if: runner.os == 'Linux'
+        shell: bash
+        run: cmake --preset "$PANDO_P3_QT_PRESET"
+      - name: Configure pinned Windows Qt app and selected CTests
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          cmake --preset $env:PANDO_P3_QT_PRESET "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+          exit $LASTEXITCODE
+      - name: Build Linux app and selected Qt/native test targets
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -o pipefail
+          cmake --build --preset "$PANDO_P3_QT_PRESET" 2>&1 | tee p3-qt-build.log
+      - name: Build Windows app and selected Qt/native test targets
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          cmake --build --preset $env:PANDO_P3_QT_PRESET 2>&1 | Tee-Object p3-qt-build.log
+          exit $LASTEXITCODE
+      - name: Run focused Qt CTest and core state checks (Linux)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -o pipefail
+          ctest --preset "$PANDO_P3_QT_PRESET" 2>&1 | tee p3-ctest.log
+      - name: Run focused Qt CTest and core state checks (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          ctest --preset $env:PANDO_P3_QT_PRESET 2>&1 | Tee-Object p3-ctest.log
+          exit $LASTEXITCODE
+      - name: Capture a real nonblank Qt Quick application window under Linux Xvfb
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          app="$PWD/build-native/p3/pando-native-qt-ci-linux/native/app/pandoeditor"
+          bash native/tools/p3-capture-smoke.sh \
+            "$app" "$PWD/test-results/p3-qt/native-smoke.log" \
+            "$PWD/test-results/p3-qt/native-window.png"
+      - name: Record Qt binary identity for this platform
+        shell: bash
+        if: success()
+        env:
+          P3_OS: ${{ matrix.os_id }}
+        run: |
+          mkdir -p test-results/p3-qt
+          if [ "$P3_OS" = windows ]; then
+            find build-native/p3/pando-native-qt-ci-windows -type f -name pandoeditor.exe -print | head -1 > test-results/p3-qt/binary-path.txt
+          else
+            find build-native/p3/pando-native-qt-ci-linux -type f -name pandoeditor -print | head -1 > test-results/p3-qt/binary-path.txt
+          fi
+          test -s test-results/p3-qt/binary-path.txt
+          while IFS= read -r bin; do
+            cp "$bin" "test-results/p3-qt/pandoeditor-$P3_OS$(echo "$bin" | grep -q '.exe$' && printf '.exe' || true)"
+            sha256sum "$bin" > test-results/p3-qt/binary-sha256.txt
+          done < test-results/p3-qt/binary-path.txt
+      - name: Archive binaries, Qt screenshots, CTest logs and failure receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p3-qt-${{ matrix.os_id }}-${{ github.sha }}
+          path: |
+            p3-qt-build.log
+            p3-ctest.log
+            test-results/p3-qt
+            build-native/p3/${{ matrix.preset }}/native/build-provenance.json
+            build-native/p3/${{ matrix.preset }}/Testing/Temporary/LastTest.log
+          if-no-files-found: warn
+          retention-days: 10

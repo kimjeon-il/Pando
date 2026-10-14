@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "territorial_fixture.h"
 #include "territorialgeometry.h"
 #include "territorialpreviewruntime.h"
@@ -46,8 +47,8 @@ Geometry rectangle(double x,double y,double width,double height) {
     Geometry geometry;geometry.polygons={{{{x,y},{x+width,y},{x+width,y+height},{x,y+height},{x,y}}}};return geometry;
 }
 ProjectDocument fixture() {
-    return ProjectDocument({{"A","A",rectangle(0,0,10,10).polygons,0xabcdef},
-                            {"B","B",rectangle(10,0,10,10).polygons,0x123456}},{{"countries","Countries"}});
+    return makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},rectangle(0,0,10,10).polygons},{0xabcdef,1},"countries"},
+        {{"B","B","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},rectangle(10,0,10,10).polygons},{0x123456,1},"countries"}},{{"countries","Countries"}});
 }
 void addUnit(ProjectDocument& document,const std::string& id,Geometry geometry,const std::string& parent="") {
     const GeometryRef ref{id,1};document.geometries.insert(ref,std::move(geometry));
@@ -90,8 +91,8 @@ AnnexGeometryPreviewRequest sliverRequest(const std::vector<Geometry>& leftovers
     return request;
 }
 ProjectDocument sliverFixture(Geometry donor=rectangle(0,0,.01,.01)) {
-    return ProjectDocument({{"D","D",donor.polygons,0x123456},
-                            {"T","T",rectangle(-.02,0,.01,.01).polygons,0xabcdef}},{{"countries","Countries"}});
+    return makeTerritorialDocument({{{"D","D","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},donor.polygons},{0x123456,1},"countries"},
+        {{"T","T","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},rectangle(-.02,0,.01,.01).polygons},{0xabcdef,1},"countries"}},{{"countries","Countries"}});
 }
 Geometry decodePolygon(const QJsonObject& row) {
     Geometry geometry;geometry.type=row["type"].toString().toStdString();auto polygons=row["coordinates"].toArray();
@@ -117,8 +118,8 @@ int compareBrowserAnnex(const QString& reportPath,const QString& payloadPath,con
         if(identity.isEmpty()||browser["identity"].toObject()!=identity)throw std::runtime_error("BROWSER_NATIVE_IDENTITY_MISMATCH");
         const auto world=QJsonDocument::fromJson(payload["world"].toObject()["source"].toString().toUtf8()).object()["features"].toArray();
         if(world.size()!=258||browser["annex"].toArray().size()!=4)throw std::runtime_error("INCOMPLETE_BROWSER_ANNEX_CORPUS");
-        std::vector<Country> countries;for(const auto& value:world) {const auto feature=value.toObject();
-            const auto id=feature["id"].toString().toStdString();countries.push_back({id,id,decodePolygon(feature["geometry"].toObject()).polygons,0xabcdef});}
+        std::vector<TerritorialDocumentFixture> countries;for(const auto& value:world) {const auto feature=value.toObject();
+            const auto id=feature["id"].toString().toStdString();countries.push_back({{id,id,"",UnitKind::General},decodePolygon(feature["geometry"].toObject()),{0xabcdef,1}});}
         for(const auto& value:browser["annex"].toArray()) {
             const auto evidence=value.toObject(),scenario=evidence["selection"].toObject();QJsonObject row{{"name",evidence["name"]}};
             try {
@@ -150,7 +151,7 @@ int compareBrowserAnnex(const QString& reportPath,const QString& payloadPath,con
                 QJsonArray unselected;for(const auto& geometry:context.unselectedGeometries)unselected.append(encodePolygon(geometry));
                 const auto expectedInput=evidence["input"].toObject();const bool inputExact=encodePolygon(request.selection)==expectedInput["transferredGeometry"].toObject()
                     &&unselected==expectedInput["riverSliverContext"].toArray()[0].toObject()["unselectedGeometries"].toArray();
-                Project project;project.replace(ProjectDocument(countries,{{"countries","Countries"}}));const auto before=projectcodec::encode(project);
+                Project project;project.replace(makeTerritorialDocument(countries,{{"countries","Countries"}}));const auto before=::projectcodec::encode(project);
                 const auto result=preview(project,request);const auto expected=evidence["result"].toObject();
                 row["selectedCellsExact"]=selectedExact;row["inputExact"]=inputExact;row["previewOk"]=result.ok();row["detail"]=QString::fromStdString(result.detail);
                 row["count"]=int(result.autoIncludedSliverCount);row["areaM2"]=result.autoIncludedSliverAreaM2;
@@ -163,11 +164,11 @@ int compareBrowserAnnex(const QString& reportPath,const QString& payloadPath,con
                     QJsonObject expectedGeometry;for(const auto& feature:expected["features"].toArray())if(feature.toObject()["id"].toString().toStdString()==changed.owner.id)expectedGeometry=feature.toObject()["geometry"].toObject();
                     rowsExact=rowsExact&&encodePolygon(*changed.after)==expectedGeometry;
                 }
-                row["rowsExact"]=rowsExact;row["inputUnchanged"]=projectcodec::encode(project)==before;
+                row["rowsExact"]=rowsExact;row["inputUnchanged"]=::projectcodec::encode(project)==before;
                 auto prepared=prepare(project,result);row["strictPrepareOk"]=prepared.ok();row["strictDetail"]=QString::fromStdString(prepared.detail);
                 bool history=false;if(prepared.ok()&&CommandProcessor::confirm(project,*prepared.preview).ok()) {
-                    const auto after=projectcodec::encode(project);history=!CommandProcessor::confirm(project,*prepared.preview).ok()&&project.undo()&&projectcodec::encode(project)==before
-                        &&project.redo()&&projectcodec::encode(project)==after;
+                    const auto after=::projectcodec::encode(project);history=!CommandProcessor::confirm(project,*prepared.preview).ok()&&project.undo()&&::projectcodec::encode(project)==before
+                        &&project.redo()&&::projectcodec::encode(project)==after;
                 }
                 row["confirmOnceUndoRedoExact"]=history;
                 row["passed"]=selectedExact&&inputExact&&result.ok()&&row["countExact"].toBool()&&row["areaExact"].toBool()
@@ -186,7 +187,7 @@ class TerritorialGeometryPreviewTests:public QObject {
 private slots:
     void sixteenAdjacentOwnersPreserveExactDrafts() {
         const Ring perimeter{{-4,-4},{-2,-4},{0,-4},{2,-4},{4,-4},{4,-2},{4,0},{4,2},{4,4},{2,4},{0,4},{-2,4},{-4,4},{-4,2},{-4,0},{-4,-2}};
-        ProjectDocument document({},{});
+        pandoeditor::ProjectDocument document = makeTerritorialDocument({},{});
         SharedBoundaryIntent intent;
         for(std::size_t i=0;i<perimeter.size();++i) {
             Geometry source;source.polygons={{{{0,0},perimeter[i],perimeter[(i+1)%16],{0,0}}}};
@@ -194,7 +195,7 @@ private slots:
             auto draft=source;draft.polygons[0][0].front()={1,0};draft.polygons[0][0].back()={1,0};
             intent.drafts.push_back({territorialRef(id),draft});
         }
-        Project project;project.replace(document);const auto before=projectcodec::encode(project);
+        Project project;project.replace(document);const auto before=::projectcodec::encode(project);
         JobScheduler jobs;auto ticket=jobs.enqueue(project.snapshot(),"boundary-sixteen");jobs.takeNext();
         const auto result=calculateBoundaryGeometryPreview(project.snapshot(),intent,territorialPreviewCalculators(),ticket.token());
         QVERIFY2(result.ok(),result.detail.c_str());QVERIFY(!result.blocking());
@@ -203,7 +204,7 @@ private slots:
             QCOMPARE(result.patch().replacements[i].owner,intent.drafts[i].owner);
             QVERIFY(exactPreviewGeometry(result.patch().replacements[i].geometry,intent.drafts[i].geometry));
         }
-        QCOMPARE(projectcodec::encode(project),before);
+        QCOMPARE(::projectcodec::encode(project),before);
     }
     void runtimeFactoryExactlyForwardsActualPreviewKernels() {
         const auto& runtime=territorialPreviewCalculators();
@@ -252,14 +253,14 @@ private slots:
         const auto missing=calculateGeometry({GeometryOperation::Difference,donor,reunited.geometry});QCOMPARE(missing.status,GeometryOperationStatus::Empty);
     }
     void riverSliversAreAddedToAuthoritativeTransferAndStrictReceipt() {
-        Project project;project.replace(sliverFixture());const auto before=projectcodec::encode(project);
+        Project project;project.replace(sliverFixture());const auto before=::projectcodec::encode(project);
         const auto result=preview(project,sliverRequest({webSmall(.002,.2),webSmall(.004,.3)}));
         QVERIFY2(result.ok(),result.detail.c_str());QCOMPARE(result.autoIncludedSliverCount,std::size_t(2));
         QVERIFY(std::abs(result.autoIncludedSliverAreaM2-.5)<.001);QCOMPARE(result.removedRoots,std::vector<ObjectRef>{territorialRef("D")});
         QCOMPARE(calculateGeometry({GeometryOperation::Difference,rectangle(0,0,.01,.01),result.transferredGeometry}).status,GeometryOperationStatus::Empty);
-        QCOMPARE(projectcodec::encode(project),before);auto committed=prepare(project,result);QVERIFY2(committed.ok(),committed.detail.c_str());
+        QCOMPARE(::projectcodec::encode(project),before);auto committed=prepare(project,result);QVERIFY2(committed.ok(),committed.detail.c_str());
         QVERIFY(CommandProcessor::confirm(project,*committed.preview).ok());QVERIFY(!CommandProcessor::confirm(project,*committed.preview).ok());
-        const auto after=projectcodec::encode(project);QVERIFY(project.undo());QCOMPARE(projectcodec::encode(project),before);QVERIFY(project.redo());QCOMPARE(projectcodec::encode(project),after);
+        const auto after=::projectcodec::encode(project);QVERIFY(project.undo());QCOMPARE(::projectcodec::encode(project),before);QVERIFY(project.redo());QCOMPARE(::projectcodec::encode(project),after);
         Project control;control.replace(sliverFixture());const auto raw=preview(control,sliverRequest({webSmall(.002,.2),webSmall(.004,.3)},false));
         QVERIFY2(raw.ok(),raw.detail.c_str());QCOMPARE(raw.autoIncludedSliverCount,std::size_t(0));QVERIFY(raw.removedRoots.empty());
     }
@@ -367,7 +368,7 @@ private slots:
         // Exact equality, deliberately not QTest's fuzzy double comparison.
         QVERIFY(((std::ldexp(1.,-18)*height)*meters)*meters==expectedArea);
         const auto source=rectangle(0,-.001,.01,.002),piece=exactSquareMetrePiece(1,height);
-        Project project;project.replace(sliverFixture(source));const auto before=projectcodec::encode(project);
+        Project project;project.replace(sliverFixture(source));const auto before=::projectcodec::encode(project);
         const auto result=preview(project,{territorialRef("T"),{territorialRef("D")},selectionWithoutPieces(source,{piece}),{{"D",0,{}}}});
         QVERIFY2(result.ok(),result.detail.c_str());QCOMPARE(result.autoIncludedSliverCount,std::size_t(expectedCount));
         QVERIFY(result.autoIncludedSliverAreaM2==(expectedCount?expectedArea:0.));
@@ -378,7 +379,7 @@ private slots:
             QVERIFY(result.removedRoots.empty());QVERIFY(result.rows[1].after);QVERIFY(samePolygonCoverage(*result.rows[1].after,piece));
             QCOMPARE(calculateGeometry({GeometryOperation::Intersection,result.transferredGeometry,piece}).status,GeometryOperationStatus::Empty);
         }
-        QVERIFY2(prepare(project,result).ok(),"The exact-boundary receipt must remain strict-committable");QCOMPARE(projectcodec::encode(project),before);
+        QVERIFY2(prepare(project,result).ok(),"The exact-boundary receipt must remain strict-committable");QCOMPARE(::projectcodec::encode(project),before);
     }
     void exactTenSquareMetreBudgetIncludesEqualityAndKeepsNextPiece() {
         const auto source=rectangle(0,-.001,.02,.002);std::vector<Geometry> pieces;
@@ -413,9 +414,10 @@ private slots:
         }
         // Construct named donors directly so every timeline binding remains
         // canonical, independently of the requested traversal order.
-        auto document=ProjectDocument({{"A","A",donors[0].polygons,0x123456},{"B","B",donors[1].polygons,0x654321},
-            {"T","T",rectangle(-.02,0,.01,.01).polygons,0xabcdef}},{{"countries","Countries"}});
-        Project project;project.replace(document);const auto before=projectcodec::encode(project);
+        auto document=makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},donors[0].polygons},{0x123456,1},"countries"},
+        {{"B","B","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},donors[1].polygons},{0x654321,1},"countries"},
+        {{"T","T","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},rectangle(-.02,0,.01,.01).polygons},{0xabcdef,1},"countries"}},{{"countries","Countries"}});
+        Project project;project.replace(document);const auto before=::projectcodec::encode(project);
         std::vector<ObjectRef> order{territorialRef("A"),territorialRef("B")};if(reverseDonors)std::reverse(order.begin(),order.end());
         // Context order is also unrelated to donor or polygon traversal.
         const auto result=preview(project,{territorialRef("T"),order,selectionWithoutPieces(allSource,pieces),
@@ -430,16 +432,16 @@ private slots:
         QVERIFY(samePolygonCoverage(*result.rows[2].after,expectedKept));
         const auto remaining=calculateGeometry({GeometryOperation::Difference,allSource,result.transferredGeometry});
         QVERIFY(remaining.succeeded());QVERIFY(samePolygonCoverage(remaining.geometry,expectedKept));
-        QVERIFY2(prepare(project,result).ok(),"The cross-boundary receipt must remain strict-committable");QCOMPARE(projectcodec::encode(project),before);
+        QVERIFY2(prepare(project,result).ok(),"The cross-boundary receipt must remain strict-committable");QCOMPARE(::projectcodec::encode(project),before);
     }
     void unrepresentableProtectedMicroscopicRemnantFailsWithoutDroppingIt() {
         const auto donor=rectangle(20,45,.01,.01);auto selected=donor;
         selected.polygons[0][0]={{20+1e-7,45},{20.01,45},{20.01,45.01},{20,45.01},{20,45+1e-7},{20+1e-7,45}};
         const auto remainder=calculateRiverGeometryIntermediate({GeometryOperation::Difference,donor,selected});QVERIFY(remainder.succeeded());
-        Project project;project.replace(sliverFixture(donor));const auto before=projectcodec::encode(project);
+        Project project;project.replace(sliverFixture(donor));const auto before=::projectcodec::encode(project);
         AnnexGeometryPreviewRequest request{territorialRef("T"),{territorialRef("D")},selected,{{"D",0,{remainder.geometry}}}};
         const auto blocked=preview(project,request);QVERIFY(!blocked.ok());QVERIFY(blocked.blocking());
-        QCOMPARE(blocked.detail,std::string("RIVER_REMAINDER_NOT_REPRESENTABLE"));QVERIFY(!prepare(project,blocked).ok());QCOMPARE(projectcodec::encode(project),before);
+        QCOMPARE(blocked.detail,std::string("RIVER_REMAINDER_NOT_REPRESENTABLE"));QVERIFY(!prepare(project,blocked).ok());QCOMPARE(::projectcodec::encode(project),before);
         request.riverSliverContext[0].unselectedGeometries.clear();const auto admitted=preview(project,request);
         QVERIFY2(admitted.ok(),admitted.detail.c_str());QCOMPARE(admitted.autoIncludedSliverCount,std::size_t(1));QVERIFY(prepare(project,admitted).ok());
     }
@@ -476,30 +478,30 @@ private slots:
             Geometry point;point.type="Point";point.points={{15,5}};document.geometries.insert({"label",1},point);
             PlaceLabel label;label.id="label";label.name="B label";label.geometry={"label",1};label.territory=territorialRef("B");document.labels.push_back(label);
         } else document.presentation.webPresentation.labelSettings[territorialRef("B")]={};
-        Project project;project.replace(document);const auto before=projectcodec::encode(project);const auto revision=project.revision();
+        Project project;project.replace(document);const auto before=::projectcodec::encode(project);const auto revision=project.revision();
         const auto result=preview(project,{territorialRef("A"),{territorialRef("B")},rectangle(10,0,10,10)});
         QVERIFY2(result.ok(),result.detail.c_str());QVERIFY(!result.blocking());
         QCOMPARE(planarArea(result.transferredGeometry),100.);QCOMPARE(result.affectedDonors,std::vector<ObjectRef>{territorialRef("B")});
         QCOMPARE(result.removedRoots,std::vector<ObjectRef>{territorialRef("B")});QVERIFY(result.rows.size()>=2);
         QCOMPARE(result.rows[0].owner,territorialRef("A"));QVERIFY(result.rows[0].after);QCOMPARE(planarArea(*result.rows[0].after),200.);
         QCOMPARE(result.rows[1].owner,territorialRef("B"));QVERIFY(!result.rows[1].after);
-        QCOMPARE(projectcodec::encode(project),before);QCOMPARE(project.revision(),revision);
+        QCOMPARE(::projectcodec::encode(project),before);QCOMPARE(project.revision(),revision);
         const auto committed=prepare(project,result);QVERIFY(!committed.ok());QVERIFY(!committed.preview);
-        QVERIFY(!committed.detail.empty());QCOMPARE(projectcodec::encode(project),before);QCOMPARE(project.revision(),revision);QVERIFY(!project.undo());
+        QVERIFY(!committed.detail.empty());QCOMPARE(::projectcodec::encode(project),before);QCOMPARE(project.revision(),revision);QVERIFY(!project.undo());
     }
     void validReceiptCommitsOnceAndUndoRestores() {
-        Project project;project.replace(fixture());const auto before=projectcodec::encode(project);
+        Project project;project.replace(fixture());const auto before=::projectcodec::encode(project);
         const auto result=preview(project,{territorialRef("A"),{territorialRef("B")},rectangle(10,0,5,10)});
         QVERIFY2(result.ok(),result.detail.c_str());QCOMPARE(planarArea(result.transferredGeometry),50.);
-        auto prepared=prepare(project,result);QVERIFY2(prepared.ok(),prepared.detail.c_str());QCOMPARE(projectcodec::encode(project),before);
+        auto prepared=prepare(project,result);QVERIFY2(prepared.ok(),prepared.detail.c_str());QCOMPARE(::projectcodec::encode(project),before);
         QVERIFY(CommandProcessor::confirm(project,*prepared.preview).ok());QVERIFY(!CommandProcessor::confirm(project,*prepared.preview).ok());
-        const auto after=projectcodec::encode(project);QVERIFY(after!=before);QVERIFY(project.undo());QCOMPARE(projectcodec::encode(project),before);
-        QVERIFY(project.redo());QCOMPARE(projectcodec::encode(project),after);
+        const auto after=::projectcodec::encode(project);QVERIFY(after!=before);QVERIFY(project.undo());QCOMPARE(::projectcodec::encode(project),before);
+        QVERIFY(project.redo());QCOMPARE(::projectcodec::encode(project),after);
     }
     void shapeFailureBlocksWithoutCandidateDocument() {
-        Project project;project.replace(fixture());const auto before=projectcodec::encode(project);auto shape=rectangle(10,0,5,10);shape.polygons[0][0].pop_back();
+        Project project;project.replace(fixture());const auto before=::projectcodec::encode(project);auto shape=rectangle(10,0,5,10);shape.polygons[0][0].pop_back();
         const auto result=preview(project,{territorialRef("A"),{territorialRef("B")},shape});
-        QVERIFY(!result.ok());QVERIFY(result.blocking());QVERIFY(!result.issues.empty());QVERIFY(!prepare(project,result).ok());QCOMPARE(projectcodec::encode(project),before);
+        QVERIFY(!result.ok());QVERIFY(result.blocking());QVERIFY(!result.issues.empty());QVERIFY(!prepare(project,result).ok());QCOMPARE(::projectcodec::encode(project),before);
     }
     void selectedOrderAndUnaffectedDonorsSurviveCalculation() {
         auto document=fixture();addUnit(document,"remote",rectangle(60,0,10,10));addUnit(document,"C",rectangle(20,0,10,10));
@@ -516,7 +518,8 @@ private slots:
         targetIsland.front().insert(targetIsland.front().begin()+1,targetIsland.front().front());
         target.polygons.push_back(targetIsland);
         auto donor=rectangle(10,0,10,10);const auto donorIsland=rectangle(60,0,2,2).polygons.front();donor.polygons.push_back(donorIsland);
-        ProjectDocument document({{"A","A",target.polygons,0xabcdef},{"B","B",donor.polygons,0x123456}},{{"countries","Countries"}});
+        pandoeditor::ProjectDocument document = makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},target.polygons},{0xabcdef,1},"countries"},
+        {{"B","B","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},donor.polygons},{0x123456,1},"countries"}},{{"countries","Countries"}});
         Project project;project.replace(document);
         const auto result=preview(project,{territorialRef("A"),{territorialRef("B")},rectangle(10,0,5,10)});
         QVERIFY2(result.ok(),result.detail.c_str());QVERIFY(result.issues.empty());
@@ -549,13 +552,13 @@ private slots:
     }
     void staleAndCancelledReceiptsCannotPrepare() {
         Project project;project.replace(fixture());const auto result=preview(project,{territorialRef("A"),{territorialRef("B")},rectangle(10,0,5,10)});QVERIFY(result.ok());
-        QVERIFY(project.renameCountry("A","renamed"));const auto before=projectcodec::encode(project);const auto stale=prepare(project,result);
-        QVERIFY(!stale.ok());QCOMPARE(stale.error,CommandError::StaleRevision);QCOMPARE(projectcodec::encode(project),before);
+        QVERIFY(project.renameCountry("A","renamed"));const auto before=::projectcodec::encode(project);const auto stale=prepare(project,result);
+        QVERIFY(!stale.ok());QCOMPARE(stale.error,CommandError::StaleRevision);QCOMPARE(::projectcodec::encode(project),before);
         JobScheduler jobs;const auto ticket=jobs.enqueue(project.snapshot(),"cancelled-annex");jobs.takeNext();jobs.cancel(ticket.id());
         const auto fresh=preview(project,{territorialRef("A"),{territorialRef("B")},rectangle(10,0,5,10)});QVERIFY(fresh.ok());
         const auto refused=prepareAnnexGeometryCommit(project.snapshot(),fresh,ticket.token());QVERIFY(!refused.ok());QVERIFY(!refused.preview);QCOMPARE(refused.detail,std::string("CANCELLED"));
         const auto cancelled=calculateAnnexGeometryPreview(project.snapshot(),{territorialRef("A"),{territorialRef("B")},rectangle(10,0,5,10)},territorialPreviewCalculators(),ticket.token());
-        QCOMPARE(cancelled.status,GeometryOperationStatus::Cancelled);QVERIFY(!cancelled.ok());QVERIFY(!cancelled.plan);QCOMPARE(projectcodec::encode(project),before);
+        QCOMPARE(cancelled.status,GeometryOperationStatus::Cancelled);QVERIFY(!cancelled.ok());QVERIFY(!cancelled.plan);QCOMPARE(::projectcodec::encode(project),before);
     }
     void baselineOverlapIsAllowedButNewOverlapBlocks() {
         auto document=fixture();addUnit(document,"C",rectangle(0,0,5,5));Project project;project.replace(document);

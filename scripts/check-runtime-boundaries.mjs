@@ -54,7 +54,7 @@ const domFreeModules = [
   'distribution-service.js',
   'generic-feature-service.js',
   'map-render-coordinator.js',
-  'history-service.js',
+  'core-document-read-model.js',
   'territorial-library-service.js',
   'import-service.js',
   'map-edit-worker-client.js',
@@ -227,6 +227,12 @@ for (const [file, source] of sourceByFile) {
 }
 
 const removedRuntimeSymbols = [
+  'LEGACY_GENERIC_FEATURE_SCHEMA_VERSION', 'genericFeatureRoleRule',
+  'RIBBON_SEGMENT_SCALAR_COUNT', 'appendSelectionRibbonSegment', 'ribbonVerticesForSelectionSegments', 'flattenSelectionGeometry',
+  'prepareEditableProjectSnapshot', 'coreObjectRefToWeb', 'createObjectActionExecutor',
+  'territorialDeletionAllowed', 'exchangeDomainForTarget', 'createExchangeAdapterRegistry',
+  'timelinePriorMonth', 'hasDatedTimelineRecords', 'isMapHost',
+
   'topologySnapCandidates',
   'countryGeometryFingerprint',
   'COUNTRY_PROPERTY_KEYS',
@@ -293,7 +299,6 @@ const privateModuleDeclarations = new Map([
   ['distribution-model.js', ['normalizeDistributionLayer', 'normalizeDistributionEntry']],
   ['draft-editor.js', ['snapshotDraft']],
   ['draft-stroke.js', ['DRAFT_STROKE_PROFILES', 'draftPointerGroup']],
-  ['generic-feature-service.js', ['LEGACY_GENERIC_FEATURE_SCHEMA_VERSION', 'genericFeatureRoleRule']],
   ['geometry-snap.js', ['SNAP_THRESHOLDS']],
   ['geometry-validation.js', ['validateAdministrativeContainment', 'validateDistributionReference']],
   ['gpu-stroke-renderer.js', ['GPU_STROKE_NODE_KINDS']],
@@ -307,7 +312,6 @@ const privateModuleDeclarations = new Map([
   ['reliability-core.js', ['delayWithSignal']],
   ['render-lod.js', ['RENDER_LOD_LEVELS']],
   ['runtime-performance-metrics.js', ['PERFORMANCE_DIAGNOSTIC_THRESHOLDS']],
-  ['selection-stroke-geometry.js', ['RIBBON_SEGMENT_SCALAR_COUNT', 'appendSelectionRibbonSegment', 'ribbonVerticesForSelectionSegments', 'flattenSelectionGeometry']],
   ['temporal.js', ['isLeapYear', 'daysInMonth']],
   ['territorial-units.js', ['territorialUnitType', 'isTerritorialFeature']],
   ['tool-controller.js', ['TOOL_DEFINITIONS']],
@@ -410,6 +414,7 @@ if (/function\s+(?:recordHistory|commitHistorySnapshot|queueAutosave|queueViewAu
   throw new Error('app.js must not reintroduce project history/persistence wrappers');
 }
 const removedDomainFacadeMethods = new Map([
+  [projectDomainSource, ['buildProject']],
   [gisDomainSource, [
     'normalizeGeometry', 'validateGeometry', 'resolveCountryIdentity',
     'planCountryImport', 'planTerritorialImport', 'planCoastReconciliation',
@@ -445,7 +450,7 @@ if (!readApplicationOwners('lifecycle-assembly').includes('createApplicationLife
 if (!lifecycleSource.includes('if (!event.persisted) dispose();')) {
   throw new Error('domain disposal must preserve pages retained in the back-forward cache');
 }
-if (!readApplicationOwners('lifecycle-assembly').includes('renderingDomain, editingDomain, selectionDomain, gisWorkflow, gisDomain, projectDomain]')) {
+if (!/renderingDomain,\s*editingDomain,\s*selectionDomain,\s*gisWorkflow,\s*gisDomain,\s*projectDomain,\s*commandOwner\]/.test(readApplicationOwners('lifecycle-assembly'))) {
   throw new Error('app.js must dispose every domain in visual-to-data ownership order');
 }
 if (!lifecycleSource.includes('resource?.dispose?.()')) {

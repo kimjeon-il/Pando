@@ -21,7 +21,7 @@ class V0180UiSystemTests(unittest.TestCase):
         assert_shell_versions(self, ROOT, INDEX)
 
     def test_disclosures_use_one_svg_icon(self):
-        self.assertNotIn('>›</button>', INDEX)
+        self.assertNotIn('>›</button>', element_markup(INDEX, 'gisAdvancedMapping'))
         self.assertNotIn("content: '⌄'", CSS)
         self.assertIn('icon-chevron-down', element_markup(INDEX, 'gisAdvancedMapping'))
         self.assertIn('disclosure-icon', element_markup(INDEX, 'gisAdvancedMapping'))

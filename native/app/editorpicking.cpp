@@ -12,7 +12,7 @@ MapPickContext EditorController::mapPickContext(double zoom) const {
     MapPickContext context;
     context.mobile=mobileMode_;
     context.zoom=zoom;
-    context.primary=selection_.primary();
+    context.primary=primaryObjectRef();
 
     context.placedLabels=&labelEngine_.placedRefs();
 

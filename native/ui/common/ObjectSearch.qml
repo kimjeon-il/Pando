@@ -93,7 +93,7 @@ ColumnLayout {
             Item {
                 Layout.preferredWidth:36;Layout.preferredHeight:30
                 Image {anchors.fill:parent;source:row.modelData.flagSource||"";sourceSize:Qt.size(48*Screen.devicePixelRatio,32*Screen.devicePixelRatio);fillMode:Image.PreserveAspectFit}
-                UiIcon {anchors.centerIn:parent;visible:!row.modelData.flagSource;name:row.modelData.domain==="territorial"?row.modelData.type:row.modelData.domain==="label"?"place":row.modelData.domain==="hydro"||row.modelData.domain==="hydroBuiltin"?"river":row.modelData.domain.indexOf("distribution")===0?"distribution":"type"}
+                UiIcon {anchors.centerIn:parent;visible:!row.modelData.flagSource;name:row.modelData.domain==="territorial"?row.modelData.kind:row.modelData.domain==="label"?"place":row.modelData.domain==="hydro"||row.modelData.domain==="hydroBuiltin"?"river":row.modelData.domain.indexOf("distribution")===0?"distribution":"type"}
             }
             ObjectSelectionButton {
                 id: selectButton

@@ -2,6 +2,7 @@
 #include <pandoeditor/presentationcommands.h>
 #include "losslessjson.h"
 #include <QtConcurrent>
+#include <QFutureWatcher>
 #include "hydrodataprovider.h"
 #include <pandoeditor/map/projectionengine.h>
 #include <QFile>
@@ -43,11 +44,17 @@ QVariantMap EditorController::distributionDisplay() const {
     return {{"mode",settings.renderMode==DistributionRenderMode::Single?"single":"overlap"},{"boundaryVisible",settings.boundaryVisible},{"activeLayerId",active},{"layers",layers}};
 }
 QVariantMap EditorController::hydroDataStatus() const {
-    const auto& settings=project_.document().physicalData;if(settings.source.empty()&&!hydroRuntime_.isOpen())return QVariantMap{{"ready",false},{"version",displayText(settings.version)},{"dataset",displayText(settings.dataset)},{"error",physicalActive_+physicalQueued_>0?QStringLiteral("필요한 수계 자료를 받는 중입니다."):(physicalError_.isEmpty()?(worldHydroNotice_.isEmpty()?QStringLiteral("수계 자료가 아직 준비되지 않았습니다."):worldHydroNotice_):physicalError_)}};
+    const auto& settings=project_.document().physicalData;
     if(hydroRuntime_.isOpen())return QVariantMap{{"ready",true},{"root",displayText(settings.source)},
         {"version",displayText(settings.version)},{"dataset",displayText(settings.dataset)},
         {"viewportLoaded",hydroViewportLoaded()},{"error",QString()}};
-    const auto inspected=inspectHydroData(displayText(settings.source));return QVariantMap{{"ready",inspected.ready},{"root",inspected.root},{"version",inspected.version},{"dataset",inspected.dataset},{"error",inspected.error}};
+    const auto error=hydroOpenBusy_?QStringLiteral("수계 자료를 검증하고 준비하는 중입니다."):
+        !hydroOpenError_.isEmpty()?hydroOpenError_:
+        physicalActive_+physicalQueued_>0?QStringLiteral("필요한 수계 자료를 받는 중입니다."):
+        !physicalError_.isEmpty()?physicalError_:
+        !worldHydroNotice_.isEmpty()?worldHydroNotice_:QStringLiteral("수계 자료가 아직 준비되지 않았습니다.");
+    return QVariantMap{{"ready",false},{"root",displayText(settings.source)},
+        {"version",displayText(settings.version)},{"dataset",displayText(settings.dataset)},{"error",error}};
 }
 QVariantMap EditorController::terrainDataStatus() const {
     const auto state=terrainDisplay_.snapshot();
@@ -387,7 +394,7 @@ bool EditorController::configureHydroData(const QUrl& value) {
         emit errorOccurred(hydroError);return false;
     }
     auto settings=project_.document().physicalData;settings.dataset=inspected.dataset.toStdString();settings.version=inspected.version.toStdString();settings.source=inspected.root.toStdString();
-    CommandArguments args;args.action=SetPhysicalData{settings};auto request=CommandProcessor::makeRequest(project_,"physical-data.configure",args);auto prepared=CommandProcessor::prepare(project_,request);if(!prepared.ok()||!prepared.preview)return false;const auto result=CommandProcessor::confirm(project_,*prepared.preview);if(!result.ok())return false;
+    CommandArguments args;args.action=SetPhysicalData{settings};auto request=CommandProcessor::makeRequest(project_,"physical-data.configure",args);auto prepared=CommandProcessor::prepare(project_,request);if(!prepared.ok()||!prepared.preview)return false;const auto result=confirmCorePreview(*prepared.preview,coreEpoch());if(!result.ok())return false;
     noteAppliedImpact(result.impact);
     syncHydroData();
     publish(false);return true;
@@ -400,41 +407,91 @@ void EditorController::syncHydroData() {
         QTimer::singleShot(0,this,[this,generation,epoch]{continueRiverPreparation(generation,epoch);});
         return;
     }
+    if(hydroOpenCancelled_)hydroOpenCancelled_->store(true);
+    const auto generation=++hydroOpenGeneration_;
+    auto cancelled=std::make_shared<std::atomic_bool>(false);
+    hydroOpenCancelled_=cancelled;
+    hydroOpenError_.clear();
     riverCache_.clear();riverCacheSource_.reset();
     hydroRuntime_.close(projectInstanceId());
-    auto source=displayText(project_.document().physicalData.source);
-    if(source.isEmpty()&&!physicalRoot_.isEmpty()) {
-        ensureHydroBootstrap();
-        const auto candidate=QDir(physicalRoot_).filePath("hydro/v0.13.2/manifest.json");
-        if(inspectHydroData(candidate).ready)source=QFileInfo(candidate).absolutePath();
+    const auto source=displayText(project_.document().physicalData.source);
+    const auto initial=project_.snapshot();const auto month=project_.timelineCursor();
+    const auto mode=sceneBridge_.viewState().mode;
+    using Promotion=std::function<PhysicalAssetPreparation(const std::function<bool()>&)>;
+    std::vector<std::pair<QString,Promotion>> promotions;
+    if(source.isEmpty()&&physicalStore_)for(const auto& path:{QStringLiteral("hydro/v0.13.2/manifest.json"),QStringLiteral("hydro/v0.13.2/hydro.bin")}) {
+        const auto asset=physicalAssets_.constFind(path);
+        if(asset!=physicalAssets_.cend())promotions.emplace_back(path,physicalStore_->promotionJob(*asset));
     }
-    if(source.isEmpty())return;
-    QString error;
-    if(!hydroRuntime_.open(source,projectInstanceId(),mobileMode_,error))
-        emit errorOccurred(error);
-    else {
+    if(source.isEmpty()&&promotions.size()!=2){hydroOpenBusy_=false;return;}
+    struct Result {HydroRuntimeProvider::PreparedSource prepared;QStringList missing;QString error;};
+    hydroOpenBusy_=true;
+    emit stateChanged();
+    auto* watcher=new QFutureWatcher<std::shared_ptr<Result>>(this);
+    connect(watcher,&QFutureWatcher<std::shared_ptr<Result>>::finished,this,
+        [this,watcher,generation,initial,month,mode] {
+        watcher->deleteLater();
+        if(generation!=hydroOpenGeneration_)return;
+        hydroOpenBusy_=false;
+        // A river workflow can own its first source publication while this
+        // general startup worker is running. Its source must stay installed.
+        if(hydroRuntime_.isOpen())return;
+        if(!initial.matches(project_)||month!=project_.timelineCursor()||mode!=sceneBridge_.viewState().mode) {
+            syncHydroData();return;
+        }
+        const auto result=watcher->result();
+        if(!result->error.isEmpty()){hydroOpenError_=result->error;emit errorOccurred(result->error);emit stateChanged();return;}
+        if(!result->missing.isEmpty()) {
+            for(const auto& path:result->missing)requestPhysicalAsset(path);
+            emit stateChanged();
+            return;
+        }
+        QString error;
+        if(!hydroRuntime_.install(std::move(result->prepared),projectInstanceId(),error)) {
+            hydroOpenError_=error;emit errorOccurred(error);emit stateChanged();return;
+        }
         hydroRuntime_.setCacheBudget(quality_.profile().hydroCacheBudgetBytes);
         std::set<quint32> logical;
         for(const auto& selected:selection_.items())if(selected.domain=="hydroBuiltin")
             if(const auto record=hydroRuntime_.recordById(displayText(selected.id)))logical.insert(record->logicalFid);
         hydroRuntime_.setSelectedLogicals(logical);
         invalidateViewportResources(ViewportResourceKind::Hydro);
-    }
+    });
+    watcher->setFuture(QtConcurrent::run([source,promotions=std::move(promotions),cancelled,mobile=mobileMode_] {
+        auto result=std::make_shared<Result>();
+        const auto isCancelled=[cancelled]{return cancelled->load();};
+        try {
+            QString manifest=source;
+            for(const auto& [path,promote]:promotions) {
+                if(isCancelled())return result;
+                const auto asset=promote(isCancelled);
+                if(!asset.error.isEmpty()){result->error=asset.error;return result;}
+                if(asset.path.isEmpty())result->missing.append(path);
+                else if(path.endsWith("manifest.json"))manifest=asset.path;
+            }
+            if(!isCancelled()&&result->missing.isEmpty())
+                result->prepared=HydroRuntimeProvider::prepareOpen(manifest,mobile,isCancelled);
+        }catch(const std::exception& error){result->error=QString::fromUtf8(error.what());}
+         catch(...){result->error=QStringLiteral("수계 자료 준비 중 알 수 없는 오류가 발생했습니다.");}
+        return result;
+    }));
 }
-bool EditorController::setDistributionDisplay(const QString& mode,bool boundaryVisible,const QString& activeLayerId) {
-    if(mode!="overlap"&&mode!="single")return false;
-    auto settings=project_.document().presentation.webPresentation.distributionSettings;
-    if(!activeLayerId.isNull()) {
-        if(!activeLayerId.isEmpty()&&!project_.index().objects.count({"distributionLayer",activeLayerId.toStdString()}))return false;
-        settings.activeLayerId=activeLayerId.toStdString();
-    }
-    settings.renderMode=mode=="single"?DistributionRenderMode::Single:DistributionRenderMode::Overlap;settings.boundaryVisible=boundaryVisible;
-    const auto result=PresentationCommandProcessor::apply(project_,SetDistributionSettings{settings});if(result==PresentationResult::Applied)publishPresentation();return result==PresentationResult::Applied||result==PresentationResult::NoOp;
+bool EditorController::setDistributionRenderMode(const QString& mode) {
+    const auto result=applyCorePresentation(WebControlDistributionPresentation{DistributionPresentationField::RenderMode,mode.toStdString()});
+    if(result==PresentationResult::Applied)publishPresentation();return result==PresentationResult::Applied||result==PresentationResult::NoOp;
+}
+bool EditorController::setDistributionActiveLayer(const QString& id) {
+    const auto result=applyCorePresentation(WebControlDistributionPresentation{DistributionPresentationField::ActiveLayer,id.toStdString()});
+    if(result==PresentationResult::Applied)publishPresentation();return result==PresentationResult::Applied||result==PresentationResult::NoOp;
+}
+bool EditorController::setDistributionBoundaryVisible(bool visible) {
+    const auto result=applyCorePresentation(WebControlDistributionPresentation{DistributionPresentationField::BoundaryVisible,{},visible});
+    if(result==PresentationResult::Applied)publishPresentation();return result==PresentationResult::Applied||result==PresentationResult::NoOp;
 }
 bool EditorController::setPresentationColorVisible(const QString& group,bool visible) {
     if(group!="countries"&&group!="subunits"&&group!="regions")return false;
     PresentationStyle patch;patch.colorVisible=visible;
-    const auto result=PresentationCommandProcessor::apply(project_,PatchGroupPresentation{group.toStdString(),patch});
+    const auto result=applyCorePresentation(WebControlGroupPresentation{group.toStdString(),patch});
     if(result==PresentationResult::Applied)publishPresentation();
     return result==PresentationResult::Applied||result==PresentationResult::NoOp;
 }
@@ -580,7 +637,7 @@ void EditorController::executeLabelResources(const ViewportResourceRequest& requ
     options.maxCandidates=2048;
     options.maxPlaced=2048;
     options.labelDensity=quality_.profile().labelDensity;
-    const auto selectedItems=selection_.items();
+    const auto selectedItems=selectedObjectRefs();
     std::set<ObjectRef> selected(selectedItems.begin(),selectedItems.end());
     if(geometryEdit_)selected.insert(geometryEdit_->target);
     if(contentSession_)selected.insert(contentSession_->edit.target);
@@ -594,11 +651,11 @@ bool EditorController::setLabelPinned(const QVariantMap& value,bool pinned,doubl
     const auto ref=existingObjectRef(value);if(!ref||(ref->domain!="territorial"&&ref->domain!="label"))return false;
     LabelSettings settings;if(const auto found=project_.document().presentation.webPresentation.labelSettings.find(*ref);found!=project_.document().presentation.webPresentation.labelSettings.end())settings=found->second;
     settings.pinned=pinned;if(hasPosition){if(!std::isfinite(longitude)||!std::isfinite(latitude))return false;settings.manualPosition=Point{longitude,latitude};}else if(!pinned)settings.manualPosition.reset();
-    const auto result=PresentationCommandProcessor::apply(project_,SetLabelSettings{*ref,settings});if(result==PresentationResult::Applied)publishPresentation();return result==PresentationResult::Applied||result==PresentationResult::NoOp;
+    const auto result=applyCorePresentation(SetLabelSettings{*ref,settings});if(result==PresentationResult::Applied)publishPresentation();return result==PresentationResult::Applied||result==PresentationResult::NoOp;
 }
 bool EditorController::resetLabelPosition(const QVariantMap& value) {
     const auto ref=existingObjectRef(value);if(!ref)return false;LabelSettings settings;if(const auto found=project_.document().presentation.webPresentation.labelSettings.find(*ref);found!=project_.document().presentation.webPresentation.labelSettings.end())settings=found->second;settings.pinned=false;settings.manualPosition.reset();
-    const auto result=PresentationCommandProcessor::apply(project_,SetLabelSettings{*ref,settings});if(result==PresentationResult::Applied)publishPresentation();return result==PresentationResult::Applied||result==PresentationResult::NoOp;
+    const auto result=applyCorePresentation(SetLabelSettings{*ref,settings});if(result==PresentationResult::Applied)publishPresentation();return result==PresentationResult::Applied||result==PresentationResult::NoOp;
 }
 bool EditorController::setLabelMapPosition(const QVariantMap& value,double mapX,double mapY) {
     if(!std::isfinite(mapX)||!std::isfinite(mapY))return false;const auto position=projection_.unproject(mapX,mapY);return setLabelPinned(value,true,position.x,position.y,true);
@@ -606,8 +663,8 @@ bool EditorController::setLabelMapPosition(const QVariantMap& value,double mapX,
 void EditorController::publishPresentation() {
     ++presentationRecoveryGeneration_;
     closeObjectChooser();
-    if(hover_&&!objectVisible(*hover_)) {
-        hover_.reset();hoverSource_.clear();++hoverRevision_;emit hoverChanged();
+    if(const auto hover=hoverObjectRef();hover&&!objectVisible(*hover)) {
+        coreSession_.selection().setHover({});emit hoverChanged();
     }
     emit presentationChanged();emit visualChanged();emit stateChanged();emit searchChanged();emit dirtyChanged();
     presentationSaveInstance_=project_.instanceId();presentationSaveTimer_.start();
@@ -636,7 +693,7 @@ QByteArray presentationRecoveryBytes(const pandoeditor::ProjectSnapshot& snapsho
     envelope.object["presentationRevision"]=V::num(presentationRevision);
     auto bytes=envelope.encode();bytes.chop(1);
     // The codec already produced valid JSON; do not parse a whole second DOM to wrap it.
-    return bytes+",\"project\":"+projectcodec::encode(snapshot)+"}";
+    return bytes+",\"project\":"+::projectcodec::encode(snapshot)+"}";
 }
 }
 void EditorController::startPresentationRecovery() {
@@ -700,21 +757,21 @@ bool EditorController::restorePresentationRecovery() {
         losslessjson::require(root.object.at("format").string=="pandoeditor-presentation-recovery","INVALID_RECOVERY");
         losslessjson::require(root.object.at("contentRevision").kind==losslessjson::Value::Number,"INVALID_RECOVERY");
         losslessjson::require(root.object.at("presentationRevision").kind==losslessjson::Value::Number,"INVALID_RECOVERY");
-        auto bytes=root.object.at("project").encode();auto candidate=projectcodec::decode(bytes);
+        auto bytes=root.object.at("project").encode();auto candidate=::projectcodec::decode(bytes);
         losslessjson::require(candidate.documentId==root.object.at("documentId").string,"INVALID_RECOVERY_DOCUMENT");
         replaceFromBytes(bytes,true,QString::fromStdString(root.object.at("sourcePath").string));
         return true;
     }catch(const std::exception& e){emit errorOccurred(QStringLiteral("복구본을 열지 못했습니다: ")+QString::fromUtf8(e.what()));return false;}
 }
 bool EditorController::setPresentationVisibility(const QString& key,bool visible) {
-    auto r=PresentationCommandProcessor::apply(project_,SetPresentationVisibility{key.toStdString(),visible});if(r==PresentationResult::Applied)publishPresentation();return r==PresentationResult::Applied||r==PresentationResult::NoOp;
+    auto r=applyCorePresentation(WebControlVisibility{key.toStdString(),visible});if(r==PresentationResult::Applied)publishPresentation();return r==PresentationResult::Applied||r==PresentationResult::NoOp;
 }
 bool EditorController::setPresentationOpacity(const QString& group,double opacity) {
-    PresentationStyle s;s.opacity=opacity;auto r=PresentationCommandProcessor::apply(project_,PatchGroupPresentation{group.toStdString(),s});if(r==PresentationResult::Applied)publishPresentation();return r==PresentationResult::Applied||r==PresentationResult::NoOp;
+    PresentationStyle s;s.opacity=opacity;auto r=applyCorePresentation(WebControlGroupPresentation{group.toStdString(),s});if(r==PresentationResult::Applied)publishPresentation();return r==PresentationResult::Applied||r==PresentationResult::NoOp;
 }
 bool EditorController::setPresentationBoundary(const QString& group,bool visible) {
-    PresentationStyle s;s.boundaryVisible=visible;auto r=PresentationCommandProcessor::apply(project_,PatchGroupPresentation{group.toStdString(),s});if(r==PresentationResult::Applied)publishPresentation();return r==PresentationResult::Applied||r==PresentationResult::NoOp;
+    PresentationStyle s;s.boundaryVisible=visible;auto r=applyCorePresentation(WebControlGroupPresentation{group.toStdString(),s});if(r==PresentationResult::Applied)publishPresentation();return r==PresentationResult::Applied||r==PresentationResult::NoOp;
 }
 bool EditorController::toggleSelectionVisibility() {
-    auto r=PresentationCommandProcessor::apply(project_,SetBatchVisibility{selection_.items(),{}});if(r==PresentationResult::Applied)publishPresentation();return r==PresentationResult::Applied||r==PresentationResult::NoOp;
+    auto r=applyCorePresentation(SetBatchVisibility{selectedObjectRefs(),{}});if(r==PresentationResult::Applied)publishPresentation();return r==PresentationResult::Applied||r==PresentationResult::NoOp;
 }

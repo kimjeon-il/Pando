@@ -1,8 +1,10 @@
 #include "hydroruntimeprovider.h"
 #include "hydroassetreader.h"
 #include "hydroruntimecache.h"
+#include "verifiedfile.h"
 #include <pandoeditor/hydroformat.h>
 #include <QDir>
+#include <QFileInfo>
 #include <mutex>
 #include <iterator>
 #include <set>
@@ -21,6 +23,8 @@ struct HydroRuntimeProvider::Dataset {
     std::map<std::uint32_t,std::uint32_t> logicalIds;
     std::vector<std::shared_ptr<HydroShardReader>> shards;
     std::vector<pandoeditor::HydroStageGrid> stages;
+    std::vector<std::pair<QString,QByteArray>> sourceFiles;
+    std::shared_ptr<verifiedfile::SourceLease> sourceLease;
     mutable std::mutex mutex;
     HydroRuntimeCache cache;
     std::set<std::uint32_t> active,pinned,selected,displayed;
@@ -29,6 +33,15 @@ struct HydroRuntimeProvider::Dataset {
     }
 };
 namespace {
+QByteArray sourceFileIdentity(const QString& path) {
+    QFile file(path);
+    return file.open(QIODevice::ReadOnly)?verifiedfile::identity(file):QByteArray{};
+}
+bool unchangedSources(const std::vector<std::pair<QString,QByteArray>>& files) {
+    return std::all_of(files.begin(),files.end(),[](const auto& source) {
+        return !source.second.isEmpty()&&source.second==sourceFileIdentity(source.first);
+    });
+}
 void addFrameBytes(std::size_t& total,std::size_t count,std::size_t size) {
     if(size&&count>(std::numeric_limits<std::size_t>::max()-total)/size)throw std::overflow_error("hydro frame bytes overflow");
     total+=count*size;
@@ -82,18 +95,33 @@ HydroRuntimeProvider::HydroRuntimeProvider(QObject* parent):QObject(parent) {
         emit loadFailed(error);
     });
 }
-bool HydroRuntimeProvider::open(const QString& path,const QString& projectInstance,bool mobile,QString& error) {
-    error.clear();
+HydroRuntimeProvider::PreparedSource HydroRuntimeProvider::prepareOpen(
+    const QString& path,bool mobile,const std::function<bool()>& cancelled) {
+    PreparedSource result;
+    auto& error=result.error;
     try {
+    if(cancelled&&cancelled()){error="hydro preparation cancelled";return result;}
     auto candidate=std::make_shared<Dataset>(mobile);
+    const auto manifestPath=QFileInfo(path).isDir()?QDir(path).filePath("manifest.json"):path;
+    candidate->sourceLease=verifiedfile::leaseSource(manifestPath);
+    if(!candidate->sourceLease){error="hydro source is being retired";return result;}
+    const auto manifestIdentity=sourceFileIdentity(manifestPath);
     candidate->manifest=readHydroManifest(path);
-    if(!candidate->manifest.valid()){error=candidate->manifest.error;return false;}
+    if(!candidate->manifest.valid()){error=candidate->manifest.error;return result;}
+    candidate->sourceFiles.emplace_back(candidate->manifest.manifestPath,manifestIdentity);
+    for(const auto& file:{candidate->manifest.index.path,
+                          candidate->manifest.metadataCore.path})
+        candidate->sourceFiles.emplace_back(file,sourceFileIdentity(file));
+    if(candidate->manifest.version=="0.13.2")
+        candidate->sourceFiles.emplace_back(candidate->manifest.container.path,
+            sourceFileIdentity(candidate->manifest.container.path));
     if(candidate->manifest.version=="0.13.2" &&
-       !verifyHydroAsset(candidate->manifest.container,error))return false;
+       !verifyHydroAsset(candidate->manifest.container,error,cancelled))return result;
+    if(cancelled&&cancelled()){error="hydro preparation cancelled";return result;}
     const auto index=readHydroAsset(candidate->manifest.index,true,error);
-    if(!error.isEmpty())return false;
+    if(!error.isEmpty())return result;
     const auto core=readHydroAsset(candidate->manifest.metadataCore,true,error);
-    if(!error.isEmpty()||!parseHydroCoreMetadata(core,candidate->manifest.metadataFeatureCount,candidate->metadata,error))return false;
+    if(!error.isEmpty()||!parseHydroCoreMetadata(core,candidate->manifest.metadataFeatureCount,candidate->metadata,error))return result;
         std::vector<std::uint64_t> lengths;
         for(const auto& shard:candidate->manifest.shards)lengths.push_back(shard.asset.bytes);
         candidate->index=pandoeditor::decodeHydroIndex(
@@ -109,8 +137,24 @@ bool HydroRuntimeProvider::open(const QString& path,const QString& projectInstan
         for(const auto& stage:candidate->manifest.stages)
             candidate->stages.push_back({static_cast<std::uint8_t>(stage.id),stage.minZoom,
                 static_cast<std::uint16_t>(stage.columns),static_cast<std::uint16_t>(stage.rows)});
+    if(cancelled&&cancelled()){error="hydro preparation cancelled";return result;}
+    if(!unchangedSources(candidate->sourceFiles)) {
+        error="hydro source changed during preparation";return result;
+    }
+    result.dataset=std::move(candidate);
+    }catch(const std::exception& exception){error=QString::fromUtf8(exception.what());}
+    return result;
+}
+bool HydroRuntimeProvider::install(PreparedSource prepared,const QString& projectInstance,QString& error) {
+    error=prepared.error;
+    if(!prepared.ready())return false;
+    if(!unchangedSources(prepared.dataset->sourceFiles)) {
+        error="hydro source changed before installation";return false;
+    }
+    try {
     if(sourceGeneration_==std::numeric_limits<std::uint64_t>::max())
         throw std::overflow_error("hydro source generation exhausted");
+    auto candidate=std::move(prepared.dataset);
     candidate->identity={candidate->manifest.dataset,candidate->manifest.version,
         candidate->manifest.index.sha256,sourceGeneration_+1};
     dataset_=std::move(candidate);
@@ -119,6 +163,9 @@ bool HydroRuntimeProvider::open(const QString& path,const QString& projectInstan
     emit frameChanged();
     return true;
     }catch(const std::exception& exception){error=QString::fromUtf8(exception.what());return false;}
+}
+bool HydroRuntimeProvider::open(const QString& path,const QString& projectInstance,bool mobile,QString& error) {
+    return install(prepareOpen(path,mobile),projectInstance,error);
 }
 void HydroRuntimeProvider::close(const QString& projectInstance) {
     if(sourceGeneration_==std::numeric_limits<std::uint64_t>::max())

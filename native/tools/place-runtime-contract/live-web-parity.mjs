@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-// Verify the native review mirror against Web files in the same commit.
+// Verify canonical root place reports against their source pins in the same commit.
 // The pinned SHA-only snapshot test is intentionally separate from this live-drift gate.
+import { reportPath } from '../../../tools/report-paths.mjs';
 import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import {readFileSync} from 'node:fs';
@@ -9,7 +10,7 @@ import {fileURLToPath} from 'node:url';
 
 const root=resolve(fileURLToPath(new URL('../../',import.meta.url)));
 const monorepoRoot=resolve(root,'..');
-const manifest=JSON.parse(readFileSync(resolve(root,'reports/places/source-manifest.json'),'utf8'));
+const manifest=JSON.parse(readFileSync(reportPath('native/reports/places/source-manifest.json',monorepoRoot),'utf8'));
 const sha1=bytes=>createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
 
 export function parseGitTree(text) {
@@ -35,7 +36,7 @@ export function compareCurrentWeb(registered,upstream,readLocal) {
       errors.push('Stale Web source: '+row.path+' (upstream '+current.slice(0,12)+', pinned '+row.gitBlobSha.slice(0,12)+')');
     const local=sha1(readLocal(row.path));
     if(local!==row.gitBlobSha)
-      errors.push('Local mirror differs from pinned Git blob: '+row.path);
+      errors.push('Canonical report differs from pinned Git blob: '+row.path);
   }
   const upstreamBatches=[...files.keys()].filter(path=>/^reports\/places\/tier1-major-cities-batch\d{2}.*\.json$/u.test(path)).sort();
   const localBatches=[...mirrored].filter(path=>/^reports\/places\/tier1-major-cities-batch\d{2}.*\.json$/u.test(path)).sort();
@@ -51,13 +52,13 @@ if(called) {
   try {
     const git=(...args)=>execFileSync('git',args,{cwd:monorepoRoot});
     const list=parseGitTree(git('ls-tree','-r','HEAD','--','reports/places').toString('utf8'));
-    const result=compareCurrentWeb(manifest,list,path=>git('show','HEAD:native/'+path));
+    const result=compareCurrentWeb(manifest,list,path=>git('show','HEAD:'+path));
     if(result.errors.length) {
       for(const error of result.errors)console.error('PARITY: '+error);
       process.exitCode=1;
     } else {
-      console.log('Same-commit Web/Native place mirror OK: '+result.assetCount+
-        ' mirrored assets, '+result.batchCount+' reviewed batches.');
+      console.log('Same-commit canonical place reports OK: '+result.assetCount+
+        ' pinned sources, '+result.batchCount+' reviewed batches.');
     }
   } catch(error) {
     console.error('Same-commit place mirror check failed:',error);

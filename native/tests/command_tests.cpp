@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "territorial_fixture.h"
 #include <pandoeditor/project.h>
 #include <pandoeditor/commands.h>
@@ -13,9 +14,8 @@ using namespace pandoeditor;
 static_assert(!std::is_copy_constructible<CommandPreview>::value,"preview must be single owner");
 static_assert(std::is_nothrow_move_constructible<CommandPreview>::value,"preview move must not allocate");
 ProjectDocument fixture() {
-    ProjectDocument d({{"A","Alpha",{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}},0x123456,"original"},
-                       {"B","Beta",{{{{20,0},{25,0},{25,5},{20,5},{20,0}}}},0xabcdef}},
-                      {{"countries","Countries"},{"other","Other"},{"empty","Empty"}});
+    pandoeditor::ProjectDocument d = makeTerritorialDocument({{{"A","Alpha","original",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}}},{0x123456,1},"countries"},
+        {{"B","Beta","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{20,0},{25,0},{25,5},{20,5},{20,0}}}}},{0xabcdef,1},"countries"}},{{"countries","Countries"},{"other","Other"},{"empty","Empty"}});
     d.documentId="command-test-document";
     return d;
 }

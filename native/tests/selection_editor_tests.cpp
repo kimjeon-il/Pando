@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "territorial_fixture.h"
 #include "editorcontroller.h"
 #include <QtTest>
@@ -7,8 +8,8 @@
 #include <cmath>
 using namespace pandoeditor;
 namespace {
-QVariantMap ref(const QString& id,const QString& type="general") {
-    return {{"domain","territorial"},{"type",type},{"id",id}};
+QVariantMap ref(const QString& id,const QString& kind="general") {
+    return {{"domain","territorial"},{"type","entity"},{"kind",kind},{"id",id}};
 }
 QStringList ids(const QVariantList& values) {
     QStringList result;for(const auto& value:values)result.append(value.toMap()["id"].toString());return result;
@@ -16,10 +17,8 @@ QStringList ids(const QVariantList& values) {
 void modes() {QTest::addColumn<bool>("mobile");QTest::newRow("desktop")<<false;QTest::newRow("mobile-common")<<true;}
 EditorControllerConfig config(bool mobile,const QString& path) {EditorControllerConfig c;c.mobileMode=mobile;c.privateProjectPath=path;return c;}
 ProjectDocument fixture() {
-    ProjectDocument d({
-        {"A","알파",{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}},0x123456},
-        {"B","베타",{{{{20,0},{30,0},{30,10},{20,10},{20,0}}}},0xabcdef}
-    },{{"countries","국가"},{"other","영역"},{"hidden","숨김",false,false,1}});
+    pandoeditor::ProjectDocument d = makeTerritorialDocument({{{"A","알파","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}}},{0x123456,1},"countries"},
+        {{"B","베타","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{20,0},{30,0},{30,10},{20,10},{20,0}}}}},{0xabcdef,1},"countries"}},{{"countries","국가"},{"other","영역"},{"hidden","숨김",false,false,1}});
     d.documentId="selection-fixture-v1";
     auto add=[&](std::string id,UnitKind kind,const std::string& layer,double left,double right,bool locked){
         Geometry g;g.type="Polygon";g.polygons={{{{left,2},{right,2},{right,4},{left,4},{left,2}}}};
@@ -38,10 +37,10 @@ QUrl writeFixture(const QString& directory) {
     Project project;project.replace(fixture());
     QFile file(directory+"/selection.pando.json");
     if(!file.open(QIODevice::WriteOnly))throw std::runtime_error("fixture write failed");
-    file.write(projectcodec::encode(project));file.close();return QUrl::fromLocalFile(file.fileName());
+    file.write(::projectcodec::encode(project));file.close();return QUrl::fromLocalFile(file.fileName());
 }
 QPointF center(const EditorController& editor,const QString& id) {
-    for(const auto& value:editor.paths()) {
+    for(const auto& value:editor.objectBounds()) {
         const auto path=value.toMap();if(path["countryId"].toString()!=id)continue;
         return {path["left"].toDouble()+path["width"].toDouble()/2,path["top"].toDouble()+path["height"].toDouble()/2};
     }
@@ -66,7 +65,7 @@ private slots:
         document.presentation.webPresentation.objectOrder={"territorial:entity:T","territorial:entity:S"};
         Project project;project.replace(std::move(document));
         QFile file(dir.filePath("chooser.json"));QVERIFY(file.open(QIODevice::WriteOnly));
-        file.write(projectcodec::encode(project));file.close();
+        file.write(::projectcodec::encode(project));file.close();
         EditorController editor;QVERIFY(editor.openFile(QUrl::fromLocalFile(file.fileName())));
         const auto point=center(editor,"S");editor.beginMapSelection(point.x(),point.y(),false,10);
         QCOMPARE(editor.pickObject(point.x(),point.y(),10)["id"].toString(),QString("S"));
@@ -118,14 +117,24 @@ private slots:
         QCOMPARE(editor.rangeAnchor("right")["id"].toString(),QString("B"));QCOMPARE(editor.rangeAnchor("left")["id"].toString(),QString("S"));
         QVERIFY(editor.selectObject(ref("A"),"range","right",ordered));QCOMPARE(ids(editor.selectionItems()),QStringList({"A","B"}));
         const auto before=editor.selectionItems();const auto revision=editor.selectionRevision();
-        QVERIFY(!editor.selectObject(ref("missing")));QVERIFY(!editor.selectObject(ref("S","regional")));
+        QVERIFY(!editor.selectObject(ref("missing")));QVERIFY(!editor.selectObject({{"domain","territorial"},{"type","regional"},{"id","S"}}));
         QVERIFY(editor.selectObject(ref("R","regional"),"range","right",{ref("A"),ref("B")}));
         QCOMPARE(editor.selectionItems(),before);QCOMPARE(editor.selectionRevision(),revision);
         QVERIFY(editor.setSelection({ref("A"),ref("B"),ref("A")}));QCOMPARE(ids(editor.selectionItems()),QStringList({"A","B"}));QCOMPARE(editor.selectedId(),QString("A"));
     }
+    void storedSelectionKeepsDistinctCapturedTypesForOneId(){
+        QTemporaryDir dir;auto document=fixture();Geometry point;point.type="Point";point.points={{1,2}};
+        document.geometries.insert({"captured-kind",1},point);PlaceLabel label;label.id="same";label.name="Stored label";label.kind="city";label.geometry={"captured-kind",1};document.labels.push_back(label);
+        Project project;project.replace(std::move(document));QFile file(dir.filePath("captured-kind.json"));QVERIFY(file.open(QIODevice::WriteOnly));file.write(::projectcodec::encode(project));file.close();
+        EditorController editor;QVERIFY(editor.openFile(QUrl::fromLocalFile(file.fileName())));
+        const QVariantMap city{{"domain","label"},{"type","city"},{"id","same"}},capital{{"domain","label"},{"type","capital"},{"id","same"}};
+        const auto before=editor.documentBytes();QVERIFY(editor.setSelection({city,capital}));QCOMPARE(editor.selectionItems().size(),2);QCOMPARE(editor.selectionItems()[0].toMap()["type"].toString(),QString("city"));QCOMPARE(editor.selectionItems()[1].toMap()["type"].toString(),QString("capital"));
+        QVERIFY(editor.setHoverObject(city,"map"));const auto oldKey=editor.hoverObject()["key"].toString();QVERIFY(editor.setHoverObject(capital,"map"));QVERIFY(!editor.setHoverObject({},"map",oldKey));
+        QCOMPARE(editor.documentBytes(),before);
+    }
     void hiddenListAndLockedMapSelection(){
         QTemporaryDir dir;EditorController editor;QVERIFY(editor.openFile(writeFixture(dir.path())));
-        QCOMPARE(editor.objectRows().size(),5);QCOMPARE(editor.paths().size(),5);
+        QCOMPARE(editor.objectRows().size(),5);QCOMPARE(editor.objectBounds().size(),5);
         const auto bytes=editor.documentBytes();
         editor.setSearchQuery("H");QCOMPARE(ids(editor.searchResults()),QStringList{"H"});
         QVERIFY(editor.selectObject(ref("H","regional")));QCOMPARE(editor.selectedId(),QString("H"));
@@ -172,9 +181,26 @@ private slots:
         const auto bytes=editor.documentBytes();const auto instance=editor.projectInstanceId();
         editor.selectObject(ref("A"),"replace","left");editor.setNameDraft("Uncommitted");editor.setSearchQuery("R");editor.setHoverObject(ref("R","regional"),"search");
         QVERIFY(!editor.openFile(QUrl::fromLocalFile(dir.path()+"/missing.json")));QCOMPARE(editor.selectedId(),QString("A"));QVERIFY(editor.hasPendingEdits());
+        const auto selectionRevision=editor.selectionRevision(),hoverRevision=editor.hoverRevision();
         QVERIFY(editor.openFile(file));QVERIFY(editor.projectInstanceId()!=instance);QVERIFY(editor.selectionItems().isEmpty());QVERIFY(editor.rangeAnchor("left").isEmpty());
-        QVERIFY(editor.hoverObject().isEmpty());QVERIFY(editor.searchQuery().isEmpty());QVERIFY(!editor.hasPendingEdits());QCOMPARE(editor.selectionRevision(),qulonglong(0));
+        QVERIFY(editor.hoverObject().isEmpty());QVERIFY(editor.searchQuery().isEmpty());QVERIFY(!editor.hasPendingEdits());QVERIFY(editor.selectionRevision()>selectionRevision);QVERIFY(editor.hoverRevision()>hoverRevision);
         QCOMPARE(editor.documentBytes(),bytes);QVERIFY(!editor.canUndo());QVERIFY(!editor.canRedo());
+    }
+    void emptySelectionProjectResetRetainsCurrentWebAnchor(){
+        QTemporaryDir dir;EditorController editor;const auto file=writeFixture(dir.path());QVERIFY(editor.openFile(file));
+        QVERIFY(editor.selectObject(ref("A"),"toggle","left"));QVERIFY(editor.selectObject(ref("A"),"toggle","left"));
+        QVERIFY(editor.selectionItems().isEmpty());const auto revision=editor.selectionRevision();
+        QVERIFY(editor.openFile(file));QCOMPARE(editor.selectionRevision(),revision);
+        QCOMPARE(editor.rangeAnchor("left")["id"].toString(),QString("A"));
+    }
+    void changedHistoryClearsSelectionAndKeepsValidHover(){
+        QTemporaryDir dir;EditorController editor;QVERIFY(editor.openFile(writeFixture(dir.path())));
+        editor.selectCountry("A");editor.setNameDraft("History selection");QVERIFY(editor.commitCountryField("name"));
+        QVERIFY(editor.setHoverObject(ref("B"),"map"));const auto hoverRevision=editor.hoverRevision();
+        editor.undo();QVERIFY(editor.selectionItems().isEmpty());QCOMPARE(editor.hoverObject()["id"].toString(),QString("B"));QCOMPARE(editor.hoverRevision(),hoverRevision);
+        editor.selectCountry("A");editor.redo();QVERIFY(editor.selectionItems().isEmpty());QCOMPARE(editor.hoverObject()["id"].toString(),QString("B"));
+        editor.selectCountry("A");const auto selected=editor.selectionItems();const auto revision=editor.selectionRevision();
+        editor.redo();QCOMPARE(editor.selectionItems(),selected);QCOMPARE(editor.selectionRevision(),revision);
     }
     void webImportPreviewUnaffectedBySelection(){
         QTemporaryDir dir;EditorController editor;

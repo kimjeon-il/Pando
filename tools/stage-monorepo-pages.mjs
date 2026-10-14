@@ -60,9 +60,13 @@ export function stageWebPages(rootInput, stageInput, manifestInput) {
   if (existsSync(stage) || existsSync(manifest)) throw Error('Pages stage or evidence already exists');
   const all = gitFiles(root);
   const excludedNativeFiles = all.filter(file => file.path.startsWith('native/')).length;
-  const web = all.filter(file => !file.path.startsWith('native/'));
+  const excludedSharedFiles = all.filter(file => file.path.startsWith('shared/')).length;
+  const web = all.filter(file => !file.path.startsWith('native/') && !file.path.startsWith('shared/'));
   const paths = new Set(web.map(file => file.path));
-  for (const path of REQUIRED) if (!paths.has(path)) throw Error(`Missing protected Web URL: ${path}`);
+  const required=[...REQUIRED];
+  if(paths.has('assets/js/workers/core-session-worker.js'))required.push(
+    'assets/wasm/pandoeditor-core.js','assets/wasm/pandoeditor-core.wasm','assets/wasm/pandoeditor-core.manifest.json');
+  for (const path of required) if (!paths.has(path)) throw Error(`Missing protected Web URL: ${path}`);
   const total = web.reduce((sum, file) => sum + file.bytes, 0);
   if (total > LIMIT_BYTES) throw Error(`Pages site exceeds ${LIMIT_BYTES} bytes: ${total}`);
   const files = web.map(file => {
@@ -91,7 +95,7 @@ export function stageWebPages(rootInput, stageInput, manifestInput) {
   }
   const sourceCommit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
   const evidence = { schema: 'pando-web-pages-staging', sourceCommit, fileCount: files.length,
-    bytes: total, limitBytes: LIMIT_BYTES, excludedNativeFiles, files };
+    bytes: total, limitBytes: LIMIT_BYTES, excludedNativeFiles, excludedSharedFiles, files };
   mkdirSync(dirname(manifest), { recursive: true });
   writeFileSync(manifest, JSON.stringify(evidence, null, 2) + '\n');
   return evidence;
@@ -102,5 +106,5 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const arg = name => { const at = args.indexOf(name); return at < 0 ? null : args[at + 1]; };
   if (!arg('--stage') || !arg('--manifest')) throw Error('Usage: stage-monorepo-pages.mjs --root ROOT --stage OUT --manifest EVIDENCE');
   const result = stageWebPages(arg('--root') || '.', arg('--stage'), arg('--manifest'));
-  process.stdout.write(`${result.fileCount} Web files, ${result.bytes} bytes, ${result.excludedNativeFiles} native files excluded\n`);
+  process.stdout.write(`${result.fileCount} Web files, ${result.bytes} bytes, ${result.excludedNativeFiles} native and ${result.excludedSharedFiles} shared source files excluded\n`);
 }

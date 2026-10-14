@@ -24,14 +24,19 @@ export function createPropertyEditorBindings({
   redo,
   closeObjectActionsMenu,
   enterTerritorialBorderEditFromSelection,
+  reportOperationError,
 } = {}) {
 
   let bound = false;
   const listeners = [];
   function listen(element, type, handler) {
     if (!element) return;
-    element.addEventListener(type, handler);
-    listeners.push(() => element.removeEventListener(type, handler));
+    const boundary = async event => {
+      try { await handler(event); }
+      catch (error) { reportOperationError(error, { elementId: element.id || '', eventType: type }); }
+    };
+    element.addEventListener(type, boundary);
+    listeners.push(() => element.removeEventListener(type, boundary));
   }
   function dispose() {
     for (const remove of listeners.splice(0)) remove();
@@ -46,6 +51,7 @@ export function createPropertyEditorBindings({
 
   function bindEditorFields() {
     if (bound) return;
+    if (typeof reportOperationError !== 'function') throw new TypeError('The property editor operation error boundary is required.');
     bound = true;
     listen($('copyPlaceBtn'), 'click', () => copySelectedPlaceForEditing());
     bindColorPickers();
@@ -84,18 +90,18 @@ export function createPropertyEditorBindings({
     }
     listen($('distributionEntryList'), 'change', event => {
       const input = event.target.closest('[data-distribution-entry-value]');
-      if (input) updateDistributionEntryValue(input.dataset.distributionEntryValue, input.value);
+      if (input) return updateDistributionEntryValue(input.dataset.distributionEntryValue, input.value);
     });
     listen($('distributionEntryList'), 'click', event => {
       const button = event.target.closest('[data-distribution-entry-delete]');
-      if (button) removeDistributionEntry(button.dataset.distributionEntryDelete);
+      if (button) return removeDistributionEntry(button.dataset.distributionEntryDelete);
     });
     listen($('distributionTerritorialUnitInput'), 'change', event => {
       $('addTerritorialDistributionBtn').disabled = getPrimary()?.domain !== 'distribution'
         || $('addGeometryDistributionBtn').disabled || !event.target.value;
     });
     listen($('addTerritorialDistributionBtn'), 'click', addTerritorialDistributionEntry);
-    listen($('addGeometryDistributionBtn'), 'click', () => requestDraftDiscard(() => completeToolStart(startGeometryDistributionDraft())));
+    listen($('addGeometryDistributionBtn'), 'click', () => requestDraftDiscard(async () => completeToolStart(await startGeometryDistributionDraft())));
     for (const [id, action] of [['annexEntityBtn', 'annex'], ['mergeEntityBtn', 'merge'], ['editEntityBorderBtn', 'boundary'], ['editEntityCoastBtn', 'coast'], ['redrawEntityBtn', 'redraw']]) {
       listen($(id), 'click', () => requestDraftDiscard(() => runModePrimaryAction(async () =>
         completeToolStart(await runEntityEditAction(action, getPrimary()?.id)))));
@@ -103,7 +109,7 @@ export function createPropertyEditorBindings({
     listen($('reconcileEntityCoastBtn'), 'click', () => {
       const feature = entityRepository.get(getPrimary()?.id);
       if (feature?.properties.entityKind !== 'general' || !feature.properties.parentId || feature.properties.locked) return;
-      runModePrimaryAction(() => reconcileAdminCountryCoast(feature.id));
+      return runModePrimaryAction(() => reconcileAdminCountryCoast(feature.id));
     });
     listen($('copyEntityRegionBtn'), 'click', copySelectedEntityToRegion);
 
@@ -130,7 +136,7 @@ export function createPropertyEditorBindings({
     listen($('convertGenericFeatureBtn'), 'click', () => {
       const primary = getPrimary();
       if (primary?.domain !== 'generic') return;
-      void convertSelectedGenericFeature?.({
+      return convertSelectedGenericFeature({
         target: $('genericFeatureConvertType')?.value,
         parentId: $('genericFeatureConvertType').value === 'general' ? $('genericFeatureConvertParentInput').value : '',
         distributionLayerId: $('genericFeatureConvertDistributionInput')?.value,
@@ -156,8 +162,8 @@ export function createPropertyEditorBindings({
       event.preventDefault();
       items[(current + delta + items.length) % items.length]?.focus();
     });
-    listen($('multiSubunitMergeBtn'), 'click', () => requestDraftDiscard(() => completeToolStart(enterTerritorialBorderEditFromSelection('merge'))));
-    listen($('multiBorderEditBtn'), 'click', () => requestDraftDiscard(() => completeToolStart(enterTerritorialBorderEditFromSelection())));
+    listen($('multiSubunitMergeBtn'), 'click', () => requestDraftDiscard(async () => completeToolStart(await enterTerritorialBorderEditFromSelection('merge'))));
+    listen($('multiBorderEditBtn'), 'click', () => requestDraftDiscard(async () => completeToolStart(await enterTerritorialBorderEditFromSelection())));
   }
 
   return Object.freeze({

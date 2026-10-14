@@ -154,7 +154,7 @@ Rectangle {
                         visible: editor.selectedId !== "" && !editor.selectedEditable
                         text: editor.selectionItems.length>1 ? "여러 객체가 선택되었습니다."
                             : editor.primaryObject.domain === "placeBuiltin" ? "내장 지명은 읽기 전용입니다. 복사본을 만들어 편집할 수 있습니다."
-                            : editor.primaryObject.type !== "general" ? "이 객체의 속성 편집은 후속 단계에서 지원합니다."
+                            : editor.primaryObject.kind !== "general" ? "이 객체의 속성 편집은 후속 단계에서 지원합니다."
                             : "객체 또는 소속 레이어가 잠겨 있습니다."
                         wrapMode: Text.WordWrap
                     }
@@ -175,14 +175,14 @@ Rectangle {
                             UiComboBox {
                                 id: parentChoice
                                 Layout.fillWidth: true
-                                visible: editor.primaryObject.type === "general"
+                                visible: editor.primaryObject.kind === "general"
                                 model: editor.relationParentOptions
                                 textRole: "name"; valueRole: "id"
                                 displayText: editor.objectProperties.parentId || "상위 영역 선택"
                             }
                             UiButton {outlined:true;
                                 objectName: "changeTerritorialParent"
-                                visible: editor.primaryObject.type === "general"
+                                visible: editor.primaryObject.kind === "general"
                                 text: "상위 영역 변경"
                                 enabled: parentChoice.currentValue !== ""
                                 onClicked: editor.commitSelectedParent(parentChoice.currentValue)
@@ -191,12 +191,12 @@ Rectangle {
                                 id: transferCountry
                                 objectName: "transferCountry"
                                 Layout.fillWidth: true
-                                visible: editor.primaryObject.type === "general"
+                                visible: editor.primaryObject.kind === "general"
                                 model: editor.relationCountryOptions; textRole: "name"; valueRole: "id"
                             }
                             UiButton {outlined:true;
                                 objectName: "transferTerritorial"
-                                visible: editor.primaryObject.type === "general"
+                                visible: editor.primaryObject.kind === "general"
                                 text: "선택 국가로 영토 이전"
                                 enabled: transferCountry.currentValue !== ""
                                 onClicked: editor.transferSelectedSubunit(transferCountry.currentValue)
@@ -204,7 +204,7 @@ Rectangle {
                             RowLayout {
                                 Layout.fillWidth: true
                                 UiButton {outlined:true; objectName: "deleteTerritorial"; text: "삭제"; enabled: editor.selectionItems.length > 0; onClicked: editor.beginDeleteSelection() }
-                                UiButton {outlined:true; objectName: "convertTerritorial"; text: "상위 관계 전환"; visible: editor.primaryObject.type === "general"; onClicked: editor.beginTypeConversion() }
+                                UiButton {outlined:true; objectName: "convertTerritorial"; text: "상위 관계 전환"; visible: editor.primaryObject.kind === "general"; onClicked: editor.beginTypeConversion() }
                             }
                             RowLayout {
                                 Layout.fillWidth: true

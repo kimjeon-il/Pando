@@ -1,271 +1,157 @@
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
-import { initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { normalizeCountryCollection, normalizeCountryFeature } from '../../assets/js/modules/country-feature.js';
+import { normalizeCountryFeature } from '../../assets/js/modules/country-feature.js';
 import { normalizePlace } from '../../assets/js/modules/place-contract.js';
 import { createObjectCommands } from '../../assets/js/modules/app-object-commands.js';
 import { createGenericCommands } from '../../assets/js/modules/app-generic-commands.js';
-import { createProjectSnapshots } from '../../assets/js/modules/app-project-snapshots.js';
-import { createTerritorialEntityStore, createStaticTerritorialSnapshot } from '../../assets/js/modules/territorial-entity-store.js';
-import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
-import { applyProjectFields, pickProjectFields } from '../../assets/js/modules/project-state.js';
 import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
-import { createCanonicalCountryStore } from '../../assets/js/modules/canonical-country-packet.js';
-import { encodeCanonicalCountryPacket } from '../../tools/canonical-country-packet-encoder.mjs';
 import { readFileSync } from 'node:fs';
-import { createHistoryService } from '../../assets/js/modules/history-service.js';
-import { createSaveStateController } from '../../assets/js/modules/save-state-controller.js';
+import { createNodeCoreProject } from '../helpers/core-project.mjs';
+import {initializeTestTerritorialState,testCoreProject,executeTerritorialTestCommand,executeTestCommand,staticAutosaveProject} from '../helpers/timeline-project.mjs';
+import {loadWebOracle} from '../helpers/web-oracle.mjs';
+import {normalizeLayerPresentation} from '../../assets/js/modules/layer-presentation.js';
+import {BUILTIN_SUBUNITS} from '../../assets/js/modules/builtin-subunits.js';
+const {fingerprintProjectBaseline}=await loadWebOracle('assets/js/modules/project-serializer.js');
 const source=normalizePlace({source:'synthetic',sourceId:'1',name:'서울',kind:'capital',coordinates:[127,37]});
+const polygon=(east=1)=>({type:'Polygon',coordinates:[[[0,0],[0,1],[east,1],[0,0]]]});
+const country=id=>normalizeCountryFeature({type:'Feature',id,properties:{name:id},geometry:polygon()});
+const fullSeed=()=>JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json',import.meta.url),'utf8'));
+async function fixture(features=[country('KOR')],fields={}) {
+  const state={territorialEntities:features,...fields};
+  await initializeTestTerritorialState(state,null,{project:{...staticAutosaveProject(fields,features),baseDataset:'fixture'}});
+  return {state,...testCoreProject(state)};
+}
+const view=(state,payload)=>executeTestCommand(state,{commandId:'presentation.apply',targets:[],payload});
+const createLabel=(state,id='22000000-0000-4000-8000-000000000019',settings)=>executeTestCommand(state,{
+  commandId:'label.edit',targets:[{domain:'label',id}],payload:{domain:'label',id,create:true,value:{...fullSeed().labels[0],id,
+    territorialUnitId:'',source:{...fullSeed().labels[0].source,details:{}}},...(settings?{labelSettings:settings}:{})}});
+
+test('real Core history restores shared, unused and past archive entries after static geometry edit and Undo/Redo',async()=>{
+  const input=JSON.parse(readFileSync(new URL('../fixtures/timeline-exchange/static.json',import.meta.url),'utf8')),
+    expected=JSON.parse(readFileSync(new URL('../fixtures/timeline-exchange/static.expected.json',import.meta.url),'utf8'));
+  const f=await fixture([]);await f.project.admit(input);const before=structuredClone(f.project.snapshot());
+  const geometry={type:'Polygon',coordinates:[[[0,0],[4,0],[4,4],[0,0]]]};
+  await executeTerritorialTestCommand(f.state,'territorial.geometry',{id:'A',geometry});const after=f.project.snapshot();
+  assert.deepEqual(after.territorialEntities,expected.territorialEntities);
+  assert.deepEqual(after.timelineRecords.lifetimes,expected.timelineRecords.lifetimes);
+  assert.deepEqual(after.timelineRecords.parentRelations,expected.timelineRecords.parentRelations);
+  assert.equal(after.geometries.length,expected.geometries.length+1);
+  for(const entry of expected.geometries)assert.deepEqual(after.geometries.find(row=>row.id===entry.id&&row.version===entry.version),entry);
+  assert.deepEqual(f.entityRepository.get('A').geometry,geometry);
+  assert.deepEqual(f.entityRepository.get('B').geometry,expected.geometries.find(row=>row.id==='shape'&&row.version===1).geojson);
+  assert.equal(await f.project.undo(),true);assert.deepEqual(f.project.snapshot(),before);
+  assert.equal(await f.project.redo(),true);assert.deepEqual(f.project.snapshot(),after);
+});
+
+test('label-only history keeps dirty country geometry while actual geometry Undo reports its changed owner',async()=>{
+  const f=await fixture(),packets=[];f.client.subscribeTransitions((reply,operation)=>{if(operation==='core.document-undo')packets.push(reply);});
+  await executeTerritorialTestCommand(f.state,'territorial.metadata',{id:'KOR',field:'name',valuePresent:true,value:'edited'});
+  const shape=f.entityRepository.get('KOR').geometry;await createLabel(f.state);assert.equal(await f.project.undo(),true);
+  assert.equal(f.entityRepository.get('KOR').geometry,shape);assert.deepEqual([...f.state.historyDirtyEntityIds],['KOR']);
+  assert.deepEqual(packets[0].delta.impact.geometryDomains,['label']);assert.deepEqual(packets[0].delta.geometries,[]);
+  await executeTerritorialTestCommand(f.state,'territorial.geometry',{id:'KOR',geometry:polygon(3)});
+  assert.equal(await f.project.undo(),true);assert.deepEqual(f.entityRepository.get('KOR').geometry,shape);
+  assert.ok(packets[1].delta.impact.geometryDomains.includes('territorial'));
+});
+
+test('dated editing stays guarded while records, source baseline and delta survive real Undo/Redo',async()=>{
+  const features=[country('KOR')],f=await fixture(features),pristine=f.project.snapshot();
+  const fingerprint=await fingerprintProjectBaseline(features);
+  await f.client.storageBaselineLoad({kind:'static-features',baseDataset:'fixture',fingerprint,features});
+  await assert.rejects(()=>executeTerritorialTestCommand(f.state,'territorial.metadata',
+    {id:'KOR',field:'validFrom',valuePresent:true,value:'1900'}),{code:'TIMELINE_ACTIVATION'});
+  await executeTerritorialTestCommand(f.state,'territorial.metadata',{id:'KOR',field:'name',valuePresent:true,value:'changed name'});
+  assert.deepEqual([...f.state.historyDirtyEntityIds],['KOR']);
+  assert.deepEqual(f.project.snapshot().timelineRecords,pristine.timelineRecords);
+  const output=await f.client.exportSnapshot({format:'pandolab-autosave',version:'fixture',savedAt:'2026-10-04T00:00:00.000Z'}),saved=JSON.parse(output.storageJson);
+  assert.equal(saved.format,'pandolab-autosave-delta');assert.equal(saved.entityDelta.changed[0].properties.name,'changed name');
+  assert.equal(Object.hasOwn(saved.entityDelta.changed[0].properties,'validFrom'),false);
+  assert.equal(await f.project.undo(),true);assert.equal(f.entityRepository.get('KOR').properties.name,'KOR');
+  assert.equal(await f.project.redo(),true);assert.equal(f.entityRepository.get('KOR').properties.name,'changed name');
+});
+
+test('pure Core validation rejects invalid project references before changing content, presentation or selection',async()=>{
+  const f=await fixture(),before=f.project.snapshot(),clock=f.client.state();
+  await f.client.selectionApply({action:'replace',ref:{domain:'territorial',type:'entity',id:'KOR'}});
+  const selection=await f.client.selectionSnapshot(),broken=structuredClone(before);
+  broken.territorialEntities[0].properties.name='invalid candidate';
+  broken.distributionEntries=[{...fullSeed().distributionEntries[0],layerId:'missing',territorialUnitId:'KOR'}];
+  await assert.rejects(()=>f.project.prepareImport(broken));
+  assert.equal(f.project.snapshot(),before);assert.equal(f.client.state().checkpoint,clock.checkpoint);
+  assert.deepEqual(await f.client.selectionSnapshot(),selection);
+});
+
+test('label history restores changed user settings and preserves unrelated presentation',async()=>{
+  const f=await fixture(),id='22000000-0000-4000-8000-000000000019';
+  await view(f.state,{action:'labelSettings',ref:{domain:'territorial',id:'KOR'},settings:{pinned:true}});
+  await createLabel(f.state,id,{pinned:true,manualPosition:[127,37]});
+  await view(f.state,{action:'labelSettings',ref:{domain:'territorial',id:'KOR'},settings:{pinned:false}});
+  const unrelated=f.project.snapshot().labelSettings['territorial:KOR'];
+  assert.equal(await f.project.undo(),true);assert.equal(f.project.snapshot().labels.length,0);
+  assert.equal(Object.hasOwn(f.project.snapshot().labelSettings,`label:${id}`),false);
+  assert.deepEqual(f.project.snapshot().labelSettings['territorial:KOR'],unrelated);
+  assert.equal(await f.project.redo(),true);assert.equal(f.project.snapshot().labels.length,1);
+  assert.equal(f.project.snapshot().labelSettings[`label:${id}`].pinned,true);
+  assert.deepEqual(f.project.snapshot().labelSettings[`label:${id}`].manualPosition,[127,37]);
+  assert.deepEqual(f.project.snapshot().labelSettings['territorial:KOR'],unrelated);
+});
+
+test('unchanged static views stay out of delta and cursor movement changes only the session month',async()=>{
+  const features=[country('KOR')],f=await fixture(features);
+  await f.client.storageBaselineLoad({kind:'static-features',baseDataset:'fixture',fingerprint:await fingerprintProjectBaseline(features),features});
+  const before=f.project.snapshot(),clock=f.client.state();
+  await f.entityStore.setTimelineCursor('1914-06');await f.entityStore.setTimelineCursor('1914-07');
+  assert.equal(f.project.snapshot(),before);assert.equal(f.client.state().checkpoint,clock.checkpoint);
+  assert.deepEqual([...f.state.historyDirtyEntityIds],[]);
+  const saved=JSON.parse((await f.client.exportSnapshot({format:'pandolab-autosave',version:'fixture',savedAt:'2026-10-04T00:00:00.000Z'})).storageJson);
+  assert.equal(saved.format,'pandolab-autosave-delta');assert.deepEqual(saved.entityDelta,{changed:[],removedIds:[]});
+});
+
+for(const removedId of ['removed','__proto__'])test(`Core history restores ${removedId} appearance while preserving survivor view edits`,async()=>{
+  const features=['root',removedId,'kept'].map(id=>createTerritorialFeature({id,name:id,entityKind:'general',parentId:id==='root'?'':'root',geometry:polygon()}));
+  const styleKey=`territorial:entity:${removedId}`,f=await fixture(features,{itemVisibility:{subunits:{[removedId]:false,kept:false},countries:{root:false}},
+    layerPresentation:normalizeLayerPresentation({objectStyles:{[styleKey]:{opacity:0.5},'territorial:entity:kept':{opacity:0.6}}})});
+  await f.project.admitPresentationCatalog({hydroLayers:{},countryLabelIds:['root'],
+    builtinSubunitSources:Object.fromEntries(BUILTIN_SUBUNITS.map(row=>[row.id,row.sourceCountryId]))});
+  const refs=[{domain:'territorial',id:removedId}];
+  await executeTestCommand(f.state,{commandId:'objects.remove',targets:refs,payload:{refs}});
+  await view(f.state,{action:'objectVisibility',refs:[{domain:'territorial',type:'entity',id:'kept'},{domain:'territorial',type:'entity',id:'root'}],visible:true});
+  await view(f.state,{action:'objectStyle',ref:{domain:'territorial',id:'kept'},patch:{opacity:0.9}});
+  const survivor=f.project.snapshot().layerPresentation.objectStyles['territorial:entity:kept'];
+  assert.equal(await f.project.undo(),true);assert.ok(f.entityRepository.get(removedId));
+  assert.equal(f.state.itemVisibility.subunits[removedId],false);assert.equal(f.state.layerPresentation.objectStyles[styleKey].opacity,0.5);
+  assert.equal(f.state.itemVisibility.subunits.kept,undefined);assert.equal(f.state.itemVisibility.countries.root,undefined);
+  assert.deepEqual(f.state.layerPresentation.objectStyles['territorial:entity:kept'],survivor);
+  assert.equal(await f.project.redo(),true);assert.equal(f.entityRepository.get(removedId),null);
+  assert.equal(Object.hasOwn(f.state.itemVisibility.subunits,removedId),false);
+  assert.equal(Object.hasOwn(f.state.layerPresentation.objectStyles,styleKey),false);
+  assert.deepEqual(f.state.layerPresentation.objectStyles['territorial:entity:kept'],survivor);
+});
 test('canonical object lookup resolves builtin labels in the existing domain with readonly capabilities',()=>{
   const owner=createObjectCommands();owner.connect({selectionServices:{normalizeObjectRef},projectState:{state:{labels:[]}},labelPresentation:{labelById:id=>id===source.id?source:null}});
   const ref=owner.layerItemObjectRef('labels',source.id);
   assert.equal(ref.domain,'label');assert.equal(ref.type,'capital');assert.equal(owner.objectRefExists(ref),true);assert.ok(Object.isFrozen(source));
   assert.equal(owner.objectDisplayInfo(ref).name,'서울');
 });
-test('copy creates an independent user label via canonical history and autosave without mutating builtin source',()=>{
-  const state={selected:{domain:'label',id:source.id},labels:[],labelSettings:{}},history=[],events=[];
-  const owner=createGenericCommands();owner.connect({projectState:{state},labelPresentation:{labelById:()=>source,labelKey:(domain,id)=>`${domain}:${id}`,automaticLabelSettings:()=>({pinned:true})},surfaces:{uid:()=> 'label-copy'},
-    domains:{projectDomain:{recordHistory:()=>history.push(structuredClone(state.labels)),queueAutosave:()=>events.push('autosave')},renderingDomain:{invalidateLabels:()=>events.push('render')}},
-    layers:{markLayerTreeDirty:()=>events.push('tree')},propertyEditingA:{applyLabelSelectionIntent:()=>events.push('select')},feedback:{setActionStatus:()=>{}}});
-  const copy=owner.copySelectedPlaceForEditing();assert.equal(copy.id,'label-copy');assert.equal(copy.sourcePlaceId,source.id);assert.deepEqual(copy.coordinates,source.coordinates);
-  copy.coordinates[0]=128;copy.name='편집한 지명';assert.equal(source.coordinates[0],127);assert.equal(source.name,'서울');assert.equal(state.labels.length,1);assert.deepEqual(history,[[]]);assert.ok(events.includes('autosave'));
-});
-
-
-function historySnapshotFixture({ labels = [], labelSettings = {} } = {}) {
-  const state = {
-    territorialEntities: [], sourceInfo: null, labels: structuredClone(labels), genericFeatures: [], hydroEdits: [],
-    distributionLayers: [], distributionEntries: [],
-    labelSettings: structuredClone(labelSettings), distributionSettings: { renderMode: 'overlap', activeLayerId: '', boundaryVisible: true },
-    layerPresentation: {}, physicalSettings: { hiddenHydroIds: {} }, layerVisibility: {}, itemVisibility: {},
-    projection: 'flat', layerFolders: {}, view: {}, historyDirtyEntityIds: new Set(), autosaveMode: 'delta',
-    selectedDistributionLayerId: '', boundaryPreparation: null,
-  };
-  const owner = createProjectSnapshots();
-  initializeTestTerritorialState(state);
-  const entityStore = createTerritorialEntityStore({ getState: () => state });
-  const entityRepository = createTerritorialEntityRepository({ entityStore: entityStore });
-  let searchRenders = 0;
-  let searchCancels = 0;
-  const geometryChanges = [];
-  const ownerBuiltinCountries = {
-    canonicalCountryStore: null,
-    materializePristineCountriesSync: () => ({ type: 'FeatureCollection', features: [] }),
-  };
-  owner.connect({
-    projectState: { state },
-    projectSession: { saveState: createSaveStateController() },
-    applicationConstantsA: { DISTRIBUTION_RENDER_MODES: { SINGLE: 'single', OVERLAP: 'overlap' }, BUILTIN_TERRITORY_MERGES: [] },
-    platformConfigurationA: { BASE_DATASET: 'fixture' },
-    objectCatalog: { builtinSubunitSourceId: () => '' },
-    projectServices: { pickProjectFields, applyProjectFields },
-    platform: { deepClone: structuredClone, $: () => ({ textContent: '' }) },
-    labelPresentation: { labelKey: (domain, id) => `${domain}:${id}` },
-    rendering: { gpuMapRenderer: { invalidateHydroVisibility() {} } },
-    hydroModel: { syncPhysicalControls() {}, normalizeHydroEditCollection: value => value || [] },
-    builtinCountries: ownerBuiltinCountries,
-    builtinBaseline: { get projectBaseline() { return { baseEntities: createStaticTerritorialSnapshot(ownerBuiltinCountries.materializePristineCountriesSync().features).territorialEntities }; } },
-    geometryMutation: { reindexCountries: value => value },
-    geometryPreview: { rebuildBoundaryTopology() {} },
-    countryRecords: { applyPristineLabelAnchors() {} },
-    modelValidation: { normalizeGenericFeatureCollection: value => value || [], normalizeLayerPresentation: value => value || {} },
-    distributionServices: {
-      normalizeDistributionLayers: value => value || [],
-      normalizeDistributionEntries: value => value || [],
-      validateDistributionModel: () => ({ ok: true }),
-    },
-    territorialModel: {
-      entityStore,
-      entityRepository,
-      normalizeTerritorialEntities: value => value || [],
-    },
-    presentation: { territorialRepository: { get: () => null } },
-    layerTree: { normalizeLayerFolderState: value => value || {}, pruneLayerItemVisibility() {} },
-    countries: { scheduleCountryLabelAnchors() {} },
-    layers: { markLayerTreeDirty() {} },
-    domains: {
-      layerTreeController: {
-        cancelSearch() { searchCancels += 1; },
-        render(force) { assert.equal(force, true); searchRenders += 1; },
-      },
-      selectionDomain: { clear() {} },
-    },
-    countryEditingB: {
-      resetBoundaryEditState() {}, resetMergeState() {}, resetGenericFeatureMergeState() {},
-      resetTerritorialUnitEditState() {}, resetTerritoryEditingState() {},
-    },
-    domainControllers: { objectPropertyController: { show() {} } },
-    spatialQuery: { mapEditClient: { invalidateBoundaryCache() {} }, markCountryGeometriesChanged(ids) { geometryChanges.push([...ids]); } },
-    taskUi: { updateModeButtons() {} },
-  });
-  return { owner, state, entityStore, geometryChanges, builtinCountries: ownerBuiltinCountries,
-    searchRenders: () => searchRenders, searchCancels: () => searchCancels };
-}
-
-test('real history restores shared, unused and past archive entries after static geometry edit and Undo/Redo', () => {
-  const { owner, entityStore } = historySnapshotFixture();
-  const input = JSON.parse(readFileSync(new URL('../fixtures/timeline-exchange/static.json', import.meta.url), 'utf8'));
-  const expected = JSON.parse(readFileSync(new URL('../fixtures/timeline-exchange/static.expected.json', import.meta.url), 'utf8'));
-  entityStore.restoreProject(input);
-  const before = owner.snapshotEditable();
-  const history = createHistoryService({ store: { history: [], historyMeta: [], future: [], futureMeta: [] },
-    snapshot: owner.snapshotEditable, restore: owner.restoreEditable, normalizeMetadata: meta => meta });
-  history.record({ description: 'static geometry edit' });
-  const geometry = { type: 'Polygon', coordinates: [[[0,0],[4,0],[4,4],[0,0]]] };
-  entityStore.applyChanges({ features: [{ ...entityStore.snapshot().find(row => row.id === 'A'), geometry }] });
-  const after = owner.snapshotEditable();
-  assert.deepEqual(after.territorialEntities, expected.territorialEntities);
-  assert.deepEqual(after.timelineRecords.lifetimes, expected.timelineRecords.lifetimes);
-  assert.deepEqual(after.timelineRecords.parentRelations, expected.timelineRecords.parentRelations);
-  assert.equal(after.geometries.length, expected.geometries.length + 1);
-  for (const entry of expected.geometries) assert.deepEqual(after.geometries.find(row => row.id === entry.id && row.version === entry.version), entry);
-  assert.deepEqual(entityStore.snapshot().find(row => row.id === 'A').geometry, geometry);
-  assert.deepEqual(entityStore.snapshot().find(row => row.id === 'B').geometry, expected.geometries.find(row => row.id === 'shape' && row.version === 1).geojson);
-  assert.equal(history.undo(), true);
-  assert.deepEqual(owner.snapshotEditable(), before);
-  assert.equal(history.redo(), true);
-  assert.deepEqual(owner.snapshotEditable(), after);
-});
-
-test('label-only undo does not republish persistently dirty country geometry; actual geometry undo still does', () => {
-  const { owner, state, entityStore, geometryChanges } = historySnapshotFixture();
-  const geometry = { type: 'Polygon', coordinates: [[[0, 0], [2, 0], [2, 2], [0, 0]]] };
-  entityStore.appendEntities([normalizeCountryFeature({ type: 'Feature', id: 'KOR', properties: { name: '한국' }, geometry })]);
-  const originalGeometry = entityStore.snapshot()[0].geometry;
-  state.historyDirtyEntityIds.add('KOR');
-  const snapshot = owner.snapshotEditable();
-  state.labels.push({ id: 'copy', name: '서울', coordinates: [127, 37] });
-  owner.restoreEditable(snapshot);
-  assert.equal(state.territorialEntities[0].geometry, originalGeometry);
-  assert.deepEqual(geometryChanges, []);
-  assert.deepEqual([...state.historyDirtyEntityIds], ['KOR']);
-  entityStore.applyChanges({ features: [{ ...entityStore.snapshot()[0], geometry: { type: 'Polygon', coordinates: [[[0, 0], [3, 0], [3, 3], [0, 0]]] } }] });
-  owner.restoreEditable(snapshot);
-  assert.deepEqual(geometryChanges, [['KOR']]);
-  assert.deepEqual(state.territorialEntities[0].geometry, geometry);
-});
-
-test('dated editing is rejected while static records and archive survive delta and undo', () => {
-  const { owner, state, entityStore, builtinCountries } = historySnapshotFixture();
-  const baseline = { type: 'FeatureCollection', features: [{
-    type: 'Feature', id: 'KOR', properties: { name: '한국' },
-    geometry: { type: 'Polygon', coordinates: [[[0, 0], [0, 2], [2, 2], [2, 0], [0, 0]]] },
-  }] };
-  builtinCountries.canonicalCountryStore = createCanonicalCountryStore(encodeCanonicalCountryPacket(baseline));
-  entityStore.replaceEntities(normalizeCountryCollection(builtinCountries.canonicalCountryStore.materializeCollectionSync()).features);
-  builtinCountries.materializePristineCountriesSync = () => normalizeCountryCollection(builtinCountries.canonicalCountryStore.materializeCollectionSync());
-  const pristine = owner.snapshotEditable();
-  assert.throws(() => entityStore.setField('KOR', 'validFrom', '1900'), { code: 'TIMELINE_ACTIVATION' });
-  entityStore.setField('KOR', 'name', 'changed name');
-  assert.deepEqual([...state.historyDirtyEntityIds], ['KOR']);
-  assert.equal(Object.hasOwn(owner.buildEntityDelta().changed[0].properties, 'validFrom'), false);
-  assert.deepEqual(owner.snapshotEditable().timelineRecords, pristine.timelineRecords);
-  const saved = JSON.parse(JSON.stringify(owner.snapshotEditable()));
-
-  owner.restoreEntitiesFromSnapshot(pristine);
-  assert.equal(entityStore.snapshot().find(entity => entity.id === 'KOR').properties.validFrom, null);
-  assert.equal(state.territorialEntities.find(entity => entity.id === 'KOR').properties.validFrom, null);
-  owner.restoreEntitiesFromSnapshot(saved);
-  assert.equal(entityStore.snapshot().find(entity => entity.id === 'KOR').properties.name, 'changed name');
-  assert.equal(builtinCountries.canonicalCountryStore.properties('KOR').validFrom, undefined);
-
-  owner.configureDatasetSession({ territorialEntities: structuredClone(state.territorialEntities), baseDataset: 'fixture' });
-  assert.deepEqual([...state.historyDirtyEntityIds], ['KOR']);
-  assert.equal(Object.hasOwn(owner.buildEntityDelta().changed[0].properties, 'validFrom'), false);
-});
-
-test('actual history owner rejects invalid project references before changing content or presentation', () => {
-  const { owner, state, entityStore, geometryChanges } = historySnapshotFixture();
-  entityStore.appendEntities([normalizeCountryFeature({ type: 'Feature', id: 'KOR', properties: { name: '한국' },
-    geometry: { type: 'Polygon', coordinates: [[[0,0],[0,2],[2,2],[2,0],[0,0]]] } })]);
-  const broken = owner.snapshotEditable();
-  broken.territorialEntities[0].properties.name = 'invalid candidate';
-  broken.distributionEntries = [{ id: 'entry', layerId: 'missing', mode: 'territorial', territorialUnitId: 'KOR', value: 1 }];
-  const before = owner.snapshotEditable(), selected = state.selected;
-  assert.throws(() => owner.restoreEditable(broken));
-  assert.deepEqual(owner.snapshotEditable(), before);
-  assert.equal(state.selected, selected);
-  assert.deepEqual(geometryChanges, []);
-});
-
-test('label history restores only changed user-label settings and leaves unrelated presentation alone', () => {
-  const label = { id: 'label-copy', name: '서울', kind: 'capital', coordinates: [127, 37], notes: '' };
-  const { owner, state, searchRenders, searchCancels } = historySnapshotFixture({
-    labels: [label],
-    labelSettings: { 'label:label-copy': { pinned: true, manualPosition: [127, 37] }, 'territorial:KOR': { pinned: true } },
-  });
-  const snapshot = owner.snapshotEditable();
-  assert.deepEqual(snapshot.historyLabelSettings, { 'label:label-copy': { pinned: true, manualPosition: [127, 37] } });
-  assert.equal('labelSettings' in snapshot, false);
-
-  state.labels = [];
-  delete state.labelSettings['label:label-copy'];
-  state.labelSettings['territorial:KOR'] = { pinned: false };
-  owner.restoreEditable(snapshot);
-
-  assert.equal(state.labels.length, 1);
-  assert.deepEqual(state.labelSettings['label:label-copy'], { pinned: true, manualPosition: [127, 37] });
-  assert.deepEqual(state.labelSettings['territorial:KOR'], { pinned: false });
-  assert.equal(searchCancels(), 1);
-  assert.equal(searchRenders(), 1);
-
-  const beforeCopy = owner.snapshotEditable();
-  state.labels.push({ ...label, id: 'temporary-copy', coordinates: [128, 37] });
-  state.labelSettings['label:temporary-copy'] = { pinned: true, manualPosition: [128, 37] };
-  owner.restoreEditable(beforeCopy);
-  assert.equal(state.labels.some(item => item.id === 'temporary-copy'), false);
-  assert.equal('label:temporary-copy' in state.labelSettings, false);
-  assert.equal(searchCancels(), 2);
-  assert.equal(searchRenders(), 2);
-});
-
-
-test('unchanged static views do not become delta changes and cursor movement is session-only', () => {
-  const { owner, state, entityStore, builtinCountries } = historySnapshotFixture();
-  const base = normalizeCountryCollection({ features:[{ type:'Feature', id:'KOR', properties:{name:'한국'},
-    geometry:{type:'Polygon',coordinates:[[[0,0],[0,1],[1,1],[0,0]]]}}] });
-  builtinCountries.materializePristineCountriesSync = () => base;
-  entityStore.replaceEntities(base.features);
-  owner.configureDatasetSession();
-  assert.deepEqual(owner.buildEntityDelta(), { changed:[], removedIds:[] });
-  const before = owner.snapshotEditable();
-  state.timelineCursor = '1914-06';
-  state.timelineCursor = '1914-07';
-  assert.deepEqual(owner.snapshotEditable(), before);
-  assert.deepEqual(owner.buildEntityDelta(), { changed:[], removedIds:[] });
-});
-
-for (const removedId of ['removed', '__proto__']) for (const restore of ['restoreEditable', 'restoreEditTransactionSnapshot']) test(`${restore} restores ${removedId} entity appearance without undoing survivor view changes`, () => {
-  const styleKey = `territorial:entity:${removedId}`;
-  const { owner, state, entityStore } = historySnapshotFixture();
-  const geometry = { type: 'Polygon', coordinates: [[[0,0],[0,1],[1,1],[1,0],[0,0]]] };
-  entityStore.appendEntities(['root',removedId,'kept'].map(id => createTerritorialFeature({ id, name: id,
-    entityKind: 'general', parentId: id === 'root' ? '' : 'root', geometry })));
-  state.itemVisibility = { subunits: { [removedId]: false, kept: false }, countries: { root: false } };
-  state.layerPresentation = { objectStyles: { [styleKey]: { opacity: 0.5 }, 'territorial:entity:kept': { opacity: 0.6 } } };
-  const before = owner.snapshotEditable();
-  assert.equal(Object.hasOwn(before, 'itemVisibility'), false);
-  assert.equal(Object.hasOwn(before, 'layerPresentation'), false);
-  assert.equal(Object.hasOwn(pickProjectFields({ ...state, historyTerritorialAppearance: before.historyTerritorialAppearance }, { scope: 'project' }), 'historyTerritorialAppearance'), false);
-  entityStore.removeEntities([removedId]);
-  delete state.itemVisibility.subunits[removedId];
-  delete state.layerPresentation.objectStyles[styleKey];
-  const after = owner.snapshotEditable();
-  state.itemVisibility.subunits.kept = true;
-  state.itemVisibility.countries.root = true;
-  state.layerPresentation.objectStyles['territorial:entity:kept'] = { opacity: 0.9 };
-  owner[restore](before);
-  assert.equal(state.territorialEntities.some(feature => feature.id === removedId), true);
-  assert.equal(state.itemVisibility.subunits[removedId], false);
-  assert.deepEqual(state.layerPresentation.objectStyles[styleKey], { opacity: 0.5 });
-  assert.equal(state.itemVisibility.subunits.kept, true);
-  assert.equal(state.itemVisibility.countries.root, true);
-  assert.deepEqual(state.layerPresentation.objectStyles['territorial:entity:kept'], { opacity: 0.9 });
-  owner[restore](after);
-  assert.equal(state.territorialEntities.some(feature => feature.id === removedId), false);
-  assert.equal(Object.hasOwn(state.itemVisibility.subunits, removedId), false);
-  assert.equal(Object.hasOwn(state.layerPresentation.objectStyles, styleKey), false);
-  assert.equal(state.itemVisibility.subunits.kept, true);
-  assert.deepEqual(state.layerPresentation.objectStyles['territorial:entity:kept'], { opacity: 0.9 });
+test('copy creates an independent immutable user label and linked pinned settings in one C++ history entry',async ()=>{
+  const seed=JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json',import.meta.url),'utf8'));
+  seed.labels=[];seed.labelSettings={};
+  const core=await createNodeCoreProject(seed),id='22000000-0000-4000-8000-000000000012',events=[];
+  const state={selected:{domain:'label',id:source.id}};
+  const owner=createGenericCommands();owner.connect({projectState:{state},labelPresentation:{labelById:()=>source},surfaces:{uid:()=>id},
+    domains:{projectDomain:core.project,renderingDomain:{invalidateLabels:()=>events.push('render')}},
+    layers:{markLayerTreeDirty:()=>events.push('tree')},propertyEditingA:{applyLabelSelectionIntent:async ()=>events.push('select')},feedback:{setActionStatus:()=>{}}});
+  try {
+    const copy=await owner.copySelectedPlaceForEditing();assert.equal(copy.id,id);assert.equal(copy.sourcePlaceId,source.id);assert.deepEqual(copy.coordinates,source.coordinates);
+    assert.throws(()=>{copy.coordinates[0]=128;},TypeError);assert.equal(source.coordinates[0],127);assert.equal(source.name,'서울');
+    assert.equal(core.documentModel.list('label').length,1);
+    const settings=core.documentModel.snapshot().labelSettings[`label:${id}`];
+    assert.deepEqual(settings,{ priority: 90,minZoom: 0,maxZoom: Infinity,manualPosition: source.coordinates,pinned: true,collisionGroup: 'place' });
+    assert.equal(core.client.state().stateRevision,0);assert.equal(core.client.state().presentationDirty,false);
+    assert.ok(events.includes('select'));assert.equal(await core.project.undo(),true);assert.deepEqual(core.documentModel.snapshot(),seed);
+    assert.equal(core.client.state().canUndo,false);assert.equal(await core.project.redo(),true);
+    assert.equal(core.documentModel.list('label')[0].sourcePlaceId,source.id);
+    assert.equal(core.documentModel.snapshot().labelSettings[`label:${id}`].maxZoom,Infinity);
+  } finally { core.dispose(); }
 });

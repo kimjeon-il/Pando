@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
-import { createStaticTerritorialSnapshot } from '../../assets/js/modules/territorial-entity-store.js';
+import {staticTerritorialInput} from '../helpers/timeline-project.mjs';
 import { createProjectSerializer } from '../../assets/js/modules/project-serializer.js';
 import { restoreEntitiesFromDelta } from '../../assets/js/modules/project-state.js';
 import { PROJECT_SCHEMA_VERSION } from '../../assets/js/modules/version-contract.js';
@@ -34,9 +34,9 @@ test('project header and physical source metadata use the current common contrac
 });
 
 test('entity delta replaces removes and adds both kinds against a matching base without mutating inputs',()=>{
-  const base=createStaticTerritorialSnapshot([entity('A'),entity('B'),entity('S','general',{parentId:'A'})]).territorialEntities;
+  const base=staticTerritorialInput([entity('A'),entity('B'),entity('S','general',{parentId:'A'})]).territorialEntities;
   const changed=[entity('A','general',{name:'renamed',metadata:{capital:'capital'}}),entity('S','general',{parentId:'A',color:'#123456'}),entity('R','regional',{})];
-  const content=createStaticTerritorialSnapshot(changed);
+  const content=staticTerritorialInput(changed);
   const project={...content,baseDataset:'base',baseDatasetFingerprint:'1'.repeat(64),entityDelta:{changed:content.territorialEntities,removedIds:['B']}};
   const original=structuredClone({base,project});const restored=restoreEntitiesFromDelta(project,{base,baseDataset:'base',baseDatasetFingerprint:'1'.repeat(64)});
   assert.deepEqual(restored.map(x=>x.id),['A','S','R']);assert.deepEqual(restored,content.territorialEntities);assert.deepEqual({base,project},original);

@@ -34,7 +34,7 @@ var ReferenceWeb = (() => {
   };
   var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-  // app/reference-web/adapter.js
+  // native/app/reference-web/adapter.js
   var adapter_exports = {};
   __export(adapter_exports, {
     anchor: () => anchor,
@@ -48,7 +48,7 @@ var ReferenceWeb = (() => {
     trace: () => trace
   });
 
-  // app/reference-web/reference-image-georef.js
+  // assets/js/modules/reference-image-georef.js
   var REFERENCE_IMAGE_GEOREF_SCHEMA_VERSION = 2;
   var REFERENCE_IMAGE_WARP_MODES = Object.freeze({
     AUTO: "auto",
@@ -700,7 +700,7 @@ var ReferenceWeb = (() => {
     });
   }
 
-  // app/reference-web/reference-image-transform.js
+  // assets/js/modules/reference-image-transform.js
   var REFERENCE_IMAGE_TRANSFORM = Object.freeze({
     handleRadius: 8,
     hitRadius: 12,
@@ -1036,7 +1036,7 @@ var ReferenceWeb = (() => {
     return true;
   }
 
-  // app/reference-web/reference-image-live-wire.js
+  // assets/js/modules/reference-image-live-wire.js
   var DEFAULT_MAX_DIMENSION = 1024;
   var DEFAULT_SNAP_RADIUS = 8;
   var DEFAULT_SEARCH_RADIUS = 256;
@@ -1412,7 +1412,7 @@ var ReferenceWeb = (() => {
     simplifyTolerance: DEFAULT_SIMPLIFY_TOLERANCE
   });
 
-  // app/reference-web/reference-image-source-mapping.js
+  // assets/js/modules/reference-image-source-mapping.js
   function buildReferenceImageSourceMapping(record = {}) {
     const calibration2 = buildReferenceImageCalibrationWarp({
       controlPoints: record.controlPoints,
@@ -1433,7 +1433,7 @@ var ReferenceWeb = (() => {
     }));
   }
 
-  // app/reference-web/reference-image-line-refiner.js
+  // assets/js/modules/reference-image-line-refiner.js
   var DEFAULT_MAX_DIMENSION2 = 1024;
   var DEFAULT_CORRIDOR_RADIUS = 12;
   var DEFAULT_SIMPLIFY_TOLERANCE2 = 1.5;
@@ -1799,7 +1799,7 @@ var ReferenceWeb = (() => {
     simplifyTolerance: DEFAULT_SIMPLIFY_TOLERANCE2
   });
 
-  // app/reference-web/adapter.js
+  // native/app/reference-web/adapter.js
   function calibration(record) {
     const calibrated = buildReferenceImageCalibrationWarp(__spreadProps(__spreadValues({}, record), { mode: record.warpMode }));
     let warp = calibrated;

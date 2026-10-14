@@ -36,17 +36,36 @@ export function createLandRelations() {
     return (0, dependencies.geometryPreview.geometryPolygonSets)(feature?.geometry).some(polygon => pointInPolygonSet(point, polygon));
   }
 
-  function reconcileTerritorialUnitCompleteness(countryIds, { preserveIds = [] } = {}) {
+  function viewIndex(territorialViews) {
+    if (!Array.isArray(territorialViews)) throw new TypeError('Accepted or prepared territorial views are required for land geometry calculations.');
+    return new Map(territorialViews.map(feature => [String(feature.id), feature]));
+  }
+
+  function overlayViews(territorialViews, { features, removedIds }) {
+    const removed = new Set(removedIds.map(String)), changed = new Map(features.map(feature => [String(feature.id), feature]));
+    return territorialViews.filter(feature => !removed.has(String(feature.id)))
+      .map(feature => changed.get(String(feature.id)) || feature);
+  }
+
+  function combinePlans(territorialViews, first, second) {
+    const removedIds = [...first.removedIds, ...second.removedIds], removed = new Set(removedIds.map(String));
+    const changed = new Map([...first.features, ...second.features].map(feature => [String(feature.id), feature]));
+    return { features: territorialViews.filter(feature => !removed.has(String(feature.id)) && changed.has(String(feature.id)))
+      .map(feature => changed.get(String(feature.id))), removedIds };
+  }
+
+  function planTerritorialCompleteness({ territorialViews, countryIds, preserveIds = [] }) {
+    const byId = viewIndex(territorialViews);
     const clipper = window.polygonClipping;
-    if (!clipper?.intersection || !clipper?.difference || !clipper?.union) return;
+    if (!clipper?.intersection || !clipper?.difference || !clipper?.union) return { features: [], removedIds: [] };
     const wanted = new Set([...countryIds].map(String));
     const preserved = new Set(preserveIds.map(String));
-    const beforeUnits = dependencies.territorialModel.entityRepository.list({ kind: 'general' }).filter(entity => !!entity.properties.parentId);
+    const beforeUnits = territorialViews.filter(entity => entity.properties.entityKind === 'general' && !!entity.properties.parentId);
     const nextUnits = beforeUnits.flatMap(feature => {
-      const countryId = String((0, dependencies.territorialModel.territorialRootId)(feature, id => dependencies.territorialModel.entityRepository.get(id)) || '');
+      const countryId = String((0, dependencies.territorialModel.territorialRootId)(feature, id => byId.get(String(id))) || '');
       if (!wanted.has(countryId)) return [feature];
       if (preserved.has(String(feature.id)) || feature.properties?.coverageMode === dependencies.territorialModel.TERRITORIAL_COVERAGE_MODES.EXPLICIT) return [feature];
-      const container = dependencies.territorialModel.entityRepository.parent(feature.id);
+      const container = byId.get(String(feature.properties.parentId));
       if (!container?.geometry) return [];
       const clipped = normalizeClippedPolygonGeometry(clipper.intersection(multiCoordinates(wrapPolygonGeometry(feature.geometry, clipper)), multiCoordinates(wrapPolygonGeometry(container.geometry, clipper))));
       if (!clipped) return [];
@@ -54,61 +73,43 @@ export function createLandRelations() {
     });
 
     const retainedIds = new Set(nextUnits.map(feature => String(feature.id)));
-    dependencies.territorialModel.entityStore.applyChanges({ features: (0, dependencies.territorialModel.normalizeTerritorialEntities)(nextUnits, {
-        getEntity: id => dependencies.territorialModel.entityRepository.get(id),
-      }), removedIds: beforeUnits.filter(feature => !retainedIds.has(String(feature.id))).map(feature => feature.id) });
+    return { features: nextUnits,
+      removedIds: beforeUnits.filter(feature => !retainedIds.has(String(feature.id))).map(feature => feature.id) };
   }
 
-  function syncHardLandDependents(ownerId, _ownerBeforeGeometry, _ownerAfterGeometry, _changedAnchor = null) {
-    const beforeIds = new Set(dependencies.territorialModel.entityRepository.list({ kind: 'general' }).filter(entity => !!entity.properties.parentId).map(feature => String(feature.id)));
-    reconcileTerritorialUnitCompleteness([ownerId]);
-    (0, dependencies.layers.markLayerTreeDirty)();
-    return dependencies.territorialModel.entityRepository.list({ kind: 'general' }).filter(entity => !!entity.properties.parentId).filter(feature => !beforeIds.has(String(feature.id))).map(feature => String(feature.id));
-  }
-
-  function transferLandDependents(transferredGeometry, sourceOwnerIds, targetOwnerId) {
+  function planTransferLandDependents({ territorialViews, transferredGeometry, sourceOwnerIds, targetOwnerId }) {
+    const byId = viewIndex(territorialViews);
     const clipper = window.polygonClipping;
-    if (!transferredGeometry || !clipper?.difference) return [];
+    if (!transferredGeometry || !clipper?.difference) return { features: [], removedIds: [] };
     const sources = new Set(sourceOwnerIds.map(String));
-    const changedIds = [];
     const removedIds = [];
-    const features = dependencies.territorialModel.entityRepository.list({ kind: 'general' }).filter(entity => !!entity.properties.parentId).flatMap(feature => {
-        if (!sources.has(String((0, dependencies.territorialModel.territorialRootId)(feature, id => dependencies.territorialModel.entityRepository.get(id)) || ''))) return [];
+    const features = territorialViews.filter(entity => entity.properties.entityKind === 'general' && !!entity.properties.parentId).flatMap(feature => {
+        if (!sources.has(String((0, dependencies.territorialModel.territorialRootId)(feature, id => byId.get(String(id))) || ''))) return [];
         const remainder = normalizeClippedPolygonGeometry(clipper.difference(multiCoordinates(wrapPolygonGeometry(feature.geometry, clipper)), multiCoordinates(wrapPolygonGeometry(transferredGeometry, clipper))));
-        changedIds.push(String(feature.id));
         if (!remainder) { removedIds.push(feature.id); return []; }
         return [{ ...feature, geometry: remainder }];
       });
-    dependencies.territorialModel.entityStore.applyChanges({ features, removedIds });
-    reconcileTerritorialUnitCompleteness([...sources, String(targetOwnerId)]);
-    (0, dependencies.layers.markLayerTreeDirty)();
-    return changedIds;
+    const completeness = planTerritorialCompleteness({ territorialViews: overlayViews(territorialViews, { features, removedIds }),
+      countryIds: [...sources, String(targetOwnerId)] });
+    return combinePlans(territorialViews, { features, removedIds }, completeness);
   }
 
-  function reassignLandDependents(removedOwnerIds, targetOwnerId) {
+  function planReassignLandDependents({ territorialViews, distributionEntries, removedOwnerIds, targetOwnerId }) {
+    const byId = viewIndex(territorialViews);
+    if (!Array.isArray(distributionEntries)) throw new TypeError('Accepted distribution entries are required for land reassignment.');
     const removed = new Set(removedOwnerIds.map(String));
-    const reassignedUnits = dependencies.territorialModel.entityRepository.list({ kind: 'general' }).filter(entity => !!entity.properties.parentId).map(feature => {
-      if (!removed.has(String((0, dependencies.territorialModel.territorialRootId)(feature, id => dependencies.territorialModel.entityRepository.get(id)) || ''))) return feature;
+    const reassignedUnits = territorialViews.filter(entity => entity.properties.entityKind === 'general' && !!entity.properties.parentId).map(feature => {
+      if (!removed.has(String((0, dependencies.territorialModel.territorialRootId)(feature, id => byId.get(String(id))) || ''))) return feature;
       const properties = { ...feature.properties };
       if (removed.has(String(feature.properties?.parentId || ''))) properties.parentId = String(targetOwnerId);
       return { ...feature, properties };
     });
-    for (const entry of dependencies.projectState.state.distributionEntries) {
-      if (entry.mode === dependencies.territorialModel.DISTRIBUTION_MODES.TERRITORIAL && removed.has(String(entry.territorialUnitId))) entry.territorialUnitId = String(targetOwnerId);
-    }
-    dependencies.territorialModel.entityStore.applyChanges({ features: (0, dependencies.territorialModel.normalizeTerritorialEntities)(reassignedUnits, {
-        getEntity: id => dependencies.territorialModel.entityRepository.get(id),
-      }) });
-    reconcileTerritorialUnitCompleteness([targetOwnerId]);
-    (0, dependencies.layers.markLayerTreeDirty)();
-  }
-
-  function reassignGenericFeatureParents(removedGenericFeatureIds, replacementId = '') {
-    const removed = new Set(removedGenericFeatureIds.map(String));
-    for (const feature of dependencies.projectState.state.genericFeatures) {
-      if (!removed.has(String(feature.properties?.parentId || ''))) continue;
-      feature.properties.parentId = String(replacementId || '');
-    }
+    const completeness = planTerritorialCompleteness({ territorialViews: overlayViews(territorialViews,
+      { features: reassignedUnits, removedIds: [] }), countryIds: [targetOwnerId] });
+    const changedEntries = distributionEntries
+      .filter(entry => entry.mode === dependencies.territorialModel.DISTRIBUTION_MODES.TERRITORIAL && removed.has(String(entry.territorialUnitId)))
+      .map(entry => ({ ...entry, territorialUnitId: String(targetOwnerId) }));
+    return { ...combinePlans(territorialViews, { features: reassignedUnits, removedIds: [] }, completeness), distributionEntries: changedEntries };
   }
 
   function initializeRingHitTester() {
@@ -122,11 +123,9 @@ export function createLandRelations() {
     get pointInGenericFeature() { return pointInGenericFeature; },
     get pointInRing() { return pointInRing; },
     get pointOnSegment() { return pointOnSegment; },
-    get reassignGenericFeatureParents() { return reassignGenericFeatureParents; },
-    get reassignLandDependents() { return reassignLandDependents; },
-    get reconcileTerritorialUnitCompleteness() { return reconcileTerritorialUnitCompleteness; },
+    planReassignLandDependents,
+    planTerritorialCompleteness,
     get ringHitTester() { return ringHitTester; },
-    get syncHardLandDependents() { return syncHardLandDependents; },
-    get transferLandDependents() { return transferLandDependents; },
+    planTransferLandDependents,
   });
 }

@@ -93,9 +93,9 @@
 - 검증된 데이터 사례에 대한 입력·정규화 결과·원시 v2 타일 hex·
   선택 언어/시점별 기대 행·웹 예상 충돌 상자.
 
-생성기는 사례의 GeoNames ID를 실제 `reports/places/tier1-major-cities-batch*.json`과
-대조한다. 검수 원본의 한국어명·좌표·확인된 영어/원어·한국어 역사명 변경이
-어긋나면 **생성을 실패**시키므로 검증 자료의 묵은 하드코딩을 발견할 수 있다.
+현재 PLAC v3 검사는 `contracts/places/v3.json`의 사례를 해당
+`reports/places/tier1-major-cities-batch*.json` 검수 원본과 직접 대조한다.
+검수 원본의 대표명·좌표·역사 명칭이 어긋나면 검사에 실패한다.
 
 라벨 충돌상자는 웹 CSS 픽셀의 보수적 추정이다.
 Qt 글꼴 실측치까지 같다는 뜻이 아니므로 시각적 기하 오차는 별도 검사한다.
@@ -103,15 +103,13 @@ Qt 글꼴 실측치까지 같다는 뜻이 아니므로 시각적 기하 오차�
 ## 웹에서 변경 시
 
 ```sh
-node tools/export-place-sync.mjs
 pnpm check:place-sync
 node --test tests/unit/place-codec.test.mjs tests/unit/place-names.test.mjs tests/unit/place-layout.test.mjs tests/unit/user-preferences.test.mjs
 ```
 
-`tools/place-sync-cases.mjs`의 기대 행은 별도로 검수된 고정값이며, 생성기가
-현재 코드 동작을 그대로 기대값으로 복사하지 않는다. 생성기는 실측
-인코딩·정규화·충돌상자만 갱신한다. CI의 `--check` 단계가 갱신 누락을 탐지한다.
-생성 결과는 해당 소스 변경과 **같은 커밋**에 반영해야 한다.
+`contracts/places/v3.json`의 기대 행과 바이트는 검수된 고정값이다.
+검사는 현재 인코딩·정규화·표시 결과와 검수 원본을 이 값들과 비교한다.
+이전 `v2.json`은 고정 회귀 입력으로 유지하며 현재 계약 검사에서 재생성하지 않는다.
 
 ## 나중에 앱에 이식할 때
 

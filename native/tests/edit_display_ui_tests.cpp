@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "editorcontroller.h"
 #include "referenceimagelibrary.h"
 #include "ui_navigation.h"
@@ -24,9 +25,8 @@ using namespace pandoeditor;
 namespace {
 ProjectDocument fixture(double longitude=40.,double latitude=59.)
 {
-    return ProjectDocument({{"A","A",{{{{longitude,latitude},{longitude+4,latitude},
-        {longitude+4,latitude+4},{longitude,latitude+4},{longitude,latitude}}}},0xabcdef}},
-        {{"countries","Countries"}});
+    return makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{longitude,latitude},{longitude+4,latitude},
+        {longitude+4,latitude+4},{longitude,latitude+4},{longitude,latitude}}}}},{0xabcdef,1},"countries"}},{{"countries","Countries"}});
 }
 
 QVariantMap modelData(QObject* object)
@@ -87,7 +87,7 @@ struct Ui {
     bool open(const ProjectDocument& document,const QString& name="input.json")
     {
         Project project;project.replace(document);QFile file(files.filePath(name));
-        if(!file.open(QIODevice::WriteOnly)||file.write(projectcodec::encode(project))<=0)return false;
+        if(!file.open(QIODevice::WriteOnly)||file.write(::projectcodec::encode(project))<=0)return false;
         file.close();return editor.openFile(QUrl::fromLocalFile(file.fileName()));
     }
     bool start(bool referenceComponent=false)

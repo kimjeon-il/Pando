@@ -24,7 +24,7 @@ private slots:
         QFile zip(zipPath);QVERIFY(zip.open(QIODevice::ReadOnly));
         const auto archive=parseGisGeoJsonZip(zip.readAll());
         QVERIFY(archive.webManifest);QCOMPARE(archive.layers.size(),std::size_t(1));
-        QCOMPARE(archive.layers.front().targetType,std::string("country"));
+        QCOMPARE(archive.layers.front().targetType,std::string("general"));
         QCOMPARE(editor.documentBytes(),before);
         QCOMPARE(editor.revision(),revision);
 

@@ -10,51 +10,51 @@
     "worldBundleSha256": null
   },
   "countryPreview": {
-    "path": "countries-preview-v0.33.0.geojson.gz",
-    "version": "0.33.0",
-    "gitBlobSha": "ce5eecd8f4e1a611131f2117780c34ca3cf555b2",
-    "sha256": "1a5ecb6f6d952a89ae28c57483abd03c03ba1f15865d886377575997a1187e8e",
+    "path": "countries-preview-v0.36.1.geojson.gz",
+    "version": "0.36.1",
+    "gitBlobSha": "98b65632a12664ed3ea3f38dcd07e893251731a9",
+    "sha256": "079587b1e4154d6d7cebaf843841a8852bcb888bcb43633c418301d7946c93a5",
     "required": false,
-    "bytes": 917604,
+    "bytes": 917509,
     "source": {
-      "ref": "c0bd31d13dc8495593d78cf51f7cc195de7c9469",
-      "path": "assets/data/countries-preview-v0.33.0.geojson.gz"
+      "ref": "89acb00b5c5d7e49caefa9f1ce79e0a803853efa",
+      "path": "assets/data/countries-preview-v0.36.1.geojson.gz"
     }
   },
   "previewMesh": {
-    "path": "world-mesh-preview-v0.33.0.bin.gz",
-    "version": "0.33.0",
-    "gitBlobSha": "caff1ab319706f6bf90635ed5a992ffbf4f2a84a",
-    "sha256": "a90951c3171706bab9af4ff9e94fbc50d1ebc66f0cd53f67a4481ccd6d9e9f48",
+    "path": "world-mesh-preview-v0.36.1.bin.gz",
+    "version": "0.36.1",
+    "gitBlobSha": "7e9a401df56d412791f2d965edc33164f2c9c61b",
+    "sha256": "64881cfbf1b42b125b8ff23524a59497f52d76ca2bef77afc6381d74a3b21129",
     "required": true,
-    "bytes": 1733548,
+    "bytes": 1734076,
     "source": {
-      "ref": "c0bd31d13dc8495593d78cf51f7cc195de7c9469",
-      "path": "assets/data/world-mesh-preview-v0.33.0.bin.gz"
+      "ref": "89acb00b5c5d7e49caefa9f1ce79e0a803853efa",
+      "path": "assets/data/world-mesh-preview-v0.36.1.bin.gz"
     }
   },
   "countryCanonical": {
-    "path": "countries-canonical-v0.33.0.pcg.gz",
-    "version": "0.33.0",
-    "gitBlobSha": "54146d9eeb28e4af08e094f5061bf64689e6bdf3",
-    "sha256": "916e5e505e94ede8a245103cad0c88d5cdca232232f28a0618ad91067be3294d",
+    "path": "countries-canonical-v0.36.1.pcg.gz",
+    "version": "0.36.1",
+    "gitBlobSha": "0b2d8b120fb369ddea5cdc01b0d3acec3644f5ac",
+    "sha256": "638c6f4868b9d270a62cd66ca13a18dc8a4215fa7c48ff9280a089e433f81dd1",
     "required": true,
-    "bytes": 5122043,
+    "bytes": 5122041,
     "source": {
-      "ref": "c0bd31d13dc8495593d78cf51f7cc195de7c9469",
-      "path": "assets/data/countries-canonical-v0.33.0.pcg.gz"
+      "ref": "89acb00b5c5d7e49caefa9f1ce79e0a803853efa",
+      "path": "assets/data/countries-canonical-v0.36.1.pcg.gz"
     }
   },
   "canonicalMesh": {
-    "path": "world-mesh-v0.12.6.bin.gz",
-    "version": "0.12.6",
-    "gitBlobSha": "8c73420b92e89ab64cbe75dcc5016efe2c0a22b6",
-    "sha256": "9fe1f686728e83d4615998a7b023db680b3b561b0a26e7f2f4357b7fe8bcfb86",
+    "path": "world-mesh-v0.36.1.bin.gz",
+    "version": "0.36.1",
+    "gitBlobSha": "dddfda917e4ab12ae9a9b21aa9e50730156471a2",
+    "sha256": "c7f687e9d14325ae9c8334cb4fabc3afd016e1a1231cf16b1c0729499a713ec8",
     "required": true,
-    "bytes": 14619043,
+    "bytes": 14619919,
     "source": {
-      "ref": "c0bd31d13dc8495593d78cf51f7cc195de7c9469",
-      "path": "assets/data/world-mesh-v0.12.6.bin.gz"
+      "ref": "89acb00b5c5d7e49caefa9f1ce79e0a803853efa",
+      "path": "assets/data/world-mesh-v0.36.1.bin.gz"
     }
   },
   "terrain": {
@@ -96,17 +96,17 @@
   "historicalTimelineManifest": {
     "path": "historical-world/v1/manifest.json",
     "version": "1",
-    "gitBlobSha": "c941d066fa8d9a9c7ac877be0eb0f6defad463b1",
-    "sha256": "e42e29dc7c7a71afc0e6fbaddd135f934a17e6be8ffede16346e84a6cdd6c8ac",
+    "gitBlobSha": "a38a05065ca154b6dea444c7b1ccffa2d1ad9014",
+    "sha256": "9ed1b70c54d7b46558aa7820bb8d01498d1fe198c07a652e98837dc434955f16",
     "required": true,
-    "bytes": 59586
+    "bytes": 59226
   },
   "historicalTimeline": {
     "path": "historical-world/v1/world-project.json.gz",
     "version": "1",
-    "gitBlobSha": "8ee5ee17cd3317e8b52f23446ceaaac7d8997447",
-    "sha256": "1c2fcd0e66ae2726b53946cdbd18d7d7d686ab66eecf285e70cfd3e9df843155",
+    "gitBlobSha": "1f4c898ecda3a9eaf7d0a8038299c85081c3d296",
+    "sha256": "0f0f8af994d41a7e6e4115a1df94d6f991db77044e9f48dee16b1d559195222a",
     "required": true,
-    "bytes": 6202166
+    "bytes": 6340225
   }
 }

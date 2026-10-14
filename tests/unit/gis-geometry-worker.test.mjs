@@ -4,11 +4,7 @@ import test from 'node:test';
 import vm from 'node:vm';
 import { validateCollection } from '../../assets/js/modules/gis-geometry-validation.js';
 import { GIS_GEOMETRY_TIMEOUT_MS, createGisGeometryValidator, createImportService } from '../../assets/js/modules/import-service.js';
-import { createGisImportTransactionCommitter } from '../../assets/js/modules/gis-import-transaction.js';
-import { normalizeTerritorialEntities } from '../../assets/js/modules/territorial-units.js';
-import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
-import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
-import { initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
+import {createGisCoreFixture} from '../helpers/gis-core-fixture.mjs';
 import { createGisWorkerHarness } from './helpers/gis-worker-harness.mjs';
 
 function feature(id, coordinates) {
@@ -104,17 +100,7 @@ test('GIS validator rejects timed out work, disposes its worker and permits a fr
 test('current territorial import validates the complete batch and publishes only changed root IDs', async () => {
   const context = vm.createContext({});
   vm.runInContext(fs.readFileSync(new URL('../../assets/js/vendor/polygon-clipping.min.js', import.meta.url), 'utf8'), context);
-  const state = { stateRevision: 0, territorialEntities: [] };
-  initializeTestTerritorialState(state);
-  const store = createTerritorialEntityStore({ getState: () => state });
-  const repository = createTerritorialEntityRepository({ entityStore: store });
-  const events = [], patches = [];
-  const committer = createGisImportTransactionCommitter({ state, entityStore: store, territorialEntityRepository: repository,
-    normalizeTerritorialEntities, normalizePolygonGeometry: value => value, uid: () => 'source', polygonClipping: context.polygonClipping,
-    recordHistory: () => events.push('history'), queueAutosave: () => events.push('save'), markLayerTreeDirty() {}, setActionStatus() {},
-    markCountryGeometriesChanged: ids => { patches.push(ids); state.stateRevision++; },
-    renderingDomain: { invalidateCountryPatch() {}, invalidateTerritorialPatch() {} },
-  });
+  const {store,repository,events,rootPatches:patches,committer}=await createGisCoreFixture([],{runtime:{uid:()=> 'source',polygonClipping:context.polygonClipping}});
   let result = { targetType: 'general', collection: { type: 'FeatureCollection', features: [
     feature('A', square), { ...feature('child', square), properties: { parent_id: 'A' } },
   ] } };
@@ -132,7 +118,7 @@ test('current territorial import validates the complete batch and publishes only
   const before = store.snapshot();
   result = { targetType: 'general', collection: { features: [feature('new', square), feature('new', square)] } };
   const duplicate = await service.openFiles([{ name: 'duplicates.geojson' }]);
-  await assert.rejects(committer.commitTerritorialImport(duplicate.plan.payload.result, 'duplicates.geojson'), /ID가 중복/);
+  await assert.rejects(committer.commitTerritorialImport(duplicate.plan.payload.result, 'duplicates.geojson'), /duplicate|Duplicate|ID가 중복/);
   assert.deepEqual(store.snapshot(), before);
   assert.deepEqual(patches, [['A']]);
   assert.deepEqual(events, ['history', 'save']);

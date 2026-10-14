@@ -34,6 +34,9 @@
 #include "giscontentimport.h"
 #include <pandoeditor/historicalinstantiation.h>
 #include <pandoeditor/selection.h>
+#include <pandoeditor/document-session.h>
+#include <pandoeditor/webcommands.h>
+#include <pandoeditor/webcontentcommands.h>
 #include <QObject>
 #include <QUrl>
 #include <QVariantMap>
@@ -125,7 +128,7 @@ class EditorController : public QObject {
     Q_PROPERTY(QString webImportSummary READ webImportSummary NOTIFY webImportChanged)
     Q_PROPERTY(QString projectInstanceId READ projectInstanceId NOTIFY stateChanged)
     Q_PROPERTY(QString documentId READ documentId NOTIFY stateChanged)
-    Q_PROPERTY(QVariantList paths READ paths NOTIFY geometryChanged)
+    Q_PROPERTY(QVariantList objectBounds READ objectBounds NOTIFY geometryChanged)
     Q_PROPERTY(QObject* mapSceneBridge READ mapSceneBridge CONSTANT)
     Q_PROPERTY(QString projectionMode READ projectionMode NOTIFY viewStateChanged)
     Q_PROPERTY(QVariantMap mapViewState READ mapViewState NOTIFY viewStateChanged)
@@ -236,7 +239,9 @@ public:
     Q_INVOKABLE bool setPresentationOpacity(const QString& group,double opacity);
     Q_INVOKABLE bool setPresentationBoundary(const QString& group,bool visible);
     Q_INVOKABLE bool setPresentationColorVisible(const QString& group,bool visible);
-    Q_INVOKABLE bool setDistributionDisplay(const QString& mode,bool boundaryVisible,const QString& activeLayerId=QString());
+    Q_INVOKABLE bool setDistributionRenderMode(const QString& mode);
+    Q_INVOKABLE bool setDistributionActiveLayer(const QString& id);
+    Q_INVOKABLE bool setDistributionBoundaryVisible(bool visible);
     QVariantList placedLabels() const {return placedLabels_;}
     QAbstractItemModel* placedLabelModel() {return &placedLabelModel_;}
     Q_INVOKABLE bool setLabelPinned(const QVariantMap& ref,bool pinned,double longitude=0,double latitude=0,bool hasPosition=false);
@@ -276,6 +281,7 @@ public:
     Q_INVOKABLE bool toggleObjectLock();
     explicit EditorController(QObject* parent=nullptr);
     explicit EditorController(EditorControllerConfig config,QObject* parent=nullptr);
+    ~EditorController() override;
     QVariantList selectionItems() const;
     QVariantMap primaryObject() const;
     qulonglong selectionRevision() const { return selection_.revision(); }
@@ -284,7 +290,7 @@ public:
     void setSearchQuery(const QString& query);
     QVariantList searchResults() const;
     QVariantMap hoverObject() const;
-    qulonglong hoverRevision() const { return hoverRevision_; }
+    qulonglong hoverRevision() const { return selection_.hoverRevision(); }
     Q_INVOKABLE QVariantMap rangeAnchor(const QString& scope) const;
     Q_INVOKABLE bool selectObject(const QVariantMap& ref,const QString& mode="replace",const QString& scope="",const QVariantList& ordered={},bool additive=false);
     Q_INVOKABLE bool setSelection(const QVariantList& refs,const QVariantMap& primary={},const QString& scope="");
@@ -313,7 +319,7 @@ public:
     Q_INVOKABLE bool prepareWebImport(const QUrl& url);
     Q_INVOKABLE bool confirmWebImport(const QString& candidateHash,const QString& disposition={},const QUrl& saveUrl={});
     Q_INVOKABLE void cancelWebImport();
-    QVariantList paths() const { return projection_.paths; }
+    QVariantList objectBounds() const { return projection_.objects; }
     QObject* mapSceneBridge() {return &sceneBridge_;}
     QString projectionMode() const;
     QVariantMap mapViewState() const;
@@ -600,6 +606,7 @@ private:
     bool refreshHistoricalCatalog();
     qulonglong historicalSession_=0;
     std::optional<pandoeditor::CommandPreview> historicalCommandPreview_;
+    std::uint32_t historicalPreviewEpoch_=0;
     struct GisLoadedLayer {
         QString name,target;
         pandoeditor::GisGeoJsonCollection collection;
@@ -611,6 +618,7 @@ private:
         std::optional<pandoeditor::CommandPreview> preview;
         QString stage=QStringLiteral("reading"),error,summary;
         int selectedLayer=-1;
+        std::uint32_t epoch=0;
     };
     std::optional<GisImportSession> gisImport_;
     qulonglong gisImportToken_=0;
@@ -630,10 +638,9 @@ private:
     void publishPresentation();
     void syncHydroData();
     void initializePhysicalData();
+    void schedulePhysicalCacheMaintenance();
     void ensureHydroBootstrap();
     void requestPhysicalAsset(const QString& relativePath);
-    QString physicalAssetPath(const QString& relativePath) const;
-    QString verifiedPhysicalAssetPath(const QString& relativePath) const;
     bool physicalAssetReady(const QString& relativePath) const;
     std::vector<std::shared_ptr<TerrainTileProvider>> distinctTerrainProviders() const;
     void loadAppearancePreferences();
@@ -649,9 +656,10 @@ private:
     std::optional<pandoeditor::ProjectSnapshot> chooserBase_;
     bool chooserToggle_=false;
     struct CountryDraft { QString name,memo,color; std::optional<double> opacity; QString from,to; std::set<std::string> fields; };
-    struct FieldSession { pandoeditor::ProjectSnapshot base; pandoeditor::ObjectRef ref; QString field; };
+    struct FieldSession { pandoeditor::ProjectSnapshot base; pandoeditor::ObjectRef ref; QString field; std::uint32_t epoch=0; };
     std::map<QString,FieldSession> fieldSessions_;
     std::optional<pandoeditor::ProjectSnapshot> colorSession_;
+    std::uint32_t colorSessionEpoch_=0;
     std::vector<pandoeditor::ObjectRef> colorTargets_;
     QString validFromDraft_,validToDraft_;
     bool runPropertyCommand(const std::string&,pandoeditor::CommandAction,const QString& changedField={});
@@ -666,14 +674,21 @@ private:
     void clearParkedDrafts();
     void reconcileSelection();
     void applySelection(pandoeditor::SelectionState next);
+    static pandoeditor::ObjectRef asObjectRef(const pandoeditor::SelectionRef& ref) {return {ref.domain,ref.id};}
+    std::vector<pandoeditor::ObjectRef> selectedObjectRefs() const;
+    std::optional<pandoeditor::ObjectRef> primaryObjectRef() const;
+    std::optional<pandoeditor::ObjectRef> hoverObjectRef() const;
+    std::optional<pandoeditor::SelectionRef> selectionRefFor(const pandoeditor::ObjectRef&) const;
+    std::vector<pandoeditor::SelectionRef> selectionRefsFor(const std::vector<pandoeditor::ObjectRef>&) const;
+    std::optional<pandoeditor::SelectionRef> existingSelectionRef(const QVariantMap&) const;
+    QVariantMap selectionRefValue(const pandoeditor::SelectionRef&) const;
     std::optional<pandoeditor::ObjectRef> existingObjectRef(const QVariantMap&) const;
     QVariantMap objectRefValue(const pandoeditor::ObjectRef&) const;
     bool objectVisible(const pandoeditor::ObjectRef&) const;
-    pandoeditor::SelectionState selection_;
-    std::optional<pandoeditor::ObjectRef> hover_;
+    pandoeditor::DocumentSession coreSession_;
+    const pandoeditor::SelectionState& selection_;
     std::string selectionInstance_;
-    QString searchQuery_,hoverSource_;
-    qulonglong hoverRevision_=0;
+    QString searchQuery_;
     bool selectionTransition_=false;
     bool isProtectedWebSource(const QUrl& url) const;
     void webImportFailure(const QString& message);
@@ -685,6 +700,16 @@ private:
     pandoeditor::CommandStatus prepareCommand(const std::string& commandId,pandoeditor::CommandArguments args);
     bool confirmCommand();
     bool executeCommand(const std::string& commandId,pandoeditor::CommandAction action);
+    std::uint32_t coreEpoch() const { return coreSession_.projectState().epoch; }
+    pandoeditor::CommandResult confirmCorePreview(pandoeditor::CommandPreview&,std::uint32_t expectedEpoch);
+    pandoeditor::PresentationResult applyCorePresentation(const pandoeditor::PresentationAction&);
+    pandoeditor::projectcodec::PlatformPorts coreCodecPorts() const;
+    static pandoeditor::codecjson::Value coreInputValue(const QVariant&);
+    pandoeditor::PrepareResult prepareCoreRequest(const pandoeditor::CommandRequest&) const;
+    pandoeditor::PrepareResult prepareCoreTerritorialReceipt(pandoeditor::PrepareResult&&) const;
+    pandoeditor::CommandRequest coreTerritorialRequest(const pandoeditor::TerritorialMutationIntent&,
+        const pandoeditor::GeometryPatch* patch=nullptr) const;
+    pandoeditor::CommandRequest coreContentRequest(const pandoeditor::ContentEdit&,const pandoeditor::Geometry* geometry=nullptr) const;
     void commandError(pandoeditor::CommandError error,const QString& detail={});
     void publish(bool pruneSelection=true);
     void refreshTypedScene();
@@ -715,11 +740,15 @@ private:
     void scheduleDerivedLabelAnchor(const pandoeditor::ObjectRef& owner);
     void reloadDrafts();
     bool replaceFromBytes(const QByteArray& bytes,bool imported,const QString& path={});
-    pandoeditor::Project project_;
+    const pandoeditor::Project& project_;
     std::unique_ptr<ProjectPreviewService> projectPreview_;
     QByteArray projectPreviewSourceSha_;
     std::unique_ptr<CountryLabelAnchors> labelAnchors_;
     HydroRuntimeProvider hydroRuntime_;
+    std::shared_ptr<std::atomic_bool> hydroOpenCancelled_;
+    std::uint64_t hydroOpenGeneration_=0;
+    bool hydroOpenBusy_=false;
+    QString hydroOpenError_;
     std::shared_ptr<const BuiltinHydroRenderFrame> builtinHydroScene_;
     std::uint64_t builtinHydroRevision_=0;
     bool hydroCopyBusy_=false;
@@ -727,6 +756,7 @@ private:
     std::optional<pandoeditor::JobTicket> background_;
     bool fieldCommitInProgress_=false;
     std::optional<pandoeditor::CommandPreview> pendingPreview_;
+    std::uint32_t pendingPreviewEpoch_=0;
     struct StructureSession {
         pandoeditor::ProjectSnapshot base;
         pandoeditor::TerritorialMutationPlan plan;
@@ -734,6 +764,7 @@ private:
         std::optional<pandoeditor::CommandPreview> preview;
         MapProjection projection;
         QString error;
+        std::uint32_t epoch=0;
     };
     // A country-to-subunit conversion needs a destination sovereign and parent
     // before the core can create a valid immutable plan.  Keep those UI-only
@@ -749,16 +780,19 @@ private:
         std::optional<pandoeditor::CommandPreview> preview;
         QString error;
         std::set<std::string> pendingFields;
+        std::map<std::string,QVariant> inputs;
+        std::uint32_t epoch=0;
     };
     std::optional<ContentSession> contentSession_;
     void refreshContentSession();
-    struct GeometryEditSession : pandoeditor::map::GeometryDraft {
-        GeometryEditSession(pandoeditor::ProjectSnapshot snapshot,pandoeditor::ObjectRef ref,
+    struct GeometryEditSession {
+        GeometryEditSession(pandoeditor::DocumentSession& session,pandoeditor::ProjectSnapshot snapshot,pandoeditor::ObjectRef ref,
                             pandoeditor::Geometry geometry,QString editTool,
                             std::optional<pandoeditor::CreateTerritorialIntent> intent={})
-            : GeometryDraft{std::move(geometry)},base(std::move(snapshot)),target(std::move(ref)),
-              tool(std::move(editTool)),createIntent(std::move(intent)) {}
+            : base(std::move(snapshot)),epoch(session.projectState().epoch),target(std::move(ref)),
+              tool(std::move(editTool)),createIntent(std::move(intent)) {session.installNativeDraft(std::move(geometry),epoch);}
         pandoeditor::ProjectSnapshot base;
+        std::uint32_t epoch=0;
         pandoeditor::ObjectRef target;
         QString tool;
         // A draw session may create a new territorial unit.  The incomplete
@@ -767,10 +801,10 @@ private:
         std::optional<pandoeditor::CreateTerritorialIntent> createIntent;
         std::optional<pandoeditor::CommandPreview> preview;
         std::optional<pandoeditor::JobTicket> job;
+        std::optional<pandoeditor::TerritorialMutationPlan> platformPlan;
         std::uint64_t request=0;
         QString error;
-        pandoeditor::Ring lineDraft;
-        std::vector<pandoeditor::Ring> lineUndo,lineRedo;
+        int boundaryNode=-1;
         QString referenceSessionId=QUuid::createUuid().toString(QUuid::WithoutBraces);
         std::optional<pandoeditor::AnnexTerritoryIntent> annexIntent;
         std::optional<pandoeditor::SplitTerritorialIntent> splitIntent;
@@ -902,6 +936,8 @@ private:
     bool mapEditorActive_=false;
     std::unique_ptr<PhysicalDataStore> physicalStore_;
     QHash<QString,PhysicalAssetSpec> physicalAssets_;
+    QString physicalDataset_,physicalVersion_;
+    bool physicalCleanupStarted_=false;
     QString physicalRoot_,physicalError_;
     int physicalActive_=0,physicalQueued_=0;
     std::shared_ptr<TerrainTileProvider> terrainProvider_;

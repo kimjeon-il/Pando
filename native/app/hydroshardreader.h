@@ -12,7 +12,7 @@ public:
 private:
     QMutex mutex_;
     HydroAssetSpec asset_;
-    QDateTime verifiedModified_;
+    QByteArray verifiedIdentity_;
     QString verifiedCanonical_;
     bool verified_=false;
 };

@@ -17,9 +17,8 @@ class V0240LayerItemDeletionTests(unittest.TestCase):
         self.assertNotIn("name: 'removedLayerItems'", PROJECT_STATE)
         self.assertNotIn('state.removedLayerItems', APP)
         self.assertNotIn('isLayerItemRemoved', APP)
-        serializer = read_module(ROOT, 'app-map-settings.js')
-        self.assertIn('dependencies.projectServices.pickProjectFields', serializer)
-        self.assertIn('dependencies.projectState.state', serializer)
+        session = read_module(ROOT, 'app-project-session.js')
+        self.assertIn('...pickProjectFields(state)', function_source(session, 'initialDocument'))
 
     def test_built_in_hydro_has_visibility_without_an_object_menu(self):
         search = read_module(ROOT, 'layer-tree-controller.js')

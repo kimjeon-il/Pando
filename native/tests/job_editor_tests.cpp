@@ -17,11 +17,11 @@ private slots:
         bool ok=false; QVERIFY(invoke(c,"applyPendingEditsAsync",ok)); QVERIFY(ok);
         QCOMPARE(c.revision(),qulonglong(0)); QCOMPARE(c.selectedName(),original); QVERIFY(c.property("jobBusy").toBool());
         QTRY_COMPARE(c.revision(),qulonglong(1)); QVERIFY(!c.property("jobBusy").toBool()); QCOMPARE(c.selectedName(),QString("async"));
-        c.undo(); QCOMPARE(c.selectedName(),original); QVERIFY(!c.canUndo() && c.canRedo() && !c.dirty());
-        c.redo(); QCOMPARE(c.selectedName(),QString("async")); QCOMPARE(c.revision(),qulonglong(3));
+        c.undo();QVERIFY(c.selectionItems().isEmpty());c.selectCountry(firstCountry(c));QCOMPARE(c.selectedName(),original); QVERIFY(!c.canUndo() && c.canRedo() && !c.dirty());
+        c.redo();QVERIFY(c.selectionItems().isEmpty());c.selectCountry(firstCountry(c));QCOMPARE(c.selectedName(),QString("async")); QCOMPARE(c.revision(),qulonglong(3));
     }
     void cancelKeepsDraftAndRedo() {
-        EditorController c; c.selectCountry(firstCountry(c)); c.setColor("#102030"); c.undo(); const auto name=c.selectedName();
+        EditorController c; c.selectCountry(firstCountry(c)); c.setColor("#102030"); c.undo();c.selectCountry(firstCountry(c));const auto name=c.selectedName();
         c.setNameDraft("pending"); bool ok=false; QVERIFY(invoke(c,"applyPendingEditsAsync",ok)); QVERIFY(ok);
         QVERIFY(QMetaObject::invokeMethod(&c,"cancelBackgroundWork"));
         QTRY_VERIFY(!c.property("jobBusy").toBool()); QCoreApplication::processEvents();
@@ -45,7 +45,7 @@ private slots:
     }
     void validationFailureAndNoOp() {
         EditorController c; c.selectCountry(firstCountry(c)); const auto name=c.selectedName();
-        c.setColor("#102030"); c.undo(); QSignalSpy errors(&c,&EditorController::errorOccurred);
+        c.setColor("#102030"); c.undo();c.selectCountry(firstCountry(c));QSignalSpy errors(&c,&EditorController::errorOccurred);
         bool ok=false; QVERIFY(invoke(c,"applyPendingEditsAsync",ok)); QVERIFY(ok); QVERIFY(!c.property("jobBusy").toBool()); QVERIFY(c.canRedo());
         // Blank territorial names are now valid; empty legacy layer names remain invalid.
         c.setLayerNameDraft("  "); QVERIFY(invoke(c,"applyPendingEditsAsync",ok)); QVERIFY(ok);
@@ -77,8 +77,8 @@ private slots:
         QVERIFY(QMetaObject::invokeMethod(&c,"commitCountryField",Q_RETURN_ARG(bool,ok),Q_ARG(QString,QString("name")))); QVERIFY(ok);
         QCOMPARE(c.selectedName(),QString("web name")); QCOMPARE(c.nameDraft(),QString("web name")); QCOMPARE(c.memoDraft(),QString("uncommitted notes")); QCOMPARE(c.revision(),qulonglong(1));
         QVERIFY(QMetaObject::invokeMethod(&c,"commitCountryField",Q_RETURN_ARG(bool,ok),Q_ARG(QString,QString("notes")))); QVERIFY(ok);
-        QCOMPARE(c.revision(),qulonglong(2)); c.undo(); QCOMPARE(c.selectedName(),QString("web name")); QCOMPARE(c.memoDraft(),QString());
-        c.undo(); QCOMPARE(c.selectedName(),original); QVERIFY(!c.canUndo());
+        QCOMPARE(c.revision(),qulonglong(2)); c.undo();QVERIFY(c.selectionItems().isEmpty());c.selectCountry(firstCountry(c));QCOMPARE(c.selectedName(),QString("web name")); QCOMPARE(c.memoDraft(),QString());
+        c.undo();QVERIFY(c.selectionItems().isEmpty());c.selectCountry(firstCountry(c));QCOMPARE(c.selectedName(),original); QVERIFY(!c.canUndo());
     }
 };
 QTEST_GUILESS_MAIN(JobEditorTests)

@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "territorial_fixture.h"
 #include "editorcontroller.h"
 #include "ui_navigation.h"
@@ -17,7 +18,7 @@
 using namespace pandoeditor;
 
 namespace {
-QVariantMap ref(QString id,QString type="general") {return {{"domain","territorial"},{"type",type},{"id",id}};}
+QVariantMap ref(QString id,QString kind="general") {return {{"domain","territorial"},{"type","entity"},{"kind",kind},{"id",id}};}
 QStringList ids(const QVariantList& rows) {QStringList out;for(auto row:rows)out<<row.toMap()["id"].toString();return out;}
 QQuickItem* item(QQuickItem* root,const QString& name) {
     if(root->objectName()==name)return root;
@@ -26,10 +27,8 @@ QQuickItem* item(QQuickItem* root,const QString& name) {
 }
 void modes() {QTest::addColumn<bool>("mobile");QTest::newRow("desktop-1100")<<false;QTest::newRow("mobile-360")<<true;}
 ProjectDocument fixture() {
-    ProjectDocument d({
-        {"A","Alpha",{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}},0x123456},
-        {"B","Beta",{{{{20,0},{30,0},{30,10},{20,10},{20,0}}}},0xabcdef}
-    },{{"countries","Countries"},{"other","Units"},{"hidden","Hidden",false,false,1}});
+    pandoeditor::ProjectDocument d = makeTerritorialDocument({{{"A","Alpha","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}}},{0x123456,1},"countries"},
+        {{"B","Beta","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{20,0},{30,0},{30,10},{20,10},{20,0}}}}},{0xabcdef,1},"countries"}},{{"countries","Countries"},{"other","Units"},{"hidden","Hidden",false,false,1}});
     d.documentId="selection-ui-v1";
     auto add=[&](std::string id,UnitKind kind,std::string layer,double left,double right,bool locked) {
         Geometry g;g.type="Polygon";g.polygons={{{{left,2},{right,2},{right,4},{left,4},{left,2}}}};
@@ -53,7 +52,7 @@ struct Harness {
     Harness(bool mobile):editor(EditorControllerConfig{mobile,dir.filePath("private.json")}) {
         Project p;p.replace(fixture());path=QUrl::fromLocalFile(dir.filePath("fixture.json"));
         QFile f(path.toLocalFile());if(!f.open(QIODevice::WriteOnly))throw std::runtime_error("fixture write");
-        f.write(projectcodec::encode(p));f.close();
+        f.write(::projectcodec::encode(p));f.close();
         if(!editor.openFile(path))throw std::runtime_error("fixture open");
         if(!editor.setProjectionMode("flat"))throw std::runtime_error("flat fixture view");
         QObject::connect(&engine,&QQmlEngine::warnings,&engine,[this](const QList<QQmlError>& errors){
@@ -103,7 +102,7 @@ struct Harness {
         window->grabWindow();return true;
     }
     QPointF point(const QString& id) const {
-        for(auto value:editor.paths()){
+        for(auto value:editor.objectBounds()){
             const auto p=value.toMap();if(p["countryId"]!=id)continue;
             return {p["left"].toDouble()+p["width"].toDouble()/2,p["top"].toDouble()+p["height"].toDouble()/2};
         }
@@ -126,7 +125,7 @@ struct Harness {
         if(id=="A"||id=="S"){
             // At 360px the web's 12px subunit tolerance reaches the rectangle
             // center. Use an interior point away from S/R for a single-country hit.
-            for(auto value:editor.paths()){
+            for(auto value:editor.objectBounds()){
                 const auto p=value.toMap();if(p["countryId"]!=id)continue;
                 auto map=control("mapView");
                 // After selection, touch-sized corner handles cover the former
@@ -156,7 +155,7 @@ private slots:
     void territorialGeometryPreview(){
         QFETCH(bool,mobile);Harness h(mobile);QVERIFY(h.window);
         auto document=fixture();document.units[2].locked=false;
-        Project p;p.replace(document);QFile f(h.path.toLocalFile());QVERIFY(f.open(QIODevice::WriteOnly));f.write(projectcodec::encode(p));f.close();
+        Project p;p.replace(document);QFile f(h.path.toLocalFile());QVERIFY(f.open(QIODevice::WriteOnly));f.write(::projectcodec::encode(p));f.close();
         QVERIFY(h.editor.openFile(h.path));QVERIFY(h.editor.selectObject(ref("S","general"),"replace","test"));
         const auto before=h.editor.documentBytes();QVERIFY(h.editor.transferSelectedSubunit("B"));
         QTRY_VERIFY_WITH_TIMEOUT(!h.editor.structureState()["calculating"].toBool(),10000);
@@ -235,7 +234,7 @@ private slots:
     void focusAndHoverDoNotEdit(){
         QFETCH(bool,mobile);Harness h(mobile);QVERIFY(h.window);
         h.editor.selectCountry("A");h.editor.setNameDraft("Saved A");QVERIFY(h.editor.commitCountryField("name"));
-        h.editor.setMemoDraft("Redo");QVERIFY(h.editor.commitCountryField("notes"));h.editor.undo();
+        h.editor.setMemoDraft("Redo");QVERIFY(h.editor.commitCountryField("notes"));h.editor.undo();QVERIFY(h.editor.selectionItems().isEmpty());h.editor.selectCountry("A");
         const auto bytes=h.editor.documentBytes();const auto rev=h.editor.revision();const bool dirty=h.editor.dirty();
         QSignalSpy changes(&h.editor,&EditorController::dirtyChanged);
         QVERIFY(h.search("Beta"));QVERIFY(h.click("searchFocus_B",Qt::NoModifier,mobile));

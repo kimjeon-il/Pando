@@ -1,0 +1,277 @@
+name: P1 Remote development (scoped)
+
+on:
+  push:
+    branches: [work/ui, work/objects, work/gis, work/places]
+    paths:
+      - '.github/workflows/remote-development-p1.yml'
+      - 'CMakeLists.txt'
+      - 'CMakePresets.json'
+      - 'cmake/P2NativeBuildReceipt.cmake'
+      - '.nvmrc'
+      - '.python-version'
+      - 'config/toolchain-versions.json'
+      - 'scripts/p1-plan-remote-checks.mjs'
+      - 'tests/unit/p1-remote-scopes.test.mjs'
+      - 'shared/**'
+      - 'native/**'
+      - 'tools/**'
+      - 'scripts/**'
+      - 'assets/js/**'
+      - 'assets/css/**'
+      - 'assets/data/**'
+      - 'contracts/**'
+      - 'index.html'
+      - 'tests/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: Scope to validate, auto or explicitly selected
+        required: false
+        default: auto
+        type: choice
+        options: [auto, ui, objects, gis, places, core, native, wasm, all]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: p1-remote-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  plan:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      web: ${{ steps.scope.outputs.web }}
+      core: ${{ steps.scope.outputs.core }}
+      native: ${{ steps.scope.outputs.native }}
+      wasm: ${{ steps.scope.outputs.wasm }}
+      qt: ${{ steps.scope.outputs.qt }}
+      gis_tools: ${{ steps.scope.outputs.gis_tools }}
+      python: ${{ steps.scope.outputs.python }}
+      ui: ${{ steps.scope.outputs.ui }}
+      objects: ${{ steps.scope.outputs.objects }}
+      gis: ${{ steps.scope.outputs.gis }}
+      places: ${{ steps.scope.outputs.places }}
+      cmake_version: ${{ steps.scope.outputs.cmake_version }}
+      qt_version: ${{ steps.scope.outputs.qt_version }}
+      emscripten_version: ${{ steps.scope.outputs.emscripten_version }}
+      emsdk_ref: ${{ steps.scope.outputs.emsdk_ref }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+      - name: Verify the same pinned versions and selective scopes
+        run: node --test tests/unit/p1-remote-scopes.test.mjs
+      - name: Try shallow-fetching push/PR base for exact changed paths
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || '' }}
+        run: |
+          if [[ "$BASE_SHA" =~ ^[0-9a-f]{40}$ ]] && [[ ! "$BASE_SHA" =~ ^0{40}$ ]]; then
+            git cat-file -e "$BASE_SHA^{commit}" 2>/dev/null || git fetch --no-tags --depth=1 origin "$BASE_SHA" || true
+          fi
+      - name: Plan only the affected checks
+        id: scope
+        env:
+          PANDO_P1_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || '' }}
+          PANDO_P1_SCOPE: ${{ inputs.scope || 'auto' }}
+        run: node scripts/p1-plan-remote-checks.mjs --github-output
+
+  web-smoke:
+    needs: plan
+    if: needs.plan.outputs.web == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+      # No package manager or browser install is needed for these focused Node tests.
+      - name: Run changed Web scope contracts
+        shell: bash
+        env:
+          UI: ${{ needs.plan.outputs.ui }}
+          OBJECTS: ${{ needs.plan.outputs.objects }}
+          GIS: ${{ needs.plan.outputs.gis }}
+          PLACES: ${{ needs.plan.outputs.places }}
+        run: |
+          set -euo pipefail
+          if [ "$UI" = true ]; then node --test tests/unit/surface-controller.test.mjs; fi
+          if [ "$OBJECTS" = true ]; then node --test tests/unit/temporal.test.mjs; fi
+          if [ "$GIS" = true ]; then node --test tests/unit/polygon-geometry.test.mjs; fi
+          if [ "$PLACES" = true ]; then node --test tests/unit/place-codec.test.mjs; fi
+
+  native-core:
+    needs: plan
+    if: needs.plan.outputs.core == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: ${{ needs.plan.outputs.cmake_version }}
+      - name: Install only standalone C++ requirements
+        run: sudo apt-get update && sudo apt-get install -y ninja-build zlib1g-dev
+      - name: Configure, compile and test bounded C++ contracts
+        run: |
+          cmake --preset pando-core
+          cmake --build --preset pando-core
+          ctest --preset pando-core
+
+  native-engine:
+    needs: plan
+    if: needs.plan.outputs.native == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: ${{ needs.plan.outputs.cmake_version }}
+      - name: Install native C++ dependencies without Node or Python
+        run: sudo apt-get update && sudo apt-get install -y ninja-build zlib1g-dev
+      - name: Build standalone native map engine
+        run: |
+          cmake --preset pando-native-core
+          cmake --build --preset pando-native-core
+      - name: Record exact source and compiled C++ archives
+        run: |
+          cmake "-DPANDO_P2_BUILD_DIR=$PWD/build-native/p1/pando-native-core" "-DPANDO_P2_OUTPUT=$PWD/build-native/p1/native-archive-receipt.json" -P cmake/P2NativeBuildReceipt.cmake
+      - uses: actions/upload-artifact@v4
+        with:
+          name: p2-native-cpp-${{ github.sha }}
+          path: build-native/p1/native-archive-receipt.json
+          if-no-files-found: error
+          retention-days: 7
+
+  gis-cpp-tools:
+    needs: plan
+    if: needs.plan.outputs.gis_tools == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: ${{ needs.plan.outputs.cmake_version }}
+      - run: sudo apt-get update && sudo apt-get install -y ninja-build
+      - name: Build and smoke-test the GEOS-free GIS C++ normalizer
+        run: |
+          cmake --preset pando-gis-tools
+          cmake --build --preset pando-gis-tools
+          ctest --preset pando-gis-tools
+
+  python-source:
+    needs: plan
+    if: needs.plan.outputs.python == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: '.python-version'
+      - name: Syntax-check research/GIS Python only (no global dependencies)
+        run: python -m compileall -q tools scripts/research tests/python
+
+  wasm-compile:
+    needs: plan
+    # On work/objects P2 owns source-matched WASM generation and publication.
+    # Other work branches retain the P1 standalone compiler smoke.
+    if: needs.plan.outputs.wasm == 'true' && github.ref != 'refs/heads/work/objects'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      EMCC_CORES: '1'
+      BINARYEN_CORES: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: ${{ needs.plan.outputs.cmake_version }}
+      - run: sudo apt-get update && sudo apt-get install -y ninja-build
+      - uses: actions/checkout@v4
+        with:
+          repository: emscripten-core/emsdk
+          ref: ${{ needs.plan.outputs.emsdk_ref }}
+          path: build-native/emsdk
+          persist-credentials: false
+      - name: Compile common C++ sources with the pinned Emscripten version
+        shell: bash
+        env:
+          EMSDK_VERSION: ${{ needs.plan.outputs.emscripten_version }}
+        run: |
+          build-native/emsdk/emsdk install "$EMSDK_VERSION"
+          build-native/emsdk/emsdk activate "$EMSDK_VERSION"
+          source build-native/emsdk/emsdk_env.sh
+          emcc --version | head -1 | grep -F "$EMSDK_VERSION"
+          emcmake cmake --preset pando-wasm
+          cmake --build --preset pando-wasm
+      - name: Preserve the compiled WASM result without modifying Git
+        uses: actions/upload-artifact@v4
+        with:
+          name: p1-wasm-${{ github.sha }}
+          path: |
+            build-native/p1/pando-wasm/shared/wasm/pandoeditor-core.js
+            build-native/p1/pando-wasm/shared/wasm/pandoeditor-core.wasm
+          if-no-files-found: error
+          retention-days: 7
+
+  qt-app:
+    needs: plan
+    if: needs.plan.outputs.qt == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+      - uses: pnpm/action-setup@v4
+      - name: Install pinned JS geometry parser needed by current Qt build
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: ${{ needs.plan.outputs.cmake_version }}
+      - name: Install Qt build prerequisites
+        run: sudo apt-get update && sudo apt-get install -y ninja-build zlib1g-dev libegl1-mesa-dev libxkbcommon-x11-0 libxcb-cursor0 fonts-noto-cjk
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: ${{ needs.plan.outputs.qt_version }}
+          modules: qtshadertools qtimageformats
+          cache: true
+      - name: Configure and build Qt application from the common CMake entry
+        env:
+          QT_QPA_PLATFORM: offscreen
+          QT_QUICK_BACKEND: software
+        run: |
+          cmake --preset pando-native-qt
+          cmake --build --preset pando-native-qt

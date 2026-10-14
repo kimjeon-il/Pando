@@ -136,7 +136,7 @@ QJsonObject run(const QJsonObject& corpus,const QJsonObject& definition) {
     QTemporaryDir directory;require(directory.isValid(),"Temporary fixture directory unavailable");
     Project source;source.replace(document(corpus));MapProjection projection;projection.rebuild(source.document());
     QFile file(directory.filePath("input.json"));require(file.open(QIODevice::WriteOnly),"Fixture file unavailable");
-    file.write(projectcodec::encode(source));file.close();
+    file.write(::projectcodec::encode(source));file.close();
     const auto profile=definition["profile"].toObject();
     const bool mobile=definition["view"].toObject()["coarsePointer"].toBool();
     EditorController controller({mobile,directory.filePath("private.json")});

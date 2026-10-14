@@ -1,6 +1,6 @@
 import {readFileSync,writeFileSync} from 'node:fs';
 import assert from 'node:assert/strict';
-const url=new URL('../../app/reference-web/reference-image-georef.js',import.meta.url);
+const url=new URL('../../../assets/js/modules/reference-image-georef.js',import.meta.url);
 const web=await import('data:text/javascript;base64,'+readFileSync(url).toString('base64'));
 const point=(id,u,v,x,y)=>({id,image:[u,v],coordinate:[x,y]});
 const cases=[

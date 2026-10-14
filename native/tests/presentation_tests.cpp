@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "territorial_fixture.h"
 #include <pandoeditor/presentationcommands.h>
 #include <iostream>
@@ -5,14 +6,15 @@
 using namespace pandoeditor;
 void check(bool b,const char* message){if(!b)throw std::runtime_error(message);}
 ProjectDocument fixture(){
-    ProjectDocument d({{"A","A",{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}},0x112233}},{{"countries","Countries"}});
+    pandoeditor::ProjectDocument d = makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}}},{0x112233,1},"countries"}},{{"countries","Countries"}});
     for(auto id:{"S","T","R"}){auto u=d.units.front();u.id=id;u.kind=std::string(id)=="R"?UnitKind::Regional:UnitKind::General;appendTerritory(d,u,staticGeometryBinding(d,d.units.front().id).geometryRef,u.kind==UnitKind::General?"A":"");auto ref=territorialRef(id);d.presentation.membership[ref]="countries";d.presentation.objectStyles[ref]={};if(u.kind==UnitKind::General)setFixtureParent(d,ref,territorialRef("A"));}
     return d;
 }
 int main(){try{
-    auto groups=fixture();groups.presentation.webPresentation.hiddenItems={{"countries",{}},{"subunits",{"missing"}},{"labels",{}}};
+    auto groups=fixture();groups.presentation.webPresentation.itemVisibility={{"countries",{{"A",true}}},{"subunits",{{"missing",false}}},{"labels",{}}};
     normalizePresentation(groups);
-    check(groups.presentation.webPresentation.hiddenItems==std::map<std::string,std::set<std::string>>{{"countries",{}},{"subunits",{}},{"labels",{}}},"normalization preserves group presence while pruning missing IDs");
+    check(groups.presentation.webPresentation.itemVisibility==std::map<std::string,std::map<std::string,bool>>{{"countries",{{"A",true}}},{"subunits",{}},{"labels",{}}},"normalization retains explicit true and group presence while pruning missing IDs");
+    check(itemVisible(groups.presentation.webPresentation,"countries","A"),"explicit true remains visible");
     Project p;p.replace(fixture());
     const auto visibleBefore=p.document().presentation.webPresentation;
     check(PresentationCommandProcessor::apply(p,SetBatchVisibility{{territorialRef("A")},true})==PresentationResult::NoOp,"visible item in absent group is a noop");

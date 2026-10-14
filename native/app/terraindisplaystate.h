@@ -281,14 +281,7 @@ public:
     void reset() {
         demand_.reset();cpu_.clear();uploaded_.clear();displayed_.clear();candidate_.reset();submitted_.reset();
         selected_.clear();observed_.clear();uploadOrder_.clear();
-        released_.clear();lastComplete_.clear();receiptAccepted_=false;cancelled_=false;acceptedFrame_=0;
-    }
-    // Deprecated CPU-only compatibility. Never authenticates typed display
-    // receipts, candidates or resource protection; root removes its callers.
-    QVariantList publish(QVariantList ready,bool complete) {
-        if(complete)lastComplete_=ready;
-        else for(const auto& old:lastComplete_)if(!ready.contains(old))ready.push_back(old);
-        return ready;
+        released_.clear();receiptAccepted_=false;cancelled_=false;acceptedFrame_=0;
     }
     static std::vector<TerrainDisplayRect> coverageGaps(const std::vector<TerrainDisplayDraw>& draws,
                                                       const std::vector<TerrainDisplayRect>& domains) {
@@ -430,7 +423,6 @@ private:
     std::optional<TerrainDisplayCandidate> candidate_;
     std::optional<TerrainDisplayReceipt> submitted_;
     std::vector<TerrainDisplayResourceId> released_;
-    QVariantList lastComplete_;
     std::uint64_t candidateId_=0,acceptedFrame_=0,rejectedEvents_=0,uploadSerial_=0;
     bool receiptAccepted_=false,cancelled_=false;
 };

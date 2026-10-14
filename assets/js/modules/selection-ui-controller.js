@@ -10,6 +10,9 @@ export function createSelectionUiController({
   uiActions = {},
   metrics = {},
 } = {}) {
+  for (const method of ['snapshot', 'replace', 'toggle', 'selectRange', 'setMany', 'clear', 'has']) {
+    if (typeof selectionDomain?.[method] !== 'function') throw new TypeError('The accepted selection domain is required: ' + method);
+  }
   let disposed = false;
   let pendingSnapshot = null;
   let syncFrame = 0;
@@ -20,11 +23,8 @@ export function createSelectionUiController({
   const cancelFrame = window?.cancelAnimationFrame?.bind(window)
     || (handle => window?.clearTimeout?.(handle));
 
-  const selection = () => selectionDomain?.snapshot?.().selection || {
-    primaryKey: null,
-    items: [],
-    keys: [],
-  };
+  const selection = () => selectionDomain.snapshot().selection;
+  const generation = () => selectionDomain.snapshot().projectGeneration;
 
   const primary = snapshot => {
     const current = snapshot?.selection || snapshot || selection();
@@ -65,7 +65,7 @@ export function createSelectionUiController({
 
   const syncNow = (snapshot, { force = false } = {}) => {
     if (disposed) return false;
-    const currentSnapshot = snapshot || selectionDomain?.snapshot?.();
+    const currentSnapshot = snapshot || selectionDomain.snapshot();
     if (!currentSnapshot || (!force && currentSnapshot.revision === lastRevision)) return false;
     lastRevision = currentSnapshot.revision;
     const startedAt = globalThis.performance?.now?.() || Date.now();
@@ -85,7 +85,7 @@ export function createSelectionUiController({
     return true;
   };
 
-  const sync = (snapshot = selectionDomain?.snapshot?.()) => {
+  const sync = (snapshot = selectionDomain.snapshot()) => {
     if (disposed) return false;
     pendingSnapshot = snapshot;
     if (syncFrame) {
@@ -94,14 +94,14 @@ export function createSelectionUiController({
     }
     syncFrame = requestFrame?.(() => {
       syncFrame = 0;
-      const next = pendingSnapshot || selectionDomain?.snapshot?.();
+      const next = pendingSnapshot || selectionDomain.snapshot();
       pendingSnapshot = null;
       syncNow(next);
     }) || 0;
     return true;
   };
 
-  const applyIntent = (value, {
+  const applyIntent = async (value, {
     mode = 'replace',
     orderedRefs = [],
     scope = 'map',
@@ -111,10 +111,12 @@ export function createSelectionUiController({
     if (disposed) return false;
     const ref = resolveRef(value);
     if (!ref || !refExists(ref)) return false;
+    const origin = generation();
     const startedAt = globalThis.performance?.now?.() || Date.now();
-    if (mode === 'toggle') selectionDomain.toggle(ref, { scope, reason: 'object-selection-toggle' });
-    else if (mode === 'range') selectionDomain.selectRange(ref, orderedRefs, { scope, reason: 'object-selection-range' });
-    else selectionDomain.replace(ref, { scope, reason: 'object-selection-replace' });
+    if (mode === 'toggle') await selectionDomain.toggle(ref, { scope, reason: 'object-selection-toggle' });
+    else if (mode === 'range') await selectionDomain.selectRange(ref, orderedRefs, { scope, reason: 'object-selection-range' });
+    else await selectionDomain.replace(ref, { scope, reason: 'object-selection-replace' });
+    if (disposed || origin !== generation()) return false;
     metrics.controllerMs = (globalThis.performance?.now?.() || Date.now()) - startedAt;
     const selected = selectionDomain.has(ref);
     const current = selection();
@@ -128,18 +130,21 @@ export function createSelectionUiController({
     return selected;
   };
 
-  const replaceMany = (refs, {
+  const replaceMany = async (refs, {
     primary: preferred = null,
     scope = 'map',
     reason = 'selection-replace-many',
     present = true,
   } = {}) => {
+    if (disposed) return [];
+    const origin = generation();
     const normalized = [...new Map((refs || []).map(resolveRef).filter(ref => ref && refExists(ref)).map(ref => [ref.key, ref])).values()];
     const preferredRef = resolveRef(preferred);
     const nextPrimary = normalized.find(ref => ref.key === preferredRef?.key) || normalized.at(-1) || null;
-    selectionDomain.setMany(normalized, { primary: nextPrimary, scope, reason });
+    await selectionDomain.setMany(normalized, { primary: nextPrimary, scope, reason });
+    if (disposed || origin !== generation()) return [];
     if (present) presentSelectionState(selection());
-    return normalized;
+    return selection().items;
   };
 
   const restore = snapshot => replaceMany(snapshot?.items || [], {
@@ -147,9 +152,11 @@ export function createSelectionUiController({
     reason: 'restore-selection',
   });
 
-  const clear = (options = {}) => {
+  const clear = async (options = {}) => {
     if (disposed) return false;
-    const changed = selectionDomain.clear({ scope: options.scope || 'ui', reason: options.reason || 'selection-clear' });
+    const origin = generation();
+    const changed = await selectionDomain.clear({ scope: options.scope || 'ui', reason: options.reason || 'selection-clear' });
+    if (disposed || origin !== generation()) return false;
     uiActions.clearPresenter?.(options);
     return changed;
   };
@@ -159,7 +166,7 @@ export function createSelectionUiController({
     pendingSnapshot = null;
     if (syncFrame) cancelFrame?.(syncFrame);
     syncFrame = 0;
-    return syncNow(selectionDomain?.snapshot?.(), { force: true });
+    return syncNow(selectionDomain.snapshot(), { force: true });
   };
 
   const dispose = () => {

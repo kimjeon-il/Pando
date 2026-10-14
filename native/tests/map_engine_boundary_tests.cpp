@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include <pandoeditor/map/countryculling.h>
 #include <pandoeditor/map/builtinhydrochannel.h>
 #include <pandoeditor/map/geometrypacketcache.h>
@@ -38,7 +39,7 @@ int main() {
     geometrysnap::Index snapIndex;
     geometrysnap::Request snapRequest;
     assert(snapIndex.prepareAndCollect(project.snapshot(),snapRequest).candidates.empty());
-    const pandoeditor::ProjectDocument boundaryDocument({},{});
+    const pandoeditor::ProjectDocument boundaryDocument = makeTerritorialDocument({},{});
     const auto boundary=sharedboundary::Session::prepare(boundaryDocument,
         pandoeditor::validateDocument(boundaryDocument),{});
     assert(!boundary->valid()&&boundary->error()=="BOUNDARY_REQUIRES_TWO_OWNERS");

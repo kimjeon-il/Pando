@@ -1,240 +1,139 @@
-import { initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createTerritorialFeature, normalizeTerritorialEntities } from '../../assets/js/modules/territorial-units.js';
-import { createTerritorialEntityStore, createStaticTerritorialSnapshot } from '../../assets/js/modules/territorial-entity-store.js';
-import { createGeometryVersionStore } from '../../assets/js/modules/geometry-version-store.js';
-import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
-import { createProjectSerializer } from '../../assets/js/modules/project-serializer.js';
-import { restoreEntitiesFromDelta } from '../../assets/js/modules/project-state.js';
-import { assertCurrentProjectSchema } from '../../assets/js/modules/project-state.js';
-import { normalizeLayerPresentation } from '../../assets/js/modules/layer-presentation.js';
-import { normalizeCountryFeature } from '../../assets/js/modules/country-feature.js';
+import {createTerritorialFeature,normalizeTerritorialEntities} from '../../assets/js/modules/territorial-units.js';
+import {normalizeCountryFeature} from '../../assets/js/modules/country-feature.js';
+import {initializeTestTerritorialState,testCoreProject,executeTerritorialTestCommand,staticAutosaveProject} from '../helpers/timeline-project.mjs';
 
-const polygon = (x = 0) => ({ type: 'Polygon', coordinates: [[[x,0],[x,2],[x+2,2],[x+2,0],[x,0]]] });
-const entity = (id, entityKind, options = {}) => createTerritorialFeature({ id, entityKind, name: id, geometry: polygon(), ...options });
-function fixture() {
-  const entities = [entity('A','general'), entity('B','general',{ geometry: polygon(5) }),
-    entity('S','general',{ parentId:'A' }), entity('T','general',{ parentId:'S' }),
-    entity('R','regional',{ })];
-  const state = { territorialEntities: entities, stateRevision: 0, historyDirtyEntityIds: new Set() };
-  const publications = [];
-  initializeTestTerritorialState(state);
-  const store = createTerritorialEntityStore({ getState: () => state, onEntitiesReplaced: (_entities, details) => publications.push(details) });
-  const repo = createTerritorialEntityRepository({ entityStore: store });
-  return { state, store, repo, publications };
-}
-function serializer(snapshot) {
-  return createProjectSerializer({ appVersion: '0.35.0', baseDataset:'fixture',baseDatasetFingerprint:'1'.repeat(64), distributionModes:['territorial','geometry'], readSnapshot: () => ({ baseDatasetFingerprint: '1'.repeat(64), ...snapshot,
-    projectFields: { ...snapshot.projectFields, layerPresentation: normalizeLayerPresentation({}), distributionSettings: { renderMode:'overlap',activeLayerId:'',boundaryVisible:true } } }) });
-}
-function storageSnapshot(state, store) {
-  return { territorialEntities: store.identities(), projectFields: {
-    timelineRecords: structuredClone(state.timelineRecords), geometries: state.geometries.snapshot(),
-  } };
+const polygon=(x=0)=>({type:'Polygon',coordinates:[[[x,0],[x,2],[x+2,2],[x+2,0],[x,0]]]});
+const entity=(id,entityKind='general',options={})=>createTerritorialFeature({id,entityKind,name:id,geometry:polygon(),...options});
+async function fixture(features=[entity('A'),entity('B','general',{geometry:polygon(5)}),entity('S','general',{parentId:'A'}),
+  entity('T','general',{parentId:'S'}),entity('R','regional')]) {
+  const events=[],state={territorialEntities:features};
+  await initializeTestTerritorialState(state,null,{platformPorts:{onProjectChanged:event=>events.push(event)}});
+  const owner=testCoreProject(state);
+  return {state,owner,store:owner.entityStore,repo:owner.entityRepository,events,
+    command:(commandId,payload)=>executeTerritorialTestCommand(state,commandId,payload),
+    metadata:(id,field,value)=>executeTerritorialTestCommand(state,'territorial.metadata',
+      {id,field,valuePresent:value!==undefined,...(value===undefined?{}:{value})})};
 }
 
-test('ID-only field, lock and removal operations preserve unrelated entity types', () => {
-  const { store, repo } = fixture();
-  for (const id of ['A', 'S', 'R']) {
-    assert.equal(store.setField(id, 'notes', `memo ${id}`), true);
-    assert.equal(store.hasField(id, 'notes'), true);
-    assert.equal(repo.get(id).properties.notes, `memo ${id}`);
-    store.setLocked(id, true);
-    assert.equal(store.isLocked(id), true);
-    store.setLocked(id, false);
-    assert.equal(store.isLocked(id), false);
+test('ID-only metadata, lock and removal preserve unrelated entity types',async()=>{
+  const f=await fixture();
+  for(const id of ['A','S','R']) {
+    await f.metadata(id,'notes',`memo ${id}`);assert.equal(f.store.hasField(id,'notes'),true);
+    assert.equal(f.repo.get(id).properties.notes,`memo ${id}`);
+    await f.command('territorial.lock',{ids:[id],locked:true});assert.equal(f.store.isLocked(id),true);
+    await f.command('territorial.lock',{ids:[id],locked:false});assert.equal(f.store.isLocked(id),false);
   }
-  assert.equal(store.setField('missing', 'name', 'ignored'), false);
-  const originalCountry = repo.get('A');
-  assert.deepEqual(store.removeEntities(['T', 'R']).map(feature => feature.id), ['T', 'R']);
-  assert.deepEqual(repo.get('A'), originalCountry);
-  assert.equal(repo.get('S').properties.parentId, 'A');
-  assert.equal(repo.get('T'), null);
-  assert.equal(repo.get('R'), null);
+  const before=f.repo.list();await assert.rejects(()=>f.metadata('missing','name','ignored'));
+  assert.equal(f.repo.list(),before);
+  const country=f.repo.get('A');await f.command('territorial.remove',{ids:['T','R']});
+  assert.equal(f.repo.get('A'),country);assert.equal(f.repo.get('S').properties.parentId,'A');
+  assert.equal(f.repo.get('T'),null);assert.equal(f.repo.get('R'),null);
 });
 
-test('partial changes preserve countries and regions while full replacement restores exact membership', () => {
-  const { state, store, repo, publications } = fixture();
-  const original = store.snapshot();
-  const country = state.territorialEntities.find(feature => feature.id === 'A');
-  const region = state.territorialEntities.find(feature => feature.id === 'R');
-  store.applyChanges({ features: [{ ...repo.get('S'), geometry: polygon(1) }], removedIds: ['T'] });
-  assert.equal(state.territorialEntities.find(feature => feature.id === 'A'), country);
-  assert.equal(state.territorialEntities.find(feature => feature.id === 'R'), region);
-  assert.equal(publications.length, 1);
-  store.replaceEntities(original);
-  assert.deepEqual(store.snapshot(), original);
-  store.replaceEntities([entity('only', 'general')]);
-  assert.deepEqual(store.snapshot().map(feature => feature.id), ['only']);
+test('partial changes retain unrelated row identity and full replacement restores exact membership',async()=>{
+  const f=await fixture(),original=f.store.snapshot(),country=f.repo.get('A'),region=f.repo.get('R');
+  await f.command('territorial.patch',{features:[{...f.repo.get('S'),geometry:polygon(1)}],removedIds:['T']});
+  assert.equal(f.repo.get('A'),country);assert.equal(f.repo.get('R'),region);assert.equal(f.events.length,1);
+  await f.command('territorial.replace',{features:original});assert.deepEqual(f.store.snapshot(),original);
+  await f.command('territorial.replace',{features:[entity('only')]});assert.deepEqual(f.store.snapshot().map(row=>row.id),['only']);
 });
 
-test('country source boundary retains canonical empty names and common styles', () => {
-  const source = entity('A', 'general', { name: '' });
-  source.properties.style = { color: '#123456', opacity: 0.4 };
-  source.properties.metadata.flagDataUrl = 'data:image/png;base64,eA==';
-  const normalized = normalizeCountryFeature(source);
-  assert.deepEqual(normalized.properties, source.properties);
-  assert.deepEqual(normalized.geometry, source.geometry);
+test('country source boundary retains empty names and common styles',()=>{
+  const source=entity('A','general',{name:''});source.properties.style={color:'#123456',opacity:0.4};
+  source.properties.metadata.flagDataUrl='data:image/png;base64,eA==';
+  const normalized=normalizeCountryFeature(source);assert.deepEqual(normalized.properties,source.properties);
+  assert.deepEqual(normalized.geometry,source.geometry);
 });
 
-test('one physical collection stores metadata and geometry for both kinds', () => {
-  const { state,store,repo } = fixture();
-  for (const id of ['A','S','R']) {
-    store.setField(id,'name',`renamed ${id}`);
-    store.setField(id,'color','#ABCDEF');
-    const persisted = state.territorialEntities.find(entity => entity.id === id);
-    assert.equal(persisted.properties.name,`renamed ${id}`);
-    assert.equal(persisted.properties.style.color,'#abcdef');
-    assert.equal(repo.get(id).properties.name,persisted.properties.name);
-    assert.ok(state.historyDirtyEntityIds.has(id));
+test('one C++ document stores metadata and geometry for both kinds and exposes no writable Store aliases',async()=>{
+  const f=await fixture();
+  for(const id of ['A','S','R']) {
+    await f.metadata(id,'name',`renamed ${id}`);await f.metadata(id,'color','#ABCDEF');
+    const identity=f.store.identities().find(row=>row.id===id);
+    assert.equal(identity.geometry,null);assert.equal(identity.properties.name,`renamed ${id}`);
+    assert.equal(identity.properties.style.color,'#abcdef');assert.ok(f.state.historyDirtyEntityIds.has(id));
+    assert.equal(f.repo.get(id).properties.name,identity.properties.name);
   }
-  const projected = store.snapshot(); projected[0].properties.name = 'detached';
-  assert.equal(state.territorialEntities[0].properties.name,'renamed A');
-  for (const retired of ['readStorage','restoreStorage','countryOverride','rawEntity']) assert.equal(retired in store,false);
-  for (const retired of ['countryOverrides','countriesData','territorialUnits']) assert.equal(retired in state,false);
+  assert.throws(()=>{f.store.snapshot()[0].properties.name='detached';},TypeError);
+  assert.equal(f.repo.get('A').properties.name,'renamed A');
+  for(const retired of ['readStorage','restoreStorage','countryOverride','rawEntity','setField','setLocked',
+    'transaction','restoreProject','applyChanges','replaceEntities','appendEntities','removeEntities'])assert.equal(retired in f.store,false);
 });
 
-test('hierarchy root follows subtree reparenting without persisted sovereignId', () => {
-  const { store,repo } = fixture();
-  assert.equal(repo.root('T').id,'A');
-  store.setField('S','parentId','B');
-  assert.equal(repo.root('T').id,'B');
-  assert.equal(repo.root('R').id,'R');
-  assert.ok(store.snapshot().every(entity => !Object.hasOwn(entity.properties,'sovereignId')));
-  assert.throws(() => store.setField('S','parentId','T'),/순환/);
-  assert.equal(repo.get('S').properties.parentId,'B');
+test('hierarchy root follows subtree reparenting and a rejected cycle is atomic',async()=>{
+  const f=await fixture();assert.equal(f.repo.root('T').id,'A');
+  await f.command('territorial.parent',{id:'S',parentId:'B'});assert.equal(f.repo.root('T').id,'B');assert.equal(f.repo.root('R').id,'R');
+  const before=f.owner.project.snapshot(),clock=f.owner.client.state();
+  await assert.rejects(()=>f.command('territorial.parent',{id:'S',parentId:'T'}));
+  assert.equal(f.owner.project.snapshot(),before);assert.deepEqual(f.owner.client.state(),clock);
+  assert.equal(f.repo.get('S').properties.parentId,'B');
+  assert.ok(f.store.identities().every(row=>!Object.hasOwn(row.properties,'sovereignId')));
 });
 
-test('multi-step removal and dependent reassignment publish once, invalid result publishes nothing', () => {
-  const { state,store,repo,publications } = fixture();
-  const original = state.territorialEntities;
-  assert.throws(() => store.transaction(() => store.removeEntities(['A'])),/상위 단위|부모/);
-  assert.equal(state.territorialEntities,original); assert.equal(publications.length,0);
-  store.transaction(() => {
-    store.removeEntities(['A']);
-    assert.equal(state.territorialEntities,original);
-    assert.equal(repo.root('T').id,'A');
-    store.setField('S','parentId','B');
-  });
-  assert.equal(publications.length,1);
-  assert.equal(repo.get('A'),null); assert.equal(repo.root('T').id,'B');
-  const after = state.territorialEntities;
-  assert.throws(() => store.applyChanges({features:[entity('B','general'),entity('B','regional')]}),/ID/);
-  assert.equal(state.territorialEntities,after);
+test('dependent reassignment and removal commit once while invalid partial results commit nothing',async()=>{
+  const f=await fixture(),before=f.owner.project.snapshot();
+  await assert.rejects(()=>f.command('territorial.remove',{ids:['A']}));assert.equal(f.owner.project.snapshot(),before);
+  assert.equal(f.events.length,0);
+  await f.command('territorial.patch',{features:[{...f.repo.get('S'),properties:{...f.repo.get('S').properties,parentId:'B'}}],removedIds:['A']});
+  assert.equal(f.events.length,1);assert.equal(f.repo.get('A'),null);assert.equal(f.repo.root('T').id,'B');
+  const accepted=f.owner.project.snapshot();
+  await assert.rejects(()=>f.command('territorial.patch',{features:[entity('B'),entity('B','regional')]}));
+  assert.equal(f.owner.project.snapshot(),accepted);assert.equal(f.events.length,1);
+  assert.equal(await f.owner.project.undo(),true);assert.deepEqual(f.owner.project.snapshot(),before);
 });
 
-test('reparenting keeps identity and descendants in a single publication', () => {
-  const { store,repo,publications } = fixture();
-  const a=repo.get('A');
-  store.transaction(() => {
-    store.removeEntities(['A']);
-    store.applyChanges({ features: [entity('A','general',{geometry:a.geometry,parentId:'B'})] });
-  });
-  assert.equal(publications.length,1);
-  assert.equal(repo.get('A').properties.entityKind,'general');
-  assert.equal(repo.get('T').properties.parentId,'S');
-  assert.equal(repo.root('T').id,'B');
+test('reparenting retains descendants in a single accepted command',async()=>{
+  const f=await fixture();await f.command('territorial.patch',{features:[{...f.repo.get('A'),properties:{...f.repo.get('A').properties,parentId:'B'}}]});
+  assert.equal(f.events.length,1);assert.equal(f.repo.get('A').properties.entityKind,'general');
+  assert.equal(f.repo.get('T').properties.parentId,'S');assert.equal(f.repo.root('T').id,'B');
 });
 
-test('full project and autosave delta round-trip common metadata, relationships and geometry', () => {
-  const { state,store,repo }=fixture();
-  const base=store.identities();
-  store.setField('A','notes','country memo');
-  store.setField('A','flagDataUrl','data:image/png;base64,eA==');
-  store.setField('S','parentId','B');
-  store.setField('R','name','new region');
-  store.applyChanges({features:[{...repo.get('T'),geometry:polygon(5)}]});
-  const entities=store.snapshot();
-  const full=serializer(storageSnapshot(state,store)).buildProject();
-  assertCurrentProjectSchema(JSON.parse(JSON.stringify(full)));
-  assert.deepEqual(full.territorialEntities,store.identities());
-  assert.equal(full.territorialModel.storage,'territorialEntities');
-  const removed=['A'];
-  store.removeEntities(removed);
-  const changed=store.identities();
-  const delta=serializer({...storageSnapshot(state,store),entityDelta:{changed,removedIds:removed},fullAutosave:false}).buildAutosave();
-  assertCurrentProjectSchema(delta,{baseEntities:base,baseDataset:'fixture',baseDatasetFingerprint:'1'.repeat(64)});
-  const restored=restoreEntitiesFromDelta(JSON.parse(JSON.stringify(delta)),{base,baseDataset:'fixture',baseDatasetFingerprint:'1'.repeat(64)});
-  assert.deepEqual(restored,changed);
-  store.restoreProject({...delta,territorialEntities:restored});
-  assert.equal(repo.root('T').id,'B');
-  assert.deepEqual(store.snapshot(),entities.filter(entity=>entity.id !== 'A'));
-  for(const retired of ['countriesData','countryOverrides','territorialUnits','countryDelta']) assert.equal(retired in full,false);
+test('Undo/Redo restore metadata, geometry, parent records, archive and Core dirty IDs together',async()=>{
+  const f=await fixture(),before=structuredClone(f.owner.project.snapshot()),geometry=f.repo.get('S').geometry;
+  await f.command('territorial.patch',{features:[{...f.repo.get('S'),geometry:polygon(5),properties:{...f.repo.get('S').properties,parentId:'B',name:'moved'}}]});
+  await f.metadata('A','color','#123456');const after=structuredClone(f.owner.project.snapshot()),dirty=[...f.state.historyDirtyEntityIds];
+  assert.equal(await f.owner.project.undo(),true);assert.equal(await f.owner.project.undo(),true);
+  assert.deepEqual(f.owner.project.snapshot(),before);assert.deepEqual([...f.state.historyDirtyEntityIds],[]);
+  assert.equal(f.repo.root('T').id,'A');assert.deepEqual(f.repo.get('S').geometry,geometry);
+  assert.equal(await f.owner.project.undo(),false);assert.equal(await f.owner.project.redo(),true);assert.equal(await f.owner.project.redo(),true);
+  assert.deepEqual(f.owner.project.snapshot(),after);assert.deepEqual([...f.state.historyDirtyEntityIds],dirty);
+  assert.equal(f.repo.get('S').properties.name,'moved');assert.equal(f.repo.root('T').id,'B');
 });
 
-test('Undo snapshots restore metadata, geometry, parent chain and dirty IDs together', () => {
-  const { state,store,repo }=fixture();
-  const before=serializer(storageSnapshot(state,store)).buildProject(); const originalGeometry=repo.get('S').geometry;
-  store.applyChanges({features:[{...repo.get('S'),geometry:polygon(5),properties:{...repo.get('S').properties,parentId:'B',name:'moved'}}]});
-  store.setField('A','color','#123456');
-  const after=serializer(storageSnapshot(state,store)).buildProject();
-  store.restoreProject(before);
-  assert.deepEqual(store.identities(),before.territorialEntities);
-  assert.deepEqual(state.geometries.snapshot(),before.geometries);
-  assert.deepEqual(state.timelineRecords,before.timelineRecords);
-  assert.equal(repo.root('T').id,'A');
-  assert.deepEqual(repo.get('S').geometry,originalGeometry);
-  store.restoreProject(after);
-  assert.deepEqual(state.geometries.snapshot(),after.geometries);
-  assert.equal(repo.get('S').properties.name,'moved');
-  assert.equal(repo.root('T').id,'B');
-});
-
-test('current schema rejects split storage, retired versions, malformed delta and dangling parents', () => {
-  const {state,store}=fixture(); const full=serializer(storageSnapshot(state,store)).buildProject();
-  assert.throws(()=>assertCurrentProjectSchema({...full,schemaVersion:6}),/schemaVersion/);
-  assert.throws(()=>assertCurrentProjectSchema({...full,countryOverrides:{}}),/countryOverrides/);
-  assert.throws(()=>normalizeTerritorialEntities([entity('X','general',{parentId:'missing'})]),/상위 단위|부모/);
-  assert.throws(()=>normalizeTerritorialEntities([entity('X','regional',{parentId:'B'}),entity('B','general')]),/부모/);
-  assert.throws(()=>normalizeTerritorialEntities([entity('R','regional'),entity('X','general',{parentId:'R'})]),/일반객체/);
-  const { territorialEntities, ...deltaFields } = full;
-  assert.throws(()=>assertCurrentProjectSchema({...deltaFields,format:'pandolab-autosave-delta',baseDatasetFingerprint:'1'.repeat(64),entityDelta:{changed:territorialEntities,removedIds:['A']}}),/삭제 ID/);
-});
-
-
-test('bulk static construction preserves every binding without quadratic archive ID encoding', () => {
-  const features = Array.from({length:100}, (_, index) => entity('speed-' + index, 'general'));
-  const original = globalThis.TextEncoder.prototype.encode;
-  let encodings = 0;
-  globalThis.TextEncoder.prototype.encode = function (...args) {
-    encodings += 1;
-    return Reflect.apply(original, this, args);
-  };
-  let snapshot;
-  try { snapshot = createStaticTerritorialSnapshot(features); }
-  finally { globalThis.TextEncoder.prototype.encode = original; }
-  assert.equal(snapshot.territorialEntities.length, features.length);
-  assert.equal(snapshot.geometries.length, features.length);
-  assert.equal(snapshot.timelineRecords.geometryBindings.length, features.length);
-  for (const binding of snapshot.timelineRecords.geometryBindings) {
-    assert.equal(binding.geometryRef.id, 'territorial-geometry:' + binding.entityId);
-    assert.equal(binding.geometryRef.version, 1);
+test('current document admission rejects retired fields and malformed parents without changing the owner',async()=>{
+  const f=await fixture(),before=f.owner.project.snapshot();
+  for(const mutate of [row=>{row.schemaVersion=6;},row=>{row.countryOverrides={};},
+    row=>{row.timelineRecords.parentRelations[0].parentId='missing';}]) {
+    const candidate=structuredClone(before);mutate(candidate);
+    await assert.rejects(()=>f.owner.project.admit(candidate));assert.equal(f.owner.project.snapshot(),before);
   }
-  assert.ok(encodings <= features.length * 20,
-    'Avoid repeated full-archive sorts; actual ID encodings: ' + encodings);
+  assert.throws(()=>normalizeTerritorialEntities([entity('X','general',{parentId:'missing'})]));
+  assert.throws(()=>normalizeTerritorialEntities([entity('X','regional',{parentId:'B'}),entity('B')]));
+  assert.throws(()=>normalizeTerritorialEntities([entity('R','regional'),entity('X','general',{parentId:'R'})]));
 });
 
-test('bulk geometry edits allocate above unreferenced versions and preserve shared archive history', () => {
-  const state = { territorialEntities: [], stateRevision: 0, historyDirtyEntityIds: new Set() };
-  initializeTestTerritorialState(state);
-  const store = createTerritorialEntityStore({ getState: () => state });
-  store.replaceEntities([entity('A', 'general'), entity('B', 'general')]);
-  const previous = state.geometries.snapshot();
-  state.geometries = createGeometryVersionStore([...previous,
-    { id: 'shared', version: 2, geojson: polygon() },
-    { id: 'shared', version: 8, geojson: polygon(8) },
-    { id: 'unused', version: 9, geojson: polygon(9) },
-  ]);
-  state.timelineRecords = structuredClone(state.timelineRecords);
-  for (const binding of state.timelineRecords.geometryBindings)
-    binding.geometryRef = { id: 'shared', version: 2 };
-  const before = state.geometries.snapshot();
-  store.replaceEntities([entity('A', 'general', { geometry: polygon(1) }),
-    entity('B', 'general', { geometry: polygon(3) })]);
-  assert.deepEqual(state.timelineRecords.geometryBindings.map(binding => binding.geometryRef),
-    [{ id: 'shared', version: 9 }, { id: 'shared', version: 10 }]);
-  for (const entry of before) assert.equal(state.geometries.get({ id: entry.id, version: entry.version }), entry.geojson);
-  assert.deepEqual(state.geometries.get({ id: 'shared', version: 9 }), polygon(1));
-  assert.deepEqual(state.geometries.get({ id: 'shared', version: 10 }), polygon(3));
+test('bulk source admission creates every binding once with exact source coordinates',async()=>{
+  const f=await fixture([]),features=Array.from({length:100},(_,index)=>entity(`speed-${index}`));
+  await f.owner.project.admit(f.owner.project.snapshot(),{features,preserveCursor:true});
+  const current=f.owner.project.snapshot();assert.equal(current.territorialEntities.length,100);
+  assert.equal(current.geometries.length,100);assert.equal(current.timelineRecords.geometryBindings.length,100);
+  for(const binding of current.timelineRecords.geometryBindings) {
+    assert.equal(binding.geometryRef.id,`territorial-geometry:${binding.entityId}`);assert.equal(binding.geometryRef.version,1);
+    assert.deepEqual(f.owner.documentModel.geometry(binding.geometryRef),polygon());
+  }
+});
+
+test('bulk geometry edits allocate above unreferenced versions and preserve whole archive history',async()=>{
+  const seed=structuredClone(staticAutosaveProject({},[entity('A'),entity('B')]));
+  seed.geometries.push({id:'shared',version:2,geojson:polygon()},{id:'shared',version:8,geojson:polygon(8)},
+    {id:'unused',version:9,geojson:polygon(9)});
+  for(const binding of seed.timelineRecords.geometryBindings)binding.geometryRef={id:'shared',version:2};
+  const f=await fixture([]);await f.owner.project.admit(seed);const before=structuredClone(f.owner.project.snapshot().geometries);
+  await f.command('territorial.replace',{features:[entity('A','general',{geometry:polygon(1)}),entity('B','general',{geometry:polygon(3)})]});
+  assert.deepEqual(f.state.timelineRecords.geometryBindings.map(row=>row.geometryRef),[{id:'shared',version:9},{id:'shared',version:10}]);
+  for(const row of before)assert.deepEqual(f.owner.documentModel.geometry({id:row.id,version:row.version}),row.geojson);
+  assert.deepEqual(f.owner.documentModel.geometry({id:'shared',version:9}),polygon(1));
+  assert.deepEqual(f.owner.documentModel.geometry({id:'shared',version:10}),polygon(3));
 });

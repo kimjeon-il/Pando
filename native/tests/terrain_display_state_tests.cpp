@@ -222,13 +222,6 @@ void rasterVariantsKeepIndependentDisplayLeases() {
     require(state.retireResource(gray.scope,colorWest.key,colorWest.contentKey),"old color backing can retire separately from gray backing");
     require(contains(state.snapshot().uploadSubmittedKeys,grayWest.key),"current gray texture remains resident");
 }
-void compatibilityPublicationRemainsSeparate() {
-    TerrainDisplayState state;QVariantList complete{QStringLiteral("old")},partial{QStringLiteral("new")};
-    require(state.publish(complete,true)==complete,"legacy controller compatibility");
-    require(state.publish(partial,false)==QVariantList({QStringLiteral("new"),QStringLiteral("old")}),"legacy complete-view fallback preserved during integration");
-    require(state.snapshot().displayed.empty(),"legacy CPU publication never creates a typed displayed receipt");
-    state.reset();require(state.publish({},false).empty(),"reset clears compatibility cache");
-}
 void cancellationRetainsDisplayedFallbackAndRejectsPendingEvents() {
     TerrainDisplayState state;const auto initial=demand({oldWest,coarseEast});state.beginDemand(initial);
     for(const auto& resource:{west,east,oldWest})upload(state,initial.scope,resource);present(state,1);
@@ -366,7 +359,7 @@ int main() {
             reverseZoomDrawsCoarseTargetLast,allEightStaleScopesReject,receiptInventoryAndFrameMustBeExact,
             replicasShareOneProtectedResource,exactArrangementDetectsNarrowGaps,viewReuseAndOwnerResetAreDifferent,
             retirementNeedsOwnerAcknowledgement,supersededCandidateAndDuplicateReceiptReject,
-            malformedWorldReserveRefuses,rasterVariantsKeepIndependentDisplayLeases,compatibilityPublicationRemainsSeparate,
+            malformedWorldReserveRefuses,rasterVariantsKeepIndependentDisplayLeases,
             cancellationRetainsDisplayedFallbackAndRejectsPendingEvents,submittedPrefetchSuppliesFallbackAfterPan,
             replacementContentsShareKeyWithoutBlockingHandoff,demandSequenceFencePreventsCancelledScopeReactivation,
             displayedFrameSequenceIsMonotoneAcrossViews,cancelledUnshownResourcesCanRetireWithoutFalseReuse,

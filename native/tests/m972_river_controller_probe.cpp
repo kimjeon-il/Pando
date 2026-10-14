@@ -131,7 +131,7 @@ ProjectDocument worldDocument(const QJsonArray& features,const QString& manifest
     validateDocument(document);return document;
 }
 QJsonArray documentFeatures(const QByteArray& bytes) {
-    const auto document=projectcodec::decode(bytes);QJsonArray features;
+    const auto document=::projectcodec::decode(bytes);QJsonArray features;
     for(const auto& unit:document.units) {const auto geometry=document.geometries.get(staticGeometryBinding(document,unit.id).geometryRef);
         require(bool(geometry),"COMMITTED_FEATURE_WITHOUT_GEOMETRY");features.append(QJsonObject{{"id",QString::fromStdString(unit.id)},{"geometry",encodeGeometry(*geometry)}});}
     return features;
@@ -228,7 +228,7 @@ QJsonObject runCase(const QJsonObject& evidence,const QJsonObject& browser,const
     QTemporaryDir directory;require(directory.isValid(),"FIXTURE_DIRECTORY_FAILED");
     const auto document=worldDocument(world,manifest);Project project;project.replace(document);MapProjection projection;projection.rebuild(document);
     QFile input(directory.filePath("input.pando.json"));require(input.open(QIODevice::WriteOnly),"FIXTURE_WRITE_FAILED");
-    input.write(projectcodec::encode(project));input.close();EditorController controller({false,directory.filePath("private.json")});
+    input.write(::projectcodec::encode(project));input.close();EditorController controller({false,directory.filePath("private.json")});
     const auto wait=[&](const QString& stage){settle(controller,name,stage,timings);};
     QByteArray before;qulonglong revision=0;bool hadUndo=false,hadRedo=false;
     const auto checkpoint=[&](const QString& stage) {QElapsedTimer timer;timer.start();auto observation=ownedObservation(controller);const auto ownedMs=timer.elapsed();timer.restart();const auto bytes=controller.documentBytes();const auto encodeMs=timer.elapsed();observation["stage"]=stage;

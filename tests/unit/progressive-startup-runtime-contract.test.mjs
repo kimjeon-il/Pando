@@ -1,17 +1,12 @@
-import { createProjectSerializer } from '../../assets/js/modules/project-serializer.js';
-import { staticSerializerSnapshot } from '../helpers/timeline-project.mjs';
-import { initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { setImmediate } from 'node:timers';
 import { applicationFunctionSource } from '../../scripts/lib/application-source.mjs';
 import { createProgressiveStartup } from '../../assets/js/modules/app-progressive-startup.js';
-import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
 import { normalizeCountryCollection } from '../../assets/js/modules/country-feature.js';
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
-import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
-import { smallHistoricalWorld } from '../helpers/historical-world.mjs';
+import { createCoreStartupState,startupDocument,historicalStartupDocument,startupBaseline } from '../helpers/core-startup.mjs';
 
 const source = readFileSync(new URL('../../assets/js/modules/app-progressive-startup.js', import.meta.url), 'utf8');
 
@@ -53,7 +48,7 @@ test('progressive and canonical startup share one ordered runtime initializer', 
 
 test('saved geometry is classified before any first-map source is chosen', () => {
   const progressive = applicationFunctionSource(source, 'initProgressive');
-  assert.ok(progressive.indexOf('restoreAutosave()') < progressive.indexOf('entityStore.replaceEntities'));
+  assert.ok(progressive.indexOf('restoreAutosave()') < progressive.indexOf('await admitFeatures'));
   assert.ok(progressive.indexOf('restorePreview(savedProject)') < progressive.indexOf('initializeStartupRuntime'));
   assert.match(progressive, /previewSource\.kind === 'restore'/);
   assert.match(progressive, /if \(allowPreview\) \{[\s\S]*PREVIEW_READY/);
@@ -61,7 +56,7 @@ test('saved geometry is classified before any first-map source is chosen', () =>
 
 test('canonical promotion discards a worker initialized from preview geometry before editing resumes', () => {
   const promote = applicationFunctionSource(source, 'completeGeometryInitialization');
-  const canonicalAssignment = promote.indexOf('entityStore.restoreProject');
+  const canonicalAssignment = promote.indexOf('await admitTerritorialBaseline');
   const discardPreviewWorker = promote.indexOf('mapEditClient.stop()');
   const editable = promote.indexOf("pandolab:editable");
   assert.ok(canonicalAssignment >= 0);
@@ -76,7 +71,7 @@ function deferred() {
   return { promise, resolve };
 }
 
-function startupFixture(t, { project = null, terrainError = null } = {}) {
+async function startupFixture(t, { project = null, terrainError = null } = {}) {
   const noop = () => {};
   const geometry = deferred();
   const previewFrame = deferred();
@@ -84,17 +79,10 @@ function startupFixture(t, { project = null, terrainError = null } = {}) {
   const editable = deferred();
   const calls = [];
   const errors = [];
-  const state = {
-    view: {},
-    projection: 'globe',
-    territorialEntities: [],
-    dataReadiness: 'loading',
-    historyDirtyEntityIds: new Set(),
-    pendingCountryRenderIds: new Set(),
-    autosaveMode: 'delta',
-  };
-  initializeTestTerritorialState(state);
-const entityStore = createTerritorialEntityStore({ getState: () => state });
+  let sourceReceipt;
+  const owner=await createCoreStartupState(t,{ view:{},projection:'globe',dataReadiness:'loading',
+    historyDirtyEntityIds:new Set(),pendingCountryRenderIds:new Set(),autosaveMode:'delta' });
+  const { state,entityStore,entityRepository }=owner;
   t.mock.method(globalThis, 'setTimeout', () => {
     // Only the host-frame fallback and preview deadline are scheduled here.
     // requestAnimationFrame supplies the host frame; the test owns preview paint.
@@ -126,7 +114,9 @@ const entityStore = createTerritorialEntityStore({ getState: () => state });
     projectState: { state }, platformConfigurationB: { assertRuntimeCompatibility: noop },
     lifecycleUi: { projectUi: { restoreAutosave: async () => ({ project }), syncHistory: noop } },
     domains: {
-      projectDomain: { restorePreview: async () => null },
+      projectDomain: {snapshot:owner.project.snapshot,getGeneration:owner.project.getGeneration,prepareImport:owner.project.prepareImport,
+        state:owner.project.state,inspectImport:owner.project.inspectImport,
+        admitStorageBaseline:owner.project.admitStorageBaseline,admit:owner.project.admit,restorePreview:async()=>null},
       layerTreeController: { beginHydration: noop, completeHydration: async () => {} }, editingDomain: { setTool: noop },
     },
     snapshots: { normalizeProjectObjects: noop, applySharedProjectFields: noop }, persistence: { applyAutosavedView: noop },
@@ -139,14 +129,14 @@ const entityStore = createTerritorialEntityStore({ getState: () => state });
     projectSession: { saveState: { markNewProject: noop } },
     territorialModel: {
       entityStore,
-      entityRepository: createTerritorialEntityRepository({ entityStore }),
+      entityRepository: entityRepository,
     },
     countryServices: { normalizeCountryCollection },
     applicationServicesA: { classifyBuiltinCountries: countries => ({ countries, subunits: [] }) },
     builtinBaseline: { prepareProjectBaseline: async () => {
-      const project = smallHistoricalWorld({ currentId: 'B', currentGeometry: { type: 'Polygon', coordinates: [[[2,0],[2,1],[3,1],[3,0],[2,0]]] } });
+      const project = historicalStartupDocument(normalizeCountryCollection({ features:[{ id:'state:ukraine',geometry:{ type:'Polygon',coordinates:[[[0,0],[0,1],[1,1],[0,0]]] } },{ id:'B',geometry:{ type:'Polygon',coordinates:[[[2,0],[2,1],[3,1],[3,0],[2,0]]] } }] }).features);
       project.territorialEntities.find(row => row.id === 'B').properties.name = 'Detailed B';
-      return { project, sourceMonth: '2026-10' };
+      return sourceReceipt ||= await startupBaseline(project,owner.project);
     } },
     builtinCountries: { applyFreshBuiltinClassification: noop, installCanonicalCountryStore: noop, materializePristineCountriesSync: () => normalizeCountryCollection(globalThis.window.PANDOLAB_COUNTRIES) },
     countryRecords: { applyPristineLabelAnchors: noop },
@@ -175,7 +165,7 @@ const entityStore = createTerritorialEntityStore({ getState: () => state });
 }
 
 test('canonical geometry reaches the common Store before editing resumes while the detailed mesh is pending', async t => {
-  const fixture = startupFixture(t);
+  const fixture = await startupFixture(t);
   fixture.previewFrame.resolve(true);
   await fixture.interactive.promise;
   assert.deepEqual(fixture.state.territorialEntities.map(feature => feature.id), ['A']);
@@ -199,7 +189,7 @@ test('canonical geometry reaches the common Store before editing resumes while t
 });
 
 test('painted preview starts terrain without waiting for canonical data or terrain completion', async t => {
-  const fixture = startupFixture(t);
+  const fixture = await startupFixture(t);
   await new Promise(resolve => setImmediate(resolve));
   assert.equal(fixture.calls.some(([kind]) => kind === 'terrain'), false);
   fixture.previewFrame.resolve(true);
@@ -211,7 +201,7 @@ test('painted preview starts terrain without waiting for canonical data or terra
 
 test('terrain rejection is handled independently of canonical startup', async t => {
   const error = new Error('terrain startup failed');
-  const fixture = startupFixture(t, { terrainError: error });
+  const fixture = await startupFixture(t, { terrainError: error });
   fixture.previewFrame.resolve(true);
   await fixture.interactive.promise;
   await new Promise(resolve => setImmediate(resolve));
@@ -221,7 +211,7 @@ test('terrain rejection is handled independently of canonical startup', async t 
 });
 
 test('uncached saved geometry uses validated exact state while builtin preview stays disabled', async t => {
-  const fixture = startupFixture(t, { project: createProjectSerializer({ appVersion: '0.34.0', baseDataset: 'fixture', distributionModes: ['territorial','geometry'], readSnapshot: () => staticSerializerSnapshot({ fullAutosave: true, territorialEntities: normalizeCountryCollection({ features: [{ id: 'edited', geometry: { type: 'Polygon', coordinates: [[[0,0],[0,1],[1,1],[1,0],[0,0]]] } }] }).features }) }).buildProject() });
+  const fixture = await startupFixture(t, { project: startupDocument(normalizeCountryCollection({ features: [{ id:'edited',geometry: { type:'Polygon',coordinates:[[[0,0],[0,1],[1,1],[1,0],[0,0]]] } }] }).features) });
   await fixture.interactive.promise;
   assert.equal(fixture.calls.some(([kind]) => kind === 'terrain'), false);
   assert.deepEqual(fixture.state.territorialEntities.map(entity => entity.id), ['edited']);

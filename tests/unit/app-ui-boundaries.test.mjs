@@ -66,20 +66,21 @@ test('page termination during startup never emits a late ready event', async () 
   assert.equal(await start, false);
 });
 
-test('history UI routes preview/draft/project actions without owning history mutation', () => {
+test('history UI routes preview/draft/project actions without owning history mutation', async () => {
   const calls = [];
   let preview = true;
   let draft = false;
   const ui = createProjectUiBridge({
     getElement: () => null,
     requireCanonicalData: () => true, getEditingSnapshot: () => ({ processing: false, previewActive: preview }),
+    getDraftSnapshot: () => ({ historyCount: 0, futureCount: 0 }), canUndo: () => true, canRedo: () => false,
     discardActiveGeometryPreview: () => calls.push('preview'), draftInputActive: () => draft,
     undoDraft: () => calls.push('draft'), undoProject: () => { calls.push('project'); return true; },
     setActionStatus: () => calls.push('status'),
   });
-  ui.undo();
-  preview = false; draft = true; ui.undo();
-  draft = false; ui.undo();
+  await ui.undo();
+  preview = false; draft = true; await ui.undo();
+  draft = false; await ui.undo();
   assert.deepEqual(calls, ['preview', 'draft', 'project', 'status']);
 });
 
@@ -144,6 +145,7 @@ test('generic object bindings pass the current parent contract and detach on dis
   const conversions = [];
   const bindings = createPropertyEditorBindings({
     getElement, bindColorPickers() {}, document: {},
+    reportOperationError: error => assert.fail(error.stack),
     getPrimary: () => ({ domain: 'generic', id: 'generic-1' }),
     convertSelectedGenericFeature: options => conversions.push(options),
   });
@@ -171,6 +173,7 @@ test('common entity actions await completion inside the existing operation error
   const result = new Promise(resolve => { settle = resolve; });
   const bindings = createPropertyEditorBindings({
     getElement: id => buttons.get(id), bindColorPickers() {}, document: {},
+    reportOperationError: error => assert.fail(error.stack),
     getPrimary: () => ({ domain: 'territorial', type: 'entity', id: 'child' }),
     entityRepository: { get: () => ({ id: 'child', properties: { entityKind: 'general', parentId: 'parent', locked: false } }) },
     requestDraftDiscard: action => action(),
@@ -204,6 +207,7 @@ test('flat/globe input reads current zoom and movement transitions stay single-s
   window.addEventListener('pandolab:interaction-state', event => events.push(event.detail.active));
   const svg = { on() { return this; } };
   const bridge = createMapInputPresentation({
+    reportOperationError: error => { throw error; },
     getElement: () => new FakeElement(), window, navigator: {}, d3: { select: () => ({ on() { return this; } }) },
     getInputSnapshot: () => ({ ...state }), setMoving: value => { state.moving = value; },
     getQualityTier: () => 'normal', createMapInputController: options => { inputOptions = options; return { destroy() {} }; },
@@ -222,6 +226,24 @@ test('flat/globe input reads current zoom and movement transitions stay single-s
   bridge.finishMovement(); bridge.finishMovement();
   assert.deepEqual(events, [true, false, 'autosave']);
   bridge.dispose();
+});
+
+test('map pinch cancellation waits for the draft owner and reports a rejected Core acknowledgement once', async () => {
+  let inputOptions,reject;
+  const pending=new Promise((resolve,fail) => { reject=fail; }),errors=[],dispatched=[];
+  const bridge=createMapInputPresentation({ getElement: () => new FakeElement(),window: fakeWindow(),navigator: {},
+    d3: { select: () => ({ on() { return this; } }) },getInputSnapshot: () => ({ tool: 'select' }),
+    createMapInputController: options => { inputOptions=options;return { destroy() {} }; },
+    editingDomain: { cancelActiveGesture: () => pending },
+    dispatchEditingInteraction: (...args) => { dispatched.push(args);return true; },
+    reportOperationError: (...args) => errors.push(args) });
+  bridge.bindSvg({ on() { return this; } });
+  const operation=inputOptions.cancelStroke('pinch');
+  assert.deepEqual(dispatched,[]);assert.deepEqual(errors,[]);
+  const error=Object.assign(new Error('Draft cancellation source changed'),{ code: 'STALE_REVISION' });
+  reject(error);assert.equal(await operation,false);
+  assert.equal(errors.length,1);assert.equal(errors[0][0],error);assert.equal(errors[0][1],'PL-DRAFT-CANCEL-001');
+  assert.deepEqual(dispatched,[]);bridge.dispose();
 });
 
 function gisFixture(loadFailure = false) {

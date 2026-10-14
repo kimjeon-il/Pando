@@ -6,8 +6,8 @@ import {
   TERRITORIAL_COVERAGE_MODES,
   createTerritorialFeature,
   normalizeTerritorialEntities,
-  runTerritorialTransaction,
 } from '../../assets/js/modules/territorial-units.js';
+import {initializeTestTerritorialState,testCoreProject,executeTerritorialTestCommand} from '../helpers/timeline-project.mjs';
 
 const square = (x0 = 0, y0 = 0, x1 = 10, y1 = 10) => ({
   type: 'Polygon',
@@ -67,25 +67,25 @@ test('dangling references and circular parents fail without automatic clearing',
 });
 
 
-test('territorial transaction records and autosaves once on success', async () => {
-  const calls = [];
-  const result = await runTerritorialTransaction({
-    snapshot: () => ({ value: 1 }), calculate: async () => ({ value: 2 }), validate: () => ({ ok: true }),
-    apply: value => calls.push(['apply', value.value]), restore: () => calls.push(['restore']),
-    recordHistory: value => calls.push(['history', value.value]), autosave: () => calls.push(['autosave']),
-  });
-  assert.equal(result.value, 2);
-  assert.deepEqual(calls, [['apply', 2], ['history', 1], ['autosave']]);
+test('the actual Core territorial command owns one history and autosave on success', async () => {
+  const calls=[],state={territorialEntities:[createTerritorialFeature({id:'A',name:'A',entityKind:'general',geometry:square()})]};
+  await initializeTestTerritorialState(state,null,{platformPorts:{onProjectChanged:()=>calls.push('history'),persistence:{queueProject:()=>calls.push('autosave')}}});
+  const result=await executeTerritorialTestCommand(state,'territorial.metadata',{id:'A',field:'name',valuePresent:true,value:'Updated'});
+  assert.equal(result.ok,true);assert.equal(result.changed,true);assert.equal(state.territorialEntities[0].properties.name,'Updated');
+  assert.deepEqual(calls,['history','autosave']);assert.equal(await testCoreProject(state).project.undo(),true);
+  assert.equal(state.territorialEntities[0].properties.name,'A');assert.equal(testCoreProject(state).client.state().canUndo,false);
 });
 
-test('territorial transaction restores once and skips history/autosave on failure', async () => {
-  const calls = [];
-  await assert.rejects(runTerritorialTransaction({
-    snapshot: () => ({ value: 1 }), calculate: async () => ({ value: 2 }), validate: () => ({ ok: false, message: 'invalid' }),
-    apply: () => calls.push(['apply']), restore: value => calls.push(['restore', value.value]),
-    recordHistory: () => calls.push(['history']), autosave: () => calls.push(['autosave']),
-  }), /invalid/);
-  assert.deepEqual(calls, [['restore', 1]]);
+test('a rejected second Core operation leaves the first unapplied and skips history/autosave', async () => {
+  const calls=[],state={territorialEntities:[createTerritorialFeature({id:'A',name:'A',entityKind:'general',geometry:square()})]};
+  await initializeTestTerritorialState(state,null,{platformPorts:{onProjectChanged:()=>calls.push('history'),persistence:{queueProject:()=>calls.push('autosave')}}});
+  const owner=testCoreProject(state),before=owner.project.snapshot(),clock=owner.client.state();
+  const result=await owner.project.executeCommand({commandId:'document.batch',targets:[],payload:{operations:[
+    {commandId:'territorial.metadata',targets:[{domain:'territorial',id:'A'}],payload:{id:'A',field:'name',valuePresent:true,value:'Must not publish'}},
+    {commandId:'territorial.parent',targets:[{domain:'territorial',id:'A'}],payload:{id:'A',parentId:'missing'}},
+  ]}});
+  assert.equal(result.ok,false);assert.equal(result.changed,false);assert.equal(owner.project.snapshot(),before);
+  assert.deepEqual(owner.client.state(),clock);assert.deepEqual(calls,[]);
 });
 
 

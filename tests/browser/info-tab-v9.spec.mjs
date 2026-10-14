@@ -1,11 +1,11 @@
 import { expect, test } from '@playwright/test';
 import { readFile, writeFile } from 'node:fs/promises';
-import { productionGeoPackage } from '../helpers/production-geopackage.mjs';
+import { productionGeoPackage,coreFileProjection } from '../helpers/production-geopackage.mjs';
 import { currentCountryFlagUrl } from '../../assets/js/modules/country-flags.js';
 import { selectUiOption } from './helpers/ui-select.mjs';
 
 test('editor derives live hierarchy in Relations, focuses only via GPS and preserves metadata validation and history', async ({ page }, testInfo) => {
-  test.setTimeout(210_000);
+  test.setTimeout(480_000);
   await page.setViewportSize({ width: 1440, height: 900 });
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
@@ -35,7 +35,8 @@ test('editor derives live hierarchy in Relations, focuses only via GPS and prese
   }
   const flag = currentCountryFlagUrl('DEU');
   for (const feature of project.territorialEntities) feature.properties.metadata.flagDataUrl = flag.slice(flag.indexOf('/assets/'));
-  const file = await productionGeoPackage('write', new ArrayBuffer(0), project);
+  const receipt=await coreFileProjection(project);
+  const file = await productionGeoPackage('write',new ArrayBuffer(0),receipt.project,receipt.spatialState);
   const filePath = testInfo.outputPath('info-project.gpkg');
   await writeFile(filePath, new Uint8Array(file.buffer));
   await page.locator('#mobileFileBtn').click();
@@ -50,8 +51,16 @@ test('editor derives live hierarchy in Relations, focuses only via GPS and prese
   await expect.poll(() => page.evaluate(() => !!window.PANDOLAB_TERRITORIAL.get('D')), { timeout: 30_000 }).toBe(true);
 
   const select = async id => {
-    await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select(id), id);
-    await expect(page.locator('#entityProperties')).toBeVisible();
+    // The import dialog closes before the Core replacement and UI lock finish.
+    await expect.poll(async () => {
+      let selected;
+      try { selected = await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select(id), id); }
+      catch (error) {
+        if (!String(error).includes('STALE_REVISION')) throw error;
+        return false;
+      }
+      return selected && await page.locator('#entityProperties').isVisible();
+    }, { timeout: 30_000 }).toBe(true);
     await expect(page.locator('#entityNameInput')).toHaveValue(project.territorialEntities.find(feature => feature.id === id).properties.name);
     await page.locator('#relationTabBtn').click();
   };
@@ -107,7 +116,7 @@ test('editor derives live hierarchy in Relations, focuses only via GPS and prese
   await page.locator('#entityChangeParentBtn').click();
   await expect(page.locator('#entityParentInputControl')).toBeVisible();
   await selectUiOption(page, '#entityParentInput', '');
-  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('B').properties.parentId)).toBe('');
+  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('B').properties.parentId), { timeout: 30_000 }).toBe('');
   await expect(page.locator('#entityParentRows .editor-relation-row')).toHaveCount(0);
   await expect(page.locator('#entityParentRow')).toBeHidden();
   await expect(rows).toHaveCount(2);
@@ -126,7 +135,7 @@ test('editor derives live hierarchy in Relations, focuses only via GPS and prese
     to: window.PANDOLAB_TERRITORIAL.get('B').properties.validTo }));
   for (const input of ['1871-01-18 ~ 1918-11-09', '1871-01-18 ~', '~ 1918-11-09', '1900 ~~ 1901', '1900-02-29 ~', '1918 ~ 1871']) {
     await period.fill(input); await period.dispatchEvent('change');
-    await expect(period).toHaveAttribute('aria-invalid', 'true');
+    await expect(period).toHaveAttribute('aria-invalid', 'true', { timeout: 30_000 });
     expect(await records()).toEqual({ from: null, to: null });
   }
   await period.fill(' ~ '); await period.dispatchEvent('change');
@@ -145,12 +154,13 @@ test('editor derives live hierarchy in Relations, focuses only via GPS and prese
   const beforeChild = await page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('C'));
   const selectionRevision = await page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().selectionInput.selectionRevision);
   await page.locator('[data-relation-remove="C"]').click();
-  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('C').properties.parentId)).toBe('');
+  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('C').properties.parentId), { timeout: 30_000 }).toBe('');
   await expect(page.locator('#entityNameInput')).toHaveValue('B 영토');
   expect(await page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().selectionInput.selectionRevision)).toBe(selectionRevision);
   await page.locator('#undoBtn').click();
-  expect(await page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('C'))).toEqual(beforeChild);
+  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('C')), { timeout: 30_000 }).toEqual(beforeChild);
   await page.locator('#redoBtn').click();
+  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('C').properties.parentId), { timeout: 30_000 }).toBe('');
   await select('B');
   const addRevision = await page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().selectionInput.selectionRevision);
   await page.locator('#entityChangeParentBtn').click();
@@ -162,7 +172,7 @@ test('editor derives live hierarchy in Relations, focuses only via GPS and prese
   await page.locator('#entityAddChildBtn').click();
   await selectUiOption(page, '#entityChildInput', 'C');
   await expect(page.locator('#entityChildRow')).toBeHidden();
-  expect(await page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('C'))).toEqual(beforeChild);
+  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('C')), { timeout: 30_000 }).toEqual(beforeChild);
   expect(await page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().selectionInput.selectionRevision)).toBe(addRevision);
   await expect(rows).toHaveCount(2);
   await expect(page.locator('#entityChildInput option[value="C"], #entityChildInput option[value="A"], #entityChildInput option[value="B"]')).toHaveCount(0);

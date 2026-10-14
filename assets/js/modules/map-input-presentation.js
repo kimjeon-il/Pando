@@ -36,7 +36,17 @@ export function createMapInputPresentation({
   screenToGeo,
   queueCountryHoverPick,
   getTerritorialLabelRef,
+  reportOperationError,
 } = {}) {
+  if (typeof reportOperationError!=='function') throw new TypeError('Map editing input requires its operation error reporter.');
+  const clearDraftHover = async reason => {
+    try { return await editingDomain.clearDraftHover(reason); }
+    catch (error) { reportOperationError(error,'PL-DRAFT-HOVER-001');return false; }
+  };
+  const setHover = async (ref,options) => {
+    try { return await selectionDomain.setHover(ref,options); }
+    catch (error) { reportOperationError(error,'PL-SELECTION-HOVER-001');return false; }
+  };
 
   let boundInput = null;
   let boundSvg = null;
@@ -63,7 +73,7 @@ export function createMapInputPresentation({
     gpuMapRenderer.setHydroInteractionActive(true);
     cancelCountryHoverPick({ clear: true });
     $('map')?.classList.add('dragging');
-    editingDomain?.clearDraftHover?.('map-movement-start');
+    clearDraftHover('map-movement-start');
   }
 
   function finishMapMovement(point = null) {
@@ -145,7 +155,12 @@ export function createMapInputPresentation({
       }),
       moveStroke: screenPoints => dispatchEditingInteraction('draft-stroke-move', { screenPoints }),
       endStroke: screenPoint => dispatchEditingInteraction('draft-stroke-end', { screenPoint }),
-      cancelStroke: reason => { editingDomain?.cancelActiveGesture?.('pinch-or-cancel'); return dispatchEditingInteraction('draft-stroke-cancel', { reason: typeof reason === 'string' ? reason : 'pointer-cancel' }); },
+      cancelStroke: async reason => {
+        try {
+          await editingDomain.cancelActiveGesture('pinch-or-cancel');
+          return await dispatchEditingInteraction('draft-stroke-cancel',{ reason: typeof reason==='string' ? reason : 'pointer-cancel' });
+        } catch (error) { reportOperationError(error,'PL-DRAFT-CANCEL-001');return false; }
+      },
     });
 
     svg.on('click', function() {
@@ -171,11 +186,11 @@ export function createMapInputPresentation({
       // Their bubbling events must not erase the target they just published.
       if (d3.event.target?.closest?.('.draft-interactive')) return;
       if (draft.dragging) {
-        editingDomain?.clearDraftHover?.('draft-interactive-hover');
+        clearDraftHover('draft-interactive-hover');
         return;
       }
       if (mapInputController?.isPanning()) {
-        editingDomain?.clearDraftHover?.('map-panning');
+        clearDraftHover('map-panning');
         return;
       }
       // User/place labels already publish their own explicit hover ref.
@@ -183,7 +198,7 @@ export function createMapInputPresentation({
       const label = d3.event.target?.closest?.('.territorial-label-item[data-label-id]');
       if (label && getInputSnapshot().tool === 'select' && !isMobile()) {
         cancelCountryHoverPick();
-        selectionDomain.setHover(getTerritorialLabelRef(label.dataset.labelId), { source: 'map' });
+        setHover(getTerritorialLabelRef(label.dataset.labelId), { source: 'map' });
         return;
       }
       const screenPoint = d3.mouse(this);
@@ -204,7 +219,7 @@ export function createMapInputPresentation({
         dispatchEditingInteraction('draft-hover-clear');
         cancelCountryHoverPick({ clear: true });
         clearHoverHit();
-        selectionDomain.setHover(null, { source: 'map' });
+        setHover(null, { source: 'map' });
       }
     });
 
@@ -212,7 +227,7 @@ export function createMapInputPresentation({
       cancelCountryHoverPick();
       dispatchEditingInteraction('draft-hover-clear');
       clearHoverHit();
-      selectionDomain.setHover(null, { source: 'map' });
+      setHover(null, { source: 'map' });
     });
     boundInput = mapInputController;
     boundSvg = svg;

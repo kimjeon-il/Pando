@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import { createSelectionDomain } from '../../assets/js/modules/selection-domain.js';
+import { createNodeSelection } from '../helpers/core-selection.mjs';
 import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
 import { createSelectionUiController } from '../../assets/js/modules/selection-ui-controller.js';
 
@@ -31,14 +31,16 @@ function createFrameScheduler() {
   };
 }
 
-function setup() {
+async function setup(t) {
   const scheduler = createFrameScheduler();
   const bodyClasses = new Set();
   const events = [];
   let ui;
-  const domain = createSelectionDomain({
+  const owner = await createNodeSelection({ genericIds: [],labelIds: [],distributionIds: [],
     onSelectionChanged: snapshot => ui?.sync(snapshot),
   });
+  t.after(() => owner.dispose());
+  const domain = owner.domain;
   ui = createSelectionUiController({
     window: scheduler.window,
     document: {
@@ -64,17 +66,17 @@ function setup() {
       syncLayerRows: current => events.push(['layers', current.items.map(ref => ref.key)]),
     },
   });
-  return { scheduler, bodyClasses, events, domain, ui };
+  return { scheduler, bodyClasses, events, domain, ui, owner };
 }
 
-test('same-frame selection changes render only the final empty state', () => {
-  const state = setup();
+test('same-frame accepted selection changes render only the final empty state', async t => {
+  const state = await setup(t);
   const a = country('A');
   const b = country('B');
 
-  state.domain.setMany([a, b], { primary: b });
-  state.domain.toggle(b);
-  state.domain.clear();
+  await state.domain.setMany([a, b], { primary: b });
+  await state.domain.toggle(b);
+  await state.domain.clear();
 
   assert.equal(state.scheduler.size(), 1);
   state.scheduler.flushAll();
@@ -88,20 +90,21 @@ test('same-frame selection changes render only the final empty state', () => {
   assert.equal(state.bodyClasses.has('multi-selection-active'), false);
 });
 
-test('project reset cancels stale selection work and synchronizes every selection surface to empty immediately', () => {
-  const state = setup();
+test('accepted project reset cancels stale selection work and synchronizes every selection surface to empty', async t => {
+  const state = await setup(t);
   const a = country('A');
   const b = country('B');
 
-  state.domain.setMany([a, b], { primary: b });
+  await state.domain.setMany([a, b], { primary: b });
   state.scheduler.flushAll();
   assert.equal(state.bodyClasses.has('multi-selection-active'), true);
 
   state.events.length = 0;
-  state.domain.replace(a);
+  await state.domain.replace(a);
   assert.equal(state.scheduler.size(), 1);
 
-  state.domain.resetProject(2);
+  state.owner.setGeneration(2);
+  await state.domain.resetProject(2);
   state.ui.resetProject();
 
   assert.equal(state.scheduler.size(), 0);
@@ -118,9 +121,9 @@ test('project reset cancels stale selection work and synchronizes every selectio
   assert.equal(state.events.length, 4);
 });
 
-test('dispose cancels a queued selection frame permanently', () => {
-  const state = setup();
-  state.domain.replace(country('A'));
+test('dispose cancels a queued selection frame permanently', async t => {
+  const state = await setup(t);
+  await state.domain.replace(country('A'));
   assert.equal(state.scheduler.size(), 1);
 
   state.ui.dispose();
@@ -134,7 +137,7 @@ test('application reset and lifecycle disposal wire the selection UI controller 
   const domainSource = await readFile(new URL('../../assets/js/modules/app-domain-assembly.js', import.meta.url), 'utf8');
   const lifecycleSource = await readFile(new URL('../../assets/js/modules/app-lifecycle-assembly.js', import.meta.url), 'utf8');
 
-  assert.match(domainSource, /selectionDomain\?\.resetProject\(event\.generation\);\s*selectionUiController\?\.resetProject\?\.\(\);/);
+  assert.match(domainSource, /await selectionDomain\.resetProject\(event\.generation\);\s*selectionUiController\.resetProject\(\);/);
 
   const disposalList = lifecycleSource.match(/getDisposables:\s*\(\)\s*=>\s*\[([^\]]+)\]/)?.[1] || '';
   const uiIndex = disposalList.indexOf('dependencies.domains.selectionUiController');
