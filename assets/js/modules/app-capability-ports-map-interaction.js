@@ -17,6 +17,7 @@ export const MAP_INTERACTION_OWNER_PORTS = Object.freeze({
     "mapLayers",
     "mapLayout",
     "objectPresentation",
+    "platform",
     "presentation",
     "projectState",
     "renderScene",
