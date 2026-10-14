@@ -2,6 +2,8 @@ import { buildGpuStrokeInstances } from './gpu-stroke-geometry.js';
 import { buildCountrySharedBoundaryContact, hasOpposingBoundaryInteriors, createPreparedBoundaryStore,
   attachBoundarySegmentReferences, serializeCountrySharedBoundarySegments, topologyNodeKey } from './boundary-topology.js';
 import { createBoundarySpatialIndex, segmentBounds } from './boundary-spatial-index.js';
+import { connectBoundarySegments } from './boundary-lines.js';
+import { buildRenderableBoundarySegments, densifyBoundarySegmentsForProjection } from './geographic-boundary.js';
 
 export function shouldShowSharedCountryBorders(settings) {
   return settings?.terrainVisible === true && settings?.terrainStyle === 'physical';
@@ -182,9 +184,30 @@ export function prepareCountrySharedBoundaryPacket(segments = [], features = [],
 }
 
 function prepareStrokePacket(segments) {
-  const ordered = [...segments].sort((left, right) =>
+  const sources = [...segments].sort((left, right) =>
     left.ownerIds.join('|').localeCompare(right.ownerIds.join('|')));
+  const groups = new Map();
+  for (const segment of sources) {
+    const key = segment.ownerIds.join('|');
+    if (!groups.has(key)) groups.set(key, { ownerIds: segment.ownerIds, edges: [] });
+    groups.get(key).edges.push([segment.start, segment.end]);
+  }
+  // Classification and overlap subtraction use source edges. Only the final
+  // display chains are seam-split and refined, retaining a phase across seams.
+  const ordered = [], phases = [];
+  for (const { ownerIds, edges } of groups.values()) {
+    for (const line of connectBoundarySegments(edges)) {
+      let phase = 0;
+      const renderable = buildRenderableBoundarySegments({ type: 'LineString', coordinates: line });
+      for (const [start, end] of densifyBoundarySegmentsForProjection(renderable)) {
+        ordered.push({ start, end, ownerIds });
+        phases.push(phase);
+        phase += Math.hypot(end[0] - start[0], end[1] - start[1]);
+      }
+    }
+  }
   const startsEnds = new Float32Array(ordered.length * 4);
+  const chainPhase = new Float32Array(phases);
   const ownerRanges = {};
   ordered.forEach((segment, index) => {
     const key = segment.ownerIds.join('|');
@@ -195,9 +218,10 @@ function prepareStrokePacket(segments) {
   return {
     segments: serializeCountrySharedBoundarySegments(ordered),
     startsEnds,
+    chainPhase,
     ownerRanges,
     ownerIds: [...new Set(ordered.flatMap(segment => segment.ownerIds))],
-    preparedGeometry: buildGpuStrokeInstances(startsEnds, null, ownerRanges),
+    preparedGeometry: buildGpuStrokeInstances(startsEnds, chainPhase, ownerRanges),
   };
 }
 

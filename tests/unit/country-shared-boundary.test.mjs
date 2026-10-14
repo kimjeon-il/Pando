@@ -14,6 +14,10 @@ import { prepareCountrySharedBoundaryPacket, visibleCountrySharedSegments, shoul
 import { countryGeometrySignature, changedCountryGeometryIds } from '../../assets/js/modules/country-shared-boundary-cache.js';
 import { excludeCountryBoundaryOwners } from '../../assets/js/modules/country-shared-boundary-packet.js';
 import '../../assets/js/workers/canvas-scene-composition-core.js';
+import { connectBoundarySegments } from '../../assets/js/modules/boundary-lines.js';
+
+const displayLength = segments => segments.reduce((sum, segment) => sum
+  + Math.hypot(segment.end[0] - segment.start[0], segment.end[1] - segment.start[1]), 0);
 
 const rectangle = (id, west, south, east, north) => ({
   type: 'Feature', id, properties: {}, geometry: { type: 'Polygon', coordinates: [[
@@ -119,8 +123,9 @@ test('one hidden owner keeps a shared border, while two hidden owners remove it'
     rectangle('LEFT', 0, 0, 1, 1), rectangle('RIGHT', 1, 0, 2, 1),
   ]);
   const packet = prepareCountrySharedBoundaryPacket(segments);
-  assert.equal(packet.preparedGeometry.segmentCount, 1);
-  assert.equal(visibleCountrySharedSegments(packet.segments, id => id === 'LEFT').length, 1);
+  assert.ok(packet.segments.length > 1);
+  assert.equal(packet.preparedGeometry.segmentCount, packet.segments.length);
+  assert.equal(visibleCountrySharedSegments(packet.segments, id => id === 'LEFT').length, packet.segments.length);
   assert.equal(visibleCountrySharedSegments(packet.segments, () => false).length, 0);
 });
 
@@ -131,7 +136,7 @@ test('native child contact belongs to dashed lower boundaries and is removed fro
   assert.deepEqual(packet.internalOwners['CHN|HKG'], ['HKG']);
   assert.deepEqual(packet.outlineOwnerIds, ['CHN', 'HKG']);
   assert.deepEqual(packet.outlineOverrides.ownerIds, ['CHN']);
-  assert.equal(packet.outlineOverrides.segments.length, 3);
+  assert.ok(Math.abs(displayLength(packet.outlineOverrides.segments) - 3) < 1e-9);
   assert.ok(packet.outlineOverrides.segments.every(segment => !(segment.start[0] === 1 && segment.end[0] === 1)));
 });
 
@@ -141,7 +146,11 @@ test('split contacts remove only their covered interval from solid parent outlin
   const packet = prepareCountrySharedBoundaryPacket(buildCountrySharedBoundarySegments([parent, child]), [parent, child]);
   assert.deepEqual(packet.internalOwners['CHN|MAC'], ['MAC']);
   const contact = packet.outlineOverrides.segments.filter(segment => segment.ownerIds[0] === 'CHN' && segment.start[0] === 1 && segment.end[0] === 1);
-  assert.deepEqual(contact.map(segment => [segment.start[1], segment.end[1]]), [[0, 1], [2, 3]]);
+  const intervals = connectBoundarySegments(contact.map(segment => [segment.start, segment.end]))
+    .map(line => [Math.min(...line.map(point => point[1])), Math.max(...line.map(point => point[1]))])
+    .sort((left, right) => left[0] - right[0]);
+  assert.deepEqual(intervals, [[0, 1], [2, 3]]);
+  assert.ok(Math.abs(displayLength(contact) - 2) < 1e-9);
 });
 
 test('excluded country outline ranges stay excluded even from a full mesh submission', () => {
@@ -202,8 +211,11 @@ test('the same owner pair can have both a coincident coast and an internal conta
   const parent = multi('CHN', [rectangle('a', 0, 0, 1, 1), rectangle('b', 5, 0, 6, 1)], 'CHN');
   const child = multi('HKG', [rectangle('a', 0, 0, 1, 1), rectangle('b', 6, 0, 7, 1)], 'CHN');
   const packet = prepareCountrySharedBoundaryPacket(buildCountrySharedBoundarySegments([parent, child]), [parent, child]);
-  assert.equal(packet.segments.length, 1);
+  assert.ok(packet.segments.length > 1);
+  assert.ok(Math.abs(displayLength(packet.segments) - 1) < 1e-9);
   assert.deepEqual(packet.internalOwners['CHN|HKG'], ['HKG']);
-  assert.equal(packet.outlineOverrides.segments.filter(segment => segment.ownerIds[0] === 'CHN' && segment.start[0] <= 1 && segment.end[0] <= 1).length, 4);
+  const coast = packet.outlineOverrides.segments.filter(segment => segment.ownerIds[0] === 'CHN'
+    && segment.start[0] <= 1 && segment.end[0] <= 1);
+  assert.ok(Math.abs(displayLength(coast) - 4) < 1e-9);
   assert.equal(packet.outlineOverrides.segments.filter(segment => segment.ownerIds[0] === 'HKG' && segment.start[0] <= 1 && segment.end[0] <= 1).length, 0);
 });
