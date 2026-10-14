@@ -1,4 +1,4 @@
-import { compareTemporal, normalizeTemporalInterval, parseTemporal } from './temporal.js';
+import { compareTemporalKeys, normalizeTemporalInterval, parseTemporal, temporalFollowingDay } from './temporal.js';
 
 export const TIMELINE_RECORD_SCHEMA_VERSION = 1;
 const COLLECTIONS = ['lifetimes', 'geometryBindings', 'parentRelations'];
@@ -26,17 +26,6 @@ function interval(row) {
     if (error.code === 'TIMELINE_INTERVAL') throw error;
     throw Object.assign(new Error(`TIMELINE_INTERVAL: ${error.message}`, { cause: error }), { code: 'TIMELINE_INTERVAL' });
   }
-}
-const compareKeys = (a, b) => compareTemporal({ startKey: a }, { startKey: b });
-function followingDay([year, month, day]) {
-  const magnitude = String(Math.abs(year)).padStart(4, '0');
-  const yearText = (year < 0 ? '-' : year > 9999 ? '+' : '') + magnitude;
-  // Use the canonical temporal parser for month lengths and BCE leap semantics.
-  const last = parseTemporal(`${yearText}-${String(month).padStart(2, '0')}`).endKey[2];
-  if (day < last) return [year, month, day + 1];
-  if (month < 12) return [year, month + 1, 1];
-  // The key after +999999-12-31 is an internal event sentinel, never a stored date.
-  return [year === -1 ? 1 : year + 1, 1, 1];
 }
 
 /** Pure model validation. Does not read/write project, renderer, history, or UI state. */
@@ -96,7 +85,7 @@ export function normalizeTimelineRecords(input, context) {
     }
     Object.freeze(row);
     event(dates.start?.startKey ?? null, slot, row, true);
-    if (dates.end) event(followingDay(dates.end.endKey), slot, row, false);
+    if (dates.end) event(temporalFollowingDay(dates.end.endKey), slot, row, false);
     return row;
   }
   const result = { schemaVersion: TIMELINE_RECORD_SCHEMA_VERSION };
@@ -132,7 +121,7 @@ export function normalizeTimelineRecords(input, context) {
     }
   }
   const ordered = [...events.values()].sort((a, b) => a.key === null ? (b.key === null ? 0 : -1)
-    : b.key === null ? 1 : compareKeys(a.key, b.key));
+    : b.key === null ? 1 : compareTemporalKeys(a.key, b.key));
   for (const boundary of ordered) {
     // Apply the entire simultaneous boundary before checking its resulting graph.
     for (const { slot, row, add } of boundary.changes) {

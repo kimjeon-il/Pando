@@ -16,8 +16,10 @@ class TemporalRemainderPolicyTests(unittest.TestCase):
     def test_models_share_calendar_aware_temporal_parser(self):
         for symbol in ("parseTemporal", "normalizeTemporalInterval", "temporalIntervalsOverlap"):
             self.assertIn(f"function {symbol}", TEMPORAL)
-        self.assertIn("daysInMonth", TEMPORAL)
-        self.assertIn("year === 0", TEMPORAL)
+        for api in ("temporalParse", "temporalNormalizeInterval", "temporalIntervalsOverlap", "temporalFollowingDay"):
+            self.assertIn(f"core.{api}", TEMPORAL)
+        self.assertNotIn("function daysInMonth", TEMPORAL)
+        self.assertNotIn("year === 0", TEMPORAL)
         self.assertIn("normalizeTemporalInterval", TERRITORIAL)
         self.assertNotIn("localeCompare(text(right.validFrom", TERRITORIAL)
 

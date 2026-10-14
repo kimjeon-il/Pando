@@ -1,4 +1,5 @@
 #include "editorcontroller.h"
+#include <pandoeditor/temporal.h>
 #include "placenamedisplay.h"
 #include <QCryptographicHash>
 #include <QDataStream>
