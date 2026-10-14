@@ -1,7 +1,7 @@
 {
   "schema": "pandoeditor-core-wasm",
   "abiVersion": 1,
-  "sourceSha256": "6b6a84ecbbd9cf7d210276df87348cc9ec2c73567f158e2c414f74628eb708eb",
+  "sourceSha256": "2680feb2301fde569f1644c9864c4cda36482fea1dc78b26b762b1a64002ccff",
   "compiler": {
     "name": "emscripten",
     "version": "4.0.20"
@@ -133,7 +133,7 @@
     },
     {
       "path": "shared/core/include/pandoeditor/temporal.h",
-      "sha256": "f8003ff4e7965be6ab5b8bc0daac8d985f092ee99390602e228ff98a796e9496"
+      "sha256": "183a9a82f5aadd34f25528f2918615cf9980326c4ff8d0d6a2542862f8cc009f"
     },
     {
       "path": "shared/core/include/pandoeditor/territorialmutation.h",
@@ -301,7 +301,7 @@
     },
     {
       "path": "shared/core/src/temporal.cpp",
-      "sha256": "e6f40c46297869517790648e72a40cc55df7171670f93a06dcec207c8b568c29"
+      "sha256": "bfb72391ef530c6d96ff1436f36ec394b4d52172067f0297e09f38b3881ce56b"
     },
     {
       "path": "shared/core/src/territorialmutation.cpp",
@@ -409,7 +409,7 @@
     },
     {
       "path": "shared/wasm/session-bindings.cpp",
-      "sha256": "97d427dcd748a6ac8bca64ad0dcc0ea88fbb220257545a627d573099f36fef01"
+      "sha256": "b9f4a7da85e59d2be60ed1b3a2e7c344eaa961bf55dfa4c79e6c5da32e8ac309"
     }
   ],
   "assets": {
@@ -419,7 +419,7 @@
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "e2b1d29de3ba9fafb2082373413cbacab9e3313558306b96acdea3925fa760aa"
+      "sha256": "5c470d495c24efe45b9dcd45bfcbccce453c591531a30d04f08b86ca3e57c47c"
     }
   }
 }
