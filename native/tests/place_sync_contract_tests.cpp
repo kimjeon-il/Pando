@@ -19,7 +19,7 @@
 namespace {
 QString placeReportRoot() {
     const auto nativeRoot=QString::fromUtf8(PLACE_SYNC_REPOSITORY_ROOT);
-    return nativeRoot+"/..";
+    return QFile::exists(nativeRoot+"/../reports/places/source-manifest.json") ? nativeRoot+"/.." : nativeRoot;
 }
 QJsonObject contract() {
     QFile file(QString::fromUtf8(PLACE_SYNC_CONTRACT_PATH));

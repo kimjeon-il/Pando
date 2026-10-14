@@ -1,5 +1,7 @@
 # 앱 PLAC v3 복수 원어명 표시 및 동기화 계약
 
+> 현재 통합 저장소에서 지명 검증 JSON의 정본은 루트 `reports/places/`입니다. 아래 `native/reports/places/` 미러와 과거 Web/App 별도 브랜치 설명은 이관 당시의 이력입니다.
+
 원본 웹: `kimjeon-il/Pando:work/places`; 출처 고정 커밋은 `reports/places/source-manifest.json`의 `webCommit`으로 추적한다.
 앱 작업: `kimjeon-il/PandoEditor:work/places`.
 
