@@ -80,9 +80,29 @@ for (const [hash, entry] of [assets[0], assets[Math.floor(assets.length / 2)], m
     const a = packet.indices[i], b = packet.indices[i + 1], c = packet.indices[i + 2];
     triangleEdges.add(key(a, b)); triangleEdges.add(key(b, c)); triangleEdges.add(key(c, a));
   }
-  for (let i = 0; i < packet.boundaryIndices.length; i += 2)
-    assert.ok(triangleEdges.has(key(packet.boundaryIndices[i], packet.boundaryIndices[i + 1])),
-      hash + ': outline does not use a fill boundary edge');
+  for (let i = 0; i < packet.boundaryIndices.length; i += 2) {
+    const a = packet.boundaryIndices[i], b = packet.boundaryIndices[i + 1];
+    if (triangleEdges.has(key(a, b))) continue;
+    const point = id => [packet.positions[id * 2], packet.positions[id * 2 + 1]];
+    const sameGeo = (x, y) => {
+      const left = point(x), right = point(y);
+      return Math.abs(left[1] - right[1]) < 1e-6
+        && Math.abs((left[0] - right[0]) / 360 - Math.round((left[0] - right[0]) / 360)) < 1e-6;
+    };
+    let geometricMatch = false, adjacentTriangles = 0;
+    for (let j = 0; j < packet.indices.length; j += 3) {
+      const [x, y, z] = packet.indices.slice(j, j + 3);
+      for (const [u, v] of [[x, y], [y, z], [z, x]]) {
+        if (sameGeo(a, u) || sameGeo(a, v) || sameGeo(b, u) || sameGeo(b, v)) adjacentTriangles++;
+        if ((sameGeo(a, u) && sameGeo(b, v)) || (sameGeo(a, v) && sameGeo(b, u))) geometricMatch = true;
+      }
+    }
+    throw new Error(hash + ': outline/fill mismatch: vertices ' + a + ' -> ' + b
+      + ' positions=' + JSON.stringify([point(a), point(b)])
+      + ' wrappingEquivalent=' + geometricMatch
+      + ' adjacentTriangleEdges=' + adjacentTriangles
+      + ' removedPolygonsNeedReview=true');
+  }
 }
 console.log(JSON.stringify({ version: legacy.version, algorithmRevision: 4, fixedMeshCount: assets.length,
   fixedGzipBytes: totalCompressedBytes, largestMeshGzipBytes: maxAsset[1].compressedBytes,
