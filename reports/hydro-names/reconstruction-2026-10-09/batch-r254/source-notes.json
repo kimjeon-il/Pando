@@ -1,0 +1,829 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r254",
+  "sources": [
+    {
+      "source_key": "r254-parksnl-pinware-prose",
+      "title": "Pinware River Provincial Park",
+      "publisher": "ParksNL, Government of Newfoundland and Labrador",
+      "official_url": "https://www.parksnl.ca/parks/pinware-river-provincial-park/",
+      "evidence_kind": "primary_park_operator_geographic_prose",
+      "actual_material_read": "Completed HTML reader: park location and river/Strait of Belle Isle description, angling and canoeing river identification, Lookout Trail estuary/river/town setting, beach and Natural History sections. No photographs or maps read.",
+      "acquisition_outcome": "Normal completed HTML reader response; no origin HTTP status exposed.",
+      "publication_independence": "Park operator’s own visitor-description editorial page, affirmatively distinct in purpose and content from Anderson1985 fisheries compilation, federal topographic mapping, ATL120 and held provincial technical reports. No borrowed maps or fish-survey figures used.",
+      "supports": "Pinware River is the river for which the park is named; park lies on Route510 southwest of Red Bay and has the river/estuary and Strait of Belle Isle setting.",
+      "limits": "Does not trace the selected inland opening, ponds, tributary joins or exact final reach. Regional/terminal name anchor only; the selected route is not completed from this page.",
+      "use_notice": "Own bounded factual synthesis and ordinary bibliography only; no original text or images redistributed."
+    },
+    {
+      "source_key": "r254-trancoso-plan2001",
+      "title": "Programa de Desarrollo Urbano del Centro de Población de Trancoso, Zacatecas",
+      "publisher": "Municipal and state authorities of Zacatecas; state CITE host",
+      "edition": "Dated 24 April 2001 in the closing text; the 2025 upload directory is not its authorship date.",
+      "official_url": "https://cite.zacatecas.gob.mx/wp-content/uploads/2025/10/PDUCP-Trancoso.pdf",
+      "independent_publication_identity": "The presentation identifies a municipal urban-planning commission and the closing text identifies the state signatories and date. Its own prose is a distinct planning work, not the held INEGI topographic series, municipal Compendios, historical Zacatecas synthesis or wetland-field report.",
+      "material_read": "Normal 43-page PDF reader result. Title, presentation, natural-setting and hydrography prose, drainage paragraph, local environmental passage, selected later urban-planning passages and final date/signatories were read. No map pixels or companion Carta Urbana were read.",
+      "supports": "Bounded Trancoso arroyo names and seasonal-flow context.",
+      "limitations": "Authorial prose cannot assign a named local arroyo to the selected full path or supply missing cartographic through-links.",
+      "observed_acquisition": "Normal web-reader PDF response with parsed original text; no error exposed."
+    },
+    {
+      "source_key": "r254-villadecos-plan2013-2016",
+      "title": "Plan Municipal de Desarrollo 2013–2016, Villa de Cos, Zacatecas",
+      "publisher": "H. Ayuntamiento de Villa de Cos, administration headed by Francisco Antonio Sifuentes Nava",
+      "official_url": "https://www.villadecos.gob.mx/CEAIP/ART15/Fraccion_I/PLAN_MUNICIPAL_DE_DESARROLLO_2013-2016.pdf",
+      "independent_publication_identity": "Front matter identifies the municipal administration; the presentation describes participatory local planning and municipal departments. Bibliography lists population censuses and municipal information. This independently compiled municipal text is distinct from the held source publications; no borrowed map is used.",
+      "material_read": "Normal 56-page PDF reader result. Front matter, presentation and participation sections; printed pages20–23 geographic/physical context; final bibliography on printed56. Other returned prose was not used for hydrological inference.",
+      "supports": "Plains dominate the municipality and rainfall produces seasonal arroyos; this is regional context only.",
+      "limitations": "No whole selected-river name, individual component mapping, current flow or specific playa linkage is supplied.",
+      "observed_acquisition": "Normal web-reader PDF response with parsed original text; no error exposed."
+    },
+    {
+      "source_key": "r254-esri-mexico-overview",
+      "title": "World Imagery: bounded central-eastern Zacatecas selected drainage corridor overview",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "independent_publication_identity": "An independently maintained photographic mosaic, unrelated to held INEGI linework and distinct from the exact paused Ellesmere, Nevada, Knik, Mendoza and Labrador views.",
+      "material_read": "Complete image inspected in three contiguous original crops plus private selected-path orientation aids; matching extent metadata read after separate terminal completion.",
+      "observed_acquisition": "Original image completed HTTP200 image/jpeg; matching extent metadata completed HTTP200 text/plain carrying JSON.",
+      "supports": "Opening, cultivated receiving troughs, narrow hill-side passage, middle joins, northern depression chain and actual terminal playa setting.",
+      "limitations": "Photography supplies no hydronym, official source or mouth, dated present-flow claim, exact bank alignment or proof of water-management operation. Original, crops, orientation and dynamic requests remain private."
+    },
+    {
+      "source_key": "r254-esri-mexico-join",
+      "title": "World Imagery: bounded northern Zacatecas depression-chain join view",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "independent_publication_identity": "A new focused extent within the successfully acquired Zacatecas corridor, distinct from all stopped selected views and from held INEGI cartography. This was not recovery of unread held content.",
+      "material_read": "Full original and private orientation aid inspected; an additional original-only crop of the intervening depression rims and ground was read. Matching extent metadata inspected after separate terminal completion.",
+      "observed_acquisition": "Original image completed HTTP200 image/jpeg; matching extent metadata completed HTTP200 text/plain carrying JSON.",
+      "supports": "Distinct northern depression settings, their cultivated/vegetated rims and approaches, and the exact location of the unestablished selected transfer.",
+      "limitations": "It does not establish that the route across the intervening ground joins both depressions as one receiving floor. No hydronym or present surface-water transfer is inferred."
+    },
+    {
+      "source_key": "r254-ibge-muana2020",
+      "title": "Muaná – PA, Mapa Municipal, 1504901",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística",
+      "edition": "04/2021, Coleção de Mapas Municipais2020",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/PA/muana/1504901_MM.pdf",
+      "publication_identity": "The original identifies CETE technical/thematic coordination, IBGE state production units and CDDI dissemination. It is its own local territorial-statistical compilation from the IBGE Digital Municipal Mesh with updates from several sources. Its imprint and actual geographic contents distinguish it from the held Breves1501808 product, the HOLOS/SECTAM drainage-extraction project, Navy news/chart4351 and unrelated SGB/ANA/state basin projects. This distinction is based on the production project and credited source type, not merely a different municipality or year.",
+      "underlying_cartography": "IBGE Digital Municipal Mesh with diverse updates; geographic coordinates and SIRGAS2000. The imprint locates the municipal seat within systematic-map sheet SA-22-X-D-IV-2. It does not identify each update source or establish independent acquisition of a named historical base sheet.",
+      "acquisition_status": "Complete original acquired and read.",
+      "actual_material_read": "The one-page original was visually inspected in full-sheet overview and enlarged upper-opening, upper-eastern, middle, lower, terminal and imprint/legend views. Original unmarked cartography was read; selected-path and separate-endpoint orientation views were also inspected privately. Extracted text was used for the publication imprint, not as a substitute for map pixels.",
+      "supports": "Bounded Anajás-Mirim opening; separate São Miguel and Tauá drainage; continuous middle/lower Atuá and local joins; distinct source/render ending settings and downstream Pará receiving context.",
+      "limits": "The upper selected eastward forest and southgoing small-waterbody connections are not established. Green square fill is the protected-area symbol, not proof of wetland continuity. Generalized statistical cartography does not establish exact banks, present flow or official hydronym registration."
+    },
+    {
+      "source_key": "r254-esri-muana-upper",
+      "title": "World Imagery: bounded northwestern Muaná opening and upper Atuá receiving setting",
+      "publisher": "Esri, World Imagery",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "publication_identity": "A newly selected, geographically independent photographic-mosaic view, unrelated to stopped Ellesmere, Nevada, Knik, Mendoza or Labrador selected views. It is not a recovery of held Brazilian cartography or project figures.",
+      "acquisition_status": "Complete original image and subsequent matching extent metadata acquired normally; one request at a time.",
+      "actual_material_read": "One complete original upper-corridor photograph and its extent metadata; original pixels and a private part-index orientation view inspected. No other image region or acquisition date was inferred.",
+      "supports": "Forest/open-terrain context, small dark-water settings and visible upper Atuá meanders at the receiving end.",
+      "limits": "Dense canopy, scattered clouds/shadows and incomplete visible drainage leave the selected upstream through-link unestablished. These visibility limits do not prove absence of a connection. No names, current hydrology or mosaic date are inferred."
+    },
+    {
+      "source_key": "r254-arctic-dolphin-imagery",
+      "title": "Esri World Imagery: selected central-eastern Prince of Wales Island corridor and southern lake-transfer detail",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "evidence_kind": "independent_photographic_geography",
+      "acquisition_outcome": "Two sequentially coordinated metadata exports and their linked complete JPEG originals completed normally with HTTP200 before reading; no active request remains.",
+      "actual_material_read": "Full corridor overview and southern focused original; clean north/south overview crops, clean southern opening/link crops, selected-part orientation aids and clean terminal crop with separately marked source/render comparison. All22stored parts were examined at ordinary terrain scale.",
+      "publication_independence": "Separately maintained photographic mosaic at this Prince of Wales Island footprint, positively distinct from held Labrador, northern Ellesmere, Knik and Mendoza views; no terrestrial federal mapping or held report pixels recovered.",
+      "supports": "Initial narrow-lake setting, eastward connection from the western lake to the larger eastern lake, later meandering lake-chain receiving corridor, large northern lake and outlet, lower river valley and coastal ending.",
+      "limits": "Does not establish the selected direct northern lake-to-small-feeder transfer in parts4–5. Does not supply hydronyms, exact-bank proof, scene dates, current flow or ice hydraulics.",
+      "use_notice": "Original imagery, crops and orientation aids remain private. Public-ready output is own factual synthesis and normal bibliography only."
+    },
+    {
+      "source_key": "r254-arc403-prince-wales-prose",
+      "title": "Canadian Sailing Directions, ARC403: Western Arctic",
+      "publisher": "Canadian Hydrographic Service, Fisheries and Oceans Canada",
+      "edition": "2024/03",
+      "catalogue_number": "Fs74-40E-PDF",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/chs-shc-ARC403-eng-202403-41232306.pdf",
+      "evidence_kind": "primary_coastal_prose",
+      "acquisition_outcome": "Retained complete original reread locally after later-restriction lookup; prior transfer completed HTTP200 application/pdf. No new external acquisition.",
+      "actual_material_read": "Cover and reproduction notice; Chapter9 regional overview printed9-1 and relevant coastal prose printed9-10–9-11 and9-15–9-17. Printed9-1 and9-16 visually inspected. Decisive paragraph253 names Dolphin River at the head of Inner Browne Bay and separately identifies Scarp Brook. No chart7573/7575 originals acquired.",
+      "publication_independence": "Independently issued CHS Western Arctic editorial publication and its own coastal descriptions, affirmatively distinct from held ARC401 and from federal terrestrial maps, CGN, WSC index and unidentified field-report projects.",
+      "supports": "Bounded Dolphin River and Inner Browne Bay terminal identity, with surrounding Browne Bay/Prince of Wales coast context.",
+      "limits": "No inland selected-feeder, lake-route or whole-composite naming proof from the prose alone; not current navigation advice or formal registry verification.",
+      "use_notice": "Personal noncommercial reproduction permitted; commercial reproduction requires prior written permission. Only own geographic synthesis and normal bibliography are delivered; source pages/images remain private."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70196019",
+      "source_keys": [
+        "r254-parksnl-pinware-prose"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9253
+          ],
+          "component_scope": "northern opening",
+          "finding": "Selected northern opening and initial east/southeast turn; source depiction of the ordinary receiving corridor was not obtained.",
+          "sources": [],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "part_index_basis": "One-based stored part numbers within the identified selected fragment.",
+          "selected_positions_are_orientation_only": true
+        },
+        {
+          "fragments": [
+            9253
+          ],
+          "component_scope": "upper southwestern corridor",
+          "finding": "Selected southwest-trending upper corridor and local turns; intervening ponds/valley links and joins remain unestablished from independent source material.",
+          "sources": [],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ],
+          "part_index_basis": "One-based stored part numbers within the identified selected fragment.",
+          "selected_positions_are_orientation_only": true
+        },
+        {
+          "fragments": [
+            9253
+          ],
+          "component_scope": "middle southwestern corridor",
+          "finding": "Selected middle southwest-trending corridor; independent source correspondence remains pending.",
+          "sources": [],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            11,
+            12,
+            13,
+            14,
+            15,
+            16
+          ],
+          "part_index_basis": "One-based stored part numbers within the identified selected fragment.",
+          "selected_positions_are_orientation_only": true
+        },
+        {
+          "fragments": [
+            9253
+          ],
+          "component_scope": "southern turn and west transfer",
+          "finding": "Selected southward then westward transfer; source material is needed to establish the through-link and any lake/receiving passage.",
+          "sources": [],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            17,
+            18,
+            19,
+            20,
+            21,
+            22
+          ],
+          "part_index_basis": "One-based stored part numbers within the identified selected fragment.",
+          "selected_positions_are_orientation_only": true
+        },
+        {
+          "fragments": [
+            9253
+          ],
+          "component_scope": "lower southward and eastward turn",
+          "finding": "Selected lower southward reach and eastward bend; the receiving corridor has not been independently read.",
+          "sources": [],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            23,
+            24,
+            25,
+            26
+          ],
+          "part_index_basis": "One-based stored part numbers within the identified selected fragment.",
+          "selected_positions_are_orientation_only": true
+        },
+        {
+          "fragments": [
+            9253
+          ],
+          "component_scope": "lower return and terminal",
+          "finding": "Selected return toward the southwest and coastal ending. ParksNL gives a regional Pinware River/estuary anchor, but does not identify this full final selection or distinguish its exact source and render endings.",
+          "sources": [
+            "r254-parksnl-pinware-prose"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            27,
+            28,
+            29,
+            30
+          ],
+          "part_index_basis": "One-based stored part numbers within the identified selected fragment.",
+          "selected_positions_are_orientation_only": true
+        }
+      ],
+      "source_and_render_terminal": {
+        "class": "sea",
+        "source_endpoint_observation": "Stored source endpoint is at the southwest end of the selection; source geographic correspondence remains pending.",
+        "render_endpoint_observation": "Stored render endpoint lies farther southeast than the source endpoint; the two remain separately preserved, with actual geographic correspondence pending.",
+        "preserved_separately": true,
+        "current_exact_mouth_claimed": false
+      }
+    },
+    {
+      "aw_id": "hydro-system:70859345",
+      "source_keys": [
+        "r254-trancoso-plan2001",
+        "r254-villadecos-plan2013-2016",
+        "r254-esri-mexico-overview",
+        "r254-esri-mexico-join"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10380
+          ],
+          "component_scope": "southern opening and northeastward floor",
+          "finding": "The southern choice runs northeast through the settled and cultivated footslope corridor into a broad, open alluvial receiving floor. Small agricultural impoundments and local side drainages occur in the wider setting. The chosen route is not treated as an official headwater, and municipal arroyo names remain unassigned.",
+          "sources": [
+            "r254-esri-mexico-overview"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": [
+            1,
+            2
+          ],
+          "part_index_basis": "One-based stored part numbers within the identified selected fragment.",
+          "component_kind": "mainstem_opening"
+        },
+        {
+          "fragments": [
+            10380
+          ],
+          "component_scope": "northward cultivated trough and northwest bend",
+          "finding": "The selection continues north across the same extensively cultivated lowland, turns northwest, and follows a pale drainage strip toward a narrower passage alongside low rocky ground. Fields and roads modify the floor without establishing a separate interbasin transfer. All four parts and their joined geographic setting are visible in the overview.",
+          "sources": [
+            "r254-esri-mexico-overview"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": [
+            3,
+            4,
+            5,
+            6
+          ],
+          "part_index_basis": "One-based stored part numbers within the identified selected fragment.",
+          "component_kind": "mainstem_connection"
+        },
+        {
+          "fragments": [
+            10380
+          ],
+          "component_scope": "middle valley floor and eastern hill margin",
+          "finding": "Beyond the narrowing, the route resumes a long northward course across an agricultural trough bordered by dissected higher ground to the east. The consecutive parts then curve northeast on the open receiving floor toward a settled area; no exact blue-line or currently wet thread is required for this ordinary valley correspondence.",
+          "sources": [
+            "r254-esri-mexico-overview"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": [
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ],
+          "part_index_basis": "One-based stored part numbers within the identified selected fragment.",
+          "component_kind": "mainstem_connection"
+        },
+        {
+          "fragments": [
+            10380
+          ],
+          "component_scope": "northern depression chain and join",
+          "finding": "The overlapping overview and focused image show a northward agricultural approach, a pale enclosed-looking depression with a vegetated rim, intervening cultivated or scrub-covered ground, and a second pale depression approached from the south. Parts16–19 skirt the first depression and traverse the intervening rim/ground. A connected receiving-floor passage through that selected transfer is not established by the inspected material. This is a missing geographic link between distinguishable depression settings, not a demand for exact bank alignment, a modern wetted channel or current water-management operation.",
+          "sources": [
+            "r254-esri-mexico-overview",
+            "r254-esri-mexico-join"
+          ],
+          "correspondence": "selected_interdepression_transfer_unestablished",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": [
+            14,
+            15,
+            16,
+            17,
+            18,
+            19
+          ],
+          "part_index_basis": "One-based stored part numbers within the identified selected fragment.",
+          "component_kind": "mainstem_connection",
+          "gap_parts_one_based": [
+            16,
+            17,
+            18,
+            19
+          ]
+        },
+        {
+          "fragments": [
+            10380
+          ],
+          "component_scope": "northeastern terminal approach and playa",
+          "finding": "The final selected parts follow the western approach into a large pale playa. The stored final point is within its western-to-central floor rather than at a sea outlet or a downstream continuation beyond this basin. No proper name or permanent lake state is inferred from the photograph.",
+          "sources": [
+            "r254-esri-mexico-overview"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": [
+            20,
+            21
+          ],
+          "part_index_basis": "One-based stored part numbers within the identified selected fragment.",
+          "component_kind": "mainstem_terminal"
+        }
+      ],
+      "terminal": {
+        "stored_class": "endorheic",
+        "source_endpoint_description": "Stored source endpoint falls within the pale northern receiving playa; no exact-coordinate publication.",
+        "render_endpoint_description": "Stored render endpoint matches the source endpoint and occupies the same playa-floor setting.",
+        "source_render_endpoints_equal": true,
+        "terminal_correspondence_complete": true,
+        "terminal_name": null,
+        "scope": "Metadata class and endpoint relation preserved separately from source-based visual description; no geometry correction or official-mouth claim."
+      }
+    },
+    {
+      "aw_id": "hydro-system:60499037",
+      "source_keys": [
+        "r254-ibge-muana2020",
+        "r254-esri-muana-upper"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13708
+          ],
+          "component_scope": "northwestern chosen opening",
+          "finding": "The chosen opening and initial east/southeast bends correspond at corridor scale to the mapped Igarapé Anajás-Mirim near Amizade and São Felipe. The map establishes this bounded opening reach, but it does not show the subsequent selected eastward connection out of this drainage.",
+          "sources": [
+            "r254-ibge-muana2020",
+            "r254-esri-muana-upper"
+          ],
+          "correspondence": "bounded_opening_reach_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            0,
+            1,
+            2
+          ],
+          "part_index_basis": "Zero-based original part indices within the identified selected fragment."
+        },
+        {
+          "fragments": [
+            13708
+          ],
+          "component_scope": "eastward forest transfer",
+          "finding": "The selection leaves the mapped Anajás-Mirim opening, turns northeast and east across forest and mixed open terrain, then bends southeast. The municipal original does not depict a corresponding continuous receiving waterway across this interval. The independently read photograph shows dense canopy and scattered cloud/shadow, with open inland patches farther east, but does not establish the full ordinary river or wetland through-link. This is a material evidence gap, not proof that no connection exists.",
+          "sources": [
+            "r254-ibge-muana2020",
+            "r254-esri-muana-upper"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "part_index_basis": "Zero-based original part indices within the identified selected fragment."
+        },
+        {
+          "fragments": [
+            13708
+          ],
+          "component_scope": "southgoing small waterbody transfer to atua",
+          "finding": "The southgoing inland selection passes a setting with small mapped water polygons and photographic dark-water/open-field patches before approaching the Atuá near Soledade. Neither source establishes the complete successive transfers through this setting into the named receiving river. The mapped Rio São Miguel farther west and Rio Tauá farther east are distinct approaches and cannot replace the selected route. The water polygons receive no invented lake names. This is the continuation of the same upper connection gap.",
+          "sources": [
+            "r254-ibge-muana2020",
+            "r254-esri-muana-upper"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "part_index_basis": "Zero-based original part indices within the identified selected fragment."
+        },
+        {
+          "fragments": [
+            13708
+          ],
+          "component_scope": "atua receiving meanders and joins",
+          "finding": "From the Soledade vicinity the selection follows the continuously mapped Atuá meandering trunk past Leandro, São Sebastião and Vila Mariati, then turns southeast and south. The northern/eastern tributary junctions and the continuing receiving river are visible in the original. The photographic view independently depicts the upper receiving meanders. The Atuá label is confined to this supported river corridor and is not extended across the missing inland transfer.",
+          "sources": [
+            "r254-ibge-muana2020",
+            "r254-esri-muana-upper"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26
+          ],
+          "part_index_basis": "Zero-based original part indices within the identified selected fragment."
+        },
+        {
+          "fragments": [
+            13708
+          ],
+          "component_scope": "lower atua and fragment transition",
+          "finding": "The lower meandering river continues through the Porto Salvo vicinity, past the western joining channel and the major lower junction, then southeast into the reach repeatedly labeled Rio Atuá. Ordinary downstream continuity and the next-fragment transition are established by the original map; nearby lateral waterways remain separate features.",
+          "sources": [
+            "r254-ibge-muana2020"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            27,
+            28,
+            29
+          ],
+          "part_index_basis": "Zero-based original part indices within the identified selected fragment."
+        },
+        {
+          "fragments": [
+            13709
+          ],
+          "component_scope": "lower atua to source and render endings",
+          "finding": "The second fragment follows the widened Rio Atuá past São Pedro toward Sempre-Viva. The preserved source ending falls in the mapped lower Atuá approach near Sempre-Viva, before the downstream island-divided opening toward Rio Pará. The rendered ending stops earlier toward adjacent land northeast of this lower bend. Both endings are described in their actual local setting; the stored sea class is not treated as evidence that either point is on the open sea. The mapped channel continues to the mouth islands and Pará, but that downstream continuation is receiving context rather than an extension of the selected geometry.",
+          "sources": [
+            "r254-ibge-muana2020"
+          ],
+          "correspondence": "terminal_setting_supported_with_source_render_distinction",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "original_part_indices": [
+            0,
+            1
+          ],
+          "part_index_basis": "Zero-based original part indices within the identified selected fragment."
+        }
+      ],
+      "terminal_distinction": {
+        "fid": 13709,
+        "stored_terminal_class": "sea",
+        "source_ending": "Lower Rio Atuá approach near Sempre-Viva, upstream of the island-divided opening into Rio Pará.",
+        "render_ending": "Earlier, more northerly stopping point toward the adjacent northeast bank/land of the lower Atuá bend.",
+        "receiving_context": "Atuá continues around the mapped mouth-island setting, including Ilha do Palheta and Ilha Atuá, toward Rio Pará. This context does not relocate either preserved ending or append the estuary to the selection.",
+        "source_keys": [
+          "r254-ibge-muana2020"
+        ],
+        "geometry_modified": false
+      }
+    },
+    {
+      "aw_id": "hydro-system:80018005",
+      "source_keys": [
+        "r254-arctic-dolphin-imagery",
+        "r254-arc403-prince-wales-prose"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2304
+          ],
+          "component_scope": "southern opening and narrow lakes",
+          "finding": "The chosen southern opening occupies the lake-rich valley margin and reaches the first elongated lake. A narrow wet valley/pond connection continues to the next northern lake between pale ridges. The ordinary opening and initial lake corridor are visible; no exact-bank or continuously wet-thread claim is made.",
+          "sources": [
+            "r254-arctic-dolphin-imagery"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            1,
+            2,
+            3
+          ],
+          "part_index_basis": "One-based stored part numbers within the identified selected fragment."
+        },
+        {
+          "fragments": [
+            2304
+          ],
+          "component_scope": "unresolved northern lake to feeder transfer",
+          "finding": "The western narrow lake has a visible eastward connection into the larger eastern lake and main receiving drainage. The selected course instead turns north across intervening ridged terrain toward a separate small feeder hollow. No continuous receiving floor establishes that direct chosen lake-to-feeder transfer. Common regional catchment setting does not fill this route gap.",
+          "sources": [
+            "r254-arctic-dolphin-imagery"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            4,
+            5
+          ],
+          "part_index_basis": "One-based stored part numbers within the identified selected fragment."
+        },
+        {
+          "fragments": [
+            2304
+          ],
+          "component_scope": "later meandering lake chain",
+          "finding": "The later selection follows the common lake-rich receiving corridor: meandering channel in the wet valley, elongated intermediate lake, confined northward exit, wider wet floor with joining feeder hollows, eastward lake passage and eastern outlet bend. The ordinary lake-to-channel transfers are visible around the intervening ridge margins.",
+          "sources": [
+            "r254-arctic-dolphin-imagery"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            6,
+            7,
+            8,
+            9,
+            10
+          ],
+          "part_index_basis": "One-based stored part numbers within the identified selected fragment."
+        },
+        {
+          "fragments": [
+            2304
+          ],
+          "component_scope": "northeastern middle receiving valley",
+          "finding": "The eastern outlet continues into a northeast-trending incised valley with side-gully joins. The valley reaches the southern inlet floor of the large northern lake. Small positional offsets on valley shoulders are not treated as separate waterways.",
+          "sources": [
+            "r254-arctic-dolphin-imagery"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            11,
+            12,
+            13,
+            14
+          ],
+          "part_index_basis": "One-based stored part numbers within the identified selected fragment."
+        },
+        {
+          "fragments": [
+            2304
+          ],
+          "component_scope": "large northern lake passage",
+          "finding": "The selection crosses the southern and western arm of one continuous large lake. Shallow pale inflow water grades into its deeper western basin; this is a lake passage rather than a uniformly named river reach.",
+          "sources": [
+            "r254-arctic-dolphin-imagery"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            15,
+            16,
+            17,
+            18
+          ],
+          "part_index_basis": "One-based stored part numbers within the identified selected fragment."
+        },
+        {
+          "fragments": [
+            2304
+          ],
+          "component_scope": "lake outlet and lower valley",
+          "finding": "The large lake has a distinct northern outlet into a continuous northeast-trending river valley. The broad lower floor receives side channels and follows the base of the eastern escarpment toward the coast. The source river lies within the same ordinary receiving corridor, without asserting exact coincidence with every selected bend.",
+          "sources": [
+            "r254-arctic-dolphin-imagery"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            19,
+            20,
+            21
+          ],
+          "part_index_basis": "One-based stored part numbers within the identified selected fragment."
+        },
+        {
+          "fragments": [
+            2304
+          ],
+          "component_scope": "coastal terminal",
+          "finding": "The lower river and its narrow alluvial mouth enter the southern head of the marine inlet. CHS names Dolphin River at the head of Inner Browne Bay, supporting that bounded receiving identity. The source endpoint is farther north at the river-to-inlet transition; the rendered endpoint is slightly southeast in the narrower mouth corridor.",
+          "sources": [
+            "r254-arctic-dolphin-imagery",
+            "r254-arc403-prince-wales-prose"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            22
+          ],
+          "part_index_basis": "One-based stored part numbers within the identified selected fragment."
+        }
+      ],
+      "source_and_render_terminal": {
+        "class": "sea",
+        "source_endpoint_observation": "Stored source endpoint lies farther north at the river-to-inner-inlet transition.",
+        "render_endpoint_observation": "Stored render endpoint lies slightly southeast of the source endpoint in the narrower river-mouth corridor.",
+        "preserved_separately": true,
+        "correspondence_completed": true,
+        "current_exact_mouth_claimed": false
+      }
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "Esri World Imagery: exact selected southern Labrador70196019 corridor view",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "observed_outcome": "Export metadata completed normally and returned an original-image link. The ensuing original request yielded before terminal completion; its first terminal-status call was cancelled at the tool layer. Original HTTP, content type and completion remain unknown. No source pixels or unread output were inspected.",
+      "outcome_layer": "Tool-level cancellation of original terminal-status acquisition; not an observed origin HTTP401/403.",
+      "restriction_scope": "This exact selected-area view, equivalent acquisition routes and uninspected-output recovery remain paused. No polling, retry, alternate route or equivalent view requested. No permanent whole-service ban is inferred.",
+      "earlier_lawful_observations": "Export metadata identifies the image extent and dimensions only; it is not geographic image evidence.",
+      "newly_observed_access_failure": false,
+      "unresolved_acquisition_outcome": true,
+      "acquisition_performed": true,
+      "source_pixels_read": false,
+      "material_gap": true,
+      "aw_id": "hydro-system:70196019",
+      "acquisition_stop": true
+    },
+    {
+      "publication": "INEGI, Cuenca hidrológica Fresnillo–Yesca. Humedales. Informe técnico, 2020; product702825197568",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/nueva_estruc/702825197568.pdf",
+      "observed_outcome": "The sole normal-original request yielded before terminal completion. Its terminal-status request was cancelled. No terminal HTTP, content type, body or source content was observed.",
+      "outcome_layer": "Terminal-status tool cancellation; origin HTTP and transfer outcome unknown.",
+      "restriction_scope": "Exact publication, equivalent acquisition and recovery routes, companion material and unread outputs remain paused. No retry, further poll, source-file reading or alternative recovery followed.",
+      "earlier_lawful_prose_exception": null,
+      "source_used": false,
+      "origin_http_status": null,
+      "unresolved_acquisition_outcome": true,
+      "acquisition_stop": true,
+      "explicit_http_denial": false,
+      "material_effect": "No report content is used. This optional source pause is preserved separately from the concrete northern geographic-transfer gap and does not create a second primary status.",
+      "aw_id": "hydro-system:70859345"
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "kind": "metadata_is_not_image_evidence",
+      "acquisition_stop": false,
+      "observation": "Completed export metadata supplies no observed river, lake, channel or terminal pixels.",
+      "aw_id": "hydro-system:70196019"
+    },
+    {
+      "kind": "inherited_canadian_source_controls",
+      "acquisition_stop": false,
+      "observation": "CGN/geogratis naming families, CanMatrix-related/CBMT/Toporama, DataBC, exact NLUIS controls, Anderson1985/related fisheries, ATL120/ARC401, PP1386-J and unresolved Canadian project relationships remain unchanged. Incidental held-source search excerpts are unused.",
+      "aw_id": "hydro-system:70196019"
+    },
+    {
+      "kind": "authorial_prose_only",
+      "publication": "Trancoso2001 urban plan and Villa de Cos2013–2016 municipal plan",
+      "observation": "Only bounded authorial prose is used. Companion urban cartography and any unspecified borrowed map panels are not acquired or used. Municipal planning descriptions do not establish present conditions or map each selected component.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70859345"
+    },
+    {
+      "kind": "photographic_correspondence_only",
+      "publication": "World Imagery, selected Zacatecas views",
+      "observation": "Only independently written geographic observations are public-ready. Imagery, original source files, crops, full coordinates, orientation aids, dynamic request URLs and receipts remain private. No photograph-derived hydronym or present hydrological operation is asserted.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70859345"
+    },
+    {
+      "source_key": "r254-ibge-muana2020",
+      "publication": "Muaná – PA, Mapa Municipal1504901, edition04/2021",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/PA/muana/1504901_MM.pdf",
+      "kind": "statistical_cartography_and_reproduction_notice",
+      "observation": "The original states semi-automatic Digital Municipal Mesh compilation with diverse updates, exclusive statistical collection/tabulation purpose, disclaimer for other uses, and IBGE reproduction rights reserved. Bounded factual observations only; no survey, formal naming-registry, current-flow or legal-boundary claim. Originals and working derivatives are not redistributed.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:60499037"
+    },
+    {
+      "source_key": "r254-esri-muana-upper",
+      "publication": "World Imagery upper Muaná corridor view",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "kind": "photographic_visibility_and_scope_limit",
+      "observation": "Photographic geography only. Dense canopy and scattered clouds/shadows limit the upper-link reading; no current-flow or no-connection inference. Source imagery, working derivatives and exact dynamic requests are not redistributed.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:60499037"
+    },
+    {
+      "kind": "specific_geographic_through_link_gap",
+      "acquisition_stop": false,
+      "material_gap": true,
+      "observation": "Parts4–5: a direct selected northward western-lake-to-small-feeder transfer is not established across intervening ridged terrain. The visible eastward lake/main-drainage connection does not automatically establish the chosen transfer.",
+      "aw_id": "hydro-system:80018005"
+    },
+    {
+      "kind": "bounded_not_representative_name",
+      "acquisition_stop": false,
+      "observation": "Dolphin River remains a bounded lower receiving name while the southern through-link is pending; no name-scope-hold completion is counted.",
+      "aw_id": "hydro-system:80018005"
+    },
+    {
+      "kind": "unassigned_lake_names",
+      "acquisition_stop": false,
+      "observation": "The selected lakes are described geographically without importing labels from unacquired or held sources.",
+      "aw_id": "hydro-system:80018005"
+    },
+    {
+      "kind": "inherited_sources_preserved",
+      "acquisition_stop": false,
+      "observation": "Canadian naming, CanMatrix/CBMT/Toporama, DataBC, exact NLUIS controls, WSC Station Reference Index, PP1386-J, ARC401 and unresolved report/project holds remain unchanged. Incidental WSC index discovery snippets were excluded; no index or station-page substitute acquired.",
+      "aw_id": "hydro-system:80018005"
+    },
+    {
+      "kind": "historical_prose_and_imagery_scope",
+      "acquisition_stop": false,
+      "observation": "Ordinary terrain and receiving correspondence only, without exact bank, current wet thread, current-flow or navigation claims. Original source materials and derivatives stay private.",
+      "aw_id": "hydro-system:80018005"
+    }
+  ]
+}

@@ -1,0 +1,705 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r225",
+  "sources": [
+    {
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "source_type": "Official multiscale topographic cartography",
+      "accessed_date_utc": "2026-10-13",
+      "limits": "Independent composite map, not a stopped USGS report figure or a formal name-register record. No single edition or field-survey date is assigned to every mapped feature. Does not establish current bank positions, exact scalar-name boundaries, present tidal conditions or flow allocation among delta branches.",
+      "use_scope": "Own bounded factual observations and ordinary bibliography only; no original cartography or derivative redistribution.",
+      "source_key": "r225-usgstopo-overview",
+      "title": "USGSTopo: Old Woman River–Unalakleet River full selected corridor",
+      "material_actually_read": "One successfully completed original image, read across the entire selected corridor and in local reading crops.",
+      "observations_supported": "Repeated direct names, continuous upper and middle valleys, Old Woman–Unalakleet confluence, downstream through-connections, tributary joins and coast."
+    },
+    {
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "source_type": "Official multiscale topographic cartography",
+      "accessed_date_utc": "2026-10-13",
+      "limits": "Independent composite map, not a stopped USGS report figure or a formal name-register record. No single edition or field-survey date is assigned to every mapped feature. Does not establish current bank positions, exact scalar-name boundaries, present tidal conditions or flow allocation among delta branches.",
+      "use_scope": "Own bounded factual observations and ordinary bibliography only; no original cartography or derivative redistribution.",
+      "source_key": "r225-usgstopo-head",
+      "title": "USGSTopo: upper Old Woman River opening detail",
+      "material_actually_read": "One successfully completed original detail image, including the selected southern opening and upper river bends.",
+      "observations_supported": "The chosen opening lies in the named Old Woman River upper-valley channel setting; continuous onward channel and tributary joins are depicted."
+    },
+    {
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "source_type": "Official multiscale topographic cartography",
+      "accessed_date_utc": "2026-10-13",
+      "limits": "Independent composite map, not a stopped USGS report figure or a formal name-register record. No single edition or field-survey date is assigned to every mapped feature. Does not establish current bank positions, exact scalar-name boundaries, present tidal conditions or flow allocation among delta branches.",
+      "use_scope": "Own bounded factual observations and ordinary bibliography only; no original cartography or derivative redistribution.",
+      "source_key": "r225-usgstopo-terminal",
+      "title": "USGSTopo: lower Unalakleet River, village and coastal estuary detail",
+      "material_actually_read": "One successfully completed original detail image overlapping the overview across the lower river, North/South tributary setting, estuarine channels and coastal mouth.",
+      "observations_supported": "Lower Unalakleet labels, tributary junctions, connected estuarine waterway and terminal shore setting."
+    },
+    {
+      "source_key": "r225-blm-unalakleet-program",
+      "publisher": "Bureau of Land Management, U.S. Department of the Interior",
+      "title": "Unalakleet Wild and Scenic River",
+      "official_url": "https://www.blm.gov/programs/national-conservation-lands/alaska/unalakleet-wsr",
+      "source_type": "Official river-management program account",
+      "accessed_date_utc": "2026-10-13",
+      "material_actually_read": "Normally opened authorial HTML introduction and management description; the opening passage describes the river from the Nulato Hills to Unalakleet village on Norton Sound. Linked maps, legislation and other reports were not opened.",
+      "observations_supported": "Independent identification of Unalakleet River and its Norton Sound coastal destination.",
+      "publication_independence": "This is the BLM National Conservation Lands public river-program account, not any held USGS report, FWS assessment or ADF&G anadromous catalog.",
+      "limits": "Regional prose corroborates the representative river and destination; it is not evidence of the exact selected headward path or individual terminal branches.",
+      "use_scope": "Brief own factual synthesis and ordinary bibliography."
+    },
+    {
+      "source_key": "r225-ign-sanluis2016",
+      "title": "Provincia de San Luis — Mapa Físico",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "year": 2016,
+      "edition": "September2016; independently issued provincial physical-map sheet",
+      "official_url": "https://www.ign.gob.ar/images/MapasWeb/SAN-LUIS/SAN-LUIS-FISICO-WEB.jpg",
+      "publication_identity_basis": "Independent provincial physical-map editorial product, already positively distinguished from Argenmap and the historical500k mosaic. Its successful original was retained and read locally; no new IGN acquisition occurred.",
+      "material_read": "Whole-sheet title, edition, graticule and rights notice, then enlarged Nogolí–Cañada de Balde–Salina del Bebedero corridor.",
+      "supports": "Direct Río Nogolí, Cda. de Balde, Dique Nogolí and Salina del Bebedero labels; mapped westward upper river, southward lower collector and northern-pan receiving relationship.",
+      "limits": "Generalized provincial map. It does not name the chosen eastern feeder, delineate surveyed name boundaries or establish current flow. Nearby Chorrillos and separate impoundments are not assigned to the selected mainstem.",
+      "use_notice": "Property notice under Ley11.723. Only own factual synthesis and ordinary bibliography are public-ready; no original or derivative redistribution."
+    },
+    {
+      "source_key": "r225-funafu-huella2014",
+      "title": "Cálculo y Análisis de la Huella Hídrica de la Provincia de San Luis. Sectores Agrícola y Pecuario",
+      "publisher": "San Luis Agua S.E.; Ministerio del Campo, Gobierno de la Provincia de San Luis; Fundación Naturaleza para el Futuro",
+      "year": 2014,
+      "official_url": "https://www.naturalezaparaelfuturo.org/assets/pdfs/LIBRO-HUELLA-HIDRICA.pdf",
+      "publication_identity_basis": "Independent agricultural/livestock water-footprint research project, coordinated by FuNaFu and directed by Ana Carolina Herrero. The retained106-page original and its own provincial/FuNaFu-attributed FigureD were used, distinct from held SSRH basin documents and geological projects.",
+      "material_read": "Original FigureD, printed/PDF p7, and bounded Bebedero/Vilance and infrastructure prose on pp81 and85; p99 bibliography and p102 project credits.",
+      "supports": "Nogolí belongs to the internally draining Bebedero basin; ephemeral streams trend toward Salinas del Bebedero. Nogolí dam lies on the river of that name. A distinct aqueduct exports stored water to the original basin and to Vilance and Desaguadero-Salado.",
+      "limits": "Regional map/prose; not proof of present discharge, exact tributary name transitions, a surveyed channel within the salt pan, or the geometry of engineered transfers.",
+      "use_notice": "No officials-only or citation-clearance limitation observed in the inspected material. Own bounded factual synthesis only."
+    },
+    {
+      "source_key": "r225-sanluisagua-nogoli2017",
+      "title": "Dique Nogolí, escenario natural de belleza y recreación",
+      "publisher": "Agencia de Noticias San Luis; article and photographs credited to Prensa San Luis Agua",
+      "date": "2017-06-26",
+      "official_url": "https://agenciasanluis.com/2017/06/26/401542-dique-nogoli-escenario-natural-de-belleza-y-recreacion/",
+      "publication_identity_basis": "Separately authored operator-news article about the dam and water-supply infrastructure. Its explicit San Luis Agua press credit establishes an editorial product distinct from the held provincial basin-overview page, SSRH documents and geological/CFI studies.",
+      "acquisition_outcome": "Normal HTML web-reader opening succeeded.",
+      "material_read": "Article title, date, operator-authored reservoir/tributary/aqueduct prose and source credit. Photographs were not requested or used.",
+      "supports": "El Molle and Chico feed the Nogolí reservoir; an aqueduct starts at the dam outlet and serves several departments.",
+      "limits": "Does not distinguish which of those two feeder names applies to the chosen upper path; no such assignment is made. Infrastructure facts are historical2017 context, not a current-operation claim."
+    },
+    {
+      "source_key": "r225-esri-sanluis-imagery",
+      "title": "World Imagery — selected Nogolí–Bebedero corridor",
+      "publisher": "Esri",
+      "attribution": "Esri, Vantor, Earthstar Geographics, and the GIS User Community",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "accessed_date": "2026-10-13",
+      "publication_identity_basis": "Independently maintained satellite/aerial imagery mosaic. This new San Luis view is unrelated to the paused northern-Ellesmere view and is not a reproduction of any held Argentine cartographic publication.",
+      "acquisition_outcome": "One bounded overview completed direct HTTP200 image/jpeg. Successful retained service description and attribution were read locally.",
+      "material_read": "Completed original overview and local enlarged readings of the chosen mountain opening, winding valley, reservoir and outlet setting, middle/lower collector, northern salt-pan entrance and entire actual terminal setting.",
+      "supports": "Ordinary terrain and channel/valley correspondence for all35 selected stored parts; independent visibility of the receiving saline pan and the selected ending within it.",
+      "limits": "No hydronym labels. Scene capture dates unestablished. An imagery mosaic is not a present-flow or reservoir-operation measurement. No continuous river channel is asserted across the terminal saline floor. Source images and reading aids remain private."
+    },
+    {
+      "source_key": "r225-conservacion-marina2006",
+      "title": "Plan de conservación y propuesta preliminar de zonificación para el Humedal Maullín, Sitio Prioritario para la Conservación de la Biodiversidad",
+      "authors": "Conservación Marina; Ana María Pfeifer, Verónica Rojas, Alejandra Martínez, Ricardo Alvarez and Claudio Delgado",
+      "edition": "2006",
+      "official_url": "https://biblioteca.cehum.org/bitstream/123456789/869/1/Conama.%20Plan%20de%20conservaci%C3%B3n%20y%20propuesta%20preliminar%20de%20Zonificaci%C3%B3n%20para%20El%20Humedal%20Maull%C3%ADn%2C%20Sitio%20Prioritario%20para%20la%20conservaci%C3%B3n%20de%20la%20biodiversidad.pdf",
+      "publisher_or_host": "Conservación Marina/FPA-CONAMA project; Centro de Humedales Río Cruces public repository copy",
+      "publication_identity_basis": "Original front matter and methods identify the FPA-CONAMA-funded participatory conservation/zoning project, its own field campaigns, avifauna work and community workshops. This is distinct from northern MOP/DGA hydrology restrictions, MOP road portals, and separately held park plans or fisheries projects.",
+      "actual_material_read": "Completed 79-page PDF; cover, team, project synopsis and introductory prose, geographic and hydrologic sections on printed pages10–15, project methods on54–56, and bibliography69–70. No source map pixels used.",
+      "used_observations": "Maullín as the Lago Llanquihue outlet; wooded/inundated river margins; lower wetland and estuarine setting; continuation to the Pacific.",
+      "limits": "Planning report mixes authorial project observations with cited regional sources. Borrowed cartographic linework and uninspected maps are excluded; the report does not identify the selected small upper inlet. Ordinary bibliographic citation and bounded own observations only."
+    },
+    {
+      "source_key": "r225-esri-loslagos",
+      "title": "World Imagery: bounded Lago Llanquihue and Maullín corridor views",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "edition": "Active imagery mosaic, viewed13October2026; individual capture dates not established",
+      "publication_identity_basis": "Independent maintained satellite/aerial imagery publication and new target-specific views, not recovery of any stopped Chilean map service or report.",
+      "actual_material_read": "Four completed original images: whole selected corridor overview, northeastern inlet area, lake-outlet-to-lower-river corridor, and one closer upper-inlet view. All visually inspected after completed direct200 responses.",
+      "used_observations": "Lake continuity, outlet, meandering river, both fragments and their join, lower estuarine setting, and the unresolved upper woodland branch choice.",
+      "limits": "Imagery has no authoritative river names and does not establish flow below canopy. Mosaic differences and generalized selected lines do not require exact-bank matching. No source imagery or reading aid is redistributed."
+    },
+    {
+      "source_key": "r225-ibge-wenceslau2010",
+      "title": "Wenceslau Guimarães–BA, Mapa Municipal Estatístico,2933505",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística, Diretoria de Geociências",
+      "edition": "Malha Territorial2010; printed edition7/20/2011; scale1:100000",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/ba/wenceslau_guimaraes_v2.pdf",
+      "actual_material_read": "Single original sheet: title, implementation and chronology panels, compilation and reproduction notice, legend, western Tesoura–Itiúba–Ouro Fino drainage, southern Santa Maria/Formosa turn, Formoso/Penedo–Almas joins, Três Águas/Palmeiras and Wenceslau Guimarães reaches, eastern overlap toward Nilo Peçanha.",
+      "publication_identity": "Municipality-specific census/statistical cartographic compilation by IBGE CCAR/CETE with its own geocode and original imprint. It is distinct from the INEMA basin-plan executive synthesis and UFRB research maps; the held Bahia2010 directory was not used or reopened.",
+      "use_notice": "Historical semi-automatic compilation of systematic mapping and municipal mesh with diverse updates and incomplete cartographic integration/completeness. Reproduction rights reserved. Bounded factual observations only; no original or derivative redistribution, current-flow or registry claim.",
+      "acquisition_result": "Normal original completed HTTP200; original map pixels read after transfer completion."
+    },
+    {
+      "source_key": "r225-ibge-nilo2020",
+      "title": "Nilo Peçanha–BA, Mapa Municipal,2922607",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística, Diretoria de Geociências, Coordenação de Estruturas Territoriais",
+      "edition": "2020 collection; printed April2021",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/BA/nilo_pecanha/2922607_MM.pdf",
+      "actual_material_read": "Single original sheet: imprint, legend and use notice; full selected downstream river corridor from the Wenceslau overlap through Sapucaia, Beira do Rio/Pedro Nunes, Paulista/Tachos, Nilo Peçanha and its northern estuarine channel toward Taperoá. Direct water labels Rio das Almas ou Jequié and Rio Jequié inspected.",
+      "publication_identity": "Separately compiled municipality-specific territorial/statistical product2922607, with CETE implementation and original map imprint; no INEMA PF03 or UFRB project material used.",
+      "use_notice": "Semi-automatic municipal compilation with varied updates, expressly intended for IBGE statistical collection/tabulation and disclaiming fitness/responsibility for other purposes. Reproduction rights reserved. Historical/generalized reference only; source originals and derivatives remain private.",
+      "acquisition_result": "Normal original completed HTTP200; original map pixels read after transfer completion."
+    },
+    {
+      "source_key": "r225-ibge-apuarema2020",
+      "title": "Apuarema–BA, Mapa Municipal,2901957",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística, Diretoria de Geociências, Coordenação de Estruturas Territoriais",
+      "edition": "2020 collection; printed April2021",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/BA/apuarema/2901957_MM.pdf",
+      "actual_material_read": "Single original sheet: imprint, use notice, legend and northern geographic context; Tezouras/Tesouras opening, Itiúba–Novo Horizonte–Ouro Fino corridor, Juru/Formosa southern turn, separately drawn Riacho Formoso and Rio Penedo join.",
+      "publication_identity": "Municipality-specific territorial/statistical product2901957 with its own mapped compilation extent, implementation and original imprint; neither an equivalent of a held municipal product nor basin-plan substitute.",
+      "use_notice": "Semi-automatic municipal compilation with diverse updates; statistical-purpose and fitness disclaimer, reproduction rights reserved. Bounded geographic reading only; no source map or working derivative redistribution.",
+      "acquisition_result": "Normal original completed HTTP200; original map pixels read after transfer completion."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:80158405",
+      "source_keys": [
+        "r225-usgstopo-overview",
+        "r225-usgstopo-head",
+        "r225-usgstopo-terminal",
+        "r225-blm-unalakleet-program"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2592
+          ],
+          "component_scope": "Chosen southern opening and upper Old Woman River",
+          "finding": "The detail original depicts the chosen opening in the upper valley directly labeled Old Woman River, with continuous channel linework running northeast and then north through the selected bends and entering side valleys. The regional overview connects this upper passage to the remaining northward river.",
+          "sources": [
+            "r225-usgstopo-overview",
+            "r225-usgstopo-head"
+          ],
+          "correspondence": "completed_ordinary_corridor_and_join_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Old Woman River upper component; separate from the Unalakleet River name."
+        },
+        {
+          "fragments": [
+            2592
+          ],
+          "component_scope": "Northward middle Old Woman River valley",
+          "finding": "Repeated Old Woman River labels follow the continuous northward channel through the selected alternating bends and intervening tributary joins. The source distinguishes the longitudinal trunk from the side streams and depicts its through-connection across the middle valley.",
+          "sources": [
+            "r225-usgstopo-overview"
+          ],
+          "correspondence": "completed_ordinary_corridor_and_join_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Old Woman River middle component."
+        },
+        {
+          "fragments": [
+            2592
+          ],
+          "component_scope": "Lower Old Woman River and approach to Unalakleet",
+          "finding": "The mapped Old Woman River continues north along the lower confined valley and into the wider junction setting beside the Iditarod National Historic Trail. Its uninterrupted channel connects the middle valley with the named receiving river.",
+          "sources": [
+            "r225-usgstopo-overview"
+          ],
+          "correspondence": "completed_ordinary_corridor_and_join_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Old Woman River lower component, with no exact formal name-change vertex assigned."
+        },
+        {
+          "fragments": [
+            2592
+          ],
+          "component_scope": "Old Woman–Unalakleet junction and westward turn",
+          "finding": "The map shows Old Woman River entering the larger Unalakleet River corridor. The selected route turns west with the receiving river, whose name is printed along the connected meandering channel. This is an observed channel junction rather than an inference from proximity or basin membership.",
+          "sources": [
+            "r225-usgstopo-overview"
+          ],
+          "correspondence": "completed_ordinary_corridor_and_join_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Junction between two separately named rivers; Unalakleet River is the downstream receiving-system identity."
+        },
+        {
+          "fragments": [
+            2592
+          ],
+          "component_scope": "West-southwest Unalakleet middle valley",
+          "finding": "The continuously depicted, repeatedly labeled Unalakleet River runs west-southwest through the selected valley. Tributary mouths, meander bends, side ponds and adjoining wetlands are visible; the through-river remains distinct from the nearby isolated waters and connects the upstream junction to the lower corridor.",
+          "sources": [
+            "r225-usgstopo-overview"
+          ],
+          "correspondence": "completed_ordinary_corridor_and_join_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Unalakleet River middle corridor; nearby ponds and tributaries are not aliases or additional candidate names."
+        },
+        {
+          "fragments": [
+            2592
+          ],
+          "component_scope": "Lower Unalakleet and approach to the coastal lowland",
+          "finding": "The selected lower course corresponds to the continuous named Unalakleet River, which broadens and meanders west through the lowland. The overview and overlapping terminal detail show the intervening side-stream joins and the transition to the lower North River and South River junction setting. No selected through-lake, reservoir, glacier or engineered transfer is depicted.",
+          "sources": [
+            "r225-usgstopo-overview",
+            "r225-usgstopo-terminal"
+          ],
+          "correspondence": "completed_ordinary_corridor_and_join_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Unalakleet River lower corridor."
+        },
+        {
+          "fragments": [
+            2592
+          ],
+          "component_scope": "Lower tributary junctions, Unalakleet estuary and actual coastal terminal setting",
+          "finding": "The terminal original shows North River and South River joining the named lower Unalakleet channel, its connected island-and-slough estuary south of the village, and the open coastal mouth. The selected final generalized segment crosses this same estuarine outlet setting to the Norton Sound shore. A unique current delta branch or exact shoreline crossing is not assigned. The BLM program account independently places the river terminal at Unalakleet on Norton Sound.",
+          "sources": [
+            "r225-usgstopo-overview",
+            "r225-usgstopo-terminal",
+            "r225-blm-unalakleet-program"
+          ],
+          "correspondence": "completed_ordinary_corridor_and_join_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Mouth and estuary of the representative Unalakleet River system; coastal water and individual sloughs are not assigned the river scalar name."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61500782",
+      "source_keys": [
+        "r225-ign-sanluis2016",
+        "r225-funafu-huella2014",
+        "r225-sanluisagua-nogoli2017",
+        "r225-esri-sanluis-imagery"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14080
+          ],
+          "component_scope": "Chosen eastern mountain opening and headward valley",
+          "finding": "The chosen opening follows an incised mountain valley and its westward bend toward the Nogolí impoundment setting. The imagery supplies continuous ordinary valley geography. Operator prose identifies El Molle and Chico as reservoir feeders, but does not establish which name belongs to this selected feeder; neither is assigned.",
+          "sources": [
+            "r225-esri-sanluis-imagery",
+            "r225-sanluisagua-nogoli2017",
+            "r225-ign-sanluis2016"
+          ],
+          "correspondence": "ordinary_bounded_correspondence_established",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "feature_kind": "unnamed_headward_feeder",
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            14080
+          ],
+          "component_scope": "Approach through the Nogolí reservoir and dam setting",
+          "finding": "The incoming valley reaches the visible Nogolí reservoir and dam setting. IGN identifies Dique Nogolí and the water-footprint study places it on Río Nogolí. The reservoir is a separate component, with its western outlet leading toward the downstream river corridor. The independently documented aqueduct is distinguished from the selected downstream natural drainage.",
+          "sources": [
+            "r225-ign-sanluis2016",
+            "r225-funafu-huella2014",
+            "r225-sanluisagua-nogoli2017",
+            "r225-esri-sanluis-imagery"
+          ],
+          "correspondence": "ordinary_bounded_correspondence_established",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "feature_kind": "reservoir_and_managed_transition",
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            14080
+          ],
+          "component_scope": "Westward Río Nogolí corridor and southwest turn",
+          "finding": "The path below the impoundment follows the westward drainage labeled Río Nogolí on the original IGN sheet, then bends southwest at the western piedmont. The same corridor is visible in the imagery and belongs to the Nogolí drainage described by the provincial study.",
+          "sources": [
+            "r225-ign-sanluis2016",
+            "r225-funafu-huella2014",
+            "r225-esri-sanluis-imagery"
+          ],
+          "correspondence": "ordinary_bounded_correspondence_established",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "feature_kind": "named_river_reach",
+          "candidate_name": "Río Nogolí"
+        },
+        {
+          "fragments": [
+            14080
+          ],
+          "component_scope": "Southward Cañada de Balde collector",
+          "finding": "The southward alluvial valley corresponds to the separately labeled Cda. de Balde on IGN. The imagery preserves the connected valley through its bends and joining-channel settings. This lower name is retained as its own component name; it is not silently replaced with Río Nogolí.",
+          "sources": [
+            "r225-ign-sanluis2016",
+            "r225-esri-sanluis-imagery"
+          ],
+          "correspondence": "ordinary_bounded_correspondence_established",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "feature_kind": "separately_named_lower_collector",
+          "candidate_name": "Cañada de Balde"
+        },
+        {
+          "fragments": [
+            14080
+          ],
+          "component_scope": "Lower collector and approach to the northern saline margin",
+          "finding": "The selected continuation follows the lower alluvial corridor to the northern Salina del Bebedero margin. IGN depicts the collector-to-pan receiving relationship and imagery shows the same broad entrance corridor and marginal saline terrain. Lateral channels are not separately selected or given the mainstem name; no external Chorrillos tributary is added.",
+          "sources": [
+            "r225-ign-sanluis2016",
+            "r225-funafu-huella2014",
+            "r225-esri-sanluis-imagery"
+          ],
+          "correspondence": "ordinary_bounded_correspondence_established",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "feature_kind": "lower_alluvial_collector_and_pan_entrance",
+          "candidate_name": "Cañada de Balde"
+        },
+        {
+          "fragments": [
+            14080
+          ],
+          "component_scope": "Terminal saline-pan continuation and actual ending",
+          "finding": "The remaining selected display continuation and actual ending lie within the independently identified Salina del Bebedero. The pan entrance and receiving setting are observed, so absence of a mapped river line across its floor is not a material connector gap. The salina is a terminal waterbody/playa component, not a river-named reach, a surveyed river mouth or proof of permanent inundation.",
+          "sources": [
+            "r225-ign-sanluis2016",
+            "r225-funafu-huella2014",
+            "r225-esri-sanluis-imagery"
+          ],
+          "correspondence": "ordinary_bounded_correspondence_established",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "feature_kind": "terminal_saline_pan",
+          "candidate_name": null
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61563356",
+      "source_keys": [
+        "r225-conservacion-marina2006",
+        "r225-esri-loslagos"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14580
+          ],
+          "component_scope": "Chosen headward opening and wooded transfer to the northeastern lake inlet",
+          "finding": "The selected opening lies among pasture and wooded drainage corridors northeast of the lake. Both overview and closer imagery expose multiple small corridors, but the westward through-link across the wooded section to the selected lake-entry branch cannot be established. Adjacent Río Blanco Las Cascadas and Río Blanco Arenal names are not transferred to this inlet.",
+          "sources": [
+            "r225-esri-loslagos"
+          ],
+          "correspondence": "material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            14580
+          ],
+          "component_scope": "Northeastern lake entrance and Lago Llanquihue crossing",
+          "finding": "The selected continuation enters and traverses the same large lake toward its southwestern shore. Shoreline generalization and the conceptual line across open lake water are not interpreted as a narrow river channel or as new reach names. The link from the unconfirmed upper branch remains the preceding component’s gap.",
+          "sources": [
+            "r225-esri-loslagos",
+            "r225-conservacion-marina2006"
+          ],
+          "correspondence": "supported_at_ordinary_lake_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": "Lago Llanquihue"
+        },
+        {
+          "fragments": [
+            14580
+          ],
+          "component_scope": "Southwestern lake outlet and upper Maullín",
+          "finding": "Imagery shows the southwestern outlet continuing into the wooded and meandering river corridor through the settled and agricultural landscape. The conservation plan independently identifies Maullín as the lake outlet.",
+          "sources": [
+            "r225-esri-loslagos",
+            "r225-conservacion-marina2006"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": "Río Maullín"
+        },
+        {
+          "fragments": [
+            14580
+          ],
+          "component_scope": "Middle Maullín and approach to the second fragment",
+          "finding": "The selected westward bends and later southwestward reach remain in the same visible meandering valley toward the lower river. Wet and forested margins are recognized without asserting every bank or instantaneous flow path.",
+          "sources": [
+            "r225-esri-loslagos",
+            "r225-conservacion-marina2006"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": "Río Maullín"
+        },
+        {
+          "fragments": [
+            14580,
+            14581
+          ],
+          "component_scope": "Mainstem fragment join",
+          "finding": "The end of the first fragment and beginning of the second occupy the same continuous lower river corridor; no tributary switch is inferred at the stored fragment boundary.",
+          "sources": [
+            "r225-esri-loslagos"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem_join",
+          "stages": [
+            3,
+            2
+          ]
+        },
+        {
+          "fragments": [
+            14581
+          ],
+          "component_scope": "Lower Maullín widening and actual selected terminal",
+          "finding": "The southward then westward selected continuation follows the broadening river and wetland/estuarine reach. The displayed endpoint remains within that broad estuarine corridor, upstream of the outer ocean mouth; the model’s sea class is not treated as proof that this point is the Pacific coastline. The source describes the farther regional continuation to the Pacific.",
+          "sources": [
+            "r225-esri-loslagos",
+            "r225-conservacion-marina2006"
+          ],
+          "correspondence": "supported_at_ordinary_estuarine_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "candidate_name": "Río Maullín"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61147748",
+      "source_keys": [
+        "r225-ibge-wenceslau2010",
+        "r225-ibge-nilo2020",
+        "r225-ibge-apuarema2020"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13886
+          ],
+          "component_scope": "Chosen western opening and Rio Ouro Fino reach",
+          "finding": "The selected western opening follows a small feeder by Tesoura/Tezouras into the north–south channel through Itiúba and the Ouro Fino/Novo Horizonte setting. The older original labels this receiving channel Rio Ouro Fino; the newer Apuarema compilation confirms the ordinary connected drainage corridor. The small opening feeder itself has no established separate name.",
+          "sources": [
+            "r225-ibge-wenceslau2010",
+            "r225-ibge-apuarema2020"
+          ],
+          "correspondence": "ordinary_corridor_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_component_names": [
+            "Rio Ouro Fino"
+          ]
+        },
+        {
+          "fragments": [
+            13886
+          ],
+          "component_scope": "Juru/Formosa turn from Ouro Fino toward Penedo",
+          "finding": "At the selected southern turn near Juru/Formosa, both originals draw Ouro Fino drainage separately from the river toward Penedo. The intervening east/northeast route follows or approaches an orange municipal boundary, not a continuously depicted watercourse. No acquired source establishes a natural, wetland, lake, reservoir or managed connector across this important selected through-link. This is a correspondence gap, not an assertion of a proved hydrologic impossibility or a request for exact bank/flow measurements.",
+          "sources": [
+            "r225-ibge-wenceslau2010",
+            "r225-ibge-apuarema2020"
+          ],
+          "correspondence": "material_through_link_unestablished",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_component_names": []
+        },
+        {
+          "fragments": [
+            13886
+          ],
+          "component_scope": "Rio Penedo and receiving Rio das Almas",
+          "finding": "Beyond the gap, the northeast-running selected drainage corresponds to the mapped Penedo corridor and its meeting with Rio das Almas. Apuarema2020 directly labels Rio Penedo near Formosa and distinguishes Riacho Formoso arriving from the south. Riacho Formoso is bounded tributary context, not treated as an alias for the selected river or proof of the missing western connection.",
+          "sources": [
+            "r225-ibge-wenceslau2010",
+            "r225-ibge-apuarema2020"
+          ],
+          "correspondence": "ordinary_corridor_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_component_names": [
+            "Rio Penedo",
+            "Rio das Almas"
+          ]
+        },
+        {
+          "fragments": [
+            13886
+          ],
+          "component_scope": "Almas bends to Três Águas, Palmeiras and Wenceslau Guimarães",
+          "finding": "The source depicts the continuing Almas course through the Riachão do Canto/Rio da Lama tributary setting, around the southern bend near Formosa/Palmeiras and northeast past Três Águas into Wenceslau Guimarães. Adjacent labelled tributaries remain context only. The channel and joins are depicted without an intervening selected lake or reservoir passage.",
+          "sources": [
+            "r225-ibge-wenceslau2010"
+          ],
+          "correspondence": "ordinary_corridor_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_component_names": [
+            "Rio das Almas"
+          ]
+        },
+        {
+          "fragments": [
+            13886
+          ],
+          "component_scope": "Eastern river to Nilo Peçanha",
+          "finding": "Overlapping originals follow the eastward river through Sapucaia/Barra de Paristo, Beira do Rio/Pedro Nunes, the southern bend near Paulista and northeast through Tachos/Cachoeira Grande to Nilo Peçanha. Nilo2020 directly prints Rio das Almas ou Jequié on this connected river. All selected intermediate bends and receiving tributary joins are included at ordinary corridor scale.",
+          "sources": [
+            "r225-ibge-wenceslau2010",
+            "r225-ibge-nilo2020"
+          ],
+          "correspondence": "ordinary_corridor_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_component_names": [
+            "Rio das Almas",
+            "Rio Jequié"
+          ]
+        },
+        {
+          "fragments": [
+            13886
+          ],
+          "component_scope": "Actual terminal in the northward estuarine channel",
+          "finding": "From Nilo Peçanha the selected path turns north in the widened channel toward Taperoá and ends in that estuarine network south of the town. The source labels the connected coastal channel Rio Jequié and depicts widening/side-channel geography. The selected endpoint is not replaced by a farther open-Atlantic mouth. No present-day tidal direction, exact bank, gate operation or discharge claim is made.",
+          "sources": [
+            "r225-ibge-nilo2020"
+          ],
+          "correspondence": "ordinary_corridor_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_component_names": [
+            "Rio Jequié"
+          ]
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "Cardoso, Y. P.; Bogan, S.; Meluso, J. M.; Jáuregui, A.; Cabrera, M. B.; Lizarralde, M. (2015). A contribution to the checklist of fishes of San Luis province, Argentina. Check List11(5):1760. DOI10.15560/11.5.1760.",
+      "official_url": "https://ri.conicet.gov.ar/bitstream/11336/5584/5/CONICET_Digital_Nro.6996_D.pdf",
+      "observed_outcome": "The first normal-original acquisition completed direct HTTP502 with Content-Type text/html. After actual termination, the single identical exact-URL retry also completed direct HTTP502 with Content-Type text/html. No returned body, article prose, original imprint or map was read.",
+      "outcome_layer": "Two completed direct HTTP-client502 responses; no access-control denial, authentication challenge or tool cancellation observed.",
+      "restriction_scope": "Whole exact article and equivalent catalogue, original, figure, reader, mirror, translated or alternative-format recovery routes paused. Discovery snippets are not substantive evidence.",
+      "earlier_lawful_prose_exception": null,
+      "newly_observed_access_failure": true,
+      "availability_failure": true,
+      "explicit_access_denial": false,
+      "material_effect": "Optional field-study corroboration unavailable. The successfully read independent maps, operator prose and imagery establish the selected corridor without this article.",
+      "aw_id": "hydro-system:61500782"
+    },
+    {
+      "publication": "SERNAGEOMIN INF-X-06.2017, Efectos geológicos del desborde del río Blanco, localidad de Las Cascadas, comuna de Puerto Octay,08enero2017, Región de Los Lagos; original imprint uninspected",
+      "authors": "Natalia Garrido and Violchen Sepúlveda, discovery metadata; observations09January2017",
+      "official_url": "https://catalogobiblioteca.sernageomin.cl/Archivos/15422.pdf",
+      "observed_outcome": "The initial normal-original request completed directHTTP502 with text/html. After actual termination, the single identical-URL retry also completed directHTTP502 with text/html. Neither response body nor original report text, imprint or map was read.",
+      "outcome_layer": "Two completed direct HTTP-client availability responses; no authentication or access-control denial observed.",
+      "restriction_scope": "Whole exact report and equivalent project-output, original, catalogue, reader/cache, figure, mirror, alternative-format acquisition and unread-output routes paused. Related INF-X-08.2017 overflight material was not acquired or used to recover it.",
+      "publication_identity_basis": "Discovery identified an independently commissioned SERNAGEOMIN emergency field visit after the8January2017 Las Cascadas flood, distinct from the held northern March2015 event assessment and Puyehue geological-map project.",
+      "earlier_lawful_observations": null,
+      "newly_observed_access_failure": true,
+      "explicit_access_denial": false,
+      "material_effect": "Optional neighboring-inlet report supplies no evidence; the selected upper through-link is judged from available independent imagery, not presumed resolved by the unavailable report.",
+      "aw_id": "hydro-system:61563356"
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "publication": "USGSTopo, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "limitation_kind": "bounded_cartographic_factual_use",
+      "observed_notice": "Previously retained service metadata describes an independently maintained multiscale reference map and credits The National Map and contributing public datasets.",
+      "use_scope": "Own factual observations and normal bibliography only. Source originals, crops, orientation aids, full positions and dynamic export requests remain private.",
+      "access_stop": false,
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:80158405"
+    },
+    {
+      "publication": "Conservación Marina2006 Maullín conservation plan",
+      "official_url": "https://biblioteca.cehum.org/bitstream/123456789/869/1/Conama.%20Plan%20de%20conservaci%C3%B3n%20y%20propuesta%20preliminar%20de%20Zonificaci%C3%B3n%20para%20El%20Humedal%20Maull%C3%ADn%2C%20Sitio%20Prioritario%20para%20la%20conservaci%C3%B3n%20de%20la%20biodiversidad.pdf",
+      "restriction_kind": "unresolved_borrowed_base_cartography_not_used",
+      "observation": "The methods integrate existing GIS hydrography and land-use coverage with project field data; the bibliography also cites IGM1971 Maullín. The exact underlying hydrographic mapping relationship is not established.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:61563356",
+      "restriction_scope": "Borrowed base cartography and uninspected maps are excluded from selected-route correspondence. Authorial project prose remains usable; no whole-report or institution-wide acquisition stop is asserted."
+    },
+    {
+      "publication": "Wenceslau Guimarães–BA, Mapa Municipal Estatístico,2933505",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/ba/wenceslau_guimaraes_v2.pdf",
+      "observed_outcome": "Historical semi-automatic compilation of systematic mapping and municipal mesh with diverse updates and incomplete cartographic integration/completeness. Reproduction rights reserved. Bounded factual observations only; no original or derivative redistribution, current-flow or registry claim.",
+      "outcome_layer": "Printed original source-use/compilation notice, not an access failure",
+      "restriction_scope": "Bounded factual naming research only; originals, crops, overlays and equivalent source reproductions are not distributed.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:61147748"
+    },
+    {
+      "publication": "Nilo Peçanha–BA, Mapa Municipal,2922607",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/BA/nilo_pecanha/2922607_MM.pdf",
+      "observed_outcome": "Semi-automatic municipal compilation with varied updates, expressly intended for IBGE statistical collection/tabulation and disclaiming fitness/responsibility for other purposes. Reproduction rights reserved. Historical/generalized reference only; source originals and derivatives remain private.",
+      "outcome_layer": "Printed original source-use/compilation notice, not an access failure",
+      "restriction_scope": "Bounded factual naming research only; originals, crops, overlays and equivalent source reproductions are not distributed.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:61147748"
+    },
+    {
+      "publication": "Apuarema–BA, Mapa Municipal,2901957",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/BA/apuarema/2901957_MM.pdf",
+      "observed_outcome": "Semi-automatic municipal compilation with diverse updates; statistical-purpose and fitness disclaimer, reproduction rights reserved. Bounded geographic reading only; no source map or working derivative redistribution.",
+      "outcome_layer": "Printed original source-use/compilation notice, not an access failure",
+      "restriction_scope": "Bounded factual naming research only; originals, crops, overlays and equivalent source reproductions are not distributed.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:61147748"
+    }
+  ]
+}

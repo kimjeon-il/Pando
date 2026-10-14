@@ -1,0 +1,635 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r171",
+  "sources": [
+    {
+      "source_key": "r171-nluis-edehon65a-1979",
+      "title": "Edehon Lake, District of Keewatin, Northwest Territories",
+      "series": "Land Use Information Series",
+      "sheet": "65A",
+      "year": 1979,
+      "scale": "1:250,000",
+      "publisher": "Lands Directorate, Environmental Management Service, Department of the Environment; Indian and Northern Affairs Canada",
+      "cartographic_credits": "Thematic cartography by the Land Resource Research Institute, Research Branch, Agriculture Canada, 1979. Base produced by Army Survey Establishment, R.C.E.; base information current as of1961, printed 1966. Map produced by the Department of the Environment and printed by Surveys and Mapping Branch, Energy, Mines and Resources Canada, 1979.",
+      "actual_inspected_material": "Full original overview and relevant western opening, feeder lakes, Thuchonilini Lake inlet/passage/outlet, labeled Tha-anne River and east sheet edge; title, scale, imprint, Crown copyright and bounded fish-resource notes.",
+      "source_independence": "An independently issued Arctic Land Use Research (ALUR) thematic publication. Its actual Department of the Environment project/imprint and thematic-cartography credits distinguish it from the stopped CanMatrix publication family and CBMT service. This is not clearance of the held NLUIS index, Denmark 67F or other separately limited publications.",
+      "use_notice": "Crown copyright 1979. The introduction identifies interim information, sometimes preliminary or incomplete, with approximate thematic boundaries; information current to November 1978. Ordinary copyright is retained without inventing an access ban. Original maps and all reading derivatives remain private; public output is limited to own factual synthesis and normal bibliography.",
+      "current_registry_evidence": false,
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_65a.jpg"
+    },
+    {
+      "source_key": "r171-nluis-hyde55d-1979",
+      "title": "Hyde Lake, District of Keewatin, Northwest Territories",
+      "series": "Land Use Information Series",
+      "sheet": "55D",
+      "year": 1979,
+      "scale": "1:250,000",
+      "publisher": "Lands Directorate, Environmental Management Service, Department of the Environment; Indian and Northern Affairs Canada",
+      "cartographic_credits": "Thematic cartography by the Land Resource Research Institute, Research Branch, Agriculture Canada, 1979. Base produced by Army Survey Establishment, R.C.E.; base information current as of1963, printed 1966. Map produced by the Department of the Environment and printed by Surveys and Mapping Branch, Energy, Mines and Resources Canada, 1979.",
+      "actual_inspected_material": "Full original overview and western sheet edge, river bends/rapids and intermediate lakes, Hyde Lake inlet/passage/outlet, lower course, Thlewiaza approach, shared estuary and Hudson Bay; title, scale, imprint, introduction and bounded fish-resource notes M1, S1, D4, 1 and 7.",
+      "source_independence": "An independently issued Arctic Land Use Research (ALUR) thematic publication. Its actual Department of the Environment project/imprint and thematic-cartography credits distinguish it from the stopped CanMatrix publication family and CBMT service. This is not clearance of the held NLUIS index, Denmark 67F or other separately limited publications.",
+      "use_notice": "Crown copyright 1979. The introduction identifies interim information, sometimes preliminary or incomplete, with approximate thematic boundaries; information current to November 1978. Ordinary copyright is retained without inventing an access ban. Original maps and all reading derivatives remain private; public output is limited to own factual synthesis and normal bibliography.",
+      "current_registry_evidence": false,
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_55d.jpg"
+    },
+    {
+      "source_key": "R171_CEHQ08_2011",
+      "title": "Débits spécifiques d’étiage annuels — Région hydrographique 08",
+      "publisher": "Gouvernement du Québec, Centre d’expertise hydrique du Québec",
+      "year": 2011,
+      "official_url": "https://www.cehq.gouv.qc.ca/debit-etiage/cartes/debit_etiage_08_specifique_annuel.pdf",
+      "bibliography": "July 2011. Cartography Marie-Lise Paquin and Eric Levasseur; approved Joëlle Bérubé. Scale 1:1,750,000; BDGA 1:1,000,000 base; NAD83 Québec Lambert.",
+      "publication_identity": "An independently issued regional CEHQ low-flow thematic map with its own cartographic imprint, previously identified and read in research r62, r65 and r77; not a SIGEOM report, Cree conservation plan, Canadian naming record or stopped federal basemap.",
+      "actual_material_read": "Full original single-sheet map, northwestern James Bay sector, the full selected opening-to-coast corridor, source scale/legend/imprint and source georeference for private orientation. Separate original-pixel corridor crops were visually read; all 31 selected parts were considered.",
+      "evidence_type": "Original primary regional cartography",
+      "supports": "Geographic correspondence of the initial feeder through the long middle/lower corridor; Missisicabi natural-reach name and distinction from surrounding drainages.",
+      "limits": "Generalization and coastal linework leave the final selected branch/terminal unresolved. Low-flow numerical values, current hydrology and registry status are outside the finding."
+    },
+    {
+      "source_key": "R171_MISSISICABI_CONSERVATION_2008",
+      "title": "Réserve de biodiversité projetée de la plaine de la Missisicabi — Plan de conservation",
+      "publisher": "Gouvernement du Québec, Ministère du Développement durable, de l’Environnement et des Parcs",
+      "year": 2008,
+      "official_url": "https://www.environnement.gouv.qc.ca/biodiversite/reserves-bio/missisicabi/PSC-missisicabi.pdf",
+      "bibliography": "Cover: modified 20 March 2008. Geographic description at printed p.1; annex on PDF p.14.",
+      "publication_identity": "The specific Missisicabi plain biodiversity-reserve administrative project created in 2003 and enlarged by 92 square kilometres, independently identified in the provincial protected-area listing and official plan. It is distinct from the unresolved Broadback/Assinica Cree conservation project and stopped Nunavik reserve/geological reports.",
+      "actual_material_read": "Cover; printed p.1 geographic/location description and immediate continuation of the description on printed p.2; PDF p.14 annex map visually read as a small thumbnail.",
+      "evidence_type": "Original geographic prose and limited annex-thumbnail inspection",
+      "supports": "Broad inland plain/peatland setting and the independently identified reserve geography.",
+      "limits": "The annex is too small to distinguish the selected opening or individual river joins. Its separate enlargement link was not requested. The reserve title is not a river-name assignment, and no current legal status or management conclusion is made."
+    },
+    {
+      "source_key": "R171_ECCC_HANNAH_PROSE",
+      "title": "Hannah Bay Migratory Bird Sanctuary",
+      "publisher": "Environment and Climate Change Canada",
+      "official_url": "https://www.canada.ca/en/environment-climate-change/services/migratory-bird-sanctuaries/locations/hannah-bay.html",
+      "bibliography": "Canada.ca site profile; page date 2024-04-03.",
+      "publication_identity": "Current sanctuary site profile with landscape, site-management and site-map sections, independently presented from the stopped 1991 CWS Occasional Paper71. No CWS71 body, map or equivalent was requested or used.",
+      "actual_material_read": "Landscape section and site identity/page date, before the linked-map failure. Map caption/description was read only as prose, not map observation.",
+      "evidence_type": "Earlier lawfully read official site-profile prose only",
+      "supports": "The Hannah Bay coastal setting and Little Missisicabi as the sanctuary southern boundary.",
+      "limits": "No original map pixels were read. Prose and a map description cannot establish the selected final watercourse connection."
+    },
+    {
+      "source_key": "r171-cehq2011-region09",
+      "title": "Débits spécifiques d’étiage estivaux — Région hydrographique09",
+      "publisher": "Gouvernement du Québec, Centre d’expertise hydrique du Québec",
+      "year": 2011,
+      "bibliographic_details": "July2011; cartography Marie-Lise Paquin and Eric Levasseur; approved Joëlle Bérubé. Printed scale1:2,300,000; BDGA1:1,000,000 base; NAD83 Québec Lambert.",
+      "evidence_kind": "primary_original_regional_cartography",
+      "actual_reading": "Full-page original overview, readable selected-corridor and coastal-terminal enlargements, title/legend and cartographic credits. A private comparison used the original embedded projection and the supplied pinned path for orientation only.",
+      "supports": "Named Lac Lomier passage; broader western bend, lower river and Hudson Bay approach; distinction from neighboring Ruisseau Sucker and Rivière Denys corridors.",
+      "limits": "The source does not label the selected river. The eastern chosen opening is not fully depicted; the093804 statistics panel masks central selected links; specific terminal branch correspondence remains unresolved. Thematic low-flow values and present hydrological conditions are not adopted.",
+      "publication_identity": "Independent CEHQ hydrological-statistical editorial map with its own cartographers, approval, date, legend and scale, rather than a copy or recovery route for stopped CanMatrix/CBMT or geological-report maps. Shared official base geography is not claimed as an independent field survey.",
+      "use_notice": "No officials-only or limited-distribution notice was observed in the inspected map and credits. Only bounded own observations and ordinary bibliography are reported; source pixels and derivatives remain private.",
+      "official_url": "https://www.cehq.gouv.qc.ca/debit-etiage/cartes/debit_etiage_09_specifique_estival.pdf"
+    },
+    {
+      "source_key": "r171-hq-lagrande-study-map-unavailable",
+      "title": "Hydro-Québec, La Grande environmental-study-area poster, LaGrande_Etudes_affiche_FR_WEB.pdf; printed title and edition uninspected",
+      "evidence_kind": "unavailable_original_not_substantive_evidence",
+      "actual_reading": "Discovery bibliography and completed acquisition outcome only. No original map or returned HTML body read.",
+      "publication_identity": "A La Grande power-increase environmental-study poster issued in Hydro-Québec’s project context; independently identified from geological surveys and conservation plans. Original imprint and use notices remain uninspected.",
+      "official_url": "https://pannes.hydroquebec.com/data/projets/puissance-la-grande/pdf/LaGrande_Etudes_affiche_FR_WEB.pdf"
+    },
+    {
+      "source_key": "r171-lga-technical-note07-unavailable",
+      "title": "La Grande Alliance, Phases2–3 feasibility study conducted by WSP, Technical Note07—Marine Environment; original imprint uninspected",
+      "evidence_kind": "unavailable_original_not_substantive_evidence",
+      "actual_reading": "Discovery bibliography and completed acquisition outcome only; no report body, original map or figure read.",
+      "publication_identity": "Official feasibility discovery identifies a separately commissioned WSP phases2–3 transportation-infrastructure study, distinct in project and deliverable purpose from the unresolved Broadback/Assinica Cree conservation-plan publication. Original imprint/use notices remain uninspected.",
+      "official_url": "https://www.lagrandealliance.quebec/wp-content/uploads/2024/10/Technical-Note-07-MARINE-ENVIRONMENT.pdf"
+    },
+    {
+      "source_key": "USGSTOPO_R171_COLD_CREEK_MENDOCINO",
+      "title": "USGS Topo, bounded Cold Creek–East Fork Russian River–Lake Mendocino–Ukiah view",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Independently maintained USGS Topo multiscale National Map reference-cartography service, distinct from separately issued USGS research reports, plates and station publications.",
+      "publication_refresh_metadata": "Service source-credit metadata states September 4, 2026-v1.2 refresh; this is not a field-survey or feature-level edition date.",
+      "access_date_utc": "2026-10-12",
+      "actual_material_read": "Complete original view, original-pixel upper opening/confluence crop and lake/outlet/Ukiah crop. Cold Creek labels follow the chosen opening and northwestern corridor to the East Fork junction; the East Fork label appears at the northern Lake Mendocino approach. The reservoir, southwest dam, outlet channel, receiving Russian River junction and Ukiah corridor were inspected.",
+      "evidence_type": "Original primary cartography",
+      "limits": "Bounded regional/corridor correspondence only. Original imagery and private orientation aids are not published; overlay/model connectivity is not evidence of a through-link. Formal naming boundaries, current flow and exact banks are not established."
+    },
+    {
+      "source_key": "USGSTOPO_R171_UKIAH_HOPLAND",
+      "title": "USGS Topo, bounded Ukiah–Hopland–Pieta Russian River view",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Independently maintained USGS Topo multiscale National Map reference-cartography service, distinct from separately issued USGS research reports, plates and station publications.",
+      "publication_refresh_metadata": "Service source-credit metadata states September 4, 2026-v1.2 refresh; this is not a field-survey or feature-level edition date.",
+      "access_date_utc": "2026-10-12",
+      "actual_material_read": "Complete original view and overlapping original-pixel northern, Hopland and Pieta crops. Repeated Russian River labels, the connected valley and intermediate junctions were inspected through the Howell/Robinson/Morrison, McNab/Crawford, Feliz/Dooley, Pieta and Cummiskey settings.",
+      "evidence_type": "Original primary cartography",
+      "limits": "Bounded regional/corridor correspondence only. Original imagery and private orientation aids are not published; overlay/model connectivity is not evidence of a through-link. Formal naming boundaries, current flow and exact banks are not established."
+    },
+    {
+      "source_key": "USGSTOPO_R171_CLOVERDALE_HEALDSBURG",
+      "title": "USGS Topo, bounded Cloverdale–Alexander Valley–Healdsburg view",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Independently maintained USGS Topo multiscale National Map reference-cartography service, distinct from separately issued USGS research reports, plates and station publications.",
+      "publication_refresh_metadata": "Service source-credit metadata states September 4, 2026-v1.2 refresh; this is not a field-survey or feature-level edition date.",
+      "access_date_utc": "2026-10-12",
+      "actual_material_read": "Complete original view and overlapping original-pixel Cloverdale, Alexander Valley and Healdsburg crops. The Russian River trunk, Big Sulphur Creek junction, Cloverdale and Asti passage, Geyserville/Alexander Valley, Maacama Creek junction and the long bend around Fitch Mountain were inspected. Lake Sonoma and Dry Creek are geographically distinct western side-drainage features, not the selected mainstem passage.",
+      "evidence_type": "Original primary cartography",
+      "limits": "Bounded regional/corridor correspondence only. Original imagery and private orientation aids are not published; overlay/model connectivity is not evidence of a through-link. Formal naming boundaries, current flow and exact banks are not established."
+    },
+    {
+      "source_key": "USGSTOPO_R171_LOWER_RUSSIAN_TERMINAL",
+      "title": "USGS Topo, bounded lower Russian River–Jenner coastal terminal view",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Independently maintained USGS Topo multiscale National Map reference-cartography service, distinct from separately issued USGS research reports, plates and station publications.",
+      "publication_refresh_metadata": "Service source-credit metadata states September 4, 2026-v1.2 refresh; this is not a field-survey or feature-level edition date.",
+      "access_date_utc": "2026-10-12",
+      "actual_material_read": "Complete original view and original-pixel Dry Creek/Windsor, Guerneville, Monte Rio and terminal crops. These cover Dry Creek and Mark West Creek joins; Forestville/Rio Nido/Guerneville; Monte Rio and Austin Creek; both selected mainstem fragments across their lower-river boundary; Duncans Mills, Sheephouse and Willow creek settings; Bridgehaven, Jenner, Penny Island and the Goat Rock coastal outlet setting.",
+      "evidence_type": "Original primary cartography",
+      "limits": "Bounded regional/corridor correspondence only. Original imagery and private orientation aids are not published; overlay/model connectivity is not evidence of a through-link. Formal naming boundaries, current flow and exact banks are not established."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:80244024",
+      "source_keys": [
+        "r171-nluis-edehon65a-1979",
+        "r171-nluis-hyde55d-1979"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2700
+          ],
+          "component_scope": "chosen western opening and unnamed feeder lake/stream chain",
+          "finding": "The selected opening is in the western unnamed lake complex northwest of Thuchonilini Lake. The original shows its southern/eastern outlet, successive smaller lakes and connecting stream east-southeast toward the northwestern approach to Thuchonilini Lake. The chosen opening, the branching lake outlines and the intervening connectors were read together, rather than assigning the nearby river name to every lake.",
+          "sources": [
+            "r171-nluis-edehon65a-1979"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2700
+          ],
+          "component_scope": "western approach, Thuchonilini Lake passage and eastern lake outlet",
+          "finding": "The stream enters the western side of the lake labeled Thuchonilini Lake. Its broad lake body connects to the eastern arm, whose outlet continues northeast into the labeled Tha-anne River and the mapped rapids. The selected route crosses this lake passage; the separately labeled Thaolintoa Lake to the north is nearby orientation, not a selected passage.",
+          "sources": [
+            "r171-nluis-edehon65a-1979"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "Thuchonilini Lake"
+        },
+        {
+          "fragments": [
+            2700
+          ],
+          "component_scope": "named upper Tha-anne reach and 65A/55D sheet-edge through-link",
+          "finding": "The east-northeast river and rapids below Thuchonilini Lake continue across the eastern boundary of 65A into the western boundary of 55D. The same eastward then southeastward corridor is labeled Tha-anne River on the originals. Both sides of the sheet seam were inspected.",
+          "sources": [
+            "r171-nluis-edehon65a-1979",
+            "r171-nluis-hyde55d-1979"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "Tha-anne River"
+        },
+        {
+          "fragments": [
+            2700
+          ],
+          "component_scope": "southeast river, intermediate lake/channel reaches and southern approach to Hyde Lake",
+          "finding": "The mapped river turns south and southeast through intervening small lake expansions and rapids, then turns east and northeast into the southwestern arm of Hyde Lake. The inlet and the intermediate through-links are depicted, rather than inferred merely from the Hyde Lake label.",
+          "sources": [
+            "r171-nluis-hyde55d-1979"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "Tha-anne River"
+        },
+        {
+          "fragments": [
+            2700
+          ],
+          "component_scope": "Hyde Lake crossing and eastward lower river",
+          "finding": "The selected passage crosses the lake labeled Hyde Lake, continues through its eastern extension and exits into the eastward rapids/channel below the lake. The source prose independently places Hyde Lake upstream on the Tha-anne River and distinguishes the lower Tha-anne section.",
+          "sources": [
+            "r171-nluis-hyde55d-1979"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "Hyde Lake; lower Tha-anne River"
+        },
+        {
+          "fragments": [
+            2700
+          ],
+          "component_scope": "coastal lower course, Thlewiaza approach and actual shared estuary terminal",
+          "finding": "The lower river continues southeast into the coastal estuary, with the distinct Thlewiaza River approaching from the southwest. The mapped receiving coast is Hudson Bay. Primary fish-resource prose explicitly identifies the Tha-anne–Thlewiaza estuary and describes a several-kilometre intertidal zone. This supports the selected coastal terminal at ordinary estuary scale; no exact modern shoreline, tidal boundary or coordinate-to-bank identity is asserted. The overprinted sanctuary boundary follows portions of the lower corridor, while the river banks, adjacent reaches and estuary are still readable.",
+          "sources": [
+            "r171-nluis-hyde55d-1979"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "Tha-anne–Thlewiaza estuary / Hudson Bay"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70210252",
+      "source_keys": [
+        "R171_CEHQ08_2011",
+        "R171_MISSISICABI_CONSERVATION_2008",
+        "R171_ECCC_HANNAH_PROSE"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9284
+          ],
+          "component_scope": "Chosen southern opening and headward bends",
+          "finding": "The selected southern opening follows a mapped unnamed watercourse northwest, then north through the conspicuous westward bend and its intervening tributary joins. The CEHQ linework supports this connected opening; no official ultimate source or feeder name is assigned. The reserve report supplies broad plain and peatland context only, and its small annex thumbnail is not detailed opening evidence.",
+          "sources": [
+            "R171_CEHQ08_2011",
+            "R171_MISSISICABI_CONSERVATION_2008"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9284
+          ],
+          "component_scope": "Headward-to-middle junction and northward corridor",
+          "finding": "The upper selected watercourse enters the mapped northward river corridor at the substantial eastern-branch junction, then follows successive bends toward the westward turn. Nearby Yapeuthikw and Obamsca labels help distinguish the surrounding drainage but are not assigned to the whole selection.",
+          "sources": [
+            "R171_CEHQ08_2011"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9284
+          ],
+          "component_scope": "Middle and lower Missisicabi corridor",
+          "finding": "The selection follows the continuous northwestward river corridor through intermediate joining settings toward the provincial boundary and James Bay coast. The original carries Rivière Missisicabi at its lower reach and distinguishes the Harricana and Piscapecassy corridors to the southwest and Kitchigama to the east. These are separate neighboring river labels, not whole-group alternative names.",
+          "sources": [
+            "R171_CEHQ08_2011"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9284
+          ],
+          "component_scope": "Final coastal through-link and actual terminal",
+          "finding": "The final selection turns toward a coastal endpoint in the Hannah Bay/Little Missisicabi boundary setting. The regional map does not resolve which watercourse connects this final turn to the named Missisicabi approach. The previously read ECCC prose identifies Little Missisicabi as the southern sanctuary boundary, but no image was available to establish the connection. Neither a main-river mouth nor a separate creek identity is inferred for the final selection.",
+          "sources": [
+            "R171_CEHQ08_2011",
+            "R171_ECCC_HANNAH_PROSE"
+          ],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70091013",
+      "source_keys": [
+        "r171-cehq2011-region09"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9151
+          ],
+          "component_scope": "eastern_headward_opening",
+          "finding": "The far-eastern selected opening and its first small bends/joins lie where the regional source does not depict the complete chosen feeder. Nearby streams and lakes cannot substitute for this missing opening. No head-lake name is assigned.",
+          "sources": [
+            "r171-cehq2011-region09"
+          ],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            9151
+          ],
+          "component_scope": "upper_westward_chain",
+          "finding": "Some broader westward blue-water linework corresponds to the upper selection, but this1:2,300,000 thematic map with1:1,000,000 base does not establish all chosen lake passages and short joining segments.",
+          "sources": [
+            "r171-cehq2011-region09"
+          ],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            9151
+          ],
+          "component_scope": "central_obscured_connection",
+          "finding": "The093804 station-statistics panel covers or abuts the selected central path. Continuity beneath the opaque panel is not treated as observed; selected through-links and joining waterways there remain unresolved. The station number is not assigned to the selected river.",
+          "sources": [
+            "r171-cehq2011-region09"
+          ],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            9151
+          ],
+          "component_scope": "western_northward_bend",
+          "finding": "The source visibly follows the broader westward-to-northwestward river bend into the Lomier-side lake corridor. This supports ordinary regional route orientation, while small passage and join choices near the transition remain incompletely distinguished.",
+          "sources": [
+            "r171-cehq2011-region09"
+          ],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            9151
+          ],
+          "component_scope": "lac_lomier_passage",
+          "finding": "The source label Lac Lomier is on the elongated east–west waterbody traversed by the selected lower route. The lake passage and broad western continuation are geographically supported. The lake name is retained solely for this lake component and is not applied as a river or whole-system scalar name.",
+          "sources": [
+            "r171-cehq2011-region09"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "Lac Lomier"
+        },
+        {
+          "fragments": [
+            9151
+          ],
+          "component_scope": "lower_river_and_actual_terminal",
+          "finding": "West of Lac Lomier the source shows a lower river turning northwest to Hudson Bay. The regional coast/territorial boundary and simplified terminal linework do not separately establish the chosen final branch and bay transition. A neighboring coastal stream is labeled Ruisseau Sucker and is not transferred to the selected river.",
+          "sources": [
+            "r171-cehq2011-region09"
+          ],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70608350",
+      "source_keys": [
+        "USGSTOPO_R171_COLD_CREEK_MENDOCINO",
+        "USGSTOPO_R171_UKIAH_HOPLAND",
+        "USGSTOPO_R171_CLOVERDALE_HEALDSBURG",
+        "USGSTOPO_R171_LOWER_RUSSIAN_TERMINAL"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9824
+          ],
+          "component_scope": "Chosen opening and Cold Creek corridor",
+          "finding": "The selected eastern opening near the county-line/Highway 20 setting is on the mapped Cold Creek corridor. The connected creek valley continues northwest alongside Highway 20 to the mapped East Fork Russian River joining setting. The selected opening is not claimed as the ultimate or official source of Cold Creek.",
+          "sources": [
+            "USGSTOPO_R171_COLD_CREEK_MENDOCINO"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_names": [
+            "Cold Creek"
+          ]
+        },
+        {
+          "fragments": [
+            9824
+          ],
+          "component_scope": "Cold Creek to East Fork Russian River and reservoir inlet",
+          "finding": "Cold Creek meets the north-arriving East Fork corridor near the Potter Valley Road/Highway 20 setting. The selected route turns west with the mapped watercourse and enters the northern arm of Lake Mendocino, where East Fork Russian River is directly labelled. These are distinct natural reach names.",
+          "sources": [
+            "USGSTOPO_R171_COLD_CREEK_MENDOCINO"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_names": [
+            "Cold Creek",
+            "East Fork Russian River"
+          ]
+        },
+        {
+          "fragments": [
+            9824
+          ],
+          "component_scope": "Lake Mendocino passage and mapped dam/outlet transition",
+          "finding": "The selected route passes through the labelled reservoir from its northern inlet toward the mapped dam on its southwest side. An outlet channel connects the dam/lake setting to the Russian River corridor near The Forks, and the selected route continues south toward Ukiah. The lake, dam and outlet connection are visible in original cartography. No separate river name is imposed on the reservoir and no current release, operating rule, precise structure name or hydraulic condition is inferred.",
+          "sources": [
+            "USGSTOPO_R171_COLD_CREEK_MENDOCINO"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_names": [
+            "Lake Mendocino"
+          ]
+        },
+        {
+          "fragments": [
+            9824
+          ],
+          "component_scope": "Ukiah to Hopland and Pieta trunk",
+          "finding": "The labelled Russian River continues through the Ukiah/Talmage valley and south past the Howell, Robinson, Morrison, McNab and Crawford creek joining settings to Hopland. The Feliz/Dooley and Pieta/Cummiskey settings and intervening channel-valley passages are readable. Tributary names orient the joins and are not assigned to the selected trunk.",
+          "sources": [
+            "USGSTOPO_R171_COLD_CREEK_MENDOCINO",
+            "USGSTOPO_R171_UKIAH_HOPLAND"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_names": [
+            "Russian River"
+          ]
+        },
+        {
+          "fragments": [
+            9824
+          ],
+          "component_scope": "Cloverdale, Asti and Alexander Valley",
+          "finding": "The Russian River corridor continues across the county boundary, past Preston and the Big Sulphur Creek junction, through Cloverdale and Asti, then Geyserville and Alexander Valley. Direct labels and readable continuous channel geometry support the entire selected southward corridor. Small ponds, side sloughs and the separate Lake Sonoma/Dry Creek drainage do not create an additional selected through-lake requirement.",
+          "sources": [
+            "USGSTOPO_R171_UKIAH_HOPLAND",
+            "USGSTOPO_R171_CLOVERDALE_HEALDSBURG"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_names": [
+            "Russian River"
+          ]
+        },
+        {
+          "fragments": [
+            9824
+          ],
+          "component_scope": "Healdsburg bend and Dry Creek confluence",
+          "finding": "The selection follows the Russian River past the Maacama Creek joining setting and around the pronounced Fitch Mountain/Digger Bend loop, then west to Healdsburg and south. Dry Creek joins the Russian River below Healdsburg. The coarse model cuts individual bends locally, but stays within the established connected river corridor; exact bank coincidence is neither required nor claimed.",
+          "sources": [
+            "USGSTOPO_R171_CLOVERDALE_HEALDSBURG",
+            "USGSTOPO_R171_LOWER_RUSSIAN_TERMINAL"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_names": [
+            "Russian River"
+          ]
+        },
+        {
+          "fragments": [
+            9824
+          ],
+          "component_scope": "Windsor, lower valley and Guerneville",
+          "finding": "The connected labelled river continues south past Windsor and adjacent ponds, bends west at the lower-valley setting and passes the Mark West Creek junction. It then follows the Forest Hills/Hilton, Rio Nido and Guerneville corridor. The mapped main river remains distinct from the neighboring ponds and tributary channels.",
+          "sources": [
+            "USGSTOPO_R171_LOWER_RUSSIAN_TERMINAL"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_names": [
+            "Russian River"
+          ]
+        },
+        {
+          "fragments": [
+            9824,
+            9825
+          ],
+          "component_scope": "Monte Rio, Austin Creek and fragment boundary",
+          "finding": "The original map follows the named Russian River from Guerneville through Monte Rio and Sheridan to the Austin Creek junction and Duncans Mills. Both selected fragments and their shared lower-river boundary lie along this continuous river corridor; no uninspected inter-fragment transfer or naming discontinuity is required.",
+          "sources": [
+            "USGSTOPO_R171_LOWER_RUSSIAN_TERMINAL"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_names": [
+            "Russian River"
+          ]
+        },
+        {
+          "fragments": [
+            9825
+          ],
+          "component_scope": "Duncans Mills to actual coastal terminal",
+          "finding": "The last selected fragment continues west along the mapped Russian River through Duncans Mills and the Sheephouse/Willow creek and Bridgehaven settings to the estuary at Jenner. The final coarse selected segment crosses the Goat Rock beach/spit a short distance south of the cartographic river-mouth opening. The actual endpoint is therefore supported as the same estuary/coastal-outlet setting, not as a pointwise mapped channel or exact mouth. The original map visibly connects the Jenner estuary to the adjacent ocean outlet; no distinct additional inland connector is required at ordinary regional scale. No precise present-day mouth, beach-crossing channel, open sandbar, tidal condition or shoreline position is claimed.",
+          "sources": [
+            "USGSTOPO_R171_LOWER_RUSSIAN_TERMINAL"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_names": [
+            "Russian River"
+          ]
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "Environment and Climate Change Canada, Hannah Bay Migratory Bird Sanctuary, current site profile and linked original sanctuary map",
+      "official_url": "https://www.canada.ca/content/canadasite/en/environment-climate-change/services/migratory-bird-sanctuaries/locations/hannah-bay/_jcr_content/par/mwsadaptiveimage_2104971119/image.img.jpg/1611943160887.jpg",
+      "related_urls": [
+        "https://www.canada.ca/en/environment-climate-change/services/migratory-bird-sanctuaries/locations/hannah-bay.html",
+        "https://www.canada.ca/content/canadasite/en/environment-climate-change/services/migratory-bird-sanctuaries/locations/hannah-bay/_jcr_content/par/mwsadaptiveimage_2104971119/image.img.jpg/1611943160887.jpg"
+      ],
+      "observed_outcome": "The official site-profile HTML opened normally. The sole click on its linked original map ended with web-reader Failed to fetch: Cache miss. No original map pixels were exposed, and no alternate acquisition followed.",
+      "outcome_layer": "Web-reader image-fetch availability failure; origin HTTP status unobserved.",
+      "earlier_lawful_observations": "Only the previously read site-profile prose: Hannah Bay coastal marsh setting, Little Missisicabi River in the sanctuary and the river as the southern sanctuary boundary. This does not establish the selected final through-link.",
+      "limitation_kind": "reader_cache_miss_availability_pause",
+      "material_gap": true,
+      "material_effect": "No readable detailed coastal map was obtained to distinguish the actual selected terminal route from adjacent outlets.",
+      "aw_id": "hydro-system:70210252",
+      "restriction_scope": "New acquisition of the whole profile/map publication and equivalent originals, copies, formats, reader/cache, screenshots and mirrors paused. No further image, original-file or alternate-route request.",
+      "newly_observed_access_failure": true
+    },
+    {
+      "source_key": "r171-hq-lagrande-study-map-unavailable",
+      "publication": "Hydro-Québec, La Grande environmental-study-area poster, LaGrande_Etudes_affiche_FR_WEB.pdf; printed title and edition uninspected",
+      "observed_outcome": "The sole normal original request completed HTTP200 with text/html after redirection to https://client-externe.hydroquebec.com/. No PDF original was acquired and the returned HTML body was not inspected. No alternate host, format, reader, mirror or retry followed.",
+      "outcome_layer": "Completed direct HTTP-client response; wrong-body/redirect availability outcome. No HTTP403 or authentication-challenge claim is made.",
+      "restriction_scope": "Missing poster/map and all equivalent original, catalogue, reader, cache, mirror, screenshot and alternate-format acquisitions paused.",
+      "earlier_lawful_observations": null,
+      "substantive_evidence_used": false,
+      "aw_id": "hydro-system:70091013",
+      "official_url": "https://pannes.hydroquebec.com/data/projets/puissance-la-grande/pdf/LaGrande_Etudes_affiche_FR_WEB.pdf",
+      "newly_observed_access_failure": true
+    },
+    {
+      "source_key": "r171-lga-technical-note07-unavailable",
+      "publication": "La Grande Alliance, Phases2–3 feasibility study conducted by WSP, Technical Note07—Marine Environment; original imprint uninspected",
+      "observed_outcome": "The sole normal original-file request completed with HTTPError403 Forbidden. No report body, map or original figure was acquired or read. No retry or alternate route followed.",
+      "outcome_layer": "Completed direct original HTTP-client response reporting403; not a tool-layer refusal or an independently asserted transport/tunnel403.",
+      "restriction_scope": "Whole report and all equivalent original, catalogue, reader, cache, mirror, screenshot, figure and alternate-format acquisitions stopped.",
+      "earlier_lawful_observations": null,
+      "substantive_evidence_used": false,
+      "aw_id": "hydro-system:70091013",
+      "official_url": "https://www.lagrandealliance.quebec/wp-content/uploads/2024/10/Technical-Note-07-MARINE-ENVIRONMENT.pdf",
+      "newly_observed_access_failure": true
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "aw_id": "hydro-system:80244024",
+      "publication": "Edehon Lake, District of Keewatin, Northwest Territories",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_65a.jpg",
+      "observed_outcome": "Crown copyright 1979. The introduction identifies interim information, sometimes preliminary or incomplete, with approximate thematic boundaries; information current to November 1978. Ordinary copyright is retained without inventing an access ban. Original maps and all reading derivatives remain private; public output is limited to own factual synthesis and normal bibliography.",
+      "outcome_layer": "Source-use or reproduction notice, not an access denial.",
+      "restriction_scope": "Own factual observations and ordinary bibliography only; source originals and derivative cartography are not redistributed.",
+      "limitation_kind": "publication_use_notice",
+      "acquisition_stop": false
+    },
+    {
+      "aw_id": "hydro-system:80244024",
+      "publication": "Hyde Lake, District of Keewatin, Northwest Territories",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_55d.jpg",
+      "observed_outcome": "Crown copyright 1979. The introduction identifies interim information, sometimes preliminary or incomplete, with approximate thematic boundaries; information current to November 1978. Ordinary copyright is retained without inventing an access ban. Original maps and all reading derivatives remain private; public output is limited to own factual synthesis and normal bibliography.",
+      "outcome_layer": "Source-use or reproduction notice, not an access denial.",
+      "restriction_scope": "Own factual observations and ordinary bibliography only; source originals and derivative cartography are not redistributed.",
+      "limitation_kind": "publication_use_notice",
+      "acquisition_stop": false
+    },
+    {
+      "source_keys": [
+        "r171-nluis-edehon65a-1979",
+        "r171-nluis-hyde55d-1979"
+      ],
+      "type": "ordinary_copyright_and_interim_mapping_notice",
+      "access_stop": false,
+      "observed_notice": "Crown copyright 1979 and interim/preliminary thematic mapping notice; information current to November 1978.",
+      "handling": "Retain ordinary factual synthesis and bibliography only; do not distribute originals or derived reading images.",
+      "aw_id": "hydro-system:80244024",
+      "acquisition_stop": false
+    },
+    {
+      "aw_id": "hydro-system:70091013",
+      "publication": "Débits spécifiques d’étiage estivaux — Région hydrographique09",
+      "official_url": "https://www.cehq.gouv.qc.ca/debit-etiage/cartes/debit_etiage_09_specifique_estival.pdf",
+      "observed_outcome": "No officials-only or limited-distribution notice was observed in the inspected map and credits. Only bounded own observations and ordinary bibliography are reported; source pixels and derivatives remain private.",
+      "outcome_layer": "Source-use or reproduction notice, not an access denial.",
+      "restriction_scope": "Own factual observations and ordinary bibliography only; source originals and derivative cartography are not redistributed.",
+      "limitation_kind": "publication_use_notice",
+      "acquisition_stop": false
+    },
+    {
+      "source_key": "USGSTOPO_R171_LOWER_RUSSIAN_TERMINAL",
+      "title": "USGS Topo, bounded lower Russian River–Jenner coastal terminal view",
+      "observed_outcome": "Original image completed HTTP200 and was visually read. The connected river estuary and coastal opening are visible; the exact final modeled segment cuts across the beach/spit south of the mapped opening.",
+      "outcome_layer": "Cartographic generalization/terminal positional limitation, not access or transport failure.",
+      "restriction_scope": "No exact beach-crossing channel or pointwise river-mouth claim. Ordinary estuary/coastal-terminal correspondence is supported; no service-wide acquisition stop and no additional material through-link gap are inferred.",
+      "limitation_kind": "bounded_terminal_generalization",
+      "aw_id": "hydro-system:70608350",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "acquisition_stop": false
+    }
+  ]
+}

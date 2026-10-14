@@ -1,0 +1,710 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r222",
+  "sources": [
+    {
+      "source_key": "r222-daigneault2008-bulletin533-prior",
+      "title": "Géologie du Quaternaire du nord de la péninsule d’Ungava, Québec",
+      "authors": [
+        "R.-A. Daigneault"
+      ],
+      "publisher": "Commission géologique du Canada, Ressources naturelles Canada",
+      "year": 2008,
+      "series": "Bulletin 533",
+      "catalogue_number": "M42-533F",
+      "isbn": "978-0-660-97282-4",
+      "doi": "10.4095/224807",
+      "official_url": "https://geochem.nrcan.gc.ca/ftp/data/publications/pub_03812/bull_533.pdf",
+      "catalogue_url": "https://publications.gc.ca/site/eng/9.819125/publication.html",
+      "evidence_kind": "primary_authorial_geography_and_regional_drainage_figure",
+      "actual_material_read": "Before the companion failure: original cover/imprint and bibliographic contents; printedp4 study location; p7 and visually inspected Figure3 drainage map; p12 fieldwork/methods; p13 glacial-valley prose. The complete128-page PDF was acquired, but no uninspected pages were read after the later pause. Catalogue identifies three separate companion files.",
+      "bounded_observation": "Déception belongs to Hudson Strait drainage. The central glacial valley is occupied by Watts, Françoys-Malherbe and Déception bay; the drainage figure distinguishes the lake branch from the east-arriving upper Déception corridor.",
+      "source_independence": "The report itself identifies1989–1991 fieldwork, including1989 central35J/35G work, own1:40,000 aerial-photo interpretation and separately prepared figures/cartography. It is a different field investigation from the held Arnaud2017/2018, Bérard1956–1958 and mine-restoration2018 projects, and is not a recovery copy of CanMatrix, CBMT or a naming API.",
+      "limits": "Regional figure and landform prose do not show every small southern feeder or prove all selected through-links. The detailed companion map was not obtained. Only the explicitly completed prior readings remain usable after the companion pause.",
+      "use_notice": "Printed copyright notice requires permission for commercial reproduction, resale or redistribution. No original page, map, crop, derivative or extensive text is shared; own concise factual observations and normal bibliography only."
+    },
+    {
+      "source_key": "r222-esri-nunavik-imagery",
+      "title": "World Imagery, northern Nunavik selected corridor",
+      "publisher": "Esri",
+      "contributors": "Esri, Vantor, Earthstar Geographics and the GIS User Community",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "evidence_kind": "primary_imagery_observations_without_toponym_labels",
+      "actual_material_read": "One complete normal selected-corridor overview and one southern headward detail; both actually inspected as clean imagery and private orientation aids. The detail’s first zero-byte timeout was resolved by one identical-URL retry. Previously retained service metadata was read locally.",
+      "bounded_observation": "Long-lake branch, inter-lake channel, northern outlet and east-arriving river junction, lower alluvial corridor and marine inlet are visible. The southern opening and westward-to-northward small-pond transfer are not fully established.",
+      "source_independence": "Independently maintained satellite/aerial imagery service rather than a reproduction of held topographic or geological map publications. The current target views are distinct from the paused Ellesmere view.",
+      "limits": "No name labels, source-specific scene dates, official registry proof or current hydrological conditions. Cloud patches and lake ice limit some local observations, but no hidden interval is inferred from unseen pixels.",
+      "use_notice": "Service credits retained. No source image, crop, orientation overlay or other derivative is redistributed."
+    },
+    {
+      "source_key": "r222-endepa-napal12-edipa-chubut",
+      "title": "La Meseta. No es zona de sacrificio, in NAPA’L12, Chubut section",
+      "author": "Equipo Diocesano de Pastoral Aborigen (EDiPA), Comodoro Rivadavia, as explicitly credited by ENDEPA",
+      "publisher": "Equipo Nacional de Pastoral Aborigen (ENDEPA)",
+      "year": 2021,
+      "official_url": "https://www.endepa.org.ar/contenido/NAPAL-12-270821.pdf",
+      "material_actually_read": "Complete original acquired; Chubut article at printed pages16–17 read, including visual inspection of printed17 and its authorship attribution.",
+      "facts_used": "Sacanana named as a non-continuous stream from Pirrey Mahuida through part of Gastre, passing near Gan Gan and ending in Laguna Verde near Chacay Oeste.",
+      "independence": "Independent pastoral/community regional account, directly attributed to EDiPA; not treated as a reproduction of the unavailable environmental-agency presentation or held geology maps.",
+      "limits": "A regional narrative, not surveyed cartography or a formal naming register. Political and mining-impact statements are outside this finding. Internal pages identify issue12; the extracted opening-page marker differs, so no stronger cover-title assertion is made."
+    },
+    {
+      "source_key": "r222-esri-sacanana-overview",
+      "title": "Esri World Imagery, Sacanana selected-corridor overview",
+      "publisher": "Esri",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "material_actually_read": "One original overview image spanning the full selected corridor, plus local viewing of its upper valley, middle alluvial passage and terminal basin.",
+      "facts_used": "Actual dry drainage, larger valley joins, meandering alluvial corridor, plain and enclosed terminal basin corresponding to the supplied selection.",
+      "attribution": "Esri, Vantor, Earthstar Geographics, and the GIS User Community, as given by the retained normal service metadata.",
+      "limits": "Unlabelled multi-provider imagery. Acquisition dates and target-specific provider are not resolved. No river name is inferred from imagery alone; no current wetness or operations asserted."
+    },
+    {
+      "source_key": "r222-esri-sacanana-head-detail",
+      "title": "Esri World Imagery, chosen Sacanana northwestern feeder detail",
+      "publisher": "Esri",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "material_actually_read": "One original detail image of the chosen opening, its dry-wash bends, southeastward hollow and wider downstream alluvial strip.",
+      "facts_used": "Physical corridor correspondence of the selected unnamed opening and its connection toward the larger valley.",
+      "limits": "Same imagery provenance and scene-date limitations as the overview; no local feeder name or exact bank assignment."
+    },
+    {
+      "source_key": "r222-esri-sacanana-lower-detail",
+      "title": "Esri World Imagery, Sacanana lower alluvial plain detail",
+      "publisher": "Esri",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "material_actually_read": "One original detail image of the lower meandering alluvial corridor south of the settlement and adjoining lake/depression complex.",
+      "facts_used": "The selected lower arc remains in the connected eastward alluvial corridor despite generalized bend placement.",
+      "limits": "Same imagery provenance and scene-date limitations as the overview; no present-flow, shallow-water depth or operating-infrastructure inference."
+    },
+    {
+      "source_key": "r222-whsrn-iscuande-site",
+      "title": "Delta del Río Iscuandé",
+      "publisher": "Western Hemisphere Shorebird Reserve Network (WHSRN/RHRAP)",
+      "publication_context": "Original conservation-site account; designation February 2009. It identifies Consejo Comunitario Esfuerzo Pescador and the municipality as site partners and describes Calidris conservation work.",
+      "official_url": "https://whsrn.org/es/whsrn_sites/delta-del-rio-iscuande/",
+      "source_type": "Primary conservation-site account",
+      "actual_material_read": "Normally opened HTML: location, general description, tidal habitat, community and conservation-project sections. No linked photograph or map original was opened.",
+      "own_observation": "The account names the Iscuandé delta in coastal northern Nariño and describes tidal river-sediment islands, beaches, mudflats and mangroves. It gives regional setting rather than a continuous inland river map.",
+      "independence": "Site-specific shorebird conservation and community programme. This is not the national DHIME hydrography, municipal Micay plans, SGC atlas, TPC chart or REDCAM2021 water-quality report.",
+      "evidence_scope": "Named coastal/delta context only",
+      "use_notice": "No restricted-distribution or citation-clearance condition was observed in the read page. No source text, photographs or maps are redistributed."
+    },
+    {
+      "source_key": "r222-cuervo2024-authorial-context",
+      "title": "Determinación de áreas de afectación por presencia humana, en los sitios de importancia para las aves playeras en el Delta del Rio Iscuandé y PNN Sanquianga del departamento de Nariño - Colombia.",
+      "authors": [
+        "Cindy Marcela Cuervo Ferrin"
+      ],
+      "year": 2024,
+      "publisher": "Universidad Santiago de Cali, Facultad de Ingeniería, Especialización en Sistemas de Información Geográfica",
+      "official_url": "https://repositorio.usc.edu.co/server/api/core/bitstreams/629c79c9-3ca1-494d-96f3-8c0bff567318/content",
+      "catalogue_url": "https://repositorio.usc.edu.co/handle/20.500.12421/5977",
+      "source_type": "Independent university GIS analysis of human disturbance around shorebird sites",
+      "actual_material_read": "Complete 13-page original PDF acquired normally. Front matter, methods and data-source prose, study-area description, figure captions and bibliography read; Figure1 on page5 and its source-credit margin visually inspected. No subsequent map figure was used for river tracing.",
+      "own_observation": "The author treats the Iscuandé delta and Sanquianga as separate coastal study areas. The study is a proximity analysis around bird sites, settlements, beaches and airstrips, rather than a full river-corridor survey.",
+      "independence": "Distinct university-authored human-disturbance GIS project with its own methods, results and 2024 original imprint. This establishes the work identity, not clearance of every borrowed map layer.",
+      "evidence_scope": "Authorial study-area and methodology context. Figure1 base drainage/shoreline is excluded because its IGAC attribution does not resolve its relationship to held national hydrography.",
+      "use_notice": "No limited-distribution or citation-clearance notice observed in read source/front matter. Original PDF and all renderings remain private."
+    },
+    {
+      "source_key": "r222-usgstopo-aucilla-north",
+      "title": "USGSTopo, The National Map: bounded Aucilla north corridor view",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "bibliography": "U.S. Geological Survey. USGSTopo, The National Map, multiscale topographic reference-map service. Bounded Aucilla corridor view read 13 October 2026.",
+      "publication_identity": "Independently maintained seamless National Map cartography, distinct from held USGS scientific reports and the separate static Sandy Bottom quadrangle publication.",
+      "material_actually_read": "Original map image visually read across the stated extent, with private enlarged reading crops and a separate selected-path orientation aid.",
+      "read_extent": "Chosen northern tributary, upper named river, widened water body, Eason, Howell Sink, Massey-Ferguson Pond and Boston wetland bend",
+      "access_outcome": "Normal original completed direct HTTP 200 image/png; terminal execution exit 0.",
+      "date_limit": "Retained service metadata reports a 4 September 2026 refresh; this is not an asserted survey date for every depicted feature.",
+      "use_limit": "Own bounded factual observations only. No redistribution of map originals or derivatives; no present-flow or exact-bank guarantee."
+    },
+    {
+      "source_key": "r222-usgstopo-aucilla-middle",
+      "title": "USGSTopo, The National Map: bounded Aucilla middle corridor view",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "bibliography": "U.S. Geological Survey. USGSTopo, The National Map, multiscale topographic reference-map service. Bounded Aucilla corridor view read 13 October 2026.",
+      "publication_identity": "Independently maintained seamless National Map cartography, distinct from held USGS scientific reports and the separate static Sandy Bottom quadrangle publication.",
+      "material_actually_read": "Original map image visually read across the stated extent, with private enlarged reading crops and a separate selected-path orientation aid.",
+      "read_extent": "Cross-border Aucilla Swamp, Sneads Smokehouse Lake, Gum Creek and Little Aucilla junctions, US 90 and Interstate 10 reaches",
+      "access_outcome": "Normal original completed direct HTTP 200 image/png; terminal execution exit 0.",
+      "date_limit": "Retained service metadata reports a 4 September 2026 refresh; this is not an asserted survey date for every depicted feature.",
+      "use_limit": "Own bounded factual observations only. No redistribution of map originals or derivatives; no present-flow or exact-bank guarantee."
+    },
+    {
+      "source_key": "r222-usgstopo-aucilla-lower",
+      "title": "USGSTopo, The National Map: bounded Aucilla lower corridor view",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "bibliography": "U.S. Geological Survey. USGSTopo, The National Map, multiscale topographic reference-map service. Bounded Aucilla corridor view read 13 October 2026.",
+      "publication_identity": "Independently maintained seamless National Map cartography, distinct from held USGS scientific reports and the separate static Sandy Bottom quadrangle publication.",
+      "material_actually_read": "Original map image visually read across the stated extent, with private enlarged reading crops and a separate selected-path orientation aid.",
+      "read_extent": "Southern mainstem bends, Rocky/Alligator Creek setting, Walker Spring vicinity and sinks approach",
+      "access_outcome": "Normal original completed direct HTTP 200 image/png; terminal execution exit 0.",
+      "date_limit": "Retained service metadata reports a 4 September 2026 refresh; this is not an asserted survey date for every depicted feature.",
+      "use_limit": "Own bounded factual observations only. No redistribution of map originals or derivatives; no present-flow or exact-bank guarantee."
+    },
+    {
+      "source_key": "r222-usgstopo-aucilla-terminal",
+      "title": "USGSTopo, The National Map: bounded Aucilla terminal corridor view",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "bibliography": "U.S. Geological Survey. USGSTopo, The National Map, multiscale topographic reference-map service. Bounded Aucilla corridor view read 13 October 2026.",
+      "publication_identity": "Independently maintained seamless National Map cartography, distinct from held USGS scientific reports and the separate static Sandy Bottom quadrangle publication.",
+      "material_actually_read": "Original map image visually read across the stated extent, with private enlarged reading crops and a separate selected-path orientation aid.",
+      "read_extent": "Aucilla sinks and pools, Wacissa/Slave Canal setting, Nutall Rise, US 98, Mandalay and coastal mouth",
+      "access_outcome": "Normal original completed direct HTTP 200 image/png; terminal execution exit 0.",
+      "date_limit": "Retained service metadata reports a 4 September 2026 refresh; this is not an asserted survey date for every depicted feature.",
+      "use_limit": "Own bounded factual observations only. No redistribution of map originals or derivatives; no present-flow or exact-bank guarantee."
+    },
+    {
+      "source_key": "r222-srwmd-aucilla-wacissa-program-prior-prose",
+      "title": "Aucilla & Wacissa Rivers & Associated Springs Minimum Flows & Levels",
+      "publisher": "Suwannee River Water Management District",
+      "official_url": "https://www.srwmd.org/215/Aucilla-Wacissa-Rivers",
+      "bibliography": "Suwannee River Water Management District. Aucilla & Wacissa Rivers & Associated Springs Minimum Flows & Levels, program web page, undated; read 13 October 2026.",
+      "material_actually_read": "Authorial About the Aucilla & Wacissa Rivers paragraphs before the later linked-report failure.",
+      "observations": "Describes the river’s marsh/lake and karst sequence, final resurgence at Nutall Rise, Gulf outlet, and braided Wacissa tributary.",
+      "access_outcome": "Program HTML was successfully read before the linked final-report request returned Cache miss.",
+      "limits": "Only those prior authorial paragraphs are used. No linked final report, appendix, report map, or later equivalent content is used. The general origin description does not identify the chosen opening as the unique natural source."
+    },
+    {
+      "source_key": "r222-dep-florida-forever-2024-aucilla-wacissa",
+      "title": "2024 Florida Forever Plan: Aucilla/Wacissa Watershed",
+      "publisher": "Florida Department of Environmental Protection",
+      "official_url": "https://floridadep.gov/sites/default/files/FLDEP_DSL_OES_FF_2024_AucillaWacissaWatershed.pdf",
+      "bibliography": "Florida Department of Environmental Protection. 2024 Florida Forever Plan, Aucilla/Wacissa Watershed, 9 pages.",
+      "publication_identity": "State conservation-land acquisition project, assembled from the Aucilla River Corridor and related land-protection projects. This is independently administered authorial conservation prose, not the SRWMD MFL technical study or its figures.",
+      "material_actually_read": "Complete original PDF acquired; page 1 rendered and visually read, and bounded authorial introductory and project-history prose read as extracted text. No source map is claimed as evidence.",
+      "observations": "Describes Aucilla and Wacissa as distinct streams and explicitly explains Aucilla River Sinks as repeated underground and surface passages.",
+      "access_outcome": "Normal original completed direct HTTP 200 application/pdf; terminal execution exit 0.",
+      "use_notice": "No officials-only, distribution-limited or permission-before-citation notice observed in read material. Own facts only; source PDF and derivatives remain private."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70000271",
+      "source_keys": [
+        "r222-daigneault2008-bulletin533-prior",
+        "r222-esri-nunavik-imagery"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8928
+          ],
+          "component_scope": "chosen_eastern_opening_and_southwestward_approach",
+          "finding": "The opening lies in small-lake and narrow-stream terrain south of the main long-lake valley. The detailed image distinguishes partly ice-covered ponds, small connecting reaches and a southwestward valley channel. Several local watercourses are visible, but the complete chosen initial sequence is not independently established and no source-lake or tributary name is assigned.",
+          "sources": [
+            "r222-esri-nunavik-imagery"
+          ],
+          "correspondence": "partial_local_setting_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            8928
+          ],
+          "component_scope": "westward_upper_transfer_and_northward_turn",
+          "finding": "The selected route turns west and then north across pond-studded, ridge-and-depression terrain. The two images show the nearby westward channel and multiple small northern waterbodies, but do not demonstrate the selected through-connection between them. This is a material corridor-connection gap, not a demand to match exact banks or every model vertex; no alternative route or flow direction is asserted.",
+          "sources": [
+            "r222-esri-nunavik-imagery"
+          ],
+          "correspondence": "material_through_link_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            8928
+          ],
+          "component_scope": "northward_valley_and_southern_lake_approach",
+          "finding": "Farther north, the image depicts a continuous incised valley with tributary junctions leading into the southern end of the first long lake. This supports the downstream valley and lake-entry correspondence at ordinary corridor scale, while leaving the earlier westward-to-northward transfer unresolved. No unsupported name is assigned to this feeder.",
+          "sources": [
+            "r222-esri-nunavik-imagery",
+            "r222-daigneault2008-bulletin533-prior"
+          ],
+          "correspondence": "corridor_and_lake_entry_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            8928
+          ],
+          "component_scope": "lac_watts_passage",
+          "finding": "The selection follows the elongated southern lake in the Watts–Françoys-Malherbe valley. The original drainage figure labels Lac Watts and the author describes the two lakes in the same glacial valley. Imagery shows the long waterbody, southern entry, side tributary mouths and northern narrowing. Its partly ice-covered appearance does not establish the scene date or present lake conditions.",
+          "sources": [
+            "r222-daigneault2008-bulletin533-prior",
+            "r222-esri-nunavik-imagery"
+          ],
+          "correspondence": "lake_passage_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            8928
+          ],
+          "component_scope": "inter_lake_channel_and_francoys_malherbe",
+          "finding": "The image visibly connects the northern end of the southern long lake through a broad channel with bars and side joins to the second long lake, then along that lake to its northern outlet. The original authorial valley description identifies the second lake as Françoys-Malherbe. The adjacent western lake and other side waters are not included merely because they are nearby.",
+          "sources": [
+            "r222-daigneault2008-bulletin533-prior",
+            "r222-esri-nunavik-imagery"
+          ],
+          "correspondence": "inter_lake_and_northern_lake_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            8928
+          ],
+          "component_scope": "northern_junction_lower_deception_and_actual_terminal",
+          "finding": "The northern lake outlet meets the substantial east-arriving river corridor. The resulting channel runs west through broad alluvial bends to a widening marine inlet. The original Figure3 independently labels the receiving Déception corridor and Baie Déception within Hudson Strait drainage. The image exposes the joined lower channel, coastal mouth and inlet; it does not establish an exact tidal boundary, a surveyed shoreline or present navigation conditions.",
+          "sources": [
+            "r222-daigneault2008-bulletin533-prior",
+            "r222-esri-nunavik-imagery"
+          ],
+          "correspondence": "junction_and_actual_marine_terminal_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61568622",
+      "source_keys": [
+        "r222-endepa-napal12-edipa-chubut",
+        "r222-esri-sacanana-overview",
+        "r222-esri-sacanana-head-detail",
+        "r222-esri-sacanana-lower-detail"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14591
+          ],
+          "component_scope": "Chosen northwestern opening, eastward dry wash and southwestward bend",
+          "finding": "The detail image shows the chosen opening within a pale, branching dry drainage corridor. That corridor turns east and then southwest through the same widening wash and fan setting represented by the first three selected parts. Its small bends do not require the supplied generalized line to match individual channel edges. No separate name is established for this opening feeder.",
+          "sources": [
+            "r222-esri-sacanana-head-detail",
+            "r222-esri-sacanana-overview"
+          ],
+          "correspondence": "completed_ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Unnamed selected upper feeder of the representative Sacanana system; no local scalar name assigned."
+        },
+        {
+          "fragments": [
+            14591
+          ],
+          "component_scope": "Southeastern feeder continuation and join to the broader north–south valley",
+          "finding": "The pale feeder continues southeast through a narrower drainage hollow to the broad east–west alluvial strip, then meets the larger north–south valley. The overview shows its southward continuation through darker vegetated and meandering channel tracts. The joins are visible as connected drainage corridors; a wet surface on the date of inspection is not required or asserted.",
+          "sources": [
+            "r222-esri-sacanana-head-detail",
+            "r222-esri-sacanana-overview"
+          ],
+          "correspondence": "completed_ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Connected feeder and upper Sacanana-system valley; exact name-start point unassigned."
+        },
+        {
+          "fragments": [
+            14591
+          ],
+          "component_scope": "Southward valley, intervening wetland-like flats and road crossing",
+          "finding": "The image depicts a sinuous channel within the south-trending valley, widening dark floodplain patches and a continuation toward the major road crossing. The selected sequence stays in this connected valley and reaches its southeastward exit onto the plain. Adjacent small water patches are not substituted for the through-corridor.",
+          "sources": [
+            "r222-esri-sacanana-overview"
+          ],
+          "correspondence": "completed_ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Representative upper Sacanana corridor, without assigning names to individual wetland patches or side channels."
+        },
+        {
+          "fragments": [
+            14591
+          ],
+          "component_scope": "Southeastward plain entry and eastward alluvial passage",
+          "finding": "The valley opens into a broad, pale alluvial corridor that turns east across the plain. The actual image shows the upstream entry, sinuous middle course and widening pale/vegetated low ground at the next junction. This is correspondence to the drainage landform, not an inference from a basin outline.",
+          "sources": [
+            "r222-esri-sacanana-overview"
+          ],
+          "correspondence": "completed_ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Arroyo Sacanana representative middle corridor."
+        },
+        {
+          "fragments": [
+            14591
+          ],
+          "component_scope": "Short middle joins through the widened alluvial and wetland-like tract",
+          "finding": "All four short selected parts occupy the same continuous eastward alluvial strip. Side drainage joins and broad pale low-lying patches are visible; no independently named intervening lake or managed connector is established. The selected short joins do not jump to a separate basin.",
+          "sources": [
+            "r222-esri-sacanana-overview",
+            "r222-esri-sacanana-lower-detail"
+          ],
+          "correspondence": "completed_ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Arroyo Sacanana middle alluvial corridor; wetland and branch names unassigned."
+        },
+        {
+          "fragments": [
+            14591
+          ],
+          "component_scope": "Meandering lower plain south of Gan Gan and eastern narrowing",
+          "finding": "The lower detail resolves a pale, meandering channel crossing the plain south of the compact settlement and its northern shallow-lake complex. The selected generalized arc follows that same eastward alluvial corridor, then the low passage near the eastern edge of the settlement setting. Its locally displaced bends are ordinary corridor-scale generalization, not evidence for a separate river. EDiPA independently describes Sacanana passing near Gan Gan on its way to Laguna Verde.",
+          "sources": [
+            "r222-esri-sacanana-lower-detail",
+            "r222-esri-sacanana-overview",
+            "r222-endepa-napal12-edipa-chubut"
+          ],
+          "correspondence": "completed_ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Arroyo Sacanana lower corridor; the nearby Gan Gan lake complex is not assigned as a selected river passage."
+        },
+        {
+          "fragments": [
+            14591
+          ],
+          "component_scope": "Southeastern terminal approach and entry into the enclosed lake basin",
+          "finding": "The overview shows the lower drainage continuing southeast through pale alluvial ground to the northwestern side of a broad enclosed lake/playa basin. The final river approach and basin entry correspond to the selected route. EDiPA identifies the terminal of Sacanana as Laguna Verde near Chacay Oeste, supporting the name of this receiving basin in the full regional sequence.",
+          "sources": [
+            "r222-esri-sacanana-overview",
+            "r222-endepa-napal12-edipa-chubut"
+          ],
+          "correspondence": "completed_ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Arroyo Sacanana approach to Laguna Verde; no assertion of perennial discharge."
+        },
+        {
+          "fragments": [
+            14591
+          ],
+          "component_scope": "Actual selected endpoint within the terminal lake/playa basin",
+          "finding": "The final two selected parts extend south within the eastern sector of the same enclosed pale lake/playa basin. The supplied endpoint is inside that basin, rather than on a depicted onward outlet. This terminal is recorded as a lake-floor/terminal-basin passage, not renamed as a river reach and not extended beyond the actual selected endpoint.",
+          "sources": [
+            "r222-esri-sacanana-overview",
+            "r222-endepa-napal12-edipa-chubut"
+          ],
+          "correspondence": "completed_ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Laguna Verde terminal-basin passage; distinct waterbody role within the representative Sacanana system."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60264271",
+      "source_keys": [
+        "r222-whsrn-iscuande-site",
+        "r222-cuervo2024-authorial-context"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            11604
+          ],
+          "component_scope": "Chosen eastern headward opening only",
+          "finding": "The short selected opening runs generally north to the start of the westward inland fragment. Neither the opened conservation-site prose nor the university study covers this headward through-link. No name is assigned from nearby labels or search snippets.",
+          "sources": [],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            11605
+          ],
+          "component_scope": "Westward upper course and its later northwestern turn",
+          "finding": "The selected course continues west, bends southwest and then northwest before meeting the lower fragment. Permitted primary evidence does not establish its full valley correspondence or its connection to the receiving Iscuandé river. Potential El Turbio and Bracito identities are discovery leads only and are not adopted as component names.",
+          "sources": [],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 2,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            11606
+          ],
+          "component_scope": "Receiving lower-river/delta lead, not a name proven for every part of this fragment",
+          "finding": "WHSRN explicitly identifies the Iscuandé delta at Santa Bárbara de Iscuandé and describes river-sediment islands, tidal mudflats and mangroves. Cuervo Ferrin identifies that delta as a coastal study area distinct from PNN Sanquianga. These facts provide coastal context, but do not independently trace the complete northward selected course or its actual final channel to the sea.",
+          "sources": [
+            "r222-whsrn-iscuande-site",
+            "r222-cuervo2024-authorial-context"
+          ],
+          "correspondence": "regional_identity_only_material_throughlinks_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 1,
+          "candidate_name": "Río Iscuandé"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70801217",
+      "source_keys": [
+        "r222-usgstopo-aucilla-north",
+        "r222-usgstopo-aucilla-middle",
+        "r222-usgstopo-aucilla-lower",
+        "r222-usgstopo-aucilla-terminal",
+        "r222-srwmd-aucilla-wacissa-program-prior-prose",
+        "r222-dep-florida-forever-2024-aucilla-wacissa"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9985
+          ],
+          "component_scope": "Chosen Georgia opening and southward approach north of Eason",
+          "finding": "The chosen opening is on a small mapped broken-line tributary east of the upper Aucilla channel. This approach joins the named Aucilla corridor near the Georgia 122 crossing and continues through a widened water body bearing an Aucilla River label. The upper mapped stream network, widening and southward floodplain establish the ordinary through-sequence; the opening tributary is not separately named here.",
+          "sources": [
+            "r222-usgstopo-aucilla-north"
+          ],
+          "correspondence": "completed_ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Unnamed selected feeder followed by the named Aucilla River corridor. The widened water body is not assigned an invented lake name."
+        },
+        {
+          "fragments": [
+            9985
+          ],
+          "component_scope": "Eason, Howell Sink and Boston pond/wetland reach",
+          "finding": "The northern source maps Aucilla River approaching Eason, the Howell Sink passage west of Boston, and the eastward continuation to Massey-Ferguson Pond. The river emerges from the pond setting and bends southeast through a repeatedly labeled Aucilla wetland corridor south of Boston. Broken-line reaches and pond passages are read as the mapped river system, without requiring continuous visible surface water at every selected position.",
+          "sources": [
+            "r222-usgstopo-aucilla-north"
+          ],
+          "correspondence": "completed_ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Aucilla River representative corridor, with Howell Sink and Massey-Ferguson Pond retaining their own feature identities."
+        },
+        {
+          "fragments": [
+            9985
+          ],
+          "component_scope": "Georgia–Florida border and upper Aucilla Swamp",
+          "finding": "Overlapping northern and middle originals show the selected southeastward river corridor entering Aucilla Swamp across the state boundary. Tributary channels including the Connel Creek approach join the same named wetland drainage. Repeated Aucilla River labels and the mapped longitudinal wetland/watercourse continue toward the lake reach; this is a supported wetland passage at ordinary corridor scale, not a claim of a single presently open navigable channel.",
+          "sources": [
+            "r222-usgstopo-aucilla-north",
+            "r222-usgstopo-aucilla-middle",
+            "r222-srwmd-aucilla-wacissa-program-prior-prose"
+          ],
+          "correspondence": "completed_ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Aucilla River through Aucilla Swamp; adjacent ponds and tributaries are not scalar-renamed."
+        },
+        {
+          "fragments": [
+            9985
+          ],
+          "component_scope": "Sneads Smokehouse Lake and downstream wetland passage",
+          "finding": "The middle original depicts the named river entering Sneads Smokehouse Lake, leaving its southern end, and continuing down the elongated floodplain. The selected route follows this lake-through-river corridor. Nearby Razor Lake, Windom Lake and Parker Pond are distinguishable neighboring features and are not substituted for the selected through-passage.",
+          "sources": [
+            "r222-usgstopo-aucilla-middle"
+          ],
+          "correspondence": "completed_ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Aucilla River system through the distinctly named Sneads Smokehouse Lake."
+        },
+        {
+          "fragments": [
+            9985
+          ],
+          "component_scope": "Little Aucilla junction, US 90 and Interstate 10 corridor",
+          "finding": "The named Aucilla continues south past the Gum Creek entry. Little Aucilla River approaches from the east near US 90 and joins the main river; the selected mainstem proceeds through the Aucilla settlement and Interstate 10 crossing. Wolf Creek and other side drainage remain lateral tributaries. The visible river links the upper wetland/lake section to the lower channel.",
+          "sources": [
+            "r222-usgstopo-aucilla-middle",
+            "r222-usgstopo-aucilla-lower"
+          ],
+          "correspondence": "completed_ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Aucilla River mainstem with distinct Little Aucilla River tributary."
+        },
+        {
+          "fragments": [
+            9985
+          ],
+          "component_scope": "Lower channel bends and approach to the sinks",
+          "finding": "The lower original follows the southwestward Aucilla bends through the Alligator Creek and Rocky Creek junction setting, highway crossing, Walker Spring vicinity and lower forested floodplain. Repeated Aucilla labels follow the continuous river into the sink-area approach east of the separate Wacissa River. The selected route does not switch to the parallel Wacissa trunk.",
+          "sources": [
+            "r222-usgstopo-aucilla-middle",
+            "r222-usgstopo-aucilla-lower",
+            "r222-usgstopo-aucilla-terminal"
+          ],
+          "correspondence": "completed_ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Aucilla River lower corridor; side creeks and spring features retain separate identities."
+        },
+        {
+          "fragments": [
+            9985
+          ],
+          "component_scope": "Aucilla sinks, resurgences and Wacissa joining setting",
+          "finding": "The terminal original depicts the named Aucilla corridor as a sequence of broken river reaches and pools continuing toward Nutall Rise. DEP’s independently issued conservation-project description explicitly identifies repeated underground and surface flow in the Aucilla River Sinks. The earlier-read SRWMD program prose identifies Nutall Rise as the final resurgence and Wacissa as a braided tributary. The map shows that tributary/canal network separately to the west and its connection to the lower Aucilla near the resurgence. Together these sources establish the ordinary karst through-passage and receiving-river identity without treating each underground interval as an open channel.",
+          "sources": [
+            "r222-usgstopo-aucilla-lower",
+            "r222-usgstopo-aucilla-terminal",
+            "r222-srwmd-aucilla-wacissa-program-prior-prose",
+            "r222-dep-florida-forever-2024-aucilla-wacissa"
+          ],
+          "correspondence": "completed_ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Aucilla River karst system. Wacissa River and Slave Canal are distinct neighboring/joining features; no present flow allocation or canal-operation claim."
+        },
+        {
+          "fragments": [
+            9985
+          ],
+          "component_scope": "Nutall Rise to Mandalay and the actual coastal terminal",
+          "finding": "The terminal original shows the resumed Aucilla crossing US 98, passing Ward Island and Mandalay, and continuing through the coastal marsh to its mapped open-water mouth. The selected final part reaches this river outlet; it does not end at a lake, inland swamp or the Wacissa junction. The previously read official program prose identifies the receiving coastal water as the Gulf of Mexico. Neighboring Econfina River and marsh creeks remain separate outlets.",
+          "sources": [
+            "r222-usgstopo-aucilla-terminal",
+            "r222-srwmd-aucilla-wacissa-program-prior-prose"
+          ],
+          "correspondence": "completed_ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Lower Aucilla River and its coastal mouth; the Gulf is not assigned a river scalar name."
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "SNC-Lavalin, Mine Raglan Plan de restauration,15May2018, project653645; original imprint uninspected",
+      "official_url": "https://gestim.mines.gouv.qc.ca/documents/001_Plan_restauration_Raglan_2018-05-15_0000046333.pdf",
+      "observed_outcome": "The sole normal-original request completed directHTTP404 with Content-Type text/html. No returned body, report text, original imprint or map was read.",
+      "outcome_layer": "Completed direct HTTP-client availability response; not an access-control denial.",
+      "restriction_scope": "Whole identified restoration plan and equivalent original, catalogue, reader, cache, mirror, map/figure and alternative-format acquisition routes paused.",
+      "earlier_lawful_observations": null,
+      "availability_failure": true,
+      "explicit_access_denial": false,
+      "aw_id": "hydro-system:70000271"
+    },
+    {
+      "publication": "R.-A.Daigneault(2008), Géologie du Quaternaire du nord de la péninsule d’Ungava,Québec, Geological Survey of Canada Bulletin533, associated map1862A/project companions",
+      "official_url": "https://publications.gc.ca/collections/collection_2016/rncan-nrcan/M42-533-2-fra.pdf",
+      "observed_outcome": "The report original and publication catalogue opened successfully. The sole normally linked companion part2 request completedHTTP200 after redirection to archivedHTML rather than the expectedPDF. No returned body or companion map was read.",
+      "outcome_layer": "Completed direct HTTP-client wrong-body/redirect availability outcome, not an access-control denial.",
+      "restriction_scope": "Whole identified Bulletin533/1989–1991 field-study project, companion maps1861A/1862A/1863A, associated doctoral adaptation and equivalent further acquisitions or uninspected-output reading paused. No alternate map route or report reading after the pause.",
+      "earlier_lawful_observations": "Prior cover/imprint and bibliographic contents, printedp4 location, p7/Figure3 drainage overview, p12 fieldwork/methods, p13 Watts–Françoys-Malherbe–Déception glacial-valley description. Only these actually completed readings remain evidence; no unseen detailed map is inferred.",
+      "availability_failure": true,
+      "explicit_access_denial": false,
+      "aw_id": "hydro-system:70000271"
+    },
+    {
+      "publication": "Ministerio de Ambiente y Control del Desarrollo Sustentable, Chubut, Estudios sobre la Cuenca de Sacanana; field-hydrochemistry presentation, original imprint uninspected",
+      "official_url": "https://www.ambiente.chubut.gov.ar/wp-content/uploads/2014/10/estudios-de-la-cuenca-Sacanana.pdf",
+      "observed_outcome": "The first normal-original acquisition completed direct HTTP502 with text/html. After actual termination, the one identical exact-URL retry also completed direct HTTP502 with text/html. No response body, original imprint, presentation prose or map pixels were read.",
+      "outcome_layer": "Two completed direct HTTP-client availability responses; no authentication or access-control denial observed.",
+      "restriction_scope": "Whole exact presentation and equivalent original, catalogue, reader, cache, mirror, figure and alternative-format acquisition routes and unread outputs remain paused. No alternate acquisition followed.",
+      "publication_identity_basis": "Before acquisition, the independent provincial field-hydrochemistry project was distinguished from the held Piche Arroyo Verde/Marifil II and Mallín Grande assessments and SEGEMAR Gan Gan/Telsen standard geology publications. Original identity could not be refined from an unread response.",
+      "earlier_lawful_prose_exception": null,
+      "newly_observed_access_failure": true,
+      "explicit_access_denial": false,
+      "material_effect": "Optional hydrochemical corroboration unavailable. Its discovery snippets and uninspected maps are not used; the independent imagery and EDiPA regional prose supply the bounded finding.",
+      "aw_id": "hydro-system:61568622"
+    },
+    {
+      "publication": "Mapeo de planos lodosos con imágenes UAV en La Bocana de Iscuandé, costa Pacífica colombiana; Boletín de Investigaciones Marinas y Costeras 51(2), 2022. Bibliographic discovery identity; original imprint and author list uninspected.",
+      "official_url": "https://boletin.invemar.org.co/index.php/boletin/article/view/1161",
+      "observed_outcome": "Sole normal publisher-landing opening returned web-reader Failed to fetch: (400) Timeout fetching. No source body or map pixels were acquired or read.",
+      "outcome_layer": "Web-reader timeout; origin HTTP status unknown.",
+      "origin_http_status": null,
+      "restriction_scope": "Whole exact article/project-equivalent content and original, publisher, reader, cache, figure, PDF and mirror acquisition/output-reading routes paused. No retry or alternate acquisition followed.",
+      "earlier_lawful_prose_exception": null,
+      "newly_observed_access_failure": true,
+      "explicit_access_denial": false,
+      "aw_id": "hydro-system:60264271"
+    },
+    {
+      "source_key": "r222-srwmd-final-aucilla-wacissa-mfl-report-unavailable",
+      "publication": "Final Aucilla and Wacissa Rivers MFL Report, official program-page linked title; original imprint uninspected",
+      "official_url": "https://www.srwmd.org/DocumentCenter/View/11360",
+      "observed_outcome": "The sole normal linked report opening returned web-reader Failed to fetch: Cache miss. No report body, original imprint, figure or map was read.",
+      "outcome_layer": "Web-reader retrieval/cache availability failure; origin HTTP outcome unknown.",
+      "restriction_scope": "Whole identified final MFL report/project-equivalent further acquisition and unread-output routes paused, including report appendices, alternative formats and equivalent copies. No alternate request followed.",
+      "earlier_lawful_prose_exception": "Only the program page’s previously read authorial About paragraphs remain usable; no new program/report reading followed the failure.",
+      "limitation_kind": "unavailable_report_original",
+      "newly_observed_access_failure": true,
+      "explicit_access_denial": false,
+      "material_gap": false,
+      "material_effect": "The optional technical report is unavailable. Independent National Map originals, separate DEP authorial prose and previously read program context establish ordinary selected-corridor correspondence.",
+      "aw_id": "hydro-system:70801217"
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "publication": "Esri World Imagery, selected southern Nunavik headward detail",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "observation": "First request ended with a zero-byte90-second timeout and no observedHTTP response. After actual termination, one identical exact-URL retry completedHTTP200 image/jpeg and the image was read. No ongoing view/service hold results from this resolved transient outcome.",
+      "aw_id": "hydro-system:70000271",
+      "acquisition_stop": false
+    },
+    {
+      "publication": "Cuervo Ferrin (2024), Universidad Santiago de Cali GIS thesis, Figure1 and equivalent borrowed base cartography",
+      "official_url": "https://repositorio.usc.edu.co/server/api/core/bitstreams/629c79c9-3ca1-494d-96f3-8c0bff567318/content",
+      "restriction_scope": "Borrowed IGAC base drainage/shoreline only; not a whole-thesis or university restriction.",
+      "observation": "The original map credits IGAC/Colombia en mapas alongside thematic sources. The specific hydrographic base identity and relationship to held IGAC1:100,000/DHIME content are unresolved, so it is excluded from selected-route correspondence.",
+      "acquisition_stop": false,
+      "permitted_scope": "Authorial project identity, methods and coastal study-area prose only.",
+      "aw_id": "hydro-system:60264271"
+    },
+    {
+      "publication": "CORPONARIÑO, Zonificación y codificación de cuencas en el departamento de Nariño; Subzona Río Iscuandé cartography. Original imprint uninspected.",
+      "official_url": "https://corponarino.gov.co/expedientes/intervencion/ZONIFICACION%20Y%20CODIFICACION%20CUENCAS.pdf",
+      "restriction_scope": "Proposed hydrographic cartography and equivalent borrowed content; no new acquisition failure or institution-wide ban.",
+      "observation": "Not requested. Bibliographic discovery identifies IGAC/IDEAM/CORPONARIÑO hydrography at1:100,000, leaving its actual base-network relationship to held DHIME/IGAC cartography unresolved. Discovery labels and map descriptions are not evidence.",
+      "acquisition_stop": false,
+      "permitted_scope": "Bibliographic discovery only; no original body or map used.",
+      "aw_id": "hydro-system:60264271"
+    }
+  ]
+}

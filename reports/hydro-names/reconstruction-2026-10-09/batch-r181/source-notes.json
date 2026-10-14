@@ -1,0 +1,555 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r181",
+  "sources": [
+    {
+      "source_key": "r181-inerhi-conade-oas-region1-prose",
+      "title": "Plan de Desarrollo Región I: Esmeraldas–Carchi–Imbabura, Capítulo 1, section 1.3.5, Características y potencialidades de los recursos hídricos",
+      "publisher": "República del Ecuador, INERHI–CONADE; Secretaría General de la Organización de los Estados Americanos",
+      "edition": "Historical regional-planning report; exact publication year not established from the inspected chapter",
+      "official_url": "https://www.oas.org/dsd/publications/unit/oea60s/ch03.htm",
+      "access_date_utc": "2026-10-12",
+      "actually_inspected": "Parsed chapter identity and bounded hydrographic prose, especially section 1.3.5. No map pixels were inspected.",
+      "supports": "Santiago/Cayapas distinction and regional confluence context; names Lachas, Rumiyacu, Güembi and Bogotá occur in the described network, but are not assigned to the selected opening.",
+      "limits": "Prose does not trace the selected corridor. The text contains inconsistent wording about which river receives the other, so it is not used to force a uniform downstream scalar.",
+      "publication_independence": "The named INERHI–CONADE/OAS Region I planning project is positively identified in the previously lawfully read r83 source record and current chapter. It is distinct from the held TDPS study and Ecuador multiscale basemap service.",
+      "acquired_scope": "Chapter read normally before the linked map Cache miss. Only already-read prose remains usable after the publication pause.",
+      "source_use_limits": "Own bounded factual observations and normal bibliography only; no source image or large prose reproduction."
+    },
+    {
+      "source_key": "r181-gadmea-eloy-alfaro-pdot2014-2022",
+      "title": "Plan de Desarrollo y Ordenamiento Territorial del Cantón Eloy Alfaro, con visión de futuro, 2014–2022",
+      "publisher": "Gobierno Autónomo Descentralizado Municipal del Cantón Eloy Alfaro",
+      "cartography": "Herrera Francisco, GADM-EA; Equipo Técnico–GADMEA",
+      "edition": "Cover horizon 2014–2022; inspected maps dated agosto 2015",
+      "official_url": "https://www.gadpe.gob.ec/web/assets/canton-pdot-eloy-alfaro.pdf",
+      "access_date_utc": "2026-10-12",
+      "acquired_scope": "One direct normal original request completed HTTP200, application/pdf. The completed 175-page original was read locally; no retry or alternate acquisition.",
+      "actually_inspected": "Cover and credits pp1–2 as original pixels; introduction p4; hydrographic prose p41; original Mapa 7 Hidrografía p42, Mapa 3 Centros Poblados p10 and Mapa 25 Vialidad p139. Additional extracted text was read for map identification and nearby geography; unseen maps are not evidence.",
+      "map_scope": "Mapa 7, 1:500,000, is a basin-area thematic map with parish context, not a complete river-channel map. The settlement and road maps do not independently supply missing channel through-links.",
+      "cartographic_provenance": "Map7 imprint credits SENAGUA/SENPLADES thematic information and IGM 1:50,000 base information. Original municipal cartography and map authorship are identified in the credits and captions.",
+      "supports": "Separate Santiago, Cayapas, Ónzole and San Miguel drainage areas; Borbón, Maldonado and northern coastal context.",
+      "limits": "Basin shading cannot establish selected channels, openings or joins. The plan calls the larger unit Sistema Cayapas, which is preserved as basin terminology rather than adopted as a whole-selected-river scalar.",
+      "publication_independence": "Affirmatively identified municipal territorial-planning project with its own named technical team, map authorship and thematic compilation. No exact stopped sheet or map-service reproduction is identified; a generic IGM base credit is not treated as an agency-wide ban or as permission to acquire any held base source.",
+      "source_use_limits": "Source original, maps, crops and orientation aids remain private. No unrestricted reproduction permission is inferred."
+    },
+    {
+      "source_key": "r181-inegi-cozumel-f1611-2023",
+      "title": "Información topográfica 1:250 000, Cozumel F1611, Quintana Roo y Yucatán",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI), Dirección General de Geografía y Medio Ambiente",
+      "edition": "Sixth edition 2023; printed copyright2024",
+      "scale": "1:250000",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/imagen_cartografica/1_250_000/794551154779_geo.pdf",
+      "actually_read": "Single-sheet PDF page1: southern opening and X-Can/Nuevo Xcán corridor in a readable original crop; printed technical, edition and copyright text.",
+      "acquisition_outcome": "Normal original PDF acquisition completed HTTP200; original source pixels and text were inspected.",
+      "scope": "Generalized topographic geography and labels only. No current flow, groundwater pathway, exact bank or water-control operation is established."
+    },
+    {
+      "source_key": "r181-inegi-cancun-f1608-2023",
+      "title": "Información topográfica 1:250 000, Cancún F1608, Quintana Roo y Yucatán",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI), Dirección General de Geografía y Medio Ambiente",
+      "edition": "Sixth edition 2023; printed copyright2024",
+      "scale": "1:250000",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/imagen_cartografica/1_250_000/794551154755_geo.pdf",
+      "actually_read": "Single-sheet PDF page1: whole-sheet overview; three overlapping enlarged original views spanning the interior, northern wetland turn and eastern estero; hydrography and wetland legend pixels; printed technical, edition and copyright text.",
+      "acquisition_outcome": "Normal original PDF acquisition completed HTTP200; original source pixels and text were inspected.",
+      "scope": "Generalized topographic geography and labels only. No current flow, groundwater pathway, exact bank or water-control operation is established."
+    },
+    {
+      "source_key": "r181-inegi-tizimin-f1607-2023",
+      "title": "Información topográfica 1:250 000, Tizimín F1607, Yucatán",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI), Dirección General de Geografía y Medio Ambiente",
+      "edition": "Sixth edition 2023; printed copyright2024",
+      "scale": "1:250000",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/imagen_cartografica/1_250_000/794551154748_geo.pdf",
+      "actually_read": "Single-sheet PDF page1: readable original eastern-coast crop spanning the adjoining-sheet seam, Estero Río Lagartos and selected terminal near San Felipe; printed technical, edition and copyright text.",
+      "acquisition_outcome": "Normal original PDF acquisition completed HTTP200; original source pixels and text were inspected.",
+      "scope": "Generalized topographic geography and labels only. No current flow, groundwater pathway, exact bank or water-control operation is established."
+    },
+    {
+      "source_key": "r181-senamhi-jequetepeque2017",
+      "title": "Modelamiento hidrológico para pronóstico estacional de caudales del río Jequetepeque",
+      "publisher": "Servicio Nacional de Meteorología e Hidrología del Perú (SENAMHI), Dirección de Hidrología, Subdirección de Estudios e Investigaciones Hidrológicas",
+      "responsible_author": "Luis Metzger Terrazas, as named on the responsibility page",
+      "edition": "Lima, June2017",
+      "official_url": "https://www.senamhi.gob.pe/load/file/01401SENA-41.pdf",
+      "source_type": "Independent primary institutional hydrological-modeling study",
+      "actual_material_read": "Original responsibility/citation pages; introductory project identification; printed pages15 and21–24; actual map pixels of Figure3-1 (printed15/PDF19) and Figure3-8 (printed23/PDF27).",
+      "independence_basis": "The original identifies a SENAMHI Plan Operativo Institucional2017 modeling project using SENAMHI observations and GR2M seasonal-flow calibration at Yonán. It is distinct from the held INRENA Chicama2003 study and ANA management plans/services.",
+      "cartographic_provenance": "Figure3-1 credits Renny D. Díaz; Figure3-8 is the study’s meteorological/hydrological station-network figure. Other thematic maps were not used for correspondence.",
+      "bounded_evidence": "Regional selected river network and Gallito Ciego placement; hydrologic prose confirms the named receiving river and impoundment on its course.",
+      "limitations": "Small-scale figures alone do not resolve every selected headward branch or coastal terminal. Those intervals are established using C36 Map5. The responsibility page names Luis Metzger while the supplied citation says Metzger,J.; this discrepancy is preserved rather than silently corrected. No current flows or operations inferred."
+    },
+    {
+      "source_key": "r181-ingemmet-c36-report",
+      "title": "Estudio geoambiental de la cuenca de los ríos Jequetepeque y Loco de Chaman, BoletínN°36, SerieC: Geodinámica e Ingeniería Geológica",
+      "authors": [
+        "Manuel Vílchez Mata",
+        "Sandra Villacorta Chambi",
+        "Jorge Chira Fernández",
+        "Fluquer Peña Laureano",
+        "Walter Pari Pinto"
+      ],
+      "publisher": "Instituto Geológico, Minero y Metalúrgico (INGEMMET), Dirección de Geología Ambiental y Riesgo Geológico",
+      "edition": "Cover and series2007; imprint also says first edition2006 and retains an unfinished October2007 printing-date placeholder.",
+      "official_url": "https://repositorio.ingemmet.gob.pe/bitstream/20.500.12544/279/490/C036-Boletin-Estudio_geoambiental_cuenca_rios_Jequetepeque_y_Loco_de_Chaman.pdf",
+      "source_type": "Independent primary environmental-geology field study",
+      "actual_material_read": "Original title/imprint, map list, printed pages3–5 for project/methodology, pages7–9 for geography/infrastructure, pages21–22 for surface-water sequence, and Figure2-1 (printed8/PDF19) for regional context. Selected nearby text was inspected while locating these sections but supplies no additional correspondence claim.",
+      "independence_basis": "Original identifies its own INGEMMET environmental-geology study, three2006 field inspections totaling68 days, base-map composition from IGN topographic sheets, and final thematic cartography. This is an independently issued Jequetepeque/Chamán project, not the held southern Santa Ana revision, Ica hydrogeology study, ANA plans or MTC map catalogue.",
+      "bounded_evidence": "Printed21 directly distinguishes the Huacraruco–San Juan–Magdalena–Chilete–Jequetepeque sequence. Printed9 and21 place Gallito Ciego on that river and describe the lower irrigation intake/channel setting.",
+      "limitations": "Primary report cites earlier regional studies for some background figures. No held publication or missing underlying figure is retrieved or used. Its stated1:50,000 map-list scale is not substituted for the actual companion Map5 imprint."
+    },
+    {
+      "source_key": "r181-ingemmet-c36-map5",
+      "title": "Mapa hidrogeológico, MapaN°5, Estudio geoambiental de las cuencas Jequetepeque y Loco de Chamán",
+      "publisher": "INGEMMET, República del Perú, Sector Energía y Minas",
+      "edition": "2007",
+      "scale": "1:150,000, as printed on the original map",
+      "projection": "Transverse Mercator, WGS84, zone17 South, as printed on the original map",
+      "official_url": "https://repositorio.ingemmet.gob.pe/bitstream/20.500.12544/279/2/C036-MAPA_5_HIDROGEOL%c3%93GICO.pdf",
+      "source_type": "Original companion cartography to C36",
+      "actual_material_read": "Original one-page map overview, legend/imprint and enlarged overlapping eastern, middle, reservoir-valley and coastal corridor views. Every selected part was compared with the continuously depicted source watercourse and junctions.",
+      "cartographic_provenance": "Companion Map5 named in the acquired C36 report; institutional thematic map built under the independent C36 project and its stated IGN-based basic cartography.",
+      "bounded_evidence": "Direct Huacraruco, San Juan, Magdalena, Chilete and Jequetepeque labels; continuous selected drainage; intermediate tributary joins; distinct Chamán drainage and Pacific mouth.",
+      "limitations": "Hydrogeological colors are not treated as waterbody boundaries. Gallito Ciego’s impounded identity is established by the report and SENAMHI figure/prose together with this mapped river corridor. No exact riverbank, reservoir shoreline or name-transition point claimed."
+    },
+    {
+      "source_key": "r181-cfi-arse-ramos2013",
+      "title": "Estudio hidrogeológico de la Región Sur de la Provincia de Río Negro con énfasis en acuíferos de medios fisurados, Etapa II. Informe Final – Ramos (Área 2)",
+      "authors": [
+        "Miguel Auge",
+        "Jorge Gebhard",
+        "Betina Zucchino"
+      ],
+      "publisher": "CFI–ARSE; publicly catalogued by Consejo Hídrico Federal",
+      "date": "December 2013",
+      "official_url": "https://www.cohife.org.ar/wp-content/uploads/2024/02/Ficha-73-TextoFinalRamos-Sierra-Colorada.pdf",
+      "catalogue_url": "https://www.cohife.org.ar/rio-negro/",
+      "material_read": "Catalogue; complete 45-page original received. Read front matter, contents, regional location, hydrography and geomorphology pp.4,9–10, and final bibliography. Visually inspected p.9 photograph and final p.45.",
+      "supports": "The field report names Cullen Leufú/Cuyún Leufú, describes a southwest-to-northeast course, and identifies Mallín Chico as its right-bank tributary. Regional canyons are predominantly dry and lagoons mostly temporary.",
+      "limits": "The contents list maps on pp.46–55, absent from this 45-page file. No appendix map was read. Regional prose and a local photograph do not establish the chosen path or precise junctions.",
+      "publication_identity": "Independent groundwater field-investigation report. It references topographic and geological sources; none of those original sheets was acquired or treated as newly read evidence.",
+      "use_notice": "No restricted-distribution statement encountered in inspected material. Original pages and photographs are not redistributed."
+    },
+    {
+      "source_key": "r181-kostadinoff-gregori-raniolo2005",
+      "title": "Configuración geofísica-geológica del sector norte de la provincia de Río Negro",
+      "authors": [
+        "José Kostadinoff",
+        "Daniel A. Gregori",
+        "Ariel Raniolo"
+      ],
+      "publisher": "Revista de la Asociación Geológica Argentina",
+      "date": "2005",
+      "bibliography": "60(2):368–376",
+      "official_url": "https://revista.geologica.org.ar/raga/article/view/1054",
+      "original_url": "https://revista.geologica.org.ar/raga/article/download/1054/1048/3740",
+      "material_read": "Publisher abstract and bibliography; original PDF front matter, relevant regional prose, and Figure1 on printed p.369, visually inspected.",
+      "supports": "Figure1 separately locates Bajo de Trapalcó south of the Río Negro valley; the paper reports its own regional gravity/magnetic survey.",
+      "limits": "The regional location map does not depict the selected drainage, intermediate joins, or detailed saline-depression passages. Geological structures are not evidence of watercourse connectivity.",
+      "publication_identity": "Independent university/CONICET geophysical field-study article, not a SEGEMAR sheet or IGN mosaic copy.",
+      "use_notice": "Publisher displays an article-specific CC BY-NC4.0 notice and a separate general journal license statement. No original figure is redistributed."
+    },
+    {
+      "source_key": "r181-dilorenzo-anthonioz2019",
+      "title": "El registro arqueofaunístico de ambientes interiores áridos del centro de Río Negro: Los sitios Trapalco 1 y 2 durante el Holoceno tardío",
+      "authors": [
+        "Maitén Irma Di Lorenzo",
+        "Inés Anthonioz Blanc"
+      ],
+      "publisher": "XX Congreso Nacional de Arqueología Argentina; institutional abstract hosted by Universidad Nacional de La Plata, SEDICI",
+      "date": "July 2019",
+      "bibliography": "pp.321–322; ISBN978-950-33-1538-5",
+      "official_url": "https://sedici.unlp.edu.ar/handle/10915/185507",
+      "material_read": "Institutional repository bibliography and full displayed abstract. Conference-paper PDF and figures were not requested.",
+      "supports": "Documents two studied sites in Bajo de Trapalcó, associated respectively with temporary water and a small spring, in the inland plains south of Río Negro.",
+      "limits": "Archaeological site context does not identify the whole selected river, establish its final channel, or prove a permanent hydrological connection.",
+      "publication_identity": "Independent archaeological field-study presentation with original excavations and sampling.",
+      "use_notice": "Repository displays CC BY-NC-SA4.0 except where otherwise noted; only short own factual observations are included."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:60339076",
+      "source_keys": [
+        "r181-inerhi-conade-oas-region1-prose",
+        "r181-gadmea-eloy-alfaro-pdot2014-2022"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            11644
+          ],
+          "component_scope": "Chosen southeastern opening and east-to-west upper course",
+          "finding": "The selected mainstem begins with a northward headward interval and a substantial westward course before turning north. Neither inspected source supplies continuous channel cartography for this chosen opening and upper connection. A regional Santiago basin description cannot establish that route or assign an upstream component name.",
+          "sources": [
+            "r181-inerhi-conade-oas-region1-prose",
+            "r181-gadmea-eloy-alfaro-pdot2014-2022"
+          ],
+          "correspondence": "material_gap",
+          "component_correspondence_completed": false,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            11644,
+            11645
+          ],
+          "component_scope": "Northward eastern mainstem arc and join into the westbound middle fragment",
+          "finding": "The regional sources identify Santiago in the eastern drainage setting. The municipal hydrography map shades basin areas rather than tracing the full chosen watercourse. The long selected arc and its fragment join therefore remain unestablished at ordinary through-corridor scale; the model connection is not substituted for primary evidence.",
+          "sources": [
+            "r181-inerhi-conade-oas-region1-prose",
+            "r181-gadmea-eloy-alfaro-pdot2014-2022"
+          ],
+          "correspondence": "regional_name_and_basin_context_only_material_corridor_gap",
+          "component_correspondence_completed": false,
+          "candidate_name": "Río Santiago"
+        },
+        {
+          "fragments": [
+            11645
+          ],
+          "component_scope": "Westbound middle mainstem toward the Santiago–Cayapas junction setting",
+          "finding": "OAS describes Santiago turning west after Concepción and a Santiago–Cayapas meeting at Borbón. Municipal maps locate Maldonado and Borbón. These anchors support a bounded Santiago candidate, but no inspected source traces the whole selected westbound connection.",
+          "sources": [
+            "r181-inerhi-conade-oas-region1-prose",
+            "r181-gadmea-eloy-alfaro-pdot2014-2022"
+          ],
+          "correspondence": "prose_supported_network_context_selected_through_link_pending",
+          "component_correspondence_completed": false,
+          "candidate_name": "Río Santiago"
+        },
+        {
+          "fragments": [
+            11647
+          ],
+          "component_scope": "Selected southwestern tributary opening and northward approach",
+          "finding": "The selected side branch lies in the Cayapas-side setting. The municipal map separately depicts the Cayapas and Ónzole basin areas; OAS keeps those river identities distinct. Neither source establishes the chosen tributary opening and complete onward channel. Cayapas remains a bounded component candidate, not a confirmed name for every selected segment.",
+          "sources": [
+            "r181-inerhi-conade-oas-region1-prose",
+            "r181-gadmea-eloy-alfaro-pdot2014-2022"
+          ],
+          "correspondence": "regional_component_candidate_only_material_gap",
+          "component_correspondence_completed": false,
+          "candidate_name": "Río Cayapas"
+        },
+        {
+          "fragments": [
+            11647,
+            11648,
+            11645,
+            11646
+          ],
+          "component_scope": "Tributary fragment join and approach to the shared lower mainstem",
+          "finding": "The sources support a Santiago–Cayapas receiving relationship in the Borbón region. The join between the two selected tributary fragments and its subsequent arrival at the mainstem are not independently traced by the inspected basin-area and settlement maps.",
+          "sources": [
+            "r181-inerhi-conade-oas-region1-prose",
+            "r181-gadmea-eloy-alfaro-pdot2014-2022"
+          ],
+          "correspondence": "regional_confluence_context_supported_selected_links_pending",
+          "component_correspondence_completed": false,
+          "candidate_name": "Río Cayapas"
+        },
+        {
+          "fragments": [
+            11646
+          ],
+          "component_scope": "Northern lower fragment and actual selected terminal",
+          "finding": "The actual selection ends on the northward lower extension beyond the common junction. Municipal mapping supplies the northern coastal/estuarine regional setting, but depicts no continuous named channel to the selected ending. The endpoint is not silently moved to the outer Pacific coast or a neighboring estuarine branch. This is a through-connection evidence gap, not a requirement to establish an exact modern bank or mouth vertex.",
+          "sources": [
+            "r181-inerhi-conade-oas-region1-prose",
+            "r181-gadmea-eloy-alfaro-pdot2014-2022"
+          ],
+          "correspondence": "regional_estuarine_setting_only_terminal_connection_pending",
+          "component_correspondence_completed": false,
+          "candidate_name": "Río Santiago"
+        },
+        {
+          "fragments": [
+            11644,
+            11645,
+            11646,
+            11647,
+            11648
+          ],
+          "component_scope": "Waterbody or managed connectors",
+          "finding": "No selected lake, reservoir, glacier or managed connector is established by the material actually read. Their absence is not independently certified; no waterbody name or hydraulic operation is inferred from model continuity.",
+          "sources": [
+            "r181-inerhi-conade-oas-region1-prose",
+            "r181-gadmea-eloy-alfaro-pdot2014-2022"
+          ],
+          "correspondence": "none_independently_established",
+          "component_correspondence_completed": false,
+          "candidate_name": null
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70870606",
+      "source_keys": [
+        "r181-inegi-cozumel-f1611-2023",
+        "r181-inegi-cancun-f1608-2023",
+        "r181-inegi-tizimin-f1607-2023"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10412
+          ],
+          "component_scope": "Chosen opening and initial northward and westward bends",
+          "finding": "The opening lies by La Esperanza south of Nuevo Xcán. Through Nuevo Xcán, X-Can, Xim-Há and San Andrés, the selected alignment crosses mapped land and road corridors without a corresponding drawn continuous watercourse. No opening river name or subsurface through-link is established.",
+          "sources": [
+            "r181-inegi-cozumel-f1611-2023",
+            "r181-inegi-cancun-f1608-2023"
+          ],
+          "correspondence": "material_gap",
+          "component_correspondence_completed": false,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            10412
+          ],
+          "component_scope": "Interior continuation and approach to northern wetlands",
+          "finding": "The path continues through the San José de Montecristo–Colonia Yucatán–Samaria–Santa María setting. Local waterbodies, roads and vegetation are mapped, but no continuous river follows the chosen inland bends. Their connection to the coastal wetland remains unproved.",
+          "sources": [
+            "r181-inegi-cancun-f1608-2023"
+          ],
+          "correspondence": "material_gap",
+          "component_correspondence_completed": false,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            10412
+          ],
+          "component_scope": "Northern wetland turn and lagoon approach",
+          "finding": "Near El Colorado and Moctezuma the selected route reaches inundation-prone terrain, turns northwest through the Laguna Larga setting, and enters the Laguna Flamingos coastal-waterbody setting. The mapped wetland footprint does not establish a through-going river or the inland connector.",
+          "sources": [
+            "r181-inegi-cancun-f1608-2023"
+          ],
+          "correspondence": "bounded_wetland_and_lagoon_geography_only",
+          "component_correspondence_completed": false,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            10412
+          ],
+          "component_scope": "Coastal estero and actual selected terminal",
+          "finding": "The western selected coastal passage corresponds to the mapped Estero Río Lagartos water-and-wetland corridor across the sheet seam. Salina las Coloradas and connecting roads are separately depicted. The actual endpoint remains inside the estuarine setting east of San Felipe; it is not a demonstrated Gulf-mouth point. The nearby Río Lagartos town label is distinct from the estero label.",
+          "sources": [
+            "r181-inegi-cancun-f1608-2023",
+            "r181-inegi-tizimin-f1607-2023"
+          ],
+          "correspondence": "bounded_coastal_component_supported",
+          "component_correspondence_completed": true,
+          "candidate_name": "Estero Río Lagartos",
+          "candidate_name_role": "Bounded downstream estuarine-waterbody component; not a whole-river or whole-system name"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60861017",
+      "source_keys": [
+        "r181-senamhi-jequetepeque2017",
+        "r181-ingemmet-c36-report",
+        "r181-ingemmet-c36-map5"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13814
+          ],
+          "component_scope": "Eastern selected opening in the Huacraruco corridor, west through the San Juan reach and its downstream junction setting.",
+          "finding": "The original hydrographic line covers the selected eastern opening and westward Huacraruco course, its Pacachal-side junction, San Juan reach and continuation into the Magdalena valley. It separates the southern Paigual/Grande/Asunción branch and northern Chotén/Naranjo tributaries from the selected through-route. The report explicitly describes the Huacraruco–San Juan–Magdalena sequence.",
+          "sources": [
+            "r181-ingemmet-c36-map5",
+            "r181-ingemmet-c36-report"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "name_scope": "Huacraruco and San Juan remain bounded reach names; the selected opening is not asserted to be the report’s ultimate spring or source lagoon."
+        },
+        {
+          "fragments": [
+            13814
+          ],
+          "component_scope": "Magdalena valley through the town of Magdalena to the Chilete junction setting.",
+          "finding": "The inspected map traces the northwestward Magdalena course and connected westward reach, with the Chetillano and Chanta joins, through to Chilete. San Pablo enters from the north and Huertas from the south at the Chilete setting; the selected course continues west.",
+          "sources": [
+            "r181-ingemmet-c36-map5",
+            "r181-ingemmet-c36-report"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "name_scope": "Magdalena is a reach name, with Chilete used downstream of the junction setting; no precise name-transition vertex assigned."
+        },
+        {
+          "fragments": [
+            13814
+          ],
+          "component_scope": "Chilete westward course, Contumazá and San Miguel junctions, broad northern bend and southward turn to Yonán.",
+          "finding": "The original map continuously shows the selected westward Chilete line, the southern Contumazá contribution, and the San Miguel/Puglush receiving junction before the Jequetepeque-labeled reach. The western bend then turns south and west into the Yonán setting. The report’s named river sequence and SENAMHI hydrologic prose support this connected main-river identity.",
+          "sources": [
+            "r181-ingemmet-c36-map5",
+            "r181-ingemmet-c36-report",
+            "r181-senamhi-jequetepeque2017"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "name_scope": "Jequetepeque is the downstream representative name. The map/report use San Miguel for the northern tributary; SENAMHI also uses Puclush in the confluence description."
+        },
+        {
+          "fragments": [
+            13814
+          ],
+          "component_scope": "Selected river corridor from the Yonán/Tembladera approach through the Gallito Ciego reservoir and its western downstream connection.",
+          "finding": "Map5 traces the selected river-valley through-link. C36 printed pages9 and21 place the Gallito Ciego reservoir on the Jequetepeque bed from below Tembladera to Gallito Ciego. SENAMHI Figure3-1 visibly shows the reservoir on the same western valley and printed page22 independently describes its location on the river. Together these distinguish the impounded reach from an uninterrupted natural river segment and establish its upstream and downstream river connections at ordinary corridor scale.",
+          "sources": [
+            "r181-ingemmet-c36-map5",
+            "r181-ingemmet-c36-report",
+            "r181-senamhi-jequetepeque2017"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "name_scope": "Gallito Ciego retains its reservoir identity; Río Jequetepeque is not applied as a scalar replacement for the reservoir.",
+          "managed_connection_limit": "Reservoir/dam-level geography only; no surveyed intake/outlet alignment, current storage, discharge, operating state or present hydraulic performance claimed."
+        },
+        {
+          "fragments": [
+            13814
+          ],
+          "component_scope": "Downstream river valley from Gallito Ciego into the lower coastal plain.",
+          "finding": "The map continues the same hydrographic corridor southwest and west out of the reservoir valley onto the plain. The report identifies the Talambo–Zaña intake downstream of the dam and describes its separate irrigation-channel role. The selected through-line stays in the mapped Jequetepeque river corridor to the lower westward reach rather than following the northern drainage or a different basin.",
+          "sources": [
+            "r181-ingemmet-c36-map5",
+            "r181-ingemmet-c36-report"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "name_scope": "Bounded downstream Jequetepeque river course; no new name assigned to irrigation channels.",
+          "managed_connection_limit": "The intake’s regional setting and river continuation are established; individual gate, canal-bank or operating geometry is outside this finding."
+        },
+        {
+          "fragments": [
+            13814
+          ],
+          "component_scope": "Westward lower river past the San José/Jequetepeque setting to the Pacific outlet.",
+          "finding": "The original map explicitly labels the westward selected watercourse Río Jequetepeque and traces it to the Pacific coastline north of Jequetepeque town and Pacasmayo. The separate Loco de Chamán outlet lies farther north and is not the selected terminal. The modeled sea-end extension is treated as the same ordinary coastal outlet setting, without imposing exact historical shoreline alignment.",
+          "sources": [
+            "r181-ingemmet-c36-map5",
+            "r181-ingemmet-c36-report"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "name_scope": "Río Jequetepeque for the downstream course and terminal."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61551054",
+      "source_keys": [
+        "r181-cfi-arse-ramos2013",
+        "r181-kostadinoff-gregori-raniolo2005",
+        "r181-dilorenzo-anthonioz2019"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14529
+          ],
+          "component_scope": "61551054-headward-and-southern-course",
+          "finding": "The selected opening and eastward southern course have no inspected corridor-scale cartographic match. The regional hydrographic description does not locate the selected feeder or establish its entry into a named canyon.",
+          "sources": [
+            "r181-cfi-arse-ramos2013"
+          ],
+          "correspondence": "material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            14529
+          ],
+          "component_scope": "61551054-northeast-middle-corridor",
+          "finding": "Cullen Leufú and its Mallín Chico tributary are documented in this broader region. Without the report maps, their relationship to this particular northeast-trending selection and its joins cannot be established.",
+          "sources": [
+            "r181-cfi-arse-ramos2013"
+          ],
+          "correspondence": "material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            14529
+          ],
+          "component_scope": "61551054-northern-approach-and-endpoint",
+          "finding": "The independent regional figure places Bajo de Trapalcó south of the Río Negro valley. The archaeological study documents temporary-water and spring settings there. This supports the inland terminal region, but does not trace the selected final approach through the depression or its saline/wetland joins.",
+          "sources": [
+            "r181-kostadinoff-gregori-raniolo2005",
+            "r181-dilorenzo-anthonioz2019"
+          ],
+          "correspondence": "regional_terminal_context_only",
+          "component_correspondence_completed": false
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "INERHI–CONADE/OAS, Plan de Desarrollo Región I: Esmeraldas–Carchi–Imbabura, including chapter 1 and associated maps",
+      "chapter_url": "https://www.oas.org/dsd/publications/unit/oea60s/ch03.htm",
+      "requested_material": "MAPA 1-4. ISOYETAS ANUALES, linked from chapter 1",
+      "observed_outcome": "The sole linked original-map web request returned Internal Error: Failed to fetch the exact p015.JPG URL: Cache miss. No image pixels were returned or inspected.",
+      "outcome_layer": "Completed web-reader fetch/cache availability failure; origin HTTP status unknown and not independently measured.",
+      "restriction_scope": "Whole identified regional-planning publication, companions and equivalent maps, original, catalogue, reader, cache, screenshot, local-download, mirror, format and other acquisition routes remain paused. No retry, alternate route or subsequent publication reading followed.",
+      "earlier_lawful_prose_exception": "Previously read chapter 1 section 1.3.5 hydrographic prose and project identity remain usable only at their actually read regional network scope. No unseen-map correspondence is claimed.",
+      "limitation_kind": "availability_pause",
+      "newly_observed_access_failure": true,
+      "material_effect": "Unavailable map supplied no selected-corridor evidence. Material gaps are recorded separately as one primary source-material-pending status.",
+      "aw_id": "hydro-system:60339076",
+      "official_url": "https://www.oas.org/dsd/publications/unit/oea60s/p015.JPG"
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "source_keys": [
+        "r181-inegi-cozumel-f1611-2023",
+        "r181-inegi-cancun-f1608-2023",
+        "r181-inegi-tizimin-f1607-2023"
+      ],
+      "publication": "The three individually cited INEGI national topographic sheets",
+      "observed_notice": "Each inspected original prints INEGI copyright2024.",
+      "outcome_layer": "Printed publication notice; no acquisition denial.",
+      "restriction_scope": "Originals, crops and orientation overlays remain private; publish only bounded factual observations and ordinary bibliography.",
+      "all_routes_stopped": false,
+      "aw_id": "hydro-system:70870606",
+      "acquisition_stop": false
+    },
+    {
+      "publication": "INGEMMET C36 and companion cartography",
+      "official_url": "https://repositorio.ingemmet.gob.pe/bitstream/20.500.12544/279/490/C036-Boletin-Estudio_geoambiental_cuenca_rios_Jequetepeque_y_Loco_de_Chaman.pdf",
+      "observed_notice": "Printed INGEMMET copyright, reserved rights and prohibition on reproduction.",
+      "outcome_layer": "Publication-use notice in a successfully acquired original; not an access denial.",
+      "creates_material_gap": false,
+      "aw_id": "hydro-system:60861017",
+      "acquisition_stop": false,
+      "restriction_scope": "Only own bounded factual synthesis and normal bibliography are supplied publicly. Original report/maps, crops and orientation aids remain private. No new permission to redistribute original or derivative cartography is asserted."
+    },
+    {
+      "publication": "CFI–ARSE, Informe Final – Ramos (Área2), December2013",
+      "url": "https://www.cohife.org.ar/wp-content/uploads/2024/02/Ficha-73-TextoFinalRamos-Sierra-Colorada.pdf",
+      "observed_outcome": "Complete original PDF contains45 pages and ends with its bibliography. Contents list map appendices on pp.46–55, which are absent from the delivered file.",
+      "limitation_kind": "missing_appendix_content_in_successful_original",
+      "access_denial": false,
+      "publication_wide_access_ban": false,
+      "aw_id": "hydro-system:61551054",
+      "acquisition_stop": false,
+      "restriction_scope": "No absent map is used as evidence. The actually read report prose remains usable within its regional scope. No equivalent-map recovery was attempted."
+    }
+  ]
+}

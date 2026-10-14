@@ -1,0 +1,635 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r219",
+  "sources": [
+    {
+      "source_key": "r219-chs-arc403-2024-retained",
+      "title": "Canadian Sailing Directions, ARC403: Western Arctic",
+      "publisher": "Canadian Hydrographic Service, Fisheries and Oceans Canada",
+      "edition": "2024/03",
+      "catalogue_number": "Fs74-40E-PDF",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/chs-shc-ARC403-eng-202403-41232306.pdf",
+      "evidence_kind": "primary_regional_coastal_prose",
+      "actual_material_read": "Retained complete original textual cover and reproduction notice; Chapter7 printed page7-16 paragraphs224–230; Chapter8 printed pages8-6 and8-7 paragraphs101–120. No new network request, chart original or inland map pixels.",
+      "observation": "The volume describes Sherman Basin and the Kaleet entrance separately from Chantrey Inlet. It identifies the low western Chantrey coast and the islet-and-rock setting of Elliot Bay; Back and Hayes rivers enter the head of the inlet. This establishes regional coastal context only.",
+      "source_independence": "Independently issued CHS sailing-directions publication, using its own prose; not a CGN record, CanMatrix map, CBMT service, NLUIS index, geological output or recovery of held Gjoa/PCSP cartography.",
+      "limits": "Coastal descriptions do not supply the selected inland opening, intervening stream and lake through-links, actual terminal channel or a hydronym for this route. Not current navigation advice.",
+      "use_notice": "Original distinguishes personal noncommercial reproduction from commercial reproduction requiring prior written permission. Public-ready output contains only own bounded factual synthesis and ordinary bibliography; originals and derivatives remain private."
+    },
+    {
+      "source_key": "r219-inuit-land-use1976-v1-unavailable",
+      "title": "Inuit Land Use and Occupancy Project, Volume1: Land Use and Occupancy",
+      "editor": "Milton M. R. Freeman",
+      "publisher": "Indian and Northern Affairs Canada",
+      "edition": "1976; original imprint uninspected",
+      "catalogue_number": "R2-46-1976-1",
+      "official_url": "https://publications.gc.ca/collections/collection_2018/aanc-inac/R2-46-1976-1-eng.pdf",
+      "evidence_kind": "bibliographic_discovery_and_failed_original_acquisition_only",
+      "actual_material_read": "No original report prose, imprint, maps, response body or header-file contents were read. Search snippets are not substantive evidence.",
+      "publication_identity": "The volume is a distinct ethnographic land-use/occupancy research project, with Brice-Bennett East-Central Arctic field work, rather than the held coastal resource inventory or geological/topographic mapping publications.",
+      "observed_outcome": "The sole normal-original request completed direct HTTP200 with Content-Type text/html; charset=utf-8 after redirect to an archived-information page instead of the requested PDF.",
+      "limits": "Whole publication and equivalents paused; no alternate original, catalogue, reader, cache, mirror, figure, format or output reading.",
+      "used_as_substantive_evidence": false
+    },
+    {
+      "source_key": "r219-cehq2011-region10",
+      "title": "Débits spécifiques d’étiage estivaux — Région hydrographique 10",
+      "publisher": "Gouvernement du Québec, Centre d’expertise hydrique du Québec",
+      "year": 2011,
+      "official_url": "https://www.cehq.gouv.qc.ca/debit-etiage/cartes/debit_etiage_10_specifique_estival.pdf",
+      "bibliographic_details": "July2011; cartography Marie-Lise Paquin and Eric Levasseur; approved Joëlle Bérubé. Printed scale1:2,300,000; BDGA1:1,000,000 base; NAD83 Québec Lambert.",
+      "actual_reading": "Physically present complete original reused locally. Readable Bérard/Tasiujaq/Lac aux Feuilles corridor and southern lake-country enlargements, plus legend, scale, cartographic-base and production credits, were visually inspected.",
+      "evidence_kind": "primary_original_regional_thematic_cartography",
+      "supports": "Rivière Bérard as the regional lower-corridor candidate; separate Lac Bérard label, Tasiujaq and receiving Lac aux Feuilles, distinguished from adjacent Compeau/Gerido drainage.",
+      "limits": "The generalized base does not establish every selected upper opening, lake passage, join and branch. Low-flow quantities are not adopted.",
+      "publication_identity": "Independently edited hydrological-statistical map with named cartographers, approval, date, scale and theme, previously successfully acquired. Shared official base data are not represented as a separate hydrographic survey.",
+      "use_notice": "Original and reading aids remain private. Only own factual observations and ordinary bibliography are public-ready."
+    },
+    {
+      "source_key": "r219-rg201304-map",
+      "title": "Géologie de la région de Kuujjuaq et de la baie d’Ungava (SNRC24J,24K), carte RG2013-04-C001",
+      "authors": [
+        "Martin Simard",
+        "Isabelle Lafrance",
+        "Hanafi Hammouche",
+        "Claire Legouix"
+      ],
+      "publisher": "Gouvernement du Québec, Ministère des Ressources naturelles, Direction générale de Géologie Québec",
+      "year": 2013,
+      "official_url": "https://gq.mines.gouv.qc.ca/documents/examine/RG201304/RG201304PLAN.pdf",
+      "bibliographic_details": "BDTA250k cartographic base, GRS80/NAD83, MTU zone19; copyright Gouvernement du Québec, fourth quarter2013.",
+      "actual_reading": "Physically present complete single-page original reused locally. Full map overview, western neatline, readable Tasiujaq terminal enlargement and production/source/copyright credits were visually inspected. No report body was read.",
+      "evidence_kind": "primary_original_geological_cartography",
+      "supports": "Final river approach and Tasiujaq-side Lac aux Feuilles receiving setting, separately depicted from Baie Sèche.",
+      "limits": "Western neatline excludes most selected upper, middle and lower-lake reaches; southern edge also excludes the selected headward opening. The map supplies no whole-route proof.",
+      "publication_identity": "Previously successfully acquired independent provincial geological map, with its own named compilation team and numbered map imprint; no acquisition of stopped CanMatrix, CBMT or naming services.",
+      "use_notice": "Québec copyright and printed statement that the document has no legal effect. No source map, crop or other image derivative is redistributed."
+    },
+    {
+      "source_key": "r219-chs-arc403-kuuk",
+      "title": "Canadian Sailing Directions, ARC403: Western Arctic",
+      "publisher": "Canadian Hydrographic Service, Fisheries and Oceans Canada",
+      "edition": "2024/03",
+      "catalogue_number": "Fs74-40E-PDF",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/chs-shc-ARC403-eng-202403-41232306.pdf",
+      "evidence_kind": "primary_coastal_description_from_complete_retained_original",
+      "actual_material_read": "Physically retained complete245-page original was available. Chapter4 prose on printed pages4-11 to4-12 was read; printed page4-12 (PDFpage76) was visually inspected, particularly paragraphs167–170 and183. No chart original was acquired.",
+      "observed_outcome": "Previously completed lawful original acquisition; this batch reused that surviving original locally. No new external ARC403 request.",
+      "source_independence": "Independently issued CHS sailing-directions volume, previously identified and lawfully acquired. Its own coastal descriptions are distinct from ARC401, CGN naming records, CanMatrix, CBMT3978, NLUIS and held geological or community-plan projects.",
+      "supports": "Kuuk is the expressly named river entering Prince Albert Sound in the selected coastal setting; Kagloryuak is separately identified at the sound’s southeastern corner and is not substituted for this selection.",
+      "limits": "This coastal prose does not trace the selected126.246model-km inland course, identify its initial feeder, or establish its lake passages and every join. The actual selected terminal channel remains unmatched by detailed cartography. This edition is geographic evidence, not current navigation advice.",
+      "use_notice": "The previously inspected original distinguishes non-commercial personal reproduction from commercial reproduction requiring prior written permission. Only bounded own observations and normal bibliography are supplied; no original pages or derivatives are shared."
+    },
+    {
+      "source_key": "r219-fjmc-1987-bibliography",
+      "title": "Fisheries Joint Management Committee, Publications catalogue: Technical Report1987-001 entry",
+      "publisher": "Fisheries Joint Management Committee",
+      "official_url": "https://fjmc.ca/resources/publications/",
+      "evidence_kind": "publisher_bibliography_only",
+      "actual_material_read": "The normal HTML web-reader catalogue was read. It lists Stewart,D.B. and Sparling,P.D., A Biological Assessment of Arctic Charr Stocks in the Kuuk and Kagluk Rivers, Victoria Island,NWT,1987, Report1987-001; it also lists Baker’s1986 Kuuk River fishery report. Neither report original was acquired or read.",
+      "observed_outcome": "Reader catalogue succeeded. A later normal direct HTML acquisition completed HTTP500; the one identical-URL retry also completed HTTP500. Neither direct response body was read.",
+      "source_independence": "Publisher catalogue identifies the1987 FJMC fish-stock assessment, and bibliographic discovery identifies separately contracted Arctic Biological fieldwork. The catalogue is not a substitute for the held Holman2008 plan.",
+      "supports": "Bibliographic identity only; not substantive selected-course evidence.",
+      "limits": "The catalogue contains no selected-course evidence. Further catalogue/equivalent acquisition is paused after the two direct500 outcomes; the intended1987 report was left unrequested.",
+      "used_as_substantive_evidence": false
+    },
+    {
+      "source_key": "r219-hammer2022-unavailable",
+      "title": "Distinct freshwater migratory pathways in Arctic char (Salvelinus alpinus) coincide with separate patterns of marine spatial habitat-use across a large coastal landscape",
+      "authors": "Hammer et al.",
+      "publisher": "Canadian Journal of Fisheries and Aquatic Sciences",
+      "year": 2022,
+      "volume_pages": "79:1447–1464",
+      "doi": "10.1139/cjfas-2021-0291",
+      "official_url": "https://www.sciencedirect.com/org/science/article/pii/S0706652X2200074X",
+      "evidence_kind": "bibliographic_discovery_and_failed_normal_publisher_opening",
+      "actual_material_read": "No original article body, original imprint or map pixels were acquired or read. Search-discovery metadata was used only to identify the publication and its2018–2019 telemetry project.",
+      "observed_outcome": "Sole normal publisher web-reader opening returned Failed to fetch:(403)Forbidden. Origin HTTP was not separately measured.",
+      "source_independence": "Discovery identifies a specific2018–2019 Windsor/DFO acoustic-telemetry project, its licences and fieldwork, rather than a redelivery of the held PCSP2014 report. PCSP logistics support alone is not an agency-wide exclusion.",
+      "supports": null,
+      "limits": "Whole article and equivalent routes stopped. Discovery prose and unseen figures supply no substantive correspondence evidence. No DOI, PDF, mirror or alternate acquisition followed.",
+      "used_as_substantive_evidence": false
+    },
+    {
+      "source_key": "r219-tchilinguirian-olivera2000",
+      "title": "De aguas y tierras: aportes para la reactivación de campos agrícolas arqueológicos en la Puna Argentina",
+      "authors": [
+        "Pablo Tchilinguirian",
+        "Daniel E. Olivera"
+      ],
+      "year": 2000,
+      "publisher": "Relaciones de la Sociedad Argentina de Antropología XXV, Buenos Aires, pp.99–118; institutional copy at SEDICI, Universidad Nacional de La Plata",
+      "official_url": "https://sedici.unlp.edu.ar/bitstream/handle/10915/20249/06-%2BTchilinguirian-%2BOlivera%2BO.pdf?sequence=1",
+      "publication_identity_basis": "Independent Bajo del Coypar archaeological-agriculture reactivation study, using its own topographic work, geomorphological examination, water and sediment sampling and 1999 flow measurements. This is not a geological-sheet or lithium-resource project despite one author's SEGEMAR affiliation.",
+      "acquired_scope": "Complete20-page original completed directHTTP200 application/pdf.",
+      "actual_material_read": "Original title/imprint and study method on printed99–100; visually inspected original Figure1 on printed101; authorial physical-setting and water-resource prose on printed104 and112; selected alluvial and irrigation context. Figure4 extracted text was observed but its map pixels were not inspected or used.",
+      "map_attribution": "Figure1 is presented as the study's basin-floor and sampling-site map; its caption does not identify a held geological or IGN map as the source.",
+      "correspondence_use": "Named middle river corridor, geographic tributary sequence, lagoon approach and distinction between river courses and ancient irrigation channels.",
+      "limitations": "The map is schematic. Its edge-coordinate annotations are internally inconsistent, so they are not used as a reliable georeferencing grid. The named river, settlement, tributary joins and lagoon relationship remain readable. It does not establish the chosen upper feeder or southern continuation.",
+      "use_boundary": "Own bounded factual synthesis and ordinary bibliography only; no source maps, crops or other derivatives redistributed."
+    },
+    {
+      "source_key": "r219-ramsar1865-ris2008",
+      "title": "Ficha Informativa de los Humedales de Ramsar: Lagunas Altoandinas y Puneñas de Catamarca",
+      "authors": [
+        "Nora Beatriz Martínez and technical team, Subsecretaría del Ambiente de Catamarca"
+      ],
+      "publisher": "Secretaría del Agua y del Ambiente, Provincia de Catamarca; Ramsar Sites Information Service, site1865",
+      "document_date": "2008-07-30",
+      "official_url": "https://rsis.ramsar.org/RISapp/files/RISrep/AR1865RIS.pdf",
+      "publication_identity_basis": "Provincial environmental authority's new-site designation inventory, compiled30July2008. Its administrative purpose, date and original authority text distinguish it from the failed Frau2021 synthesis of2010–2020 sampling. Shared conservation collaborators do not make this a recovery of the later study.",
+      "acquired_scope": "Complete14-page original completed directHTTP200 application/pdf.",
+      "actual_material_read": "Original compiler, date and designation purpose; sections7–12 and16–18, plus relevant wetland mentions and bibliography. No map pixels were present in the inspected14-page text publication.",
+      "correspondence_use": "Bounded regional identification of Carachi Pampa lagoon/salar and the endorheic-basin setting only.",
+      "limitations": "Section7 refers to separately supplied mapping, but this acquired document contains no usable selected-route map. No companion acquisition was attempted. The absence is a content gap, not an access denial. Boundary coordinates, borrowed geological references and ecological counts are not used to infer the missing selected channel.",
+      "use_boundary": "Own factual observations and ordinary bibliography only; personal contact details, full boundary coordinates and source material are not redistributed."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:80071292",
+      "source_keys": [
+        "r219-chs-arc403-2024-retained"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2522
+          ],
+          "component_scope": "Chosen southern opening and first northward segment, including the first joins.",
+          "finding": "No acquired primary source establishes this selected component and its through-links at ordinary corridor scale.",
+          "sources": [],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2522
+          ],
+          "component_scope": "Upper northeasterly continuation and intermediate part joins.",
+          "finding": "No acquired primary source establishes this selected component and its through-links at ordinary corridor scale.",
+          "sources": [],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2522
+          ],
+          "component_scope": "Central continuation, all joins and any lake or wetland passages required by these selected parts.",
+          "finding": "No acquired primary source establishes this selected component and its through-links at ordinary corridor scale.",
+          "sources": [],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2522
+          ],
+          "component_scope": "Lower northward continuation and successive turns, including all intervening joins.",
+          "finding": "No acquired primary source establishes this selected component and its through-links at ordinary corridor scale.",
+          "sources": [],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2522
+          ],
+          "component_scope": "Final northeastern approach and actual selected coastal terminal.",
+          "finding": "ARC403 supplies only regional coastal context; it does not identify the exact selected arriving river or establish the last approach through to the actual terminal.",
+          "sources": [
+            "r219-chs-arc403-2024-retained"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70016501",
+      "source_keys": [
+        "r219-cehq2011-region10",
+        "r219-rg201304-map"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8957
+          ],
+          "component_scope": "headward_opening_and_first_passages",
+          "finding": "The selected southern opening and its first northeastward passages lie in the lake-and-stream country south of the main northward Bérard corridor. CEHQ depicts regional drainage but does not distinguish the chosen initial feeder and every intervening waterbody connection. RG2013-04 does not cover this opening. No source-lake name is assigned.",
+          "sources": [
+            "r219-cehq2011-region10",
+            "r219-rg201304-map"
+          ],
+          "correspondence": "material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            8957
+          ],
+          "component_scope": "upper_westward_bend_and_joins",
+          "finding": "The selected upper route makes a westward bend before turning north. The regional CEHQ map does not establish the chosen bend and all its waterbody entries, exits and joins. The detailed RG111 project material was not successfully obtained and supplies no evidence.",
+          "sources": [
+            "r219-cehq2011-region10"
+          ],
+          "correspondence": "material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            8957
+          ],
+          "component_scope": "middle_northward_lake_stream_chain",
+          "finding": "CEHQ shows the long northward river-and-lake corridor west of the separately labelled Lac Gerido and Compeau drainage. That regional setting supports the Bérard candidate but does not identify each selected middle lake or demonstrate every inter-lake connector and branch. The retained RG2013-04 map lies east of almost all this interval.",
+          "sources": [
+            "r219-cehq2011-region10",
+            "r219-rg201304-map"
+          ],
+          "correspondence": "partial_regional_context_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            8957
+          ],
+          "component_scope": "approach_to_berard_lake_setting",
+          "finding": "The regional map distinguishes Lac Bérard and its north–south lake setting south of Tasiujaq. The source does not resolve the entire chosen southern approach or prove each selected lake-arm passage. The lake label is not extended to neighboring unnamed waters.",
+          "sources": [
+            "r219-cehq2011-region10"
+          ],
+          "correspondence": "partial_lake_setting_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            8957
+          ],
+          "component_scope": "lower_lake_and_river_outlet",
+          "finding": "CEHQ labels Lac Bérard and Rivière Bérard along the lower corridor leading toward Tasiujaq. Their ordinary regional arrangement agrees with the selected lower route, but the available cartography does not resolve all selected lake-to-channel and tributary joins before the eastern map edge is crossed.",
+          "sources": [
+            "r219-cehq2011-region10",
+            "r219-rg201304-map"
+          ],
+          "correspondence": "partial_named_corridor_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            8957
+          ],
+          "component_scope": "terminal_approach_and_actual_terminal",
+          "finding": "RG2013-04 depicts the final winding approach entering the southwestern Lac aux Feuilles shore beside Tasiujaq. CEHQ independently labels the Bérard river and the same receiving lake and settlement. The selected terminal belongs to this Tasiujaq-side inlet, distinct from Baie Sèche to the east. This is ordinary historical corridor correspondence, with no exact mouth vertex, bank or contemporary tidal limit assigned.",
+          "sources": [
+            "r219-cehq2011-region10",
+            "r219-rg201304-map"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80031039",
+      "source_keys": [
+        "r219-chs-arc403-kuuk"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2323
+          ],
+          "component_scope": "Chosen northeastern opening and initial southward feeder",
+          "finding": "The selected beginning and its first westward join have no actually inspected independent detailed source correspondence. A named coastward river cannot identify this initial feeder by itself.",
+          "sources": [],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2323
+          ],
+          "component_scope": "Upper westward inland sequence and successive joins",
+          "finding": "All selected upper parts were considered. No permitted original map was read that follows these successive inland reaches, their lake or wetland interruptions, and their joining order.",
+          "sources": [],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2323
+          ],
+          "component_scope": "Middle southwest-turning approach",
+          "finding": "The approach toward the central lake-country reach remains unmatched. Neither a general river name nor fisheries-report bibliographic title establishes this through-link.",
+          "sources": [],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2323
+          ],
+          "component_scope": "Central long westward reach, lake-country passage and southwest connector",
+          "finding": "The chosen long crossing and southwest continuation lack read map or field prose establishing the selected lake entry, internal passage and actual outlet. Tahiryuak/Tahiryuaq was only a bibliographic-discovery lead and is not accepted as a mapped passage identity.",
+          "sources": [],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2323
+          ],
+          "component_scope": "Southward transition below the central connector",
+          "finding": "The selected southward transition and its downstream join lack ordinary-scale primary-source correspondence.",
+          "sources": [],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2323
+          ],
+          "component_scope": "Lower southwestern river and tributary joins",
+          "finding": "ARC403 identifies Kuuk at the coast in this region. Its coastal description does not trace these inland lower-river parts or all of their intervening joins, so these parts remain material-pending.",
+          "sources": [
+            "r219-chs-arc403-kuuk"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2323
+          ],
+          "component_scope": "Actual selected coastward terminal",
+          "finding": "ARC403 printed page4-12, paragraph168 explicitly names Kuuk entering Prince Albert Sound in the selected coastal setting and notes alluvial deposition off the mouth. This supplies a bounded named-mouth candidate, but no read detailed map matches the final selected channel and its continuation to the actual selected endpoint. Exact bank or current-flow proof is not being required.",
+          "sources": [
+            "r219-chs-arc403-kuuk"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61400064",
+      "source_keys": [
+        "r219-tchilinguirian-olivera2000",
+        "r219-ramsar1865-ris2008"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13984
+          ],
+          "component_scope": "Chosen northeastern opening, northern arc and initial southwestern turn",
+          "finding": "The read study does not depict the chosen upper feeder with enough geographic detail to connect it to the named town-side river. Its general headwater description does not identify this particular opening.",
+          "sources": [
+            "r219-tchilinguirian-olivera2000"
+          ],
+          "correspondence": "chosen_opening_and_upper_joins_unestablished",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            13984
+          ],
+          "component_scope": "Long southwestern upper approach",
+          "finding": "The schematic basin map names the Punilla trunk but does not establish every selected upper connection or its joining feeder. No unsupported upper-reach name is assigned.",
+          "sources": [
+            "r219-tchilinguirian-olivera2000"
+          ],
+          "correspondence": "upper_to_middle_through_link_unestablished",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            13984
+          ],
+          "component_scope": "Entry into the north–south town-side corridor",
+          "finding": "The source shows a named Punilla course approaching the town from the north, but its connection back through the selected northeastern approach is not resolved.",
+          "sources": [
+            "r219-tchilinguirian-olivera2000"
+          ],
+          "correspondence": "partial_named_corridor_correspondence",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            13984
+          ],
+          "component_scope": "Punilla town-side reach, tributary junction corridor and lagoon approach",
+          "finding": "Figure 1 depicts the north–south Punilla trunk, the Mirihuaca join farther north, and Los Colorados and Las Pitas joining near Antofagasta de la Sierra before the river approaches the lagoon group. The selected middle corridor follows this ordinary geographic sequence. Ancient irrigation channels are separately symbolized and are not substituted for the river.",
+          "sources": [
+            "r219-tchilinguirian-olivera2000"
+          ],
+          "correspondence": "ordinary_named_reach_and_join_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            13984
+          ],
+          "component_scope": "Lagoon-group entry and selected continuation",
+          "finding": "The study describes and depicts Punilla reaching the Lagunas de Antofagasta. Its schematic branches and lagoon symbols do not establish which individual basin the selected line traverses or an onward exit to the south.",
+          "sources": [
+            "r219-tchilinguirian-olivera2000"
+          ],
+          "correspondence": "lagoon_approach_supported_selected_through_passage_unestablished",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            13984
+          ],
+          "component_scope": "Southward continuation beyond the Antofagasta lagoon setting",
+          "finding": "No inspected source shows the selected through-channel from the lagoon group into this southern interval. Regional descriptions of closed basins are insufficient to establish an inter-basin river passage.",
+          "sources": [
+            "r219-tchilinguirian-olivera2000",
+            "r219-ramsar1865-ris2008"
+          ],
+          "correspondence": "material_lagoon_to_southern_corridor_gap",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            13984
+          ],
+          "component_scope": "Southern alluvial and saltflat approach",
+          "finding": "The official inventory establishes a regional landscape of separate closed basins, saltflats and lagoons including Carachi Pampa. It supplies no selected-channel cartography or authorial connection for this interval.",
+          "sources": [
+            "r219-ramsar1865-ris2008"
+          ],
+          "correspondence": "southern_alluvial_through_links_unestablished",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            13984
+          ],
+          "component_scope": "Final approach and actual southern endpoint",
+          "finding": "Carachi Pampa is a supported regional lagoon and salar name. The inspected inventory does not locate the exact selected receiving feature or demonstrate its connection to the upstream selection. It is therefore not accepted as the terminal identification.",
+          "sources": [
+            "r219-ramsar1865-ris2008"
+          ],
+          "correspondence": "actual_terminal_and_last_connector_unestablished",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "Inuit Land Use and Occupancy Project, Volume1: Land Use and Occupancy (1976), R2-46-1976-1; original imprint uninspected",
+      "official_url": "https://publications.gc.ca/collections/collection_2018/aanc-inac/R2-46-1976-1-eng.pdf",
+      "observed_outcome": "Sole normal-original acquisition completed direct HTTP200 with Content-Type text/html; charset=utf-8 after redirection to an archived-information page. No body, original prose, imprint or map read.",
+      "outcome_layer": "Completed direct-client HTTP response and wrong-content availability outcome; no access-control denial asserted.",
+      "restriction_scope": "Whole identified volume and equivalent acquisition/output-reading routes paused. No new request, alternate format, mirror, reproduced map or unseen-output reading.",
+      "earlier_lawful_prose_exception": null,
+      "availability_failure": true,
+      "newly_observed_access_failure": false,
+      "explicit_access_denial": false,
+      "acquisition_performed": true,
+      "aw_id": "hydro-system:80071292"
+    },
+    {
+      "publication": "Mainguy, J., and Beaupré, L. (2019). Establishment of a reference state for the Arctic charr population of the Bérard River in Tasiujaq. Ministère des Forêts, de la Faune et des Parcs; ISBN978-2-550-84320-7. Original imprint uninspected.",
+      "official_url": "https://mffp.gouv.qc.ca/documents/wildlife/arctic_charr_report_Tasiujaq_2017.pdf",
+      "observed_outcome": "First normal-original request completed direct HTTP502 with Content-Type text/html. After actual termination, the one identical exact-URL retry also completed direct HTTP502 with Content-Type text/html. No response body, original report text, imprint or maps were read.",
+      "outcome_layer": "Completed direct HTTP-client availability responses on both requests; not an access-control denial.",
+      "restriction_scope": "Whole identified report, equivalent translated versions, maps/figures and all original, catalogue, reader, cache, mirror and alternate-format acquisition routes paused after exhausted bounded same-route retry.",
+      "earlier_lawful_observations": null,
+      "newly_observed_access_failure": false,
+      "availability_failure": true,
+      "material_gap": true,
+      "aw_id": "hydro-system:70016501"
+    },
+    {
+      "publication": "Jean Bérard (1965), Région du lac Bérard, Nouveau-Québec, RG111; original imprint uninspected.",
+      "official_url": "https://gq.mines.gouv.qc.ca/documents/examine/RG111/RG111.pdf",
+      "observed_outcome": "The sole normal-original acquisition returned HTTP200 application/pdf but terminated with an incomplete client transfer at its timeout. No report body, original imprint, companion map or partial output was read.",
+      "outcome_layer": "Successful HTTP response followed by incomplete original-client transfer timeout; not an access-control denial or a pure connection timeout.",
+      "restriction_scope": "Whole RG111 report, companion maps, translated RG111(A), related 1956–1958 Garigue/Bérard/Lac-aux-Feuilles preliminary field-project outputs and equivalent original, catalogue, reader, cache, screenshot, mirror and alternate-format acquisition or output-reading routes paused. No retry or alternate route.",
+      "earlier_lawful_observations": null,
+      "newly_observed_access_failure": false,
+      "availability_failure": true,
+      "material_gap": true,
+      "aw_id": "hydro-system:70016501"
+    },
+    {
+      "publication": "Fisheries Joint Management Committee, Publications catalogue; intended Technical Report1987-001 link extraction",
+      "official_url": "https://fjmc.ca/resources/publications/",
+      "observed_outcome": "Normal web-reader catalogue opened and its bibliographic entries were read. The subsequent normal direct HTML acquisition completed HTTP500 with text/html; charset=UTF-8. After actual termination, one identical-URL same-route retry also completed HTTP500 with text/html; charset=UTF-8. Neither direct response body was read. The intended1987 report original was not requested.",
+      "outcome_layer": "Two completed direct HTTP500 responses after an earlier successful catalogue-reader response; not an access-control denial.",
+      "restriction_scope": "Catalogue publication and equivalent catalogue acquisition/output-reading routes paused. Intended1987 original retrieval was conservatively left unrequested after the route failed. This is not a denial of all FJMC reports and is not an observed failure of Report1987-001 itself.",
+      "earlier_lawful_prose_exception": "Only the already-read catalogue bibliography for the Kuuk/Kagluk field-study reports.",
+      "newly_observed_access_failure": true,
+      "explicit_access_denial": false,
+      "availability_failure": true,
+      "aw_id": "hydro-system:80031039"
+    },
+    {
+      "publication": "Hammer et al.(2022), Distinct freshwater migratory pathways in Arctic char (Salvelinus alpinus) coincide with separate patterns of marine spatial habitat-use across a large coastal landscape, CJFAS79:1447–1464; DOI10.1139/cjfas-2021-0291",
+      "official_url": "https://www.sciencedirect.com/org/science/article/pii/S0706652X2200074X",
+      "observed_outcome": "Sole normal publisher web-reader opening returned Failed to fetch:(403)Forbidden. No article body, map or original imprint was acquired or read.",
+      "outcome_layer": "Explicit web-reader reported403; no separately measured origin HTTP response.",
+      "restriction_scope": "Whole identified article/project-equivalent original, publisher/DOI, figure, PDF, reader/cache/mirror and alternate-format acquisition and unread-output reading stopped. No alternate route followed.",
+      "earlier_lawful_prose_exception": null,
+      "newly_observed_access_failure": true,
+      "explicit_access_denial": true,
+      "aw_id": "hydro-system:80031039"
+    },
+    {
+      "publication": "Frau, Moran, Arengo, Marconi, Battauz, Mora, Manzo, Mayora and Boutt(2021), Hydroclimatological Patterns and Limnological Characteristics of Unique Wetland Systems on the Argentine High Andean Plateau. Hydrology8(4):164, DOI10.3390/hydrology8040164.",
+      "official_url": "https://ri.conicet.gov.ar/bitstream/handle/11336/183057/CONICET_Digital_Nro.bf1cef2a-eab0-4549-af08-f6a095de5294_A.pdf?isAllowed=y&sequence=2",
+      "observed_outcome": "The first normal-original request completed directHTTP502 text/html. After actual termination, one identical exact-URL retry also completed directHTTP502 text/html. No response body, report prose, original imprint or map was read.",
+      "outcome_layer": "Two completed direct HTTP-client availability responses; no authentication or access-control denial observed.",
+      "restriction_scope": "Whole exact article and equivalent original, publisher, repository, reader, cache, mirror, figure, alternate-format and unread-output routes paused. No substitute copy requested.",
+      "earlier_lawful_prose_exception": null,
+      "newly_observed_access_failure": true,
+      "explicit_access_denial": false,
+      "aw_id": "hydro-system:61400064"
+    },
+    {
+      "publication": "Aschero, Carlos Alberto, and Hocsman, Salomón(2011), Arqueología de las ocupaciones cazadoras-recolectoras de fines del Holoceno Medio de Antofagasta de la Sierra (Puna Meridional Argentina). Chungara43, Número Especial1:393–411.",
+      "official_url": "https://chungara.cl/Vols/2011/Vol43-e1/Arqueologia_de_las_Ocupaciones_Cazadoras_Recolectoras.pdf",
+      "observed_outcome": "The first normal-original request completed directHTTP502 text/html. After actual termination, one identical exact-URL retry also completed directHTTP502 text/html. No response body, article text, original imprint or figure was read.",
+      "outcome_layer": "Two completed direct HTTP-client availability responses; no authentication or access-control denial observed.",
+      "restriction_scope": "Whole exact article and equivalent publisher, repository, original, reader, cache, mirror, figure, alternate-format and unread-output routes paused. No alternative acquisition followed.",
+      "earlier_lawful_prose_exception": null,
+      "newly_observed_access_failure": true,
+      "explicit_access_denial": false,
+      "aw_id": "hydro-system:61400064"
+    },
+    {
+      "publication": "Martinez, María Soledad, and Zamora, Diego(2021), Arqueología republicana en Antofagasta de la Sierra, puna de Atacama: un abordaje desde los espacios internodales y espacios domésticos. Estudios Atacameños67:e4214, DOI10.22199/issn.0718-1043-2021-0014.",
+      "official_url": "https://www.scielo.cl/pdf/eatacam/v67/0718-1043-eatacam-67-14.pdf",
+      "observed_outcome": "The sole normal-original request completed directHTTP403 with text/html; charset=UTF-8. No response body, article prose, original imprint or map was read.",
+      "outcome_layer": "Completed direct HTTP-client403 response; origin-versus-intermediary attribution not independently established.",
+      "restriction_scope": "Whole exact article and equivalent publisher, repository, original, reader, cache, mirror, figure, alternate-format and unread-output routes stopped. No retry or alternative acquisition followed.",
+      "earlier_lawful_prose_exception": null,
+      "newly_observed_access_failure": true,
+      "explicit_access_denial": true,
+      "aw_id": "hydro-system:61400064"
+    }
+  ],
+  "additional_source_use_notices": []
+}

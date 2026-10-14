@@ -1,0 +1,815 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r166",
+  "sources": [
+    {
+      "source_key": "r166-usgs-topo-texas-south",
+      "title": "USGSTopo, The National Map: southeastern Presidio County opening and southern Wild Horse Creek corridor",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_type": "Independently maintained seamless multiscale reference cartography; not a numbered USGS report or a reproduction of a stopped report plate.",
+      "acquired_date_utc": "2026-10-12",
+      "actual_acquisition": "One bounded original image completed HTTP200 with image/png; original pixels were visually inspected only after terminal completion.",
+      "actual_read_scope": "Full original image, separate selected-path orientation and enlarged opening/approach context; all selected parts0–23 within this coverage.",
+      "edition_and_epoch": "Service metadata describes current National Map and other public-domain datasets and records data refreshed September4,2026-v1.2; this is not asserted as a survey date for each mapped feature.",
+      "limits": "Ordinary corridor cartography only. Current flow, exact banks, small-water passage, field-drain operation and formal registry status are not established. Geographic coverage does not resolve the recorded selected through-link gaps.",
+      "use_notice": "Source credit lists USGS/The National Map and contributing public datasets. Original images, crops, orientation derivatives and acquisition details remain private. Only own factual synthesis and ordinary bibliography are public-ready."
+    },
+    {
+      "source_key": "r166-usgs-topo-texas-midwest",
+      "title": "USGSTopo, The National Map: Wild Horse Creek, Chispa Mountain and Lobo Valley corridor",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_type": "Independently maintained seamless multiscale reference cartography; not a numbered USGS report or a reproduction of a stopped report plate.",
+      "acquired_date_utc": "2026-10-12",
+      "actual_acquisition": "One bounded original image completed HTTP200 with image/png; original pixels were visually inspected only after terminal completion.",
+      "actual_read_scope": "Full original image, separate selected-path orientation and enlarged original Lobo field-drain details; overlap from the southern creek through northern Lobo Valley.",
+      "edition_and_epoch": "Service metadata describes current National Map and other public-domain datasets and records data refreshed September4,2026-v1.2; this is not asserted as a survey date for each mapped feature.",
+      "limits": "Ordinary corridor cartography only. Current flow, exact banks, small-water passage, field-drain operation and formal registry status are not established. Geographic coverage does not resolve the recorded selected through-link gaps.",
+      "use_notice": "Source credit lists USGS/The National Map and contributing public datasets. Original images, crops, orientation derivatives and acquisition details remain private. Only own factual synthesis and ordinary bibliography are public-ready."
+    },
+    {
+      "source_key": "r166-usgs-topo-texas-northeast",
+      "title": "USGSTopo, The National Map: northern Lobo Valley, Van Horn and northward Wild Horse Creek corridor",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_type": "Independently maintained seamless multiscale reference cartography; not a numbered USGS report or a reproduction of a stopped report plate.",
+      "acquired_date_utc": "2026-10-12",
+      "actual_acquisition": "One bounded original image completed HTTP200 with image/png; original pixels were visually inspected only after terminal completion.",
+      "actual_read_scope": "Full original image and separate orientation; northern Lobo continuation, all Van Horn/I10 bends and northward creek reaches.",
+      "edition_and_epoch": "Service metadata describes current National Map and other public-domain datasets and records data refreshed September4,2026-v1.2; this is not asserted as a survey date for each mapped feature.",
+      "limits": "Ordinary corridor cartography only. Current flow, exact banks, small-water passage, field-drain operation and formal registry status are not established. Geographic coverage does not resolve the recorded selected through-link gaps.",
+      "use_notice": "Source credit lists USGS/The National Map and contributing public datasets. Original images, crops, orientation derivatives and acquisition details remain private. Only own factual synthesis and ordinary bibliography are public-ready."
+    },
+    {
+      "source_key": "r166-usgs-topo-texas-terminal",
+      "title": "USGSTopo, The National Map: northern Wild Horse Creek/Draw, intervening plain and Salt Basin terminal playa",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_type": "Independently maintained seamless multiscale reference cartography; not a numbered USGS report or a reproduction of a stopped report plate.",
+      "acquired_date_utc": "2026-10-12",
+      "actual_acquisition": "One bounded original image completed HTTP200 with image/png; original pixels were visually inspected only after terminal completion.",
+      "actual_read_scope": "Full original image, separate orientation and enlarged original terminal playa; northern creek/draw end, complete cross-plain extension and actual final endpoint.",
+      "edition_and_epoch": "Service metadata describes current National Map and other public-domain datasets and records data refreshed September4,2026-v1.2; this is not asserted as a survey date for each mapped feature.",
+      "limits": "Ordinary corridor cartography only. Current flow, exact banks, small-water passage, field-drain operation and formal registry status are not established. Geographic coverage does not resolve the recorded selected through-link gaps.",
+      "use_notice": "Source credit lists USGS/The National Map and contributing public datasets. Original images, crops, orientation derivatives and acquisition details remain private. Only own factual synthesis and ordinary bibliography are public-ready."
+    },
+    {
+      "source_key": "r166-mma-lluta-hydro",
+      "title": "SIMBIO_HIDROGRAFIA — Red Hidrografica, layer 0",
+      "publisher": "Ministerio del Medio Ambiente, Chile",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HIDROGRAFIA/MapServer",
+      "edition": "Undated active cartographic publication; bounded originals read 12 October 2026.",
+      "source_type": "Official hydrographic map and bounded vector cartography",
+      "publication_identity_basis": "Previously recorded independently used MMA hydrographic publication, distinct from the paused MOP map portal, DGA/Loa reports and other exact restricted works.",
+      "actual_originals_inspected": "Successful layer metadata; original overview map image; bounded source feature cartography with direct hydrographic attributes, inspected in overlapping upper, middle, lower and terminal corridor views.",
+      "supports": "Mapped Caracarani reach and Lluta receiving course; ordinary-scale joins across the upper bends, middle canyon and lower valley.",
+      "limits": "No full initial selected connection, usable current Chironta managed-crossing depiction, or complete selected southern coastal ending. Successful source coverage limits do not create a service access stop.",
+      "use_notice": "Metadata description and copyright fields blank. No unrestricted redistribution inferred; original cartography and derivatives remain private."
+    },
+    {
+      "source_key": "r166-igm-lluta-hydrocourses",
+      "title": "SIIE_v3 Quebradas ríos — Hidrocursos_naturales, layer 40",
+      "publisher": "Instituto Geográfico Militar, Chile",
+      "official_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Quebradas_r%C3%ADos/MapServer",
+      "edition": "Undated active natural-watercourse publication; bounded originals read 12 October 2026.",
+      "source_type": "Official bounded vector watercourse cartography",
+      "publication_identity_basis": "The exact public natural-watercourse service is affirmatively distinguished in prior lawful records from the stopped IGM250K sign-in folder. No restricted IGM sheet was acquired.",
+      "actual_originals_inspected": "Successful layer metadata and bounded original source features with nombre, tipo and escala attributes; original lines examined in private geographic views, including enlarged headward and actual terminal settings.",
+      "supports": "Direct Rio Lluta and Q. Caracarani attributes and their mapped course relationships.",
+      "limits": "Its lines closely resemble the MMA hydrography, so these are not asserted to be independent surveys. It confirms the head/terminal source gaps rather than resolving them. The escala attribute is Local/Regional, not an established numeric survey scale.",
+      "use_notice": "Metadata copyright field blank. No redistribution permission inferred; original features and private derivatives remain private."
+    },
+    {
+      "source_key": "r166-humboldti-lluta-mouth",
+      "title": "Proyecto Levantamiento de Información de Biodiversidad para Sitios Prioritarios I Región de Tarapacá, Volumen Desembocadura del Río Lluta, Informe Final; internal title Sector Desembocadura Río Lluta, Sitio Prioritario de Conservación para la Biodiversidad",
+      "publisher": "Consultora Humboldti Ltda.; funded by Gobierno Regional de Tarapacá, FNDR, BIP30064517; copy filed by Ministerio del Medio Ambiente",
+      "official_url": "https://expedientes.mma.gob.cl/storage/2025/05/19/expedientes/pdf/doc_6_20250519205939.pdf",
+      "edition": "Undated subpublication in a 2025-filed regional expediente compilation. The map frames identify SPOTMaps2007; no unsupported report year is assigned.",
+      "source_type": "Independent site-specific biodiversity baseline and conservation plan",
+      "publication_identity_basis": "Actual subpublication cover identifies the separate FNDR biodiversity project and Humboldti consultancy. This is a site-conservation field study, not a copy of a stopped DGA/Loa atlas or MOP portal map.",
+      "actual_originals_inspected": "Subpublication cover at PDF page102; contents/identity and relevant prose; Figure2.1.1-1 at PDF139/printed37, Figure2.1.1-2 at PDF140/printed38, Figure2.1.1-3 at PDF143/printed41, and Figure3.7.4-1 at PDF219/printed117.",
+      "supports": "Original maps identify the Lluta mouth, coastal lagoons and Pacific shore. Relevant prose describes variable mouth/lagoon form.",
+      "limits": "The maps do not trace the complete selected southward terminal passage. Unrelated works in the compilation are not substantive evidence or clearance for any restricted embedded source.",
+      "use_notice": "No specific reproduction or distribution restriction was located within the target subpublication. No broad redistribution permission inferred; source PDF, figures and reading aids remain private."
+    },
+    {
+      "source_key": "r166-mop-chironta-inauguration-2023",
+      "title": "Gobierno inaugura embalse Chironta en Arica que mejorará la capacidad de riego de cerca de 2.900 hectáreas de cultivos",
+      "publisher": "Ministerio de Obras Públicas, Chile",
+      "official_url": "https://www.mop.gob.cl/gobierno-inaugura-embalse-chironta-en-arica-que-mejorara-la-capacidad-de-riego-de-cerca-de-2-900-hectareas-de-cultivos/",
+      "edition": "13 April2023",
+      "source_type": "Primary inauguration-event report",
+      "publication_identity_basis": "A separately issued report of the completed reservoir inauguration and operation, not the unavailable2018 tunnel-construction report or a MOP cartographic-portal resource.",
+      "actual_originals_inspected": "Successfully opened article body, including the inauguration, operating-reservoir and downstream wetland-supply paragraphs.",
+      "supports": "Chironta is a completed reservoir in the Lluta setting, with regulated storage/distribution and provision for downstream wetland water supply.",
+      "limits": "No georeferenced reservoir extent, selected dam crossing or exact outlet-transfer map is supplied. Published2023 operating statements are not a current water-level measurement.",
+      "use_notice": "Only bounded own factual synthesis and normal bibliography used."
+    },
+    {
+      "source_key": "r166-usgstopo-mermentau-upper",
+      "title": "The National Map, USGSTopo: Ville Platte–Mamou–Eunice upper bayou corridor",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "bibliography": "U.S. Geological Survey. The National Map, USGSTopo multiscale topographic reference map. Ville Platte–Mamou–Eunice upper bayou corridor. Accessed 12 October 2026.",
+      "material_read": "Original broad map and readable original crops showing Coulee de Manuel, the southwestward bayou corridor, intermediate bayou/gully joins, Eunice and the upper approach toward Iota.",
+      "access_status": "Original bounded map acquisition completed HTTP 200; original map pixels visually inspected. Private orientation aids were used separately."
+    },
+    {
+      "source_key": "r166-usgstopo-mermentau-head",
+      "title": "The National Map, USGSTopo: Ville Platte actual selected opening and Coulee de Manuel detailed view",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "bibliography": "U.S. Geological Survey. The National Map, USGSTopo multiscale topographic reference map. Ville Platte actual selected opening and Coulee de Manuel detailed view. Accessed 12 October 2026.",
+      "material_read": "Original detailed map showing Mattie Lane, Tate Cove Road, Nornet Street, Coulee de Manuel and the southward continuation beside Ville Platte. The selected opening-to-coulee landward separation was inspected directly.",
+      "access_status": "Original bounded map acquisition completed HTTP 200; original map pixels visually inspected. Private orientation aids were used separately."
+    },
+    {
+      "source_key": "r166-usgstopo-mermentau-middle",
+      "title": "The National Map, USGSTopo: Iota–Evangeline–Mermentau middle corridor",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "bibliography": "U.S. Geological Survey. The National Map, USGSTopo multiscale topographic reference map. Iota–Evangeline–Mermentau middle corridor. Accessed 12 October 2026.",
+      "material_read": "Original map and readable original crops showing the receiving bayou, Bayou des Cannes, eastern and western major joins, Mermentau channel and continuation toward Lake Arthur.",
+      "access_status": "Original bounded map acquisition completed HTTP 200; original map pixels visually inspected. Private orientation aids were used separately."
+    },
+    {
+      "source_key": "r166-usgstopo-mermentau-lakes",
+      "title": "The National Map, USGSTopo: Lake Arthur, Mermentau connector and northern Grand Lake",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "bibliography": "U.S. Geological Survey. The National Map, USGSTopo multiscale topographic reference map. Lake Arthur, Mermentau connector and northern Grand Lake. Accessed 12 October 2026.",
+      "material_read": "Original map and readable original crops showing Lake Arthur entry and open-water passage, southern narrows, Mermentau connector, Intracoastal Waterway crossing and northern Grand Lake.",
+      "access_status": "Original bounded map acquisition completed HTTP 200; original map pixels visually inspected. Private orientation aids were used separately."
+    },
+    {
+      "source_key": "r166-usgstopo-mermentau-lower",
+      "title": "The National Map, USGSTopo: Grand Lake outlet, Grand Chenier and coastal-terminal setting",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "bibliography": "U.S. Geological Survey. The National Map, USGSTopo multiscale topographic reference map. Grand Lake outlet, Grand Chenier and coastal-terminal setting. Accessed 12 October 2026.",
+      "material_read": "Original map and readable original crops showing Grand Lake, its southwestern outlet, lower Mermentau and navigational channel, tributary entries, Kings Bayou/Hog Bayou setting and coastal land strip.",
+      "access_status": "Original bounded map acquisition completed HTTP 200; original map pixels visually inspected. Private orientation aids were used separately."
+    },
+    {
+      "source_key": "r166-usgstopo-mermentau-terminal",
+      "title": "The National Map, USGSTopo: Kings Bayou, Hog Bayou and actual gulf terminal detailed view",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "bibliography": "U.S. Geological Survey. The National Map, USGSTopo multiscale topographic reference map. Kings Bayou, Hog Bayou and actual gulf terminal detailed view. Accessed 12 October 2026.",
+      "material_read": "Original detailed map showing the navigational channel, its connection into the Kings Bayou waterbody, Hog Bayou, Hackberry Beach and the intervening land strip along the selected final segment.",
+      "access_status": "Original bounded map acquisition completed HTTP 200; original map pixels visually inspected. Private orientation aids were used separately."
+    },
+    {
+      "source_key": "r166-chm-raster-catalogue",
+      "title": "Cartas Raster",
+      "publisher": "Marinha do Brasil, Centro de Hidrografia da Marinha / Diretoria de Hidrografia e Navegação",
+      "actually_inspected": "Successful original catalogue HTML and cached find results; no nautical-chart original or map pixels.",
+      "bounded_observations": [
+        "Lists chart4351, Da Ilha do Siriri à Breves, with BSB and GeoTIFF links, file date03March2026 and Aviso2026-9.",
+        "Lists standalone charts4352, De Breves ao Furo do Tajapuru, and4353, Da Ilha do Meio à Ilha Macujubim; their originals were not requested."
+      ],
+      "evidence_scope": "Bibliography and source-use context only; not selected-route, channel, joining or terminal evidence.",
+      "independence": "Separately issued hydrographic charts, identified through their own official chart catalogue and CHM publication notice; not a copy of the IBGE municipality map or an equivalent of the failed Navy news article.",
+      "use_notice": "CHM reserves chart copyright, restricts commercial reproduction/compilation/derivation and requires authorization for commercial adoption. GeoTIFFs are offered for academic purposes and expressly barred as navigational aids. No source originals or derivatives are redistributed or used in the product.",
+      "official_url": "https://www.marinha.mil.br/chm/dados-do-segnav/cartas-raster"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70776067",
+      "source_keys": [
+        "r166-usgs-topo-texas-south",
+        "r166-usgs-topo-texas-midwest",
+        "r166-usgs-topo-texas-northeast",
+        "r166-usgs-topo-texas-terminal"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9930
+          ],
+          "component_scope": "Selected southeastern opening and northwest/westward approach to Wild Horse Creek",
+          "finding": "The original covers the complete selected opening and its northwestward course across the Presidio County plain southwest of US90, including all small stored joins and the westward turn toward the separately mapped Wild Horse Creek. Roads, small isolated water symbols and contours are readable, but the source does not depict a continuous watercourse along this selected approach or its complete transfer into Wild Horse Creek. Proximity to the named creek and common plain setting are insufficient to identify these parts as that creek.",
+          "sources": [
+            "r166-usgs-topo-texas-south"
+          ],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false,
+          "material_gap": true
+        },
+        {
+          "fragments": [
+            9930
+          ],
+          "component_scope": "Southern mapped Wild Horse Creek reach and northwestern bends",
+          "finding": "From the receiving-channel setting after the westward approach, the selected northward and northwestern succession corresponds at ordinary corridor scale to the repeatedly labelled Wild Horse Creek. The original shows its dashed blue course across the Presidio–Jeff Davis county setting, the Miller Ranch Road/A Miller Road surroundings and the incoming Tally Slough network. The short selected joins and bends are within this continuous named channel corridor. Exact bank positions and perennial flow are not established.",
+          "sources": [
+            "r166-usgs-topo-texas-south",
+            "r166-usgs-topo-texas-midwest"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "Wild Horse Creek",
+          "material_gap": false
+        },
+        {
+          "fragments": [
+            9930
+          ],
+          "component_scope": "Wild Horse Creek past the Chispa Mountain setting into southern Lobo Valley",
+          "finding": "The mapped Wild Horse Creek continues northwest then north along the selected route, through the US90/Chispa Mountain surroundings and the southern Lobo Valley. The source shows the same sequence of valley bends and side drainage entries at ordinary corridor scale, with small nearby closed water symbols distinguished from the creek. Those nearby water bodies are not substituted for selected through-lake connections.",
+          "sources": [
+            "r166-usgs-topo-texas-midwest"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "Wild Horse Creek",
+          "material_gap": false
+        },
+        {
+          "fragments": [
+            9930
+          ],
+          "component_scope": "Selected Lobo Valley detour through the US90 and Lobo Road field-drain setting",
+          "finding": "The original separately depicts the labelled Wild Horse Creek, road/rail lines, parcel boundaries and rectilinear blue drainage features in the cultivated Lobo Valley. The selected route makes crossings and an eastern detour before returning to the labelled channel. The source does not establish every selected transfer across this road and field-drain setting. A named creek on both sides and nearby blue drainage lines do not prove the missing selected through-links. The observation is not a diagnosis of model or map error.",
+          "sources": [
+            "r166-usgs-topo-texas-midwest"
+          ],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false,
+          "material_gap": true
+        },
+        {
+          "fragments": [
+            9930
+          ],
+          "component_scope": "Northern Lobo Valley, Eagle Flat Draw vicinity, Van Horn and the Interstate10 crossing",
+          "finding": "The selected northward continuation and northeastward bend east of Van Horn correspond to the original mapped Wild Horse Creek. Contiguous cartography covers the northern Lobo Valley, the Eagle Flat Draw vicinity, the constricted valley alongside the Wylie Mountains, the crossing of Interstate10 and the receiving northward course east of town. Each stored intermediate part and join is accounted for at ordinary corridor scale. The separately mapped Hackberry Creek is context, not an asserted alternative name for the selected route.",
+          "sources": [
+            "r166-usgs-topo-texas-midwest",
+            "r166-usgs-topo-texas-northeast"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "Wild Horse Creek",
+          "material_gap": false
+        },
+        {
+          "fragments": [
+            9930
+          ],
+          "component_scope": "Northern Wild Horse Creek, local small-water and drainage settings, and Wild Horse Draw",
+          "finding": "The original follows the selected northward valley corridor through the Ranch Road2185 surroundings and past the separately depicted Sulphur Creek/rectilinear drainage network to the northern mapped Wild Horse Creek. The creek is shown near several small closed blue water features. The northern original also prints Wild Horse Draw by the upper end of the mapped blue channel. This supports a bounded local creek/draw identification only; it does not establish a formal alias relation, precise passage through every small pond, current managed connections or a creek continuing across the farther northern plain.",
+          "sources": [
+            "r166-usgs-topo-texas-northeast",
+            "r166-usgs-topo-texas-terminal"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "Wild Horse Creek",
+          "material_gap": false
+        },
+        {
+          "fragments": [
+            9930
+          ],
+          "component_scope": "Selected northern dryland extension and approach into the Salt Basin playa",
+          "finding": "Beyond the northern mapped creek/draw segment, the selected route continues north, turns west across the plain, crosses the Wingo Road setting and then approaches the southern Salt Basin playa from the southeast. The original covers this full extension, its bends and joins, but does not show a continuous watercourse along the selected cross-plain connection into the playa. The Bull Canyon/Baylor Draw surroundings and Salt Basin label provide geography only. The selected line itself and the endorheic model classification cannot supply the missing natural or managed hydraulic connection.",
+          "sources": [
+            "r166-usgs-topo-texas-terminal"
+          ],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false,
+          "material_gap": true
+        },
+        {
+          "fragments": [
+            9930
+          ],
+          "component_scope": "Final selected part and actual terminal in the southern Salt Basin playa",
+          "finding": "The actual last stored part and its endpoint lie within the southern large blue-outlined, stippled playa polygon east of State Highway54, in the Salt Basin cartographic setting. The preceding southeast approach and the actual endpoint were inspected together, rather than replacing the terminal with an upstream creek point or a nearby label. This establishes the generalized terminal playa setting. The source does not assign an individual lake name to this polygon or establish present inundation, an exact shoreline, an ordinary river mouth or the unproved upstream-to-playa connection.",
+          "sources": [
+            "r166-usgs-topo-texas-terminal"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "material_gap": false
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61266023",
+      "source_keys": [
+        "r166-mma-lluta-hydro",
+        "r166-igm-lluta-hydrocourses",
+        "r166-humboldti-lluta-mouth",
+        "r166-mop-chironta-inauguration-2023"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13915
+          ],
+          "component_scope": "Extreme selected unnamed opening",
+          "finding": "Both acquired watercourse publications depict nearby convergent upper drainage, but the extreme selected northwestern opening and its initial diagonal connection do not have a continuous source line. The later part of the opening reaches the depicted drainage. A nearby line or modeled continuity does not establish the missing initial passage.",
+          "sources": [
+            "r166-mma-lluta-hydro",
+            "r166-igm-lluta-hydrocourses"
+          ],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            13915
+          ],
+          "component_scope": "Southeastward upper feeder to the Caracarani setting",
+          "finding": "The southeastward course and its receiving bend correspond to a continuous depicted unnamed drainage. The mapped Caracarani branches approach from the east; no Caracarani name is imposed on the entire initial feeder.",
+          "sources": [
+            "r166-mma-lluta-hydro",
+            "r166-igm-lluta-hydrocourses"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13915
+          ],
+          "component_scope": "Selected southward Caracarani reach and receiving join",
+          "finding": "The selected southward bends follow the mapped Quebrada Caracarani / Q. Caracarani course. Its joins and continuation to the receiving course are visible at ordinary corridor scale. The western incoming branch is distinct from the selected northern feeder. No exact formal name-change vertex is assigned.",
+          "sources": [
+            "r166-mma-lluta-hydro",
+            "r166-igm-lluta-hydrocourses"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "Quebrada Caracarani"
+        },
+        {
+          "fragments": [
+            13915
+          ],
+          "component_scope": "Upper receiving course and eastward-to-southward bend",
+          "finding": "The acquired bounded cartography depicts the selected receiving course, its southeastward continuation, broad eastern bend and southwestward exit continuously. The source attribute associated with the receiving main valley is Río Lluta / Rio Lluta. Intermediate stored joins correspond at ordinary regional scale.",
+          "sources": [
+            "r166-mma-lluta-hydro",
+            "r166-igm-lluta-hydrocourses"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "Río Lluta"
+        },
+        {
+          "fragments": [
+            13915
+          ],
+          "component_scope": "Southward middle Lluta and westward valley turn",
+          "finding": "The southward canyon sequence and westward valley turn follow a continuous depicted main watercourse. The many short stored parts and their intermediate joins were compared as one selected corridor, without requiring matching source vertices or assigning tributary labels to the mainstem.",
+          "sources": [
+            "r166-mma-lluta-hydro",
+            "r166-igm-lluta-hydrocourses"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "Río Lluta"
+        },
+        {
+          "fragments": [
+            13915
+          ],
+          "component_scope": "Chironta approach, reservoir/dam setting and downstream return",
+          "finding": "The watercourse cartography follows the selected main valley through this setting but does not depict a usable current reservoir boundary, dam crossing and chosen downstream transfer. The separately read 2023 inauguration report establishes the completed Chironta reservoir on the Lluta and regulated downstream water-supply context. That prose does not map the selected managed connector. Discovery-only precise location and the unavailable tunnel article are not substantive connector evidence.",
+          "sources": [
+            "r166-mma-lluta-hydro",
+            "r166-igm-lluta-hydrocourses",
+            "r166-mop-chironta-inauguration-2023"
+          ],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false,
+          "bounded_component_name": "Río Lluta"
+        },
+        {
+          "fragments": [
+            13915
+          ],
+          "component_scope": "Lower named valley, southern bend and westward coastal approach",
+          "finding": "The main lower valley, the pronounced southern bend, northwestern return and westward approach have continuous source-watercourse correspondence. Both services directly associate the main course with the Lluta name. This completed lower-valley observation excludes the unresolved final coastal part.",
+          "sources": [
+            "r166-mma-lluta-hydro",
+            "r166-igm-lluta-hydrocourses"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "Río Lluta"
+        },
+        {
+          "fragments": [
+            13915
+          ],
+          "component_scope": "Final selected coast-ending part",
+          "finding": "The early western portion corresponds to the named lower Lluta, but the selected final southward passage departs from the drawn river-mouth course. The independent site-study maps show the Lluta mouth, coastal lagoon belt and Pacific shore at 1:10,000 and schematic scales. They do not show a continuous passage along the complete selected southern ending. Terminal proximity to the wetland is insufficient to close that connector.",
+          "sources": [
+            "r166-mma-lluta-hydro",
+            "r166-igm-lluta-hydrocourses",
+            "r166-humboldti-lluta-mouth"
+          ],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false,
+          "bounded_component_name": "Río Lluta"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70806740",
+      "source_keys": [
+        "r166-usgstopo-mermentau-upper",
+        "r166-usgstopo-mermentau-head",
+        "r166-usgstopo-mermentau-middle",
+        "r166-usgstopo-mermentau-lakes",
+        "r166-usgstopo-mermentau-lower",
+        "r166-usgstopo-mermentau-terminal"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10003
+          ],
+          "component_scope": "Actual selected Ville Platte opening",
+          "finding": "The headward original maps the selected initial eastward reach in the Mattie Lane and Tate Cove Road setting west of Coulee de Manuel. Roads, buildings, open land and separate drainage lines are shown, but no mapped waterway carries this whole selected opening east into the coulee. The selected line meets the mapped coulee corridor farther east near the Nornet Street setting. The larger upper map and detailed original agree on this separation.",
+          "sources": [
+            "r166-usgstopo-mermentau-upper",
+            "r166-usgstopo-mermentau-head"
+          ],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false,
+          "coverage_limit": "Material opening-connection gap. The named coulee nearby does not establish the unsupported initial through-link."
+        },
+        {
+          "fragments": [
+            10003
+          ],
+          "component_scope": "Coulee de Manuel and southwestward receiving bayou corridor",
+          "finding": "The detailed headward map labels Coulee de Manuel and depicts its southward continuation beside Ville Platte and across the highway/railway setting. The upper original carries the selected corridor south and southwest, past the joining western branch and the joining gully and Bayou Marron settings. The mapped waterway continues through these joins; surrounding agricultural ponds and rectilinear drains are not substituted for the selected bayou. The mapped corridor is supported after the unresolved opening, without extending the coulee name over every downstream reach.",
+          "sources": [
+            "r166-usgstopo-mermentau-head",
+            "r166-usgstopo-mermentau-upper"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "coverage_limit": "Supported downstream coulee and receiving corridor at ordinary channel/valley scale; local modeled bend shortcuts are not exact-bank claims.",
+          "bounded_component_name": "Coulee de Manuel"
+        },
+        {
+          "fragments": [
+            10003
+          ],
+          "component_scope": "Upper bayou corridor past Eunice and tributary entries",
+          "finding": "The upper original follows the selected southwestward receiving corridor past the Bayou Marron entry and northwestern Eunice surroundings, across the Highway 190 setting and onward toward the Iota corridor. It depicts the entries of Tigerpoint Gully, Richards Gully and Bayou Berwick along this route. Overlap with the middle original preserves the same receiving corridor across its eastward tributary joins. These side streams remain separately named; no lake-to-lake or cross-field transfer is needed for this supported interval.",
+          "sources": [
+            "r166-usgstopo-mermentau-upper",
+            "r166-usgstopo-mermentau-middle"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "coverage_limit": "Supported upper receiving corridor and ordinary intermediate joins. The absence of a repeated name label at every upper bend is not treated as a connectivity gap."
+        },
+        {
+          "fragments": [
+            10003
+          ],
+          "component_scope": "Bayou des Cannes, Iota–Evangeline corridor and Mermentau headward junctions",
+          "finding": "The middle original follows the selected bayou south past Iota and Evangeline and through the Interstate 10 crossing. It explicitly labels Bayou des Cannes on the lower part of this approach, maps its receiving junction with the large eastern bayou corridor, and shows the western Bayou Nezpique branch joining before the channel continues through Mermentau. The eastern incoming channel remains a distinct tributary corridor. These are actual depicted junctions, not basin membership used as a connection.",
+          "sources": [
+            "r166-usgstopo-mermentau-middle"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "coverage_limit": "Supported Bayou des Cannes approach, principal eastern and western bayou joins, and continuation into the named Mermentau corridor.",
+          "bounded_component_name": "Bayou des Cannes"
+        },
+        {
+          "fragments": [
+            10003,
+            10004
+          ],
+          "component_scope": "Mermentau channel and transition into Lake Arthur",
+          "finding": "The middle and lake originals overlap along the Mermentau channel below the village of Mermentau. They depict its continued meandering course past the Bayou Queue de Tortue entry and into the northeastern end of Lake Arthur. The 10003/10004 fragment boundary falls within this mapped continuous receiving corridor; no unsupported fragment jump is supplied by model continuity.",
+          "sources": [
+            "r166-usgstopo-mermentau-middle",
+            "r166-usgstopo-mermentau-lakes"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "coverage_limit": "Supported named receiving channel, lateral bayou entry, fragment transition and actual Lake Arthur entry.",
+          "bounded_component_name": "Mermentau River"
+        },
+        {
+          "fragments": [
+            10004
+          ],
+          "component_scope": "Lake Arthur through-passage and connection to Grand Lake",
+          "finding": "The lake original names Lake Arthur and depicts the selected route across its open water, through the southern narrows and the Mermentau River channel beside Lowry, and south through the channel/wetland complex to Grand Lake. The selected route crosses the mapped Intracoastal Waterway junction at the northern Grand Lake approach. The map visibly connects the inlet, open-water passage and outgoing channel; the lake name alone is not used as proof of a through-link. Nearby managed drains, Lacassine waters and wetland islands remain distinct.",
+          "sources": [
+            "r166-usgstopo-mermentau-lakes"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "coverage_limit": "Supported through-lake and connecting-channel correspondence, including the Intracoastal Waterway crossing. Current flow direction, lock operation and discharge are not established.",
+          "bounded_component_name": "Lake Arthur"
+        },
+        {
+          "fragments": [
+            10004
+          ],
+          "component_scope": "Grand Lake passage and southwestern outlet",
+          "finding": "The overlapping lake and lower originals name Grand Lake and Mermentau River in the open-water corridor. They carry the selected route south through the lake and southwest into the mapped outlet near Catfish Bend. The outlet continues past the Catfish Lake/Locust Bay setting into the lower Mermentau River. The selected route follows the connected open water and receiving outlet; adjacent marshes and side lakes are not assumed to be through-connections.",
+          "sources": [
+            "r166-usgstopo-mermentau-lakes",
+            "r166-usgstopo-mermentau-lower"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "coverage_limit": "Supported Grand Lake inlet-to-outlet passage and lower-river transition at ordinary lake/corridor scale.",
+          "bounded_component_name": "Grand Lake"
+        },
+        {
+          "fragments": [
+            10004
+          ],
+          "component_scope": "Lower Mermentau, navigational channel and Kings Bayou setting",
+          "finding": "The lower original follows the Mermentau channel south past the Little Chenier Bayou and Little Pecan Bayou entries, then west along the Grand Chenier corridor. It labels Mermentau River Navigational Channel and depicts the selected westward channel and southward turn across the Highway 82 setting. The detailed terminal original shows its connection to the broad Kings Bayou waterbody and the separately named Hog Bayou branch. The named and managed channel interval is mapped continuously before the unsupported final coastal-strip passage.",
+          "sources": [
+            "r166-usgstopo-mermentau-lower",
+            "r166-usgstopo-mermentau-terminal"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "coverage_limit": "Supported lower river, navigational-channel corridor and connection into the Kings Bayou waterbody. No assertion about present channel controls or operating condition.",
+          "bounded_component_name": "Mermentau River"
+        },
+        {
+          "fragments": [
+            10004
+          ],
+          "component_scope": "Actual selected coastal terminal",
+          "finding": "The lower and detailed terminal originals depict the selected final southward line leaving the Kings Bayou waterbody, crossing the land strip at Hackberry Beach, and continuing to the gulf-side endpoint. They do not depict a waterway across this strip along the selected final connection. Hog Bayou instead continues east from the waterbody, while other mapped outlet routes are geographically different. The actual selected end is retained rather than replaced with a more convenient Mermentau outlet.",
+          "sources": [
+            "r166-usgstopo-mermentau-lower",
+            "r166-usgstopo-mermentau-terminal"
+          ],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false,
+          "coverage_limit": "Material terminal-connection gap; this is a missing through-waterway across intervening land, not an exact-bank or vertex-alignment requirement."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60516711",
+      "source_keys": [
+        "r166-chm-raster-catalogue"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13715
+          ],
+          "component_scope": "western headward opening and eastward approach",
+          "finding": "No inspected original establishes the western opening, its feeder identity, or the first eastward connection.",
+          "sources": [],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false,
+          "material_gap": true
+        },
+        {
+          "fragments": [
+            13715
+          ],
+          "component_scope": "southern interior excursion and return",
+          "finding": "The selected path bends south and returns north. No inspected map establishes a continuous channel around this substantial interior excursion or its intervening joins.",
+          "sources": [],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false,
+          "material_gap": true
+        },
+        {
+          "fragments": [
+            13715
+          ],
+          "component_scope": "northern interior loop and eastward crossing",
+          "finding": "The long northward continuation, northern turn and eastward crossing remain without source-matched channel or waterbody transfers. A regional delta label would not close these gaps.",
+          "sources": [],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false,
+          "material_gap": true
+        },
+        {
+          "fragments": [
+            13715
+          ],
+          "component_scope": "southeastern approach to the fragment transition",
+          "finding": "No inspected original establishes the southeastward corridor into the Breves-area transition or a name applying to this interval.",
+          "sources": [],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false,
+          "material_gap": true
+        },
+        {
+          "fragments": [
+            13715,
+            13716
+          ],
+          "component_scope": "join between selected fragments",
+          "finding": "The supplied fragments share an endpoint, but a source-confirmed geographical connection is not established.",
+          "sources": [],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false,
+          "material_gap": true
+        },
+        {
+          "fragments": [
+            13716
+          ],
+          "component_scope": "lower southward/eastward continuation and actual terminal",
+          "finding": "Neither the lower selected through-link nor its actual terminal is established by inspected original cartography. Chart4351 catalogue coverage and a nearby Parauaú discovery label are insufficient.",
+          "sources": [],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false,
+          "material_gap": true
+        },
+        {
+          "fragments": [
+            13715,
+            13716
+          ],
+          "component_scope": "floodplain, tidal, lake or managed transfers",
+          "finding": "No source confirms or excludes local floodplain, tidal, lake or managed connectors along this selection. The selected geometry alone does not establish hydraulic continuity or a river-name hierarchy.",
+          "sources": [],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false,
+          "material_gap": true
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "SEREMI de Obras Públicas, Región de Arica y Parinacota, Embalse Chironta: Listo túnel que en marzo o abril de 2019 desviará aguas del río Lluta, 3 December 2018",
+      "official_url": "https://aricayparinacota.mop.gob.cl/embalse-chironta-listo-tunel-que-en-marzo-o-abril-de-2019-desviara-aguas-del-rio-lluta/",
+      "observed_outcome": "The sole web-reader open returned Internal Error: Cache miss. No original article body was acquired by the open request. Search-discovery excerpts were excluded from substantive evidence.",
+      "outcome_layer": "Web-reader/cache failure; origin HTTP status unobserved.",
+      "restriction_scope": "Whole missing article and equivalent originals, readers, caches, mirrors, formats and acquisition routes paused. No retry, direct-original fallback or related near-duplicate tunnel article was acquired.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "reader_cache_miss_availability_pause",
+      "material_effect": "The unavailable tunnel report is not used to establish the selected Chironta managed connector. The separately issued 2023 inauguration event report provides only its own reservoir context.",
+      "aw_id": "hydro-system:61266023"
+    },
+    {
+      "publication": "IBGE, Breves–PA, Mapa Municipal1501808, Coleção de Mapas Municipais2020, edition04/2021",
+      "observed_outcome": "The sole direct-original request terminated at90seconds with curl timeout. HTTP200 application/pdf was reported, but the transfer was incomplete. No original or partial-file content was inspected.",
+      "outcome_layer": "Completed direct transport timeout with an incomplete HTTP200 response; not an authorization denial.",
+      "earlier_lawful_observations": "Only already recorded r125 observations remain historical; they do not establish this selected route or any unseen map content.",
+      "aw_id": "hydro-system:60516711",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/PA/breves/1501808_MM.pdf",
+      "restriction_scope": "Whole municipal-map publication and equivalent editions, original, catalogue, reader, cache, mirror, screenshot and format routes paused. No retry or alternate source copy."
+    },
+    {
+      "publication": "Agência Marinha de Notícias, Marinha conclui sondagem e atualiza cartas náuticas de importante trecho no Marajó",
+      "observed_outcome": "The sole web-reader original open returned403 Forbidden. No article body was acquired or used; discovery snippets excluded from substantive evidence.",
+      "outcome_layer": "Web-reader-reported403; origin response not separately measured.",
+      "earlier_lawful_observations": null,
+      "aw_id": "hydro-system:60516711",
+      "official_url": "https://www.agencia.marinha.mil.br/seguranca-da-navegacao/marinha-conclui-sondagem-e-atualiza-cartas-nauticas-de-importante-trecho-no",
+      "restriction_scope": "Whole news article and equivalent original, reader, cache, mirror and other acquisition routes stopped. The independently issued Navy survey chart publications were separately identified; their access outcomes are recorded separately."
+    },
+    {
+      "publication": "Marinha do Brasil, Diretoria de Hidrografia e Navegação / Centro de Hidrografia da Marinha, Carta4351, Da Ilha do Siriri à Breves, GeoTIFF edition listed03March2026, Aviso2026-9",
+      "observed_outcome": "The sole web-reader request for the original chart GeoTIFF ZIP returned502 Bad Gateway. No archive, original chart or pixels were acquired or inspected. No direct download, BSB alternative or equivalent route followed.",
+      "outcome_layer": "Web-reader-reported502 availability failure; origin response and cause not separately measured.",
+      "earlier_lawful_observations": "Only the already-read CHM catalogue title, product links, listed file date and notice field are retained as bibliography; they establish no selected-route correspondence.",
+      "aw_id": "hydro-system:60516711",
+      "official_url": "https://www.marinha.mil.br/chm/sites/www.marinha.mil.br.chm/files/geotiff/4351geotiff_0.zip",
+      "restriction_scope": "Whole chart4351 publication and equivalent editions, catalogue entry, original, reader, cache, mirror, screenshot, archive and alternative-format acquisitions paused. Unrequested standalone charts4352,4353 and4354 were not newly denied."
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "aw_id": "hydro-system:70776067",
+      "publication": "USGSTopo, The National Map: southeastern Presidio County opening and southern Wild Horse Creek corridor",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "observed_outcome": "Source credit lists USGS/The National Map and contributing public datasets. Original images, crops, orientation derivatives and acquisition details remain private. Only own factual synthesis and ordinary bibliography are public-ready.",
+      "outcome_layer": "Source-use or reproduction notice, not an access denial.",
+      "restriction_scope": "Only own factual prose and ordinary bibliography are public-ready. Source originals and cartographic reading materials remain private.",
+      "limitation_kind": "publication_use_notice"
+    },
+    {
+      "aw_id": "hydro-system:70776067",
+      "publication": "USGSTopo, The National Map: Wild Horse Creek, Chispa Mountain and Lobo Valley corridor",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "observed_outcome": "Source credit lists USGS/The National Map and contributing public datasets. Original images, crops, orientation derivatives and acquisition details remain private. Only own factual synthesis and ordinary bibliography are public-ready.",
+      "outcome_layer": "Source-use or reproduction notice, not an access denial.",
+      "restriction_scope": "Only own factual prose and ordinary bibliography are public-ready. Source originals and cartographic reading materials remain private.",
+      "limitation_kind": "publication_use_notice"
+    },
+    {
+      "aw_id": "hydro-system:70776067",
+      "publication": "USGSTopo, The National Map: northern Lobo Valley, Van Horn and northward Wild Horse Creek corridor",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "observed_outcome": "Source credit lists USGS/The National Map and contributing public datasets. Original images, crops, orientation derivatives and acquisition details remain private. Only own factual synthesis and ordinary bibliography are public-ready.",
+      "outcome_layer": "Source-use or reproduction notice, not an access denial.",
+      "restriction_scope": "Only own factual prose and ordinary bibliography are public-ready. Source originals and cartographic reading materials remain private.",
+      "limitation_kind": "publication_use_notice"
+    },
+    {
+      "aw_id": "hydro-system:70776067",
+      "publication": "USGSTopo, The National Map: northern Wild Horse Creek/Draw, intervening plain and Salt Basin terminal playa",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "observed_outcome": "Source credit lists USGS/The National Map and contributing public datasets. Original images, crops, orientation derivatives and acquisition details remain private. Only own factual synthesis and ordinary bibliography are public-ready.",
+      "outcome_layer": "Source-use or reproduction notice, not an access denial.",
+      "restriction_scope": "Only own factual prose and ordinary bibliography are public-ready. Source originals and cartographic reading materials remain private.",
+      "limitation_kind": "publication_use_notice"
+    },
+    {
+      "publication": "USGSTopo, The National Map: bounded west Texas selected-route views",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "limitation_kind": "material_dryland_and_field_drain_connector_gaps",
+      "observed_outcome": "Service metadata and all four sequential original bounded image acquisitions completed HTTP200. All four original images were visually read. The maps do not establish the three recorded selected through-link gaps.",
+      "outcome_layer": "Substantive cartographic/source-correspondence limitation, not HTTP, transport, reader or access failure.",
+      "material_gap": true,
+      "material_effect": "One river_group_source_material_pending primary classification; no completed representative identity, completed scope hold or additional access-pending classification.",
+      "aw_id": "hydro-system:70776067",
+      "restriction_scope": "Only the unestablished selected opening, Lobo field-drain transfers and northern dryland-to-playa connection. Readable mapped creek and terminal-setting observations remain usable; no service-wide acquisition stop is inferred.",
+      "acquisition_stop": false
+    },
+    {
+      "aw_id": "hydro-system:61266023",
+      "publication": "SIMBIO_HIDROGRAFIA — Red Hidrografica, layer 0",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HIDROGRAFIA/MapServer",
+      "observed_outcome": "Metadata description and copyright fields blank. No unrestricted redistribution inferred; original cartography and derivatives remain private.",
+      "outcome_layer": "Source-use or reproduction notice, not an access denial.",
+      "restriction_scope": "Only own factual prose and ordinary bibliography are public-ready. Source originals and cartographic reading materials remain private.",
+      "limitation_kind": "publication_use_notice"
+    },
+    {
+      "aw_id": "hydro-system:61266023",
+      "publication": "SIIE_v3 Quebradas ríos — Hidrocursos_naturales, layer 40",
+      "official_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Quebradas_r%C3%ADos/MapServer",
+      "observed_outcome": "Metadata copyright field blank. No redistribution permission inferred; original features and private derivatives remain private.",
+      "outcome_layer": "Source-use or reproduction notice, not an access denial.",
+      "restriction_scope": "Only own factual prose and ordinary bibliography are public-ready. Source originals and cartographic reading materials remain private.",
+      "limitation_kind": "publication_use_notice"
+    },
+    {
+      "aw_id": "hydro-system:61266023",
+      "publication": "Proyecto Levantamiento de Información de Biodiversidad para Sitios Prioritarios I Región de Tarapacá, Volumen Desembocadura del Río Lluta, Informe Final; internal title Sector Desembocadura Río Lluta, Sitio Prioritario de Conservación para la Biodiversidad",
+      "official_url": "https://expedientes.mma.gob.cl/storage/2025/05/19/expedientes/pdf/doc_6_20250519205939.pdf",
+      "observed_outcome": "No specific reproduction or distribution restriction was located within the target subpublication. No broad redistribution permission inferred; source PDF, figures and reading aids remain private.",
+      "outcome_layer": "Source-use or reproduction notice, not an access denial.",
+      "restriction_scope": "Only own factual prose and ordinary bibliography are public-ready. Source originals and cartographic reading materials remain private.",
+      "limitation_kind": "publication_use_notice"
+    },
+    {
+      "aw_id": "hydro-system:61266023",
+      "publication": "Gobierno inaugura embalse Chironta en Arica que mejorará la capacidad de riego de cerca de 2.900 hectáreas de cultivos",
+      "official_url": "https://www.mop.gob.cl/gobierno-inaugura-embalse-chironta-en-arica-que-mejorara-la-capacidad-de-riego-de-cerca-de-2-900-hectareas-de-cultivos/",
+      "observed_outcome": "Only bounded own factual synthesis and normal bibliography used.",
+      "outcome_layer": "Source-use or reproduction notice, not an access denial.",
+      "restriction_scope": "Only own factual prose and ordinary bibliography are public-ready. Source originals and cartographic reading materials remain private.",
+      "limitation_kind": "publication_use_notice"
+    },
+    {
+      "publication": "The National Map, USGSTopo: bounded Ville Platte–Mermentau–Lake Arthur–Grand Lake–Hackberry Beach corridor views",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "observed_outcome": "All six sequential original bounded map acquisitions completed HTTP 200 and were visually read. They establish the supported named bayou/river, lake and navigational-channel corridor, but not the initial landward opening or final coastal-strip through-waterway.",
+      "outcome_layer": "Substantive cartographic correspondence limitation, not HTTP, transport, access or reader failure.",
+      "material_gap": true,
+      "aw_id": "hydro-system:70806740",
+      "restriction_scope": "The actual selected Ville Platte opening-to-coulee connection and Kings Bayou waterbody-to-gulf terminal connection remain unestablished. No publication-wide acquisition or use ban is inferred.",
+      "acquisition_stop": false
+    },
+    {
+      "aw_id": "hydro-system:60516711",
+      "publication": "Cartas Raster",
+      "official_url": "https://www.marinha.mil.br/chm/dados-do-segnav/cartas-raster",
+      "observed_outcome": "CHM reserves chart copyright, restricts commercial reproduction/compilation/derivation and requires authorization for commercial adoption. GeoTIFFs are offered for academic purposes and expressly barred as navigational aids. No source originals or derivatives are redistributed or used in the product.",
+      "outcome_layer": "Source-use or reproduction notice, not an access denial.",
+      "restriction_scope": "Only own factual prose and ordinary bibliography are public-ready. Source originals and cartographic reading materials remain private.",
+      "limitation_kind": "publication_use_notice"
+    },
+    {
+      "aw_id": "hydro-system:60516711",
+      "publication": "CHM standalone nautical charts4352,4353 and4354",
+      "official_url": "https://www.marinha.mil.br/chm/dados-do-segnav/cartas-raster",
+      "observed_outcome": "Other chart originals remained unrequested during the bounded pass. Only catalogue bibliography was read.",
+      "outcome_layer": "Uninspected material, not a new denial or availability failure.",
+      "restriction_scope": "No original chart correspondence is claimed and no new stop is inferred for these unrequested products.",
+      "limitation_kind": "uninspected_other_chart_material",
+      "acquisition_stop": false
+    }
+  ]
+}

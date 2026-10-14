@@ -1,0 +1,702 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r202",
+  "sources": [
+    {
+      "source_key": "r202-ibge-madalena2020",
+      "title": "Santa Maria Madalena – RJ, Mapa Municipal, 3304607",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística, Diretoria de Geociências / CETE",
+      "edition": "2020 collection; printed edition 04/2021",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/RJ/santa_maria_madalena/3304607_MM.pdf",
+      "actual_material_read": "Normally acquired complete one-sheet PDF; title, legend and intended-use margin; original opening, upper-valley, tributary-join, Sossego/Rio do Norte and eastern-margin cartography. Private orientation aids were read alongside unmodified source crops.",
+      "publication_identity": "Independently issued municipal digital-mesh statistical compilation for Santa Maria Madalena, with product code and territorial edition; distinct from the held INEA hydropower diagnostic, AGERH basin reports and other municipalities’ held products.",
+      "use_notice": "Printed intended purpose is IBGE statistical collection/tabulation, with other-use disclaimer and reproduction rights reserved. Used only as historical/generalized reference cartography; no source image redistributed."
+    },
+    {
+      "source_key": "r202-ibge-rjes2015",
+      "title": "Mapa Político dos Estados do Espírito Santo e Rio de Janeiro",
+      "publisher": "IBGE, Diretoria de Geociências / Coordenação de Cartografia",
+      "edition": "2015; based on BCIM 2014; 1:750,000",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_estaduais_e_distrito_federal/politico/2015/rj_es_politico750k_2015.pdf",
+      "actual_material_read": "Complete normally acquired original; title, project credits, legend and selected Imbé–Mocotó–Lagoa de Cima–Campos–Lagoa Feia–coastal cartography, including enlarged outlet views.",
+      "publication_identity": "Separately issued BCIM2014-based state political-cartography product with previously established bibliography; not the stopped news announcement or INEA hydropower diagnostic.",
+      "use_notice": "Generalized historical state cartography. Only state/international boundaries declared official on map; other information informative. Reproduction rights reserved. No current-channel or formal name-registry claim."
+    },
+    {
+      "source_key": "r202-ibge-quissama2020",
+      "title": "Quissamã – RJ, Mapa Municipal, 3304151",
+      "publisher": "IBGE, Diretoria de Geociências / CETE",
+      "edition": "2020 collection; printed edition 04/2021",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/RJ/quissama/3304151_MM.pdf",
+      "actual_material_read": "Complete normally linked original after resolved catalogue-decoding limit; title, legend and use margin, northern Lagoa Feia inflows/lobes, eastern drainage, Canal das Flechas locality and Barra Furado coastal mouth.",
+      "publication_identity": "Quissamã-specific municipal digital-mesh compilation, normally linked by its own catalogue; distinct from the paused Campos publication.",
+      "use_notice": "Printed intended purpose is IBGE statistical collection/tabulation, with other-use disclaimer and reproduction rights reserved. Source originals and working images remain private."
+    },
+    {
+      "source_key": "r202-embrapa-imbe2003",
+      "title": "Diagnóstico do Meio Físico da Bacia Hidrográfica do Rio do Imbé – RJ: Aplicação de Metodologia Integrada como Subsídio ao Manejo de Microbacias",
+      "authors": "Rodrigo Peçanha Demonte Ferraz and coauthors",
+      "publisher": "Embrapa Solos, Boletim de Pesquisa e Desenvolvimento 29",
+      "edition": "December 2003, first edition",
+      "official_url": "https://www.infoteca.cnptia.embrapa.br/bitstream/doc/336999/1/bpd292003rioimbe.pdf",
+      "actual_material_read": "Complete original acquired; cover/imprint and project/methodology prose; printed pp.10–12 including actual Figure2 pixels, p.42 Figure11 pixels, and selected prose pp.44–45,66–67,77. Basin/landform figures are contextual geography, not detailed through-channel maps.",
+      "publication_identity": "SMH–SEAAPI/GEF North/Northwest Fluminense microbasin sustainable-natural-resource project, with integrated soils/geomorphology analysis and field work. Positively distinct from held Embrapa Ageitec Rio Una webpage and the INEA hydropower diagnostic.",
+      "use_notice": "Ordinary all-rights-reserved reproduction notice. Bounded factual synthesis only; no original or source imagery redistributed."
+    },
+    {
+      "source_key": "r202-ceivap-atlas-launch2020",
+      "title": "CBH-BPSI lança Atlas da Bacia",
+      "publisher": "CEIVAP News, edition119",
+      "edition": "30 September2020",
+      "official_url": "https://ceivap.org.br/ceivap_news/2020/ed119/cbh-bpsi-lanca-atlas-da-bacia%20",
+      "actual_material_read": "Successful launch-page prose identifies the first RHIX atlas, its four chapters, thirteen subbasin mapping scope and official atlas link. No atlas body or map was acquired.",
+      "use_notice": "Bibliographic/project context only, not detailed selected-route evidence.",
+      "used_as_substantive_evidence": false
+    },
+    {
+      "source_key": "r202-igm-atacama-natural-watercourses",
+      "title": "SIIE_v3 Quebradas ríos — Hidrocursos_naturales, layer 40",
+      "publisher": "Instituto Geográfico Militar, Chile",
+      "official_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Quebradas_r%C3%ADos/MapServer",
+      "layer_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Quebradas_r%C3%ADos/MapServer/40",
+      "edition": "Undated active service; bounded selected view read 13 October 2026",
+      "evidence_type": "Primary official natural-watercourse cartography",
+      "material_read": "One complete bounded selected-corridor raster returned HTTP200 image/png and was visually inspected as an overview and in northern, middle and southern reading crops. Retained layer metadata was read locally for field and scale context. Source nombre labels were server-rendered. No source vector geometry or full dataset was acquired.",
+      "publication_identity_basis": "The exact independently issued SIIE_v3 publication is documented by retained r98/r99/r155 and r196 observations as distinct from the stopped IGM250K sign-in folder and northern hydrology-report reproductions.",
+      "supports": "Upper component names and joining corridors, distinct San Pedro and Chaxa approaches, source line endings and the two identified correspondence gaps.",
+      "limits": "Depicted watercourses do not establish current flow, exact banks, surveyed source points or absence of an omitted channel. An intersection with another named channel does not establish a uniform selected-route identity.",
+      "use_notice": "Retained copyright field is blank; unrestricted redistribution permission is not inferred. Only bounded own observations and normal bibliography are supplied."
+    },
+    {
+      "source_key": "r202-igm-atacama-waterbodies",
+      "title": "SIIE_v3 Cuerpos de agua — polygon layer 37",
+      "publisher": "Instituto Geográfico Militar, Chile",
+      "official_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Cuerpos_de_agua/MapServer",
+      "layer_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Cuerpos_de_agua/MapServer/37",
+      "edition": "Undated active service; bounded selected view and attributes read 13 October 2026",
+      "evidence_type": "Primary official surface cartography and named feature attributes",
+      "material_read": "One complete bounded selected-corridor raster returned HTTP200 image/png and was visually inspected, including enlarged northern-margin and southern-interior reading views. One bounded corridor attribute response and one terminal-only attribute response returned HTTP200 application/json and were read. Both requested attributes only, without geometry. Retained service/layer metadata was read locally.",
+      "publication_identity_basis": "Independently documented SIIE_v3 surface publication, distinct from the held IGM250K folder, held hydrology-report maps and MMA SIMBIO_HIDROGRAFIA service.",
+      "supports": "Salar de Atacama name and Salar classification; northern surface entry, long interior passage and actual selected interior terminal.",
+      "limits": "A salar polygon is not evidence of permanent lake water, current inundation, a continuous natural channel, or a proved landward approach. Bounded attributes from nearby lagoons are not assigned to the selected route without spatial support.",
+      "use_notice": "Retained copyright field is blank; original rasters, source coordinates and derivatives are not redistributed."
+    },
+    {
+      "source_key": "r202-chs-arc402-202112",
+      "title": "Canadian Sailing Directions, ARC402: Eastern Arctic",
+      "publisher": "Canadian Hydrographic Service, Fisheries and Oceans Canada",
+      "edition": "Corrected to12/2021; original imprint copyright2022",
+      "catalogue_number_as_printed": "Fs72-3/30-2022E-PDF",
+      "official_url": "https://publications.gc.ca/collections/collection_2022/mpo-dfo/Fs74-4-2021-12-eng.pdf",
+      "evidence_kind": "primary_coastal_prose",
+      "actual_material_read": "Successful PDF reader: cover, reproduction notice, preface and relevant Chapter8 coastal prose, printed8-2 to8-3, especially paragraphs17 and29–37. No chart or map pixels inspected.",
+      "source_independence": "Independently issued Eastern Arctic sailing-directions volume, distinct from held ARC401 and from CanMatrix, CBMT, naming-record and geological-map routes.",
+      "limits": "Coastal description only; no selected inland or terminal-channel depiction. Edition used for geographic context, not navigation advice or formal naming verification.",
+      "use_notice": "Original allows personal noncommercial reproduction and requires permission for commercial reproduction. Only own factual synthesis and bibliography supplied."
+    },
+    {
+      "source_key": "r202-grau-galofre2018-context",
+      "title": "Subglacial drainage patterns of Devon Island, Canada: detailed comparison of rivers and subglacial meltwater channels",
+      "authors": [
+        "Anna Grau Galofre",
+        "A. Mark Jellinek",
+        "Gordon R. Osinski",
+        "Michael Zanetti",
+        "Antero Kukko"
+      ],
+      "journal": "The Cryosphere",
+      "volume": 12,
+      "pages": "1461–1478",
+      "year": 2018,
+      "doi": "10.5194/tc-12-1461-2018",
+      "official_url": "https://tc.copernicus.org/articles/12/1461/2018/",
+      "evidence_kind": "primary_scientific_regional_context_only",
+      "actual_material_read": "Successful publisher HTML: abstract, field-site discussion and methods. No figure pixels inspected.",
+      "source_independence": "University-led field GPS, stereo-imagery and lidar investigation of exposed channels, rather than a reproduction of a held Canadian cartographic publication.",
+      "supports": "Regional distinction between exposed relict meltwater channels and seasonal rivers. Its detailed field site east–southeast of Haughton lies east of this selection.",
+      "limits": "Does not depict or name this selected course; no present-glacier or subglacial-flow inference made.",
+      "use_notice": "Publisher identifies CC BY4.0; only own bounded synthesis and bibliography supplied.",
+      "used_as_substantive_evidence": false
+    },
+    {
+      "source_key": "r202-cgm353-bibliography-only",
+      "title": "Surficial geology, Western Devon Island, Nunavut, NTS58-H and parts of58-E,F,G",
+      "publisher": "Geological Survey of Canada, Natural Resources Canada",
+      "series": "Canadian Geoscience Map353",
+      "edition": "First edition2018",
+      "scale": "1:250,000",
+      "official_url": "https://publications.gc.ca/collections/collection_2019/rncan-nrcan/m183-1/M183-1-353-2018-eng.pdf",
+      "catalogue_url": "https://publications.gc.ca/site/eng/9.851085/publication.html",
+      "evidence_kind": "prior_successful_bibliography_and_imprint_only",
+      "actual_material_read": "Catalogue and initial PDF-reader imprint before the later original wrong-body outcome. No map pixels read.",
+      "source_independence": "The actual project is conversion of Dyke2001 Map1972A, based on A.S. Dyke1993–1994 Western Devon fieldwork and air-photo interpretation; data conversion by D.E. Kerr2016/2018. This positively identifies the underlying project separately from held Wollaston, MacAlpine and Foxe projects.",
+      "limits": "Prior bibliography only; no parsed cartographic labels used as geographic evidence. Whole project subsequently paused as recorded below.",
+      "use_notice": "Reader imprint credits Crown copyright2018. No source material redistributed.",
+      "used_as_substantive_evidence": false
+    },
+    {
+      "source_key": "r202-loyola2023-aquifer-thesis",
+      "title": "El agua subterránea en el noreste de La Pampa: Ciclo geoquímico del arsénico",
+      "author": "Natalia Ana Lis Loyola",
+      "publisher": "Universidad Nacional de La Plata, Facultad de Ciencias Naturales y Museo",
+      "publication_type": "Doctoral thesis",
+      "edition": "2023; defended 30 November 2023",
+      "directors": [
+        "Carlos Juan Schulz",
+        "Patricia Claudia Laurencena"
+      ],
+      "doi": "10.35537/10915/161074",
+      "official_url": "https://sedici.unlp.edu.ar/bitstream/handle/10915/161074/Documento_completo.pdf?isAllowed=y&sequence=1",
+      "catalogue_url": "https://sedici.unlp.edu.ar/handle/10915/161074?show=full",
+      "publication_identity_basis": "An independently issued doctoral project developing a conceptual hydrogeological and arsenic-geochemical model of the Pampeano aquifer, with its own exploration drilling, field water sampling, level measurements and geophysics. This affirmative project identity distinguishes it from held IGN cartography, SSRH basin mapping, protected-area/tourism works, the Colorada Grande geomorphology article and SEGEMAR sheet projects. The original title and acknowledgements confirm the thesis identity.",
+      "actual_originals_inspected": "Successfully read institutional catalogue and original PDF title/acknowledgements, relevant section 5.3 printed pp.91–99, Figure50 on printed p.98, and the bibliography entry for UNLPam2015 on printed p.254. Figure50 was visually inspected and compared with the pinned selection at ordinary regional scale. Other rendered but uninspected figures are not map evidence.",
+      "actual_observation": "The thesis describes low-gradient, sheet-like runoff and dispersed temporary or permanent lagoons. Its Figure50 distinguishes western R1 and eastern R2, labels Chadilauquen and regional hydrological systems, and locates surrounding towns. It does not depict a continuous selected river.",
+      "map_attribution": "Printed p.92 explicitly describes preparation of Figure50 for the thesis study area. Figures48–49 are separately credited as adaptations of UNLPam2015; those figures were not used as inspected map evidence and the underlying inventory was not separately acquired.",
+      "limits": "The frame covers the selected extent, but a label masks part of the northern interval. Scale and thematic purpose do not resolve selected channel, lagoon or terminal links. Regional groundwater direction is not surface-channel evidence. No present hydrological state is inferred.",
+      "use_notice": "The institutional catalogue identifies CC BY-NC-ND4.0. Only bounded original factual synthesis and normal attribution are supplied; source PDF, maps and private reading aids are not redistributed."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:61330558",
+      "source_keys": [
+        "r202-ibge-madalena2020",
+        "r202-ibge-rjes2015",
+        "r202-ibge-quissama2020",
+        "r202-embrapa-imbe2003"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13960
+          ],
+          "component_scope": "Chosen opening through Doutor Loretti to Alto Imbé",
+          "finding": "The municipal original shows the selected opening corridor southwest of Doutor Loretti, its northeastward continuation through the settlement and the joining reach at Alto Imbé. The basin study independently describes the upper Imbé valley through the Trajano de Morais and Dr. Loretti setting. The study also discusses a reservoir at Nova Esperança upstream in Trajano de Morais; it is not inserted into this selection merely because it belongs to the same basin.",
+          "sources": [
+            "r202-ibge-madalena2020",
+            "r202-embrapa-imbe2003"
+          ],
+          "correspondence": "supported_at_ordinary_opening_and_join_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13960
+          ],
+          "component_scope": "Upper Imbé continuation and intermediate joins",
+          "finding": "The municipal map traces the valley northeast past the Imbé/Macuco do Imbé setting to the Água Limpa and Santo Antônio do Imbé joining area and the repeatedly labelled Rio do Imbé corridor. The state map independently locates that named river in the same valley. Names of tributaries and settlements are kept distinct.",
+          "sources": [
+            "r202-ibge-madalena2020",
+            "r202-ibge-rjes2015"
+          ],
+          "correspondence": "supported_at_ordinary_upper_valley_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13960
+          ],
+          "component_scope": "Northern middle-valley side passage",
+          "finding": "The selection turns into the northern parallel-drainage setting below Sossego and toward the Rio do Norte junction. The detailed municipal map shows the labelled Rio do Imbé farther south and other northern channels; the state map generalizes them. A continuous source correspondence for the selected transfer between these parallel passages is not established. Shared valley position and the Imbé name alone do not close this link.",
+          "sources": [
+            "r202-ibge-madalena2020",
+            "r202-ibge-rjes2015"
+          ],
+          "correspondence": "material_selected_side_passage_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            13960
+          ],
+          "component_scope": "Lower Imbé alluvial and flood-prone approach to Lagoa de Cima",
+          "finding": "The state original depicts the lower Imbé/Mocotó joining setting, a flood-prone corridor and an inlet on the southwest side of Lagoa de Cima. The independent basin study identifies the Imbé alluvial lowland and its lagoon-side outlet, with historical artificial drainage in the valley. These establish the regional approach and wetland setting, but do not independently supply each local channel connection absent from the detailed municipal coverage.",
+          "sources": [
+            "r202-ibge-rjes2015",
+            "r202-embrapa-imbe2003"
+          ],
+          "correspondence": "regional_corridor_supported_local_throughlinks_incomplete",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            13960
+          ],
+          "component_scope": "Lagoa de Cima passage and east outlet",
+          "finding": "The named lake and its southwest river entry are visible on the state original. Its east/northeast outlet is represented only by a short channel and nearby separate watercourses; the acquired map does not trace the complete selected east-going continuation. The basin study ends at the lagoon-side basin setting and cannot fill the downstream connection.",
+          "sources": [
+            "r202-ibge-rjes2015",
+            "r202-embrapa-imbe2003"
+          ],
+          "correspondence": "lake_identity_supported_selected_outlet_link_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            13960
+          ],
+          "component_scope": "Intervening lowland river, urban approach and southward connection",
+          "finding": "The state original shows a drainage network southwest of Campos dos Goytacazes and north of Lagoa Feia, but does not continuously connect the selected route back to the Lagoa de Cima outlet. The successful Quissamã map begins farther south. No unseen Campos municipal map or stopped article is used to bridge this interval.",
+          "sources": [
+            "r202-ibge-rjes2015"
+          ],
+          "correspondence": "material_intervening_throughroute_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            13960
+          ],
+          "component_scope": "Northern Lagoa Feia inflow and northeastern lake-margin passage",
+          "finding": "Quissamã depicts a northern inflow labelled Rio do Imbé, the Rio Macaco and Canal do Nicolau joins, Lagoa Feia, its northern/eastern lobes, and the Lagoa da Jararaca connection. The selected route follows the northeastern margin and lobe setting rather than simply crossing the central lake. The originals identify these receiving-water settings but do not establish every selected lobe-to-lobe or intervening margin through-link.",
+          "sources": [
+            "r202-ibge-quissama2020",
+            "r202-ibge-rjes2015"
+          ],
+          "correspondence": "lake_and_join_settings_supported_selected_margin_links_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            13960
+          ],
+          "component_scope": "Eastern lowland drainage and coastal approach",
+          "finding": "Quissamã shows the eastern Lagoa Feia exit, channels near the locality Canal das Flechas, the Pernambuco drainage and the continuation toward Barra Furado. The selected approach runs farther north/east across this drainage mosaic before reaching the coastal end. The inspected originals do not establish a continuous passage for that selected approach; the mapped central lake outlet is not substituted for it. Absence of an operation label is not the issue.",
+          "sources": [
+            "r202-ibge-quissama2020",
+            "r202-ibge-rjes2015"
+          ],
+          "correspondence": "material_selected_lake_to_coast_link_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            13960
+          ],
+          "component_scope": "Atlantic terminal beside Barra do Furado",
+          "finding": "The originals identify the Atlantic receiving coast and show a channel opening in the Barra Furado/Quissamã boundary setting. This supports the regional receiving-water identity and coastal endpoint setting. It does not resolve the unestablished final connection from the selection’s upstream eastern lowland route. No assertion about modern inlet position, gates or current tidal flow is made.",
+          "sources": [
+            "r202-ibge-quissama2020",
+            "r202-ibge-rjes2015"
+          ],
+          "correspondence": "terminal_setting_supported_final_connected_approach_pending",
+          "component_correspondence_completed": false
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61352932",
+      "source_keys": [
+        "r202-igm-atacama-natural-watercourses",
+        "r202-igm-atacama-waterbodies"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13963
+          ],
+          "component_scope": "Chosen northeastern opening before the mapped Jorquencal or Escalera course",
+          "finding": "The selected opening makes a westward and southwestward approach north and east of the first depicted channel junction. The first two stored parts and the approach into the third are not supplied with a corresponding natural-watercourse line. The mapped northern and eastern channel approaches cannot be substituted for this chosen opening. The surface layer supplies no lake or salar footprint here that would explain the missing connection. No natural-source position or absence of an actual watercourse is inferred.",
+          "sources": [
+            "r202-igm-atacama-natural-watercourses",
+            "r202-igm-atacama-waterbodies"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "component_name": null
+        },
+        {
+          "fragments": [
+            13963
+          ],
+          "component_scope": "Southwestern upper corridor and Turipite joining setting",
+          "finding": "The selected route follows the connected southwestern drainage explicitly labeled Q. Jorquencal o Escalera. Northern feeders enter separately, and the Q. Turipite approach joins from the north and northwest near the lower part of this interval. Short offsets generalize channel bends, but the selected receiving corridor and these joins are accounted for at ordinary regional scale. The name is not extended over the unsupported northeastern opening.",
+          "sources": [
+            "r202-igm-atacama-natural-watercourses"
+          ],
+          "correspondence": "covered_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "component_name": "Quebrada Jorquencal o Escalera"
+        },
+        {
+          "fragments": [
+            13963
+          ],
+          "component_scope": "Puripica junction and the source-labeled Puritama reach",
+          "finding": "The selected route reaches the separate Q. Puripica approach from the east and continues southwest along the connected channel labeled Río Puritama in the IGM rendering. It does not ascend Puripica. This records the label placement actually shown by the source, without asserting an official name-transition point at either the confluence or a stored-part boundary.",
+          "sources": [
+            "r202-igm-atacama-natural-watercourses"
+          ],
+          "correspondence": "covered_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "component_name": "Río Puritama"
+        },
+        {
+          "fragments": [
+            13963
+          ],
+          "component_scope": "Southwestern and southern Vilama receiving corridor",
+          "finding": "The selected southwestern continuation and southward turn correspond to the channel subsequently labeled Río Vilama. The separate Q. de Chaxa drainage lies to the east, while Río San Pedro occupies a distinct western corridor. The lower selected bends locally generalize the Vilama course. This supports a bounded upper Vilama component, not a Vilama name for the long salar-interior selection.",
+          "sources": [
+            "r202-igm-atacama-natural-watercourses"
+          ],
+          "correspondence": "covered_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "component_name": "Río Vilama"
+        },
+        {
+          "fragments": [
+            13963
+          ],
+          "component_scope": "Landward transfer east of Vilama and approach to the northern salar margin",
+          "finding": "The selection departs eastward from the independently drawn Vilama corridor toward the lower Q. de Chaxa vicinity, then extends south beyond that eastern channel ending to the northern salar margin. Neither a complete connecting natural channel between the two depicted drainages nor the subsequent landward southward through-link is shown. The waterbody rendering begins at the northern salar margin near the beginning of stored part 13 and does not cover the preceding landward interval. The mapped salar therefore explains the downstream surface passage but cannot by itself close this missing approach. No canal, diversion, dry wash continuity or current hydraulic connection is invented.",
+          "sources": [
+            "r202-igm-atacama-natural-watercourses",
+            "r202-igm-atacama-waterbodies"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "component_name": null
+        },
+        {
+          "fragments": [
+            13963
+          ],
+          "component_scope": "Northern Salar de Atacama entry and interior southward passage",
+          "finding": "After crossing the mapped northern margin, the selected route remains inside the broad salt-flat footprint and continues south. The surface attributes name this feature Salar de Atacama and classify it as Salar. Natural-watercourse linework depicts separate marginal and interior features but does not draw one river following the complete selected interior. The geography of the salt-flat passage is accounted for; the unresolved landward inlet remains a separate gap.",
+          "sources": [
+            "r202-igm-atacama-natural-watercourses",
+            "r202-igm-atacama-waterbodies"
+          ],
+          "correspondence": "covered_salar_surface_after_unresolved_landward_approach",
+          "component_correspondence_completed": true,
+          "component_name": "Salar de Atacama"
+        },
+        {
+          "fragments": [
+            13963
+          ],
+          "component_scope": "Middle salar crossing and intersection with separately mapped San Pedro drainage",
+          "finding": "The selected route continues south and southwest inside the mapped salar, then turns west across the setting of separate linework including a channel labeled Río San Pedro. It does not follow that named western drainage continuously. The source supplies the salar surface and spatial relationships of the nearby channel network; it does not establish that crossing or approaching the named line makes the complete selected route Río San Pedro, nor that there is one natural channel along each modeled interior segment.",
+          "sources": [
+            "r202-igm-atacama-natural-watercourses",
+            "r202-igm-atacama-waterbodies"
+          ],
+          "correspondence": "covered_as_salar_interior_geography",
+          "component_correspondence_completed": true,
+          "component_name": "Salar de Atacama"
+        },
+        {
+          "fragments": [
+            13963
+          ],
+          "component_scope": "Southern salt-flat passage, final loop and actual selected terminal",
+          "finding": "The remaining selection runs south through the broad mapped salar and makes a compact western and northern loop before ending within its interior. The terminal-only surface attribute response identifies the feature at the actual selected tip as Salar de Atacama, type Salar. Thus the terminal identity is independently supported by the source, rather than inferred from the model endorheic flag. The tip is not established as a named river mouth, a lagoon outlet, the lowest point of the salar or a currently inundated location. No continuous natural-river channel is mapped along the final loop.",
+          "sources": [
+            "r202-igm-atacama-natural-watercourses",
+            "r202-igm-atacama-waterbodies"
+          ],
+          "correspondence": "covered_salar_interior_and_actual_selected_terminal",
+          "component_correspondence_completed": true,
+          "component_name": "Salar de Atacama"
+        },
+        {
+          "fragments": [
+            13963
+          ],
+          "component_scope": "Dry-channel, lake, reservoir and managed-passage scope",
+          "finding": "The inspected natural-watercourse and surface originals distinguish the upper named drainage network from the large Salar de Atacama passage. No selected reservoir or specific named lagoon traversal is established, and no managed transfer is identified. A generic waterbody rendering cannot establish permanent open water, current discharge, every small impoundment, or all engineered works. Its extensive salar footprint geographically accounts for the downstream surface segments, while the northeastern opening and landward river-to-salar transfer remain material gaps.",
+          "sources": [
+            "r202-igm-atacama-natural-watercourses",
+            "r202-igm-atacama-waterbodies"
+          ],
+          "correspondence": "surface_roles_accounted_for_with_two_material_through_link_gaps",
+          "component_correspondence_completed": false,
+          "component_name": null
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80011023",
+      "source_keys": [
+        "r202-chs-arc402-202112"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2298
+          ],
+          "component_scope": "Chosen southeastern opening and initial northwestward approach",
+          "finding": "The pinned selection begins in inland western Devon and initially trends northwest. No inspected primary cartography identifies the opening or establishes its connection to the subsequent course. The independent field study concerns a different, more easterly site and supplies no opening evidence.",
+          "sources": [
+            "r202-grau-galofre2018-context"
+          ],
+          "correspondence": "material_opening_and_initial_connection_pending",
+          "component_correspondence_completed": false,
+          "bounded_component_name": null
+        },
+        {
+          "fragments": [
+            2298
+          ],
+          "component_scope": "Upper westward reach and first intermediate joins",
+          "finding": "The selected upper westward continuation and its stored joins lack an independently inspected hydrographic depiction. Neither the regional coastal description nor the geological-map bibliography proves these through-links.",
+          "sources": [],
+          "correspondence": "material_upper_through_links_pending",
+          "component_correspondence_completed": false,
+          "bounded_component_name": null
+        },
+        {
+          "fragments": [
+            2298
+          ],
+          "component_scope": "Long middle westward to northwestward corridor",
+          "finding": "No readable permitted map was obtained to associate the long middle course and its bends with specific streams, lake passages or terrain corridors. The selected line alone is orientation, not source correspondence.",
+          "sources": [],
+          "correspondence": "material_middle_course_pending",
+          "component_correspondence_completed": false,
+          "bounded_component_name": null
+        },
+        {
+          "fragments": [
+            2298
+          ],
+          "component_scope": "Northward turn and lower inland continuation",
+          "finding": "The northward turn, intervening joins and lower inland continuation remain without ordinary source correspondence. No claim is made that this selected stretch crosses present glacier ice, follows a relict subglacial channel, or lacks local ponds and wetlands.",
+          "sources": [],
+          "correspondence": "material_northern_through_links_pending",
+          "component_correspondence_completed": false,
+          "bounded_component_name": null
+        },
+        {
+          "fragments": [
+            2298
+          ],
+          "component_scope": "Lower northwestward coastal approach",
+          "finding": "The approach toward the western Devon coast has not been connected to a depicted outlet channel. Coastal prose locates the surrounding low deltaic shore, but does not establish these selected lower reaches.",
+          "sources": [
+            "r202-chs-arc402-202112"
+          ],
+          "correspondence": "coastal_setting_only_lower_connection_pending",
+          "component_correspondence_completed": false,
+          "bounded_component_name": null
+        },
+        {
+          "fragments": [
+            2298
+          ],
+          "component_scope": "Final stored part and actual selected terminal",
+          "finding": "ARC402 describes an extensive delta and drying flats north of Dragleybeck Inlet, followed by Baring Bay with mudflats and lagoons. This is consistent with the broad selected terminal vicinity on Wellington Channel. It does not identify the chosen final outlet or its full inland connection. The selected rendered endpoint differs from the modeled source sea endpoint; neither was substituted for the other, and actual terminal correspondence remains pending.",
+          "sources": [
+            "r202-chs-arc402-202112"
+          ],
+          "correspondence": "coastal_context_supported_actual_selected_terminal_pending",
+          "component_correspondence_completed": false,
+          "bounded_component_name": null
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61516926",
+      "source_keys": [
+        "r202-loyola2023-aquifer-thesis"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14465
+          ],
+          "component_scope": "Chosen opening and initial easterly interval north of Ingeniero Foster and La Maruja",
+          "finding": "The initial channel and first six part joins are not established by the regional lagoon map. No headwater name is supported.",
+          "sources": [
+            "r202-loyola2023-aquifer-thesis"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            14465
+          ],
+          "component_scope": "Northward bend and northern easterly interval",
+          "finding": "The large regional label obscures part of this interval. Neither the northward link nor the adjoining eastward continuation is independently traced.",
+          "sources": [
+            "r202-loyola2023-aquifer-thesis"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            14465
+          ],
+          "component_scope": "Northern middle turns and southward approach toward Caleufú",
+          "finding": "No inspected source traces the transfer across this sector or its intervening joins. A regional boundary cannot establish the modeled connections.",
+          "sources": [
+            "r202-loyola2023-aquifer-thesis"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            14465
+          ],
+          "component_scope": "Middle southward bend and easterly-to-northeasterly passage near Caleufú",
+          "finding": "Scattered mapped lagoons do not demonstrate the selected entries, passages, exits or continuity across the transition between regional settings.",
+          "sources": [
+            "r202-loyola2023-aquifer-thesis"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            14465
+          ],
+          "component_scope": "Northeasterly approach south of the mapped Chadilauquen lake",
+          "finding": "Chadilauquen is separately mapped north of this approach. The selected lake connection and onward eastern transfer are not established.",
+          "sources": [
+            "r202-loyola2023-aquifer-thesis"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            14465
+          ],
+          "component_scope": "Final eastward turns and actual inland endpoint east of Chadilauquen",
+          "finding": "No mapped name or inspected detailed correspondence identifies the actual endpoint or its final approach. It is not established as Chadilauquen or as another named lagoon.",
+          "sources": [
+            "r202-loyola2023-aquifer-thesis"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "IBGE2020 Campos dos Goytacazes municipal-map catalogue and associated municipal product3301009",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/RJ/campos_dos_goytacazes/",
+      "related_urls": [
+        "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/RJ/campos_dos_goytacazes/3301009_MM.pdf"
+      ],
+      "observed_outcome": "Sole catalogue web-reader request returned Cache miss, no body; origin HTTP unknown. The original PDF was subsequently discovered but never requested or read.",
+      "outcome_layer": "Web-reader cache/availability failure, not observed HTTP denial.",
+      "restriction_scope": "Whole identified Campos municipal publication/catalogue and equivalent acquisition/reading routes paused. Subsequent discovery of its original filename does not establish independent publication identity or clear the pause.",
+      "earlier_lawful_observations": null,
+      "newly_observed_access_failure": true,
+      "aw_id": "hydro-system:61330558"
+    },
+    {
+      "publication": "Resultantes ambientais da drenagem de superfícies brejais e lacustres na baixada Campista, Norte do Estado do Rio de Janeiro, Brasil; Vértices23(1):98–128,2021",
+      "official_url": "https://editoraessentia.iff.edu.br/index.php/vertices/article/download/15902/13160",
+      "observed_outcome": "Normal-original request terminated direct HTTP403 text/html. No article body or map read.",
+      "outcome_layer": "Completed original HTTP-client response.",
+      "restriction_scope": "Whole article, figures and all publisher/Redalyc/author-copy/reader/cache/mirror/equivalent routes stopped. Discovery snippets excluded from substantive evidence.",
+      "earlier_lawful_observations": null,
+      "newly_observed_access_failure": true,
+      "aw_id": "hydro-system:61330558"
+    },
+    {
+      "publication": "CBH-BPSI2020 Atlas da Região Hidrográfica IX, linked as Atlas Agevap_Digital.pdf",
+      "official_url": "https://www.cbhbaixoparaiba.org.br/conteudo/Atlas%20Agevap_Digital.pdf",
+      "observed_outcome": "The normal atlas link from the successful CEIVAP launch page returned web-reader HTTP404 Not Found. No atlas body or map read.",
+      "outcome_layer": "Web-reader reported HTTP404; origin response not separately measured.",
+      "restriction_scope": "Whole atlas publication and equivalent copies, formats, catalogue/reader/cache/mirror/figure routes paused. No fallback or alternate atlas edition requested.",
+      "earlier_lawful_observations": "Only the CEIVAP launch-page project identity and bibliography, not atlas cartography.",
+      "newly_observed_access_failure": true,
+      "aw_id": "hydro-system:61330558"
+    },
+    {
+      "publication": "Plan de Desarrollo Comunal de San Pedro de Atacama (PLADECO); period 2017–2021 from discovery, original printed imprint uninspected",
+      "publisher": "Ilustre Municipalidad de San Pedro de Atacama",
+      "official_url": "https://www.munispa.cl/wp-content/uploads/2021/04/PLADECO_Vigente-San-Pedro-Atacama.pdf",
+      "observed_outcome": "The sole direct normal-original request terminated with HTTPError 406 Not Acceptable. No report body, imprint, prose or map pixels were read. No retry or alternative request followed.",
+      "outcome_layer": "Direct HTTP-client response reporting 406; no separately observed reader failure or asserted HTTP401/403.",
+      "restriction_scope": "Whole identified municipal development-plan publication and equivalent original, catalogue, reader, cache, mirror, figure, screenshot and alternate-format acquisitions remain paused, including unread outputs.",
+      "publication_identity_basis": "The official municipal original was discovered as its own communal-development and urban-planning publication, with municipal zoning and development-programme context. This is distinct in publishing purpose and project from the unresolved Loa/DGA2014 hydrology material, MOP road-map portals and IGM sign-in folder. Original imprint was not acquired.",
+      "earlier_lawful_observations": null,
+      "discovery_scope": "Discovery metadata is used only for proposed publication identity, not substantive geographic correspondence.",
+      "newly_observed_access_failure": true,
+      "explicit_access_denial": false,
+      "material_gap_remaining": true,
+      "aw_id": "hydro-system:61352932"
+    },
+    {
+      "publication": "Caracterización y Manejo de Cauces de los ríos San Pedro y Vilama, Región de Antofagasta",
+      "official_url": "https://www.mesamultiactor.cl/wp-content/uploads/2023/01/CARACTERIZACION-Y-MANEJO-DE-CAUCES-DE-LOS-RIOS-SAN-PEDRO-Y-VILAMA.pdf",
+      "observed_outcome": "unrequested; relationship to the unresolved northern MOP/DGA source aggregate not affirmatively resolved; no new HTTP outcome or broader agency ban",
+      "outcome_layer": "Unresolved prior-publication relationship; no acquisition or HTTP outcome.",
+      "restriction_scope": "Unrequested and unused while the relation to the unresolved northern MOP/DGA publication aggregate remains unsettled.",
+      "newly_observed_access_failure": false,
+      "acquisition_performed": false,
+      "aw_id": "hydro-system:61352932"
+    },
+    {
+      "publication": "Geological Survey of Canada, Surficial geology, Western Devon Island, Nunavut, NTS58-H and parts of58-E,F,G; Canadian Geoscience Map353, first edition2018; conversion of A.S. Dyke2001 Map1972A",
+      "official_url": "https://publications.gc.ca/collections/collection_2019/rncan-nrcan/m183-1/M183-1-353-2018-eng.pdf",
+      "catalogue_url": "https://publications.gc.ca/site/eng/9.851085/publication.html",
+      "observed_outcome": "The normal linked-original request completed HTTP200 with text/html after redirection to an archived-information page, rather than the requested PDF. No original map pixels or returned HTML body were read. The earlier catalogue and PDF-reader imprint had completed successfully.",
+      "outcome_layer": "Completed direct HTTP/content response; wrong-body availability outcome, not an asserted access-control denial.",
+      "restriction_scope": "Whole CGM353 publication and underlying Map1972A field-map project, its companion material and equivalent original, catalogue, reader, cache, screenshot, mirror and other acquisition/output-reading routes are paused. No alternate or companion acquisition followed.",
+      "earlier_lawful_observations": "Catalogue bibliography and earlier PDF-reader imprint only: conversion identity, scale, authorship, fieldwork and mapping credits. No geographic map observation is preserved.",
+      "newly_observed_access_failure": false,
+      "availability_failure": true,
+      "material_gap": true,
+      "aw_id": "hydro-system:80011023"
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "publication": "IBGE2020 Quissamã municipal-map catalogue",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/RJ/quissama/",
+      "observed_outcome": "Web reader completed an explicit Unicode decoding error. One permitted sequential normal-original request at the identical directory URL completed HTTP200, text/html;charset=ISO-8859-1, and supplied the map3304151_MM.pdf link. That linked map then completed HTTP200 application/pdf and was read.",
+      "outcome_layer": "Resolved reader character-encoding/format limit, not a publication access denial.",
+      "restriction_scope": "Failed reader route not retried. No enduring Quissamã publication stop; this resolution does not clear the separate Campos pause.",
+      "aw_id": "hydro-system:61330558",
+      "acquisition_stop": false
+    },
+    {
+      "source_keys": [
+        "r202-ibge-madalena2020",
+        "r202-ibge-quissama2020"
+      ],
+      "limitation": "Municipal statistical intended-use and other-use disclaimers, semi-automated multi-source compilation, reproduction rights reserved. Bounded historical/generalized name research only; no originals, crops or working derivatives published.",
+      "aw_id": "hydro-system:61330558",
+      "acquisition_stop": false
+    },
+    {
+      "source_keys": [
+        "r202-ibge-rjes2015"
+      ],
+      "limitation": "Generalized state compilation with informative non-state boundaries and reproduction rights reserved; no exact-bank, operational or registry authority inferred.",
+      "aw_id": "hydro-system:61330558",
+      "acquisition_stop": false
+    },
+    {
+      "source_keys": [
+        "r202-embrapa-imbe2003"
+      ],
+      "limitation": "Ordinary copyright/reproduction reservation; no distribution-limited or officials-only notice observed in inspected imprint. Source images remain private.",
+      "aw_id": "hydro-system:61330558",
+      "acquisition_stop": false
+    },
+    {
+      "publication": "Loyola2023, El agua subterránea en el noreste de La Pampa: Ciclo geoquímico del arsénico",
+      "official_url": "https://sedici.unlp.edu.ar/handle/10915/161074?show=full",
+      "observed_notice": "Creative Commons Attribution-NonCommercial-NoDerivatives4.0 International, stated by the institutional catalogue.",
+      "material_gap": false,
+      "aw_id": "hydro-system:61516926",
+      "acquisition_stop": false,
+      "restriction_scope": "Attribute bounded factual synthesis; keep originals, source figures and private reading aids undistributed. This is not an acquisition denial or citation-permission requirement."
+    }
+  ]
+}

@@ -1,0 +1,1375 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r265",
+  "sources": [
+    {
+      "source_key": "r265-usgstopo-70567566",
+      "title": "USGSTopo, The National Map: McClellans–Cottonwood–Mullen Creek and Pyramid Lake corridor",
+      "publisher": "U.S. Geological Survey",
+      "date": "Seamless composite service, regional view read 14 October 2026; individual underlying feature dates unverified",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "source_type": "Original federal multiscale reference cartography",
+      "publication_identity": "Independently maintained National Map compilation, positively identified in retained lawful service-description and source-credit records. The new regional image is distinct from stopped service metadata, old exact image requests, individual USGS reports, plates and their research projects. No held content was recovered.",
+      "acquisition": "The sequential original regional PNG acquisition completed normally; source pixels were inspected after terminal completion.",
+      "actual_material_read": "Entire regional original; overlapping native-resolution unmarked southern and northern crops; direct McClellans Creek, Cottonwood Creek, Mullen Creek and Pyramid Lake labels; separate part-index orientation aids and coincident source/render endpoint context.",
+      "supports": "Complete connected upland tributary, alluvial valley, marsh junction, named receiving creek and terminal lake setting for every selected part.",
+      "limitations": "One composite reference-cartography source, not an independent survey for each crop. Labels support bounded geographic identity, not formal registry or legal name extent. Source scale, compilation epochs and simplified selection preclude precise bank, wet-thread, current flow, ice-front or water-level claims.",
+      "use_notice": "Only independently written factual observations and ordinary bibliography are public-ready. Original images, reading crops, orientation aids, complete coordinates and acquisition details remain private.",
+      "content_read": true,
+      "original_map_pixels_inspected": true
+    },
+    {
+      "source_key": "r265-bc-world-imagery",
+      "title": "World Imagery: selected coastal British Columbia glacial headwater, river valley and lake-delta corridor",
+      "publisher": "Esri and imagery contributors",
+      "date": "Mosaic acquisition dates unverified; selected view read14October2026",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "source_type": "Independent photographic mosaic",
+      "publication_identity": "Distinct new coastal-BC photographic view, nonoverlapping with recorded stopped selected views. It is not CBMT/Toporama, CanMatrix, DataBC TRIM or borrowed report cartography.",
+      "acquisition": "Export metadata and its returned original JPEG completed normally in sequential requests.",
+      "actual_material_read": "Full original overview and three overlapping east, middle and west unmarked native-resolution crops. Private part-index orientation aids were compared to the original and are not independent source evidence.",
+      "supports": "Continuous physical corridor for all28parts, the terminal delta/open-water context and separately retained source/render endings.",
+      "limitations": "Unlabelled imagery cannot independently establish hydronyms. Mosaic seams, unknown image dates, forest canopy and shadow limit fine channel/shore detail.",
+      "content_read": true
+    },
+    {
+      "source_key": "r265-bcparks-machmell",
+      "title": "Machmell Conservancy",
+      "publisher": "BC Parks, Government of British Columbia",
+      "date": "Undated current institutional page; read14October2026",
+      "official_url": "https://bcparks.ca/machmell-conservancy/",
+      "source_type": "Primary current institutional conservancy information and authorial prose",
+      "publication_identity": "BC Parks visitor-information/editorial entry for the conservancy established through the Central Coast land-use decision, with its own highlights and location prose. It is not the stopped Tweedsmuir brochure, grizzly-habitat mapping report, DataBC service, Canadian gazetteer or fisheries survey report.",
+      "actual_material_read": "Normal HTML title, conservancy highlights and geographic location paragraphs. No linked detailed map, photographs, legislation or other attachment opened.",
+      "supports": "Machmell River as a named river in the regional conservancy setting; Machmell, Genesse and Neechanz confluence; a deltaic freshwater non-tidal wetland.",
+      "limitations": "No placed river label or exact selected-route correspondence; no named receiving-lake statement or upper-reach name extent. Institutional description is not a formal naming-registry decision.",
+      "content_read": true
+    },
+    {
+      "source_key": "r265-world-imagery-70812302",
+      "title": "World Imagery: eastern desert-wash corridor and receiving playa northeast of Chihuahua, Mexico",
+      "publisher": "Esri and credited imagery contributors",
+      "attribution": "Esri, Vantor, Earthstar Geographics and the GIS User Community, from retained lawful service identity",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "accessed_date": "2026-10-14",
+      "publication_identity": "Independently maintained satellite/aerial photographic mosaic. This eastern Chihuahua view is geographically separate from recorded stopped views and does not reproduce held Mexican topographic sheets or hydrographic-report maps. It overlaps only an already lawfully acquired receiving-playa view from the prior corridor review.",
+      "acquisition_outcome": "The complete original image terminated normally and was visually read.",
+      "material_actually_read": "Full original overview; native-size clean eastern, middle and western crops; and separate private orientation aids preserving every selected part and point. All 16 parts, selected beginning, valley and alluvial transitions, playa entry and separately preserved terminal positions were visually considered.",
+      "original_pixels_actually_read": true,
+      "edition_or_scene_date": "Individual local imagery scene dates not established; the image is a multi-scene mosaic.",
+      "evidence_scope": "Ordinary connected desert-wash, valley/alluvial-floor and receiving-playa correspondence. The imagery contains no hydronym labels and does not establish a current wet thread, flow, exact banks, agricultural operation or formal naming status.",
+      "use_scope": "Only independent factual observations and normal bibliography are public-ready; original pixels and derivative reading aids remain private."
+    },
+    {
+      "source_key": "r265-usgstopo-80226437",
+      "title": "USGSTopo, The National Map: Deserted Glacier–Lowe River–Port Valdez corridor",
+      "publisher": "U.S. Geological Survey",
+      "date": "Seamless composite service, regional view read 14 October 2026; individual underlying feature dates unverified",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "source_type": "Original federal multiscale reference cartography",
+      "publication_identity": "Independently maintained National Map compilation, positively identified in retained lawful service-description and source-credit records. The new regional image is distinct from stopped service metadata, old exact image requests, individual USGS reports, plates and their research projects. No held content was recovered.",
+      "acquisition": "The sequential original regional PNG acquisition completed normally; source pixels were inspected after terminal completion.",
+      "actual_material_read": "Full regional original; overlapping native-resolution unmarked eastern, middle and western crops; direct Deserted Glacier, Lowe River, Canyon Slough and Port Valdez labels; enlarged unmarked tidal-mouth crop, separately compared with source/render endpoint aid and all original part-index aids.",
+      "supports": "Complete connected glacial/foreland opening, named Lowe receiving valley, canyon and lower braided/slough/coastal sequence across every selected part and both endpoint definitions.",
+      "limitations": "One composite reference-cartography source, not an independent survey for each crop. Labels support bounded geographic identity, not formal registry or legal name extent. Source scale, compilation epochs and simplified selection preclude precise bank, wet-thread, current flow, ice-front or water-level claims.",
+      "use_notice": "Only independently written factual observations and ordinary bibliography are public-ready. Original images, reading crops, orientation aids, complete coordinates and acquisition details remain private.",
+      "content_read": true,
+      "original_map_pixels_inspected": true
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70567566",
+      "source_keys": [
+        "r265-usgstopo-70567566"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9793
+          ],
+          "component_scope": "mcclellans opening",
+          "finding": "The chosen eastern opening follows the mapped McClellans Creek valley westward below the Pah Rah Range, past the Quaking Aspen Road setting, to the Cottonwood Creek alluvial corridor near Sugar Loaf. The source map directly labels this tributary. The stored opening is a selected interior point and is not established as its natural source.",
+          "sources": [
+            "r265-usgstopo-70567566"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            0
+          ],
+          "stored_parts": [
+            0
+          ],
+          "stored_part_basis": "Zero-based original part indices within this fragment."
+        },
+        {
+          "fragments": [
+            9793
+          ],
+          "component_scope": "upper cottonwood receiving valley",
+          "finding": "The route turns northwest into the directly labelled Cottonwood Creek corridor and continues through the broad alluvial floor near Wilcox Ranch Road, Twin Springs Road and the Shamrock Road setting. The tributary-to-valley transition is continuous; no separate drainage divide intervenes.",
+          "sources": [
+            "r265-usgstopo-70567566"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            1,
+            2
+          ],
+          "stored_parts": [
+            1,
+            2
+          ],
+          "stored_part_basis": "Zero-based original part indices within this fragment."
+        },
+        {
+          "fragments": [
+            9793
+          ],
+          "component_scope": "middle alluvial floor",
+          "finding": "The simplified selected line runs northwest across the same continuous Cottonwood Creek valley floor. The mapped intermittent thread bends farther west locally, while the selection stays on the adjoining broad low-gradient alluvial ground between valley margins. The Paiute Creek approach is lateral eastern context. This supports ordinary connected valley correspondence, not an exact match to every present channel bend or an assertion of permanent surface flow.",
+          "sources": [
+            "r265-usgstopo-70567566"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            3,
+            4,
+            5
+          ],
+          "stored_parts": [
+            3,
+            4,
+            5
+          ],
+          "stored_part_basis": "Zero-based original part indices within this fragment."
+        },
+        {
+          "fragments": [
+            9793
+          ],
+          "component_scope": "cottonwood mullen marsh junction",
+          "finding": "The corridor proceeds northwest along the labelled lower Cottonwood Creek and reaches the marsh-symbol valley floor near Grass Valley Road and Kitty Green Lane. The source map depicts the western Mullen Creek approach and the northeast-going receiving continuation within the same connected lowland. Both short selected parts lie in this common junction setting.",
+          "sources": [
+            "r265-usgstopo-70567566"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            6,
+            7
+          ],
+          "stored_parts": [
+            6,
+            7
+          ],
+          "stored_part_basis": "Zero-based original part indices within this fragment."
+        },
+        {
+          "fragments": [
+            9793
+          ],
+          "component_scope": "mullen creek to lake",
+          "finding": "The selection turns northeast into the directly labelled Mullen Creek receiving corridor, crosses the Pyramid Highway setting, passes north of Jackass Peak and reaches the southern shore of Pyramid Lake. Part 9 contains the final landward creek passage, lake entry and initial lake-interior continuation. The creek and lake provide an ordinary connected receiving sequence across that transition.",
+          "sources": [
+            "r265-usgstopo-70567566"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            8,
+            9
+          ],
+          "stored_parts": [
+            8,
+            9
+          ],
+          "stored_part_basis": "Zero-based original part indices within this fragment."
+        },
+        {
+          "fragments": [
+            9793
+          ],
+          "component_scope": "pyramid lake interior ending",
+          "finding": "All remaining parts continue north and northwest wholly inside the mapped Pyramid Lake footprint and end in its interior. The lake is the terminal receiving basin, not an additional river channel. The original-source and rendered ending metadata coincide and were checked as the same lake-interior endpoint; neither the endpoint nor the generalized lake traverse is promoted to a surveyed hydrological sink or water-current path.",
+          "sources": [
+            "r265-usgstopo-70567566"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            10,
+            11,
+            12,
+            13,
+            14
+          ],
+          "stored_parts": [
+            10,
+            11,
+            12,
+            13,
+            14
+          ],
+          "stored_part_basis": "Zero-based original part indices within this fragment."
+        }
+      ],
+      "part_basis": "Original part indices are zero-based within the sole stored fragment, and every stated span is inclusive. All 15 original parts and 89 stored positions remain in their original order. Source and rendered endpoint metadata are considered separately; no geometry repair, reversal, reconstruction or natural-headwater inference is made."
+    },
+    {
+      "aw_id": "hydro-system:70196025",
+      "source_keys": [
+        "r265-bc-world-imagery",
+        "r265-bcparks-machmell"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9254
+          ],
+          "component_scope": "eastern glacial opening",
+          "finding": "The selected opening is in a high rocky, glaciated headward trough. Its westward continuation follows the same open drainage depression into a narrow forested valley. The photographed ice, bare ground and valley sides establish the ordinary headward connection; no exact present glacier front, natural source or headstream name is assigned.",
+          "sources": [
+            "r265-bc-world-imagery"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            0,
+            1,
+            2
+          ],
+          "stored_parts": [
+            0,
+            1,
+            2
+          ],
+          "stored_part_basis": "Zero-based original part indices within this fragment."
+        },
+        {
+          "fragments": [
+            9254
+          ],
+          "component_scope": "upper northern elbow",
+          "finding": "The selection bends northwest and then west through a continuous mountain-valley elbow. Gravelly channel reaches and the enclosing forested slopes distinguish this through-valley from adjacent hanging tributaries. The generalized line does not require a crossing into a different drainage basin.",
+          "sources": [
+            "r265-bc-world-imagery"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            3,
+            4,
+            5
+          ],
+          "stored_parts": [
+            3,
+            4,
+            5
+          ],
+          "stored_part_basis": "Zero-based original part indices within this fragment."
+        },
+        {
+          "fragments": [
+            9254
+          ],
+          "component_scope": "upper middle alluvial valley",
+          "finding": "The westward and southwestward course continues through an open, locally braided alluvial corridor beneath glaciated side valleys. Incoming tributary fans and the sinuous through-channel remain within one connected valley floor. Individual gravel bars and the modern wet thread are not treated as fixed geometry.",
+          "sources": [
+            "r265-bc-world-imagery"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            6,
+            7,
+            8,
+            9,
+            10
+          ],
+          "stored_parts": [
+            6,
+            7,
+            8,
+            9,
+            10
+          ],
+          "stored_part_basis": "Zero-based original part indices within this fragment."
+        },
+        {
+          "fragments": [
+            9254
+          ],
+          "component_scope": "middle southwest descent",
+          "finding": "The route follows the southwest-trending valley into a more confined forested gorge. Exposed water, alluvial patches and the incised valley floor remain connected across the narrowed reaches. Canopy and shadows limit small-channel detail without leaving a necessary valley-scale receiver unresolved.",
+          "sources": [
+            "r265-bc-world-imagery"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            11,
+            12,
+            13,
+            14
+          ],
+          "stored_parts": [
+            11,
+            12,
+            13,
+            14
+          ],
+          "stored_part_basis": "Zero-based original part indices within this fragment."
+        },
+        {
+          "fragments": [
+            9254
+          ],
+          "component_scope": "middle westward receiving valley",
+          "finding": "The selection turns west along the receiving valley below the confined middle reach. A substantial side valley arrives from the southeast; the selected path stays on the westward continuation. The wooded valley floor and river trace support the connection across all three original parts, without assigning the tributary a name.",
+          "sources": [
+            "r265-bc-world-imagery"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            15,
+            16,
+            17
+          ],
+          "stored_parts": [
+            15,
+            16,
+            17
+          ],
+          "stored_part_basis": "Zero-based original part indices within this fragment."
+        },
+        {
+          "fragments": [
+            9254
+          ],
+          "component_scope": "lower broadening transition",
+          "finding": "The westward course bends gradually northwest as the valley broadens. The connected river becomes more visibly gravelly and braided. Small offsets of the simplified line remain within the same ordinary alluvial corridor rather than implying a different branch.",
+          "sources": [
+            "r265-bc-world-imagery"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            18,
+            19,
+            20
+          ],
+          "stored_parts": [
+            18,
+            19,
+            20
+          ],
+          "stored_part_basis": "Zero-based original part indices within this fragment."
+        },
+        {
+          "fragments": [
+            9254
+          ],
+          "component_scope": "lower braided corridor",
+          "finding": "The lower route follows a continuous northwest-trending braided river floor bordered by forest and steep valley sides. Multiple wet channels and bare gravel occupy one broad receiving corridor; no individual braid is equated with the complete selected part.",
+          "sources": [
+            "r265-bc-world-imagery"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            21,
+            22,
+            23,
+            24
+          ],
+          "stored_parts": [
+            21,
+            22,
+            23,
+            24
+          ],
+          "stored_part_basis": "Zero-based original part indices within this fragment."
+        },
+        {
+          "fragments": [
+            9254
+          ],
+          "component_scope": "northwest bend and lake approach",
+          "finding": "The river sweeps northwest and then west across an increasingly broad alluvial floor. A separate elongated dark waterbody lies north of the route, while a major valley approaches from the south near the lower junction. The selected through-corridor stays on the broad westward river and approaches the delta; the neighboring waterbody and tributaries receive no assigned names.",
+          "sources": [
+            "r265-bc-world-imagery"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            25,
+            26
+          ],
+          "stored_parts": [
+            25,
+            26
+          ],
+          "stored_part_basis": "Zero-based original part indices within this fragment."
+        },
+        {
+          "fragments": [
+            9254
+          ],
+          "component_scope": "delta and distinct endings",
+          "finding": "The last original part crosses the lower braided delta and then extends into the pale open water of the receiving lake-like basin. The separately retained source ending is on the delta/lakeshore approach; the farther-northwest rendered ending is within open water. Both definitions were independently located in the image. Their broad connection is clear without asserting a precise modern shore, current channel mouth or bank position. The retained terminal class sea is inconsistent with this photographed inland lake/delta setting and is not changed by this research.",
+          "sources": [
+            "r265-bc-world-imagery"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            27
+          ],
+          "stored_parts": [
+            27
+          ],
+          "stored_part_basis": "Zero-based original part indices within this fragment."
+        }
+      ],
+      "part_basis": "Original part indices are zero-based within the sole stored fragment; every span is inclusive. FID9254 parts0–27, all28parts and126positions, are retained in original order with their stage3 mainstem role. No reconstruction, repair, joining, reversal or geometry editing was performed. Source and rendered endings remain distinct.",
+      "terminal_observations": {
+        "stored_terminal_class": "sea",
+        "stored_class_preserved": true,
+        "source_endpoint": "Separately inspected on the lower delta/lakeshore approach.",
+        "render_endpoint": "Separately inspected farther northwest in open lake-like water, beyond the delta-side source ending.",
+        "geographic_interpretation": "Observed terminal geography is a lake/delta approach, consistent with the regional BC Parks freshwater/non-tidal wetland context; the retained sea class is not independently supported.",
+        "receiving_water_name": null,
+        "limit": "No surveyed shoreline, exact modern mouth, lake name or data correction is claimed. The two endpoints are not collapsed."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70812302",
+      "source_keys": [
+        "r265-world-imagery-70812302"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10018
+          ],
+          "component_scope": "eastern desert wash opening",
+          "finding": "The selected opening lies in a narrow northeast-to-southwest drainage corridor beside low rocky uplands. A darker, sinuous wash and adjoining pale alluvium continue southwest through the full first part, with small side washes joining along the way. The selected beginning is an interior point in this visible corridor, not a claimed natural headwater source. Its generalized steps stay within the same wash/valley setting.",
+          "sources": [
+            "r265-world-imagery-70812302"
+          ],
+          "correspondence": "completed_at_ordinary_connected_valley_alluvial_floor_and_playa_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": {
+            "first": 1,
+            "last": 1,
+            "index_base": 1
+          },
+          "stored_part_basis": "1-based within the unchanged sole stored fragment; both span endpoints are inclusive"
+        },
+        {
+          "fragments": [
+            10018
+          ],
+          "component_scope": "southwestern reach and westward bend",
+          "finding": "The second part follows the southwest continuation between low ridges and alluvial slopes. Near its lower end the corridor turns west around the northern side of a larger rocky hill. The visible wash and surrounding low ground continue through the entire bend; side gullies and the nearby track do not substitute for the chosen corridor.",
+          "sources": [
+            "r265-world-imagery-70812302"
+          ],
+          "correspondence": "completed_at_ordinary_connected_valley_alluvial_floor_and_playa_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": {
+            "first": 2,
+            "last": 2,
+            "index_base": 1
+          },
+          "stored_part_basis": "1-based within the unchanged sole stored fragment; both span endpoints are inclusive"
+        },
+        {
+          "fragments": [
+            10018
+          ],
+          "component_scope": "southern westward alluvial passage",
+          "finding": "Parts three and four cross the west-running floor at the southern side of the central low uplands. The original clean middle image shows a continuous winding wash bordered by pale alluvium and sparse vegetation. Generalized local zigzags are sometimes offset from the darkest present trace but remain in the common low corridor, with no required crossing of a separating ridge.",
+          "sources": [
+            "r265-world-imagery-70812302"
+          ],
+          "correspondence": "completed_at_ordinary_connected_valley_alluvial_floor_and_playa_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": {
+            "first": 3,
+            "last": 4,
+            "index_base": 1
+          },
+          "stored_part_basis": "1-based within the unchanged sole stored fragment; both span endpoints are inclusive"
+        },
+        {
+          "fragments": [
+            10018
+          ],
+          "component_scope": "northwestern wash and fan junction",
+          "finding": "The route bends northwest through a widening, pale alluvial passage. Branching washes descending from nearby uplands join this corridor, and the lower end emerges onto the broader western floor. Parts five and six and their junction are visible in the full original and middle crop. No individual side-wash hydronym or exact modern channel choice is inferred.",
+          "sources": [
+            "r265-world-imagery-70812302"
+          ],
+          "correspondence": "completed_at_ordinary_connected_valley_alluvial_floor_and_playa_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": {
+            "first": 5,
+            "last": 6,
+            "index_base": 1
+          },
+          "stored_part_basis": "1-based within the unchanged sole stored fragment; both span endpoints are inclusive"
+        },
+        {
+          "fragments": [
+            10018
+          ],
+          "component_scope": "northward turn and broad lower floor",
+          "finding": "The selection turns north along the broad receiving alluvial floor and then west across its open, locally rectangular-patterned surface. The darker drainage swale, adjoining fan toes and pale plain form a continuous lowland. The selected line does not exactly follow every darker trace or field edge, but all three parts remain within this connected floor rather than crossing the surrounding rocky uplands.",
+          "sources": [
+            "r265-world-imagery-70812302"
+          ],
+          "correspondence": "completed_at_ordinary_connected_valley_alluvial_floor_and_playa_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": {
+            "first": 7,
+            "last": 9,
+            "index_base": 1
+          },
+          "stored_part_basis": "1-based within the unchanged sole stored fragment; both span endpoints are inclusive"
+        },
+        {
+          "fragments": [
+            10018
+          ],
+          "component_scope": "northwestern plain to playa entry",
+          "finding": "Parts ten through thirteen continue west and northwest across the low, lightly mottled plain toward the eastern receiving margin of the playa. The clean western image shows the gradual transition from shallow drainage and alluvial surface into a pale, diffuse playa apron. All short stored parts and their joins were inspected; a current wet thread is not required to establish this physical continuity.",
+          "sources": [
+            "r265-world-imagery-70812302"
+          ],
+          "correspondence": "completed_at_ordinary_connected_valley_alluvial_floor_and_playa_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": {
+            "first": 10,
+            "last": 13,
+            "index_base": 1
+          },
+          "stored_part_basis": "1-based within the unchanged sole stored fragment; both span endpoints are inclusive"
+        },
+        {
+          "fragments": [
+            10018
+          ],
+          "component_scope": "playa floor and preserved terminal",
+          "finding": "The final three parts continue west across the broad pale playa floor, passing diffuse darker and lighter surface zones. Their complete course and separately supplied coincident source/render endpoint setting are visible. The terminal is retained near the southern interior/margin portion of the playa and is not relocated to the centre or a present water edge. The original endorheic class is consistent with the receiving-basin setting, without establishing current water balance.",
+          "sources": [
+            "r265-world-imagery-70812302"
+          ],
+          "correspondence": "completed_at_ordinary_connected_valley_alluvial_floor_and_playa_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": {
+            "first": 14,
+            "last": 16,
+            "index_base": 1
+          },
+          "stored_part_basis": "1-based within the unchanged sole stored fragment; both span endpoints are inclusive"
+        }
+      ],
+      "part_basis": "One-based original part numbers within the unchanged sole fragment; inclusive first/last spans."
+    },
+    {
+      "aw_id": "hydro-system:80226437",
+      "source_keys": [
+        "r265-usgstopo-80226437"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2690
+          ],
+          "component_scope": "deserted glacier opening",
+          "finding": "The selected southern opening and northgoing continuation lie inside the broad mapped Deserted Glacier ice corridor. The original cartography shows a continuous glacial valley between its mountain margins through all three parts. The selection is supported as ordinary glacial-corridor correspondence; neither a surface stream on the ice nor an exact present-day glacier source or terminus is asserted.",
+          "sources": [
+            "r265-usgstopo-80226437"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            0,
+            1,
+            2
+          ],
+          "stored_parts": [
+            0,
+            1,
+            2
+          ],
+          "stored_part_basis": "Zero-based original part indices within this fragment."
+        },
+        {
+          "fragments": [
+            2690
+          ],
+          "component_scope": "glacial foreland to receiving valley",
+          "finding": "The route proceeds northeast from the mapped glacier tongue into the adjoining northward foreland drainage floor, then bends north and northwest into the broad Lowe valley. Small mapped watercourses, lowland contours and continuous valley margins support the selected transfer without an intervening divide. The source does not supply a demonstrated name for this glacial feeder, and no modern ice-front or perennial-thread requirement is imposed.",
+          "sources": [
+            "r265-usgstopo-80226437"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            3,
+            4
+          ],
+          "stored_parts": [
+            3,
+            4
+          ],
+          "stored_part_basis": "Zero-based original part indices within this fragment."
+        },
+        {
+          "fragments": [
+            2690
+          ],
+          "component_scope": "upper lowe join and westward valley",
+          "finding": "The short northwestern join parts and long westward continuation occupy the connected upper Lowe River valley. The river is directly and repeatedly labelled on the southern side of this broad alluvial floor; northern tributaries join across it. The simplified line locally follows the northern valley margin rather than each mapped water bend, but remains in the same receiving corridor. Bench, Heiden and Wortmanns creek approaches are lateral context and are not substituted for the selected glacial feeder.",
+          "sources": [
+            "r265-usgstopo-80226437"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "stored_parts": [
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "stored_part_basis": "Zero-based original part indices within this fragment."
+        },
+        {
+          "fragments": [
+            2690
+          ],
+          "component_scope": "middle lowe and canyon",
+          "finding": "The selection continues west and southwest along the Lowe receiving valley beside the Richardson Highway, crosses the Bear Creek joining setting, and follows the narrow river/canyon passage around the mountain front into the lower western valley. Original contours and river linework show the continuous corridor through every intervening short part and the final southwest bend. Local simplified-line offsets are not treated as different river systems or exact channel positions.",
+          "sources": [
+            "r265-usgstopo-80226437"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          "stored_parts": [
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          "stored_part_basis": "Zero-based original part indices within this fragment."
+        },
+        {
+          "fragments": [
+            2690
+          ],
+          "component_scope": "lower braidplain entry",
+          "finding": "The route turns west into the broad lower Lowe River braidplain, passing the Browns Creek joining setting and the first selected bends among mapped braided channels and their shared alluvial floor. Every part remains within the same continuous receiving valley; a specific modern active braid or flow allocation is not inferred.",
+          "sources": [
+            "r265-usgstopo-80226437"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            18,
+            19,
+            20,
+            21
+          ],
+          "stored_parts": [
+            18,
+            19,
+            20,
+            21
+          ],
+          "stored_part_basis": "Zero-based original part indices within this fragment."
+        },
+        {
+          "fragments": [
+            2690
+          ],
+          "component_scope": "canyon slough and lower lowe floor",
+          "finding": "These parts run west along the southern side of the common lower Lowe braidplain, including the mapped Canyon Slough corridor, then converge toward the western Lowe River tidal approach below Robe Lake. The cartography supports a continuous braided/slough/alluvial receiving floor and the named Lowe system. Canyon Slough remains a bounded component name; Robe Lake and Valdez Glacier Stream are adjoining geographic context, not upstream components substituted into the selection.",
+          "sources": [
+            "r265-usgstopo-80226437"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29
+          ],
+          "stored_parts": [
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29
+          ],
+          "stored_part_basis": "Zero-based original part indices within this fragment."
+        },
+        {
+          "fragments": [
+            2690
+          ],
+          "component_scope": "tidal approach",
+          "finding": "The route continues west and northwest through the lowest mapped Lowe River braidplain toward the tidal-margin opening. The original source displays connected channels, marsh ground and the adjacent broad Port Valdez waterbody. This is a continuous ordinary river-to-coast receiving setting.",
+          "sources": [
+            "r265-usgstopo-80226437"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            30
+          ],
+          "stored_parts": [
+            30
+          ],
+          "stored_part_basis": "Zero-based original part indices within this fragment."
+        },
+        {
+          "fragments": [
+            2690
+          ],
+          "component_scope": "source and rendered sea endings",
+          "finding": "The final part reaches the tidal mouth margin of Port Valdez. The original-source endpoint and slightly displaced rendered endpoint were examined separately on the same unmarked source crop with a private endpoint aid; both occupy the same connected tidal-mouth/receiving-water setting. Their difference does not identify a second river or require an unestablished landward transfer. Neither ending is asserted to be a surveyed present shoreline or exact active-channel mouth.",
+          "sources": [
+            "r265-usgstopo-80226437"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            31
+          ],
+          "stored_parts": [
+            31
+          ],
+          "stored_part_basis": "Zero-based original part indices within this fragment."
+        }
+      ],
+      "part_basis": "Original part indices are zero-based within the sole stored fragment, and every stated span is inclusive. All 32 original parts and 106 stored positions remain in their original order. Source and rendered endpoint metadata are considered separately; no geometry repair, reversal, reconstruction or natural-headwater inference is made."
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "USGSTopo National Map service metadata, requested for Alaska80192797",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer?f=pjson",
+      "observed_outcome": "Sole service-metadata request yielded; its first terminal-status confirmation was cancelled before a decision returned. HTTP, body and terminal completion unknown. No metadata, response headers or pixels read.",
+      "outcome_layer": "Tool/network-approval cancellation before terminal observation; not an established origin HTTP denial.",
+      "restriction_scope": "Exact service-metadata request, equivalent metadata acquisition and unread outputs stopped. No recovery through another route. This does not clear any old service hold or establish an institution-wide ban; unrelated independent publications may continue.",
+      "earlier_lawful_observations": "None from this new service-metadata request.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "new_acquisition_performed": false,
+      "effect_on_current_finding": "Existing exact restriction preserved; no held source or equivalent recovery requested. Independently identified, distinct current regional National Map originals supply the finding.",
+      "aw_id": "hydro-system:70567566",
+      "inherited_restriction": true
+    },
+    {
+      "publication": "USGSTopo, The National Map; one bounded northern Stonecabin corridor original-image request",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "observed_outcome": "One original-image request began, but its terminal/session result was unavailable. HTTP status, response type and transfer completion remain unknown. Its response file was not read and supplies no evidence.",
+      "outcome_layer": "Unconfirmed execution/session outcome; origin HTTP and transfer outcome unknown.",
+      "restriction_scope": "This exact unconfirmed request and its response output remain unused. No recovery request, output reading, retry or further USGSTopo acquisition was made for this work. The event is not a permanent whole-service access denial or an institution-wide ban.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "new_acquisition_performed": false,
+      "effect_on_current_finding": "Existing exact restriction preserved; no held source or equivalent recovery requested. Independently identified, distinct current regional National Map originals supply the finding.",
+      "aw_id": "hydro-system:70567566",
+      "inherited_restriction": true
+    },
+    {
+      "publication": "USGSTopo exact headward detail for northern California/southern Oregon70517095",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "observed_outcome": "New head-detail original request yielded. The terminal-status action was cancelled before approval review completed. No HTTP, body or terminal completion observed; no output read or retry. Proposed additional terminal detail was not requested.",
+      "outcome_layer": "Tool-level automatic approval review cancellation; no originHTTP401/403 asserted.",
+      "restriction_scope": "Exact selected headward detail, equivalent retrieval and unread-output recovery stopped. No poll, partial-file reading or alternate acquisition. No whole-service or unrelated-regional ban.",
+      "earlier_lawful_observations": "Earlier complete regional overview terminatedHTTP200,image/png,exit0 and was actually read, including local crops. Its recorded ordinary chosen-opening, North Fork/main Smith joins and source/render coastal-setting observations remain usable; stopped detail supplies no evidence.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "new_acquisition_performed": false,
+      "effect_on_current_finding": "Existing exact restriction preserved; no held source or equivalent recovery requested. Independently identified, distinct current regional National Map originals supply the finding.",
+      "aw_id": "hydro-system:70567566",
+      "inherited_restriction": true
+    },
+    {
+      "publication": "USGS Scientific Investigations Report2006-5249, Hydrogeologic Framework and Ground Water in Basin-Fill Deposits of the Diamond Valley Flow System, Central Nevada",
+      "url": "https://pubs.usgs.gov/sir/2006/5249/",
+      "observed_limit": "HTTP403. The entire report, plate and equivalents remain stopped; no content used.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "new_acquisition_performed": false,
+      "effect_on_current_finding": "Existing exact restriction preserved; no held source or equivalent recovery requested. Independently identified, distinct current regional National Map originals supply the finding.",
+      "aw_id": "hydro-system:70567566",
+      "inherited_restriction": true
+    },
+    {
+      "title": "USGS Nevada Flood Chronology: Walker River Basin — Basin Description",
+      "official_url": "https://nevada.usgs.gov/crfld/Walker/basindesc.htm",
+      "observed_outcome": "Web reader returned (403) Forbidden. No page body was acquired by the open request.",
+      "restriction_scope": "Entire named Basin Description publication and equivalent copies, formats, cached content, mirrors and acquisition routes stopped. No retry or alternative route. This is not a restriction on other independent USGS publications or USGSTopo.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "new_acquisition_performed": false,
+      "effect_on_current_finding": "Existing exact restriction preserved; no held source or equivalent recovery requested. Independently identified, distinct current regional National Map originals supply the finding.",
+      "aw_id": "hydro-system:70567566",
+      "inherited_restriction": true
+    },
+    {
+      "publication": "USGS Water-Supply Paper423, Geology and water resources of Big Smoky, Clayton, and Alkali Spring Valleys, Nevada,1917",
+      "official_url": "https://pubs.usgs.gov/publication/wsp423",
+      "observed_outcome": "The sole catalogue opening returned an explicit web-reader (403) Forbidden. No catalogue body, report body, HTML section, original PDF or map pixels were read. No retry, original-file request or alternative route followed.",
+      "outcome_layer": "Explicit HTTP403 reported by the web reader; no separate direct-client origin status measurement.",
+      "restriction_scope": "Whole identified WSP423 study/publication, plates, report PDF, HTML sections, catalogue, NBMG mirror and other equivalent acquisition or unread-output routes stopped.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "new_acquisition_performed": false,
+      "effect_on_current_finding": "Existing exact restriction preserved; no held source or equivalent recovery requested. Independently identified, distinct current regional National Map originals supply the finding.",
+      "aw_id": "hydro-system:70567566",
+      "inherited_restriction": true
+    },
+    {
+      "publication": "Huntington, J.M., Garcia, C.A., and Rosen, M.R. (2014), Hydrogeologic framework and occurrence, movement, and chemical characterization of groundwater in Dixie Valley, west-central Nevada; USGS Scientific Investigations Report 2014-5152, DOI10.3133/sir20145152; bibliographic discovery identity, original imprint uninspected",
+      "official_url": "https://pubs.usgs.gov/sir/2014/5152/pdf/sir2014-5152.pdf",
+      "observed_outcome": "The sole normal-original acquisition completed direct HTTP403 with Content-Type text/plain. No response body, original report prose, imprint or map pixels were read.",
+      "outcome_layer": "Completed direct HTTP-client response; not a reader cache error or inferred origin outcome.",
+      "restriction_scope": "Whole identified SIR2014-5152 report and its 2009–11 Dixie study/project-equivalent copies, figures, plates, catalogue, HTML/PDF formats and acquisition or unread-output recovery routes stopped. No retry, mirror, alternative format or companion recovery followed.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "new_acquisition_performed": false,
+      "effect_on_current_finding": "Existing exact restriction preserved; no held source or equivalent recovery requested. Independently identified, distinct current regional National Map originals supply the finding.",
+      "aw_id": "hydro-system:70567566",
+      "inherited_restriction": true
+    },
+    {
+      "publication": "Stuart S. Holland, Landforms of British Columbia: A Physiographic Outline, Bulletin 48, 1976",
+      "official_url": "https://cmscontent.nrs.gov.bc.ca/geoscience/publicationcatalogue/Bulletin/BCGS_B048.pdf",
+      "observed_outcome": "The sole normal web-reader opening returned Internal Error / (400) Content length is too large: 15392590. No original body, photograph or map pixels were read.",
+      "outcome_layer": "Web-reader size/availability failure; origin HTTP was not independently measured.",
+      "origin_http_status": null,
+      "restriction_scope": "Whole exact bulletin and project-equivalent original, catalogue, reader/cache, mirror, alternate-format, photograph/map/figure and unread-output recovery remain paused. No retry or alternate retrieval followed.",
+      "earlier_lawful_observations": "Bibliographic discovery only; no substantive discovery excerpts used.",
+      "newly_observed_access_failure": true,
+      "explicit_access_denial": false,
+      "acquisition_stop": true,
+      "material_effect": "Optional named geographic corroboration unavailable. Independent photography completes ordinary geographic coverage, so this does not create a geographic material-pending classification.",
+      "aw_id": "hydro-system:70196025"
+    },
+    {
+      "publication": "W. Blake, Jr., Geological Survey of Canada Radiocarbon Dates XXV, Paper 85-7, 1986",
+      "official_url": "https://emrlibrary.gov.yk.ca/emrlibrary/gsc/papers/85-7.pdf",
+      "observed_outcome": "The sole normal web-reader opening returned Internal Error / Cache miss. No original body or map pixels were read.",
+      "outcome_layer": "Web-reader/cache availability failure; origin HTTP unknown.",
+      "origin_http_status": null,
+      "restriction_scope": "Whole exact paper and project-equivalent original, catalogue, reader/cache, mirror, alternate-format, figure and unread-output recovery remain paused. No retry or alternate retrieval followed.",
+      "earlier_lawful_observations": "Bibliographic discovery only; no substantive sample-location or geographic discovery excerpts used.",
+      "newly_observed_access_failure": true,
+      "explicit_access_denial": false,
+      "acquisition_stop": true,
+      "material_effect": "Optional named river/lake corroboration unavailable; the absence is a bounded name-evidence limit, not an unresolved physical through-link.",
+      "aw_id": "hydro-system:70196025"
+    },
+    {
+      "publication": "All Canadian CGN/geogratis expanded/name-search records, ambiguous Canadian gazetteers and UNECE naming publications",
+      "official_url": null,
+      "observed_outcome": "Inherited restriction; no new request or source use in this finding.",
+      "restriction_scope": "Historical Canadian naming-family and ambiguous-publication stops remain preserved with exact missing identities unresolved.",
+      "aw_id": "hydro-system:70196025",
+      "inherited_restriction": true,
+      "newly_observed_access_failure": false
+    },
+    {
+      "publication": "BaseMaps/CBMT3978 (MapServer)",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer",
+      "observed_outcome": "Inherited restriction; no new request or source use in this finding.",
+      "restriction_scope": "Entire CBMT cartographic publication/service and equivalent acquisition routes stopped after the image denial; no retry, reader/cache route, alternate export or equivalent distribution requested.",
+      "aw_id": "hydro-system:70196025",
+      "inherited_restriction": true,
+      "newly_observed_access_failure": false
+    },
+    {
+      "publication": "BaseMaps/CBMT3978 (MapServer)",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer",
+      "observed_outcome": "Inherited restriction; no new request or source use in this finding.",
+      "restriction_scope": "Service/publication and all equivalent acquisition routes stopped, with no retry. This restriction was communicated by the batch coordinator before the Nunavut target could use the service.",
+      "aw_id": "hydro-system:70196025",
+      "inherited_restriction": true,
+      "newly_observed_access_failure": false
+    },
+    {
+      "publication": "Tweedsmuir Park brochure, BC Parks",
+      "official_url": "https://nrs.objectstore.gov.bc.ca/kuwyyf/tweedsmuir_park_brochure_25bc9bd0ca.pdf",
+      "observed_outcome": "Inherited restriction; no new request or source use in this finding.",
+      "restriction_scope": "Entire brochure and equivalent copies, figures, formats and acquisition routes stopped. No retry or alternative retrieval.",
+      "aw_id": "hydro-system:70196025",
+      "inherited_restriction": true,
+      "newly_observed_access_failure": false
+    },
+    {
+      "publication": "BC Timber Sales, FSP Map Riparian, Halfway Ranch, 4 February 2019, 1:100,000",
+      "official_url": "https://www2.gov.bc.ca/assets/gov/farming-natural-resources-and-industry/forestry/bc-timber-sales/environmental-stewardship-sustainability/forest-stewardship-plans/cariboo-chilcotin/maps-fsp-tcc-riparian/map8_halfwayranch_part_crip.pdf",
+      "observed_outcome": "Inherited restriction; no new request or source use in this finding.",
+      "restriction_scope": "Missing map content and equivalent original-file, alternate-reader, screenshot and mirror routes paused without retry.",
+      "aw_id": "hydro-system:70196025",
+      "inherited_restriction": true,
+      "newly_observed_access_failure": false
+    },
+    {
+      "publication": "Satah Mountain, British Columbia, NTS093C/07 CanMatrix original map; publisher catalogue identifies 1981, edition number not established",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/50k_300dpi/093/c/canmatrix_093c07_tif.zip",
+      "observed_outcome": "Inherited restriction; no new request or source use in this finding.",
+      "restriction_scope": "Whole sheet07 publication and all equivalent copies, formats, crops, viewers and acquisition routes stopped. No retry, mirror, Toporama or CBMT route used.",
+      "aw_id": "hydro-system:70196025",
+      "inherited_restriction": true,
+      "newly_observed_access_failure": false
+    },
+    {
+      "publication": "BaseMaps/CBMT3978 and equivalent Toporama routes",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer",
+      "observed_outcome": "Inherited restriction; no new request or source use in this finding.",
+      "restriction_scope": "Entire service and equivalents excluded from new acquisition. No request made in this review.",
+      "aw_id": "hydro-system:70196025",
+      "inherited_restriction": true,
+      "newly_observed_access_failure": false
+    },
+    {
+      "publication": "BC Timber Sales FSP Map Riparian, sheet12 Halfway Ranch,4February2019",
+      "official_url": "https://www2.gov.bc.ca/assets/gov/farming-natural-resources-and-industry/forestry/bc-timber-sales/environmental-stewardship-sustainability/forest-stewardship-plans/cariboo-chilcotin/maps-fsp-tcc-riparian/map12_halfwayranch_crip.pdf",
+      "observed_outcome": "Inherited restriction; no new request or source use in this finding.",
+      "restriction_scope": "Missing sheet12 original and equivalent map copies/formats/routes paused for availability; no retry. Distinct from previously stopped sheet8; no agency-wide stop inferred.",
+      "aw_id": "hydro-system:70196025",
+      "inherited_restriction": true,
+      "newly_observed_access_failure": false
+    },
+    {
+      "publication": "BC Spaces for Nature Document Archive, publications_archive.html",
+      "official_url": "https://www.spacesfornature.org/publications_archive.html",
+      "observed_outcome": "Inherited restriction; no new request or source use in this finding.",
+      "restriction_scope": "Missing archive landing-page acquisition and equivalent routes paused; no retry and no linked Klinaklini resource-analysis original acquired through another route.",
+      "aw_id": "hydro-system:70196025",
+      "inherited_restriction": true,
+      "newly_observed_access_failure": false
+    },
+    {
+      "publication": "Results of the chinook assessment study conducted on the Klinaklini River during1999, Canadian Manuscript Report2580, catalogue466467",
+      "official_url": "https://publications.gc.ca/site/eng/466467/publication.html",
+      "observed_outcome": "Inherited restriction; no new request or source use in this finding.",
+      "restriction_scope": "Missing catalogue/report content and equivalent acquisition routes paused; no original PDF, mirror, alternate year as replacement, or retry.",
+      "aw_id": "hydro-system:70196025",
+      "inherited_restriction": true,
+      "newly_observed_access_failure": false
+    },
+    {
+      "publication": "Tree Farm Licence45, signed licence with map",
+      "official_url": "https://www2.gov.bc.ca/assets/gov/farming-natural-resources-and-industry/forestry/timber-tenures/tree-farm-licence/licences/tfl_45_licence_signed_with_map.pdf",
+      "observed_outcome": "Inherited restriction; no new request or source use in this finding.",
+      "restriction_scope": "Missing licence/map content and equivalent copies/formats/routes paused; no retry.",
+      "aw_id": "hydro-system:70196025",
+      "inherited_restriction": true,
+      "newly_observed_access_failure": false
+    },
+    {
+      "publication": "Province of British Columbia Ministerial Order2018_M336, containing2018 Moose Closed Season MU5-06 map",
+      "official_url": "https://www.bclaws.gov.bc.ca/civix/document/id/mo/hmo/2018_m336",
+      "observed_outcome": "Inherited restriction; no new request or source use in this finding.",
+      "restriction_scope": "Missing order/map and equivalent copies/formats/routes paused for availability; no alternate host, embedded PDF or retry.",
+      "aw_id": "hydro-system:70196025",
+      "inherited_restriction": true,
+      "newly_observed_access_failure": false
+    },
+    {
+      "publication": "Mount Waddington, NTS092N, CanMatrix1:250,000 topographic sheet; edition not inspected",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/092/n/canmatrix_092n_tif.zip",
+      "observed_outcome": "Inherited restriction; no new request or source use in this finding.",
+      "restriction_scope": "Whole092N CanMatrix publication and equivalent copies, formats, editions offered as that same source, viewers and all acquisition routes stopped. NTS1:250,000 derivative layers were excluded; no retry or alternate sheet recovery. Independent provincial TRIM cartography was explicitly distinguished by its service/layer metadata.",
+      "aw_id": "hydro-system:70196025",
+      "inherited_restriction": true,
+      "newly_observed_access_failure": false
+    },
+    {
+      "publication": "Grizzly Bear Habitat Mapping for Parks and Conservancies for the North and Central Coast,2008",
+      "official_url": "https://www2.gov.bc.ca/assets/gov/farming-natural-resources-and-industry/natural-resource-use/land-water-use/crown-land/land-use-plans-and-objectives/westcoast-region/great-bear-rainforest/ei02a_grizzly_habitat_report.pdf",
+      "observed_outcome": "Inherited restriction; no new request or source use in this finding.",
+      "restriction_scope": "Missing report/maps and equivalent acquisition routes paused for availability; no retry.",
+      "aw_id": "hydro-system:70196025",
+      "inherited_restriction": true,
+      "newly_observed_access_failure": false
+    },
+    {
+      "publication": "Lake Gillian, NTS037D, CanMatrix 1:250,000 topographic sheet; printed title and edition uninspected",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/037/d/canmatrix_037d_tif.zip",
+      "observed_outcome": "Inherited restriction; no new request or source use in this finding.",
+      "restriction_scope": "Entire NTS037D sheet publication and all equivalent copies, formats, catalogue, original, reader, cache, mirror and other acquisition routes stopped. No retry or alternative route.",
+      "aw_id": "hydro-system:70196025",
+      "inherited_restriction": true,
+      "newly_observed_access_failure": false
+    },
+    {
+      "publication": "Foley Island, NTS037A, CanMatrix 1:250,000 topographic sheet directory and associated sheet; printed title and edition uninspected",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/037/a/",
+      "observed_outcome": "Inherited restriction; no new request or source use in this finding.",
+      "restriction_scope": "NTS037A directory and associated sheet, equivalent catalogue, map, original, reader, cache, mirror and other acquisition routes left stopped. No retry or workaround followed. Related new CanMatrix sheet acquisitions remain paused while this same-publication scope is unresolved; different sheet numbers alone do not establish permission to continue.",
+      "aw_id": "hydro-system:70196025",
+      "inherited_restriction": true,
+      "newly_observed_access_failure": false
+    },
+    {
+      "publication": "CanMatrix 1:250,000 Tanquary Fiord, NTS 340D; exact printed edition uninspected",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/340/d/canmatrix_340d_tif.zip",
+      "observed_outcome": "Inherited restriction; no new request or source use in this finding.",
+      "restriction_scope": "The current related CanMatrix acquisitions remain paused while the same-publication scope is unresolved. No340D terminal polling, original/partial-file reading, retry, equivalent route, substitute edition or120C acquisition followed. Different sheet numbers alone do not resolve the restriction.",
+      "aw_id": "hydro-system:70196025",
+      "inherited_restriction": true,
+      "newly_observed_access_failure": false
+    },
+    {
+      "publication": "DataBC Base, base/base MapServer, provincial TRIM1:20,000 hydrographic layers21–24",
+      "official_url": "https://delivery.maps.gov.bc.ca/arcgis/rest/services/base/base/MapServer",
+      "observed_outcome": "Inherited restriction; no new request or source use in this finding.",
+      "restriction_scope": "Whole DataBC base/base MapServer publication/service and equivalent acquisition or content-use routes remain paused after the first unexplained layer21 metadata failure. No later layer metadata is used, and no new original or alternate route may be requested. This is not an HTTP403 or an institution-wide ban.",
+      "aw_id": "hydro-system:70196025",
+      "inherited_restriction": true,
+      "newly_observed_access_failure": false
+    },
+    {
+      "publication": "Nature Conservancy of Canada, Water Supply and Water Quality monitoring in the Homathko River basin; 2006 monitoring project",
+      "official_url": "https://www.natureconservancy.ca/assets/documents/bc/tatlayoko/Water_Supply_and_Quality_Monitoring_in_the_Homathko_Rive.pdf",
+      "observed_outcome": "Inherited restriction; no new request or source use in this finding.",
+      "restriction_scope": "Whole publication, companions and equivalent acquisition/content-use routes paused; no alternate acquisition or later-edition substitution.",
+      "aw_id": "hydro-system:70196025",
+      "inherited_restriction": true,
+      "newly_observed_access_failure": false
+    },
+    {
+      "publication": "Water Quality Assessment and Monitoring for the Lower Kitimat River, May 2020",
+      "official_url": "https://www2.gov.bc.ca/assets/gov/environment/air-land-water/water/waterquality/water-quality-objectives/2020-05-05_kitimat_river_wqa_rpt_final.pdf",
+      "observed_outcome": "Inherited restriction; no new request or source use in this finding.",
+      "restriction_scope": "Exact report and equivalent retrieval paused after the bounded identical-URL retry. No institution-wide or whole-service denial asserted.",
+      "aw_id": "hydro-system:70196025",
+      "inherited_restriction": true,
+      "newly_observed_access_failure": false
+    },
+    {
+      "publication": "BC Fisheries SK108 / Nass survey material and Homathko9H Level2 relationship",
+      "official_url": null,
+      "observed_outcome": "Inherited unresolved publication/project identity; no acquisition.",
+      "restriction_scope": "Both recorded constraints remain. A different basin, report date, title or host does not establish independence; held content was not retrieved to resolve the relationship.",
+      "aw_id": "hydro-system:70196025",
+      "inherited_restriction": true,
+      "newly_observed_access_failure": false
+    },
+    {
+      "publication": "Exact stopped World Imagery selected-area views",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "observed_outcome": "Inherited exact Ellesmere, Hot Creek/Railroad Valley, Knik lower, Mendoza terminal, southern Labrador, northeastern Patagonia and coastal-Alaska view restrictions; no recovery.",
+      "restriction_scope": "Each exact selected view, its equivalents and unread outputs remain held. The newly read BC corridor is geographically distinct; no service-wide or institution-wide prohibition is inferred.",
+      "aw_id": "hydro-system:70196025",
+      "inherited_restriction": true,
+      "newly_observed_access_failure": false
+    },
+    {
+      "publication": "USGS PP1386-C/I/J and all other recorded applicable exact source/project holds",
+      "official_url": null,
+      "observed_outcome": "No request, recovery or use.",
+      "restriction_scope": "Actual section/publication scopes preserved; no new institution-wide prohibition and no release of an existing stop.",
+      "aw_id": "hydro-system:70196025",
+      "newly_observed_access_failure": false,
+      "inherited_restriction": true
+    },
+    {
+      "publication": "USGSTopo National Map service metadata, requested for Alaska80192797",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer?f=pjson",
+      "observed_outcome": "Sole service-metadata request yielded; its first terminal-status confirmation was cancelled before a decision returned. HTTP, body and terminal completion unknown. No metadata, response headers or pixels read.",
+      "outcome_layer": "Tool/network-approval cancellation before terminal observation; not an established origin HTTP denial.",
+      "restriction_scope": "Exact service-metadata request, equivalent metadata acquisition and unread outputs stopped. No recovery through another route. This does not clear any old service hold or establish an institution-wide ban; unrelated independent publications may continue.",
+      "earlier_lawful_observations": "None from this new service-metadata request.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "new_acquisition_performed": false,
+      "effect_on_current_finding": "Existing exact restriction preserved; no held source or equivalent recovery requested. Independently identified, distinct current regional National Map originals supply the finding.",
+      "aw_id": "hydro-system:80226437",
+      "inherited_restriction": true
+    },
+    {
+      "publication": "USGSTopo exact headward detail for northern California/southern Oregon70517095",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "observed_outcome": "New head-detail original request yielded. The terminal-status action was cancelled before approval review completed. No HTTP, body or terminal completion observed; no output read or retry. Proposed additional terminal detail was not requested.",
+      "outcome_layer": "Tool-level automatic approval review cancellation; no originHTTP401/403 asserted.",
+      "restriction_scope": "Exact selected headward detail, equivalent retrieval and unread-output recovery stopped. No poll, partial-file reading or alternate acquisition. No whole-service or unrelated-regional ban.",
+      "earlier_lawful_observations": "Earlier complete regional overview terminatedHTTP200,image/png,exit0 and was actually read, including local crops. Its recorded ordinary chosen-opening, North Fork/main Smith joins and source/render coastal-setting observations remain usable; stopped detail supplies no evidence.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "new_acquisition_performed": false,
+      "effect_on_current_finding": "Existing exact restriction preserved; no held source or equivalent recovery requested. Independently identified, distinct current regional National Map originals supply the finding.",
+      "aw_id": "hydro-system:80226437",
+      "inherited_restriction": true
+    },
+    {
+      "publication": "USGS Professional Paper 1386-J, Satellite Image Atlas of Glaciers of the World—North America (2002), Glaciers of Baffin Island section",
+      "official_url": "https://pubs.usgs.gov/pp/p1386j/baffinisland/baffin-lores.pdf",
+      "observed_outcome": "The sole normal original-file request completed HTTPError 403 Forbidden. No PDF body or original map pixels were acquired.",
+      "outcome_layer": "Completed original HTTP-client error response reporting status 403.",
+      "restriction_scope": "Entire PP1386-J publication and equivalent copies, figures, low/high-resolution formats, catalogue, original, reader, cache, screenshot, mirror and other acquisition routes stopped. No retry or alternative route followed.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "new_acquisition_performed": false,
+      "effect_on_current_finding": "Existing exact restriction preserved; no held source or equivalent recovery requested. Independently identified, distinct current regional National Map originals supply the finding.",
+      "aw_id": "hydro-system:80226437",
+      "inherited_restriction": true
+    },
+    {
+      "publication": "Orth, Dictionary of Alaska Place Names, USGS Professional Paper567,1967",
+      "official_url": "https://digital.library.unt.edu/ark:/67531/metadc303962/m1/152/",
+      "observed_outcome": "Sole page152 reader opening returned Internal Error: the URL is not accessible via this tool. No page body or map read; discovery name snippets excluded.",
+      "outcome_layer": "Web-reader availability failure with unknown origin HTTP.",
+      "restriction_scope": "Exact dictionary/publication, equivalent acquisition and missing/unread content recovery paused. No alternate host/format route or later retry. Prior actually read source material retains only its recorded scope, not permission for new reading.",
+      "earlier_lawful_observations": "No new original content read for this target. Older bounded source readings are not silently invalidated or expanded.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "new_acquisition_performed": false,
+      "effect_on_current_finding": "Existing exact restriction preserved; no held source or equivalent recovery requested. Independently identified, distinct current regional National Map originals supply the finding.",
+      "aw_id": "hydro-system:80226437",
+      "inherited_restriction": true
+    },
+    {
+      "publication": "Martin1908, Geology and mineral resources of the Controller Bay region, Alaska; USGS Bulletin335, PlateII",
+      "official_url": "https://pubs.usgs.gov/bul/0335/plate-2.pdf",
+      "observed_outcome": "The sole linked Plate2 reader request returned Failed to fetch:403 Forbidden. No map pixels or original body read.",
+      "outcome_layer": "Web-reader fetch reportingHTTP403; no separate direct-client origin measurement.",
+      "restriction_scope": "Whole identified Bulletin335 publication, Controller Bay field-survey plate/project-equivalent missing material, original/report/plate/copy/format/catalogue/mirror and other acquisition or unread-output recovery routes stopped. No alternate host, report request or other fallback followed.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "new_acquisition_performed": false,
+      "effect_on_current_finding": "Existing exact restriction preserved; no held source or equivalent recovery requested. Independently identified, distinct current regional National Map originals supply the finding.",
+      "aw_id": "hydro-system:80226437",
+      "inherited_restriction": true
+    },
+    {
+      "publication": "Reconnaissance of surface-water resources in the Togiak River basin, southwestern Alaska, 1980 and 1982 (USGS Water-Resources Investigations Report 83-4170)",
+      "official_url": "https://pubs.usgs.gov/wri/1983/4170/report.pdf",
+      "observed_outcome": "The sole report-link request returned Internal Error with the explicit message: Failed to fetch https://pubs.usgs.gov/wri/1983/4170/report.pdf: (403) Forbidden. No original report body or map pixels were acquired.",
+      "outcome_layer": "Web-reader fetch reporting HTTP 403 Forbidden for the original PDF; not merely an unexplained InternalError or a reader size/format limitation. No separate direct-client HTTP measurement was made.",
+      "restriction_scope": "The entire WRI 83-4170 publication and equivalent originals, catalogue/metadata, maps, figures, HTML/PDF forms, reader/cache, mirrors and other acquisition routes are stopped. No retry or alternate retrieval occurred. This does not extend to independent USGSTopo cartography or independent FWS AFDS 2014-2.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "new_acquisition_performed": false,
+      "effect_on_current_finding": "Existing exact restriction preserved; no held source or equivalent recovery requested. Independently identified, distinct current regional National Map originals supply the finding.",
+      "aw_id": "hydro-system:80226437",
+      "inherited_restriction": true
+    },
+    {
+      "publication": "USGS Professional Paper 303-C, Geology of the Utukok–Corwin region, northwestern Alaska",
+      "official_url": "https://pubs.usgs.gov/pp/0303c/report.pdf",
+      "observed_outcome": "The sole web-reader open returned Internal Error with the explicit message: Failed to fetch https://pubs.usgs.gov/pp/0303c/report.pdf: (403) Forbidden. No original report body or map pixels were acquired.",
+      "outcome_layer": "Web-reader fetch reporting HTTP 403 Forbidden for the original PDF. No separate direct-client origin measurement was made; this is not an unexplained InternalError or a size/format limit.",
+      "restriction_scope": "The entire PP 303-C publication and equivalent originals, catalogue/metadata, maps, figures, PDF/HTML forms, readers, cache, mirrors and other acquisition routes are stopped. No retry or alternate retrieval occurred. This does not extend to independent USGSTopo cartography or the independent Kukpowruk River station publication.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "new_acquisition_performed": false,
+      "effect_on_current_finding": "Existing exact restriction preserved; no held source or equivalent recovery requested. Independently identified, distinct current regional National Map originals supply the finding.",
+      "aw_id": "hydro-system:80226437",
+      "inherited_restriction": true
+    },
+    {
+      "publication": "ADF&G 2014 Western Region Anadromous Waters Catalog, Special Publication No. 14-06",
+      "official_url": "https://www.adfg.alaska.gov/anadromouspdfs/2014wst_CATALOG.pdf",
+      "observed_outcome": "The sole direct normal-original request terminated HTTP200 with Content-Type text/html instead of a PDF. No catalogue body, table or map read. No alternate reader, URL, edition or equivalent acquisition followed.",
+      "outcome_layer": "Completed direct HTTP-client response and reported media type; wrong-body availability result, not an asserted HTTP403 or established challenge.",
+      "restriction_scope": "Whole identified catalogue publication/project equivalents, related original, catalogue, reader/cache, mirror, map and alternate-format acquisition and unread-output reading paused.",
+      "earlier_lawful_observations": null,
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "new_acquisition_performed": false,
+      "effect_on_current_finding": "Existing exact restriction preserved; no held source or equivalent recovery requested. Independently identified, distinct current regional National Map originals supply the finding.",
+      "aw_id": "hydro-system:80226437",
+      "inherited_restriction": true
+    },
+    {
+      "publication": "Alaska Department of Fish and Game, Fish and Aquatic Habitat Surveys in Drainages of Wainwright Inlet and Peard Bay, 2010–2015; Technical Report 16-08 (bibliographic discovery identity; original imprint uninspected)",
+      "official_url": null,
+      "observed_outcome": "The sole normal-original acquisition completed HTTP 200 with Content-Type text/html rather than the requested PDF. No returned body, report prose, original imprint or map pixels were inspected.",
+      "outcome_layer": "Completed original HTTP response with the wrong content type; not an asserted HTTP 403 or access-control denial.",
+      "restriction_scope": "Whole identified report/project-equivalent acquisition routes and unread outputs remain paused. No retry, alternate format, catalogue, mirror or equivalent acquisition followed.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "new_acquisition_performed": false,
+      "effect_on_current_finding": "Existing exact restriction preserved; no held source or equivalent recovery requested. Independently identified, distinct current regional National Map originals supply the finding.",
+      "bibliographic_note": "Historical public source notice does not retain a complete official URL; no replacement URL was guessed or requested.",
+      "aw_id": "hydro-system:80226437",
+      "inherited_restriction": true
+    },
+    {
+      "publication": "Henshaw, F.F., Parker, G.L., Smith, P.S., and Brooks, A.H. (1913), Surface water supply of Seward peninsula, Alaska, with a sketch of the geography and geology, and a description of methods of placer mining; USGS Water-Supply Paper 314, DOI10.3133/wsp314",
+      "official_url": "https://pubs.usgs.gov/wsp/0314/report.pdf",
+      "observed_outcome": "Sole normal-original acquisition completed direct HTTP403 with Content-Type text/plain. No returned body, original imprint, prose or map pixels read.",
+      "outcome_layer": "Direct HTTP-client response; no separate reader failure asserted.",
+      "restriction_scope": "Whole exact report and equivalent acquisition/catalogue/mirror/format routes, related 1906–1910 Seward stream-measurement project outputs where equivalent, and unread-output reading stopped. No retry or alternate route. Independent National Map cartography unaffected.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "new_acquisition_performed": false,
+      "effect_on_current_finding": "Existing exact restriction preserved; no held source or equivalent recovery requested. Independently identified, distinct current regional National Map originals supply the finding.",
+      "aw_id": "hydro-system:80226437",
+      "inherited_restriction": true
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "kind": "bounded_names",
+      "notice": "Over-water river and creek labels in the composite lake cartography are not used to rename the lake-interior selection. The candidate rests on the directly labelled landward Mullen Creek receiver and supported tributary-to-lake sequence.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70567566"
+    },
+    {
+      "kind": "cartographic_generalization",
+      "notice": "Local separation between the simplified selection and mapped intermittent threads is evaluated at the continuous alluvial-floor scale, without requiring permanent surface flow or exact bank matching.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70567566"
+    },
+    {
+      "publication": "Machmell Overview/Level I Fish Habitat Assessment and related restoration assessments, Pacific Forest Products / Forest Renewal BC / Oweekeno Nation / Madrone Consultants,1997 project discovery",
+      "official_url": "https://www.env.gov.bc.ca/cariboo/env_stewardship/wrp/reports/fhap/machmell/machplan.html",
+      "status": "Unrequested while the actual relationship to unidentified SK108/Nass and Homathko9H material remains unresolved.",
+      "effect": "Discovery results identify prospective authors/client/project context only. No substantive geographic snippets, linked report, catalogue, figure or borrowed map used. No new denial is asserted.",
+      "aw_id": "hydro-system:70196025"
+    },
+    {
+      "publication": "Incidental Canadian naming records and mirrors surfaced by general search",
+      "official_url": null,
+      "status": "Unopened and excluded from substantive evidence.",
+      "effect": "CGN/geogratis/name-search and ambiguous gazetteer restrictions remain in force; search discovery is not clearance.",
+      "aw_id": "hydro-system:70196025"
+    },
+    {
+      "publication": "Read imagery and BC Parks page",
+      "status": "Public factual synthesis only.",
+      "effect": "Originals, crops, overlays, coordinates, private paths, dynamic export URLs and transfer receipts remain private.",
+      "aw_id": "hydro-system:70196025"
+    },
+    {
+      "publication": "World Imagery: eastern desert-wash corridor and receiving playa northeast of Chihuahua, Mexico",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "kind": "unlabelled_photographic_geography_and_current_condition_limits",
+      "observation": "Only ordinary connected wash, valley/alluvial-floor and playa observations are supported. No hydronym, exact wet thread or present operation is inferred. Originals and derivative reading aids remain private.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70812302"
+    },
+    {
+      "kind": "glacial_and_braided_generalization",
+      "notice": "Mapped glacier geometry and river braids have compilation-epoch and scale limits. The finding requires an ordinary continuous glacial, foreland and receiving-valley corridor, not a visible modern water thread, exact ice front or active braid at each vertex.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:80226437"
+    },
+    {
+      "kind": "bounded_receiver_identity",
+      "notice": "Lowe River supplies the representative system identity while Deserted Glacier, its unnamed feeder and Canyon Slough keep bounded component scopes.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:80226437"
+    }
+  ]
+}

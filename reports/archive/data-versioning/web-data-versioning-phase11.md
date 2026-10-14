@@ -25,7 +25,7 @@
 | `work/places` | `d4b312d46b80ab9d6ffdbb41da14b0b681da3781` | `4265ac27ec8f5489f71eac02615d8e06d13233af` |
 | `work/ui` | `1b85bc0327bb7a7f001faa21cc50b06dbc29c774` | `ea3e4f5bcfd90f05ca8e9f4ab9201ee9acf8baea` |
 
-각 변경은 해당 브랜치 HEAD를 부모로 추가하고 GitHub 갱신 시 예상 SHA를 검사했다. 기존 Git 객체의 전체 이력을 삭제하거나 강제로 브랜치를 이동하지 않았다. 파일별 정확한 원본 Git Blob·bytes 및 일괄 삭제 전 7개 HEAD는 [335개 원본 복원 목록(JSON)](../../../docs/validation/terrain-v0120-retirement-evidence.json)에 기록.
+각 변경은 해당 브랜치 HEAD를 부모로 추가하고 GitHub 갱신 시 예상 SHA를 검사했다. 기존 Git 객체의 전체 이력을 삭제하거나 강제로 브랜치를 이동하지 않았다. 파일별 정확한 원본 Git Blob·bytes 및 일괄 삭제 전 7개 HEAD는 [335개 원본 복원 목록(JSON)](../../development/testing/terrain-v0120-retirement-evidence.json)에 기록.
 
 ## 2. 배포 및 작동 버전 검증
 

@@ -83,7 +83,7 @@ After the modern port experiment, use Zuiderzee/Flevoland to test **hydrography 
 
 A second read-only Phase 0 pass now compares the current NLD country geometry
 against the current Natural Earth lake source. Machine-readable results are in
-[current representation inventory](../../../tools/historical-library/sources/netherlands/phase0-current-representation-inventory.json).
+[current representation inventory](phase0-current-representation-inventory.json).
 
 Pinned source blobs for this pass:
 
@@ -334,7 +334,7 @@ reclamation delta.
 ## 10. Quantified Natural Earth simplification check — 2026-10-10
 
 A machine-readable audit is now stored at
-[phase0-generalization-audit.json](../../../tools/historical-library/sources/netherlands/phase0-generalization-audit.json).
+[phase0-generalization-audit.json](phase0-generalization-audit.json).
 
 ### 10.1 Vertex density
 
@@ -418,7 +418,7 @@ No historical or current production geometry was modified by this check.
 ## 11. Whole-Netherlands country-minus-water test — 2026-10-10
 
 Machine-readable results:
-[phase0-land-water-subtraction-audit.json](../../../tools/historical-library/sources/netherlands/phase0-land-water-subtraction-audit.json).
+[phase0-land-water-subtraction-audit.json](phase0-land-water-subtraction-audit.json).
 
 ### 11.1 European Netherlands aggregate area
 
@@ -550,7 +550,7 @@ No production geometry was modified by this audit.
 ## 11. Whole-country “country polygon − current water = land” audit — 2026-10-10
 
 Machine-readable measurements:
-[phase0-country-minus-water-area-audit.json](../../../tools/historical-library/sources/netherlands/phase0-country-minus-water-area-audit.json).
+[phase0-country-minus-water-area-audit.json](phase0-country-minus-water-area-audit.json).
 
 This audit uses the **European Netherlands only**. The current NLD source also
 contains three Caribbean components (Bonaire, Sint Eustatius and Saba), while

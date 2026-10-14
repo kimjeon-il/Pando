@@ -1,0 +1,700 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r160",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r159",
+    "commit": "44908ebf2c88921f631bf7815ddf9c7d3d48daad",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r159/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:70045452",
+    "hydro-system:70877500",
+    "hydro-system:61047064",
+    "hydro-system:80042519"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:70045452",
+      "category": "river_group",
+      "system_id": "70045452",
+      "original_queue_rank": 443,
+      "baseline_logical_fid": 2927,
+      "geometry_fids": [
+        9092
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -90.360417,
+        56.125,
+        -89.34375,
+        56.924859
+      ],
+      "rendered_mainstem_length_km": 179.274,
+      "rendered_network_length_km": 179.274,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -90.360417,
+          56.125,
+          -89.34375,
+          56.924859
+        ]
+      },
+      "candidate_name": "Nettle River",
+      "research_category": "river_group_source_material_pending",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "candidate_names": [
+        "Nettle River"
+      ],
+      "region": "Hudson Bay coastal drainage, Canada; the mapped lower selected corridor lies on the Manitoba side of the Ontario–Manitoba boundary.",
+      "candidate_name_role": "Supported lower receiving-component identity only; not an established representative identity for the full selected mainstem.",
+      "source_keys": [
+        "r160-ogs-p3626-2016",
+        "r160-ogs-p3625-2014"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": "Independent original maps establish a short central interval and the lower Nettle River–Hudson Bay corridor, but not the chosen western opening or the substantial intervening through-link. The status is material-pending once, with acquisition restrictions recorded as details.",
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "The lower selected corridor is supported as Nettle River and reaches Hudson Bay. The actual western opening and a substantial intervening mainstem interval remain outside the inspected original maps, so the whole feature is source-material-pending. Accepted, scalar and Korean names remain null; no product application is authorized.",
+      "completion_scope": "The lower selected corridor is supported as Nettle River and reaches Hudson Bay. The actual western opening and a substantial intervening mainstem interval remain outside the inspected original maps, so the whole feature is source-material-pending. Accepted, scalar and Korean names remain null; no product application is authorized.",
+      "supported_name_scope": "supported_lower_receiving_component_identity_only",
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "component_scope_limits": [
+          "Nettle River is supported only on the mapped lower receiving component. It is not extended across the unviewed upper mainstem.",
+          "The source title Black Duck River Area describes the mapped region and is not the name of this selected mainstem.",
+          "The selected small middle interval remains unnamed, and no adjacent lake, tributary or coastal creek label is propagated to it.",
+          "Formal registry status and uniform legal naming scope remain unverified.",
+          "Both products are independently issued thematic publications, but independence of their underlying hydrographic data from model or other base data is not claimed."
+        ]
+      },
+      "bounded_name_observations": [
+        {
+          "name": "Nettle River",
+          "role": "Directly labelled lower selected river only; whole selected opening and connector unestablished",
+          "source_keys": [
+            "r160-ogs-p3625-2014"
+          ]
+        },
+        {
+          "name": "Hudson Bay",
+          "role": "Immediate receiving water of the supported lower river",
+          "source_keys": [
+            "r160-ogs-p3625-2014"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70877500",
+      "category": "river_group",
+      "system_id": "70877500",
+      "original_queue_rank": 444,
+      "baseline_logical_fid": 3254,
+      "geometry_fids": [
+        10417
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -98.272917,
+        20.247917,
+        -97.194255,
+        20.74375
+      ],
+      "rendered_mainstem_length_km": 178.518,
+      "rendered_network_length_km": 178.518,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -98.272917,
+          20.247917,
+          -97.194255,
+          20.74375
+        ]
+      },
+      "candidate_name": "Río Cazones",
+      "research_category": "river_group_source_material_pending",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "candidate_names": [
+        "Río Cazones"
+      ],
+      "region": "Hidalgo–Puebla–Veracruz corridor, Mexico, to Barra de Cazones on the Gulf of Mexico.",
+      "candidate_name_role": "Río Cazones is supported directly for the lower receiving/main-river component. San Marcos, Cuarco and Las Marías are bounded upstream component labels. No completed representative whole-selection identity is asserted while the initial chosen through-link remains unestablished.",
+      "source_keys": [
+        "r160_70877500_inegi_puebla2020",
+        "r160_70877500_inegi_veracruz2020",
+        "r160_70877500_inegi_honey2010",
+        "r160_70877500_inegi_pahuatlan2010",
+        "r160_70877500_inegi_cazones2010",
+        "r160_70877500_inegi_tenango2010"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": "The chosen initial western hook and its through-link into the established Las Marías/Cuarco/San Marcos corridor are not established by the inspected original maps. Downstream correspondence and direct Cazones labels do not close this headward gap.",
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "Río Cazones is directly supported on the lower selected river, with upstream Las Marías, Cuarco and San Marcos components. The first chosen western hook and its connection into the mapped Las Marías corridor remain unestablished, so whole-feature correspondence is material-pending.",
+      "completion_scope": "Original cartography was read across the selected headward setting, all intermediate selected mainstem intervals and the actual coastal ending. Ordinary corridor correspondence is established from the Las Marías/Cuarco approach downstream through San Marcos to Cazones and the Gulf. The first western hook and its through-link into that established river corridor remain an actual evidence gap. Map-footprint coverage alone is not counted as complete geographic correspondence. The single primary status is source-material pending, not completed naming-scope hold.",
+      "supported_name_scope": "Río Cazones is supported directly for the lower receiving/main-river component. San Marcos, Cuarco and Las Marías are bounded upstream component labels. No completed representative whole-selection identity is asserted while the initial chosen through-link remains unestablished.",
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "component_scope_limits": [
+          "Río Cazones is supported directly for the lower receiving/main-river component. San Marcos, Cuarco and Las Marías are bounded upstream component labels. No completed representative whole-selection identity is asserted while the initial chosen through-link remains unestablished.",
+          "The selected initial western hook and its continuous connection to Las Marías require usable primary cartography that actually establishes that link.",
+          "Exact source points, legal name-transition vertices, present discharge, current bank/shore positions, and formal registry status remain unverified.",
+          "The component labels are not combined into an accepted whole-feature scalar name or Korean name."
+        ]
+      },
+      "bounded_name_observations": [
+        {
+          "name": "Río Cazones",
+          "role": "Directly labelled lower receiving/main-river component, not a completed representative identity for the whole selection",
+          "source_keys": [
+            "r160_70877500_inegi_cazones2010"
+          ]
+        },
+        {
+          "name": "Las Marías / Cuarco / San Marcos",
+          "role": "Bounded upstream component labels; the chosen first western connection remains unestablished",
+          "source_keys": [
+            "r160_70877500_inegi_honey2010",
+            "r160_70877500_inegi_pahuatlan2010",
+            "r160_70877500_inegi_puebla2020"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61047064",
+      "category": "river_group",
+      "system_id": "61047064",
+      "original_queue_rank": 445,
+      "baseline_logical_fid": 3468,
+      "geometry_fids": [
+        13870
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -37.7875,
+        -10.948332,
+        -37.027083,
+        -10.125
+      ],
+      "rendered_mainstem_length_km": 178.349,
+      "rendered_network_length_km": 178.349,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -37.7875,
+          -10.948332,
+          -37.027083,
+          -10.125
+        ]
+      },
+      "candidate_name": "Rio Sergipe",
+      "research_category": "supported_representative_system_identity",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "candidate_names": [
+        "Rio Sergipe"
+      ],
+      "region": "Sergipe, northeastern Brazil, to the Aracaju–Barra dos Coqueiros estuary.",
+      "candidate_name_role": "Representative river-system identity supported by the connected selected route and repeated direct cartographic labels; not a forced uniform scalar name.",
+      "source_keys": [
+        "IBGE_MONTE_ALEGRE_2022_R160",
+        "IBGE_CARIRA_2010_R160",
+        "IBGE_APARECIDA_2020_R160",
+        "IBGE_FEIRA_NOVA_2020_R160",
+        "IBGE_DORES_2020_R160",
+        "IBGE_SANTA_ROSA_2020_R160",
+        "IBGE_RIACHUELO_2020_R160",
+        "IBGE_MARUIM_2020_R160",
+        "IBGE_SOCORRO_2020_R160",
+        "IBGE_ARACAJU_2020_R160"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "Chosen western headward opening and the connected upper, middle and lower Rio Sergipe corridor into its Aracaju–Barra dos Coqueiros estuary.",
+      "completion_scope": "All of the single selected fragment is corresponded at ordinary regional/corridor scale using ten actually read independent municipal originals. Chosen opening, bends, through-links, tributary junctions, lower broad-water transition and actual estuarine terminal are covered with overlapping maps. The unavailable Glória original contributes no substantive evidence and leaves no remaining required interval gap.",
+      "supported_name_scope": "Representative river-system identity supported by the connected selected route and repeated direct cartographic labels; not a forced uniform scalar name.",
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "component_scope_limits": [
+          "The selected initial point is not asserted to be the river’s ultimate source.",
+          "Local tributary names and exact naming boundaries are not assigned where the maps do not establish them.",
+          "No separately named major lake, reservoir or glacier through-passage is identified on the selected route at the inspected cartographic scale; this is not an exhaustive inventory of small impoundments or proof of current free-flowing conditions.",
+          "Mapped lateral tributaries and adjacent reservoirs do not inherit the representative candidate.",
+          "The terminal is described at estuary/corridor scale. No exact current shoreline, bank, tidal state or mouth vertex is established.",
+          "The municipal maps are generalized, differently dated compilations. No current hydrological, operational, administrative, legal or formal-registry conclusion is made.",
+          "No application naming or geometry change follows from this research finding."
+        ]
+      },
+      "bounded_name_observations": [
+        {
+          "name": "Rio Sergipe",
+          "role": "Repeated directly mapped selected river and representative connected system identity",
+          "source_keys": [
+            "IBGE_MONTE_ALEGRE_2022_R160",
+            "IBGE_CARIRA_2010_R160",
+            "IBGE_APARECIDA_2020_R160",
+            "IBGE_FEIRA_NOVA_2020_R160",
+            "IBGE_DORES_2020_R160",
+            "IBGE_SANTA_ROSA_2020_R160",
+            "IBGE_RIACHUELO_2020_R160",
+            "IBGE_MARUIM_2020_R160",
+            "IBGE_SOCORRO_2020_R160",
+            "IBGE_ARACAJU_2020_R160"
+          ]
+        },
+        {
+          "name": "Lower Rio Sergipe estuary",
+          "role": "Selected terminal sector, with the Atlantic opening visibly connected downstream; no exact modern shoreline endpoint claim",
+          "source_keys": [
+            "IBGE_SOCORRO_2020_R160",
+            "IBGE_ARACAJU_2020_R160"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80042519",
+      "category": "river_group",
+      "system_id": "80042519",
+      "original_queue_rank": 446,
+      "baseline_logical_fid": 875,
+      "geometry_fids": [
+        2364
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -75.954626,
+        69.370552,
+        -72.6375,
+        69.766667
+      ],
+      "rendered_mainstem_length_km": 178.23,
+      "rendered_network_length_km": 178.23,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -75.954626,
+          69.370552,
+          -72.6375,
+          69.766667
+        ]
+      },
+      "candidate_name": null,
+      "research_category": "river_group_source_material_pending",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "candidate_names": [],
+      "region": "Central Baffin Island, Nunavut, Canada; selected inland-to-coastal route remains unestablished by primary cartography.",
+      "candidate_name_role": null,
+      "source_keys": [
+        "r160-dredge2002-c20-prior-prose",
+        "r160-jacobs-simms1997-unavailable"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": "No allowed original map establishes the chosen opening, intermediate waterbody/channel connections, complete river corridor or actual terminal. The independent journal article was unavailable; earlier Dredge regional prose is context only.",
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "No whole-route or component river identity is established. The selected headward opening, intermediate passages, lower corridor and actual coastal receiving waterbody remain without usable primary-map correspondence; earlier regional prose does not close these gaps.",
+      "completion_scope": "A bounded publication-identity and source-availability research pass is finished. Whole-feature geographic correspondence remains incomplete. The single primary accounting state is material-pending; inherited and new source limits are reasons for that state, not additional pending statuses.",
+      "supported_name_scope": null,
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "component_scope_limits": [
+          "No allowed independent original map was acquired or inspected for this selection in this pass.",
+          "Every material interval remains unresolved, including the initial source connection, any lake or glacier passage, middle and lower joins, and actual terminal.",
+          "The prior Dredge observations are regional context and cannot establish a representative name or any complete selected component.",
+          "Loss of earlier workspace source originals is distinct from source-access outcomes and gives no authority to reacquire stopped material."
+        ]
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [
+      "hydro-system:70045452",
+      "hydro-system:70877500",
+      "hydro-system:80042519"
+    ],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 1,
+    "supported_representative_system_identities": 1,
+    "scope_holds": 0,
+    "access_pending": 0,
+    "material_pending": 3
+  },
+  "totals_after": {
+    "recorded_targets": 583,
+    "non_pending_records": 464,
+    "source_access_pending": 3,
+    "source_material_pending": 116,
+    "source_any_pending": 119,
+    "scope_holds": 147,
+    "river_groups": 485,
+    "lakes": 98,
+    "unrecorded": 3482,
+    "unrecorded_river_groups": 2970,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573",
+    "hydro-system:80032711",
+    "hydro-system:60007816",
+    "hydro-system:80013873",
+    "hydro-system:61501314",
+    "hydro-system:60761631",
+    "hydro-system:70895720",
+    "hydro-system:61398344",
+    "hydro-system:61355098",
+    "hydro-system:70933800",
+    "hydro-system:60026849",
+    "hydro-system:70574060",
+    "hydro-system:70890643",
+    "hydro-system:80064967",
+    "hydro-system:70856797",
+    "hydro-system:60174418",
+    "hydro-system:61547907",
+    "hydro-system:70463083",
+    "hydro-system:61520061",
+    "hydro-system:70895492",
+    "hydro-system:70898394",
+    "hydro-system:70865140",
+    "hydro-system:80072439",
+    "hydro-system:70549678",
+    "hydro-system:70566840",
+    "hydro-system:80048422",
+    "hydro-system:60557376",
+    "hydro-system:61514286",
+    "hydro-system:61509423",
+    "hydro-system:80068731",
+    "hydro-system:80015064",
+    "hydro-system:61520170",
+    "hydro-system:70156165",
+    "hydro-system:70784507",
+    "hydro-system:80067417",
+    "hydro-system:80019756",
+    "hydro-system:70244256",
+    "hydro-system:80060230",
+    "hydro-system:61543259",
+    "hydro-system:60007312",
+    "hydro-system:60022881",
+    "hydro-system:61456098",
+    "hydro-system:70290797",
+    "hydro-system:60441146",
+    "hydro-system:61554706",
+    "hydro-system:70110341",
+    "hydro-system:80067260",
+    "hydro-system:70214162",
+    "hydro-system:80034507",
+    "hydro-system:61536265",
+    "hydro-system:61561008",
+    "hydro-system:80066184",
+    "hydro-system:70202296",
+    "hydro-system:61545841",
+    "hydro-system:61350841",
+    "hydro-system:80064018",
+    "hydro-system:70957614",
+    "hydro-system:70851521",
+    "hydro-system:70049998",
+    "hydro-system:61298121",
+    "hydro-system:80033385",
+    "hydro-system:61205785",
+    "hydro-system:80035867",
+    "hydro-system:70009700",
+    "hydro-system:60440371",
+    "hydro-system:80049373",
+    "hydro-system:70749063",
+    "hydro-system:70844211",
+    "hydro-system:60001814",
+    "hydro-system:61507976",
+    "hydro-system:70834534",
+    "hydro-system:80070226",
+    "hydro-system:61357020",
+    "hydro-system:70846952",
+    "hydro-system:70004800",
+    "hydro-system:80043969",
+    "hydro-system:80165177",
+    "hydro-system:70043276",
+    "hydro-system:60490135",
+    "hydro-system:60237339",
+    "hydro-system:70023641",
+    "hydro-system:70281204",
+    "hydro-system:61570080",
+    "hydro-system:70789628",
+    "hydro-system:80234498",
+    "hydro-system:60016868",
+    "hydro-system:70276504",
+    "hydro-system:70901807",
+    "hydro-system:80086174",
+    "hydro-system:60809372",
+    "hydro-system:60100857",
+    "hydro-system:70026619",
+    "hydro-system:70500400",
+    "hydro-system:60010615",
+    "hydro-system:70608588",
+    "hydro-system:70832638",
+    "hydro-system:61383955",
+    "hydro-system:61555573",
+    "hydro-system:80068976",
+    "hydro-system:80048308",
+    "hydro-system:80001778",
+    "hydro-system:70324446",
+    "hydro-system:80051383",
+    "hydro-system:60804761",
+    "hydro-system:70817056",
+    "hydro-system:80032843",
+    "hydro-system:70045452",
+    "hydro-system:70877500",
+    "hydro-system:80042519"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r160-ogs-p3626-2016",
+      "official_url": "https://prd-0420-geoontario-0000-blob-cge0eud7azhvfsf7.z01.azurefd.net/lrc-geology-documents/publication/P3626/P3626.pdf"
+    },
+    {
+      "source_key": "r160-ogs-p3625-2014",
+      "official_url": "https://prd-0420-geoontario-0000-blob-cge0eud7azhvfsf7.z01.azurefd.net/lrc-geology-documents/publication/P3625/P3625.pdf"
+    },
+    {
+      "source_key": "r160-ogs-northern-index-paused",
+      "official_url": "https://www.geologyontario.mndm.gov.on.ca/mines/ogs/indexes/pdfs/INDEX-Bedrock-Northern.pdf"
+    },
+    {
+      "source_key": "r160_70877500_inegi_puebla2020",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/pue/889463837039.pdf"
+    },
+    {
+      "source_key": "r160_70877500_inegi_veracruz2020",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/ver/889463837121.pdf"
+    },
+    {
+      "source_key": "r160_70877500_inegi_honey2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/21/21057.pdf"
+    },
+    {
+      "source_key": "r160_70877500_inegi_pahuatlan2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/21/21109.pdf"
+    },
+    {
+      "source_key": "r160_70877500_inegi_cazones2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/30/30033.pdf"
+    },
+    {
+      "source_key": "r160_70877500_inegi_tenango2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/13/13060.pdf"
+    },
+    {
+      "source_key": "IBGE_MONTE_ALEGRE_2022_R160",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2022/mapas_municipais_estatisticos/SE/monte_alegre_de_sergipe_2804201/monte_alegre_de_sergipe_2804201_mme_a0.pdf"
+    },
+    {
+      "source_key": "IBGE_CARIRA_2010_R160",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/se/carira_v2.pdf"
+    },
+    {
+      "source_key": "IBGE_APARECIDA_2020_R160",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/SE/nossa_senhora_aparecida/2804458_MM.pdf"
+    },
+    {
+      "source_key": "IBGE_FEIRA_NOVA_2020_R160",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/SE/feira_nova/2802205_MM.pdf"
+    },
+    {
+      "source_key": "IBGE_DORES_2020_R160",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/SE/nossa_senhora_das_dores/2804607_MM.pdf"
+    },
+    {
+      "source_key": "IBGE_SANTA_ROSA_2020_R160",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/SE/santa_rosa_de_lima/2806503_MM.pdf"
+    },
+    {
+      "source_key": "IBGE_RIACHUELO_2020_R160",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/SE/riachuelo/2805901_MM.pdf"
+    },
+    {
+      "source_key": "IBGE_MARUIM_2020_R160",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/SE/maruim/2804003_MM.pdf"
+    },
+    {
+      "source_key": "IBGE_SOCORRO_2020_R160",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/SE/nossa_senhora_do_socorro/2804805_MM.pdf"
+    },
+    {
+      "source_key": "IBGE_ARACAJU_2020_R160",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/SE/aracaju/2800308_MM.pdf"
+    },
+    {
+      "source_key": "r160-dredge2002-c20-prior-prose",
+      "official_url": "https://publications.gc.ca/collections/collection_2013/rncan-nrcan/M44-2002-C20-eng.pdf"
+    },
+    {
+      "source_key": "r160-jacobs-simms1997-unavailable",
+      "official_url": "https://www.cambridge.org/core/journals/journal-of-glaciology/article/recession-of-the-southern-part-of-barnes-ice-cap-baffin-island-canada-between-1961-and-1993-determined-from-digital-mapping-of-landsat-tm/A28F2DF40CEEE048CB0613D71A5E54D9"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "44908ebf2c88921f631bf7815ddf9c7d3d48daad",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      443,
+      444,
+      445,
+      446
+    ],
+    "next_unrecorded_id": "hydro-system:80038415",
+    "progress_rule": "Follow the actual continental order: Americas, Asia, Africa, Europe, then other, with all rivers before lakes. Preserve original queue IDs and ranks for continuity; apply documented geographic deferrals without counting them as name research, and place deferred objects into their corrected later phase by length-descending, stable-ID order. Prior candidate and scope-held assessments remain unresolved where stated.",
+    "geographic_deferrals": [
+      {
+        "aw_id": "hydro-system:80061063",
+        "original_queue_rank": 186,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 66.56–68.17°N and 179.97–177.11°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory bounding box and selected-route geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80065687",
+        "original_queue_rank": 349,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at66.725–67.849775°N and178.2–175.960242°W place this object on Chukotka west of Alaska, adjoining the previously corrected Chukotka selection. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory bounding box and selected-route geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80100188",
+        "original_queue_rank": 387,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 64.939583–66.26978°N and 174.05625–173.320833°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory/order bounding box and geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80119243",
+        "original_queue_rank": 391,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 65.451531–66.491667°N and 176.777083–175.672917°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory/order bounding box and geographic placement; geographic classification only, no naming source acquired."
+      }
+    ]
+  }
+}

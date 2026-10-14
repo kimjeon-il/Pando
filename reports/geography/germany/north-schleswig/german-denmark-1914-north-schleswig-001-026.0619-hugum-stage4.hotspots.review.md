@@ -7,7 +7,7 @@
 - 기준일 **1914-07-31**.
 - 1878년 프로이센 1:25,000 [Hügum 제21도엽](https://www.deutschefotothek.de/documents/obj/71051510) (SLUB WMS ID **10006020**).
 - 대조 대상: 0619 Hügum의 현대 교구·수로 기반 임시 국경선 중 **Hårup 부근 물굽이** 및 **Gels Å·Flads Å 합류점** 두 곳만.
-- [GIS 공통 규칙](../../../docs/historical-border-reconstruction-policy.md): 웹 평면지도 최대 확대 **flatZoom64**, 지도 콘텐츠 **2560 CSS px**, 화면 차이 **0.5 CSS px**. 국경 시점·하천 규칙·귀속·연결 오류는 이 기준의 예외.
+- [GIS 공통 규칙](../../../../docs/historical-border-reconstruction-policy.md): 웹 평면지도 최대 확대 **flatZoom64**, 지도 콘텐츠 **2560 CSS px**, 화면 차이 **0.5 CSS px**. 국경 시점·하천 규칙·귀속·연결 오류는 이 기준의 예외.
 - **0.5 CSS px에 대응하는 각도 차이 0.0010986328125°**를 화면상 띠로 표시. 이 띠는 **실제 1914년 역사 선형을 따서 측정한 Hausdorff 오차가 아님**.
 - [성공한 GitHub Actions 지도 대조](https://github.com/kimjeon-il/Pando/actions/runs/37822505181). 아티팩트: **north-schleswig-hugum-1878-two-hotspots**, 원본·중첩 JPG 두 쌍(7일 후 만료). 저작권 검토 없이 스캔을 Git 저장소에 복제하지 않음.
 - 원천·화면 메타데이터: `german-denmark-1914-north-schleswig-001-026.0619-hugum-stage4.hotspots.json`.

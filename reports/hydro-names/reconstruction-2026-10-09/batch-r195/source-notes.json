@@ -1,0 +1,731 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r195",
+  "sources": [
+    {
+      "source_key": "r195-smithsonian-botany101-2014",
+      "title": "Smithsonian Plant Collections, the Guianas: 1991–1993 and 1995–2000, Bruce Hoffman",
+      "authors": [
+        "Sara N. Alexander",
+        "Bruce Hoffman",
+        "Carol L. Kelloff",
+        "V. A. Funk"
+      ],
+      "publisher": "Smithsonian Institution Scholarly Press",
+      "series": "Smithsonian Contributions to Botany, number101",
+      "year": 2014,
+      "official_url": "https://www.govinfo.gov/content/pkg/GOVPUB-SI-PURL-gpo59219/pdf/GOVPUB-SI-PURL-gpo59219.pdf",
+      "publication_identity": "Independently issued botanical collection and expedition project. Printed pp6–7 credit the map production to the Biological Diversity of the Guiana Shield programme's collaboration with the Centre for the Study of Biological Diversity at the University of Guyana.",
+      "primary_source_scope": "Primary expedition narratives and collection records, with original project cartography prepared using the collaboration's base-map coverages. It is not an official hydrographic naming registry or a full river-source survey.",
+      "material_read": "Original title, bibliography and rights notice; printed pp6–7 mapping method; printed pp35–38 Trip12 narrative and original Map10 on printed37/PDF47; original Map14 on printed48/PDF58 and relevant Trip18 text; selected collection-location text on printed63–64. Both maps were visually inspected.",
+      "supports": "Directly named upper and lower Pomeroon; distinct Issororo, Arapiaco, Akawini and Tapakuma context; central corridor and coastal continuation.",
+      "limitations": "The initial southwestern selected route lies south of Map10's detailed view. Some collection callouts obscure middle/lower linework. Map14 chiefly covers the western tributary and adjacent basins. Historical field observations do not establish current banks, flow or navigation.",
+      "acquisition_outcome": "The sole normal-original acquisition completed HTTP200, application/pdf. No retry or alternate route was used.",
+      "source_use_notice": "Compilation copyright2014 Smithsonian Institution. The printed notice places the publication's text in the public domain and preserves other image/design rights, requires attribution and restricts alteration of copyrighted content. Only own factual synthesis and bibliography are provided; no original map, derivative image or substantial source text is distributed."
+    },
+    {
+      "source_key": "r195-apa-fpp-land2016",
+      "title": "Our Land, Our Life: A Participatory Assessment of the Land Tenure Situation of Indigenous Peoples in Guyana. Report for Region1 and Region2",
+      "authors": [
+        "Sharon Atkinson",
+        "David Wilson",
+        "Andrew Da Silva",
+        "Paul Benjamin",
+        "Charles Peters",
+        "Ignatius Williams",
+        "Roger Alfred",
+        "Devroy Thomas"
+      ],
+      "map_author": "Tom Rowley",
+      "publisher": "Amerindian Peoples Association and Forest Peoples Programme",
+      "year": 2016,
+      "isbn": "978-0-9935190-7-9",
+      "official_url": "https://www.forestpeoples.org/fileadmin/uploads/fpp/migration/publication/2016/12/fppguyanaltainternet.pdf",
+      "publication_identity": "The report identifies its own 2012–13 community fieldwork and 2014–16 follow-on field/data project. This is an independent participatory assessment, not a JOG sheet or an OAS publication.",
+      "primary_source_scope": "Community field assessment and authored regional cartography. Map1 credits Guyana Geonode, NASA SRTM, Google Earth and handheld GPS, and expressly describes the map as indicative rather than definitive georeferenced boundaries.",
+      "material_read": "Title/credits/use notice pp1–2, methods and coverage pp18–19, original Map1 p20 with regional-detail enlargement; bounded location and river-setting prose in the St Monica–Karawab, Kabakaburi, Akawini and Wakapau sections, pp180–195. Legal-title allegations and demographic details are not hydrographic findings.",
+      "supports": "Regional Pomeroon course, separate tributary settings and field descriptions of the upper-river communities, Charity connection and swamp surroundings.",
+      "limitations": "Small low-resolution regional map cannot establish the full southwestern selected opening. Indicative title polygons do not define rivers or resolve legal boundaries. The assessment itself records inconsistent creek names on some government maps.",
+      "acquisition_outcome": "The sole normal-original acquisition completed HTTP200, application/pdf. No retry or alternate route was used.",
+      "source_use_notice": "Copyright2016 APA/FPP. Reproduction or distribution of report contents for noncommercial purposes requires prior notice to the copyright holders and attribution. No report text, maps or derivatives are redistributed here; only bounded own geographic observations and ordinary bibliography are supplied."
+    },
+    {
+      "source_key": "r195-pac-shellbeach2024",
+      "title": "Shell Beach Protected Area: Management Plan2024–2028",
+      "authors": [
+        "Odacy Davis",
+        "Steven Husbands"
+      ],
+      "publisher": "Protected Areas Commission, Guyana",
+      "year": 2024,
+      "official_url": "https://www.pac.gov.gy/wp-content/uploads/2025/09/FINAL-SBPA-Management-Plan-2024-2028-1.pdf",
+      "publication_identity": "Specific protected-area management-planning project, separately identified and lawfully read in earlier research. Fresh original reading here is used only for this selected target's actual coastal scope.",
+      "primary_source_scope": "Official protected-area plan and regional agency cartography. The p12 map is credited to PAC2019; it is not a full Pomeroon basin survey.",
+      "material_read": "Original title/author/citation material, p12 regional map and Pomeroon coastal detail, and p13 environmental setting.",
+      "supports": "Pomeroon's coastal opening and its separation from Moruca farther northwest.",
+      "limitations": "Most of the selected inland route is outside the map. The Shell Beach environmental description does not prove every Pomeroon wetland passage or current tide. Protected-area and land-title shading is not used as channel or legal-boundary evidence.",
+      "acquisition_outcome": "The sole normal-original acquisition completed HTTP200, application/pdf. No retry or alternate route was used.",
+      "source_use_notice": "PAC attribution retained. Own facts and bibliography only; the plan, source maps and private reading aids are not redistributed."
+    },
+    {
+      "source_key": "r195-copernicus-emsr514-prose-only",
+      "title": "Pomeroon River – Guyana. Flood, situation as of14 June2021. Delineation MONIT01, activation EMSR514, product01POMEROONRIVER, version1",
+      "publisher": "European Union, Copernicus Emergency Management Service; produced by Telespazio Iberica and released by e-GEOS",
+      "date": "2021-06-15",
+      "official_url": "https://cems-mapping-website.s3.eu-west-1.amazonaws.com/static/activations/EMSR514/EMSR514_AOI01_DEL_MONIT01_r1_RTP01_v1.pdf",
+      "publication_identity": "Independent June2021 satellite-based flood-event mapping project, explicitly identified by activation and product identifiers.",
+      "primary_source_scope": "Event-specific flood analysis. Published metadata distinguish the satellite-derived thematic layer from refined OpenStreetMap, Wikimapia and GeoNames base layers; it is not an independent official naming survey.",
+      "material_read": "The successful one-page PDF reader exposed project metadata, legend and explanatory prose. No map pixels were seen: the subsequent sole screenshot failed with Cache miss.",
+      "supports": "Publication identity and general Pomeroon flood-study context only. It is excluded from all selected-route geographic correspondence.",
+      "limitations": "The uninspected figure cannot establish channels, joins or the terminal. No original-file fallback, alternative product or equivalent route followed the screenshot failure.",
+      "acquisition_outcome": "Reader succeeded; screenshot returned explicit Cache miss. Origin HTTP status was not observed.",
+      "source_use_notice": "European Union attribution retained. No map, source text extract or derivative is distributed.",
+      "used_as_substantive_evidence": false
+    },
+    {
+      "source_key": "r195-arias2021-figure1",
+      "title": "Propuesta de análisis espacial para la determinación de riesgo ambiental en la cuenca del arroyo Claromecó",
+      "author": "Johanna Arias",
+      "publisher": "Universidad Nacional del Sur, Departamento de Geografía y Turismo",
+      "edition": "2021 licenciatura thesis; directors Alejandra Mabel Geraldi and Federico Gastón Barragán",
+      "official_url": "https://repositoriodigital.uns.edu.ar/handle/123456789/7069",
+      "original_url": "https://repositoriodigital.uns.edu.ar/bitstream/handle/123456789/7069/Arias%20Johanna.pdf?isAllowed=y&sequence=1",
+      "source_locator": "Printed p.2 / PDF p.10, Figure1, Cuenca del arroyo Claromecó",
+      "publication_identity_basis": "The thesis is an independently authored UNS basin-risk modelling and geographical-database project, identified by its front matter, objectives, methodology and bibliography. Figure1 is explicitly credited to Arias2021. It is not a recovered IGN topographic raster, ADA atlas or held Quequén/Pillahuincó publication. The small national location inset is not used as evidence.",
+      "actual_material_read": "The complete108-page original PDF was acquired successfully. Front matter, abstract, printed pp.2–4, methodology pp.17–20 and relevant bibliography were read. The full Figure1 map was visually inspected with a bounded enlargement and private pinned-path orientation comparison. Only those actual readings are claimed.",
+      "supports": "The middle del Medio corridor, named branches joining near Tres Arroyos, initial Claromecó trunk and regional coastal setting.",
+      "limits": "Generalized channel mapping does not establish the substantial selected northern extension, its full branch transfer or every lower western-side through-link. No current flow or exact bank agreement is inferred.",
+      "use_notice": "The official catalogue identifies a BY-NC-ND licence. No original page, map or derivative is distributed; only own bounded factual observations and bibliography are supplied."
+    },
+    {
+      "source_key": "r195-arias2021-prose",
+      "title": "Study-area and coastal-context prose in Arias2021 Claromecó thesis",
+      "author": "Johanna Arias",
+      "publisher": "Universidad Nacional del Sur",
+      "official_url": "https://repositoriodigital.uns.edu.ar/handle/123456789/7069",
+      "source_locator": "Printed pp.2–4,17–20,61,76–80 and92–93",
+      "actual_material_read": "Selected original prose and source-credit passages only. The thesis synthesizes earlier research and explicitly distinguishes its own risk-model methods. Its citations do not count as separately read underlying originals.",
+      "supports": "Del Medio/Segundo Brazo, Orellano/Primer Brazo and Seco/Tercer Brazo are distinguished from Claromecó; northern lowland drainage and historical coastal modification are described.",
+      "limits": "Basin membership and historical accounts do not prove missing selected connectors. The underlying Carbone2010 original was not read. Statements about channelization and erosion are historical thesis context, not present operating conditions.",
+      "use_notice": "Only bounded paraphrase and own source-correspondence observations."
+    },
+    {
+      "source_key": "r195-arias2021-figure31",
+      "title": "Peligro de erosión costera asociado a la tasa de erosión, Figure31 in Arias2021",
+      "author": "Johanna Arias",
+      "publisher": "Universidad Nacional del Sur",
+      "official_url": "https://repositoriodigital.uns.edu.ar/handle/123456789/7069",
+      "source_locator": "Printed p.80 / PDF p.88, Figure31",
+      "actual_material_read": "Full original page, figure, graticule, legend, author credit and surrounding coastal discussion visually inspected. Methods describe comparison of2000 and2018 shorelines.",
+      "publication_identity_basis": "Authored coastal-risk output of the thesis, credited to Arias2021; no separate underlying basemap service was requested. The location inset is not used.",
+      "supports": "Actual mouth setting between Claromecó and Dunamar at the Atlantic coast.",
+      "limits": "Local terminal coverage only; no inland through-link, exact present shoreline, current channel operation or uniform natural-channel identity is supplied.",
+      "use_notice": "Source figure and reading aids remain unshared."
+    },
+    {
+      "source_key": "r195-geus-greenland-national-1995-local",
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": [
+        "Jan C. Escher",
+        "T. Christopher R. Pulvertaft"
+      ],
+      "year": 1995,
+      "publisher": "Geological Survey of Greenland, Copenhagen; official digital original distributed by GEUS",
+      "scale": "1:2 500 000",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J",
+      "catalogue_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi:10.22008/FK2/SYAL4J",
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16855",
+      "current_acquisition": "Previously acquired official original and catalogue reused without a new request.",
+      "actual_read_scope": "Retained official catalogue identity and Custom Dataset Terms; original northwestern Greenland cartographic pixels at broad and enlarged selected-corridor scales; chosen opening, all 60 parts and intermediate joins, southern turn, inland-ice sequence, lower ice/exposed-rock passage and actual ending; geographic graticule, WGS84/UTM24 projection imprint, Inland Ice legend, printing/copyright imprint and recommended citation.",
+      "supports": "Complete ordinary regional/corridor-scale terrain correspondence, including the actual selected ending.",
+      "limits": "Historical generalized geological and glaciological cartography, not a river survey. No representative natural-river hydronym, continuous surveyed river or surface/subglacial hydraulic connectivity is established. Exact glacier and fjord identity, current fronts, flow, banks and endpoint land/ice/water status remain unverified.",
+      "use_notice": "Originals, crops, processed data and comparison or derived maps remain private. Public-ready content is independently written factual observations and ordinary bibliography with GEUS attribution."
+    },
+    {
+      "source_key": "IMN_REVENTAZON_FIG2",
+      "title": "Estudio de Cuencas Hidrográficas de Costa Rica: Cuenca río Reventazón",
+      "author": "Instituto Meteorológico Nacional; cartography credited to SIG–Departamento de Desarrollo",
+      "year": "2011 study attribution in the bibliography of Piedra Aguilar2025; no chapter-front date asserted",
+      "catalogue_url": "https://cglobal.imn.ac.cr/index.php/publications/estudio-de-las-cuencas-hidrograficas-de-costa-rica/",
+      "publication_identity": "The official catalogue identifies the national34-basin characterization study and its Reventazón chapter. The actual map carries IMN SIG–Departamento de Desarrollo credit. This institutional basin cartography is distinct from the held CNE PROIGE prevention study and SINAC ACOSA management project.",
+      "actual_material_inspected": "Official catalogue; completed original PDF front matter and contents; printed pp.170–173; Figure2, Red hidrológica, printed p.173, including enlarged original upper, headward, middle and lower details. Scale1:745,000.",
+      "access_outcome": "Catalogue read successfully; one normal-original request completed HTTP200 application/pdf.",
+      "evidence_scope": "Generalized historical river network and visible labels; useful for ordinary corridor comparison, with the headward discontinuity and absence of depicted reservoirs explicitly retained.",
+      "use_limits": "No limited-distribution or officials-only notice observed in inspected material. Own factual observations and ordinary bibliography only; originals and reading derivatives remain private.",
+      "official_url": "https://cglobal.imn.ac.cr/documentos/publicaciones/EstudioCuencas/EstudioCuencas-cuencaRioReventazon.pdf"
+    },
+    {
+      "source_key": "CHAVES2020",
+      "title": "El río Reventazón: Producción de energía y gestión ambiental",
+      "author": "Anny Chaves Quirós",
+      "year": 2020,
+      "bibliography": "Revista de Ciencias Ambientales54(1):200–214. DOI10.15359/rca.54-1.12.",
+      "publication_identity": "An independently published firsthand account of the author's ICE Reventazón hydroelectric and environmental-flow work. Actual front matter and narrative verify this project context, separate from the held Térraba–Sierpe management project, Blanco/Herradura prevention study and UCR CampoI avulsion study.",
+      "actual_material_inspected": "Completed original PDF title, author and abstract; relevant prose on pp.201–211; original Figure2 photograph and caption on p.208; Figure3 photograph and epilogue on p.212. No route map is present in the inspected figures.",
+      "access_outcome": "One normal-original request completed HTTP200 application/pdf.",
+      "evidence_scope": "Southern branch and sequential hydroelectric-development context, plus the distinction between dam-to-return and downstream regulated river reaches. No current operation or selected reservoir-outline correspondence claim.",
+      "use_limits": "CC BY-NC-SA notice observed in page footers. Only own bounded factual observations and bibliography supplied; no original or derivative redistributed.",
+      "official_url": "https://www.scielo.sa.cr/pdf/rca/v54n1/2215-3896-rca-54-01-200.pdf"
+    },
+    {
+      "source_key": "PIEDRA2025_PROSE_ONLY",
+      "title": "Transformaciones fluviales en la cuenca baja Reventazón-Parismina, Costa Rica",
+      "author": "Fabio Piedra Aguilar; Universidad de Costa Rica, Escuela Centroamericana de Geología",
+      "year": 2025,
+      "bibliography": "Revista Geológica de América Central72. DOI10.15517/rgac.2025.63133.",
+      "publication_identity": "The successfully read methods and acknowledgments identify a continuation of UCR CampoI research using1948–2015 aerial photographs,2017–2024 satellite analysis and2022–2023 field trips. It is a separate actual research project, not an equivalent of the held Costa Rica prevention or ACOSA management publications.",
+      "actual_material_inspected": "Publisher HTML title, abstract, introduction, methods, lower-confluence discussion, conclusions and project acknowledgments were read before the figure request. No figure pixels or PDF read.",
+      "access_outcome": "HTML reader succeeded. The subsequent Figure1 request returned only a bare reference without pixels or a stated completed technical limit; whole publication acquisition then paused.",
+      "evidence_scope": "Bounded prior-read prose on historical lower naming, the distinct Parismina avulsion and the eastern Reventazón coastal continuation reported for2024. No map correspondence derived from unseen figures.",
+      "use_limits": "Only bounded own factual summary and normal bibliography; no images or source text redistributed. No further reading after the unresolved figure outcome.",
+      "official_url": "https://archivo.revistas.ucr.ac.cr/index.php/geologica/article/download/63133/62949?inline=1"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:60042998",
+      "source_keys": [
+        "r195-smithsonian-botany101-2014",
+        "r195-apa-fpp-land2016",
+        "r195-pac-shellbeach2024"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            11306
+          ],
+          "component_scope": "southwestern_opening_and_headward_curve",
+          "finding": "The selected southwestern opening first runs east and then turns north. It extends beyond the southern detailed coverage of Smithsonian Map10. The small APA/FPP regional map does not distinguish all of this approach and its receiving connection. No river-source point, feeder name or uninterrupted named channel is assigned to the opening.",
+          "sources": [
+            "r195-smithsonian-botany101-2014",
+            "r195-apa-fpp-land2016"
+          ],
+          "correspondence": "opening_and_receiving_connection_material_pending",
+          "component_correspondence_completed": false,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            11306
+          ],
+          "component_scope": "mapped_upper_pomeroon_corridor",
+          "finding": "Within Map10's southern detailed coverage, the selected northward and northeastward line matches the directly labeled upper Pomeroon corridor. This supports the visible receiving reach, without extending the name backward over the unresolved opening.",
+          "sources": [
+            "r195-smithsonian-botany101-2014"
+          ],
+          "correspondence": "ordinary_corridor_scale_supported",
+          "component_correspondence_completed": true,
+          "candidate_name": "Pomeroon River"
+        },
+        {
+          "fragments": [
+            11306
+          ],
+          "component_scope": "issororo_join_and_eastward_turn",
+          "finding": "The selected upper corridor turns east in the receiving setting downstream of the distinct western Issororo approach. Smithsonian Map10 and the expedition descriptions separate Issororo from Pomeroon; Map14 independently places the Issororo collecting corridor apart from Waini and Manawarin. The model does not select the long western Issororo approach as its opening.",
+          "sources": [
+            "r195-smithsonian-botany101-2014",
+            "r195-apa-fpp-land2016"
+          ],
+          "correspondence": "receiving_corridor_and_tributary_distinction_supported",
+          "component_correspondence_completed": true,
+          "candidate_name": "Pomeroon River"
+        },
+        {
+          "fragments": [
+            11306
+          ],
+          "component_scope": "st_monica_kabakaburi_and_arapiaco_setting",
+          "finding": "The selected eastward bend follows the Pomeroon receiving corridor through the St Monica–Kabakaburi setting. The separately mapped southern Arapiaco approach and its Kurishi tributary are not selected headwaters. The source descriptions distinguish these tributaries and the Tapakuma drainage from the Pomeroon traveled between Kabakaburi and Charity.",
+          "sources": [
+            "r195-smithsonian-botany101-2014",
+            "r195-apa-fpp-land2016"
+          ],
+          "correspondence": "ordinary_corridor_scale_supported",
+          "component_correspondence_completed": true,
+          "candidate_name": "Pomeroon River"
+        },
+        {
+          "fragments": [
+            11306,
+            11307
+          ],
+          "component_scope": "charity_bend_lower_corridor_and_model_join",
+          "finding": "The northeastward receiving corridor reaches the Charity setting and turns northwest toward the coast. The selected inter-fragment join lies along this same lower corridor, not at a demonstrated name change. Smithsonian Map10 includes portions obscured by collection annotations; the regional APA/FPP and PAC depictions corroborate the broad lower continuation. No exact bank, small side-channel threading or naming-transition vertex is assigned.",
+          "sources": [
+            "r195-smithsonian-botany101-2014",
+            "r195-apa-fpp-land2016",
+            "r195-pac-shellbeach2024"
+          ],
+          "correspondence": "combined_regional_lower_corridor_supported",
+          "component_correspondence_completed": true,
+          "candidate_name": "Pomeroon River"
+        },
+        {
+          "fragments": [
+            11306,
+            11307
+          ],
+          "component_scope": "wetland_and_waterbody_passages",
+          "finding": "The field accounts distinguish forested riverbanks, wet depressions and neighboring swampland from the named tributaries. The selected mapped lower corridor remains on Pomeroon; no named lake or reservoir transit is established. Tapakuma Lake and its dam belong to a separately described tributary setting. Wetland context does not prove the unresolved opening or current tidal direction and water permanence.",
+          "sources": [
+            "r195-smithsonian-botany101-2014",
+            "r195-apa-fpp-land2016"
+          ],
+          "correspondence": "mapped_corridor_context_supported_initial_passage_pending",
+          "component_correspondence_completed": false,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            11307
+          ],
+          "component_scope": "actual_final_coastal_tip",
+          "finding": "The final northwestward leg reaches the Pomeroon coastal-opening setting shown by the readable cartography. PAC's regional map separately depicts the Moruca River opening farther northwest. The selected tip is treated at ordinary coastal-corridor scale, not as a surveyed official mouth, a present shoreline measurement or evidence of current navigation conditions.",
+          "sources": [
+            "r195-smithsonian-botany101-2014",
+            "r195-pac-shellbeach2024"
+          ],
+          "correspondence": "ordinary_scale_actual_terminal_setting_supported",
+          "component_correspondence_completed": true,
+          "candidate_name": "Pomeroon River"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61545451",
+      "source_keys": [
+        "r195-arias2021-figure1",
+        "r195-arias2021-prose",
+        "r195-arias2021-figure31"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14518
+          ],
+          "component_scope": "selected headward opening and northern extension",
+          "finding": "The selected northern extension reaches beyond the channel heads depicted in the authored basin map. General discussion of northern lagoons and non-integrated drainage does not establish this chosen through-link.",
+          "sources": [
+            "r195-arias2021-figure1",
+            "r195-arias2021-prose"
+          ],
+          "correspondence": "material_pending",
+          "component_correspondence_completed": false,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            14518
+          ],
+          "component_scope": "upper branch approach",
+          "finding": "Mapped northern tributaries approach the del Medio corridor, but the generalized figure does not establish the complete selected transfer into the identified middle channel.",
+          "sources": [
+            "r195-arias2021-figure1",
+            "r195-arias2021-prose"
+          ],
+          "correspondence": "partially_corresponded_material_pending",
+          "component_correspondence_completed": false,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            14518
+          ],
+          "component_scope": "middle component of receiving system",
+          "finding": "The selected middle corridor follows the mapped del Medio branch toward Las Vaquerías and Tres Arroyos, including its intervening mapped tributary joins. The local synonym Segundo Brazo is stated in the thesis prose; no exact upstream name boundary is assigned.",
+          "sources": [
+            "r195-arias2021-figure1",
+            "r195-arias2021-prose"
+          ],
+          "correspondence": "corresponded_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "candidate_name": "Arroyo del Medio"
+        },
+        {
+          "fragments": [
+            14518
+          ],
+          "component_scope": "confluence approach and receiving join",
+          "finding": "The selected Tres Arroyos approach and southward connection correspond to the mapped union of del Medio, Seco and Orellano into Claromecó. The other named branches are context, not extra selected fragments.",
+          "sources": [
+            "r195-arias2021-figure1",
+            "r195-arias2021-prose"
+          ],
+          "correspondence": "corresponded_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "candidate_name": "Arroyo Claromecó"
+        },
+        {
+          "fragments": [
+            14518
+          ],
+          "component_scope": "upper receiving main channel",
+          "finding": "The selected reach south of the mapped three-branch junction follows the initial labeled Claromecó corridor.",
+          "sources": [
+            "r195-arias2021-figure1",
+            "r195-arias2021-prose"
+          ],
+          "correspondence": "corresponded_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "candidate_name": "Arroyo Claromecó"
+        },
+        {
+          "fragments": [
+            14518
+          ],
+          "component_scope": "lower receiving corridor candidate",
+          "finding": "The figure establishes the lower Claromecó setting and neighboring tributaries, but does not continuously distinguish the chosen western-side lower trace and all connections toward the coastal approach. This is a source-detail gap, not a proven wrong river, an exact-bank requirement or a reason to replace the selection.",
+          "sources": [
+            "r195-arias2021-figure1",
+            "r195-arias2021-prose"
+          ],
+          "correspondence": "partially_corresponded_material_pending",
+          "component_correspondence_completed": false,
+          "candidate_name": "Arroyo Claromecó"
+        },
+        {
+          "fragments": [
+            14518
+          ],
+          "component_scope": "actual coastal terminal",
+          "finding": "The final selected segment reaches the mapped Claromecó mouth at the Atlantic coast beside Claromecó and Dunamar. The basin map and separate authored coastal figure establish this terminal setting. Exact shoreline and present channelization are not asserted.",
+          "sources": [
+            "r195-arias2021-figure1",
+            "r195-arias2021-prose",
+            "r195-arias2021-figure31"
+          ],
+          "correspondence": "corresponded_at_ordinary_coastal_scale",
+          "component_correspondence_completed": true,
+          "candidate_name": "Arroyo Claromecó"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:90027894",
+      "source_keys": [
+        "r195-geus-greenland-national-1995-local"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8840
+          ],
+          "component_scope": "Chosen opening and southward inland-ice leg",
+          "finding": "The chosen opening, first short leg and following longer southward leg occupy the generalized Inland Ice east-southeast of Qaanaaq/Thule and north of the Camp Century context label. The original covers both parts and their join through the initial southern turn. The blue and black lines are identified by the legend as ice-surface or sub-ice thematic information; they do not establish a river.",
+          "sources": [
+            "r195-geus-greenland-national-1995-local"
+          ],
+          "correspondence": "complete_ordinary_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "candidate_name": null,
+          "hydraulic_continuity_established": false
+        },
+        {
+          "fragments": [
+            8840
+          ],
+          "component_scope": "Southern turn and northwestward return",
+          "finding": "The short westward and southward steps through the southernmost turn and the following northwestward return are entirely within the readable inland-ice mapping. All eight parts and their intermediate joins are accounted for at the source scale. No natural-river name or surveyed watercourse through this reversal is established.",
+          "sources": [
+            "r195-geus-greenland-national-1995-local"
+          ],
+          "correspondence": "complete_ordinary_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "candidate_name": null,
+          "hydraulic_continuity_established": false
+        },
+        {
+          "fragments": [
+            8840
+          ],
+          "component_scope": "Westward upper-middle ice sequence",
+          "finding": "The westward succession after the northwestward return, including the short successive parts and the longer westward continuation, is fully covered across generalized ice. Every stored part and intervening join remains within the contiguous original. Ice contours and thickness information do not prove surface or subglacial flow along this modeled succession.",
+          "sources": [
+            "r195-geus-greenland-national-1995-local"
+          ],
+          "correspondence": "complete_ordinary_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "candidate_name": null,
+          "hydraulic_continuity_established": false
+        },
+        {
+          "fragments": [
+            8840
+          ],
+          "component_scope": "Middle westward ice corridor",
+          "finding": "The slight southwestward steps and subsequent longer westward legs remain in the mapped ice corridor approaching the eastern side of the exposed-rock coastal belt. The original distinguishes the ice from the neighboring bedrock outcrops and includes all twelve parts and their joins. No selected lake, reservoir or managed-channel connection is established.",
+          "sources": [
+            "r195-geus-greenland-national-1995-local"
+          ],
+          "correspondence": "complete_ordinary_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "candidate_name": null,
+          "hydraulic_continuity_established": false
+        },
+        {
+          "fragments": [
+            8840
+          ],
+          "component_scope": "Northwestward lower-ice approach",
+          "finding": "The lower northwestward steps pass through the generalized ice margin toward the exposed-rock belt. Their complete succession and both bounding joins are visible in the original, which distinguishes a broad southern exposed-rock area and narrower northern outcrops from intervening ice. This terrain correspondence does not assign the selection a glacier or river name.",
+          "sources": [
+            "r195-geus-greenland-national-1995-local"
+          ],
+          "correspondence": "complete_ordinary_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "candidate_name": null,
+          "hydraulic_continuity_established": false
+        },
+        {
+          "fragments": [
+            8840
+          ],
+          "component_scope": "Lower ice passage between exposed-rock areas",
+          "finding": "The westward and northwestward lower parts occupy the narrowing mapped ice passage between the broad exposed-rock area to the south and elongated exposed-rock outcrop to the north. The original covers every selected part and all intervening joins up to the final approach. Nearby geological-unit numbers and regional place labels are not hydronyms.",
+          "sources": [
+            "r195-geus-greenland-national-1995-local"
+          ],
+          "correspondence": "complete_ordinary_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "candidate_name": null,
+          "hydraulic_continuity_established": false
+        },
+        {
+          "fragments": [
+            8840
+          ],
+          "component_scope": "Final part and actual selected terminal",
+          "finding": "The final part, its last changes in direction and the actual selected ending are covered at the inner coastal indentation southeast of Qaanaaq/Thule, at the generalized historical ice and exposed-rock margin. The source accounts for the terminal setting but does not establish an ordinary river mouth, a precise named glacier or a contemporary land, ice or water assignment. The model sea-terminal label is not independent naming or mouth evidence.",
+          "sources": [
+            "r195-geus-greenland-national-1995-local"
+          ],
+          "correspondence": "complete_ordinary_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "candidate_name": null,
+          "hydraulic_continuity_established": false,
+          "ordinary_river_mouth_established": false,
+          "exact_terminal_land_ice_water_assignment_verified": false
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70974386",
+      "source_keys": [
+        "IMN_REVENTAZON_FIG2",
+        "CHAVES2020",
+        "PIEDRA2025_PROSE_ONLY"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10712
+          ],
+          "component_scope": "Chosen southern opening, upper approach and Orosi–upper Reventazón corridor",
+          "finding": "The selected southern approach lies in the map's Ángeles–Cuericí network and follows toward the labelled Orosi valley. The original map has a visible discontinuity between the southern network and the northern Orosi segment. Farther downstream, the mapped valley bends through the Agua Caliente joining area and east toward the next fragment. The generalized river line does not depict the Cachí impoundment passage.",
+          "sources": [
+            "IMN_REVENTAZON_FIG2",
+            "CHAVES2020"
+          ],
+          "correspondence": "Partly supported; headward through-link and Cachí passage pending",
+          "component_correspondence_completed": false,
+          "retained_reach_names": [
+            "Río Orosi"
+          ],
+          "provisional_headward_context": [
+            "Río Ángeles",
+            "Río Cuericí"
+          ],
+          "name_scope_limit": "Ángeles and Cuericí are retained as provisional headward context, without an exact name-transition point or transferring either label to the whole fragment."
+        },
+        {
+          "fragments": [
+            10713
+          ],
+          "component_scope": "Middle Reventazón through the hydroelectric corridor and northern lowland approach",
+          "finding": "The selected fragment follows the mapped connected trunk past the Angostura area and north through the lowlands toward the historical Parismina junction. Chaves identifies the sequential hydroelectric developments and describes the Reventazón dam-to-return reach. These establish managed-river context, but do not supply geographic depiction of the selected Angostura and Reventazón reservoir through-passages.",
+          "sources": [
+            "IMN_REVENTAZON_FIG2",
+            "CHAVES2020"
+          ],
+          "correspondence": "River corridor supported; reservoir passages pending",
+          "component_correspondence_completed": false,
+          "retained_reach_names": [
+            "Río Reventazón"
+          ]
+        },
+        {
+          "fragments": [
+            10714
+          ],
+          "component_scope": "Actual final coastal fragment and Caribbean ending",
+          "finding": "The mapped final arc continues from the historical joining area east to the Caribbean at Barra de Parismina. The actually read 2025 article reports that the Reventazón still sent water east to Barra de Parismina in 2024 while a portion turned west. Its documented Parismina diversion to Jalova is a separate course and is not substituted for this selected eastern terminal.",
+          "sources": [
+            "IMN_REVENTAZON_FIG2",
+            "PIEDRA2025_PROSE_ONLY"
+          ],
+          "correspondence": "Supported at ordinary historical/regional corridor scale",
+          "component_correspondence_completed": true,
+          "retained_reach_names": [
+            "Río Parismina (historical lower-reach usage)",
+            "Río Reventazón (receiving-system context)"
+          ],
+          "name_scope_limit": "No current shoreline, exclusive outlet, exact mouth vertex or fixed present-day name boundary is certified."
+        },
+        {
+          "fragments": [
+            10712
+          ],
+          "component_scope": "Southern Ángeles–Cuericí approach to the Orosi trunk",
+          "finding": "Material pending: the original hydrological map leaves an actual visible link missing. General prose naming a southern Cuericí branch does not establish the selected through-link.",
+          "sources": [
+            "IMN_REVENTAZON_FIG2",
+            "CHAVES2020"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            10712,
+            10713
+          ],
+          "component_scope": "Stage join from mainstem10712 to mainstem10713",
+          "finding": "The two stages occupy the same mapped Reventazón corridor near the Pejibaye approach. This boundary is an inland stage join, not a mouth. Separate reservoir-passage limitations remain.",
+          "sources": [
+            "IMN_REVENTAZON_FIG2"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            10713,
+            10714
+          ],
+          "component_scope": "Stage join from mainstem10713 to mainstem10714",
+          "finding": "Continuous eastern coastal corridor in the inspected basin map. The final stage begins near the historical joining area, and the actual sea ending is farther east.",
+          "sources": [
+            "IMN_REVENTAZON_FIG2",
+            "PIEDRA2025_PROSE_ONLY"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            10712,
+            10713
+          ],
+          "component_scope": "Cachí, Angostura and Reventazón impoundment/managed passages",
+          "finding": "Material pending: hydroelectric sequence and the managed river-return arrangement are documented, but the actual selected reservoir crossings and connecting passages are not geographically established by the inspected generalized map or article photographs. Exact engineering details and current operations are not required or asserted.",
+          "sources": [
+            "IMN_REVENTAZON_FIG2",
+            "CHAVES2020"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            10714
+          ],
+          "component_scope": "Lower wetland/coastal continuation and actual sea ending",
+          "finding": "The selected eastern coastal continuation is distinguished from the independently described northward Parismina avulsion and Jalova outlet. Ordinary corridor correspondence is supported; no presently exclusive hydraulic connection is claimed.",
+          "sources": [
+            "IMN_REVENTAZON_FIG2",
+            "PIEDRA2025_PROSE_ONLY"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "Copernicus EMS Rapid Mapping EMSR514, AOI01 Pomeroon River, Delineation MONIT01, product01POMEROONRIVER v1",
+      "official_url": "https://cems-mapping-website.s3.eu-west-1.amazonaws.com/static/activations/EMSR514/EMSR514_AOI01_DEL_MONIT01_r1_RTP01_v1.pdf",
+      "observed_outcome": "PDF reader completed and exposed metadata/prose. The first and only screenshot request returned Cache miss with no pixels. Origin HTTP status unknown.",
+      "outcome_layer": "Web-reader screenshot availability failure; not a measured originHTTP denial.",
+      "restriction_scope": "Whole identified publication and equivalent product/project recovery routes are paused, including original, catalogue, reader/cache, screenshot, mirrors and alternate formats. No further EMSR514 product was requested.",
+      "earlier_lawful_prose_exception": "Actually read project metadata, legend and explanatory prose only. These provide no selected-route map correspondence.",
+      "acquisition_performed": true,
+      "newly_observed_access_failure": true,
+      "material_effect": "Optional detailed flood cartography excluded. The one primary material-pending status remains based on the unestablished southwestern route; no separate access-pending target count.",
+      "aw_id": "hydro-system:60042998"
+    },
+    {
+      "publication": "Carbone, María Elizabeth, and Píccolo, María Cintia (2010), Zonas de desbordes y anegamientos a través de cartografía hidrogeomorfológica. Caso de estudio cuenca del Arroyo Claromecó, Argentina. Revista Geográfica148:23–42.",
+      "official_url": "https://bibliotecadigital.inah.gob.mx/janium/Documentos/IPGH/REGEOG_00_0148_2010_P023.pdf",
+      "observed_outcome": "The first normal-original request completed HTTP502 with text/html. The single permitted retry at the identical URL completed with the same HTTP502 response. No original article, prose or map was read.",
+      "outcome_layer": "Completed direct HTTP-client502 responses; origin-versus-intermediary identity not independently established. No access-control denial observed.",
+      "restriction_scope": "Whole identified article, its maps and equivalent original, catalogue, reader, cache, mirror and alternate-format routes paused. No related-project substitute was requested.",
+      "earlier_lawful_prose_exception": null,
+      "newly_observed_access_failure": true,
+      "explicit_access_denial": false,
+      "bibliographic_identity_basis": "The actual Arias2021 bibliography and official indexed article identity establish an IADO Claromecó hydrogeomorphological field/satellite mapping study distinct from the held Quequén/Pillahuincó works. Discovery supplied identity only, not correspondence evidence.",
+      "aw_id": "hydro-system:61545451"
+    },
+    {
+      "publication": "Piedra Aguilar2025, Transformaciones fluviales en la cuenca baja Reventazón-Parismina, Costa Rica; Revista Geológica de América Central72, DOI10.15517/rgac.2025.63133",
+      "official_url": "https://archivo.revistas.ucr.ac.cr/index.php/geologica/article/download/63133/62949?inline=1",
+      "requested_figure_url": "https://archivo.revistas.ucr.ac.cr/index.php/geologica/article/download/63133/62949/298461",
+      "observed_outcome": "Publisher HTML opened successfully. Sole Figure1 request returned only a bare reference, with no observable pixels or stated completed technical-size/format result. No fallback, retry, original PDF or further unread-output inspection followed.",
+      "outcome_layer": "Unresolved web image-reader result; originHTTP and image result unknown, not an asserted403 or access-control denial.",
+      "restriction_scope": "Whole article and equivalent originals, figures, PDF/HTML, catalogue, reader/cache/mirror and other acquisition routes paused, including further unread-output reading.",
+      "earlier_lawful_observations": "Only the actually read pre-stop HTML prose and source metadata described in PIEDRA2025_PROSE_ONLY remain usable.",
+      "newly_observed_access_failure": false,
+      "unresolved_acquisition_outcome": true,
+      "material_effect": "Unseen figures provide no selected-route evidence. Pending classification is separately grounded in upper through-link and reservoir-passage gaps.",
+      "aw_id": "hydro-system:70974386"
+    },
+    {
+      "publication": "Producto2, Caracterización técnico-científica, sitio de importancia para la conservación Parismina; exact project relationship not established",
+      "official_url": "https://enbcr.go.cr/sites/default/files/producto_2._caracterizacion_tecnico-cientifico_sic_parismina_diagnostico_v2_oficial.pdf",
+      "observed_outcome": "Search discovery only. No acquisition or substantive use; the bounded research pass did not establish enough actual project identity to proceed. This is not a newHTTP failure or broad agency ban.",
+      "restriction_scope": "New acquisition remains paused while the relationship to existing held projects is unestablished. No source content used.",
+      "acquisition_performed": false,
+      "newly_observed_access_failure": false,
+      "aw_id": "hydro-system:70974386"
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "source_key": "r195-apa-fpp-land2016",
+      "kind": "reproduction_distribution_notice",
+      "restriction": "Report contents may be reproduced and distributed for noncommercial purposes with prior notice to copyright holders and attribution. This is not an acquisition prohibition or a requirement for permission before ordinary own-fact citation.",
+      "handling": "No report text, maps or derivatives distributed; own bounded findings and normal bibliography only.",
+      "publication": "Our Land, Our Life: A Participatory Assessment of the Land Tenure Situation of Indigenous Peoples in Guyana. Report for Region1 and Region2",
+      "official_url": "https://www.forestpeoples.org/fileadmin/uploads/fpp/migration/publication/2016/12/fppguyanaltainternet.pdf",
+      "aw_id": "hydro-system:60042998",
+      "acquisition_stop": false
+    },
+    {
+      "source_key": "r195-smithsonian-botany101-2014",
+      "kind": "image_rights_and_attribution_notice",
+      "restriction": "The source distinguishes public-domain text from protected images/designs and requires author/source credit and compliance with image-use restrictions.",
+      "handling": "Source maps remain private; only own factual findings and bibliography are shared.",
+      "publication": "Smithsonian Plant Collections, the Guianas: 1991–1993 and 1995–2000, Bruce Hoffman",
+      "official_url": "https://www.govinfo.gov/content/pkg/GOVPUB-SI-PURL-gpo59219/pdf/GOVPUB-SI-PURL-gpo59219.pdf",
+      "aw_id": "hydro-system:60042998",
+      "acquisition_stop": false
+    },
+    {
+      "publication": "Geological map of Greenland 1:2 500 000, Escher and Pulvertaft 1995: Custom Dataset Terms",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J",
+      "limitation_kind": "publication_use_notice",
+      "observed_outcome": "The retained official catalogue terms permit internal use and processing and restrict redistribution and production or transfer of new maps. Original imprint and recommended citation were read.",
+      "outcome_layer": "Actually read source-use notice, not an acquisition failure.",
+      "material_gap": false,
+      "newly_observed_access_failure": false,
+      "aw_id": "hydro-system:90027894",
+      "acquisition_stop": false,
+      "restriction_scope": "Originals, crops, processed data and comparison or derived maps remain private. Public-ready content is independently written factual observations and ordinary bibliography with GEUS attribution."
+    }
+  ]
+}

@@ -1,0 +1,779 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r164",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r163",
+    "commit": "561093f483497fa1ae5b79841f4775db4c067831",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r163/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:61189702",
+    "hydro-system:70084119",
+    "hydro-system:70025722",
+    "hydro-system:70001071"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:61189702",
+      "category": "river_group",
+      "system_id": "61189702",
+      "original_queue_rank": 459,
+      "baseline_logical_fid": 3488,
+      "geometry_fids": [
+        13892
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -75.458132,
+        -14.996605,
+        -74.845833,
+        -13.775
+      ],
+      "rendered_mainstem_length_km": 176.673,
+      "rendered_network_length_km": 176.673,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -75.458132,
+          -14.996605,
+          -74.845833,
+          -13.775
+        ]
+      },
+      "candidate_name": "Río Grande",
+      "research_category": "river_group_source_material_pending",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "candidate_names": [
+        "Río Grande"
+      ],
+      "region": "Peru, Río Grande (Nazca) receiving valley from the Ocoyo region to the Pacific coast.",
+      "candidate_name_role": "Provisional representative receiving-river/system candidate, directly supported along the mapped Ocoyo-to-Pacific middle and lower valley. The northern selected opening and its headward joining route remain unestablished; this is not a completed whole-selection representative assignment.",
+      "source_keys": [
+        "r164-ingemmet-a47-cordova",
+        "r164-ingemmet-a53-palpa",
+        "r164-ingemmet-a47-report",
+        "r164-ingemmet-a53-report",
+        "r164-concytec-a47-metadata",
+        "r164-concytec-a53-metadata"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": "The selected northern opening, successive headward passages and westward joining route into the mapped Ocoyo valley remain outside the successfully read original-map coverage. Downstream Río Grande and Pacific-mouth correspondence does not close that opening.",
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "Río Grande is a provisional candidate. INGEMMET’s original Córdova and Palpa maps support the middle/lower valley, major tributary joins and Pacific mouth near Santa Ana/Boquerón, but the selected northern opening and its connection into that valley remain unestablished. The record stays material-pending; no accepted, scalar or Korean name or product application is assigned.",
+      "completion_scope": "One primary river_group_source_material_pending record. Original A47/A53 maps establish the selected middle/lower river, lateral junctions, desert corridor and actual Pacific terminal, but do not cover the selected northern opening and its joining route into the mapped Ocoyo valley. This is neither completed representative identity nor completed name-scope hold. The two new502 pauses are source-access details, not additional primary pending counts.",
+      "supported_name_scope": "Provisional representative receiving-river/system candidate, directly supported along the mapped Ocoyo-to-Pacific middle and lower valley. The northern selected opening and its headward joining route remain unestablished; this is not a completed whole-selection representative assignment.",
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "component_scope_limits": [
+          "Río Grande is a bounded provisional representative-system candidate; the incomplete selected northern route prevents a completed representative assignment.",
+          "Observed names of incoming Palpa, Viscas/Vizca, Santa Cruz and Nasca/Nazca branches are not applied as names of every selected reach.",
+          "The original geological maps are historical geographic evidence, not current hydronym registries or evidence of present hydraulic operation.",
+          "Accepted, whole-feature scalar and Korean names remain null; no automatic or product application."
+        ]
+      },
+      "bounded_name_observations": [
+        {
+          "name": "Río Grande",
+          "role": "Supported Ocoyo-to-Pacific receiving valley only; selected headward approach unresolved",
+          "source_keys": [
+            "r164-ingemmet-a47-cordova",
+            "r164-ingemmet-a53-palpa",
+            "r164-ingemmet-a47-report",
+            "r164-ingemmet-a53-report",
+            "r164-concytec-a47-metadata",
+            "r164-concytec-a53-metadata"
+          ]
+        },
+        {
+          "name": "Río Palpa / Viscas / Santa Cruz / Nasca",
+          "role": "Distinct joining tributary corridors, not a uniform name for the selected receiving river",
+          "source_keys": [
+            "r164-ingemmet-a47-cordova",
+            "r164-ingemmet-a53-palpa",
+            "r164-ingemmet-a47-report",
+            "r164-ingemmet-a53-report",
+            "r164-concytec-a47-metadata",
+            "r164-concytec-a53-metadata"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70084119",
+      "category": "river_group",
+      "system_id": "70084119",
+      "original_queue_rank": 460,
+      "baseline_logical_fid": 2941,
+      "geometry_fids": [
+        9139
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -84.477083,
+        54.19375,
+        -83.716298,
+        55.22191
+      ],
+      "rendered_mainstem_length_km": 175.991,
+      "rendered_network_length_km": 175.991,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -84.477083,
+          54.19375,
+          -83.716298,
+          55.22191
+        ]
+      },
+      "candidate_name": "Aquatuk River",
+      "research_category": "river_group_source_material_pending",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "candidate_names": [
+        "Aquatuk River",
+        "Sutton River"
+      ],
+      "region": "Northern Ontario, Canada; Aquatuk–Sutton river setting and the Hudson Bay coast near Little Cape.",
+      "candidate_name_role": "Directly supported middle river component only. Sutton River is a distinct supported lower receiving component. No completed whole-system identity is asserted.",
+      "source_keys": [
+        "r161-ogs-p3651-2012",
+        "r161-ogs-p3641-2012",
+        "r161-laurentian-aquatic-progress-2013"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": "No usable original establishes the complete selected southern opening and upper/western corridor, including any lake, pond or wetland through-links before the directly mapped Aquatuk segment. The report supports regional Aquatuk–Sutton connectivity but does not resolve all selected intervening western passages. These are material geographic gaps, not merely unnamed reaches.",
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "The source-supported route contains a distinct Aquatuk River component followed downstream by lower Sutton River. It is separate from the neighboring Kinushseo River. The coastal original shows the Sutton channel widening and dividing into its estuarine/intertidal fan near Little Cape and Hudson Bay. The model endpoint lies in that coastal transition, rather than being proof of an exact surveyed river mouth or open-water shoreline. Hawley Lake is independently identified as the source of Sutton River, but that does not put Hawley Lake on this selected Aquatuk approach. Aquatuk Lake is a distinct study water; proximity and a generalized line do not establish the selection’s lake entry, exit or complete headward route.",
+      "completion_scope": "The source-supported route contains a distinct Aquatuk River component followed downstream by lower Sutton River. It is separate from the neighboring Kinushseo River. The coastal original shows the Sutton channel widening and dividing into its estuarine/intertidal fan near Little Cape and Hudson Bay. The model endpoint lies in that coastal transition, rather than being proof of an exact surveyed river mouth or open-water shoreline. Hawley Lake is independently identified as the source of Sutton River, but that does not put Hawley Lake on this selected Aquatuk approach. Aquatuk Lake is a distinct study water; proximity and a generalized line do not establish the selection’s lake entry, exit or complete headward route. No usable original establishes the complete selected southern opening and upper/western corridor, including any lake, pond or wetland through-links before the directly mapped Aquatuk segment. The report supports regional Aquatuk–Sutton connectivity but does not resolve all selected intervening western passages. These are material geographic gaps, not merely unnamed reaches.",
+      "supported_name_scope": "The eastern middle corridor is labelled Aquatuk River on the original thematic map; the downstream lower corridor is labelled Sutton River on the coastal original. The field-study report independently distinguishes both rivers and shows their regional connection. Neither name is assigned to the unresolved selected southern opening, every upper passage, or any nearby lake.",
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "component_scope_limits": [
+          "The complete selected opening and upper/western through-route remain unestablished; whole-system naming is therefore incomplete.",
+          "The source identities Aquatuk River and Sutton River apply to distinct supported components, not to every feeder, lake or the entire selected model.",
+          "The field report supports their regional junction, but its generalized figure and malformed Aquatuk coordinate are insufficient for all intervening selected passages.",
+          "Neither a precise modern distributary alignment nor the exact tidal/shoreline position is established by historical thematic maps.",
+          "Shared or modified base hydrography is not proof of independent underlying hydrographic observations.",
+          "No current formal registry decision, Indigenous-name equivalence, Korean name, surveyed length or present hydraulic condition is established."
+        ]
+      },
+      "bounded_name_observations": [
+        {
+          "name": "Aquatuk River",
+          "role": "Directly mapped eastern middle component only",
+          "source_keys": [
+            "r161-ogs-p3651-2012",
+            "r161-ogs-p3641-2012",
+            "r161-laurentian-aquatic-progress-2013"
+          ]
+        },
+        {
+          "name": "Sutton River",
+          "role": "Distinct lower receiving river and estuarine fan",
+          "source_keys": [
+            "r161-ogs-p3651-2012",
+            "r161-ogs-p3641-2012",
+            "r161-laurentian-aquatic-progress-2013"
+          ]
+        },
+        {
+          "name": "Hudson Bay / Little Cape",
+          "role": "Actual receiving coastal context; not a river alias",
+          "source_keys": [
+            "r161-ogs-p3651-2012",
+            "r161-ogs-p3641-2012",
+            "r161-laurentian-aquatic-progress-2013"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70025722",
+      "category": "river_group",
+      "system_id": "70025722",
+      "original_queue_rank": 461,
+      "baseline_logical_fid": 2918,
+      "geometry_fids": [
+        8996
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -68.372917,
+        56.8875,
+        -67.633333,
+        58.083011
+      ],
+      "rendered_mainstem_length_km": 175.984,
+      "rendered_network_length_km": 175.984,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -68.372917,
+          56.8875,
+          -67.633333,
+          58.083011
+        ]
+      },
+      "candidate_name": "Rivière False",
+      "research_category": "river_group_source_material_pending",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "candidate_names": [
+        "Rivière False"
+      ],
+      "region": "Nunavik, Québec, Canada; Rivière False corridor east of Kuujjuaq and the Kohlmeister-side marine-estuarine setting.",
+      "candidate_name_role": "Rivière False is supported for the regional named corridor and lower estuarine approach. Its representative identity for the entire selected group remains unestablished because the southeastern opening and intermediate lake/river through-links lack adequate original source correspondence.",
+      "source_keys": [
+        "r164-cehq2011-region10",
+        "r164-rg201304-map",
+        "r164-gm62436-false-river"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": "The southeastern opening, successive upper lake and stream passages, western bend, middle lake connections and uncovered lower interior joins remain unestablished. The separately supported False River estuarine approach does not close those upstream gaps.",
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "CEHQ’s original regional map labels Rivière False along the northward interior corridor. RG2013-04-C001 distinguishes its Kohlmeister-side terminal setting east of Kuujjuaq from the Koksoak waterway. The independent Falconbridge GM62436 field-assessment report shows the lower False River entering a marine estuary on its annotated Landsat image and describes that outlet in the accompanying prose. This supports the lower river candidate and terminal approach, but not every selected opening, lake connection or intermediate join. The whole group remains source-material-pending.",
+      "completion_scope": "CEHQ’s original regional map labels Rivière False along the northward interior corridor. RG2013-04-C001 distinguishes its Kohlmeister-side terminal setting east of Kuujjuaq from the Koksoak waterway. The independent Falconbridge GM62436 field-assessment report shows the lower False River entering a marine estuary on its annotated Landsat image and describes that outlet in the accompanying prose. This supports the lower river candidate and terminal approach, but not every selected opening, lake connection or intermediate join. The whole group remains source-material-pending. The southeastern opening, successive upper lake and stream passages, western bend, middle lake connections and uncovered lower interior joins remain unestablished. The separately supported False River estuarine approach does not close those upstream gaps.",
+      "supported_name_scope": "Rivière False is supported for the regional named corridor and lower estuarine approach. Its representative identity for the entire selected group remains unestablished because the southeastern opening and intermediate lake/river through-links lack adequate original source correspondence.",
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "component_scope_limits": [
+          "The headward feeder name is not established.",
+          "No selected lake traversal is established solely from a nearby lake label.",
+          "Representative-system identity remains incomplete; one scalar name is not assumed for all selected reaches.",
+          "The lower estuarine approach is supported at ordinary corridor scale; exact banks, source-to-name transition vertices and current tidal limits remain unassigned.",
+          "Formal naming registry remains unverified."
+        ]
+      },
+      "bounded_name_observations": [
+        {
+          "name": "Rivière False",
+          "role": "Regional named corridor and supported lower estuarine approach; full selected system remains provisional",
+          "source_keys": [
+            "r164-cehq2011-region10",
+            "r164-rg201304-map",
+            "r164-gm62436-false-river"
+          ]
+        },
+        {
+          "name": "Kohlmeister",
+          "role": "Distinct lower waterbody/estuarine-side context east of Kuujjuaq, not a whole-route name",
+          "source_keys": [
+            "r164-cehq2011-region10",
+            "r164-rg201304-map",
+            "r164-gm62436-false-river"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70001071",
+      "category": "river_group",
+      "system_id": "70001071",
+      "original_queue_rank": 462,
+      "baseline_logical_fid": 2895,
+      "geometry_fids": [
+        8929
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -77.597917,
+        61.572917,
+        -75.429167,
+        61.760417
+      ],
+      "rendered_mainstem_length_km": 175.572,
+      "rendered_network_length_km": 175.572,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -77.597917,
+          61.572917,
+          -75.429167,
+          61.760417
+        ]
+      },
+      "candidate_name": "Rivière Kovik",
+      "research_category": "river_group_source_material_pending",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "candidate_names": [
+        "Rivière Kovik",
+        "Rivière Umiruup"
+      ],
+      "region": "Northwestern Nunavik, Québec, Canada; eastern lake country, Lac Lessard and the Umiruup–Kovik receiving corridor.",
+      "candidate_name_role": "Provisional representative-system lead supported by the reviewed middle/lower corridor. It is not a scalar name for the unnamed opening, lakes or every selected reach, and remaining geographic gaps prevent completion.",
+      "source_keys": [
+        "r164-bg202004-parent",
+        "r164-et8708-vanasse-report",
+        "r164-et8809-lessard",
+        "r164-bg201803-cap-wolstenholme",
+        "r164-kovik-conservation-2018-prose"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": "The first small-lake through-link, intervening eastern Vanasse/Belleau corridor, southern middle transfers, short southern-edge lower reaches and actual final coastal connection remain incompletely established. Readable Lessard–Umiruup–Kovik components are not a substitute for those selected connections.",
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "Actual primary originals distinguish a Lessard–Umiruup–Kovik route from the southeastern named Kovik headward branch. The opening, intervening eastern corridor, southern middle transfers, some southern-edge lower reaches and actual terminal remain incompletely supported. One primary material-pending status is retained.",
+      "completion_scope": "Actual primary originals distinguish a Lessard–Umiruup–Kovik route from the southeastern named Kovik headward branch. The opening, intervening eastern corridor, southern middle transfers, some southern-edge lower reaches and actual terminal remain incompletely supported. One primary material-pending status is retained. The first small-lake through-link, intervening eastern Vanasse/Belleau corridor, southern middle transfers, short southern-edge lower reaches and actual final coastal connection remain incompletely established. Readable Lessard–Umiruup–Kovik components are not a substitute for those selected connections.",
+      "supported_name_scope": "Provisional representative-system lead supported by the reviewed middle/lower corridor. It is not a scalar name for the unnamed opening, lakes or every selected reach, and remaining geographic gaps prevent completion.",
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "component_scope_limits": [
+          "No formal naming-registry verification was performed.",
+          "The source maps have thematic and generalized background scales; no exact bank, vertex, present flow, seasonal or tidal-boundary claim is made.",
+          "Nearby lake names and regional basin descriptions are not treated as proof of a selected connection.",
+          "Vanasse companion maps were not requested/read in this pass; this is not an access denial or enduring publication stop.",
+          "An additionally inspected lawful CEHQ Région10 overview lies south of this target and supplies no Kovik correspondence."
+        ]
+      },
+      "bounded_name_observations": [
+        {
+          "name": "Lac Lessard",
+          "role": "Distinct selected middle lake component",
+          "source_keys": [
+            "r164-bg202004-parent",
+            "r164-et8708-vanasse-report",
+            "r164-et8809-lessard",
+            "r164-bg201803-cap-wolstenholme",
+            "r164-kovik-conservation-2018-prose"
+          ]
+        },
+        {
+          "name": "Rivière Umiruup",
+          "role": "Named selected corridor entering the Kovik network",
+          "source_keys": [
+            "r164-bg202004-parent",
+            "r164-et8708-vanasse-report",
+            "r164-et8809-lessard",
+            "r164-bg201803-cap-wolstenholme",
+            "r164-kovik-conservation-2018-prose"
+          ]
+        },
+        {
+          "name": "Rivière Kovik",
+          "role": "Named western receiving corridor; not the name of every selected headward reach",
+          "source_keys": [
+            "r164-bg202004-parent",
+            "r164-et8708-vanasse-report",
+            "r164-et8809-lessard",
+            "r164-bg201803-cap-wolstenholme",
+            "r164-kovik-conservation-2018-prose"
+          ]
+        },
+        {
+          "name": "Rivière Talluup",
+          "role": "Confluence context only, not another selected headward fragment",
+          "source_keys": [
+            "r164-bg202004-parent",
+            "r164-et8708-vanasse-report",
+            "r164-et8809-lessard",
+            "r164-bg201803-cap-wolstenholme",
+            "r164-kovik-conservation-2018-prose"
+          ]
+        }
+      ]
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [
+      "hydro-system:61189702",
+      "hydro-system:70084119",
+      "hydro-system:70025722",
+      "hydro-system:70001071"
+    ],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 0,
+    "supported_representative_system_identities": 0,
+    "scope_holds": 0,
+    "access_pending": 0,
+    "material_pending": 4
+  },
+  "totals_after": {
+    "recorded_targets": 599,
+    "non_pending_records": 468,
+    "source_access_pending": 3,
+    "source_material_pending": 128,
+    "source_any_pending": 131,
+    "scope_holds": 149,
+    "river_groups": 501,
+    "lakes": 98,
+    "unrecorded": 3466,
+    "unrecorded_river_groups": 2954,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573",
+    "hydro-system:80032711",
+    "hydro-system:60007816",
+    "hydro-system:80013873",
+    "hydro-system:61501314",
+    "hydro-system:60761631",
+    "hydro-system:70895720",
+    "hydro-system:61398344",
+    "hydro-system:61355098",
+    "hydro-system:70933800",
+    "hydro-system:60026849",
+    "hydro-system:70574060",
+    "hydro-system:70890643",
+    "hydro-system:80064967",
+    "hydro-system:70856797",
+    "hydro-system:60174418",
+    "hydro-system:61547907",
+    "hydro-system:70463083",
+    "hydro-system:61520061",
+    "hydro-system:70895492",
+    "hydro-system:70898394",
+    "hydro-system:70865140",
+    "hydro-system:80072439",
+    "hydro-system:70549678",
+    "hydro-system:70566840",
+    "hydro-system:80048422",
+    "hydro-system:60557376",
+    "hydro-system:61514286",
+    "hydro-system:61509423",
+    "hydro-system:80068731",
+    "hydro-system:80015064",
+    "hydro-system:61520170",
+    "hydro-system:70156165",
+    "hydro-system:70784507",
+    "hydro-system:80067417",
+    "hydro-system:80019756",
+    "hydro-system:70244256",
+    "hydro-system:80060230",
+    "hydro-system:61543259",
+    "hydro-system:60007312",
+    "hydro-system:60022881",
+    "hydro-system:61456098",
+    "hydro-system:70290797",
+    "hydro-system:60441146",
+    "hydro-system:61554706",
+    "hydro-system:70110341",
+    "hydro-system:80067260",
+    "hydro-system:70214162",
+    "hydro-system:80034507",
+    "hydro-system:61536265",
+    "hydro-system:61561008",
+    "hydro-system:80066184",
+    "hydro-system:70202296",
+    "hydro-system:61545841",
+    "hydro-system:61350841",
+    "hydro-system:80064018",
+    "hydro-system:70957614",
+    "hydro-system:70851521",
+    "hydro-system:70049998",
+    "hydro-system:61298121",
+    "hydro-system:80033385",
+    "hydro-system:61205785",
+    "hydro-system:80035867",
+    "hydro-system:70009700",
+    "hydro-system:60440371",
+    "hydro-system:80049373",
+    "hydro-system:70749063",
+    "hydro-system:70844211",
+    "hydro-system:60001814",
+    "hydro-system:61507976",
+    "hydro-system:70834534",
+    "hydro-system:80070226",
+    "hydro-system:61357020",
+    "hydro-system:70846952",
+    "hydro-system:70004800",
+    "hydro-system:80043969",
+    "hydro-system:80165177",
+    "hydro-system:70043276",
+    "hydro-system:60490135",
+    "hydro-system:60237339",
+    "hydro-system:70023641",
+    "hydro-system:70281204",
+    "hydro-system:61570080",
+    "hydro-system:70789628",
+    "hydro-system:80234498",
+    "hydro-system:60016868",
+    "hydro-system:70276504",
+    "hydro-system:70901807",
+    "hydro-system:80086174",
+    "hydro-system:60809372",
+    "hydro-system:60100857",
+    "hydro-system:70026619",
+    "hydro-system:70500400",
+    "hydro-system:60010615",
+    "hydro-system:70608588",
+    "hydro-system:70832638",
+    "hydro-system:61383955",
+    "hydro-system:61555573",
+    "hydro-system:80068976",
+    "hydro-system:80048308",
+    "hydro-system:80001778",
+    "hydro-system:70324446",
+    "hydro-system:80051383",
+    "hydro-system:60804761",
+    "hydro-system:70817056",
+    "hydro-system:80032843",
+    "hydro-system:70045452",
+    "hydro-system:70877500",
+    "hydro-system:80042519",
+    "hydro-system:70084321",
+    "hydro-system:61519454",
+    "hydro-system:61546367",
+    "hydro-system:60627295",
+    "hydro-system:61038090",
+    "hydro-system:60407824",
+    "hydro-system:80047056",
+    "hydro-system:70888155",
+    "hydro-system:61189702",
+    "hydro-system:70084119",
+    "hydro-system:70025722",
+    "hydro-system:70001071"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r164-ingemmet-a47-cordova",
+      "official_url": "https://repositorio.ingemmet.gob.pe/bitstream/20.500.12544/167/7/A-047-mapa_C%c3%b3rdova-29m.pdf"
+    },
+    {
+      "source_key": "r164-ingemmet-a53-palpa",
+      "official_url": "https://repositorio.ingemmet.gob.pe/bitstream/20.500.12544/174/2/A-053-mapa_Palpa-30m.pdf"
+    },
+    {
+      "source_key": "r164-ingemmet-a47-report",
+      "official_url": "https://repositorio.ingemmet.gob.pe/bitstream/20.500.12544/167/80/A-047-Boletin_Pisco_Guadalupe_Punta_Grande_Ica_Cordova.pdf"
+    },
+    {
+      "source_key": "r164-ingemmet-a53-report",
+      "official_url": "https://repositorio.ingemmet.gob.pe/bitstream/20.500.12544/174/67/A-053-Boletin_Lomitas-Nasca-Palpa-Puquio.pdf"
+    },
+    {
+      "source_key": "r164-concytec-a47-metadata",
+      "official_url": "https://alicia.concytec.gob.pe/vufind/Record/INGEMMET_2f1402338ecbe9f0a77c7493695d613e/Details"
+    },
+    {
+      "source_key": "r164-concytec-a53-metadata",
+      "official_url": "https://alicia.concytec.gob.pe/vufind/Record/INGEMMET_d1cf26bce3b885b49078b1e89833df48/Details"
+    },
+    {
+      "source_key": "r164-onern-grande1971-excluded",
+      "official_url": "https://repositorio.ana.gob.pe/bitstream/20.500.12543/983/2/ANA0000091_2.pdf"
+    },
+    {
+      "source_key": "r164-inrena-grande-inventory-excluded",
+      "official_url": "https://repositorio.ana.gob.pe/backend/api/core/bitstreams/0cc1a193-3ad6-4396-9b41-e361cb946f3c/content"
+    },
+    {
+      "source_key": "r161-ogs-p3651-2012",
+      "official_url": "https://prd-0420-geoontario-0000-blob-cge0eud7azhvfsf7.z01.azurefd.net/lrc-geology-documents/publication/P3651/P3651.pdf"
+    },
+    {
+      "source_key": "r161-ogs-p3641-2012",
+      "official_url": "https://prd-0420-geoontario-0000-blob-cge0eud7azhvfsf7.z01.azurefd.net/lrc-geology-documents/publication/P3641/P3641.pdf"
+    },
+    {
+      "source_key": "r161-laurentian-aquatic-progress-2013",
+      "official_url": "https://laurentian.ca/assets/files/Living-With-Lakes/Reports/Hawley-L-Sutton-R-Progress-Rept-2013-final.pdf"
+    },
+    {
+      "source_key": "r164-gsc-bostock-paper70-42-unavailable",
+      "official_url": "https://doi.org/10.4095/102390"
+    },
+    {
+      "source_key": "r164-rg201304-map",
+      "official_url": "https://gq.mines.gouv.qc.ca/documents/examine/RG201304/RG201304PLAN.pdf"
+    },
+    {
+      "source_key": "r164-cehq2011-region10",
+      "official_url": "https://www.cehq.gouv.qc.ca/debit-etiage/cartes/debit_etiage_10_specifique_estival.pdf"
+    },
+    {
+      "source_key": "r164-gm62436-false-river",
+      "official_url": "https://gq.mines.gouv.qc.ca/documents/examine/GM62436/GM62436.pdf"
+    },
+    {
+      "source_key": "r164-kovik-conservation-2018-prose",
+      "official_url": "https://www.environnement.gouv.qc.ca/biodiversite/aquatique/kovik/PSC_Riviere-Kovik.pdf"
+    },
+    {
+      "source_key": "r164-bg201803-cap-wolstenholme",
+      "official_url": "https://gq.mines.gouv.qc.ca/documents/examine/BG201803/BG201803P00001.pdf"
+    },
+    {
+      "source_key": "r164-et8809-lessard",
+      "official_url": "https://gq.mines.gouv.qc.ca/documents/examine/ET8809/ET8809PLAN_1-2.pdf"
+    },
+    {
+      "source_key": "r164-et8708-vanasse-report",
+      "official_url": "https://gq.mines.gouv.qc.ca/documents/examine/ET8708/ET8708.pdf"
+    },
+    {
+      "source_key": "r164-bg202004-parent",
+      "official_url": "https://gq.mines.gouv.qc.ca/documents/EXAMINE/BG202004/BG202004PLAN001.pdf"
+    },
+    {
+      "source_key": "r164-of7846-unavailable",
+      "official_url": "https://publications.gc.ca/site/eng/9.959079/publication.html"
+    },
+    {
+      "source_key": "r164-boisson-allard2020-unavailable",
+      "official_url": "https://www.sciencedirect.com/org/science/article/pii/S2368746020000216"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "561093f483497fa1ae5b79841f4775db4c067831",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      459,
+      460,
+      461,
+      462
+    ],
+    "next_unrecorded_id": "hydro-system:90037885",
+    "progress_rule": "Follow the actual continental order: Americas, Asia, Africa, Europe, then other, with all rivers before lakes. Preserve original queue IDs and ranks for continuity; apply documented geographic deferrals without counting them as name research, and place deferred objects into their corrected later phase by length-descending, stable-ID order. Prior candidate and scope-held assessments remain unresolved where stated.",
+    "geographic_deferrals": [
+      {
+        "aw_id": "hydro-system:80061063",
+        "original_queue_rank": 186,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 66.56–68.17°N and 179.97–177.11°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory bounding box and selected-route geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80065687",
+        "original_queue_rank": 349,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at66.725–67.849775°N and178.2–175.960242°W place this object on Chukotka west of Alaska, adjoining the previously corrected Chukotka selection. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory bounding box and selected-route geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80100188",
+        "original_queue_rank": 387,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 64.939583–66.26978°N and 174.05625–173.320833°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory/order bounding box and geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80119243",
+        "original_queue_rank": 391,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 65.451531–66.491667°N and 176.777083–175.672917°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory/order bounding box and geographic placement; geographic classification only, no naming source acquired."
+      }
+    ]
+  }
+}
