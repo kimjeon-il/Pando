@@ -55,3 +55,12 @@ test('manual scope can explicitly opt into full diagnostics', () => {
   for(const key of ['web','qt','native','core','wasm','gisTools','python'])assert.equal(result[key],true,key);
   assert.throws(()=>classifyPaths([],all,'gibberish'),/P1_INVALID_SCOPE/);
 });
+
+test('native build receipt edits trigger only native C++ contract work', () => {
+  const p=classifyPaths(['cmake/P2NativeBuildReceipt.cmake'],all);
+  assert.equal(p.native,true);
+  assert.equal(p.core,false);
+  assert.equal(p.wasm,false);
+  assert.equal(p.qt,false);
+  assert.equal(p.python,false);
+});

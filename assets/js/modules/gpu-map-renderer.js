@@ -283,7 +283,8 @@ export function createGpuMapRenderer(deps) {
         previous: countryDisplayHistoryValid ? activeMeshQuality : 'preview',
         focus: countryFocusPending,
         editing: countryEditingActive || countryPropertyEditingActive,
-        // Keep precise mobile borders once the canonical mesh is ready.
+        // Mobile preview is only a startup placeholder. Once the precise mesh
+        // exists, keep its borders across all zoom levels and gestures.
         preferCanonical: isMobile() && canonicalMeshReady,
       });
       const hasPreview = previewAllowed && (isWebGlRenderer() ? meshVariants.has('preview') : !!state.auditPreviewCountries?.features?.length);
