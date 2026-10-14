@@ -37,6 +37,25 @@ function detailValue(value, depth = 0) {
   return String(value);
 }
 
+// Generic detailValue intentionally bounds arbitrary objects to 30 entries.
+// Startup telemetry is a known schema whose important milestones appear late
+// in the insertion order. Preserve these keys explicitly without expanding
+// arbitrary nested diagnostics or fabricating an absent measurement.
+const STARTUP_REPORT_FIELDS = Object.freeze([
+  'interactiveMs', 'interactivePaintMs', 'editableMs', 'readyMs',
+  'previewReceivedMs', 'previewDisplayMs', 'geometryReceivedMs',
+  'canonicalGeometryAppliedMs', 'canonicalMeshAppliedMs',
+  'rendererStatus', 'canonicalStateApplyStage', 'geometryError', 'meshError',
+]);
+function startupReportValue(value) {
+  const bounded = detailValue(value);
+  if (!value || typeof value !== 'object' || !bounded || Array.isArray(bounded)) return bounded;
+  for (const key of STARTUP_REPORT_FIELDS) {
+    if (Object.hasOwn(value, key)) bounded[key] = detailValue(value[key], 1);
+  }
+  return bounded;
+}
+
 function percentile(values, ratio) {
   if (!values.length) return 0;
   const sorted = [...values].sort((left, right) => left - right);
@@ -291,7 +310,7 @@ export function createRuntimePerformanceMetrics({
       version: 1,
       capturedAt: new Date().toISOString(),
       installedAtMs: round(startedAt),
-      startup: detailValue(globalObject.__PANDOLAB_STARTUP_METRICS__ || null),
+      startup: startupReportValue(globalObject.__PANDOLAB_STARTUP_METRICS__ || null),
       browser: browserTimings(),
       marks: marks.map(sample => ({ ...sample })),
       operations,
