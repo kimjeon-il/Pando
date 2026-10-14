@@ -89,7 +89,7 @@ async function prepareMessage(message) {
     await yieldToMessages();
     if (!isLatest(message)) return;
     const packet = prepareCountrySharedBoundaryPacket(boundaryState.segments(), boundaryState.features(),
-      { preparedStore: boundaryState.preparedStore });
+      { preparedStore: boundaryState.preparedStore, maxEdgeDegrees: message.quality === 'preview' ? 2 : 0.499 });
     await yieldToMessages();
     if (!isLatest(message)) return;
     self.postMessage({ type: 'prepared', requestId: message.requestId,
