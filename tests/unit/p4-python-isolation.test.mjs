@@ -55,3 +55,12 @@ test('Python-only GIS edits select no standard Web/Qt/WASM job',()=>{
       assert.equal(plan[flag],false,path+' unexpectedly triggered '+flag);
   }
 });
+
+test('legacy GIS/world validation no longer installs Python on Web code changes',()=>{
+  const world=read('.github/workflows/world-dataset-stage3-gate.yml');
+  assert.doesNotMatch(world,/setup-python/);
+  const archived=read('.github/workflows/pando-pretransfer-cleanup-gate.yml');
+  assert.match(archived,/workflow_dispatch:/);
+  assert.doesNotMatch(archived,/^  push:/m,
+    'obsolete exact-file-count report audit must not block work/gis product pushes');
+});

@@ -44,6 +44,12 @@ cmake --build build-native/p4/qt-python-oracles --target m974_boundary_probe
 ctest --test-dir build-native/p4/qt-python-oracles -R 'm974_(regression_gate_tests|boundary_delivery_tests)'
 ```
 
+## 기존 전용 GIS/조사 워크플로 구분
+
+`world-dataset-stage3-gate.yml`의 JS·지도 번들 데이터 계약은 Python 인터프리터가 필요 없어 `setup-python` 단계를 제거했다. 과거 `pando-pretransfer-cleanup-gate.yml`의 고정 파일 수 감사를 일반 `work/gis` 변경과 분리해 수동 실행으로 유지한다.
+
+`p4-immutable-mesh-assets.yml`, `build-hydro-packfile.yml` 및 일부 북슐레스비히·자헨 연구 워크플로는 독립된 데이터 생성·역사 연구 소스에 연결된 **전문 GIS 생성 작업**이므로 지우지 않았다. 특히 `p4-immutable-mesh-assets.yml`은 GPU 메쉬 알고리즘 자체가 바뀔 때만 Shapely를 설치하여 메시 생성물을 갱신한다. 이는 일반 UI 변경·웹 배포 경로의 Python 의존성이 아니라 **생성기 소스 자체가 바뀌는 작업**이다. 모든 GIS 생성기를 단일 체계로 통합하는 작업은 P7이다.
+
 ## 남겨둔 테스트와 안전 규칙
 
 - `package.json`의 과거 `test:python`/새 `test:gis-python`은 **수동 실행 전용**. 기본 `pnpm test`에서 삭제했다. `check:versioning`의 프로젝트 스키마 점검은 동일 역할의 Node 단위검사 `tests/unit/versioning-source-schema.test.mjs`로 옮겼다.
