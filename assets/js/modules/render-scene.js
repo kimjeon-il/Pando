@@ -1,5 +1,9 @@
 import { buildSelectionBoundarySegments } from './selection-stroke-geometry.js';
 import { resolveRenderLod, simplifyRenderGeometry } from './render-lod.js';
+import '../vendor/earcut.min.js';
+import '../workers/gpu-mesh-core.js';
+import { geometryRevisionKey } from './geometry-versions.js';
+import { geometryReferenceFor } from './geometry-version-store.js';
 
 const EMPTY_REVISIONS = Object.freeze({
   geometry: 0,
@@ -16,88 +20,8 @@ function finiteCoordinate(value) {
     && Number.isFinite(Number(value[0])) && Number.isFinite(Number(value[1]));
 }
 
-function openRing(ring = []) {
-  const coordinates = ring.filter(finiteCoordinate).map(coord => [Number(coord[0]), Number(coord[1])]);
-  if (coordinates.length > 1) {
-    const first = coordinates[0];
-    const last = coordinates[coordinates.length - 1];
-    if (first[0] === last[0] && first[1] === last[1]) coordinates.pop();
-  }
-  return coordinates;
-}
-
-function unwrapRing(ring = [], anchor = null) {
-  const coordinates = openRing(ring);
-  if (!coordinates.length) return coordinates;
-  const result = [];
-  let previous = Number.isFinite(anchor) ? Number(anchor) : coordinates[0][0];
-  for (const coordinate of coordinates) {
-    let longitude = coordinate[0];
-    while (longitude - previous > 180) longitude -= 360;
-    while (longitude - previous < -180) longitude += 360;
-    result.push([longitude, coordinate[1]]);
-    previous = longitude;
-  }
-  return result;
-}
-
-function polygonComponents(geometry) {
-  if (geometry?.type === 'Polygon') return [geometry.coordinates || []];
-  if (geometry?.type === 'MultiPolygon') return geometry.coordinates || [];
-  return [];
-}
-
-function fallbackTriangulate(vertices, holes = []) {
-  if (holes.length || vertices.length < 6) return [];
-  const count = vertices.length / 2;
-  const result = [];
-  for (let index = 1; index < count - 1; index += 1) result.push(0, index, index + 1);
-  return result;
-}
-
-export function buildPolygonGeometryPacket(geometry, { triangulate = null } = {}) {
-  const positions = [];
-  const indices = [];
-  const ringCoordinates = [];
-  const ringOffsets = [0];
-  const polygonOffsets = [0];
-  for (const component of polygonComponents(geometry)) {
-    for (const ring of component || []) {
-      for (const point of ring || []) if (finiteCoordinate(point)) ringCoordinates.push(Number(point[0]), Number(point[1]));
-      ringOffsets.push(ringCoordinates.length / 2);
-    }
-    polygonOffsets.push(ringOffsets.length - 1);
-    const rings = (component || []).map((ring, index) => unwrapRing(ring, index ? component?.[0]?.[0]?.[0] : null))
-      .filter(ring => ring.length >= 3);
-    if (!rings.length) continue;
-    const vertices = [];
-    const holes = [];
-    let vertexCount = 0;
-    for (let ringIndex = 0; ringIndex < rings.length; ringIndex += 1) {
-      if (ringIndex > 0) holes.push(vertexCount);
-      for (const coordinate of rings[ringIndex]) {
-        vertices.push(coordinate[0], coordinate[1]);
-        vertexCount += 1;
-      }
-    }
-    const localIndices = typeof triangulate === 'function'
-      ? triangulate(vertices, holes, 2)
-      : fallbackTriangulate(vertices, holes);
-    if (!localIndices?.length) continue;
-    const offset = positions.length / 2;
-    positions.push(...vertices);
-    for (const index of localIndices) indices.push(offset + Number(index));
-  }
-  return Object.freeze({
-    positions: new Float32Array(positions),
-    indices: new Uint32Array(indices),
-    featureIds: new Uint32Array(positions.length / 2),
-    vertexCount: positions.length / 2,
-    triangleCount: indices.length / 3,
-    ringCoordinates: new Float64Array(ringCoordinates),
-    ringOffsets: new Uint32Array(ringOffsets),
-    polygonOffsets: new Uint32Array(polygonOffsets),
-  });
+export function buildPolygonGeometryPacket(geometry, { triangulate = globalThis.earcut } = {}) {
+  return globalThis.PandoLabGpuMeshCore.buildPolygonGeometryPacket(geometry, { triangulate });
 }
 
 export function buildStrokeGeometryPacket(geometry) {
@@ -142,7 +66,8 @@ function normalizedStyle(style = {}) {
 }
 
 function packetKey(item, kind, lod = 'high', projection = 'flat') {
-  return `${kind}:${String(item?.key || '')}:${String(item?.geometryRevision ?? 0)}:${lod}:${projection}`;
+  const reference = geometryReferenceFor(item?.geometry);
+  return `${kind}:${String(item?.key || '')}:${reference ? JSON.stringify(reference) : ''}:${String(item?.geometryRevision || geometryRevisionKey(item?.geometry))}:${lod}:${projection}:mesh-${globalThis.PandoLabGpuMeshCore.MESH_ALGORITHM_REVISION}:edge-${globalThis.PandoLabGpuMeshCore.MAX_RENDER_EDGE_DEGREES}`;
 }
 
 function geometryPacketByteLength(packet) {
@@ -190,11 +115,14 @@ function freezePacket(item, geometryPacket, kind, { lod = 'high', projection = '
 }
 
 export function createRenderSceneBuilder({
-  triangulate = null,
+  triangulate = globalThis.earcut,
   cacheLimit = 4096,
   cacheByteBudget = 192 * 1024 * 1024,
+  meshJobs = null,
 } = {}) {
   const polygonCache = new Map();
+  const prepared = new Map();
+  let preparationRevision = 0;
   const strokeCache = new Map();
   let polygonCacheBytes = 0;
   let strokeCacheBytes = 0;
@@ -265,16 +193,20 @@ export function createRenderSceneBuilder({
       polygonCacheHits += 1;
       return freezePacket(item, cached, 'polygon', context);
     }
+    if (meshJobs) {
+      const packet = prepared.get(key);
+      if (!packet) throw Object.assign(new Error(`준비되지 않은 GPU 면: ${item.key}`), { code: 'PL-MESH-NOT-PREPARED' });
+      cacheGeometry(polygonCache, key, packet);
+      polygonCacheMisses += 1;
+      return freezePacket(item, packet, 'polygon', context);
+    }
     const started = performance.now();
     const renderGeometry = simplifyRenderGeometry(item?.geometry, {
       lod: context.lod,
       policy: item?.lodPolicy || 'exact',
       projection: context.projection,
     });
-    let geometryPacket = buildPolygonGeometryPacket(renderGeometry, { triangulate });
-    if (!geometryPacket.triangleCount && renderGeometry !== item?.geometry) {
-      geometryPacket = buildPolygonGeometryPacket(item?.geometry, { triangulate });
-    }
+    const geometryPacket = buildPolygonGeometryPacket(renderGeometry, { triangulate });
     triangulationMs += performance.now() - started;
     cacheGeometry(polygonCache, key, geometryPacket);
     polygonCacheMisses += 1;
@@ -376,9 +308,32 @@ export function createRenderSceneBuilder({
     }
   }
 
+  function missingPolygons(items, input = {}) {
+    return items.filter(item => item?.key && item?.geometry).map(item => {
+      const context = packetContext(item, input);
+      return { cacheKey: packetKey(item, 'polygon', context.lod, context.projection), geometry: item.geometry,
+        projection: context.projection, lod: context.lod, lodPolicy: item.lodPolicy || 'exact' };
+    }).filter(item => !polygonCache.has(item.cacheKey) && !prepared.has(item.cacheKey));
+  }
+
+  async function preparePolygons(items, input = {}) {
+    const missing = missingPolygons(items, input);
+    if (!missing.length) return;
+    if (!meshJobs) throw new TypeError('GPU mesh Worker owner is required.');
+    const revision = ++preparationRevision;
+    const result = await meshJobs.preparePolygons(missing, revision);
+    if (revision !== preparationRevision) return;
+    prepared.clear();
+    for (const { cacheKey, packet } of result.packets) prepared.set(cacheKey, packet);
+  }
+
   return Object.freeze({
     build,
     patch,
+    missingPolygons,
+    preparePolygons,
+    releasePrepared: () => prepared.clear(),
+    cancelPreparation: () => { preparationRevision += 1; prepared.clear(); meshJobs?.cancelAll('superseded'); },
     invalidateGeometry,
     setCacheByteBudget: value => {
       cacheBudgetBytes = Math.max(1, Number(value) || 1);
@@ -386,6 +341,7 @@ export function createRenderSceneBuilder({
       return cacheBudgetBytes;
     },
     clear: () => {
+      preparationRevision += 1; prepared.clear(); meshJobs?.cancelAll('scene-reset');
       polygonCache.clear(); strokeCache.clear();
       polygonCacheBytes = 0; strokeCacheBytes = 0;
     },

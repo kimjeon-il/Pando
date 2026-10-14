@@ -49,6 +49,8 @@ function freeze(value) {
 // Values branded here have passed structural validation and recursive freezing.
 // Their validity cannot change; separate registries may safely retain them.
 const immutableGeometries = new WeakSet();
+const geometryReferences = new WeakMap();
+export const geometryReferenceFor = value => geometryReferences.get(value) || null;
 function geometry(value) {
   if (immutableGeometries.has(value)) return value;
   fields(value, ['type', 'coordinates']);
@@ -87,6 +89,7 @@ export function createGeometryVersionStore(entries = [], { reuse = null } = {}) 
     const validated = geometry(value);
     const previous = reuse?.get(ref);
     const geojson = previous && (previous === validated || JSON.stringify(previous) === JSON.stringify(validated)) ? previous : validated;
+    if (!geometryReferences.has(geojson)) geometryReferences.set(geojson, Object.freeze({ id: ref.id, version: ref.version }));
     // No registry changes are made until validation and copying have succeeded.
     versions.set(key, Object.freeze({ id: ref.id, version: ref.version, geojson }));
   }

@@ -136,6 +136,26 @@
     return area;
   }
 
+  function ringArea(points) {
+    const origin = points[0];
+    let sum = 0;
+    for (let index = 0; index < points.length; index++) {
+      const a = points[index], b = points[(index + 1) % points.length];
+      sum += (a[0] - origin[0]) * (b[1] - origin[1]) - (b[0] - origin[0]) * (a[1] - origin[1]);
+    }
+    return Math.abs(sum / 2);
+  }
+
+  function checkedTriangulation(points, rings, indices, owner) {
+    const expected = ringArea(rings[0].parameter) - rings.slice(1).reduce((sum, ring) => sum + ringArea(ring.parameter), 0);
+    const fail = message => { throw Object.assign(new Error(`GPU 삼각분할 실패 (${owner}): ${message}`), { code: 'PL-MESH-TRIANGULATION' }); };
+    if (!indices?.length || indices.length % 3 || expected <= AREA_EPSILON) fail('빈 면 또는 퇴화된 원본');
+    for (const index of indices) if (!Number.isInteger(index) || index < 0 || index >= points.length) fail('원본 정점 참조 범위');
+    const actual = triangleAreaSum(points, indices);
+    if (Math.abs(actual - expected) > Math.max(1e-9, expected * 1e-8)) fail(`구멍/외곽 면적 불일치 ${expected} → ${actual}`);
+    return indices;
+  }
+
   function makeParameterSpace(outerRing) {
     const longitudes = outerRing.map(point => point[0]);
     const latitudes = outerRing.map(point => point[1]);
@@ -432,11 +452,12 @@
         const parameterSpace = makeParameterSpace(outer);
         const rings = [];
         const outerRing = prepareRing(polygon[0], null, parameterSpace);
-        if (!outerRing) continue;
+        if (!outerRing) throw Object.assign(new Error(`GPU 삼각분할 실패: ${countryId} shell`), { code: 'PL-MESH-TRIANGULATION' });
         rings.push(outerRing);
         for (let ringIndex = 1; ringIndex < polygon.length; ringIndex += 1) {
           const hole = prepareRing(polygon[ringIndex], anchor, parameterSpace);
-          if (hole) rings.push(hole);
+          if (!hole) throw Object.assign(new Error(`GPU 삼각분할 실패: ${countryId} hole ${ringIndex}`), { code: 'PL-MESH-TRIANGULATION' });
+          rings.push(hole);
         }
 
         const parameterFlat = [];
@@ -461,7 +482,7 @@
         let localTriangles = refineTriangles(
           geoPoints,
           parameterPoints,
-          earcutImpl(parameterFlat, holes, 2),
+          checkedTriangulation(parameterPoints, rings, earcutImpl(parameterFlat, holes, 2), countryId),
           parameterSpace,
           validate,
           maxEdgeDegrees,
@@ -535,6 +556,26 @@
     };
   }
 
+  function buildPolygonGeometryPacket(geometry, options = {}) {
+    const mesh = buildGpuMeshFeatures([{ id: options.ownerId || 'overlay', geometry }], options.triangulate || scope.earcut,
+      { validate: true, maxEdgeDegrees: MAX_RENDER_EDGE_DEGREES });
+    if (!mesh.triangleIndices.length) throw Object.assign(new Error('GPU 삼각분할 실패: empty polygon'), { code: 'PL-MESH-TRIANGULATION' });
+    const ringCoordinates = [], ringOffsets = [0], polygonOffsets = [0];
+    for (const polygon of polygonsFor(geometry)) {
+      for (const ring of polygon) {
+        for (const point of ring) ringCoordinates.push(Number(point[0]), Number(point[1]));
+        ringOffsets.push(ringCoordinates.length / 2);
+      }
+      polygonOffsets.push(ringOffsets.length - 1);
+    }
+    return Object.freeze({ positions: Float32Array.from(mesh.positions, value => value * 1e-6),
+      indices: mesh.triangleIndices, featureIds: Uint32Array.from(mesh.countryIndices),
+      vertexCount: mesh.positions.length / 2, triangleCount: mesh.triangleIndices.length / 3,
+      ringCoordinates: new Float64Array(ringCoordinates), ringOffsets: new Uint32Array(ringOffsets),
+      polygonOffsets: new Uint32Array(polygonOffsets), algorithmVersion: MESH_ALGORITHM_REVISION,
+      maxEdgeDegrees: mesh.stats.maxEdgeDegrees });
+  }
+
   const api = {
     MAX_RENDER_EDGE_DEGREES,
     MESH_ALGORITHM_REVISION,
@@ -543,6 +584,7 @@
     isArtificialPolarClosureEdge,
     countryGeographicBounds,
     buildGpuMeshFeatures,
+    buildPolygonGeometryPacket,
   };
   scope.PandoLabGpuMeshCore = api;
   if (typeof module === 'object' && module?.exports) module.exports = api;

@@ -38,6 +38,37 @@ test('display preparation reuses unchanged groups and discards removed boundarie
   assert.equal(second.segments[0], first.segments[0]);
   assert.deepEqual((await service.prepare({ kind: 'boundaries' }, [country], [])).segments, []);
 });
+
+test('display preparation shares unchanged monthly shapes and invalidates a touched geometry', async () => {
+  const service = createEditDisplayPreparation();
+  const country = createTerritorialFeature({ id: 'ROOT', entityKind: 'general', geometry: square });
+  const unit = createTerritorialFeature({ id: 'CHILD', entityKind: 'general', parentId: 'ROOT',
+    geometry: { type: 'Polygon', coordinates: [[[0, 0], [5, 0], [5, 10], [0, 10], [0, 0]]] } });
+  const first = await service.prepare({ kind: 'boundaries' }, [country], [unit]);
+  for (const month of ['January', 'February', 'March']) {
+    const same = await service.prepare({ kind: 'boundaries' }, [{ ...country, properties: { ...country.properties, name: month } }],
+      [{ ...unit, properties: { ...unit.properties, name: month } }]);
+    assert.strictEqual(same.segments[0], first.segments[0]);
+  }
+  for (const ring of unit.geometry.coordinates) for (const coordinate of ring) if (coordinate[0] === 5) coordinate[0] = 6;
+  touchGeometry(unit.geometry);
+  const changed = await service.prepare({ kind: 'boundaries' }, [country], [unit]);
+  assert.notStrictEqual(changed.segments[0], first.segments[0]);
+  assert.ok(changed.segments.some(segment => segment.a[0] === 6 && segment.b[0] === 6));
+  assert.ok(first.segments.every(segment => segment.a[0] !== 6 && segment.b[0] !== 6));
+});
+
+test('display preparation retains independent regional boundaries across general parents', async () => {
+  const country = (id, west, east) => createTerritorialFeature({ id, entityKind: 'general',
+    geometry: { type: 'Polygon', coordinates: [[[west, 0], [east, 0], [east, 10], [west, 10], [west, 0]]] } });
+  const roots = [country('WEST', 0, 5), country('EAST', 5, 10)];
+  const region = createTerritorialFeature({ id: 'REGION', entityKind: 'regional',
+    geometry: { type: 'Polygon', coordinates: [[[3, 2], [7, 2], [7, 8], [3, 8], [3, 2]]] } });
+  const result = await createEditDisplayPreparation().prepare({ kind: 'boundaries' }, roots, [region]);
+  assert.ok(result.segments.some(segment => segment.a[0] < 5 || segment.b[0] < 5));
+  assert.ok(result.segments.some(segment => segment.a[0] > 5 || segment.b[0] > 5));
+  assert.ok(result.segments.every(segment => segment.styleType === 'region' && segment.unitOwners[0].id === 'REGION'));
+});
 test('history shares immutable versions but never live editing arrays', () => {
   const pool = createGeometrySnapshotPool();
   const feature = { id: 'RUS', geometry: structuredClone(square), properties: { name: 'RUS' } };

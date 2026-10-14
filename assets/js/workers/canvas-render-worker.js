@@ -543,6 +543,18 @@ function canvasFallbackWorkerMain() {
       return String(feature?.id || index);
     }
 
+    function retainCountryGeometry(feature, previous) {
+      return typeof feature.boundaryGeometryRevision === 'string'
+        && feature.boundaryGeometryRevision === previous?.boundaryGeometryRevision
+        ? { ...feature, geometry: previous.geometry } : feature;
+    }
+
+    function replaceCountryFeatures(incoming, generation) {
+      const previous = Number(generation || projectGeneration) === projectGeneration
+        ? new Map(features.map((feature, index) => [countryId(feature, index), feature])) : new Map();
+      return incoming.map((feature, index) => retainCountryGeometry(feature, previous.get(countryId(feature, index))));
+    }
+
     function countryOutlineFeature(feature) {
       const geometry = feature?.geometry;
       if (geometry && countryOutlineCache.has(geometry)) return countryOutlineCache.get(geometry);
@@ -687,7 +699,7 @@ function canvasFallbackWorkerMain() {
     self.onmessage = event => {
       const message = event.data || {};
       if (message.type === 'init') {
-        features = message.features || [];
+        features = replaceCountryFeatures(message.features || [], message.projectGeneration);
         geometryRevision = Number(message.geometryRevision || 0);
         projectGeneration = Number(message.projectGeneration || 0);
         countrySharedBoundary = message.sharedBoundary || null;
@@ -719,7 +731,7 @@ function canvasFallbackWorkerMain() {
           });
           return;
         }
-        features = message.features || [];
+        features = replaceCountryFeatures(message.features || [], message.projectGeneration);
         if (message.fills) mergeRenderState({ fills: message.fills });
         geometryRevision = incomingGeometryRevision;
         projectGeneration = Number(message.projectGeneration || projectGeneration);
@@ -751,7 +763,7 @@ function canvasFallbackWorkerMain() {
           if (removed.has(id)) return [];
           if (updates.has(id)) {
             seen.add(id);
-            return [updates.get(id)];
+            return [retainCountryGeometry(updates.get(id), feature)];
           }
           return [feature];
         });

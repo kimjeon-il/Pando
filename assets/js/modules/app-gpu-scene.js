@@ -1,5 +1,6 @@
 import { overlayVisualOrder } from './layer-presentation.js';
-import { geometryRevision as readGeometryRevision } from './geometry-versions.js';
+import { geometryRevisionKey } from './geometry-versions.js';
+import { createGpuMeshWorkerJobs } from './gpu-mesh-worker-jobs.js';
 import { applySvgInteractionOwnership, makeSvgSceneProxy } from './render-channel-ownership.js';
 /** GpuScene: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
@@ -20,6 +21,7 @@ export function createGpuScene() {
   let currentSelectionPacket;
   let gpuSceneResourceObjectKeys;
   let hoverRequestSequence = 0;
+  let pendingPreparation = null;
   function connect(ports) {
     if (dependencies) throw new Error('gpu-scene already connected');
     dependencies = ports;
@@ -48,8 +50,6 @@ export function createGpuScene() {
     return null;
   }
 
-  const geometryTokens = new WeakMap();
-  let geometryToken = 0;
   function selectionGeometryRevision(key, role = 'outline', feature = null) {
     // Geometry revisions are advanced at the canonical mutation boundary.
     // Avoid serializing multipart geometry in the selection hot path; callers
@@ -57,8 +57,7 @@ export function createGpuScene() {
     // changes.
     const geometry = feature?.geometry;
     if (geometry) {
-      if (!geometryTokens.has(geometry)) geometryTokens.set(geometry, ++geometryToken);
-      return `${key}:${role}:${geometryTokens.get(geometry)}:${readGeometryRevision(geometry)}`;
+      return `${key}:${role}:${geometryRevisionKey(geometry)}`;
     }
     return `${key}:${role}:state-${dependencies.projectState.state.stateRevision}:country-${dependencies.countries.countryLandRevision}`;
   }
@@ -148,6 +147,30 @@ export function createGpuScene() {
         draftPackets: dependencies.interactionPresentation.currentGpuDraftPackets,
       },
     };
+    const requiredPolygons = [...gpuSceneDomains].flatMap(([name, domain]) =>
+      !currentRenderScene || gpuSceneDirtyDomains.has(name) ? domain.polygons : []);
+    const missing = renderSceneBuilder.missingPolygons(requiredPolygons, sceneInput);
+    if (missing.length) {
+      const signature = missing.map(item => item.cacheKey).join('|');
+      if (pendingPreparation?.signature !== signature) {
+        const builder = renderSceneBuilder;
+        const pending = { signature };
+        pendingPreparation = pending;
+        builder.preparePolygons(requiredPolygons, sceneInput).then(() => {
+          if (pendingPreparation !== pending || builder !== renderSceneBuilder) return;
+          pendingPreparation = null;
+          syncGpuRenderScene();
+          dependencies.domains.renderingDomain.invalidateGpuInteraction('overlay-mesh-ready');
+        }).catch(error => {
+          if (pendingPreparation !== pending) return;
+          pending.failed = true;
+          if (!error.cancelled && error.name !== 'AbortError')
+            dependencies.feedback.reportOperationError(error, '지도 면을 준비하지 못했습니다.', 'PL-MESH-PREPARE', 4200);
+        });
+      }
+      return currentRenderScene;
+    }
+    if (pendingPreparation) { pendingPreparation = null; renderSceneBuilder.cancelPreparation(); }
     if (currentRenderScene && gpuSceneDirtyDomains.size) {
       const polygons = [];
       const strokes = [];
@@ -192,6 +215,7 @@ export function createGpuScene() {
       currentRenderScene = renderSceneBuilder.patch(currentRenderScene, sceneInput);
     }
     gpuSceneDirtyDomains.clear();
+    renderSceneBuilder.releasePrepared();
     dependencies.rendering.gpuMapRenderer.setRenderScene?.(currentRenderScene);
     return currentRenderScene;
   }
@@ -335,8 +359,13 @@ export function createGpuScene() {
   }
 
   function initializeRenderSceneBuilder() {
+    renderSceneBuilder?.clear();
+    pendingPreparation = null;
     (renderSceneBuilder = (0, dependencies.renderScene.createRenderSceneBuilder)({
-      triangulate: (...args) => window.earcut(...args),
+      meshJobs: createGpuMeshWorkerJobs({
+        createWorker: () => new Worker(dependencies.platform.runtimeAssetUrl('workers/gpu-mesh-worker.js'), { name: 'pandolab-overlay-mesh' }),
+        isCurrent: () => true,
+      }),
       cacheByteBudget: dependencies.renderScene.currentRenderQuality.renderPacketCacheBudgetBytes,
     }));
   }

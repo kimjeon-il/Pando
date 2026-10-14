@@ -24,6 +24,27 @@ test('full rebuild owner settles replaced, stale and disposed requests and prese
   assert.deepEqual(sent[0].payload, { features: [] });
 });
 
+test('newer polygon preparation terminates busy refinement and adopts only its reply', async () => {
+  const workers = [], sent = [];
+  const jobs = createGpuMeshWorkerJobs({ isCurrent: () => true, createWorker: () => {
+    const worker = { terminated: false, postMessage: message => sent.push(message), terminate() { this.terminated = true; } };
+    workers.push(worker); return worker;
+  } });
+  const first = jobs.preparePolygons([{ cacheKey: 'old' }], 1);
+  const rejected = assert.rejects(first, error => error.cancelled);
+  for (let i = 0; i < 6; i++) await Promise.resolve();
+  const latest = jobs.preparePolygons([{ cacheKey: 'new' }], 2);
+  await rejected;
+  for (let i = 0; i < 12; i++) await Promise.resolve();
+  assert.equal(workers[0].terminated, true);
+  const request = sent.find(message => message.type === 'request' && message.metadata.geometryRevision === 2);
+  assert.equal(request.operation, 'geometry.prepare');
+  assert.deepEqual(request.payload, { items: [{ cacheKey: 'new' }] });
+  workers[1].onmessage({ data: { ...request, type: 'result', ok: true, result: { packets: ['latest'] } } });
+  assert.deepEqual(await latest, { packets: ['latest'] });
+  jobs.cancelAll();
+});
+
 test('patch worker owner preserves payload shape and ignores late replies after cancellation', async () => {
   const workers = [], sent = [];
   const owner = createGpuMeshWorkerJobs({ isCurrent: () => true, createWorker: () => {

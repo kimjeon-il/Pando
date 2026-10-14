@@ -14,6 +14,33 @@ importScripts('../vendor/earcut.min.js', './geographic-boundary-core.js', meshCo
 
 const strokePreparation = import(`../modules/country-stroke-preparation.js?v=${encodeURIComponent(assetRevision)}`);
 const blockPreparation = import(`../modules/mesh-spatial-blocks.js?v=${encodeURIComponent(assetRevision)}`);
+const polygonPreparation = Promise.all([
+  import(`../modules/prepared-polygon-mesh.js?v=${encodeURIComponent(assetRevision)}`),
+  import(`../modules/stored-asset-loader.js?v=${encodeURIComponent(assetRevision)}`),
+]).then(([{ createPreparedPolygonMeshStore }, { createStoredAssetLoader }]) => {
+  const engine = self.PandoLabGpuMeshCore;
+  const spec = globalThis.PANDOLAB_BUILD_META.preparedPolygonMeshes;
+  const base = new URL('../../../', self.location.href);
+  const { loadAsset } = createStoredAssetLoader({ dataRevision: globalThis.PANDOLAB_BUILD_META.dataRevision,
+    cachePolicy: 'immutable', resolveUrl: asset => {
+      if (!asset.url.startsWith('assets/data/prepared-polygons/generated/v1/') || asset.url.includes('..'))
+        throw new Error('Invalid prepared polygon asset path');
+      const url = new URL(asset.url, base); url.searchParams.set('sha256', asset.sha256); return url;
+    } });
+  return createPreparedPolygonMeshStore({ engine,
+    loadManifest: async () => {
+      if (!spec) throw new Error('Required prepared polygon manifest is missing from build metadata');
+      const result = await loadAsset(spec, 'mesh', 'polygon-manifest', 'Prepared polygon manifest', buffer => JSON.parse(new TextDecoder().decode(buffer)));
+      const manifest = result.value;
+      if (manifest.schema !== 'pandolab-prepared-polygon-meshes' || manifest.schemaVersion !== 1
+        || manifest.algorithmVersion !== engine.MESH_ALGORITHM_REVISION || manifest.maxEdgeDegrees !== engine.MAX_RENDER_EDGE_DEGREES
+        || manifest.algorithmSourceSha256 !== spec.algorithmSourceSha256) throw new Error('Prepared polygon algorithm identity mismatch');
+      return manifest;
+    },
+    loadAsset: async asset => (await loadAsset(asset, 'mesh', asset.sha256, 'Prepared polygon mesh', buffer => buffer)).value,
+  });
+});
+polygonPreparation.catch(() => {}); // The operation awaits and propagates its own initialization error.
 async function buildMesh(features) {
   const mesh = self.PandoLabGpuMeshCore.buildGpuMeshFeatures(
     features || [],
@@ -46,6 +73,16 @@ function meshTransferables(mesh) {
 
 self.PandoLabWorkerRpc.install({
   handlers: {
+    'geometry.prepare': async (payload, context) => {
+      const store = await polygonPreparation, packets = [];
+      for (const item of payload.items) {
+        context.throwIfCancelled();
+        packets.push(await store.prepare(item, context));
+      }
+      const buffers = [...new Set(packets.flatMap(({ packet }) => Object.values(packet)
+        .filter(ArrayBuffer.isView).map(value => value.buffer)))];
+      return self.PandoLabWorkerRpc.transferResult({ packets, stats: store.stats() }, buffers);
+    },
     'geometry.mesh': async (payload, context) => {
       context.throwIfCancelled();
       const mesh = await buildMesh(payload?.features || []);
