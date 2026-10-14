@@ -1,0 +1,1832 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r272",
+  "sources": [
+    {
+      "source_key": "r272-usgstopo-kings-bay",
+      "title": "The National Map, USGSTopo: Kings Bay and its southeastern coastal margin",
+      "authors": [
+        "U.S. Geological Survey"
+      ],
+      "publisher": "U.S. Geological Survey, U.S. Department of the Interior",
+      "publication_date": "Composite multiscale service; contributing feature dates unverified; selected view read 14 October 2026",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "bibliography": "U.S. Geological Survey. The National Map, USGSTopo, multiscale reference cartography. Bounded Kings Bay view read 14 October 2026.",
+      "publication_identity": "Independently maintained National Map reference cartography, positively identified by retained lawful service descriptions and source records. This Kings Bay view is geographically distinct from held exact-view acquisitions and is not a recovery of stopped glacier, geological or place-name publications. No new servicewide metadata was requested.",
+      "acquisition": "The matching view-specific export response and its returned original completed normally and sequentially in the assigned acquisition turn. The completed original was then read.",
+      "actual_material_read": "Complete original map; unchanged-path orientation aid; overlapping original-resolution western and eastern clean windows; separate clean and orientation close readings of the opening and terminal settings. All17 original parts, all46 stored positions, every part join, the stage3/stage2 fragment join, direct Kings Bay label and separate source/render/stored endings were inspected using the returned map extent.",
+      "supports": "Direct Kings Bay label; complete ordinary selected bay-water and coastal-margin geography; small opening land projection and final shoreline projection; absence of a directly labeled river reach along the selected line in this view.",
+      "content_read": true,
+      "original_map_pixels_inspected": true,
+      "limitations": "Generalized scale-dependent reference cartography with unverified contributing survey dates. It does not establish present sea level, exact shoreline, tidal circulation, salinity, navigability, historical channels or formal name extent. The land shortcut in the opening is not interpreted as an observed flowing connection.",
+      "use_notice": "Only independent factual observations and ordinary bibliography are public-ready. Original maps, crops, orientation derivatives, coordinates, private paths, dynamic export links and transfer receipts remain private."
+    },
+    {
+      "source_key": "r272-esri-world-imagery-70236799",
+      "title": "World Imagery: bounded selected Toba River lower valley and coastal setting",
+      "publisher": "Esri and World Imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "bibliography": "Esri and contributors. World Imagery, multiscale satellite/aerial-image mosaic. Selected original view read 14 October 2026.",
+      "publication_identity": "Independently maintained photographic mosaic, distinct from held Canadian terrestrial maps, naming records, geological reports and fisheries projects. This new regional view does not recover any held exact imagery view.",
+      "acquisition": "Matching export metadata and its returned original each reached confirmed normal terminal completion, sequentially in the assigned shared-service turn.",
+      "actual_material_read": "Complete clean original, unchanged selected-path orientation aid and clean original-resolution terminal reading window. Every original part and the separate source/render/stored endings were located using the actual returned image extent.",
+      "content_read": true,
+      "original_map_pixels_inspected": true,
+      "limitations": "Ordinary connected valley, alluvial-floor, delta and coastal-setting evidence. Individual mosaic epochs, current flow, exact modern banks and legal shoreline are unverified. Imagery does not supply the river name.",
+      "use_notice": "Only own factual observations and ordinary bibliography are public-ready. Originals, crops, orientation aids, coordinates and acquisition records remain private."
+    },
+    {
+      "source_key": "r272-chs-pac201-202211",
+      "title": "Canadian Sailing Directions, PAC201: Juan de Fuca Strait and Strait of Georgia",
+      "authors": [
+        "Canadian Hydrographic Service"
+      ],
+      "publisher": "Fisheries and Oceans Canada",
+      "edition": "2022/11",
+      "catalogue_number": "Fs74-68E-PDF",
+      "issn": "2816-5101",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/chs-shc-PAC201-eng-202211-41091814.pdf",
+      "publication_identity": "Separately issued Pacific coastal-description editorial volume covering Juan de Fuca Strait and Strait of Georgia, including Toba Inlet. Distinct from stopped ARC401 and ATL120, chart1556, BC fisheries projects and terrestrial map services.",
+      "acquisition": "Sole normal-original acquisition completed successfully with a PDF body; no retry or fallback.",
+      "actual_material_read": "Original cover, publisher/catalogue/edition and reproduction notice; Chapter10 printed page10-11, especially paragraphs188 and195, read in extracted prose and visually on original PDF page263 (one-based). No chart original was acquired.",
+      "content_read": true,
+      "original_map_pixels_inspected": false,
+      "original_prose_page_visually_inspected": true,
+      "supports": "The coastal account explicitly identifies the Toba River estuary at the northeastern head of Toba Inlet, describes its sand/mud-flat setting, and records sediment-driven estuarine change. This is an explicit river identity, not a river name inferred from the inlet label.",
+      "limitations": "Coastal prose does not individually map all selected interior bends or establish an exact modern river-mouth coordinate. The 2022 edition and cited earlier survey observation are geographic source context, not a claim about present depths or navigation.",
+      "use_notice": "The front matter permits personal noncommercial reproduction and requires prior written permission for commercial reproduction. Only own bounded factual synthesis and ordinary bibliography are public-ready; no original page, photograph, chart, map, crop or derivative is redistributed. Used for geographic correspondence, not current navigation advice."
+    },
+    {
+      "source_key": "r272-usgstopo-tillamook-bay-selection",
+      "title": "The National Map, USGSTopo: selected lower Trask–Tillamook mouth complex and Tillamook Bay corridor",
+      "authors": [
+        "U.S. Geological Survey"
+      ],
+      "publisher": "U.S. Geological Survey, U.S. Department of the Interior",
+      "publication_date": "Multiscale composite cartography; individual compilation epochs unverified; original selected view read 14 October 2026",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "bibliography": "U.S. Geological Survey. The National Map, USGSTopo multiscale reference cartography. Selected northern coastal Oregon original view read 14 October 2026.",
+      "publication_identity": "Independently maintained National Map composite reference service, positively distinguished in retained lawful service identity from individual stopped reports and field projects. This northern coastal Oregon view is geographically distinct from held Stonecabin, Alaska and northern California/southern Oregon views. No fresh service-description metadata was acquired.",
+      "acquisition": "The selected-view export response and its returned original PNG completed normally and serially in the selected-view acquisition. The original was inspected only after terminal completion.",
+      "actual_material_read": "Complete original raster; unchanged-path orientation aid; overlapping clean and orientation windows for southern, middle and northern selections; additional clean original-pixel opening and terminal windows. All 6 original parts,23 stored positions,5 part joins, opening and separate source/render/stored endings were compared using the returned image extent.",
+      "content_read": true,
+      "original_map_pixels_inspected": true,
+      "supports": "Complete ordinary selected mouth-marsh, bay and terminal-shore correspondence; direct Tillamook Bay, Trask River, Tillamook River and South Branch Trask River labels in their bounded geographic contexts; distinction between bay-water source ending and northern shore render setting.",
+      "limitations": "Composite map, not a bank survey, current channel/water-level observation or formal naming register. Generalized opening segments cross marsh/island interiors; the terminal rendered ending is shoreward. Bay and neighboring river labels do not establish a single representative river name for this mostly marine selection.",
+      "use_notice": "Only independent factual observations and ordinary bibliography are public-ready. Original pixels, crops, orientation aids, full coordinates, dynamic requests and acquisition receipts remain private."
+    },
+    {
+      "source_key": "r272-esri-world-imagery-70132658",
+      "title": "World Imagery: bounded selected Kemano River lower valley and coastal setting",
+      "publisher": "Esri and World Imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "bibliography": "Esri and contributors. World Imagery, multiscale satellite/aerial-image mosaic. Selected original view read 14 October 2026.",
+      "publication_identity": "Independently maintained photographic mosaic, distinct from held Canadian terrestrial maps, naming records, geological reports and fisheries projects. This new regional view does not recover any held exact imagery view.",
+      "acquisition": "Matching export metadata and its returned original each reached confirmed normal terminal completion, sequentially in the assigned shared-service turn.",
+      "actual_material_read": "Complete clean original, unchanged selected-path orientation aid and clean original-resolution terminal reading window. Every original part and the separate source/render/stored endings were located using the actual returned image extent.",
+      "content_read": true,
+      "original_map_pixels_inspected": true,
+      "limitations": "Ordinary connected valley, alluvial-floor, delta and coastal-setting evidence. Individual mosaic epochs, current flow, exact modern banks and legal shoreline are unverified. Imagery does not supply the river name.",
+      "use_notice": "Only own factual observations and ordinary bibliography are public-ready. Originals, crops, orientation aids, coordinates and acquisition records remain private."
+    },
+    {
+      "source_key": "r272-chs-pac205-202411",
+      "title": "Canadian Sailing Directions, PAC205: Inner Passage – Queen Charlotte Sound to Chatham Sound",
+      "authors": [
+        "Canadian Hydrographic Service"
+      ],
+      "publisher": "Fisheries and Oceans Canada",
+      "edition": "2024/11",
+      "catalogue_number": "Fs74-70E-PDF",
+      "issn": "2816-5128",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/chs-shc-PAC205-eng-202411-41269202.pdf",
+      "publication_identity": "Separately issued Pacific coastal-description editorial volume for the Inner Passage, with its own regional remit and catalogue identity. Distinct from held ARC401 and ATL120, chart1556, BC fisheries projects and terrestrial map services.",
+      "acquisition": "Sole normal-original acquisition completed successfully with a PDF body; no retry or fallback.",
+      "actual_material_read": "Original cover, edition, publisher/catalogue and reproduction notice; Chapter2 printed pages2-23 and2-24, particularly paragraphs382–383 and387–390, read in extracted prose and visually on original PDF pages66–67 (one-based). The printed1988 Kemano photograph was seen as bounded historical context only. No chart original was acquired.",
+      "content_read": true,
+      "original_map_pixels_inspected": false,
+      "original_prose_page_visually_inspected": true,
+      "supports": "Kemano Bay is geographically fixed in the coastal account, which explicitly describes the Kemano River and the road following its eastern bank inland from the bay-side flats. Adjacent Whidbey Reach and the more distant Kitlope River are distinct receiving contexts.",
+      "limitations": "Coastal prose does not individually trace every river bar or selected interior bend. The1988 photograph does not establish modern facilities, banks or operating status, and is not necessary for correspondence. The volume is used for geography, not present navigation advice.",
+      "use_notice": "The front matter permits personal noncommercial reproduction and requires prior written permission for commercial reproduction. Only own bounded factual synthesis and ordinary bibliography are public-ready; no original page, photograph, chart, map, crop or derivative is redistributed. Used for geographic correspondence, not current navigation advice."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:80242112",
+      "source_keys": [
+        "r272-usgstopo-kings-bay"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2696
+          ],
+          "component_scope": "fragment 0 original part 0",
+          "finding": "The selected opening lies on the western edge of a small coastal projection on the southeastern shore of Kings Bay. The first two-position part cuts east across the projection’s tip and then reaches adjacent bay water. The clean map shows coastal land and water, not a river channel through that shortcut. The source position is not treated as a natural headwater.",
+          "sources": [
+            "r272-usgstopo-kings-bay"
+          ],
+          "correspondence": "supported_at_ordinary_connected_bay_and_coastal_setting_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            0
+          ],
+          "logical_fid": 971,
+          "fragment_index": 0,
+          "fragment_count": 2,
+          "original_part_span_zero_based_inclusive": [
+            0,
+            0
+          ],
+          "original_part_span_one_based_inclusive": [
+            1,
+            1
+          ],
+          "aggregate_part_indices_zero_based": [
+            0
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            0,
+            0
+          ],
+          "aggregate_part_span_one_based_inclusive": [
+            1,
+            1
+          ],
+          "stored_position_count": 2,
+          "within_part_position_span_zero_based_inclusive": [
+            0,
+            1
+          ],
+          "within_part_position_span_one_based_inclusive": [
+            1,
+            2
+          ]
+        },
+        {
+          "fragments": [
+            2696
+          ],
+          "component_scope": "fragment 0 original part 1",
+          "finding": "The second original part turns northeast and then east through shallow nearshore bay water, beside the small stream-mouth and shore setting east of the opening projection. The nearby mapped stream remains a separate incoming component; it does not supply a name for this offshore continuation.",
+          "sources": [
+            "r272-usgstopo-kings-bay"
+          ],
+          "correspondence": "supported_at_ordinary_connected_bay_and_coastal_setting_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            1
+          ],
+          "logical_fid": 971,
+          "fragment_index": 0,
+          "fragment_count": 2,
+          "original_part_span_zero_based_inclusive": [
+            1,
+            1
+          ],
+          "original_part_span_one_based_inclusive": [
+            2,
+            2
+          ],
+          "aggregate_part_indices_zero_based": [
+            1
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            1,
+            1
+          ],
+          "aggregate_part_span_one_based_inclusive": [
+            2,
+            2
+          ],
+          "stored_position_count": 3,
+          "within_part_position_span_zero_based_inclusive": [
+            0,
+            2
+          ],
+          "within_part_position_span_one_based_inclusive": [
+            1,
+            3
+          ]
+        },
+        {
+          "fragments": [
+            2696
+          ],
+          "component_scope": "fragment 0 original part 2",
+          "finding": "The third part proceeds northeast through open bay water, roughly parallel to the southeastern shoreline. Its shared endpoints connect the adjacent selected parts within the same bay setting.",
+          "sources": [
+            "r272-usgstopo-kings-bay"
+          ],
+          "correspondence": "supported_at_ordinary_connected_bay_and_coastal_setting_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            2
+          ],
+          "logical_fid": 971,
+          "fragment_index": 0,
+          "fragment_count": 2,
+          "original_part_span_zero_based_inclusive": [
+            2,
+            2
+          ],
+          "original_part_span_one_based_inclusive": [
+            3,
+            3
+          ],
+          "aggregate_part_indices_zero_based": [
+            2
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            2,
+            2
+          ],
+          "aggregate_part_span_one_based_inclusive": [
+            3,
+            3
+          ],
+          "stored_position_count": 2,
+          "within_part_position_span_zero_based_inclusive": [
+            0,
+            1
+          ],
+          "within_part_position_span_one_based_inclusive": [
+            1,
+            2
+          ]
+        },
+        {
+          "fragments": [
+            2696
+          ],
+          "component_scope": "fragment 0 original part 3",
+          "finding": "The fourth part continues northeast and east over bay water beside the southeastern shore. No mapped river reach or lake passage is selected here.",
+          "sources": [
+            "r272-usgstopo-kings-bay"
+          ],
+          "correspondence": "supported_at_ordinary_connected_bay_and_coastal_setting_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            3
+          ],
+          "logical_fid": 971,
+          "fragment_index": 0,
+          "fragment_count": 2,
+          "original_part_span_zero_based_inclusive": [
+            3,
+            3
+          ],
+          "original_part_span_one_based_inclusive": [
+            4,
+            4
+          ],
+          "aggregate_part_indices_zero_based": [
+            3
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            3,
+            3
+          ],
+          "aggregate_part_span_one_based_inclusive": [
+            4,
+            4
+          ],
+          "stored_position_count": 3,
+          "within_part_position_span_zero_based_inclusive": [
+            0,
+            2
+          ],
+          "within_part_position_span_one_based_inclusive": [
+            1,
+            3
+          ]
+        },
+        {
+          "fragments": [
+            2696
+          ],
+          "component_scope": "fragment 0 original part 4",
+          "finding": "The fifth part makes successive northeast and east steps across bay water beside the Applegate Glacier-side coastal slopes. The glacier and its landward drainage remain outside the selected offshore line and do not name it.",
+          "sources": [
+            "r272-usgstopo-kings-bay"
+          ],
+          "correspondence": "supported_at_ordinary_connected_bay_and_coastal_setting_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            4
+          ],
+          "logical_fid": 971,
+          "fragment_index": 0,
+          "fragment_count": 2,
+          "original_part_span_zero_based_inclusive": [
+            4,
+            4
+          ],
+          "original_part_span_one_based_inclusive": [
+            5,
+            5
+          ],
+          "aggregate_part_indices_zero_based": [
+            4
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            4,
+            4
+          ],
+          "aggregate_part_span_one_based_inclusive": [
+            5,
+            5
+          ],
+          "stored_position_count": 5,
+          "within_part_position_span_zero_based_inclusive": [
+            0,
+            4
+          ],
+          "within_part_position_span_one_based_inclusive": [
+            1,
+            5
+          ]
+        },
+        {
+          "fragments": [
+            2696
+          ],
+          "component_scope": "fragment 0 original part 5",
+          "finding": "The sixth part continues northeast across the same open-water coastal margin. The mapped shoreline and incoming streams remain southeast of the selected bay passage.",
+          "sources": [
+            "r272-usgstopo-kings-bay"
+          ],
+          "correspondence": "supported_at_ordinary_connected_bay_and_coastal_setting_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            5
+          ],
+          "logical_fid": 971,
+          "fragment_index": 0,
+          "fragment_count": 2,
+          "original_part_span_zero_based_inclusive": [
+            5,
+            5
+          ],
+          "original_part_span_one_based_inclusive": [
+            6,
+            6
+          ],
+          "aggregate_part_indices_zero_based": [
+            5
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            5,
+            5
+          ],
+          "aggregate_part_span_one_based_inclusive": [
+            6,
+            6
+          ],
+          "stored_position_count": 4,
+          "within_part_position_span_zero_based_inclusive": [
+            0,
+            3
+          ],
+          "within_part_position_span_one_based_inclusive": [
+            1,
+            4
+          ]
+        },
+        {
+          "fragments": [
+            2696
+          ],
+          "component_scope": "fragment 0 original part 6",
+          "finding": "The seventh part turns northeast, east and northeast through the bay, staying on the water side of the southeastern coast near a small glacial-lake outlet setting. All six stored positions and the longer eastward segment are within the ordinary bay/nearshore setting; no transfer through the inland lake is asserted.",
+          "sources": [
+            "r272-usgstopo-kings-bay"
+          ],
+          "correspondence": "supported_at_ordinary_connected_bay_and_coastal_setting_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            6
+          ],
+          "logical_fid": 971,
+          "fragment_index": 0,
+          "fragment_count": 2,
+          "original_part_span_zero_based_inclusive": [
+            6,
+            6
+          ],
+          "original_part_span_one_based_inclusive": [
+            7,
+            7
+          ],
+          "aggregate_part_indices_zero_based": [
+            6
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            6,
+            6
+          ],
+          "aggregate_part_span_one_based_inclusive": [
+            7,
+            7
+          ],
+          "stored_position_count": 6,
+          "within_part_position_span_zero_based_inclusive": [
+            0,
+            5
+          ],
+          "within_part_position_span_one_based_inclusive": [
+            1,
+            6
+          ]
+        },
+        {
+          "fragments": [
+            2696
+          ],
+          "component_scope": "fragment 0 original part 7",
+          "finding": "The eighth part proceeds northeast over bay water from the nearshore bend toward the bay interior.",
+          "sources": [
+            "r272-usgstopo-kings-bay"
+          ],
+          "correspondence": "supported_at_ordinary_connected_bay_and_coastal_setting_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            7
+          ],
+          "logical_fid": 971,
+          "fragment_index": 0,
+          "fragment_count": 2,
+          "original_part_span_zero_based_inclusive": [
+            7,
+            7
+          ],
+          "original_part_span_one_based_inclusive": [
+            8,
+            8
+          ],
+          "aggregate_part_indices_zero_based": [
+            7
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            7,
+            7
+          ],
+          "aggregate_part_span_one_based_inclusive": [
+            8,
+            8
+          ],
+          "stored_position_count": 2,
+          "within_part_position_span_zero_based_inclusive": [
+            0,
+            1
+          ],
+          "within_part_position_span_one_based_inclusive": [
+            1,
+            2
+          ]
+        },
+        {
+          "fragments": [
+            2696
+          ],
+          "component_scope": "fragment 0 original part 8",
+          "finding": "The ninth part is the short eastward connection within the same uninterrupted bay-water setting. It retains its original separate part identity.",
+          "sources": [
+            "r272-usgstopo-kings-bay"
+          ],
+          "correspondence": "supported_at_ordinary_connected_bay_and_coastal_setting_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            8
+          ],
+          "logical_fid": 971,
+          "fragment_index": 0,
+          "fragment_count": 2,
+          "original_part_span_zero_based_inclusive": [
+            8,
+            8
+          ],
+          "original_part_span_one_based_inclusive": [
+            9,
+            9
+          ],
+          "aggregate_part_indices_zero_based": [
+            8
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            8,
+            8
+          ],
+          "aggregate_part_span_one_based_inclusive": [
+            9,
+            9
+          ],
+          "stored_position_count": 2,
+          "within_part_position_span_zero_based_inclusive": [
+            0,
+            1
+          ],
+          "within_part_position_span_one_based_inclusive": [
+            1,
+            2
+          ]
+        },
+        {
+          "fragments": [
+            2696
+          ],
+          "component_scope": "fragment 0 original part 9",
+          "finding": "The tenth part continues northeast through Kings Bay water to the stage3/stage2 fragment join. The join is offshore and does not require an unobserved river, lake outlet or glacier connection.",
+          "sources": [
+            "r272-usgstopo-kings-bay"
+          ],
+          "correspondence": "supported_at_ordinary_connected_bay_and_coastal_setting_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            9
+          ],
+          "logical_fid": 971,
+          "fragment_index": 0,
+          "fragment_count": 2,
+          "original_part_span_zero_based_inclusive": [
+            9,
+            9
+          ],
+          "original_part_span_one_based_inclusive": [
+            10,
+            10
+          ],
+          "aggregate_part_indices_zero_based": [
+            9
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            9,
+            9
+          ],
+          "aggregate_part_span_one_based_inclusive": [
+            10,
+            10
+          ],
+          "stored_position_count": 2,
+          "within_part_position_span_zero_based_inclusive": [
+            0,
+            1
+          ],
+          "within_part_position_span_one_based_inclusive": [
+            1,
+            2
+          ]
+        },
+        {
+          "fragments": [
+            2697
+          ],
+          "component_scope": "fragment 1 original part 0",
+          "finding": "The first part of the second fragment continues northeast from the shared fragment join through bay water. The change from stage3 to stage2 is retained as stored metadata, not interpreted as a geographic name boundary.",
+          "sources": [
+            "r272-usgstopo-kings-bay"
+          ],
+          "correspondence": "supported_at_ordinary_connected_bay_and_coastal_setting_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "original_part_indices": [
+            0
+          ],
+          "logical_fid": 971,
+          "fragment_index": 1,
+          "fragment_count": 2,
+          "original_part_span_zero_based_inclusive": [
+            0,
+            0
+          ],
+          "original_part_span_one_based_inclusive": [
+            1,
+            1
+          ],
+          "aggregate_part_indices_zero_based": [
+            10
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            10,
+            10
+          ],
+          "aggregate_part_span_one_based_inclusive": [
+            11,
+            11
+          ],
+          "stored_position_count": 2,
+          "within_part_position_span_zero_based_inclusive": [
+            0,
+            1
+          ],
+          "within_part_position_span_one_based_inclusive": [
+            1,
+            2
+          ]
+        },
+        {
+          "fragments": [
+            2697
+          ],
+          "component_scope": "fragment 1 original part 1",
+          "finding": "The second part of the second fragment continues northeast across the bay interior; both endpoints and the intervening segment are within connected mapped bay water.",
+          "sources": [
+            "r272-usgstopo-kings-bay"
+          ],
+          "correspondence": "supported_at_ordinary_connected_bay_and_coastal_setting_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "original_part_indices": [
+            1
+          ],
+          "logical_fid": 971,
+          "fragment_index": 1,
+          "fragment_count": 2,
+          "original_part_span_zero_based_inclusive": [
+            1,
+            1
+          ],
+          "original_part_span_one_based_inclusive": [
+            2,
+            2
+          ],
+          "aggregate_part_indices_zero_based": [
+            11
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            11,
+            11
+          ],
+          "aggregate_part_span_one_based_inclusive": [
+            12,
+            12
+          ],
+          "stored_position_count": 2,
+          "within_part_position_span_zero_based_inclusive": [
+            0,
+            1
+          ],
+          "within_part_position_span_one_based_inclusive": [
+            1,
+            2
+          ]
+        },
+        {
+          "fragments": [
+            2697
+          ],
+          "component_scope": "fragment 1 original part 2",
+          "finding": "The third part of the second fragment continues northeast through bay water, northwest of the southeastern coastal peninsula.",
+          "sources": [
+            "r272-usgstopo-kings-bay"
+          ],
+          "correspondence": "supported_at_ordinary_connected_bay_and_coastal_setting_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "original_part_indices": [
+            2
+          ],
+          "logical_fid": 971,
+          "fragment_index": 1,
+          "fragment_count": 2,
+          "original_part_span_zero_based_inclusive": [
+            2,
+            2
+          ],
+          "original_part_span_one_based_inclusive": [
+            3,
+            3
+          ],
+          "aggregate_part_indices_zero_based": [
+            12
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            12,
+            12
+          ],
+          "aggregate_part_span_one_based_inclusive": [
+            13,
+            13
+          ],
+          "stored_position_count": 2,
+          "within_part_position_span_zero_based_inclusive": [
+            0,
+            1
+          ],
+          "within_part_position_span_one_based_inclusive": [
+            1,
+            2
+          ]
+        },
+        {
+          "fragments": [
+            2697
+          ],
+          "component_scope": "fragment 1 original part 3",
+          "finding": "The fourth part of the second fragment reaches the northernmost selected bend in open bay water. The northern shore remains separate from this selected position.",
+          "sources": [
+            "r272-usgstopo-kings-bay"
+          ],
+          "correspondence": "supported_at_ordinary_connected_bay_and_coastal_setting_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "original_part_indices": [
+            3
+          ],
+          "logical_fid": 971,
+          "fragment_index": 1,
+          "fragment_count": 2,
+          "original_part_span_zero_based_inclusive": [
+            3,
+            3
+          ],
+          "original_part_span_one_based_inclusive": [
+            4,
+            4
+          ],
+          "aggregate_part_indices_zero_based": [
+            13
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            13,
+            13
+          ],
+          "aggregate_part_span_one_based_inclusive": [
+            14,
+            14
+          ],
+          "stored_position_count": 2,
+          "within_part_position_span_zero_based_inclusive": [
+            0,
+            1
+          ],
+          "within_part_position_span_one_based_inclusive": [
+            1,
+            2
+          ]
+        },
+        {
+          "fragments": [
+            2697
+          ],
+          "component_scope": "fragment 1 original part 4",
+          "finding": "The fifth part of the second fragment turns east across open bay water north of the southeastern peninsula. Its two stored positions do not follow a mapped river channel.",
+          "sources": [
+            "r272-usgstopo-kings-bay"
+          ],
+          "correspondence": "supported_at_ordinary_connected_bay_and_coastal_setting_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "original_part_indices": [
+            4
+          ],
+          "logical_fid": 971,
+          "fragment_index": 1,
+          "fragment_count": 2,
+          "original_part_span_zero_based_inclusive": [
+            4,
+            4
+          ],
+          "original_part_span_one_based_inclusive": [
+            5,
+            5
+          ],
+          "aggregate_part_indices_zero_based": [
+            14
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            14,
+            14
+          ],
+          "aggregate_part_span_one_based_inclusive": [
+            15,
+            15
+          ],
+          "stored_position_count": 2,
+          "within_part_position_span_zero_based_inclusive": [
+            0,
+            1
+          ],
+          "within_part_position_span_one_based_inclusive": [
+            1,
+            2
+          ]
+        },
+        {
+          "fragments": [
+            2697
+          ],
+          "component_scope": "fragment 1 original part 5",
+          "finding": "The sixth part of the second fragment turns southeast and then south in bay water toward the small northern tip of the southeastern peninsula. All three positions remain within the ordinary nearshore approach.",
+          "sources": [
+            "r272-usgstopo-kings-bay"
+          ],
+          "correspondence": "supported_at_ordinary_connected_bay_and_coastal_setting_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "original_part_indices": [
+            5
+          ],
+          "logical_fid": 971,
+          "fragment_index": 1,
+          "fragment_count": 2,
+          "original_part_span_zero_based_inclusive": [
+            5,
+            5
+          ],
+          "original_part_span_one_based_inclusive": [
+            6,
+            6
+          ],
+          "aggregate_part_indices_zero_based": [
+            15
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            15,
+            15
+          ],
+          "aggregate_part_span_one_based_inclusive": [
+            16,
+            16
+          ],
+          "stored_position_count": 3,
+          "within_part_position_span_zero_based_inclusive": [
+            0,
+            2
+          ],
+          "within_part_position_span_one_based_inclusive": [
+            1,
+            3
+          ]
+        },
+        {
+          "fragments": [
+            2697
+          ],
+          "component_scope": "fragment 1 original part 6",
+          "finding": "The final part of the second fragment continues south-southeast from bay water to the mapped shoreline of a small projection. The higher-precision render ending and stored quantized ending occupy that same coastal-edge setting. The separately retained source endpoint is offshore to the north-northeast. Neither endpoint is interpreted as a river mouth, surveyed coastline or legal bay boundary.",
+          "sources": [
+            "r272-usgstopo-kings-bay"
+          ],
+          "correspondence": "supported_at_ordinary_connected_bay_and_coastal_setting_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "original_part_indices": [
+            6
+          ],
+          "logical_fid": 971,
+          "fragment_index": 1,
+          "fragment_count": 2,
+          "original_part_span_zero_based_inclusive": [
+            6,
+            6
+          ],
+          "original_part_span_one_based_inclusive": [
+            7,
+            7
+          ],
+          "aggregate_part_indices_zero_based": [
+            16
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            16,
+            16
+          ],
+          "aggregate_part_span_one_based_inclusive": [
+            17,
+            17
+          ],
+          "stored_position_count": 2,
+          "within_part_position_span_zero_based_inclusive": [
+            0,
+            1
+          ],
+          "within_part_position_span_one_based_inclusive": [
+            1,
+            2
+          ]
+        }
+      ],
+      "part_basis": "Original fragment and within-fragment part indices are zero-based; every span is inclusive. Mainstem FID2696/logical FID971 is fragment0 of2, stage3, local parts0–9 (one-based1–10), aggregate parts0–9 (one-based1–10), with respectively2,3,2,3,5,4,6,2,2,2 stored positions. Mainstem FID2697/logical FID971 is fragment1 of2, stage2, local parts0–6 (one-based1–7), aggregate parts10–16 (one-based11–17), with respectively2,2,2,2,2,3,2 stored positions. All17 parts and46 positions retain original order. Within-part position spans are separately explicit. No joining, reversal, simplification, repair, source-geometry reconstruction or natural-headwater inference. Source endpoint, higher-precision render endpoint and quantized stored ending remain distinct.",
+      "terminal_observations": {
+        "stored_terminal_class": "sea",
+        "stored_class_preserved": true,
+        "terminal_fid": 2697,
+        "source_endpoint": "Separately located offshore in mapped bay water north-northeast of the render ending.",
+        "render_endpoint": "Separately located at the mapped shoreline of the small northern projection of the southeastern peninsula.",
+        "stored_final_coordinate": "Separately retained quantized ending at the same ordinary coastal-edge setting as the higher-precision render endpoint.",
+        "geographic_interpretation": "The final part approaches the shoreline projection from bay water. The source endpoint and rendered ending differ and are not collapsed to a single mouth. The stored sea class remains metadata, without an exact coastline, tide or salinity inference.",
+        "receiving_water_name": "Kings Bay",
+        "receiving_water_feature_type": "bay",
+        "limit": "No river-mouth cross-section, legal naming boundary, present wet/dry state or unselected route beyond the stored ending is established."
+      },
+      "uncertainties": [
+        "Source compilation dates, present tidal level and the exact current shoreline are unverified.",
+        "The first part crosses a small mapped coastal land projection; it is not asserted to be a continuous wet river thread.",
+        "The direct bay label does not establish a representative river name, a lake name or a formal feature-type correction.",
+        "Nearby glacier names and incoming streams are not aliases for the selected offshore route.",
+        "Source, render and stored quantized endings remain separate; the rendered terminal lies at a mapped coastal edge while the source endpoint is offshore.",
+        "Formal registry status and legal name extent remain unverified. Accepted, scalar and Korean names stay null; application remains false."
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70236799",
+      "source_keys": [
+        "r272-esri-world-imagery-70236799",
+        "r272-chs-pac201-202211"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9311
+          ],
+          "component_scope": "selected interior opening",
+          "finding": "The northeastern selected opening and first three original parts follow the same lower mountain-valley river. Generalized positions touch floodplain edges and cut meander interiors without leaving the connected alluvial corridor.",
+          "sources": [
+            "r272-esri-world-imagery-70236799"
+          ],
+          "correspondence": "supported_at_ordinary_connected_valley_alluvial_estuarine_coastal_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            0,
+            1,
+            2
+          ],
+          "logical_fid": 2994,
+          "fragment_index": 0,
+          "fragment_count": 1,
+          "original_part_span_zero_based_inclusive": [
+            0,
+            2
+          ],
+          "original_part_span_one_based_inclusive": [
+            1,
+            3
+          ],
+          "original_combined_part_span_zero_based_inclusive": [
+            0,
+            2
+          ],
+          "original_combined_part_span_one_based_inclusive": [
+            1,
+            3
+          ],
+          "stored_position_count": 13
+        },
+        {
+          "fragments": [
+            9311
+          ],
+          "component_scope": "middle alluvial bends",
+          "finding": "Four original parts cross the wide wooded alluvial floor around pronounced river meanders. Side channels, abandoned loops and wetland patches remain within one connected valley; no divide crossing or unsupported receiver transfer is needed.",
+          "sources": [
+            "r272-esri-world-imagery-70236799"
+          ],
+          "correspondence": "supported_at_ordinary_connected_valley_alluvial_estuarine_coastal_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            3,
+            4,
+            5,
+            6
+          ],
+          "logical_fid": 2994,
+          "fragment_index": 0,
+          "fragment_count": 1,
+          "original_part_span_zero_based_inclusive": [
+            3,
+            6
+          ],
+          "original_part_span_one_based_inclusive": [
+            4,
+            7
+          ],
+          "original_combined_part_span_zero_based_inclusive": [
+            3,
+            6
+          ],
+          "original_combined_part_span_one_based_inclusive": [
+            4,
+            7
+          ],
+          "stored_position_count": 12
+        },
+        {
+          "fragments": [
+            9311
+          ],
+          "component_scope": "western floodplain corridor",
+          "finding": "Two original parts continue west along the broad river and adjoining low floodplain. Their simplified course lies across channel bends and wet depressions, not a separate drainage.",
+          "sources": [
+            "r272-esri-world-imagery-70236799"
+          ],
+          "correspondence": "supported_at_ordinary_connected_valley_alluvial_estuarine_coastal_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            7,
+            8
+          ],
+          "logical_fid": 2994,
+          "fragment_index": 0,
+          "fragment_count": 1,
+          "original_part_span_zero_based_inclusive": [
+            7,
+            8
+          ],
+          "original_part_span_one_based_inclusive": [
+            8,
+            9
+          ],
+          "original_combined_part_span_zero_based_inclusive": [
+            7,
+            8
+          ],
+          "original_combined_part_span_one_based_inclusive": [
+            8,
+            9
+          ],
+          "stored_position_count": 10
+        },
+        {
+          "fragments": [
+            9311
+          ],
+          "component_scope": "lower bend and delta approach",
+          "finding": "The penultimate original part follows the lower southwest bend into the expanding delta. A separate northern-side stream and floodplain channels meet the same receiving estuarine floor; no tributary name is inferred.",
+          "sources": [
+            "r272-esri-world-imagery-70236799"
+          ],
+          "correspondence": "supported_at_ordinary_connected_valley_alluvial_estuarine_coastal_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            9
+          ],
+          "logical_fid": 2994,
+          "fragment_index": 0,
+          "fragment_count": 1,
+          "original_part_span_zero_based_inclusive": [
+            9,
+            9
+          ],
+          "original_part_span_one_based_inclusive": [
+            10,
+            10
+          ],
+          "original_combined_part_span_zero_based_inclusive": [
+            9,
+            9
+          ],
+          "original_combined_part_span_one_based_inclusive": [
+            10,
+            10
+          ],
+          "stored_position_count": 6
+        },
+        {
+          "fragments": [
+            9311
+          ],
+          "component_scope": "estuarine margin and distinct endings",
+          "finding": "The final original part spans the low delta and river-mouth margin toward the wooded eastern shore fringe. The source ending is in the delta northwest of the render ending; the render/stored ending is on the adjacent coastal fringe. Their ordinary common receiving setting is supported, without claiming an exact wet endpoint.",
+          "sources": [
+            "r272-esri-world-imagery-70236799"
+          ],
+          "correspondence": "supported_at_ordinary_connected_valley_alluvial_estuarine_coastal_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            10
+          ],
+          "logical_fid": 2994,
+          "fragment_index": 0,
+          "fragment_count": 1,
+          "original_part_span_zero_based_inclusive": [
+            10,
+            10
+          ],
+          "original_part_span_one_based_inclusive": [
+            11,
+            11
+          ],
+          "original_combined_part_span_zero_based_inclusive": [
+            10,
+            10
+          ],
+          "original_combined_part_span_one_based_inclusive": [
+            11,
+            11
+          ],
+          "stored_position_count": 2
+        }
+      ],
+      "part_basis": "Original part indices are zero-based within each original fragment. Every local and combined-order span is inclusive, with one-based equivalents stated. Original fragment order, FIDs, logical ID, roles, stages, parts and stored positions are preserved. Source endpoint, render endpoint and quantized final stored position are separate. No joining, reversal, simplification, repair, source-geometry reconstruction or natural-headwater inference was made.",
+      "terminal_observations": {
+        "terminal_class": "sea",
+        "source_endpoint_observation": "The separate source ending lies in the low delta/estuarine-flat setting northwest of the render ending.",
+        "render_endpoint_observation": "The render ending lies on the wooded eastern margin immediately adjoining the river-mouth/inlet-head setting, rather than on the photographed open-water centreline. The final original part crosses the connected delta and river-mouth margin to that shore fringe.",
+        "stored_final_position_observation": "The quantized final stored position corresponds to the render ending at this reading scale and remains distinct from the source ending.",
+        "receiving_water_name": "Toba Inlet",
+        "receiving_water_feature_type": "coastal fjord",
+        "limit": "Ordinary estuarine/coastal correspondence only. No precise surveyed mouth, modern bank or legal shoreline is asserted."
+      },
+      "uncertainties": [
+        "The selected opening is an interior river position, not a demonstrated natural headwater.",
+        "Generalized positions retain their original parts, fragments, roles and stages; they are not edited to modern channels.",
+        "Individual imagery mosaic dates and exact name-transition limits are unverified.",
+        "Accepted, whole-feature scalar and Korean names remain null. Formal registry verification, automatic application and product application remain false."
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70409645",
+      "source_keys": [
+        "r272-usgstopo-tillamook-bay-selection"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9692
+          ],
+          "component_scope": "lower river mouth marsh selection",
+          "finding": "The short east-to-west opening begins at the lower Trask River channel-margin setting and cuts across the intervening low estuarine marsh toward the lower Tillamook River. The mapped South Branch Trask River is a separate connecting channel in this same mouth complex. The straight stored segment is not a survey of one of those named channels, and the map does not establish a unique river identity for this connector.",
+          "sources": [
+            "r272-usgstopo-tillamook-bay-selection"
+          ],
+          "correspondence": "supported_at_ordinary_connected_estuarine_floor_and_terminal_shore_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            0
+          ],
+          "logical_fid": 3041,
+          "fragment_index": 0,
+          "fragment_count": 1,
+          "original_part_span_zero_based_inclusive": [
+            0,
+            0
+          ],
+          "original_part_span_one_based_inclusive": [
+            1,
+            1
+          ],
+          "aggregate_part_indices_zero_based": [
+            0
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            0,
+            0
+          ],
+          "aggregate_part_span_one_based_inclusive": [
+            1,
+            1
+          ],
+          "stored_position_count": 2
+        },
+        {
+          "fragments": [
+            9692
+          ],
+          "component_scope": "river mouth complex to southern bay",
+          "finding": "The second original part crosses the connected lower river-mouth, Sand Island and adjacent marsh setting, then enters the southern Tillamook Bay floor near Memaloose Point and east of the Dick Point shore. Its generalized straight segments cut across terminal marsh/island interiors as well as water. Ordinary connected estuarine-floor correspondence is supported; an exact contemporary wet thread is not asserted.",
+          "sources": [
+            "r272-usgstopo-tillamook-bay-selection"
+          ],
+          "correspondence": "supported_at_ordinary_connected_estuarine_floor_and_terminal_shore_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            1
+          ],
+          "logical_fid": 3041,
+          "fragment_index": 0,
+          "fragment_count": 1,
+          "original_part_span_zero_based_inclusive": [
+            1,
+            1
+          ],
+          "original_part_span_one_based_inclusive": [
+            2,
+            2
+          ],
+          "aggregate_part_indices_zero_based": [
+            1
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            1,
+            1
+          ],
+          "aggregate_part_span_one_based_inclusive": [
+            2,
+            2
+          ],
+          "stored_position_count": 6
+        },
+        {
+          "fragments": [
+            9692
+          ],
+          "component_scope": "southern open bay traverse",
+          "finding": "The third original part runs north across the openly mapped Tillamook Bay interior. The eastern river mouths and western peninsula remain separate from the selected line. This is a bay passage, not evidence that a river name continues across open marine water.",
+          "sources": [
+            "r272-usgstopo-tillamook-bay-selection"
+          ],
+          "correspondence": "supported_at_ordinary_connected_estuarine_floor_and_terminal_shore_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            2
+          ],
+          "logical_fid": 3041,
+          "fragment_index": 0,
+          "fragment_count": 1,
+          "original_part_span_zero_based_inclusive": [
+            2,
+            2
+          ],
+          "original_part_span_one_based_inclusive": [
+            3,
+            3
+          ],
+          "aggregate_part_indices_zero_based": [
+            2
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            2,
+            2
+          ],
+          "aggregate_part_span_one_based_inclusive": [
+            3,
+            3
+          ],
+          "stored_position_count": 2
+        },
+        {
+          "fragments": [
+            9692
+          ],
+          "component_scope": "central bay traverse",
+          "finding": "The eight stored positions of the fourth part continue through the broad central Tillamook Bay floor, with Bay City on the eastern shore and the Bayocean Peninsula to the west. The turns remain in the connected bay. Main Channel and South Channel labels are bounded bay-channel context, not a demonstrated single channel followed by every stored segment.",
+          "sources": [
+            "r272-usgstopo-tillamook-bay-selection"
+          ],
+          "correspondence": "supported_at_ordinary_connected_estuarine_floor_and_terminal_shore_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            3
+          ],
+          "logical_fid": 3041,
+          "fragment_index": 0,
+          "fragment_count": 1,
+          "original_part_span_zero_based_inclusive": [
+            3,
+            3
+          ],
+          "original_part_span_one_based_inclusive": [
+            4,
+            4
+          ],
+          "aggregate_part_indices_zero_based": [
+            3
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            3,
+            3
+          ],
+          "aggregate_part_span_one_based_inclusive": [
+            4,
+            4
+          ],
+          "stored_position_count": 8
+        },
+        {
+          "fragments": [
+            9692
+          ],
+          "component_scope": "northern bay approach",
+          "finding": "The short fifth part continues north within Tillamook Bay, approaching the Garibaldi and bay-entrance setting. No land divide or unresolved receiver-to-receiver link occurs in this part.",
+          "sources": [
+            "r272-usgstopo-tillamook-bay-selection"
+          ],
+          "correspondence": "supported_at_ordinary_connected_estuarine_floor_and_terminal_shore_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            4
+          ],
+          "logical_fid": 3041,
+          "fragment_index": 0,
+          "fragment_count": 1,
+          "original_part_span_zero_based_inclusive": [
+            4,
+            4
+          ],
+          "original_part_span_one_based_inclusive": [
+            5,
+            5
+          ],
+          "aggregate_part_indices_zero_based": [
+            4
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            4,
+            4
+          ],
+          "aggregate_part_span_one_based_inclusive": [
+            5,
+            5
+          ],
+          "stored_position_count": 2
+        },
+        {
+          "fragments": [
+            9692
+          ],
+          "component_scope": "bay entrance and north shore render ending",
+          "finding": "The last part turns northwest through northern Tillamook Bay toward the entrance near Barview. The separately stored source endpoint is in the bay-water setting; the rendered and quantized stored endings reach the northern entrance shoreline/landward north-jetty setting. The final line is a generalized bay-and-shore approach. It is not an exact jetty line, surveyed bank, river mouth, or water-covered endpoint.",
+          "sources": [
+            "r272-usgstopo-tillamook-bay-selection"
+          ],
+          "correspondence": "supported_at_ordinary_connected_estuarine_floor_and_terminal_shore_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            5
+          ],
+          "logical_fid": 3041,
+          "fragment_index": 0,
+          "fragment_count": 1,
+          "original_part_span_zero_based_inclusive": [
+            5,
+            5
+          ],
+          "original_part_span_one_based_inclusive": [
+            6,
+            6
+          ],
+          "aggregate_part_indices_zero_based": [
+            5
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            5,
+            5
+          ],
+          "aggregate_part_span_one_based_inclusive": [
+            6,
+            6
+          ],
+          "stored_position_count": 3
+        }
+      ],
+      "part_basis": "Original fragment and part indices are zero-based; every stated span is inclusive. FID 9692, logical FID 3041, is the single stage 3 mainstem fragment: local and aggregate parts 0–5, one-based 1–6. Their position counts are 2, 6, 2, 8, 2, 3, totaling 23 stored positions including repeated part endpoints. Original order, stage, role and every part are preserved. No joining, reversal, simplification, repair or source-geometry reconstruction. Source endpoint, render endpoint and quantized stored ending remain separately defined.",
+      "terminal_observations": {
+        "stored_terminal_class": "sea",
+        "stored_class_preserved": true,
+        "terminal_fid": 9692,
+        "source_endpoint": "Separately located in the mapped Tillamook Bay entrance-water setting.",
+        "render_endpoint": "Separately located at the northern entrance shoreline/landward north-jetty setting near Barview.",
+        "stored_final_coordinate": "Separately retained quantized final position at the same shoreward setting, not substituted for the higher-precision render endpoint.",
+        "geographic_interpretation": "The final selected passage approaches the north side of the bay entrance. The source and render endings differ; sea is preserved only as stored metadata, not proof that the rendered ending is open water or the exact mouth of a river.",
+        "receiving_water_name": "Tillamook Bay",
+        "receiving_water_feature_type": "bay/estuary",
+        "limit": "No river name is assigned to the bay, no exact modern bank or wet endpoint is asserted, and no missing original source line is reconstructed."
+      },
+      "uncertainties": [
+        "No unique representative river name is established for the mostly bay selection; all accepted, scalar and Korean names remain null.",
+        "The short opening cuts across the estuarine marsh between separately named river channels; generalized correspondence does not prove a present flowing channel along that straight segment.",
+        "The rendered ending reaches the northern entrance shoreward setting, while the distinct source ending is in bay water. Exact bank, jetty contact and current wetness remain unverified.",
+        "Map epochs, current tide/flow, legal naming extent and formal registry status remain unverified.",
+        "USGS OFR2012-1187 was not read after the sole reader 403 and supplies no evidence."
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70132658",
+      "source_keys": [
+        "r272-esri-world-imagery-70132658",
+        "r272-chs-pac205-202411"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9200
+          ],
+          "component_scope": "selected interior opening",
+          "finding": "The first three parts of FID9200 begin within the lower valley and continue southwest along the broad river corridor. Forested floodplain islands and exposed bars lie beside the generalized path; the opening is not a natural headwater.",
+          "sources": [
+            "r272-esri-world-imagery-70132658"
+          ],
+          "correspondence": "supported_at_ordinary_connected_valley_alluvial_estuarine_coastal_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            0,
+            1,
+            2
+          ],
+          "logical_fid": 2959,
+          "fragment_index": 0,
+          "fragment_count": 2,
+          "original_part_span_zero_based_inclusive": [
+            0,
+            2
+          ],
+          "original_part_span_one_based_inclusive": [
+            1,
+            3
+          ],
+          "original_combined_part_span_zero_based_inclusive": [
+            0,
+            2
+          ],
+          "original_combined_part_span_one_based_inclusive": [
+            1,
+            3
+          ],
+          "stored_position_count": 10
+        },
+        {
+          "fragments": [
+            9200
+          ],
+          "component_scope": "westward braided floor",
+          "finding": "The river turns west through a wide braided alluvial floor. All four original parts remain in the connected bar/channel/floodplain corridor even where a generalized segment lies off a currently visible wet thread.",
+          "sources": [
+            "r272-esri-world-imagery-70132658"
+          ],
+          "correspondence": "supported_at_ordinary_connected_valley_alluvial_estuarine_coastal_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            3,
+            4,
+            5,
+            6
+          ],
+          "logical_fid": 2959,
+          "fragment_index": 0,
+          "fragment_count": 2,
+          "original_part_span_zero_based_inclusive": [
+            3,
+            6
+          ],
+          "original_part_span_one_based_inclusive": [
+            4,
+            7
+          ],
+          "original_combined_part_span_zero_based_inclusive": [
+            3,
+            6
+          ],
+          "original_combined_part_span_one_based_inclusive": [
+            4,
+            7
+          ],
+          "stored_position_count": 13
+        },
+        {
+          "fragments": [
+            9200
+          ],
+          "component_scope": "lower southwest valley",
+          "finding": "Four original parts follow the southwest continuation into the lower alluvial plain. Tributary fans and wooded margins remain adjacent components; the downstream end reaches the start of the separate terminal fragment without an unresolved gap.",
+          "sources": [
+            "r272-esri-world-imagery-70132658"
+          ],
+          "correspondence": "supported_at_ordinary_connected_valley_alluvial_estuarine_coastal_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            7,
+            8,
+            9,
+            10
+          ],
+          "logical_fid": 2959,
+          "fragment_index": 0,
+          "fragment_count": 2,
+          "original_part_span_zero_based_inclusive": [
+            7,
+            10
+          ],
+          "original_part_span_one_based_inclusive": [
+            8,
+            11
+          ],
+          "original_combined_part_span_zero_based_inclusive": [
+            7,
+            10
+          ],
+          "original_combined_part_span_one_based_inclusive": [
+            8,
+            11
+          ],
+          "stored_position_count": 13
+        },
+        {
+          "fragments": [
+            9201
+          ],
+          "component_scope": "terminal fragment and distinct endings",
+          "finding": "The separate FID9201 mainstem fragment, stage2, retains its single original part and all three stored positions. It continues west from FID9200 across the delta-front setting to the render/stored ending. The source ending lies farther south in the same bay-side receiver. No fragment merging, reversal or endpoint substitution is made.",
+          "sources": [
+            "r272-esri-world-imagery-70132658"
+          ],
+          "correspondence": "supported_at_ordinary_connected_valley_alluvial_estuarine_coastal_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "original_part_indices": [
+            0
+          ],
+          "logical_fid": 2959,
+          "fragment_index": 1,
+          "fragment_count": 2,
+          "original_part_span_zero_based_inclusive": [
+            0,
+            0
+          ],
+          "original_part_span_one_based_inclusive": [
+            1,
+            1
+          ],
+          "original_combined_part_span_zero_based_inclusive": [
+            11,
+            11
+          ],
+          "original_combined_part_span_one_based_inclusive": [
+            12,
+            12
+          ],
+          "stored_position_count": 3
+        }
+      ],
+      "part_basis": "Original part indices are zero-based within each original fragment. Every local and combined-order span is inclusive, with one-based equivalents stated. Original fragment order, FIDs, logical ID, roles, stages, parts and stored positions are preserved. Source endpoint, render endpoint and quantized final stored position are separate. No joining, reversal, simplification, repair, source-geometry reconstruction or natural-headwater inference was made.",
+      "terminal_observations": {
+        "terminal_class": "sea",
+        "source_endpoint_observation": "The separate source ending is farther south in the open-water/estuarine setting alongside the eastern delta margin.",
+        "render_endpoint_observation": "The render ending is farther north at the delta-front and shallow bay-side setting, within the same connected Kemano Bay receiver.",
+        "stored_final_position_observation": "The quantized final stored position corresponds to the render ending at the reading scale; it is not substituted for the separate source ending.",
+        "receiving_water_name": "Kemano Bay",
+        "larger_receiving_system": "Gardner Canal",
+        "receiving_water_feature_type": "coastal bay within a fjord",
+        "limit": "No exact contemporary outlet thread, tidal edge, bank, current flow or legal shoreline is asserted."
+      },
+      "uncertainties": [
+        "The selected opening is an interior river position, not a demonstrated natural headwater.",
+        "Generalized positions retain their original parts, fragments, roles and stages; they are not edited to modern channels.",
+        "Individual imagery mosaic dates and exact name-transition limits are unverified.",
+        "Accepted, whole-feature scalar and Korean names remain null. Formal registry verification, automatic application and product application remain false."
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "USGSTopo, The National Map: servicewide metadata response requested in r256",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "observed_outcome": "Inherited terminal-status cancellation before a decision returned; original HTTP, body and completion unknown. No current metadata request.",
+      "restriction_scope": "Exact held metadata, equivalent recovery and unread outputs remain stopped. Retained lawful service identity supports the separate current regional view.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:80242112",
+      "new_acquisition": false
+    },
+    {
+      "publication": "USGSTopo exact previously unconfirmed Stonecabin and Alaska upper-detail views, and northern California/southern Oregon headward detail",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "observed_outcome": "Inherited unconfirmed or cancelled exact original acquisitions; unread outputs remain excluded. No new event asserted.",
+      "restriction_scope": "Each actual older exact-view boundary is preserved independently. No retry, output reading or equivalent recovery. The Kings Bay original is a distinct new regional view.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:80242112",
+      "new_acquisition": false
+    },
+    {
+      "publication": "USGS Professional Paper1386-J, Satellite Image Atlas of Glaciers of the World—North America",
+      "official_url": "https://pubs.usgs.gov/pp/p1386j/baffinisland/baffin-lores.pdf",
+      "observed_outcome": "Inherited whole-publication stop after a prior original HTTP403; no request for the current target.",
+      "restriction_scope": "Entire PP1386-J and publication-equivalent acquisition and unread-output recovery remain stopped. No glacier atlas content is used.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:80242112",
+      "new_acquisition": false
+    },
+    {
+      "publication": "Martin1908, Geology and mineral resources of the Controller Bay region, Alaska; USGS Bulletin335 and its field-survey map project",
+      "official_url": "https://pubs.usgs.gov/publication/b335",
+      "observed_outcome": "Inherited plate-reader HTTP403 report; no map body or pixels read and no current request.",
+      "restriction_scope": "Whole exact report/map/project and equivalent acquisition or unread-output recovery remain stopped; current National Map cartography is independently maintained.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:80242112",
+      "new_acquisition": false
+    },
+    {
+      "publication": "Orth1967, Dictionary of Alaska Place Names; USGS Professional Paper567",
+      "official_url": "https://digital.library.unt.edu/ark:/67531/metadc303962/",
+      "observed_outcome": "Inherited page-reader availability error with unknown origin HTTP; no current request.",
+      "restriction_scope": "Exact dictionary/publication and equivalent acquisition or missing/unread-content recovery remain paused. No place-name entry is borrowed to force a river identity.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:80242112",
+      "new_acquisition": false
+    },
+    {
+      "publication": "World Imagery exact Knik lower/terminal view and exact Controller Bay-area Alaska overview",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "observed_outcome": "Inherited interruption or tool refusal/session loss; original outcomes unknown. No current imagery acquisition.",
+      "restriction_scope": "The two separate exact regional view restrictions and unread-output exclusions remain unchanged. No broad Esri or Alaska ban is inferred, and no stopped content is recovered.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:80242112",
+      "new_acquisition": false
+    },
+    {
+      "publication": "USGSTopo National Map service metadata request",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer?f=pjson",
+      "observed_outcome": "Inherited cancelled terminal-status confirmation; HTTP, body and completion unknown. No current request.",
+      "restriction_scope": "Exact service metadata and equivalent metadata/unread-output recovery remain stopped. Retained lawful identity was used for the distinct current regional view.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:70409645",
+      "new_acquisition": false
+    },
+    {
+      "publication": "USGSTopo exact northern Stonecabin, unconfirmed Alaska upper-corridor detail and northern California/southern Oregon headward views",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "observed_outcome": "Inherited unconfirmed or cancelled exact acquisitions; no output recovery.",
+      "restriction_scope": "Every recorded exact view, equivalent recovery and unread output remains excluded. The current northern coastal Oregon view is distinct; no service-wide or institution-wide ban is inferred.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:70409645",
+      "new_acquisition": false
+    },
+    {
+      "publication": "Managing water for birds—A tool for the Malheur National Wildlife Refuge, southeastern Oregon, USGS SIR 2025-5024",
+      "official_url": "https://pubs.usgs.gov/publication/sir20255024/full",
+      "observed_outcome": "Inherited reader-reported403; not requested.",
+      "restriction_scope": "Exact report and its refuge-study project-equivalent publication, maps, catalogue and recovery routes remain stopped. This is distinct from current operational coastal cartography.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:70409645",
+      "new_acquisition": false
+    },
+    {
+      "publication": "U.S. Geological Survey Open-File Report 2012-1187, Preliminary Assessment of Channel Stability and Bed-Material Transport in the Tillamook Bay Tributaries and Nehalem River Basin, Northwestern Oregon",
+      "official_url": "https://pubs.usgs.gov/of/2012/1187/pdf/ofr20121187.pdf",
+      "observed_outcome": "The sole normal web-reader opening returned Failed to fetch: (403) Forbidden. No original report body, map or figure was returned or read.",
+      "outcome_layer": "Reader-reported HTTP403; origin HTTP was not independently measured.",
+      "restriction_scope": "Whole exact report and its channel-stability/bed-material-assessment project-equivalent original, catalogue, reader/cache, mirror, alternate-format, map/figure and unread-output recovery remain stopped. No retry or alternate acquisition followed.",
+      "earlier_lawful_observations": null,
+      "inherited": false,
+      "newly_observed_access_failure": true,
+      "acquisition_stop": true,
+      "material_gap_for_current_target": false,
+      "material_effect": "Optional naming/context report unavailable. The complete ordinary selected marsh, bay and terminal shore geography rests on the already read independent National Map original; no missing geographic link is asserted.",
+      "aw_id": "hydro-system:70409645"
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "kind": "marine_setting_with_stored_river_category_preserved",
+      "notice": "The mapped selection occupies Kings Bay and coastal-edge settings. The original river-group category, mainstem roles, stages and stored sea terminal class are retained; this research does not edit feature type or geometry.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:80242112"
+    },
+    {
+      "kind": "opening_coastal_land_shortcut",
+      "notice": "The first original segment crosses a small mapped shore projection. That local land shortcut is described explicitly rather than being called a river channel or requiring a hypothetical drainage connection. Complete geographic setting is observed; no hydrological through-flow claim is made.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:80242112"
+    },
+    {
+      "kind": "bounded_component_name",
+      "notice": "Kings Bay is a bay name. Nearby named glaciers and unnamed small streams are separate components and provide no representative river-name anchor for the selected offshore line.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:80242112"
+    },
+    {
+      "kind": "inherited_publication_scope_preservation",
+      "notice": "Unidentified BC Fisheries SK108/Nass and Homathko9H Level2 material, and the unresolved relationship of the Machmell fish-habitat/restoration project to them, remain excluded. The DataBC base/base service, CBMT3978 and equivalent Toporama routes, Canadian naming/gazetteer families, WSC reference index, PP1386-J, and exact NTS/CanMatrix/NLUIS restrictions remain unchanged. No held content or equivalent route was acquired to identify a publication. No all-Canada or all-agency ban is inferred.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70236799"
+    },
+    {
+      "kind": "independent_coastal_publications",
+      "notice": "The separately edited Pacific CHS coastal-description volumes are distinct from held ARC401, ATL120 and chart1556 material and from the BC fish-habitat assessment projects. Only their own coastal prose and actually inspected page context are used; no referenced chart original was requested or reconstructed.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70236799"
+    },
+    {
+      "kind": "discovery_exclusion",
+      "notice": "Incidental naming-registry/gazetteer results, Wikipedia mirrors, fish-survey extracts and unrequested geology publications seen during discovery supply no geographic evidence. Candidate identity is supported by normally acquired CHS original prose and independently read imagery.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70236799"
+    },
+    {
+      "kind": "imagery_scope",
+      "notice": "Exact older stopped World Imagery views remain held. These two BC views are distinct selected regional acquisitions. Ordinary valley, floodplain, delta and coastal correspondence is assessed without requiring exact modern banks or a present wet thread.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70236799"
+    },
+    {
+      "kind": "ordinary_estuarine_floor_correspondence",
+      "notice": "The opening crosses the connected river-mouth marsh and island setting, and the northern ending is shoreward. Complete ordinary estuarine-floor correspondence does not assert an exact watercourse along every straight rendered segment.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70409645"
+    },
+    {
+      "kind": "bay_and_river_name_scope",
+      "notice": "Tillamook Bay is the receiving marine component. Nearby or brief river-mouth contacts do not establish one representative river hydronym for the selected marsh connector and long bay traverse.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70409645"
+    },
+    {
+      "kind": "discovery_material_excluded",
+      "notice": "Search snippets, unrequested watershed and hazard-plan publications, monitoring-station records and the stopped report discovery text are not substantive evidence. No borrowed report map was used.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70409645"
+    },
+    {
+      "kind": "inherited_publication_scope_preservation",
+      "notice": "Unidentified BC Fisheries SK108/Nass and Homathko9H Level2 material, and the unresolved relationship of the Machmell fish-habitat/restoration project to them, remain excluded. The DataBC base/base service, CBMT3978 and equivalent Toporama routes, Canadian naming/gazetteer families, WSC reference index, PP1386-J, and exact NTS/CanMatrix/NLUIS restrictions remain unchanged. No held content or equivalent route was acquired to identify a publication. No all-Canada or all-agency ban is inferred.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70132658"
+    },
+    {
+      "kind": "independent_coastal_publications",
+      "notice": "The separately edited Pacific CHS coastal-description volumes are distinct from held ARC401, ATL120 and chart1556 material and from the BC fish-habitat assessment projects. Only their own coastal prose and actually inspected page context are used; no referenced chart original was requested or reconstructed.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70132658"
+    },
+    {
+      "kind": "discovery_exclusion",
+      "notice": "Incidental naming-registry/gazetteer results, Wikipedia mirrors, fish-survey extracts and unrequested geology publications seen during discovery supply no geographic evidence. Candidate identity is supported by normally acquired CHS original prose and independently read imagery.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70132658"
+    },
+    {
+      "kind": "imagery_scope",
+      "notice": "Exact older stopped World Imagery views remain held. These two BC views are distinct selected regional acquisitions. Ordinary valley, floodplain, delta and coastal correspondence is assessed without requiring exact modern banks or a present wet thread.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70132658"
+    }
+  ]
+}
