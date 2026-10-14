@@ -1,0 +1,566 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r200",
+  "sources": [
+    {
+      "source_key": "r200-apitz-zulia59-retained",
+      "title": "Estado Zulia",
+      "author": "Alicia Apitz de Parra",
+      "publication": "GeoVenezuela, tomo 7, capítulo 59, pp.490–631, Fundación Empresas Polar",
+      "official_url": "https://bibliofep.fundacionempresaspolar.org/media/1378337/gv_t7_c59_p490_631_zulia_lres_single_preview.pdf",
+      "source_kind": "Authored regional geography chapter with attributed hydrographic cartography",
+      "actual_material_read": "Retained original: Figure13 Hidrografía, printed p.515/PDF p.26, visually inspected in full and at enlarged northeastern detail; printed pp.514,516–517 hydrology prose read.",
+      "primary_map_pixels_read": true,
+      "new_acquisition_performed": false,
+      "map_provenance": "Figure13 credits República Bolivariana de Venezuela, Ministerio del Ambiente y de los Recursos Naturales Renovables, Servicio Autónomo de Geografía y Cartografía Nacional,1996. Only the chapter figure was inspected; no underlying sheet acquisition is claimed.",
+      "publication_independence": "Retained independently issued FEP state-geography chapter and attributed regional hydrography, identified and read in earlier work. It is not the held Hackley geological publication, Delta Amacuro1994 sheet, FEP Delta lámina173, or Commons Zulia topographic category.",
+      "limits": "Generalized regional cartography. Its eastern map edge does not cover the whole selected opening. No registry decision, precise name-transition position or contemporary bank/flow claim."
+    },
+    {
+      "source_key": "r200-diaz-falcon46-retained",
+      "title": "Estado Falcón",
+      "author": "Teodoro Díaz Zavala",
+      "publication": "GeoVenezuela, tomo 6, capítulo46, pp.198–285, Fundación Empresas Polar",
+      "official_url": "https://bibliofep.fundacionempresaspolar.org/media/1046/gv_t6_c46_p198_285_lres_single_preview.pdf",
+      "source_kind": "Authored regional geography chapter",
+      "actual_material_read": "Retained original, printed pp.220–223/PDF pp.23–26 hydrology prose, especially printed p.222 paragraphs62–63 distinguishing Cocuiza and Matícora, tributaries and Matícora impoundment.",
+      "primary_map_pixels_read": false,
+      "new_acquisition_performed": false,
+      "publication_independence": "Retained separately authored FEP geography chapter identified by its own title, author and publishing project. No use or retrieval of the unresolved Cocoseco state-map listing or unidentified linked map.",
+      "limits": "Regional prose corroborates the named receiving river, reservoir and gulf but does not show the chosen eastern opening or identify every selected feeder. Its description of regulation belongs to its publication context and is not current operational evidence."
+    },
+    {
+      "source_key": "r200-inveregroup-catalogue",
+      "title": "Serie Digital Desarrollo, Frontera e Integración",
+      "publisher": "Inver-E-Group Venezuela C.A.",
+      "official_url": "https://inveregroupve.wordpress.com/descargas/serie-digital-desarrollo-frontera-e-integracion/",
+      "source_kind": "Publisher catalogue only",
+      "actual_material_read": "Successful catalogue text identifies Estimación del Rendimiento Hídrico Seguro: Caso Embalse Matícora, Estado Falcón, Venezuela, ISBN978-980-7723-40-4, and its download link. No original monograph body or figure was obtained.",
+      "primary_map_pixels_read": false,
+      "new_acquisition_performed": true,
+      "limits": "Bibliographic discovery only; no geographic correspondence rests on catalogue, search snippets or the unavailable original.",
+      "used_as_substantive_evidence": false
+    },
+    {
+      "source_key": "r200-inegi-camargo2010",
+      "title": "Compendio de información geográfica municipal 2010. Camargo, Chihuahua.",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08011.pdf",
+      "bibliography": "Municipal geographic compilation, geo-statistical code 08011. Relief map uses Marco Geoestadístico Municipal 2010 v4.3, physiographic series I, topographic digital series II/III and the 2007 INEGI-CONAGUA hydrographic network.",
+      "publication_identity": "An independently issued municipal thematic compilation with its own geographic tables and relief plate, positively distinguished by editorial purpose, compilation identity and credited source context from the held sixth-edition 2023 national topographic publication.",
+      "acquisition_outcome": "Normal original completed HTTP200, application/pdf.",
+      "actual_material_read": "Original cover; physiography and hydrography tables; PDF page7 Relieve, including full-map overview and clean enlarged southern opening/corridor pixels. The preceding page6 locality/transport overview was also inspected.",
+      "supports": "The chosen opening follows a mapped stream on the Sierra Agua de Mayo flank, then the Bentín corridor east of Laguna Verde to the Jiménez municipal boundary. The hydrography table lists Bentín among intermittent streams.",
+      "limits": "Generalized municipal mapping; the regional hydrography table is not independent proof of every mapped basin assignment. No current water extent or precise legal name boundary is asserted.",
+      "evidence_type": "Primary original municipal cartography and geographic prose"
+    },
+    {
+      "source_key": "r200-inegi-jimenez2010",
+      "title": "Compendio de información geográfica municipal 2010. Jiménez, Chihuahua.",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08036.pdf",
+      "bibliography": "Municipal geographic compilation, geo-statistical code08036. Relief plate credits municipal framework2010, physiographic seriesI, digital topography seriesII/III and the2007 INEGI-CONAGUA hydrographic network.",
+      "publication_identity": "A separately issued municipal compilation with its own tables and thematic plate; its established publishing context is independent of the held national2023 topographic edition.",
+      "acquisition_outcome": "Normal original completed HTTP200, application/pdf.",
+      "actual_material_read": "Original cover and physiography/hydrography prose; PDF page6 Relieve overview, clean upper/eastern Bentín label views and lower joining/Palomas terminal pixels. Private selected-path orientation aids were used separately.",
+      "supports": "Repeated Bentín labels on the selected middle/eastern corridor, its continuous mapped lower course and tributary joins east of Sierra El Diablo, and the selected northern receiving-flat/inlet setting adjoining Laguna de Palomas.",
+      "limits": "The selected endpoint is in the northern lake-receiving setting; no extension to the southern lake shore, precise wet shoreline, perennial flow or present salinity is inferred. Nearby Laguna El Remolino and Laguna de los Patos are distinct mapped features.",
+      "evidence_type": "Primary original municipal cartography and geographic prose"
+    },
+    {
+      "source_key": "r200-conagua-palomas0848-unread",
+      "title": "Actualización de la disponibilidad de agua en el acuífero Laguna de Palomas, estado de Chihuahua (0848)",
+      "publisher": "Comisión Nacional del Agua (CONAGUA), Subdirección General Técnica",
+      "official_url": "https://sigagis.conagua.gob.mx/gas1/Edos_Acuiferos_18/chihuahua/DR_0848.pdf",
+      "publication_identity": "Discovery identified a specific Laguna de Palomas aquifer technical report. No report body or imprint was read.",
+      "acquisition_outcome": "The original request was started; its terminal-status action was refused. HTTP response, transfer outcome and body remain unknown. No subsequent polling, reading, retry or equivalent acquisition occurred.",
+      "actual_material_read": "None. Discovery text supplied bibliographic identity only and is not hydrographic evidence.",
+      "supports": "No substantive evidence.",
+      "limits": "Whole publication and equivalent acquisitions and unread outputs remain stopped.",
+      "evidence_type": "Stopped proposed corroboration; excluded from substantive evidence",
+      "used_as_substantive_evidence": false
+    },
+    {
+      "source_key": "r200-inegi-mapimi-2010",
+      "title": "Compendio de información geográfica municipal 2010: Mapimí, Durango",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "edition": "2010; municipal geographical code 10013",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/10/10013.pdf",
+      "actual_material_read": "Completed original PDF. Title and municipal identity; PDF pages 2–3 location, physiography and hydrography prose; PDF page 6 Relieve map, legend and source statement, with separate unmarked enlargements of the opening, foothill joins and El Barroso corridor. Initial land-use text was also read.",
+      "independence_basis": "Separately compiled Mapimí municipal thematic profile with its own municipal footprint, tables and source statement. The relief map credits the 2010 municipal framework, physiography series I, older topographic series II/III and INEGI–CONAGUA 2007 hydrography. It is not the held sixth-edition 2023 national topographic original or a replacement edition of it.",
+      "limits": "Historical generalized cartography supports ordinary corridor identity, not surveyed headwater vertices, precise name boundaries or current flows. Its municipal stream inventory is not itself a reach assignment."
+    },
+    {
+      "source_key": "r200-inegi-tlahualilo-2010",
+      "title": "Compendio de información geográfica municipal 2010: Tlahualilo, Durango",
+      "publisher": "INEGI",
+      "edition": "2010; municipal geographical code 10036",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/10/10036.pdf",
+      "actual_material_read": "Completed original PDF. Title; PDF pages 2–3 municipal location, physiography, hydrography and land-use text; PDF page 6 Relieve map with legend and compilation credits, including an unmarked enlargement from El Tordillo through Laguna Colorada and Las Liebres to the actual endpoint surroundings.",
+      "independence_basis": "Separately issued municipal geographical compilation with local tables and municipal footprint. The map cites the 2010 administrative framework, older topographic series III, physiography series I and INEGI–CONAGUA 2007 hydrography. Its compilation project is distinct from held G1306 national sixth-edition 2023 mapping, and it is not either held municipal publication 26055 or 30029.",
+      "limits": "The entire lower setting is visible, but the map does not show the selected Colorada approach, southern loop or final through-link. The presence of lake and basin names does not prove those connections."
+    },
+    {
+      "source_key": "r200-inecol-ird-playas-descroix",
+      "title": "Las playas del desierto chihuahuense (parte mexicana): influencia de las sales en ambientes árido y semiárido; Luc Descroix, Hidrografía de las Lagunas de Mayrán y de Viesca: endorreísmo y antropismo",
+      "editors": [
+        "Olivier Grünberger",
+        "Victor Manuel Reyes Gómez",
+        "Jean-Louis Janeau"
+      ],
+      "publisher": "INECOL–IRD scientific collaboration; university-hosted manuscript version, Université Toulouse II Mapimí-UVED",
+      "edition": "Undated manuscript version in the inspected title matter; printed chapter pages 267–274 and Figure 123 at page 269. No final publication year is inferred from the hosting date.",
+      "official_url": "https://mapimi-uved.univ-tlse2.fr/02/docs/01/03_libro-playas.pdf",
+      "actual_material_read": "Completed original PDF. PDF pages 1–10 title, tribute and author/institution front matter; text from PDF pages 287–299 (printed 262–274), including the Descroix chapter opening at PDF292/printed267; Figure123 Carta de la hidrografía natural de la Laguna, PDF294/printed269, was visually inspected. Other rendered or merely referenced figures were not used as cartographic evidence.",
+      "independence_basis": "Named INECOL–IRD scientific research volume and authored historical hydrology analysis, independently issued from the INEGI national cartographic publication and aquifer-administration reports. Its original schematic Figure123 treats early-twentieth-century La Laguna hydrology; no held map was requested or read.",
+      "limits": "Regional historical schematic and hydrological discussion only. It corroborates Laguna Colorada and the closed-depression setting but supplies neither the selected western feeder nor the particular Colorada-to-terminal connectors. No historical hypothesis or description of altered drainage is promoted to present hydraulic fact."
+    },
+    {
+      "source_key": "r200-inrena-san-juan2003",
+      "title": "Evaluación y ordenamiento de los recursos hídricos de la cuenca del río San Juan: Estudio hidrológico",
+      "publisher": "Ministerio de Agricultura, Instituto Nacional de Recursos Naturales, Intendencia de Recursos Hídricos, Administración Técnica del Distrito de Riego Chincha–Pisco",
+      "year": 2003,
+      "edition": "Cover: Chincha, Enero2003. Inspected thematic maps13.1 and P: Diciembre2003. The date discrepancy is retained.",
+      "official_url": "https://sigrid.cenepred.gob.pe/docs/PARA%20PUBLICAR/ANA/Estudio_hidrologico_San_Juan.pdf",
+      "publication_identity": "Dedicated San Juan/Chincha–Pisco hydrology and surface-water inventory project, confirmed by the original cover, methodology and map imprints. Field reconnaissance, inventory and thematic-map production are described on p5. This is distinct in actual project and geographic scope from the held Ica balance, Chancay plan/service, Chicama study, Pativilca treatment project, Grande–Nazca inventory, Locumba annex and INGEMMET publications.",
+      "acquisition_outcome": "First direct normal-original acquisition completed HTTP200 application/pdf; the complete282-page report was retained and read locally.",
+      "actual_material_read": "Cover and project/methodology pp1–8; basin-location p15; hydrographic descriptions pp61,63–65,74; original fluvial schematics E0(p79), E7(p86), E9(p88); January isotherm map13.1 within p105, including its clean enlarged basin, joins and terminal; Conta description p145; storage discussion pp247–252; original detailed proposed-Palmadera map P on p253. Base-map placeholder p17 and hydrographic placeholder p76 were inspected as such.",
+      "cartographic_basis": "Map13.1 printed1:600,000; mapP printed1:150,000. Map credits: Carta Nacional Digital IGN2002. Original p7 distinguishes IGN cartographic base, Peru Digital thematic data and historical ONERN San Juan material.",
+      "supports": "The differentiated Palmadera/upper San Juan, Tantará, San Juan and Chico contexts, source-described joining hierarchy, the managed Conta partition and the actual northern Chico coastward outlet.",
+      "limits": "No unambiguous selected eastern opening identification. Base and hydrographic map pages are placeholders. MapP includes a proposed reservoir, not an observed existing dam. MapP also has an apparently inconsistent Cuenca del río Pisco title-block line despite its San Juan/Palmadera content; surrounding prose and map geography establish what was actually inspected. Source prose contains duplicated or inconsistent bank-side wording at Conta; no bank-side assertion is derived from that wording.",
+      "evidence_type": "Primary official hydrological investigation, original prose and cartography",
+      "use_notice": "No officials-only or limited-distribution notice was encountered in the inspected material. Only bounded own factual observations and ordinary bibliography are reported; original pages and visual reading aids remain private."
+    },
+    {
+      "source_key": "r200-minedu-castrovirreyna2020-unavailable",
+      "title": "UGEL Castrovirreyna2020 educational-location map",
+      "publisher": "Ministerio de Educación, ESCALE",
+      "official_url": "https://escale.minedu.gob.pe/documents/inicio/Cartograf%C3%ADa/Mapas%20DRE%20y%20UGEL/Huancavelica/ugel_castrovirreyna_2020.pdf",
+      "publication_identity": "Discovery identifies a UGEL educational-location cartographic project; printed title and source credits remain uninspected.",
+      "acquisition_outcome": "Direct HTTP200 text/html instead of PDF; no source body read.",
+      "actual_material_read": "No original, page body or map pixels. Discovery metadata was used only to identify the proposed source.",
+      "supports": "No substantive geographic evidence.",
+      "limits": "Whole identified map/equivalent routes paused after wrong body; no alternate acquisition.",
+      "evidence_type": "Unavailable proposed source",
+      "used_as_substantive_evidence": false
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:60001922",
+      "source_keys": [
+        "r200-apitz-zulia59-retained",
+        "r200-diaz-falcon46-retained"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10755
+          ],
+          "component_scope": "Chosen eastern opening and initial tie into the upper north-trending branch",
+          "finding": "The easternmost westward opening falls beyond or at the eastern limit of the Zulia hydrographic figure. The Falcón chapter names the Matícora tributaries Riecito and Jordán, but that prose does not identify this chosen feeder or establish its initial connection. The opening and its first join therefore remain unresolved; no local feeder name is assigned.",
+          "sources": [
+            "r200-apitz-zulia59-retained",
+            "r200-diaz-falcon46-retained"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            10755
+          ],
+          "component_scope": "Upper north-trending approach and its westward receiving junction",
+          "finding": "The northeastern portion of Figure13 depicts a southern approach turning north into the east–west inflow upstream of Embalse Matícora. The visible branch, its northward course and junction correspond at ordinary regional scale to this selected portion. This establishes the visible connection without assigning the lower Matícora label to every upper tributary.",
+          "sources": [
+            "r200-apitz-zulia59-retained"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            10755
+          ],
+          "component_scope": "Westward receiving corridor and reservoir approach",
+          "finding": "Figure13 carries the joined eastern drainage west across the upland-to-reservoir approach into the Matícora impoundment. The selected westward corridor agrees with that continuous depicted inflow. Regional tributary prose is corroboration only; it does not establish exact Riecito or Jordán name boundaries on the selected route.",
+          "sources": [
+            "r200-apitz-zulia59-retained",
+            "r200-diaz-falcon46-retained"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            10755
+          ],
+          "component_scope": "Embalse Matícora passage and northward outlet",
+          "finding": "Figure13 depicts Embalse Matícora between its eastern inflow and the northward Río Matícora outlet. The Falcón chapter independently describes the river as impounded near Mene de Mauroa. Together these support the selected managed-water passage at regional scale; the impoundment crossing is not described as an uninterrupted natural-river reach.",
+          "sources": [
+            "r200-apitz-zulia59-retained",
+            "r200-diaz-falcon46-retained"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            10755
+          ],
+          "component_scope": "Lower northwestward and northward Río Matícora",
+          "finding": "The map explicitly labels Río Matícora along the connected outlet and lower course toward the gulf. It places the separate Cocuiza and Palmar drainages farther west, toward Los Olivitos, so those river names and the wetland are not assigned to this selected course.",
+          "sources": [
+            "r200-apitz-zulia59-retained",
+            "r200-diaz-falcon46-retained"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            10755
+          ],
+          "component_scope": "Final mouth-facing reach and actual stored endpoint",
+          "finding": "Figure13 connects the lower Matícora to the southern shore of Golfo de Venezuela, and the Falcón chapter explicitly names that receiver. The actual stored endpoint corresponds to gulf water immediately off this outlet at ordinary map scale. It is not replaced by the separate model source endpoint, nor interpreted as a named river continuing through the sea.",
+          "sources": [
+            "r200-apitz-zulia59-retained",
+            "r200-diaz-falcon46-retained"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70835412",
+      "source_keys": [
+        "r200-inegi-camargo2010",
+        "r200-inegi-jimenez2010"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10257
+          ],
+          "component_scope": "Chosen Sierra Agua de Mayo opening and Camargo upper corridor",
+          "finding": "The selected opening and southward course match a mapped stream on the Sierra Agua de Mayo flank and its continuation into the valley labeled Bentín. Nearby Laguna Verde lies west of the selected route; no crossing of that lake is required.",
+          "sources": [
+            "r200-inegi-camargo2010"
+          ],
+          "correspondence": "supported_at_ordinary_headward_and_stream_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            10257
+          ],
+          "component_scope": "Camargo–Jiménez transition and upper Bentín joins",
+          "finding": "The selected southeastward municipal transition is depicted by connected blue watercourse lines on both originals. Jiménez repeats Bentín on the northwestern approach to the eastern plain; lateral joins from the Cerros Emilio/Sierra El Diablo setting are visible. The route is separate from the Laguna El Remolino basin to the west.",
+          "sources": [
+            "r200-inegi-camargo2010",
+            "r200-inegi-jimenez2010"
+          ],
+          "correspondence": "supported_at_ordinary_municipal_join_and_river_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            10257
+          ],
+          "component_scope": "Eastern Sierra El Diablo Bentín corridor",
+          "finding": "The selected successive southeast and south stretches follow the mapped Bentín course along the eastern side of Sierra El Diablo. Tributary junctions and the lower El Hundido-side joining setting are depicted. Distinct short line parts are considered as the same connected selected mainstem, without assigning the Bentín name to every unselected tributary.",
+          "sources": [
+            "r200-inegi-jimenez2010"
+          ],
+          "correspondence": "supported_at_ordinary_river_and_join_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            10257
+          ],
+          "component_scope": "Lower Bentín and Palomas approach",
+          "finding": "The mapped southward lower course turns toward the Palomas receiving plain, taking the selected westward bend and joining corridor. The original depicts a continuous incoming watercourse approaching the northern lake-flat margin, rather than requiring an inferred cross-basin shortcut.",
+          "sources": [
+            "r200-inegi-jimenez2010"
+          ],
+          "correspondence": "supported_at_ordinary_lower_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            10257
+          ],
+          "component_scope": "Actual northern Palomas receiving-flat/inlet ending",
+          "finding": "The final selected parts correspond to the northern inlet/receiving-flat setting adjoining Laguna de Palomas, where northern and western mapped watercourses converge. The selection ends there; it does not cross the whole lake or extend to its southern shore. Laguna de los Patos is shown separately to the east. Mapped lake-margin and flat geometry establishes the terminal setting at ordinary scale, without requiring a precise contemporary wet shoreline or persistent surface discharge.",
+          "sources": [
+            "r200-inegi-jimenez2010"
+          ],
+          "correspondence": "supported_at_ordinary_lake_receiving_flat_and_terminal_scale",
+          "component_correspondence_completed": true
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70840684",
+      "source_keys": [
+        "r200-inegi-mapimi-2010",
+        "r200-inegi-tlahualilo-2010",
+        "r200-inecol-ird-playas-descroix"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10264
+          ],
+          "component_scope": "Chosen western opening and northeastward feeder west of Sierra Descubridora",
+          "finding": "The Mapimí relief map depicts an unnamed watercourse rising west of Sierra Descubridora and turning northeast, then north along the eastern side of Cerro Picacho de Ibarra. The chosen opening and consecutive parts correspond at ordinary municipal-map scale. Nearby Santo Domingo and José León belong to distinct mapped approaches and are not assigned to this feeder.",
+          "sources": [
+            "r200-inegi-mapimi-2010"
+          ],
+          "correspondence": "completed_bounded_unnamed_opening_and_feeder_correspondence",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            10264
+          ],
+          "component_scope": "Northward foothill corridor and intermediate joins east of Cerro Picacho de Ibarra",
+          "finding": "The original Mapimí map shows the northward watercourse through the foothill passage east of Cerro Picacho de Ibarra, with side joins and the northeastward departure into the plain. It also distinguishes the western Cañada Honda and Acebuches approaches and the nearby Boquilla de Acebuches waterbody. A selected crossing of that named waterbody is not asserted.",
+          "sources": [
+            "r200-inegi-mapimi-2010"
+          ],
+          "correspondence": "completed_bounded_channel_and_join_correspondence",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            10264
+          ],
+          "component_scope": "El Barroso reach and transition into the El Tordillo surroundings",
+          "finding": "The northeastward-to-eastward plain reach joins the watercourse directly labeled El Barroso on the Mapimí original and continues into the adjoining Tlahualilo map near El Tordillo. The two municipal views support the boundary transition and immediate eastern stream corridor. The small El Tordillo waterbody lies beside this transition; an exact selected lake crossing or a transfer of its name to the stream is not established.",
+          "sources": [
+            "r200-inegi-mapimi-2010",
+            "r200-inegi-tlahualilo-2010"
+          ],
+          "correspondence": "completed_bounded_named_reach_and_boundary_join_correspondence",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            10264
+          ],
+          "component_scope": "Southeastward departure from the El Tordillo corridor toward Laguna Colorada",
+          "finding": "The selected southeastward course departs from the mapped stream that runs farther east toward Las Liebres. The Tlahualilo original covers the intervening plain north and northeast of Sierra Banderas, but does not establish the selected through-going connection to Laguna Colorada. Regional closed-basin prose does not resolve this particular passage.",
+          "sources": [
+            "r200-inegi-tlahualilo-2010",
+            "r200-inecol-ird-playas-descroix"
+          ],
+          "correspondence": "plain_to_laguna_colorada_through_link_unestablished",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            10264
+          ],
+          "component_scope": "Laguna Colorada passage beside Sierra Banderas",
+          "finding": "The selected north–south passage corresponds to the mapped Laguna Colorada immediately east of Sierra Banderas. The municipal hydrography table classifies this named waterbody as intermittent. Descroix separately identifies Laguna Colorada among the small northwestern depressions of the La Laguna region. These establish the lake setting, while neither source establishes both selected approach and departure links.",
+          "sources": [
+            "r200-inegi-tlahualilo-2010",
+            "r200-inecol-ird-playas-descroix"
+          ],
+          "correspondence": "completed_lake_setting_only_inlet_and_outlet_links_pending",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            10264
+          ],
+          "component_scope": "Southern plain loop and eastward return below Las Liebres",
+          "finding": "The municipal original covers the plain crossed by the selected loop south and east of Laguna Colorada. It separately shows the Las Liebres waterbody and its north–south stream corridor, but no connected channel follows the selected loop from Colorada to that corridor. The scholarly regional map and discussion do not supply a managed-channel, overflow or other specific through-link for this selection.",
+          "sources": [
+            "r200-inegi-tlahualilo-2010",
+            "r200-inecol-ird-playas-descroix"
+          ],
+          "correspondence": "laguna_departure_and_southern_plain_loop_unestablished",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            10264
+          ],
+          "component_scope": "Actual inland terminal south of Las Liebres",
+          "finding": "The actual final tip lies in the mapped plain south of Las Liebres and just beyond the north–south corridor associated with that waterbody. It is not independently established as a named river mouth or lake outlet. The incoming selected plain link and terminal hydraulic identity remain unresolved; the endpoint is not extended to a different named lagoon.",
+          "sources": [
+            "r200-inegi-tlahualilo-2010"
+          ],
+          "correspondence": "inland_terminal_setting_supported_incoming_link_and_terminal_identity_pending",
+          "component_correspondence_completed": false
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61144131",
+      "source_keys": [
+        "r200-inrena-san-juan2003"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13885
+          ],
+          "component_scope": "Chosen eastern opening and connection into the Palmadera/upper San Juan setting",
+          "finding": "Detailed map P depicts Jeñuascancha, Sacsa and other neighboring upper feeders, lakes, the Palmadera course and a proposed storage footprint. The selected eastern feeder and every connection into that course cannot be distinguished securely from this map, regional map13.1 and schematic E7. Nearby names and basin membership are not sufficient to identify the selected opening.",
+          "sources": [
+            "r200-inrena-san-juan2003"
+          ],
+          "correspondence": "material_selected_opening_and_through_link_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            13885
+          ],
+          "component_scope": "Upper San Juan and the Colcabamba–Tantará joining setting",
+          "finding": "Map13.1 shows the westward upper Río San Juan course, its tributary relationship to the Huichinga lake-drainage system and the joining Colcabamba course, followed by the southwestward Tantará reach near Aurahuá and Chupamarca. Map P, schematic E0/E7 and pp64–65 supply the same joining hierarchy. This supports the ordinary corridor after the unresolved headward approach.",
+          "sources": [
+            "r200-inrena-san-juan2003"
+          ],
+          "correspondence": "supported_at_ordinary_upper_river_and_join_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13885
+          ],
+          "component_scope": "Tantará southward course and Huachos/Arma confluence",
+          "finding": "The mapped Tantará course bends south past the Tantará/Huamatambo setting and continues toward San Juan de Castrovirreyna. The eastern Arma/Huachos drainage joins near the lower turn. The source prose explicitly distinguishes Tantará from the downstream San Juan name; the junction and selected southward course agree at corridor scale.",
+          "sources": [
+            "r200-inrena-san-juan2003"
+          ],
+          "correspondence": "supported_at_ordinary_river_and_join_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13885
+          ],
+          "component_scope": "Middle San Juan southward and westward bends",
+          "finding": "Map13.1 continuously depicts the San Juan course below the Huachos joining setting, passing the Capillas side-drainage setting and then turning west toward the lower valley. The successive selected bends and joining tributaries correspond to that course. Prose and E0 distinguish Ayoque and Almacén as lower incoming drainages rather than substitute names for the main course.",
+          "sources": [
+            "r200-inrena-san-juan2003"
+          ],
+          "correspondence": "supported_at_ordinary_main_valley_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13885
+          ],
+          "component_scope": "Lower joining corridor and managed partition at Conta",
+          "finding": "The selected lower course enters the Chincha valley and follows the northern arm at the lower partition. Page145 identifies Conta as a hydraulic partition structure and calls Río Chico an earth channel receiving San Juan water. The map and E9 distinguish Chico from the other lower course, Matagente. This managed connection is part of the selected route; no present operating state is inferred.",
+          "sources": [
+            "r200-inrena-san-juan2003"
+          ],
+          "correspondence": "supported_at_ordinary_managed_connector_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13885
+          ],
+          "component_scope": "Northern Río Chico channel and actual Pacific terminal",
+          "finding": "Map13.1 traces the labeled Río Chico west through the lower valley to the Pacific shoreline at Tambo de Mora, separately north of the Matagente outlet. E9 also depicts the Chico branch reaching the ocean. This identifies the actual selected coastward corridor independently of the supplied sea flag, without claiming an exact mouth vertex or current opening.",
+          "sources": [
+            "r200-inrena-san-juan2003"
+          ],
+          "correspondence": "supported_at_ordinary_coastal_terminal_scale",
+          "component_correspondence_completed": true
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "González, Josgraideli, and Miguel Perozo. Estimación del Rendimiento Hídrico Seguro: Caso Embalse Matícora, Estado Falcón, Venezuela. Inver-E-Group; ISBN978-980-7723-40-4.",
+      "official_url": "https://inveregroupve.wordpress.com/wp-content/uploads/2017/03/estimacion_agua.pdf",
+      "catalogue_url": "https://inveregroupve.wordpress.com/descargas/serie-digital-desarrollo-frontera-e-integracion/",
+      "observed_outcome": "The sole linked-original opening returned web-reader Cache miss. No PDF body, source-map pixels or origin HTTP status was exposed.",
+      "outcome_layer": "Web-reader availability failure; origin HTTP unknown.",
+      "restriction_scope": "Whole monograph and equivalent copies, figures, formats and acquisition routes paused. No alternate PDF or mirror was opened.",
+      "earlier_lawful_observations": "Publisher catalogue bibliography and original download link only.",
+      "newly_observed_access_failure": true,
+      "later_discovery_error": "A subsequent bibliographic search mistakenly included the stopped title and returned a third-party Scribd snippet. No linked page or mirror was opened; all post-stop snippet content is excluded from correspondence and substantive use.",
+      "aw_id": "hydro-system:60001922"
+    },
+    {
+      "source_key": "r200-conagua-palomas0848-unread",
+      "publication": "Actualización de la disponibilidad de agua en el acuífero Laguna de Palomas, estado de Chihuahua (0848)",
+      "official_url": "https://sigagis.conagua.gob.mx/gas1/Edos_Acuiferos_18/chihuahua/DR_0848.pdf",
+      "observed_outcome": "Terminal-status action for the sole original-file request was refused. The origin HTTP response, transfer result and body are unknown. No report content was read and no subsequent poll, reading, retry or alternate route followed.",
+      "outcome_layer": "Acquisition-status tool refusal; not an observed HTTP401/403 or availability response.",
+      "restriction_scope": "Whole DR0848 Laguna de Palomas report, equivalents, companion content, original/catalogue/reader/cache/mirror/figure/alternative acquisition routes and unread outputs stopped. This is publication-specific, not a CONAGUA-wide prohibition.",
+      "earlier_lawful_observations": null,
+      "newly_observed_access_failure": true,
+      "material_gap": false,
+      "material_effect": "Optional terminal corroboration unavailable; independently acquired municipal originals establish the bounded selected corridor and terminal setting.",
+      "aw_id": "hydro-system:70835412"
+    },
+    {
+      "publication": "Ministerio de Educación, ESCALE, UGEL Castrovirreyna 2020 educational-location map; original printed title uninspected",
+      "official_url": "https://escale.minedu.gob.pe/documents/inicio/Cartograf%C3%ADa/Mapas%20DRE%20y%20UGEL/Huancavelica/ugel_castrovirreyna_2020.pdf",
+      "observed_outcome": "The sole normal-original acquisition completed direct HTTP200 with Content-Type text/html rather than a PDF. No source body or map was inspected.",
+      "outcome_layer": "Completed direct HTTP-client response and wrong content type; no HTTP401/403 or access-control denial asserted.",
+      "restriction_scope": "Whole identified map and equivalent original, catalogue, reader, cache, mirror, screenshot, format and unread-output routes paused. No retry, alternate route or related UGEL-sheet substitution was made.",
+      "earlier_lawful_observations": null,
+      "newly_observed_access_failure": true,
+      "aw_id": "hydro-system:61144131"
+    },
+    {
+      "publication": "ANA generic map-annex file; underlying publication unidentified",
+      "official_url": "https://www.ana.gob.pe/sites/default/files/normatividad/files/anexos_mapas.pdf",
+      "observed_outcome": "Generic map-annex discovery did not establish exact underlying publication identity. Not requested or used. No new HTTP failure or access denial is asserted.",
+      "outcome_layer": "Unresolved proposed-source identity; no acquisition or HTTP outcome.",
+      "restriction_scope": "Unrequested and unused while the actual publication identity and relation to inherited restrictions remain unresolved.",
+      "newly_observed_access_failure": false,
+      "acquisition_performed": false,
+      "aw_id": "hydro-system:61144131"
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "publication": "Retained Zulia and Falcón geography chapters",
+      "restriction_scope": "Bounded own factual observations and ordinary bibliography only. Originals, crops, overlays and coordinate working material are not redistributed. Regional compilation and historical prose are not evidence of current operations.",
+      "aw_id": "hydro-system:60001922",
+      "acquisition_stop": false
+    },
+    {
+      "source_keys": [
+        "r200-inegi-camargo2010",
+        "r200-inegi-jimenez2010"
+      ],
+      "limitation_kind": "cartographic_scale_and_private_source_material",
+      "observed_outcome": "Municipal thematic plates use generalized regional topographic/hydrographic bases. Only bounded factual source observations and bibliography are reported.",
+      "restriction_scope": "Source PDFs, images, crops, orientation overlays and coordinates remain private. No broad access ban is inferred from copyright or map generalization.",
+      "material_gap": false,
+      "aw_id": "hydro-system:70835412",
+      "acquisition_stop": false
+    },
+    {
+      "publication": "Evaluación y ordenamiento de los recursos hídricos de la cuenca del río San Juan: Estudio hidrológico",
+      "observation": "The complete acquired report includes visually inspected placeholder pages for the advertised base map(p17) and hydrographic map(p76). Other thematic maps and fluvial schematics are present and were inspected.",
+      "limitation_kind": "Missing cartographic content, not an acquisition/access ban",
+      "material_effect": "Contributes to the unresolved selected opening/through-link; no second primary pending category.",
+      "aw_id": "hydro-system:61144131",
+      "acquisition_stop": false,
+      "official_url": "https://sigrid.cenepred.gob.pe/docs/PARA%20PUBLICAR/ANA/Estudio_hidrologico_San_Juan.pdf"
+    }
+  ]
+}

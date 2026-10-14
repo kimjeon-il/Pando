@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "editorcontroller.h"
 #include "projectcodec.h"
 #include "territorial_fixture.h"
@@ -40,7 +41,7 @@ struct Harness {
     QMetaObject::Connection warningConnection;
     explicit Harness(bool mobile):editor(*(mobile?mobileUiEditor:desktopUiEditor)) {
         using namespace pandoeditor;
-        ProjectDocument document({{"A","Alpha",{{{{0,0},{12,0},{12,12},{0,12},{0,0}}}},0x336699}},{{"countries","Countries"}});
+        pandoeditor::ProjectDocument document = makeTerritorialDocument({{{"A","Alpha","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{12,0},{12,12},{0,12},{0,0}}}}},{0x336699,1},"countries"}},{{"countries","Countries"}});
         const auto add=[&](std::string id,std::string name,UnitKind kind,double x,double size,const std::string& parent) {
             Geometry geometry{"Polygon",{},{},{{{{x,1},{x+size,1},{x+size,1+size},{x,1+size},{x,1}}}}};
             GeometryRef key{"info-ui:"+id,1};document.geometries.insert(key,geometry);
@@ -49,7 +50,7 @@ struct Harness {
         };
         add("B","Beta",UnitKind::General,1,10,"A");add("C","Child",UnitKind::General,2,2,"B");
         add("D",std::string(120,'D'),UnitKind::General,7,2,"B");add("R","Independent region",UnitKind::Regional,20,2,"");
-        Project project;project.replace(std::move(document));const auto bytes=projectcodec::encode(project);
+        Project project;project.replace(std::move(document));const auto bytes=::projectcodec::encode(project);
         QFile file(directory.filePath("info-ui.pando.json"));
         if(!file.open(QIODevice::WriteOnly)||file.write(bytes)!=bytes.size())throw std::runtime_error("UI fixture write failed");
         file.close();if(!editor.openFile(QUrl::fromLocalFile(file.fileName())))throw std::runtime_error("UI fixture open failed");

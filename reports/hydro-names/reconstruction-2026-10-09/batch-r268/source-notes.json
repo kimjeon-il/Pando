@@ -1,0 +1,1278 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r268",
+  "sources": [
+    {
+      "source_key": "r268-esri-world-imagery-70252932",
+      "title": "World Imagery: bounded selected river, lake and coastal corridor",
+      "publisher": "Esri and World Imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "bibliography": "Esri and contributors. World Imagery, multiscale satellite/aerial-image mosaic. Selected original view read 14 October 2026.",
+      "publication_identity": "Independently maintained photographic mosaic, positively distinguished from held Canadian name services, CanMatrix distribution, CBMT3978/Toporama, DataBC cartography and stopped geological or fisheries figures. This distinct selected view does not recover an older held imagery view.",
+      "acquisition": "Matching export response and returned original completed normally in the assigned service turn; original read only after terminal completion.",
+      "actual_material_read": "Full original overview; the chosen upper-reservoir opening, northern outlet, entire middle reservoir, Ladore connector, John Hart reservoir and downstream canyon/alluvial course, lower urban reach, estuary and separate source/render/stored endings. Unmarked original pixels, enlarged local reading windows and a separate unchanged-selected-path orientation aid were inspected. Registration uses the actual returned image extent, not the requested bounding box.",
+      "content_read": true,
+      "original_map_pixels_inspected": true,
+      "limitations": "Composite imagery with unverified individual scene dates. No hydronym labels, current flow measurement, precise bank survey or exact seasonal water-level boundary. Mosaic seams are not geographic barriers.",
+      "use_notice": "Original imagery, crops, overlays, exact view parameters, coordinates and private acquisition records are not public-ready. Only independently written bounded observations and ordinary bibliography are included."
+    },
+    {
+      "source_key": "r268-bchydro-campbell-wup2012",
+      "title": "Campbell River System Water Use Plan: Revised for Acceptance by the Comptroller of Water Rights",
+      "authors": [
+        "BC Hydro, Generation Resource Management"
+      ],
+      "publication_date": "2012-11-21",
+      "year": 2012,
+      "publisher": "BC Hydro",
+      "official_url": "https://www.bchydro.com/content/dam/BCHydro/customer-portal/documents/corporate/environment-sustainability/water-use-planning/vancouver-island/campbell-river/campbell-river-water-use-plan.pdf",
+      "source_type": "Primary hydroelectric-operator system plan; bounded authorial prose only",
+      "publication_identity": "BC Hydro’s own Campbell River water-use planning process and facility descriptions, documented by its project page and original title. This is a specific hydroelectric operations plan rather than the unidentified SK108/Nass or Homathko fisheries survey material. Its map figures were not acquired as substitutes for held cartography.",
+      "actual_material_read": "Original title/preface; printed pp1–2 system location; pp5–8 Strathcona, Ladore and John Hart descriptions; p10 separate Quinsam diversion description. The project page confirms the plan’s2012 implementation. No figure/map pixels or parsed-map labels were used.",
+      "supports": "The operator identifies the Campbell River sequence through Upper Campbell, Lower Campbell and John Hart reservoirs to Discovery Passage. It distinguishes the neighboring Quinsam route and diversion from this selected mainstem sequence.",
+      "limitations": "Historical system descriptions support names and ordinary connectivity, not current operating conditions or precise shoreline/name boundaries. Later facility replacement is not inferred from this plan.",
+      "content_read": true,
+      "original_map_pixels_inspected": false,
+      "use_notice": "Only concise own factual synthesis and normal bibliography; no report originals, map figures, extensive extracts or derivative maps. The uninspected underlying cartographic provenance is not treated as cleared."
+    },
+    {
+      "source_key": "r268-usgstopo-70460445",
+      "title": "USGSTopo, The National Map: selected lower Siuslaw River valley, Florence estuary and coastal-mouth setting",
+      "publisher": "U.S. Geological Survey",
+      "authors": [
+        "U.S. Geological Survey, The National Map"
+      ],
+      "date": "Seamless composite service; selected regional original read 14 October 2026. Individual underlying feature dates unverified.",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "source_type": "Original federal multiscale reference cartography",
+      "publication_identity": "Independently maintained National Map compilation positively identified from retained lawful service-description and source-credit records. This separate coastal Oregon regional original is not held service-metadata acquisition, the stopped northern California/southern Oregon head view, an old Stonecabin view, a USGS report or plate, or those research projects and their underlying maps. No held content was recovered.",
+      "acquisition": "One original regional PNG completed normally before source pixels were inspected. No new servicewide metadata request.",
+      "actual_material_read": "Entire original regional map; two overlapping native-resolution unmarked east and west crops; magnified original opening, upper-bend and coastal-ending crops. Direct Siuslaw River labels, connected valley and estuarine corridor, nearby Lake Creek label, Duncan Inlet label, North Fork Siuslaw River junction and separate source/render/stored-ending context were read. A private orientation aid located all original parts and the three ending definitions; it is not independent geographic evidence.",
+      "supports": "Bounded correspondence for every original part, directly named Siuslaw receiving river, intervening lower-valley/estuary continuity and coastal terminal context.",
+      "limitations": "One composite reference-cartography source, not an independent survey for each local reading crop. The exact naming boundary near the eastern Lake Creek label is unverified. The render and quantized stored endings fall on the northern landward rim of the mapped mouth setting rather than being demonstrated open-water points. Compilation epochs, bank positions, shoreline and current wet threads are not established.",
+      "use_notice": "Only independently written factual observations and ordinary bibliography are public-ready. Original maps, local reading crops, orientation aids, complete coordinates and acquisition details remain private.",
+      "content_read": true,
+      "original_map_pixels_inspected": true
+    },
+    {
+      "source_key": "r268-esri-world-imagery-80042164",
+      "title": "World Imagery: bounded selected river, lake and coastal corridor",
+      "publisher": "Esri and World Imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "bibliography": "Esri and contributors. World Imagery, multiscale satellite/aerial-image mosaic. Selected original view read 14 October 2026.",
+      "publication_identity": "Independently maintained photographic mosaic, positively distinguished from held Canadian name services, CanMatrix distribution, CBMT3978/Toporama, DataBC cartography and stopped geological or fisheries figures. This distinct selected view does not recover an older held imagery view.",
+      "acquisition": "Matching export response and returned original completed normally in the assigned service turn; original read only after terminal completion.",
+      "actual_material_read": "Full original overview and unmarked enlarged northern and southern windows; every original selected part; northern feeders and receiving valley; large-lake northern entry; western peninsula and the actual southern lake-outlet arm; lower outlet and separate source/render/stored ending settings. Unmarked original pixels, enlarged local reading windows and a separate unchanged-selected-path orientation aid were inspected. Registration uses the actual returned image extent, not the requested bounding box.",
+      "content_read": true,
+      "original_map_pixels_inspected": true,
+      "limitations": "Composite imagery with unverified individual scene dates. No hydronym labels, current flow measurement, precise bank survey or exact seasonal water-level boundary. Mosaic seams are not geographic barriers.",
+      "use_notice": "Original imagery, crops, overlays, exact view parameters, coordinates and private acquisition records are not public-ready. Only independently written bounded observations and ordinary bibliography are included."
+    },
+    {
+      "source_key": "r268-nluis-cambridge77d1983",
+      "title": "Land Use Information Series: Cambridge Bay, District of Franklin, Northwest Territories, sheet77D",
+      "publisher": "Environment Canada, Lands Directorate, Environmental Conservation Service, with Indian and Northern Affairs; thematic cartography by Agriculture Canada, Land Resource Research Institute",
+      "year": 1983,
+      "information_date": "December1982",
+      "scale": "1:250,000",
+      "base_map": "National Topographic Series77D, Edition1",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_77d.jpg",
+      "source_type": "Primary historical land-resource thematic original",
+      "publication_identity": "The separately issued1983 Environment Canada land-resource project was positively identified from the retained lawful bibliography before acquisition. Its newly inspected original confirms the project, thematic cartographer, NTS77D Edition1 base and printing credits. This is not a CanMatrix delivery, CBMT/Toporama image, naming record, held NLUIS index/56G output or geological/coastal report replacement. PCSP logistical credit is not an identification with the unknown stopped2014 report.",
+      "acquisition": "One normal exact-original acquisition completed successfully. No index, catalogue or alternate route was used.",
+      "actual_material_read": "Full-sheet overview; title, scale,1983 imprint, NTS base edition, Crown copyright, introduction and December1982 information date; regional graticules; northern lake/feeder country, southward valley, western Ferguson Lake basin, intervening peninsula contours, southern outlet, Ekalluk R. and Wellington Bay labels. Original unmarked enlarged map windows were read. A private approximate graticule orientation aid was used only to locate the unchanged selection; geographic findings rely on original pixels and independent imagery.",
+      "supports": "Bounded lower Ekalluk River/Ferguson Lake/Wellington Bay association and identification of the actual lake-outlet arrangement; the selected northern transfer and west-side peninsula crossing are not established by the map.",
+      "limitations": "Historical interim map with incomplete/reconnaissance information, generalized water and thematic boundaries. It is not a modern naming-registry decision or exact channel survey. The source’s historical Ferguson Lake wording is retained without asserting a modern preferred name.",
+      "content_read": true,
+      "original_map_pixels_inspected": true,
+      "use_notice": "Printed Crown copyright. Source originals, crops, overlays and map-derived coordinates remain private; only own factual observations and ordinary bibliography are supplied."
+    },
+    {
+      "source_key": "r268-dfo-cambridge-ifmp2021",
+      "title": "Cambridge Bay Arctic Char, Salvelinus alpinus, Commercial Fishery, Nunavut: Integrated Fisheries Management Plan",
+      "publisher": "Fisheries and Oceans Canada, Arctic Region",
+      "publication_date": "2021-03-10",
+      "year": 2021,
+      "official_url": "https://www.dfo-mpo.gc.ca/fisheries-peches/ifmp-gmp/arctic-char-omble-chev/arctic-char-omble-chev-eng.html",
+      "source_type": "Primary commercial-fishery management-plan prose and name table",
+      "publication_identity": "Specific Cambridge Bay commercial-fishery planning publication already independently distinguished in the lawful bibliography from unknown Nunavut coastal inventories, geological projects and PCSP reports. Current title, effective year and finalization date were read.",
+      "actual_material_read": "Title/effective year; section1.1 finalization date; section1.2 and Table1; sections1.4–1.5 mouth-oriented fishery description. No plan figure or borrowed base-map pixels were read.",
+      "supports": "The plan pairs local Ekalluktok with English Ekalluk (Wellington) River and describes its Wellington Bay mouth and Ferguson Lake-side outlet fishery.",
+      "limitations": "The source’s fishery-name table is not an independently verified geographical naming-registry decision. It supplies no selected northern feeder or peninsula through-link.",
+      "content_read": true,
+      "original_map_pixels_inspected": false
+    },
+    {
+      "source_key": "r268-igvsb-aragua2010",
+      "title": "Mapa Político, Estado Aragua",
+      "author": "Instituto Geográfico de Venezuela Simón Bolívar",
+      "publisher": "Instituto Geográfico de Venezuela Simón Bolívar, Ministerio del Poder Popular para el Ambiente",
+      "edition": "Primera edición, 2010",
+      "year": 2010,
+      "scale": "1:250,000",
+      "official_url": "https://arquivosgeo.wordpress.com/wp-content/uploads/2018/01/mapa-del-estado-aragua-y-sus-municipios.pdf",
+      "hosting_note": "Digital reproduction of the issuing institute’s original map hosted by a third-party geography archive; the URL is not an issuing-government server.",
+      "source_type": "Original government regional political cartography with hydrography",
+      "publication_identity": "This exact Aragua 2010 political-map original was independently identified and read in earlier lawful work. The current title, issuing body, first-edition imprint and scale were confirmed from the completed original. It is distinct from held DCN La Victoria 6746, Hackley national geology, SAGECAN Delta 1994, restricted JOG material and the unresolved FEP sheet 173 reproduction; its independence is not inferred merely from a new host or date.",
+      "acquisition": "One normal exact-original acquisition completed; the full map and relevant pixels were actually read.",
+      "actual_material_read": "Whole-sheet overview; title, issuer, legend, scale, projection, first-edition imprint and reproduction notice; enlarged unmarked selected corridor from the eastern foothill drainage through Taguaiguay, Tiuragua/La Covera/La Huérfana lowland, Lago de Valencia and lake-interior ending. Private selected-part orientation aids were used only for locating the selection.",
+      "supports": "Direct bounded names Laguna de Taguaiguay and Lago de Valencia; eastern drainage, lagoon, cultivated interlake geography and receiving-lake setting.",
+      "limitations": "Generalized political-map hydrography and historical shoreline. Boundary overprinting obscures some small interlake drainage; independent imagery supplies the ordinary floor correspondence. No complete river name, active transfer, modern bank or registry status established.",
+      "source_use_notice": "The printed margin requires prior IGVSB authorization for total or partial reproduction. This is an ordinary reproduction notice, not an officials-only factual-reading prohibition. Only own observations and ordinary bibliography are prepared; originals and derivatives remain private.",
+      "content_read": true
+    },
+    {
+      "source_key": "r268-esri-taguaiguay-valencia",
+      "title": "World Imagery: selected Cagua–Taguaiguay–eastern Lago de Valencia corridor",
+      "publisher": "Esri and World Imagery imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "source_type": "Maintained photographic satellite/aerial imagery mosaic",
+      "publication_identity": "Independent photographic imagery publication, distinct from the held cartographic reports/sheets. This newly selected Venezuelan region does not retrieve any exact held Ellesmere, Nevada, Knik, Mendoza, Labrador, Patagonia or coastal-Alaska view.",
+      "acquisition": "The bounded export and returned original both completed normally and sequentially. The actual returned extent was retained and used for private orientation.",
+      "actual_material_read": "Complete bounded original showing all nine parts and both lakes; native-image eastern feeder/lagoon and cultivated-connector detail crops; selected-part orientation aid and separate endpoint location.",
+      "supports": "Small eastern valley and lagoon passage, continuous cultivated/settled lowland along the northern foothill margin, southwestern lakeshore approach and lake-interior continuation.",
+      "limitations": "No hydronym labels or verified image epoch. Mosaic seams, seasonal shore differences and infrastructure do not establish exact modern flow paths, lake-to-lake hydraulic operation or a current bank survey. The observation is ordinary geographic correspondence.",
+      "source_use_notice": "Original imagery, crops, orientation aids and acquisition details are not redistributed. Only independent factual synthesis and the ordinary service citation are prepared.",
+      "content_read": true
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70252932",
+      "source_keys": [
+        "r268-esri-world-imagery-70252932",
+        "r268-bchydro-campbell-wup2012"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9345
+          ],
+          "component_scope": "upper reservoir interior opening",
+          "finding": "The chosen opening and successive northeastward parts occupy the elongated reservoir arm. Every original part stays within the same broad connected lake corridor. Photographic tone changes are mosaic seams; they do not break waterbody continuity. This is an interior lake opening, not the natural headwater.",
+          "sources": [
+            "r268-esri-world-imagery-70252932",
+            "r268-bchydro-campbell-wup2012"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "original_part_span_zero_based_inclusive": [
+            0,
+            6
+          ]
+        },
+        {
+          "fragments": [
+            9345
+          ],
+          "component_scope": "upper reservoir outlet and receiver",
+          "finding": "The northern lake arm narrows into the dam/outlet passage and a short connected channel reaches the western arm of the next reservoir. The original line is generalized across the water and engineered outlet setting; the ordinary connecting corridor is visible.",
+          "sources": [
+            "r268-esri-world-imagery-70252932",
+            "r268-bchydro-campbell-wup2012"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            7
+          ],
+          "original_part_span_zero_based_inclusive": [
+            7,
+            7
+          ]
+        },
+        {
+          "fragments": [
+            9345
+          ],
+          "component_scope": "lower reservoir crossing",
+          "finding": "The west-to-east run crosses the broad irregular receiving reservoir, including its southern/eastern arm. The open-water shape and connected arms account for all five original parts and their joins.",
+          "sources": [
+            "r268-esri-world-imagery-70252932",
+            "r268-bchydro-campbell-wup2012"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            8,
+            9,
+            10,
+            11,
+            12
+          ],
+          "original_part_span_zero_based_inclusive": [
+            8,
+            12
+          ]
+        },
+        {
+          "fragments": [
+            9345
+          ],
+          "component_scope": "ladore to john hart link",
+          "finding": "The selection turns north from the eastern reservoir outlet through the narrow dam/channel passage into the western end of the long downstream reservoir. Unmarked enlarged pixels show the actual connected passage beside the generalized selection. No present gate state or precise wet-thread alignment is required.",
+          "sources": [
+            "r268-esri-world-imagery-70252932",
+            "r268-bchydro-campbell-wup2012"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            13,
+            14
+          ],
+          "original_part_span_zero_based_inclusive": [
+            13,
+            14
+          ]
+        },
+        {
+          "fragments": [
+            9345
+          ],
+          "component_scope": "john hart and lower river transition",
+          "finding": "The long eastward part crosses the elongated downstream reservoir and continues beyond its eastern dam into the wooded river canyon and lower alluvial corridor. All of the part, including its riverward ending, was inspected; the line is not treated as a surveyed channel centreline.",
+          "sources": [
+            "r268-esri-world-imagery-70252932",
+            "r268-bchydro-campbell-wup2012"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            15
+          ],
+          "original_part_span_zero_based_inclusive": [
+            15,
+            15
+          ]
+        },
+        {
+          "fragments": [
+            9345
+          ],
+          "component_scope": "lower urban river",
+          "finding": "The route continues along the same lower river corridor through the developed valley. Local offsets from the narrow visible water thread remain within the connected river/alluvial setting.",
+          "sources": [
+            "r268-esri-world-imagery-70252932",
+            "r268-bchydro-campbell-wup2012"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            16
+          ],
+          "original_part_span_zero_based_inclusive": [
+            16,
+            16
+          ]
+        },
+        {
+          "fragments": [
+            9345
+          ],
+          "component_scope": "estuarine ending",
+          "finding": "The final original part turns north into the estuarine channel and low delta islands. Source and render endpoints were located separately, with the render endpoint farther toward the outer receiving-water setting; the final stored position was also retained separately. The estuary connects visibly to the marine passage. No exact tidal boundary or surveyed mouth is assigned.",
+          "sources": [
+            "r268-esri-world-imagery-70252932",
+            "r268-bchydro-campbell-wup2012"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            17
+          ],
+          "original_part_span_zero_based_inclusive": [
+            17,
+            17
+          ]
+        }
+      ],
+      "part_basis": "Original part indices are zero-based within the single original fragment; all spans are inclusive. One-based equivalents are 1–18 for zero-based parts 0–17. Original fragment order, FID, logical ID, role, stage, all 18 parts and all 81 stored positions are preserved. Source endpoint, render endpoint and quantized final stored position remain separate. No joining, reversal, simplification, repair, source-geometry reconstruction or natural-headwater inference is made.",
+      "terminal_observations": {
+        "stored_terminal_class": "sea",
+        "stored_class_preserved": true,
+        "source_endpoint": "Separately located in the lower estuarine river/channel setting among the delta margins.",
+        "render_endpoint": "Separately located farther northeast toward the outer estuarine channel and receiving marine setting.",
+        "stored_final_coordinate": "Preserved separately; its quantized location corresponds to the rendered ending at the reading scale.",
+        "geographic_interpretation": "The final selected corridor reaches the Campbell River estuary opening to Discovery Passage. Both endpoint definitions have ordinary estuarine/receiving-water coverage.",
+        "receiving_water_name": "Discovery Passage",
+        "receiving_water_feature_type": "marine passage",
+        "limit": "No exact tidal boundary, active bank, surveyed mouth or present gate operation is claimed; source and render endpoints are not collapsed."
+      },
+      "bounded_name_observations": [
+        {
+          "name": "Campbell River",
+          "feature_type": "river",
+          "role": "Representative connected receiving-river system.",
+          "is_representative_river_candidate": true,
+          "source_keys": [
+            "r268-bchydro-campbell-wup2012"
+          ]
+        },
+        {
+          "name": "Upper Campbell Reservoir; Lower Campbell Reservoir; John Hart Lake Reservoir",
+          "feature_type": "lakes/reservoirs",
+          "role": "Separate named lake components of the selected sequence, not additional river synonyms.",
+          "is_representative_river_candidate": false,
+          "source_keys": [
+            "r268-bchydro-campbell-wup2012"
+          ]
+        },
+        {
+          "name": "Discovery Passage",
+          "feature_type": "marine passage",
+          "role": "Named receiving marine setting beyond the lower estuary.",
+          "is_representative_river_candidate": false,
+          "source_keys": [
+            "r268-bchydro-campbell-wup2012"
+          ]
+        },
+        {
+          "name": "Quinsam River",
+          "feature_type": "neighboring tributary",
+          "role": "Separately described natural tributary/diversion system, not the representative name of this selected reservoir chain.",
+          "is_representative_river_candidate": false,
+          "source_keys": [
+            "r268-bchydro-campbell-wup2012"
+          ]
+        }
+      ],
+      "scope_gap": "Individual lake names remain bounded components. Natural headwaters, exact dam-to-river name limits and legal named-water boundaries are not established.",
+      "uncertainties": [
+        "The selected starting position lies in a reservoir and is not a natural source.",
+        "Names of individual reservoirs are not transferred to every river segment or to a scalar whole-feature label.",
+        "Historical operational prose and composite photography do not establish present discharge, current gate settings or exact banks.",
+        "Formal naming-registry status, Korean naming and product application remain unverified or disabled."
+      ],
+      "completion_scope": "All18 original parts and81 stored positions of stage3 mainstem FID9345, the chosen lake-interior opening, every reservoir/outlet/river join and separate source/render/stored endings have ordinary connected-corridor coverage. The bounded representative Campbell River identity is supported; no necessary link remains unobserved."
+    },
+    {
+      "aw_id": "hydro-system:70460445",
+      "source_keys": [
+        "r268-usgstopo-70460445"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9720
+          ],
+          "component_scope": "eastern selected valley",
+          "finding": "The selected eastern opening and northwest-going first two parts follow the connected mapped river valley beside the highway. The nearby Lake Creek label is read but its exact local reach attribution is not sufficiently bounded to rename these entire parts. The first stored point is a chosen opening, not an established natural source.",
+          "sources": [
+            "r268-usgstopo-70460445"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Lake Creek"
+          ],
+          "original_part_indices": [
+            0,
+            1
+          ],
+          "original_part_span_zero_based_inclusive": [
+            0,
+            1
+          ]
+        },
+        {
+          "fragments": [
+            9720
+          ],
+          "component_scope": "siuslaw curved valley",
+          "finding": "The next four original parts follow the directly labelled Siuslaw River through its southward valley bend, southeastward turn and broad return west. Tributary valleys and the intervening mapped alluvial floor are connected at ordinary geographic scale; individual generalized segments need not coincide with every current meander.",
+          "sources": [
+            "r268-usgstopo-70460445"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Siuslaw River"
+          ],
+          "original_part_indices": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "original_part_span_zero_based_inclusive": [
+            2,
+            5
+          ]
+        },
+        {
+          "fragments": [
+            9720
+          ],
+          "component_scope": "middle river and duncan inlet",
+          "finding": "These four original parts continue west in the same river/estuarine corridor, including the directly labelled Duncan Inlet setting and its continuation toward the broader lower valley. The inlet label is confined to its mapped local reach, not treated as a separate whole-system synonym.",
+          "sources": [
+            "r268-usgstopo-70460445"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Siuslaw River",
+            "Duncan Inlet"
+          ],
+          "original_part_indices": [
+            6,
+            7,
+            8,
+            9
+          ],
+          "original_part_span_zero_based_inclusive": [
+            6,
+            9
+          ]
+        },
+        {
+          "fragments": [
+            9720
+          ],
+          "component_scope": "lower siuslaw estuary approach",
+          "finding": "These three original parts follow the widening, directly labelled Siuslaw River southwest toward Florence. The selected segments remain within the common mapped river, islands and low estuarine margin corridor.",
+          "sources": [
+            "r268-usgstopo-70460445"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Siuslaw River"
+          ],
+          "original_part_indices": [
+            10,
+            11,
+            12
+          ],
+          "original_part_span_zero_based_inclusive": [
+            10,
+            12
+          ]
+        },
+        {
+          "fragments": [
+            9720
+          ],
+          "component_scope": "north fork join and florence",
+          "finding": "These two parts cross the broad lower river at the directly mapped North Fork Siuslaw River junction and continue through the Florence estuary setting. The northern branch is lateral context only; South Slough is a separately labelled southern side-water setting.",
+          "sources": [
+            "r268-usgstopo-70460445"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Siuslaw River",
+            "North Fork Siuslaw River",
+            "South Slough"
+          ],
+          "original_part_indices": [
+            13,
+            14
+          ],
+          "original_part_span_zero_based_inclusive": [
+            13,
+            14
+          ]
+        },
+        {
+          "fragments": [
+            9720
+          ],
+          "component_scope": "coastal mouth and distinct endings",
+          "finding": "The final original part turns west then north through the broad estuary and coastal-spit corridor to the Siuslaw mouth setting. The source endpoint lies at the coastal mouth; the render endpoint and separately stored quantized final position lie northeast on its mapped northern landward rim. That final landward adjustment is disclosed, not represented as a new channel or open-water point.",
+          "sources": [
+            "r268-usgstopo-70460445"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Siuslaw River"
+          ],
+          "original_part_indices": [
+            15
+          ],
+          "original_part_span_zero_based_inclusive": [
+            15,
+            15
+          ]
+        }
+      ],
+      "part_basis": "Original part indices are zero-based within the single stored fragment; every stated span is inclusive. Parts 0–15 and all 77 stored positions, fragment order, mainstem role and stage 3 are preserved. Source endpoint, render endpoint and stored quantized final coordinate are inspected separately. No geometry repair, reversal, joining, source-geometry reconstruction or natural-headwater inference is made.",
+      "terminal_observations": {
+        "stored_terminal_class": "sea",
+        "stored_class_preserved": true,
+        "source_endpoint": "Separately located at the coastal mouth of the labelled Siuslaw River, west of the northern terminal bend.",
+        "render_endpoint": "Separately located northeast of the source endpoint on the mapped northern landward rim of the estuary-mouth setting. This point is not established as open water.",
+        "stored_final_coordinate": "Separately inspected as the quantized final stored position at the same mapped northern landward-rim setting as the render endpoint; it is not substituted for the source endpoint.",
+        "geographic_interpretation": "The final original part rounds the broad lower Florence estuary, turns north alongside the coastal spit and reaches the Siuslaw mouth setting; its last render adjustment extends onto the mapped northern landward rim. At ordinary estuarine-corridor scale this remains the same coastal terminal context, without a newly asserted watercourse through that final landward offset.",
+        "receiving_water_name": null,
+        "limit": "All three ending definitions remain separate and the stored sea class is preserved as model metadata. No exact present shoreline, surveyed mouth, tidal-flow direction or bank position is claimed."
+      },
+      "bounded_name_observations": [
+        {
+          "name": "Siuslaw River",
+          "role": "Directly labelled receiving corridor in the curved upper part of the selected view and throughout the lower river/estuary; representative candidate.",
+          "source_keys": [
+            "r268-usgstopo-70460445"
+          ]
+        },
+        {
+          "name": "Lake Creek",
+          "role": "Direct map label near the selected eastern opening and northern tributary setting. Exact label extent/name-transition is unverified; not applied as a whole selected-component name and not a Siuslaw synonym.",
+          "source_keys": [
+            "r268-usgstopo-70460445"
+          ]
+        },
+        {
+          "name": "Duncan Inlet",
+          "role": "Bounded directly labelled intermediate river/estuarine reach near the middle selected corridor; not a representative synonym.",
+          "source_keys": [
+            "r268-usgstopo-70460445"
+          ]
+        },
+        {
+          "name": "North Fork Siuslaw River",
+          "role": "Directly labelled separate northern branch joining the broad lower selected river near Florence; lateral connection context, not a separately selected tributary fragment.",
+          "source_keys": [
+            "r268-usgstopo-70460445"
+          ]
+        },
+        {
+          "name": "South Slough",
+          "role": "Directly labelled southern side-water context beside the lower estuary; not used to rename the selected mainstem.",
+          "source_keys": [
+            "r268-usgstopo-70460445"
+          ]
+        }
+      ],
+      "uncertainties": [
+        "The chosen eastern opening is not established as a natural river source.",
+        "The map labels Lake Creek near the eastern opening, but the precise local name transition or label extent is not established; no separate upstream name is imposed across the selected parts.",
+        "Duncan Inlet is a bounded mapped reach/estuarine label, not a synonym for the representative river.",
+        "The source endpoint and the render/stored endings have distinct coastal positions. The render/stored point is on the mapped northern landward rim; it is not asserted to be in open water.",
+        "Compilation scale and epochs do not establish every current meander, channel bank, tide or shoreline.",
+        "No formal registry verification, scalar whole-feature label, Korean name or automatic application is asserted."
+      ],
+      "completion_scope": "The single mainstem fragment, all 16 original parts and 77 stored positions were compared with the original regional cartography, two overlapping unmarked east/west crops and focused opening, upper-bend and ending crops. The connected ordinary valley/river/estuary corridor, named receiving system and terminal coastal setting are supported. The final landward render adjustment and eastern local naming uncertainty are explicitly bounded rather than silently repaired."
+    },
+    {
+      "aw_id": "hydro-system:80042164",
+      "source_keys": [
+        "r268-esri-world-imagery-80042164",
+        "r268-nluis-cambridge77d1983",
+        "r268-dfo-cambridge-ifmp2021"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2362
+          ],
+          "component_scope": "northern lake dotted opening",
+          "finding": "The chosen northeastern opening and long west/southwest excursion are located in the northern lake-dotted plain. The sources show several small waterbodies, shallow drainage lines and intervening ground. They do not independently establish the complete chosen western feeder transfer into the southern receiving corridor; no name is assigned to this opening.",
+          "sources": [
+            "r268-esri-world-imagery-80042164",
+            "r268-nluis-cambridge77d1983"
+          ],
+          "correspondence": "necessary_connection_unresolved",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            0
+          ],
+          "original_part_span_zero_based_inclusive": [
+            0,
+            0
+          ]
+        },
+        {
+          "fragments": [
+            2362
+          ],
+          "component_scope": "northern receiving valley",
+          "finding": "The southward approach and eastward bend lie in the broad connected shallow valley where small feeders meet the more evident south-flowing channel. Ordinary receiving-valley correspondence is supported, while exact first-part arrival and precise wet-thread coincidence are not asserted.",
+          "sources": [
+            "r268-esri-world-imagery-80042164",
+            "r268-nluis-cambridge77d1983"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            1,
+            2
+          ],
+          "original_part_span_zero_based_inclusive": [
+            1,
+            2
+          ]
+        },
+        {
+          "fragments": [
+            2362
+          ],
+          "component_scope": "southward lake approach",
+          "finding": "The selected southeastward and southward part follows the wider low drainage corridor toward the northern margin of the large lake. Unmarked photography shows the meandering channel and surrounding alluvial/wet ground; historical cartography shows the same southward receiver. The generalized line is offset locally from the small photographed thread.",
+          "sources": [
+            "r268-esri-world-imagery-80042164",
+            "r268-nluis-cambridge77d1983"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            3
+          ],
+          "original_part_span_zero_based_inclusive": [
+            3,
+            3
+          ]
+        },
+        {
+          "fragments": [
+            2362
+          ],
+          "component_scope": "western lake margin",
+          "finding": "The part enters the northern lake embayment and traverses the connected western lake margin. The western-lobe shape matches the historically mapped Ferguson Lake body. This establishes the lake association, without extending the lake name over the later land crossing.",
+          "sources": [
+            "r268-esri-world-imagery-80042164",
+            "r268-nluis-cambridge77d1983"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            4
+          ],
+          "original_part_span_zero_based_inclusive": [
+            4,
+            4
+          ]
+        },
+        {
+          "fragments": [
+            2362
+          ],
+          "component_scope": "unresolved peninsula transfer",
+          "finding": "These eleven original parts run southwest across the land peninsula west of the large lake rather than through the lake’s connected southern outlet arm. The original map depicts relief and land between the northern margin and the southern outlet; photography shows the same landward excursion, small wet hollows and an open-water passage farther east/south. No ordinary through-valley, lake connection or wetland passage along the selected transfer is established. This is a necessary link gap, not a demand for exact modern banks or the active channel thread.",
+          "sources": [
+            "r268-esri-world-imagery-80042164",
+            "r268-nluis-cambridge77d1983"
+          ],
+          "correspondence": "necessary_connection_unresolved",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "original_part_span_zero_based_inclusive": [
+            5,
+            15
+          ]
+        },
+        {
+          "fragments": [
+            2362
+          ],
+          "component_scope": "named lower outlet and bay ending",
+          "finding": "The final westward reach occupies the lower outlet corridor and shallow mouth at Wellington Bay. The original thematic map directly labels the receiving river Ekalluk R.; the lake/outlet/bay arrangement matches the independently photographed shores. Source and render endings were inspected separately, with the render endpoint farther west into the bayward shallows; the stored final position remains separate. This lower identification does not fill the upstream peninsula gap.",
+          "sources": [
+            "r268-esri-world-imagery-80042164",
+            "r268-nluis-cambridge77d1983",
+            "r268-dfo-cambridge-ifmp2021"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            16,
+            17,
+            18
+          ],
+          "original_part_span_zero_based_inclusive": [
+            16,
+            18
+          ]
+        }
+      ],
+      "part_basis": "Original part indices are zero-based within the single original fragment; all spans are inclusive. One-based equivalents are 1–19 for zero-based parts 0–18. Original fragment order, FID, logical ID, role, stage, all 19 parts and all 77 stored positions are preserved. Source endpoint, render endpoint and quantized final stored position remain separate. No joining, reversal, simplification, repair, source-geometry reconstruction or natural-headwater inference is made.",
+      "terminal_observations": {
+        "stored_terminal_class": "sea",
+        "stored_class_preserved": true,
+        "source_endpoint": "Separately located in the shallow lake-outlet/river-mouth corridor approaching Wellington Bay.",
+        "render_endpoint": "Separately located farther west in the same bayward shallow receiving-water setting.",
+        "stored_final_coordinate": "Preserved separately; quantization places it with the rendered ending at this scale.",
+        "geographic_interpretation": "The final selected reach has complete ordinary outlet-to-bay correspondence and a supported lower Ekalluk River identity, independently of the inland connection gap.",
+        "receiving_water_name": "Wellington Bay",
+        "receiving_water_feature_type": "marine bay",
+        "limit": "No exact shoreline, instantaneous water level, tidal boundary, surveyed mouth or present discharge is inferred. Source and render definitions remain separate."
+      },
+      "bounded_name_observations": [
+        {
+          "name": "Ekalluk River",
+          "feature_type": "river",
+          "role": "Directly mapped lower lake-to-bay outlet and provisional representative receiving-river candidate.",
+          "is_representative_river_candidate": true,
+          "source_keys": [
+            "r268-nluis-cambridge77d1983",
+            "r268-dfo-cambridge-ifmp2021"
+          ]
+        },
+        {
+          "name": "Ekalluktok; Ekalluk (Wellington) River",
+          "feature_type": "source-attributed local river names",
+          "role": "Names paired in the2021 management plan; not a separate formal registry determination.",
+          "is_representative_river_candidate": false,
+          "source_keys": [
+            "r268-dfo-cambridge-ifmp2021"
+          ]
+        },
+        {
+          "name": "Ferguson Lake",
+          "feature_type": "lake",
+          "role": "Historical name used in the1983 map and2021 management plan for the large receiving lake; not applied to the land peninsula or every upstream pond.",
+          "is_representative_river_candidate": false,
+          "source_keys": [
+            "r268-nluis-cambridge77d1983",
+            "r268-dfo-cambridge-ifmp2021"
+          ]
+        },
+        {
+          "name": "Wellington Bay",
+          "feature_type": "marine bay",
+          "role": "Named bay receiving the lower Ekalluk outlet.",
+          "is_representative_river_candidate": false,
+          "source_keys": [
+            "r268-nluis-cambridge77d1983",
+            "r268-dfo-cambridge-ifmp2021"
+          ]
+        }
+      ],
+      "material_gap": "Original parts5–15 leave the western lake shore and cross the adjacent land peninsula before reaching the actual southern outlet arm. Both the historical map and independent photography show the connected lake passage farther east/south, while land, relief and small separate wet hollows occupy the selected intervening route. The necessary selected through-link is not established at ordinary connected lake/valley/wetland scale. The long first part also has a bounded unconfirmed western feeder link between its opening lake setting and the clearly visible southward receiving corridor; neighboring lakes and thin channels alone do not prove that chosen transfer.",
+      "scope_gap": "The lower Ekalluk name and historical Ferguson Lake/Wellington Bay association are supported. Naming that lower receiver does not resolve the selected peninsula crossing or assign names to every northern feeder and pool.",
+      "uncertainties": [
+        "The west-side peninsula transfer in parts5–15 lacks the necessary connected geographic support.",
+        "The long first part’s western feeder transfer is not independently established; the southward receiving valley itself is located.",
+        "The known lake’s connected outlet arm follows a different, more easterly/southerly route than the selected peninsula crossing.",
+        "The lower Ekalluk receiving-river name is supported, but cannot by itself complete the composite selection.",
+        "No current preferred lake name, formal naming boundary, surveyed source or exact contemporary wet thread is asserted.",
+        "The lower Ekalluk name and historical Ferguson Lake/Wellington Bay association are supported. Naming that lower receiver does not resolve the selected peninsula crossing or assign names to every northern feeder and pool."
+      ],
+      "completion_scope": "The bounded pass accounts for all19 original parts and77 stored positions of stage3 mainstem FID2362. Receiving-valley, lake and terminal geography are supported in the stated components; the parts5–15 peninsula transfer and a bounded first-part feeder link remain unestablished. The primary result is source_material_pending, not a completed null-name scope hold. There is no new source-access failure and no automatic application."
+    },
+    {
+      "aw_id": "hydro-system:60006623",
+      "source_keys": [
+        "r268-igvsb-aragua2010",
+        "r268-esri-taguaiguay-valencia"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10820
+          ],
+          "component_scope": "eastern unnamed feeder",
+          "finding": "The chosen eastern opening follows a small foothill draw northwest into the cultivated lowland east of the lagoon. Original political-map blue drainage and the photographed valley-floor setting agree at ordinary corridor scale. The start is a selected opening, not an established natural source, and no river hydronym is supported for it.",
+          "sources": [
+            "r268-igvsb-aragua2010",
+            "r268-esri-taguaiguay-valencia"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            0
+          ],
+          "original_part_span_zero_based_inclusive": [
+            0,
+            0
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            0,
+            0
+          ]
+        },
+        {
+          "fragments": [
+            10820
+          ],
+          "component_scope": "laguna de taguaiguay passage",
+          "finding": "The westward approach reaches the eastern lagoon arm, then crosses the open lagoon and its western side. The original political map directly labels this water body Laguna de Taguaiguay. Imagery distinguishes the main lagoon, marginal ponds and surrounding foothills; the selected lagoon passage is not treated as a named river reach.",
+          "sources": [
+            "r268-igvsb-aragua2010",
+            "r268-esri-taguaiguay-valencia"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Laguna de Taguaiguay"
+          ],
+          "original_part_indices": [
+            1,
+            2
+          ],
+          "original_part_span_zero_based_inclusive": [
+            1,
+            2
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            1,
+            2
+          ]
+        },
+        {
+          "fragments": [
+            10820
+          ],
+          "component_scope": "interlake cultivated lowland",
+          "finding": "The two original parts continue west through the Tiuragua–La Covera lowland along the northern foot of the southern hills. Political boundary symbols obscure some small drainage on the regional map. The independently read imagery shows a continuous cultivated, locally settled floor with drainage/vegetated strips around the foothill edge, covering both parts and their joins without crossing the southern hill mass. This establishes ordinary geographic-corridor correspondence, not an exact active channel or present hydraulic transfer between the lakes.",
+          "sources": [
+            "r268-igvsb-aragua2010",
+            "r268-esri-taguaiguay-valencia"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            3,
+            4
+          ],
+          "original_part_span_zero_based_inclusive": [
+            3,
+            4
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            3,
+            4
+          ]
+        },
+        {
+          "fragments": [
+            10820
+          ],
+          "component_scope": "southwestern lowland lakeshore approach",
+          "finding": "The selected southwestern bend remains in the cultivated receiving floor, then turns northwest through the La Huérfana-side lakeshore setting into the eastern water of Lago de Valencia. Imagery resolves the ordinary floor-to-lake continuation. The historical political map has a different generalized shoreline. No operational, flow-direction or exact modern bank claim is made.",
+          "sources": [
+            "r268-igvsb-aragua2010",
+            "r268-esri-taguaiguay-valencia"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Lago de Valencia"
+          ],
+          "original_part_indices": [
+            5
+          ],
+          "original_part_span_zero_based_inclusive": [
+            5,
+            5
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            5,
+            5
+          ]
+        },
+        {
+          "fragments": [
+            10820
+          ],
+          "component_scope": "eastern valencia lake continuation",
+          "finding": "The long original part turns north and then west within the eastern Lago de Valencia water-body setting. The map directly names the receiving lake and shows its eastern shores and islands; the image places this selected continuation within the same broad lake. The part is a modeled lake passage rather than evidence of a river channel crossing the lake.",
+          "sources": [
+            "r268-igvsb-aragua2010",
+            "r268-esri-taguaiguay-valencia"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Lago de Valencia"
+          ],
+          "original_part_indices": [
+            6
+          ],
+          "original_part_span_zero_based_inclusive": [
+            6,
+            6
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            6,
+            6
+          ]
+        },
+        {
+          "fragments": [
+            10820
+          ],
+          "component_scope": "valencia lake interior and separate endings",
+          "finding": "Both remaining original parts continue west through Lago de Valencia lake interior. The source endpoint and render endpoint were considered separately and coincide in the metadata; the stored quantized final position is retained separately. All occupy the same lake-interior setting. None is treated as a surveyed river mouth, shoreline, lake outlet or coastal endpoint.",
+          "sources": [
+            "r268-igvsb-aragua2010",
+            "r268-esri-taguaiguay-valencia"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Lago de Valencia"
+          ],
+          "original_part_indices": [
+            7,
+            8
+          ],
+          "original_part_span_zero_based_inclusive": [
+            7,
+            8
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            7,
+            8
+          ]
+        }
+      ],
+      "part_basis": "Original local indices are zero-based and all spans are inclusive. The sole mainstem FID 10820 has local and aggregate parts 0–8, equivalent to one-based parts 1–9. All nine original parts, 53 stored positions, stage 3, role, flags and fragment order are unchanged. No joining, reversing, simplification or repair. Source endpoint, render endpoint and stored quantized ending remain separate even where source and render metadata coincide.",
+      "terminal_observations": {
+        "stored_terminal_class": "endorheic",
+        "stored_class_preserved": true,
+        "terminal_fid": 10820,
+        "source_endpoint": "Separately located within the Lago de Valencia lake interior.",
+        "render_endpoint": "Separately located at the same metadata position as the source endpoint, also in the lake interior.",
+        "stored_final_coordinate": "Retained as the separate quantized ending; it corresponds to the same lake-interior setting and does not replace source or render metadata.",
+        "geographic_interpretation": "The selected ending is inside the receiving lake, not at its shoreline or a river mouth.",
+        "receiving_water_name": "Lago de Valencia",
+        "limit": "No terminal reclassification, lake outlet, surveyed mouth, current water level or present operational claim."
+      },
+      "bounded_name_candidates": [
+        {
+          "name": "Laguna de Taguaiguay",
+          "role": "bounded_intermediate_lake",
+          "source_keys": [
+            "r268-igvsb-aragua2010"
+          ],
+          "support": "Direct original-map label identifies the intermediate eastern lake crossed by the selected system.",
+          "limit": "Source-specific spelling retained. This lake label is not a river name or a scalar name for all nine parts."
+        },
+        {
+          "name": "Lago de Valencia",
+          "role": "bounded_receiving_lake",
+          "source_keys": [
+            "r268-igvsb-aragua2010"
+          ],
+          "support": "Direct original-map label identifies the large receiving lake and selected terminal interior.",
+          "limit": "The lake name is not extended to the unnamed feeder or interlake corridor."
+        }
+      ],
+      "scope_hold_reason": "All original parts have ordinary geographic correspondence, but the selection combines an unnamed feeder, an intermediate lake, cultivated interlake lowland and receiving-lake interior. No supported representative river name is established for this composite.",
+      "geographic_correspondence": "All nine original parts and their joins are accounted for: eastern small foothill drainage, Laguna de Taguaiguay passage, cultivated lowland along the northern foot of the southern hills, lakeshore approach, eastern Lago de Valencia and lake-interior ending. The independent imagery resolves the ordinary intervening floor where political-map boundary symbols obscure the drainage. No exact active water thread, contemporary hydraulic transfer or operation is asserted.",
+      "completion_scope": "Completed ordinary geographic correspondence and null whole-river naming-scope hold. The full original political-map overview, imprint, notices and selected corridor pixels were read, followed by a completed independent bounded photographic view and native-image details. All original parts and separate source/render/stored endings were considered. No necessary geographic link remains unaccounted for at the permitted ordinary corridor scale."
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "Canadian CGN/geogratis expanded/name-search records, ambiguous Canadian gazetteers and UNECE naming publications; diffusion.mern service",
+      "official_url": null,
+      "observed_outcome": "Inherited naming-family exclusions and unresolved original record identities; no new request or response.",
+      "restriction_scope": "Recorded family/service and equivalent-route holds remain unchanged. No naming-record or gazetteer recovery was attempted.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:70252932",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "CanMatrix related-publication family; CBMT3978 and equivalent Toporama service",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer",
+      "observed_outcome": "Inherited CanMatrix original403 and related-sheet tool denial; inherited CBMT original-image tunnel403 with origin image-server HTTP unobserved.",
+      "restriction_scope": "CanMatrix related acquisitions remain paused while publication scope is unresolved; a new sheet alone is not independent. The whole CBMT3978 service and equivalents remain held.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:70252932",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "DataBC base/base MapServer and equivalent routes",
+      "official_url": "https://delivery.maps.gov.bc.ca/arcgis/rest/services/base/base/MapServer",
+      "observed_outcome": "Inherited unexplained layer21 web-reader failure; origin HTTP unknown.",
+      "restriction_scope": "Whole exact service/equivalent acquisition and content-use hold preserved. No institutional ban is inferred.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:70252932",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "USGS Professional Paper1386-J, Satellite Image Atlas of Glaciers of the World—North America",
+      "official_url": "https://pubs.usgs.gov/pp/p1386j/",
+      "observed_outcome": "Inherited original HTTP403; no current request.",
+      "restriction_scope": "Entire PP1386-J and equivalent original, figure, reader/cache, mirror and other retrieval routes remain stopped.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:70252932",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "USGSTopo National Map service metadata, requested for Alaska80192797",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer?f=pjson",
+      "observed_outcome": "Sole service-metadata request yielded; its first terminal-status confirmation was cancelled before a decision returned. HTTP, body and terminal completion unknown. No metadata, response headers or pixels read.",
+      "outcome_layer": "Tool/network-approval cancellation before terminal observation; not an established origin HTTP denial.",
+      "restriction_scope": "Exact service-metadata request, equivalent metadata acquisition and unread outputs stopped. No recovery through another route. This does not clear any old service hold or establish an institution-wide ban; unrelated independent publications may continue.",
+      "earlier_lawful_observations": "None from this new service-metadata request.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "new_acquisition_performed": false,
+      "effect_on_current_finding": "Exact prior restriction remains preserved. No held material or equivalent recovery was requested; the current distinct regional National Map image supplies independent evidence.",
+      "aw_id": "hydro-system:70460445"
+    },
+    {
+      "publication": "USGSTopo exact headward detail for northern California/southern Oregon70517095",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "observed_outcome": "New head-detail original request yielded. The terminal-status action was cancelled before approval review completed. No HTTP, body or terminal completion observed; no output read or retry. Proposed additional terminal detail was not requested.",
+      "outcome_layer": "Tool-level automatic approval review cancellation; no originHTTP401/403 asserted.",
+      "restriction_scope": "Exact selected headward detail, equivalent retrieval and unread-output recovery stopped. No poll, partial-file reading or alternate acquisition. No whole-service or unrelated-regional ban.",
+      "earlier_lawful_observations": "Earlier complete regional overview terminatedHTTP200,image/png,exit0 and was actually read, including local crops. Its recorded ordinary chosen-opening, North Fork/main Smith joins and source/render coastal-setting observations remain usable; stopped detail supplies no evidence.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "new_acquisition_performed": false,
+      "effect_on_current_finding": "Exact prior restriction remains preserved. No held material or equivalent recovery was requested; the current distinct regional National Map image supplies independent evidence.",
+      "aw_id": "hydro-system:70460445"
+    },
+    {
+      "publication": "Canadian CGN/geogratis expanded/name-search records, ambiguous Canadian gazetteers and UNECE naming publications; diffusion.mern service",
+      "official_url": null,
+      "observed_outcome": "Inherited naming-family exclusions and unresolved original record identities; no new request or response.",
+      "restriction_scope": "Recorded family/service and equivalent-route holds remain unchanged. No naming-record or gazetteer recovery was attempted.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:80042164",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "CanMatrix related-publication family; CBMT3978 and equivalent Toporama service",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer",
+      "observed_outcome": "Inherited CanMatrix original403 and related-sheet tool denial; inherited CBMT original-image tunnel403 with origin image-server HTTP unobserved.",
+      "restriction_scope": "CanMatrix related acquisitions remain paused while publication scope is unresolved; a new sheet alone is not independent. The whole CBMT3978 service and equivalents remain held.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:80042164",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "NLUIS official map index, sheet56G unresolved index-to-original acquisition, and other individually held NLUIS publications",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html",
+      "observed_outcome": "Inherited unresolved index acquisition and sheet56G relationship; no new request.",
+      "restriction_scope": "Exact held index, sheet and equivalent scopes remain unchanged. No NLUIS-wide ban is inferred. The independently identified Cambridge Bay1983 original is separate and was checked against later restrictions before acquisition.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:80042164",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "USGS Professional Paper1386-J, Satellite Image Atlas of Glaciers of the World—North America",
+      "official_url": "https://pubs.usgs.gov/pp/p1386j/",
+      "observed_outcome": "Inherited original HTTP403; no current request.",
+      "restriction_scope": "Entire PP1386-J and equivalent original, figure, reader/cache, mirror and other retrieval routes remain stopped.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:80042164",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "La Victoria, Venezuela, DCN Hoja 6746, 1:100,000, third edition 1972; original sheet uninspected",
+      "official_url": "https://commons.wikimedia.org/wiki/File%3AHoja_6746_-_LA_VICTORIA%2C_CAGUA%2C_VILLA_DE_CURA%2C_TEJER%C3%8DAS_-_DCN_1972.jpg",
+      "observed_outcome": "Inherited file-description-page Cache miss; no new request or recovery for this target. Origin HTTP remains unestablished.",
+      "restriction_scope": "Exact sheet publication and equivalent original, catalogue, reader/cache, mirror, alternate format and replacement-edition recovery remain paused. Earlier category metadata supplies no map evidence.",
+      "newly_observed_access_failure": false,
+      "material_effect": "Excluded. The independently identified IGVSB Aragua 2010 political-map publication and photographic imagery are used within their own scope.",
+      "aw_id": "hydro-system:60006623",
+      "inherited": true,
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "Estado Delta Amacuro, SAGECAN, third edition 1994",
+      "official_url": "https://commons.wikimedia.org/wiki/File:Estado_Delta_Amacuro_-_SAGECAN_1994.jpg",
+      "observed_outcome": "Inherited exact source restriction; no new request or recovery for this target.",
+      "restriction_scope": "The missing 1994 Delta Amacuro sheet and equivalent copies/formats are paused across original, reader/cache, catalogue, mirror and other acquisition routes. No retry or alternate acquisition was made.",
+      "newly_observed_access_failure": false,
+      "material_effect": "Inherited optional publication or unresolved underlying-source relationship remains excluded; no request or recovery was made for this target.",
+      "aw_id": "hydro-system:60006623",
+      "inherited": true,
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "Guasipati, Venezuela. Joint Operations Graphic (Air), series 1501 Air, sheet NB 20-03, edition 1, compiled May 1991",
+      "official_url": "https://store.usgs.gov/assets/MOD/StoreFiles/NGA/1501ANB2003_geo.pdf",
+      "observed_outcome": "Inherited exact source restriction; no new request or recovery for this target.",
+      "restriction_scope": "This identifiable JOG chart and equivalent copies remain excluded across all acquisition and substantive-use routes. Its availability at a public-looking URL is not treated as permission.",
+      "newly_observed_access_failure": false,
+      "material_effect": "Inherited optional publication or unresolved underlying-source relationship remains excluded; no request or recovery was made for this target.",
+      "aw_id": "hydro-system:60006623",
+      "inherited": true,
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "Hackley, Urbani, Karlsen and Garrity, Geologic Shaded Relief Map of Venezuela, USGS Open-File Report 2005-1038, version 1.0; equivalent Spanish edition OF 2006-1109",
+      "official_url": "https://pubs.usgs.gov/of/2005/1038/index.html",
+      "observed_outcome": "Inherited exact source restriction; no new request or recovery for this target.",
+      "restriction_scope": "Whole publication and equivalent English/Spanish editions, original sheets, figures, metadata/catalogue, reader, cache, screenshot, mirror and all other acquisition routes stopped. No retry or alternate acquisition.",
+      "newly_observed_access_failure": false,
+      "material_effect": "Inherited optional publication or unresolved underlying-source relationship remains excluded; no request or recovery was made for this target.",
+      "aw_id": "hydro-system:60006623",
+      "inherited": true,
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "Delta del Orinoco. Paisaje natural: Hidrografía: entre islas y caños. Unidad natural 7, lámina 173, Fundación Empresas Polar,2012",
+      "official_url": "https://bibliofep.fundacionempresaspolar.org/media/16960/geo_u7_l173_delta_hidrografia.pdf",
+      "observed_outcome": "Inherited exact source restriction; no new request or recovery for this target.",
+      "restriction_scope": "No new acquisition or content reading while the underlying map relationship is unresolved. This is an unresolved publication relationship, not a new HTTP denial or an institution-wide ban.",
+      "newly_observed_access_failure": false,
+      "material_effect": "Inherited optional publication or unresolved underlying-source relationship remains excluded; no request or recovery was made for this target.",
+      "aw_id": "hydro-system:60006623",
+      "inherited": true,
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "Conservation International, Rapid Assessment Program 37, Paria/Venezuela report; exact full title and edition not established from failed acquisition",
+      "official_url": "https://www.conservation.org/docs/default-source/publication-pdfs/rap37_paria_venezuela_dec-2002.pdf?Status=Master&sfvrsn=148d24f7_3",
+      "observed_outcome": "Inherited exact source restriction; no new request or recovery for this target.",
+      "restriction_scope": "Missing report, maps and all equivalent copies, formats, figures, reader/cache/mirror and other acquisition routes paused. No retry or alternate request.",
+      "newly_observed_access_failure": false,
+      "material_effect": "Inherited optional publication or unresolved underlying-source relationship remains excluded; no request or recovery was made for this target.",
+      "aw_id": "hydro-system:60006623",
+      "inherited": true,
+      "new_acquisition_performed": false
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "kind": "unresolved_british_columbia_report_relationships",
+      "notice": "SK108/Nass, Homathko9H and related unresolved fisheries-project constraints remain unchanged. Holland Bulletin48 and other exact stopped reports were not acquired. BC Hydro authorial operations prose is independently identified; its map figures remain unused.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70252932"
+    },
+    {
+      "kind": "map_figure_provenance_uninspected",
+      "notice": "No geographic claim depends on the plan’s uninspected cartographic figures. Source-map independence is supplied by the newly acquired photographic mosaic, while names and system order come from operator prose.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70252932"
+    },
+    {
+      "kind": "bounded_component_names",
+      "notice": "Only Siuslaw River appears in candidate_names. Lake Creek is a bounded ambiguous local label; Duncan Inlet is a mapped intermediate reach label; North Fork Siuslaw River and South Slough provide lateral context. None is asserted to be a synonym.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70460445"
+    },
+    {
+      "kind": "generalized_valley_and_estuary_scale",
+      "notice": "Meander offsets and lower-estuary crossings are evaluated at ordinary connected valley/river/estuary scale. Exact contemporary wet-thread and bank fit are not required or asserted. The terminal landward render offset is specifically disclosed.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70460445"
+    },
+    {
+      "kind": "inherited_report_project_and_view_restrictions",
+      "notice": "Exact historical report/project, underlying-map, selected-view and metadata restrictions remain unchanged. No stopped USGS Professional Paper567, Professional Paper1386 sections, Bulletin335, SIR2025-5024, SIR2014-5152, WSP314, OFR97-127, WRI83-4170, Becharof WRIA or equivalent material was acquired or used. The independent National Map view is not a recovery route to those sources.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70460445"
+    },
+    {
+      "kind": "unresolved_nunavut_publication_identity",
+      "notice": "Pitz/Kivalliq overview, Gjoa Haven coastal/PCSP material and unidentified NRCan2014 relations remain unresolved and unrequested. Kristofferson2002 was considered by bibliography only and was not needed or acquired in this pass.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:80042164"
+    },
+    {
+      "kind": "historical_and_formal_name_scope",
+      "notice": "Historical map labels and contemporary fishery terminology support bounded source-attributed names. Neither source establishes an official current gazetteer decision or authorizes a whole-feature scalar/Korean name.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:80042164"
+    },
+    {
+      "publication": "Unidentified borrowed military or held base-map material",
+      "status": "Underlying-publication relationships remain unresolved at their existing scope.",
+      "effect": "No new military sheet, borrowed-map panel, alternate edition or equivalent recovery was requested or used. This does not create an institution-wide prohibition.",
+      "aw_id": "hydro-system:60006623"
+    },
+    {
+      "publication": "Selected river-group naming scope",
+      "status": "Only the two directly printed lake names are supported as bounded components.",
+      "effect": "The unnamed eastern feeder and interlake corridor remain unnamed; neither lake name is assigned to the entire river-group feature.",
+      "aw_id": "hydro-system:60006623"
+    },
+    {
+      "publication": "All actually read sources",
+      "status": "Own observations and normal bibliography only.",
+      "effect": "No public original, crop, overlay, full coordinates, private paths, dynamic request URL or transfer receipt.",
+      "aw_id": "hydro-system:60006623"
+    }
+  ]
+}

@@ -114,7 +114,7 @@ test('changing overlay order keeps the frontmost stroke or fill aligned with can
     const front = packets.sort((a, b) => b.order - a.order)[0].key;
     await picking.handleObjectSelectionAt([5, 5], { sourceEvent: {} });
     assert.equal(session.objectChooserCandidates[0].key, front);
-    picking.chooseObjectCandidate(0);
+    await picking.chooseObjectCandidate(0);
     assert.equal(selected.at(-1), front);
   }
 });

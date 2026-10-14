@@ -1,5 +1,12 @@
 # M4 coordinate kernel
 
+Production resources now live in `current/`, generated from repository-root
+`assets/js/modules` and `assets/js/vendor` by
+`native/tools/m97/cut-kernel-generate.mjs`. Its manifest records canonical source
+and artifact hashes; `current_geometry.qrc` is the sole production resource pack.
+The original, adapted, corrected-original and corrected-adapted directories below
+are preserved historical differential oracles and are not linked into the app.
+
 Product resource: `polygon-clipping-0.15.7.js`, separate from test fixtures.
 
 - Origin: world-map `17c3dbe`, `assets/js/vendor/polygon-clipping.min.js`.

@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "editorcontroller.h"
 #include "geometrysnapprovider.h"
 #include "projectcodec.h"
@@ -15,12 +16,12 @@
 using namespace pandoeditor;
 namespace {
 Geometry square(double x=0){Geometry g;g.type="Polygon";g.polygons={{{{x,0},{x,2},{x+2,2},{x+2,0},{x,0}}}};return g;}
-QString write(Project& project,const QString& path){QFile file(path);if(!file.open(QIODevice::WriteOnly))return {};file.write(projectcodec::encode(project));file.close();return path;}
+QString write(Project& project,const QString& path){QFile file(path);if(!file.open(QIODevice::WriteOnly))return {};file.write(::projectcodec::encode(project));file.close();return path;}
 QJsonArray sourceGeometries(const ProjectDocument& document){
  QJsonArray result;for(const auto& unit:document.units){const auto geometry=document.geometries.get(staticGeometryBinding(document,unit.id).geometryRef);QJsonArray polygons;for(const auto& polygon:geometry->polygons){QJsonArray rings;for(const auto& ring:polygon){QJsonArray coordinates;for(const auto point:ring)coordinates.append(QJsonArray{point.x,point.y});rings.append(coordinates);}polygons.append(rings);}result.append(QJsonObject{{"id",QString::fromStdString(unit.id)},{"geometry",QJsonObject{{"type",QString::fromStdString(geometry->type)},{"coordinates",geometry->type=="Polygon"?polygons.first():QJsonValue(polygons)}}}});}return result;
 }
 QJsonArray historySourceGeometries(const QByteArray& bytes){
- const auto document=projectcodec::decode(bytes);auto rows=sourceGeometries(document);
+ const auto document=::projectcodec::decode(bytes);auto rows=sourceGeometries(document);
  for(int i=0;i<rows.size();++i){auto row=rows[i].toObject();row["domain"]="territorial";rows[i]=row;}
  for(const auto& feature:document.genericFeatures){const auto geometry=document.geometries.get(feature.geometry);if(!geometry)continue;QJsonArray polygons;
   for(const auto& polygon:geometry->polygons){QJsonArray rings;for(const auto& ring:polygon){QJsonArray points;for(const auto point:ring)points.append(QJsonArray{point.x,point.y});rings.append(points);}polygons.append(rings);}
@@ -35,14 +36,14 @@ bool writeHistoryEvidence(const QString& scope,const QByteArray& before,const QB
  const auto* tag=QTest::currentDataTag();const QString id=tag&&*tag?QString::fromUtf8(tag):QString::fromUtf8(QTest::currentTestFunction());
  cases.append(QJsonObject{{"case",id},{"scope",scope},{"sourceGeometries",historySourceGeometries(before)},{"restoredSourceGeometries",historySourceGeometries(after)},
   {"warm",QJsonObject{{"indicator",QJsonObject::fromVariantMap(warm)}}},{"final",QJsonObject{{"indicator",QJsonObject::fromVariantMap(final)}}},
-  {"canonicalEqualAfterUndo",semanticallyEqual(projectcodec::decode(before),projectcodec::decode(after))},
+  {"canonicalEqualAfterUndo",semanticallyEqual(::projectcodec::decode(before),::projectcodec::decode(after))},
   {"beforeDocumentBytesBase64",QString::fromLatin1(before.toBase64())},{"afterDocumentBytesBase64",QString::fromLatin1(after.toBase64())},{"beforeDocumentSha256",sha(before)},{"afterDocumentSha256",sha(after)},{"transitions",transitions}});
  QSaveFile output(path);if(!output.open(QIODevice::WriteOnly))return false;const auto bytes=QJsonDocument(QJsonObject{{"schema","pando-m974-native-source-history"},{"version",1},{"cases",cases}}).toJson(QJsonDocument::Compact);return output.write(bytes)==bytes.size()&&output.commit();
 }
 QString snapOwner(EditorController& controller,const QString& selected,QVariantMap* observedIndicator=nullptr){
  if(!controller.selectObject({{"domain","territorial"},{"id",selected}},"replace"))return "selection-failed";
  if(!controller.beginGeometryDraw())return "draw-failed";
- MapProjection projection;projection.rebuild(projectcodec::decode(controller.documentBytes()));const auto point=projection.project({0,0});
+ MapProjection projection;projection.rebuild(::projectcodec::decode(controller.documentBytes()));const auto point=projection.project({0,0});
  if(!controller.geometryAddPoint(point.x,point.y,.1,"mouse"))return "cold-input-failed";
  QElapsedTimer clock;clock.start();while(controller.geometrySnapState().value("status").toString()=="pending"&&clock.elapsed()<10000){QCoreApplication::processEvents(QEventLoop::AllEvents,10);QThread::msleep(1);}
  if(controller.geometrySnapState().value("status").toString()!="ready")return "not-ready";
@@ -55,7 +56,9 @@ geometrysnap::Provider* sourceProvider(EditorController& controller){
  return nullptr;
 }
 Project selectionProject(bool child=false){
- ProjectDocument document(std::vector<Country>{{"root","root",square(10).polygons,0xabcdef},{"donor","donor",square(20).polygons,0xabcdef},{"other","other",square(30).polygons,0xabcdef}},{{"countries","Countries"}});
+ pandoeditor::ProjectDocument document = makeTerritorialDocument({{{"root","root","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(10).polygons},{0xabcdef,1},"countries"},
+        {{"donor","donor","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(20).polygons},{0xabcdef,1},"countries"},
+        {{"other","other","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(30).polygons},{0xabcdef,1},"countries"}},{{"countries","Countries"}});
  if(child){const GeometryRef ref{"child-source",1};document.geometries.insert(ref,square(10));appendTerritory(document,{"child","child","",UnitKind::General,false},ref,"root");document.presentation.objectStyles[territorialRef("child")]={};}
  for(const auto id:{"ga","gb"}){GenericFeature feature;feature.id=id;feature.geometry={std::string("generic-")+id,1};document.geometries.insert(feature.geometry,square());document.genericFeatures.push_back(feature);}
  Project project;project.replace(document);return project;
@@ -188,7 +191,7 @@ private slots:
  void draftDispatchSourceHistory(){
   QFETCH(QString,method);QFETCH(bool,child);QTemporaryDir directory;auto project=selectionProject(child);if(child)QCOMPARE(staticParentRelation(project.document(),"child").parentId,std::string("root"));const auto file=write(project,directory.filePath("selection.json"));EditorController controller({false,directory.filePath("private.json")});QVERIFY(controller.openFile(QUrl::fromLocalFile(file)));controller.setProjectionMode("flat");controller.resizeMapCamera(800,600);
   QVERIFY(controller.selectObject({{"domain","territorial"},{"id",child?"child":"root"}},"replace"));QVERIFY(controller.beginSplitGeometry());QVERIFY(controller.geometryAdvanceStage());QVERIFY(controller.geometrySelectTerritoryMethod(method));QTRY_VERIFY_WITH_TIMEOUT(!controller.geometryEditState().value("calculating").toBool(),5000);
-  MapProjection projection;projection.rebuild(projectcodec::decode(controller.documentBytes()));const std::vector<Point> points=method=="line"?std::vector<Point>{{11,-1},{11,3}}:std::vector<Point>{{10,0},{11,0},{11,2},{10,2}};
+  MapProjection projection;projection.rebuild(::projectcodec::decode(controller.documentBytes()));const std::vector<Point> points=method=="line"?std::vector<Point>{{11,-1},{11,3}}:std::vector<Point>{{10,0},{11,0},{11,2},{10,2}};
   for(const auto point:points){const auto xy=projection.project(point);QVERIFY(controller.geometryAddPoint(xy.x,xy.y,0));}
   auto* provider=sourceProvider(controller);QVERIFY(provider);const auto ranks=provider->sourceRanks();provider->notifyWorkerStopped();std::shared_ptr<const geometrysnap::SourceRanks> dispatchedRanks;
   {SelectionPoolGate gate;QVERIFY(gate.started());QVERIFY(controller.geometryFinishTerritoryDraft());dispatchedRanks=provider->sourceRanks();if(method=="line"||child)QVERIFY(dispatchedRanks!=ranks);else QCOMPARE(dispatchedRanks,ranks);QVERIFY(controller.geometryEditState().value("selectionPending").toBool());controller.cancelGeometryEdit();}
@@ -212,7 +215,7 @@ private slots:
  void confirmedMethodChangeStopsPendingDrawn(){
   QTemporaryDir directory;auto project=selectionProject(true);const auto file=write(project,directory.filePath("selection.json"));EditorController controller({false,directory.filePath("private.json")});QVERIFY(controller.openFile(QUrl::fromLocalFile(file)));
   QVERIFY(controller.selectObject({{"domain","territorial"},{"id","child"}},"replace"));QVERIFY(controller.beginSplitGeometry());QVERIFY(controller.geometryAdvanceStage());QVERIFY(controller.geometrySelectTerritoryMethod("polygon"));QTRY_VERIFY_WITH_TIMEOUT(!controller.geometryEditState().value("calculating").toBool(),5000);
-  MapProjection projection;projection.rebuild(projectcodec::decode(controller.documentBytes()));for(const auto point:{Point{10,0},Point{11,0},Point{11,2},Point{10,2}}){const auto xy=projection.project(point);QVERIFY(controller.geometryAddPoint(xy.x,xy.y,0));}
+  MapProjection projection;projection.rebuild(::projectcodec::decode(controller.documentBytes()));for(const auto point:{Point{10,0},Point{11,0},Point{11,2},Point{10,2}}){const auto xy=projection.project(point);QVERIFY(controller.geometryAddPoint(xy.x,xy.y,0));}
   auto* provider=sourceProvider(controller);QVERIFY(provider);const auto ranks=provider->sourceRanks();
   {SelectionPoolGate gate;QVERIFY(gate.started());QVERIFY(controller.geometryFinishTerritoryDraft());QVERIFY(controller.geometrySelectTerritoryMethod("line"));QCOMPARE(controller.geometryEditState().value("confirmationKind").toString(),QString("method"));QVERIFY(controller.geometryConfirmTerritoryChange());}
   QTRY_VERIFY_WITH_TIMEOUT(!controller.geometryEditState().value("calculating").toBool(),5000);QCOMPARE(controller.geometryEditState().value("activeMethod").toString(),QString("line"));QCOMPARE(provider->sourceRanks(),ranks);controller.cancelGeometryEdit();QCOMPARE(snapOwner(controller,"root"),QString("vertex:ga"));QVERIFY(provider->sourceRanks()!=ranks);
@@ -230,14 +233,14 @@ private slots:
   for(const auto id:{"a","b"}){const GeometryRef ref{std::string("source-")+id,1};input.geometries.insert(ref,square());TerritorialUnit unit;unit.id=id;unit.name=id;appendTerritory(input,unit,ref);input.presentation.objectStyles[territorialRef(id)]={};}
   Project project;project.replace(input);
   const auto file=write(project,directory.filePath("input.json"));QVERIFY(!file.isEmpty());EditorController controller({false,directory.filePath("private.json")});QVERIFY(controller.openFile(QUrl::fromLocalFile(file)));controller.setProjectionMode("flat");controller.resizeMapCamera(800,600);
-  const auto beforeBytes=controller.documentBytes();const auto beforeDocument=projectcodec::decode(beforeBytes);const auto revisionBefore=controller.revision();QVariantMap warmIndicator,restoredIndicator;
+  const auto beforeBytes=controller.documentBytes();const auto beforeDocument=::projectcodec::decode(beforeBytes);const auto revisionBefore=controller.revision();QVariantMap warmIndicator,restoredIndicator;
   QCOMPARE(snapOwner(controller,"a",&warmIndicator),QString("vertex:a"));
   const auto submittedBeforeDelete=controller.geometrySnapState().value("submitted").toULongLong();
   QVERIFY(controller.selectObject({{"domain","territorial"},{"id","a"}},"replace"));const bool deleteStarted=controller.beginDeleteSelection();QVERIFY(deleteStarted);const bool deleteApplied=controller.confirmStructureMutation();QVERIFY(deleteApplied);const bool undoAvailable=controller.canUndo();QVERIFY(undoAvailable);const auto revisionAfterDelete=controller.revision();
   // No snap request is issued between these canonical transitions.
   controller.undo();const auto revisionAfterUndo=controller.revision();const bool undoApplied=controller.canRedo()&&revisionAfterUndo==revisionAfterDelete+1;QVERIFY(undoApplied);
   const auto submittedAfterUndo=controller.geometrySnapState().value("submitted").toULongLong();QCOMPARE(submittedAfterUndo,submittedBeforeDelete);
-  const auto afterBytes=controller.documentBytes();const auto afterDocument=projectcodec::decode(afterBytes);const bool canonicalEqualAfterUndo=semanticallyEqual(beforeDocument,afterDocument);QVERIFY(canonicalEqualAfterUndo);
+  const auto afterBytes=controller.documentBytes();const auto afterDocument=::projectcodec::decode(afterBytes);const bool canonicalEqualAfterUndo=semanticallyEqual(beforeDocument,afterDocument);QVERIFY(canonicalEqualAfterUndo);
   QCOMPARE(snapOwner(controller,"a",&restoredIndicator),QString("vertex:b"));
   const auto output=qEnvironmentVariable("PANDO_M974_ORDER_EVIDENCE");if(!output.isEmpty()){
    const auto sha=[](const QByteArray& bytes){return QString::fromLatin1(QCryptographicHash::hash(bytes,QCryptographicHash::Sha256).toHex());};
@@ -249,7 +252,7 @@ private slots:
   }
  }
  void documentInstallationSeedsBeforeFirstPointer(){
-  QTemporaryDir directory;ProjectDocument document(std::vector<Country>{{"a","a",square(10).polygons,0xabcdef}},{{"countries","Countries"}});GenericFeature generic;generic.id="g";generic.geometry={"generic-g",1};document.geometries.insert(generic.geometry,square());document.genericFeatures.push_back(generic);Project project;project.replace(document);
+  QTemporaryDir directory;pandoeditor::ProjectDocument document = makeTerritorialDocument({{{"a","a","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(10).polygons},{0xabcdef,1},"countries"}},{{"countries","Countries"}});GenericFeature generic;generic.id="g";generic.geometry={"generic-g",1};document.geometries.insert(generic.geometry,square());document.genericFeatures.push_back(generic);Project project;project.replace(document);
   const auto file=write(project,directory.filePath("input.json"));QVERIFY(!file.isEmpty());EditorController controller({false,directory.filePath("private.json")});QVERIFY(controller.openFile(QUrl::fromLocalFile(file)));controller.setProjectionMode("flat");controller.resizeMapCamera(800,600);
   CreateTerritorialIntent intent;intent.kind=UnitKind::General;intent.id="c";intent.name="c";intent.geometry=square();intent.coverageMode="explicit";QVERIFY(controller.beginTerritorialCreatePrepared(intent));QVERIFY(controller.confirmStructureMutation());
   QCOMPARE(snapOwner(controller,"c"),QString("vertex:g"));
@@ -269,7 +272,7 @@ private slots:
  }
  void genericDeleteUndoDefersWorkerSynchronization(){
   QFETCH(int,observation);QFETCH(QString,expected);
-  QTemporaryDir directory;ProjectDocument document(std::vector<Country>{{"root","root",square(10).polygons,0xabcdef}},{{"countries","Countries"}});
+  QTemporaryDir directory;pandoeditor::ProjectDocument document = makeTerritorialDocument({{{"root","root","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square(10).polygons},{0xabcdef,1},"countries"}},{{"countries","Countries"}});
   if(observation>=6){const GeometryRef ref{"boundary-neighbor",1};document.geometries.insert(ref,square(observation==8?20:12));appendTerritory(document,{"neighbor","neighbor","",UnitKind::General,false},ref);document.presentation.objectStyles[territorialRef("neighbor")]={};}
   for(const auto id:{"ga","gb"}){GenericFeature feature;feature.id=id;feature.geometry={std::string("generic-")+id,1};document.geometries.insert(feature.geometry,square());document.genericFeatures.push_back(feature);}
   Project project;project.replace(document);const auto file=write(project,directory.filePath("input.json"));QVERIFY(!file.isEmpty());EditorController controller({false,directory.filePath("private.json")});QVERIFY(controller.openFile(QUrl::fromLocalFile(file)));controller.setProjectionMode("flat");controller.resizeMapCamera(800,600);
@@ -288,7 +291,8 @@ private slots:
   QVERIFY(writeHistoryEvidence("native-controller-source-history",before,after,warm,final,{{"revisionBefore",qint64(revisionBefore)},{"revisionAfterDelete",qint64(revisionAfterDelete)},{"revisionAfterUndo",qint64(revisionAfterUndo)},{"submittedBeforeDelete",qint64(submitted)},{"submittedAfterUndo",qint64(submittedAfterUndo)},{"submittedAfterFinal",qint64(controller.geometrySnapState().value("submitted").toULongLong())}}));
  }
  void projectReplacementResetsSourceOrder(){
-  QTemporaryDir directory;Project project;project.replace(std::vector<Country>{{"a","a",square().polygons,0xabcdef},{"b","b",square().polygons,0xabcdef}});const auto file=write(project,directory.filePath("input.json"));EditorController controller({false,directory.filePath("private.json")});QVERIFY(controller.openFile(QUrl::fromLocalFile(file)));controller.setProjectionMode("flat");controller.resizeMapCamera(800,600);
+  QTemporaryDir directory;Project project;project.replace(makeTerritorialDocument({{{"a","a","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square().polygons},{0xabcdef,1},"countries"},
+        {{"b","b","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},square().polygons},{0xabcdef,1},"countries"}}));const auto file=write(project,directory.filePath("input.json"));EditorController controller({false,directory.filePath("private.json")});QVERIFY(controller.openFile(QUrl::fromLocalFile(file)));controller.setProjectionMode("flat");controller.resizeMapCamera(800,600);
   QCOMPARE(snapOwner(controller,"a"),QString("vertex:a"));QVERIFY(controller.selectObject({{"domain","territorial"},{"id","a"}},"replace"));QVERIFY(controller.beginDeleteSelection());QVERIFY(controller.confirmStructureMutation());controller.undo();
   QVERIFY(controller.openFile(QUrl::fromLocalFile(file)));QCOMPARE(snapOwner(controller,"a"),QString("vertex:a"));
  }

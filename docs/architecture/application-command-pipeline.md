@@ -1,5 +1,9 @@
 # Application Command Pipeline
 
+> 아래는 이전 JavaScript pipeline 개편의 기록이다. 현재 책임과 API는
+> [Shared Core command boundary](shared-core-command-boundary.md)를 따른다.
+> `ProjectCommandPipeline`, `project-transaction`과 writable Store는 현행 구현에서 제거됐다.
+
 이 문서는 일반 UI 객체 변경이 따라야 하는 공통 경로를 정의한다. 목적은 기능별 코드가 `recordHistory()`, render invalidation, revision 증가, autosave를 제각각 호출하는 구조를 줄이는 것이다.
 
 ## Object Adapter

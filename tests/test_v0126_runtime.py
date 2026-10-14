@@ -22,6 +22,7 @@ STORED_ASSETS = read_module(ROOT, "stored-asset-loader.js")
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 COMMITS = read_module(ROOT, "app-country-commits.js")
 PREVIEW = read_module(ROOT, "app-geometry-preview.js")
+PROJECT_DOMAIN = read_module(ROOT, "project-domain.js")
 CODEC = read_module(ROOT, "country-mesh-codec.js")
 TERRAIN = read_module(ROOT, "gpu-terrain-preparation.js")
 BASE_PASS = read_module(ROOT, "gpu-base-scene-pass.js")
@@ -33,13 +34,15 @@ def section(source: str, start: str, end: str) -> str:
 
 
 class V0126RuntimeTests(unittest.TestCase):
-    def test_annex_render_succeeds_before_history_commit(self):
+    def test_annex_preview_applies_worker_state_inside_rollback_capable_core_confirmation(self):
         annex = function_source(COMMITS, "prepareAnnexSelectionPreview")
         self.assertIn("dependencies.geometryOperations.beginWorkerGeometryPreview", annex)
         self.assertIn("invalidateTerritorialPatch?.('territory-annex-committed');", annex)
-        preview = PREVIEW[PREVIEW.index("async function beginWorkerGeometryPreview"):]
-        self.assertLess(preview.index("await applyResult(result);"), preview.index("mapEditClient.commit(requestId);"))
-        self.assertLess(preview.index("mapEditClient.commit(requestId);"), preview.index("commitHistorySnapshot(snapshot);"))
+        preview = function_source(PREVIEW, "beginWorkerGeometryPreview")
+        self.assertLess(preview.index("await applyAccepted(result,response.result)"), preview.index("mapEditClient.commit(requestId);"))
+        local = function_source(PREVIEW, "beginLocalGeometryPreview")
+        self.assertIn("projectDomain.confirmCandidate(preparedCommand.candidateId,expectedEpoch,{ applyAccepted", local)
+        self.assertIn("rollbackReplacement(capsule)", PROJECT_DOMAIN)
         labels = RENDERING
         self.assertLess(labels.index("selection.exit().remove();"), labels.index("enter.append('text').attr('class', 'country-label')"))
         self.assertIn("Array.isArray(anchor)", labels)

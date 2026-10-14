@@ -8,6 +8,9 @@ export function classifyChangedPaths(paths) {
   const changed = { web: [], app: [] };
   for (const path of paths) {
     if (path.startsWith('native/')) changed.app.push(path.slice('native/'.length));
+    // The native checkout root is native/, so shared sources are its sibling.
+    // Preserve the real relative path; the registry is the ownership authority.
+    else if (path.startsWith('shared/')) changed.app.push(`../${path}`);
     else changed.web.push(path);
   }
   return changed;

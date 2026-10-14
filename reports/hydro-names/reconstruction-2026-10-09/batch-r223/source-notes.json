@@ -1,0 +1,543 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r223",
+  "sources": [
+    {
+      "source_key": "r223-inegi-pitiquito2010",
+      "title": "Compendio de información geográfica municipal 2010: Pitiquito, Sonora",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "publication_identifier": "Clave geoestadística 26047",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/26/26047.pdf",
+      "material_actually_read": "Complete ten-page original acquired. Cover and geographic/physiographic context, hydrography table on PDF page3, Localidades e Infraestructura para el Transporte map on PDF page5, and Relieve map on PDF page6, including its legend, source margin and enlarged full selected corridor, were actually inspected.",
+      "facts_used": "Direct La Inmaculada and San Ignacio labels; intermittent stream classification; southern Aribaipa and western tributary geography; Cerro El Puerto coastal outlet and Desemboque de Los Seris regional setting.",
+      "independence": "The original identifies the municipal 2010 compilation and its sources: Marco Geoestadístico2010 version4.3, INEGI 1:250000 topographic seriesII/III, physiographic seriesI, and the INEGI–CONAGUA2007 national hydrographic map. This is a positively identified older municipal editorial compilation, not the held G1306 sixth-edition2023 original or a stopped CONAGUA aquifer report.",
+      "limits": "Generalized municipal cartography. Individual names and basin membership do not establish the selected central alluvial through-link. It is not a current shoreline, flow or infrastructure-operation survey."
+    },
+    {
+      "source_key": "r223-esri-sonora-alluvial",
+      "title": "Esri World Imagery, selected San Ignacio–Aribaipa alluvial plain detail",
+      "publisher": "Esri",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "material_actually_read": "One successfully acquired original image of the central alluvial plain and southern Aribaipa junction; full image and bounded middle/southern details actually inspected.",
+      "facts_used": "Branching washes and vegetated swales, the broad southern east–west channel, its westward narrowing, and ambiguous straight/modified features in the intervening plain.",
+      "independence": "Independently maintained satellite/orthophoto imagery publication, not a recovery of INEGI or CONAGUA map content. The distinct northern Ellesmere failed view is untouched.",
+      "limits": "Unlabelled imagery; scene dates and target-specific provider were not established. It supplies no river name, continuous-flow claim, definite drainage-function interpretation for linear features, or resolved selected north–south through-link."
+    },
+    {
+      "source_key": "r223-invias-tapaje2022-public-copy",
+      "title": "Estudios y diseños de obras de protección fluvial en ríos navegables a cargo del INVÍAS, contrato 1911 de 2020. Volumen IV – El Charco (Nariño): Estudio de hidrología e hidráulica, Río Tapaje, versión 2",
+      "authors": [
+        "Consorcio E&D Fluviales",
+        "Luis Leonardo González Jiménez (elaboración)"
+      ],
+      "publisher": "Prepared for Instituto Nacional de Vías (INVÍAS)",
+      "date": "2022-03-11",
+      "official_url": null,
+      "public_copy_url": "https://es.scribd.com/document/798547183/Volumen-IV-El-Charco-V2-2022-03-11",
+      "source_type": "Primary engineering-study text in a publicly readable third-party copy",
+      "hosting_caveat": "The original institutional PDF and its integrity against this copy were not independently established. The normal page identifies a third-party uploader and an AI-enhanced display title; the internal report title and revision are used instead.",
+      "actual_material_read": "Normal HTML report text: title/revision/authorship, pp. 6–10 project and basin description, and figure captions. No download/login workaround, original PDF or figure pixels were requested.",
+      "own_observation": "The report describes the Tapaje beginning near El Pato, running west before predominantly north to the Pacific. It places El Charco inland from the mouth, notes tidal influence, and distinguishes Pulbuza and Taija tributaries and El Arrastradero/Martínez esteros.",
+      "independence": "Contract 1911/2020, service order 2 of 24 September 2021, a specific riverbank-erosion study using its own 2 November 2021 orthophotography. This positively differs from the held national hydrography, REDCAM 2021, Iscuandé UAV mudflat article and unavailable IIAP water-quality diagnostic.",
+      "evidence_scope": "Authorial broad-course, locality and contributor context. Geographic trace/figure placement and selected opening remain unproven.",
+      "use_notice": "The public page states All Rights Reserved. Only bounded factual synthesis is used; no source text or images redistributed."
+    },
+    {
+      "source_key": "r223-pnn-sanquianga2018-prose",
+      "title": "Actualización Plan de Manejo Parque Nacional Natural Sanquianga, Territorio Ancestral y Colectivo, 2018–2023",
+      "publisher": "Parques Nacionales Naturales de Colombia; Equipo Mixto PNN Sanquianga",
+      "edition": "Cover 2018–2023; running title 2017",
+      "official_url": "https://www.parquesnacionales.gov.co/wp-content/uploads/2020/10/plan-de-manejo-pnn-sanquianga.pdf",
+      "source_type": "Primary park/community management publication",
+      "actual_material_read": "Complete original acquired normally. Front matter and bounded printed pp. 27, 34–37 geographic/boundary/hydrographic prose read. Maps 5/6 and source margins at PDF pp. 36/38 visually inspected to determine scope; their base cartography is excluded from route tracing.",
+      "own_observation": "The plan identifies the Tapaje river and bay on the park’s eastern coastal side and distinguishes regional river mouths and estuarine channels. Its boundary/access prose supplies coastal context, not the complete inland selection.",
+      "independence": "The named mixed park/community management project was already independently documented and lawfully read in r68. Its authorial work is distinct from held Caribbean El Corchal management planning and national hydrography; borrowed map layers are separately restricted.",
+      "evidence_scope": "Coastal river identity and estuarine setting only. No full-corridor inference from unseen or excluded map content.",
+      "use_notice": "No limited-distribution or citation-clearance condition observed in inspected front matter and bounded pages. Original and renderings remain private."
+    },
+    {
+      "source_key": "r223-alarcon-jimenez-icws2017",
+      "title": "El uso de la modelización para mejorar la calidad ambiental y la gestión integral de los recursos hídricos en dos cuencas fluviales de la región central de Cuba",
+      "authors": [
+        "Samuel Alarcón Acá",
+        "Pablo Jiménez Gavilán"
+      ],
+      "publisher": "Universidad de Málaga, Departamento de Ecología y Geología; presentation hosted by Universitat Politècnica de Catalunya for the I International Conference on Water and Sustainability, Barcelona–Terrassa",
+      "year": 2017,
+      "edition_note": "Conference held 26–27 June2017; original cover prints the conference and day/month. The year is supported by the conference bibliographic listing.",
+      "official_url": "https://icws.upc.edu/en/shared/presentacion-modelizacion.pdf",
+      "actual_material_read": "Original cover and extracted authorial text; visually inspected original slides6,9 and12, including map legends, author credits, reservoir labels and the abstract model topology. Other images were not substantively inspected.",
+      "original_acquired_and_read": true,
+      "positive_publication_identity": "The original explicitly identifies the University of Málaga ESGEREHIZA project for Zaza basin water-resource planning and its methodology of field reconnaissance, data compilation, ArcGIS cartography and AQUATOOL modeling. Map panels credit Samuel Alarcón Acá. This is a specific two-basin university modeling publication rather than the unresolved Cauto INRH presentation or Cauto reservoir study.",
+      "supports": "Regional Zaza and Jatibonico del Sur basin separation; Zaza receiving-system candidate; named reservoir and tributary contexts; distinct managed supply connections; Caribbean receiving-water context.",
+      "limits": "Regional geographic maps and an abstract topology are not complete correspondence evidence for the actual selected opening, all joins and the final westward coastal approach. Tributary/subbasin labels are not extended uniformly across the selection. The historical study does not establish current water levels, reservoir operation, discharge, bank positions, registry status or a precise terminal vertex.",
+      "use_notice": "No limited-distribution, officials-only or prior-citation-permission restriction was observed in the read cover, extracted text or inspected slides. Ordinary attribution and reproduction limits remain; only own factual observations and this normal source URL are public-ready. No original slide, map, crop or derivative is supplied."
+    },
+    {
+      "source_key": "r223-esri-world-imagery-victoria-north",
+      "title": "Esri World Imagery: northern Victoria Island river corridor and western Glenelg Bay arm",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "evidence_kind": "independent_published_imagery",
+      "actual_material_read": "One selected corridor overview and two bounded southern/northern details; complete images and relevant local reading crops were inspected.",
+      "acquired_scope": "All three sequential normal image requests completed successfully with JPEG imagery before reading.",
+      "source_independence": "Independently maintained imagery publication with its own imagery editorial/product context, used to observe the terrain and water corridor. It does not reproduce or recover the held Canadian topographic maps, naming records or Victoria Island field-report figures.",
+      "supports": "Complete ordinary selected-corridor correspondence, river/lake passages, joins, eastward turn, northeast lower valley and actual coastal outlet.",
+      "limits": "Imagery supplies no hydronym labels. Different mosaic scales show different snow/ice conditions, and local clouds occur. Neither current flow, imagery capture dates, exact banks, surveyed endpoints nor formal name status is established.",
+      "use_notice": "Own factual observations and ordinary bibliography only. Original imagery, reading crops, overlays and full selected positions are not redistributed."
+    },
+    {
+      "source_key": "r223-chs-arc4032024-glenelg",
+      "title": "Canadian Sailing Directions, ARC403: Western Arctic",
+      "publisher": "Canadian Hydrographic Service, Fisheries and Oceans Canada",
+      "year": 2024,
+      "edition": "2024/03",
+      "catalogue_number": "Fs74-40E-PDF",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/chs-shc-ARC403-eng-202403-41232306.pdf",
+      "evidence_kind": "primary_coastal_prose",
+      "actual_material_read": "Retained original cover and reproduction notice, chapter10 printed pages10-3 and10-4, especially paragraphs41 and49.",
+      "acquired_scope": "Existing successfully acquired original remained present and was read locally; no new acquisition.",
+      "source_independence": "Distinct Canadian Hydrographic Service coastal sailing-directions editorial publication. Its retained permitted scope is independent of the held terrestrial mapping, naming-record and field-report projects.",
+      "supports": "Glenelg Bay as the southwestern extension of Wynniatt Bay, two arms at its head and a delta at the western arm head.",
+      "limits": "Coastal context only. The imagery, rather than the prose alone, establishes the selected river outlet. No inland river name, chart-original observation or navigation advice is claimed.",
+      "use_notice": "Front matter permits personal noncommercial reproduction and requires prior written permission for commercial reproduction. Only own bounded factual synthesis and normal bibliography are supplied."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70809540",
+      "source_keys": [
+        "r223-inegi-pitiquito2010",
+        "r223-esri-sonora-alluvial"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10015
+          ],
+          "component_scope": "Chosen eastern opening and northwestward La Inmaculada approach",
+          "finding": "The Relieve original depicts the chosen opening in the drainage west of Sierra Jojobal. Its northwestward course is labeled La Inmaculada and meets the larger San Ignacio drainage at the northern turn. Nearby eastern feeders remain distinct; their presence does not give the chosen opening a surveyed source or precise name-start vertex.",
+          "sources": [
+            "r223-inegi-pitiquito2010"
+          ],
+          "correspondence": "completed_ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "La Inmaculada upper reach, connected to the named San Ignacio corridor."
+        },
+        {
+          "fragments": [
+            10015
+          ],
+          "component_scope": "Southwestward San Ignacio reach and upper alluvial entry",
+          "finding": "The original map directly labels San Ignacio on the southwestward channel below the La Inmaculada join and depicts its continuation south into the plain east of Sierra Los Mochos. The bounded imagery overlaps the lower end of this approach and shows its branching alluvial setting. The named western branches and incoming side drainages are read as connections at regional scale, not exact confluence coordinates.",
+          "sources": [
+            "r223-inegi-pitiquito2010",
+            "r223-esri-sonora-alluvial"
+          ],
+          "correspondence": "completed_ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "San Ignacio supported on this mapped reach."
+        },
+        {
+          "fragments": [
+            10015
+          ],
+          "component_scope": "Selected southward alluvial continuation and approach to Aribaipa",
+          "finding": "The municipal original sends the labeled San Ignacio drainage southwest toward the La Tinaja junction, while the selected continuation runs farther south through the interposed alluvial tract toward Aribaipa. The independent imagery shows diffuse branching washes, pale and vegetated swales, and narrow straight or angular modified features across this tract. The southern broad channel and its incoming washes are visible, but a continuous selected upper-to-southern through-corridor cannot be confidently distinguished from the neighboring branches and modified lines. The open issue is a meaningful branch transfer across the plain, not a demand for identical banks, every minor bend, or flowing water on the image date.",
+          "sources": [
+            "r223-inegi-pitiquito2010",
+            "r223-esri-sonora-alluvial"
+          ],
+          "correspondence": "material_through_link_unestablished",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "No whole-system or local reach name assigned to the unresolved alluvial link."
+        },
+        {
+          "fragments": [
+            10015
+          ],
+          "component_scope": "Aribaipa receiving corridor and northwestward passage through the low ridge",
+          "finding": "The southern imagery detail depicts the broad east–west channel and its westward narrowing. On the municipal original the selected westward then northwestward course follows the channel at the Aribaipa junction, through the low ridge east of Cerro El Puerto, toward the western receiving drainage. This lower corridor is independently visible even though its selected connection from the north remains unresolved.",
+          "sources": [
+            "r223-inegi-pitiquito2010",
+            "r223-esri-sonora-alluvial"
+          ],
+          "correspondence": "completed_ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Aribaipa identifies an incoming eastern drainage; it is not extended as a scalar over the selected mainstem."
+        },
+        {
+          "fragments": [
+            10015
+          ],
+          "component_scope": "Western convergences near La Tinaja and Los Arenales",
+          "finding": "The Relieve original depicts the lower northwestward approach joining the western channel system below the La Tinaja/San Ignacio approaches, then running west past the Los Arenales convergence and bending south beside Cerro El Puerto. These are mapped connected channels, with no required intervening lake or reservoir crossing.",
+          "sources": [
+            "r223-inegi-pitiquito2010"
+          ],
+          "correspondence": "completed_ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Lower receiving drainage of the San Ignacio coastal system; individual branch names remain bounded to their map labels."
+        },
+        {
+          "fragments": [
+            10015
+          ],
+          "component_scope": "Actual final coastal passage and Gulf terminal",
+          "finding": "The final selected part follows the mapped southward coastal channel west of Cerro El Puerto and then its southwestward opening to the Gulf of California. The locality map places this outlet in the coastal setting north of Desemboque de Los Seris. The selected endpoint is the Gulf coast, not an inland Aribaipa junction or a terminal lake. No current mouth opening, tidal channel allocation or precise shoreline position is asserted.",
+          "sources": [
+            "r223-inegi-pitiquito2010"
+          ],
+          "correspondence": "completed_ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Gulf of California receiving water; no scalar river name assigned to the sea."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60263863",
+      "source_keys": [
+        "r223-invias-tapaje2022-public-copy",
+        "r223-pnn-sanquianga2018-prose"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            11597
+          ],
+          "component_scope": "Selected initial opening, westward inland route and first northward continuation",
+          "finding": "The model opening, westward traverse and turn north can be oriented, but the readable sources do not independently locate the opening or continuously establish this upper fragment. The report’s general directional account is insufficient to assign its name to each part.",
+          "sources": [
+            "r223-invias-tapaje2022-public-copy"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            11598
+          ],
+          "component_scope": "Northward middle/lower-river candidate; not a completed label for every selected part",
+          "finding": "The selected course proceeds north toward the El Charco setting. Authorial locality evidence supports the candidate, while substantial upstream through-links and both fragment connections remain untraced on permitted primary geography.",
+          "sources": [
+            "r223-invias-tapaje2022-public-copy"
+          ],
+          "correspondence": "partial_identity_supported_material_links_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 2,
+          "candidate_name": "Río Tapaje"
+        },
+        {
+          "fragments": [
+            11599
+          ],
+          "component_scope": "Coastal continuation candidate only",
+          "finding": "The named receiving-river and coastal setting are supported. The specific selected estuarine continuation and final passage have not been independently matched; regional mouth identity alone is not full correspondence.",
+          "sources": [
+            "r223-invias-tapaje2022-public-copy",
+            "r223-pnn-sanquianga2018-prose"
+          ],
+          "correspondence": "coastal_identity_supported_material_passage_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 1,
+          "candidate_name": "Río Tapaje"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70870227",
+      "source_keys": [
+        "r223-alarcon-jimenez-icws2017"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10411
+          ],
+          "component_scope": "opening_and_northwestern_approach",
+          "finding": "The selected opening is the northwestern end of the north-to-south corridor. The original regional maps distinguish the upper Zaza drainage from Hacha and Caonao tributary subbasins, but do not securely identify the actual selected opening and its first southeastward connection. No surveyed natural source or headwater hydronym is assigned.",
+          "sources": [
+            "r223-alarcon-jimenez-icws2017"
+          ],
+          "correspondence": "material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "component_name": null
+        },
+        {
+          "fragments": [
+            10411
+          ],
+          "component_scope": "upper_and_middle_receiving_corridor",
+          "finding": "The authored maps and topology identify a Zaza receiving system with distinct incoming Hacha, Caonao, Calabazas, Tuinucú, Yayabo and Taguasco drainage. The selected long southeastward and then southward course is consistent at broad regional scale with the Zaza side of this two-basin study. Basin inclusion and the river label on an abstract topology do not by themselves establish every selected intermediate join.",
+          "sources": [
+            "r223-alarcon-jimenez-icws2017"
+          ],
+          "correspondence": "partial_context",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "component_name": "Río Zaza",
+          "component_name_role": "Regional receiving-river candidate, not an established name for the complete selected interval."
+        },
+        {
+          "fragments": [
+            10411
+          ],
+          "component_scope": "reservoir_approach_and_transit",
+          "finding": "Slide9 explicitly names Embalse Zaza and separately depicts the smaller Tuinucú and Siguaney impoundments. Slide12 carries their distinct branches into the Zaza reservoir node. This supports the large regional impoundment setting of the selected lower-middle corridor, without establishing that every selected approach and reservoir-exit leg follows the corresponding mapped channel. Reservoir surfaces retain their own identity.",
+          "sources": [
+            "r223-alarcon-jimenez-icws2017"
+          ],
+          "correspondence": "partial_context",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "component_name": "Embalse Zaza",
+          "component_name_role": "Named regional impoundment context; exact selected inlet-to-outlet correspondence remains partial."
+        },
+        {
+          "fragments": [
+            10411
+          ],
+          "component_scope": "regulated_lower_river_and_managed_links",
+          "finding": "The study distinguishes the river below the Zaza reservoir from Canal Magistral, a small-hydropower component and the agricultural supply network toward Sur del Jíbaro. The eastern Jatibonico del Sur system includes Lebrije, Dignoráh and La Felicidad as separately depicted reservoirs. These are not river aliases or proof that the selected line uses a diversion. The final southern selection makes an extended westward turn before its coastal ending; the small geographic maps and non-geographic topology do not establish the full natural-channel or managed-link correspondence of that turn.",
+          "sources": [
+            "r223-alarcon-jimenez-icws2017"
+          ],
+          "correspondence": "partial_context",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "component_name": "Río Zaza",
+          "component_name_role": "Lower receiving-system context, not a confirmed name for every selected southern leg."
+        },
+        {
+          "fragments": [
+            10411
+          ],
+          "component_scope": "coastal_wetland_and_actual_terminal",
+          "finding": "Slide6 names Mar Caribe and geographically separates the Zaza coastal drainage from the eastern Jatibonico del Sur outlet. The selected tip lies in the western coastal receiving setting rather than at the eastern Jatibonico outlet. The regional map does not independently establish which final channel, estuarine wetland connection or specific mouth carries the actual selected westward-then-southward end. No lagoon, lake, wetland or mouth name is invented.",
+          "sources": [
+            "r223-alarcon-jimenez-icws2017"
+          ],
+          "correspondence": "material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "component_name": null
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80020765",
+      "source_keys": [
+        "r223-esri-world-imagery-victoria-north",
+        "r223-chs-arc4032024-glenelg"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2310
+          ],
+          "component_scope": "chosen_southern_headward_opening",
+          "finding": "The chosen southern opening corresponds to a narrow, snow-patterned upland valley. Its corridor proceeds north, bends northeast and continues into the more open downstream valley. Patchy snow obscures small channel details, but the valley and ordinary route correspondence are readable; no exact bank or current-flow claim is required.",
+          "sources": [
+            "r223-esri-world-imagery-victoria-north"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2310
+          ],
+          "component_scope": "upper_valley_and_initial_lake_approach",
+          "finding": "The selected short northward pieces continue along the same incised-to-open river valley. Visible channel bends and lateral drainage arrivals lead into the elongate-waterbody corridor to the north. Adjacent western drainage and ponds are not substituted as the main route.",
+          "sources": [
+            "r223-esri-world-imagery-victoria-north"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2310
+          ],
+          "component_scope": "elongated_lake_and_channel_sequence",
+          "finding": "The northward route passes through a series of elongated waterbodies and their narrow river connections. Several waterbodies are partly covered by snow or lake ice in the southern detail, while the overview shows their dark open-water outlines. The sequence, connecting valley and successive openings are readable at ordinary corridor scale. No individual lake name is established.",
+          "sources": [
+            "r223-esri-world-imagery-victoria-north"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2310
+          ],
+          "component_scope": "northern_exit_from_lake_country",
+          "finding": "The lake-country route continues north through narrow reaches and broader waterbody margins, then becomes a more open meandering channel. Side channels and small lakes lie beside the selected corridor; the northward continuation to the eastern turn is visible.",
+          "sources": [
+            "r223-esri-world-imagery-victoria-north"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2310
+          ],
+          "component_scope": "eastward_meandering_lowland_and_joins",
+          "finding": "The river turns east across a broad lowland with substantial meanders and lateral tributary arrivals. The selected stage-three line generalizes these bends, while imagery shows the continuous river corridor and its approach to the northeast-trending lower valley. Nearby ponds are contextual waterbodies, not separately named mainstem components.",
+          "sources": [
+            "r223-esri-world-imagery-victoria-north"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2310
+          ],
+          "component_scope": "east_to_northeast_valley_transfer",
+          "finding": "At the eastern lowland bend, the continuous river enters a northeast-trending valley among ridges and elongated lakes. The coarse selected bend is south of some visible meanders, but it corresponds to this same joining valley at ordinary corridor scale. Exact channel-bank coincidence is not imposed, and a separate through-lake route across neighbouring lakes is not asserted.",
+          "sources": [
+            "r223-esri-world-imagery-victoria-north"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2310
+          ],
+          "component_scope": "lower_northeast_river_corridor",
+          "finding": "The lower river follows the northeast-trending valley toward the coast. Narrow and locally broader reaches, side-stream joins and the approach to the low coastal outlet are visible. Large elongated lakes southeast of the river remain lateral landscape features rather than substituted portions of the selected river.",
+          "sources": [
+            "r223-esri-world-imagery-victoria-north"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2310
+          ],
+          "component_scope": "actual_coastal_terminal_and_receiving_water",
+          "finding": "The visible river reaches the head of the western arm of Glenelg Bay through the low alluvial outlet area. The coastal arm is continuous northeastward with the receiving bay. ARC403 independently describes a delta at the head of this west arm and identifies Glenelg Bay as the southwestern extension of Wynniatt Bay. The final seaward model extension is over the receiving inlet and is not named as a natural river reach.",
+          "sources": [
+            "r223-esri-world-imagery-victoria-north",
+            "r223-chs-arc4032024-glenelg"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "IIAP/SIAT-PC, Diagnóstico de la calidad ambiental del recurso hídrico, San Juan y Tapaje (bibliographic discovery identity; original title/imprint uninspected)",
+      "official_url": "https://siatpc.co/documentos/avances/calidad_ambiental_del_recurso_hidrico_san_juan_y_tapaje.pdf",
+      "observed_outcome": "Sole normal-original acquisition completed direct HTTP404, Content-Type text/html. No body, original imprint, report prose or map read.",
+      "outcome_layer": "Completed direct HTTP-client response",
+      "origin_http_status": 404,
+      "restriction_scope": "Whole exact diagnostic and project-equivalent publication, original/catalogue/reader/cache/figure/PDF/mirror acquisition and unread-output reading paused.",
+      "earlier_lawful_prose_exception": null,
+      "newly_observed_access_failure": true,
+      "explicit_access_denial": false,
+      "aw_id": "hydro-system:60263863"
+    },
+    {
+      "publication": "Osmany Ceballo Melendres (2017), Implementación de Herramientas para la Evaluación y Gestión Integrada de los Recursos Hídricos a Nivel de Paisaje en la Cuenca Hidrográfica del Río Zaza. Provincia Sancti Spíritus, Cuba. UNIVPM doctoral thesis; original imprint uninspected.",
+      "official_url": "https://iris.univpm.it/retrieve/e18b8790-6c0d-d302-e053-1705fe0a27c8/tesi_ceballo_melendres.pdf",
+      "observed_outcome": "Sole normal original completed direct HTTP403 with Content-Type text/html; charset=UTF-8. No returned body, original text, imprint or map inspected.",
+      "outcome_layer": "HTTP response to normal original request; no separate origin/intermediary attribution.",
+      "restriction_scope": "Whole thesis and equivalent copies, formats, figures, reader/cache/mirror and other acquisition routes stopped; no fallback or retry.",
+      "earlier_lawful_observations": "Bibliographic discovery only, not substantive thesis evidence.",
+      "http_status": 403,
+      "newly_observed_access_failure": true,
+      "aw_id": "hydro-system:70870227"
+    },
+    {
+      "publication": "University of Texas Perry-Castañeda Map Collection, Latin America Joint Operations Graphic catalogue",
+      "official_url": "https://maps.lib.utexas.edu/maps/jog/latin_america/",
+      "observed_outcome": "Sole normal web-reader opening returned Anubis Access Denied, error code 9e4edb5b6b850c41. No normal catalogue text or original map acquired.",
+      "outcome_layer": "Reader-exposed access-verification/denial content; origin HTTP status unobserved.",
+      "restriction_scope": "Whole catalogue/equivalent routes stopped. Proposed linked Cuba-sheet recovery paused, including substitute hosts. NF17-8 Caibarién and NF17-12 Ciego de Ávila originals were not requested; no sheet-specific HTTP failure inferred. This is not a JOG-wide or publisher-wide ban.",
+      "earlier_lawful_observations": "Discovery bibliography only; no substantive catalogue/map evidence.",
+      "http_status": null,
+      "newly_observed_access_failure": true,
+      "aw_id": "hydro-system:70870227"
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "publication": "PNN Sanquianga management plan 2018–2023, Maps 5/6 and equivalent borrowed base cartography",
+      "official_url": "https://www.parquesnacionales.gov.co/wp-content/uploads/2020/10/plan-de-manejo-pnn-sanquianga.pdf",
+      "restriction_scope": "Borrowed drainage/shoreline base only; not a whole-plan or PNN restriction.",
+      "observation": "The map source margins identify IGAC among the underlying cartographic sources. Their exact base-network identity and relationship to held DHIME/IGAC 1:100,000 remain unresolved. These maps are not used for new selected-route correspondence.",
+      "acquisition_stop": false,
+      "permitted_scope": "Actual authorial geographic, boundary, access and hydrographic prose.",
+      "aw_id": "hydro-system:60263863"
+    },
+    {
+      "publication": "INVÍAS/Consorcio E&D Fluviales 2022 Tapaje Vol. IV, IGAC-credited Figures 2/3 and other uninspected cartography",
+      "public_copy_url": "https://es.scribd.com/document/798547183/Volumen-IV-El-Charco-V2-2022-03-11",
+      "restriction_scope": "Unresolved borrowed cartographic content; no new network failure or whole-study ban.",
+      "observation": "Readable captions explicitly credit IGAC in Figures 2/3. No figure pixels were requested; no claim is made for Figure 5 or other uninspected source maps. Held-map equivalence is not cleared by contractor authorship.",
+      "acquisition_stop": false,
+      "permitted_scope": "Actual authorial course/locality prose and project metadata only.",
+      "aw_id": "hydro-system:60263863"
+    },
+    {
+      "publication": "Geological Survey of Canada, Surficial geology, Wynniatt Bay, Victoria Island, Northwest Territories–Nunavut, NTS78-B and part of78-C; Canadian Geoscience Map237, 2017, conversion of Open File2718",
+      "official_url": "https://publications.gc.ca/site/eng/9.808511/publication.html",
+      "observed_outcome": "Not requested; bibliographic discovery only.",
+      "restriction_scope": "Actual field-project relationship to the held Victoria Island geological projects was not affirmatively resolved. This is not an observed access failure or a new institution-wide ban.",
+      "acquisition_stop": false,
+      "used_as_substantive_evidence": false,
+      "aw_id": "hydro-system:80020765"
+    }
+  ]
+}

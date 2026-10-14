@@ -31,7 +31,7 @@ int main(int argc,char** argv) {
         const auto root=QString::fromLocal8Bit(argv[1]);
         const auto manifest=readJson(root+"/historical-world/v1/manifest.json");
         const auto expected=readJson(root+"/historical-world/v1/expected-trace.json");
-        pandoeditor::Project loaded;loaded.replace(*WorldDatasetLoader::canonical(root).document);
+        pandoeditor::Project loaded;loaded.replace(WorldDatasetLoader::canonical(root).project->document());
         pandoeditor::Project project;project.replace(projectcodec::decode(projectcodec::encode(loaded)));
         QJsonObject currentRefs;
         for(const auto& value:manifest.value("sourceIdentities").toArray()) {

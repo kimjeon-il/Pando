@@ -1,30 +1,32 @@
 import { isRenderDevice } from './render-device.js';
 import { createGpuResourceBudget } from './gpu-resource-budget.js';
 import { applyGpuBlendMode, parseGpuColor, resetGpuNormalBlend } from './gpu-blend-utils.js';
-import { linkGpuProgram } from './gpu-shader-utils.js';
+import { linkGpuProgram, GPU_SPHERICAL_POSITION_GLSL } from './gpu-shader-utils.js';
 import { GPU_VIEW_UNIFORM_NAMES, setGpuViewUniforms } from './gpu-view-uniforms.js';
 
 function createProgram(device) {
   const { gl, version } = device;
   const vertexSource = version === 2 ? `#version 300 es
     precision highp float;precision highp int;
+    ${GPU_SPHERICAL_POSITION_GLSL}
     layout(location=0) in vec2 aCoord;
     uniform vec2 uViewport;uniform vec2 uTranslate;uniform float uScale;
     uniform vec3 uRowX;uniform vec3 uRowY;uniform vec3 uRowZ;uniform vec2 uFlatCenter;
     uniform float uWorldOffset;uniform int uMode;
     out float vDepth;
     void main(){float lon=aCoord.x*0.017453292519943;float lat=aCoord.y*0.017453292519943;vec2 p;
-      if(uMode==0){vec3 q=vec3(cos(lat)*cos(lon),cos(lat)*sin(lon),sin(lat));p=uTranslate+uScale*vec2(dot(uRowX,q),dot(uRowY,q));vDepth=dot(uRowZ,q);}
+      if(uMode==0){vec3 q=gpuUnitSphere(lon,lat);p=uTranslate+uScale*vec2(dot(uRowX,q),dot(uRowY,q));vDepth=dot(uRowZ,q);}
       else{p=uTranslate+uScale*vec2(lon+uWorldOffset-uFlatCenter.x,-(lat-uFlatCenter.y));vDepth=1.0;}
       gl_Position=vec4(p.x*2.0/uViewport.x-1.0,1.0-p.y*2.0/uViewport.y,0.0,1.0);}`
     : `precision highp float;precision highp int;
+    ${GPU_SPHERICAL_POSITION_GLSL}
     attribute vec2 aCoord;
     uniform vec2 uViewport;uniform vec2 uTranslate;uniform float uScale;
     uniform vec3 uRowX;uniform vec3 uRowY;uniform vec3 uRowZ;uniform vec2 uFlatCenter;
     uniform float uWorldOffset;uniform int uMode;
     varying float vDepth;
     void main(){float lon=aCoord.x*0.017453292519943;float lat=aCoord.y*0.017453292519943;vec2 p;
-      if(uMode==0){vec3 q=vec3(cos(lat)*cos(lon),cos(lat)*sin(lon),sin(lat));p=uTranslate+uScale*vec2(dot(uRowX,q),dot(uRowY,q));vDepth=dot(uRowZ,q);}
+      if(uMode==0){vec3 q=gpuUnitSphere(lon,lat);p=uTranslate+uScale*vec2(dot(uRowX,q),dot(uRowY,q));vDepth=dot(uRowZ,q);}
       else{p=uTranslate+uScale*vec2(lon+uWorldOffset-uFlatCenter.x,-(lat-uFlatCenter.y));vDepth=1.0;}
       gl_Position=vec4(p.x*2.0/uViewport.x-1.0,1.0-p.y*2.0/uViewport.y,0.0,1.0);}`;
   const fragmentSource = version === 2 ? `#version 300 es
@@ -80,7 +82,7 @@ export function createGpuPolygonOverlayPass({ onError = null, onResourceReady = 
   }
 
   function signature(packet) {
-    return `${String(packet?.key || '')}:${String(packet?.geometryRevision ?? 0)}:${String(packet?.lod || 'high')}`;
+    return packet?.sourceKey || `${String(packet?.key || '')}:${String(packet?.geometryRevision ?? 0)}:${String(packet?.lod || 'high')}`;
   }
 
   function deleteResource(key) {

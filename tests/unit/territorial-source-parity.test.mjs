@@ -17,21 +17,32 @@ test('all 258 source features retain their IDs, properties, types and coordinate
     assert.ok(e,feature.id);
     assert.deepEqual(e.sourceInfo.featureProperties,feature.properties);
     assert.equal(e.sourceInfo.featureId,feature.id);
-    assert.equal(sha(e.geometryVersions[0].geometry),baseline.countryGeometry[feature.id]);
-    assert.deepEqual(e.geometryVersions[0].geometry,feature.geometry);
+    const sourceVersion=['IDN','SDN','UKR'].includes(feature.id)?e.geometryVersions.at(-1):e.geometryVersions[0];
+    assert.equal(sha(sourceVersion.geometry),baseline.countryGeometry[feature.id]);
+    assert.deepEqual(sourceVersion.geometry,feature.geometry);
     assert.doesNotMatch(e.metadata.defaultFlagDataUrl || '',/^file:/);
   }
 });
-test('26 historical entities and all 29 production geometry versions retain their fixed baseline hashes', () => {
+test('historical geometry retains frozen baseline coordinates; the documented USSR fix changes only ring order', () => {
   const sources=readTerritorialSources();
   const migrated=sources.filter(e=>e.sourceInfo.importProvenance);
-  assert.equal(migrated.length,26);
+  assert.equal(migrated.length,23);
   let count=0;
   for(const e of migrated) for(const v of e.geometryVersions) {
-    assert.equal(sha(v.geometry),baseline.historicalGeometry[e.sourceInfo.importProvenance.versionIds[v.versionId]]);
+    const expected = baseline.historicalGeometry[e.sourceInfo.importProvenance.versionIds[v.versionId]];
+    if (e.entityId === 'state:soviet-union' && v.versionId === 'state:soviet-union:1922-1991-baikonur-r1') {
+      assert.equal(v.geometry.type, 'MultiPolygon');
+      assert.equal(v.geometry.coordinates.length, 231);
+      // Inverting the documented spherical orientation repair must reconstruct
+      // exactly the immutable pre-repair source without moving any vertices.
+      const reconstructed = { ...v.geometry, coordinates: v.geometry.coordinates.map(polygon =>
+        polygon.map(ring => [ring[0], ...ring.slice(1, -1).reverse(), ring.at(-1)])) };
+      assert.equal(sha(reconstructed), expected, 'USSR coordinates differ beyond the reviewed winding fix');
+      assert.notEqual(sha(v.geometry), expected, 'the legacy complement winding must no longer be used');
+    } else assert.equal(sha(v.geometry), expected);
     count++;
   }
-  assert.equal(count,29);
+  assert.equal(count,26);
   const yugo=sources.find(e=>e.entityId==='state:yugoslavia');
   const oldVersion=selectGeometryVersion(yugo,'1992-04-26');
   const newVersion=selectGeometryVersion(yugo,'1992-04-27');

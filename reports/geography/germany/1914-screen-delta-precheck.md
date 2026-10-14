@@ -585,4 +585,4 @@ Each entry is `[west_lon, south_lat, east_lon, north_lat]` and both directions' 
 - Prioritize **Wilhelmshaven/Jade (historical sheet), Eider/North Frisia and North Schleswig (official WCS), Gdynia/Gdańsk and Pillau/Königsberg (TK25), and the 1914 Helgoland chart**. Reclamation work/event-year alone cannot establish a polygon switch date.
 - **Do not** change the main country polygon, historical timeline, `main` branch, or app geometry on the basis of this precheck.
 
-References: `docs/historical-border-reconstruction-policy.md`; `tools/historical-library/working/german-empire-1914-north-sea-mainland-coast-audit.json`; `tools/historical-library/working/german-empire-1914-northsea-dollart-jade.diagnostics.json`; `tools/historical-library/sources/german-coastline/README.md`.
+References: `docs/historical-border-reconstruction-policy.md`; `reports/geography/germany/diagnostics/german-empire-1914-north-sea-mainland-coast-audit.json`; `reports/geography/germany/diagnostics/german-empire-1914-northsea-dollart-jade.diagnostics.json`; `tools/historical-library/sources/german-coastline/README.md`.

@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "territorial_fixture.h"
 #include <pandoeditor/map/mapscenebuilder.h>
 #include <pandoeditor/commands.h>
@@ -63,7 +64,7 @@ void distributionRangeRestylesUnchangedPeersInPatch() {
     require(packet!=after->polygons.end()&&std::abs(packet->style.alpha-.265)<1e-6,"range change restyles unchanged peer");
 }
 void worldRangesKeepSourceSlotsAndLogicalOwnersSeparate() {
-    pandoeditor::ProjectDocument doc({},{{"countries","Countries"}});
+    pandoeditor::ProjectDocument doc = makeTerritorialDocument({},{{"countries","Countries"}});
     appendTerritory(doc,{"OWNER","Owner",{},pandoeditor::UnitKind::General,false},{"world-country-OWNER",1});
     doc.geometries.insert({"world-country-OWNER",1},square(0));
     doc.presentation.membership.emplace(pandoeditor::territorialRef("OWNER"),"countries");
@@ -107,7 +108,7 @@ std::shared_ptr<WorldBaseFrame> zoomPreviewFrame(bool documentReady) {
 }
 pandoeditor::ProjectDocument zoomPreviewDocument() {
     using namespace pandoeditor;
-    ProjectDocument doc({},{{"countries","Countries"}});
+    pandoeditor::ProjectDocument doc = makeTerritorialDocument({},{{"countries","Countries"}});
     for(const auto& id:{"A","B","C"}) {
         const GeometryRef ref{"world-country-"+std::string(id),1};
         appendTerritory(doc,{id,id,{},UnitKind::General,false},ref);
@@ -132,7 +133,7 @@ void startupPreviewRemainsVisibleBeforeDocumentMaterialization() {
 void documentReadyPreviewHonorsStylesVisibilityAndEditedShapes() {
     using namespace pandoeditor;
     auto doc=zoomPreviewDocument();
-    doc.presentation.webPresentation.hiddenItems["countries"].insert("B");
+    doc.presentation.webPresentation.itemVisibility["countries"]["B"]=false;
     doc.presentation.webPresentation.objectStyles["territorial:entity:A"].boundaryVisible=false;
     doc.geometries.insert({"world-country-C",2},square(30));staticGeometryBinding(doc,doc.units[2].id).geometryRef.version=2;
     const auto originalA=doc.geometries.get({"world-country-A",1});
@@ -201,7 +202,7 @@ void canonicalPreviewSwitchPublishesCorrectResourceAndDocumentState() {
 }
 void immutableSnapshotsReusePreparationButRespectInvalidation() {
     using namespace pandoeditor;
-    ProjectDocument doc({},{{"countries","Countries"}});
+    pandoeditor::ProjectDocument doc = makeTerritorialDocument({},{{"countries","Countries"}});
     appendTerritory(doc,{"C","Country",{},UnitKind::General,false},{"C",1});
     doc.geometries.insert({"C",1},square(0));
     doc.presentation.membership.emplace(territorialRef("C"),"countries");
@@ -250,7 +251,7 @@ void immutableSnapshotsReusePreparationButRespectInvalidation() {
 }
 void interactionOnlyPreparesActualFallbackLodChanges() {
     using namespace pandoeditor;
-    ProjectDocument doc({},{{"countries","Countries"}});doc.documentId="m92-fallback";
+    pandoeditor::ProjectDocument doc = makeTerritorialDocument({},{{"countries","Countries"}});doc.documentId="m92-fallback";
     appendTerritory(doc,{"C","Country",{},UnitKind::General},{"C",1});
     doc.presentation.membership[territorialRef("C")]="countries";
     doc.presentation.objectStyles[territorialRef("C")]={};
@@ -293,7 +294,7 @@ void resourceIdentityCannotBeHiddenByEqualRevisions() {
 }
 pandoeditor::ProjectDocument patchFixture() {
     using namespace pandoeditor;
-    ProjectDocument doc({},{{"countries","Countries"}});doc.documentId="m93-patch-fixture";
+    pandoeditor::ProjectDocument doc = makeTerritorialDocument({},{{"countries","Countries"}});doc.documentId="m93-patch-fixture";
     for(const auto& id:{"A","B","C"}) {
         appendTerritory(doc,{id,id,{},UnitKind::General},{id,1});
         doc.geometries.insert({id,1},square(id[0]=='A'?0:id[0]=='B'?20:40));
@@ -313,7 +314,10 @@ const StrokeDrawPacket& patchStroke(const RenderScene& scene,const char* id) {
 void requirePatchStorageShared(const RenderScene& before,const RenderScene& after,const char* id) {
     const auto& a=patchFill(before,id).geometryPacket;const auto& b=patchFill(after,id).geometryPacket;
     require(a.positions==b.positions&&a.indices==b.indices&&a.unitSpherePositions==b.unitSpherePositions&&
-            a.globeIndices==b.globeIndices&&a.ringOffsets==b.ringOffsets&&a.polygonOffsets==b.polygonOffsets,
+            a.globeIndices==b.globeIndices&&a.ringCoordinates==b.ringCoordinates&&
+            a.boundaryStartsEnds==b.boundaryStartsEnds&&
+            a.unitSphereBoundaryStartsEnds==b.unitSphereBoundaryStartsEnds&&
+            a.ringOffsets==b.ringOffsets&&a.polygonOffsets==b.polygonOffsets,
             "unchanged fill retains all immutable geometry storage");
     const auto& sa=patchStroke(before,id).geometryPacket;const auto& sb=patchStroke(after,id).geometryPacket;
     require(sa.startsEnds==sb.startsEnds&&sa.unitSphereStartsEnds==sb.unitSphereStartsEnds,
@@ -354,7 +358,8 @@ void singleTerritorialGeometryPatchRetainsUnrelatedStorageThroughHistory() {
             "edited fill replaces immutable positions");
     require(patchStroke(*changed,"A").geometryPacket.startsEnds!=patchStroke(*original,"A").geometryPacket.startsEnds,
             "edited boundary replaces immutable endpoints");
-    require(cache.stats().builds==counters.builds+2,"single geometry edit builds only fill and boundary packets");
+    require(cache.stats().builds==counters.builds+1,
+            "single geometry edit builds one shared fill/outline polygon packet");
     require(cache.stats().hits==counters.hits,"single geometry edit never visits unrelated geometry cache entries");
     std::cout<<"M93_BUILDER_DELTA single-geometry geometry-build-delta="<<cache.stats().builds-counters.builds
              <<" unrelated-hit-delta="<<cache.stats().hits-counters.hits<<'\n';

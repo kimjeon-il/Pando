@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include <giscontentimport.h>
 #include <pandoeditor/project.h>
 #include <QCoreApplication>
@@ -12,8 +13,7 @@ using namespace pandoeditor;
 namespace {
 Project project() {
     Project p;
-    p.replace(ProjectDocument({{"AAA","Alpha",{{{{0,0},{2,0},{2,2},{0,2},{0,0}}}},0x123456}},
-        {{"countries","Countries"}}));
+    p.replace(makeTerritorialDocument({{{"AAA","Alpha","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{2,0},{2,2},{0,2},{0,0}}}}},{0x123456,1},"countries"}},{{"countries","Countries"}}));
     return p;
 }
 bool rejected(const std::function<void()>& run) {

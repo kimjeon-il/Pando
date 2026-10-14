@@ -67,12 +67,12 @@ bool EditorController::geometryHoverSnap(double x,double y,const QString& pointe
     if(!geometryEdit_->territorySelection&&geometryEdit_->tool!="draw"&&geometryEdit_->tool!="annex"&&geometryEdit_->tool!="split")return false;
     const auto& edit=*geometryEdit_;
     const auto nonempty=[](const Ring& ring){return !ring.empty();};
-    const bool hasDraftPoint=!edit.lineDraft.empty()||!edit.draft.points.empty()||
-        std::any_of(edit.draft.lines.begin(),edit.draft.lines.end(),nonempty)||
-        std::any_of(edit.draft.polygons.begin(),edit.draft.polygons.end(),[&](const Polygon& polygon){return std::any_of(polygon.begin(),polygon.end(),nonempty);});
+    const bool hasDraftPoint=!coreSession_.draft().geometry().points.empty()||
+        std::any_of(coreSession_.draft().geometry().lines.begin(),coreSession_.draft().geometry().lines.end(),nonempty)||
+        std::any_of(coreSession_.draft().geometry().polygons.begin(),coreSession_.draft().geometry().polygons.end(),[&](const Polygon& polygon){return std::any_of(polygon.begin(),polygon.end(),nonempty);});
     // editing-domain.setDraftHover ignores an empty draft. Hover must not make
     // the first click warm when the web's first coordinate is still cold/raw.
-    if(!hasDraftPoint||edit.dragBefore)return false;
+    if(!hasDraftPoint||coreSession_.draft().dragging())return false;
     const auto before=geometryEdit_->snapIndicator;
     snappedGeometryPoint(x,y,1,pointerType);
     if(before!=geometryEdit_->snapIndicator)emit geometryEditChanged();

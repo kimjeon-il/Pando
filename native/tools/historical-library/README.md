@@ -14,21 +14,23 @@ from display-only simplified geometry.
 `east-germany-1989.recipe.json` is the pinned, declarative build recipe for the
 PandoLab historical-country pilot `state:deutsche-demokratische-republik`.
 
-The normal build uses offline source data. Exact regeneration of the stored
-coordinates is verified on Windows with the pinned Shapely/pyproj versions:
+The normal build uses offline source data. The GEOS/PROJ C++ recipe engine
+constructs the polygon and the shared C++ spherical polygon normalizer sets
+its winding. Build the pinned native toolchain before generating or checking
+the catalog geometry:
 
-```powershell
-python -m pip install -r tools/requirements-historical-library.txt
-pnpm build:territorial-geometry
-pnpm check:territorial-library
+```sh
+micromamba create -y -f tools/cpp/territorial-recipe-environment.yml
+micromamba run -n pando-territorial-recipe cmake -S tools/cpp -B build-native/territorial-recipe -G Ninja -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_TERRITORIAL_RECIPE=ON
+micromamba run -n pando-territorial-recipe cmake --build build-native/territorial-recipe --target pando-territorial-recipe
+PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe" micromamba run -n pando-territorial-recipe node tools/build-territorial-geometry.mjs --check
 ```
 
-CI runs `build-territorial-geometry.py --check` in the required Windows
-`historical-geometry` job. The Linux `data-contracts` job depends on that check
-and retains preview regeneration, catalog chunk regeneration and catalog
-validation. Coordinate projection can differ by one floating-point step between
-Windows and Linux, crossing the existing 12-decimal rounding boundary. The
-generator, stored coordinates and exact comparison remain unchanged.
+CI builds the C++ recipe engine in the `historical-geometry` job. The
+`data-contracts` job depends on that check and retains preview regeneration,
+catalog chunk regeneration and catalog validation. The stored geometry check
+requires identical component, ring and vertex structure, with at most
+`2e-12` degrees coordinate drift for cross-platform projection rounding.
 
 The checked-in files below are the only geometry inputs used by that build:
 
@@ -58,23 +60,39 @@ replacement line.
 
 ## Additional historical-country entries
 
-`assets/data/territorial-entities/source/` contains one file per modern or historical entity, including territory-replacement
-entries built from the canonical Natural Earth Admin 0 polygons. They are
-reference-date approximations, not a claim of cadastral historical precision:
+The current/historical geometry catalog stores each continuing political identity under a
+**single entity ID**, while `geometryVersions` choose its dated territorial footprint.
+All pre-2026 national outlines below are provisional historical approximations unless
+independently verified against appropriate period maps:
 
-- `state:ukraine`: current Ukraine plus the canonical Russian
-  Crimea component, through 17 March 2014.
-- `state:yugoslavia`: three geometry versions for the Kingdom of
-  Yugoslavia (1918–1941), Socialist Federal Republic (1945–1992), and Federal
-  Republic (1992–2003).
-- `state:sudan`: present Sudan plus South Sudan through 8 July
-  2011.
-- `state:indonesia`: present Indonesia plus Timor-Leste through
-  19 May 2002.
+- `state:UKR` (Ukraine): Crimea-inclusive historical version through 17 March 2014;
+  a Crimea-excluded modern-outline proxy from 18 March 2014; unchanged current
+  geometry from 6 October 2026.
+- `state:SDN` (Sudan): pre-secession outline including South Sudan through
+  8 July 2011; a post-secession proxy from 9 July 2011.
+- `state:SDS` (South Sudan): independent from 9 July 2011, without borrowing
+  Sudan's predecessor identity.
+- `state:IDN` (Indonesia): five versions. West New Guinea is excluded before
+  1 May 1963 (25 Natural Earth 5.1.1 components of Papua/West Papua from the
+  [pinned component mask](../../../tools/historical-library/sources/indonesia/west-new-guinea-component-mask-v5.1.1.json));
+  occupied East Timor is approximated as included from 7 December 1975 through
+  24 October 1999; from 25 October 1999 it is excluded.
+- `state:TLS` (Timor-Leste): independent state from 20 May 2002, with historical
+  proxy and current geometry versions. The 1999–2002 UN transitional territory
+  is **not** misclassified as an independent Timor-Leste state.
+- `state:yugoslavia`: existing multiple historical versions remain independently
+  catalogued pending the separate successor-state identity audit.
 
-These entries use the same `territory-replacement` materialization mode, so adding one
-subtracts its transferred geometry from overlapping current-country objects in
-one undoable operation.
+Each historical version may set its own `instantiation.mode = territory-replacement`
+without changing the identity-level modern `independent` policy. Geometry validity,
+state lifetime, and international legal title are separate concepts. The 1963 Papua
+and 1975/1999 Timor boundaries represent administrative transfer and approximate
+effective control, not a newly recognized sovereign title.
+
+The older standalone helper `tools/indonesia-territory-periods-2026.mjs` was not
+used to produce the validated catalog. Its longitude-only Papua filter does not
+match the independently audited 25-component mask and must not be used in
+place of the pinned source and `GEO-IDN-001` report.
 
 ## German coastline changes across eras
 

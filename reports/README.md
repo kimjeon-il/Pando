@@ -23,6 +23,7 @@
 | `GEO-NLD-005` | [Netherlands shoreline pilot — Phase 0 canonical baseline probe](geography/netherlands/phase0-canonical-audit.md) | 2026-10-10 | `investigating` | `not-applied` |
 | `GEO-058` | [Terrain integration validation](geography/terrain/app-terrain-integration-validation.md) | 2026-10-07 | `historical-record` | `unverified` |
 | `GEO-059` | [P2 terrain LOD and demand validation](geography/terrain/app-terrain-p2-validation.md) | 2026-10-07 | `historical-record` | `unverified` |
+| `GEO-LIFE-001` | [국가 존속기간 공란 조사 — 최상위 일반객체 A–D 32개](geography/country-lifetime-a-d-2026-10-13.md) | 2026-10-13 | `investigating` | `not-applied` |
 | `GEO-023` | [Verified entity lifetime additions](geography/verified-entity-lifetimes.md) | 2026-10-08 | `historical-record` | `unverified` |
 
 ## 도시·지명
@@ -36,6 +37,14 @@
 
 | ID | 보고서 | 원문 수정일 | 상태 | 지도 반영 |
 | --- | --- | --- | --- | --- |
+| `DEV-073` | [P2 — C++ 생성물 자동화 실행·검증](development/testing/p2-generated-artifact-automation-2026-10-14.md) | 2026-10-14 | `implemented` | `not-applicable` |
+| `DEV-072` | [Info tab v9 — implementation and visual verification](development/testing/info-tab-v9-visual-validation-2026-10-06.md) | 2026-10-06 | `historical-record` | `not-applicable` |
+| `DEV-071` | [P1 — 원격 개발환경 표준화·검증](development/testing/p1-remote-development-validation-2026-10-14.md) | 2026-10-14 | `implemented` | `not-applicable` |
+| `DEV-070` | [P0 — 원격 개발 체계·도구 의존성·성능 기준 조사](development/testing/remote-toolchain-p0-audit-2026-10-14.md) | 2026-10-14 | `investigating` | `not-applicable` |
+| `DEV-069` | [Git 대용량 이력 정리 — 격리 검증 및 PR 참조 제약](development/testing/git-history-readonly-audit-2026-10-13.md) | 2026-10-13 | `historical-record` | `not-applicable` |
+| `DEV-068` | [미사용 세계지도 구버전 대용량 자산 정리 — 의존성 검증](development/testing/legacy-world-asset-retirement-2026-10-13.md) | 2026-10-13 | `historical-record` | `not-applicable` |
+| `DEV-067` | [통합 저장소 현행 파일 정리 — 비활성 앱 워크플로](development/testing/current-file-cleanup-2026-10-13.md) | 2026-10-13 | `historical-record` | `not-applicable` |
+| `DEV-066` | [공통 C++·WASM 코어와 앱 시작 경로 개선 — 진행 기록](development/testing/shared-core-startup-implementation-2026-10-12.md) | 2026-10-12 | `investigating` | `not-applicable` |
 | `DEV-028` | [Android storage and shared UI report](development/app/android-storage-report.md) | 2026-09-17 | `historical-record` | `not-applicable` |
 | `DEV-029` | [M7.7 migration release gate — open](development/app/final-parity-report.md) | 2026-09-27 | `historical-record` | `not-applicable` |
 | `DEV-030` | [Flag output contract — 2026-10-04](development/app/flag-web-parity-20261004.md) | 2026-10-04 | `historical-record` | `not-applicable` |
@@ -97,12 +106,28 @@
 | `ARC-021` | [구형 수계 v0.12.2~v0.12.6 — 2단계 삭제 준비 조사](archive/hydro/legacy-hydro-stage2.md) | 2026-10-09 | `historical-record` | `unverified` |
 | `ARC-022` | [구형 수계 전체 정리 — 3단계 실행·복원·배포 검증](archive/hydro/legacy-hydro-stage3.md) | 2026-10-09 | `historical-record` | `unverified` |
 
+## 2026-10-13 보고서 통합 정리 추가 자료
+
+이 단락은 파일 보관 경로를 안내합니다. 조사 완료·지도 반영·실행 검증이 추가로 확인되었다는 뜻은 아닙니다.
+
+| 분야 | 현재 보고서·증거 정본 |
+| --- | --- |
+| 시아첸 지리 조사 | [연구 개요](research/siachen/README.md), [산등성이 원자료 검토](research/siachen/REVIEW_SALTORO_MULTI_SOURCE_2026-10-08.md) |
+| 독일제국 1914년 북슐레스비히 | [사료 검토](geography/germany/north-schleswig/german-denmark-1914-north-schleswig-001-026.review.md) |
+| 네덜란드 간척·해안 | [현행 국가·수역 표현 조사](geography/netherlands/phase0-current-representation-inventory.json), [기존 검증 기록](geography/netherlands/phase0-canonical-audit.md) |
+| 세르비아 역사 경계 | [세르비아 1914년 QA](geography/serbia/serbia-1914-qa.md) |
+| 국가 색상 연구 | [근거 정리](research/country-default-colors.md), [연구 색상표](research/country-default-colors.json) |
+| 지명 조사 원문 | [감사 결과](places/place-data-audit.md), [검토 세부표](places/place-candidate-review.md), [출처 매니페스트](places/source-manifest.json) |
+| 앱 UI·배포 기록 | [UI 통합 검증](development/app/common-ui-integration.md), [경계 분리 배포 근거](development/app/platform-boundaries-deployment.md) |
+| 앱 참조 이미지 | [앱 검증 증거](development/app/evidence/reference-image-web-parity/review.md) |
+| 역사 수계 조사 | [r152~r194 조사 데이터](hydro-names/reconstruction-2026-10-09/) |
+
 ## 기존 원본·생성 자료
 
 - [수계 보정](hydro-calibration/README.md), [연결성](hydro-connectivity/README.md), [v0.12.3](hydro-v0.12.3/README.md), [v0.12.4](hydro-v0.12.4/README.md), [v0.13.0](hydro-v0.13.0/README.md)의 보고서·도판은 증거 묶음의 상대 경로를 유지합니다.
 - [수계 지명 현황](hydro-names/current-web-2026-10-08/README.md)과 [수계 지명 재구성 배치](hydro-names/reconstruction-2026-10-09/)는 원본 출처·검토 자료와 함께 관리합니다.
 - [영토 객체 통합 검증](territorial-integration/final-gate.md)은 검사 결과와 함께 기존 위치에 둡니다.
-- [지명 검토 JSON](places/candidate-review-summary.json), [도시 좌표 교정](places/coordinate-corrections.json), [생성된 도시 후보 감사](../docs/place-data-audit.md), [생성된 ID별 검토](../docs/place-candidate-review.md)는 도구 입력·생성물이라 이동하지 않습니다.
+- [지명 검토 JSON](places/candidate-review-summary.json), [도시 좌표 교정](places/coordinate-corrections.json), [생성된 도시 후보 감사](places/place-data-audit.md), [생성된 ID별 검토](places/place-candidate-review.md)는 `reports/places/` 정본이며, 생성기와 검증기도 이 경로를 사용합니다.
 - [네덜란드 사건·출처 목록](../tools/historical-library/sources/netherlands/change-events.json), [독일 해안선 사건·출처 목록](../tools/historical-library/sources/german-coastline/change-events.json), 역사 도판·probe JSON은 기존 위치의 원본 증거입니다.
 - 앱의 [참조 이미지 검증 실행 증거](https://github.com/kimjeon-il/PandoEditor/tree/f535673993f45957b82d125ff766ed1e18233170/docs/evidence/reference-image-web-parity)는 앱 저장소에 남깁니다.
 

@@ -1,0 +1,594 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r165",
+  "sources": [
+    {
+      "source_key": "r165-geus-greenland-national-1995-local",
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": [
+        "Jan C. Escher",
+        "T. Christopher R. Pulvertaft"
+      ],
+      "year": 1995,
+      "publisher": "Geological Survey of Greenland, Copenhagen; official digital original distributed by GEUS",
+      "scale": "1:2 500 000",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J",
+      "catalogue_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi:10.22008/FK2/SYAL4J",
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16855",
+      "current_acquisition": "No new request. Reused the complete original and catalogue lawfully acquired in r162 after the workspace loss; retained records establish completed successful acquisition.",
+      "actual_read_scope": "Full original-sheet overview; enlarged northwest Greenland Inland Ice, Camp Century and Lauge Koch Kyst–Melville Bugt cartography; the complete selected opening, eastward/southeastward corridor and all final southward parts through the actual terminal setting; original geographic graticules, WGS84/UTM zone 24 projection, Inland Ice legend, copyright and recommended citation; retained official catalogue bibliography and actual Custom Dataset Terms.",
+      "supports": "Complete ordinary geographical correspondence for all selected parts, including opening, small joins and bends, lower ice-margin approach and final coastal setting.",
+      "limits": "Generalized historical geological/glaciological cartography. No exact channel, present ice/shore boundary, small receiving inlet, hydraulic continuity or representative river name is established.",
+      "use_notice": "GEUS Custom Dataset Terms permit internal use/processing and restrict redistribution and production or transfer of new maps. Originals, crops and all cartographic reading materials remain private. Only own factual prose and ordinary bibliography are public-ready."
+    },
+    {
+      "source_key": "r165-usgstopo-chehalis-upper",
+      "title": "The National Map, USGSTopo: upper Chehalis corridor bounded view",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "bibliography": "U.S. Geological Survey. The National Map, USGSTopo multiscale topographic reference map. Upper Chehalis corridor view. Accessed 12 October 2026.",
+      "material_read": "Original raster covering the East Fork/upper valley, receiving Chehalis through Chehalis and Centralia, Grand Mound, Black River and Oakville. Original full view and readable local crops inspected; private orientation aid read separately.",
+      "access_status": "Original bounded map acquisition completed HTTP 200; original map pixels inspected."
+    },
+    {
+      "source_key": "r165-usgstopo-chehalis-head",
+      "title": "The National Map, USGSTopo: East and West Fork Chehalis junction and selected opening",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "bibliography": "U.S. Geological Survey. The National Map, USGSTopo multiscale topographic reference map. East/West Fork Chehalis and selected headward-opening detailed view. Accessed 12 October 2026.",
+      "material_read": "Original detailed map showing the selected opening north of Elochoman Pass, East Fork Chehalis valley, Clintapax Creek and East/West Fork union.",
+      "access_status": "Original bounded map acquisition completed HTTP 200; original map pixels inspected."
+    },
+    {
+      "source_key": "r165-usgstopo-chehalis-lower",
+      "title": "The National Map, USGSTopo: Oakville to Aberdeen lower Chehalis corridor",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "bibliography": "U.S. Geological Survey. The National Map, USGSTopo multiscale topographic reference map. Oakville–Elma–Montesano–Aberdeen lower corridor view. Accessed 12 October 2026.",
+      "material_read": "Original lower corridor, Satsop and Wynoochee joins, lateral lakes and slough plain, both lower fragments and Aberdeen endpoint setting. Readable eastern and western original crops inspected.",
+      "access_status": "Original bounded map acquisition completed HTTP 200; original map pixels inspected."
+    },
+    {
+      "source_key": "r165-usgstopo-chehalis-terminal",
+      "title": "The National Map, USGSTopo: Aberdeen and actual selected terminal detailed view",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "bibliography": "U.S. Geological Survey. The National Map, USGSTopo multiscale topographic reference map. Aberdeen, South Aberdeen and selected-terminal detailed view. Accessed 12 October 2026.",
+      "material_read": "Original detailed map of the Chehalis and Wishkah confluence, Aberdeen Reach, South Aberdeen street/landward setting, Cosmopolis and actual selected terminal.",
+      "access_status": "Original bounded map acquisition completed HTTP 200; original map pixels inspected."
+    },
+    {
+      "source_key": "r165-dp201702-mariet-report",
+      "title": "Levé magnétique et spectrométrique aéroporté dans le secteur de la rivière Mariet, nord-est de la baie d’Hudson",
+      "authors": [
+        "Rachid Intissar"
+      ],
+      "publisher": "Québec, Ministère de l’Énergie et des Ressources naturelles, Géologie Québec",
+      "report_id": "DP2017-02",
+      "year": 2017,
+      "isbn": "978-2-550-77588-1",
+      "normal_urls": [
+        "https://gq.mines.gouv.qc.ca/documents/examine/DP201702/DP201702.pdf",
+        "https://gq.mines.gouv.qc.ca/documents/examine/DP201702/"
+      ],
+      "actual_read_scope": "Completed eight-page PDF: cover/copyright, printed introduction and methods pp1–2, bibliography p3, full original Figure2 at printed p5 and detailed northern-corridor pixels. The linked companion directory completed successfully and its inventory was read.",
+      "original_map_read": true,
+      "map_read_scope": "Report Figure2 survey-sheet index only; no companion map read.",
+      "evidence_role": "regional_orientation_and_publication_identity_only",
+      "independent_identity": "Original airborne magnetic/gamma survey commissioned by Géologie Québec, executed by NOVATEM22July–7September2016. This separately issued instrument survey and report is distinguished from the stopped RG200401 bedrock study and from CanMatrix/CBMT publications. The actual report confirms the independent field campaign.",
+      "own_observation": "The report overview contains hydrographic background and sheet boundaries, with survey coverage south/west of the target’s extreme opening and terminal. Rivière Polemond appears as the title of sheet34N06; this label alone does not name the selected river.",
+      "companion_scope": "The linked directory lists a separate ten-map PDF and data archives. These were unrequested in the bounded pass; no access denial or new publication stop is inferred.",
+      "use_notice": "Ordinary Government of Québec2017 copyright with a licence link. No limited-distribution or officials-only notice observed in the inspected original. No original source or derivative is redistributed.",
+      "access_outcome": "Normal completed original report and directory responses.",
+      "official_url": "https://gq.mines.gouv.qc.ca/documents/examine/DP201702/DP201702.pdf"
+    },
+    {
+      "source_key": "r165-cws524-unavailable",
+      "title": "Atlantic Population Canada Goose nesting study and monitoring program in Nunavik, Quebec,1996–2011",
+      "publisher": "Environment Canada, Canadian Wildlife Service",
+      "report_id": "Technical Report524",
+      "normal_urls": [
+        "https://publications.gc.ca/collections/collection_2015/ec/CW69-5-524-eng.pdf"
+      ],
+      "actual_read_scope": "None. The sole direct original request returned HTML instead of a PDF. No source body or map pixels were read.",
+      "original_map_read": false,
+      "evidence_role": "excluded_unacquired",
+      "independent_identity": "Original nesting-monitoring field-study publication; independently identified programme and subject, distinct from cartographic/geological publications.",
+      "official_url": "https://publications.gc.ca/collections/collection_2015/ec/CW69-5-524-eng.pdf"
+    },
+    {
+      "source_key": "r165-kovac-ungava-unavailable",
+      "title": "Kogaluc/Payne (crossing Ungava peninsula)",
+      "authors": [
+        "Lester Kovac"
+      ],
+      "publisher": "Canadian Canoe Routes",
+      "year": 2015,
+      "normal_urls": [
+        "https://www.myccr.com/canoeroutes/kogalucpayne-crossing-ungava-peninsula"
+      ],
+      "actual_read_scope": "None. The sole original landing-page open returned web-reader403. No own expedition prose or maps were read.",
+      "original_map_read": false,
+      "evidence_role": "excluded_denied",
+      "independent_identity": "The proposed bounded reading concerned original2014 expedition prose. Relationship of any underlying map bases to stopped cartography remained unresolved; those maps were never requested.",
+      "official_url": "https://www.myccr.com/canoeroutes/kogalucpayne-crossing-ungava-peninsula"
+    },
+    {
+      "source_key": "r165-cehq10-retained-context",
+      "title": "Débits spécifiques d’étiage estivaux, Région hydrographique10",
+      "publisher": "Centre d’expertise hydrique du Québec",
+      "year": 2011,
+      "normal_urls": [
+        "https://www.cehq.gouv.qc.ca/debit-etiage/cartes/debit_etiage_10_specifique_estival.pdf"
+      ],
+      "actual_read_scope": "Lawfully retained r164 overview image newly inspected for coverage only. No external reacquisition.",
+      "original_map_read": true,
+      "evidence_role": "excluded_outside_useful_target_coverage",
+      "own_observation": "The northern map edge lies too far south to establish this selected corridor. No target correspondence is claimed.",
+      "official_url": "https://www.cehq.gouv.qc.ca/debit-etiage/cartes/debit_etiage_10_specifique_estival.pdf"
+    },
+    {
+      "source_key": "r165-corpamag-fundacion-catalogue",
+      "title": "RÍO FUNDACIÓN, Recurso Hídrico catalogue, page9",
+      "publisher": "Corporación Autónoma Regional del Magdalena (CORPAMAG)",
+      "actually_inspected": "Completed web-reader catalogue prose only. No POMCA archive, original report or map body was read.",
+      "bounded_observations": [
+        "The catalogue lists technical studies for a Fundación river POMCA and associated annexes.",
+        "It states cartographic currency2013 and scale1:100,000.",
+        "It says these studies were not adopted because they were prepared under Decreto1729 de2002."
+      ],
+      "evidence_scope": "Bibliography and publication context only; no selected-course or river/lagoon/sea connection evidence.",
+      "source_independence": "Fundación-specific watershed-planning publication context, distinct from the partly unidentified Sinú/Manso/Urrá works. Catalogue was read before the subsequent POMCA access-risk refusal; no new reading after that stop.",
+      "official_url": "https://www.corpamag.gov.co/index.php/recursohidrico?start=8"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:90037885",
+      "source_keys": [
+        "r165-geus-greenland-national-1995-local"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8845
+          ],
+          "component_scope": "Headward opening and northern turn",
+          "finding": "The selected opening and complete northward-to-eastward arch lie in the original map’s Inland Ice west of the Camp Century setting. The blue ice coverage and contour pattern expose the full first two stored parts, including the northernmost turn. No named river or surveyed watercourse follows this entire selected arch in the inspected source. Camp Century is a locality-context label only.",
+          "sources": [
+            "r165-geus-greenland-national-1995-local"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            8845
+          ],
+          "component_scope": "Eastward continuation across Inland Ice",
+          "finding": "Every small stored part of the eastward continuation is within the same continuous mapped Inland Ice area, approaching the sector southwest of the Camp Century label. The original covers the small part joins and their surrounding ice terrain at ordinary regional scale. Surface contours, dashed ice-thickness isopachs and underlying-bedrock contours are distinguished from river channels; their crossings do not demonstrate water flow.",
+          "sources": [
+            "r165-geus-greenland-national-1995-local"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            8845
+          ],
+          "component_scope": "Southeastward succession and intermediate joins",
+          "finding": "The complete succession of short southeastward stored parts remains in mapped Inland Ice southwest of Camp Century and inland of Lauge Koch Kyst. The contiguous original cartography exposes this whole interval and its joins with the eastern incoming sequence and the following bends. It supplies terrain correspondence, not evidence of a continuous surface or subglacial river.",
+          "sources": [
+            "r165-geus-greenland-national-1995-local"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            8845
+          ],
+          "component_scope": "Small lower-ice bends and southward departure",
+          "finding": "The series of small bends and subsequent southward departure are wholly covered in the mapped lower Inland Ice. The nearby label and contours provide ordinary geographical orientation but no natural-river name or hydraulic connection. Every stored bend, including the short reverse turns, is accounted for at source scale.",
+          "sources": [
+            "r165-geus-greenland-national-1995-local"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            8845
+          ],
+          "component_scope": "Southward approach toward Lauge Koch Kyst",
+          "finding": "The southward parts move through the lower ice-margin sector toward the exposed-rock coastal belt labelled Lauge Koch Kyst. The original shows the ice/rock and coastal-island pattern across the complete approach, rather than leaving the lower end at an inland label. There is no established named river reach, lake connector, managed channel or reservoir connector in this selected approach.",
+          "sources": [
+            "r165-geus-greenland-national-1995-local"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            8845
+          ],
+          "component_scope": "Final stored part and actual selected terminal",
+          "finding": "The entire final stored part, including its long southward segment and final endpoint, is covered by the original’s ice-margin, exposed-rock and coastal-water setting along Lauge Koch Kyst on the Melville Bugt side. The actual rendered endpoint and stored source endpoint belong to that same generalized terminal setting. This is correspondence to the selected final position, not a substitution of an upstream point or a nearby bay label. The national map’s scale and historical epoch do not justify an exact present land/ice/water boundary, a specific glacier or small embayment assignment, or an ordinary natural-river mouth claim.",
+          "sources": [
+            "r165-geus-greenland-national-1995-local"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70360842",
+      "source_keys": [
+        "r165-usgstopo-chehalis-upper",
+        "r165-usgstopo-chehalis-head",
+        "r165-usgstopo-chehalis-lower",
+        "r165-usgstopo-chehalis-terminal"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9461
+          ],
+          "component_scope": "Selected headward opening and East Fork Chehalis River approach",
+          "finding": "The detailed original places the selected opening north of Elochoman Pass on the mapped East Fork Chehalis River. The route follows the eastward then northward valley and turns northwest past the eastern tributary entries, including the mapped Clintapax Creek junction. No claim is made that this selected opening is the natural river source.",
+          "sources": [
+            "r165-usgstopo-chehalis-upper",
+            "r165-usgstopo-chehalis-head"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "coverage_limit": "Supported at ordinary headward-valley and junction scale; small modeled bend shortcuts do not establish exact banks.",
+          "bounded_component_name": "East Fork Chehalis River"
+        },
+        {
+          "fragments": [
+            9461
+          ],
+          "component_scope": "East/West Fork union and upper Chehalis valley",
+          "finding": "The detailed original depicts East Fork joining West Fork and the receiving channel labeled Chehalis River continuing north. The upper original follows that valley through the tributary settings of Thrash Creek, Smith Creek, the Pe Ell approach and Elk Creek to the eastward turn. The supplied route follows the receiving valley rather than treating West Fork or the side streams as selected continuations.",
+          "sources": [
+            "r165-usgstopo-chehalis-head",
+            "r165-usgstopo-chehalis-upper"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "coverage_limit": "Supported upper receiving corridor and fork union.",
+          "bounded_component_name": "Chehalis River"
+        },
+        {
+          "fragments": [
+            9461
+          ],
+          "component_scope": "Eastward upper valley and South Fork junction toward Chehalis",
+          "finding": "The upper original maps the selected eastward corridor beside the Route 6/Ludinghaus Road setting, the receiving bend near Ceres Hill, the entry of South Fork Chehalis River, and the Chehalis continuation toward the city. South Fork is a separately named incoming branch; it is not assigned the main candidate name as a scalar reach.",
+          "sources": [
+            "r165-usgstopo-chehalis-upper"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "coverage_limit": "Supported valley bends and actual South Fork entry.",
+          "bounded_component_name": "Chehalis River"
+        },
+        {
+          "fragments": [
+            9461,
+            9462
+          ],
+          "component_scope": "Chehalis–Centralia, Grand Mound, Black River and Oakville transition",
+          "finding": "The upper original follows the northward Chehalis corridor beside Chehalis and Centralia, including the eastern Skookumchuck River entry, then west around Grand Mound and the Chehalis Reservation. The Black River junction is mapped north of the westward corridor. Overlapping upper and lower originals carry the selected route across the 9461/9462 fragment transition and into the Oakville northward turn.",
+          "sources": [
+            "r165-usgstopo-chehalis-upper",
+            "r165-usgstopo-chehalis-lower"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "coverage_limit": "Supported receiving corridor, lateral entries and inter-fragment continuity at ordinary scale.",
+          "bounded_component_name": "Chehalis River"
+        },
+        {
+          "fragments": [
+            9462
+          ],
+          "component_scope": "Oakville–Porter–Elma corridor and Satsop entry",
+          "finding": "The lower original maps the selected northwestward Chehalis valley through the Oakville/Porter corridor and the broad Elma floodplain. Its westward continuation receives Satsop River. Moores Lake and Huttula Lake are shown beside this plain; the selected route corresponds to the Chehalis receiving corridor south of their settings, and no independent through-lake connection is imposed.",
+          "sources": [
+            "r165-usgstopo-chehalis-lower"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "coverage_limit": "Supported main-valley route and Satsop junction, distinct from nearby lakes and side channels.",
+          "bounded_component_name": "Chehalis River"
+        },
+        {
+          "fragments": [
+            9462,
+            9463
+          ],
+          "component_scope": "Brady–Montesano, Wynoochee entry and lower Chehalis/slough plain",
+          "finding": "The lower original follows the Chehalis west through Brady and the Montesano plain, depicts the Wynoochee River entry, and maps the continued lower river across the 9462/9463 transition. The selected receiving corridor passes the extensive Willow, Preachers and Blue slough settings toward Cosmopolis and the east side of Aberdeen. Named sloughs and wetland branches remain distinct; map coverage is not used to assign every such channel the same name.",
+          "sources": [
+            "r165-usgstopo-chehalis-lower",
+            "r165-usgstopo-chehalis-terminal"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "coverage_limit": "Supported lower receiving corridor and inter-fragment link; precise tidal-channel centerlines and individual bend cuts are outside scope.",
+          "bounded_component_name": "Chehalis River"
+        },
+        {
+          "fragments": [
+            9463
+          ],
+          "component_scope": "Actual selected Aberdeen terminal",
+          "finding": "Both the lower original and the detailed terminal original show the Chehalis River bending west and southwest through Aberdeen Reach. The last selected segment instead runs southwest from the mapped river across the South Aberdeen street/landward setting and ends in the West Huntley Street area. The detailed original does not depict a waterway following that final selected segment to its actual endpoint. Neither the surrounding Chehalis identity nor the nearby estuarine water establishes this link.",
+          "sources": [
+            "r165-usgstopo-chehalis-lower",
+            "r165-usgstopo-chehalis-terminal"
+          ],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false,
+          "coverage_limit": "Material terminal-connection gap. The actual selected end is not replaced with a more convenient river mouth or a Grays Harbor endpoint."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70007286",
+      "source_keys": [
+        "r165-dp201702-mariet-report"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8940
+          ],
+          "component_scope": "Selected eastern opening and initial lake-and-channel chain",
+          "finding": "The supplied opening lies east of the airborne survey footprint. The original report overview includes this broad area but does not establish the small opening waterbody, its exit or each transfer into the northward upper reach.",
+          "sources": [
+            "r165-dp201702-mariet-report"
+          ],
+          "correspondence": "regional_orientation_only_material_pending",
+          "component_correspondence_completed": false,
+          "material_gap": true
+        },
+        {
+          "fragments": [
+            8940
+          ],
+          "component_scope": "Upper northward bend and northwestward approach",
+          "finding": "The report’s generalized hydrographic background places the corridor among the eastern lake country. It is a sheet-index figure, and no detailed original demonstrates every selected lake entry, exit and intervening join.",
+          "sources": [
+            "r165-dp201702-mariet-report"
+          ],
+          "correspondence": "regional_orientation_only_material_pending",
+          "component_correspondence_completed": false,
+          "material_gap": true
+        },
+        {
+          "fragments": [
+            8940
+          ],
+          "component_scope": "Middle approach, northward bend and westward continuation",
+          "finding": "The selected middle passage crosses the mapped regional lake-and-channel country. The source index labels 34N06 Rivière Polemond as a map-sheet title, not as a proved name of this complete selected route. The actual selected through-links remain unresolved.",
+          "sources": [
+            "r165-dp201702-mariet-report"
+          ],
+          "correspondence": "regional_orientation_only_material_pending",
+          "component_correspondence_completed": false,
+          "material_gap": true
+        },
+        {
+          "fragments": [
+            8940
+          ],
+          "component_scope": "Lower northwestward chain and joining corridors",
+          "finding": "The northwestward lower passage is north of the airborne survey footprint. The sparse report background does not establish all selected lake transfers or the identity and connectivity of adjoining channels.",
+          "sources": [
+            "r165-dp201702-mariet-report"
+          ],
+          "correspondence": "regional_orientation_only_material_pending",
+          "component_correspondence_completed": false,
+          "material_gap": true
+        },
+        {
+          "fragments": [
+            8940
+          ],
+          "component_scope": "Last lake/channel passage and actual coastal terminal",
+          "finding": "The selected final passage is near the top edge of the generalized overview and outside the survey footprint. The exact selected coastal connection is not established. Neither the unavailable nesting-study map nor the denied expedition publication supplies terminal evidence.",
+          "sources": [
+            "r165-dp201702-mariet-report"
+          ],
+          "correspondence": "regional_orientation_only_material_pending",
+          "component_correspondence_completed": false,
+          "material_gap": true
+        },
+        {
+          "fragments": [
+            8940
+          ],
+          "component_scope": "Managed, wetland and glacier connectors",
+          "finding": "No specific managed or glacier connector is positively identified in inspected material. The report overview cannot prove or exclude small wetland or seasonal connections along the selected chain.",
+          "sources": [
+            "r165-dp201702-mariet-report"
+          ],
+          "correspondence": "regional_orientation_only_material_pending",
+          "component_correspondence_completed": false,
+          "material_gap": "included_in_the_route_component_gaps"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60001879",
+      "source_keys": [
+        "r165-corpamag-fundacion-catalogue"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10753
+          ],
+          "component_scope": "headward opening",
+          "finding": "The selected headward opening and descent toward the regional western plain have no inspected original map correspondence. A nearby or basin-level name cannot settle the opening.",
+          "sources": [],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            10753
+          ],
+          "component_scope": "upper, middle and lower river course",
+          "finding": "All50 supplied mainstem parts remain without substantive map correspondence, including their intermediate joins and any distinct local reach identity. Fundación remains an unverified discovery lead only.",
+          "sources": [],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            10753,
+            10754
+          ],
+          "component_scope": "fragment transition and waterbody entrance",
+          "finding": "The shared supplied endpoint is known from the selected path; the geographical river-to-lagoon/wetland transfer has no inspected source confirmation.",
+          "sources": [],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            10754
+          ],
+          "component_scope": "lagoon/wetland through-link",
+          "finding": "The long northward then northeastward selected continuation cannot be treated as a named river or confirmed lagoon flow path from source membership or a broad wetland label.",
+          "sources": [],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            10754
+          ],
+          "component_scope": "actual terminal and sea connection",
+          "finding": "The selected endpoint must be matched to the actual coastal opening with independent ordinary corridor evidence. The supplied sea classification and likely Boca de la Barra setting do not independently establish that connection.",
+          "sources": [],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            10753,
+            10754
+          ],
+          "component_scope": "tributary, managed or other connectors",
+          "finding": "No additional tributary-role fragment is selected. The absence or presence of managed canals, barriers or local waterbody transitions along the selected mainstem cannot be inferred without original mapping.",
+          "sources": [],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "Canadian Wildlife Service Technical Report 524, Atlantic Population Canada Goose nesting study and monitoring program in Nunavik, Quebec, 1996–2011",
+      "observed_outcome": "Sole direct original acquisition completed HTTP200, Content-Type text/html; charset=utf-8. A PDF original was not obtained; no body or source map pixels were read.",
+      "outcome_layer": "Completed HTTP-client response; wrong-body availability failure, not an HTTP denial.",
+      "earlier_lawful_observations": null,
+      "aw_id": "hydro-system:70007286",
+      "official_url": "https://publications.gc.ca/collections/collection_2015/ec/CW69-5-524-eng.pdf",
+      "restriction_scope": "Whole missing report, maps and equivalent original, catalogue, reader, cache, mirror and format routes paused. No retry or alternate route."
+    },
+    {
+      "publication": "Lester Kovac, Kogaluc/Payne (crossing Ungava peninsula), Canadian Canoe Routes; independently described 2014 expedition, published 2015",
+      "observed_outcome": "Sole web-reader original-page open returned (403) Forbidden. No article body, expedition prose or original map pixels were obtained or read.",
+      "outcome_layer": "Web-reader-reported HTTP403; origin response was not separately measured.",
+      "earlier_lawful_observations": null,
+      "aw_id": "hydro-system:70007286",
+      "official_url": "https://www.myccr.com/canoeroutes/kogalucpayne-crossing-ungava-peninsula",
+      "restriction_scope": "Whole expedition publication, own prose, maps and equivalent original, catalogue, reader, cache, mirror, copy and format routes stopped. No retry or alternate acquisition."
+    },
+    {
+      "publication": "CORPAMAG, Estudios2013-8_POMCA Fundación V3 20130731 VF (2013 technical studies and annexes)",
+      "observed_outcome": "The associated reader request completed with (400) Unsupported content-type: application/zip. One normal-original fallback was started after that explicit format limitation, but its terminal-status request was refused for alternate-acquisition risk. No later polling or output reading occurred. Original HTTP and transfer outcome remain unknown.",
+      "outcome_layer": "Explicit completed web-reader ZIP format limit, followed by an access-risk tool/reviewer refusal on process polling; original HTTP unknown.",
+      "restriction_scope": "Whole POMCA publication and equivalents stopped across original, catalogue, reader, cache, mirror, archive, formats, local outputs and related acquisition or inspection routes. No further polling or reading of the pending original/output.",
+      "earlier_lawful_prose_exception": "Only already-read CORPAMAG catalogue facts: named Fundación POMCA technical studies, 2013 cartographic currency, stated scale 1:100,000 and non-adoption notice. These are bibliography/context, not map correspondence.",
+      "limitation_kind": "tool_access_risk_refusal",
+      "no_retry": true,
+      "aw_id": "hydro-system:60001879",
+      "official_url": "https://www.corpamag.gov.co/archivos/mapas/Estudios2013-8_POMCA%20Fundaci%C3%B3n%20V3%2020130731%20VF.zip"
+    },
+    {
+      "publication": "INVEMAR / CORPAMAG, Informe Técnico Final 2025: Monitoreo de las condiciones ambientales y los cambios estructurales y funcionales de las comunidades vegetales y de los recursos pesqueros durante la rehabilitación de la Ciénaga Grande de Santa Marta",
+      "observed_outcome": "The sole web-reader open completed with (400) Timeout fetching. No original body or map pixels read.",
+      "outcome_layer": "Web-reader fetch timeout; original HTTP unobserved.",
+      "restriction_scope": "Whole report, maps and equivalent copies, editions used as substitutes, formats, original, reader, cache, catalogue and mirror acquisition routes paused. No retry or alternate acquisition.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "reader_timeout_availability_pause",
+      "no_retry": true,
+      "aw_id": "hydro-system:60001879",
+      "official_url": "https://www.invemar.org.co/documents/37438/390230/ITF_CGSM_2025_VF.pdf/e4ddac1b-75b0-fbaa-0ee2-f5ed92f93f2e?t=1772478457690"
+    },
+    {
+      "publication": "Ministerio del Medio Ambiente (1998), Ficha informativa de los humedales de Ramsar: Sistema Delta Estuarino del Río Magdalena, Ciénaga Grande de Santa Marta (site 951)",
+      "observed_outcome": "The sole web-reader open completed with (502) Bad Gateway. No original body or map pixels read.",
+      "outcome_layer": "Web-reader fetch result reporting502; origin response/cause not separately measured.",
+      "restriction_scope": "Whole site951 original nomination publication, maps and equivalent copies, formats, original, reader, cache, catalogue and mirror acquisition routes paused. No retry or alternate acquisition.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "reader_502_availability_pause",
+      "no_retry": true,
+      "aw_id": "hydro-system:60001879",
+      "official_url": "https://rsis.ramsar.org/RISapp/files/RISrep/CO951RIS.pdf"
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "aw_id": "hydro-system:90037885",
+      "publication": "Geological map of Greenland 1:2 500 000",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J",
+      "observed_outcome": "GEUS Custom Dataset Terms permit internal use/processing and restrict redistribution and production or transfer of new maps. Originals, crops and all cartographic reading materials remain private. Only own factual prose and ordinary bibliography are public-ready.",
+      "outcome_layer": "Source-use or reproduction notice, not an access denial.",
+      "restriction_scope": "Only own factual prose and ordinary bibliography are public-ready. Source originals and all cartographic reading materials remain private.",
+      "limitation_kind": "publication_use_notice"
+    },
+    {
+      "aw_id": "hydro-system:70007286",
+      "publication": "Levé magnétique et spectrométrique aéroporté dans le secteur de la rivière Mariet, nord-est de la baie d’Hudson",
+      "official_url": "https://gq.mines.gouv.qc.ca/documents/examine/DP201702/DP201702.pdf",
+      "observed_outcome": "Ordinary Government of Québec2017 copyright with a licence link. No limited-distribution or officials-only notice observed in the inspected original. No original source or derivative is redistributed.",
+      "outcome_layer": "Source-use or reproduction notice, not an access denial.",
+      "restriction_scope": "Only own factual prose and ordinary bibliography are public-ready. Source originals and all cartographic reading materials remain private.",
+      "limitation_kind": "publication_use_notice"
+    },
+    {
+      "aw_id": "hydro-system:70007286",
+      "publication": "DP2017-02, separate companion map package and data archives",
+      "official_url": "https://gq.mines.gouv.qc.ca/documents/examine/DP201702/",
+      "observed_outcome": "The original report and linked directory were read. The separate ten-map package and data archives were not requested or read in this bounded pass.",
+      "outcome_layer": "Uninspected material, not an access-denial or availability failure.",
+      "restriction_scope": "The report sheet-index figure is regional orientation only; no companion-map correspondence is claimed. No enduring acquisition stop is created for unrequested material.",
+      "limitation_kind": "uninspected_companion_material"
+    },
+    {
+      "aw_id": "hydro-system:70360842",
+      "publication": "The National Map USGSTopo cartographic service",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "observed_outcome": "The live original service description and credits were read. It identifies an independently maintained seamless multiscale reference map combining National Map and other public-domain themes, including hydrography and geographic names. Credits report a 4 September 2026-v1.2 data refresh; that is not asserted as the edition or survey date of every underlying feature.",
+      "outcome_layer": "Successful service metadata and original-map reading.",
+      "restriction_scope": "Own factual synthesis and ordinary bibliography only. Original map pixels and reading aids are private. Source mapping establishes geographic relationships, not current discharge, legal naming dates, exact banks or modern water levels.",
+      "independent_identity": "Separately issued and maintained national cartographic service with its own declared data themes and credits. It is not a copy, figure-recovery route or equivalent edition of a stopped numbered geological or hydrological report, including USGS PP303-C. Existing publication-specific restrictions remain intact.",
+      "limitation_kind": "source_scale_epoch_and_use_scope"
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "territorial_fixture.h"
 #include "projectcodec.h"
 #include <pandoeditor/project.h>
@@ -19,7 +20,7 @@ static QJsonObject state(const Project& p){
  }return {{"units",units},{"undo",p.canUndo()},{"redo",p.canRedo()}};
 }
 static QJsonArray scenario(const QJsonArray& ops){
- ProjectDocument d({{"A","Alpha",{{{{0,0},{8,0},{8,8},{0,8},{0,0}}}},0xcccccc}},{{"countries","Countries"}});
+ pandoeditor::ProjectDocument d = makeTerritorialDocument({{{"A","Alpha","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{8,0},{8,8},{0,8},{0,0}}}}},{0xcccccc,1},"countries"}},{{"countries","Countries"}});
  d.units[0].name="";d.units[0].nameExplicit=false;d.presentation.objectStyles[territorialRef("A")]={0,1,false};
  for(auto id:{"S","R"}){appendTerritory(d,{id,id,"",std::string(id)=="S"?UnitKind::General:UnitKind::Regional,false},staticGeometryBinding(d,d.units[0].id).geometryRef);d.presentation.membership[territorialRef(id)]="countries";d.presentation.objectStyles[territorialRef(id)]={0,1,false};if(std::string(id)=="S")setFixtureParent(d,territorialRef(id),territorialRef("A"));}
  Project p;p.replace(d);QJsonArray result;

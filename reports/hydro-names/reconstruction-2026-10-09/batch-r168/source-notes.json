@@ -1,0 +1,728 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r168",
+  "sources": [
+    {
+      "source_key": "r168-usgs-topo-san-bernard-opening",
+      "title": "USGSTopo, The National Map: Little Bernard Creek opening, Rexville, East Bernard Creek and the San Bernard junction",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_type": "Independently maintained multiscale reference-map service, not a numbered USGS report or an alternate route to any stopped report or plate.",
+      "acquired_date_utc": "2026-10-12",
+      "actual_read_scope": "Full readable original overview; original enlarged northwestern opening, Rexville reach and East Bernard Creek/San Bernard junction; separate private orientation view.",
+      "edition_and_epoch": "Live composite service rendering accessed on the stated date. No single compilation edition, survey date or present water-condition date is asserted.",
+      "limits": "Ordinary regional/corridor geographic and reach-name correspondence. Not a formal name register, exact-bank survey or evidence of current flow, water levels, reservoir operation, tidal direction or mouth maintenance.",
+      "use_notice": "Public-ready evidence is bounded own factual synthesis and ordinary bibliography. Source originals, derivative reading aids and acquisition details remain private."
+    },
+    {
+      "source_key": "r168-usgs-topo-san-bernard-upper",
+      "title": "USGSTopo, The National Map: Upper San Bernard through Wallis, East Bernard and Kendleton",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_type": "Independently maintained multiscale reference-map service, not a numbered USGS report or an alternate route to any stopped report or plate.",
+      "acquired_date_utc": "2026-10-12",
+      "actual_read_scope": "Full readable original and separate private orientation view, covering the complete upper San Bernard passage and overlapping its upstream and downstream joins.",
+      "edition_and_epoch": "Live composite service rendering accessed on the stated date. No single compilation edition, survey date or present water-condition date is asserted.",
+      "limits": "Ordinary regional/corridor geographic and reach-name correspondence. Not a formal name register, exact-bank survey or evidence of current flow, water levels, reservoir operation, tidal direction or mouth maintenance.",
+      "use_notice": "Public-ready evidence is bounded own factual synthesis and ordinary bibliography. Source originals, derivative reading aids and acquisition details remain private."
+    },
+    {
+      "source_key": "r168-usgs-topo-san-bernard-middle",
+      "title": "USGSTopo, The National Map: Middle San Bernard, Newgulf, reservoir/canal surroundings and lower inland approach",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_type": "Independently maintained multiscale reference-map service, not a numbered USGS report or an alternate route to any stopped report or plate.",
+      "acquired_date_utc": "2026-10-12",
+      "actual_read_scope": "Full readable original and separate private orientation view; enlarged original Newgulf river/reservoir/canal setting; overlapping upper and lower joins.",
+      "edition_and_epoch": "Live composite service rendering accessed on the stated date. No single compilation edition, survey date or present water-condition date is asserted.",
+      "limits": "Ordinary regional/corridor geographic and reach-name correspondence. Not a formal name register, exact-bank survey or evidence of current flow, water levels, reservoir operation, tidal direction or mouth maintenance.",
+      "use_notice": "Public-ready evidence is bounded own factual synthesis and ordinary bibliography. Source originals, derivative reading aids and acquisition details remain private."
+    },
+    {
+      "source_key": "r168-usgs-topo-san-bernard-terminal",
+      "title": "USGSTopo, The National Map: Lower San Bernard, Intracoastal Waterway and actual open-coast outlet",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_type": "Independently maintained multiscale reference-map service, not a numbered USGS report or an alternate route to any stopped report or plate.",
+      "acquired_date_utc": "2026-10-12",
+      "actual_read_scope": "Full readable original and separate private orientation view; enlarged original Intracoastal Waterway connection and actual outlet endpoint.",
+      "edition_and_epoch": "Live composite service rendering accessed on the stated date. No single compilation edition, survey date or present water-condition date is asserted.",
+      "limits": "Ordinary regional/corridor geographic and reach-name correspondence. Not a formal name register, exact-bank survey or evidence of current flow, water levels, reservoir operation, tidal direction or mouth maintenance.",
+      "use_notice": "Public-ready evidence is bounded own factual synthesis and ordinary bibliography. Source originals, derivative reading aids and acquisition details remain private."
+    },
+    {
+      "source_key": "r168-nluis-burns-lake-77g-1982",
+      "title": "Land Use Information Series: Burns Lake, District of Franklin, Northwest Territories, sheet77G",
+      "publisher": "Lands Directorate, Environmental Conservation Service, Department of the Environment, with Indian and Northern Affairs; thematic cartography by the Land Resource Research Institute, Research Branch, Agriculture Canada",
+      "year": 1982,
+      "information_date": "December1981",
+      "scale": "1:250,000",
+      "base_map_context": "Army Survey Establishment,R.C.E.; base-map information current1960, printed1966. Base map and printing supplied by the Map Reproduction Centre, Energy, Mines and Resources Canada.",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_77g.jpg",
+      "evidence_kind": "primary_original_cartography_and_map_margin_prose",
+      "actual_read_scope": "Original overview, title, publishing imprint, copyright, introduction and information date, graticule, fish-resource notes, and separate source-only windows from the western opening through Burns Lake, the middle river, northeastern lake chain and lower channel to the eastern map edge. Local orientation aids were kept separate from source-only visual evidence.",
+      "source_independence": "Affirmatively identified in the earlier actual original-reading record as a separately issued Environment Canada land-resource thematic publication; the present original confirms that project and imprint. It is not a CanMatrix delivery, CBMT3978 image, naming-registry record or replacement copy of a stopped geological report. Base-map and logistical credits do not alter the publication identity.",
+      "limits": "Historical generalized land-resource cartography. Introductory notice describes interim, incomplete and partly reconnaissance-based information and approximate thematic boundaries. Fish-resource prose describes limited studies and a1981 reconnaissance survey, not a complete inventory. The sheet ends before the final coastal approach, which is covered by the separately read Cape Stang original.",
+      "use_notice": "Crown copyright1982 printed on the map. Only independently written bounded observations and normal bibliography are supplied; no original map or derivative is redistributed."
+    },
+    {
+      "source_key": "r168-nluis-cape-stang-77h-1982",
+      "title": "Land Use Information Series: Cape Stang, District of Franklin, Northwest Territories, sheet77H",
+      "publisher": "Lands Directorate, Environmental Conservation Service, Department of the Environment, with Indian and Northern Affairs; thematic cartography by the Land Resource Research Institute, Research Branch, Agriculture Canada",
+      "year": 1982,
+      "information_date": "December1981; series context independently stated in the adjoining Burns Lake original",
+      "scale": "1:250,000",
+      "base_map_context": "Army Survey Establishment,R.C.E.; base-map information current1963, printed1966. Base map and printing supplied by the Map Reproduction Centre, Energy, Mines and Resources Canada.",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_77h.jpg",
+      "evidence_kind": "primary_original_cartography",
+      "actual_read_scope": "Original overview, title, scale, graticule, publication imprint, copyright, hydrographic and terrain legend, west-side lower channel and actual terminal, adjacent southern-head drainage for geographic disambiguation, and the Hadley Bay label and receiving shoreline. No unseen inland interval is attributed to this sheet.",
+      "source_independence": "Positively identified as a separately issued1982 land-resource thematic publication in the earlier actual original-reading record, then confirmed by the present original imprint. Acquisition did not reopen the held NLUIS index, Denmark Bay map, CanMatrix family, CBMT3978 or any naming/geological publication.",
+      "limits": "Historical1:250,000 thematic map with older topographic base. Used for the short cross-sheet continuation, actual terminal and receiving-bay identity, not precise current coastlines, navigational advice or legal naming status.",
+      "use_notice": "Crown copyright1982 printed on the map. Original map, crops and private comparison material are not redistributed."
+    },
+    {
+      "source_key": "r168-ibge-ibaretama-2022",
+      "title": "Ibaretama – CE, Mapa Municipal, 2305266",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística (IBGE), Diretoria de Geociências; Coordenação de Estruturas Territoriais (CETE)",
+      "municipal_product_code": "2305266",
+      "collection": "Coleção de Mapas Municipais, 2022",
+      "edition_as_printed": "2022",
+      "bibliography": "Instituto Brasileiro de Geografia e Estatística. Ibaretama – CE, Mapa Municipal, municipal product 2305266. Coleção de Mapas Municipais; edição 2022. One-sheet geographic-coordinate map, SIRGAS 2000.",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2022/CE/ibaretama/A0_2305266_MM.pdf",
+      "source_type": "Primary original municipal cartography",
+      "actual_read_scope": "Complete sheet visually read, followed by enlarged opening and Cipó branch, Pirangi junction, Triunfo/Piranji corridor, São Francisco/Nova Vida approach, reservoir setting, legend and imprint.",
+      "supports": "Chosen opening; Cipó/Pirangi junction; Triunfo–Piranji–São Francisco; Batente southwestern approach and main waterbody.",
+      "map_scale_metadata": "Printed bar extends to 3,000 m; geographic-coordinate map. No fixed numerical scale is invented.",
+      "publication_identity": "Affirmatively identified independently issued municipal geographic compilation for Ibaretama, product 2305266, with its own title, cartographic footprint, geocode, compilation and imprint. It is not an edition/copy of stopped Glória or Breves municipal products, IPECE Canindé2021, or the COGERH Curu2021 diagnosis. Shared IBGE publishing infrastructure and source compilation do not make this an independent hydrological survey.",
+      "cartographic_attribution": "Semi-automatically generated from the IBGE Digital Municipal Mesh, with updates from multiple sources.",
+      "use_notice": "The original states its intended purpose is IBGE statistical collection/tabulation, warns against other uses, disclaims responsibility for them and reserves reproduction rights. Used only for bounded geographic/name correspondence, not present hydraulics, precise survey, legal boundary or formal naming-registry claims. Original PDFs, maps, crops, overlays and coordinates remain private."
+    },
+    {
+      "source_key": "r168-ibge-ocara-2022",
+      "title": "Ocara – CE, Mapa Municipal, 2309458",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística (IBGE), Diretoria de Geociências; Coordenação de Estruturas Territoriais (CETE)",
+      "municipal_product_code": "2309458",
+      "collection": "Coleção de Mapas Municipais, 2022",
+      "edition_as_printed": "2022",
+      "bibliography": "Instituto Brasileiro de Geografia e Estatística. Ocara – CE, Mapa Municipal, municipal product 2309458. Coleção de Mapas Municipais; edição 2022. One-sheet geographic-coordinate map, SIRGAS 2000.",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2022/CE/ocara/A0_2309458_MM.pdf",
+      "source_type": "Primary original municipal cartography",
+      "actual_read_scope": "Complete sheet visually read, with enlarged Batente name and all arms/outlet, Curralinho continuation, eastern boundary river, tributary joins, municipality overlap, legend and imprint.",
+      "supports": "Batente through-waterbody and eastern outlet; Curralinho–Zacarias; middle Pirangi and adjoining municipal seam.",
+      "map_scale_metadata": "Printed bar extends to 2,600 m; geographic-coordinate map. No fixed numerical scale is invented.",
+      "publication_identity": "Affirmatively identified independently issued municipal geographic compilation for Ocara, product 2309458, with its own title, cartographic footprint, geocode, compilation and imprint. It is not an edition/copy of stopped Glória or Breves municipal products, IPECE Canindé2021, or the COGERH Curu2021 diagnosis. Shared IBGE publishing infrastructure and source compilation do not make this an independent hydrological survey.",
+      "cartographic_attribution": "Semi-automatically generated from the IBGE Digital Municipal Mesh, with updates from multiple sources.",
+      "use_notice": "The original states its intended purpose is IBGE statistical collection/tabulation, warns against other uses, disclaims responsibility for them and reserves reproduction rights. Used only for bounded geographic/name correspondence, not present hydraulics, precise survey, legal boundary or formal naming-registry claims. Original PDFs, maps, crops, overlays and coordinates remain private."
+    },
+    {
+      "source_key": "r168-ibge-beberibe-2022",
+      "title": "Beberibe – CE, Mapa Municipal, 2302206",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística (IBGE), Diretoria de Geociências; Coordenação de Estruturas Territoriais (CETE)",
+      "municipal_product_code": "2302206",
+      "collection": "Coleção de Mapas Municipais, 2022",
+      "edition_as_printed": "2022",
+      "bibliography": "Instituto Brasileiro de Geografia e Estatística. Beberibe – CE, Mapa Municipal, municipal product 2302206. Coleção de Mapas Municipais; edição 2022. One-sheet geographic-coordinate map, SIRGAS 2000.",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2022/CE/beberibe/A0_2302206_MM.pdf",
+      "source_type": "Primary original municipal cartography",
+      "actual_read_scope": "Complete sheet visually read, with enlarged southwest/middle river, named canal and river distinction, northward bend, lower eastward corridor, lower widening and terminal mouth, legend and imprint.",
+      "supports": "Middle river overlap, diagonal road/canal setting, Poço Medeiros, Cedro bend, Itapeim and lower river widening, Parajuru estuary and Atlantic.",
+      "map_scale_metadata": "Printed bar extends to 4,800 m; geographic-coordinate map. No fixed numerical scale is invented.",
+      "publication_identity": "Affirmatively identified independently issued municipal geographic compilation for Beberibe, product 2302206, with its own title, cartographic footprint, geocode, compilation and imprint. It is not an edition/copy of stopped Glória or Breves municipal products, IPECE Canindé2021, or the COGERH Curu2021 diagnosis. Shared IBGE publishing infrastructure and source compilation do not make this an independent hydrological survey.",
+      "cartographic_attribution": "Semi-automatically generated from the IBGE Digital Municipal Mesh, with updates from multiple sources.",
+      "use_notice": "The original states its intended purpose is IBGE statistical collection/tabulation, warns against other uses, disclaims responsibility for them and reserves reproduction rights. Used only for bounded geographic/name correspondence, not present hydraulics, precise survey, legal boundary or formal naming-registry claims. Original PDFs, maps, crops, overlays and coordinates remain private."
+    },
+    {
+      "source_key": "r168-inegi-matehuala-f1401",
+      "title": "Información topográfica 1:250 000, F1401 Matehuala",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI), Dirección General de Geografía y Medio Ambiente",
+      "edition": "Sixth edition 2023; copyright 2024",
+      "official_url": "https://en.www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/imagen_cartografica/1_250_000/794551154625_geo.pdf",
+      "publication_identity_basis": "Original title panel, F1401 identifier, sixth-edition technical panel and distinct INEGI national topographic-cartography project. Exact recovered r97 source record describes this publication without an acquisition stop. It is not a CONAGUA aquifer report or an INEGI historical geographic synthesis.",
+      "actually_read": "Original sheet overview; overlapping readable unmarked southern, central and northern corridor portions; title, technical and hydrographic legend panels; printed text. All southern selected parts up to the sheet boundary were oriented against the supplied pinned selection.",
+      "supports": "Plain setting and separate intermittent drainages from the selected opening through the Catorce and Vanegas corridor.",
+      "limits": "Scale 1:250,000. Generalized cartography does not establish the selected longitudinal through-links across the plain, present flow, exact banks or exact name-transition vertices.",
+      "use_notice": "INEGI copyright retained. Only bounded original factual observations and normal bibliography are for publication; original maps and derivative reading aids remain private."
+    },
+    {
+      "source_key": "r168-inegi-vanegas-compendium",
+      "title": "Compendio de información geográfica municipal 2010: Vanegas, San Luis Potosí",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "edition": "2010; municipal identifier 24044",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/24/24044.pdf",
+      "publication_identity_basis": "Independently issued Vanegas municipal compendium with its own identified municipal tables and cartography; not an edition or copy of the stopped Oaxaca municipal documents or geographic syntheses.",
+      "actually_read": "Hydrography table on PDF page 3; Relieve map and map-source/legend lines on PDF page 6; relevant geographic and physiographic text. Full relief map plus readable northern-plain detail inspected.",
+      "supports": "Vanegas municipality lies in the El Salado hydrologic region. The table lists El Mezquital as intermittent and El Coyote and El Rincón as intermittent water bodies. The map covers the northern selection, intermediate joins and actual endpoint setting.",
+      "limits": "Municipal footprint and generalized 1:250,000 topographic/hydrographic source base. The map does not demonstrate the whole selected longitudinal connection or place the model ending inside a named lake. Basin/subbasin names and the nearby lake label are not selected river-name evidence.",
+      "use_notice": "Map attribution to INEGI sources and the INEGI-CONAGUA 2007 hydrographic map is compilation context, not acquisition of any stopped CONAGUA publication. Originals and derivatives remain private."
+    },
+    {
+      "source_key": "r168-inegi-galeana-compendium",
+      "title": "Compendio de información geográfica municipal 2010: Galeana, Nuevo León",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "edition": "2010; municipal identifier 19017",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/19/19017.pdf",
+      "publication_identity_basis": "Independently issued Galeana municipal compendium with its own identified municipal tables and cartography; not an equivalent copy of a stopped publication.",
+      "actually_read": "Hydrography table on PDF page 3 and Relieve map with legend/source lines on PDF page 7.",
+      "supports": "Neighboring municipal boundary and regional context only. The target endpoint is not identified with the separately mapped Galeana river network.",
+      "limits": "Does not provide direct selected-route naming or close the Vanegas through-link gaps. Its regional waterway list is not evidence that the target is one of those rivers.",
+      "use_notice": "Bounded factual reading only. Original map and derivatives remain private."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70817052",
+      "source_keys": [
+        "r168-usgs-topo-san-bernard-opening",
+        "r168-usgs-topo-san-bernard-upper",
+        "r168-usgs-topo-san-bernard-middle",
+        "r168-usgs-topo-san-bernard-terminal"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10233
+          ],
+          "component_scope": "Chosen short northwestern opening",
+          "finding": "The opening lies in the mapped intermittent headward-channel approach west of the directly labeled Little Bernard Creek reach. The original shows its channel connection into the eastward creek corridor near the Pless/Track Road and Plum Creek Road surroundings. This short approach has no independently established local name and is not asserted to be the natural source of a named river. Ordinary generalization and a local offset do not interrupt the mapped corridor.",
+          "sources": [
+            "r168-usgs-topo-san-bernard-opening"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_scope": "Western initial portion of part 0 only."
+        },
+        {
+          "fragments": [
+            10233
+          ],
+          "component_scope": "Little Bernard Creek eastward and southward corridor",
+          "finding": "Little Bernard Creek is directly labeled on the mapped eastward channel and again on its southward continuation by Rexville. The selected route follows that corridor, crosses the I-10/US90 setting and continues south. Small adjacent water polygons and Hog Branch remain separately mapped features; their proximity is not used to invent a through-lake route.",
+          "sources": [
+            "r168-usgs-topo-san-bernard-opening"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "Little Bernard Creek",
+          "bounded_component_scope": "Named portion of part 0 and northern part of part 1; exact naming-transition point is unverified."
+        },
+        {
+          "fragments": [
+            10233
+          ],
+          "component_scope": "East Bernard Creek and San Bernard joining setting",
+          "finding": "The source labels the southward and southeastern channel below Rexville as East Bernard Creek. The mapped lower creek receives the distinct Hog Branch approach and continues to its direct junction with the San Bernard River near the FM1093 setting. All selected intervening joins are covered. East Bernard Creek and Little Bernard Creek are retained as separately displayed reach names, not declared formal aliases.",
+          "sources": [
+            "r168-usgs-topo-san-bernard-opening",
+            "r168-usgs-topo-san-bernard-upper"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "East Bernard Creek",
+          "bounded_component_scope": "Southern part of part 1 and parts 2–3; exact hydronym boundary is not asserted."
+        },
+        {
+          "fragments": [
+            10233
+          ],
+          "component_scope": "San Bernard River from the East Bernard Creek junction through East Bernard and Kendleton",
+          "finding": "The mapped San Bernard River is directly and repeatedly labeled along the southeastward floodplain below the joining creek. The selected route corresponds to its bends south of Wallis, east of the city of East Bernard, through the Kendleton/US59 crossing and onward past the West Bernard Creek joining setting. Nearby Brazos River, canals and distinct tributary corridors are separately visible and are not substituted for the chosen river.",
+          "sources": [
+            "r168-usgs-topo-san-bernard-opening",
+            "r168-usgs-topo-san-bernard-upper",
+            "r168-usgs-topo-san-bernard-middle"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "San Bernard River"
+        },
+        {
+          "fragments": [
+            10233
+          ],
+          "component_scope": "Middle San Bernard and Newgulf reservoir/canal surroundings",
+          "finding": "The readable originals cover the whole selected middle corridor, its intermediate joins and the meandering San Bernard through the Newgulf setting. Large irregular and rectangular waterbodies, levees and side canals occur beside the river, while the river channel remains visibly connected around them. The generalized selected route follows that river corridor; no independent lake or reservoir through-passage, reservoir name assignment, pumping connection or flow operation is needed or claimed.",
+          "sources": [
+            "r168-usgs-topo-san-bernard-upper",
+            "r168-usgs-topo-san-bernard-middle"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "San Bernard River"
+        },
+        {
+          "fragments": [
+            10233
+          ],
+          "component_scope": "Lower inland San Bernard through the West Columbia/Sweeny surroundings",
+          "finding": "The sources show a connected named San Bernard corridor south through wooded lowland, tributary and wetland settings, then east past the Sweeny/El Bernardo surroundings. The selected turns and joins correspond to this river at ordinary corridor scale. San Bernard Reservoir Number 2 and nearby ponds/canals are shown beside the river and retain their distinct geographic role; the selected line is not treated as evidence of an axial passage through that reservoir.",
+          "sources": [
+            "r168-usgs-topo-san-bernard-middle",
+            "r168-usgs-topo-san-bernard-terminal"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "San Bernard River"
+        },
+        {
+          "fragments": [
+            10233
+          ],
+          "component_scope": "Lower San Bernard coastal approach",
+          "finding": "The original shows the San Bernard continuing southeast through the residential/road setting, the Churchill vicinity and the increasingly broad wetland/coastal corridor. All selected portions through these bends are covered by a visible connected river. McNeal Lake, Pelican Lake and nearby bayous are separately mapped coastal waters rather than alternative names for the selected river.",
+          "sources": [
+            "r168-usgs-topo-san-bernard-terminal"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "San Bernard River"
+        },
+        {
+          "fragments": [
+            10233
+          ],
+          "component_scope": "Intracoastal Waterway junction/crossing and actual open-coast ending",
+          "finding": "The named San Bernard reaches the directly mapped Intracoastal Waterway and continues south across that joining/crossing setting to the open-coast inlet. The actual final selected approach and endpoint lie in this mapped coastal outlet corridor. The original enlargement shows the water connection beyond the waterway rather than merely a nearby coastal label. Intracoastal Waterway remains a separate managed-water feature; no present flow direction, mouth maintenance, sediment state or exact shore/bank vertex is established.",
+          "sources": [
+            "r168-usgs-topo-san-bernard-terminal"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "San Bernard River"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80024209",
+      "source_keys": [
+        "r168-nluis-burns-lake-77g-1982",
+        "r168-nluis-cape-stang-77h-1982"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2313
+          ],
+          "component_scope": "western_headward_stream_and_lake_approach",
+          "finding": "The initial selected stream, small connected waters, northward passage and eastward turn correspond to the mapped feeder corridor west and northwest of Burns Lake. The source distinguishes this passage from nearby parallel lake chains and shows its approach to the lake. No feeder hydronym, surveyed ultimate source or current flow state is established.",
+          "sources": [
+            "r168-nluis-burns-lake-77g-1982"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2313
+          ],
+          "component_scope": "burns_lake_inlet_and_passage",
+          "finding": "The eastward feeder enters the northwestern end of the large irregular lake explicitly labeled Burns Lake. The selected southward passage, central lake body and southeastern outlet are visible. The name is retained for this lake component only; its occurrence in the sheet title is not used to name the river group.",
+          "sources": [
+            "r168-nluis-burns-lake-77g-1982"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "Burns Lake"
+        },
+        {
+          "fragments": [
+            2313
+          ],
+          "component_scope": "burns_outlet_and_eastward_upper_river",
+          "finding": "The original shows the southeastern Burns Lake outlet entering a substantial eastward channel, including small intervening waters and material northern and southern stream arrivals. The distinct southeast and east bends match the selected corridor at the source scale. No river name is printed along this selected interval.",
+          "sources": [
+            "r168-nluis-burns-lake-77g-1982"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2313
+          ],
+          "component_scope": "middle_eastward_channel_and_southern_turn",
+          "finding": "The eastward channel, subsequent southeast descent, southern bend and northeast turn are continuously depicted with the selected intervening lakes, widenings and stream junctions. Thematic management boundaries are distinguishable from the watercourse and are not treated as hydrographic links.",
+          "sources": [
+            "r168-nluis-burns-lake-77g-1982"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2313
+          ],
+          "component_scope": "northeastern_lake_and_channel_succession",
+          "finding": "The selected northeastward passage follows the mapped elongated lakes and connecting channels, including their islands, narrow joins, side-stream arrivals and the long lake immediately before the lower eastward outlet. Individual lake names are not established. Nearby numerical lake elevations and fish-resource symbols are not names.",
+          "sources": [
+            "r168-nluis-burns-lake-77g-1982"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2313
+          ],
+          "component_scope": "last_large_lake_outlet_and_lower_eastward_reach",
+          "finding": "The northern end of the final elongated lake connects to the mapped eastward river, which receives the separate western/northern lake outlet and then curves northeast. The original accounts for the selected larger bends and material junctions without requiring exact bank or vertex agreement.",
+          "sources": [
+            "r168-nluis-burns-lake-77g-1982"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2313
+          ],
+          "component_scope": "lower_northward_river_and_sheet_crossing",
+          "finding": "The lower river turns north/northeast beside small lakes and tributaries and continues across the Burns Lake eastern neatline. The adjoining Cape Stang original depicts the same west-side coastal approach and lower channel. No cross-sheet geographic gap remains at ordinary corridor scale.",
+          "sources": [
+            "r168-nluis-burns-lake-77g-1982",
+            "r168-nluis-cape-stang-77h-1982"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2313
+          ],
+          "component_scope": "actual_terminal_and_receiving_bay",
+          "finding": "The selected final reach enters the western shore of the inlet labeled Hadley Bay. The original lower-channel and shoreline connection is visible just east of the shared sheet edge. It is a separate outlet from the larger river and lake passage reaching the bay farther southeast. The bay name is receiving-water context, not a river name or claim about the precise modern shoreline.",
+          "sources": [
+            "r168-nluis-cape-stang-77h-1982"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "receiving_water_name": "Hadley Bay"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60691613",
+      "source_keys": [
+        "r168-ibge-ibaretama-2022",
+        "r168-ibge-ocara-2022",
+        "r168-ibge-beberibe-2022"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13786
+          ],
+          "component_scope": "Chosen southwestern opening and initial feeder",
+          "finding": "The selected opening lies in the mapped Quixadá-side drainage west of Ibaretama and southwest of Boa Vista. The original shows the eastward local stream, small adjoining waterbodies, the settlement/road-crossing setting and the northward continuation into the Cipó approach. The opening is a chosen point on that mapped drainage, not an independently established natural source. No name is supplied for this initial feeder and no nearby pond name is invented.",
+          "sources": [
+            "r168-ibge-ibaretama-2022"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13786
+          ],
+          "component_scope": "Riacho do Cipó approach and Pirangi junction",
+          "finding": "The mapped stream bends northeast and east past the Riacho do Cipó label, then turns northeast along the Boa Vista-side corridor and joins the west-arriving Rio Pirangi near the western Ibaretama boundary. The separate Riacho da Ema and Açude Olho D’Água approach remain contextual northern branches. The selected Cipó approach is not renamed as the whole upper Pirangi, and no exact naming boundary is asserted.",
+          "sources": [
+            "r168-ibge-ibaretama-2022"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "Riacho do Cipó (directly labelled component only)"
+        },
+        {
+          "fragments": [
+            13786
+          ],
+          "component_scope": "Pirangi through Triunfo, Piranji and the São Francisco approach",
+          "finding": "The western direct Rio Pirangi label and the joined continuous corridor are followed northeast past Triunfo, the Piranji settlement and its northern/western tributary joins, then east beside Santa Clara toward São Francisco and the Nova Vida/Aroeira setting. The nearby Riacho da Lagoa, other side streams and small waterbodies are depicted separately. The selected route stays on the receiving river corridor.",
+          "sources": [
+            "r168-ibge-ibaretama-2022"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "Rio Pirangi"
+        },
+        {
+          "fragments": [
+            13786
+          ],
+          "component_scope": "Açude Batente approach, through-waterbody passage and outlet",
+          "finding": "Overlapping municipal originals show the Pirangi approach past Caiçara/Quinxinxé into the long southwestern arm, the connected main waterbody, the separate northwestern Riacho do Mosquito arm and the eastward outlet toward Curralinho. The enlarged Ocara original reads Açude Batente. The selected route crosses this distinct impoundment and continues along the eastern river; the reservoir is not a river-name alias. No present operation, hydraulic transfer or current shoreline is inferred.",
+          "sources": [
+            "r168-ibge-ibaretama-2022",
+            "r168-ibge-ocara-2022"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "Açude Batente"
+        },
+        {
+          "fragments": [
+            13786
+          ],
+          "component_scope": "Eastern Pirangi and Ocara–Morada Nova corridor",
+          "finding": "The mapped river continues east and northeast from the Batente outlet through the Curralinho and Zacarias settings, past the developed settlement west of the Lagoa do Bode label, then north along the repeatedly labelled Pirangi corridor. Riacho Pixota and Riacho do Serrote are side joins. The Ocara and Beberibe sheets overlap across the same bends and the southern Beberibe approach, closing the municipal-map seam.",
+          "sources": [
+            "r168-ibge-ocara-2022",
+            "r168-ibge-beberibe-2022"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "Rio Pirangi"
+        },
+        {
+          "fragments": [
+            13786
+          ],
+          "component_scope": "Road/canal crossing setting, Poço Medeiros and northward bend",
+          "finding": "The selected river is followed across the main diagonal road near Tapuio/Santa Maria, north past Grossos and Poço Medeiros, and around the bends toward Cruz and Cedro. The map separately labels Canal da Integração and depicts its adjoining/crossing setting; the selected through-corridor is the Pirangi river, not the canal. No canal-operation or current-flow assertion is needed for this bounded cartographic identity. Córrego Gaim and Córrego das Cabras are distinguished from the main river, which turns east near Cedro.",
+          "sources": [
+            "r168-ibge-beberibe-2022"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "Rio Pirangi"
+        },
+        {
+          "fragments": [
+            13786
+          ],
+          "component_scope": "Eastward lower Pirangi and widened lower-river passage",
+          "finding": "The continuous lower corridor is followed east from Cedro/Boa Vista past Jatobá and Andresa to Itapeim, then via Arataca, Encruzilhada and Várzea da Serra into the broad connected lower-river waterbody near Carnaúba Torta, Pirangi locality and Caroé. The mapped side connections and lower widening are visible; no separate lake or reservoir name is established for that widening. The route then continues east toward the Parajuru meanders. Separate southern drainage and lagoon names are not extended to the selected through-water.",
+          "sources": [
+            "r168-ibge-beberibe-2022"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "Rio Pirangi"
+        },
+        {
+          "fragments": [
+            13786
+          ],
+          "component_scope": "Parajuru estuary and actual Atlantic ending",
+          "finding": "Direct Rio Pirangi labels identify the lower meanders south of Parajuru/Recanto. The connected coastal channel beside Praia do Parajuru and the adjacent labelled Atlantic establish the selected terminal receiving setting. This is the Pirangi/Parajuru mouth corridor, distinct from the Jaguaribe estuary farther southeast and the separate Córrego de Maceió. The rendered terminal is treated at ordinary coastal-corridor scale, without claiming a surveyed mouth, a particular present tidal branch, or exact agreement with the historical shoreline.",
+          "sources": [
+            "r168-ibge-beberibe-2022"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "Rio Pirangi estuarine corridor; Oceano Atlântico receiving water"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70853324",
+      "source_keys": [
+        "r168-inegi-matehuala-f1401",
+        "r168-inegi-vanegas-compendium",
+        "r168-inegi-galeana-compendium"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10374
+          ],
+          "component_scope": "Opening near Miguel Hidalgo / Estación Laguna Seca and southern plain",
+          "finding": "The selected opening lies on the plain in the Miguel Hidalgo and Estación Laguna Seca setting. Its northward course passes the Aquiles Serdán, Francisco I. Madero and Santa Cruz del Mogote settings. The original depicts nearby intermittent arroyos, small water bodies and tanks, but does not establish this selected north-going through-channel. Nearby Arroyo Colorado, Arroyo el Chamorro and the small Miguel Hidalgo waterbody are not assigned to the opening or converted into a selected lake crossing.",
+          "sources": [
+            "r168-inegi-matehuala-f1401"
+          ],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            10374
+          ],
+          "component_scope": "La Maroma, Wadley and Estación Catorce plain and intermediate joins",
+          "finding": "All selected parts traverse the plain beside the railway and road corridor west of the Sierra de Catorce. The map separately labels local intermittent courses including A. el Boquerón, Arroyo de Jesús, A. las Tapias, A. la Matanza and Arroyo Don Emeterio. They approach or cross the plain in differing directions; stream-disappearance symbols occur in this setting. The original does not join them into the selected longitudinal passage from La Maroma through Wadley to Estación Catorce. These adjacent names remain contextual rather than supported selected reach names.",
+          "sources": [
+            "r168-inegi-matehuala-f1401"
+          ],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            10374
+          ],
+          "component_scope": "Loreto–Vanegas passage and overlap into northern municipal mapping",
+          "finding": "The selection continues past Loreto and the Vanegas railway/road setting. Both originals expose the municipal overlap and the crossing El Mezquital corridor. The topographic sheet labels Arroyo el Mezquital on a separate approach from the western hills; the municipal hydrography table identifies El Mezquital as intermittent. Neither source makes that label the name of the long selected northbound feature or establishes the full preceding and following plain connection.",
+          "sources": [
+            "r168-inegi-matehuala-f1401",
+            "r168-inegi-vanegas-compendium"
+          ],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            10374
+          ],
+          "component_scope": "Northern Vanegas plain through the Papagayos–La Borrada setting",
+          "finding": "The municipal Relieve map covers every selected part north of the topographic-sheet boundary. It shows the broad plain, local hill margins and several separate east-west and diagonal drainage lines. The selected passage northward between those mapped approaches is not shown as a demonstrably connected single channel. Ordinary municipal cartographic generalization is acknowledged; the unresolved through-links remain a material source gap rather than a declaration that no local drainage exists.",
+          "sources": [
+            "r168-inegi-vanegas-compendium"
+          ],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            10374
+          ],
+          "component_scope": "Final northeastward parts, northern Vanegas plain and actual ending",
+          "finding": "The actual ending is in the northern Vanegas plain, south of the mapped El Coyote waterbody, within the Vanegas municipal footprint. It is not moved to the waterbody label, to the northern municipal boundary, or to a river in neighboring Galeana. The Relieve map supplies the terminal plain and nearby drainage setting, but not a demonstrated selected through-link from the preceding plain or a confirmed named receiving lake at the model endpoint. Galeana mapping is boundary context only.",
+          "sources": [
+            "r168-inegi-vanegas-compendium",
+            "r168-inegi-galeana-compendium"
+          ],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [],
+  "additional_source_use_notices": [
+    {
+      "aw_id": "hydro-system:70817052",
+      "publication": "USGSTopo, The National Map: Little Bernard Creek opening, Rexville, East Bernard Creek and the San Bernard junction",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "observed_outcome": "Public-ready evidence is bounded own factual synthesis and ordinary bibliography. Source originals, derivative reading aids and acquisition details remain private.",
+      "outcome_layer": "Source-use or reproduction notice, not an access denial.",
+      "restriction_scope": "Own factual observations and ordinary bibliography only; source originals and derivative cartography are not redistributed.",
+      "limitation_kind": "publication_use_notice",
+      "acquisition_stop": false
+    },
+    {
+      "aw_id": "hydro-system:70817052",
+      "publication": "USGSTopo, The National Map: Upper San Bernard through Wallis, East Bernard and Kendleton",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "observed_outcome": "Public-ready evidence is bounded own factual synthesis and ordinary bibliography. Source originals, derivative reading aids and acquisition details remain private.",
+      "outcome_layer": "Source-use or reproduction notice, not an access denial.",
+      "restriction_scope": "Own factual observations and ordinary bibliography only; source originals and derivative cartography are not redistributed.",
+      "limitation_kind": "publication_use_notice",
+      "acquisition_stop": false
+    },
+    {
+      "aw_id": "hydro-system:70817052",
+      "publication": "USGSTopo, The National Map: Middle San Bernard, Newgulf, reservoir/canal surroundings and lower inland approach",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "observed_outcome": "Public-ready evidence is bounded own factual synthesis and ordinary bibliography. Source originals, derivative reading aids and acquisition details remain private.",
+      "outcome_layer": "Source-use or reproduction notice, not an access denial.",
+      "restriction_scope": "Own factual observations and ordinary bibliography only; source originals and derivative cartography are not redistributed.",
+      "limitation_kind": "publication_use_notice",
+      "acquisition_stop": false
+    },
+    {
+      "aw_id": "hydro-system:70817052",
+      "publication": "USGSTopo, The National Map: Lower San Bernard, Intracoastal Waterway and actual open-coast outlet",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "observed_outcome": "Public-ready evidence is bounded own factual synthesis and ordinary bibliography. Source originals, derivative reading aids and acquisition details remain private.",
+      "outcome_layer": "Source-use or reproduction notice, not an access denial.",
+      "restriction_scope": "Own factual observations and ordinary bibliography only; source originals and derivative cartography are not redistributed.",
+      "limitation_kind": "publication_use_notice",
+      "acquisition_stop": false
+    },
+    {
+      "aw_id": "hydro-system:80024209",
+      "publication": "Land Use Information Series: Burns Lake, District of Franklin, Northwest Territories, sheet77G",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_77g.jpg",
+      "observed_outcome": "Crown copyright1982 printed on the map. Only independently written bounded observations and normal bibliography are supplied; no original map or derivative is redistributed.",
+      "outcome_layer": "Source-use or reproduction notice, not an access denial.",
+      "restriction_scope": "Own factual observations and ordinary bibliography only; source originals and derivative cartography are not redistributed.",
+      "limitation_kind": "publication_use_notice",
+      "acquisition_stop": false
+    },
+    {
+      "aw_id": "hydro-system:80024209",
+      "publication": "Land Use Information Series: Cape Stang, District of Franklin, Northwest Territories, sheet77H",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_77h.jpg",
+      "observed_outcome": "Crown copyright1982 printed on the map. Original map, crops and private comparison material are not redistributed.",
+      "outcome_layer": "Source-use or reproduction notice, not an access denial.",
+      "restriction_scope": "Own factual observations and ordinary bibliography only; source originals and derivative cartography are not redistributed.",
+      "limitation_kind": "publication_use_notice",
+      "acquisition_stop": false
+    },
+    {
+      "aw_id": "hydro-system:60691613",
+      "publication": "Ibaretama – CE, Mapa Municipal, 2305266",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2022/CE/ibaretama/A0_2305266_MM.pdf",
+      "observed_outcome": "The original states its intended purpose is IBGE statistical collection/tabulation, warns against other uses, disclaims responsibility for them and reserves reproduction rights. Used only for bounded geographic/name correspondence, not present hydraulics, precise survey, legal boundary or formal naming-registry claims. Original PDFs, maps, crops, overlays and coordinates remain private.",
+      "outcome_layer": "Source-use or reproduction notice, not an access denial.",
+      "restriction_scope": "Own factual observations and ordinary bibliography only; source originals and derivative cartography are not redistributed.",
+      "limitation_kind": "publication_use_notice",
+      "acquisition_stop": false
+    },
+    {
+      "aw_id": "hydro-system:60691613",
+      "publication": "Ocara – CE, Mapa Municipal, 2309458",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2022/CE/ocara/A0_2309458_MM.pdf",
+      "observed_outcome": "The original states its intended purpose is IBGE statistical collection/tabulation, warns against other uses, disclaims responsibility for them and reserves reproduction rights. Used only for bounded geographic/name correspondence, not present hydraulics, precise survey, legal boundary or formal naming-registry claims. Original PDFs, maps, crops, overlays and coordinates remain private.",
+      "outcome_layer": "Source-use or reproduction notice, not an access denial.",
+      "restriction_scope": "Own factual observations and ordinary bibliography only; source originals and derivative cartography are not redistributed.",
+      "limitation_kind": "publication_use_notice",
+      "acquisition_stop": false
+    },
+    {
+      "aw_id": "hydro-system:60691613",
+      "publication": "Beberibe – CE, Mapa Municipal, 2302206",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2022/CE/beberibe/A0_2302206_MM.pdf",
+      "observed_outcome": "The original states its intended purpose is IBGE statistical collection/tabulation, warns against other uses, disclaims responsibility for them and reserves reproduction rights. Used only for bounded geographic/name correspondence, not present hydraulics, precise survey, legal boundary or formal naming-registry claims. Original PDFs, maps, crops, overlays and coordinates remain private.",
+      "outcome_layer": "Source-use or reproduction notice, not an access denial.",
+      "restriction_scope": "Own factual observations and ordinary bibliography only; source originals and derivative cartography are not redistributed.",
+      "limitation_kind": "publication_use_notice",
+      "acquisition_stop": false
+    },
+    {
+      "aw_id": "hydro-system:70853324",
+      "publication": "Información topográfica 1:250 000, F1401 Matehuala",
+      "official_url": "https://en.www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/imagen_cartografica/1_250_000/794551154625_geo.pdf",
+      "observed_outcome": "INEGI copyright retained. Only bounded original factual observations and normal bibliography are for publication; original maps and derivative reading aids remain private.",
+      "outcome_layer": "Source-use or reproduction notice, not an access denial.",
+      "restriction_scope": "Own factual observations and ordinary bibliography only; source originals and derivative cartography are not redistributed.",
+      "limitation_kind": "publication_use_notice",
+      "acquisition_stop": false
+    },
+    {
+      "aw_id": "hydro-system:70853324",
+      "publication": "Compendio de información geográfica municipal 2010: Vanegas, San Luis Potosí",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/24/24044.pdf",
+      "observed_outcome": "Map attribution to INEGI sources and the INEGI-CONAGUA 2007 hydrographic map is compilation context, not acquisition of any stopped CONAGUA publication. Originals and derivatives remain private.",
+      "outcome_layer": "Source-use or reproduction notice, not an access denial.",
+      "restriction_scope": "Own factual observations and ordinary bibliography only; source originals and derivative cartography are not redistributed.",
+      "limitation_kind": "publication_use_notice",
+      "acquisition_stop": false
+    },
+    {
+      "aw_id": "hydro-system:70853324",
+      "publication": "Compendio de información geográfica municipal 2010: Galeana, Nuevo León",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/19/19017.pdf",
+      "observed_outcome": "Bounded factual reading only. Original map and derivatives remain private.",
+      "outcome_layer": "Source-use or reproduction notice, not an access denial.",
+      "restriction_scope": "Own factual observations and ordinary bibliography only; source originals and derivative cartography are not redistributed.",
+      "limitation_kind": "publication_use_notice",
+      "acquisition_stop": false
+    },
+    {
+      "publication": "Información topográfica 1:250 000, F1401 Matehuala",
+      "official_url": "https://en.www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/imagen_cartografica/1_250_000/794551154625_geo.pdf",
+      "observed_outcome": "Original PDF read successfully. Copyright and generalized cartographic scope retained. No access denial or availability pause.",
+      "outcome_layer": "Printed publication context and substantive correspondence limitation.",
+      "restriction_scope": "Source imagery and derivatives stay private; selected plain through-links remain unestablished. No publication-wide acquisition stop.",
+      "limitation_kind": "cartographic_scope_and_reproduction_boundary",
+      "material_gap": true,
+      "aw_id": "hydro-system:70853324",
+      "acquisition_stop": false
+    }
+  ]
+}

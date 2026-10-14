@@ -6,8 +6,8 @@ on:
     paths:
       - 'native/assets/place/**'
       - 'native/contracts/places/**'
-      - 'native/reports/places/**'
       - 'reports/places/**'
+      - 'native/reports/places/**'
       - 'native/tools/place-runtime-contract/**'
       - 'native/app/placenamedisplay.*'
       - 'native/app/placeruntimestore.*'
@@ -27,8 +27,8 @@ on:
     paths:
       - 'native/assets/place/**'
       - 'native/contracts/places/**'
-      - 'native/reports/places/**'
       - 'reports/places/**'
+      - 'native/reports/places/**'
       - 'native/tools/place-runtime-contract/**'
       - '.github/workflows/native-place-v2-parity.yml'
       - 'native/app/placenamedisplay.*'

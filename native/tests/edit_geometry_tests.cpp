@@ -194,26 +194,24 @@ void validationPolicy() {
 }
 void draftHistoryPolicy() {
     GeometryDraft session{Geometry{"LineString",{},{{{0,0},{1,1}}},{}}};
-    const auto original=session.draft;
-    require(!session.undoDraft()&&!session.redoDraft(),"empty draft history is a no-op");
-    session.checkpointDraft();session.draft.lines[0][1]={2,3};session.vertex=1;
-    const auto changed=session.draft;
-    require(session.undoDraft()&&same(session.draft,original)&&session.vertex==-1,"draft undo restores exact geometry");
-    require(session.redoDraft()&&same(session.draft,changed),"draft redo restores exact geometry");
-    session.dragBefore=session.draft;session.draft.lines[0][1]={4,5};
-    const auto historySize=session.undo.size();
-    require(session.finishVertexDrag(true)&&same(session.draft,changed)&&session.undo.size()==historySize,"cancel vertex drag restores without history");
-    session.dragBefore=session.draft;session.objectDragMoved=false;
-    require(session.finishObjectDrag(false)&&session.undo.size()==historySize,"unmoved object drag adds no history");
-    session.dragBefore=session.draft;session.draft.lines[0][1]={7,8};session.objectDragMoved=true;
-    require(session.finishObjectDrag(false)&&session.undo.size()==historySize+1&&!session.dragBefore&&!session.objectDragMoved,"object drag commits one draft step");
-    require(session.undoDraft()&&same(session.draft,changed),"object drag undo");
-    const auto beforeMove=session.undo.size();session.dragBefore=session.draft;
-    session.recordVertexMove();require(session.redo.empty()&&session.undo.size()==beforeMove,"drag move clears redo without per-move history");
-    require(session.finishVertexDrag(true)&&same(session.draft,changed),"cancel after redo invalidation restores geometry");
-    session.checkpointDraft();require(session.redo.empty(),"new edit discards draft redo");
+    const auto original=session.geometry();
+    require(!session.undo()&&!session.redo(),"empty draft history is a no-op");
+    require(session.selectVertex(1)&&session.moveSelected({2,3}),"detached Core vertex mutation");
+    const auto changed=session.geometry();
+    require(session.undo()&&same(session.geometry(),original)&&session.selectedVertexIndex()==1,"draft undo restores exact geometry and captured selection");
+    require(session.redo()&&same(session.geometry(),changed),"draft redo restores exact geometry");
+    const auto historySize=session.historyCount();
+    require(session.beginDrag(1)&&session.moveDrag({4,5})&&session.cancelDrag(),"Core vertex cancellation");
+    require(session.geometry().lines[0][1].x==4&&session.historyCount()==historySize+1,"actual Web cancellation retains applied coordinates and begin checkpoint");
+    require(session.undo()&&same(session.geometry(),changed),"cancelled gesture remains locally undoable");
+    require(session.beginObjectDrag()&&session.finishObjectDrag(false),"unmoved object drag accepted");
+    require(session.historyCount()==historySize,"unmoved object drag adds no history");
+    require(session.beginObjectDrag(),"object drag begin");auto translated=session.geometry();translated.lines[0][1]={7,8};
+    require(session.applyObjectTranslation(std::move(translated),true)&&session.finishObjectDrag(false),"object drag commits one draft step");
+    require(session.historyCount()==historySize+1&&!session.dragging(),"object history belongs to detached Core owner");
+    require(session.undo()&&same(session.geometry(),changed),"object drag undo");
+    require(session.moveSelected({9,10})&&session.futureCount()==0,"new edit discards draft redo");
 }
-
 int main() {
     int failures=0;
     for(const auto& test:std::array<std::pair<const char*,void(*)()>,7>{{

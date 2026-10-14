@@ -1,0 +1,661 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r152",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r151",
+    "commit": "693752ef8d6488af906c58d20700fb6b3ee91625",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r151/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:70901807",
+    "hydro-system:80086174",
+    "hydro-system:60809372",
+    "hydro-system:61582367"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:70901807",
+      "category": "river_group",
+      "system_id": "70901807",
+      "original_queue_rank": 411,
+      "baseline_logical_fid": 3277,
+      "geometry_fids": [
+        10526
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -71.302083,
+        18.252083,
+        -70.977083,
+        19.139583
+      ],
+      "rendered_mainstem_length_km": 188.028,
+      "rendered_network_length_km": 188.028,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -71.302083,
+          18.252083,
+          -70.977083,
+          19.139583
+        ]
+      },
+      "candidate_name": null,
+      "research_category": "river_group_source_material_pending",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "candidate_names": [],
+      "region": "Dominican Republic; selected inland-to-coastal drainage.",
+      "candidate_name_role": null,
+      "source_keys": [
+        "r152-jica-yaque-annex1-1999",
+        "r152-indrhi-sabaneta",
+        "r152-indrhi-sabana-yegua",
+        "r152-indrhi-montegrande",
+        "r152-san-juan-municipal-maps",
+        "r152-melgar-pnjcr-plan"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": [
+        "Readable original-map correspondence for the initial mountain run, its northern/western turn and the complete southern connection into the Sabaneta reach.",
+        "The selected Sabaneta approach and reservoir/inlet interval require clearer component cartography; a dam-on-river operator statement is not enough.",
+        "A contemporary original map is needed to relate Montegrande's reservoir approach, passage and outlet to the retained historical/generalized Yaque corridor."
+      ],
+      "material_pending_components": [
+        "Readable original-map correspondence for the initial mountain run, its northern/western turn and the complete southern connection into the Sabaneta reach.",
+        "The selected Sabaneta approach and reservoir/inlet interval require clearer component cartography; a dam-on-river operator statement is not enough.",
+        "A contemporary original map is needed to relate Montegrande's reservoir approach, passage and outlet to the retained historical/generalized Yaque corridor."
+      ],
+      "source_attested_reach_names": [
+        {
+          "name": "Río San Juan",
+          "role": "Mapped middle and upstream receiving river; not applied to every initial mountain segment or to the downstream Yaque reach"
+        },
+        {
+          "name": "Río Yaque del Sur",
+          "role": "Mapped downstream receiving river and coastal reach; not asserted as a whole-feature scalar name"
+        }
+      ],
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "Primary historical JICA cartography supports the selected middle corridor along Río San Juan, the downstream junction into Río Yaque del Sur, and the lower Yaque approach to the Caribbean coast north of Barahona and east of Laguna Rincón. This is more than nearby-label or basin matching, but it is not a completed whole-route identity. The first mountain component and its full connection to the Sabaneta reach are not securely resolved in readable original cartography. The acquired historical maps also predate Montegrande, which INDRHI reports began operation in 2024; its reservoir passage has not been cartographically reconciled with this selected route. The primary status is source-material pending, with no additional access-pending or completed scope-hold classification.",
+      "completion_scope": "Primary historical JICA cartography supports the selected middle corridor along Río San Juan, the downstream junction into Río Yaque del Sur, and the lower Yaque approach to the Caribbean coast north of Barahona and east of Laguna Rincón. This is more than nearby-label or basin matching, but it is not a completed whole-route identity. The first mountain component and its full connection to the Sabaneta reach are not securely resolved in readable original cartography. The acquired historical maps also predate Montegrande, which INDRHI reports began operation in 2024; its reservoir passage has not been cartographically reconciled with this selected route. The primary status is source-material pending, with no additional access-pending or completed scope-hold classification.",
+      "supported_name_scope": null,
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "component_scope_limits": [
+          "The retained line combines upstream San Juan and downstream Yaque del Sur reaches. A receiving-river label does not rename the San Juan reach.",
+          "The initial mountain segments remain unnamed in this finding because readable original-map correspondence is incomplete. Author-hosted park-plan prose about the southeast-to-northwest upper San Juan is supporting context, not sufficient to settle the selected starting tributary or every connection.",
+          "Sabaneta is a separately identified dam/reservoir setting on San Juan. Sabana Yegua is a separate Yaque del Sur dam upstream of the mapped junction; it is not assigned to the selected San Juan route merely because the rivers meet below it.",
+          "Montegrande is a separate modern impoundment on Yaque del Sur. The older channel depiction does not establish its present reservoir extent or the selected inlet-to-outlet passage.",
+          "Laguna Rincón is a separate lateral waterbody in the lower plain. Its name, and the names of neighboring irrigation canals, are not applied to the coastal river course.",
+          "No accepted name, Korean form, official registry status, exact banks, contemporary discharge condition or uniform hydronym is established."
+        ]
+      }
+    },
+    {
+      "aw_id": "hydro-system:80086174",
+      "category": "river_group",
+      "system_id": "80086174",
+      "original_queue_rank": 412,
+      "baseline_logical_fid": 922,
+      "geometry_fids": [
+        2541
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -85.285417,
+        66.88125,
+        -83.689583,
+        67.845833
+      ],
+      "rendered_mainstem_length_km": 187.832,
+      "rendered_network_length_km": 187.832,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -85.285417,
+          66.88125,
+          -83.689583,
+          67.845833
+        ]
+      },
+      "candidate_name": null,
+      "research_category": "river_group_source_material_pending",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "candidate_names": [],
+      "region": "Nunavut, Canada; selected inland-to-coastal drainage.",
+      "candidate_name_role": null,
+      "source_keys": [
+        "r152-nluis-46n",
+        "r152-nluis-46o_p",
+        "r152-nluis-46k"
+      ],
+      "material_pending_components": [
+        {
+          "component_id": "ujarasugjulik_kannak_selected_transfer",
+          "selected_fids": [
+            2541
+          ],
+          "gap": "Unambiguous primary-cartographic correspondence of the selected transfer from the Ujarasugjulik approach into Kannak/Niuninga beside the separately named river junction.",
+          "why_material": "It joins the otherwise observed upper lake chain to the observed Niuninga–Tasers–Ross Bay terminal corridor. An unresolved junction prevents completed full-route correspondence.",
+          "attempted_resolution": "Read original NLUIS46N at detailed local scale and its associated fish-resource prose; targeted detailed Niuninga Lake NTS46-N/3 catalogue then returned Cache miss and is paused."
+        }
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": [
+        {
+          "component_id": "ujarasugjulik_kannak_selected_transfer",
+          "selected_fids": [
+            2541
+          ],
+          "gap": "Unambiguous primary-cartographic correspondence of the selected transfer from the Ujarasugjulik approach into Kannak/Niuninga beside the separately named river junction.",
+          "why_material": "It joins the otherwise observed upper lake chain to the observed Niuninga–Tasers–Ross Bay terminal corridor. An unresolved junction prevents completed full-route correspondence.",
+          "attempted_resolution": "Read original NLUIS46N at detailed local scale and its associated fish-resource prose; targeted detailed Niuninga Lake NTS46-N/3 catalogue then returned Cache miss and is paused."
+        }
+      ],
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "Three primary NLUIS originals establish the selected initial pond corridor, Nagvaak and subsequent lake passages, Qukuttalik, the lower inland loop, and the Tasers Lake outlet to western Ross Bay. The selected transfer from the Ujarasugjulik approach through the Kannak/Niuninga junction remains materially unresolved in the generalized, overprinted map. A targeted detailed Niuninga Lake sheet catalogue returned Cache miss, and the publication is paused. No representative river name is established: the nearby Tasirjuaq/Tasirjuak river name is not extended to this whole chain. This is one source-material-pending record, not a completed identity or scope hold.",
+      "completion_scope": "Three primary NLUIS originals establish the selected initial pond corridor, Nagvaak and subsequent lake passages, Qukuttalik, the lower inland loop, and the Tasers Lake outlet to western Ross Bay. The selected transfer from the Ujarasugjulik approach through the Kannak/Niuninga junction remains materially unresolved in the generalized, overprinted map. A targeted detailed Niuninga Lake sheet catalogue returned Cache miss, and the publication is paused. No representative river name is established: the nearby Tasirjuaq/Tasirjuak river name is not extended to this whole chain. This is one source-material-pending record, not a completed identity or scope hold.",
+      "supported_name_scope": null,
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "component_scope_limits": [
+          "Lake labels and the nearby separately named river do not establish a uniform hydronym or representative identity for the entire selected chain.",
+          "The Tasirjuaq map label and Tasirjuak spelling in the printed fish note are retained only as bounded source observations, not verified official variants or accepted names.",
+          "Barrow River is the adjacent sheet title, not the identity of the selected route. Miertsching Lake is a separate major connected lake setting, not a name for the initial headward feeder.",
+          "Unresolved individual names remain null. Accepted, whole-feature scalar and Korean names remain null; application remains false."
+        ]
+      }
+    },
+    {
+      "aw_id": "hydro-system:60809372",
+      "category": "river_group",
+      "system_id": "60809372",
+      "original_queue_rank": 413,
+      "baseline_logical_fid": 3451,
+      "geometry_fids": [
+        13810
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -80.604708,
+        -6.51875,
+        -79.441667,
+        -6.03125
+      ],
+      "rendered_mainstem_length_km": 187.495,
+      "rendered_network_length_km": 187.495,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -80.604708,
+          -6.51875,
+          -79.441667,
+          -6.03125
+        ]
+      },
+      "candidate_name": "Río Motupe",
+      "research_category": "river_group_source_material_pending",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "completion_scope": "The bounded research pass is recorded, but whole-object correspondence is incomplete. The material gaps are geographic source/connector coverage, not optional-source access failures. Only river_group_source_material_pending is counted.",
+      "candidate_names": [
+        "Río Motupe"
+      ],
+      "region": "Lambayeque and coastal northwestern Peru.",
+      "candidate_name_role": "Provisional receiving-river/system candidate supported for the mapped upper and middle corridor only; not an established representative identity for the entire selected object.",
+      "source_keys": [
+        "r152-mtc-lambayeque-2017",
+        "r152-mtc-sechura-2017",
+        "r143-peot-olmos-base-2010",
+        "r152-ingemmet-a6788-2017"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": "The selected lower desert/canal connector beyond the western Pampa de Lino arm, internal La Niña depression passage and final Pacific coast crossing are not fully established by the original maps. Headward Chinama–Motupe correspondence and flood-destination prose do not close these material links.",
+      "material_pending_components": [
+        "Original-map correspondence remains incomplete between the mapped western arm and the selected downstream road-crossing/depression connector. Prose establishes a destination relationship but does not close that mapping gap.",
+        "Continuous selected desert-to-lagoon connector and its relation to the mapped waterbody margins remain unresolved.",
+        "A basin label or broad waterbody polygon does not establish all selected lake/depression connectors.",
+        "The actual terminal connection to the Pacific is unestablished; this is a material source-correspondence gap, not merely unresolved naming scope."
+      ],
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "Independent original MTC, retained PEOT and INGEMMET maps support the headward feeder–Chinama–Motupe corridor and identify the selected western arm near Pampa de Lino. The downstream desert/canal connector, passage through the La Niña depression and final selected coastal crossing are not fully established. Retain one material-pending result; do not promote the Motupe candidate to completed representative identity or completed naming-scope hold.",
+      "supported_name_scope": "Provisional receiving-river/system candidate supported for the mapped upper and middle corridor only; not an established representative identity for the entire selected object.",
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "component_scope_limits": [
+          "The headward feeder remains unnamed. Río Chinama and Río Motupe apply only to their independently mapped reaches.",
+          "Chóchope is an eastern tributary relationship; Chotoque is a separate western channel, not a name applied over the selected route.",
+          "The selected western Motupe arm is distinct from the eastern branch through Jayanca/Pacora and Las Juntas. Prose about La Leche diversion does not prove every selected downstream connector.",
+          "Laguna La Niña is a named lower waterbody/depression setting, not a scalar name for the selected river object.",
+          "The model sea terminal remains retained metadata; an actual selected outlet to the Pacific is not established.",
+          "Formal registry and uniform whole-route names remain unverified."
+        ]
+      }
+    },
+    {
+      "aw_id": "hydro-system:61582367",
+      "category": "river_group",
+      "system_id": "61582367",
+      "original_queue_rank": 414,
+      "baseline_logical_fid": 3644,
+      "geometry_fids": [
+        14625,
+        14626,
+        14627,
+        14628,
+        14629,
+        14630,
+        14631
+      ],
+      "minimum_stage": 0,
+      "bbox": [
+        -72.71166,
+        -44.922917,
+        -71.239583,
+        -44.54375
+      ],
+      "rendered_mainstem_length_km": 187.264,
+      "rendered_network_length_km": 238.989,
+      "geometry_summary": {
+        "fragment_count": 7,
+        "mainstem_fragment_count": 4,
+        "tributary_fragment_count": 3,
+        "mainstem_bbox": [
+          -72.71166,
+          -44.785417,
+          -71.239583,
+          -44.54375
+        ]
+      },
+      "candidate_name": "Río Cisnes",
+      "research_category": "supported_representative_system_identity",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "candidate_names": [
+        "Río Cisnes"
+      ],
+      "region": "Aysén, Chilean Patagonia; selected Cisnes coastal drainage and distinct tributary branches.",
+      "candidate_name_role": "Representative receiving-river/system identity only",
+      "source_keys": [
+        "r152-mma-cisnes-hydro",
+        "r152-mma-cisnes-wetlands",
+        "r152-mma-cisnes-cot",
+        "r152-ign-cisnes-head250",
+        "r152-minenergia-cisnes2016"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "All seven selected fragments correspond geographically to the Cisnes receiving system: the eastern Cisnes headward/trunk corridor, a separate Cáceres tributary, and a southern Picacho–Escondida lake-drainage approach, ending at the Puerto Cisnes coastal outlet. Independent originals cover each selected opening, connector, lake passage and terminal at ordinary generalized corridor scale.",
+      "completion_scope": "All seven selected fragments correspond geographically to the Cisnes receiving system: the eastern Cisnes headward/trunk corridor, a separate Cáceres tributary, and a southern Picacho–Escondida lake-drainage approach, ending at the Puerto Cisnes coastal outlet. Independent originals cover each selected opening, connector, lake passage and terminal at ordinary generalized corridor scale.",
+      "supported_name_scope": "Representative receiving-river/system identity only",
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "component_scope_limits": [
+          "Río Cisnes is a representative system identity, not a uniform name for all included components.",
+          "Cáceres and the southern Picacho/Escondida drainage retain distinct tributary and lake roles.",
+          "No name is invented for the first small feeder, unnamed lake interiors or generalized short connectors.",
+          "Original source geography supports the selected coastal setting, not surveyed source, bank, shoreline or mouth-point agreement."
+        ]
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [
+      "hydro-system:70901807",
+      "hydro-system:80086174",
+      "hydro-system:60809372"
+    ],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 1,
+    "supported_representative_system_identities": 1,
+    "scope_holds": 0,
+    "access_pending": 0,
+    "material_pending": 3
+  },
+  "totals_after": {
+    "recorded_targets": 551,
+    "non_pending_records": 451,
+    "source_access_pending": 3,
+    "source_material_pending": 97,
+    "source_any_pending": 100,
+    "scope_holds": 144,
+    "river_groups": 453,
+    "lakes": 98,
+    "unrecorded": 3514,
+    "unrecorded_river_groups": 3002,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573",
+    "hydro-system:80032711",
+    "hydro-system:60007816",
+    "hydro-system:80013873",
+    "hydro-system:61501314",
+    "hydro-system:60761631",
+    "hydro-system:70895720",
+    "hydro-system:61398344",
+    "hydro-system:61355098",
+    "hydro-system:70933800",
+    "hydro-system:60026849",
+    "hydro-system:70574060",
+    "hydro-system:70890643",
+    "hydro-system:80064967",
+    "hydro-system:70856797",
+    "hydro-system:60174418",
+    "hydro-system:61547907",
+    "hydro-system:70463083",
+    "hydro-system:61520061",
+    "hydro-system:70895492",
+    "hydro-system:70898394",
+    "hydro-system:70865140",
+    "hydro-system:80072439",
+    "hydro-system:70549678",
+    "hydro-system:70566840",
+    "hydro-system:80048422",
+    "hydro-system:60557376",
+    "hydro-system:61514286",
+    "hydro-system:61509423",
+    "hydro-system:80068731",
+    "hydro-system:80015064",
+    "hydro-system:61520170",
+    "hydro-system:70156165",
+    "hydro-system:70784507",
+    "hydro-system:80067417",
+    "hydro-system:80019756",
+    "hydro-system:70244256",
+    "hydro-system:80060230",
+    "hydro-system:61543259",
+    "hydro-system:60007312",
+    "hydro-system:60022881",
+    "hydro-system:61456098",
+    "hydro-system:70290797",
+    "hydro-system:60441146",
+    "hydro-system:61554706",
+    "hydro-system:70110341",
+    "hydro-system:80067260",
+    "hydro-system:70214162",
+    "hydro-system:80034507",
+    "hydro-system:61536265",
+    "hydro-system:61561008",
+    "hydro-system:80066184",
+    "hydro-system:70202296",
+    "hydro-system:61545841",
+    "hydro-system:61350841",
+    "hydro-system:80064018",
+    "hydro-system:70957614",
+    "hydro-system:70851521",
+    "hydro-system:70049998",
+    "hydro-system:61298121",
+    "hydro-system:80033385",
+    "hydro-system:61205785",
+    "hydro-system:80035867",
+    "hydro-system:70009700",
+    "hydro-system:60440371",
+    "hydro-system:80049373",
+    "hydro-system:70749063",
+    "hydro-system:70844211",
+    "hydro-system:60001814",
+    "hydro-system:61507976",
+    "hydro-system:70834534",
+    "hydro-system:80070226",
+    "hydro-system:61357020",
+    "hydro-system:70846952",
+    "hydro-system:70004800",
+    "hydro-system:80043969",
+    "hydro-system:80165177",
+    "hydro-system:70043276",
+    "hydro-system:60490135",
+    "hydro-system:60237339",
+    "hydro-system:70023641",
+    "hydro-system:70281204",
+    "hydro-system:61570080",
+    "hydro-system:70789628",
+    "hydro-system:80234498",
+    "hydro-system:60016868",
+    "hydro-system:70276504",
+    "hydro-system:70901807",
+    "hydro-system:80086174",
+    "hydro-system:60809372"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r152-jica-yaque-annex1-1999",
+      "official_url": "https://openjicareport.jica.go.jp/807/807/807_608_11511920.html"
+    },
+    {
+      "source_key": "r152-indrhi-sabaneta",
+      "official_url": "https://indrhi.gob.do/presa-sabaneta/"
+    },
+    {
+      "source_key": "r152-indrhi-sabana-yegua",
+      "official_url": "https://indrhi.gob.do/presa-sabana-yegua/"
+    },
+    {
+      "source_key": "r152-indrhi-montegrande",
+      "official_url": "https://indrhi.gob.do/presa-montegrande/"
+    },
+    {
+      "source_key": "r152-san-juan-municipal-maps",
+      "official_url": "https://www.sismap.gob.do/Municipal/uploads/evidencias/638186176853953634-2.03_16-21_Mapas-de-Zonificacion_-Municipio-San-Juan-de-la-Maguana.pdf"
+    },
+    {
+      "source_key": "r152-melgar-pnjcr-plan",
+      "official_url": "https://www.gestiopolis.com/plan-de-manejo-ambiental-de-una-reserva-natural-en-republica-dominicana/"
+    },
+    {
+      "source_key": "r152-nluis-46n",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_46n.jpg"
+    },
+    {
+      "source_key": "r152-nluis-46o_p",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_46o_p.jpg"
+    },
+    {
+      "source_key": "r152-nluis-46k",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_46k.jpg"
+    },
+    {
+      "source_key": "r152-topo-46n03-unavailable",
+      "official_url": "https://publications.gc.ca/site/eng/9.583785/publication.html"
+    },
+    {
+      "source_key": "r152-mtc-lambayeque-2017",
+      "official_url": "https://portal.mtc.gob.pe/transportes/caminos/normas_carreteras/Mapas%20Provinciales/Lambayeque/LA-03%20Lambayeque.pdf"
+    },
+    {
+      "source_key": "r152-mtc-sechura-2017",
+      "official_url": "https://portal.mtc.gob.pe/transportes/caminos/normas_carreteras/Mapas%20Provinciales/Piura/PI-08%20Sechura.pdf"
+    },
+    {
+      "source_key": "r143-peot-olmos-base-2010",
+      "official_url": "https://www.muniolmos.gob.pe/files/recursos_infor/POT_OLMOS_VOLUMEN_III.pdf"
+    },
+    {
+      "source_key": "r152-ingemmet-a6788-2017",
+      "official_url": "https://sigrid.cenepred.gob.pe/sigridv3/storage/biblioteca/3967_informe-tecnico-n0-a6788-peligros-geologicos-y-geo-hidrologicos-detonados-por-el-nino-costero-2017-en-las-regiones-lambayeque-cajamarca-analisis-geolo.pdf"
+    },
+    {
+      "source_key": "r152-mma-cisnes-hydro",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HIDROGRAFIA/MapServer"
+    },
+    {
+      "source_key": "r152-mma-cisnes-wetlands",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HUMEDALES/MapServer"
+    },
+    {
+      "source_key": "r152-mma-cisnes-cot",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_COT/MapServer"
+    },
+    {
+      "source_key": "r152-ign-cisnes-head250",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "r152-minenergia-cisnes2016",
+      "official_url": "https://bibliotecadigital.ciren.cl/server/api/core/bitstreams/96e056da-8221-4e13-a73b-371a93396c05/content"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "693752ef8d6488af906c58d20700fb6b3ee91625",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      411,
+      412,
+      413,
+      414
+    ],
+    "next_unrecorded_id": "hydro-system:60100857",
+    "progress_rule": "Follow the actual continental order: Americas, Asia, Africa, Europe, then other, with all rivers before lakes. Preserve original queue IDs and ranks for continuity; apply documented geographic deferrals without counting them as name research, and place deferred objects into their corrected later phase by length-descending, stable-ID order. Prior candidate and scope-held assessments remain unresolved where stated.",
+    "geographic_deferrals": [
+      {
+        "aw_id": "hydro-system:80061063",
+        "original_queue_rank": 186,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 66.56–68.17°N and 179.97–177.11°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory bounding box and selected-route geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80065687",
+        "original_queue_rank": 349,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at66.725–67.849775°N and178.2–175.960242°W place this object on Chukotka west of Alaska, adjoining the previously corrected Chukotka selection. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory bounding box and selected-route geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80100188",
+        "original_queue_rank": 387,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 64.939583–66.26978°N and 174.05625–173.320833°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory/order bounding box and geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80119243",
+        "original_queue_rank": 391,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 65.451531–66.491667°N and 176.777083–175.672917°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory/order bounding box and geographic placement; geographic classification only, no naming source acquired."
+      }
+    ]
+  }
+}

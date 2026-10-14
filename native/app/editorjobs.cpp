@@ -11,12 +11,13 @@ bool EditorController::beginPendingWork(bool apply)
         CommandArguments args;if(!collectPendingEdits(args))return false;
         auto request=CommandProcessor::makeRequest(project_,"edit.properties",std::move(args));
         auto snapshot=project_.snapshot();
+        const auto epoch=coreEpoch();
         auto task=[request=std::move(request)](const ProjectSnapshot& s,const JobToken& token){
             token.reportProgress(0);if(token.cancelled())return PrepareResult{};
             auto result=CommandProcessor::prepare(s,request);token.reportProgress(100);return result;
         };
         background_=jobs_->submit(std::move(snapshot),"editor:properties",std::move(task),
-            [this,apply](std::uint64_t id,JobDisposition disposition,PrepareResult result){
+            [this,apply,epoch](std::uint64_t id,JobDisposition disposition,PrepareResult result){
                 if(!background_||background_->id()!=id)return;
                 background_.reset();
                 if(disposition!=JobDisposition::Accepted){
@@ -26,7 +27,7 @@ bool EditorController::beginPendingWork(bool apply)
                 if(!result.ok()){commandError(result.error,QString::fromStdString(result.detail));emit jobChanged();return;}
                 if(result.status==CommandStatus::NoOp){if(apply){clearParkedDrafts();publish(false);}emit jobChanged();return;}
                 if(!result.preview){commandError(CommandError::PrepareFailed);emit jobChanged();return;}
-                pendingPreview_=std::move(result.preview);emit previewChanged();
+                pendingPreviewEpoch_=epoch;pendingPreview_=std::move(result.preview);emit previewChanged();
                 if(apply&&pendingPreview_&&confirmCommand())publish(false);
                 emit jobChanged();
             });

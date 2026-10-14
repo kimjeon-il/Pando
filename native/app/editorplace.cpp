@@ -41,7 +41,7 @@ void EditorController::requestPlaceResources() {
     QStringList protectedIds;
     if(const auto primary=selection_.primary();primary&&primary->domain=="placeBuiltin")protectedIds.append(QString::fromStdString(primary->id));
     for(const auto& ref:selection_.items())if(ref.domain=="placeBuiltin"&&!protectedIds.contains(QString::fromStdString(ref.id)))protectedIds.append(QString::fromStdString(ref.id));
-    if(hover_&&hover_->domain=="placeBuiltin"&&!protectedIds.contains(QString::fromStdString(hover_->id)))protectedIds.append(QString::fromStdString(hover_->id));
+    if(const auto hover=selection_.hover();hover&&hover->domain=="placeBuiltin"&&!protectedIds.contains(QString::fromStdString(hover->id)))protectedIds.append(QString::fromStdString(hover->id));
     placeRuntime_.setProtectedIds(protectedIds);
     PlaceViewport view;view.view=sceneBridge_.viewState();view.zoom=camera_.display().zoom;
     view.safeBottom=mobileMode_?96.:32.;placeRuntime_.requestViewport(view);
@@ -121,7 +121,7 @@ void EditorController::refreshBuiltinPlaceLabels() {
 }
 bool EditorController::copySelectedPlaceForEditing() {
     if(hasPendingEdits()||jobBusy()||hasWebImportPreview())return false;
-    const auto selected=selection_.primary();if(!selected||selected->domain!="placeBuiltin"||!objectVisible(*selected))return false;
+    const auto selected=selection_.primary();if(!selected||selected->domain!="placeBuiltin"||!objectVisible(asObjectRef(*selected)))return false;
     const auto record=placeRuntime_.recordById(QString::fromStdString(selected->id));if(!record)return false;
     try {
         const auto id=QUuid::createUuid().toString(QUuid::WithoutBraces).toStdString();const GeometryRef geometryRef{"content:place:"+id,1};
@@ -134,11 +134,12 @@ bool EditorController::copySelectedPlaceForEditing() {
         // null for that unbounded maximum; the native typed store represents
         // the same maximum by an absent optional, not a non-finite number.
         stored.maxZoom.reset();edit.initialLabelSettings=std::move(stored);
-        CommandArguments arguments;arguments.action=std::move(edit);
-        auto prepared=CommandProcessor::prepare(project_,CommandProcessor::makeRequest(project_,"content.edit",arguments));
+        auto request=coreContentRequest(edit);
+        std::get<ContentEdit>(request.args.action).initialLabelSettings=edit.initialLabelSettings;
+        auto prepared=prepareCoreRequest(request);
         if(!prepared.ok()||!prepared.preview){emit errorOccurred(QString::fromStdString(prepared.detail));return false;}
         MapProjection next;next.rebuild(prepared.preview->change().after());
-        const auto committed=CommandProcessor::confirm(project_,*prepared.preview);
+        const auto committed=confirmCorePreview(*prepared.preview,coreEpoch());
         if(!committed.ok()){emit errorOccurred(QString::fromLatin1(commandErrorCode(committed.error)));return false;}
         noteAppliedImpact(committed.impact);projection_=std::move(next);publish(false);emit geometryChanged();
         selectObject({{"domain","label"},{"id",QString::fromStdString(id)}},"replace","map");return true;

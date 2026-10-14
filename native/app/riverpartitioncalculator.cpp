@@ -1,5 +1,7 @@
 #include "riverpartitioncalculator.h"
 #include "geometryruntime_p.h"
+#include "splitgeometrynormalizer.h"
+#include "geometryprovenance.h"
 #include <QCryptographicHash>
 #include <QFile>
 #include <QJSEngine>
@@ -11,7 +13,7 @@
 #include <stdexcept>
 
 static void initializeRiverResources() {
-    static const bool initialized=[] { Q_INIT_RESOURCE(m972_river); return true; }();
+    static const bool initialized=[] { Q_INIT_RESOURCE(current_geometry); return true; }();
     (void)initialized;
 }
 namespace pandoeditor {
@@ -55,14 +57,19 @@ QJsonObject geometryJson(const Geometry& geometry) {
 }
 Point point(const QJsonValue& value) {
     const auto row=value.toArray();
-    if(row.size()!=2||!row[0].isDouble()||!row[1].isDouble()||!std::isfinite(row[0].toDouble())||!std::isfinite(row[1].toDouble()))
-        throw std::runtime_error("RIVER_INVALID_RESULT_POINT");
+    if(row.size()!=2||!row[0].isDouble()||!row[1].isDouble()||!std::isfinite(row[0].toDouble())||!std::isfinite(row[1].toDouble())) {
+        auto sample=QJsonDocument(QJsonArray{value}).toJson(QJsonDocument::Compact);
+        sample.truncate(160);
+        throw std::runtime_error((QByteArray("RIVER_INVALID_RESULT_POINT: ")+sample).toStdString());
+    }
     return {row[0].toDouble(),row[1].toDouble()};
 }
 Geometry geometry(const QJsonObject& object) {
     Geometry result;result.type=object["type"].toString().toStdString();
     auto polygons=object["coordinates"].toArray();
-    if(result.type=="Polygon")polygons=QJsonArray{polygons};
+    if(result.type=="Polygon"){
+        QJsonArray wrapped;wrapped.append(QJsonValue(polygons));polygons=std::move(wrapped);
+    }
     else if(result.type!="MultiPolygon")throw std::runtime_error("RIVER_INVALID_RESULT_GEOMETRY");
     for(const auto& p:polygons){Polygon polygon;for(const auto& r:p.toArray()){Ring ring;for(const auto& v:r.toArray())ring.push_back(point(v));polygon.push_back(std::move(ring));}result.polygons.push_back(std::move(polygon));}
     return result;
@@ -156,8 +163,7 @@ QJsonDocument jsonDocument(const QByteArray& bytes) {
 }
 QJSValue loadNormalizer(QJSEngine& engine) {
     initializeRiverResources();engine.globalObject().setProperty("globalThis",engine.globalObject());
-    jsCheck(engine.evaluate(QString::fromUtf8(verified(":/river/original/polygon-geometry.js",
-        "cc987c4076861a02a5d60720ebf536908175a9f1a605a86701ae4cf50c3a3fb5")),":/river/original/polygon-geometry.js"));
+    loadCanonicalPolygonGeometry(engine);
     const auto normalize=engine.globalObject().property("PandoLabPolygonGeometry").property("normalizePolygonGeometry");
     if(!normalize.isCallable())throw std::runtime_error("RIVER_NORMALIZER_UNAVAILABLE");
     return normalize;
@@ -210,13 +216,11 @@ RiverPartitionCompositionResult composeRiverPartitionComponents(const std::vecto
     const GeometryCancellation& cancelled) {
     try {
         check(cancelled);initializeRiverResources();
-        verified(":/river/original/river-territory-partition.js","18b32eb7db238beaed99bce8bac980e547a48c785a7bd2071fa56fa63f51db24");
-        verified(":/river/original/planar-graph-faces.js","283da7701c21cb80e4fd9ef97e8f68e69a8d6f0ec9fc611ee8c23cab45d6c804");
-        verified(":/river/adapted/river-territory-partition.js","b27fd1e62bb3fbee977089686eeb5713d9bde60c49230b3e2453c2200b4b773a");
-        verified(":/river/adapted/planar-graph-faces.js","283da7701c21cb80e4fd9ef97e8f68e69a8d6f0ec9fc611ee8c23cab45d6c804");
+        verified(":/river/current/river-territory-partition.js",PANDO_CURRENT_GEOMETRY_RIVER_SHA256);
+        verified(":/river/current/planar-graph-faces.js",PANDO_CURRENT_GEOMETRY_PLANAR_SHA256);
         QJSEngine engine;engine.globalObject().setProperty("globalThis",engine.globalObject());
         jsCheck(engine.evaluate(QString::fromUtf8(read(":/river/platform.js")),":/river/platform.js"));
-        const auto module=engine.importModule(":/river/adapted/river-territory-partition.js");check(cancelled);jsCheck(module);
+        const auto module=engine.importModule(":/river/current/river-territory-partition.js");check(cancelled);jsCheck(module);
         QJsonArray base,candidates,results;
         for(const auto& value:components){check(cancelled);base.append(baseComponentJson(value));}
         for(const auto& value:normalizedCells){check(cancelled);candidates.append(cellJson(value));}
@@ -241,10 +245,8 @@ RiverPartitionCompositionResult composeRiverPartitionComponents(const std::vecto
 RiverPartitionResult calculateRiverPartitionsJson(const QByteArray& json,const GeometryCancellation& cancelled) {
     try {
         check(cancelled);initializeRiverResources();
-        verified(":/river/original/river-territory-partition.js","18b32eb7db238beaed99bce8bac980e547a48c785a7bd2071fa56fa63f51db24");
-        verified(":/river/original/planar-graph-faces.js","283da7701c21cb80e4fd9ef97e8f68e69a8d6f0ec9fc611ee8c23cab45d6c804");
-        verified(":/river/adapted/river-territory-partition.js","b27fd1e62bb3fbee977089686eeb5713d9bde60c49230b3e2453c2200b4b773a");
-        verified(":/river/adapted/planar-graph-faces.js","283da7701c21cb80e4fd9ef97e8f68e69a8d6f0ec9fc611ee8c23cab45d6c804");
+        verified(":/river/current/river-territory-partition.js",PANDO_CURRENT_GEOMETRY_RIVER_SHA256);
+        verified(":/river/current/planar-graph-faces.js",PANDO_CURRENT_GEOMETRY_PLANAR_SHA256);
         check(cancelled);
         // The captured official Chromium corpus matches stock Qt math. No
         // numerical override is installed; other runtime profiles need evidence.
@@ -252,8 +254,8 @@ RiverPartitionResult calculateRiverPartitionsJson(const QByteArray& json,const G
         engine.globalObject().setProperty("globalThis",engine.globalObject());
         jsCheck(engine.evaluate(QString::fromUtf8(read(":/river/platform.js")),":/river/platform.js"));
         loadPinnedPolygonClipping(engine);
-        jsCheck(engine.evaluate(QString::fromUtf8(verified(":/river/original/polygon-geometry.js","cc987c4076861a02a5d60720ebf536908175a9f1a605a86701ae4cf50c3a3fb5")),":/river/original/polygon-geometry.js"));
-        const auto module=engine.importModule(":/river/adapted/river-territory-partition.js");jsCheck(module);
+        loadCanonicalPolygonGeometry(engine);
+        const auto module=engine.importModule(":/river/current/river-territory-partition.js");jsCheck(module);
         check(cancelled);
         auto input=engine.globalObject().property("JSON").property("parse").call({QString::fromUtf8(json)});jsCheck(input);
         if(!input.isObject()||input.isArray())throw std::invalid_argument("RIVER_REQUEST_OBJECT_REQUIRED");

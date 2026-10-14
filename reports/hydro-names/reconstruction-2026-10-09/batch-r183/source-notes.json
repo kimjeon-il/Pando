@@ -1,0 +1,645 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r183",
+  "sources": [
+    {
+      "source_key": "r183-geus-greenland-national-1995-local",
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": [
+        "Jan C. Escher",
+        "T. Christopher R. Pulvertaft"
+      ],
+      "year": 1995,
+      "publisher": "Geological Survey of Greenland, Copenhagen; official digital original distributed by GEUS",
+      "scale": "1:2 500 000",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J",
+      "catalogue_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi:10.22008/FK2/SYAL4J",
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16855",
+      "current_acquisition": "No new external acquisition. The surviving complete original and catalogue, successfully acquired on 12 October 2026, were reused locally.",
+      "actual_read_scope": "Single-sheet overview; original northern Greenland cartography; enlarged complete selected opening, middle ice-sheet corridor, southern Freuchen Land terrain crossing and actual endpoint; northern and eastern geographic graticules; Inland Ice legend; WGS84 UTM zone 24 projection; original imprint, copyright, recommended citation; retained official catalogue bibliography and Custom Dataset Terms.",
+      "supports": "Full ordinary geographic correspondence for all 36 selected parts, every join and the actual terminal; overlapping support across the regional sheet edge.",
+      "limits": "Historical generalized geological and ice/rock cartography. No representative natural-river name, continuous natural channel, subglacial hydraulic route, modern drainage or exact current ice/shore boundary established.",
+      "use_notice": "GEUS Custom Dataset Terms and original copyright notices were read. Source originals, crops, processed data and comparison or derived cartographic materials remain private. Public-ready content is limited to independently written factual observations and ordinary bibliography with GEUS attribution."
+    },
+    {
+      "source_key": "r183-geus-peary-land-sheet8-1986-local",
+      "title": "Geological map of Greenland, 1:500 000, Sheet 8, Peary Land",
+      "authors": [
+        "Hans Jørgen Bengaard",
+        "Niels Henriksen"
+      ],
+      "year": 1986,
+      "publisher": "Grønlands Geologiske Undersøgelse, Copenhagen; official digital original distributed by GEUS",
+      "scale": "1:500 000",
+      "official_url": "https://doi.org/10.22008/FK2/Q7HIDY",
+      "catalogue_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi:10.22008/FK2/Q7HIDY",
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16494",
+      "current_acquisition": "No new external acquisition. The surviving complete original and catalogue, successfully acquired on 12 October 2026, were reused locally.",
+      "actual_read_scope": "Single-sheet overview; original southwest ice-field cartography covering the selected opening and early westward passage; western and southern neatlines and adjacent graticules; Ice and undifferentiated Quaternary-cover legend; original projection, compilation, printing and copyright imprint; retained official catalogue bibliography and Custom Dataset Terms.",
+      "supports": "Independent finer-scale ice-unit context for parts 0–14 and the eastern portion of part 15.",
+      "limits": "The original western neatline excludes the rest of the selection. It supplies no geographic evidence beyond that edge and no whole-route river identity. The national original supplies the remaining coverage.",
+      "source_epoch_note": "Original imprint: International ellipsoid, UTM zone 26; geological compilation by H. J. Bengaard and N. Henriksen in 1984; printed by Geodætisk Institut in 1986.",
+      "use_notice": "GEUS Custom Dataset Terms and original copyright notices were read. Source originals, crops, processed data and comparison or derived cartographic materials remain private. Public-ready content is limited to independently written factual observations and ordinary bibliography with GEUS attribution."
+    },
+    {
+      "source_key": "USGSTOPO_R183_POGOPUK_KAVIK_UPPER",
+      "title": "USGS The National Map, USGSTopo: Pogopuk Creek opening and Kavik River confluence",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "normal_urls": [
+        "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+      ],
+      "source_type": "original_multiscale_topographic_map",
+      "accessed_date_utc": "2026-10-12",
+      "access_status": "original_completed_HTTP200_and_visually_inspected",
+      "actual_material_read": "Original upper map visually inspected across the chosen opening, whole selected Pogopuk Creek valley, its Kavik confluence and overlapping Kavik reach; enlarged clean opening and north/south corridor views read.",
+      "metadata_basis": "Present, previously successfully acquired service metadata was read locally. It describes a seamless multiscale reference map combining The National Map and other public-domain data; its source-credit field reports a September 4, 2026-v1.2 data refresh. This is not asserted as a survey or compilation date of every mapped feature.",
+      "independence_basis": "Independently maintained national cartographic service, with its own multiscale map product and publishing purpose, distinct from individual USGS reports, plates and station publications. No stopped publication was reacquired or read.",
+      "limits": "Composite cartography supports bounded geographic and name correspondence. It is not a formal naming registry, present-flow assessment, or exact channel-bank survey. Original map images and research derivatives are not public deliverables."
+    },
+    {
+      "source_key": "USGSTOPO_R183_KAVIK_MIDDLE",
+      "title": "USGS The National Map, USGSTopo: Kavik River foothills and northwest-turn corridor",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "normal_urls": [
+        "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+      ],
+      "source_type": "original_multiscale_topographic_map",
+      "accessed_date_utc": "2026-10-12",
+      "access_status": "original_completed_HTTP200_and_visually_inspected",
+      "actual_material_read": "Original middle map visually inspected across the Kavik northward corridor, wetland/plain transition, airstrip vicinity, northwest turn and northward continuation; enlarged clean southern corridor and clean/oriented branching-turn views read.",
+      "metadata_basis": "Present, previously successfully acquired service metadata was read locally. It describes a seamless multiscale reference map combining The National Map and other public-domain data; its source-credit field reports a September 4, 2026-v1.2 data refresh. This is not asserted as a survey or compilation date of every mapped feature.",
+      "independence_basis": "Independently maintained national cartographic service, with its own multiscale map product and publishing purpose, distinct from individual USGS reports, plates and station publications. No stopped publication was reacquired or read.",
+      "limits": "Composite cartography supports bounded geographic and name correspondence. It is not a formal naming registry, present-flow assessment, or exact channel-bank survey. Original map images and research derivatives are not public deliverables."
+    },
+    {
+      "source_key": "USGSTOPO_R183_KAVIK_SHAVIOVIK_LOWER",
+      "title": "USGS The National Map, USGSTopo: Lower Kavik River and Shaviovik River confluence",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "normal_urls": [
+        "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+      ],
+      "source_type": "original_multiscale_topographic_map",
+      "accessed_date_utc": "2026-10-12",
+      "access_status": "original_completed_HTTP200_and_visually_inspected",
+      "actual_material_read": "Original lower map visually inspected across the Kavik coastal-plain reach and the western Shaviovik confluence; enlarged clean lower-river labels and confluence read.",
+      "metadata_basis": "Present, previously successfully acquired service metadata was read locally. It describes a seamless multiscale reference map combining The National Map and other public-domain data; its source-credit field reports a September 4, 2026-v1.2 data refresh. This is not asserted as a survey or compilation date of every mapped feature.",
+      "independence_basis": "Independently maintained national cartographic service, with its own multiscale map product and publishing purpose, distinct from individual USGS reports, plates and station publications. No stopped publication was reacquired or read.",
+      "limits": "Composite cartography supports bounded geographic and name correspondence. It is not a formal naming registry, present-flow assessment, or exact channel-bank survey. Original map images and research derivatives are not public deliverables."
+    },
+    {
+      "source_key": "USGSTOPO_R183_SHAVIOVIK_DELTA",
+      "title": "USGS The National Map, USGSTopo: Shaviovik River delta and Mikkelsen Bay terminal",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "normal_urls": [
+        "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+      ],
+      "source_type": "original_multiscale_topographic_map",
+      "accessed_date_utc": "2026-10-12",
+      "access_status": "original_completed_HTTP200_and_visually_inspected",
+      "actual_material_read": "Original terminal map visually inspected across the overlapping lower Kavik/Shaviovik setting, named delta, connected distributaries, Mikkelsen Bay and actual endpoint; enlarged clean and oriented mouth views read.",
+      "metadata_basis": "Present, previously successfully acquired service metadata was read locally. It describes a seamless multiscale reference map combining The National Map and other public-domain data; its source-credit field reports a September 4, 2026-v1.2 data refresh. This is not asserted as a survey or compilation date of every mapped feature.",
+      "independence_basis": "Independently maintained national cartographic service, with its own multiscale map product and publishing purpose, distinct from individual USGS reports, plates and station publications. No stopped publication was reacquired or read.",
+      "limits": "Composite cartography supports bounded geographic and name correspondence. It is not a formal naming registry, present-flow assessment, or exact channel-bank survey. Original map images and research derivatives are not public deliverables."
+    },
+    {
+      "source_key": "r183-tremblay2021-jungersen-field-study",
+      "title": "Geochemistry and mineralogy of glacial sediments and geomorphology of the Jungersen River area, northwestern Baffin Island, Nunavut",
+      "author": "T. Tremblay",
+      "year": 2021,
+      "publisher": "Canada-Nunavut Geoscience Office",
+      "container_title": "Summary of Activities 2020",
+      "pages": "47–62",
+      "official_url": "https://www.gov.nu.ca/sites/default/files/documents/2025-01/CNGO-SofA2020__Complete_Volume_.pdf",
+      "normal_urls": [
+        "https://www.gov.nu.ca/sites/default/files/documents/2025-01/CNGO-SofA2020__Complete_Volume_.pdf"
+      ],
+      "bibliography": "Tremblay, T. 2021. Geochemistry and mineralogy of glacial sediments and geomorphology of the Jungersen River area, northwestern Baffin Island, Nunavut. In Summary of Activities 2020, Canada-Nunavut Geoscience Office, pp. 47–62.",
+      "source_type": "Primary field-study article with independently issued thematic cartography",
+      "publication_identity": "Surficial-geology component of the CNGO-led Fury and Hecla Geoscience Project, with July 2019 air and ground observations and sampling. This separately issued field programme is distinct from geographical-name registries, CanMatrix distribution, CBMT3978, the Pitz/Gjoa Haven inventories and the held PCSP/NRCan2014 report context.",
+      "actual_acquisition": "The reader completed an explicit content-length technical limit. One sequential request to the identical normal original URL completed HTTP 200 application/pdf. The completed PDF was then read locally; no alternate route was used.",
+      "actual_read_scope": "Volume copyright/publication notice; article title and citation, regional setting and methods, relevant geomorphology explanation and figure credits; original Figure 1 (printed page 48), Figure 2 (49) and Figure 6b–c (57), including enlarged private reading views. Figure 6b supplies the main middle-route correspondence; Figure 6c was inspected but is not needed independently. Other chapters are not evidence.",
+      "cartographic_correspondence": true,
+      "source_observations": [
+        "The article’s regional setting names Magda and Jungersen as separate rivers draining into Jungersen Bay.",
+        "The mapped Magda corridor matches the selected route and remains distinct from the more southerly Jungersen River."
+      ],
+      "figure_credits": "Figure 1: GEBCO2014 terrain/bathymetry. Figure 2: CDEM2016 topography and the study’s geomorphological synthesis. Figure 6 background bedrock geology is modified from de Kemp and Scott1998 and Lebeau et al.2020; panel b shows this study’s samples. No inspected figure is identified as a reproduction of a held exact map. The study uses earlier data as well as new field/remote-sensing observations, so wholly independent underlying datasets are not claimed.",
+      "use_notice": "Copyright 2021 Canada-Nunavut Geoscience Office, all rights reserved. The volume is offered free of charge and requests acknowledgment when information is used. Ordinary factual reading is permitted; source originals and derivatives are not redistributed.",
+      "limits": "Generalized geological/geomorphological mapping is used for corridor identity and geographic continuity, not present discharge, exact banks, surveyed endpoints, modern operations, a legal naming boundary or a uniform upstream hydronym."
+    },
+    {
+      "source_key": "USGSTOPO_R183_LIGHTWOOD_UPPER",
+      "title": "USGS Topo: bounded Lightwood Knot Creek–Opp–Horn Hill corridor",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Independently maintained USGSTopo multiscale composite reference-map service combining current National Map and other public-domain datasets; distinct from individual USGS report, plate, station and standalone sheet publications with inherited holds.",
+      "publication_refresh_metadata": "Retained successful service metadata states data refreshed September 4, 2026-v1.2; this is not an edition or survey date for every underlying feature.",
+      "access_date_utc": "2026-10-12",
+      "acquisition_outcome": "One serialized bounded original PNG acquisition completed HTTP200. Original content was inspected after terminal success.",
+      "actual_material_read": "Original upper map and overlapping original-pixel crops covering the chosen Lightwood Knot Creek opening, upper named joins, impoundment inlet and southwestern outlet near Opp, Poley Creek join, and Lightwood–Yellow junction near Horn Hill.",
+      "evidence_type": "Original primary cartography",
+      "limits": "Bounded geographic and naming correspondence, not formal registry verification, exact bank geometry, current water level or discharge, impoundment operations or exact tidal-channel allocation. Source images and derivative reading aids remain private."
+    },
+    {
+      "source_key": "USGSTOPO_R183_YELLOW_ALABAMA",
+      "title": "USGS Topo: bounded Alabama Yellow River and state-line corridor",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Independently maintained USGSTopo multiscale composite reference-map service combining current National Map and other public-domain datasets; distinct from individual USGS report, plate, station and standalone sheet publications with inherited holds.",
+      "publication_refresh_metadata": "Retained successful service metadata states data refreshed September 4, 2026-v1.2; this is not an edition or survey date for every underlying feature.",
+      "access_date_utc": "2026-10-12",
+      "acquisition_outcome": "One serialized bounded original PNG acquisition completed HTTP200. Original content was inspected after terminal success.",
+      "actual_material_read": "Original Alabama map and overlapping original-pixel crops covering the Lightwood–Yellow joining setting, Horn Hill, upper Yellow River, Conecuh National Forest bends, major tributary joins and the state-line passage.",
+      "evidence_type": "Original primary cartography",
+      "limits": "Bounded geographic and naming correspondence, not formal registry verification, exact bank geometry, current water level or discharge, impoundment operations or exact tidal-channel allocation. Source images and derivative reading aids remain private."
+    },
+    {
+      "source_key": "USGSTOPO_R183_YELLOW_FLORIDA",
+      "title": "USGS Topo: bounded northern Florida Yellow River–Crestview–Shoal River corridor",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Independently maintained USGSTopo multiscale composite reference-map service combining current National Map and other public-domain datasets; distinct from individual USGS report, plate, station and standalone sheet publications with inherited holds.",
+      "publication_refresh_metadata": "Retained successful service metadata states data refreshed September 4, 2026-v1.2; this is not an edition or survey date for every underlying feature.",
+      "access_date_utc": "2026-10-12",
+      "acquisition_outcome": "One serialized bounded original PNG acquisition completed HTTP200. Original content was inspected after terminal success.",
+      "actual_material_read": "Original northern Florida map and overlapping original-pixel crops covering the state-line overlap, Oak Grove, Big Horse Creek join, Clear Springs, central valley, Griffin Ferry Stretch, Milligan/Crestview, highway crossings and Yellow–Shoal junction.",
+      "evidence_type": "Original primary cartography",
+      "limits": "Bounded geographic and naming correspondence, not formal registry verification, exact bank geometry, current water level or discharge, impoundment operations or exact tidal-channel allocation. Source images and derivative reading aids remain private."
+    },
+    {
+      "source_key": "USGSTOPO_R183_YELLOW_DELTA",
+      "title": "USGS Topo: bounded lower Yellow River and Blackwater Bay delta corridor",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Independently maintained USGSTopo multiscale composite reference-map service combining current National Map and other public-domain datasets; distinct from individual USGS report, plate, station and standalone sheet publications with inherited holds.",
+      "publication_refresh_metadata": "Retained successful service metadata states data refreshed September 4, 2026-v1.2; this is not an edition or survey date for every underlying feature.",
+      "access_date_utc": "2026-10-12",
+      "acquisition_outcome": "One serialized bounded original PNG acquisition completed HTTP200. Original content was inspected after terminal success.",
+      "actual_material_read": "Original lower map and overlapping original-pixel crops covering the Shoal junction overlap, westward lower Yellow River, Pitts River side-channel setting, county-boundary and Parkerville reaches, Broxson wetland connections, southern delta, Skim Lake–Weaver River outlet setting, and Blackwater Bay label and actual selected terminal.",
+      "evidence_type": "Original primary cartography",
+      "limits": "Bounded geographic and naming correspondence, not formal registry verification, exact bank geometry, current water level or discharge, impoundment operations or exact tidal-channel allocation. Source images and derivative reading aids remain private."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:90002124",
+      "source_keys": [
+        "r183-geus-greenland-national-1995-local",
+        "r183-geus-peary-land-sheet8-1986-local"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8824
+          ],
+          "component_scope": "Selected headward opening and initial northward passage",
+          "finding": "Both originals expose the selected headward opening within the Inland Ice south of the exposed northern Greenland land belt. The regional sheet shows the same pale ice unit identified in its legend. The opening and its full northward continuation lie inside that sheet, rather than in the blank area outside its neatline. No river label or continuous mapped natural channel is established.",
+          "sources": [
+            "r183-geus-greenland-national-1995-local",
+            "r183-geus-peary-land-sheet8-1986-local"
+          ],
+          "correspondence": "complete_geographic_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            8824
+          ],
+          "component_scope": "Initial short turns and transition into the westward ice-sheet corridor",
+          "finding": "The small northern turns and subsequent westward departure are completely within the ice-covered area on both maps. The original national blue linework is identified by its legend as ice surface contours and ice-thickness information, not a river network. Every selected short part and its geographic connection to the opening and western continuation was read.",
+          "sources": [
+            "r183-geus-greenland-national-1995-local",
+            "r183-geus-peary-land-sheet8-1986-local"
+          ],
+          "correspondence": "complete_geographic_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            8824
+          ],
+          "component_scope": "Westward passage to and across the regional western edge",
+          "finding": "The westward selected corridor remains in mapped Inland Ice. The regional sheet covers the eastern passage and ends at its western meridian within the last part of this component. The national original visibly overlaps this edge and continues across the entire remaining corridor. The map edge is not a source-coverage gap; the regional sheet is not used as evidence beyond its actual extent.",
+          "sources": [
+            "r183-geus-greenland-national-1995-local",
+            "r183-geus-peary-land-sheet8-1986-local"
+          ],
+          "correspondence": "complete_geographic_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            8824
+          ],
+          "component_scope": "Long westward middle sequence and its successive small bends",
+          "finding": "The national original covers every stored part of the long westward middle sequence, including successive northward and southward offsets and all intervening joins. The setting remains the northern Inland Ice south of the exposed-rock belt. No lake, wetland or managed-water connection is inferred from the ice contours, sub-ice contours or modeled line.",
+          "sources": [
+            "r183-geus-greenland-national-1995-local"
+          ],
+          "correspondence": "complete_geographic_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            8824
+          ],
+          "component_scope": "Northwestern approach, short southward return and final westward bend",
+          "finding": "The northwestern turn, brief return and westward continuation all lie in the same exposed national-map ice-sheet setting. Their junction with the last long northward part is covered. Geographic terrain correspondence is complete; surface or subglacial hydraulic continuity is not established.",
+          "sources": [
+            "r183-geus-greenland-national-1995-local"
+          ],
+          "correspondence": "complete_geographic_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            8824
+          ],
+          "component_scope": "Final long northward passage and actual selected endpoint in southern Freuchen Land",
+          "finding": "The final selected part is read northward from the Inland Ice, through the southern Freuchen Land exposed-rock and local-ice terrain, to its actual ending in the mapped ice-covered interior of southern Freuchen Land. The endpoint was inspected directly, rather than stopping at a nearby coast or adopting the neighboring J. P. Koch Fjord label. This historical cartography does not establish a conventional river mouth or substantiate the modeled sea-terminal classification. Exact current glacier or shoreline boundaries are not needed for this terrain-level conclusion.",
+          "sources": [
+            "r183-geus-greenland-national-1995-local"
+          ],
+          "correspondence": "complete_geographic_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "candidate_name": null,
+          "ordinary_river_mouth_established": false,
+          "present_hydraulic_continuity_verified": false
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80034249",
+      "source_keys": [
+        "USGSTOPO_R183_POGOPUK_KAVIK_UPPER",
+        "USGSTOPO_R183_KAVIK_MIDDLE",
+        "USGSTOPO_R183_KAVIK_SHAVIOVIK_LOWER",
+        "USGSTOPO_R183_SHAVIOVIK_DELTA"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2339
+          ],
+          "component_scope": "Chosen southern opening and Pogopuk Creek mountain valley",
+          "finding": "The chosen opening lies on the mapped upper Pogopuk Creek channel. Repeated labels and the continuous northward mountain-valley channel cover the selected headward reach and its intervening side-feeder junctions. The selection locally cuts small bends but remains in this connected creek corridor. The chosen opening is not asserted to be the ultimate natural source or a formal name-boundary point.",
+          "sources": [
+            "USGSTOPO_R183_POGOPUK_KAVIK_UPPER"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale_with_local_generalization",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2339
+          ],
+          "component_scope": "Pogopuk Creek joining Kavik River",
+          "finding": "The upper original shows Pogopuk Creek entering the separately labelled Kavik River, which approaches from the east. The combined braided waterway continues north. The observed confluence supports the reach-name transition without assigning the receiving name to the upstream creek.",
+          "sources": [
+            "USGSTOPO_R183_POGOPUK_KAVIK_UPPER",
+            "USGSTOPO_R183_KAVIK_MIDDLE"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2339
+          ],
+          "component_scope": "Kavik River northward foothill corridor",
+          "finding": "Repeated Kavik River labels and continuous channels cover the northward valley, smaller incoming streams, and the transition from foothills into wetland-bordered braided reaches. Lakes beside the corridor are lateral features; no selected through-lake or glacial passage is required.",
+          "sources": [
+            "USGSTOPO_R183_POGOPUK_KAVIK_UPPER",
+            "USGSTOPO_R183_KAVIK_MIDDLE"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2339
+          ],
+          "component_scope": "Kavik River northwest turn and braided plain",
+          "finding": "The original maps show Kavik River turning northwest through the airstrip vicinity and a broad branching alluvial corridor, then turning north. Multiple mapped channels and their joins establish the ordinary through-corridor. The selected straight segments locally cut across bars, the floodplain and bends, including north of the broad main braid. The finding concerns the connected Kavik corridor rather than a separate present channel along every modeled segment. This middle turn is not the downstream Shaviovik confluence.",
+          "sources": [
+            "USGSTOPO_R183_KAVIK_MIDDLE",
+            "USGSTOPO_R183_KAVIK_SHAVIOVIK_LOWER"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale_with_local_generalization",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2339
+          ],
+          "component_scope": "Lower Kavik River across the wetland and lake-rich coastal plain",
+          "finding": "The lower original repeatedly labels Kavik River along its continuous northward braided and meandering channel. Surrounding ponds and wetland areas do not replace the mapped river connection. All selected intervening joins and the eastern and western bend excursions remain within this ordinary river corridor; the source does not require a through-lake, impoundment or managed connector.",
+          "sources": [
+            "USGSTOPO_R183_KAVIK_SHAVIOVIK_LOWER",
+            "USGSTOPO_R183_SHAVIOVIK_DELTA"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale_with_local_generalization",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2339
+          ],
+          "component_scope": "Lower Kavik–Shaviovik confluence",
+          "finding": "Near the delta, the separately labelled Shaviovik River approaches from the west and joins the northward Kavik corridor. The combined downstream braided channel is labelled Shaviovik River. This lower mapped junction, not the earlier northwest bend, supports the representative receiving-river name.",
+          "sources": [
+            "USGSTOPO_R183_KAVIK_SHAVIOVIK_LOWER",
+            "USGSTOPO_R183_SHAVIOVIK_DELTA"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2339
+          ],
+          "component_scope": "Shaviovik delta and actual Mikkelsen Bay terminal",
+          "finding": "The terminal original shows the named Shaviovik River continuing through its connected braided delta to Mikkelsen Bay. The actual selected endpoint is in the eastern distributary-mouth setting. Enlarged source reading covers the final western bend, cross-delta generalized segments, eastern branch and coastal outlet; connecting delta channels are visible. Correspondence is established at ordinary delta scale without selecting a current active distributary, an exact bank, or a formal river-to-bay boundary.",
+          "sources": [
+            "USGSTOPO_R183_SHAVIOVIK_DELTA"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale_with_local_generalization",
+          "component_correspondence_completed": true
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80024132",
+      "source_keys": [
+        "r183-tremblay2021-jungersen-field-study"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2312
+          ],
+          "component_scope": "Eastern selected opening and first northwestward feeder",
+          "finding": "The initial eastern feeder and its successive northwestward bends match the depicted drainage. Its local name is unestablished; the Magda label is not extended to this opening.",
+          "sources": [
+            "r183-tremblay2021-jungersen-field-study"
+          ],
+          "correspondence": "established_at_ordinary_regional_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2312
+          ],
+          "component_scope": "Upper middle west-northwestward corridor and joins",
+          "finding": "Figure 6b shows the connected drainage through this corridor. Figure 2’s green glacial-lake reconstruction is thematic overprinting, not evidence of present lakes or a modern impoundment.",
+          "sources": [
+            "r183-tremblay2021-jungersen-field-study"
+          ],
+          "correspondence": "established_at_ordinary_regional_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2312
+          ],
+          "component_scope": "Northern middle turn and southwestward connection",
+          "finding": "The northward turn and southwestward continuation into the broader western valley correspond to the mapped drainage. The neighboring branches remain distinct from the selected route.",
+          "sources": [
+            "r183-tremblay2021-jungersen-field-study"
+          ],
+          "correspondence": "established_at_ordinary_regional_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2312
+          ],
+          "component_scope": "Lower westward Magda corridor",
+          "finding": "The lower westward channel follows the mapped Magda River valley. Figures 2 and 6b connect this named corridor to the previously traced middle route.",
+          "sources": [
+            "r183-tremblay2021-jungersen-field-study"
+          ],
+          "correspondence": "established_at_ordinary_regional_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2312
+          ],
+          "component_scope": "Final western bends and Jungersen Bay terminal",
+          "finding": "The final bends reach Jungersen Bay’s eastern shore, north of the separately depicted Jungersen River outlet. The prose also identifies Magda River as draining into Jungersen Bay.",
+          "sources": [
+            "r183-tremblay2021-jungersen-field-study"
+          ],
+          "correspondence": "established_at_ordinary_regional_corridor_scale",
+          "component_correspondence_completed": true
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70793177",
+      "source_keys": [
+        "USGSTOPO_R183_LIGHTWOOD_UPPER",
+        "USGSTOPO_R183_YELLOW_ALABAMA",
+        "USGSTOPO_R183_YELLOW_FLORIDA",
+        "USGSTOPO_R183_YELLOW_DELTA"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9964
+          ],
+          "component_scope": "Chosen Lightwood Knot Creek opening and upper tributary corridor",
+          "finding": "The chosen opening lies on the mapped Lightwood Knot Creek corridor near Sassers Mill Road, rather than at an independently determined natural river source. Repeated direct labels and a continuously depicted channel support the southward selection through the Parker Creek, Pippen Creek, Blaze Branch, Jolly Creek and Mill Creek joining settings. The mapped stream continues through the wooded wetland valley to the northern impoundment approach. Nearby side ponds are not selected through-links.",
+          "sources": [
+            "USGSTOPO_R183_LIGHTWOOD_UPPER"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9964
+          ],
+          "component_scope": "Impounded Lightwood Knot Creek reach near Opp and downstream outlet",
+          "finding": "The original map shows Lightwood Knot Creek entering the northern end of an elongated impoundment northwest of Opp, continuing through its waterbody, and leaving at the southwestern end into the separately drawn downstream channel. The selected route follows this same inlet, waterbody and outlet corridor. Pond Creek and Cameron Creek join the impoundment setting; Poley Creek joins downstream. The map directly labels Lightwood Knot Creek across the waterbody but does not supply a separately verified reservoir name in this inspected view. No present operating condition or regulated discharge is asserted.",
+          "sources": [
+            "USGSTOPO_R183_LIGHTWOOD_UPPER"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9964
+          ],
+          "component_scope": "Lightwood Knot Creek to Yellow River junction near Horn Hill",
+          "finding": "The Lightwood Knot Creek channel continues southwest across the highway west of Opp and meets the separately labelled Yellow River northwest of Horn Hill. The selected route uses the Lightwood approach and then continues downstream in the joined Yellow River valley. Direct cartography establishes the junction; the distinct Lightwood Knot Creek name is retained rather than replaced with Yellow River. Taylors Mill Creek and the Indian Creek system appear as additional mapped tributaries downstream.",
+          "sources": [
+            "USGSTOPO_R183_LIGHTWOOD_UPPER",
+            "USGSTOPO_R183_YELLOW_ALABAMA"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9964
+          ],
+          "component_scope": "Upper Yellow River and Conecuh National Forest bends",
+          "finding": "Repeated Yellow River labels and the connected mapped channel support the southward valley, the westward bend through the Conecuh National Forest setting, and the further southwestward river. Indian Creek, Prices Creek, Poplar Creek, Clear Creek and North Creek are separately depicted joining streams. The generalized selection clips some meanders but remains in the same established river corridor, without a required interbasin or upland transfer.",
+          "sources": [
+            "USGSTOPO_R183_YELLOW_ALABAMA"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9964
+          ],
+          "component_scope": "Lower Alabama Yellow River and state-line crossing",
+          "finding": "The map establishes the Yellow River continuation through the lower forested Alabama valley and across the Alabama–Florida boundary. The selected parts correspond to the same continuously depicted river past Larkin Creek, Moores Mill Creek, Big Creek and Mill Creek joining settings. Surrounding ponds and the separate eastern Florala–Lake Jackson landscape are not part of the selection.",
+          "sources": [
+            "USGSTOPO_R183_YELLOW_ALABAMA",
+            "USGSTOPO_R183_YELLOW_FLORIDA"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9964
+          ],
+          "component_scope": "Northern Florida valley through Oak Grove and the Crestview approach",
+          "finding": "The original cartography repeatedly names Yellow River through Oak Grove, the Big Horse Creek join, Clear Springs, the wooded central valley, Griffin Ferry Stretch and Milligan west of Crestview. The mapped channel and wetland corridor continue through the Silver Creek, Gully Branch, Mathison Creek, Mill Creek and Trammel Creek joining settings and the highway crossings. Model lines locally simplify large bends within this connected valley; no missing through-link is supplied merely from nearby names.",
+          "sources": [
+            "USGSTOPO_R183_YELLOW_FLORIDA"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9964
+          ],
+          "component_scope": "Yellow–Shoal junction and southwestward turn",
+          "finding": "Both overlapping originals show the Yellow River descending south of the interstate and meeting the Shoal River from the east near Rattlesnake Bluff. The selected route approaches along Yellow River and turns southwest then west along the mapped joined river, which is directly labelled Yellow River below the junction. Shoal River is retained as the joining tributary name and is not assigned to the selected upstream branch.",
+          "sources": [
+            "USGSTOPO_R183_YELLOW_FLORIDA",
+            "USGSTOPO_R183_YELLOW_DELTA"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9964
+          ],
+          "component_scope": "Lower Yellow River, side channels and Parkerville corridor",
+          "finding": "Original pixels establish the westward and southwestward lower Yellow River corridor, with repeated river labels, wooded floodplain and linked side channels through the county-boundary and Parkerville settings. Pitts River is separately labelled as a side channel in the lower network; Grimes Lake and other adjacent water features are not treated as independent long lake crossings. The selected line generalizes meanders within the same lower-river floodplain. The map supplies a connected river corridor rather than only basin membership.",
+          "sources": [
+            "USGSTOPO_R183_YELLOW_DELTA"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9964
+          ],
+          "component_scope": "Broxson delta connections and actual Blackwater Bay terminal",
+          "finding": "The mapped Yellow River continues through the lower wetland network past Broxson and splits into connected delta channels. The original depicts the links among the named Yellow River, Dead River and southern delta channels, with Cat Island Lake, Goggle Eye Lake, Skim Lake and Weaver River labels distinguishing local features. The selected final parts occupy this connected southern delta corridor and terminate at Blackwater Bay beside the mapped Skim Lake–Weaver River outlet setting. This establishes the actual selected terminal at ordinary delta scale; it does not assign an exact distributary or formal name-boundary vertex to each coarse modeled line, substitute a different main-river mouth, or claim present tidal flow. The bay is directly labelled in the inspected original.",
+          "sources": [
+            "USGSTOPO_R183_YELLOW_DELTA"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [],
+  "additional_source_use_notices": [
+    {
+      "publication": "Geological map of Greenland, 1:500 000, Sheet 8, Peary Land",
+      "official_url": "https://doi.org/10.22008/FK2/Q7HIDY",
+      "limitation_kind": "nonmaterial_regional_map_edge",
+      "observed_outcome": "The actual western neatline excludes most of the selected western and northern continuation.",
+      "material_gap": false,
+      "aw_id": "hydro-system:90002124",
+      "acquisition_stop": false,
+      "restriction_scope": "Regional evidence ends at the neatline. The national original overlaps that boundary and covers the remaining selection through its actual endpoint. This is not an access failure."
+    },
+    {
+      "publication": "GEUS national 1995 and Peary Land Sheet 8, 1986 originals",
+      "official_urls": [
+        "https://doi.org/10.22008/FK2/SYAL4J",
+        "https://doi.org/10.22008/FK2/Q7HIDY"
+      ],
+      "limitation_kind": "dataset_use_terms",
+      "observed_outcome": "Retained catalogue Custom Dataset Terms and original imprints were actually read.",
+      "material_gap": false,
+      "aw_id": "hydro-system:90002124",
+      "acquisition_stop": false,
+      "restriction_scope": "GEUS Custom Dataset Terms and original copyright notices were read. Source originals, crops, processed data and comparison or derived cartographic materials remain private. Public-ready content is limited to independently written factual observations and ordinary bibliography with GEUS attribution."
+    },
+    {
+      "publication": "GEUS national 1995 and Peary Land Sheet 8, 1986 originals",
+      "official_urls": [
+        "https://doi.org/10.22008/FK2/SYAL4J",
+        "https://doi.org/10.22008/FK2/Q7HIDY"
+      ],
+      "limitation_kind": "completed_natural_river_identity_and_name_scope_limitation",
+      "observed_outcome": "The source coverage is complete for the selected geographic terrain sequence. Its ice/rock setting does not establish a representative named natural river, and the actual selected ending is in the mapped southern Freuchen Land ice setting.",
+      "material_gap": false,
+      "aw_id": "hydro-system:90002124",
+      "acquisition_stop": false,
+      "restriction_scope": "No whole-route natural-river identity, surface/subglacial continuity or river-mouth claim. The neighboring land, ice-cap and fjord labels are not assigned to the selected river group."
+    },
+    {
+      "publication": "USGSTopo, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "kind": "bounded_factual_synthesis_and_cartographic_generalization",
+      "observed_limit": "The read maps support the ordinary connected corridor and distinct names, without formal name-boundary, exact-bank or present-channel claims. Service credits identify The National Map and contributing datasets.",
+      "handling": "Publish only original factual observations and normal bibliography. Original maps, crops, orientation aids and request details remain private.",
+      "material_gap": false,
+      "publication_access_stop": false,
+      "aw_id": "hydro-system:80034249",
+      "acquisition_stop": false
+    },
+    {
+      "publication": "Canada-Nunavut Geoscience Office, Summary of Activities2020; Tremblay Jungersen River chapter",
+      "official_url": "https://www.gov.nu.ca/sites/default/files/documents/2025-01/CNGO-SofA2020__Complete_Volume_.pdf",
+      "observed_outcome": "Completed reader content-length limit of 10485761+ bytes, followed by one permitted identical-URL normal-original acquisition ending HTTP200 application/pdf.",
+      "outcome_layer": "Resolved technical reader size limit and completed original HTTP response.",
+      "publication_access_stop": false,
+      "material_gap": false,
+      "aw_id": "hydro-system:80024132",
+      "acquisition_stop": false
+    },
+    {
+      "publication": "Canada-Nunavut Geoscience Office, Summary of Activities2020; Tremblay2021",
+      "official_url": "https://www.gov.nu.ca/sites/default/files/documents/2025-01/CNGO-SofA2020__Complete_Volume_.pdf",
+      "observed_outcome": "Printed 2021 copyright/all-rights-reserved notice; free digital publication with requested acknowledgment and accuracy caveat.",
+      "outcome_layer": "Publication-use notice, not access denial.",
+      "restriction_scope": "Only own factual synthesis and normal bibliography may be consolidated; no original PDF, page image, crop, overlay or other cartographic derivative redistributed.",
+      "material_gap": false,
+      "aw_id": "hydro-system:80024132",
+      "acquisition_stop": false
+    }
+  ]
+}

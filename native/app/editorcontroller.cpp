@@ -44,7 +44,12 @@ bool validImageDataUrl(const QString& source)
 }
 EditorController::EditorController(QObject* parent):EditorController(EditorControllerConfig{},parent) {}
 EditorController::EditorController(EditorControllerConfig config,QObject* parent)
-    :QObject(parent),quality_(config.mobileMode),
+    :QObject(parent),coreSession_(coreCodecPorts(),pandoeditor::DocumentSessionProfile::Native,
+        pandoeditor::NativeDocumentPorts{[this](const pandoeditor::SelectionRef& ref) {
+            if(ref.domain=="placeBuiltin")return placeRuntime_.recordById(QString::fromStdString(ref.id)).has_value();
+            if(ref.domain=="hydroBuiltin")return hydroRuntime_.recordById(QString::fromStdString(ref.id)).has_value();
+            return false;
+        }}),selection_(coreSession_.selection()),project_(coreSession_.project()),quality_(config.mobileMode),
      appearancePath_(std::move(config.appearancePath)),storage_(std::move(config.privateProjectPath)),mobileMode_(config.mobileMode)
 {
     qualityClock_.start();
@@ -105,13 +110,20 @@ EditorController::EditorController(EditorControllerConfig config,QObject* parent
     bootstrapWorldEnabled_=config.bootstrapWorld;
     initializePhysicalData();
     if(startupBusy_||config.bootstrapWorld) {
-        project_.replace(pandoeditor::ProjectDocument(
-            std::vector<pandoeditor::Country>{},std::vector<pandoeditor::Layer>{{"countries","국가"}}));
+        pandoeditor::ProjectDocument document;
+        document.documentId=QUuid::createUuid().toString(QUuid::WithoutBraces).toStdString();
+        document.presentation.userLayers={{"countries","국가"}};
+        pandoeditor::Project initial;initial.replace(std::move(document));
+        initial.setTimelineCursor(QDate::currentDate().toString("yyyy-MM").toStdString(),false);
+        coreSession_.adoptPreparedProject(std::move(initial));
         projection_.setWorldExtent();
     } else {
         QFile sample(":/assets/sample.pando.json");
         if(!sample.open(QIODevice::ReadOnly)) throw std::runtime_error("Cannot read bundled sample");
-        project_.replace(projectcodec::decode(sample.readAll()));
+        pandoeditor::Project initial;initial.replace(::projectcodec::decode(sample.readAll()));
+        initial.setTimelineCursor(pandoeditor::initialTimelineMonth(initial.document().timelineRecords,
+            QDate::currentDate().toString("yyyy-MM").toStdString()),false);
+        coreSession_.adoptPreparedProject(std::move(initial));
         projection_.rebuild(project_.document());
     }
     camera_.setMetrics(mapCameraMetrics());
@@ -276,6 +288,11 @@ EditorController::EditorController(EditorControllerConfig config,QObject* parent
         if(initial.matches(project_))startWorldBootstrap();
     });
     initializePlaceRuntime();
+    if(!startupBusy_&&!config.bootstrapWorld)schedulePhysicalCacheMaintenance();
+}
+EditorController::~EditorController() {
+    if(hydroOpenCancelled_)hydroOpenCancelled_->store(true);
+    if(historicalCatalogCancel_)historicalCatalogCancel_->store(true);
 }
 void EditorController::refreshTypedScene() {
     if(startupBusy_)return;
@@ -295,8 +312,8 @@ void EditorController::refreshTypedScene() {
         InteractionRenderPacket interaction;
         interaction.styleOptions.dark=appearancePreferences().value("effectiveTheme").toString()=="dark";
         if(objectChooserOpen())interaction.candidates=chooserRefs_;
-        interaction.selected=selection_.items();
-        interaction.primary=selection_.primary();interaction.hover=hover_;
+        interaction.selected=selectedObjectRefs();
+        interaction.primary=primaryObjectRef();interaction.hover=hoverObjectRef();
         if(geometryEdit_) {
             interaction.editTarget=geometryEdit_->target;
             if(geometryEdit_->mergeIntent)interaction.selected=geometryEdit_->mergeIntent->donors;
@@ -343,7 +360,7 @@ void EditorController::initializePhysicalData() {
     physicalStore_=std::make_unique<PhysicalDataStore>(QString(),3,2,this);
     physicalStore_->setExternalRoot(qEnvironmentVariable("PANDOEDITOR_WORLD_DATA_ROOT"));
     physicalStore_->setExternalDatasetRoot("terrain-dem",qEnvironmentVariable("PANDOEDITOR_TERRAIN_DEM_DATA_ROOT"));
-    physicalStore_->cleanupVersions(inventory.dataset,inventory.version);
+    physicalDataset_=inventory.dataset;physicalVersion_=inventory.version;
     physicalRoot_=QDir(physicalStore_->root()).filePath(inventory.dataset+'/'+inventory.version);
     for(const auto& asset:inventory.assets)physicalAssets_.insert(asset.path,asset);
     QFile demInventoryFile(QStringLiteral(":/world/physical-inventory-terrain-dem-c3c18d1.json"));
@@ -396,40 +413,37 @@ void EditorController::initializePhysicalData() {
             emit terrainChanged();emit stateChanged();
         });
 }
-QString EditorController::physicalAssetPath(const QString& relativePath) const {
-    if(!physicalStore_)return {};
-    const auto found=physicalAssets_.constFind(relativePath);if(found==physicalAssets_.cend())return {};
-    const auto existing=physicalStore_->resolveExisting(*found);
-    return existing.isEmpty()?physicalStore_->cachePath(*found):existing;
+void EditorController::schedulePhysicalCacheMaintenance() {
+    if(!physicalStore_||physicalCleanupStarted_)return;
+    physicalCleanupStarted_=true;
+    // Wait until recovery/canonical installation identifies its source. The
+    // current inventory version and that source can be owned by active workers.
+    const QStringList protectedSources{QString::fromStdString(project_.document().physicalData.source)};
+    auto* watcher=new QFutureWatcher<bool>(this);
+    connect(watcher,&QFutureWatcher<bool>::finished,this,[this,watcher] {
+        const auto okay=watcher->result();watcher->deleteLater();
+        if(!okay){physicalError_=QStringLiteral("이전 물리 자료 캐시 정리를 완료하지 못했습니다.");emit terrainChanged();}
+    });
+    watcher->setFuture(QtConcurrent::run(physicalStore_->cleanupVersionsJob(
+        physicalDataset_,physicalVersion_,protectedSources)));
 }
 bool EditorController::physicalAssetReady(const QString& relativePath) const {
+    if(!physicalStore_)return false;
+    const auto found=physicalAssets_.constFind(relativePath);
+    if(found==physicalAssets_.cend())return false;
     if(relativePath.startsWith("terrain/")) {
-        if(!physicalStore_)return false;
-        const auto found=physicalAssets_.constFind(relativePath);
         // This is admission to a worker, never an integrity receipt. The cold
         // decoder's verifier checks original bytes before publishing pixels.
-        return found!=physicalAssets_.cend()&&!physicalStore_->candidatePath(*found).isEmpty();
+        return !physicalStore_->candidatePath(*found).isEmpty();
     }
-    return !verifiedPhysicalAssetPath(relativePath).isEmpty();
-}
-QString EditorController::verifiedPhysicalAssetPath(const QString& relativePath) const {
-    if(!physicalStore_)return {};const auto found=physicalAssets_.constFind(relativePath);
-    return found!=physicalAssets_.cend()?physicalStore_->resolveExisting(*found):QString{};
+    return physicalStore_->hasVerifiedExisting(*found);
 }
 void EditorController::requestPhysicalAsset(const QString& relativePath) {
     if(!physicalStore_)return;
     const auto found=physicalAssets_.constFind(relativePath);if(found!=physicalAssets_.cend())physicalStore_->request(*found);
 }
 void EditorController::ensureHydroBootstrap() {
-    if(!physicalStore_)return;
-    for(const auto& path:{QStringLiteral("hydro/v0.13.2/hydro.bin")})
-        if(!promotePhysicalAsset(path)) {
-            const auto asset=physicalAssets_.constFind(path);
-            if(asset!=physicalAssets_.cend()&&!physicalStore_->resolveExisting(*asset).isEmpty()) {
-                physicalError_=QStringLiteral("검증된 하천 자료를 캐시에 설치하지 못했습니다.");
-                riverAssetFinished(path,false);
-            } else requestPhysicalAsset(path);
-        }
+    if(!hydroOpenBusy_)syncHydroData();
 }
 
 QString EditorController::labelSourceId(const std::string& ownerId) const {
@@ -787,12 +801,12 @@ QVariantList EditorController::layers() const
     QVariantList result;
     const auto& layers=project_.layers();
     QVariantList unassigned;
-    for(const auto& path:projection_.paths)if(pandoeditor::nativeLayerId(project_.viewDocument(),pandoeditor::territorialRef(path.toMap()["countryId"].toString().toStdString())).empty())unassigned.append(path);
+    for(const auto& path:projection_.objects)if(pandoeditor::nativeLayerId(project_.viewDocument(),pandoeditor::territorialRef(path.toMap()["countryId"].toString().toStdString())).empty())unassigned.append(path);
     if(!unassigned.empty())result.append(QVariantMap{{"id",""},{"name",QStringLiteral("웹 기본 표시")},{"visible",true},{"locked",false},{"opacity",1.},{"order",-1},{"paths",unassigned},{"count",unassigned.size()}});
     for(int i=static_cast<int>(layers.size())-1;i>=0;--i) {
         const auto& l=layers[static_cast<std::size_t>(i)];
         QVariantList paths;
-        for(const auto& path:projection_.paths) {
+        for(const auto& path:projection_.objects) {
             const auto id=path.toMap()["countryId"].toString();
             const auto member=project_.viewDocument().presentation.membership.find(pandoeditor::territorialRef(id.toStdString()));
             if(member!=project_.viewDocument().presentation.membership.end()&&member->second==l.id) paths.push_back(path);
@@ -818,7 +832,7 @@ QVariantList EditorController::countryRows() const
 }
 QString EditorController::selectedName() const
 {
-    const auto ref=selection_.primary();if(!ref)return {};
+    const auto ref=primaryObjectRef();if(!ref)return {};
     if(ref->domain=="hydroBuiltin")if(const auto record=hydroRuntime_.recordById(text(ref->id)))return record->name;
     const auto view=project_.propertyView(*ref);return view?text(view->displayName):QString{};
 }
@@ -864,7 +878,7 @@ bool EditorController::setTimelineMonth(const QString& month) {
         return false;
     }
     try {
-        if(!project_.setTimelineCursor(month.toStdString()))return true;
+        if(!coreSession_.setTimelineCursor(month.toStdString(),coreEpoch()))return true;
         if(worldBase_&&worldBase_->startupPreview()) {
             auto frame=std::make_shared<WorldBaseFrame>(*worldBase_);frame->documentReady=true;
             worldBase_=std::move(frame);cacheWorldFrame(worldBase_);
@@ -997,20 +1011,17 @@ void EditorController::undo()
 {
     if(hasPendingEdits()){emit errorOccurred(QStringLiteral("PENDING_EDITS: 편집 중인 내용을 먼저 적용하거나 취소하세요."));return;}
     QElapsedTimer measurement;measurement.start();
-    const auto clearBoundarySelection=project_.nextUndoTerritorialMutationKind()==pandoeditor::TerritorialMutationKind::ReconcileSharedBoundary;
-    const auto before=project_.document();
+    const auto sharedBoundary=project_.nextUndoTerritorialMutationKind()==pandoeditor::TerritorialMutationKind::ReconcileSharedBoundary;
     cancelPreview();
-    if(project_.undo()) {
-        bool changed=true,hydroChanged=true;
-        try {
-            const auto impact=pandoeditor::calculateChangeImpact(before,project_.document(),{},project_.timelineCursor());
-            changed=impact.sceneDirty.geometry;hydroChanged=impact.sceneDirty.datasetResource;
-            noteAppliedImpact(impact);
-        } catch(...) {pendingSceneImpact_.reset();}
+    const auto outcome=coreSession_.undo(coreEpoch());
+    if(!outcome.result.ok()){commandError(outcome.result.error,text(outcome.result.detail));return;}
+    if(outcome.result.changed()) {
+        const bool changed=outcome.result.impact.sceneDirty.geometry,hydroChanged=outcome.result.impact.sceneDirty.datasetResource;
+        noteAppliedImpact(outcome.result.impact);
         if(changed)projection_.rebuild(project_.viewDocument(),project_.inactiveEntityIds());
-        if(clearBoundarySelection)clearSelection();
+        closeObjectChooser();cancelColorEdit();fieldSessions_.clear();
         publish();if(hydroChanged)syncHydroData();if(changed)emit geometryChanged();
-        editingPerformance_.record("undo",clearBoundarySelection?"shared-boundary":"document",double(measurement.nsecsElapsed())/1e6);
+        editingPerformance_.record("undo",sharedBoundary?"shared-boundary":"document",double(measurement.nsecsElapsed())/1e6);
         emit renderQualityChanged();
     }
 }
@@ -1018,20 +1029,17 @@ void EditorController::redo()
 {
     if(hasPendingEdits()){emit errorOccurred(QStringLiteral("PENDING_EDITS: 편집 중인 내용을 먼저 적용하거나 취소하세요."));return;}
     QElapsedTimer measurement;measurement.start();
-    const auto clearBoundarySelection=project_.nextRedoTerritorialMutationKind()==pandoeditor::TerritorialMutationKind::ReconcileSharedBoundary;
-    const auto before=project_.document();
+    const auto sharedBoundary=project_.nextRedoTerritorialMutationKind()==pandoeditor::TerritorialMutationKind::ReconcileSharedBoundary;
     cancelPreview();
-    if(project_.redo()) {
-        bool changed=true,hydroChanged=true;
-        try {
-            const auto impact=pandoeditor::calculateChangeImpact(before,project_.document(),{},project_.timelineCursor());
-            changed=impact.sceneDirty.geometry;hydroChanged=impact.sceneDirty.datasetResource;
-            noteAppliedImpact(impact);
-        } catch(...) {pendingSceneImpact_.reset();}
+    const auto outcome=coreSession_.redo(coreEpoch());
+    if(!outcome.result.ok()){commandError(outcome.result.error,text(outcome.result.detail));return;}
+    if(outcome.result.changed()) {
+        const bool changed=outcome.result.impact.sceneDirty.geometry,hydroChanged=outcome.result.impact.sceneDirty.datasetResource;
+        noteAppliedImpact(outcome.result.impact);
         if(changed)projection_.rebuild(project_.viewDocument(),project_.inactiveEntityIds());
-        if(clearBoundarySelection)clearSelection();
+        closeObjectChooser();cancelColorEdit();fieldSessions_.clear();
         publish();if(hydroChanged)syncHydroData();if(changed)emit geometryChanged();
-        editingPerformance_.record("redo",clearBoundarySelection?"shared-boundary":"document",double(measurement.nsecsElapsed())/1e6);
+        editingPerformance_.record("redo",sharedBoundary?"shared-boundary":"document",double(measurement.nsecsElapsed())/1e6);
         emit renderQualityChanged();
     }
 }
@@ -1055,10 +1063,11 @@ bool EditorController::newProject()
             if(!sample.open(QIODevice::ReadOnly))return false;
             if(!replaceFromBytes(sample.readAll(),false,{}))return false;
         }else{
-            pandoeditor::Project initial;
-            initial.replace(pandoeditor::ProjectDocument(std::vector<pandoeditor::Country>{},
-                std::vector<pandoeditor::Layer>{{"countries","국가"}}));
-            if(!replaceFromBytes(projectcodec::encode(initial),false,{}))return false;
+            pandoeditor::ProjectDocument document;
+        document.documentId=QUuid::createUuid().toString(QUuid::WithoutBraces).toStdString();
+        document.presentation.userLayers={{"countries","국가"}};
+        pandoeditor::Project initial;initial.replace(std::move(document));
+            if(!replaceFromBytes(::projectcodec::encode(initial),false,{}))return false;
             startWorldBootstrap();
         }
         fitMapCamera();return true;
@@ -1075,9 +1084,9 @@ bool EditorController::saveFile(const QUrl& url)
     if(!commitPendingEdits())return false;
     if(!url.isLocalFile()){emit errorOccurred(QStringLiteral("로컬 파일을 선택해 주세요."));return false;}
     try {
-        const auto persisted=projectcodec::encode(project_);storage_.write(url,persisted);
+        const auto persisted=::projectcodec::encode(project_);storage_.write(url,persisted);
         if(projectPreview_)projectPreview_->schedule(persisted,projectPreviewSourceSha_);
-        filePath_=url.toLocalFile();importedDirty_=false;project_.markSaved();publish(false);return true;
+        filePath_=url.toLocalFile();importedDirty_=false;coreSession_.markSaved(coreEpoch());publish(false);return true;
     }catch(const std::exception& e){emit errorOccurred(QString::fromUtf8(e.what()));return false;}
 }
 bool EditorController::save(){if(mobileMode_)return savePrivate();return saveFile(QUrl::fromLocalFile(filePath_));}
@@ -1090,17 +1099,16 @@ bool EditorController::replaceFromBytes(const QByteArray& bytes,bool imported,co
         editingPerformance_.record(QString::fromLatin1(stage),QStringLiteral("project-restore"),restoreStage.nsecsElapsed()/1.e6);
         restoreStage.restart();
     };
-    auto document=projectcodec::decode(bytes);
+    auto document=::projectcodec::decode(bytes);
     recordRestore("restoreDecode");
     pandoeditor::Project candidate;candidate.replace(std::move(document));
-    if(!pandoeditor::isStaticTimeline(candidate.document()))
-        candidate.setTimelineCursor(pandoeditor::initialTimelineMonth(candidate.document().timelineRecords,
-            QDate::currentDate().toString(QStringLiteral("yyyy-MM")).toStdString()));
+    candidate.setTimelineCursor(pandoeditor::initialTimelineMonth(candidate.document().timelineRecords,
+        QDate::currentDate().toString(QStringLiteral("yyyy-MM")).toStdString()),false);
     recordRestore("restoreValidate");
     MapProjection nextProjection;nextProjection.rebuild(candidate.viewDocument(),candidate.inactiveEntityIds());
     recordRestore("restoreProjection");
     cancelWorldBootstrap();
-    cancelPreview();cancelStructureMutation();project_=std::move(candidate);projection_=std::move(nextProjection);
+    cancelPreview();cancelStructureMutation();coreSession_.adoptPreparedProject(std::move(candidate));projection_=std::move(nextProjection);
     filePath_=path;importedDirty_=imported;selectedLayer_=project_.layers().empty()?QString():text(project_.layers().back().id);
     refreshHistoricalCatalog();
     recordRestore("restoreSwitch");
@@ -1168,7 +1176,7 @@ bool EditorController::savePrivate()
     if(isProtectedWebSource(QUrl::fromLocalFile(storage_.privateProjectPath()))){webImportFailure(QStringLiteral("SOURCE_OVERWRITE_BLOCKED: 웹 원본은 덮어쓰지 않습니다."));return false;}
     if(privateRecoveryRequired_){emit errorOccurred(QStringLiteral("손상된 저장 파일이 보존되어 있습니다. 덮어쓰기를 허용한 뒤 다시 저장해 주세요."));return false;}
     if(!commitPendingEdits())return false;
-    try {const auto persisted=projectcodec::encode(project_);storage_.writePrivateAtomic(persisted);if(projectPreview_)projectPreview_->schedule(persisted,projectPreviewSourceSha_);importedDirty_=false;project_.markSaved();publish(false);return true;}
+    try {const auto persisted=::projectcodec::encode(project_);storage_.writePrivateAtomic(persisted);if(projectPreview_)projectPreview_->schedule(persisted,projectPreviewSourceSha_);importedDirty_=false;coreSession_.markSaved(coreEpoch());publish(false);return true;}
     catch(const std::exception& e){emit errorOccurred(QString::fromUtf8(e.what()));return false;}
 }
 bool EditorController::exportProject(const QUrl& url)

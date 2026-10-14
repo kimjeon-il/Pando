@@ -1,5 +1,25 @@
 # Web / App portability refactor
 
+## Current shared-core implementation
+
+The current work uses the unified repository at baseline `9300609`, branch
+`work/objects`. Native and Web compile the same Qt-independent C++ sources in
+`shared/core`; Web executes its document session in a dedicated WASM Worker.
+Document, timeline, command validation, history, dirty, selection and draft
+state have one Core owner. Platform UI, I/O and rendering remain separate.
+
+`ProjectDomain` is the ordered Web application boundary; Store/Repository are
+read-only projections. Native controllers use the same typed Core rules with
+explicit current-format boundaries. Existing JS geometry calculations are
+generated from their canonical Web source for Native resources.
+
+See [the current command boundary](shared-core-command-boundary.md),
+[shared-core build and session documentation](../../shared/README.md) and
+[DEV-066 implementation evidence](../../reports/development/testing/shared-core-startup-implementation-2026-10-12.md).
+The sections below preserve the earlier separate-implementation refactor and
+its recorded results. Its pipeline names, branch arrangement and test counts
+are historical evidence, not the current ownership map or latest verification.
+
 ## Fixed behavior and source pair
 
 Approved plan: behavior-preserving internal refactor of both repositories. No UI,

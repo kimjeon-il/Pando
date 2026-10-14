@@ -396,7 +396,7 @@ bool EditorController::prepareHistoricalAdd(const QVariantMap& options) {
             if(date!=historicalReferenceDate_){historicalPreviewCache_.clear();historicalVersionId_.clear();}
             historicalReferenceDate_=date;
             auto cancelled=std::make_shared<std::atomic_bool>(false);historicalCatalogCancel_=cancelled;
-            ++historicalPendingJobs_;historicalError_.clear();historicalStage_=QStringLiteral("preparing");emit historicalChanged();
+            ++historicalPendingJobs_;historicalError_.clear();historicalPreviewEpoch_=coreEpoch();historicalStage_=QStringLiteral("preparing");emit historicalChanged();
             auto* watcher=new QFutureWatcher<pandoeditor::HistoricalInstantiationPlan>(this);
             connect(watcher,&QFutureWatcher<pandoeditor::HistoricalInstantiationPlan>::finished,this,[this,watcher,catalog,base,generation,token,cancelled]() {
                 watcher->deleteLater();--historicalPendingJobs_;
@@ -481,7 +481,7 @@ bool EditorController::prepareHistoricalAdd(const QVariantMap& options) {
         const auto base=project_.snapshot();
         const auto catalog=historicalLibrary_;
         const auto token=historicalSession_;
-        historicalError_.clear();historicalStage_=QStringLiteral("preparing");emit historicalChanged();
+        historicalError_.clear();historicalPreviewEpoch_=coreEpoch();historicalStage_=QStringLiteral("preparing");emit historicalChanged();
         auto* watcher=new QFutureWatcher<pandoeditor::HistoricalInstantiationPlan>(this);
         connect(watcher,&QFutureWatcher<pandoeditor::HistoricalInstantiationPlan>::finished,this,
             [this,watcher,token]() {
@@ -516,7 +516,7 @@ bool EditorController::prepareHistoricalAdd(const QVariantMap& options) {
 }
 bool EditorController::confirmHistoricalAdd(qulonglong token) {
     if(token!=historicalSession_||historicalStage_!=QStringLiteral("impact")||!historicalCommandPreview_)return false;
-    auto result=pandoeditor::CommandProcessor::confirm(project_,*historicalCommandPreview_);
+    auto result=confirmCorePreview(*historicalCommandPreview_,historicalPreviewEpoch_);
     historicalCommandPreview_.reset();++historicalSession_;
     historicalImpact_.clear();historicalStage_=QStringLiteral("ready");
     if(!result.changed()) {historicalError_=QString::fromStdString(result.detail);emit historicalChanged();return false;}

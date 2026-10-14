@@ -27,6 +27,7 @@ export function createProjectUiBridge({
   queueAutosave,
 } = {}) {
   let recoveryRequest = null;
+  let pendingHistory = 0;
   const confirm = options => new Promise(resolve => openConfirmModal({ ...options,
     onConfirm: value => resolve(value ?? true), onCancel: () => resolve(null),
   }));
@@ -112,23 +113,28 @@ export function createProjectUiBridge({
     status.setAttribute('aria-label', saveStateDescription);
   }
 
-  function handleUndoRequest() {
+  async function handleUndoRequest() {
     if (isProjectReplacing()) return;
     if (!requireCanonicalData()) return;
     if (getEditingSnapshot().processing) return;
-    if (getEditingSnapshot().previewActive) {
-      discardActiveGeometryPreview();
-      return;
-    }
-    if (draftInputActive()) {
-      undoDraft();
-      return;
-    }
-    if (!undoProject({ description: '작업 실행취소' })) return;
-    setActionStatus('이전 작업을 실행 취소했습니다.', 'success');
+    try {
+      pendingHistory += 1;
+      updateHistoryButtons();
+      if (getEditingSnapshot().previewActive) {
+        await discardActiveGeometryPreview();
+        return;
+      }
+      if (draftInputActive()) {
+        await undoDraft();
+        return;
+      }
+      if (!await undoProject({ description: '작업 실행취소' })) return;
+      setActionStatus('이전 작업을 실행 취소했습니다.', 'success');
+    } catch (error) { setActionStatus(`실행 취소하지 못했습니다. ${error.message}`, 'error', 0); }
+    finally { pendingHistory -= 1; updateHistoryButtons(); }
   }
 
-  function handleRedoRequest() {
+  async function handleRedoRequest() {
     if (isProjectReplacing()) return;
     if (!requireCanonicalData()) return;
     if (getEditingSnapshot().processing) return;
@@ -136,12 +142,17 @@ export function createProjectUiBridge({
       setActionStatus('변경 미리보기를 먼저 적용하거나 취소하세요.', 'error', 2600);
       return;
     }
-    if (draftInputActive()) {
-      redoDraft();
-      return;
-    }
-    if (!redoProject({ description: '작업 다시 실행' })) return;
-    setActionStatus('작업을 다시 실행했습니다.', 'success');
+    try {
+      pendingHistory += 1;
+      updateHistoryButtons();
+      if (draftInputActive()) {
+        await redoDraft();
+        return;
+      }
+      if (!await redoProject({ description: '작업 다시 실행' })) return;
+      setActionStatus('작업을 다시 실행했습니다.', 'success');
+    } catch (error) { setActionStatus(`다시 실행하지 못했습니다. ${error.message}`, 'error', 0); }
+    finally { pendingHistory -= 1; updateHistoryButtons(); }
   }
 
   function updateHistoryButtons() {
@@ -150,10 +161,10 @@ export function createProjectUiBridge({
     const undoAvailable = draftMode ? draft.historyCount > 0 : (canUndo() || false);
     const redoAvailable = draftMode ? draft.futureCount > 0 : (canRedo() || false);
     const controls = [
-      [$('undoBtn'), getEditingSnapshot().processing || !undoAvailable, draftMode ? '작성 중 실행 취소' : '실행 취소'],
-      [$('redoBtn'), getEditingSnapshot().processing || !redoAvailable, draftMode ? '작성 중 다시 실행' : '다시 실행'],
-      [$('mobileUndoBtn'), getEditingSnapshot().processing || !undoAvailable, draftMode ? '작성 중 실행 취소' : '실행 취소'],
-      [$('mobileRedoBtn'), getEditingSnapshot().processing || !redoAvailable, draftMode ? '작성 중 다시 실행' : '다시 실행'],
+      [$('undoBtn'), pendingHistory > 0 || getEditingSnapshot().processing || !undoAvailable, draftMode ? '작성 중 실행 취소' : '실행 취소'],
+      [$('redoBtn'), pendingHistory > 0 || getEditingSnapshot().processing || !redoAvailable, draftMode ? '작성 중 다시 실행' : '다시 실행'],
+      [$('mobileUndoBtn'), pendingHistory > 0 || getEditingSnapshot().processing || !undoAvailable, draftMode ? '작성 중 실행 취소' : '실행 취소'],
+      [$('mobileRedoBtn'), pendingHistory > 0 || getEditingSnapshot().processing || !redoAvailable, draftMode ? '작성 중 다시 실행' : '다시 실행'],
     ];
     for (const [button, disabled, label] of controls) {
       if (!button) continue;

@@ -1,4 +1,5 @@
-import { initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
+import { testCoreProject, initializeTestTerritorialState,executeTerritorialTestCommand } from '../helpers/timeline-project.mjs';
+import {createGisCoreFixture} from '../helpers/gis-core-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createTerritorialFeature, normalizeTerritorialEntities } from '../../assets/js/modules/territorial-units.js';
@@ -9,17 +10,17 @@ import { createTerritorialApplicationService } from '../../assets/js/modules/ter
 const geometry = () => ({ type: 'Polygon', coordinates: [[[0,0],[0,1],[1,1],[1,0],[0,0]]] });
 const entity = (id, entityKind = 'general', parentId = '') => createTerritorialFeature({ id, entityKind, parentId, geometry: geometry() });
 
-test('general hierarchy changes preserve identity and kind; independent regions remain unchanged', () => {
+test('general hierarchy changes preserve identity and kind; independent regions remain unchanged', async () => {
   const region = entity('Silesia', 'regional');
   const state = { territorialEntities: [entity('A'), entity('B', 'general', 'A'), entity('C', 'general', 'B'), entity('D'), region] };
-  initializeTestTerritorialState(state);
-const store = createTerritorialEntityStore({ getState: () => state });
+  await initializeTestTerritorialState(state);
+const store = createTerritorialEntityStore({ documentModel:testCoreProject(state).documentModel,commandOwner:testCoreProject(state).client });
   const repository = createTerritorialEntityRepository({ entityStore: store });
   assert.equal(repository.root('C').id, 'A');
-  store.setField('B', 'parentId', 'D');
+  await executeTerritorialTestCommand(state,'territorial.parent',{id:'B',parentId:'D'});
   assert.equal(repository.root('C').id, 'D');
   assert.equal(repository.get('B').properties.entityKind, 'general');
-  assert.throws(() => store.setField('B', 'entityKind', 'regional'), /종류/);
+  await assert.rejects(()=>executeTerritorialTestCommand(state,'territorial.metadata',{id:'B',field:'entityKind',valuePresent:true,value:'regional'}),{code:'unsupported-relation-field'});
   assert.deepEqual(repository.get('Silesia'), region);
   assert.equal(repository.root('Silesia').id, 'Silesia');
   assert.deepEqual(repository.list({ kind: 'regional' }).map(feature => feature.id), ['Silesia']);
@@ -44,24 +45,19 @@ test('root and regional coverage is explicit; retired canonical fields are rejec
   }
 });
 
-test('a locked descendant prevents root reassignment and a locked source can be copied independently', () => {
+test('a locked descendant prevents root reassignment and a locked source can be copied independently', async () => {
   const source = entity('A');
   source.properties.locked = true;
   const child = entity('C', 'general', 'A');
   child.properties.locked = true;
   const state = { territorialEntities: [source, child, entity('B')] };
-  initializeTestTerritorialState(state);
-const store = createTerritorialEntityStore({ getState: () => state });
+  await initializeTestTerritorialState(state);
+const store = createTerritorialEntityStore({ documentModel:testCoreProject(state).documentModel,commandOwner:testCoreProject(state).client });
   const repository = createTerritorialEntityRepository({ entityStore: store });
-  const history = [];
-  const service = createTerritorialApplicationService({ createId: () => globalThis.crypto.randomUUID(), entityRepository: repository, entityStore: store,
-    commandPipeline: { runMutation(_meta, mutate) {
-      const before = store.snapshot(); const value = store.transaction(mutate);
-      history.push({ before, after: store.snapshot() }); return { ok: true, value };
-    } },
-  });
+  const project=testCoreProject(state).project;
+  const service=createTerritorialApplicationService({createId:()=>globalThis.crypto.randomUUID(),entityRepository:repository,commandOwner:project});
   const before = store.snapshot();
-  const copy = service.copyIndependentRegion('A', { name: '권역' });
+  const copy = await service.copyIndependentRegion('A', { name: '권역' });
   assert.equal(copy.ok, true);
   assert.notEqual(copy.unit.id, 'A');
   assert.equal(copy.unit.properties.entityKind, 'regional');
@@ -70,13 +66,13 @@ const store = createTerritorialEntityStore({ getState: () => state });
   assert.deepEqual(repository.get('A'), source);
   assert.deepEqual(repository.get('C'), child);
   assert.notEqual(copy.unit.geometry, repository.get('A').geometry);
-  store.replaceEntities(history[0].before);
+  assert.equal(await project.undo(),true);
   assert.deepEqual(store.snapshot(), before);
-  store.replaceEntities(history[0].after);
+  assert.equal(await project.redo(),true);
   assert.ok(repository.get(copy.unit.id));
-  store.setLocked('A', false);
+  await service.setLocked('A',false);
   const lockedBefore = store.snapshot();
-  assert.equal(service.changeAdministrativeParent('A', 'B').ok, false);
+  assert.equal((await service.changeAdministrativeParent('A', 'B')).ok, false);
   assert.deepEqual(store.snapshot(), lockedBefore);
 });
 
@@ -94,22 +90,16 @@ test('regional redraw keeps the full independent shape, including overlap and ou
 });
 
 test('independent regional import retains explicit coast reconciliation without storing membership', async () => {
-  const { createGisImportTransactionCommitter } = await import('../../assets/js/modules/gis-import-transaction.js');
   const root = entity('A'), region = entity('R', 'regional');
-  const state = { territorialEntities: [root] };
-  initializeTestTerritorialState(state);
-const store = createTerritorialEntityStore({ getState: () => state });
-  const repository = createTerritorialEntityRepository({ entityStore: store });
   const coast = { ...geometry(), coordinates: [[[0,0],[0,2],[1,2],[1,0],[0,0]]] };
   let chosen = 'country-to-admin', opened = 0;
-  const committer = createGisImportTransactionCommitter({
-    state, entityStore: store, territorialEntityRepository: repository,
+  const {committer} = await createGisCoreFixture([root],{runtime:{
     buildSharedBoundaryTopology: () => ({}), analyzeAdminCountryCoast: () => ({ status: 'ready', conflicts: [{}] }),
     ensureGisRuntime: async () => {}, getCoastReconciliationController: async () => ({ open: async () => { opened++; return chosen; } }),
     normalizeCoastDecision: value => value, territorialEntityName: feature => feature.id, countryName: feature => feature.id,
     deepClone: structuredClone, planCoastReconciliations: () => ({ adminGeometry: coast, countryGeometry: coast }),
     validateCoastReplacement: () => ({ ok: true }), polygonClipping: {},
-  });
+  }});
   const overrides = new Map();
   await committer.resolveTerritorialCoast(region, root, overrides);
   assert.equal(opened, 1);

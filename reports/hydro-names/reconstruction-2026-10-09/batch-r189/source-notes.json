@@ -1,0 +1,608 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r189",
+  "sources": [
+    {
+      "source_key": "r189-geus-greenland-national-1995-retained",
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": [
+        "Jan C. Escher",
+        "T. Christopher R. Pulvertaft"
+      ],
+      "year": 1995,
+      "publisher": "Geological Survey of Greenland, Copenhagen; official digital original distributed by GEUS",
+      "scale": "1:2 500 000",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J",
+      "catalogue_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi:10.22008/FK2/SYAL4J",
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16855",
+      "current_acquisition": "No external request in this batch. The physical original acquired normally after the earlier workspace reset was reused locally; its catalogue and original acquisition record reports completed HTTP200 responses. No stopped route was retried.",
+      "actual_read_scope": "Retained original single-sheet overview; southern Greenland graticule and geographic coverage; enlarged complete selected ice/nunatak/rock-and-valley corridor including both fragments and the final ending; Inland Ice legend; projection, copyright, printing and recommended-citation imprint. Retained catalogue bibliography and actual Custom Dataset Terms were also read.",
+      "supports": "Complete generalized terrain correspondence for both selected mainstem fragments, their junction, all89 stored parts and the actual FID8926 ending.",
+      "limits": "No representative natural-river name, surveyed river through-link, surface/subglacial hydraulic continuity, precise bank or contemporary glacier-front position. The final narrow inland setting is not independently established as an ordinary river mouth.",
+      "source_epoch_note": "Printed1995 historical thematic cartography; original imprint specifies WGS84 and UTM zone24. Current local reading does not convert its historical terrain into a current drainage survey.",
+      "use_notice": "GEUS Custom Dataset Terms permit internal use and processing and require source acknowledgment while restricting redistribution and new maps based on processed data. Copyright is credited to Grønlands Geologiske Undersøgelse and Kort- og Matrikelstyrelsen, Danmark. Originals, crops, orientation material and processed cartography remain private; only independently written factual observations and ordinary bibliography are public-ready."
+    },
+    {
+      "source_key": "r189-ign-cordoba-physical2016-retained",
+      "title": "Provincia de Córdoba — Mapa Físico",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "date": "September 2016",
+      "official_url": "https://www.ign.gob.ar/images/MapasWeb/CORDOBA/CORDOBA-FISICO-WEB.jpg",
+      "material_read": "Physically retained complete standalone original sheet, successfully acquired in the preceding research, visually inspected again for the southern Córdoba opening and provincial-edge setting; printed September2016 edition and ordinary property notice inspected.",
+      "supports": "Regional separation of the named Quinto/La Amarga landscape from the selected eastward and southeastern lowland route. The northern Buenos Aires extension is outside this sheet’s useful mapped province coverage.",
+      "limits": "Province-scale physical geography supplies no identified local drain for the chosen opening and no usable selected through-link or terminal mapping in northern Buenos Aires. No route name is inferred from adjacent named wetlands or rivers.",
+      "publication_identity": "Independently issued provincial physical-map sheet, identified in prior actual r69/r95 readings and confirmed in the current printed sheet. It is not the stopped Argenmap basemap or historical topographic mosaic.",
+      "use_notice": "Printed Ley11.723 property notice retained. Bounded factual reading only; no original sheet or derivative map is redistributed."
+    },
+    {
+      "source_key": "r189-ponce-picasa2022-retained",
+      "title": "Application of hydrological and hydraulic models to quantify surface runoff in the endorheic system of the La Picasa Lagoon basin / Aplicación de modelos hidrológicos e hidráulicos para cuantificación de escurrimientos superficiales del sistema endorreico cuenca Laguna La Picasa",
+      "authors": [
+        "Gabriela Alejandra Ponce",
+        "Sebastián Grande",
+        "Matías Eder",
+        "Alejo Juan Sebastián Testa-Tacchino",
+        "Claudio Alejandro Carignano",
+        "Andrés Rodriguez"
+      ],
+      "publisher": "Instituto Mexicano de Tecnología del Agua, Tecnología y ciencias del agua",
+      "date": "2022",
+      "bibliography": "13(5),136–199; DOI10.24850/j-tyca-13-05-05",
+      "official_url": "https://www.revistatyca.org.mx/index.php/tyca/article/view/2885",
+      "original_url": "https://www.revistatyca.org.mx/index.php/tyca/article/download/2885/2483",
+      "material_read": "Physically retained complete63-page English original from a previously successful acquisition. Read title/licence, abstract and study-area/hydraulic-works prose on PDFpp.7–17 and modelling context on pp.20–22; visually inspected original Figures1 and2 on PDFpp.10 and12. A private orientation comparison of Figure1 was used only to locate the pinned selection. No other figure is claimed as visually inspected for this finding.",
+      "supports": "The initial opening lies in the southern Melo-side margin of the study-area depiction. The selected route subsequently passes south of the mapped La Picasa regulating-lagoon/canal corridor and ends south of the actual La Picasa lake. Prose distinguishes natural shallow depressions, intermittently linked drainage and constructed canals, regulation works and pumping connections.",
+      "limits": "The article does not map a corresponding channel from the chosen opening along the long southern selected route; most of that extension and its actual terminal are outside its detailed study-area coverage. Its depiction of the La Picasa system and mention of a Horquetas connection do not establish a selected-route hydronym or a selected connection to that canal.",
+      "publication_identity": "Independent UNC Hydraulics Laboratory investigation published as an IMTA peer-reviewed research article. It uses its own hydrological/hydraulic models and field-related measurements; its relevant figures are study diagrams, not a reproduction of the held Achiras EIA, La Pampa provincial map or IGN historical mosaic.",
+      "use_notice": "The original displays CC BY-NC-SA4.0 and IMTA2022 attribution. Only bounded own factual observations and normal bibliographic links are included; source pages and private orientation aids are not redistributed."
+    },
+    {
+      "source_key": "IMN_SIXAOLA_FIG2",
+      "title": "Estudio de Cuencas Hidrográficas de Costa Rica: Cuenca río Sixaola",
+      "author": "Instituto Meteorológico Nacional; map credit SIG–Departamento de Desarrollo",
+      "year": "2011 study attribution in the UCR report; no chapter-front publication date asserted",
+      "publication_identity": "IMN national basin-characterization project. Its separately credited institutional cartography is distinct from the held SINAC ACOSA management plan and the CNE-hosted PROIGE prevention study.",
+      "actual_material_inspected": "Original PDF front matter; printed pp.6–9; Figure2 on printed p.9, including enlarged upper and lower views. Map scale1:600,000.",
+      "access_outcome": "Official catalogue and PDF reader completed successfully, followed sequentially by one completed normal-original HTTP200 application/pdf acquisition.",
+      "evidence_scope": "Labelled network, selected headward connection, Telire trunk, lower border river and coastal context.",
+      "use_limits": "Own factual synthesis and ordinary bibliography only; original and derivatives remain private. No limited-distribution or officials-only notice observed in inspected material.",
+      "prose_dependency_limit": "Hydrological prose cites a CNE document. That cited publication was not opened; cartographic correspondence relies on the separately credited IMN map, corroborated by the UCR project.",
+      "official_url": "https://cglobal.imn.ac.cr/documentos/publicaciones/EstudioCuencas/EstudioCuencas-cuencaRioSixaola.pdf"
+    },
+    {
+      "source_key": "UCR_C4401_2024",
+      "title": "Modelado hidrodinámico para generar mapas de zonas propensas a inundación en la cuenca binacional del río Sixaola",
+      "author": "Alejandra M. Rojas González, Escuela de Ingeniería de Biosistemas, Universidad de Costa Rica",
+      "year": 2024,
+      "report_identifier": "Proyecto N°340-C4-401",
+      "prepared_for": "Organización de Estudios Tropicales",
+      "publication_identity": "A separately identified UCR contracted hydrodynamic-modeling project for the OET/GEF/PNUD binational program; original cover verifies project340-C4-401 and recipient. This is not a substitute version of either held Costa Rica publication.",
+      "actual_material_inspected": "Completed original PDF cover and contents; sections2.2,2.4.2 and4.1; original Figures1,13 and35 on pp.2-9,2-18 and4-58, with enlarged Figures13 and35. IMN chapter bibliographic entry on p.7-84.",
+      "access_outcome": "One completed normal-original request, HTTP200 application/pdf.",
+      "evidence_scope": "Whole selected route, lower joining sequence and coastal outlet correspondence. Model reliability and flood predictions are not evaluated.",
+      "use_limits": "Own factual synthesis and bibliography only; no source pages, derivatives or private coordinate paths redistributed. No limited-distribution or officials-only notice observed in inspected material.",
+      "official_url": "https://sixaola.org/admin/documentos/archivos/Informe_modelo_hidrodinamico_inundaciones_Cuenca_Sixaola.pdf"
+    },
+    {
+      "source_key": "r189-ibge-rnpb-2015",
+      "title": "Mapa Político dos Estados de Rio Grande do Norte e Paraíba",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística, Diretoria de Geociências / Coordenação de Cartografia",
+      "edition": "2015",
+      "bibliography": "IBGE. Mapa Político dos Estados de Rio Grande do Norte e Paraíba. 2015. 1:500,000. BCIM2014; polyconic projection; SIRGAS2000.",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_estaduais_e_distrito_federal/politico/2015/pb_rn_politico500k_2015.pdf",
+      "source_type": "Primary original state reference cartography",
+      "acquired_scope": "Previously successful, complete original from r172 remained locally available. Read directly in this pass without a new acquisition.",
+      "original_map_pixels_inspected": true,
+      "actual_read_scope": "Full sheet overview, complete selected corridor, enlarged western opening, middle reservoir/João Câmara–Poço Branco setting, eastern valley/coastal ending and printed imprint/compilation notice.",
+      "publication_identity": "Independently issued state-mural cartography covering RN and Paraíba, with its own regional footprint and BCIM2014 compilation. It is not an equivalent of the held municipal-statistical products, Natal plan, Natal-port thesis or Capibaribe reservoir study.",
+      "use_notice": "Printed reproduction rights reserved, ©IBGE2015. BCIM2014 generalized reference mapping; only state/international boundaries are official, other boundaries informative. Bounded geographic reading only; no original, crop or overlay redistribution, naming-registry, precise-survey or current-flow claim."
+    },
+    {
+      "source_key": "r189-costa-ichthyofauna-2017-prose",
+      "title": "Ichthyofauna of Ceará-Mirim River basin, Rio Grande do Norte State, northeastern Brazil",
+      "authors": [
+        "Nathalia Kaluana Rodrigues da Costa",
+        "Roney Emanuel Costa de Paiva",
+        "Márcio Joaquim da Silva",
+        "Telton Pedro Anselmo Ramos",
+        "Sergio Maia Queiroz Lima"
+      ],
+      "publisher": "ZooKeys / Pensoft; Universidade Federal do Rio Grande do Norte authors",
+      "edition": "2017",
+      "bibliography": "Costa, N.K.R. et al. 2017. Ichthyofauna of Ceará-Mirim River basin, Rio Grande do Norte State, northeastern Brazil. ZooKeys 715:39–51. DOI:10.3897/zookeys.715.13865.",
+      "official_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC5740444/",
+      "source_type": "Primary basin fish inventory, inspected prose only",
+      "acquired_scope": "Article body read before the later Figure1 availability stop. No figure pixels or PDF inspected.",
+      "original_map_pixels_inspected": false,
+      "actual_read_scope": "Article identity, license, introduction, study-area text, Table1 and field-survey methodology. The study describes 2011–2016 sampling from headwater river sites to the Extremoz estuary; this is corroborating geographic context, not selected-route map evidence.",
+      "publication_identity": "Own field fish-inventory project across the Ceará-Mirim drainage, distinct from the held Potengi oyster-transplant experiment and Natal-port thesis.",
+      "use_notice": "Article states CC BY4.0. The later Figure1 stop limits use to observations actually made beforehand. Source figures and derivatives are not redistributed. Table1's S11 longitude differs from the study-area mouth longitude; that inconsistent table entry is not used to locate the selected ending."
+    },
+    {
+      "source_key": "r189-diniz-filho-1999-catalog",
+      "title": "Recursos hídricos subterrâneos no médio e baixo curso da Bacia hidrográfica do Rio Ceará Mirim/RN",
+      "authors": [
+        "José Braz Diniz Filho"
+      ],
+      "publisher": "Universidade de São Paulo, Instituto de Geociências",
+      "edition": "Doctoral thesis, São Paulo1999; defense16December1999; online publication12January2016",
+      "bibliography": "Diniz Filho, J.B. 1999. Recursos hídricos subterrâneos no médio e baixo curso da Bacia hidrográfica do Rio Ceará Mirim/RN. Doctoral thesis, Instituto de Geociências, Universidade de São Paulo. DOI:10.11606/T.44.2016.tde-08012016-143110.",
+      "official_url": "https://teses.usp.br/teses/disponiveis/44/44133/tde-08012016-143110/pt-br.html",
+      "source_type": "Primary thesis catalog and author abstract; original thesis unavailable",
+      "acquired_scope": "Catalog identity and abstract read successfully before two identical original-PDF fetch timeouts. No original thesis body or map inspected.",
+      "original_map_pixels_inspected": false,
+      "actual_read_scope": "Author, defense/imprint dates, title, abstract and displayed use notice. The abstract identifies the medium/lower basin hydrogeological study and Poço Branco reservoir, but contains no selected-path map.",
+      "publication_identity": "Independent1999 doctoral hydrogeological field study of the medium/lower Ceará-Mirim basin. Its research purpose and authorship distinguish it from Natal-port, Potengi biological and ANA Capibaribe reservoir publications; it is also distinct from the held2011 USP Miranda dissertation.",
+      "use_notice": "Catalog allows private study/research and scientific criticism/analysis/citation with attribution; prohibits commercialization, complete reproduction/distribution or economic exploitation without author permission. Only bounded factual observations and normal bibliography are retained."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:90134701",
+      "source_keys": [
+        "r189-geus-greenland-national-1995-retained"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8925
+          ],
+          "component_scope": "Chosen northern opening and southeastward inland-ice corridor",
+          "finding": "The chosen headward opening and entire initial southeastward corridor are within the national original’s southern Inland Ice area. The original graticule, ice contours and distinction from the exposed coastal rock belt locate this interval. No river trace or hydronym is established by the ice-surface contours, ice-thickness isopachs, sub-ice bedrock contours or aeromagnetic lineaments.",
+          "sources": [
+            "r189-geus-greenland-national-1995-retained"
+          ],
+          "correspondence": "completed_generalized_geographic_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            8925
+          ],
+          "component_scope": "Southern ice-field bend and southwestward nunatak/ice-margin passage",
+          "finding": "The selected westward bend and subsequent southwestward passage are fully within the original’s ice field and scattered exposed-rock/nunatak setting. The selected smaller turns and intervening intervals are included in the comparison. Ice and rock exposures are geographic terrain evidence; they do not establish a connected surface or subglacial river.",
+          "sources": [
+            "r189-geus-greenland-national-1995-retained"
+          ],
+          "correspondence": "completed_generalized_geographic_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            8925
+          ],
+          "component_scope": "Western turn into the exposed-rock and valley belt",
+          "finding": "The western and southwestward selected intervals enter the irregular boundary between ice, outlying rock exposures and the continuous exposed-rock belt east of the source-labelled Narsarsuaq area. The complete intermediate bends and passages among mapped rock masses are geographically accounted for. No through-valley river name, lake name or glacier name is assigned.",
+          "sources": [
+            "r189-geus-greenland-national-1995-retained"
+          ],
+          "correspondence": "completed_generalized_geographic_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            8925
+          ],
+          "component_scope": "Lower southward passage and approach to the fragment junction",
+          "finding": "After the western turn, the selected path runs southward through the mapped rock-and-valley/ice-margin terrain. This includes the long final southward part of FID8925 and its exact stored end, rather than stopping the review at the first exposed-rock area. The thematic map supplies complete regional terrain coverage but does not survey the selected route as a natural river.",
+          "sources": [
+            "r189-geus-greenland-national-1995-retained"
+          ],
+          "correspondence": "completed_generalized_geographic_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            8926
+          ],
+          "component_scope": "FID8925–8926 junction and complete final fragment",
+          "finding": "The junction is inside the same continuous original-map coverage. All of FID8926 is included: its first southward passage, short reversing bends, westward turn and final southwestward ending. The selected terminal lies in the map’s inland exposed-rock and narrow valley setting southeast of Narsarsuaq; the source does not independently establish this stored ending as an ordinary river mouth or a present-day ice front.",
+          "sources": [
+            "r189-geus-greenland-national-1995-retained"
+          ],
+          "correspondence": "completed_generalized_geographic_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "candidate_name": null
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61512470",
+      "source_keys": [
+        "r189-ign-cordoba-physical2016-retained",
+        "r189-ponce-picasa2022-retained"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14446
+          ],
+          "component_scope": "61512470-chosen-opening",
+          "finding": "The selected western opening lies just southeast of Melo and initially trends east before turning southeast near the southern margin of the La Picasa study-area depiction. The original research map separates it from reservoir R1 and the managed drainage corridor farther north. Neither the study figure nor the generalized Córdoba sheet establishes a named opening channel.",
+          "sources": [
+            "r189-ign-cordoba-physical2016-retained",
+            "r189-ponce-picasa2022-retained"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "supported_name": null
+        },
+        {
+          "fragments": [
+            14446
+          ],
+          "component_scope": "61512470-southeastern-cross-border-continuation",
+          "finding": "The selected line continues southeast into northern Buenos Aires, away from the regulation-lagoon chain depicted in the La Picasa research. The regional figures establish that separation, but do not map a continuous corresponding watercourse through this long selected interval.",
+          "sources": [
+            "r189-ign-cordoba-physical2016-retained",
+            "r189-ponce-picasa2022-retained"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "supported_name": null
+        },
+        {
+          "fragments": [
+            14446
+          ],
+          "component_scope": "61512470-southern-western-eastward-links",
+          "finding": "After the major southeastward descent, the selected line turns generally east through lowland country well south of the mapped La Picasa internal canal system. This portion is largely outside the study figure’s useful hydrographic coverage. The province-scale Córdoba sheet does not provide the missing northern Buenos Aires detail.",
+          "sources": [
+            "r189-ign-cordoba-physical2016-retained",
+            "r189-ponce-picasa2022-retained"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "supported_name": null
+        },
+        {
+          "fragments": [
+            14446
+          ],
+          "component_scope": "61512470-southern-central-bends",
+          "finding": "The selected southern corridor makes several northeastward and southeastward bends before resuming an eastward direction. No inspected independent original establishes these intermediate joins as one connected natural channel or as a particular named canal. The documented La Picasa diversion works farther north are not substituted for the selection.",
+          "sources": [
+            "r189-ponce-picasa2022-retained"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "supported_name": null
+        },
+        {
+          "fragments": [
+            14446
+          ],
+          "component_scope": "61512470-lower-eastward-approach",
+          "finding": "The selected line has a further sustained eastward reach south of the La Picasa lake setting. The source map places the named receiving lake and its works to the north, without supplying corresponding hydrographic detail along this selected approach.",
+          "sources": [
+            "r189-ponce-picasa2022-retained"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "supported_name": null
+        },
+        {
+          "fragments": [
+            14446
+          ],
+          "component_scope": "61512470-actual-terminal",
+          "finding": "The actual selected ending turns south and then slightly southwest, well south of the mapped Laguna La Picasa and outside the research figure’s detailed terminal coverage. It is not the lake endpoint established for the separate earlier selection. No inspected source identifies this endpoint as a named stream junction, lake, canal or natural mouth.",
+          "sources": [
+            "r189-ponce-picasa2022-retained"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "supported_name": null
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70978216",
+      "source_keys": [
+        "IMN_SIXAOLA_FIG2",
+        "UCR_C4401_2024"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10722
+          ],
+          "component_scope": "Chosen southwestern opening and upper eastward trunk",
+          "finding": "The western headward channel near Cerro Deri runs north, then northeast and east into the labelled Telire trunk. Turi labels a separate side branch.",
+          "sources": [
+            "IMN_SIXAOLA_FIG2",
+            "UCR_C4401_2024"
+          ],
+          "correspondence": "supported at ordinary corridor scale",
+          "component_correspondence_completed": true,
+          "bounded_component_names": [
+            "Río Telire"
+          ]
+        },
+        {
+          "fragments": [
+            10723
+          ],
+          "component_scope": "Lower Telire, principal confluence and northward turn",
+          "finding": "The eastward Telire approach joins the Yorkín receiving corridor and turns north into Sixaola. An exact name-change vertex is not assigned.",
+          "sources": [
+            "IMN_SIXAOLA_FIG2",
+            "UCR_C4401_2024"
+          ],
+          "correspondence": "supported at ordinary corridor scale",
+          "component_correspondence_completed": true,
+          "bounded_component_names": [
+            "Río Telire",
+            "Río Sixaola"
+          ]
+        },
+        {
+          "fragments": [
+            10724
+          ],
+          "component_scope": "First simplified eastward border reach",
+          "finding": "The straightened selection corresponds to the connected eastward Sixaola valley; source cartography retains additional bends.",
+          "sources": [
+            "IMN_SIXAOLA_FIG2",
+            "UCR_C4401_2024"
+          ],
+          "correspondence": "supported at ordinary corridor scale",
+          "component_correspondence_completed": true,
+          "bounded_component_names": [
+            "Río Sixaola"
+          ]
+        },
+        {
+          "fragments": [
+            10725
+          ],
+          "component_scope": "Intermediate south-turning reach",
+          "finding": "The next selected fragment follows the mapped border river as it turns southeast.",
+          "sources": [
+            "IMN_SIXAOLA_FIG2",
+            "UCR_C4401_2024"
+          ],
+          "correspondence": "supported at ordinary corridor scale",
+          "component_correspondence_completed": true,
+          "bounded_component_names": [
+            "Río Sixaola"
+          ]
+        },
+        {
+          "fragments": [
+            10726
+          ],
+          "component_scope": "Longer southeastward lower corridor",
+          "finding": "The selected reach corresponds to the continuous southeastward meandering river shown in the hydraulic-study map.",
+          "sources": [
+            "UCR_C4401_2024"
+          ],
+          "correspondence": "supported at ordinary corridor scale",
+          "component_correspondence_completed": true,
+          "bounded_component_names": [
+            "Río Sixaola"
+          ]
+        },
+        {
+          "fragments": [
+            10727
+          ],
+          "component_scope": "Short lower bend",
+          "finding": "The short fragment occupies the connected lower bend between the southeastward approach and eastward lowland reach.",
+          "sources": [
+            "UCR_C4401_2024"
+          ],
+          "correspondence": "supported at ordinary corridor scale",
+          "component_correspondence_completed": true,
+          "bounded_component_names": [
+            "Río Sixaola"
+          ]
+        },
+        {
+          "fragments": [
+            10728
+          ],
+          "component_scope": "Lower arc and coastal approach",
+          "finding": "The lower river continues east, turns north through the Sixaola–Palma corridor, then bends toward the coast.",
+          "sources": [
+            "IMN_SIXAOLA_FIG2",
+            "UCR_C4401_2024"
+          ],
+          "correspondence": "supported at ordinary corridor scale",
+          "component_correspondence_completed": true,
+          "bounded_component_names": [
+            "Río Sixaola"
+          ]
+        },
+        {
+          "fragments": [
+            10729
+          ],
+          "component_scope": "Actual selected terminal reach",
+          "finding": "The final fragment corresponds to the coastal Sixaola outlet reach. Exact shoreline and active mouth position are not certified.",
+          "sources": [
+            "UCR_C4401_2024"
+          ],
+          "correspondence": "supported at ordinary corridor scale",
+          "component_correspondence_completed": true,
+          "bounded_component_names": [
+            "Río Sixaola"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60768475",
+      "source_keys": [
+        "r189-ibge-rnpb-2015",
+        "r189-costa-ichthyofauna-2017-prose",
+        "r189-diniz-filho-1999-catalog"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13803
+          ],
+          "component_scope": "Chosen southwestern opening and small water body near Lajes",
+          "finding": "The original shows Rio Lajes running north toward Lajes and a small water body just south of the town, in the selected western approach. It does not provide sufficient continuous geographic detail to establish the chosen opening, its passage through that mapped impoundment and the upper receiving join. The water body is not given a name from proximity or an uninspected source.",
+          "sources": [
+            "r189-ibge-rnpb-2015"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            13803
+          ],
+          "component_scope": "Lajes to Pedra Preta–Jardim de Angicos upper continuation",
+          "finding": "The regional map depicts intermittent upper drainage northeast and east from the Lajes setting, south of Pedra Preta and through Jardim de Angicos toward the named Ceará-Mirim. The selected broad course is consistent with that drainage. This does not close the unresolved headward connection or authorize assigning every upper part the Ceará-Mirim label.",
+          "sources": [
+            "r189-ibge-rnpb-2015",
+            "r189-costa-ichthyofauna-2017-prose"
+          ],
+          "correspondence": "regional_upper_corridor_supported_with_unresolved_opening_join",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            13803
+          ],
+          "component_scope": "Named central trunk south of João Câmara",
+          "finding": "The river is directly labelled Rio Ceará-Mirim downstream of the RN-023/Jardim de Angicos setting and follows the selected eastward corridor south of João Câmara. Riacho da Onça and Riacho do Juá enter as side drainage; their names are not applied to the selected receiving trunk.",
+          "sources": [
+            "r189-ibge-rnpb-2015"
+          ],
+          "correspondence": "supported_at_ordinary_regional_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13803
+          ],
+          "component_scope": "Poço Branco impoundment and approach to Taipu",
+          "finding": "The original map shows a larger water body immediately south of Poço Branco in the river valley, with the eastward receiving river continuing toward Taipu. The catalog abstract independently identifies the Barragem de Poço Branco as a major surface-water feature of this study area. Neither inspected source establishes the selected route's actual impoundment through-link and both adjoining river connections. No dam-operation, present inundation or precise bank claim is made.",
+          "sources": [
+            "r189-ibge-rnpb-2015",
+            "r189-diniz-filho-1999-catalog"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            13803
+          ],
+          "component_scope": "Taipu and eastward valley",
+          "finding": "The original river continues through the Taipu setting and bends east/northeast into the repeatedly named lower Ceará-Mirim valley. The upper reservoir connection remains a separate material gap and is not inferred from the common river name.",
+          "sources": [
+            "r189-ibge-rnpb-2015",
+            "r189-costa-ichthyofauna-2017-prose"
+          ],
+          "correspondence": "supported_at_ordinary_regional_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13803
+          ],
+          "component_scope": "Lower Ceará-Mirim valley and coastal approach",
+          "finding": "The original directly labels the trunk north of Ceará-Mirim town and depicts the selected eastward lower valley, with branching channels and subsequent convergence toward the southeastern coastal exit. Rio do Mudo and Rio Guairu, together with the separate water body at Extremoz, lie south of this corridor and are not selected-route names. No individual managed channel or every small branch is separately named.",
+          "sources": [
+            "r189-ibge-rnpb-2015"
+          ],
+          "correspondence": "supported_at_ordinary_regional_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13803
+          ],
+          "component_scope": "Actual final selected southeastward reach and Atlantic ending",
+          "finding": "The original maps a continuous lower river turning southeast through the Extremoz coastal setting and reaching the Atlantic at the selected terminal setting. It is north of the separate Extremoz lake outlet and north of Natal/Potengi. The inspected survey prose corroborates an Extremoz ocean destination. This is regional mouth correspondence, not a current tidal-channel or exact shoreline determination.",
+          "sources": [
+            "r189-ibge-rnpb-2015",
+            "r189-costa-ichthyofauna-2017-prose"
+          ],
+          "correspondence": "supported_at_ordinary_regional_corridor_scale",
+          "component_correspondence_completed": true
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "Menéndez, Ángel N.; Badano, Nicolás D.; Lecertua, Emilio A.; Re, Fernando; Re, Mariano; García, Pablo E. (June2012), Evaluación de las inundaciones y las obras de drenaje en la cuenca del Salado (provincia de Buenos Aires) mediante modelación numérica",
+      "publisher": "Instituto Nacional del Agua; discovery identifies integrated surface/groundwater modelling research",
+      "official_url": "https://repositorio.ina.gob.ar/bitstreams/69f08513-b484-48aa-83c0-caec54719c70/download",
+      "observed_outcome": "The first direct original request terminated with a connection/request timeout after90seconds and0bytes. The single permitted identical-original-URL retry also terminated with a90second timeout and0bytes. Neither request exposed an HTTP response status or source content.",
+      "outcome_layer": "Completed direct-client transport/request timeouts; origin HTTP status unknown, no observed401/403 or access challenge.",
+      "restriction_scope": "Whole identified report and equivalent publication/project acquisition routes paused after the failed identical retry. No alternate report, thesis, conference copy, catalogue, reader, screenshot, mirror or format was used to recover its content; related-project equivalence remains conservative.",
+      "earlier_lawful_prose_exception": null,
+      "newly_observed_access_failure": true,
+      "explicit_access_denial": false,
+      "material_effect": "Potential independent selected-corridor mapping remains unavailable. Discovery excerpts and unseen diagrams are excluded from the geographic finding.",
+      "aw_id": "hydro-system:61512470"
+    },
+    {
+      "publication": "Costa et al.2017, Ichthyofauna of Ceará-Mirim River basin, Rio Grande do Norte State, northeastern Brazil; ZooKeys715:39–51; DOI10.3897/zookeys.715.13865",
+      "official_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC5740444/figure/F1/",
+      "related_urls": [
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC5740444/"
+      ],
+      "observed_outcome": "Article body opened successfully. Sole linked Figure1 page returned Failed to fetch: Cache miss. No figure pixels or original map body exposed. No PDF, original image or alternative figure route followed.",
+      "outcome_layer": "Web-reader cache/fetch availability outcome; origin HTTP status unknown.",
+      "restriction_scope": "Whole article/publication and equivalent figure, image, PDF, catalogue, original, reader, cache, mirror and acquisition routes paused; no further uninspected-output reading.",
+      "earlier_lawful_prose_exception": "Only the article identity/license and actual study-area, sampling-table and methodology prose read before the stop. No unseen-map claim.",
+      "limitation_kind": "figure_availability_stop",
+      "newly_observed_access_failure": true,
+      "material_gap": true,
+      "aw_id": "hydro-system:60768475"
+    },
+    {
+      "publication": "José Braz Diniz Filho1999 doctoral thesis, Recursos hídricos subterrâneos no médio e baixo curso da Bacia hidrográfica do Rio Ceará Mirim/RN",
+      "official_url": "https://teses.usp.br/teses/disponiveis/44/44133/tde-08012016-143110/publico/Diniz_Filho_Doutorado.pdf",
+      "related_urls": [
+        "https://teses.usp.br/teses/disponiveis/44/44133/tde-08012016-143110/pt-br.html"
+      ],
+      "observed_outcome": "The first linked original-PDF reader request returned (400) Timeout fetching. After terminal response, one identical click at the same exact original URL was retried under the bounded transient rule and returned the same (400) Timeout fetching. No original thesis body, PDF or map pixels were acquired. No changed route or further attempt followed.",
+      "outcome_layer": "Two completed web-reader fetch timeouts; origin HTTP status unknown. Not HTTP403 or authentication denial.",
+      "restriction_scope": "Whole thesis/publication and equivalent PDF, map, figure, catalogue, original, reader, cache, mirror and acquisition routes paused after the single identical retry.",
+      "earlier_lawful_prose_exception": "Previously read catalog identity, abstract and use notice only. These do not establish the selected impoundment through-link.",
+      "limitation_kind": "unresolved_original_availability_after_bounded_same_url_retry",
+      "newly_observed_access_failure": true,
+      "material_gap": true,
+      "aw_id": "hydro-system:60768475"
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "publication": "Geological map of Greenland1:2500000, GEUS Custom Dataset Terms",
+      "official_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi:10.22008/FK2/SYAL4J",
+      "limitation_kind": "existing_dataset_use_terms_reapplied",
+      "observed_outcome": "Retained successful catalogue terms and original imprint read locally. This is an existing use notice, not a new access failure.",
+      "material_gap": false,
+      "aw_id": "hydro-system:90134701",
+      "acquisition_stop": false,
+      "restriction_scope": "No redistribution of original, crop, processed data, orientation or derived map. Public-ready content consists only of independently written factual observations and ordinary bibliography."
+    },
+    {
+      "publication": "Diniz Filho1999 doctoral thesis and USP catalog",
+      "official_url": "https://teses.usp.br/teses/disponiveis/44/44133/tde-08012016-143110/pt-br.html",
+      "observed_outcome": "Displayed notice permits private study/research and attributed scientific analysis/citation; complete reproduction, distribution and commercial exploitation require author permission.",
+      "outcome_layer": "Displayed use and attribution notice, separate from the later original-PDF availability failure.",
+      "restriction_scope": "Retain bounded own factual observations with authorship and original source; no source redistribution. No additional reading restriction beyond the recorded publication stop is inferred.",
+      "material_gap": false,
+      "aw_id": "hydro-system:60768475",
+      "acquisition_stop": false
+    }
+  ]
+}

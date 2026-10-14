@@ -1,0 +1,713 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r187",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r186",
+    "commit": "906df7727c74cac2804fce558a659730e8ce10f4",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r186/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:70478139",
+    "hydro-system:80028550",
+    "hydro-system:61436404",
+    "hydro-system:80231563"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:70478139",
+      "category": "river_group",
+      "system_id": "70478139",
+      "original_queue_rank": 553,
+      "baseline_logical_fid": 3053,
+      "geometry_fids": [
+        9736
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -119.69375,
+        43.227083,
+        -118.785417,
+        43.929167
+      ],
+      "rendered_mainstem_length_km": 152.862,
+      "rendered_network_length_km": 152.862,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -119.69375,
+          43.227083,
+          -118.785417,
+          43.929167
+        ]
+      },
+      "candidate_name": "Silver Creek",
+      "candidate_names": [
+        "Silver Creek"
+      ],
+      "research_category": "river_group_source_material_pending",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "region": "Harney County, southeastern Oregon, United States; Silver Creek valley through Moon Reservoir and the Harney–Mud–Malheur lake basin.",
+      "candidate_name_role": "Bounded named river-component candidate only; not a representative name for the entire selected mixed river, reservoir, marsh and multi-lake object.",
+      "source_keys": [
+        "r187-usgstopo-oregon-upper",
+        "r187-usgstopo-oregon-middle",
+        "r187-usgstopo-oregon-lower",
+        "r187-usgstopo-oregon-lakes"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": "The acquired cartography does not establish the chosen Silver-to-Chickahominy/Riley transfer, the complete lower Silver Creek marsh/managed-channel passage, or the Mud–Malheur Narrows road/wetland through-link. Nearby names and broad wetland/lake coverage do not close those connections.",
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "This is the inland Silver Creek corridor west of Burns, with a modeled continuation across Harney Lake and Mud Lake to an interior Malheur Lake endpoint. It is not the Malheur River or the neighboring Silvies River.",
+      "completion_scope": "All36 selected stored parts, the chosen upper opening, river/reservoir sections, material junction settings, lower wetlands, each lake setting and actual endpoint were inspected against four original USGSTopo views. Map-area coverage is complete, but source correspondence for the three material through-passages is incomplete.",
+      "supported_name_scope": "Mapped Silver Creek opening, upper/middle valley, below-Riley river and Moon Reservoir corridor; lower named creek observations remain bounded by unresolved selected marsh links.",
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "representative_river_identity_established": false,
+        "mapped_reaches_may_have_distinct_names": true,
+        "lake_and_reservoir_names_not_scalar_river_names": true,
+        "current_hydraulic_continuity_verified": false,
+        "all_selected_tributary_fragments_accounted_for": true,
+        "tributary_scope": "No separate tributary fragment is selected. Mapped tributary junctions and the Chickahominy corridor were examined only as relevant context and as part of the unresolved selected transfer.",
+        "endpoint_scope": "Interior Malheur Lake setting directly observed; not inferred from the nearby lake name alone.",
+        "material_gaps": [
+          "Riley Silver Creek-to-Chickahominy selected inter-channel transfer.",
+          "Lower Silver Creek/Cote Slough marsh and canal through-passage.",
+          "Mud Lake-to-Malheur Lake selected Narrows road/wetland connection."
+        ],
+        "not_gaps": [
+          "The chosen mountain opening lies on the mapped Silver Creek corridor.",
+          "Moon Reservoir approach, passage and outlet corridor are readable.",
+          "A mapped dashed connection at eastern Harney Lake toward Mud Lake is actually visible.",
+          "Actual selected endpoint is within mapped Malheur Lake."
+        ],
+        "scope_limits": [
+          "A null accepted or scalar name does not assert that any local feature lacks a name.",
+          "No exact bank, vertex, name-boundary, seasonal flow or current operational validation was attempted.",
+          "The unsuccessful refuge-study report supplies no prose or map evidence; search excerpts were discovery only."
+        ]
+      }
+    },
+    {
+      "aw_id": "hydro-system:80028550",
+      "category": "river_group",
+      "system_id": "80028550",
+      "original_queue_rank": 554,
+      "baseline_logical_fid": 839,
+      "geometry_fids": [
+        2320
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -84.902083,
+        70.689583,
+        -82.058333,
+        70.99375
+      ],
+      "rendered_mainstem_length_km": 152.815,
+      "rendered_network_length_km": 152.815,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -84.902083,
+          70.689583,
+          -82.058333,
+          70.99375
+        ]
+      },
+      "candidate_name": "Gifford River",
+      "candidate_names": [
+        "Gifford River"
+      ],
+      "research_category": "river_group_source_material_pending",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "region": "Northern Baffin Island, Nunavut, Canada; Gifford River corridor, Saputing Lake-side lowlands and Bell Bay.",
+      "candidate_name_role": "bounded_component_identity_only",
+      "source_keys": [
+        "r187-tremblay2021-jungersen-field-study"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": "The selected southern lowland transfer from the mapped Gifford corridor toward the Saputing Lake-side drainage is not continuously established by the retained original field-study cartography. Local correspondence at the Bell Bay terminal does not close that gap.",
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "The actually mapped eastern/middle southwestern Gifford River corridor only. The unlabelled opening and lake arm, selected southern westward transfer, Saputing Lake-side outlet and full modeled selection are not assigned this name uniformly.",
+      "completion_scope": "Bounded research pass complete with one primary material-pending status. The geographically unresolved southern transfer prevents full representative-system completion. No new access failure or source-use restriction arose. Accepted names and all application flags remain null or false.",
+      "supported_name_scope": "The actually mapped eastern/middle southwestern Gifford River corridor only. The unlabelled opening and lake arm, selected southern westward transfer, Saputing Lake-side outlet and full modeled selection are not assigned this name uniformly.",
+      "naming_scope_details": {
+        "representative_river_identity_established": false,
+        "whole_feature_uniform_name_established": false,
+        "bounded_component_name": "Gifford River",
+        "terminal_waterbody": "Bell Bay",
+        "neighboring_waterbody": "Saputing Lake",
+        "excluded_neighboring_rivers": [
+          "Jungersen River",
+          "Magda River"
+        ],
+        "unnamed_components": "The initial feeder, lake and minor links have no separately established names in this pass. Saputing Lake is used only as a mapped neighboring setting, not as an established name of the selected river outlet.",
+        "no_unnamed_claim": "Failure to establish a local name does not show that no Inuit, local or official name exists."
+      }
+    },
+    {
+      "aw_id": "hydro-system:61436404",
+      "category": "river_group",
+      "system_id": "61436404",
+      "original_queue_rank": 555,
+      "baseline_logical_fid": 3548,
+      "geometry_fids": [
+        13995,
+        13996
+      ],
+      "minimum_stage": 2,
+      "bbox": [
+        -49.18125,
+        -28.617922,
+        -48.81875,
+        -27.777083
+      ],
+      "rendered_mainstem_length_km": 152.629,
+      "rendered_network_length_km": 152.629,
+      "geometry_summary": {
+        "fragment_count": 2,
+        "mainstem_fragment_count": 2,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -49.18125,
+          -28.617922,
+          -48.81875,
+          -27.777083
+        ]
+      },
+      "candidate_name": "Rio Tubarão",
+      "candidate_names": [
+        "Rio Tubarão"
+      ],
+      "research_category": "river_group_source_material_pending",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "region": "Anitápolis and the Braço do Norte valley through Tubarão to the southern Laguna/Jaguaruna lagoon and Atlantic-coast setting, Santa Catarina, Brazil.",
+      "candidate_name_role": "Supported lower-trunk name and bounded receiving-system candidate only; not a completed representative identity for the entire modeled object.",
+      "source_keys": [
+        "r187-ibge-anitapolis2010",
+        "r187-ibge-sc2015",
+        "r187-ibge-laguna2022",
+        "r187-sc-tubarao-plan-vol1-ch2"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": "The complete eastward lower-lowland traverse, chosen links into and through the southern lagoon network, and final lagoon-margin-to-Atlantic water-channel crossing are not established by the acquired originals.",
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "The chosen upper route is east of the Anitápolis seat and follows Rio Braço do Norte into the Tubarão corridor. Its southern ending is distinct from the usual Rio Tubarão receiving mouth in Lagoa Santo Antônio and the separate Laguna channel. The actual southern ending is not replaced by either better-known mouth.",
+      "completion_scope": "Every stored part and join was considered against the original maps at ordinary corridor scale. Upper and middle correspondence is supported; actual substantive lower through-link gaps remain. Distinct reach and lagoon names are allowed to coexist, but source coverage does not yet justify a completed whole-system result.",
+      "supported_name_scope": "Named lower river reached by the selected Rio Braço do Norte corridor. Unresolved eastward lowland and lagoon-to-sea links prevent extension across the entire selection.",
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "representative_river_identity_established": false,
+        "component_scope_limits": [
+          "The small initial feeder is not assigned a hydronym.",
+          "Rio Braço do Norte and Rio Tubarão identify distinct connected river reaches.",
+          "Lagoa de Garopaba do Sul is water-body context, not the river-group name; no Camacho synonym boundary is established.",
+          "No exact bank, current flow, present outlet operation or dam operation is asserted.",
+          "No large impounded passage was established as part of the selected upper corridor; the unresolved lower connections are not assumed natural or engineered."
+        ]
+      }
+    },
+    {
+      "aw_id": "hydro-system:80231563",
+      "category": "river_group",
+      "system_id": "80231563",
+      "original_queue_rank": 556,
+      "baseline_logical_fid": 969,
+      "geometry_fids": [
+        2692,
+        2693,
+        2694
+      ],
+      "minimum_stage": 1,
+      "bbox": [
+        -153.422917,
+        60.833333,
+        -151.737365,
+        61.21875
+      ],
+      "rendered_mainstem_length_km": 151.512,
+      "rendered_network_length_km": 155.372,
+      "geometry_summary": {
+        "fragment_count": 3,
+        "mainstem_fragment_count": 2,
+        "tributary_fragment_count": 1,
+        "mainstem_bbox": [
+          -153.422917,
+          60.833333,
+          -151.737365,
+          61.21875
+        ]
+      },
+      "candidate_name": "Chakachatna River",
+      "candidate_names": [
+        "Neacola River",
+        "Chakachatna River",
+        "McArthur River"
+      ],
+      "research_category": "river_group_source_material_pending",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "region": "West Cook Inlet, Alaska: Neacola Mountains, Kenibuna and Chakachamna lakes, Chakachatna and lower McArthur rivers.",
+      "candidate_name_role": "Bounded named central and lower river corridor; provisional representative-system candidate, not a completed whole-system identification.",
+      "source_keys": [
+        "r187-usgs-topo-neacola-chakachatna",
+        "r187-dnr-kenai-area-plan-region11"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": "The selected Kenibuna–Shamrock Lake transfer into the eastern lake is not established by the inspected map, which depicts a different northern outlet. The whole short FID 2694 eastward tributary connector and its join also lack established source correspondence. These are material through-link gaps, not a completed naming-scope hold.",
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "The modeled mainstem begins on a southern glacier, enters Neacola River, traverses the Kenibuna/Shamrock/eastern-lake setting, continues down Chakachatna and ends through lower McArthur at Cook Inlet. FID 2694 is a short separate northern-side tributary near the upper Chakachatna and is not the whole-system terminal.",
+      "completion_scope": "Four successful original USGSTopo views were visually inspected with enlarged original crops and private orientation overlays. They span every selected fragment, opening, join and actual mainstem ending. Spatial image coverage does not establish the two specified through-connections; the whole record remains pending.",
+      "supported_name_scope": "Distinct named reaches are retained separately. Neither a single uniform scalar name nor a completed representative identity is established for the whole selected group.",
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "representative_river_identity_established": false,
+        "distinct_reach_names_allowed": true,
+        "component_scope_limits": [
+          "No Neacola or Chakachatna hydronym is assigned to the unnamed ice opening.",
+          "Kenibuna Lake, Shamrock Lake, Chakachamna Lake and glacier labels are context-feature names, not interchangeable river hydronyms.",
+          "The missing lake transfer and selected tributary connection prevent a completed representative-system result.",
+          "The final receiving reach is McArthur River; the whole object is not stopped at the Chakachatna confluence.",
+          "Null tributary naming means no name was established here, not proof that no local name exists."
+        ]
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [
+      "hydro-system:70478139",
+      "hydro-system:80028550",
+      "hydro-system:61436404",
+      "hydro-system:80231563"
+    ],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 0,
+    "supported_representative_system_identities": 0,
+    "scope_holds": 0,
+    "access_pending": 0,
+    "material_pending": 4
+  },
+  "totals_after": {
+    "recorded_targets": 691,
+    "non_pending_records": 508,
+    "source_access_pending": 3,
+    "source_material_pending": 180,
+    "source_any_pending": 183,
+    "scope_holds": 158,
+    "river_groups": 593,
+    "lakes": 98,
+    "unrecorded": 3374,
+    "unrecorded_river_groups": 2862,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573",
+    "hydro-system:80032711",
+    "hydro-system:60007816",
+    "hydro-system:80013873",
+    "hydro-system:61501314",
+    "hydro-system:60761631",
+    "hydro-system:70895720",
+    "hydro-system:61398344",
+    "hydro-system:61355098",
+    "hydro-system:70933800",
+    "hydro-system:60026849",
+    "hydro-system:70574060",
+    "hydro-system:70890643",
+    "hydro-system:80064967",
+    "hydro-system:70856797",
+    "hydro-system:60174418",
+    "hydro-system:61547907",
+    "hydro-system:70463083",
+    "hydro-system:61520061",
+    "hydro-system:70895492",
+    "hydro-system:70898394",
+    "hydro-system:70865140",
+    "hydro-system:80072439",
+    "hydro-system:70549678",
+    "hydro-system:70566840",
+    "hydro-system:80048422",
+    "hydro-system:60557376",
+    "hydro-system:61514286",
+    "hydro-system:61509423",
+    "hydro-system:80068731",
+    "hydro-system:80015064",
+    "hydro-system:61520170",
+    "hydro-system:70156165",
+    "hydro-system:70784507",
+    "hydro-system:80067417",
+    "hydro-system:80019756",
+    "hydro-system:70244256",
+    "hydro-system:80060230",
+    "hydro-system:61543259",
+    "hydro-system:60007312",
+    "hydro-system:60022881",
+    "hydro-system:61456098",
+    "hydro-system:70290797",
+    "hydro-system:60441146",
+    "hydro-system:61554706",
+    "hydro-system:70110341",
+    "hydro-system:80067260",
+    "hydro-system:70214162",
+    "hydro-system:80034507",
+    "hydro-system:61536265",
+    "hydro-system:61561008",
+    "hydro-system:80066184",
+    "hydro-system:70202296",
+    "hydro-system:61545841",
+    "hydro-system:61350841",
+    "hydro-system:80064018",
+    "hydro-system:70957614",
+    "hydro-system:70851521",
+    "hydro-system:70049998",
+    "hydro-system:61298121",
+    "hydro-system:80033385",
+    "hydro-system:61205785",
+    "hydro-system:80035867",
+    "hydro-system:70009700",
+    "hydro-system:60440371",
+    "hydro-system:80049373",
+    "hydro-system:70749063",
+    "hydro-system:70844211",
+    "hydro-system:60001814",
+    "hydro-system:61507976",
+    "hydro-system:70834534",
+    "hydro-system:80070226",
+    "hydro-system:61357020",
+    "hydro-system:70846952",
+    "hydro-system:70004800",
+    "hydro-system:80043969",
+    "hydro-system:80165177",
+    "hydro-system:70043276",
+    "hydro-system:60490135",
+    "hydro-system:60237339",
+    "hydro-system:70023641",
+    "hydro-system:70281204",
+    "hydro-system:61570080",
+    "hydro-system:70789628",
+    "hydro-system:80234498",
+    "hydro-system:60016868",
+    "hydro-system:70276504",
+    "hydro-system:70901807",
+    "hydro-system:80086174",
+    "hydro-system:60809372",
+    "hydro-system:60100857",
+    "hydro-system:70026619",
+    "hydro-system:70500400",
+    "hydro-system:60010615",
+    "hydro-system:70608588",
+    "hydro-system:70832638",
+    "hydro-system:61383955",
+    "hydro-system:61555573",
+    "hydro-system:80068976",
+    "hydro-system:80048308",
+    "hydro-system:80001778",
+    "hydro-system:70324446",
+    "hydro-system:80051383",
+    "hydro-system:60804761",
+    "hydro-system:70817056",
+    "hydro-system:80032843",
+    "hydro-system:70045452",
+    "hydro-system:70877500",
+    "hydro-system:80042519",
+    "hydro-system:70084321",
+    "hydro-system:61519454",
+    "hydro-system:61546367",
+    "hydro-system:60627295",
+    "hydro-system:61038090",
+    "hydro-system:60407824",
+    "hydro-system:80047056",
+    "hydro-system:70888155",
+    "hydro-system:61189702",
+    "hydro-system:70084119",
+    "hydro-system:70025722",
+    "hydro-system:70001071",
+    "hydro-system:70360842",
+    "hydro-system:70007286",
+    "hydro-system:60001879",
+    "hydro-system:70776067",
+    "hydro-system:61266023",
+    "hydro-system:70806740",
+    "hydro-system:60516711",
+    "hydro-system:80020100",
+    "hydro-system:70835654",
+    "hydro-system:80029665",
+    "hydro-system:61609128",
+    "hydro-system:70853324",
+    "hydro-system:70775288",
+    "hydro-system:70008834",
+    "hydro-system:61422869",
+    "hydro-system:80214289",
+    "hydro-system:70210252",
+    "hydro-system:70091013",
+    "hydro-system:60774621",
+    "hydro-system:61390812",
+    "hydro-system:60613563",
+    "hydro-system:61564085",
+    "hydro-system:70048797",
+    "hydro-system:61533139",
+    "hydro-system:60000681",
+    "hydro-system:70728795",
+    "hydro-system:80148544",
+    "hydro-system:70478140",
+    "hydro-system:70243977",
+    "hydro-system:70170668",
+    "hydro-system:80290543",
+    "hydro-system:61524461",
+    "hydro-system:70246501",
+    "hydro-system:70253588",
+    "hydro-system:70735407",
+    "hydro-system:60339076",
+    "hydro-system:70870606",
+    "hydro-system:61551054",
+    "hydro-system:61508438",
+    "hydro-system:60412032",
+    "hydro-system:70209891",
+    "hydro-system:70221206",
+    "hydro-system:70752436",
+    "hydro-system:70840433",
+    "hydro-system:60000722",
+    "hydro-system:80039501",
+    "hydro-system:80043520",
+    "hydro-system:80125244",
+    "hydro-system:70478139",
+    "hydro-system:80028550",
+    "hydro-system:61436404",
+    "hydro-system:80231563"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r187-usgstopo-oregon-upper",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r187-usgstopo-oregon-middle",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r187-usgstopo-oregon-lower",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r187-usgstopo-oregon-lakes",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r187-tremblay2021-jungersen-field-study",
+      "official_url": "https://www.gov.nu.ca/sites/default/files/documents/2025-01/CNGO-SofA2020__Complete_Volume_.pdf"
+    },
+    {
+      "source_key": "r187-ibge-anitapolis2010",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/sc/anitapolis_v2.pdf"
+    },
+    {
+      "source_key": "r187-ibge-sc2015",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_estaduais_e_distrito_federal/politico/2015/sc_politico550k_2015.pdf"
+    },
+    {
+      "source_key": "r187-ibge-laguna2022",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2022/SC/laguna/A0_4209409_MM.pdf"
+    },
+    {
+      "source_key": "r187-sc-tubarao-plan-vol1-ch2",
+      "official_url": "https://www.aguas.sc.gov.br/jsmallfib_top/DHRI/Planos%20de%20Bacias/Plano%20da%20Bacia%20Hidrografica%20do%20Rio%20Tubarao%20e%20Complexo%20Lagunar/Volume%20I/2.pdf"
+    },
+    {
+      "source_key": "r187-usgs-topo-neacola-chakachatna",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r187-dnr-kenai-area-plan-region11",
+      "official_url": "https://dnr.alaska.gov/mlw/planning/areaplans/kenai/pdf/region-11.pdf"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "906df7727c74cac2804fce558a659730e8ce10f4",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      553,
+      554,
+      555,
+      556
+    ],
+    "next_unrecorded_id": "hydro-system:61286514",
+    "progress_rule": "Follow the actual continental order: Americas, Asia, Africa, Europe, then other, with all rivers before lakes. Preserve original queue IDs and ranks for continuity; apply documented geographic deferrals without counting them as name research, and place deferred objects into their corrected later phase by length-descending, stable-ID order. Prior candidate and scope-held assessments remain unresolved where stated.",
+    "geographic_deferrals": [
+      {
+        "aw_id": "hydro-system:80061063",
+        "original_queue_rank": 186,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 66.56–68.17°N and 179.97–177.11°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory bounding box and selected-route geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80065687",
+        "original_queue_rank": 349,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at66.725–67.849775°N and178.2–175.960242°W place this object on Chukotka west of Alaska, adjoining the previously corrected Chukotka selection. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory bounding box and selected-route geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80100188",
+        "original_queue_rank": 387,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 64.939583–66.26978°N and 174.05625–173.320833°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory/order bounding box and geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80119243",
+        "original_queue_rank": 391,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 65.451531–66.491667°N and 176.777083–175.672917°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory/order bounding box and geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80083978",
+        "original_queue_rank": 470,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained original inventory/order bounds at66.522917–67.00625°N and177.333333–174.842957°W place this current object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Existing fixed-queue bounding box and geographic placement only; no naming source or selected geometry acquired for this correction."
+      },
+      {
+        "aw_id": "hydro-system:80099814",
+        "original_queue_rank": 511,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained original inventory/order bounds at65.952083–66.502083°N and172.004167–170.400621°W place this current object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Existing fixed-queue bounding box and geographic placement only; no naming source or selected geometry acquired for this correction."
+      }
+    ]
+  }
+}

@@ -1,27 +1,25 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createBuiltinSession } from '../../assets/js/modules/app-builtin-session.js';
-import { smallHistoricalWorld } from '../helpers/historical-world.mjs';
 
-test('baseline preparation reports loader failure instead of waiting on an unresolved geometry promise', {timeout:3000}, async t => {
-  const previous=globalThis.window;
-  const target=new globalThis.EventTarget();
-  target.PANDOLAB_CANONICAL_GEOMETRY_PROMISE=new Promise(()=>{});
-  globalThis.window=target; t.after(()=>{globalThis.window=previous;});
-  target.addEventListener('pandolab:canonical-geometry-required',()=>target.dispatchEvent(new globalThis.CustomEvent('pandolab:geometry-error',{detail:'baseline unavailable'})),{once:true});
-  const owner=createBuiltinSession(); owner.connect({platformConfigurationA:{BASE_DATASET:'fixture'}});
-  await assert.rejects(owner.prepareProjectBaseline(),{code:'PL-SCHEMA-BASE',message:'baseline unavailable'});
-  await assert.rejects(Promise.race([owner.prepareProjectBaseline(),new Promise(resolve=>setTimeout(()=>resolve('pending'),30))]),
-    {code:'PL-SCHEMA-BASE',message:'baseline unavailable'});
-  assert.equal(owner.projectBaseline,null);
+test('historical source preparation is independent from an unresolved render geometry promise and preserves source errors',async t=>{
+ const previous=globalThis.window;globalThis.window={PANDOLAB_CANONICAL_GEOMETRY_PROMISE:new Promise(()=>{})};t.after(()=>{globalThis.window=previous;});
+ const error=Object.assign(new Error('source unavailable'),{code:'SOURCE_FETCH'});
+ const owner=createBuiltinSession({historicalWorldLoader:{loadSource:async()=>{throw error;}}});
+ owner.connect({platformConfigurationA:{BASE_DATASET:'fixture'},domains:{projectDomain:{getGeneration:()=>0}}});
+ await assert.rejects(owner.prepareProjectBaseline(),value=>value===error);assert.equal(owner.projectBaseline,null);
 });
-test('baseline carries full identities and stored-byte fingerprint', async t => {
-  const previous = globalThis.window, project = smallHistoricalWorld();
-  globalThis.window = { PANDOLAB_BUILD_META: { historicalWorld: { url: 'manifest', sha256: 'f'.repeat(64), compressedBytes: 1, decodedBytes: 1, encoding: 'identity' } } };
-  t.after(() => { globalThis.window = previous; });
-  const owner = createBuiltinSession({ historicalWorldLoader: { loadProject: async () => ({ project, manifest: { project: { sha256: 'a'.repeat(64) }, sourceMonth: '2026-10' } }) } });
-  owner.connect({ platformConfigurationA: { BASE_DATASET: 'fixture' } });
-  const baseline = await owner.prepareProjectBaseline();
-  assert.deepEqual(baseline.project, project);
-  assert.equal(baseline.baseEntities.length, 2); assert.equal(baseline.baseDatasetFingerprint, 'a'.repeat(64));
+
+test('baseline caches verified source facts and the admitted Core handle without a second parsed project',async t=>{
+ const previous=globalThis.window;globalThis.window={};t.after(()=>{globalThis.window=previous;});
+ const sourceBytes=new Uint8Array([31,139,8]),calls=[];
+ const manifest={project:{sha256:'a'.repeat(64),encoding:'gzip',compressedBytes:3,decodedBytes:19},sourceMonth:'2026-10'};
+ const owner=createBuiltinSession({historicalWorldLoader:{loadSource:async validate=>{const admission=await validate({sourceBytes,manifest});return {sourceBytes,manifest,admission};}}});
+ owner.connect({platformConfigurationA:{BASE_DATASET:'fixture'},domains:{projectDomain:{getGeneration:()=>4,admitStorageBaseline:async(facts,options)=>{calls.push({facts,options});return {storageBaselineId:7};}}}});
+ const baseline=await owner.prepareProjectBaseline();assert.equal(await owner.prepareProjectBaseline(),baseline);assert.equal(calls.length,1);
+ const renderStore={materializeCollectionSync(){},materializeFeature(){},geometryEquals(){},ids:()=>[]};owner.installCanonicalCountryStore(renderStore);
+ assert.equal(await owner.prepareProjectBaseline(),baseline);assert.equal(calls.length,1);
+ assert.equal(baseline.sourceBytes,sourceBytes);assert.equal(baseline.baselineId,7);assert.equal(baseline.kind,'stored-asset');assert.equal(baseline.fingerprint,'a'.repeat(64));
+ assert.deepEqual(calls[0].options,{expectedGeneration:4});assert.equal(calls[0].facts.fingerprint,baseline.fingerprint);
+ for(const field of ['project','projectJson','baseEntities'])assert.equal(Object.hasOwn(baseline,field),false);
 });

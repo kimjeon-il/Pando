@@ -161,8 +161,8 @@ void configureView(EditorController& controller,const QJsonObject& view) {
     for(auto it=values.begin();it!=values.end();++it)require(observed.value(it.key()).toDouble()==it.value().toDouble(),"Supplied numeric view differs from public view");
 }
 QJsonObject codecSave(const QByteArray& bytes,const QString& path) {
-    writeFile(path,bytes);const auto saved=readFile(path);Project reopened;reopened.replace(projectcodec::decode(saved));
-    require(saved==bytes&&projectcodec::encode(reopened)==bytes,"Native QFile codec roundtrip changed bytes");
+    writeFile(path,bytes);const auto saved=readFile(path);Project reopened;reopened.replace(::projectcodec::decode(saved));
+    require(saved==bytes&&::projectcodec::encode(reopened)==bytes,"Native QFile codec roundtrip changed bytes");
     auto result=blob(saved);result["saveMethod"]="QFile-production-codec";result["codecFileRoundtrip"]=true;result["reopenEqual"]=true;return result;
 }
 QJsonObject appSave(EditorController& controller,const QString& path,const QString& directory) {
@@ -183,15 +183,15 @@ QJsonObject appSave(EditorController& controller,const QString& path,const QStri
     result["saveAccepted"]=saved;result["canonicalUnchanged"]=true;result["historyUnchanged"]=true;return result;
 }
 QJsonObject webOutput(const QByteArray& bytes,const QString& path,bool expected,const QString& expectedError={}) {
-    Project project;project.replace(projectcodec::decode(bytes));
-    if(expected) {const auto output=projectcodec::encodeWeb(project.snapshot());writeFile(path,output);require(readFile(path)==output,"Web QFile write changed bytes");return blob(output,true);}
+    Project project;project.replace(::projectcodec::decode(bytes));
+    if(expected) {const auto output=::projectcodec::encodeWeb(project.snapshot());writeFile(path,output);require(readFile(path)==output,"Web QFile write changed bytes");return blob(output,true);}
     const QByteArray sentinel("m975-existing-web-destination\n");const auto fresh=path+".new";require(!QFileInfo::exists(fresh),"Fresh rejection destination already exists");writeFile(path,sentinel);QString error;
     for(const auto& destination:{path,fresh}) {
-        bool refused=false;try{const auto output=projectcodec::encodeWeb(project.snapshot());writeFile(destination,output);}catch(const std::exception& failure){refused=true;error=QString::fromUtf8(failure.what());}
+        bool refused=false;try{const auto output=::projectcodec::encodeWeb(project.snapshot());writeFile(destination,output);}catch(const std::exception& failure){refused=true;error=QString::fromUtf8(failure.what());}
         require(refused,"Unsupported web export was accepted");
     }
     require(readFile(path)==sentinel&&!QFileInfo::exists(fresh),"Rejected export published or overwrote a destination");
-    require(projectcodec::encode(project)==bytes,"Rejected export changed native canonical bytes");
+    require(::projectcodec::encode(project)==bytes,"Rejected export changed native canonical bytes");
     if(!expectedError.isEmpty())require(error.contains(expectedError),"Unexpected export rejection error");
     return {{"exportRejected",true},{"accepted",false},{"refusalPhase","export"},{"error",error},{"destinationUnchanged",true},{"sentinelUnchanged",true},{"newDestinationAbsent",true}};
 }
@@ -220,7 +220,7 @@ QJsonObject run(const QByteArray& input,const QJsonObject& request,const QString
         require(controller.documentBytes()==before&&history(controller)==historyBefore,"Rejected import changed canonical/history state");
         record("rejected",{{"observed",true},{"accepted",false},{"refusalPhase","import"},{"error",error},{"importOnly",true},{"publicationAttempted",false},{"projectOutputPublished",false},{"canonicalUnchanged",true},{"historyUnchanged",true}});
     } else if(mode=="codec"||mode=="timeline") {
-        Project project;project.replace(web?webimport::prepare(readFile(inputPath)).document:projectcodec::decode(readFile(inputPath)));const auto bytes=projectcodec::encode(project);
+        Project project;project.replace(web?webimport::prepare(readFile(inputPath)).document:projectcodec::decode(readFile(inputPath)));const auto bytes=::projectcodec::encode(project);
         QJsonObject storage{{"observed",true},{"document",blob(bytes)},{"nativeFile",codecSave(bytes,out.filePath("storage.native.json"))},{"webFile",webOutput(bytes,out.filePath("storage.web.json"),true)}};record("storage",storage);
         if(mode=="timeline") {
             require(!isStaticTimeline(project.document()),"Timeline rejection case is actually static");EditorController controller({false,out.filePath("private.json")});const auto before=controller.documentBytes();const auto historyBefore=history(controller);QString error;
@@ -250,7 +250,7 @@ QJsonObject run(const QByteArray& input,const QJsonObject& request,const QString
                 else if(op=="advance")dispatch=controller.geometryAdvanceStage();
                 else if(op=="method")dispatch=controller.geometrySelectTerritoryMethod(action["method"].toString());
                 else if(op=="draft"||op=="move-node") {
-                    MapProjection projection;projection.rebuild(projectcodec::decode(controller.documentBytes()));
+                    MapProjection projection;projection.rebuild(::projectcodec::decode(controller.documentBytes()));
                     require(projection.hydroParameters()==controller.hydroProjection(),"Exact-input projection differs from actual public controller projection");
                     if(op=="move-node") {
                         QVariantMap handle;for(const auto& path:controller.geometryDraftPaths())for(const auto& node:path.toMap().value("vertices").toList())if(node.toMap().value("nodeKey").toString()==action["nodeKey"].toString())handle=node.toMap();
@@ -395,7 +395,7 @@ void verifyResult(const QJsonObject& result, const QJsonObject& expected, const 
             require(!exported.isEmpty(), "Web export is empty");
             Project reopened;
             reopened.replace(webimport::prepare(exported).document);
-            require(!projectcodec::encode(reopened).isEmpty(), "Web output cannot reimport");
+            require(!::projectcodec::encode(reopened).isEmpty(), "Web output cannot reimport");
         }
     }
 }
@@ -405,7 +405,7 @@ int selfTest() {
     const auto complex = readFile(QStringLiteral(M975_EXCHANGE_FIXTURES "/complex.json"));
     Project source;
     source.replace(webimport::prepare(content).document);
-    const auto native = projectcodec::encode(source);
+    const auto native = ::projectcodec::encode(source);
     QJsonArray passed, failed;
     const auto test = [&](const QString& name, const std::function<void()>& body) {
         try { body(); passed.append(name); }
@@ -478,7 +478,7 @@ int selfTest() {
         require(bytes("before")==bytes("undo"),"Undo did not restore complete native bytes");
         require(bytes("confirm")==bytes("redo"),"Redo did not restore complete native bytes");
         require(bytes("before")!=bytes("confirm"),"Delete did not edit native bytes");
-        require(projectcodec::decode(bytes("confirm")).genericFeatures.empty(),"Generic delete did not remove object");
+        require(::projectcodec::decode(bytes("confirm")).genericFeatures.empty(),"Generic delete did not remove object");
         require(stages["undo"].toObject()["history"].toObject()["canRedo"].toBool(),"Snapshot save erased redo history");
     });
     test("rich-timeline-storage-only", [&] {
@@ -528,7 +528,7 @@ int selfTest() {
     });
     test("lossless-metadata-edit-save-history", [&] {
         auto document=source.document();document.units.front().metadata="{\"integer\":9007199254740993,\"decimal\":0.123456789012345678901}";
-        Project lossless;lossless.replace(document);const auto input=projectcodec::encode(lossless);
+        Project lossless;lossless.replace(document);const auto input=::projectcodec::encode(lossless);
         QTemporaryDir directory;auto expected=editRequest(input);expected["expectWebExport"]=false;
         const auto result=run(input,expected,directory.path());verifyResult(result,expected,input);
         const auto stages=result["stages"].toObject();
@@ -542,7 +542,7 @@ int selfTest() {
     });
     for(const auto token : {"9007199254740993","1e400","0.123456789012345678901"}) test(QString("lossless-refusal-")+token,[&] {
         auto document=source.document();document.units.front().metadata=std::string("{\"number\":")+token+"}";
-        Project lossless;lossless.replace(document);const auto input=projectcodec::encode(lossless);
+        Project lossless;lossless.replace(document);const auto input=::projectcodec::encode(lossless);
         QTemporaryDir directory;const auto expected=request(input,"reject","native");const auto result=run(input,expected,directory.path());
         verifyResult(result,expected,input);
         const auto rejected=result["stages"].toObject()["rejected"].toObject();

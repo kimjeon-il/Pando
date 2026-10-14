@@ -1,4 +1,3 @@
-import { createDocumentMutationRunner } from './document-mutation-runner.js';
 import {
   SOURCE_KINDS,
   normalizeSourceProvenance,
@@ -6,25 +5,12 @@ import {
 import { GENERIC_FEATURE_SCHEMA_VERSION } from './version-contract.js';
 
 export { GENERIC_FEATURE_SCHEMA_VERSION };
-const LEGACY_GENERIC_FEATURE_SCHEMA_VERSION = 1;
-
-// Deprecated compatibility metadata. Generic Feature v2 has no territorial role semantics;
-// these values only expose preserved v1 data to legacy callers until their UI paths are removed.
-export const GENERIC_FEATURE_ROLE_RULES = Object.freeze({
-  generic: Object.freeze({ role: 'generic', geometry: 'any', binding: 'none', label: '기타 객체' }),
-  territory: Object.freeze({ role: 'territory', geometry: 'polygon', binding: 'none', label: '권역 객체' }),
-  administrative: Object.freeze({ role: 'administrative', geometry: 'polygon', binding: 'none', label: '행정구역 객체' }),
-});
-export const GENERIC_FEATURE_ROLE_LABELS = Object.freeze({ generic: '기타 객체', territory: '권역 객체', administrative: '행정구역 객체' });
 export const GENERIC_FEATURE_CANONICAL_PROPERTY_KEYS = Object.freeze([
   'schemaVersion', 'name', 'notes', 'color', 'locked', 'source',
 ]);
 
 const CANONICAL_PROPERTY_KEYS = new Set(GENERIC_FEATURE_CANONICAL_PROPERTY_KEYS);
-const LEGACY_SEMANTIC_KEYS = Object.freeze(['role', 'ownerId', 'parentId', 'landBinding', 'topologyGroup']);
-const LEGACY_SEMANTIC_KEY_SET = new Set(LEGACY_SEMANTIC_KEYS);
 const text = value => String(value ?? '').trim();
-const plainObject = value => !!value && typeof value === 'object' && !Array.isArray(value);
 const clone = value => value == null ? value : structuredClone(value);
 
 export function genericFeatureGeometryKind(feature) {
@@ -35,71 +21,18 @@ export function genericFeatureGeometryKind(feature) {
   return 'unknown';
 }
 
-function legacyDetails(feature) {
-  const details = feature?.properties?.source?.details;
-  return plainObject(details?.legacyGenericSemantics) ? details.legacyGenericSemantics : {};
-}
-
-export function genericFeatureRole(feature) {
-  const role = text(legacyDetails(feature).role);
-  return GENERIC_FEATURE_ROLE_RULES[role] ? role : 'generic';
-}
-
-function legacySemanticsFrom(properties = {}) {
-  const output = {};
-  for (const key of LEGACY_SEMANTIC_KEYS) {
-    if (properties[key] == null || properties[key] === '') continue;
-    output[key] = clone(properties[key]);
-  }
-  return output;
-}
-
-function unmappedLegacyProperties(properties = {}) {
-  const output = {};
-  for (const [key, value] of Object.entries(properties || {})) {
-    if (CANONICAL_PROPERTY_KEYS.has(key) || LEGACY_SEMANTIC_KEY_SET.has(key) || value === undefined) continue;
-    output[key] = clone(value);
-  }
-  return output;
-}
-
-function normalizeGenericSource(properties = {}) {
-  const inputVersion = Number(properties.schemaVersion || LEGACY_GENERIC_FEATURE_SCHEMA_VERSION);
-  const legacySemantics = legacySemanticsFrom(properties);
-  const legacyProperties = unmappedLegacyProperties(properties);
-  const hasLegacyPayload = Object.keys(legacySemantics).length > 0 || Object.keys(legacyProperties).length > 0;
-  const legacyInput = inputVersion <= LEGACY_GENERIC_FEATURE_SCHEMA_VERSION || hasLegacyPayload;
-  const defaultKind = legacyInput ? SOURCE_KINDS.LEGACY : SOURCE_KINDS.UNSUPPORTED;
-  const normalized = normalizeSourceProvenance(properties.source, {
-    kind: defaultKind,
-    sourceFormat: inputVersion <= LEGACY_GENERIC_FEATURE_SCHEMA_VERSION
-      ? 'pandolab-generic-v1'
-      : hasLegacyPayload ? 'pandolab-generic-compat' : '',
-  });
-  const details = { ...(normalized.details || {}) };
-  if (Object.keys(legacySemantics).length) {
-    details.legacyGenericSemantics = {
-      ...(plainObject(details.legacyGenericSemantics) ? details.legacyGenericSemantics : {}),
-      ...legacySemantics,
-    };
-  }
-  if (Object.keys(legacyProperties).length) {
-    details.legacyProperties = {
-      ...(plainObject(details.legacyProperties) ? details.legacyProperties : {}),
-      ...legacyProperties,
-    };
-  }
-  return normalizeSourceProvenance({ ...normalized, details });
-}
-
 function canonicalProperties(properties = {}) {
+  if (properties.schemaVersion !== GENERIC_FEATURE_SCHEMA_VERSION
+    || Object.keys(properties).some(key => !CANONICAL_PROPERTY_KEYS.has(key))) {
+    throw Object.assign(new Error('기타 객체는 현재 v2 필드만 지원합니다.'), { code: 'PL-GENERIC-SCHEMA' });
+  }
   return {
     schemaVersion: GENERIC_FEATURE_SCHEMA_VERSION,
     name: text(properties.name),
     notes: text(properties.notes),
     color: text(properties.color) || '#8c68d8',
     locked: properties.locked === true,
-    source: normalizeGenericSource(properties),
+    source: normalizeSourceProvenance(properties.source, { kind: SOURCE_KINDS.UNSUPPORTED }),
   };
 }
 
@@ -127,57 +60,60 @@ export function normalizeGenericFeatureCollection(genericFeatures, { cloneFeatur
   return output;
 }
 
-function applyGenericMetadata(feature, field, value, writeColor) {
-  if (field === 'color') writeColor(feature, value);
-  else if (field === 'source') feature.properties.source = normalizeSourceProvenance(value, { kind: SOURCE_KINDS.UNSUPPORTED });
-  else if (['name', 'notes', 'locked'].includes(field)) feature.properties[field] = field === 'locked' ? value === true : text(value);
-  else throw new Error(`기타 객체에 지원하지 않는 필드 ${field}가 있습니다.`);
-}
-
-export function createGenericFeatureService({ documentStore, commandPipeline, writeColor }) {
-  const mutateDocument = createDocumentMutationRunner({ commandPipeline });
-  const genericFeatures = () => documentStore.readFeatures();
+export function createGenericFeatureService({ documentModel, commandOwner } = {}) {
+  if (typeof documentModel?.list !== 'function') throw new TypeError('The accepted Core document read model is required.');
+  if (typeof commandOwner?.executeCommand !== 'function') throw new TypeError('The Core document command owner is required.');
+  const genericFeatures = () => documentModel.list('generic');
   const get = id => genericFeatures().find(feature => text(feature.id) === text(id)) || null;
-
-  function add(feature) {
-    const normalized = normalizeGenericFeatureSemantics(clone(feature));
-    if (get(normalized.id)) throw new Error(`기타 객체 ID가 중복되었습니다: ${normalized.id}`);
-    mutateDocument({ type: 'generic-feature-create', affectedIds: [text(normalized.id)] }, () => {
-      documentStore.replaceFeatures(normalizeGenericFeatureCollection([...genericFeatures(), normalized]));
-    }, { renderDirty: { domain: 'generic', change: 'geometry' } });
-    return get(normalized.id);
-  }
-
-  function addMany(features) {
-    const normalized = normalizeGenericFeatureCollection(features);
-    mutateDocument({ type: 'generic-feature-import', affectedIds: normalized.map(feature => text(feature.id)) }, () => {
-      documentStore.replaceFeatures(normalizeGenericFeatureCollection([...genericFeatures(), ...normalized]));
-    }, { renderDirty: { domain: 'generic', change: 'structure' } });
-    return normalized.map(feature => get(feature.id));
-  }
-
-  function updateMetadata(id, field, value) {
-    const current = get(id);
-    if (!current) return { ok: false, code: 'not-found' };
-    const candidate = clone(current);
-    applyGenericMetadata(candidate, field, value, writeColor);
-    if (JSON.stringify(candidate.properties) === JSON.stringify(current.properties)) {
-      return { ok: true, changed: false, feature: current };
+  const ref = id => ({ domain: 'generic', id: String(id ?? '') });
+  const failure = result => Object.assign(new Error(result.error.message), result.error);
+  async function execute(commandId, targets, payload) {
+    const result = await commandOwner.executeCommand({ commandId, targets, payload: structuredClone(payload) });
+    if (typeof result?.ok !== 'boolean' || typeof result.changed !== 'boolean'
+      || (!result.ok && (typeof result.error?.code !== 'string' || typeof result.error?.message !== 'string'))) {
+      throw Object.assign(new Error('A complete Core command acknowledgement is required.'), { code: 'PL-CORE-RESPONSE' });
     }
-    mutateDocument({ type: 'generic-feature-metadata', affectedIds: [text(current.id)] }, () => {
-      applyGenericMetadata(current, field, value, writeColor);
-    }, { renderDirty: { domain: 'generic', change: 'metadata' } });
-    return { ok: true, changed: true, feature: current };
+    return result;
   }
-
-  function remove(id, { beforeRemove = () => {} } = {}) {
+  function accepted(result, side, id) {
+    const rows = result[side]?.genericFeatures;
+    if (!Array.isArray(rows)) throw Object.assign(new Error('The accepted Core operation projection is required.'), { code: 'PL-CORE-RESPONSE' });
+    const feature = rows.find(feature => text(feature.id) === text(id));
+    if (!feature) throw Object.assign(new Error(`The accepted generic feature is missing from the read model: ${id}`), { code: 'PL-CORE-RESPONSE' });
+    return feature;
+  }
+  async function add(feature) {
+    const target = ref(feature?.id);
+    const result = await execute('generic.create', [target], { feature });
+    if (!result.ok) throw failure(result);
+    return accepted(result, 'after', target.id);
+  }
+  async function addMany(features) {
+    const ids = Array.isArray(features) ? features.map(feature => feature?.id) : [];
+    const result = await execute('generic.import', ids.map(ref), { features });
+    if (!result.ok) throw failure(result);
+    return ids.map(id => accepted(result, 'after', id));
+  }
+  async function updateMetadata(id, field, value) {
+    const current = get(id);
+    const target = current?.id ?? text(id);
+    const result = await execute('generic.metadata', [ref(target)], { id: target, field, value });
+    if (!result.ok) {
+      if (result.error.code === 'not-found') return { ok: false, code: 'not-found' };
+      if (result.error.code === 'unsupported-field') throw new Error(result.error.message, { cause: failure(result) });
+      throw failure(result);
+    }
+    return { ok: true, changed: result.changed, feature: accepted(result, 'after', target) };
+  }
+  async function remove(id) {
     const feature = get(id);
-    if (!feature) return { ok: false, code: 'not-found' };
-    mutateDocument({ type: 'generic-feature-delete', affectedIds: [text(feature.id)] }, () => {
-      beforeRemove(feature);
-      documentStore.replaceFeatures(genericFeatures().filter(candidate => text(candidate.id) !== text(feature.id)));
-    }, { renderDirty: { domain: 'generic', change: 'structure' } });
-    return { ok: true, feature };
+    const target = feature?.id ?? text(id);
+    const result = await execute('generic.remove', [ref(target)], { id: target });
+    if (!result.ok) {
+      if (result.error.code === 'not-found') return { ok: false, code: 'not-found' };
+      throw failure(result);
+    }
+    return { ok: true, feature: accepted(result, 'before', target) };
   }
 
   return Object.freeze({ get, list: () => genericFeatures(), add, addMany, updateMetadata, remove });

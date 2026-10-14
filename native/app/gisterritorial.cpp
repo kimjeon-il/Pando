@@ -48,8 +48,7 @@ Geometry calculate(const GeometryCalculator& calculator,GeometryOperation operat
 }
 bool populated(const Geometry& geometry) {return !geometry.polygons.empty();}
 void checkLayerTarget(const std::string& source,const GisTerritorialMapping& mapping) {
-    const auto selected=mapping.target==GisExchangeTarget::Country?"country":
-        mapping.target==GisExchangeTarget::Subunit?"subunit":"region";
+    const auto selected=mapping.target==GisExchangeTarget::General?"general":"regional";
     require(source==selected,"GIS_LAYER_TARGET_MISMATCH");
 }
 }
@@ -57,14 +56,13 @@ GisTerritorialImportPlan prepareGisTerritorialImport(const ProjectSnapshot& snap
     const GisGeoJsonCollection& collection,std::string planId,GisSource source,
     const GisTerritorialMapping& mapping,const GeometryCalculator& calculator,
     const GeometryCancellation& cancelled) {
-    require(mapping.target==GisExchangeTarget::Country||mapping.target==GisExchangeTarget::Subunit||
-            mapping.target==GisExchangeTarget::Region,"INVALID_GIS_TARGET");
+    require(mapping.target==GisExchangeTarget::General||
+            mapping.target==GisExchangeTarget::Regional,"INVALID_GIS_TARGET");
     require(bool(calculator),"GIS_M4_CALCULATOR_REQUIRED");
     require(mapping.coast!=GisTerritorialMapping::CoastDecision::Cancel,"CANCELLED_GIS_IMPORT");
     std::vector<GisTerritorialInput> units;
     std::set<std::string> ids;
-    const auto kind=mapping.target==GisExchangeTarget::Country?UnitKind::General:
-        mapping.target==GisExchangeTarget::Subunit?UnitKind::General:UnitKind::Regional;
+    const auto kind=mapping.target==GisExchangeTarget::General?UnitKind::General:UnitKind::Regional;
     for(const auto& feature:collection.features) {
         require(!cancelled||!cancelled(),"CANCELLED_GIS_IMPORT");
         require(feature.geometry.type=="Polygon"||feature.geometry.type=="MultiPolygon",

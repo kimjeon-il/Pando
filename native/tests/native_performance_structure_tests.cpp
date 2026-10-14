@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "editorcontroller.h"
 #include "commandjobrunner.h"
 #include "mapscenebridge.h"
@@ -17,10 +18,8 @@ using namespace pandoeditor;
 namespace {
 Project sample() {
     Project p;
-    ProjectDocument document({
-        {"A","Alpha",{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}},0x123456},
-        {"B","Beta",{{{{20,0},{30,0},{30,10},{20,10},{20,0}}}},0x654321}},
-        {{"countries","Countries"}});
+    pandoeditor::ProjectDocument document = makeTerritorialDocument({{{"A","Alpha","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}}},{0x123456,1},"countries"},
+        {{"B","Beta","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{20,0},{30,0},{30,10},{20,10},{20,0}}}}},{0x654321,1},"countries"}},{{"countries","Countries"}});
     for(int i=0;i<2;++i) {
         GeometryRef geometry{"point-"+std::to_string(i),1};
         document.geometries.insert(geometry,Geometry{"Point",{{2.+20*i,2}},{},{}});
@@ -39,7 +38,7 @@ struct EditorFixture {
     QString path() const {return directory.filePath("project.pando.json");}
     bool open() {
         QFile file(path());if(!file.open(QIODevice::WriteOnly))return false;
-        const auto bytes=projectcodec::encode(sample());
+        const auto bytes=::projectcodec::encode(sample());
         if(file.write(bytes)!=bytes.size())return false;file.close();
         if(!editor.openFile(QUrl::fromLocalFile(path())))return false;
         editor.resizeMapCamera(800,600,1);
@@ -181,7 +180,7 @@ private slots:
             QVERIFY(point(*after,id)->geometryPacket.positions==point(*before,id)->geometryPacket.positions);
         for(const auto& id:{"A","B"})
             QVERIFY(polygon(*after,id)->geometryPacket.indices==polygon(*before,id)->geometryPacket.indices);
-        const auto document=projectcodec::decode(editor.documentBytes());
+        const auto document=::projectcodec::decode(editor.documentBytes());
         QCOMPARE(document.labels[0].name,std::string("Changed label"));QCOMPARE(document.labels[1].name,std::string("Label 1"));
         QCOMPARE(number(editor.renderQuality(),"packetCacheBuilds"),number(stats,"packetCacheBuilds"));
         QCOMPARE(number(editor.renderQuality(),"scenePreparationCount"),number(stats,"scenePreparationCount"));

@@ -1,3 +1,5 @@
+import { createWorkerRpcClient } from './worker-rpc.js';
+
 /** MapAudit: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -24,55 +26,43 @@ export function createMapAudit() {
   }
 
   function ensureGeometryValidationWorker() {
-    if (geometryValidationWorker) return geometryValidationWorker;
-    geometryValidationWorker = new Worker((0, dependencies.platform.runtimeAssetUrl)('workers/geometry-validation-worker.js'), { name: 'atlaswright-geometry-validation' });
-    geometryValidationWorker.onmessage = event => {
-      const message = event.data || {};
-      if (message.type !== 'result' || Number(message.requestId) !== geometryValidationRequestId) return;
-      if (!message.ok) {
-        dependencies.projectState.state.audit.status = 'error';
-        renderMapAuditPanel();
-        (0, dependencies.feedback.reportOperationError)(new Error(String(message.message || '')), '지도 검사에 실패했습니다. 검사할 레이어를 확인한 뒤 다시 시도하세요.', 'PL-AUDIT-001', 4200);
-        return;
-      }
-      dependencies.projectState.state.audit.status = 'ready';
-      dependencies.projectState.state.audit.report = message.report;
-      dependencies.projectState.state.audit.selectedIssueId = null;
-      renderMapAuditPanel();
-      dependencies.domains.renderingDomain?.invalidateEditingOverlays('audit-visual-frame');
-      (0, dependencies.feedback.setActionStatus)(message.report.issues.length
-        ? `지도 검사에서 ${message.report.issues.length.toLocaleString('ko-KR')}건을 찾았습니다.`
-        : '지도 검사에서 오류를 찾지 못했습니다.', message.report.issues.length ? 'error' : 'success', 3600);
-    };
-    geometryValidationWorker.onerror = () => {
-      dependencies.projectState.state.audit.status = 'error';
-      renderMapAuditPanel();
-    };
-    return geometryValidationWorker;
-  }
-
-  function runFullMapAudit() {
-    geometryValidationRequestId += 1;
-    dependencies.projectState.state.audit = { status: 'running', revision: geometryValidationRequestId, report: null, selectedIssueId: null };
-    renderMapAuditPanel();
-    dependencies.domains.renderingDomain?.invalidateEditingOverlays('audit-visual-frame');
-    const worker = ensureGeometryValidationWorker();
-    worker.postMessage({
-      type: 'audit',
-      requestId: geometryValidationRequestId,
-      revision: dependencies.projectState.state.stateRevision,
-      payload: {
-        countries: dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' }),
-        coarseCountries: dependencies.projectState.state.countryVisualPhase === 'preview' ? dependencies.projectState.state.auditPreviewCountries?.features || [] : [],
-        preciseAffectedIds: [...dependencies.projectState.state.historyDirtyEntityIds],
-        units: dependencies.territorialModel.entityRepository.list({  }).filter(entity => entity.properties.entityKind === 'regional' || !!entity.properties.parentId) || [],
-        distributionEntries: dependencies.projectState.state.distributionEntries || [],
-      },
+    return geometryValidationWorker ||= createWorkerRpcClient({
+      createWorker: () => new Worker(dependencies.platform.runtimeAssetUrl('workers/geometry-validation-worker.js'), { name: 'atlaswright-geometry-validation' }),
+      getProjectRevision: () => dependencies.projectState.state.stateRevision,
     });
   }
 
+  async function runFullMapAudit() {
+    geometryValidationWorker?.cancelAll('superseded');
+    const requestId = ++geometryValidationRequestId;
+    dependencies.projectState.state.audit = { status: 'running', revision: requestId, report: null, selectedIssueId: null };
+    renderMapAuditPanel();
+    dependencies.domains.renderingDomain?.invalidateEditingOverlays('audit-visual-frame');
+    try {
+      const { result: report } = await ensureGeometryValidationWorker().request('geometry.audit', {
+        countries: dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' }),
+        coarseCountries: dependencies.projectState.state.countryVisualPhase === 'preview' ? dependencies.projectState.state.auditPreviewCountries?.features || [] : [],
+        preciseAffectedIds: [...dependencies.projectState.state.historyDirtyEntityIds],
+        units: dependencies.territorialModel.entityRepository.list({}).filter(entity => entity.properties.entityKind === 'regional' || !!entity.properties.parentId),
+        distributionEntries: dependencies.projectState.state.distributionEntries || [],
+      });
+      if (requestId !== geometryValidationRequestId) return;
+      dependencies.projectState.state.audit = { status: 'ready', revision: requestId, report, selectedIssueId: null };
+      renderMapAuditPanel();
+      dependencies.domains.renderingDomain?.invalidateEditingOverlays('audit-visual-frame');
+      dependencies.feedback.setActionStatus(report.issues.length
+        ? `지도 검사에서 ${report.issues.length.toLocaleString('ko-KR')}건을 찾았습니다.`
+        : '지도 검사에서 오류를 찾지 못했습니다.', report.issues.length ? 'error' : 'success', 3600);
+    } catch (error) {
+      if (requestId !== geometryValidationRequestId) return;
+      dependencies.projectState.state.audit.status = error.cancelled ? 'idle' : 'error';
+      renderMapAuditPanel();
+      if (!error.cancelled) dependencies.feedback.reportOperationError(error, '지도 검사에 실패했습니다. 검사할 레이어를 확인한 뒤 다시 시도하세요.', 'PL-AUDIT-001', 4200);
+    }
+  }
+
   function clearMapAudit() {
-    if (dependencies.projectState.state.audit.status === 'running') geometryValidationWorker?.postMessage({ type: 'cancel', requestId: geometryValidationRequestId });
+    geometryValidationWorker?.cancelAll('cleared');
     geometryValidationRequestId += 1;
     dependencies.projectState.state.audit = { status: 'idle', revision: geometryValidationRequestId, report: null, selectedIssueId: null };
     renderMapAuditPanel();

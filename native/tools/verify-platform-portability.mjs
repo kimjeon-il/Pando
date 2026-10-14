@@ -18,7 +18,7 @@ for (const [path, expected] of Object.entries(pin.sha256)) {
   assert.equal(hash(readFileSync(resolve(webRoot, path))), expected, `Working Web contract: ${path}`);
 }
 const { verifyPlatformPortability } = await import(pathToFileURL(resolve(webRoot, 'tools/check-platform-portability.mjs')));
-const report = verifyPlatformPortability(nativeProbe);
+const report = await verifyPlatformPortability(nativeProbe);
 assert.equal(report.crossPlatformVerified, true);
 report.webContractCommit = pin.webContractCommit;
 report.webHead = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: webRoot, encoding: 'utf8' }).trim();
