@@ -58,6 +58,28 @@
         "PANDO_BUILD_TERRITORIAL_RECIPE": "OFF",
         "BUILD_TESTING": "ON"
       }
+    },
+    {
+      "name": "pando-native-qt-ci-linux",
+      "inherits": "pando-base",
+      "binaryDir": "${sourceDir}/build-native/p3/pando-native-qt-ci-linux",
+      "cacheVariables": {
+        "PANDO_BUILD_VARIANT": "native",
+        "PANDOEDITOR_BUILD_APP": "ON",
+        "BUILD_TESTING": "ON"
+      }
+    },
+    {
+      "name": "pando-native-qt-ci-windows",
+      "inherits": "pando-base",
+      "binaryDir": "${sourceDir}/build-native/p3/pando-native-qt-ci-windows",
+      "cacheVariables": {
+        "PANDO_BUILD_VARIANT": "native",
+        "PANDOEDITOR_BUILD_APP": "ON",
+        "BUILD_TESTING": "ON"
+      },
+      "generator": "Visual Studio 17 2022",
+      "architecture": "x64"
     }
   ],
   "buildPresets": [
@@ -102,6 +124,29 @@
         "pando-spherical-polygon-tests"
       ],
       "jobs": 2
+    },
+    {
+      "name": "pando-native-qt-ci-linux",
+      "configurePreset": "pando-native-qt-ci-linux",
+      "targets": [
+        "pandoeditor",
+        "temporal_tests",
+        "m72_mapprojection_lifetime_tests",
+        "interaction_style_policy_tests"
+      ],
+      "jobs": 2
+    },
+    {
+      "name": "pando-native-qt-ci-windows",
+      "configurePreset": "pando-native-qt-ci-windows",
+      "configuration": "Release",
+      "targets": [
+        "pandoeditor",
+        "temporal_tests",
+        "m72_mapprojection_lifetime_tests",
+        "interaction_style_policy_tests"
+      ],
+      "jobs": 2
     }
   ],
   "testPresets": [
@@ -126,6 +171,31 @@
       "filter": {
         "include": {
           "name": "^spherical-polygon-normalization$"
+        }
+      }
+    },
+    {
+      "name": "pando-native-qt-ci-linux",
+      "configurePreset": "pando-native-qt-ci-linux",
+      "output": {
+        "outputOnFailure": true
+      },
+      "filter": {
+        "include": {
+          "name": "^(temporal_tests|m72_mapprojection_lifetime_tests|interaction_style_policy_tests)$"
+        }
+      }
+    },
+    {
+      "name": "pando-native-qt-ci-windows",
+      "configurePreset": "pando-native-qt-ci-windows",
+      "configuration": "Release",
+      "output": {
+        "outputOnFailure": true
+      },
+      "filter": {
+        "include": {
+          "name": "^(temporal_tests|m72_mapprojection_lifetime_tests|interaction_style_policy_tests)$"
         }
       }
     }
