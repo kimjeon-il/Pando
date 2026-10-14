@@ -44,6 +44,8 @@ cmake --build build-native/p4/qt-python-oracles --target m974_boundary_probe
 ctest --test-dir build-native/p4/qt-python-oracles -R 'm974_(regression_gate_tests|boundary_delivery_tests)'
 ```
 
+GitHub Actions의 `workflow_dispatch` 수동 실행 UI는 해당 workflow가 저장소의 기본 브랜치에 등록되어 있어야 노출될 수 있다. 현재 `work/objects`에만 반영된 P4 상태에서는 **자동 경량 GIS Python source 검사만 검증**된 상태이며, `contracts`/`historical` 수동 실행 버튼이 GitHub UI에 제공된다고 보장하지 않는다. 사용자 승인 없는 `main` 병합은 진행하지 않는다. 연구 작업은 위 Python launcher로 명시적으로 실행할 수 있다.
+
 ## 기존 전용 GIS/조사 워크플로 구분
 
 `world-dataset-stage3-gate.yml`의 JS·지도 번들 데이터 계약은 Python 인터프리터가 필요 없어 `setup-python` 단계를 제거했다. 과거 `pando-pretransfer-cleanup-gate.yml`의 고정 파일 수 감사를 일반 `work/gis` 변경과 분리해 수동 실행으로 유지한다.
