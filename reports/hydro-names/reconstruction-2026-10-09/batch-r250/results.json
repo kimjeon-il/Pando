@@ -1,0 +1,1016 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r250",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r249",
+    "commit": "b446f4d579eb515974c53e06dc7f857564abef0d",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r249/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:70619008",
+    "hydro-system:70140793",
+    "hydro-system:70607251",
+    "hydro-system:70665506"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:70619008",
+      "category": "river_group",
+      "system_id": "70619008",
+      "original_queue_rank": 805,
+      "baseline_logical_fid": 3097,
+      "geometry_fids": [
+        9840
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -114.183333,
+        37.685417,
+        -113.427083,
+        38.022917
+      ],
+      "rendered_mainstem_length_km": 97.792,
+      "rendered_network_length_km": 97.792,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "selected_part_count": 25
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_name_scope_hold",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "region": "Eastern Lincoln County, Nevada, and western Iron County, Utah; Bull Valley–Modena corridor and the broad northeastern receiving plain",
+      "candidate_name_role": null,
+      "source_keys": [
+        "r250-805-topo-overview",
+        "r250-805-topo-head",
+        "r250-805-topo-lower"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": "No one natural-river name is supported for the whole Nevada opening, Utah wash outlet, broad cultivated basin floor and terminal dry-lake composite. Gold Springs Wash names a bounded receiving reach; landform names and separate small dry basins are not aliases of the whole selection.",
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "No one natural-river name is supported for the whole Nevada opening, Utah wash outlet, broad cultivated basin floor and terminal dry-lake composite. Gold Springs Wash names a bounded receiving reach; landform names and separate small dry basins are not aliases of the whole selection.",
+      "completion_scope": "Completed full ordinary geographic correspondence for all25stored parts of FID9840/logical3097, one stage3 mainstem, including chosen opening and separately preserved source/render terminal. No concrete geographic through-link is pending; unsupported whole-feature naming remains a completed null name-scope hold.",
+      "supported_name_scope": "No one natural-river name is supported for the whole Nevada opening, Utah wash outlet, broad cultivated basin floor and terminal dry-lake composite. Gold Springs Wash names a bounded receiving reach; landform names and separate small dry basins are not aliases of the whole selection.",
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "whole_feature_uniform_name_established": false,
+        "scope_limits": [
+          "No supported whole-composite natural-river name or true alias was established; this does not prove that every feature lacks an official name.",
+          "The long downstream interval is a broad dry alluvial/basin-floor corridor rather than a continuously labeled mapped natural river. Nearby canal and tributary labels are kept separate.",
+          "The cartography does not establish present wet threads, seasonal through-flow among dry depressions, drainage-work operation, exact banks or terminal lake levels.",
+          "Source and rendered endpoints coincide in the supplied metadata, but their descriptions and fields remain separate."
+        ]
+      },
+      "bounded_name_observations": [
+        {
+          "name": "Gold Springs Wash",
+          "kind": "bounded_receiving_wash",
+          "stored_parts_one_based": [
+            8
+          ],
+          "relationship": "Northern wash joins the selected Modena outlet and supplies a short labeled receiving reach; not an alias for the whole composite.",
+          "source_keys": [
+            "r250-805-topo-head",
+            "r250-805-topo-overview"
+          ]
+        },
+        {
+          "name": "Sheep Spring Draw",
+          "kind": "bounded_draw_landform",
+          "stored_parts_one_based": [
+            3
+          ],
+          "relationship": "Draw-setting label in the northeastern Bull Valley corridor, not a whole-river hydronym.",
+          "source_keys": [
+            "r250-805-topo-head"
+          ]
+        },
+        {
+          "name": "Bull Valley",
+          "kind": "valley_setting",
+          "stored_parts_one_based": [
+            1,
+            2
+          ],
+          "relationship": "Opening receiving valley; no river-name implication.",
+          "source_keys": [
+            "r250-805-topo-head"
+          ]
+        },
+        {
+          "name": "Devils Gap",
+          "kind": "passage_landform",
+          "stored_parts_one_based": [
+            5,
+            6
+          ],
+          "relationship": "Narrow geographic outlet setting; no river-name implication.",
+          "source_keys": [
+            "r250-805-topo-head"
+          ]
+        },
+        {
+          "name": "Table Butte",
+          "kind": "terminal_approach_landmark",
+          "stored_parts_one_based": [
+            20,
+            21
+          ],
+          "relationship": "Landmark east of an intermediate dry-lake depression; not the depression name.",
+          "source_keys": [
+            "r250-805-topo-lower"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70140793",
+      "category": "river_group",
+      "system_id": "70140793",
+      "original_queue_rank": 806,
+      "baseline_logical_fid": 2965,
+      "geometry_fids": [
+        9223,
+        9224,
+        9225,
+        9226,
+        9227
+      ],
+      "minimum_stage": 1,
+      "bbox": [
+        -127.873547,
+        52.710417,
+        -127.422917,
+        53.239583
+      ],
+      "rendered_mainstem_length_km": 97.606,
+      "rendered_network_length_km": 119.306,
+      "geometry_summary": {
+        "fragment_count": 5,
+        "mainstem_fragment_count": 3,
+        "tributary_fragment_count": 2,
+        "selected_part_count": 85
+      },
+      "candidate_name": "Kitlope River",
+      "candidate_names": [
+        "Kitlope River"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "region": "Coastal British Columbia; Kitlope receiving system and head of Gardner Canal",
+      "candidate_name_role": "Representative receiving-system identity",
+      "source_keys": [
+        "r250-kitlope-imagery",
+        "r250-kitlope-plan2012"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "The researched Kitlope receiving system, including the glacial mainstem and the selected lower Tezwa–Kitlope Lake tributary pathway. This does not rename the lake or every upper reach.",
+      "completion_scope": "Completed ordinary geographic correspondence for all five fragments and85parts, with Kitlope as representative receiving identity; no necessary source-material gap remains. Optional excluded map panels and held publications do not create another primary status.",
+      "supported_name_scope": "The researched Kitlope receiving system, including the glacial mainstem and the selected lower Tezwa–Kitlope Lake tributary pathway. This does not rename the lake or every upper reach.",
+      "naming_scope_details": {
+        "representative_system_identity": "Kitlope River",
+        "whole_feature_uniform_name_established": false,
+        "scope_limits": [
+          "The chosen glacier and individual small feeders remain unnamed. No true alias is established.",
+          "The upper mainstem is completed geographically without assigning a separate name to each glacier, valley or reach.",
+          "FID9226 and9227 are consecutive tributary fragments, not two independent whole rivers. Only9227 supplies a stored confluence terminal.",
+          "The sea-class source and rendered endpoints occupy an inner-estuary island/channel setting; no exact shoreline, bank, tidal stage, present ice drainage or currently occupied channel is asserted.",
+          "Imagery acquisition is current to this research pass but individual scene dates are unverified. Historical plan prose is not present-operation evidence.",
+          "Formal registry status and exact legal name extents remain unverified."
+        ]
+      },
+      "bounded_name_observations": [
+        {
+          "name": "Kitlope River",
+          "scope": "Supported receiving-system name and common lower river; representative scope rather than a scalar name for every selected part.",
+          "source_keys": [
+            "r250-kitlope-plan2012",
+            "r250-kitlope-imagery"
+          ]
+        },
+        {
+          "name": "Tezwa River",
+          "scope": "Lower river feeding the selected western lake tributary. FID9226 and the inletward beginning of9227 share this lower river setting; unselected headwaters are outside the finding.",
+          "source_keys": [
+            "r250-kitlope-plan2012",
+            "r250-kitlope-imagery"
+          ]
+        },
+        {
+          "name": "Kitlope Lake",
+          "scope": "Distinct lake traversed by the western tributary before its outlet joins the mainstem; not a Kitlope River alias.",
+          "source_keys": [
+            "r250-kitlope-plan2012",
+            "r250-kitlope-imagery"
+          ]
+        },
+        {
+          "name": "Gardner Canal",
+          "scope": "Coastal receiving inlet at the Kitlope estuary; not a river alias and not a substitute for the actual inner-estuary endpoint descriptions.",
+          "source_keys": [
+            "r250-kitlope-plan2012",
+            "r250-kitlope-imagery"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70607251",
+      "category": "river_group",
+      "system_id": "70607251",
+      "original_queue_rank": 807,
+      "baseline_logical_fid": 3091,
+      "geometry_fids": [
+        9823
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -115.739583,
+        38.477083,
+        -115.577083,
+        39.216667
+      ],
+      "rendered_mainstem_length_km": 97.561,
+      "rendered_network_length_km": 97.561,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "selected_part_count": 26
+      },
+      "candidate_name": "Duckwater Creek",
+      "candidate_names": [
+        "Duckwater Creek"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "region": "White Pine and Nye counties, Nevada; northern Duckwater Creek corridor, Duckwater wetland and Railroad Valley terminal playa",
+      "candidate_name_role": "supported_representative_receiving_system_identity",
+      "source_keys": [
+        "r250-807-topo-overview",
+        "r250-807-topo-head"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "Representative receiving-creek/system name for the fully researched northern feeder–Duckwater Creek–Railroad Valley playa composite. It does not rename the unnamed chosen feeder, Bull Creek, Currant Creek, wetland or terminal dry-lake floor. No true alias is established.",
+      "completion_scope": "Full ordinary geographic correspondence is complete for all26stored parts/143positions of FID9823/logical3091, one stage3 mainstem. Duckwater Creek is supported only as the representative receiving-system candidate. Accepted/scalar/Korean fields and application flags remain unset/false; no essential material through-link or source request is pending.",
+      "supported_name_scope": "Representative receiving-creek/system name for the fully researched northern feeder–Duckwater Creek–Railroad Valley playa composite. It does not rename the unnamed chosen feeder, Bull Creek, Currant Creek, wetland or terminal dry-lake floor. No true alias is established.",
+      "naming_scope_details": {
+        "representative_system_identity": "Duckwater Creek",
+        "whole_feature_uniform_name_established": false,
+        "scope_limits": [
+          "Duckwater Creek is a representative receiving-system candidate, not a verified scalar name covering the unnamed opening and terminal playa. Formal registry status and Korean naming remain unverified.",
+          "Currant Creek labeling overlaps the local lower-confluence setting while Duckwater Creek labeling resumes southward. These labels are kept separate rather than asserted to be aliases.",
+          "The dry-basin chain and intervening floor provide ordinary terminal geographic continuity; current water exchange, active wet threads and perennial-lake status are not established.",
+          "Source and rendered endpoints coincide in the supplied metadata but are preserved and described separately."
+        ]
+      },
+      "bounded_name_observations": [
+        {
+          "name": "Duckwater Creek",
+          "kind": "directly_labeled_main_receiving_creek",
+          "stored_parts_one_based": [
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23
+          ],
+          "relationship": "Repeated labels support the main selected receiving corridor; this is the representative system candidate, with a bounded unnamed feeder and dry-playa ending preserved.",
+          "source_keys": [
+            "r250-807-topo-head",
+            "r250-807-topo-overview"
+          ]
+        },
+        {
+          "name": "Bull Creek",
+          "kind": "separate_eastern_joining_creek",
+          "stored_parts_one_based": [
+            20,
+            21
+          ],
+          "relationship": "Parallel eastern drainage approaches the lower shared confluence setting; not a whole-system alias and not an additional selected fragment.",
+          "source_keys": [
+            "r250-807-topo-overview"
+          ]
+        },
+        {
+          "name": "Currant Creek",
+          "kind": "eastern_tributary_and_confluence_label",
+          "stored_parts_one_based": [
+            21,
+            22
+          ],
+          "relationship": "Label appears on the eastern approach/confluence interval before the southern Duckwater label resumes. Kept separate from the representative name; exact legal name boundary is unverified.",
+          "source_keys": [
+            "r250-807-topo-overview"
+          ]
+        },
+        {
+          "name": "Kern Creek",
+          "kind": "separate_eastern_tributary_context",
+          "stored_parts_one_based": [
+            21
+          ],
+          "relationship": "Named farther-eastern branch associated with the joining drainage, not an alias of the selected trunk.",
+          "source_keys": [
+            "r250-807-topo-overview"
+          ]
+        },
+        {
+          "name": "Railroad Valley",
+          "kind": "receiving_valley_setting",
+          "stored_parts_one_based": [
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26
+          ],
+          "relationship": "Broad lower valley and terminal playa setting; a landform name, not a natural-river or lake-name replacement.",
+          "source_keys": [
+            "r250-807-topo-overview"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70665506",
+      "category": "river_group",
+      "system_id": "70665506",
+      "original_queue_rank": 808,
+      "baseline_logical_fid": 3110,
+      "geometry_fids": [
+        9855
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -117.252083,
+        35.408333,
+        -116.939583,
+        36.122917
+      ],
+      "rendered_mainstem_length_km": 97.386,
+      "rendered_network_length_km": 97.386,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "selected_part_count": 31
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_name_scope_hold",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "region": "California desert; unnamed southeastern wash and southern Panamint Valley playa corridor",
+      "candidate_name_role": null,
+      "source_keys": [
+        "r250-usgstopo-california-overview",
+        "r250-usgstopo-california-upper",
+        "r250-usgstopo-california-middle",
+        "r250-usgstopo-california-terminal",
+        "r250-nps-death-valley-brochure-text"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": "No supported representative natural-river name or true alias for the whole selected wash/fan/playa composite. Regional valley names and the separate Wingate joining branch are bounded observations only.",
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "No supported representative natural-river name or true alias for the whole selected wash/fan/playa composite. Regional valley names and the separate Wingate joining branch are bounded observations only.",
+      "completion_scope": "All selected parts and both separately retained endpoint descriptions have complete ordinary geographic correspondence. No essential source-material gap or outstanding acquisition remains. Naming is a completed null scope hold.",
+      "supported_name_scope": "No supported representative natural-river name or true alias for the whole selected wash/fan/playa composite. Regional valley names and the separate Wingate joining branch are bounded observations only.",
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "whole_feature_uniform_name_established": false,
+        "scope_limits": [
+          "No supported whole-selection natural-river name, true alias or proper name for the selected terminal playa is established. This does not prove that names do not exist.",
+          "Wingate Wash is a directly mapped eastern joining branch; the inspected sources do not establish its name across the southern chosen feeder or the entire downstream playa traverse.",
+          "Detailed USGSTopo displays omit some minor/intermittent channel linework visible in the overview. Enclosing topography, mapped regional linework and the continuous receiving floor support ordinary correspondence despite this scale dependence.",
+          "A continuous or currently wetted thread, exact bank alignment, current discharge, temporary lake levels and contemporary road/water-management operation are not established.",
+          "The ending is within the selected northern playa lobe in southern Panamint Valley; neither the whole valley nor a farther northern basin continuation is appended."
+        ]
+      },
+      "bounded_name_observations": [
+        {
+          "name": "Panamint Valley",
+          "feature_class": "valley / receiving-region name",
+          "scope": "Regional setting of the lower receiving floor and terminal playa. It is not promoted to a whole-river name or a specific lake name.",
+          "source_keys": [
+            "r250-nps-death-valley-brochure-text",
+            "r250-usgstopo-california-overview",
+            "r250-usgstopo-california-middle",
+            "r250-usgstopo-california-terminal"
+          ]
+        },
+        {
+          "name": "Wingate Wash",
+          "feature_class": "separately joining wash",
+          "scope": "Printed on the eastern branch near the middle receiving join. The chosen opening comes from the south; whole-selection naming and the precise downstream extent of this hydronym remain unsupported.",
+          "source_keys": [
+            "r250-usgstopo-california-overview",
+            "r250-usgstopo-california-middle",
+            "r250-nps-death-valley-brochure-text"
+          ]
+        },
+        {
+          "name": "Searles Lake",
+          "feature_class": "separate neighboring dry lake",
+          "scope": "Mapped west of Slate Range and outside this selection. It is neither the selected terminal nor an alias.",
+          "source_keys": [
+            "r250-usgstopo-california-overview",
+            "r250-usgstopo-california-middle",
+            "r250-nps-death-valley-brochure-text"
+          ]
+        }
+      ]
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [
+      "hydro-system:70619008",
+      "hydro-system:70665506"
+    ],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 4,
+    "supported_representative_system_identities": 2,
+    "scope_holds": 2,
+    "access_pending": 0,
+    "material_pending": 0
+  },
+  "totals_after": {
+    "recorded_targets": 943,
+    "non_pending_records": 634,
+    "source_access_pending": 3,
+    "source_material_pending": 306,
+    "source_any_pending": 309,
+    "scope_holds": 203,
+    "river_groups": 845,
+    "lakes": 98,
+    "unrecorded": 3122,
+    "unrecorded_river_groups": 2610,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573",
+    "hydro-system:80032711",
+    "hydro-system:60007816",
+    "hydro-system:80013873",
+    "hydro-system:61501314",
+    "hydro-system:60761631",
+    "hydro-system:70895720",
+    "hydro-system:61398344",
+    "hydro-system:61355098",
+    "hydro-system:70933800",
+    "hydro-system:60026849",
+    "hydro-system:70574060",
+    "hydro-system:70890643",
+    "hydro-system:80064967",
+    "hydro-system:70856797",
+    "hydro-system:60174418",
+    "hydro-system:61547907",
+    "hydro-system:70463083",
+    "hydro-system:61520061",
+    "hydro-system:70895492",
+    "hydro-system:70898394",
+    "hydro-system:70865140",
+    "hydro-system:80072439",
+    "hydro-system:70549678",
+    "hydro-system:70566840",
+    "hydro-system:80048422",
+    "hydro-system:60557376",
+    "hydro-system:61514286",
+    "hydro-system:61509423",
+    "hydro-system:80068731",
+    "hydro-system:80015064",
+    "hydro-system:61520170",
+    "hydro-system:70156165",
+    "hydro-system:70784507",
+    "hydro-system:80067417",
+    "hydro-system:80019756",
+    "hydro-system:70244256",
+    "hydro-system:80060230",
+    "hydro-system:61543259",
+    "hydro-system:60007312",
+    "hydro-system:60022881",
+    "hydro-system:61456098",
+    "hydro-system:70290797",
+    "hydro-system:60441146",
+    "hydro-system:61554706",
+    "hydro-system:70110341",
+    "hydro-system:80067260",
+    "hydro-system:70214162",
+    "hydro-system:80034507",
+    "hydro-system:61536265",
+    "hydro-system:61561008",
+    "hydro-system:80066184",
+    "hydro-system:70202296",
+    "hydro-system:61545841",
+    "hydro-system:61350841",
+    "hydro-system:80064018",
+    "hydro-system:70957614",
+    "hydro-system:70851521",
+    "hydro-system:70049998",
+    "hydro-system:61298121",
+    "hydro-system:80033385",
+    "hydro-system:61205785",
+    "hydro-system:80035867",
+    "hydro-system:70009700",
+    "hydro-system:60440371",
+    "hydro-system:80049373",
+    "hydro-system:70749063",
+    "hydro-system:70844211",
+    "hydro-system:60001814",
+    "hydro-system:61507976",
+    "hydro-system:70834534",
+    "hydro-system:80070226",
+    "hydro-system:61357020",
+    "hydro-system:70846952",
+    "hydro-system:70004800",
+    "hydro-system:80043969",
+    "hydro-system:80165177",
+    "hydro-system:70043276",
+    "hydro-system:60490135",
+    "hydro-system:60237339",
+    "hydro-system:70023641",
+    "hydro-system:70281204",
+    "hydro-system:61570080",
+    "hydro-system:70789628",
+    "hydro-system:80234498",
+    "hydro-system:60016868",
+    "hydro-system:70276504",
+    "hydro-system:70901807",
+    "hydro-system:80086174",
+    "hydro-system:60809372",
+    "hydro-system:60100857",
+    "hydro-system:70026619",
+    "hydro-system:70500400",
+    "hydro-system:60010615",
+    "hydro-system:70608588",
+    "hydro-system:70832638",
+    "hydro-system:61383955",
+    "hydro-system:61555573",
+    "hydro-system:80068976",
+    "hydro-system:80048308",
+    "hydro-system:80001778",
+    "hydro-system:70324446",
+    "hydro-system:80051383",
+    "hydro-system:60804761",
+    "hydro-system:70817056",
+    "hydro-system:80032843",
+    "hydro-system:70045452",
+    "hydro-system:70877500",
+    "hydro-system:80042519",
+    "hydro-system:70084321",
+    "hydro-system:61519454",
+    "hydro-system:61546367",
+    "hydro-system:60627295",
+    "hydro-system:61038090",
+    "hydro-system:60407824",
+    "hydro-system:80047056",
+    "hydro-system:70888155",
+    "hydro-system:61189702",
+    "hydro-system:70084119",
+    "hydro-system:70025722",
+    "hydro-system:70001071",
+    "hydro-system:70360842",
+    "hydro-system:70007286",
+    "hydro-system:60001879",
+    "hydro-system:70776067",
+    "hydro-system:61266023",
+    "hydro-system:70806740",
+    "hydro-system:60516711",
+    "hydro-system:80020100",
+    "hydro-system:70835654",
+    "hydro-system:80029665",
+    "hydro-system:61609128",
+    "hydro-system:70853324",
+    "hydro-system:70775288",
+    "hydro-system:70008834",
+    "hydro-system:61422869",
+    "hydro-system:80214289",
+    "hydro-system:70210252",
+    "hydro-system:70091013",
+    "hydro-system:60774621",
+    "hydro-system:61390812",
+    "hydro-system:60613563",
+    "hydro-system:61564085",
+    "hydro-system:70048797",
+    "hydro-system:61533139",
+    "hydro-system:60000681",
+    "hydro-system:70728795",
+    "hydro-system:80148544",
+    "hydro-system:70478140",
+    "hydro-system:70243977",
+    "hydro-system:70170668",
+    "hydro-system:80290543",
+    "hydro-system:61524461",
+    "hydro-system:70246501",
+    "hydro-system:70253588",
+    "hydro-system:70735407",
+    "hydro-system:60339076",
+    "hydro-system:70870606",
+    "hydro-system:61551054",
+    "hydro-system:61508438",
+    "hydro-system:60412032",
+    "hydro-system:70209891",
+    "hydro-system:70221206",
+    "hydro-system:70752436",
+    "hydro-system:70840433",
+    "hydro-system:60000722",
+    "hydro-system:80039501",
+    "hydro-system:80043520",
+    "hydro-system:80125244",
+    "hydro-system:70478139",
+    "hydro-system:80028550",
+    "hydro-system:61436404",
+    "hydro-system:80231563",
+    "hydro-system:61286514",
+    "hydro-system:61543734",
+    "hydro-system:80033212",
+    "hydro-system:61512470",
+    "hydro-system:60768475",
+    "hydro-system:70735496",
+    "hydro-system:61555954",
+    "hydro-system:70618884",
+    "hydro-system:80160360",
+    "hydro-system:70830375",
+    "hydro-system:80018800",
+    "hydro-system:61540978",
+    "hydro-system:80261384",
+    "hydro-system:60297933",
+    "hydro-system:80044582",
+    "hydro-system:61555857",
+    "hydro-system:70184883",
+    "hydro-system:70531357",
+    "hydro-system:70768467",
+    "hydro-system:61483978",
+    "hydro-system:60024169",
+    "hydro-system:61266022",
+    "hydro-system:60042998",
+    "hydro-system:61545451",
+    "hydro-system:70974386",
+    "hydro-system:70658860",
+    "hydro-system:61064290",
+    "hydro-system:80224898",
+    "hydro-system:70846851",
+    "hydro-system:70728698",
+    "hydro-system:60011738",
+    "hydro-system:70135325",
+    "hydro-system:80080193",
+    "hydro-system:70891116",
+    "hydro-system:60001922",
+    "hydro-system:70840684",
+    "hydro-system:61144131",
+    "hydro-system:61279996",
+    "hydro-system:60575428",
+    "hydro-system:61330558",
+    "hydro-system:61352932",
+    "hydro-system:80011023",
+    "hydro-system:61516926",
+    "hydro-system:70188223",
+    "hydro-system:70245111",
+    "hydro-system:70094242",
+    "hydro-system:61521416",
+    "hydro-system:70828969",
+    "hydro-system:80062264",
+    "hydro-system:80160778",
+    "hydro-system:60409921",
+    "hydro-system:60000770",
+    "hydro-system:60571197",
+    "hydro-system:70860477",
+    "hydro-system:61533397",
+    "hydro-system:70264330",
+    "hydro-system:70105802",
+    "hydro-system:70331549",
+    "hydro-system:80081015",
+    "hydro-system:70766071",
+    "hydro-system:61382960",
+    "hydro-system:80037596",
+    "hydro-system:60775848",
+    "hydro-system:80051354",
+    "hydro-system:80266652",
+    "hydro-system:70316227",
+    "hydro-system:61528356",
+    "hydro-system:70882065",
+    "hydro-system:80042509",
+    "hydro-system:80031210",
+    "hydro-system:80108382",
+    "hydro-system:70026340",
+    "hydro-system:60007489",
+    "hydro-system:80032969",
+    "hydro-system:80091078",
+    "hydro-system:80255237",
+    "hydro-system:70824140",
+    "hydro-system:61562621",
+    "hydro-system:70974390",
+    "hydro-system:80107981",
+    "hydro-system:70871537",
+    "hydro-system:70530540",
+    "hydro-system:61557326",
+    "hydro-system:70873021",
+    "hydro-system:70844000",
+    "hydro-system:80071292",
+    "hydro-system:70016501",
+    "hydro-system:80031039",
+    "hydro-system:61400064",
+    "hydro-system:80119986",
+    "hydro-system:60006761",
+    "hydro-system:80002475",
+    "hydro-system:80092693",
+    "hydro-system:70961272",
+    "hydro-system:80021745",
+    "hydro-system:80038868",
+    "hydro-system:70000271",
+    "hydro-system:60264271",
+    "hydro-system:70809540",
+    "hydro-system:60263863",
+    "hydro-system:70870227",
+    "hydro-system:61279344",
+    "hydro-system:61502899",
+    "hydro-system:61563356",
+    "hydro-system:61147748",
+    "hydro-system:61518797",
+    "hydro-system:61579517",
+    "hydro-system:70136698",
+    "hydro-system:70850906",
+    "hydro-system:70504450",
+    "hydro-system:61352393",
+    "hydro-system:80020685",
+    "hydro-system:60015602",
+    "hydro-system:70934230",
+    "hydro-system:80141411",
+    "hydro-system:60101923",
+    "hydro-system:70961435",
+    "hydro-system:80297510",
+    "hydro-system:61514837",
+    "hydro-system:80105076",
+    "hydro-system:60263868",
+    "hydro-system:61514869",
+    "hydro-system:80017611",
+    "hydro-system:61527658",
+    "hydro-system:80047494",
+    "hydro-system:60527398"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r250-805-topo-overview",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r250-805-topo-head",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r250-805-topo-lower",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r250-kitlope-imagery",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"
+    },
+    {
+      "source_key": "r250-kitlope-plan2012",
+      "official_url": "https://nrs.objectstore.gov.bc.ca/kuwyyf/huchsduwachsdu_nuyem_jees_kitlope_heritage_cs_mp_20120523_aed6ca7142.pdf"
+    },
+    {
+      "source_key": "r250-807-topo-overview",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r250-807-topo-head",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r250-usgstopo-california-overview",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r250-usgstopo-california-upper",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r250-usgstopo-california-middle",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r250-usgstopo-california-terminal",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r250-nps-death-valley-brochure-text",
+      "official_url": "https://www.nps.gov/deva/learn/publications.htm"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "b446f4d579eb515974c53e06dc7f857564abef0d",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      805,
+      806,
+      807,
+      808
+    ],
+    "next_unrecorded_id": "hydro-system:90085152",
+    "progress_rule": "Follow the actual continental order: Americas, Asia, Africa, Europe, then other, with all rivers before lakes. Preserve original queue IDs and ranks for continuity; apply documented geographic deferrals without counting them as name research, and place deferred objects into their corrected later phase by length-descending, stable-ID order. Prior candidate and scope-held assessments remain unresolved where stated.",
+    "geographic_deferrals": [
+      {
+        "aw_id": "hydro-system:80061063",
+        "original_queue_rank": 186,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 66.56–68.17°N and 179.97–177.11°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory bounding box and selected-route geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80065687",
+        "original_queue_rank": 349,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at66.725–67.849775°N and178.2–175.960242°W place this object on Chukotka west of Alaska, adjoining the previously corrected Chukotka selection. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory bounding box and selected-route geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80100188",
+        "original_queue_rank": 387,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 64.939583–66.26978°N and 174.05625–173.320833°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory/order bounding box and geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80119243",
+        "original_queue_rank": 391,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 65.451531–66.491667°N and 176.777083–175.672917°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory/order bounding box and geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80083978",
+        "original_queue_rank": 470,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained original inventory/order bounds at66.522917–67.00625°N and177.333333–174.842957°W place this current object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Existing fixed-queue bounding box and geographic placement only; no naming source or selected geometry acquired for this correction."
+      },
+      {
+        "aw_id": "hydro-system:80099814",
+        "original_queue_rank": 511,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained original inventory/order bounds at65.952083–66.502083°N and172.004167–170.400621°W place this current object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Existing fixed-queue bounding box and geographic placement only; no naming source or selected geometry acquired for this correction."
+      }
+    ]
+  }
+}

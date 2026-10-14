@@ -1,0 +1,1330 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r250",
+  "sources": [
+    {
+      "source_key": "r250-805-topo-overview",
+      "title": "USGSTopo, The National Map: Bull Valley–Modena–northeastern Utah receiving-floor overview",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "evidence_kind": "original_reference_cartography",
+      "acquisition_outcome": "One normal original image acquisition completed HTTP200 image/png and a complete transfer before reading. Full terminal execution receipts were retained privately.",
+      "actual_material_read": "Complete original overview and overlapping western, middle and eastern clean-pixel/orientation panels were read.",
+      "supports": "Full geographic coverage of all25parts; connecting valley, short Gold Springs Wash reach, open receiving floor, intermediate dry basins and actual terminal.",
+      "source_independence": "Separately maintained seamless National Map reference composition. Retained successful r247 service description and credit text were read locally before new acquisition and identify geographic-name, hydrography, elevation and other public datasets. These new target views are not the held Stonecabin view or a plate/equivalent of a stopped Nevada hydrogeology report.",
+      "limits": "Ordinary receiving-geography and bounded labels only; no formal registry verification, uniform underlying survey epoch, exact bank, present discharge or water-management operation. The three views are one cartographic source, not independent corroboration.",
+      "use_notice": "Only own factual observations and normal bibliography are public-ready. Source originals, crops, orientation aids and exact requests remain private."
+    },
+    {
+      "source_key": "r250-805-topo-head",
+      "title": "USGSTopo, The National Map: Bull Valley, Sheep Spring Draw, Devils Gap and Modena detail",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "evidence_kind": "original_reference_cartography",
+      "acquisition_outcome": "One normal original image acquisition completed HTTP200 image/png and a complete transfer before reading. Full terminal execution receipts were retained privately.",
+      "actual_material_read": "Complete original headward detail and separate selected-part orientation aid were read.",
+      "supports": "Chosen opening, named draw and gap, common low passage, Gold Springs Wash junction/outlet and northern branch context.",
+      "source_independence": "Separately maintained seamless National Map reference composition. Retained successful r247 service description and credit text were read locally before new acquisition and identify geographic-name, hydrography, elevation and other public datasets. These new target views are not the held Stonecabin view or a plate/equivalent of a stopped Nevada hydrogeology report.",
+      "limits": "Ordinary receiving-geography and bounded labels only; no formal registry verification, uniform underlying survey epoch, exact bank, present discharge or water-management operation. The three views are one cartographic source, not independent corroboration.",
+      "use_notice": "Only own factual observations and normal bibliography are public-ready. Source originals, crops, orientation aids and exact requests remain private."
+    },
+    {
+      "source_key": "r250-805-topo-lower",
+      "title": "USGSTopo, The National Map: Eastern basin-floor and terminal-playa detail",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "evidence_kind": "original_reference_cartography",
+      "acquisition_outcome": "One normal original image acquisition completed HTTP200 image/png and a complete transfer before reading. Full terminal execution receipts were retained privately.",
+      "actual_material_read": "Complete original lower detail and separate selected-part orientation aid were read.",
+      "supports": "Middle floor, small dry basin, Table Butte depression, northward continuation and separate source/render terminal setting.",
+      "source_independence": "Separately maintained seamless National Map reference composition. Retained successful r247 service description and credit text were read locally before new acquisition and identify geographic-name, hydrography, elevation and other public datasets. These new target views are not the held Stonecabin view or a plate/equivalent of a stopped Nevada hydrogeology report.",
+      "limits": "Ordinary receiving-geography and bounded labels only; no formal registry verification, uniform underlying survey epoch, exact bank, present discharge or water-management operation. The three views are one cartographic source, not independent corroboration.",
+      "use_notice": "Only own factual observations and normal bibliography are public-ready. Source originals, crops, orientation aids and exact requests remain private."
+    },
+    {
+      "source_key": "r250-kitlope-imagery",
+      "title": "Esri World Imagery: selected Kitlope glacial, river, lake-tributary and estuarine corridor",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "evidence_kind": "independent_photographic_geography",
+      "acquisition_outcome": "Sequential export metadata and linked original completed HTTP200 with JSON and JPEG bodies respectively before local reading.",
+      "actual_material_read": "Complete original overview; overlapping clean-pixel upper, middle, western-tributary and coastal panels; separate private orientation aids; enlarged clean and separately marked source/render marine-terminal vicinity. All85stored parts across five FIDs were compared at ordinary corridor scale.",
+      "supports": "Glacial opening and receiving valley, all mainstem stages, both consecutive tributary fragments, river-to-lake-to-outlet transfer, tributary confluence and separate inner-estuary source/render locations.",
+      "source_independence": "Independent satellite/aerial mosaic. This coastal British Columbia view is geographically distinct from the exact held Ellesmere, Hot Creek, Knik and Mendoza views; it recovers none of their output and is not held federal or provincial linework.",
+      "limits": "No printed hydronyms, scene-date verification, glacier hydraulics, exact bank matching or tidal/current-operation claim.",
+      "use_notice": "Original imagery, local reading derivatives and full selected coordinates remain private; only own factual observations and normal bibliography."
+    },
+    {
+      "source_key": "r250-kitlope-plan2012",
+      "title": "Huchsduwachsdu Nuyem Jees/Kitlope Heritage Conservancy Management Plan",
+      "publisher": "Haisla Nation and Province of British Columbia, BC Parks",
+      "edition": "May2012",
+      "official_url": "https://nrs.objectstore.gov.bc.ca/kuwyyf/huchsduwachsdu_nuyem_jees_kitlope_heritage_cs_mp_20120523_aed6ca7142.pdf",
+      "evidence_kind": "primary_authorial_management_and_geographic_prose",
+      "acquisition_outcome": "The complete original PDF completed HTTP200 application/pdf before local reading.",
+      "actual_material_read": "Extracted original title/front matter, plan highlights and contents; printed pages1–2 planning-area prose; page4 project/management context; relevant planning-process prose on pages7–9. No map or photograph pixels were viewed or used.",
+      "supports": "Kitlope receiving-system name; Tezwa River–Kitlope Lake–Kitlope junction; Kitlope estuary at the head of Gardner Canal.",
+      "source_independence": "Original confirms the conservancy-specific Haisla/BC Parks management process through the Kitlope Management Committee, drawing on its1992planning framework,1997background and1999draft. This is a distinct management-planning publication, not SK108/Nass or Homathko fisheries inventory, the2008grizzly habitat project, a forestry FSP sheet, the Tweedsmuir visitor brochure or a held cartographic service.",
+      "limits": "Only independent authorial geographic prose is used. Underlying map provenance was not resolved and all plan cartographic panels remain uninspected and excluded. No legal status, registry decision or current management rule is adopted.",
+      "use_notice": "Own bounded factual paraphrase and ordinary bibliography only; no original pages, images or extensive text redistribution."
+    },
+    {
+      "source_key": "r250-807-topo-overview",
+      "title": "USGSTopo, The National Map: Duckwater Creek and Railroad Valley complete selected corridor",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "evidence_kind": "original_reference_cartography",
+      "acquisition_outcome": "One normal original image acquisition completed HTTP200 image/png and a complete transfer before reading. Full execution and terminal results were retained privately.",
+      "actual_material_read": "Three overlapping northern, middle and southern clean original-pixel panels and matching private selected-part orientation aids were inspected. They cover all26parts, chosen opening, named creek, joining branches, wetland, pans and actual source/render endpoint.",
+      "supports": "Full ordinary geographic correspondence, repeated Duckwater Creek labels and bounded Bull/Currant/Kern context; common closed-basin receiving floor and playa terminal.",
+      "source_independence": "Separately maintained National Map reference-cartography composition identified by retained successful r247 metadata read locally before acquisition. These fresh Duckwater views are positively distinct from the old northern Stonecabin USGSTopo request and are not acquisition or recovery of the held Railroad Valley World Imagery output or Nevada hydrogeology report plates. Product independence does not clear any such held source.",
+      "limits": "The two views are one cartographic compilation, not independent corroboration. No uniform underlying survey date, exact bank, current discharge, drainage-work operation or formal naming-registry verification is asserted.",
+      "use_notice": "Only own bounded geographic and name observations plus normal bibliography are public-ready. Source originals, crops, orientation aids and exact requests remain private."
+    },
+    {
+      "source_key": "r250-807-topo-head",
+      "title": "USGSTopo, The National Map: Chosen northern ravine and upper Duckwater junction detail",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "evidence_kind": "original_reference_cartography",
+      "acquisition_outcome": "One normal original image acquisition completed HTTP200 image/png and a complete transfer before reading. Full execution and terminal results were retained privately.",
+      "actual_material_read": "The full original headward detail and separate orientation aid were read. The closer contours and relief expose the unnamed northern feeder and its connection to the directly labeled northwest Duckwater branch.",
+      "supports": "Chosen opening and upper joining geometry at ordinary valley scale, without substituting a different named headwater.",
+      "source_independence": "Separately maintained National Map reference-cartography composition identified by retained successful r247 metadata read locally before acquisition. These fresh Duckwater views are positively distinct from the old northern Stonecabin USGSTopo request and are not acquisition or recovery of the held Railroad Valley World Imagery output or Nevada hydrogeology report plates. Product independence does not clear any such held source.",
+      "limits": "The two views are one cartographic compilation, not independent corroboration. No uniform underlying survey date, exact bank, current discharge, drainage-work operation or formal naming-registry verification is asserted.",
+      "use_notice": "Only own bounded geographic and name observations plus normal bibliography are public-ready. Source originals, crops, orientation aids and exact requests remain private."
+    },
+    {
+      "source_key": "r250-usgstopo-california-overview",
+      "title": "USGSTopo, The National Map: whole selected southeastern opening–Panamint receiving-floor overview",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Independent multiscale National Map reference cartography. The normally completed service metadata read in r247 and consulted locally here identifies TNM themes and other public-domain datasets, including GNIS/NHD/3DEP and transportation data. This is not a held USGS hydrological-project report, DWR basin profile, historical plate or imagery-view recovery.",
+      "access_status": "Completed original HTTP200 image/png; original pixels read within the stated scope.",
+      "source_original_acquired": true,
+      "original_pixels_actually_read": true,
+      "actual_read_scope": "One full overview original visually read, followed by a private part-index orientation aid and enlarged original-pixel upper/middle reading crops. Entire chosen opening, all 31 parts, joining settings, southern playa entry, continuous pan and actual ending inspected. A separately completed extent response was used only for orientation; its linked output was not acquired.",
+      "edition_or_scene_date": "Individual contributing map epochs are not established. Retained service metadata states data refreshed September 4, 2026; this does not establish a current field-survey or water-state date.",
+      "use_scope": "Own ordinary-scale geographic factual synthesis and normal bibliography only. No source images, crops, overlays, full positions, dynamic exports or request outputs are redistributed."
+    },
+    {
+      "source_key": "r250-usgstopo-california-upper",
+      "title": "USGSTopo, The National Map: selected opening, upper wash and fan detail",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Independent multiscale National Map reference cartography. The normally completed service metadata read in r247 and consulted locally here identifies TNM themes and other public-domain datasets, including GNIS/NHD/3DEP and transportation data. This is not a held USGS hydrological-project report, DWR basin profile, historical plate or imagery-view recovery.",
+      "access_status": "Completed original HTTP200 image/png; original pixels read within the stated scope.",
+      "source_original_acquired": true,
+      "original_pixels_actually_read": true,
+      "actual_read_scope": "One complete original upper detail visually read, then its private part-index orientation aid. Eagle Crags-side chosen opening, northward confined wash, open fan, northwest transfer and turn into the northern valley inspected.",
+      "edition_or_scene_date": "Individual contributing map epochs are not established. Retained service metadata states data refreshed September 4, 2026; this does not establish a current field-survey or water-state date.",
+      "use_scope": "Own ordinary-scale geographic factual synthesis and normal bibliography only. No source images, crops, overlays, full positions, dynamic exports or request outputs are redistributed."
+    },
+    {
+      "source_key": "r250-usgstopo-california-middle",
+      "title": "USGSTopo, The National Map: selected northern valley, Wingate joining setting and playa-entry detail",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Independent multiscale National Map reference cartography. The normally completed service metadata read in r247 and consulted locally here identifies TNM themes and other public-domain datasets, including GNIS/NHD/3DEP and transportation data. This is not a held USGS hydrological-project report, DWR basin profile, historical plate or imagery-view recovery.",
+      "access_status": "Completed original HTTP200 image/png; original pixels read within the stated scope.",
+      "source_original_acquired": true,
+      "original_pixels_actually_read": true,
+      "actual_read_scope": "One complete original middle detail visually read, then its private part-index orientation aid. Upper northern valley, separate eastern Wingate Wash label and join, the constricted northward passage, fan and southern playa entry inspected.",
+      "edition_or_scene_date": "Individual contributing map epochs are not established. Retained service metadata states data refreshed September 4, 2026; this does not establish a current field-survey or water-state date.",
+      "use_scope": "Own ordinary-scale geographic factual synthesis and normal bibliography only. No source images, crops, overlays, full positions, dynamic exports or request outputs are redistributed."
+    },
+    {
+      "source_key": "r250-usgstopo-california-terminal",
+      "title": "USGSTopo, The National Map: selected playa lobes and actual terminal detail",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Independent multiscale National Map reference cartography. The normally completed service metadata read in r247 and consulted locally here identifies TNM themes and other public-domain datasets, including GNIS/NHD/3DEP and transportation data. This is not a held USGS hydrological-project report, DWR basin profile, historical plate or imagery-view recovery.",
+      "access_status": "Completed original HTTP200 image/png; original pixels read within the stated scope.",
+      "source_original_acquired": true,
+      "original_pixels_actually_read": true,
+      "actual_read_scope": "One complete terminal original visually read, then its private part-index orientation aid. Southern lobe, central pan, adjoining northern lobes, eastern mountain front and actual terminal interior inspected.",
+      "edition_or_scene_date": "Individual contributing map epochs are not established. Retained service metadata states data refreshed September 4, 2026; this does not establish a current field-survey or water-state date.",
+      "use_scope": "Own ordinary-scale geographic factual synthesis and normal bibliography only. No source images, crops, overlays, full positions, dynamic exports or request outputs are redistributed."
+    },
+    {
+      "source_key": "r250-nps-death-valley-brochure-text",
+      "title": "Publications: Death Valley National Park, official park brochure text and audio-description transcript",
+      "publisher": "National Park Service, Death Valley National Park",
+      "official_url": "https://www.nps.gov/deva/learn/publications.htm",
+      "publication_identity": "Separately authored park visitor-information and accessibility editorial publication, identified by its official brochure introduction. No held scientific-report content or borrowed map image was requested or used.",
+      "access_status": "Normal original HTML reader body returned; origin HTTP not independently measured; stated prose read.",
+      "source_original_acquired": true,
+      "original_pixels_actually_read": false,
+      "actual_read_scope": "Official-page introduction and selected Southeast/Southwest Geographic Features prose, especially the Panamint Valley, Slate Range, Searles Lake and Wingate Wash descriptions. No brochure image, linked PDF, audio or cartographic pixels read.",
+      "own_observations": "Names Panamint Valley beside the Panamint Range and distinguishes Searles Lake across Slate Range. Also locates Wingate Wash by the southern Panamint Range. Used only for regional names, not selected-channel proof.",
+      "use_scope": "Bounded paraphrase and normal bibliography only. Visitor overview is not detailed route, navigation, flow-state or formal registry evidence."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70619008",
+      "source_keys": [
+        "r250-805-topo-overview",
+        "r250-805-topo-head",
+        "r250-805-topo-lower"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9840
+          ],
+          "component_scope": "Western opening into Bull Valley",
+          "finding": "The chosen western opening occupies a low feeder/ravine setting that descends east and southeast onto the Bull Valley floor, then bends northeast beside the Horseshoe Bend setting. The headward detail exposes the relief and the shared receiving floor; the selected beginning is retained without extension to another headwater.",
+          "sources": [
+            "r250-805-topo-head",
+            "r250-805-topo-overview"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            1,
+            2
+          ],
+          "scope_limit": "Bull Valley and Horseshoe Bend are geographic setting labels, not river-name assignments. Nearby Clover Creek is separate context and is not claimed as the selected headwater."
+        },
+        {
+          "fragments": [
+            9840
+          ],
+          "component_scope": "Sheep Spring Draw and the state-line approach",
+          "finding": "The northeastern valley continuation passes the directly mapped Sheep Spring Draw setting and approaches the Nevada–Utah state line. Side ravines enter the same open floor, which narrows toward Devils Gap.",
+          "sources": [
+            "r250-805-topo-head"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            3,
+            4
+          ],
+          "scope_limit": "Sheep Spring Draw is a bounded draw/landform observation; its label is not extended upstream or across the whole composite. No additional selected tributary fragment exists."
+        },
+        {
+          "fragments": [
+            9840
+          ],
+          "component_scope": "Devils Gap and the northeastern outlet",
+          "finding": "The selected route passes the mapped Devils Gap road/rail corridor and continues northeast along the low valley between the western upland and the Mount Escalante/Haystack Mountain side. The contours and relief expose a continuous lower passage into the Modena outlet plain.",
+          "sources": [
+            "r250-805-topo-head",
+            "r250-805-topo-overview"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            5,
+            6,
+            7
+          ],
+          "scope_limit": "Road and rail lines are orientation references; the selected waterway is not equated with transport infrastructure or a precise current channel."
+        },
+        {
+          "fragments": [
+            9840
+          ],
+          "component_scope": "Gold Springs Wash receiving outlet and Modena fan",
+          "finding": "The northwestern Gold Springs Wash exits its confined valley and bends east across the Modena setting. The selected route reaches that receiving wash near its road/rail crossing, follows the short labeled outlet/fan reach and then continues east across the low open plain beside Gray Knoll before turning northeast.",
+          "sources": [
+            "r250-805-topo-head",
+            "r250-805-topo-overview"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            8
+          ],
+          "scope_limit": "Gold Springs Wash is directly read as a bounded wash label. Its northern source branch is contextual and is not added to the selected geometry; the name is not extended to all downstream basin-floor parts."
+        },
+        {
+          "fragments": [
+            9840
+          ],
+          "component_scope": "Northeastern cultivated receiving plain",
+          "finding": "The selected course continues northeast and east over the broad gently declining basin floor, with fields, road grids, shallow washes and isolated water features. Overlapping map coverage shows a continuous common receiving plain without a separating mountain divide. Tule Creek is mapped farther northwest, and Escalante Mine Canal farther south; neither label is borrowed for this selected interval.",
+          "sources": [
+            "r250-805-topo-overview",
+            "r250-805-topo-lower"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            9,
+            10,
+            11,
+            12
+          ],
+          "scope_limit": "Ordinary connected alluvial/basin-floor geography is established; a currently wetted line through every field or dry patch is neither required nor asserted."
+        },
+        {
+          "fragments": [
+            9840
+          ],
+          "component_scope": "Small dry basin and eastward floor continuation",
+          "finding": "The floor bends east across a small mapped dry-lake depression, then southeast and back northeast within the same low plain. The western/northern mountain front and the cultivated southern floor bound the broader receiving setting; no separate basin crossing is exposed along these selected parts.",
+          "sources": [
+            "r250-805-topo-overview",
+            "r250-805-topo-lower"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19
+          ],
+          "scope_limit": "The small depression has no supported proper name in the read maps. The cartography does not prove seasonal surface-water interchange or exact wet-thread alignment."
+        },
+        {
+          "fragments": [
+            9840
+          ],
+          "component_scope": "Table Butte western dry-lake setting",
+          "finding": "The northeastern course reaches the mapped dry-lake depression immediately west of Table Butte and skirts its western/northern margin before continuing northeast. The depression, adjacent lowland and northward exit setting lie on the same broad continuous basin floor.",
+          "sources": [
+            "r250-805-topo-overview",
+            "r250-805-topo-lower"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            20,
+            21
+          ],
+          "scope_limit": "Table Butte is a separate landmark, not a lake or river alias. The selected generalized line is not described as a surveyed shoreline or bank."
+        },
+        {
+          "fragments": [
+            9840
+          ],
+          "component_scope": "Northward basin floor and terminal approach",
+          "finding": "The route continues north through an uninterrupted low floor, east of Black Reef and the western mountain-front fans, toward the larger northern dry basin. Transport lines and a shallow road grid cross the floor without creating a cartographically established separate receiving basin.",
+          "sources": [
+            "r250-805-topo-overview",
+            "r250-805-topo-lower"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            22,
+            23,
+            24
+          ],
+          "scope_limit": "A low open floor supplies ordinary geographic correspondence; current drainage works, culvert function and hydraulic operation are unverified."
+        },
+        {
+          "fragments": [
+            9840
+          ],
+          "component_scope": "Stored source endpoint in the northern playa",
+          "finding": "The final part runs north, crosses the rail/road setting and turns northeast into the mapped multi-lobed northern dry-lake/playa. The stored source endpoint lies inside its northeastern lobe.",
+          "sources": [
+            "r250-805-topo-overview",
+            "r250-805-topo-lower"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            25
+          ],
+          "scope_limit": "The supplied endorheic class is retained. The inspected maps supply no proper name for this terminal basin."
+        },
+        {
+          "fragments": [
+            9840
+          ],
+          "component_scope": "Separately preserved rendered endpoint",
+          "finding": "The rendered endpoint is recorded separately and falls in the same northeastern playa lobe as the stored source endpoint. The supplied source and rendered coordinates coincide; no terminal extension or geometry change is introduced.",
+          "sources": [
+            "r250-805-topo-overview",
+            "r250-805-topo-lower"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            25
+          ],
+          "scope_limit": "Coincident settings do not collapse the two metadata fields or establish present water extent."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70140793",
+      "source_keys": [
+        "r250-kitlope-imagery",
+        "r250-kitlope-plan2012"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9223
+          ],
+          "component_scope": "Chosen southern glacial opening",
+          "finding": "The chosen opening occupies an ice- and snow-filled mountain trough. The selected passage runs east and southeast along the same descending glacial valley, reaching the foreland bend. Neighboring ridge-separated lakes and valleys are not substituted for the selection.",
+          "sources": [
+            "r250-kitlope-imagery"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "scope_limit": "Ordinary connected glacial terrain is established; no glacier name, natural-source extremity or present subglacial hydraulic route is inferred.",
+          "part_index_basis": "One-based within the unchanged stored fragment, not concatenated across FIDs."
+        },
+        {
+          "fragments": [
+            9223
+          ],
+          "component_scope": "Foreland bend into the northbound river valley",
+          "finding": "At the eastern end of the glacial trough, the continuous receiving floor turns north and northeast into an exposed pale channel. Small lateral fans meet the same valley; the corridor is visibly continuous into the forested reach.",
+          "sources": [
+            "r250-kitlope-imagery"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ],
+          "part_index_basis": "One-based within the unchanged stored fragment, not concatenated across FIDs."
+        },
+        {
+          "fragments": [
+            9223
+          ],
+          "component_scope": "Long northbound upper valley",
+          "finding": "The river winds north through a narrow forested valley between steep ridges, with sediment bars, lateral drainage mouths and locally shadowed sections. The shared valley floor provides continuous ordinary correspondence through the easternmost bend.",
+          "sources": [
+            "r250-kitlope-imagery"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18
+          ],
+          "part_index_basis": "One-based within the unchanged stored fragment, not concatenated across FIDs."
+        },
+        {
+          "fragments": [
+            9223
+          ],
+          "component_scope": "Northwestern turn through the middle valley",
+          "finding": "The river bends northwest past glacier-fed side valleys and fans. Broad pale gravel sections alternate with narrower wooded reaches. Patchy cloud and mountain shadow do not sever the visible receiving valley.",
+          "sources": [
+            "r250-kitlope-imagery"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29
+          ],
+          "part_index_basis": "One-based within the unchanged stored fragment, not concatenated across FIDs."
+        },
+        {
+          "fragments": [
+            9223
+          ],
+          "component_scope": "Braided middle receiving floor",
+          "finding": "The selected corridor continues north through a broader gravelly river floor, receiving lateral drainage from the surrounding mountains. Bars, divided channels and vegetated surfaces occupy one connected valley.",
+          "sources": [
+            "r250-kitlope-imagery"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36
+          ],
+          "part_index_basis": "One-based within the unchanged stored fragment, not concatenated across FIDs."
+        },
+        {
+          "fragments": [
+            9223
+          ],
+          "component_scope": "Northeastern bend and large lateral join",
+          "finding": "The selected river swings northeast around a mountain spur, then turns northwest and west. It reaches a larger braided valley where an unselected northern channel joins. The stage3 ending is a continuation into the stage2 mainstem; it is not the marine terminal.",
+          "sources": [
+            "r250-kitlope-imagery"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45
+          ],
+          "scope_limit": "No unselected tributary name is transferred from regional prose to a precise junction.",
+          "part_index_basis": "One-based within the unchanged stored fragment, not concatenated across FIDs."
+        },
+        {
+          "fragments": [
+            9224
+          ],
+          "component_scope": "Westbound braided river below the lateral join",
+          "finding": "The stage2 mainstem begins at the stage3 continuation and follows the wide westward gravel-and-channel corridor. Both the short stored parts and the small southerly bend lie within this connected valley.",
+          "sources": [
+            "r250-kitlope-imagery"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "stored_parts_one_based": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "part_index_basis": "One-based within the unchanged stored fragment, not concatenated across FIDs."
+        },
+        {
+          "fragments": [
+            9224
+          ],
+          "component_scope": "Northwestern river to the lake-outlet junction",
+          "finding": "The river continues northwest between forested valley sides, with numerous sediment bars. Its last part reaches the short outlet from the separate western lake, where the selected tributary pathway joins the lower mainstem.",
+          "sources": [
+            "r250-kitlope-imagery",
+            "r250-kitlope-plan2012"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "stored_parts_one_based": [
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ],
+          "part_index_basis": "One-based within the unchanged stored fragment, not concatenated across FIDs."
+        },
+        {
+          "fragments": [
+            9226
+          ],
+          "component_scope": "Chosen Tezwa-side opening and river continuation",
+          "finding": "The western selected opening is already in a pale winding river. It runs northwest through a wooded valley, passing side fans and bends toward the lake approach. Its stage3 endpoint is the continuation into FID9227, not a separately stored confluence or a marine ending.",
+          "sources": [
+            "r250-kitlope-imagery",
+            "r250-kitlope-plan2012"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "tributary",
+          "stage": 3,
+          "stored_parts_one_based": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "scope_limit": "The plan identifies Tezwa as the river entering Kitlope Lake. The selection starts in its lower valley; no claim is made to Tezwa’s unselected headwaters.",
+          "part_index_basis": "One-based within the unchanged stored fragment, not concatenated across FIDs."
+        },
+        {
+          "fragments": [
+            9227
+          ],
+          "component_scope": "River approach and Kitlope Lake entry",
+          "finding": "From the stage3 continuation, the same river turns through a low alluvial approach into the southern end of the elongated lake. The river-to-lake transfer is directly visible.",
+          "sources": [
+            "r250-kitlope-imagery",
+            "r250-kitlope-plan2012"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "tributary",
+          "stage": 2,
+          "stored_parts_one_based": [
+            1,
+            2,
+            3
+          ],
+          "part_index_basis": "One-based within the unchanged stored fragment, not concatenated across FIDs."
+        },
+        {
+          "fragments": [
+            9227
+          ],
+          "component_scope": "Kitlope Lake passage",
+          "finding": "The selected tributary traverses the same continuous elongated lake northward. The planning prose identifies Kitlope Lake as the lower Tezwa receiving lake; its distinctive outlet-side relation to the main valley matches the photographed setting.",
+          "sources": [
+            "r250-kitlope-imagery",
+            "r250-kitlope-plan2012"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "tributary",
+          "stage": 2,
+          "stored_parts_one_based": [
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ],
+          "scope_limit": "The lake is a separately named waterbody, not a river alias; no underwater channel is asserted.",
+          "part_index_basis": "One-based within the unchanged stored fragment, not concatenated across FIDs."
+        },
+        {
+          "fragments": [
+            9227
+          ],
+          "component_scope": "Lake outlet and separate tributary confluence terminal",
+          "finding": "The lake narrows at its northern end and connects directly to the main river through a short outlet. The stored source and rendered tributary endpoints coincide at that receiving junction. This is the sole stored tributary confluence terminal, distinct from the later marine endpoint.",
+          "sources": [
+            "r250-kitlope-imagery",
+            "r250-kitlope-plan2012"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "tributary",
+          "stage": 2,
+          "stored_parts_one_based": [
+            11
+          ],
+          "part_index_basis": "One-based within the unchanged stored fragment, not concatenated across FIDs."
+        },
+        {
+          "fragments": [
+            9225
+          ],
+          "component_scope": "Shared lower river below Kitlope Lake outlet",
+          "finding": "Below the selected tributary join, the river follows broad northwestern bends through forest and bars. It remains continuously connected to the estuarine approach; the plan identifies this receiving river as Kitlope.",
+          "sources": [
+            "r250-kitlope-imagery",
+            "r250-kitlope-plan2012"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 1,
+          "stored_parts_one_based": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "part_index_basis": "One-based within the unchanged stored fragment, not concatenated across FIDs."
+        },
+        {
+          "fragments": [
+            9225
+          ],
+          "component_scope": "Lower channel and inner-estuary approach",
+          "finding": "The river turns west and then northwest through a widening low corridor. Pale bars and vegetated islands separate channels approaching the broad coastal receiving water. A separate northeastern river reaches the same estuarine neighborhood without replacing the selected approach.",
+          "sources": [
+            "r250-kitlope-imagery"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 1,
+          "stored_parts_one_based": [
+            5,
+            6,
+            7,
+            8
+          ],
+          "part_index_basis": "One-based within the unchanged stored fragment, not concatenated across FIDs."
+        },
+        {
+          "fragments": [
+            9225
+          ],
+          "component_scope": "Last selected island-and-channel setting",
+          "finding": "The last two parts reach the elongated vegetated island and adjoining channels in the inner estuary. The final short stored part remains preserved as delivered; the selection is not moved outward to open water. Planning prose places the Kitlope estuary at the head of Gardner Canal.",
+          "sources": [
+            "r250-kitlope-imagery",
+            "r250-kitlope-plan2012"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 1,
+          "stored_parts_one_based": [
+            9,
+            10
+          ],
+          "scope_limit": "The retained sea class is an inherited endpoint classification, not a claim that both endpoint markers lie on a surveyed open-sea shoreline.",
+          "part_index_basis": "One-based within the unchanged stored fragment, not concatenated across FIDs."
+        },
+        {
+          "fragments": [
+            9225
+          ],
+          "component_scope": "Separate source sea endpoint",
+          "finding": "The stored source endpoint is west-southwest of the rendered endpoint in the inner-estuary island/channel-margin setting. It belongs to the same connected lower Kitlope receiving system and is retained separately.",
+          "sources": [
+            "r250-kitlope-imagery",
+            "r250-kitlope-plan2012"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 1,
+          "stored_parts_one_based": [
+            10
+          ],
+          "part_index_basis": "One-based within the unchanged stored fragment, not concatenated across FIDs."
+        },
+        {
+          "fragments": [
+            9225
+          ],
+          "component_scope": "Separate rendered sea endpoint",
+          "finding": "The rendered endpoint lies slightly northeast of the source endpoint in the same inner-estuary setting at the head of Gardner Canal. Neither endpoint is conflated with the upstream lake-outlet confluence.",
+          "sources": [
+            "r250-kitlope-imagery",
+            "r250-kitlope-plan2012"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 1,
+          "stored_parts_one_based": [
+            10
+          ],
+          "scope_limit": "No exact bank, tidal stage or present channel occupancy is inferred.",
+          "part_index_basis": "One-based within the unchanged stored fragment, not concatenated across FIDs."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70607251",
+      "source_keys": [
+        "r250-807-topo-overview",
+        "r250-807-topo-head"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9823
+          ],
+          "component_scope": "Chosen northern ravine and southward feeder",
+          "finding": "The selected opening occupies a narrow north–south low ravine between local upland ribs. Its relief and contour pattern lead south and southwest around the low eastern knoll into the larger valley. The closer headward original exposes the receiving connection rather than relying on an extension to another headwater.",
+          "sources": [
+            "r250-807-topo-head",
+            "r250-807-topo-overview"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            1,
+            2
+          ],
+          "scope_limit": "The opening has no supported proper hydronym. Tracks cross this terrain but are not treated as the stream, and no present wet thread or exact-bank fit is claimed."
+        },
+        {
+          "fragments": [
+            9823
+          ],
+          "component_scope": "Join with the named Duckwater Creek",
+          "finding": "A directly labeled Duckwater Creek descends from the northwest and enters the southward valley at the selected feeder junction. The selected course continues within that common receiving valley, along the west side of the local elongated knoll and then southwest into the established trunk.",
+          "sources": [
+            "r250-807-topo-head",
+            "r250-807-topo-overview"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            3,
+            4
+          ],
+          "scope_limit": "The unselected northwestern named source branch remains contextual; the chosen opening and stored geometry are not replaced with it."
+        },
+        {
+          "fragments": [
+            9823
+          ],
+          "component_scope": "Upper Duckwater valley and county-line opening",
+          "finding": "Repeated Duckwater Creek labels follow the valley south between flanking hills. The valley broadens at the White Pine–Nye county-line setting and bends southeast into the more open basin floor.",
+          "sources": [
+            "r250-807-topo-head",
+            "r250-807-topo-overview"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            5,
+            6,
+            7
+          ],
+          "scope_limit": "Map labels support the ordinary creek corridor, not current surface discharge or legal naming extent."
+        },
+        {
+          "fragments": [
+            9823
+          ],
+          "component_scope": "Open creek corridor approaching Duckwater",
+          "finding": "The named creek continues south through the broad valley beside the highway and shallow alluvial terrain, then reaches the northern fields and settlement approaches at Duckwater. Small side channels and washes enter the common receiving floor.",
+          "sources": [
+            "r250-807-topo-overview"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            8,
+            9,
+            10,
+            11,
+            12
+          ],
+          "scope_limit": "Nearby roads, ponds and fields are contextual; the selected line is not asserted to follow every modern channel or drainage work."
+        },
+        {
+          "fragments": [
+            9823
+          ],
+          "component_scope": "Duckwater settlement and wetland entry",
+          "finding": "The selected route passes the Duckwater Reservation settlement/field setting and turns southeast into the mapped creek wetland. The named channel and wetland share a continuous low valley at the foot of the Duckwater Hills.",
+          "sources": [
+            "r250-807-topo-overview"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            13,
+            14
+          ],
+          "scope_limit": "The jurisdiction/settlement label locates the reach and is not a river alias. Current irrigation operation is unverified."
+        },
+        {
+          "fragments": [
+            9823
+          ],
+          "component_scope": "Southeastern Duckwater wetland corridor",
+          "finding": "The long selected part follows the southeastward wetland valley below Duckwater. Repeated Duckwater Creek labels, marsh symbols and enclosing relief show one continuous receiving corridor past the hills and toward the airport-side outlet.",
+          "sources": [
+            "r250-807-topo-overview"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            15
+          ],
+          "scope_limit": "Ordinary wetland/valley correspondence does not establish a single current wet thread, discharge or engineered-flow operation."
+        },
+        {
+          "fragments": [
+            9823
+          ],
+          "component_scope": "Lower Duckwater channel and alluvial floor",
+          "finding": "Below the wetland the directly labeled Duckwater Creek bends southeast and south across the broad Railroad Valley floor. Bull Creek runs to the east and approaches the same lower junction setting; the selected course remains on the Duckwater side through the open fan/plain.",
+          "sources": [
+            "r250-807-topo-overview"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            16,
+            17,
+            18,
+            19,
+            20
+          ],
+          "scope_limit": "Parallel neighboring creek lines are kept distinct; Bull Creek is not treated as a Duckwater alias."
+        },
+        {
+          "fragments": [
+            9823
+          ],
+          "component_scope": "Bull and Currant joining setting and southern receiving creek",
+          "finding": "The lower Duckwater course reaches the converging eastern drainage setting involving Bull Creek and the Currant Creek approach, with a Kern Creek label on a farther eastern branch. The source places Currant Creek labeling in the confluence interval and Duckwater Creek labeling again on the southern continuation. The selected route continues south on the same common valley floor toward the dry basins.",
+          "sources": [
+            "r250-807-topo-overview"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            21,
+            22
+          ],
+          "scope_limit": "Currant, Bull and Kern remain separate bounded tributary/confluence observations. Overlapping local cartographic name scope is not promoted to a verified alias or a whole-feature scalar name."
+        },
+        {
+          "fragments": [
+            9823
+          ],
+          "component_scope": "Northern dry basin, highway crossing and low-floor transfer",
+          "finding": "The named Duckwater Creek reaches the northern Railroad Valley dry-lake complex near the US6 crossing. The selected route passes into that pan, continues south over the intervening low floor and approaches the much larger southern playa. The mapped relief, dry-basin outlines and lowland surroundings expose one continuous terminal receiving floor.",
+          "sources": [
+            "r250-807-topo-overview"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            23
+          ],
+          "scope_limit": "A blue channel across every dry patch is not required for ordinary receiving geography. This does not prove present seasonal water exchange or exact flood routing among the pans."
+        },
+        {
+          "fragments": [
+            9823
+          ],
+          "component_scope": "Entry into the larger southern playa",
+          "finding": "The southward selected corridor enters the northeastern margin of the broad southern dry-lake/playa and runs southwest into its interior. The terminal basin is part of the mapped Railroad Valley lowland, with the western and eastern mountain fronts flanking the wider floor.",
+          "sources": [
+            "r250-807-topo-overview"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            24,
+            25
+          ],
+          "scope_limit": "The playa is not renamed Duckwater Creek; the map supplies no independently confirmed proper lake name for this selected terminal."
+        },
+        {
+          "fragments": [
+            9823
+          ],
+          "component_scope": "Stored endorheic source endpoint",
+          "finding": "The final short part ends within the interior of the large southern Railroad Valley playa. The source endpoint is retained in its supplied endorheic setting.",
+          "sources": [
+            "r250-807-topo-overview"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            26
+          ],
+          "scope_limit": "No exact contemporary shoreline, water level or perennial lake is asserted."
+        },
+        {
+          "fragments": [
+            9823
+          ],
+          "component_scope": "Separately preserved rendered endpoint",
+          "finding": "The supplied rendered endpoint coincides with the stored source endpoint in the same interior playa setting and is described separately. No extra terminal extension or moved endpoint is introduced.",
+          "sources": [
+            "r250-807-topo-overview"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            26
+          ],
+          "scope_limit": "The two metadata endpoints remain separate even though their supplied coordinates coincide."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70665506",
+      "source_keys": [
+        "r250-usgstopo-california-overview",
+        "r250-usgstopo-california-upper",
+        "r250-usgstopo-california-middle",
+        "r250-usgstopo-california-terminal",
+        "r250-nps-death-valley-brochure-text"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9855
+          ],
+          "component_scope": "Short east-northeast opening from the low slopes northeast of Eagle Crags",
+          "finding": "The opening is in a mapped minor drainage between low rocky hills. The regional original shows its eastward channel and the northward receiving bend; the upper detail supplies the enclosing terrain. This is the actual chosen opening, not a substitution of a longer southern feeder. No source or river name is printed for it.",
+          "sources": [
+            "r250-usgstopo-california-overview",
+            "r250-usgstopo-california-upper"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            0
+          ],
+          "whole_selection_part_indices_zero_based": [
+            0
+          ]
+        },
+        {
+          "fragments": [
+            9855
+          ],
+          "component_scope": "Northward channel through low hills to the opening of the broader fan/valley",
+          "finding": "Regional linework follows the selected northward corridor through the low-hill gaps and out into the broader plain. The upper detail confirms the enclosing terrain and the transition from confined wash to open receiving floor. Minor side washes are distinct from the chosen route. Detailed-scale channel omissions are not interpreted as a broken geographic connection.",
+          "sources": [
+            "r250-usgstopo-california-overview",
+            "r250-usgstopo-california-upper"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            1,
+            2,
+            3
+          ],
+          "whole_selection_part_indices_zero_based": [
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "fragments": [
+            9855
+          ],
+          "component_scope": "Northwest passage across the open fan and receiving floor beside Randsburg Road",
+          "finding": "The overview maps converging wash branches and a northwest continuation into the common valley floor east of the Slate Range. The detailed original shows one continuous descending open floor, with fan surfaces rather than an intervening separate basin. Ordinary correspondence is established without requiring the rendered line to coincide with a precise dry channel or every road crossing.",
+          "sources": [
+            "r250-usgstopo-california-overview",
+            "r250-usgstopo-california-upper"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            4,
+            5,
+            6
+          ],
+          "whole_selection_part_indices_zero_based": [
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "fragments": [
+            9855
+          ],
+          "component_scope": "Northward turn and constricted receiving corridor east of Slate Range",
+          "finding": "The route turns north around the eastern foot of the Slate Range and follows the continuous axial floor past lateral fans. Regional blue channel linework can be followed through this interval; upper and middle detailed topography independently locate the narrowed passage and its wider northern opening. The selected route does not cross west into Searles Lake.",
+          "sources": [
+            "r250-usgstopo-california-overview",
+            "r250-usgstopo-california-upper",
+            "r250-usgstopo-california-middle"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            7,
+            8,
+            9,
+            10
+          ],
+          "whole_selection_part_indices_zero_based": [
+            7,
+            8,
+            9,
+            10
+          ]
+        },
+        {
+          "fragments": [
+            9855
+          ],
+          "component_scope": "Eastern Wingate Wash joining setting and northward valley passage toward the playa",
+          "finding": "Wingate Wash is printed on the eastern side branch approaching the selected receiving corridor near the beginning of this interval. The chosen line arrives from the south, then continues northwest and north through the low gap into the broader southern Panamint floor. The overview depicts the joins and the connected axial wash; the middle detail depicts the same enclosed passage. The label on the eastern branch does not demonstrate that the entire selected upper route or downstream playa is named Wingate Wash.",
+          "sources": [
+            "r250-usgstopo-california-overview",
+            "r250-usgstopo-california-middle",
+            "r250-nps-death-valley-brochure-text"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Wingate Wash",
+            "Panamint Valley"
+          ],
+          "part_indices_zero_based": [
+            11,
+            12,
+            13,
+            14
+          ],
+          "whole_selection_part_indices_zero_based": [
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "fragments": [
+            9855
+          ],
+          "component_scope": "Fan-to-playa transition and southern lobe of the elongate receiving pan",
+          "finding": "The channel and open fan enter the southern lobe of the elongate playa. Regional drainage linework and the middle/terminal cartography show an uninterrupted receiving floor as the lobe widens northward. A currently wet thread through the pan is neither needed nor asserted. The valley name is regional context, not a proper name assigned to this modeled river.",
+          "sources": [
+            "r250-usgstopo-california-overview",
+            "r250-usgstopo-california-middle",
+            "r250-usgstopo-california-terminal",
+            "r250-nps-death-valley-brochure-text"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Panamint Valley"
+          ],
+          "part_indices_zero_based": [
+            15,
+            16,
+            17
+          ],
+          "whole_selection_part_indices_zero_based": [
+            15,
+            16,
+            17
+          ]
+        },
+        {
+          "fragments": [
+            9855
+          ],
+          "component_scope": "Long central dry-lake floor and narrowing northward passage",
+          "finding": "The selected route traverses the broad central playa and its northward narrowing, within the same continuous mapped pan. Side fans enter from the bounding ranges; there is no required separate-basin or lake-to-feeder transfer at this scale. The straight rendered interval is described as a generalized playa-floor passage, not a named natural channel or evidence of permanent water.",
+          "sources": [
+            "r250-usgstopo-california-overview",
+            "r250-usgstopo-california-terminal"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24
+          ],
+          "whole_selection_part_indices_zero_based": [
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24
+          ]
+        },
+        {
+          "fragments": [
+            9855
+          ],
+          "component_scope": "Connected northern lobes and actual selected endpoint",
+          "finding": "The terminal original shows a continuous northward series of adjoining playa lobes beneath the western foot of the Panamint Range. The selection bends northeast inside the final lobe and stops within that playa near its northeastern margin, before the separate drainage entering from the north/east. The source endpoint and rendered endpoint are retained as separate stored fields and both occupy this same terminal setting. No extension beyond the ending, named lake outlet, sea connection or whole-valley traversal is added.",
+          "sources": [
+            "r250-usgstopo-california-overview",
+            "r250-usgstopo-california-terminal"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            25,
+            26,
+            27,
+            28,
+            29,
+            30
+          ],
+          "whole_selection_part_indices_zero_based": [
+            25,
+            26,
+            27,
+            28,
+            29,
+            30
+          ]
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [],
+  "additional_source_use_notices": [
+    {
+      "publication": "USGSTopo, The National Map: selected Bull Valley–Modena and Utah basin-floor views",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "kind": "continuous_receiving_floor_and_bounded_name_scope",
+      "observation": "The maps support ordinary common valley/fan/plain/playa geography. No continuous currently wetted thread, whole-natural-river hydronym or current hydraulic operation is inferred. Source originals and all reading aids remain private.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70619008"
+    },
+    {
+      "publication": "Huchsduwachsdu Nuyem Jees/Kitlope Heritage Conservancy Management Plan, May2012",
+      "official_url": "https://nrs.objectstore.gov.bc.ca/kuwyyf/huchsduwachsdu_nuyem_jees_kitlope_heritage_cs_mp_20120523_aed6ca7142.pdf",
+      "kind": "authorial_prose_only_unresolved_underlying_cartographic_provenance",
+      "observation": "The independent management/geographic prose is used. Figures1–3 and other map/photograph pixels were not viewed or used; their underlying mapping relationship was not resolved. This is not a publication-wide acquisition stop.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70140793"
+    },
+    {
+      "publication": "Esri World Imagery: selected Kitlope corridor",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "kind": "ordinary_terrain_and_separate_terminal_scope",
+      "observation": "The imagery supports connected terrain and receiving-water geography only. Broad glacial terrain, minor cloud/shadow and island/channel-margin endpoints do not establish exact present hydraulics, banks or tidal position. All originals and derivatives remain private.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70140793"
+    },
+    {
+      "publication": "Incidental Canadian naming and historical fisheries search results",
+      "kind": "discovery_excluded_under_preserved_identity_holds",
+      "observation": "Incidental BC Geographical Names, naming-derived encyclopedia and historical fisheries-survey search hits were not opened or used as naming or correspondence evidence. No new access failure is asserted.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70140793"
+    },
+    {
+      "publication": "USGSTopo, The National Map: Duckwater Creek–Railroad Valley views",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "kind": "representative_name_with_unnamed_feeder_and_playa_extension",
+      "observation": "Duckwater Creek represents the researched receiving system. It does not rename the chosen feeder, eastern joining creeks or playa. Continuous mapped low floor supports geographic correspondence without a currently wetted channel through every dry patch.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70607251"
+    },
+    {
+      "publication": "USGSTopo, The National Map: lower Duckwater/Currant/Bull setting",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "kind": "bounded_overlapping_local_name_scope",
+      "observation": "The source displays distinct Bull and Currant labels near the lower convergence and Duckwater labels on the southward continuation. No true-alias or formal naming-boundary claim is made.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70607251"
+    },
+    {
+      "publication": "USGSTopo, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "kind": "scale_dependent_channel_detail_and_continuous_receiving_floor_scope",
+      "observation": "The four originals were read. Some detailed views omit intermittent linework present in the overview. The continuous mapped valley/fan/playa floor establishes ordinary correspondence without a precisely wetted channel. Names of a joining wash and neighboring lake do not name the entire selection. Source images and all private reading aids are not redistributed.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70665506"
+    },
+    {
+      "publication": "NPS Death Valley park-brochure text",
+      "official_url": "https://www.nps.gov/deva/learn/publications.htm",
+      "kind": "bounded_regional_prose_only",
+      "observation": "Official visitor/accessibility text was read for regional geographic names. No map pixels or linked publication were acquired; it does not independently establish selected-route continuity.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70665506"
+    }
+  ]
+}
