@@ -10,7 +10,7 @@ import { testCoreProject, initializeTestTerritorialState } from '../helpers/time
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { buildCountrySharedBoundarySegments } from '../../assets/js/modules/boundary-topology.js';
-import { prepareCountrySharedBoundaryPacket, visibleCountrySharedSegments, shouldShowSharedCountryBorders, reconcileCountrySharedBoundarySegments } from '../../assets/js/modules/country-shared-boundary-packet.js';
+import { prepareCountrySharedBoundaryPacket, visibleCountrySharedSegments, shouldShowSharedCountryBorders, createCountrySharedBoundaryState } from '../../assets/js/modules/country-shared-boundary-packet.js';
 import { countryGeometrySignature, changedCountryGeometryIds } from '../../assets/js/modules/country-shared-boundary-cache.js';
 import { excludeCountryBoundaryOwners } from '../../assets/js/modules/country-shared-boundary-packet.js';
 import '../../assets/js/workers/canvas-scene-composition-core.js';
@@ -82,7 +82,9 @@ test('a deleted neighbor turns a former shared border into a coast', () => {
   assert.equal(buildCountrySharedBoundarySegments([left, right]).length, 1);
   assert.equal(buildCountrySharedBoundarySegments([left]).length, 0);
   const previous = buildCountrySharedBoundarySegments([left, right]);
-  assert.deepEqual(reconcileCountrySharedBoundarySegments(previous, [left], new Set(['RIGHT'])), []);
+  const state = createCountrySharedBoundaryState();
+  state.replace([left], { cachedSegments: previous, changedIds: new Set(['RIGHT']) });
+  assert.deepEqual(state.segments(), []);
 });
 
 test('a changed country updates only its shared contact and does not reuse stale cache', () => {
@@ -94,7 +96,10 @@ test('a changed country updates only its shared contact and does not reuse stale
   const moved = rectangle('RIGHT', 1, 1, 2, 2);
   assert.deepEqual([...changedCountryGeometryIds([left, moved, island], signatures)], ['RIGHT']);
   const previous = buildCountrySharedBoundarySegments([left, right, island]);
-  assert.deepEqual(reconcileCountrySharedBoundarySegments(previous, [left, moved, island], new Set(['RIGHT'])), []);
+  const state = createCountrySharedBoundaryState();
+  state.replace([left, moved, island], { cachedSegments: previous,
+    changedIds: changedCountryGeometryIds([left, moved, island], signatures) });
+  assert.deepEqual(state.segments(), []);
 });
 
 test('artificial dateline edges do not become country borders', () => {

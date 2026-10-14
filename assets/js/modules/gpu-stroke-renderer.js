@@ -3,7 +3,7 @@ export { buildGpuStrokeInstances, GPU_STROKE_FLAGS } from './gpu-stroke-geometry
 import { isRenderDevice } from './render-device.js';
 import { createGpuResourceBudget } from './gpu-resource-budget.js';
 import { applyGpuBlendMode, parseGpuColor, resetGpuNormalBlend } from './gpu-blend-utils.js';
-import { linkGpuProgram } from './gpu-shader-utils.js';
+import { linkGpuProgram, GPU_SPHERICAL_POSITION_GLSL } from './gpu-shader-utils.js';
 import { GPU_VIEW_UNIFORM_NAMES, setGpuViewUniforms } from './gpu-view-uniforms.js';
 import { scaleInteractionStroke, gpuStrokeStyle } from './map-interaction-style.js';
 
@@ -27,10 +27,11 @@ function linkProgram(device, vertexSource, fragmentSource, attributeNames, unifo
 
 function projectionSource() {
   return `
+    ${GPU_SPHERICAL_POSITION_GLSL}
     vec3 projectStrokePoint(vec2 coord){
       float lon=coord.x*0.017453292519943;float lat=coord.y*0.017453292519943;vec2 p;float depth;
       if(uMode==0){
-        vec3 q=vec3(cos(lat)*cos(lon),cos(lat)*sin(lon),sin(lat));
+        vec3 q=gpuUnitSphere(lon,lat);
         p=uTranslate+uScale*vec2(dot(uRowX,q),dot(uRowY,q));depth=dot(uRowZ,q);
       }else{
         p=uTranslate+uScale*vec2(lon+uWorldOffset-uFlatCenter.x,-(lat-uFlatCenter.y));depth=1.0;

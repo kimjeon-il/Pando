@@ -1,5 +1,6 @@
 import { buildRenderableBoundarySegments } from './geographic-boundary.js';
-import { createBoundarySpatialIndex, segmentBounds } from './boundary-spatial-index.js';
+import { createBoundarySpatialIndex, segmentBounds, padBoundaryBounds } from './boundary-spatial-index.js';
+import { countryGeometrySignature } from './country-shared-boundary-cache.js';
 import { territorialRootId } from './territorial-units.js';
 
 const cloneCoordinate = coordinate => [Number(coordinate[0]), Number(coordinate[1])];
@@ -48,14 +49,78 @@ export function boundarySourceSegments(feature, fallbackId = 0) {
   for (const polygon of polygonRings(feature)) {
     (polygon.rings || []).forEach((ring, ringIndex) => {
       const limit = Math.max(0, ring.length - 1);
+      let area = 0;
+      const origin = ring[0];
+      for (let index = 1; index < ring.length; index++) {
+        const a = ring[index - 1], b = ring[index];
+        area += (a[0] - origin[0]) * (b[1] - origin[1]) - (b[0] - origin[0]) * (a[1] - origin[1]);
+      }
+      const interiorSide = Math.sign(area) * (ringIndex ? -1 : 1);
       for (let index = 0; index < limit; index++) rows.push({
         featureId: id, polygonIndex: polygon.polygonIndex, ringIndex,
         segmentIndex: index, endVertexIndex: (index + 1) % limit,
-        a: ring[index], b: ring[index + 1],
+        a: ring[index], b: ring[index + 1], interiorSide,
       });
     });
   }
   return rows;
+}
+
+export function prepareBoundaryFeature(feature) {
+  const segments = boundarySourceSegments(feature);
+  const bounds = [Infinity, Infinity, -Infinity, -Infinity];
+  const spatialIndex = createBoundarySpatialIndex();
+  segments.forEach((row, index) => {
+    const box = segmentBounds(row);
+    for (let axis = 0; axis < 2; axis++) {
+      bounds[axis] = Math.min(bounds[axis], box[axis]);
+      bounds[axis + 2] = Math.max(bounds[axis + 2], box[axis + 2]);
+    }
+    spatialIndex.insert(index, row, box);
+  });
+  return { id: String(feature.id), feature, geometry: feature.geometry, segments, bounds, spatialIndex,
+    renderableSegments: buildRenderableBoundarySegments(feature.geometry) };
+}
+
+/** The Worker owns this derived index; only a changed geometry is prepared. */
+export function createPreparedBoundaryStore() {
+  const byId = new Map(), spatialIndex = createBoundarySpatialIndex();
+  let preparationCount = 0;
+  function put(feature) {
+    const id = String(feature.id), previous = byId.get(id);
+    // Caller keys include geometry identity and revision. A bare revision such
+    // as 0 is insufficient when a timeline replaces one geometry with another.
+    if (feature.boundaryGeometryRevision !== undefined && typeof feature.boundaryGeometryRevision !== 'string')
+      throw new Error('Boundary geometry revision must include geometry identity and mutable revision');
+    const key = feature.boundaryGeometryRevision !== undefined
+      ? `identity:${feature.boundaryGeometryRevision}` : `digest:${countryGeometrySignature(feature)}`;
+    if (previous?.geometryKey === key) {
+      previous.feature = feature;
+      return false;
+    }
+    const prepared = { ...prepareBoundaryFeature(feature), geometryKey: key };
+    byId.set(id, prepared);
+    spatialIndex.remove(id);
+    if (prepared.segments.length) spatialIndex.insert(id, prepared, prepared.bounds);
+    preparationCount++;
+    return true;
+  }
+  function patch(features = [], removedIds = []) {
+    const changed = new Set();
+    for (const value of removedIds) {
+      const id = String(value);
+      if (byId.delete(id)) changed.add(id);
+      spatialIndex.remove(id);
+    }
+    for (const feature of features) if (put(feature)) changed.add(String(feature.id));
+    return changed;
+  }
+  function replace(features = []) {
+    const ids = new Set(features.map(feature => String(feature.id)));
+    return patch(features, [...byId.keys()].filter(id => !ids.has(id)));
+  }
+  return { patch, replace, get: id => byId.get(String(id)), values: () => [...byId.values()],
+    nearby: bounds => spatialIndex.query(padBoundaryBounds(bounds)), stats: () => ({ preparationCount }) };
 }
 
 export function buildBoundaryTopology(features = [], options = {}) {
@@ -65,62 +130,74 @@ export function buildBoundaryTopology(features = [], options = {}) {
 // Display-only geometry. The edit topology remains the single authority for
 // shared/coast classification; geographic boundary handling drops pole and
 // artificial antimeridian closing edges before either renderer sees them.
-export function buildCountrySharedBoundarySegments(features = []) {
-  const boundsOf = feature => {
-    const bounds = [Infinity, Infinity, -Infinity, -Infinity];
-    const visit = value => {
-      if (!Array.isArray(value)) return;
-      if (typeof value[0] === 'number' && typeof value[1] === 'number') {
-        bounds[0] = Math.min(bounds[0], value[0]); bounds[1] = Math.min(bounds[1], value[1]);
-        bounds[2] = Math.max(bounds[2], value[0]); bounds[3] = Math.max(bounds[3], value[1]);
-      } else for (const item of value) visit(item);
-    };
-    visit(feature?.geometry?.coordinates);
-    return bounds;
-  };
-  const rows = features.map(feature => ({ feature, bounds: boundsOf(feature) }));
+export function buildCountrySharedBoundaryContact(left, right) {
+  const overlap = [Math.max(left.bounds[0], right.bounds[0]), Math.max(left.bounds[1], right.bounds[1]),
+    Math.min(left.bounds[2], right.bounds[2]), Math.min(left.bounds[3], right.bounds[3])];
+  if (overlap[0] > overlap[2] + 1e-7 || overlap[1] > overlap[3] + 1e-7) return [];
+  const candidates = new Set();
+  const rows = left.spatialIndex.query(padBoundaryBounds(overlap)).sort((a, b) =>
+    a.polygonIndex - b.polygonIndex || a.ringIndex - b.ringIndex || a.segmentIndex - b.segmentIndex);
+  for (const row of rows) {
+    const nearby = right.spatialIndex.query(padBoundaryBounds(segmentBounds(row)));
+    if (!nearby.length) continue;
+    candidates.add(row);
+    for (const other of nearby) candidates.add(other);
+  }
+  if (!candidates.size) return [];
+  const topology = buildBoundaryTopologyFromSegments([...candidates]);
+  return [...topology.segments.values()].filter(segment => segment.kind === 'shared').flatMap(segment =>
+    buildRenderableBoundarySegments({ type: 'LineString', coordinates: [segment.a, segment.b] })
+      .map(([start, end]) => ({ start, end, ownerIds: [...segment.ownerIds].sort(), refs: segment.refs })));
+}
+
+export function buildCountrySharedBoundarySegments(features = [], { preparedStore } = {}) {
+  const store = preparedStore || createPreparedBoundaryStore();
+  if (!preparedStore) store.replace(features);
+  const rows = features.map(feature => store.get(feature.id));
+  const order = new Map(rows.map((row, index) => [row.id, index]));
   const shared = new Map();
   for (let leftIndex = 0; leftIndex < rows.length; leftIndex++) {
     const left = rows[leftIndex];
-    for (let rightIndex = leftIndex + 1; rightIndex < rows.length; rightIndex++) {
-      const right = rows[rightIndex];
-      const overlap = [Math.max(left.bounds[0], right.bounds[0]), Math.max(left.bounds[1], right.bounds[1]),
-        Math.min(left.bounds[2], right.bounds[2]), Math.min(left.bounds[3], right.bounds[3])];
-      if (overlap[0] > overlap[2] + 1e-7 || overlap[1] > overlap[3] + 1e-7) continue;
-      const touches = row => Math.max(row.a[0], row.b[0]) >= overlap[0] - 1e-7
-        && Math.min(row.a[0], row.b[0]) <= overlap[2] + 1e-7
-        && Math.max(row.a[1], row.b[1]) >= overlap[1] - 1e-7
-        && Math.min(row.a[1], row.b[1]) <= overlap[3] + 1e-7;
-      const rightSegments = boundarySourceSegments(right.feature).filter(touches);
-      if (!rightSegments.length) continue;
-      const contactIndex = createBoundarySpatialIndex();
-      rightSegments.forEach((row, index) => contactIndex.insert(index, row, segmentBounds(row)));
-      const candidates = new Set();
-      for (const row of boundarySourceSegments(left.feature).filter(touches)) {
-        const bounds = segmentBounds(row);
-        const nearby = contactIndex.query([
-          bounds[0] - 1e-7, bounds[1] - 1e-7, bounds[2] + 1e-7, bounds[3] + 1e-7,
-        ]);
-        if (!nearby.length) continue;
-        candidates.add(row);
-        for (const other of nearby) candidates.add(other);
-      }
-      if (!candidates.size) continue;
-      const topology = buildBoundaryTopologyFromSegments([...candidates]);
-      for (const segment of topology.segments.values()) {
-        if (segment.kind !== 'shared') continue;
-        const key = segmentKey(segment.a, segment.b, topology.precision);
-        const previous = shared.get(key);
-        if (previous) for (const id of segment.ownerIds) previous.ownerIds.add(id);
-        else shared.set(key, { a: segment.a, b: segment.b, ownerIds: new Set(segment.ownerIds) });
-      }
+    if (!left.segments.length) continue;
+    const nearby = store.nearby(left.bounds).filter(right => order.get(right.id) > leftIndex)
+      .sort((a, b) => order.get(a.id) - order.get(b.id));
+    for (const right of nearby) for (const segment of buildCountrySharedBoundaryContact(left, right)) {
+      const key = segmentKey(segment.start, segment.end, 7);
+      const previous = shared.get(key);
+      if (previous) {
+        previous.ownerIds = [...new Set([...previous.ownerIds, ...segment.ownerIds])].sort();
+        for (const ref of segment.refs) if (!previous.refs.some(other => other.featureId === ref.featureId
+          && other.polygonIndex === ref.polygonIndex && other.ringIndex === ref.ringIndex
+          && other.segmentIndex === ref.segmentIndex)) previous.refs.push(ref);
+      } else shared.set(key, segment);
     }
   }
-  return [...shared.values()].flatMap(segment => {
-    const ownerIds = [...segment.ownerIds].sort();
-    return buildRenderableBoundarySegments({ type: 'LineString', coordinates: [segment.a, segment.b] })
-      .map(([start, end]) => ({ start, end, ownerIds }));
-  });
+  return [...shared.values()];
+}
+
+// Static cache and rendering packets store coordinates/owners; live source refs
+// are attached once by the Worker and never cloned into every render packet.
+export function serializeCountrySharedBoundarySegments(segments) {
+  return segments.map(({ start, end, ownerIds }) => ({ start, end, ownerIds }));
+}
+
+export function attachBoundarySegmentReferences(segment, preparedStore) {
+  if (segment.refs) return segment;
+  const refs = [];
+  for (const id of segment.ownerIds) {
+    const prepared = preparedStore.get(id);
+    if (!prepared) throw new Error(`공유 경계의 원본 객체가 없습니다: ${id}`);
+    let edge;
+    for (const shift of [0, 360, -360]) {
+      const start = [segment.start[0] + shift, segment.start[1]], end = [segment.end[0] + shift, segment.end[1]];
+      edge = prepared.spatialIndex.query(padBoundaryBounds(segmentBounds({ a: start, b: end })))
+        .find(row => pointOnSegment(start, row.a, row.b, 1e-7) !== null && pointOnSegment(end, row.a, row.b, 1e-7) !== null);
+      if (edge) break;
+    }
+    if (!edge) throw new Error(`공유 경계의 원본 구간이 없습니다: ${id}`);
+    refs.push(edge);
+  }
+  return { ...segment, refs };
 }
 
 export function buildBoundaryTopologyFromSegments(rawSegments, { precision = 7, epsilon = 1e-7 } = {}) {
@@ -349,20 +426,13 @@ function pointSegmentDistance(point, a, b) {
 
 // Coincident edges on the same filled side are an exterior shared by an
 // overlapping parent/child, rather than a boundary separating their land.
-export function hasOpposingBoundaryInteriors(segment, features) {
-  const middle = [(segment.start[0] + segment.end[0]) / 2, (segment.start[1] + segment.end[1]) / 2];
+export function hasOpposingBoundaryInteriors(segment, ownerIds = segment.ownerIds) {
   const dx = segment.end[0] - segment.start[0], dy = segment.end[1] - segment.start[1];
-  const sides = features.map(feature => {
-    const edge = boundarySourceSegments(feature).find(row => pointSegmentDistance(middle, row.a, row.b) <= 1e-7);
-    if (!edge) throw new Error(`공유 경계의 원본 구간이 없습니다: ${feature.id}`);
-    const ring = ringForRef(feature, edge);
-    let area = 0;
-    for (let index = 1; index < ring.length; index++) {
-      const a = ring[index - 1], b = ring[index], origin = ring[0];
-      area += (a[0] - origin[0]) * (b[1] - origin[1]) - (b[0] - origin[0]) * (a[1] - origin[1]);
-    }
+  const sides = ownerIds.map(id => {
+    const edge = segment.refs?.find(ref => String(ref.featureId) === String(id));
+    if (!edge) throw new Error(`공유 경계의 원본 구간이 없습니다: ${id}`);
     const direction = Math.sign((edge.b[0] - edge.a[0]) * dx + (edge.b[1] - edge.a[1]) * dy);
-    return direction * Math.sign(area) * (edge.ringIndex ? -1 : 1);
+    return direction * edge.interiorSide;
   });
   return new Set(sides).size > 1;
 }
