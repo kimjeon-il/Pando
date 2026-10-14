@@ -989,6 +989,12 @@ if(BUILD_TESTING)
     target_compile_definitions(split_geometry_normalizer_tests PRIVATE M973_SPLIT_NORMALIZER_FIXTURE="${PROJECT_SOURCE_DIR}/assets/geometry/split-corrections/normalizer-cases.json")
     add_test(NAME split_geometry_normalizer_tests COMMAND split_geometry_normalizer_tests -o -,txt)
     set_tests_properties(split_geometry_normalizer_tests PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
+    # P5-2: prove the Qt QJSEngine adapter calls shared/core, independent of
+    # unrelated historical clipping oracle cases.
+    add_test(NAME p5_spherical_area_qt_bridge
+        COMMAND split_geometry_normalizer_tests sharedSphericalAreaIsIdenticalToQtAdapter -o -,txt)
+    set_tests_properties(p5_spherical_area_qt_bridge PROPERTIES
+        ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
 endif()
 if(BUILD_TESTING)
     find_program(M973_NODE_EXECUTABLE node)
