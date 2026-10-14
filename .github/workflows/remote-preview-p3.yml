@@ -6,6 +6,9 @@ on:
       - '.github/workflows/remote-preview-p3.yml'
       - 'scripts/p3-plan-remote.mjs'
       - 'scripts/p3-stage-preview.mjs'
+      - 'scripts/p3-preview-server.mjs'
+      - '.devcontainer/**'
+      - 'tests/unit/p3-preview-server.test.mjs'
       - 'tests/unit/p3-remote-plan.test.mjs'
       - 'tests/browser/p3-remote-preview.spec.mjs'
       - 'tests/browser/performance-observability.spec.mjs'
@@ -58,7 +61,7 @@ jobs:
         with:
           node-version-file: .nvmrc
       - name: Check preview and build plan without installing SDKs
-        run: node --test tests/unit/p3-remote-plan.test.mjs
+        run: node --test tests/unit/p3-remote-plan.test.mjs tests/unit/p3-preview-server.test.mjs
       - name: Resolve changed scopes using the actual Git history
         id: scope
         env:
