@@ -9,6 +9,7 @@ on:
       - 'tests/unit/p3-remote-plan.test.mjs'
       - 'tests/browser/p3-remote-preview.spec.mjs'
       - 'tests/browser/performance-observability.spec.mjs'
+      - 'tests/unit/gpu-scene-platform-port.test.mjs'
       - 'index.html'
       - '.nojekyll'
       - 'assets/**'
@@ -118,8 +119,8 @@ jobs:
         run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Install Chromium and OS dependencies
         run: pnpm exec playwright install --with-deps chromium
-      - name: Verify the active built-in world mesh decoder contract
-        run: node --test tests/unit/country-mesh-codec-runtime.test.mjs
+      - name: Verify the active built-in world mesh decoder and GPU capability wiring
+        run: node --test tests/unit/country-mesh-codec-runtime.test.mjs tests/unit/gpu-scene-platform-port.test.mjs
       - name: Run real desktop and emulated mobile screenshots plus startup observability
         shell: bash
         env:
