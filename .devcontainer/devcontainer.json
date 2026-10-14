@@ -1,0 +1,21 @@
+{
+  "name": "Pando browser preview (Node only)",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-24-bookworm",
+  "forwardPorts": [
+    4173
+  ],
+  "portsAttributes": {
+    "4173": {
+      "label": "Pando branch web preview",
+      "onAutoForward": "openPreview"
+    }
+  },
+  "postStartCommand": "bash .devcontainer/start-preview.sh",
+  "customizations": {
+    "codespaces": {
+      "openFiles": [
+        "docs/development/remote-preview-p3.md"
+      ]
+    }
+  }
+}
