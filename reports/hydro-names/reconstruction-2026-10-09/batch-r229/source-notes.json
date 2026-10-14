@@ -1,0 +1,822 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r229",
+  "sources": [
+    {
+      "source_key": "r229-inegi-galeana2010",
+      "title": "Compendio de información geográfica municipal 2010: Galeana, Nuevo León",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "edition": "2010; clave geoestadística 19017",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/19/19017.pdf",
+      "publication_identity_basis": "Independently issued municipal product with its own Galeana title, code19017, municipality-bounded tables and Relieve map. Its identified editorial and mapped scope distinguishes it from held municipal products for other municipalities. The Relieve sources explicitly name topographic seriesII and the INEGI–CONAGUA2007 hydrographic map, rather than the held sixth-edition2023 national publication.",
+      "actually_read": "Physically retained successful original from earlier research, read locally without reacquisition: cover/title and code; geographic extent and physiography on PDF page2; hydrography table on PDF page3; whole Relieve map, legend and source lines on PDF page7, followed by an enlarged unmarked corridor reading.",
+      "supports": "Galeana municipal setting, separate short intermittent drainages, western collector and Río Bajío San Agustín contributor, distinct surrounding ridges and waterbodies.",
+      "limits": "Generalized municipal relief cartography. It does not demonstrate the selected cultivated-plain transfer or provide a whole-system hydronym. No present-flow, current shoreline, exact confluence or official registry status is claimed."
+    },
+    {
+      "source_key": "r229-galeana-urban-plan2040",
+      "title": "Plan Municipal de Desarrollo Urbano de Galeana, Nuevo León 2040; modified according to public-consultation submissions",
+      "publisher": "Gobierno Municipal de Galeana, Nuevo León",
+      "edition": "2021–2024 municipal administration; consultation-modified version hosted September2023; exact printed publication date not established",
+      "official_url": "https://galeana.gob.mx/wp-content/uploads/2023/09/PMDUG-2040-Modificado-conforme-a-planteamientos-procedentes-en-CP.pdf",
+      "publication_identity_basis": "Separate municipal urban-development planning project, with its own introductory objectives,2021–2024 revision context, methodology, diagnostic chapters and2040 planning horizon. Not an edition, sheet or companion of a CONAGUA aquifer report or the held national topographic publication.",
+      "actually_read": "Normally acquired complete original PDF: introductory planning and administration context on pp4–5; methodology on p18; hydrology and water-supply prose on pp40–41. Map panels were not inspected or used.",
+      "supports": "Own planning prose describes San Rafael as a closed basin, ephemeral streams disappearing on piedmont/plain, San Pablo and El Carmen as local streams and Bajío San Agustín as a low-lying area. This supplies regional context rather than proof of the selected transfer.",
+      "limits": "The methodology cites unspecified INEGI thematic1:50,000 and other cartographic data, municipal information, aerial photographs and Google Earth. Borrowed map panels remain excluded while the underlying publication relationship is unresolved. No current operational or legal conclusion is drawn."
+    },
+    {
+      "source_key": "r229-esri-galeana-east",
+      "title": "World Imagery: bounded eastern Galeana foothill and cultivated-lowland view",
+      "publisher": "Esri and imagery contributors",
+      "edition": "Live mosaic read13October2026; individual acquisition dates not established",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "publication_identity_basis": "Independently maintained photographic imagery mosaic, unrelated to INEGI or CONAGUA publication recovery. This Nuevo León scene is geographically distinct from the held northern-Ellesmere view.",
+      "actually_read": "Completed original image inspected unmarked and with a separate private path-orientation aid; chosen opening, southeastern hook, eastern lowland, westward bend and overlap with the northern view.",
+      "supports": "Foothill entry, intermontane lowland and broad alluvial setting.",
+      "limits": "Photographic terrain evidence, not hydronym or current-flow evidence. Diffuse traces and cultivated plots do not establish the entire northern transfer."
+    },
+    {
+      "source_key": "r229-esri-galeana-north",
+      "title": "World Imagery: bounded northern Galeana plain and western-collector approach",
+      "publisher": "Esri and imagery contributors",
+      "edition": "Live mosaic read13October2026; individual acquisition dates not established",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "publication_identity_basis": "Same independently maintained photographic mosaic; target-specific bounded view, serialized with the other two acquisitions.",
+      "actually_read": "Completed original image inspected unmarked and with a separate private orientation aid; northern diagonal, westward turn, western-collector head and overlap with both adjacent views.",
+      "supports": "Cultivated plain and local diffuse runoff setting; western collector below the selected northwestern turn.",
+      "limits": "Does not demonstrate the specific long connecting transfer across the northern cultivated surfaces."
+    },
+    {
+      "source_key": "r229-esri-galeana-west-terminal",
+      "title": "World Imagery: bounded western Galeana collector and terminal playa",
+      "publisher": "Esri and imagery contributors",
+      "edition": "Live mosaic read13October2026; individual acquisition dates not established",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "publication_identity_basis": "Same independently maintained photographic mosaic; target-specific bounded view, serialized with the other two acquisitions.",
+      "actually_read": "Completed original image inspected unmarked and with a separate private orientation aid; northwestern collector, playa entry, entire elongated receiving floor and actual southeastern ending.",
+      "supports": "Connected western collector-to-playa entry and continuous terminal receiving setting.",
+      "limits": "No playa hydronym, river trace across its floor, current water extent or present hydraulic operation is inferred."
+    },
+    {
+      "source_key": "r229-usgstopo-catlow",
+      "title": "USGSTopo, The National Map: selected Guano Slough–Catlow Valley corridor views",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "material_read": "Five original bounded map images: full selected corridor, southern chosen opening, middle Guano Slough/Guano Reservoir, northern Catlow transfer, and eastern lake/marsh corridor including the actual southern endpoint. Each completed direct HTTP200 image/png before visual reading.",
+      "source_scope": "Ordinary topographic labels, intermittent channels, waterbodies, wetland/sink/receiving settings, relief, roads and managed linework. Local reading crops and orientation overlays were private aids only.",
+      "publication_independence": "Independently maintained multiscale USGSTopo reference map, positively distinguished from held USGS reports and old unconfirmed Nevada/Alaska image requests. These are new Oregon views, not recovery of either old output.",
+      "use_notice": "Only own factual observations and normal bibliography are public-ready. No source images, crops, derivatives, full selected positions or dynamic requests are redistributed."
+    },
+    {
+      "source_key": "r229-odfw-catlow-redband",
+      "title": "Oregon Native Fish Status Report, Volume II: Catlow Valley Redband Trout",
+      "publisher": "Oregon Department of Fish and Wildlife",
+      "official_url": "https://www.dfw.state.or.us/fish/onfsr/docs/final/08-redband-trout/rb-methods-catlow-valley.pdf",
+      "edition": "Chapter printed pages379–384; publication year is not printed in the six-page original chapter.",
+      "material_read": "Completed original six-page PDF and extracted text read; geographic use is limited to authorial Existing Populations and Distribution prose on printed pages379–380.",
+      "source_scope": "Regional context: Guano Creek drains south from Hart Mountain and then north through the slough to Catlow Valley; the historic pluvial lake differs from the modern fragmented habitats, and Catlow Marsh is identified as Garrison Lake. The account records agricultural drainage of that marsh. No complete selected cross-valley or southern through-link is supplied. The prose calls the slough Catlow Slough; that wording is retained as source-specific regional terminology and is not used to establish a universal alias or scalar name for the selected object.",
+      "publication_independence": "ODFW statewide native-fish status assessment chapter using its population-review program, distinct in commissioning, subject and content from FWS Cow Head tui chub2006 listing withdrawal and held USGS hydrologic reports.",
+      "use_notice": "Own bounded geographic paraphrase only. No source PDF, complete tables, borrowed GIS distribution or fish-survey datasets reproduced."
+    },
+    {
+      "source_key": "r229-esri-catlow",
+      "title": "World Imagery: bounded Guano Reservoir–Catlow transfer–Garrison Lake southern receiving corridor",
+      "publisher": "Esri and imagery providers",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "material_read": "One completed original bounded image, direct HTTP200 image/jpeg, visually read at whole-corridor scale and with private northern-transfer, Guano Reservoir and southern-terminal reading crops.",
+      "source_scope": "Visible landscape correspondence, plain/ridge/wetland distinctions and the continuous southern lakebed/pond receiving setting. No imagery-derived hydronym, present flow, current ditch operation or precise survey claim. Mosaic imagery dates were not established.",
+      "publication_independence": "Independently maintained Esri imagery service; this new Oregon view is unrelated to the held northern Ellesmere selected view and does not recover it.",
+      "use_notice": "Only own geographic observations and the normal service bibliography are public-ready; original imagery, crops, overlays, full selected positions and dynamic request URLs remain private."
+    },
+    {
+      "source_key": "r229-ingemmet-tacna-ga45a-2016",
+      "title": "Informe técnico: Zonas críticas por peligros geológicos en la región Tacna, Primer reporte",
+      "author": "Griselda Luque Poma",
+      "publisher": "Instituto Geológico Minero y Metalúrgico, Dirección de Geología Ambiental y Riesgo Geológico",
+      "date": "Febrero2016",
+      "official_url": "https://sigrid.cenepred.gob.pe/sigridv3/storage/biblioteca/9362_informe-tecnico-zonas-criticas-por-peligro-geologico-en-la-region-tacna.pdf",
+      "publication_identity": "Original cover and introduction identify GA-45A, Estudio de Riesgos Geológicos por regiones: Tacna, based on two 2015 field campaigns. Independently authored regional hazard-fieldwork publication, distinct from MTC transport cartography, ANA hydrology/plans and the held Santa Ana geological revisions.",
+      "acquisition": "Retained successful original acquired in r170, reused locally; no new request.",
+      "actual_material_read": [
+        "Cover PDF1, visually inspected",
+        "Introduction and methods, printed1–3/PDF3–5, bounded text",
+        "Hidrografía and geological context, printed7–8/PDF9–10, bounded text",
+        "Tacna field descriptions, printed30–31/PDF32–33, bounded text; Caplina diversion photo caption printed35/PDF37",
+        "Annex Mapa N°01/PDF52: full map, legend and imprint; selected opening, all intermediate parts/joins, managed continuation and coastal terminal visually inspected"
+      ],
+      "map_bibliography": "Región Tacna: Zonas críticas por peligros geológicos, Mapa N°01,1:350,000; digital version2015, printed Enero2016; UTM WGS84 Zona19Sur.",
+      "evidence_boundary": "Hydrographic linework, topography, local toponyms and field prose. Numbered hazard markers are not river-name anchors."
+    },
+    {
+      "source_key": "r229-ingemmet-caplina-h1-2009",
+      "title": "Hidrogeología de la cuenca del Río Caplina – Región Tacna",
+      "authors": [
+        "Fluquer Peña Laureano",
+        "Gerson Cotrina Chávez",
+        "Harmuth Acosta Pereira"
+      ],
+      "publisher": "INGEMMET, Boletín N°1 Serie H: Hidrogeología",
+      "date": "2009; first edition printed25June2009",
+      "official_url": "https://repositorio.ingemmet.gob.pe/bitstream/20.500.12544/368/9/H001-Boletin_Hidrogeolog%c3%ada_cuenca_r%c3%ado_Caplina_regi%c3%b3n_Tacna.pdf",
+      "publication_identity": "An original groundwater-basin investigation with field inventory, sampling and infiltration work on2–22June2006, and own author/GIS/editorial credits. This is a separate field project from held ANA studies and Santa Ana geology, not a renamed copy or equivalent recovery.",
+      "acquisition": "Normal original completed directHTTP200 application/pdf; 149-page complete file read only in the bounded scopes below.",
+      "actual_material_read": [
+        "Cover PDF1 and imprint PDF3, visually inspected",
+        "Contents/map list PDF4–6, bounded text",
+        "Introduction, objectives, methods and participation, printed3–5/PDF10–12, bounded text",
+        "Physiographic valley/fan descriptions, printed14–17/PDF21–24, bounded text",
+        "Surface drainage and Caplina/Palca/Uchusuma context, printed39–41/PDF46–48, bounded text",
+        "Own Figure3.4 Mapa de subcuencas, printed42/PDF49, full map and enlarged upper/lower panels visually inspected"
+      ],
+      "evidence_boundary": "Own field-study prose and named drainage network. Basin membership alone is not the correspondence basis; the actual selected network is compared with the larger GA-45A map. Six separately listed companion maps were not acquired or claimed read.",
+      "use_notice": "Original imprint reserves rights and prohibits reproduction; bounded factual synthesis and bibliography only, no source or derivative redistribution."
+    },
+    {
+      "source_key": "r229-pet-poi-2015",
+      "title": "Plan Operativo Institucional2015",
+      "publisher": "Proyecto Especial Afianzamiento y Ampliación de los Recursos Hídricos de Tacna (PET), Gobierno Regional de Tacna; Oficina de Planeamiento y Gestión Estratégica",
+      "date": "2015",
+      "official_url": "https://www.pet.gob.pe/media/Transp/2015-211-plan-operativo-institucional-poi-2015-34175d8acd.pdf",
+      "publication_identity": "Separately issued PET annual institutional operating plan retained from its own management/infrastructure programme, not an alternate acquisition of held ANA or TDPS material.",
+      "acquisition": "Retained successful r170 original, reused locally without a new request.",
+      "actual_material_read": [
+        "Original introductory staff/imprint text",
+        "Caplina subsection, printed13/PDF14, bounded extracted text"
+      ],
+      "evidence_boundary": "Caplina geography, arid terminal-flow distinction and own-regulation context only. Unrelated interbasin transfers, hydrological tables credited to other studies and current operation claims excluded."
+    },
+    {
+      "source_key": "r229-esri-tacna-imagery",
+      "title": "World Imagery: two bounded Tacna and Hospicio–Los Palos corridor views",
+      "publisher": "Esri and World Imagery contributors",
+      "date": "Service views accessed13October2026; individual mosaic capture dates unverified",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "publication_identity": "Independently maintained imagery mosaic. Bounded Tacna geographic views do not recover any held report or the paused northern Ellesmere view.",
+      "acquisition": "Both serialized normal original views completed directHTTP200 image/png.",
+      "actual_material_read": [
+        "Calana–Piedra Blanca–eastern/southern Tacna corridor, original pixels visually inspected",
+        "Southern Tacna–Arunta–Hospicio fan–Los Palos coast, original pixels visually inspected"
+      ],
+      "evidence_boundary": "Visible valley, built/managed corridor, dry wash and coastal alluvial receiving setting only. Names come from the two INGEMMET originals; no present hydraulic operation or current continuous water thread is inferred."
+    },
+    {
+      "source_key": "r229-esri-brock-east",
+      "title": "World Imagery: bounded Brock River east corridor view",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "evidence_kind": "independently_maintained_satellite_imagery",
+      "actual_material_read": "Entire eastern original, including chosen opening, partly snow-covered lake/feeder sequence, larger waterbody widening/outlet, upper meanders and northern/western turn; a local enlargement of the opening was also read.",
+      "observed_outcome": "Normal image acquisition completed HTTP200 image/jpeg; original pixels were inspected only after terminal completion.",
+      "source_independence": "Independently maintained imagery publication and a new bounded mainland Northwest Territories scene, not a recovery of held cartography, geological maps, fisheries publications or the held northern Ellesmere view.",
+      "supports": "Geographic component and through-corridor correspondence only.",
+      "limits": "No hydronym, formal registry status, exact bank, current discharge, ice-free connection, hydraulic measurement or contemporary navigation inference. Seasonal snow and mosaic differences are visible. Source originals and comparison aids are not redistributed."
+    },
+    {
+      "source_key": "r229-esri-brock-middle",
+      "title": "World Imagery: bounded Brock River middle corridor view",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "evidence_kind": "independently_maintained_satellite_imagery",
+      "actual_material_read": "Entire middle original and its overlap with the eastern and western views: upper westward reach, central southwest canyon, every intervening selected join, and lower western continuation.",
+      "observed_outcome": "Normal image acquisition completed HTTP200 image/jpeg; original pixels were inspected only after terminal completion.",
+      "source_independence": "Independently maintained imagery publication and a new bounded mainland Northwest Territories scene, not a recovery of held cartography, geological maps, fisheries publications or the held northern Ellesmere view.",
+      "supports": "Geographic component and through-corridor correspondence only.",
+      "limits": "No hydronym, formal registry status, exact bank, current discharge, ice-free connection, hydraulic measurement or contemporary navigation inference. Seasonal snow and mosaic differences are visible. Source originals and comparison aids are not redistributed."
+    },
+    {
+      "source_key": "r229-esri-brock-west",
+      "title": "World Imagery: bounded Brock River west corridor view",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "evidence_kind": "independently_maintained_satellite_imagery",
+      "actual_material_read": "Entire western original: lower westward river, northward turn, fan delta, northern delta side, spit/lagoon setting and open-bay terminal context.",
+      "observed_outcome": "Normal image acquisition completed HTTP200 image/jpeg; original pixels were inspected only after terminal completion.",
+      "source_independence": "Independently maintained imagery publication and a new bounded mainland Northwest Territories scene, not a recovery of held cartography, geological maps, fisheries publications or the held northern Ellesmere view.",
+      "supports": "Geographic component and through-corridor correspondence only.",
+      "limits": "No hydronym, formal registry status, exact bank, current discharge, ice-free connection, hydraulic measurement or contemporary navigation inference. Seasonal snow and mosaic differences are visible. Source originals and comparison aids are not redistributed."
+    },
+    {
+      "source_key": "r229-chs-arc4032024-brock",
+      "title": "Canadian Sailing Directions, ARC403: Western Arctic",
+      "publisher": "Canadian Hydrographic Service, Fisheries and Oceans Canada",
+      "edition": "2024/03",
+      "catalogue_number": "Fs74-40E-PDF",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/chs-shc-ARC403-eng-202403-41232306.pdf",
+      "evidence_kind": "primary_coastal_geographic_prose",
+      "actual_material_read": "Physically retained original cover and reproduction notice; Chapter3 printed pages3-11,3-16 and3-17 coastal prose, especially paragraphs84-85 and149-150. No chart original or external chart was acquired.",
+      "observed_outcome": "Previously completed lawful original acquisition; the retained PDF and text were read locally with no new request.",
+      "source_independence": "Independently issued Western Arctic sailing-directions volume, positively distinct from held ARC401, CGN records, CanMatrix, CBMT3978, NLUIS index and geological field-project material.",
+      "supports": "Brock River name at the fan delta entering southeastern Darnley Bay, nearby Brock Lagoon, and distinction from Hornaday River. Combined with continuously read imagery, supports representative Brock River system identity.",
+      "limits": "Coastal prose does not individually name the eastern lakes/feeder or establish that every selected waterbody is literally named Brock River. Used for geographic identity only, not current navigation advice.",
+      "use_notice": "Original allows non-commercial personal reproduction and requires prior permission for commercial reproduction. Only own factual synthesis and ordinary bibliography are public-ready."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70850906",
+      "source_keys": [
+        "r229-inegi-galeana2010",
+        "r229-galeana-urban-plan2040",
+        "r229-esri-galeana-east",
+        "r229-esri-galeana-north",
+        "r229-esri-galeana-west-terminal"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10369
+          ],
+          "component_scope": "opening_and_southeastern_hook",
+          "finding": "The chosen opening is an unnamed foothill draw entering the cultivated eastern intermontane lowland. The southward/eastward hook and subsequent northward turn lie in the same broad piedmont and lowland setting. No distinct river name or precisely surveyed source is established.",
+          "sources": [
+            "r229-inegi-galeana2010",
+            "r229-esri-galeana-east"
+          ],
+          "correspondence": "bounded_opening_and_lowland_entry_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            10369
+          ],
+          "component_scope": "eastern_lowland_and_westward_bend",
+          "finding": "The northward selection follows the eastern cultivated lowland, with pale alluvial surfaces and diffuse channel-like traces between the mountain flanks. Its westward bend remains within this same broad receiving depression and piedmont corridor. Scattered field boundaries and local drainage traces are not assigned independent names or current hydraulic functions.",
+          "sources": [
+            "r229-inegi-galeana2010",
+            "r229-esri-galeana-east",
+            "r229-esri-galeana-north",
+            "r229-galeana-urban-plan2040"
+          ],
+          "correspondence": "bounded_terrain_and_receiving_corridor_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            10369
+          ],
+          "component_scope": "intervening_northern_plain_transfer",
+          "finding": "The long northwestward and then westward selection crosses cultivated plain and piedmont surfaces toward the head of the western collector. The municipal relief map shows separate short drainage traces rather than this whole connecting course; the original imagery shows agricultural plots and diffuse local runoff patterns but does not establish a continuous selected transfer between the eastern depression and the western collector. This is an intervening connection gap, distinct from the accepted terminal-playa continuation.",
+          "sources": [
+            "r229-inegi-galeana2010",
+            "r229-esri-galeana-east",
+            "r229-esri-galeana-north",
+            "r229-esri-galeana-west-terminal",
+            "r229-galeana-urban-plan2040"
+          ],
+          "correspondence": "intervening_through_link_unestablished",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            10369
+          ],
+          "component_scope": "western_collector_and_playa_entry",
+          "finding": "Below the northwestern bend, a visible southward collector and its low corridor lead into the elongated pale playa. Municipal drainage linework supports the western collector and adjacent tributary setting. The broad entry and receiving setting are established; no precise or currently wetted channel is asserted.",
+          "sources": [
+            "r229-inegi-galeana2010",
+            "r229-esri-galeana-north",
+            "r229-esri-galeana-west-terminal"
+          ],
+          "correspondence": "collector_and_receiving_playa_entry_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            10369
+          ],
+          "component_scope": "terminal_playa_and_actual_ending",
+          "finding": "The remaining southward and southeastward continuation, including the final bend and actual selected ending, stays within one continuous elongated playa/lowland. The original western image covers its northern entry, broad central floor, southeastern extension and endpoint setting. A river trace across the playa floor is neither required for this bounded correspondence nor claimed. The waterbody or lowland has no selected-feature name established by the material read.",
+          "sources": [
+            "r229-inegi-galeana2010",
+            "r229-esri-galeana-west-terminal",
+            "r229-galeana-urban-plan2040"
+          ],
+          "correspondence": "continuous_receiving_setting_and_actual_ending_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": null
+        },
+        {
+          "fragments": [],
+          "component_scope": "named_contributor_and_other_waterbodies",
+          "finding": "The municipal map/table identify Río Bajío San Agustín on a transverse eastern tributary entering the western lowland. That label is not demonstrated to name the selected northern approach or the whole system. Río San Pablo, Presa El Carmen and Laguna de Labradores are separately depicted regional features, not established aliases or selected lake/reservoir passages. No separately supplied tributary fragment, glacier connection or demonstrated managed-channel passage is present.",
+          "sources": [
+            "r229-inegi-galeana2010",
+            "r229-galeana-urban-plan2040"
+          ],
+          "correspondence": "name_scope_disambiguation_completed",
+          "component_correspondence_completed": true,
+          "role": "context_not_a_selected_tributary_fragment",
+          "candidate_name": null,
+          "selected_route_correspondence_completed": false
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70504450",
+      "source_keys": [
+        "r229-usgstopo-catlow",
+        "r229-odfw-catlow-redband",
+        "r229-esri-catlow"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9749
+          ],
+          "component_scope": "Chosen unnamed feeder southeast of Lone Grave Butte",
+          "finding": "The chosen opening follows a mapped intermittent ravine on the southeastern side of Lone Grave Butte, then bends southwest and west toward the northern Guano Valley wetland. The unnamed feeder and the successive lower bends are depicted; no name is inferred from Lone Grave Butte or nearby roads.",
+          "sources": [
+            "r229-usgstopo-catlow"
+          ],
+          "correspondence": "completed_ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            9749
+          ],
+          "component_scope": "Northern Guano Valley wetland and slough entry",
+          "finding": "The feeder enters the northern Guano Valley marsh/depression setting and the selected northward continuation enters the mapped Guano Slough corridor. The receiving setting and its northern exit are covered at ordinary scale; a presently wetted channel is not required. Guano Lake and Shirk Lake farther south are not traversed by this chosen opening.",
+          "sources": [
+            "r229-usgstopo-catlow"
+          ],
+          "correspondence": "completed_ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            9749
+          ],
+          "component_scope": "Guano Slough canyon and northeastern turn",
+          "finding": "Repeated Guano Slough labels follow the selected northward canyon, the eastward turn, Black Canyon and the approach to Guano Reservoir. The intervening stored joins remain within the same mapped valley corridor. Alger Lake, Link Lake and Murphy Waterhole are neighboring features rather than substitute selected reaches.",
+          "sources": [
+            "r229-usgstopo-catlow"
+          ],
+          "correspondence": "completed_ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": "Guano Slough"
+        },
+        {
+          "fragments": [
+            9749
+          ],
+          "component_scope": "Guano Reservoir and lower slough bend",
+          "finding": "The mapped slough enters Guano Reservoir at the canyon mouth and continues northeast into a multithread intermittent slough. The selected broad northward bend is generalized west of the depicted principal thread and rejoins its lower branches. At ordinary corridor scale the connected reservoir and lower-slough setting is covered; no exact reservoir-bank, outlet-vertex or individual-thread claim is made.",
+          "sources": [
+            "r229-usgstopo-catlow",
+            "r229-esri-catlow"
+          ],
+          "correspondence": "completed_ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": "Guano Slough"
+        },
+        {
+          "fragments": [
+            9749
+          ],
+          "component_scope": "Lower Guano Slough and Rock Creek Sinks approach",
+          "finding": "Lower Guano Slough divides into intermittent channels and reaches the wetland/sink belt labeled Rock Creek Sinks. The selected northeastern approach and its entry into that receiving setting are depicted; channel diffusion in the sinks is not itself a gap.",
+          "sources": [
+            "r229-usgstopo-catlow",
+            "r229-esri-catlow"
+          ],
+          "correspondence": "completed_ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": "Guano Slough"
+        },
+        {
+          "fragments": [
+            9749
+          ],
+          "component_scope": "Rock Creek Sinks to eastern Catlow wetland transfer",
+          "finding": "The selected continuation turns east from Rock Creek Sinks and then southeast across the central Catlow plain toward the eastern wetland. Topography shows intervening low contour ridges, small ponds, separated intermittent drainage traces and the Blitzen Valley Road crossing. The independently read imagery shows the western sink belt and eastern wetland separated by differently textured plain/ridge and pond areas, but no complete selected geographic through-link. The observation does not assert a hydraulic barrier; the connection remains unestablished. Shared ancient Lake Catlow or modern basin membership is insufficient, and this is not simply the lack of one wetted thread on a continuously depicted receiving fan.",
+          "sources": [
+            "r229-usgstopo-catlow",
+            "r229-esri-catlow"
+          ],
+          "correspondence": "material_through_connection_unestablished",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            9749
+          ],
+          "component_scope": "Eastern Catlow wetland and Garrison Lake approach",
+          "finding": "The selected route continues south through the broad eastern Catlow marsh-and-pond corridor, passing west of mapped West Field Lake. Marshes, intermittent collectors and the northern Garrison Lake entry are depicted. Home Creek is a separate eastern tributary; neither it nor West Field Lake is assigned to the selected mainstem as a whole.",
+          "sources": [
+            "r229-usgstopo-catlow",
+            "r229-esri-catlow"
+          ],
+          "correspondence": "completed_ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            9749
+          ],
+          "component_scope": "Garrison Lake passage",
+          "finding": "The selected route enters the northern Garrison Lake wetland and crosses the mapped lake/playa body toward its southern margin. Garrison Lake is an intervening lake, not the actual selected endpoint.",
+          "sources": [
+            "r229-usgstopo-catlow",
+            "r229-esri-catlow"
+          ],
+          "correspondence": "completed_ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": "Garrison Lake"
+        },
+        {
+          "fragments": [
+            9749
+          ],
+          "component_scope": "Continuation south of Garrison Lake and actual ending",
+          "finding": "South of Garrison Lake, the original imagery shows the selected continuation remaining within an elongated, continuous low-lying lakebed/marsh-and-pond receiving setting through to the actual endpoint. Topography places Stockwater Ditch nearby and across part of the vicinity, but the selected ending lies west of the mapped ditch rather than on its depicted southern end. The terminal receiving setting is geographically accounted for without requiring a blue line across its dry floor or a currently wetted thread. No name is assigned to the ending or to small unlabeled ponds; Garrison Lake remains an intervening lake.",
+          "sources": [
+            "r229-usgstopo-catlow",
+            "r229-esri-catlow"
+          ],
+          "correspondence": "completed_ordinary_receiving_setting_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": null
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61263814",
+      "source_keys": [
+        "r229-ingemmet-tacna-ga45a-2016",
+        "r229-ingemmet-caplina-h1-2009",
+        "r229-pet-poi-2015",
+        "r229-esri-tacna-imagery"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13913
+          ],
+          "component_scope": "Chosen eastern highland opening and southward feeder",
+          "finding": "The original regional map depicts the chosen eastern opening southwest of the San Pedro Calacollo area, its southwest-to-south continuation beside the Uyo label and Anquipiña, and the successive eastern Catani/Aruma-side tributary mouths. All four selected parts remain in that mapped receiving valley. The smaller H1 Figure3.4 labels the upper feeder Q. Luyo. The two spellings are retained as source-specific reach references, not declared registry aliases.",
+          "sources": [
+            "r229-ingemmet-tacna-ga45a-2016",
+            "r229-ingemmet-caplina-h1-2009"
+          ],
+          "correspondence": "supported_at_ordinary_regional_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "named_reach_scope": "Upper feeder in the Luyo/Uyo–Anquipiña setting; no precise name transition assigned"
+        },
+        {
+          "fragments": [
+            13913
+          ],
+          "component_scope": "Upper westward turn and Challaviento-side junction",
+          "finding": "The map follows the westward valley from the Catani/Aruma-side junction past the Caplina and Chachacoman locality setting to the northwestern Challaviento-side drainage. This is the selected long westward part and its actual receiving junction. The source does not make the unselected northwestern headwater the chosen source merely because its river label is clearer.",
+          "sources": [
+            "r229-ingemmet-tacna-ga45a-2016"
+          ],
+          "correspondence": "supported_at_ordinary_regional_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "named_reach_scope": "Selected headward branch joining the Caplina receiving valley"
+        },
+        {
+          "fragments": [
+            13913
+          ],
+          "component_scope": "Chachacoman to Challatita middle valley and tributary joins",
+          "finding": "The continuous mapped valley runs southwest below Chachacoman, through the Pulaca/Focaña-side mouths and the Palca receiving junction toward Challatita. All five part boundaries occur on this same valley. H1 authorial prose identifies Palca as a main Caplina tributary; Palca is kept as a tributary name rather than applied to the selected upstream branch.",
+          "sources": [
+            "r229-ingemmet-tacna-ga45a-2016",
+            "r229-ingemmet-caplina-h1-2009"
+          ],
+          "correspondence": "supported_at_ordinary_regional_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "named_reach_scope": "Río Caplina representative middle corridor"
+        },
+        {
+          "fragments": [
+            13913
+          ],
+          "component_scope": "Calientes–Pachía–San José–Calana corridor",
+          "finding": "The blue mapped channel continues past the Tocucó/Calientes junction and through the Pachía, San José and Calana cultivated valley. Regional field observations name the Caplina at Velasquez–Calana. The selected joins and intervening parts remain on the depicted receiving corridor.",
+          "sources": [
+            "r229-ingemmet-tacna-ga45a-2016"
+          ],
+          "correspondence": "supported_at_ordinary_regional_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "named_reach_scope": "Río Caplina"
+        },
+        {
+          "fragments": [
+            13913
+          ],
+          "component_scope": "Calana–Piedra Blanca managed continuation",
+          "finding": "The selected southward continuation beside Calana and Piedra Blanca follows the mapped diversion-side channel toward the eastern Tacna drainage. GA-45A printed31 explicitly identifies the Piedra Blanca river as Uchusuma and a diversion of Caplina; its printed35 photo caption independently identifies the Caplina diversion. The nearby Represa Cerro Blanco is east of the selected route and is not assigned as a through-reservoir crossing. Imagery corroborates the cultivated valley and managed eastern-city connection at ordinary corridor scale, without resolving present routing among individual control structures.",
+          "sources": [
+            "r229-ingemmet-tacna-ga45a-2016",
+            "r229-esri-tacna-imagery"
+          ],
+          "correspondence": "supported_at_ordinary_regional_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "named_reach_scope": "Caplina diversion toward the Uchusuma corridor"
+        },
+        {
+          "fragments": [
+            13913
+          ],
+          "component_scope": "Eastern Tacna to Gregorio Albarracín and the Arunta continuation",
+          "finding": "The selected southwestward passage follows the mapped channel along eastern and southern Tacna and Gregorio Albarracín, then the Arunta receiving corridor. The regional map and H1 network distinguish neighboring Cobani/Viñani branches and depict their receiving joins. The connected route is supported without treating all these reach names as interchangeable. Imagery corroborates the valley alongside the built-up area and its southward opening into the lower wash.",
+          "sources": [
+            "r229-ingemmet-tacna-ga45a-2016",
+            "r229-ingemmet-caplina-h1-2009",
+            "r229-esri-tacna-imagery"
+          ],
+          "correspondence": "supported_at_ordinary_regional_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "named_reach_scope": "Connected Uchusuma/Arunta receiving reach of the representative Caplina system"
+        },
+        {
+          "fragments": [
+            13913
+          ],
+          "component_scope": "Arunta–Hospicio alluvial fan and Los Palos approach",
+          "finding": "The mapped lower channel continues through the Arunta–La Garita junction setting and southwest as Hospicio, beside Las Lagunas toward Los Palos. Both original maps depict this continuous alluvial receiving corridor. PET describes loss of surface flow in the desert, while H1 explains that the coastal channel is usually dry because of irrigation, infiltration and evaporation. These statements limit flow claims rather than remove the mapped geographic continuation. The imagery independently shows the receiving dry-wash/fan corridor through the agricultural plain and its gradual spread into the terminal cultivated fan.",
+          "sources": [
+            "r229-ingemmet-tacna-ga45a-2016",
+            "r229-ingemmet-caplina-h1-2009",
+            "r229-pet-poi-2015",
+            "r229-esri-tacna-imagery"
+          ],
+          "correspondence": "supported_at_ordinary_regional_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "named_reach_scope": "Arunta and Quebrada Hospicio lower receiving corridor"
+        },
+        {
+          "fragments": [
+            13913
+          ],
+          "component_scope": "San Pedro y San Pablo coastal terminal",
+          "finding": "The final selected part meets the coast near San Pedro y San Pablo, northwest of Las Palmeras and Conchal. The regional original depicts the channel to this coastal receiving setting; H1 depicts the Hospicio continuation to the Pacific separately from the adjacent Las Salinas and Escritos outlets. This establishes ordinary terminal correspondence, not a perennial open mouth or exact present shoreline. The imagery shows the same continuously covered lower fan entering the coast. Agricultural subdivision and diffuse distributaries do not create a missing cross-basin transfer.",
+          "sources": [
+            "r229-ingemmet-tacna-ga45a-2016",
+            "r229-ingemmet-caplina-h1-2009",
+            "r229-esri-tacna-imagery"
+          ],
+          "correspondence": "supported_at_ordinary_regional_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "named_reach_scope": "Hospicio fan outlet in the Los Palos Pacific-coast setting"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80041883",
+      "source_keys": [
+        "r229-esri-brock-east",
+        "r229-esri-brock-middle",
+        "r229-esri-brock-west",
+        "r229-chs-arc4032024-brock"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2360
+          ],
+          "component_scope": "eastern_opening_and_initial_lake_feeder",
+          "finding": "The selected opening lies in the eastern low valley among partly snow-covered elongated waterbodies. The original image shows its short northern indentation, western turn, and southwest continuation through the same connected low-waterbody/stream corridor. Snow obscures small shoreline details, but the ordinary valley and waterbody connection remains readable; no alternative basin crossing is required. No individual lake or feeder name is assigned.",
+          "sources": [
+            "r229-esri-brock-east"
+          ],
+          "correspondence": "completed_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stages": [
+            3
+          ]
+        },
+        {
+          "fragments": [
+            2360
+          ],
+          "component_scope": "upper_westward_lake_chain_and_outlet",
+          "finding": "The eastern original follows the westward waterbody/stream sequence into the larger irregular dark-water widening and its southwest outlet. The intervening joins remain in one continuous valley. Seasonal snow and the imagery seam change appearance, not the geographic through-connection. Lake and outlet names are not supplied by the imagery.",
+          "sources": [
+            "r229-esri-brock-east"
+          ],
+          "correspondence": "completed_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stages": [
+            3
+          ]
+        },
+        {
+          "fragments": [
+            2360
+          ],
+          "component_scope": "upper_meanders_and_northwestern_turn",
+          "finding": "Overlapping eastern and middle originals show the southwest outflow turning through broad meanders, then north and west into the same river valley. The widening, bends and intermediate joins correspond at corridor scale; the selected generalized line is not interpreted as an exact present bank.",
+          "sources": [
+            "r229-esri-brock-east",
+            "r229-esri-brock-middle"
+          ],
+          "correspondence": "completed_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stages": [
+            3
+          ]
+        },
+        {
+          "fragments": [
+            2360
+          ],
+          "component_scope": "central_southwestern_canyon_and_joins",
+          "finding": "The middle original shows the westward reach turning southwest into the incised corridor, continuing across the central bends and pale gravelly reaches. Adjacent tributary valleys join this same collector without a selected divide crossing or unresolved waterbody passage. All selected intermediate joins are covered.",
+          "sources": [
+            "r229-esri-brock-middle"
+          ],
+          "correspondence": "completed_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stages": [
+            3
+          ]
+        },
+        {
+          "fragments": [
+            2360
+          ],
+          "component_scope": "lower_westward_run_and_northward_bend",
+          "finding": "Overlapping middle and western originals show the western canyon continuation, the lower bend northward, and the broader gravelly river valley leading to the coastal plain. These selected parts remain within the same continuous river corridor; nearby lakes and tributaries are not promoted to the representative name.",
+          "sources": [
+            "r229-esri-brock-middle",
+            "r229-esri-brock-west"
+          ],
+          "correspondence": "completed_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stages": [
+            3
+          ]
+        },
+        {
+          "fragments": [
+            2360
+          ],
+          "component_scope": "fan_delta_and_actual_coastal_receiving_setting",
+          "finding": "The western original follows the lower valley into the broad fan-shaped delta, including the northern delta-side continuation and adjacent spit/lagoon shore, and out to its open-bay receiving setting. ARC403 independently identifies this coastal fan delta as the Brock River entering the southeastern corner of Darnley Bay and distinguishes the neighboring Hornaday delta. The selected terminal is a generalized delta-to-bay continuation; no precise distributary, wetted thread across the spit, shoreline vertex, or navigation condition is asserted.",
+          "sources": [
+            "r229-esri-brock-west",
+            "r229-chs-arc4032024-brock"
+          ],
+          "correspondence": "completed_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stages": [
+            3
+          ]
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "Parks Canada, Tuktut Nogait National Park of Canada Management Plan,2024; R64-615/2024E-PDF, original imprint uninspected",
+      "official_url": "https://publications.gc.ca/collections/collection_2025/pc/R64-615-2024-eng.pdf",
+      "observed_outcome": "The sole normal-original acquisition completed direct HTTP200 with Content-Type text/html; charset=utf-8 after redirection to an archived-information page. No returned body, header contents, report prose, original imprint or map pixels were read.",
+      "outcome_layer": "Completed direct-client wrong-body availability outcome; not an access-control denial.",
+      "restriction_scope": "Whole exact plan and equivalent original, HTML, catalogue, map, alternate-format, mirror and unread-output acquisition/reading paused. No alternate route, edition or substitute plan was requested.",
+      "earlier_lawful_prose_exception": null,
+      "newly_observed_access_failure": true,
+      "availability_failure": true,
+      "explicit_access_denial": false,
+      "acquisition_stop": true,
+      "material_gap": false,
+      "source_key": "r229-parks-tuktut2024-unavailable",
+      "publication_identity_basis": "Independent statutory park-management process initiated2019 and consulted2023-2024, distinct from the held Melville Hills field survey and Holman community plan. Discovery identified its purpose and catalogue; original imprint was not read.",
+      "aw_id": "hydro-system:80041883"
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "publication": "Plan Municipal de Desarrollo Urbano de Galeana, Nuevo León2040",
+      "official_url": "https://galeana.gob.mx/wp-content/uploads/2023/09/PMDUG-2040-Modificado-conforme-a-planteamientos-procedentes-en-CP.pdf",
+      "kind": "borrowed_map_layer_relationship_unresolved",
+      "observed_outcome": "Original planning prose and methodology were read. The plan credits unspecified INEGI thematic/base cartography and other imagery; associated map panels were not inspected or used.",
+      "restriction_scope": "Only the independently written planning prose is used. Borrowed cartographic panels remain excluded while their relation to held source publications is unresolved; no whole-plan or agency-wide acquisition ban.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70850906"
+    },
+    {
+      "publication": "World Imagery: three bounded Galeana views",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "kind": "photographic_geography_and_redistribution_boundary",
+      "observed_outcome": "Original imagery supplies terrain and terminal-playa correspondence, not a name or a verified cultivated-plain transfer.",
+      "restriction_scope": "Source images and derivatives remain private; public findings contain own factual observations and normal service bibliography only.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70850906"
+    },
+    {
+      "source_key": "r229-usgstopo-catlow",
+      "publication": "USGSTopo selected Guano Slough–Catlow corridor views",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "kind": "material_cross_valley_correspondence_gap",
+      "observation": "All five originals succeeded. They identify the named slough and component settings but do not establish the selected cross-Catlow transfer. This is a content/correspondence limitation, not an acquisition stop.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70504450"
+    },
+    {
+      "source_key": "r229-esri-catlow",
+      "publication": "World Imagery selected Catlow transfer and terminal view",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "kind": "geographic_reading_and_diffuse_receiving_scope",
+      "observation": "The original succeeded and the southern receiving floor is continuously visible, without proving present hydraulic flow. The northern lateral through-connection remains unestablished. No service-wide stop or new HTTP failure.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70504450"
+    },
+    {
+      "source_key": "r229-ingemmet-caplina-h1-2009",
+      "kind": "ordinary_reproduction_notice",
+      "observation": "Rights reserved/reproduction prohibited notice on original imprint. Own bounded facts and normal bibliography only; all original images, crops and reading aids remain private.",
+      "acquisition_stop": false,
+      "publication": "Hidrogeología de la cuenca del Río Caplina – Región Tacna",
+      "official_url": "https://repositorio.ingemmet.gob.pe/bitstream/20.500.12544/368/9/H001-Boletin_Hidrogeolog%c3%ada_cuenca_r%c3%ado_Caplina_regi%c3%b3n_Tacna.pdf",
+      "aw_id": "hydro-system:61263814"
+    },
+    {
+      "source_key": "r229-esri-tacna-imagery",
+      "kind": "bounded_imagery_correspondence",
+      "observation": "Geographic corroboration only; mosaic dates unverified. No source images, crops, overlays, selected coordinate series or dynamic export URLs are public-ready.",
+      "acquisition_stop": false,
+      "publication": "World Imagery: two bounded Tacna and Hospicio–Los Palos corridor views",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "aw_id": "hydro-system:61263814"
+    },
+    {
+      "publication": "Roux, M.-J., Harwood, L.A., Illasiak, J., Babaluk, J.A., and de Graff, N. (2011). Fishery resources and habitats in a headwater lake of the Brock River, NT,2003-2005. Canadian Manuscript Report of Fisheries and Aquatic Sciences2932; Fs97-4/2932E-PDF.",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/346970.pdf",
+      "notice_discovery_url": "https://publications.gc.ca/collections/collection_2016/spac-pspc/P107-1-2012-30.pdf",
+      "restriction_kind": "unrequested_discovery_based_distribution_notice",
+      "observation": "Official2012 weekly-checklist discovery associates this manuscript-series item with distribution restricted to institutions or individuals in particular Canadian regions. The exact original/front matter was not requested or inspected. The report and equivalent body/map recovery were conservatively left unused; no new HTTP failure or whole-series ban is asserted.",
+      "acquisition_performed": false,
+      "used_as_substantive_evidence": false,
+      "earlier_lawful_prose_exception": null,
+      "acquisition_stop": true,
+      "restriction_scope": "The exact Roux2011 manuscript and equivalent body/map recovery remain unrequested and unused pending resolution of the publication-specific distribution notice. No whole-series ban or original HTTP failure is asserted.",
+      "aw_id": "hydro-system:80041883"
+    }
+  ]
+}

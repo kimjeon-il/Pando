@@ -1,0 +1,1691 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r266",
+  "sources": [
+    {
+      "source_key": "r266-usgstopo-70063692",
+      "title": "USGSTopo, The National Map: selected cross-border Unuk River and coastal delta corridor",
+      "publisher": "U.S. Geological Survey",
+      "date": "Seamless composite service; selected regional view read 14 October 2026. Individual underlying feature dates unverified.",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "source_type": "Original federal multiscale reference cartography",
+      "publication_identity": "Independently maintained National Map compilation positively identified from retained lawful service-description and source-credit records. This distinct regional original is separate from held service-metadata acquisition, old exact regional views, individual USGS reports and plates, and their research projects. No held content was recovered.",
+      "acquisition": "The original regional PNG completed normally before source pixels were inspected. No new service-metadata request.",
+      "actual_material_read": "Entire original regional map; three overlapping native-resolution unmarked upper, middle and terminal crops; magnified ending crop; repeated Unuk River labels, Canada/United States boundary, Blue River junction and separate source/render endpoint context. Private orientation aids were compared with the original and are not independent evidence.",
+      "supports": "Complete selected Canadian-to-Alaskan river continuity, bounded Unuk name placement, tributary/fragment connections and coastal delta ending context.",
+      "limitations": "One composite reference-cartography source, not an independent survey for each local reading crop. Labels support bounded geographic identity, not a formal registry decision or exact legal name boundary. Compilation epochs and scale do not establish present bank positions, every modern wet thread or current water level.",
+      "use_notice": "Only independently written factual observations and ordinary bibliography are public-ready. Original maps, local reading crops, orientation aids, complete coordinates and acquisition details remain private.",
+      "content_read": true,
+      "original_map_pixels_inspected": true
+    },
+    {
+      "source_key": "r266-usgstopo-70326909",
+      "title": "USGSTopo, The National Map: Sitkum–Calawah–Bogachiel–Quillayute river corridor",
+      "publisher": "U.S. Geological Survey",
+      "date": "Seamless composite service; selected regional view read 14 October 2026. Individual underlying feature dates unverified.",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "source_type": "Original federal multiscale reference cartography",
+      "publication_identity": "Independently maintained National Map compilation positively identified from retained lawful service-description and source-credit records. This distinct regional original is separate from held service-metadata acquisition, old exact regional views, individual USGS reports and plates, and their research projects. No held content was recovered.",
+      "acquisition": "The original regional PNG completed normally before source pixels were inspected. No new service-metadata request.",
+      "actual_material_read": "Entire original regional map; three overlapping native-resolution unmarked east, middle and west crops; magnified opening and ending crops; direct Sitkum River, South Fork Calawah River, Calawah River, Bogachiel River and Quillayute River labels; original fork and tributary connections; separate source/render endpoint context. Private orientation aids were compared with the original and are not independent evidence.",
+      "supports": "Complete selected river/valley sequence, bounded upstream component names, final Quillayute receiver and coastal-mouth setting for every original part.",
+      "limitations": "One composite reference-cartography source, not an independent survey for each local reading crop. Labels support bounded geographic identity, not a formal registry decision or exact legal name boundary. Compilation epochs and scale do not establish present bank positions, every modern wet thread or current water level.",
+      "use_notice": "Only independently written factual observations and ordinary bibliography are public-ready. Original maps, local reading crops, orientation aids, complete coordinates and acquisition details remain private.",
+      "content_read": true,
+      "original_map_pixels_inspected": true
+    },
+    {
+      "source_key": "r266-ineter-pfafstetter2014",
+      "title": "Cuencas Hidrográficas de Nicaragua bajo la metodología Pfafstetter: Álbum de mapas",
+      "creator": "INETER, Autoridad Nacional del Agua, Universidad Nacional de Ingeniería and GIZ–PROATAS",
+      "year": 2014,
+      "place": "Managua, Nicaragua",
+      "official_url": "https://cira.unan.edu.ni/wp-content/uploads/2016/07/Album-Cuencas-Nic-Revisado_ANA.pdf",
+      "publication_identity": "Separately issued interinstitutional PROATAS watershed-delimitation project, identified in its own credits. Positively distinguished from the held INETER IDE national-base service, MARENA ENDE-REDD atlas and Wawa military-map/thesis projects; later exact restrictions checked before fresh reading.",
+      "acquisition": "Retained original from a previously confirmed complete normal acquisition; no new request for this publication.",
+      "actual_material_read": "Fresh reading of title/project credits and reproduction notice; section8 and Tables11–12, printedp12/PDFp18; original Map5, printedp13/PDFp19, whole sheet and enlarged complete selected Kurinwas–Kung Kung corridor; complementary original Río Grande de Matagalpa map, printedp11/PDFp17, whole sheet and enlarged selected northern/western/lower corridor. Separate private orientation aids were compared with the unmarked originals.",
+      "supports": "Connected northern feeder, complete western tributary, common junction, named Kurinwas receiver, adjacent wetland/lake setting and the northern Laguna de Perlas ending.",
+      "limitations": "Regional1:1,000,000 cartography. The western opening is not independently named, the exact Kung Kung/Kurinwas name boundary is not surveyed, and no formal registry or present bank/flow state is established. The atlas river-length table is not substituted for the pinned model length.",
+      "source_use_notice": "Publication rights reserved. Commercial content use/reproduction is prohibited; educational/divulgative reproduction requires prior INETER permission. Only independently written factual observations and normal bibliography are public-ready. Originals, crops and reading derivatives remain private.",
+      "content_read": true,
+      "original_map_pixels_inspected": true
+    },
+    {
+      "source_key": "r266-incer1985-prose",
+      "title": "Toponimias indígenas de Nicaragua",
+      "author": "Jaime Incer",
+      "publisher": "Asociación Libro Libre, San José, Costa Rica",
+      "year": 1985,
+      "isbn": "9977-901-15-5",
+      "official_url": "https://enriquebolanos.org/media/publicacion/LL_ToponimiasindigenasNicaraguaJaimeIncer.pdf",
+      "url_role": "Verified public digital copy at Fundación Enrique Bolaños; not the original book publisher.",
+      "publication_identity": "Independent authorial toponymic book. Its title and imprint were freshly read; it is not recovery of any held national service, military sheet or Wawa study.",
+      "acquisition": "Retained original from a previously confirmed complete normal acquisition; no fresh acquisition.",
+      "actual_material_read": "Original extracted prose: title/imprint; Kurinwás entry printedp202/PDFp201; Sunie entry printed/PDFp128 for receiving-lagoon context. The Kungkung entry on printed/PDFp86 was read but describes a different Panachún/Prinzapolka setting and was not transferred to the selected feeder. No borrowed book map was used.",
+      "supports": "Historical accented form Kurinwás and independently authored statement that this Atlantic-side river empties into Laguna de Perlas.",
+      "limitations": "Historical authorial prose, not formal registry or complete selected-path cartography. Other Kurinwás occurrences in the same entry are geographically distinct and are not equated with this system.",
+      "source_use_notice": "Bounded factual synthesis and bibliography only; no original pages or illustrations redistributed.",
+      "content_read": true,
+      "original_map_pixels_inspected": false
+    },
+    {
+      "source_key": "r266-esri-kurinwas-overview",
+      "title": "World Imagery: selected Kurinwas, Kung Kung and northern Laguna de Perlas corridor",
+      "publisher": "Esri World Imagery and contributing imagery providers",
+      "date": "Regional view read14October2026; individual scene dates unverified",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "publication_identity": "Independently maintained photographic mosaic, selected for this eastern Nicaragua target. Geographically distinct from exact held Ellesmere, Nevada, Knik, Mendoza, Labrador, northeastern Patagonia and coastal Alaska views; not a substitute for a held map/report.",
+      "acquisition": "One coordinated regional image acquisition completed normally after its matching extent metadata; all terminal outcomes confirmed before reading.",
+      "actual_material_read": "Complete original overview, four overlapping unmarked western/central/northern/eastern crops, and separate part-index orientation aids. All five fragments and both mainstem endpoint positions were compared.",
+      "supports": "Wooded upper drainage corridors, western river meanders, common junction, lower receiving river, adjacent waterbodies and actual lagoon-entry setting.",
+      "limitations": "No hydronym authority or verified capture dates. Canopy, small clouds and shadows limit some wet-thread views; continuous atlas mapping supplies the corresponding ordinary links. This is not a current flow, bank or water-level survey.",
+      "source_use_notice": "Only own factual observations and ordinary service bibliography are public-ready. Original images, crops, overlays, coordinates, exact extent and export requests remain private.",
+      "content_read": true,
+      "original_map_pixels_inspected": true
+    },
+    {
+      "source_key": "r266-patagonia-world-imagery",
+      "title": "World Imagery: selected Muñoz Gamero Peninsula headwater, interlake and coastal-outlet corridor",
+      "publisher": "Esri and imagery contributors",
+      "date": "Mosaic capture dates unverified; original views read14October2026",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "source_type": "Independent photographic mosaic",
+      "publication_identity": "New target-specific southern Patagonia views, independently maintained photographic imagery rather than held Chilean hydrographic services, report cartography or PP1386-I material. Exact stopped selected views remain separate.",
+      "acquisition": "Two sequential metadata/original pairs completed normally, with each source acquisition managed to terminal completion before another request.",
+      "actual_material_read": "Complete overview, three overlapping unmarked native-resolution upper/middle/lower crops, and one detailed original of the necessary upper-to-lower lake link. Private orientation aids locate all44original parts and the separate endings; they are not independent source evidence.",
+      "supports": "All retained components were inspected. Most ordinary glacial, wetland, lake and coastal-outlet corridors are supported; the detailed image specifically leaves the selected interlake landward crossing unestablished.",
+      "limitations": "Unlabelled mosaic, mixed or unknown dates, canopy, shadow and generalized source positions limit fine channel and shoreline claims. No exact current wet thread or source-front condition is asserted.",
+      "content_read": true
+    },
+    {
+      "source_key": "r266-shipton2001-burney",
+      "title": "South America, Chile, Cordillera Sarmiento, Mt. Burney, Southeast Ridge, Attempt",
+      "author": "John Shipton",
+      "publisher": "American Alpine Club, American Alpine Journal",
+      "date": "2001",
+      "official_url": "https://publications.americanalpineclub.org/articles/12200130902/South-America-Chile-Cordillera-Sarmiento-Mt-Burney-Southeast-Ridge-Attempt",
+      "source_type": "First-person expedition account",
+      "publication_identity": "The author identifies his own February–March2001 Mount Burney expedition, companions and boat journey. This is a distinct firsthand field account, not a reproduction of held government mapping or a glacier-atlas section.",
+      "actual_material_read": "Normal HTML title, publication year, author and complete short expedition narrative. No linked map, image or other publication acquired.",
+      "supports": "Distinguishes Lago Muñoz Gamero from a large unnamed lake reached by carrying a boat through forest; describes a boggy plain and forested valley toward a glacial lake beneath Burney.",
+      "limitations": "Travel and historical landscape context only. Carrying a boat establishes neither the selected interlake watercourse nor a representative hydronym. The2001 unnamed description is not a current formal naming determination.",
+      "content_read": true
+    },
+    {
+      "source_key": "r266-kilian2013-skyring-otway",
+      "title": "Late Glacial and Holocene Paleogeographical and Paleoecological Evolution of the Seno Skyring and Otway Fjord Systems in the Magellan Region",
+      "authors": "Rolf Kilian and coauthors",
+      "publisher": "Anales del Instituto de la Patagonia41(2),5–26",
+      "date": "2013",
+      "doi": "10.4067/S0718-686X2013000200001",
+      "official_url": "https://www.scielo.cl/scielo.php?pid=S0718-686X2013000200001&script=sci_arttext",
+      "source_type": "Original field-study authorial prose",
+      "publication_identity": "The study identifies its2002–2012 RV Gran Campo II echo-sounding/coring work and field/remote-sensing investigations. This is distinct research from the held PP1386-I atlas and Chilean map-service/report projects.",
+      "actual_material_read": "Normal HTML title/authors, abstract, methods and bounded drainage paragraphs, especially the western Gran Campo sector and Lago Muñoz Gamero outflow. No original map or figure pixels were acquired or used.",
+      "supports": "Lago Muñoz Gamero is distinguished from the marine Swett Channel; authorial prose places its outflow west of Gran Campo Nevado and identifies the nearby glacial-lake setting.",
+      "limitations": "Bounded historical geographic context only. No reported discharge, salinity, palaeo-connection, hazard or modern elevation is applied. Borrowed figures and cited originals are excluded; the prose does not name a representative river or resolve the northern interlake crossing.",
+      "content_read": true
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70063692",
+      "source_keys": [
+        "r266-usgstopo-70063692"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9107
+          ],
+          "component_scope": "canadian interior opening",
+          "finding": "The selected northeastern opening and successive southwest-going parts coincide with the directly labelled Unuk River channel and its locally broad water-filled corridor in Canada. The opening begins within this continuing river; the map does not establish it as a natural headwater. All four original parts remain distinct in the review.",
+          "sources": [
+            "r266-usgstopo-70063692"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "original_part_span_zero_based_inclusive": [
+            0,
+            3
+          ]
+        },
+        {
+          "fragments": [
+            9107
+          ],
+          "component_scope": "canadian middle approach",
+          "finding": "The selection continues southwest through the connected Unuk channel, narrows between broader reaches, then turns west along the final Canadian approach to the border. Side creeks join the same mapped trunk; they are not substituted for the selected river. Although Canadian relief detail is sparse in this composite, the drawn channel connections and repeated Unuk labels are explicit.",
+          "sources": [
+            "r266-usgstopo-70063692"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            4,
+            5,
+            6,
+            7
+          ],
+          "original_part_span_zero_based_inclusive": [
+            4,
+            7
+          ]
+        },
+        {
+          "fragments": [
+            9107
+          ],
+          "component_scope": "international border crossing",
+          "finding": "This original part carries the selected Unuk corridor across the mapped Canada–United States boundary into southeastern Alaska. The river continues directly through the boundary without a geographic break. The country transition lies within this part; a surveyed crossing position or name-change boundary is not asserted.",
+          "sources": [
+            "r266-usgstopo-70063692"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            8
+          ],
+          "original_part_span_zero_based_inclusive": [
+            8,
+            8
+          ]
+        },
+        {
+          "fragments": [
+            9107
+          ],
+          "component_scope": "alaskan braided upper valley",
+          "finding": "The route turns southwest and then south through the wide mapped Unuk alluvial/braided floor between mountain slopes. The simplified selection stays within that one connected river corridor. Modern braid positions, exact banks and every small intervening bar are outside the supported scale.",
+          "sources": [
+            "r266-usgstopo-70063692"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            9,
+            10,
+            11
+          ],
+          "original_part_span_zero_based_inclusive": [
+            9,
+            11
+          ]
+        },
+        {
+          "fragments": [
+            9107
+          ],
+          "component_scope": "blue river junction and fragment end",
+          "finding": "The selected corridor resumes southwest and approaches the Blue River tributary junction. The source map labels the continuing receiving trunk Unuk River; the tributary from the north remains separately identified. The final part reaches the retained fragment boundary along the same continuous river floor.",
+          "sources": [
+            "r266-usgstopo-70063692"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            12,
+            13
+          ],
+          "original_part_span_zero_based_inclusive": [
+            12,
+            13
+          ]
+        },
+        {
+          "fragments": [
+            9108
+          ],
+          "component_scope": "receiving junction continuation",
+          "finding": "The next stored fragment begins at the preceding fragment ending and follows the southwest-going Unuk continuation below the northern tributary approach. All four short original parts cross the connected channel/alluvial corridor, without inserting an artificial break at the stage or fragment boundary.",
+          "sources": [
+            "r266-usgstopo-70063692"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "original_part_indices": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "original_part_span_zero_based_inclusive": [
+            0,
+            3
+          ]
+        },
+        {
+          "fragments": [
+            9108
+          ],
+          "component_scope": "middle lower unuk braids",
+          "finding": "The selected course turns south and southwest through a broad, repeatedly labelled Unuk braided valley. The river floor remains continuous across all five original parts and between steep valley margins; separate modern threads are not required to coincide with the generalized line.",
+          "sources": [
+            "r266-usgstopo-70063692"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "original_part_indices": [
+            4,
+            5,
+            6,
+            7,
+            8
+          ],
+          "original_part_span_zero_based_inclusive": [
+            4,
+            8
+          ]
+        },
+        {
+          "fragments": [
+            9108
+          ],
+          "component_scope": "lower valley and delta approach",
+          "finding": "The river bends west and then southwest along the widening lower Unuk valley. The mapped trunk, side channels and downstream alluvial floor form a continuous receiving corridor approaching the coastal delta. The separately labelled Luke Creek approach is lateral tributary context, not the selected trunk.",
+          "sources": [
+            "r266-usgstopo-70063692"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "original_part_indices": [
+            9,
+            10,
+            11,
+            12,
+            13
+          ],
+          "original_part_span_zero_based_inclusive": [
+            9,
+            13
+          ]
+        },
+        {
+          "fragments": [
+            9108
+          ],
+          "component_scope": "delta and distinct endings",
+          "finding": "The last original part crosses the broad lower delta and turns northwest near its end. The source ending is in the channel-and-island delta setting, while the rendered ending lies slightly farther north within the adjoining distributary/interdistributary delta floor. Both are separately located in the original map. Their ordinary shared delta connection is supported, but the final generalized segment is not equated with one exact mapped wet thread, bank, seaward mouth or shoreline.",
+          "sources": [
+            "r266-usgstopo-70063692"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "original_part_indices": [
+            14
+          ],
+          "original_part_span_zero_based_inclusive": [
+            14,
+            14
+          ]
+        }
+      ],
+      "part_basis": "Original part indices are zero-based within each separately identified stored fragment; every stated span is inclusive. Fragment order, roles, stages, parts and all stored positions are preserved. Source and rendered ending metadata are inspected separately. No geometry repair, reversal, joining, source-geometry reconstruction or natural-headwater inference is made.",
+      "terminal_observations": {
+        "stored_terminal_class": "sea",
+        "stored_class_preserved": true,
+        "source_endpoint": "Separately inspected in the lower Unuk channel-and-island delta setting.",
+        "render_endpoint": "Separately inspected farther north in the adjacent distributary/interdistributary delta floor.",
+        "geographic_interpretation": "Both endings belong to the connected coastal delta at the head of an open-water embayment; neither is established as a surveyed sea boundary or exact present river mouth.",
+        "receiving_water_name": null,
+        "limit": "The stored sea class is retained without using it as independent proof of open-sea placement. No precise shoreline, current distributary course or endpoint correction is claimed."
+      },
+      "bounded_name_observations": [
+        {
+          "name": "Unuk River",
+          "role": "Directly labelled selected trunk in both the Canadian and Alaskan portions; the repeated corridor labels support the representative name.",
+          "source_keys": [
+            "r266-usgstopo-70063692"
+          ]
+        },
+        {
+          "name": "Blue River",
+          "role": "Separately labelled northern tributary entering the selected Unuk corridor; lateral context only, not a selected upstream component or synonym.",
+          "source_keys": [
+            "r266-usgstopo-70063692"
+          ]
+        }
+      ],
+      "uncertainties": [
+        "The selected northeastern opening is an interior river reach, not a demonstrated natural source.",
+        "The Canadian part has sparse relief detail, while its channel and Unuk labels are explicit.",
+        "Exact modern braid, bank, water-level and delta distributary positions are not established.",
+        "Source and rendered endings remain distinct within the delta; the name of the adjoining marine receiving water is unverified.",
+        "No formal registry verification, scalar whole-feature label, Korean name or automatic application is asserted."
+      ],
+      "completion_scope": "Both stored mainstem fragments, all 29 original parts and 123 stored positions were compared with the complete original, three overlapping unmarked upper/middle/terminal crops, and a magnified unmarked ending detail. Separate orientation aids located each part and the two ending definitions. The Canadian opening, border crossing, all Alaskan valley links and delta setting have ordinary corridor support; no necessary receiver remains unresolved."
+    },
+    {
+      "aw_id": "hydro-system:70326909",
+      "source_keys": [
+        "r266-usgstopo-70326909"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9447
+          ],
+          "component_scope": "sitkum selected valley",
+          "finding": "The chosen eastern opening and westward valley route follow the directly labelled Sitkum River, including its southwest bend and downstream return west. The initial point is within the mapped river rather than its demonstrated natural source. All five original parts remain in the same connected valley between the surrounding ridges.",
+          "sources": [
+            "r266-usgstopo-70326909"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "original_part_span_zero_based_inclusive": [
+            0,
+            4
+          ]
+        },
+        {
+          "fragments": [
+            9447
+          ],
+          "component_scope": "sitkum south fork junction",
+          "finding": "This short part reaches the common valley junction where the selected Sitkum approach joins the South Fork Calawah corridor arriving from the southeast. The mapped blue channels are connected. Exact legal name limits or a surveyed confluence point are not inferred from the simplified selection.",
+          "sources": [
+            "r266-usgstopo-70326909"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            5
+          ],
+          "original_part_span_zero_based_inclusive": [
+            5,
+            5
+          ]
+        },
+        {
+          "fragments": [
+            9447
+          ],
+          "component_scope": "south fork and fork transition",
+          "finding": "The selection turns northwest and west along the labelled South Fork Calawah River, then passes the North Fork approach and the transition into the Calawah trunk. The main channel and valley floor remain connected across all five original parts. The local source scale supports the fork sequence without assigning an exact part-vertex name boundary.",
+          "sources": [
+            "r266-usgstopo-70326909"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            6,
+            7,
+            8,
+            9,
+            10
+          ],
+          "original_part_span_zero_based_inclusive": [
+            6,
+            10
+          ]
+        },
+        {
+          "fragments": [
+            9447
+          ],
+          "component_scope": "calawah and bogachiel junction",
+          "finding": "The route continues west and southwest on the directly labelled Calawah River beside the Forks setting, then reaches its junction with the Bogachiel River. Local meanders differ from the generalized line but occupy the same continuous alluvial floor. The stage-3 fragment remains unchanged.",
+          "sources": [
+            "r266-usgstopo-70326909"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            11,
+            12
+          ],
+          "original_part_span_zero_based_inclusive": [
+            11,
+            12
+          ]
+        },
+        {
+          "fragments": [
+            9447
+          ],
+          "component_scope": "bogachiel lower corridor",
+          "finding": "The selected receiving route runs southwest and west through the directly labelled lower Bogachiel corridor, crossing the broad floodplain and road setting before its junction with the Sol Duc River. The Sol Duc is a distinct northern tributary, not a substitute for the selected upstream route. All four original parts have connected valley/channel support.",
+          "sources": [
+            "r266-usgstopo-70326909"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            13,
+            14,
+            15,
+            16
+          ],
+          "original_part_span_zero_based_inclusive": [
+            13,
+            16
+          ]
+        },
+        {
+          "fragments": [
+            9447
+          ],
+          "component_scope": "quillayute receiving river",
+          "finding": "Below the Bogachiel–Sol Duc junction, the selection follows the broad westward river directly labelled Quillayute River. It continues toward the Dickey River approach and the coastal mouth beside the Quileute Reservation. Quillayute is the named final receiver and representative candidate; the upper component names remain distinct.",
+          "sources": [
+            "r266-usgstopo-70326909"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            17,
+            18
+          ],
+          "original_part_span_zero_based_inclusive": [
+            17,
+            18
+          ]
+        },
+        {
+          "fragments": [
+            9448
+          ],
+          "component_scope": "quillayute coastal terminal fragment",
+          "finding": "The separate stage-2 terminal fragment continues west from the prior fragment into the mapped Quillayute mouth/coastal opening. Its source ending lies at the mouth-side coastal transition, and its rendered ending lies slightly farther southwest toward open coastal water. Both definitions were inspected separately. The generalized terminal line is supported at mouth-setting scale without claiming a precise contemporary bank, tidal channel or shoreline.",
+          "sources": [
+            "r266-usgstopo-70326909"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "original_part_indices": [
+            0
+          ],
+          "original_part_span_zero_based_inclusive": [
+            0,
+            0
+          ]
+        }
+      ],
+      "part_basis": "Original part indices are zero-based within each separately identified stored fragment; every stated span is inclusive. Fragment order, roles, stages, parts and all stored positions are preserved. Source and rendered ending metadata are inspected separately. No geometry repair, reversal, joining, source-geometry reconstruction or natural-headwater inference is made.",
+      "terminal_observations": {
+        "stored_terminal_class": "sea",
+        "stored_class_preserved": true,
+        "source_endpoint": "Separately inspected at the river-mouth/coastal transition beside the Quileute Reservation.",
+        "render_endpoint": "Separately inspected a short distance farther southwest toward open coastal water.",
+        "geographic_interpretation": "The final fragment remains in the common Quillayute mouth and open coastal-water setting; the adjacent marine waterbody name is not separately established in this source reading.",
+        "receiving_water_name": null,
+        "limit": "The two ending definitions are not collapsed. No surveyed mouth, exact present shoreline, tidal-flow direction or bank position is claimed."
+      },
+      "bounded_name_observations": [
+        {
+          "name": "Sitkum River",
+          "role": "Directly labelled selected eastern opening and upstream valley component.",
+          "source_keys": [
+            "r266-usgstopo-70326909"
+          ]
+        },
+        {
+          "name": "South Fork Calawah River",
+          "role": "Directly labelled intermediate receiving corridor below the Sitkum junction.",
+          "source_keys": [
+            "r266-usgstopo-70326909"
+          ]
+        },
+        {
+          "name": "Calawah River",
+          "role": "Directly labelled continuation below the fork junction, passing the Forks setting.",
+          "source_keys": [
+            "r266-usgstopo-70326909"
+          ]
+        },
+        {
+          "name": "Bogachiel River",
+          "role": "Directly labelled lower receiving river below the Calawah junction.",
+          "source_keys": [
+            "r266-usgstopo-70326909"
+          ]
+        },
+        {
+          "name": "Quillayute River",
+          "role": "Directly labelled final westward receiving river after the Sol Duc–Bogachiel junction; the representative candidate.",
+          "source_keys": [
+            "r266-usgstopo-70326909"
+          ]
+        },
+        {
+          "name": "Sol Duc River",
+          "role": "Separately labelled northern tributary at the transition into Quillayute; lateral junction context, not a selected upstream component.",
+          "source_keys": [
+            "r266-usgstopo-70326909"
+          ]
+        },
+        {
+          "name": "Dickey River",
+          "role": "Separately labelled northern tributary at the coastal approach; lateral context only.",
+          "source_keys": [
+            "r266-usgstopo-70326909"
+          ]
+        }
+      ],
+      "uncertainties": [
+        "The selected opening is not established as the natural source of Sitkum River.",
+        "The exact vertices at which cartographic reach names change are not formal name boundaries.",
+        "Compilation scale and epochs do not establish every current meander, channel bank, tide or shoreline.",
+        "The final representative identity does not rename the upstream Sitkum, South Fork Calawah, Calawah or Bogachiel components.",
+        "No formal registry verification, scalar whole-feature label, Korean name or automatic application is asserted."
+      ],
+      "completion_scope": "Both mainstem fragments, all 20 original parts and 100 stored positions were inspected against the complete regional original, three overlapping unmarked east/middle/west crops, and magnified unmarked opening and ending details. Separate orientation aids located every part and both ending definitions. The selected upstream component, both major receiver transitions, all intervening corridors and final coastal fragment have ordinary geographic support."
+    },
+    {
+      "aw_id": "hydro-system:70965047",
+      "source_keys": [
+        "r266-ineter-pfafstetter2014",
+        "r266-incer1985-prose",
+        "r266-esri-kurinwas-overview"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10674
+          ],
+          "component_scope": "northern selected opening",
+          "finding": "The chosen northern opening runs south through the wooded lowland drainage depicted on the atlas as the headward part of the Kung Kung corridor. The photograph shows the same low-relief drainage setting, with canopy and small clouds limiting wet-thread visibility. The atlas supplies the continuous mapped through-link. This is a selected interior opening, not a verified natural source.",
+          "sources": [
+            "r266-ineter-pfafstetter2014",
+            "r266-esri-kurinwas-overview"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            0,
+            1
+          ],
+          "original_part_span_zero_based_inclusive": [
+            0,
+            1
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            0,
+            1
+          ],
+          "bounded_name": "Kung Kung"
+        },
+        {
+          "fragments": [
+            10674
+          ],
+          "component_scope": "kung kung eastward turn",
+          "finding": "The route turns east and then southeast along the continuous northern feeder. Both original atlas maps directly label this corridor Kung Kung and distinguish it from the Río Grande de Matagalpa drainage farther north. The photographic vegetation/drainage strip and local channel portions follow the same ordinary corridor.",
+          "sources": [
+            "r266-ineter-pfafstetter2014",
+            "r266-esri-kurinwas-overview"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "original_part_span_zero_based_inclusive": [
+            2,
+            7
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            2,
+            7
+          ],
+          "bounded_name": "Kung Kung"
+        },
+        {
+          "fragments": [
+            10674
+          ],
+          "component_scope": "kung kung lower join",
+          "finding": "The selected northern feeder turns south through low wetland ground and reaches the common Kurinwas junction. Its final part meets both the stored western tributary terminal and the beginning of FID10675. Atlas river linework establishes the through-link; the imagery shows the surrounding connected lowland and adjoining open river. The feeder name is not extended downstream past the receiving junction.",
+          "sources": [
+            "r266-ineter-pfafstetter2014",
+            "r266-esri-kurinwas-overview"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            8,
+            9,
+            10
+          ],
+          "original_part_span_zero_based_inclusive": [
+            8,
+            10
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            8,
+            10
+          ],
+          "bounded_name": "Kung Kung"
+        },
+        {
+          "fragments": [
+            10675
+          ],
+          "component_scope": "lower kurinwas receiving course",
+          "finding": "From the common junction the selection follows the eastward receiving river, including the northerly bend and return toward the coastal wetlands. The atlas directly labels the downstream course Kurinwas. The photograph shows a broad, winding river in the same alluvial corridor.",
+          "sources": [
+            "r266-ineter-pfafstetter2014",
+            "r266-esri-kurinwas-overview"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "original_part_indices": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "original_part_span_zero_based_inclusive": [
+            0,
+            3
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            11,
+            14
+          ],
+          "bounded_name": "Kurinwas"
+        },
+        {
+          "fragments": [
+            10675
+          ],
+          "component_scope": "lower kurinwas lagoon approach",
+          "finding": "The receiving river continues east among adjacent wetland lakes, then turns south toward the northern Laguna de Perlas entry. Both atlas cartography and the photograph preserve the connected channel between the lateral waterbodies. The generalized selection is not required to reproduce every modern meander. Names are not assigned to the lateral lakes from proximity alone.",
+          "sources": [
+            "r266-ineter-pfafstetter2014",
+            "r266-esri-kurinwas-overview"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "original_part_indices": [
+            4,
+            5,
+            6
+          ],
+          "original_part_span_zero_based_inclusive": [
+            4,
+            6
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            15,
+            17
+          ],
+          "bounded_name": "Kurinwas"
+        },
+        {
+          "fragments": [
+            10676
+          ],
+          "component_scope": "laguna de perlas entry",
+          "finding": "The final mainstem part follows the southern turn at the river mouth and extends east into the northern receiving lagoon. The source-endpoint metadata locates the river-mouth/lagoon-entry margin; the rendered endpoint lies farther east in lagoon water. They are treated separately. The atlas explicitly identifies the receiving water as Laguna de Perlas, and Incer independently says Kurinwás empties into that lagoon. The inventory terminal class is sea, but the selected endpoint is not the Caribbean ocean outlet. No downstream traverse to the lagoon’s ocean connection is part of this selection.",
+          "sources": [
+            "r266-ineter-pfafstetter2014",
+            "r266-esri-kurinwas-overview",
+            "r266-incer1985-prose"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 1,
+          "original_part_indices": [
+            0
+          ],
+          "original_part_span_zero_based_inclusive": [
+            0,
+            0
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            18,
+            18
+          ],
+          "bounded_name": "Kurinwas / Laguna de Perlas"
+        },
+        {
+          "fragments": [
+            10677
+          ],
+          "component_scope": "western unnamed feeder",
+          "finding": "This stored tributary starts farther west in a wooded, low-relief drainage and runs generally east, with a southern bend and intervening joins, toward the broader western Kurinwas corridor. The original atlas network and the visible wooded/channel corridor supply the connected sequence. The chosen western opening and its initial feeder are not independently named here; the representative Kurinwas name is not imposed on every upstream part. The grouping boundary is an observation interval, not a surveyed legal name-transition point.",
+          "sources": [
+            "r266-ineter-pfafstetter2014",
+            "r266-esri-kurinwas-overview"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "tributary",
+          "stage": 3,
+          "original_part_indices": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ],
+          "original_part_span_zero_based_inclusive": [
+            0,
+            13
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            19,
+            32
+          ],
+          "bounded_name": null
+        },
+        {
+          "fragments": [
+            10677
+          ],
+          "component_scope": "western kurinwas course",
+          "finding": "The remaining stage3 tributary parts continue east in the mapped western Kurinwas drainage north of El Tortuguero, with repeated bends and lateral tributary joins. The atlas directly labels the western receiving course on the complementary Río Grande de Matagalpa regional map and depicts it continuously on the RAAS map. The photograph shows the corresponding wooded alluvial corridor and widening visible river toward the eastern fragment join. The inventory role remains tributary even though it follows part of the geographically named Kurinwas course.",
+          "sources": [
+            "r266-ineter-pfafstetter2014",
+            "r266-esri-kurinwas-overview"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "tributary",
+          "stage": 3,
+          "original_part_indices": [
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31
+          ],
+          "original_part_span_zero_based_inclusive": [
+            14,
+            31
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            33,
+            50
+          ],
+          "bounded_name": "Kurinwas"
+        },
+        {
+          "fragments": [
+            10678
+          ],
+          "component_scope": "western tributary eastern meanders",
+          "finding": "The stage2 tributary continues from the preceding fragment through the same eastgoing Kurinwas floodplain, with a northern sweep followed by a southeastward bend. Visible river meanders in the photographic original and the continuous atlas linework support all nine parts at ordinary corridor scale.",
+          "sources": [
+            "r266-ineter-pfafstetter2014",
+            "r266-esri-kurinwas-overview"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "tributary",
+          "stage": 2,
+          "original_part_indices": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ],
+          "original_part_span_zero_based_inclusive": [
+            0,
+            8
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            51,
+            59
+          ],
+          "bounded_name": "Kurinwas"
+        },
+        {
+          "fragments": [
+            10678
+          ],
+          "component_scope": "western tributary southern bend",
+          "finding": "These parts follow the lower western Kurinwas course through its broad southern meandering bend. The simplified line locally cuts across individual loops while remaining within the same connected alluvial floor. The atlas and imagery support the valley/corridor connection; no present channel-bank or perennial-flow assertion is made.",
+          "sources": [
+            "r266-ineter-pfafstetter2014",
+            "r266-esri-kurinwas-overview"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "tributary",
+          "stage": 2,
+          "original_part_indices": [
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18
+          ],
+          "original_part_span_zero_based_inclusive": [
+            9,
+            18
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            60,
+            69
+          ],
+          "bounded_name": "Kurinwas"
+        },
+        {
+          "fragments": [
+            10678
+          ],
+          "component_scope": "western tributary confluence",
+          "finding": "The last four tributary parts turn northeast and reach the common junction with the northern Kung Kung feeder and FID10675. The tributary source and render endpoints coincide in the same confluence setting. This is the aggregate geometry’s final coordinate because the tributary is stored last; it is not the mainstem terminal. All original role and order information is preserved.",
+          "sources": [
+            "r266-ineter-pfafstetter2014",
+            "r266-esri-kurinwas-overview"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "tributary",
+          "stage": 2,
+          "original_part_indices": [
+            19,
+            20,
+            21,
+            22
+          ],
+          "original_part_span_zero_based_inclusive": [
+            19,
+            22
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            70,
+            73
+          ],
+          "bounded_name": "Kurinwas"
+        }
+      ],
+      "part_basis": "Original part indices are zero-based within each fragment; every stated span is inclusive. Aggregate spans follow the preserved five-fragment storage order. All74 parts and269 stored positions are retained. Three mainstem fragments are followed by two tributary fragments; their aggregate last coordinate is not the mainstem terminal. No reordering, reversal, joining, simplification or geometry repair was performed.",
+      "mainstem_terminal_observation": {
+        "fid": 10676,
+        "inventory_terminal_class": "sea",
+        "source_endpoint_scope": "River-mouth/lagoon-entry margin on the western side of northern Laguna de Perlas.",
+        "render_endpoint_scope": "Farther east within the same receiving lagoon water.",
+        "source_and_render_endpoints_identical": false,
+        "actual_geographic_ending": "Northern Laguna de Perlas; the open-Caribbean outlet lies beyond the selected path.",
+        "source_keys": [
+          "r266-ineter-pfafstetter2014",
+          "r266-esri-kurinwas-overview",
+          "r266-incer1985-prose"
+        ]
+      },
+      "tributary_terminal_observation": {
+        "fid": 10678,
+        "inventory_terminal_class": "confluence",
+        "source_and_render_endpoints_identical": true,
+        "actual_geographic_ending": "Common Kung Kung/Kurinwas receiving junction at the beginning of mainstem FID10675.",
+        "aggregate_last_coordinate_is_mainstem_terminal": false,
+        "source_keys": [
+          "r266-ineter-pfafstetter2014",
+          "r266-esri-kurinwas-overview"
+        ]
+      },
+      "bounded_name_observations": [
+        {
+          "name": "Kung Kung",
+          "scope": "Direct atlas label on northern feeder FID10674; not extended to western tributary or downstream receiving river.",
+          "source_keys": [
+            "r266-ineter-pfafstetter2014"
+          ]
+        },
+        {
+          "name": "Kurinwas",
+          "historical_variant": "Kurinwás",
+          "scope": "Named western receiving corridor, common downstream river and representative system candidate; upper western feeder remains unnamed.",
+          "source_keys": [
+            "r266-ineter-pfafstetter2014",
+            "r266-incer1985-prose"
+          ]
+        },
+        {
+          "name": "Laguna de Perlas",
+          "scope": "Receiving lagoon at the selected mainstem ending; not itself the river-system name and not the open Caribbean.",
+          "source_keys": [
+            "r266-ineter-pfafstetter2014",
+            "r266-incer1985-prose"
+          ]
+        }
+      ],
+      "uncertainties": [
+        "The two selected openings are not verified natural sources.",
+        "The initial western feeder has no independently supported name; its geometry is nevertheless geographically accounted for.",
+        "The atlas is regional cartography and the imagery has canopy/cloud limitations; correspondence is to connected drainage corridors rather than every current wet-channel bend.",
+        "Kurinwas is a representative system candidate, not an accepted whole-feature scalar name.",
+        "The stored sea class is retained as metadata while the actual selected ending is described as Laguna de Perlas.",
+        "No formal registry verification or Korean name is supplied."
+      ],
+      "completion_scope": "All74 original parts across all five actual inventory components were compared with freshly read retained atlas originals and one completed photographic view with overlapping unmarked crops. The selected openings, mainstem and tributary joins, complete western/northern corridors, lower receiving river and separate source/render lagoon-entry positions have ordinary connected-geography support. No necessary receiver or through-link remains materially unresolved."
+    },
+    {
+      "aw_id": "hydro-system:61614285",
+      "source_keys": [
+        "r266-patagonia-world-imagery",
+        "r266-shipton2001-burney",
+        "r266-kilian2013-skyring-otway"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14671
+          ],
+          "component_scope": "glaciated northwestern opening",
+          "finding": "The opening occupies a snow/ice-margin and rocky headward depression, then descends east-southeast beside a small glacial waterbody into the forested drainage valley. The imagery supports the ordinary headward corridor without locating a surveyed source or present ice-front position.",
+          "sources": [
+            "r266-patagonia-world-imagery"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            0,
+            1,
+            2
+          ],
+          "original_part_span_zero_based_inclusive": [
+            0,
+            2
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            0,
+            2
+          ]
+        },
+        {
+          "fragments": [
+            14671
+          ],
+          "component_scope": "eastward upper valley",
+          "finding": "The selection continues east through the same broad valley and alluvial floor, then turns south near a pale sediment-bearing waterbody. Multiple small channels, the open floor and enclosing slopes support ordinary corridor continuity; no name is assigned to the upper waterbodies.",
+          "sources": [
+            "r266-patagonia-world-imagery"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            3,
+            4
+          ],
+          "original_part_span_zero_based_inclusive": [
+            3,
+            4
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            3,
+            4
+          ]
+        },
+        {
+          "fragments": [
+            14671
+          ],
+          "component_scope": "southern boggy valley",
+          "finding": "The southward reach follows a broad wetland and channel-bearing lowland to the northern approach of the large upper lake. The continuous valley floor is visible despite the lack of a single uniformly resolved wet thread.",
+          "sources": [
+            "r266-patagonia-world-imagery"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            5,
+            6,
+            7
+          ],
+          "original_part_span_zero_based_inclusive": [
+            5,
+            7
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            5,
+            7
+          ]
+        },
+        {
+          "fragments": [
+            14671
+          ],
+          "component_scope": "upper lake and eastern arm",
+          "finding": "The route enters the large green-toned upper lake, follows its western-to-southern bend and then its eastward arm. Generalized edge offsets stay in this lake/shore corridor. The upper lake is kept distinct from Lago Muñoz Gamero and receives no assigned name.",
+          "sources": [
+            "r266-patagonia-world-imagery",
+            "r266-shipton2001-burney"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ],
+          "original_part_span_zero_based_inclusive": [
+            8,
+            14
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            8,
+            14
+          ]
+        },
+        {
+          "fragments": [
+            14671
+          ],
+          "component_scope": "unresolved interlake landward crossing",
+          "finding": "After the eastern upper-lake arm, the selected part turns northeast across a sustained wooded and locally knobby land interval toward the northern inlet of the lower lake. The detailed image does not establish a continuous low through-valley or watercourse along this crossing. A different outlet-like low corridor is visible farther southeast, but it is not proof of the selected connection. Shipton describes carrying a boat between the named lower lake and the unnamed upper lake; that travel account does not establish a water connection.",
+          "sources": [
+            "r266-patagonia-world-imagery",
+            "r266-shipton2001-burney"
+          ],
+          "correspondence": "necessary_selected_interlake_connection_unestablished",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            15
+          ],
+          "original_part_span_zero_based_inclusive": [
+            15,
+            15
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            15,
+            15
+          ]
+        },
+        {
+          "fragments": [
+            14671
+          ],
+          "component_scope": "lower lake northern arm",
+          "finding": "The route reaches the northern inlet and continues south through the long lower-lake arm. This is the lower-lake side of the unresolved preceding link. Its broad water corridor is supported independently of whether the modeled interlake crossing is valid.",
+          "sources": [
+            "r266-patagonia-world-imagery"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            16,
+            17,
+            18
+          ],
+          "original_part_span_zero_based_inclusive": [
+            16,
+            18
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            16,
+            18
+          ]
+        },
+        {
+          "fragments": [
+            14671
+          ],
+          "component_scope": "lower lake north south axis",
+          "finding": "All nine original parts occupy the long north-south lower-lake corridor, mostly close to its western side. Side arms remain distinct. The image mosaic and minor shoreline offsets do not create a separate necessary connection gap.",
+          "sources": [
+            "r266-patagonia-world-imagery"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27
+          ],
+          "original_part_span_zero_based_inclusive": [
+            19,
+            27
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            19,
+            27
+          ]
+        },
+        {
+          "fragments": [
+            14671
+          ],
+          "component_scope": "lower lake southern narrowing",
+          "finding": "The selection continues south and slightly east through the lower-lake basin to its constricted southern turn. Both sides of the narrowing and its continuity into the next original fragment are visible; the stage boundary is preserved.",
+          "sources": [
+            "r266-patagonia-world-imagery"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            28,
+            29,
+            30,
+            31
+          ],
+          "original_part_span_zero_based_inclusive": [
+            28,
+            31
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            28,
+            31
+          ]
+        },
+        {
+          "fragments": [
+            14672
+          ],
+          "component_scope": "southwestern lower lake basin",
+          "finding": "The next fragment follows the narrowing southwest into a wider lower-lake basin. The full original water corridor is continuous through the retained stage2 parts, including the long southwest diagonal.",
+          "sources": [
+            "r266-patagonia-world-imagery"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "original_part_indices": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "original_part_span_zero_based_inclusive": [
+            0,
+            5
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            32,
+            37
+          ]
+        },
+        {
+          "fragments": [
+            14672
+          ],
+          "component_scope": "southwestern lake finger",
+          "finding": "The route follows the southwestern lake finger toward its outlet approach. Water, the enclosing low shore and the outgoing valley are visible; this is bounded Lago Muñoz Gamero/outflow context, not a representative river-name assignment.",
+          "sources": [
+            "r266-patagonia-world-imagery"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "original_part_indices": [
+            6,
+            7,
+            8,
+            9
+          ],
+          "original_part_span_zero_based_inclusive": [
+            6,
+            9
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            38,
+            41
+          ]
+        },
+        {
+          "fragments": [
+            14672
+          ],
+          "component_scope": "coastal outlet and distinct endings",
+          "finding": "The last two parts leave the southwestern lake finger through the short low outlet corridor to the sediment-plume/coastal receiving-water setting. The source endpoint and the slightly northwest render endpoint were separately located; the overview does not resolve their small offset against an exact current mouth or shoreline. Their shared outlet-to-coastal corridor is supported, and neither endpoint definition is replaced.",
+          "sources": [
+            "r266-patagonia-world-imagery",
+            "r266-kilian2013-skyring-otway"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "original_part_indices": [
+            10,
+            11
+          ],
+          "original_part_span_zero_based_inclusive": [
+            10,
+            11
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            42,
+            43
+          ]
+        }
+      ],
+      "part_basis": "Original local part indices are zero-based within each retained fragment, and all spans are inclusive. FID 14671 has local parts 0–31, identical to aggregate parts 0–31; FID 14672 has local parts 0–11, aggregate 32–43. These are one-based local parts 1–32 and 1–12 respectively. All 44 original parts, 129 positions, two mainstem roles, fragment order and stages 3/2 remain unchanged; no joining, reversal, simplification or repair. Source and render endings remain separate.",
+      "terminal_observations": {
+        "stored_terminal_class": "sea",
+        "stored_class_preserved": true,
+        "terminal_fid": 14672,
+        "source_endpoint": "Separately retained and located in the short outlet/coastal-plume setting.",
+        "render_endpoint": "Separately retained slightly northwest of the source endpoint in the same outlet/coastal transition.",
+        "geographic_interpretation": "Lower lake drains toward coastal receiving water; the successful field-study prose supplies Swett Channel context.",
+        "receiving_water_name": "Swett Channel (bounded regional context)",
+        "limit": "The overview cannot resolve the small endpoint offset against a precise modern shore or mouth. No endpoint or stored class was changed."
+      },
+      "bounded_name_candidates": [
+        {
+          "name": "Lago Muñoz Gamero",
+          "role": "lower_lake_component",
+          "source_keys": [
+            "r266-shipton2001-burney",
+            "r266-kilian2013-skyring-otway",
+            "r266-patagonia-world-imagery"
+          ],
+          "support": "The expedition and field-study descriptions, together with the observed lower-lake shape and western outlet setting, support the lower-lake component.",
+          "limit": "Not the separate upper lake, glaciated headwater or a representative river hydronym."
+        },
+        {
+          "name": "Swett Channel",
+          "role": "regional_coastal_receiver_context",
+          "source_keys": [
+            "r266-kilian2013-skyring-otway"
+          ],
+          "support": "Authorial field-study prose relates the western lake outflow to this marine channel.",
+          "limit": "Regional terminal context only; not a scalar name for the modeled river or an exact surveyed mouth label."
+        }
+      ],
+      "material_gap": {
+        "fid": 14671,
+        "role": "mainstem",
+        "stage": 3,
+        "original_part_span_zero_based_inclusive": [
+          15,
+          15
+        ],
+        "aggregate_part_span_zero_based_inclusive": [
+          15,
+          15
+        ],
+        "one_based_local_part": 16,
+        "description": "Necessary selected crossing from the eastern upper-lake arm to the lower lake remains unsupported across sustained wooded/knobby land. A lower southeast corridor and a reported portage do not establish this selected crossing.",
+        "why_not_completed_scope_hold": "This is a geographic receiver-link gap, not merely absence of a representative name.",
+        "bounded_next_evidence_needed": "Independent placed cartography or directly applicable field evidence resolving the exact upper-lake-to-lower-lake drainage/valley relationship."
+      },
+      "geographic_correspondence": "All44parts were inspected. The glacial opening, upper wetland/lake, lower lake and western coastal outlet are individually supported at ordinary corridor scale, but the necessary selected interlake crossing is not.",
+      "completion_scope": "Bounded research pass complete: two full original photographic views, three overlapping unmarked native crops and their private orientation aids cover every retained part; two independent original prose sources provide component context. The necessary part 15 link remains material-pending. No further source expansion attempted."
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "USGSTopo National Map service metadata, requested for Alaska80192797",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer?f=pjson",
+      "observed_outcome": "Sole service-metadata request yielded; its first terminal-status confirmation was cancelled before a decision returned. HTTP, body and terminal completion unknown. No metadata, response headers or pixels read.",
+      "outcome_layer": "Tool/network-approval cancellation before terminal observation; not an established origin HTTP denial.",
+      "restriction_scope": "Exact service-metadata request, equivalent metadata acquisition and unread outputs stopped. No recovery through another route. This does not clear any old service hold or establish an institution-wide ban; unrelated independent publications may continue.",
+      "earlier_lawful_observations": "None from this new service-metadata request.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "new_acquisition_performed": false,
+      "effect_on_current_finding": "Exact prior restriction remains preserved. No held material or equivalent recovery was requested; the current distinct regional National Map image supplies independent evidence.",
+      "aw_id": "hydro-system:70063692"
+    },
+    {
+      "publication": "USGSTopo exact headward detail for northern California/southern Oregon70517095",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "observed_outcome": "New head-detail original request yielded. The terminal-status action was cancelled before approval review completed. No HTTP, body or terminal completion observed; no output read or retry. Proposed additional terminal detail was not requested.",
+      "outcome_layer": "Tool-level automatic approval review cancellation; no originHTTP401/403 asserted.",
+      "restriction_scope": "Exact selected headward detail, equivalent retrieval and unread-output recovery stopped. No poll, partial-file reading or alternate acquisition. No whole-service or unrelated-regional ban.",
+      "earlier_lawful_observations": "Earlier complete regional overview terminatedHTTP200,image/png,exit0 and was actually read, including local crops. Its recorded ordinary chosen-opening, North Fork/main Smith joins and source/render coastal-setting observations remain usable; stopped detail supplies no evidence.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "new_acquisition_performed": false,
+      "effect_on_current_finding": "Exact prior restriction remains preserved. No held material or equivalent recovery was requested; the current distinct regional National Map image supplies independent evidence.",
+      "aw_id": "hydro-system:70063692"
+    },
+    {
+      "publication": "Orth, Dictionary of Alaska Place Names, USGS Professional Paper567,1967",
+      "official_url": "https://digital.library.unt.edu/ark:/67531/metadc303962/m1/152/",
+      "observed_outcome": "Sole page152 reader opening returned Internal Error: the URL is not accessible via this tool. No page body or map read; discovery name snippets excluded.",
+      "outcome_layer": "Web-reader availability failure with unknown origin HTTP.",
+      "restriction_scope": "Exact dictionary/publication, equivalent acquisition and missing/unread content recovery paused. No alternate host/format route or later retry. Prior actually read source material retains only its recorded scope, not permission for new reading.",
+      "earlier_lawful_observations": "No new original content read for this target. Older bounded source readings are not silently invalidated or expanded.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "new_acquisition_performed": false,
+      "effect_on_current_finding": "Exact prior restriction remains preserved. No held material or equivalent recovery was requested; the current distinct regional National Map image supplies independent evidence.",
+      "aw_id": "hydro-system:70063692"
+    },
+    {
+      "publication": "USGS Professional Paper 1386-J, Satellite Image Atlas of Glaciers of the World—North America (2002), Glaciers of Baffin Island section",
+      "official_url": "https://pubs.usgs.gov/pp/p1386j/baffinisland/baffin-lores.pdf",
+      "observed_outcome": "The sole normal original-file request completed HTTPError 403 Forbidden. No PDF body or original map pixels were acquired.",
+      "outcome_layer": "Completed original HTTP-client error response reporting status 403.",
+      "restriction_scope": "Entire PP1386-J publication and equivalent copies, figures, low/high-resolution formats, catalogue, original, reader, cache, screenshot, mirror and other acquisition routes stopped. No retry or alternative route followed.",
+      "earlier_lawful_prose_exception": null,
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "new_acquisition_performed": false,
+      "effect_on_current_finding": "Exact prior restriction remains preserved. No held material or equivalent recovery was requested; the current distinct regional National Map image supplies independent evidence.",
+      "aw_id": "hydro-system:70063692"
+    },
+    {
+      "publication": "F.A.Kerr (1931), Explorations between Stikine and Taku Rivers, B.C., Geological Survey of Canada Summary Report1930 PartA, pp41A–55A, No2292.",
+      "official_url": "https://emrlibrary.gov.yk.ca/gsc/summary-reports/GSC-Summary-report-1930a-and-map/summary-report-1930-a.pdf",
+      "observed_outcome": "Original PDF completed direct HTTP200 application/pdf and authorial pp41A–45A prose was read. Advertised pocket Figure4 was absent from complete203-page PDF. Subsequent sole normal parent publication-directory opening returned web-reader URL is not accessible via this tool, without body or origin HTTP status.",
+      "outcome_layer": "Web-reader unexplained availability; origin HTTP unknown.",
+      "restriction_scope": "Whole report, companion Figure4 and equivalent further acquisition and uninspected-output reading paused. No alternate catalogue or map request.",
+      "earlier_lawful_prose_exception": "Actually read pp41A–45A field prose only; cross-border Whiting, South/North junction and glacial upper setting. No map pixels read.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "new_acquisition_performed": false,
+      "effect_on_current_finding": "Exact prior restriction remains preserved. No held material or equivalent recovery was requested; the current distinct regional National Map image supplies independent evidence.",
+      "aw_id": "hydro-system:70063692"
+    },
+    {
+      "publication": "Martin1908, Geology and mineral resources of the Controller Bay region, Alaska; USGS Bulletin335, PlateII",
+      "official_url": "https://pubs.usgs.gov/bul/0335/plate-2.pdf",
+      "observed_outcome": "The sole linked Plate2 reader request returned Failed to fetch:403 Forbidden. No map pixels or original body read.",
+      "outcome_layer": "Web-reader fetch reportingHTTP403; no separate direct-client origin measurement.",
+      "restriction_scope": "Whole identified Bulletin335 publication, Controller Bay field-survey plate/project-equivalent missing material, original/report/plate/copy/format/catalogue/mirror and other acquisition or unread-output recovery routes stopped. No alternate host, report request or other fallback followed.",
+      "earlier_lawful_prose_exception": "Official catalogue bibliography and linked-plate list read before the refusal, usable only as metadata. No original geographic content read.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "new_acquisition_performed": false,
+      "effect_on_current_finding": "Exact prior restriction remains preserved. No held material or equivalent recovery was requested; the current distinct regional National Map image supplies independent evidence.",
+      "aw_id": "hydro-system:70063692"
+    },
+    {
+      "publication": "USGS PP1386 glacier atlas stopped sections, ADF&G SP14-06 catalog and TR16-08 Wainwright/Peard surveys, USGS WSP314 and SIR2014-5152",
+      "handling": "Exact publication/project scopes retained; no acquisition, replacement edition, borrowed figure recovery or new institution-wide ban.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "new_acquisition_performed": false,
+      "effect_on_current_finding": "Exact prior restriction remains preserved. No held material or equivalent recovery was requested; the current distinct regional National Map image supplies independent evidence.",
+      "aw_id": "hydro-system:70063692"
+    },
+    {
+      "publication": "Canadian CGN/geogratis expanded/name-search and ambiguous naming publications; CanMatrix and unresolved borrowed federal maps; CBMT3978/Toporama; DataBC base/base MapServer",
+      "official_url": null,
+      "observed_outcome": "Inherited publication/service-family restrictions and unresolved identities; no new acquisition or evidence use in this review.",
+      "restriction_scope": "Each recorded exact publication, family or whole-service hold remains in force. A different sheet, host, catalogue, format or incidental Canadian map label does not release any of these restrictions.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "new_acquisition_performed": false,
+      "aw_id": "hydro-system:70063692"
+    },
+    {
+      "publication": "USGSTopo National Map service metadata, requested for Alaska80192797",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer?f=pjson",
+      "observed_outcome": "Sole service-metadata request yielded; its first terminal-status confirmation was cancelled before a decision returned. HTTP, body and terminal completion unknown. No metadata, response headers or pixels read.",
+      "outcome_layer": "Tool/network-approval cancellation before terminal observation; not an established origin HTTP denial.",
+      "restriction_scope": "Exact service-metadata request, equivalent metadata acquisition and unread outputs stopped. No recovery through another route. This does not clear any old service hold or establish an institution-wide ban; unrelated independent publications may continue.",
+      "earlier_lawful_observations": "None from this new service-metadata request.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "new_acquisition_performed": false,
+      "effect_on_current_finding": "Exact prior restriction remains preserved. No held material or equivalent recovery was requested; the current distinct regional National Map image supplies independent evidence.",
+      "aw_id": "hydro-system:70326909"
+    },
+    {
+      "publication": "USGSTopo exact headward detail for northern California/southern Oregon70517095",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "observed_outcome": "New head-detail original request yielded. The terminal-status action was cancelled before approval review completed. No HTTP, body or terminal completion observed; no output read or retry. Proposed additional terminal detail was not requested.",
+      "outcome_layer": "Tool-level automatic approval review cancellation; no originHTTP401/403 asserted.",
+      "restriction_scope": "Exact selected headward detail, equivalent retrieval and unread-output recovery stopped. No poll, partial-file reading or alternate acquisition. No whole-service or unrelated-regional ban.",
+      "earlier_lawful_observations": "Earlier complete regional overview terminatedHTTP200,image/png,exit0 and was actually read, including local crops. Its recorded ordinary chosen-opening, North Fork/main Smith joins and source/render coastal-setting observations remain usable; stopped detail supplies no evidence.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "new_acquisition_performed": false,
+      "effect_on_current_finding": "Exact prior restriction remains preserved. No held material or equivalent recovery was requested; the current distinct regional National Map image supplies independent evidence.",
+      "aw_id": "hydro-system:70326909"
+    },
+    {
+      "publication": "Decreto1204, Ministerio del Interior, published19November1980; Biblioteca del Congreso Nacional Ley Chile record17212",
+      "official_url": "https://www.bcn.cl/leychile/Navegar/imprimir?idNorma=17212&idVersion=1980-11-19",
+      "observed_outcome": "The sole normal web-reader opening returned only an application notice that the process was taking too long and that connection slowness or browser incompatibility might be responsible. No decree body or map was returned or read.",
+      "outcome_layer": "Application/reader availability or wrong-body outcome; origin HTTP was not independently measured.",
+      "origin_http_status": null,
+      "restriction_scope": "Exact decree/publication and equivalent original, catalogue, printer, reader/cache, mirror, alternate-format and unread-output recovery remain paused. No retry or alternate route followed.",
+      "earlier_lawful_observations": "Discovery identity only; search excerpts are excluded from substantive evidence.",
+      "newly_observed_access_failure": true,
+      "explicit_access_denial": false,
+      "acquisition_stop": true,
+      "material_effect": "Optional boundary-description corroboration unavailable. The primary material gap is the independently observed interlake crossing, not a second access-status category.",
+      "aw_id": "hydro-system:61614285"
+    },
+    {
+      "publication": "MOP Vialidad current portal and exact held regional publications, including Loa/DGA2014 and Codelco Pedernales2023",
+      "official_url": null,
+      "observed_outcome": "Inherited restrictions; no request or recovery.",
+      "restriction_scope": "Preserve each actual portal/project/publication hold and unresolved historical MOP/DGA relationship. No institution-wide prohibition or independence inferred from a different host/year.",
+      "aw_id": "hydro-system:61614285",
+      "newly_observed_access_failure": false,
+      "inherited": true,
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "MMA SIMBIO_HIDROGRAFIA whole service and equivalents",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HIDROGRAFIA/MapServer",
+      "observed_outcome": "Inherited unexplained metadata-reader failure; no new request.",
+      "restriction_scope": "Whole recorded hydrography-service/equivalent acquisition pause retained.",
+      "aw_id": "hydro-system:61614285",
+      "newly_observed_access_failure": false,
+      "inherited": true,
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "IGM SIIE_v3 Quebradas ríos whole service; separate IGM250K sign-in and restricted-access-map holds",
+      "official_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Quebradas_r%C3%ADos/MapServer",
+      "observed_outcome": "Inherited restrictions; no new request.",
+      "restriction_scope": "Whole Quebradas-ríos service/equivalents remain paused. The250K folder and exact restricted sheets retain their own scopes; no all-IGM ban inferred.",
+      "aw_id": "hydro-system:61614285",
+      "newly_observed_access_failure": false,
+      "inherited": true,
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "CONAF Reserva Nacional Ñuble2022 and Parque Nacional Llullaillaco1999 management plans",
+      "official_url": null,
+      "observed_outcome": "Inherited exact-plan availability pauses; no new request.",
+      "restriction_scope": "Exact plans and equivalents remain held; no all-CONAF ban. Unresolved borrowed-map inputs are not recovered through other publications.",
+      "aw_id": "hydro-system:61614285",
+      "newly_observed_access_failure": false,
+      "inherited": true,
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "USGS Professional Paper1386-I Chile/Argentina section",
+      "official_url": "https://pubs.usgs.gov/pp/p1386i/chile-arg/dry/central.html",
+      "observed_outcome": "Inherited reportedHTTP403; no request or recovery.",
+      "restriction_scope": "Actual whole identified section/publication and equivalent routes remain stopped; no all-USGS prohibition.",
+      "aw_id": "hydro-system:61614285",
+      "newly_observed_access_failure": false,
+      "inherited": true,
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "Exact previously stopped World Imagery selected-area views",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "observed_outcome": "No recovery of held northern Ellesmere, Nevada, Knik lower, Mendoza, Labrador, northeastern Patagonia or coastal-Alaska views.",
+      "restriction_scope": "Each exact view/equivalent/unread-output stop remains in force. The two newly read southern Patagonia views are geographically distinct; no global service prohibition is inferred.",
+      "aw_id": "hydro-system:61614285",
+      "newly_observed_access_failure": false,
+      "inherited": true,
+      "new_acquisition_performed": false
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "kind": "cross_border_scope",
+      "notice": "The Canadian beginning and international crossing remain explicit; the route is not treated as wholly Alaskan or as a natural source-to-sea survey.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70063692"
+    },
+    {
+      "kind": "delta_generalization",
+      "notice": "Delta islands and distributary shifts are evaluated within the connected delta floor. The rendered terminal extension is not asserted to follow one contemporary water channel.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70063692"
+    },
+    {
+      "kind": "component_names_not_synonyms",
+      "notice": "Sitkum River, South Fork Calawah River, Calawah River and Bogachiel River are bounded selected components. Only Quillayute River appears in the representative candidate list; the component names are not asserted to be alternative names for it.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70326909"
+    },
+    {
+      "kind": "generalized_valley_scale",
+      "notice": "Meander offsets and the mouth extension are evaluated at ordinary connected alluvial/estuarine scale; an exact contemporary wet-thread or shoreline fit is not required or asserted.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70326909"
+    },
+    {
+      "kind": "inherited_reproduction_notice",
+      "publication": "INETER/ANA/UNI/GIZ2014 Pfafstetter atlas",
+      "notice": "Freshly read existing reserved-rights and reproduction/commercial-use notice; factual synthesis only.",
+      "acquisition_stop": false,
+      "previously_recorded": true,
+      "aw_id": "hydro-system:70965047"
+    },
+    {
+      "kind": "inventory_role_and_terminal_boundary",
+      "notice": "Geographic Kurinwas naming does not change the western fragments’ stored tributary role. The sea terminal metadata does not establish an ocean outlet where original sources place the actual endpoint in a lagoon.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70965047"
+    },
+    {
+      "kind": "homonym_and_generalization_caution",
+      "notice": "Incer’s separate Kungkung-to-Panachún entry is not used as evidence for this selected Kung Kung feeder. No precise modern bank, exact name-transition line or natural-source inference is required or asserted.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70965047"
+    },
+    {
+      "publication": "Incidental IGM/BND sheets, MOP road-study and MMA hydrographic discoveries",
+      "status": "Unopened and unused.",
+      "effect": "Discovery metadata and alternate host/year do not resolve held or uncertain underlying map relationships.",
+      "aw_id": "hydro-system:61614285"
+    },
+    {
+      "publication": "Kilian2013 borrowed maps, figure panels and cited original studies",
+      "status": "Not acquired or used.",
+      "effect": "Only actual authorial prose read in the distinct field-study publication contributes bounded context.",
+      "aw_id": "hydro-system:61614285"
+    },
+    {
+      "publication": "All actually read sources",
+      "status": "Own factual synthesis and ordinary bibliography only.",
+      "effect": "Originals,crops,overlays,full coordinates,private paths,dynamic export URLs and acquisition receipts are excluded from public-ready material.",
+      "aw_id": "hydro-system:61614285"
+    }
+  ]
+}

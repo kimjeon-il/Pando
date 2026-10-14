@@ -1,0 +1,1197 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r240",
+  "sources": [
+    {
+      "source_key": "r240-chilkat-topo-overview",
+      "title": "USGSTopo, The National Map: Chilkat overview selected-corridor view",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "source_type": "original_multiscale_reference_cartography",
+      "reading_scope": "Entire selected icefield-to-inlet regional corridor, including river labels, receiving valley, tributary settings and terminal inlet; original visually read, with subsequent upper/middle/lower original crops and orientation aids.",
+      "outcome": "Completed direct HTTP200 image/png, followed by actual visual reading.",
+      "independence_basis": "Fresh service metadata identifies a separately maintained seamless National Map/public-domain multiscale reference service. It is not any stopped numbered geological/hydrological report, PP1386-J atlas, CanMatrix/CBMT/DataBC service, Canadian naming publication or held project-map recovery route.",
+      "limitations": "Ordinary geographic correspondence; no exact bank, current water/glacier hydraulics, single survey epoch or formal name-registry claim."
+    },
+    {
+      "source_key": "r240-chilkat-topo-head",
+      "title": "USGSTopo, The National Map: Chilkat head selected-corridor view",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "source_type": "original_multiscale_reference_cartography",
+      "reading_scope": "Eastern selected icefield opening, northwest glacier trough, Canadian upper lake/river setting and first southward border crossing; original visually read. Canadian blank terrain leaves the glacier-to-upper-water link unresolved in this source alone.",
+      "outcome": "Completed direct HTTP200 image/png, followed by actual visual reading.",
+      "independence_basis": "Fresh service metadata identifies a separately maintained seamless National Map/public-domain multiscale reference service. It is not any stopped numbered geological/hydrological report, PP1386-J atlas, CanMatrix/CBMT/DataBC service, Canadian naming publication or held project-map recovery route.",
+      "limitations": "Ordinary geographic correspondence; no exact bank, current water/glacier hydraulics, single survey epoch or formal name-registry claim."
+    },
+    {
+      "source_key": "r240-chilkat-topo-middle",
+      "title": "USGSTopo, The National Map: Chilkat middle selected-corridor view",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "source_type": "original_multiscale_reference_cartography",
+      "reading_scope": "Canadian-to-Alaskan Chilkat River crossing, southwest trunk, Tahini and Kelsall tributary junctions, braided Mosquito Lake side-water corridor, highway crossing and Klehini/Tsirku approach; entire original visually read.",
+      "outcome": "Completed direct HTTP200 image/png, followed by actual visual reading.",
+      "independence_basis": "Fresh service metadata identifies a separately maintained seamless National Map/public-domain multiscale reference service. It is not any stopped numbered geological/hydrological report, PP1386-J atlas, CanMatrix/CBMT/DataBC service, Canadian naming publication or held project-map recovery route.",
+      "limitations": "Ordinary geographic correspondence; no exact bank, current water/glacier hydraulics, single survey epoch or formal name-registry claim."
+    },
+    {
+      "source_key": "r240-chilkat-topo-lower",
+      "title": "USGSTopo, The National Map: Chilkat lower selected-corridor view",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "source_type": "original_multiscale_reference_cartography",
+      "reading_scope": "Klukwan, Klehini and Tsirku joins, lower braided Chilkat corridor, Takhin confluence, delta, actual render ending and separate source endpoint in Chilkat Inlet; entire original visually read.",
+      "outcome": "Completed direct HTTP200 image/png, followed by actual visual reading.",
+      "independence_basis": "Fresh service metadata identifies a separately maintained seamless National Map/public-domain multiscale reference service. It is not any stopped numbered geological/hydrological report, PP1386-J atlas, CanMatrix/CBMT/DataBC service, Canadian naming publication or held project-map recovery route.",
+      "limitations": "Ordinary geographic correspondence; no exact bank, current water/glacier hydraulics, single survey epoch or formal name-registry claim."
+    },
+    {
+      "source_key": "r240-chilkat-dnr-preserve",
+      "title": "Chilkat Bald Eagle Preserve",
+      "publisher": "Alaska Department of Natural Resources, Division of Parks and Outdoor Recreation",
+      "official_url": "https://dnr.alaska.gov/parks/aspunits/southeast/chilkatbep.htm",
+      "source_type": "state_park_authorial_information",
+      "reading_scope": "Management introduction and river-bottom paragraph, lines159-166 in returned normal HTML. Independently issued state-park public information; not any held report/project or a recovery of borrowed maps.",
+      "outcome": "Normal web-reader HTML result; no origin HTTP status was separately measured. No photographs, map link or plan acquired.",
+      "independence_basis": "State-park management information independently issued for the preserve; no numbered survey report, held fisheries catalog or borrowed cartographic figure acquired.",
+      "supports": "Preserve contains river-bottom land associated with the separately named Chilkat, Kleheni (page spelling) and Tsirku rivers along Haines Highway. No glacier-transfer evidence supplied."
+    },
+    {
+      "source_key": "r240-chilkat-imagery-head",
+      "title": "World Imagery: selected Chilkat eastern glacial opening, ice-marginal foreland and upper Canadian receiving basin",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "source_type": "original_composite_satellite_imagery",
+      "reading_scope": "One complete original visually read, followed by private local reading crops of the eastern branch/ice-marginal join and northwestern terminus/receiving-basin transfer. Clear eastern and central pixels supply the headward geographic link. Cloudy western mosaic is not used for missing river detail; original USGSTopo supplies that separately.",
+      "outcome": "Completed direct HTTP200 image/jpeg, followed by actual visual reading.",
+      "independence_basis": "Separately maintained global imagery service and a distinct southeastern Alaska/border view, not held Knik/Ellesmere/Nevada views, a PP1386-J atlas image, a NASA held scene, Canadian topographic base or project-map equivalent.",
+      "limitations": "Unlabeled imagery supplies geographic form only, not a name. Mosaic/scene dates and current ice extent are not established; no present glacial or subglacial hydraulics claimed."
+    },
+    {
+      "source_key": "r240-esri-baffin-route",
+      "title": "World Imagery: bounded northern feeder–Generator Lake–Clyde receiving corridor overview",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "publication_identity": "Independently maintained photographic mosaic, not a copy or recovery route for held CanMatrix, CBMT/Toporama, naming records or Baffin geological/glacier reports. The selected area is separate from the held Ellesmere, Nevada and Knik imagery views.",
+      "observed_acquisition": "One normal route-overview acquisition completed HTTP200 image/jpeg.",
+      "actual_material_read": "Complete original route overview, private part-index orientation aid, original upper/southern and middle/coast crops, and separate source/render terminal orientation crop.",
+      "original_pixels_actually_read": true,
+      "supports": "Ordinary lake-chain geography, broad ice-margin lake, eastward lake-outlet corridor, northeastern receiving valley and joins, coastal delta and both terminal settings.",
+      "limitations": "The image supplies no hydronym, verified mosaic epoch, current flow, exact bank, present ice-margin position or legal name limit. Source images and all orientation material remain private."
+    },
+    {
+      "source_key": "r240-esri-baffin-opening",
+      "title": "World Imagery: bounded northern opening-lake and southwest feeder detail",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "publication_identity": "Same independent photographic mosaic as the route overview; bounded detailed Baffin view unrelated to held selected views.",
+      "observed_acquisition": "One normal detail acquisition completed HTTP200 image/jpeg after the previous service request had terminated.",
+      "actual_material_read": "Complete detailed image with private part-index aid, then a crop of its original opening-to-canyon pixels without the orientation line.",
+      "original_pixels_actually_read": true,
+      "supports": "Small opening lake, southwest drainage swale into the confined rocky stream corridor, next elongated lake and its southern outlet.",
+      "limitations": "Ordinary geography only. Seasonal snow/ice, mosaic epoch and present water flow unverified; no imagery-derived names. Original and derivatives remain private."
+    },
+    {
+      "source_key": "r240-arc402-clyde-prose",
+      "title": "Canadian Sailing Directions, ARC402: Eastern Arctic",
+      "publisher": "Canadian Hydrographic Service, Fisheries and Oceans Canada",
+      "edition": "January2025",
+      "catalogue_number": "Fs74-39E-PDF",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/chs-shc-ARC402-eng-202501-41273515.pdf",
+      "publication_identity": "Separate CHS coastal-description editorial volume, independently established from the held ARC401 and terrestrial mapping, registry and field-project publications.",
+      "observed_acquisition": "Existing successfully acquired original was confirmed present and read locally; no new external request.",
+      "actual_material_read": "Cover/imprint and reproduction notice; Chapter4 printed4-2 to4-3 prose, especially paragraph37, with paragraph38 as neighboring-fiord context. Printed4-3 was also visually inspected. No CHS chart was acquired.",
+      "supports": "Clyde River explicitly enters the head of Kangiqtugaapik through a bare sand/gravel plain. Inugsuin Fiord is separately distinguished.",
+      "limitations": "Coastal prose alone supplies no complete inland route or initial feeder. Historical edition used for geography, not current navigation or formal registry verification.",
+      "use_notice": "Personal noncommercial reproduction is permitted; commercial reproduction requires permission. Only own factual synthesis and ordinary bibliography are supplied; no original page or derivative is redistributed."
+    },
+    {
+      "source_key": "r240-wildlife-zones-prose",
+      "title": "Wildlife Act: Consolidation of Wildlife Management Zones Regulations, R.R.N.W.T.1990,c.W-17",
+      "publisher_or_host": "FAOLEX, Food and Agriculture Organization of the United Nations; historical Northwest Territories/Nunavut office consolidation",
+      "edition": "Amendments listed through R-106-98; a later overall consolidation date is not established.",
+      "official_url": "https://faolex.fao.org/docs/pdf/nu47103.pdf",
+      "publication_identity": "Regulatory office consolidation with its own statutory geographic boundary prose, distinct from held geological, biological-survey, sailing-directions and registry publications.",
+      "observed_acquisition": "Normal PDF web reader succeeded, followed by a successful ordinary text find; application/pdf,20 pages. Original HTTP status was not exposed.",
+      "actual_material_read": "Cover/title and nonofficial-consolidation warning; N/2 introduction and N/2(y)–(za), printed9/PDF10, plus reciprocal clauses on printed17/PDF18, as original parsed text. No scan or map pixels claimed.",
+      "supports": "Clyde River is connected to the southern shore of Generator Lake, and that lake adjoins Barnes Ice Cap. The directly described western Clyde reach matches the selected lake-outlet corridor.",
+      "limitations": "A historical convenience consolidation expressly not an authoritative/current statement of law. It references NTS map sheets; none of those maps, their linework, legal boundary geometry or formal-name records was retrieved or reconstructed. Only its own bounded geographic prose is used."
+    },
+    {
+      "source_key": "r240-dpa-carri2012",
+      "title": "Informe Lagunas Carri-Laufquen",
+      "publisher": "Departamento Provincial de Aguas, Provincia de Río Negro; hosted by Consejo Hídrico Federal",
+      "date": "July 2012",
+      "official_url": "https://www.cohife.org.ar/wp-content/uploads/2024/02/Ficha-64-Lagunas-Carrilaufquen-Informe-de-Situacion-2012-07.pdf",
+      "material_read": "Complete 25-page original acquired. Read title, acknowledgments, study objective and area, authorial hydrology on printed pages4–5, imagery methods on5–7, basin-synthesis methods on14–15, stated qualitative limitations and team credits. Visually inspected Figure2 on printed4, the four dated processed lake-image panels in Figure3 on printed8, and Figure9 on printed15. Only the independent photographic lake depiction and authorial hydrology supply substantive lake-identity and northern-versus-southern approach claims; the generalized basin and provincial locator are not used to resolve individual selected channels.",
+      "independent_publication_identity": "An independently authored DPA investigation of historical lake change, using CONAE cooperation, Landsat processing, hydrometric information and prior bathymetry. Its project identity was positively established from prior successful original bibliography and verified in the current original. It is not a copy or edition of the held geological, road-impact, Argenmap or historical500k publications.",
+      "supports": "Grande receiving-lake identity, distinct Chica lake and southern Maquinchao/Huahuel Niyeo approach, important northern inflows, historical intermittency and variable lake occupation.",
+      "limitations": "No hydronym is assigned to this northern feeder. Historical regional prose and coarse figures alone cannot establish all its channels; those are supplied by the inspected photographic originals. No current water-level or flow claim.",
+      "observed_acquisition": "One normal-original request completed HTTP200 application/pdf.",
+      "source_use_notice": "Factual synthesis and ordinary bibliography only; no original document, figure, image or derivative is redistributed."
+    },
+    {
+      "source_key": "r240-esri-patagonia-upper",
+      "title": "World Imagery: selected northern Patagonia opening and upper-valley view",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "material_read": "Whole original and orientation aid read, covering chosen opening, eastward receiving corridor, northern branch junction, southward turn and upper trunk through its southwestward elbow.",
+      "independent_publication_identity": "Independently maintained photographic mosaic, not a reproduction or recovery of held topographic or geological sheets. These selected Río Negro views are distinct from the held Ellesmere, Nevada and Knik exact views.",
+      "observed_acquisition": "One normal-original request completed HTTP200 image/jpeg; the complete image was read after terminal completion.",
+      "supports": "Ordinary geographic correspondence of the explicitly stated selected parts and joins.",
+      "limitations": "No hydronym, formal registry status, verified single mosaic date, exact contemporary bank or current hydraulic operation is established.",
+      "source_use_notice": "Original imagery, orientation aids, coordinates and exact requests remain private; only independently written factual observations and ordinary bibliography are reported."
+    },
+    {
+      "source_key": "r240-esri-patagonia-middle",
+      "title": "World Imagery: selected northern Patagonia middle-canyon and alluvial-corridor view",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "material_read": "Whole original and orientation aid read, overlapping the upper view through the southwestward canyon, middle southward/eastward bends, side-valley joins and lower alluvial approach.",
+      "independent_publication_identity": "Independently maintained photographic mosaic, not a reproduction or recovery of held topographic or geological sheets. These selected Río Negro views are distinct from the held Ellesmere, Nevada and Knik exact views.",
+      "observed_acquisition": "One normal-original request completed HTTP200 image/jpeg; the complete image was read after terminal completion.",
+      "supports": "Ordinary geographic correspondence of the explicitly stated selected parts and joins.",
+      "limitations": "No hydronym, formal registry status, verified single mosaic date, exact contemporary bank or current hydraulic operation is established.",
+      "source_use_notice": "Original imagery, orientation aids, coordinates and exact requests remain private; only independently written factual observations and ordinary bibliography are reported."
+    },
+    {
+      "source_key": "r240-esri-patagonia-lower",
+      "title": "World Imagery: selected Carri-Laufquen Grande northern approach and terminal lakebed view",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "material_read": "Whole original and orientation aid read, overlapping the lower alluvial corridor and covering the northern lakebed tongue, broad receiving floor and actual stored endpoint.",
+      "independent_publication_identity": "Independently maintained photographic mosaic, not a reproduction or recovery of held topographic or geological sheets. These selected Río Negro views are distinct from the held Ellesmere, Nevada and Knik exact views.",
+      "observed_acquisition": "One normal-original request completed HTTP200 image/jpeg; the complete image was read after terminal completion.",
+      "supports": "Ordinary geographic correspondence of the explicitly stated selected parts and joins.",
+      "limitations": "No hydronym, formal registry status, verified single mosaic date, exact contemporary bank or current hydraulic operation is established.",
+      "source_use_notice": "Original imagery, orientation aids, coordinates and exact requests remain private; only independently written factual observations and ordinary bibliography are reported."
+    },
+    {
+      "source_key": "r240-esri-labrador-west",
+      "title": "World Imagery: Selected western opening, northward feeder and upper-lake corridor",
+      "publisher": "Esri; service credits Esri, Vantor, Earthstar Geographics and the GIS User Community",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "accessed_date": "2026-10-13",
+      "evidence_kind": "independent_original_satellite_aerial_imagery",
+      "acquisition_outcome": "One sequential original export completed HTTP200 image/jpeg and exit0; original read only after terminal completion.",
+      "actual_material_read": "Original western view, selected opening overview, northward feeder, long upper lake and northeastern outlet; unmarked local enlargements read.",
+      "publication_independence": "Independently maintained imagery mosaic, distinct from CanMatrix/CBMT/Toporama, CGN naming records, NLUIS, fisheries/geological maps and CHS publications. This Labrador view is distinct from held Ellesmere and Knik selected-area views; no held view was recovered.",
+      "limits": "No hydronym labels. Individual scene dates unestablished. Ordinary geographic correspondence only, without a uniform imagery epoch, contemporary flow or exact-bank claim. Original and derived reading aids remain private."
+    },
+    {
+      "source_key": "r240-esri-labrador-middle",
+      "title": "World Imagery: Selected middle receiving corridor and southern tributary join",
+      "publisher": "Esri; service credits Esri, Vantor, Earthstar Geographics and the GIS User Community",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "accessed_date": "2026-10-13",
+      "evidence_kind": "independent_original_satellite_aerial_imagery",
+      "acquisition_outcome": "One sequential original export completed HTTP200 image/jpeg and exit0; original read only after terminal completion.",
+      "actual_material_read": "Original middle view, winding feeder, all joins, major southern tributary confluence, bar-rich lower river and overlapping western/eastern seams; unmarked local enlargements read.",
+      "publication_independence": "Independently maintained imagery mosaic, distinct from CanMatrix/CBMT/Toporama, CGN naming records, NLUIS, fisheries/geological maps and CHS publications. This Labrador view is distinct from held Ellesmere and Knik selected-area views; no held view was recovered.",
+      "limits": "No hydronym labels. Individual scene dates unestablished. Ordinary geographic correspondence only, without a uniform imagery epoch, contemporary flow or exact-bank claim. Original and derived reading aids remain private."
+    },
+    {
+      "source_key": "r240-esri-labrador-lower",
+      "title": "World Imagery: Selected lower lakes, final outlet and inner coastal bay",
+      "publisher": "Esri; service credits Esri, Vantor, Earthstar Geographics and the GIS User Community",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "accessed_date": "2026-10-13",
+      "evidence_kind": "independent_original_satellite_aerial_imagery",
+      "acquisition_outcome": "One sequential original export completed HTTP200 image/jpeg and exit0; original read only after terminal completion.",
+      "actual_material_read": "Original lower view, both elongate lower lakes, their connecting neck, inlet bar complex, final outlet and separate source/render ending settings; unmarked local enlargements read.",
+      "publication_independence": "Independently maintained imagery mosaic, distinct from CanMatrix/CBMT/Toporama, CGN naming records, NLUIS, fisheries/geological maps and CHS publications. This Labrador view is distinct from held Ellesmere and Knik selected-area views; no held view was recovered.",
+      "limits": "No hydronym labels. Individual scene dates unestablished. Ordinary geographic correspondence only, without a uniform imagery epoch, contemporary flow or exact-bank claim. Original and derived reading aids remain private."
+    },
+    {
+      "source_key": "r240-esri-labrador-opening-detail",
+      "title": "World Imagery: Selected western pond-and-lake connection detail",
+      "publisher": "Esri; service credits Esri, Vantor, Earthstar Geographics and the GIS User Community",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "accessed_date": "2026-10-13",
+      "evidence_kind": "independent_original_satellite_aerial_imagery",
+      "acquisition_outcome": "One sequential original export completed HTTP200 image/jpeg and exit0; original read only after terminal completion.",
+      "actual_material_read": "Higher-resolution original opening view and unmarked connecting-corridor enlargement; initial slender lake, intervening ponds/channels, larger western receiving lake and northern outlet inspected.",
+      "publication_independence": "Independently maintained imagery mosaic, distinct from CanMatrix/CBMT/Toporama, CGN naming records, NLUIS, fisheries/geological maps and CHS publications. This Labrador view is distinct from held Ellesmere and Knik selected-area views; no held view was recovered.",
+      "limits": "No hydronym labels. Individual scene dates unestablished. Ordinary geographic correspondence only, without a uniform imagery epoch, contemporary flow or exact-bank claim. Original and derived reading aids remain private."
+    },
+    {
+      "source_key": "r240-chs-atl1212025",
+      "title": "Canadian Sailing Directions ATL121: Labrador, Hamilton Inlet to Cape Chidley (including Button Islands and Gray Strait)",
+      "publisher": "Canadian Hydrographic Service, Fisheries and Oceans Canada",
+      "edition": "2025/03",
+      "catalogue_number": "Fs74-56E-PDF",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/chs-shc-ATL121-eng-202503-41281287.pdf",
+      "acquisition_outcome": "One original acquisition completed HTTP200 application/pdf and exit0.",
+      "actual_material_read": "Original cover, edition, catalogue/ISSN and reproduction notice; Chapter2 printed2-3 and2-4 (PDF pages25–26), especially paragraphs26–40, read as prose and visually inspected.",
+      "supports": "Kaipokok Bay’s southwestward extent and the location of Postville and nearby islands on the bay; coastal-setting context.",
+      "publication_independence": "The retained public bibliography positively identifies this separate north-of-Hamilton-Inlet coastal pilot and its own navigation remit. It is distinct from held ATL120, ARC401, fisheries surveys, geological projects and national topographic cartography. No chart5046 or external chart was acquired.",
+      "limits": "The read paragraphs do not name the river at the selected bay-head mouth or map the inland route. Used only for geographic context, never current navigation or hazard advice."
+    },
+    {
+      "source_key": "r240-tula-nunatsiavut2025",
+      "title": "Braiding Knowledge: Mapping Nunatsiavut’s Changing Rivers",
+      "publisher": "Tula Foundation / Hakai Institute",
+      "date": "2025-10-27",
+      "official_url": "https://tula.org/news/braiding-knowledge-mapping-nunatsiavuts-changing-rivers",
+      "acquisition_outcome": "Normal HTML web-reader opening succeeded.",
+      "actual_material_read": "Article body, project identity, April2023 and August2025 fieldwork captions, and paragraphs distinguishing Kaipokok and English rivers near Postville. Linked photographs and map images were not acquired or interpreted.",
+      "supports": "Contemporary field-project use of the Kaipokok River name and its distinction from English River in the Postville region.",
+      "publication_independence": "Article describes a new Nunatsiavut Rivers Project led by Sue Ziegler with Nunatsiavut Government, Memorial, Dalhousie, Queen’s and Hakai collaborators, including original2023/2025 fieldwork and community observations. It is not a reproduction of Anderson1985, historical geological maps or a boundary-map project.",
+      "limits": "Regional river usage only. The prose/captions do not identify the exact selected outlet. Caption spelling Kaipokak is not promoted to a verified alias."
+    },
+    {
+      "source_key": "r240-mun-carbon2025",
+      "title": "Carbon tracker: Canada Research Chair aims to inform adaptation, advance carbon climate science in N.L. ecosystems",
+      "author": "Nicole Squires",
+      "publisher": "Memorial University, Gazette",
+      "date": "2025-11-28",
+      "official_url": "https://gazette.mun.ca/research/carbon-tracker/",
+      "acquisition_outcome": "Normal HTML web-reader opening succeeded.",
+      "actual_material_read": "Title/date/byline; terrestrial-marine-connections and Nunatsiavut Rivers Project paragraphs; caption identifying Kaipokok River discharge measurement by Maurice Jacque, Louise Mercer and Emma Harrison. No linked image acquired or map inferred.",
+      "supports": "Institutional corroboration of current Kaipokok River name usage in the independent community-based field project.",
+      "publication_independence": "First-party institutional account of the current research team and renewed biogeochemistry programme, independently identified from the older held river inventories, geology, charts and boundary mapping. It corroborates the same modern project described by Tula, not a wholly independent second hydrological survey.",
+      "limits": "No exact site coordinate or lower-river route is supplied; cannot complete the selected receiving-river assignment."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70009423",
+      "source_keys": [
+        "r240-chilkat-topo-overview",
+        "r240-chilkat-topo-head",
+        "r240-chilkat-topo-middle",
+        "r240-chilkat-topo-lower",
+        "r240-chilkat-dnr-preserve",
+        "r240-chilkat-imagery-head"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8943
+          ],
+          "component_scope": "Eastern high icefield opening and descending western/southwestern glacial branch",
+          "finding": "The selected opening lies within the mapped Chilkat Glacier icefield setting and follows its western/southwestern branch toward the ice-marginal foreland. The original topographic ice area and enclosed contours, with clear imagery of the glacial branch and its descending valley, establish ordinary geographic correspondence. The glacier label is bounded to the broader icefield setting, not treated as a river name or exact named-branch boundary.",
+          "sources": [
+            "r240-chilkat-topo-overview",
+            "r240-chilkat-topo-head",
+            "r240-chilkat-imagery-head"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Chilkat Glacier"
+          ],
+          "part_indices_zero_based": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "fragments": [
+            8943
+          ],
+          "component_scope": "Ice-marginal pool/foreland, northwest glacier trough, border crossing and upper receiving basin",
+          "finding": "The selected route passes through a small ice-marginal pool/foreland and turns northwest along the main glacial trough. Clear imagery depicts the continuous trough, terminal debris/ice margin and receiving water basin across the border. It closes the Canadian transfer that the topographic source alone does not depict fully. Differences in mapped and photographed ice extent do not require present subglacial-hydraulic inference or a continuously wet channel on every position. No intervening separate basin is apparent at the ordinary geographic scale read.",
+          "sources": [
+            "r240-chilkat-topo-overview",
+            "r240-chilkat-topo-head",
+            "r240-chilkat-imagery-head"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ]
+        },
+        {
+          "fragments": [
+            8943
+          ],
+          "component_scope": "Upper lake-like widening, westward Chilkat River, southward return across the border and southwest reach",
+          "finding": "The unnamed upper waterbody broadening opens west into a directly labeled Chilkat River channel. The selected route follows that river west and south across the international boundary, then southwest through confined reaches and broad water polygons. An eastern glacier-fed feeder joins below the border before the corridor reaches the western Tahini River junction. The upper waterbody retains a bounded unnamed lake-like status; the river label is not imposed as its natural-lake name.",
+          "sources": [
+            "r240-chilkat-topo-overview",
+            "r240-chilkat-topo-head",
+            "r240-chilkat-topo-middle",
+            "r240-chilkat-imagery-head"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Chilkat River"
+          ],
+          "part_indices_zero_based": [
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20
+          ]
+        },
+        {
+          "fragments": [
+            8943
+          ],
+          "component_scope": "Tahini receiving junction, southward Chilkat valley and Kelsall confluence",
+          "finding": "The mapped Chilkat continues through the Tahini joining setting and southward within its continuous valley/floodplain to the Kelsall confluence from the west. The selected generalized line stays in this ordinary receiving corridor, including river widenings and minor lateral tributaries. Tahini and Kelsall are separately bounded tributary names.",
+          "sources": [
+            "r240-chilkat-topo-overview",
+            "r240-chilkat-topo-middle"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Chilkat River",
+            "Tahini River",
+            "Kelsall River"
+          ],
+          "part_indices_zero_based": [
+            20,
+            21,
+            22,
+            23,
+            24,
+            25
+          ]
+        },
+        {
+          "fragments": [
+            8943
+          ],
+          "component_scope": "Braided Chilkat river-bottom corridor past side-water settings to the highway/Klukwan approach",
+          "finding": "The selected corridor continues through the braided Chilkat floodplain and wooded/wetland river-bottom settings, passing side lakes and unnamed tributary mouths before the highway crossing and the adjoining lower fragment. Nearby Mosquito Lake labels do not supply a mainstem name or imply a selected through-lake passage. Braided-thread and bank differences are ordinary cartographic generalization within one mapped receiving floor.",
+          "sources": [
+            "r240-chilkat-topo-overview",
+            "r240-chilkat-topo-middle",
+            "r240-chilkat-topo-lower"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Chilkat River"
+          ],
+          "part_indices_zero_based": [
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34
+          ]
+        },
+        {
+          "fragments": [
+            8944
+          ],
+          "component_scope": "Continuous fragment join, Klehini confluence, Klukwan and Tsirku receiving floor",
+          "finding": "The lower fragment continues in the same Chilkat River near the Klehini joining corridor and Klukwan, then passes the Tsirku confluence and broad common river-bottom floor. Independent state-park prose corroborates the distinct Chilkat, Klehini/Kleheni and Tsirku river-bottom settings. Neither nearby Chilkat Lake nor Chilkoot Lake is a selected through-lake component.",
+          "sources": [
+            "r240-chilkat-topo-middle",
+            "r240-chilkat-topo-lower",
+            "r240-chilkat-dnr-preserve"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "bounded_names": [
+            "Chilkat River",
+            "Klehini River",
+            "Tsirku River"
+          ],
+          "part_indices_zero_based": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "fragments": [
+            8944
+          ],
+          "component_scope": "Lower Chilkat floodplain and Takhin confluence",
+          "finding": "The mapped lower Chilkat forms one continuous broad braided and wetland receiving corridor beside the valley road. The selection remains within that corridor past the distinct Takhin tributary joining from the west and onward toward the estuary. A named tributary label on the common lower water polygon does not make it an alias of the selected system.",
+          "sources": [
+            "r240-chilkat-topo-overview",
+            "r240-chilkat-topo-lower"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "bounded_names": [
+            "Chilkat River",
+            "Takhin River"
+          ],
+          "part_indices_zero_based": [
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ]
+        },
+        {
+          "fragments": [
+            8944
+          ],
+          "component_scope": "Delta approach, marine-inlet extension, actual render ending and separate source endpoint",
+          "finding": "The last selected parts pass from the lower river/delta into the adjoining Chilkat Inlet receiving setting along the delta margin. The render ending is within this marine receiving setting; the distinct source endpoint is farther seaward in the same inlet. These two terminal descriptions are preserved separately. The final inlet extension is not claimed to be a wholly natural-river reach, and no exact contemporary mouth or tidal-waterline alignment is asserted.",
+          "sources": [
+            "r240-chilkat-topo-overview",
+            "r240-chilkat-topo-lower"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "bounded_names": [
+            "Chilkat River",
+            "Chilkat Inlet"
+          ],
+          "part_indices_zero_based": [
+            10,
+            11,
+            12,
+            13
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80037405",
+      "source_keys": [
+        "r240-esri-baffin-route",
+        "r240-esri-baffin-opening",
+        "r240-arc402-clyde-prose",
+        "r240-wildlife-zones-prose"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2345
+          ],
+          "component_scope": "Small northern lake edge and southwest headward feeder",
+          "finding": "The chosen opening is at the small northern lake’s southern/southwestern edge. The detailed original exposes a southwest-trending shallow drainage swale through pale, rocky terrain into a confined bedrock stream corridor leading to the larger lake below. Small neighboring ponds and the separate northern/western approaches are distinguishable. The ordinary receiving corridor is established without requiring exact agreement with each coarse selected vertex or a continuously visible presently wet thread. No independent name is established for this feeder.",
+          "sources": [
+            "r240-esri-baffin-opening",
+            "r240-esri-baffin-route"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            0
+          ]
+        },
+        {
+          "fragments": [
+            2345
+          ],
+          "component_scope": "First elongated lake passage and rocky southern outlet",
+          "finding": "The selected route passes southwest through the first elongated lake, then through its rocky outlet and intervening smaller waterbody into the next lower receiving corridor. The detailed view and overlapping route overview expose the lake basin, confined outlet and ordinary joining geography. These northern lake components are left unnamed rather than extending Generator Lake’s name to every waterbody.",
+          "sources": [
+            "r240-esri-baffin-opening",
+            "r240-esri-baffin-route"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            1,
+            2
+          ]
+        },
+        {
+          "fragments": [
+            2345
+          ],
+          "component_scope": "Southwest succession of narrow waterbodies and connecting valley reaches",
+          "finding": "Successive narrow waterbodies and rocky interlake passages occupy a continuous southwest-trending depression east of the ice-margin terrain. Short side gullies join from the surrounding slopes. The route remains in this lake-and-channel chain and does not cross over the ice cap or shift to a separate neighboring basin. Seasonal snow/ice and mixed photographic epochs are not interpreted as present hydraulic conditions.",
+          "sources": [
+            "r240-esri-baffin-route"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "fragments": [
+            2345
+          ],
+          "component_scope": "Eastern and southern passage through the broad southwestern ice-margin lake",
+          "finding": "The narrow upper lake corridor opens into the broad southwestern lake basin. The selected passage follows its eastern side to the southeastern/southern outlet setting. The regulatory prose’s combination of Generator Lake, Barnes Ice Cap and the Clyde bank directly east supports this bounded lake identity. The glacier/ice cap is adjacent westward; no selected crossing over the ice itself is asserted, and no current ice-dam or calving behavior is inferred.",
+          "sources": [
+            "r240-esri-baffin-route",
+            "r240-wildlife-zones-prose"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Generator Lake",
+            "Barnes Ice Cap"
+          ],
+          "part_indices_zero_based": [
+            6,
+            7,
+            8
+          ]
+        },
+        {
+          "fragments": [
+            2345
+          ],
+          "component_scope": "Lake outlet, eastern sediment corridor and turn toward the northeast",
+          "finding": "A connected eastward sediment-and-channel corridor leaves the large lake, passes small pools and gravel flats, and turns toward the northeast-trending receiving valley. The historical regulatory clauses explicitly connect the Clyde River bank to Generator Lake’s southern shore and identify a point on the same eastern river reach. Coarse selected segments fall across the wider valley/terrace setting; they do not require a new cross-basin transfer or a river name for each adjacent pool.",
+          "sources": [
+            "r240-esri-baffin-route",
+            "r240-wildlife-zones-prose"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Clyde River",
+            "Generator Lake"
+          ],
+          "part_indices_zero_based": [
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "fragments": [
+            2345
+          ],
+          "component_scope": "Northeast-trending middle river, pools and tributary joins",
+          "finding": "The eastward lake-outlet corridor continues into the northeast valley through broader sediment reaches, confined rocky sections and local widenings. Side gullies and short lake-fed tributaries join the same receiving corridor. Adjacent dark and turquoise lakes are distinguished from the selected through-route; no reservoir, managed transfer or ice crossing is required by the observed geography.",
+          "sources": [
+            "r240-esri-baffin-route",
+            "r240-wildlife-zones-prose"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Clyde River"
+          ],
+          "part_indices_zero_based": [
+            13,
+            14,
+            15,
+            16,
+            17,
+            18
+          ]
+        },
+        {
+          "fragments": [
+            2345
+          ],
+          "component_scope": "Long northeast river continuation into the lower valley",
+          "finding": "The same river corridor can be followed through northeast-oriented bends, local narrows and flatter gravel reaches. The selected progression and successive tributary joins remain in one receiving valley; neighboring lake basins lie beside it. This geographic continuity connects the named Generator Lake outlet reach with the independently named coastal Clyde River.",
+          "sources": [
+            "r240-esri-baffin-route",
+            "r240-wildlife-zones-prose",
+            "r240-arc402-clyde-prose"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Clyde River"
+          ],
+          "part_indices_zero_based": [
+            19,
+            20,
+            21,
+            22,
+            23
+          ]
+        },
+        {
+          "fragments": [
+            2345
+          ],
+          "component_scope": "Lower bends, southern tributary confluence and broad inlet-head delta",
+          "finding": "The lower valley bends eastward, receives a substantial southern approach, then turns northeast into a broad sandy/gravelly delta plain at the inlet head. Visible channels, bars and floodplain patches occupy the same continuous receiving setting. This directly matches the CHS description of Clyde River entering Kangiqtugaapik through a flat, bare sand-and-gravel expanse, independently distinguishing it from nearby side-fiord or tributary settings.",
+          "sources": [
+            "r240-esri-baffin-route",
+            "r240-arc402-clyde-prose"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Clyde River",
+            "Kangiqtugaapik"
+          ],
+          "part_indices_zero_based": [
+            24,
+            25,
+            26
+          ]
+        },
+        {
+          "fragments": [
+            2345
+          ],
+          "component_scope": "Separate stored source terminal and rendered terminal at the inlet-head delta margin",
+          "finding": "The actual selected ending lies at the southern/eastern margin of the river’s inlet-head delta. The stored source endpoint is at the coastal water-edge setting; the rendered endpoint is slightly southward/landward along the same delta-to-inlet margin. Both are accounted for separately. No exact present channel bank, surveyed river mouth or tidal waterline is asserted, and no unselected continuation down the long inlet to the settlement or open Baffin Bay is appended.",
+          "sources": [
+            "r240-esri-baffin-route",
+            "r240-arc402-clyde-prose"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Clyde River",
+            "Kangiqtugaapik"
+          ],
+          "part_indices_zero_based": [
+            27
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61560970",
+      "source_keys": [
+        "r240-dpa-carri2012",
+        "r240-esri-patagonia-upper",
+        "r240-esri-patagonia-middle",
+        "r240-esri-patagonia-lower"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14576
+          ],
+          "component_scope": "northern opening and initial tributary join",
+          "finding": "The chosen opening follows a narrow, branching upland drainage corridor southeast and then south. The image distinguishes the selected branch from neighboring gullies and shows the short southwestward continuation joining the wider receiving valley. No nearby feature name is assigned to the opening.",
+          "sources": [
+            "r240-esri-patagonia-upper"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": [
+            1,
+            2
+          ],
+          "part_index_basis": "One-based stored-part numbering within FID14576."
+        },
+        {
+          "fragments": [
+            14576
+          ],
+          "component_scope": "eastward receiving valley and turn",
+          "finding": "The selected route enters the broad pale valley floor, bends southeast and then east/northeast, passes a substantial northern tributary junction and continues east to the pronounced southern turn. The whole valley-floor connection is visible, including side-gully joins; the selected path is not treated as a precise bank trace.",
+          "sources": [
+            "r240-esri-patagonia-upper"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": [
+            3,
+            4,
+            5
+          ],
+          "part_index_basis": "One-based stored-part numbering within FID14576."
+        },
+        {
+          "fragments": [
+            14576
+          ],
+          "component_scope": "southward upper trunk",
+          "finding": "After the eastern turn, a continuous south-running dry-valley corridor follows the upland margin. Successive tributary gullies join it, and the corridor continues to the southern elbow where it turns westward. Small neighboring cloud/shadow patches do not remove the visible ordinary valley connection.",
+          "sources": [
+            "r240-esri-patagonia-upper",
+            "r240-esri-patagonia-middle"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": [
+            6,
+            7,
+            8,
+            9
+          ],
+          "part_index_basis": "One-based stored-part numbering within FID14576."
+        },
+        {
+          "fragments": [
+            14576
+          ],
+          "component_scope": "southwestward middle canyon",
+          "finding": "The elbow continues west and southwest through an incised, locally green-toned canyon corridor, receiving side valleys before turning south. Overlapping original views account for the full middle connection and all three stored parts without an inferred ridge or separate-basin crossing.",
+          "sources": [
+            "r240-esri-patagonia-upper",
+            "r240-esri-patagonia-middle"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": [
+            10,
+            11,
+            12
+          ],
+          "part_index_basis": "One-based stored-part numbering within FID14576."
+        },
+        {
+          "fragments": [
+            14576
+          ],
+          "component_scope": "middle southward and southeastward sequence",
+          "finding": "The receiving channel winds south between dissected hills, turns east and southeast around the adjoining uplands, and opens into a broader pale alluvial corridor. Side-canyon junctions and the final southward outlet from this terrain are visible throughout.",
+          "sources": [
+            "r240-esri-patagonia-middle"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": [
+            13,
+            14,
+            15,
+            16
+          ],
+          "part_index_basis": "One-based stored-part numbering within FID14576."
+        },
+        {
+          "fragments": [
+            14576
+          ],
+          "component_scope": "lower alluvial corridor and lake approach",
+          "finding": "The selected southward and southwestward succession follows the continuous alluvial floor below the hills, with a meandering dry channel and diffuse pale depositional surfaces. It reaches the northern receiving-lakebed approach at the foot of the western uplands. Local shadows reduce detail but not the valley-to-basin connection.",
+          "sources": [
+            "r240-esri-patagonia-middle",
+            "r240-esri-patagonia-lower"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": [
+            17,
+            18
+          ],
+          "part_index_basis": "One-based stored-part numbering within FID14576."
+        },
+        {
+          "fragments": [
+            14576
+          ],
+          "component_scope": "northern grande lakebed passage",
+          "finding": "The selected continuation enters the elongated northern lakebed tongue and follows its pale, locally darker central receiving floor southward into the broader Grande depression. DPA’s authorial lake account and processed multitemporal imagery identify this larger northern lake and distinguish it from Chica farther south. A continuous receiving lakebed establishes ordinary passage even where the photographed surface is dry.",
+          "sources": [
+            "r240-esri-patagonia-lower",
+            "r240-dpa-carri2012"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": [
+            19,
+            20,
+            21
+          ],
+          "part_index_basis": "One-based stored-part numbering within FID14576."
+        },
+        {
+          "fragments": [
+            14576
+          ],
+          "component_scope": "actual terminal lakebed endpoint",
+          "finding": "The last southward stored part ends within the same broad Grande lakebed near its northern-to-central basin transition. The original lower view includes the actual ending, surrounding lakebed, western margin and receiving basin beyond it. This is an interior lakebed ending, not an onward river mouth or a substitution of the distinct southern Chica inlet.",
+          "sources": [
+            "r240-esri-patagonia-lower",
+            "r240-dpa-carri2012"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": [
+            22
+          ],
+          "part_index_basis": "One-based stored-part numbering within FID14576."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70095324",
+      "source_keys": [
+        "r240-esri-labrador-west",
+        "r240-esri-labrador-middle",
+        "r240-esri-labrador-lower",
+        "r240-esri-labrador-opening-detail",
+        "r240-chs-atl1212025",
+        "r240-tula-nunatsiavut2025",
+        "r240-mun-carbon2025"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9153
+          ],
+          "component_scope": "Initial slender lake and westward pond/channel chain into a larger western receiving lake",
+          "finding": "The detailed original exposes the initial slender waterbody, successive small basins and their narrow connecting drainage corridor into the larger western lake. The selected coarse line passes through the same ordinary receiving sequence. Separate nearby parallel lakes are not substituted. No exact bank alignment or present wet-thread measurement is needed for this correspondence.",
+          "sources": [
+            "r240-esri-labrador-west",
+            "r240-esri-labrador-opening-detail"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            0
+          ]
+        },
+        {
+          "fragments": [
+            9153
+          ],
+          "component_scope": "Northward turn from the western lake through a narrow feeder and into the long upper lake",
+          "finding": "The larger western lake has a visible northern outlet corridor that continues through narrow elongate pools and a winding stream, takes a northeastward turn and enters the western portion of the larger upper lake. The lake-side tributary join and successive short connectors lie in the same visible drainage, rather than across a separate basin.",
+          "sources": [
+            "r240-esri-labrador-west",
+            "r240-esri-labrador-opening-detail"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "fragments": [
+            9153
+          ],
+          "component_scope": "Long upper lake and its northeastward outlet",
+          "finding": "The original depicts a connected elongate lake with a narrow central reach, wider northeastern basin and an outlet entering a channel/valley corridor. The selected passage remains within that lake and receiving corridor. Slight haze does not conceal a material through-link. The lake name remains unassigned.",
+          "sources": [
+            "r240-esri-labrador-west"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            5,
+            6,
+            7,
+            8
+          ]
+        },
+        {
+          "fragments": [
+            9153
+          ],
+          "component_scope": "Northeastward middle river and tributary joins",
+          "finding": "Overlapping originals show the lake outlet entering a continuous winding and locally meandering river valley. The selected route follows the same corridor through smaller tributary joins to its meeting with a substantial southern tributary. Adjacent elongate lakes on other valleys are not treated as selected passages.",
+          "sources": [
+            "r240-esri-labrador-west",
+            "r240-esri-labrador-middle"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ]
+        },
+        {
+          "fragments": [
+            9153
+          ],
+          "component_scope": "Major southern tributary join and widening lower receiving valley",
+          "finding": "The selected western/northwestern branch meets a distinct river arriving from the south. The receiving river continues north and bends east through a broad alluvial corridor with bars, side channels and abandoned bends. All short stored parts correspond to that ordinary floodplain route; the geometry is not corrected to individual contemporary meanders.",
+          "sources": [
+            "r240-esri-labrador-middle"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24
+          ]
+        },
+        {
+          "fragments": [
+            9153
+          ],
+          "component_scope": "Northeastward lower river and entry into the first elongate lower lake",
+          "finding": "The channel continues northeast, broadens into a bar-and-island complex and enters the western of the two lower elongate lake basins. The split water passages visibly share the same receiving lake. No missing transfer or separate-basin gap is present.",
+          "sources": [
+            "r240-esri-labrador-middle",
+            "r240-esri-labrador-lower"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            25,
+            26,
+            27,
+            28,
+            29
+          ]
+        },
+        {
+          "fragments": [
+            9153
+          ],
+          "component_scope": "Two lower lake basins, connecting neck and eastward passage",
+          "finding": "Both elongate lower basins and the narrow interlake passage are visible in the original. The selected route crosses the first basin, passes through the narrow connection and traverses the second basin toward its eastern outlet. Scene seams change colour but do not interrupt the geographic connection. Separate lake names remain unassigned.",
+          "sources": [
+            "r240-esri-labrador-lower"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            29,
+            30,
+            31,
+            32
+          ]
+        },
+        {
+          "fragments": [
+            9153
+          ],
+          "component_scope": "Narrow final outlet and actual inner-bay ending",
+          "finding": "The lower view and original enlargement show the eastern lake outlet narrowing past islands and sandy margins into the larger inner coastal bay. Both separately retained endpoint descriptions lie within that same mouth-to-bay setting. The investigation does not stop at the last large lake or an assumed named coastal location.",
+          "sources": [
+            "r240-esri-labrador-lower",
+            "r240-chs-atl1212025"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            32
+          ]
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "Riley, G. C. (1951), The bedrock geology of Makkovik and its relations to the Aillik and Kaipokok series. McGill M.Sc. thesis; discovery bibliography only, original imprint uninspected.",
+      "official_url": "https://www.collectionscanada.gc.ca/obj/thesescanada/vol2/QMM/TC-QMM-119179.pdf",
+      "observed_outcome": "The sole normal-original acquisition was refused at tool level before an HTTP outcome or source body was exposed. No original material was acquired or read.",
+      "outcome_layer": "Tool-level acquisition refusal; origin HTTP unknown.",
+      "restriction_scope": "Exact thesis and equivalent original, catalogue, reader, cache, mirror, screenshot and output-reading routes stopped. The relationship to preserved Labrador geological-publication restrictions remains unresolved. No retry or alternate route followed.",
+      "earlier_lawful_observations": "Discovery bibliography only; no substantive discovery passage or map is used.",
+      "explicit_tool_refusal": true,
+      "acquisition_performed": false,
+      "substantive_evidence_used": false,
+      "material_geographic_gap": false,
+      "aw_id": "hydro-system:70095324"
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "publication": "USGSTopo, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "kind": "cartographic_epoch_geographic_scope_and_private_source_material",
+      "observation": "All four originals were actually read. Service metadata credits National Map and other public datasets and reports a service refresh, which is not a survey date for every feature. Only ordinary icefield/river/receiving-floor geography and bounded names are used; source originals, crops and orientation aids are not republished.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70009423"
+    },
+    {
+      "publication": "Chilkat Bald Eagle Preserve",
+      "official_url": "https://dnr.alaska.gov/parks/aspunits/southeast/chilkatbep.htm",
+      "kind": "bounded_authorial_prose_and_ordinary_copyright",
+      "observation": "Only a short independently worded factual synthesis of the preserve river-bottom description is used. State copyright notice observed; no photographs, map, management plan or full page reproduced.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70009423"
+    },
+    {
+      "publication": "World Imagery: selected Chilkat headward/border view",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "kind": "composite_epoch_cloud_and_glacier_correspondence_scope",
+      "observation": "The entire original and specified local crops were actually read. Clear pixels establish ordinary glacial-trough/foreland/receiving-water geography. The western cloudy mosaic is excluded as a source of detailed river observations and is covered by independently read topographic cartography. Different depicted ice extents are preserved without selecting one as current truth. Source image and derivatives remain private.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70009423"
+    },
+    {
+      "kind": "independent_photographic_geography",
+      "publication": "World Imagery",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "observation": "Photographic observations supply geography only. An earlier successful aspect-expanded regional image was read for context but is not relied on for exact selected placement.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:80037405"
+    },
+    {
+      "kind": "historical_regulatory_prose_and_underlying_map_boundary",
+      "publication": "Wildlife Management Zones Regulations office consolidation",
+      "official_url": "https://faolex.fao.org/docs/pdf/nu47103.pdf",
+      "observation": "Only independently written geographic clauses are used. Referenced NTS maps and formal legal boundary reconstruction remain excluded; no current-law conclusion.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:80037405"
+    },
+    {
+      "kind": "private_originals_and_derivatives",
+      "observation": "Own factual synthesis and ordinary bibliography only. Original images/PDF pages, crops, overlays, full coordinates, dynamic requests and acquisition receipts are not public-ready.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:80037405"
+    },
+    {
+      "kind": "historical_report_and_multisource_synthesis_scope",
+      "publication": "DPA, Informe Lagunas Carri-Laufquen, July 2012",
+      "official_url": "https://www.cohife.org.ar/wp-content/uploads/2024/02/Ficha-64-Lagunas-Carrilaufquen-Informe-de-Situacion-2012-07.pdf",
+      "observed_notice": "The authors identify CONAE-DPA satellite cooperation, historical Landsat analysis, bathymetry and hydrometric information. The later basin synthesis also uses SRTM, IGN contours and provincial GIS.",
+      "restriction_scope": "Use authorial prose and the independently processed lake imagery for the stated observations. The small provincial locator and generalized basin linework do not supply fine selected-channel correspondence, and no underlying topographic or geological original is recovered or presumed read. Originals, page images and reading aids remain private.",
+      "acquisition_stop": false,
+      "material_gap": false,
+      "aw_id": "hydro-system:61560970"
+    },
+    {
+      "kind": "photographic_epoch_resolution_and_use_scope",
+      "publication": "Esri World Imagery, selected northern Patagonia views",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "observed_notice": "Three successful bounded photographic views supply ordinary terrain, valley, alluvial-floor and lakebed correspondence. No verified single mosaic date or naming record is supplied.",
+      "restriction_scope": "No hydronym, current wetness, precise contemporary shoreline or continuous-flow claim is inferred from imagery. Source imagery, derivatives and exact dynamic requests are not redistributed.",
+      "acquisition_stop": false,
+      "material_gap": false,
+      "aw_id": "hydro-system:61560970"
+    },
+    {
+      "publication": "CHS ATL121,2025/03",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/chs-shc-ATL121-eng-202503-41281287.pdf",
+      "kind": "reproduction_notice",
+      "observation": "The original permits personal noncommercial reproduction and requires prior written permission for commercial reproduction. Only own bounded geographic synthesis and ordinary bibliography are retained; no original page, chart or derivative is redistributed.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70095324"
+    },
+    {
+      "publication": "World Imagery: four distinct selected Labrador views",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "kind": "imagery_evidence_and_redistribution_boundary",
+      "observation": "Original imagery and local crops/orientation aids stay private. Imagery provides geographic correspondence, not names or contemporary hydraulics.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70095324"
+    },
+    {
+      "publication": "Newfoundland and Labrador2007 caribou hunting legislation, Bay of Islands/Big River boundary text",
+      "official_url": "https://www.assembly.nl.ca/legislation/sr/annualregs/2007/nr070100.htm",
+      "kind": "unrequested_source_relationship_hold",
+      "observation": "The possible underlying relationship to the held2009 Big River boundary-map project was not affirmatively resolved. The legislation and equivalents were left unrequested, and its discovery excerpts are not substantive evidence.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70095324"
+    },
+    {
+      "publication": "Andrews and Coffey2009, Fish Counting Fence Site Selection in Nunatsiavut, Torngat Joint Fisheries Board Report2009-1",
+      "official_url": "https://www.researchgate.net/publication/340849205_Fish_Counting_Fence_Site_Selection_in_Nunatsiavut",
+      "kind": "unrequested_borrowed_fisheries_material",
+      "observation": "Discovery explicitly attributes the river-characteristic inventory to Anderson1985. No original, figure or catalogue was opened as a substitute for that held publication; no substantive inventory or location claim is used.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70095324"
+    },
+    {
+      "publication": "Incidental held-source and derivative discovery hits",
+      "official_url": null,
+      "kind": "discovery_exclusion",
+      "observation": "Held Anderson1985, Big River zone-map and CGN snippets and derivative encyclopedia river descriptions were not opened or used for selected correspondence, names or aliases. Bibliographic discovery is not original reading.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70095324"
+    }
+  ]
+}

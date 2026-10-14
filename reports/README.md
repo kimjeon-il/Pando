@@ -118,7 +118,7 @@
 | 지명 조사 원문 | [감사 결과](places/place-data-audit.md), [검토 세부표](places/place-candidate-review.md), [출처 매니페스트](places/source-manifest.json) |
 | 앱 UI·배포 기록 | [UI 통합 검증](development/app/common-ui-integration.md), [경계 분리 배포 근거](development/app/platform-boundaries-deployment.md) |
 | 앱 참조 이미지 | [앱 검증 증거](development/app/evidence/reference-image-web-parity/review.md) |
-| 역사 수계 조사 | [r152~r194 조사 데이터](hydro-names/reconstruction-2026-10-09/) |
+| 역사 수계 조사 | [r152~r266 조사 데이터](hydro-names/reconstruction-2026-10-09/) |
 
 ## 기존 원본·생성 자료
 

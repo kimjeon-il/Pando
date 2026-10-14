@@ -1,0 +1,809 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r257",
+  "sources": [
+    {
+      "source_key": "r257-esri-patagonia61568545-overview",
+      "title": "World Imagery: selected eastern-valley to western-playa overview for hydro-system61568545",
+      "publisher": "Esri and contributing imagery providers",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "publication_identity": "Independent multi-provider aerial/satellite photographic basemap, distinguished in retained source identity records from IGN topographic basemaps, SEGEMAR geological sheets and Chubut field-study maps. This new target-specific scene is disjoint from the held r256 northeastern Patagonia view.",
+      "acquisition_outcome": "Matching metadata and original completed HTTP200; original image/jpeg. No retry or acquisition failure.",
+      "actual_material_read": "Complete overview original visually inspected; a private eastern original crop and numbered part-start orientation aid also read. Metadata supplied returned image extent, not geographic evidence by itself.",
+      "supports": "Chosen opening, full alluvial/plain course, southern bend, western depression sequence and terminal overview.",
+      "limitations": "No printed hydronyms. Exact scene dates and target-specific imagery-provider attribution are unverified. Mosaic tone and dry surfaces are not present-flow evidence. Only bounded factual observations are used."
+    },
+    {
+      "source_key": "r257-esri-patagonia61568545-western-floor",
+      "title": "World Imagery: selected western alluvial/playa receiving-floor and terminal detail for hydro-system61568545",
+      "publisher": "Esri and contributing imagery providers",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "publication_identity": "One closer scene within the independently identified new target, acquired only after the coordinator assigned its sequential shared-service turn. Not a recovery of any stopped view.",
+      "acquisition_outcome": "Matching metadata and original completed HTTP200; original image/jpeg.",
+      "actual_material_read": "Complete western detail original visually inspected, followed by its private part-start orientation aid and an original central-floor crop.",
+      "supports": "Southern-plain westward bend, northwestern approach, central playa-margin passages, westward low floor and actual inner-depression ending.",
+      "limitations": "Ordinary receiving-floor correspondence, not surveyed bank positions, lake spill thresholds, current flow, present inter-pan hydraulics or a lake-name register."
+    },
+    {
+      "source_key": "r257-edipa-napal12-gastre-prose",
+      "title": "La Meseta. No es zona de sacrificio, NAPA’L12, Chubut section",
+      "author": "Equipo Diocesano de Pastoral Aborigen (EDiPA), Comodoro Rivadavia, as attributed in the original",
+      "publisher": "Equipo Nacional de Pastoral Aborigen (ENDEPA)",
+      "year": 2021,
+      "official_url": "https://www.endepa.org.ar/contenido/NAPAL-12-270821.pdf",
+      "publication_identity": "Independent pastoral/community editorial account, already positively distinguished from the held provincial Sacanana hydrochemistry presentation and geological maps. Current original text explicitly attributes the account to EDiPA.",
+      "actual_material_read": "Successful 31-page PDF web-reader response; bounded extracted Chubut prose at printed page17/PDF page17, including EDiPA attribution, the Gastre–Taquetrén sentence and surrounding regional non-continuous-stream context. No map pixels or other pages are claimed as geographic correspondence evidence.",
+      "facts_used": "Regional Arroyo Gastre and Laguna Taquetrén names and non-continuous-stream context only.",
+      "limits": "Regional narrative rather than detailed cartography or naming registry. Does not identify the chosen eastern feeder or precisely locate the selected terminal pan. Political and mining claims are outside this finding."
+    },
+    {
+      "source_key": "r257-geus-national1995",
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": [
+        "Jan C. Escher",
+        "T. Christopher R. Pulvertaft"
+      ],
+      "year": 1995,
+      "publisher": "Geological Survey of Greenland; official digital original distributed by GEUS",
+      "scale": "1:2 500 000",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J",
+      "catalogue_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi:10.22008/FK2/SYAL4J",
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16855",
+      "material_type": "Original single-sheet geological, topographic and glaciological compilation",
+      "current_acquisition": "Retained complete official original and catalogue from r244, with their confirmed terminal HTTP200 receipts and headers, reused locally. No new external request. This target was freshly inspected in newly rendered private original-pixel crops; older target observations are not substituted.",
+      "actual_read_scope": "Retained official catalogue identity, file identity and complete Custom Dataset Terms; original national overview, newly rendered entire selected Petermann-side ice corridor with unchanged-path orientation and clean pixels, southern Hall Land/Petermann Gletscher and Hall Bassin context, Inland Ice legend and original production/source/projection/copyright imprint. No other regional sheet or glacier-atlas content was read.",
+      "publication_and_underlying_material_identity": "The actual original names J. C. Escher as main compiler, N. Henriksen as project coordinator, Bengaard and Henriksen for North and East Greenland onshore compilation, and Pulvertaft for offshore compilation. Greenland onshore geology uses published and unpublished GGU maps. Topography is compiled and reproduced by KMS and GGU from their published and unpublished topographic maps for land and the Inland Ice margin. Ice-surface contours use GEOSAT and ERS-1 altimetry, compiled/modelled by S. Ekholm of KMS; sub-ice bedrock contours use airborne radar ice-thickness data and KMS modelling. The imprint specifies WGS84, UTM zone24 and 1995 printing. This positively identified GGU national geological/topographic compilation is not a copy of the held USGS PP1386-C glacier atlas or the separately held 1997 GEUS Dove Bugt sheet. No independence of every shared older control datum is claimed; the original identifies the actual compilation project and source families.",
+      "source_epoch_note": "Printed1995 historical cartography. The catalogue digital-version date is not the map epoch. No contemporary ice-front or drainage claim follows from a fresh reading.",
+      "supports": "All 76 selected mainstem parts: eastern ice-sheet opening, westward ice passage, northward ice-margin corridor and actual terminal setting beside southern Hall Land and the Petermann glacial corridor.",
+      "limits": "Not a river register or continuous natural-watercourse survey. Ice-surface contours, ice-thickness isopachs, sub-ice bedrock contours and aeromagnetic lineaments are distinct symbols and are not treated as river traces. No current surface/subglacial hydraulic connection, exact bank or current ice-front position is inferred.",
+      "reuse_limit": "The actual GEUS Custom Dataset Terms permit internal use, extraction and processing under stated conditions and restrict redistribution of original and processed data and production or transfer of new maps. Copyright is credited to GGU and KMS. Originals, crops and all cartographic orientation/comparison materials stay private. Public-ready material is independently written factual observations and ordinary bibliography with GEUS attribution."
+    },
+    {
+      "source_key": "r257-usgstopo-arizona-overview",
+      "title": "USGSTopo, The National Map: selected Chiricahua Mountains–Turkey Creek–Willcox Playa overview",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Independently maintained multiscale National Map reference cartography. Retained public source records establish the lawful service identity and distinguish it from numbered USGS reports and their plates. This newly requested southeastern Arizona view is not recovery of the cancelled service metadata or any stopped old view.",
+      "accessed_date_utc": "2026-10-14",
+      "acquisition_status": "completed_direct_http200_image_png",
+      "source_original_acquired": true,
+      "original_pixels_actually_read": true,
+      "material_actually_read": "Full original regional map pixels visually read, including the eastern mountain opening, piedmont, agricultural receiving floor, lower Turkey Creek and large terminal playa.",
+      "edition_or_scene_date": "No common field-survey date for all contributing layers is established. No new service metadata was requested.",
+      "evidence_scope": "Ordinary geographic correspondence and bounded mapped component names; no pointwise fit, current-flow, hydraulic-operation or formal registry determination.",
+      "source_use_scope": "Own factual synthesis and ordinary bibliography only. Original map images, derived reading materials and exact export requests remain private."
+    },
+    {
+      "source_key": "r257-usgstopo-arizona-upper",
+      "title": "USGSTopo, The National Map: eastern Turkey Creek canyon and mountain-front fan",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Independently maintained multiscale National Map reference cartography. Retained public source records establish the lawful service identity and distinguish it from numbered USGS reports and their plates. This newly requested southeastern Arizona view is not recovery of the cancelled service metadata or any stopped old view.",
+      "accessed_date_utc": "2026-10-14",
+      "acquisition_status": "completed_direct_http200_image_png",
+      "source_original_acquired": true,
+      "original_pixels_actually_read": true,
+      "material_actually_read": "Full original detailed map pixels visually read. Direct Turkey Creek labels, the chosen canyon opening, side-canyon setting, Rock Creek join and distinct Ash/Stanford/Pridham drainage corridors inspected.",
+      "edition_or_scene_date": "No common field-survey date for all contributing layers is established. No new service metadata was requested.",
+      "evidence_scope": "Ordinary geographic correspondence and bounded mapped component names; no pointwise fit, current-flow, hydraulic-operation or formal registry determination.",
+      "source_use_scope": "Own factual synthesis and ordinary bibliography only. Original map images, derived reading materials and exact export requests remain private."
+    },
+    {
+      "source_key": "r257-usgstopo-arizona-lower",
+      "title": "USGSTopo, The National Map: western Turkey Creek receiving floor and Willcox Playa ending",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Independently maintained multiscale National Map reference cartography. Retained public source records establish the lawful service identity and distinguish it from numbered USGS reports and their plates. This newly requested southeastern Arizona view is not recovery of the cancelled service metadata or any stopped old view.",
+      "accessed_date_utc": "2026-10-14",
+      "acquisition_status": "completed_direct_http200_image_png",
+      "source_original_acquired": true,
+      "original_pixels_actually_read": true,
+      "material_actually_read": "Full original detailed map pixels visually read, including the broad agricultural floor, lower Turkey Creek beside Sulphur Hills, northern receiving-floor approach, playa entry, interior and selected ending.",
+      "edition_or_scene_date": "No common field-survey date for all contributing layers is established. No new service metadata was requested.",
+      "evidence_scope": "Ordinary geographic correspondence and bounded mapped component names; no pointwise fit, current-flow, hydraulic-operation or formal registry determination.",
+      "source_use_scope": "Own factual synthesis and ordinary bibliography only. Original map images, derived reading materials and exact export requests remain private."
+    },
+    {
+      "source_key": "r257-azgfd-willcox-coa",
+      "title": "Willcox Playa and Cochise Lakes COA",
+      "publisher": "Arizona Game and Fish Department, Arizona Wildlife Conservation Strategy",
+      "official_url": "https://awcs.azgfd.com/conservation-opportunity-areas/terrestrial/willcox-playa-and-cochise-lakes",
+      "publication_identity": "Agency-authored conservation-opportunity-area webpage within the Arizona Wildlife Conservation Strategy, distinct from the held ADEQ groundwater baseline study, ADEQ determination compilation and USGS Salt Basin report. The webpage itself was identified and read; no linked map, report PDF or cited plan was acquired.",
+      "accessed_date_utc": "2026-10-14",
+      "acquisition_status": "successful_web_reader_html",
+      "origin_http_status_independently_measured": false,
+      "material_actually_read": "Rendered webpage text, especially introductory geographic paragraphs and footer. The authorial description names the broad alkaline, seasonally flooded Willcox lakebed and distinguishes surrounding satellite lakes. Linked cartography and other publications were not opened.",
+      "original_pixels_actually_read": false,
+      "evidence_scope": "Bounded terminal feature identity and playa character only; no selected-route map or hydrographic connection inferred from the prose alone.",
+      "source_use_scope": "Footer states copyright 2026 Arizona Game and Fish Department, all rights reserved. Only independently written geographic paraphrase and ordinary bibliography are used; no page imagery or passages are reproduced."
+    },
+    {
+      "source_key": "r257-downey-navy1913-regional",
+      "title": "United States Navy Coal Investigating Expedition in the Bering River Field of Alaska",
+      "authors": [
+        "John Otho Downey"
+      ],
+      "year": 1913,
+      "publisher": "U.S. Naval Institute, Proceedings",
+      "edition": "December1913, Vol.39/4/148, as displayed by the publisher",
+      "official_url": "https://www.usni.org/magazines/proceedings/1913/december/united-states-navy-coal-investigating-expedition-bering-river",
+      "material_type": "Original authorial historical field-expedition prose",
+      "acquisition_outcome": "Publisher HTML reader opened normally. No separate direct-client origin HTTP measurement was made.",
+      "actual_read_scope": "Title, byline and dated edition; introductory1912 Navy commissioning and expedition purpose; regional geographic description;1912–13 camps and river-transport field narrative. No linked map, plate or external report was opened from this article.",
+      "publication_and_underlying_material_identity": "Downey identifies his Navy Department1912–13 coal-sampling and transport expedition and its work on the Bering River. This is an authorial expedition account, separate from the PP1386-J atlas, Orth1967 dictionary, modern USGSTopo metadata, Togiak reconnaissance, Utukok–Corwin geology, Seward stream-measurement programme and the stopped image view. Some geological statements cite earlier surveys; only the article’s bounded regional drainage/expedition prose is used, not borrowed cartography or modern glacier interpretations.",
+      "supports": "Historical regional names and drainage context, not completed selected-route correspondence.",
+      "limits": "Historical conditions and nomenclature only. The account does not trace the complete selected northern corridor or its actual eastern coastal ending; no contemporary hydraulic inference or formal-register claim.",
+      "use_notice": "Own concise factual paraphrase and ordinary bibliography only; no original publication or imagery redistribution."
+    },
+    {
+      "source_key": "r257-martin-b335-catalogue-only",
+      "title": "Geology and mineral resources of the Controller Bay region, Alaska",
+      "authors": [
+        "George Curtis Martin"
+      ],
+      "year": 1908,
+      "publisher": "U.S. Geological Survey; Government Printing Office",
+      "series": "Bulletin335",
+      "official_url": "https://pubs.usgs.gov/publication/b335",
+      "doi": "10.3133/b335",
+      "material_type": "Official publication catalogue only",
+      "actual_read_scope": "Catalogue title, author,1908 edition, series number,141-page description and three plate links. No original report, plate or map pixels read.",
+      "publication_and_underlying_material_identity": "Identified Controller Bay mineral/geologic field-survey publication with separately catalogued historical1:62,500 topographic PlateII. Independent of the held modern imagery view and service metadata and of the identified glacier atlas/dictionary and other regional study projects. This is not a claim that every underlying datum or uninspected plate imprint was verified.",
+      "supports": "Bibliographic identity only; no positive terrain or naming evidence.",
+      "acquisition_outcome": "Catalogue opened normally; sole linked Plate2 reader request then reported403. Entire identified publication/project-equivalent missing-content acquisition stopped.",
+      "limits": "Catalogue metadata and search-discovery descriptions are not map reading."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:61568545",
+      "source_keys": [
+        "r257-esri-patagonia61568545-overview",
+        "r257-esri-patagonia61568545-western-floor",
+        "r257-edipa-napal12-gastre-prose"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14590
+          ],
+          "component_scope": "eastern opening and southward valley",
+          "finding": "The selected eastern opening lies in a pale dry valley among dissected hills. Its southeastward descent and southward turn remain within the same valley/fan approach, distinguished from the larger neighboring ravines. No headwater hydronym is supplied by the photograph.",
+          "sources": [
+            "r257-esri-patagonia61568545-overview"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": [
+            1
+          ],
+          "part_index_basis": "One-based stored-part numbering within the sole selected mainstem fragment.",
+          "component_kind": "mainstem_opening"
+        },
+        {
+          "fragments": [
+            14590
+          ],
+          "component_scope": "southwestern fan receiving plain",
+          "finding": "The opening broadens into a diffuse alluvial approach and turns southwest across the receiving plain below the hill fronts. Pale branching traces and the uninterrupted low depositional floor account for the joins and westward continuation. Roads cross this floor but are not mistaken for channel evidence. A presently wet thread or exact bank alignment is not needed for this ordinary fan-to-plain correspondence.",
+          "sources": [
+            "r257-esri-patagonia61568545-overview"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": [
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "part_index_basis": "One-based stored-part numbering within the sole selected mainstem fragment.",
+          "component_kind": "mainstem_connection"
+        },
+        {
+          "fragments": [
+            14590
+          ],
+          "component_scope": "southern plain bend and westward receiver",
+          "finding": "The selected route swings south around the end of the southern upland and joins a broad, pale westward depositional corridor. This turns northwest along the foot of the low western hills. The overview and overlapping western detail show one receiving floor rather than an intervening mountain divide. No name or present discharge is inferred.",
+          "sources": [
+            "r257-esri-patagonia61568545-overview",
+            "r257-esri-patagonia61568545-western-floor"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": [
+            8,
+            9,
+            10
+          ],
+          "part_index_basis": "One-based stored-part numbering within the sole selected mainstem fragment.",
+          "component_kind": "mainstem_connection"
+        },
+        {
+          "fragments": [
+            14590
+          ],
+          "component_scope": "northwestern alluvial playa approach",
+          "finding": "The receiving corridor continues northwest through a broad mixture of alluvium and pale playa-margin deposits. It follows the foot of dissected hills, joins the central saline/depression floor, and skirts small local higher patches. The closely inspected original detail supports the ordinary floor connection; the selected line is not interpreted as a surveyed channel through every salt patch.",
+          "sources": [
+            "r257-esri-patagonia61568545-western-floor",
+            "r257-esri-patagonia61568545-overview"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": [
+            11,
+            12,
+            13
+          ],
+          "part_index_basis": "One-based stored-part numbering within the sole selected mainstem fragment.",
+          "component_kind": "mainstem_connection"
+        },
+        {
+          "fragments": [
+            14590
+          ],
+          "component_scope": "central playa margin and westward low passage",
+          "finding": "The selected sequence turns northwest and west through the low depositional passage along the margins of adjacent pale playa basins, then bends south around a low hill nose. The closer image shows a continuous low receiving-floor setting around the higher ground. It does not establish present spill direction, lake-level thresholds or a continuously wetted inter-lake channel.",
+          "sources": [
+            "r257-esri-patagonia61568545-western-floor"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": [
+            14,
+            15,
+            16
+          ],
+          "part_index_basis": "One-based stored-part numbering within the sole selected mainstem fragment.",
+          "component_kind": "mainstem_connection"
+        },
+        {
+          "fragments": [
+            14590
+          ],
+          "component_scope": "western receiving depression and actual end",
+          "finding": "The final sequence follows the pale western depression margin, bends west through the receiving basin floor and ends on an inner depositional/locally vegetated tongue beside pale and bluish pan surfaces. The stored source and render endpoints coincide, but each is retained as its own endpoint description. This is the actual selected interior-basin ending, not a substituted outer shoreline, surveyed river mouth or continuation to another lake.",
+          "sources": [
+            "r257-esri-patagonia61568545-western-floor",
+            "r257-esri-patagonia61568545-overview"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": [
+            17,
+            18,
+            19
+          ],
+          "part_index_basis": "One-based stored-part numbering within the sole selected mainstem fragment.",
+          "component_kind": "mainstem_terminal"
+        },
+        {
+          "fragments": [
+            14590
+          ],
+          "component_scope": "dry alluvial and saline basin environment",
+          "finding": "All selected parts have been accounted for as eastern dry valley/fan approaches, an open alluvial plain, low connected playa-margin passages and the western receiving depression. Local salt pans and dry patches do not in themselves constitute missing geographic links. No glacier, large managed waterbody or supported engineered interbasin transfer is involved in the inspected corridor. Neither one continuously flowing natural river nor its whole-feature name is established.",
+          "sources": [
+            "r257-esri-patagonia61568545-overview",
+            "r257-esri-patagonia61568545-western-floor"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19
+          ],
+          "part_index_basis": "One-based stored-part numbering within the sole selected mainstem fragment.",
+          "component_kind": "corridor_environment"
+        }
+      ],
+      "endpoint_descriptions": {
+        "stored_terminal_class": "endorheic",
+        "source_endpoint": "The pinned source endpoint is in the inner western receiving depression, on a depositional/locally vegetated tongue rather than a surveyed outer-shore mouth.",
+        "render_endpoint": "The render endpoint coincides with the source endpoint in the pinned record; its photographed setting is the same inner depression tongue.",
+        "source_and_render_endpoints_coincide": true,
+        "limits": "Neither present standing-water extent nor current inflow/spill direction is established. The lake name is not independently pinned to this exact pan."
+      }
+    },
+    {
+      "aw_id": "hydro-system:90005185",
+      "source_keys": [
+        "r257-geus-national1995"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8831
+          ],
+          "component_scope": "chosen eastern opening",
+          "finding": "The chosen eastern opening and initial westward bend lie in the contiguous mapped Inland Ice, southeast of southern Hall Land. Blue inland-ice contours and ice-thickness shading are not river channels.",
+          "sources": [
+            "r257-geus-national1995"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": {
+            "first": 1,
+            "last": 8,
+            "index_base": 1
+          },
+          "part_index_basis": "One-based stored-part numbering within the sole selected mainstem fragment."
+        },
+        {
+          "fragments": [
+            8831
+          ],
+          "component_scope": "westward inland ice passage",
+          "finding": "The selection continues west across the same uninterrupted mapped ice terrain, bending slightly south before its westward middle reach. The national original covers this entire interval; no missing basin transfer is inferred from the absence of a mapped river.",
+          "sources": [
+            "r257-geus-national1995"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": {
+            "first": 9,
+            "last": 30,
+            "index_base": 1
+          },
+          "part_index_basis": "One-based stored-part numbering within the sole selected mainstem fragment."
+        },
+        {
+          "fragments": [
+            8831
+          ],
+          "component_scope": "turn to petermann side margin",
+          "finding": "The route turns north through the continuous ice margin beside exposed-bedrock spurs on the east side of the named Petermann Gletscher corridor. The original distinguishes bedrock, ice and nearby glacier trough; no exact modern river banks or hydraulic route is claimed.",
+          "sources": [
+            "r257-geus-national1995"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": {
+            "first": 31,
+            "last": 56,
+            "index_base": 1
+          },
+          "part_index_basis": "One-based stored-part numbering within the sole selected mainstem fragment."
+        },
+        {
+          "fragments": [
+            8831
+          ],
+          "component_scope": "northern margin and actual ending",
+          "finding": "The selected northward continuation, westward step and final northern bend end in the historical ice-margin setting immediately south of Hall Land and east of the main Petermann glacial trough. Source and render endpoints occupy this same ordinary geographic setting, with the render extension slightly farther northwest. The selected endpoint is not extended to Hall Bassin and is not asserted to be an ordinary river mouth or the present glacier front.",
+          "sources": [
+            "r257-geus-national1995"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": {
+            "first": 57,
+            "last": 76,
+            "index_base": 1
+          },
+          "part_index_basis": "One-based stored-part numbering within the sole selected mainstem fragment."
+        }
+      ],
+      "terminal_details": {
+        "mainstem_terminal_fid": 8831,
+        "stored_terminal_class": "sea",
+        "source_endpoint_description": "Historical ice-margin setting south of Hall Land and immediately east of the Petermann glacial trough.",
+        "render_endpoint_description": "Slightly farther northwest than the stored source ending, in the same regional historical ice-margin setting.",
+        "source_and_render_distinct": true,
+        "source_and_render_preserved_separately": true,
+        "source_endpoint_geographic_correspondence_completed": true,
+        "render_endpoint_geographic_correspondence_completed": true,
+        "tributary_terminals": [],
+        "limits": "Stored sea class is preserved, not revalidated. No exact contemporary land/ice/water assignment, glacier front, ordinary river mouth or subglacial discharge is inferred."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70760439",
+      "source_keys": [
+        "r257-usgstopo-arizona-overview",
+        "r257-usgstopo-arizona-upper",
+        "r257-usgstopo-arizona-lower",
+        "r257-azgfd-willcox-coa"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9903
+          ],
+          "component_scope": "Chosen Chiricahua Mountains canyon and its western emergence",
+          "finding": "The chosen eastern opening occupies the mapped Turkey Creek canyon on the western side of the Chiricahua Mountains. The inspected upper view follows the canyon westward past its side-canyon junctions into the open piedmont. This is the selected start, not a claim to identify the officially defined headwater or source point.",
+          "sources": [
+            "r257-usgstopo-arizona-overview",
+            "r257-usgstopo-arizona-upper"
+          ],
+          "correspondence": "completed_ordinary_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Turkey Creek"
+          ],
+          "part_indices_zero_based": [
+            0
+          ],
+          "part_index_basis": "Zero-based stored-part indices within the sole selected mainstem fragment."
+        },
+        {
+          "fragments": [
+            9903
+          ],
+          "component_scope": "Northwestward fan passage and Rock Creek receiving junction",
+          "finding": "Turkey Creek continues across the mountain-front fan, bends northwest and receives the mapped Rock Creek corridor from the north. The selected continuation is the Turkey Creek receiving branch. Rock Creek is contextual joining drainage, not a separate selected FID or an alias for Turkey Creek. The Ash, Stanford and Pridham corridors to the south are distinguishable neighboring drainage.",
+          "sources": [
+            "r257-usgstopo-arizona-overview",
+            "r257-usgstopo-arizona-upper",
+            "r257-usgstopo-arizona-lower"
+          ],
+          "correspondence": "completed_ordinary_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Turkey Creek",
+            "Rock Creek"
+          ],
+          "part_indices_zero_based": [
+            1,
+            2
+          ],
+          "part_index_basis": "Zero-based stored-part indices within the sole selected mainstem fragment."
+        },
+        {
+          "fragments": [
+            9903
+          ],
+          "component_scope": "Open agricultural and alluvial floor between upper fan and lower Turkey Creek reach",
+          "finding": "The selected westward passage traverses the continuous low-relief valley floor toward the lower mapped Turkey Creek reach beside Sulphur Hills. Map linework is discontinuous across parts of this agricultural plain, but the ordinary-scale receiving floor and westward slope corridor are continuous. No intervening ridge, separate enclosed basin or required lake-to-feeder transfer is indicated. Correspondence uses that floor rather than inventing a named blue-line channel or a current operating route through field drains.",
+          "sources": [
+            "r257-usgstopo-arizona-overview",
+            "r257-usgstopo-arizona-lower"
+          ],
+          "correspondence": "completed_ordinary_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Turkey Creek"
+          ],
+          "part_indices_zero_based": [
+            3,
+            4,
+            5,
+            6
+          ],
+          "part_index_basis": "Zero-based stored-part indices within the sole selected mainstem fragment."
+        },
+        {
+          "fragments": [
+            9903
+          ],
+          "component_scope": "Lower labeled reach west of Sulphur Hills and northward approach to the playa",
+          "finding": "The selection follows the lower Turkey Creek setting west of Sulphur Hills, then continues north across the common gently sloping receiving plain into the playa margin. The map depicts the lower creek and its northward dissipation within this continuous floor. The subsequent plain passage is geographically established at ordinary corridor scale without extending the creek name over each modeled connector or assuming a continuously wet thread.",
+          "sources": [
+            "r257-usgstopo-arizona-overview",
+            "r257-usgstopo-arizona-lower"
+          ],
+          "correspondence": "completed_ordinary_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Turkey Creek"
+          ],
+          "part_indices_zero_based": [
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16
+          ],
+          "part_index_basis": "Zero-based stored-part indices within the sole selected mainstem fragment."
+        },
+        {
+          "fragments": [
+            9903
+          ],
+          "component_scope": "Playa entry, interior continuation and actual modeled ending",
+          "finding": "The remaining selected parts turn through the large lakebed south of Willcox and end within its interior. National Map cartography establishes the common receiving lakebed, while AZGFD authorial prose identifies Willcox Playa as an alkaline lakebed that floods seasonally. The selected ending is within that playa, not a stream mouth on an open coast, an external-basin outlet or a claim to select the entire lakebed. Nearby Cochise Lakes and Crane Lake are not substituted for this ending.",
+          "sources": [
+            "r257-usgstopo-arizona-overview",
+            "r257-usgstopo-arizona-lower",
+            "r257-azgfd-willcox-coa"
+          ],
+          "correspondence": "completed_ordinary_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Willcox Playa"
+          ],
+          "part_indices_zero_based": [
+            17,
+            18,
+            19,
+            20,
+            21
+          ],
+          "part_index_basis": "Zero-based stored-part indices within the sole selected mainstem fragment."
+        }
+      ],
+      "terminal_distinctions": {
+        "core_terminal_class": "endorheic",
+        "source_endpoint_description": "Stored source ending is in the Willcox Playa interior, after the selected route has passed through the common northern receiving floor and lakebed.",
+        "render_endpoint_description": "Stored render ending occupies the same playa-interior receiving setting; it does not establish a new outlet or a named river mouth.",
+        "source_and_render_endpoints_coincide_in_pinned_metadata": true,
+        "actual_receiver": "Willcox Playa",
+        "terminal_name_role": "receiving playa only",
+        "source_keys": [
+          "r257-usgstopo-arizona-overview",
+          "r257-usgstopo-arizona-lower",
+          "r257-azgfd-willcox-coa"
+        ],
+        "completion": true
+      }
+    },
+    {
+      "aw_id": "hydro-system:80253647",
+      "source_keys": [
+        "r257-downey-navy1913-regional",
+        "r257-martin-b335-catalogue-only"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2722
+          ],
+          "component_scope": "chosen northeastern opening and westward upper route",
+          "finding": "The selected opening and long southwestward upper route require original terrain coverage. Regional historical glacier descriptions do not locate every chosen part or establish its named glacier and receiving valley. No upper glacier name is assigned.",
+          "sources": [
+            "r257-downey-navy1913-regional"
+          ],
+          "correspondence": "material_source_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": {
+            "first": 1,
+            "last": 16,
+            "index_base": 1
+          },
+          "part_index_basis": "One-based stored-part numbering within the sole selected mainstem fragment."
+        },
+        {
+          "fragments": [
+            2722
+          ],
+          "component_scope": "upper to middle southward transfer",
+          "finding": "The selected southward passage from the upper corridor to the middle feeder remains unestablished. No original pixels or sufficiently specific primary prose join the chosen upper ice/valley setting to this exact southward corridor.",
+          "sources": [
+            "r257-downey-navy1913-regional"
+          ],
+          "correspondence": "material_source_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": {
+            "first": 17,
+            "last": 24,
+            "index_base": 1
+          },
+          "part_index_basis": "One-based stored-part numbering within the sole selected mainstem fragment."
+        },
+        {
+          "fragments": [
+            2722
+          ],
+          "component_scope": "middle feeder to lower regional drainage",
+          "finding": "The selected southern feeder and southwestward bend lie within the geographic study area of the independent regional source, but its prose is not exact selected-path correspondence. Regional Bering River and nearby lake descriptions are retained only as bounded context; no selected lake traversal or named confluence is inferred.",
+          "sources": [
+            "r257-downey-navy1913-regional"
+          ],
+          "correspondence": "material_source_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": {
+            "first": 25,
+            "last": 33,
+            "index_base": 1
+          },
+          "part_index_basis": "One-based stored-part numbering within the sole selected mainstem fragment."
+        },
+        {
+          "fragments": [
+            2722
+          ],
+          "component_scope": "lower approach and actual coastal ending",
+          "finding": "The final selected southward approach and actual source/render ending require direct geographic evidence. Neither the named Bering River mouth nor the full historical Bering Lake drainage can be substituted for this selected eastern ending. Both stored ending positions are preserved, with the render endpoint farther south and slightly west than the source endpoint.",
+          "sources": [
+            "r257-downey-navy1913-regional"
+          ],
+          "correspondence": "material_source_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": {
+            "first": 34,
+            "last": 38,
+            "index_base": 1
+          },
+          "part_index_basis": "One-based stored-part numbering within the sole selected mainstem fragment."
+        }
+      ],
+      "terminal_details": {
+        "mainstem_terminal_fid": 2722,
+        "stored_terminal_class": "sea",
+        "source_endpoint_description": "Stored ending of the sole mainstem, farther north and slightly east than its render endpoint. Actual local land/water/receiver correspondence remains unestablished.",
+        "render_endpoint_description": "Actual last stored selected position, farther south and slightly west than the source endpoint. It is not replaced by a named regional river mouth.",
+        "source_and_render_distinct": true,
+        "source_and_render_preserved_separately": true,
+        "source_endpoint_geographic_correspondence_completed": false,
+        "render_endpoint_geographic_correspondence_completed": false,
+        "tributary_terminals": [],
+        "limits": "The stored sea classification is preserved without geometry revalidation; exact shore, tidal passage, present glacier drainage and ordinary river-mouth identity are unestablished."
+      },
+      "material_pending_details": {
+        "single_primary_state": "source_material_pending",
+        "missing_through_links": [
+          "Chosen northern opening through the upper ice/valley corridor",
+          "Upper glacier/valley to the selected southward feeder",
+          "Selected lower passage to both actual coastal endings"
+        ],
+        "needed_evidence": "Permitted, independently identified original terrain/cartography or sufficiently specific primary field descriptions covering these exact selected components. Held imagery/output and held historical plate cannot be recovered without proper clearance.",
+        "further_acquisition_in_this_pass": false
+      }
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "World Imagery: exact selected Alaska80253647 overview",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "aw_id": "hydro-system:80253647",
+      "observed_outcome": "The sole selected-view metadata acquisition yielded before terminal completion. Its terminal-status confirmation was denied. One explicitly authorized identical status retry found the process unavailable. HTTP, content type, body and terminal completion remain unknown; no headers, metadata body, image or unread output was used.",
+      "outcome_layer": "Terminal-status tool authorization refusal followed by unavailable process; not an observed origin HTTP403.",
+      "restriction_scope": "Exact selected-area metadata/view, equivalent acquisition and unread-output recovery remain stopped. No fresh request, alternate route or output recovery followed. Other genuinely independent publications are not collectively banned.",
+      "earlier_lawful_observations": null,
+      "acquisition_stop": true,
+      "material_gap": true
+    },
+    {
+      "publication": "Martin1908, Geology and mineral resources of the Controller Bay region, Alaska; USGS Bulletin335, PlateII",
+      "official_url": "https://pubs.usgs.gov/bul/0335/plate-2.pdf",
+      "related_urls": [
+        "https://pubs.usgs.gov/publication/b335",
+        "https://doi.org/10.3133/b335"
+      ],
+      "observed_outcome": "The sole linked Plate2 reader request returned Failed to fetch:403 Forbidden. No map pixels or original body read.",
+      "outcome_layer": "Web-reader fetch reportingHTTP403; no separate direct-client origin measurement.",
+      "restriction_scope": "Whole identified Bulletin335 publication, Controller Bay field-survey plate/project-equivalent missing material, original/report/plate/copy/format/catalogue/mirror and other acquisition or unread-output recovery routes stopped. No alternate host, report request or other fallback followed.",
+      "earlier_lawful_prose_exception": "Official catalogue bibliography and linked-plate list read before the refusal, usable only as metadata. No original geographic content read.",
+      "acquisition_stop": true,
+      "material_gap": true,
+      "aw_id": "hydro-system:80253647"
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "publication": "Esri World Imagery, the two selected61568545 views",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "kind": "imagery_attribution_and_factual_use",
+      "restriction_scope": "All original images, crops, numbered orientation aids, full coordinates, exact dynamic requests and receipts remain private. Independently written geographic facts and normal service bibliography only.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:61568545"
+    },
+    {
+      "publication": "NAPA’L12, EDiPA Chubut account",
+      "official_url": "https://www.endepa.org.ar/contenido/NAPAL-12-270821.pdf",
+      "kind": "regional_prose_scope",
+      "restriction_scope": "Use only the independently attributed regional prose actually read; no transfer of unlocated regional labels to selected parts and no reproduction of the PDF or photographs.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:61568545"
+    },
+    {
+      "publication": "Discovery leads: provincial Recursos Hídricos / Gastre–Sacanana hydrogeological material and Bianchi Gastre study",
+      "kind": "unrequested_underlying_project_relationship",
+      "restriction_scope": "Search discovery showed 2013 HCA/CFI/Chubut cartographic input and provincial Gastre–Sacanana project relations. Independence from the held Sacanana presentation/project material was not established; no catalogue, original, map or alternate acquisition was requested. Discovery snippets are excluded as substantive evidence.",
+      "new_access_failure": false,
+      "acquisition_attempted": false,
+      "aw_id": "hydro-system:61568545"
+    },
+    {
+      "source_key": "r257-geus-national1995",
+      "publication": "Geological map of Greenland 1:2 500 000",
+      "official_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi:10.22008/FK2/SYAL4J",
+      "kind": "custom_terms_copyright_epoch_and_feature_scope",
+      "observation": "Catalogue terms and original copyright/source imprint freshly read locally. Historical national-scale geographic coverage is complete; a continuous natural river and its name are not established.",
+      "restriction_scope": "The actual GEUS Custom Dataset Terms permit internal use, extraction and processing under stated conditions and restrict redistribution of original and processed data and production or transfer of new maps. Copyright is credited to GGU and KMS. Originals, crops and all cartographic orientation/comparison materials stay private. Public-ready material is independently written factual observations and ordinary bibliography with GEUS attribution.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:90005185"
+    },
+    {
+      "publication": "USGSTopo, The National Map: selected southeastern Arizona views",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "kind": "bounded_name_scope_with_completed_continuous_receiving_floor_correspondence",
+      "observation": "Three newly completed original map images were actually inspected. They establish ordinary canyon, fan, valley-floor and playa correspondence; intermittent linework does not create a false geographic gap, and continuous receiving terrain does not license a single name across the whole composite.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70760439"
+    },
+    {
+      "publication": "Willcox Playa and Cochise Lakes COA",
+      "official_url": "https://awcs.azgfd.com/conservation-opportunity-areas/terrestrial/willcox-playa-and-cochise-lakes",
+      "kind": "authorial_prose_only_and_copyright_notice",
+      "observation": "Only the readable webpage’s own bounded geographic text is used. Its linked map, report, management plans, figures and other originals were not acquired or read. Copyright notice retained; independently written factual synthesis only.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70760439"
+    },
+    {
+      "publication": "National Map original images and private reading materials",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "kind": "private_source_material_boundary",
+      "observation": "Originals, exact exports, request receipts and selected-coordinate material are not public deliverables. No maps, crops, full coordinates or source/derivative fingerprints are included in this finding.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70760439"
+    },
+    {
+      "source_key": "r257-downey-navy1913-regional",
+      "kind": "historical_regional_prose_scope",
+      "observation": "1913 authorial regional field context is not precise chosen-path cartography or a present-day glacier/drainage account. Only concise independently written factual notes are public-ready.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:80253647"
+    }
+  ]
+}

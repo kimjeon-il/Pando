@@ -1,0 +1,781 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r218",
+  "sources": [
+    {
+      "source_key": "r218-usgstopo-upper-main",
+      "title": "USGSTopo, The National Map: Upper Tye River, South Fork Skykomish and Skykomish forks corridor",
+      "publisher": "U.S. Geological Survey, U.S. Department of the Interior",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "bibliography": "U.S. Geological Survey. USGSTopo, The National Map, multiscale reference cartography. Bounded Washington corridor view; accessed 13 October 2026.",
+      "publication_identity": "Independently maintained national reference-cartography service. These new target-specific views are not reproductions or recovery routes for the held USGS reports, USACE project publications or King County White River page.",
+      "source_type": "original_cartographic_raster",
+      "material_actually_read": "Original map pixels covering the selected eastern opening, Tye–Foss junction, South Fork Skykomish valley and its junction with North Fork Skykomish; enlarged clean headward, Foss-junction and fork-junction readings.",
+      "acquisition_outcome": "Normal original-image request completed with direct HTTP 200 and image/png; original visually read only after transfer termination.",
+      "single_underlying_compilation_edition_verified": false,
+      "limits": "Ordinary corridor-scale geographic and label evidence. No formal name-register verification, exact bank/vertex matching, contemporary discharge, tidal state or facility-operation claim. Source originals and reading derivatives are not public deliverables."
+    },
+    {
+      "source_key": "r218-usgstopo-middle-main",
+      "title": "USGSTopo, The National Map: Skykomish River corridor from the forks through Sultan and Monroe",
+      "publisher": "U.S. Geological Survey, U.S. Department of the Interior",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "bibliography": "U.S. Geological Survey. USGSTopo, The National Map, multiscale reference cartography. Bounded Washington corridor view; accessed 13 October 2026.",
+      "publication_identity": "Independently maintained national reference-cartography service. These new target-specific views are not reproductions or recovery routes for the held USGS reports, USACE project publications or King County White River page.",
+      "source_type": "original_cartographic_raster",
+      "material_actually_read": "Original map pixels across the full westward middle-mainstem corridor, mapped side junctions and lower Snoqualmie approach; selected-path overlay used only as a private orientation aid.",
+      "acquisition_outcome": "Normal original-image request completed with direct HTTP 200 and image/png; original visually read only after transfer termination.",
+      "single_underlying_compilation_edition_verified": false,
+      "limits": "Ordinary corridor-scale geographic and label evidence. No formal name-register verification, exact bank/vertex matching, contemporary discharge, tidal state or facility-operation claim. Source originals and reading derivatives are not public deliverables."
+    },
+    {
+      "source_key": "r218-usgstopo-lower-terminal",
+      "title": "USGSTopo, The National Map: Snoqualmie–Skykomish junction, Snohomish River and Everett terminal",
+      "publisher": "U.S. Geological Survey, U.S. Department of the Interior",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "bibliography": "U.S. Geological Survey. USGSTopo, The National Map, multiscale reference cartography. Bounded Washington corridor view; accessed 13 October 2026.",
+      "publication_identity": "Independently maintained national reference-cartography service. These new target-specific views are not reproductions or recovery routes for the held USGS reports, USACE project publications or King County White River page.",
+      "source_type": "original_cartographic_raster",
+      "material_actually_read": "Original map pixels covering the actual tributary/mainstem joining area, the lower river through Snohomish, floodplain and delta branches, Everett riverfront and Preston Point–Port Gardner terminal setting; enlarged clean junction, lower-river and terminal readings.",
+      "acquisition_outcome": "Normal original-image request completed with direct HTTP 200 and image/png; original visually read only after transfer termination.",
+      "single_underlying_compilation_edition_verified": false,
+      "limits": "Ordinary corridor-scale geographic and label evidence. No formal name-register verification, exact bank/vertex matching, contemporary discharge, tidal state or facility-operation claim. Source originals and reading derivatives are not public deliverables."
+    },
+    {
+      "source_key": "r218-usgstopo-upper-tributary",
+      "title": "USGSTopo, The National Map: Middle Fork Snoqualmie upper selected valley",
+      "publisher": "U.S. Geological Survey, U.S. Department of the Interior",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "bibliography": "U.S. Geological Survey. USGSTopo, The National Map, multiscale reference cartography. Bounded Washington corridor view; accessed 13 October 2026.",
+      "publication_identity": "Independently maintained national reference-cartography service. These new target-specific views are not reproductions or recovery routes for the held USGS reports, USACE project publications or King County White River page.",
+      "source_type": "original_cartographic_raster",
+      "material_actually_read": "Original map pixels covering the tributary opening near Iron Cap Mountain, the upper and middle valley, Burntboot/Dingford surroundings and Taylor/Pratt junctions, with overlapping coverage of the downstream valley and enlarged clean opening reading.",
+      "acquisition_outcome": "Normal original-image request completed with direct HTTP 200 and image/png; original visually read only after transfer termination.",
+      "single_underlying_compilation_edition_verified": false,
+      "limits": "Ordinary corridor-scale geographic and label evidence. No formal name-register verification, exact bank/vertex matching, contemporary discharge, tidal state or facility-operation claim. Source originals and reading derivatives are not public deliverables."
+    },
+    {
+      "source_key": "r218-usgstopo-lower-tributary",
+      "title": "USGSTopo, The National Map: Middle Fork–Snoqualmie fork junctions, Snoqualmie Falls and lower Snoqualmie",
+      "publisher": "U.S. Geological Survey, U.S. Department of the Interior",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "bibliography": "U.S. Geological Survey. USGSTopo, The National Map, multiscale reference cartography. Bounded Washington corridor view; accessed 13 October 2026.",
+      "publication_identity": "Independently maintained national reference-cartography service. These new target-specific views are not reproductions or recovery routes for the held USGS reports, USACE project publications or King County White River page.",
+      "source_type": "original_cartographic_raster",
+      "material_actually_read": "Original map pixels covering the western Middle Fork approach, North Bend/Snoqualmie fork-junction area, Snoqualmie Falls, lower river past Fall City, Carnation and Duvall, and the final approach to Skykomish; clean enlarged falls, Carnation and Duvall/lower-river readings.",
+      "acquisition_outcome": "Normal original-image request completed with direct HTTP 200 and image/png; original visually read only after transfer termination.",
+      "single_underlying_compilation_edition_verified": false,
+      "limits": "Ordinary corridor-scale geographic and label evidence. No formal name-register verification, exact bank/vertex matching, contemporary discharge, tidal state or facility-operation claim. Source originals and reading derivatives are not public deliverables."
+    },
+    {
+      "source_key": "r216-cicy-graniel2010-hidrologia",
+      "title": "Hidrología",
+      "author": "Eduardo Graniel Castro",
+      "publication": "In Durán, R., and Méndez, M. (eds.), Biodiversidad y Desarrollo Humano en Yucatán, 2010, pp.12–13",
+      "publisher": "CICY, PPD-FMAM, CONABIO and SEDUMA",
+      "official_url": "https://www.cicy.mx/documentos/CICY/sitios/Biodiversidad/pdfs/Cap1/04%20Hidrologia.pdf",
+      "catalogue_url": "https://www.cicy.mx/sitios/biodiversidad-y-desarrollo-humano-en-yucatan",
+      "publication_identity_basis": "Separately coordinated CICY state-biodiversity editorial project, assembled through state-study workshops and authored thematic contributions; the publisher contents page identifies this chapter and author. It is not an INEGI national topographic sheet or a CONAGUA aquifer availability report.",
+      "acquisition": "Successful normal originals from the earlier research pass remain physically available and were reused locally; no new external request.",
+      "actually_read": "Retained original chapter prose on printed pp.12–13, including karst drainage and coastal groundwater emergence. No corridor map occurs in this chapter.",
+      "evidence_scope": "Regional karst and coastal groundwater setting only. Does not identify the selected inland opening, intermediate surface through-links, or actual terminal.",
+      "used_as_evidence": true
+    },
+    {
+      "source_key": "r216-cicy-herrera-morales2010-lagunas",
+      "title": "Lagunas costeras",
+      "authors": [
+        "Jorge Herrera Silveira",
+        "Sara Morales Ojeda"
+      ],
+      "publication": "In Durán, R., and Méndez, M. (eds.), Biodiversidad y Desarrollo Humano en Yucatán, 2010, pp.24–26",
+      "publisher": "CICY, PPD-FMAM, CONABIO and SEDUMA",
+      "official_url": "https://www.cicy.mx/documentos/CICY/sitios/Biodiversidad/pdfs/Cap1/08%20Lagunas%20costeras.pdf",
+      "publication_identity_basis": "Authored coastal-lagoon contribution to the same independent CICY biodiversity editorial project. Figure2 expressly credits POETCY2007; it is a lagoon-condition diagram, not replacement INEGI national cartography or the paused reserve-management plan.",
+      "acquisition": "Successful normal originals from the earlier research pass remain physically available and were reused locally; no new external request.",
+      "actually_read": "Retained original prose on printed pp.24–26 and Figure2 on p.25, visually inspected with legend, regional locator and lagoon panels.",
+      "evidence_scope": "Regional coastal-lagoon context and the distinction between lagoons and river systems. The broad locator and four lagoon-condition panels do not map this selected inland-to-coastal chain.",
+      "used_as_evidence": true
+    },
+    {
+      "source_key": "r218-arceo2021-carbonera",
+      "title": "Temporal shifts in the abundance and feeding of a marine fish community in a coastal lagoon in southeastern Mexico",
+      "parallel_title": "Cambios temporales en la abundancia y la alimentación de una comunidad de peces marinos en una laguna costera del sureste mexicano",
+      "authors": [
+        "Daniel Arceo-Carranza",
+        "Emanuel A Dorantes Acereto",
+        "Lesli C Hernández-Mendoza",
+        "Xavier Chiappa Carrara"
+      ],
+      "publication": "Ciencias Marinas47(1):17–32,2021",
+      "publisher": "Ciencias Marinas, Universidad Autónoma de Baja California",
+      "doi": "https://doi.org/10.7773/cm.v47i1.3103",
+      "official_url": "https://cienciasmarinas.com.mx/index.php/cmarinas/article/download/3103/420420557",
+      "publication_identity_basis": "Original UNAM/UADY fish-community research in La Carbonera, using bimonthly field campaigns from December2010 through October2011. This separate field project is not the Dzilam2006 reserve plan, INEGI national topographic publication or a CONAGUA aquifer report.",
+      "acquisition": "Normal publisher original completed direct HTTP200 application/pdf.",
+      "actually_read": "Original title, authors and imprint on p.17; study-area and field-method prose on pp.18–19; Figure1 on p.19 visually inspected, including the regional locator, local mouth-area image, scale and caption. The remaining fish-results sections are not used as source-correspondence evidence.",
+      "evidence_scope": "The publication identifies Carbonera as a coastal lagoon with marine communication, springs and seeps. Its local panel shows the mouth-area sampling site, a barrier-separated channel and mangrove surroundings. It does not depict the complete selected wetland approach or geographically tie the actual selected endpoint to that depicted channel.",
+      "used_as_evidence": true
+    },
+    {
+      "source_key": "r218-bonilla2013-carbonera-unread",
+      "title": "Temporal variation, growth and natural mortality of two species of mojarras (Perciformes: Gerreidae) from a tropical coastal lagoon: La Carbonera, Yucatan, Mexico",
+      "authors": [
+        "José Luis Bonilla-Gómez",
+        "Maribel Badillo-Alemán",
+        "Alfredo Gallardo-Torres",
+        "Xavier Chiappa-Carrara"
+      ],
+      "publication": "Revista Ciencias Marinas y Costeras5:57–67, December2013; bibliographic discovery identity, original imprint uninspected",
+      "publisher": "Universidad Nacional, Costa Rica",
+      "official_url": "https://www.revistas.una.ac.cr/index.php/revmar/article/download/5553/5379/0",
+      "publication_identity_basis": "Publisher bibliographic discovery identifies UNAM-associated La Carbonera fish sampling from April2009 through March2010. This is an independently issued field-study article, distinct from the held Dzilam reserve-planning and INEGI/CONAGUA material. Search text was used for project identity only.",
+      "actually_read": "None. The sole normal-original request returned text/html rather than the expected PDF. No response body, map or original imprint was read; discovery excerpts are not substantive evidence.",
+      "used_as_evidence": false,
+      "used_as_substantive_evidence": false
+    },
+    {
+      "source_key": "r218-dga-flow-los-choros2022",
+      "title": "Plan Estratégico de Gestión Hídrica en la Cuenca del Río Los Choros. Informe Final. S.I.T. N°497.",
+      "author": "Flow Hydro Consulting Group SPA",
+      "publisher": "Dirección General de Aguas, División de Estudios y Planificación, Ministerio de Obras Públicas, Chile",
+      "year": 2022,
+      "official_url": "https://repositoriodirplan.mop.gob.cl/biblioteca/items/7d72c1af-fab4-486e-acda-90c4b22aba22",
+      "original_url": "https://repositoriodirplan.mop.gob.cl/biblioteca/server/api/core/bitstreams/406265d8-c95e-4ec8-9a65-f2b0cf162293/content",
+      "material_read": "Normal catalogue; completed256-page original PDF, cover/project credits, own Figure2-1 on printed p5/PDFpage19, printed pp3,24 and40. Figure2-1 was visually inspected in full and enlarged for opening, bends, joins and terminal. Limited provenance text was read for deciding which other figures to exclude.",
+      "publication_identity_basis": "Official catalogue confirms DGA, Flow Hydro,2022 and the specific Los Choros strategic water-security planning purpose. Public procurement discovery identifies contract336004/BIP40027964-0 and June2021 start, affirmatively distinguishing this commissioning project from the unresolved Loa/DGA2014 northern studies, road-map portals and Ocampo thesis. The completed original confirms title, consultant and SIT497.",
+      "map_provenance": "Figure2-1 is explicitly credited Elaboración Propia. Its legend separates river, estero and quebrada linework from roads and boundaries. No held service export, IGM sheet or Ocampo reproduction is used.",
+      "supports": "Complete chosen route at ordinary corridor scale and the distinction between Pedernales, Pelícano and Los Choros; lower named main valley and coast; drainage and infrastructure context.",
+      "limits": "Does not establish formal registry naming, exact banks, contemporary shoreline position, perennial discharge or present-day operations. Borrowed Ocampo2015 geomorphology and unspecified Mapoteca-based figures are not used as correspondence evidence. Some unrelated PDF text streams emitted extraction warnings; inspected relevant prose and Figure2-1 were readable.",
+      "use_notice": "Normal factual synthesis and bibliography only. Original report pages, enlarged map reading aids and orientation overlays remain private."
+    },
+    {
+      "source_key": "r218-ocampo2015-catalogue",
+      "title": "Análisis de la geomorfología y sedimentología de la Quebrada de los Choros, regiones de Atacama y Coquimbo, Chile (29°09' y29°33'S)",
+      "author": "Ocampo Painepán, Tania Rayén",
+      "publisher": "Universidad de Chile",
+      "year": 2015,
+      "official_url": "https://repositorio.uchile.cl/handle/2250/137679",
+      "material_read": "Institutional catalogue bibliographic fields, abstract and license notice only, before original access challenge.",
+      "supports": "Bounded regional context that the main homonymous quebrada was the subject of sedimentology/geomorphology research and that exceptional floods may carry sediment to the sea. Not needed to close the selected route.",
+      "limits": "The normally linked original returned an Anubis verification challenge. No original PDF, figure or map correspondence is claimed. Search-discovery excerpts and equivalent hosted copies are not evidence.",
+      "use_notice": "Catalogue states Atribución-NoComercial-SinDerivadas3.0 Chile; no original or derivative material is redistributed."
+    },
+    {
+      "source_key": "r218-inegi-ramos-arizpe2010",
+      "title": "Compendio de información geográfica municipal 2010: Ramos Arizpe, Coahuila de Zaragoza",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "edition": "2010; municipal geographical code05027",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/05/05027.pdf",
+      "actual_material_read": "Completed original PDF; cover and PDF pages2–3 geographical/hydrography tables; PDFpage6 locality/transport map; PDFpage7 Relieve, legend and compilation credits, including enlarged western opening and foothill corridor.",
+      "independence_basis": "Separately compiled municipal geographical profile with municipal tables and thematic relief map. Its credits identify Marco Geoestadístico2010, physiography seriesI, older topographic seriesII and INEGI–CONAGUA2007 hydrography. It is not held sixth-edition2023 national mapping or an equivalent replacement of it.",
+      "limits": "Historical generalized municipal cartography supports ordinary corridor identity and distinct reach labels, not exact source points, name-transition vertices or present flow."
+    },
+    {
+      "source_key": "r218-inegi-parras2010",
+      "title": "Compendio de información geográfica municipal 2010: Parras, Coahuila de Zaragoza",
+      "publisher": "INEGI",
+      "edition": "2010; municipal geographical code05024",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/05/05024.pdf",
+      "actual_material_read": "Completed original PDF; cover, PDFpages2–3 location, physiography and hydrography text; PDFpage7 Relieve, legend and credits, enlarged northern Grande Las Liebres corridor and final plain branch north of Cerro La Casita.",
+      "independence_basis": "Independent municipal-table/thematic compilation project. The relief page credits municipal framework2005 version3.1, physiography seriesI, older topographic seriesII and INEGI–CONAGUA2007 hydrography, distinct from held2023 national topographic publication and held municipal originals.",
+      "limits": "Municipal clipping limits the intermediate San Pedro segment. Named local reservoirs and adjacent streams do not by themselves establish selected crossings."
+    },
+    {
+      "source_key": "r218-inegi-san-pedro2010",
+      "title": "Compendio de información geográfica municipal 2010: San Pedro, Coahuila de Zaragoza",
+      "publisher": "INEGI",
+      "edition": "2010; municipal geographical code05033",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/05/05033.pdf",
+      "actual_material_read": "Completed original PDF; cover and PDFpages2–3 tables; PDFpage6 Relieve with legend, source credits and enlarged southeastern corridor around Arroyo Mezquite Verde, Presa Mala Noche and Cerro Los Indios.",
+      "independence_basis": "Separately compiled municipal profile using Marco Geoestadístico2010, physiography seriesI, topographic seriesII and INEGI–CONAGUA2007 hydrography. Its specific municipal content is distinct from the stopped national2023 original and the individually held municipal publications.",
+      "limits": "The eastern longitude captions are internally inconsistent and are not treated as precise georeferencing. Shared municipal boundaries, named relief anchors and channel structure support bounded geographic context, but the whole selected lower through-link remains unestablished."
+    },
+    {
+      "source_key": "r218-descroix-mayran-context",
+      "title": "Las playas del desierto chihuahuense (parte mexicana): influencia de las sales en ambientes árido y semiárido; Luc Descroix, Hidrografía de las Lagunas de Mayrán y de Viesca: endorreísmo y antropismo",
+      "editors": [
+        "Olivier Grünberger",
+        "Victor Manuel Reyes Gómez",
+        "Jean-Louis Janeau"
+      ],
+      "publisher": "INECOL–IRD scientific collaboration; university-hosted manuscript version, Université Toulouse II Mapimí-UVED",
+      "edition": "Undated manuscript version; inspected chapter printedpp267–274",
+      "official_url": "https://mapimi-uved.univ-tlse2.fr/02/docs/01/03_libro-playas.pdf",
+      "actual_material_read": "Previously normally acquired original reused locally. Chapter prose PDFpages292–299/printed267–274 and Figure123 at PDF294/printed269 were read; other embedded figure pixels were not used.",
+      "independence_basis": "Named scientific research volume and authored regional historical-hydrology analysis, independently issued from national topographic and aquifer-administration projects; retained original previously completed normally.",
+      "limits": "Explains closed-depression drainage and historical Mayrán/Viesca changes. Its regional early-twentieth-century schematic does not establish this selected feeder, San Pedro transverse links or actual terminal. No historical palaeodrainage hypothesis is promoted to a present connection."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70324935",
+      "source_keys": [
+        "r218-usgstopo-upper-main",
+        "r218-usgstopo-middle-main",
+        "r218-usgstopo-lower-terminal",
+        "r218-usgstopo-upper-tributary",
+        "r218-usgstopo-lower-tributary"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9444
+          ],
+          "component_scope": "mainstem_chosen_opening",
+          "finding": "The eastern selected mainstem opening is in the mapped upper Tye River valley. The labelled channel runs west and then southwest beside the Stevens Pass highway corridor into the lower Tye valley. The selected start is treated as a chosen river-valley opening, not asserted to be the natural source.",
+          "sources": [
+            "r218-usgstopo-upper-main"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_component_name": "Tye River"
+        },
+        {
+          "fragments": [
+            9444
+          ],
+          "component_scope": "tye_foss_south_fork_transition",
+          "finding": "The source depicts Tye River meeting the northward Foss River and the resulting westward South Fork Skykomish corridor. The selected mainstem continues along this connected valley past the Skykomish area, with the Beckler and Miller approaches visible. These are distinct reach names within the representative receiving system.",
+          "sources": [
+            "r218-usgstopo-upper-main"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_component_name": "Tye River–Foss River junction and South Fork Skykomish River"
+        },
+        {
+          "fragments": [
+            9444
+          ],
+          "component_scope": "skykomish_forks_and_middle_corridor",
+          "finding": "The selected South Fork route reaches the mapped North Fork junction in the Index/Heybrook area and continues as labelled Skykomish River. Overlapping original views establish the downstream valley, Wallace/Sultan surroundings, Sultan and Monroe reaches without a missing selected through-link.",
+          "sources": [
+            "r218-usgstopo-upper-main",
+            "r218-usgstopo-middle-main"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_component_name": "South Fork Skykomish–North Fork Skykomish junction and Skykomish River"
+        },
+        {
+          "fragments": [
+            9446
+          ],
+          "component_scope": "tributary_chosen_opening",
+          "finding": "The southern tributary begins within the mapped upper Middle Fork Snoqualmie valley near Iron Cap Mountain and continues southwest along the named channel. Nearby alpine lakes and Hinman Glacier are outside the selected opening; no lake crossing or glacier traversal is needed to establish this selected river-valley passage. The natural source point and current glacier extent are not assigned.",
+          "sources": [
+            "r218-usgstopo-upper-tributary"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "tributary",
+          "stage": 3,
+          "bounded_component_name": "Middle Fork Snoqualmie River"
+        },
+        {
+          "fragments": [
+            9446
+          ],
+          "component_scope": "middle_fork_valley",
+          "finding": "The selected tributary follows the continuously depicted Middle Fork through the Burntboot/Dingford Creek surroundings, the westward bend toward the Taylor River junction, and the lower valley past the Pratt River junction toward North Bend. The nearby lakes belong to adjacent tributary settings; they are not imposed as through-lakes on the selected line.",
+          "sources": [
+            "r218-usgstopo-upper-tributary",
+            "r218-usgstopo-lower-tributary"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "tributary",
+          "stage": 3,
+          "bounded_component_name": "Middle Fork Snoqualmie River through its upper and middle valley"
+        },
+        {
+          "fragments": [
+            9446
+          ],
+          "component_scope": "snoqualmie_fork_junctions",
+          "finding": "The western Middle Fork approach and the adjoining North Fork/South Fork confluence area near North Bend and Snoqualmie are depicted with connected river linework. The selected route continues northwest into the labelled Snoqualmie River corridor. No one scalar hydronym is assigned to all these named forks.",
+          "sources": [
+            "r218-usgstopo-upper-tributary",
+            "r218-usgstopo-lower-tributary"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "tributary",
+          "stage": 3,
+          "bounded_component_name": "Middle Fork and the Snoqualmie fork-junction area"
+        },
+        {
+          "fragments": [
+            9446
+          ],
+          "component_scope": "snoqualmie_falls_passage",
+          "finding": "The selected river passes the explicitly labelled Snoqualmie Falls setting and continues downstream toward Fall City and the Raging River junction. The map establishes the ordinary above-falls to below-falls geographic passage. No contemporary facility operation, diversion proportion, discharge or exact engineered channel is inferred.",
+          "sources": [
+            "r218-usgstopo-lower-tributary"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "tributary",
+          "stage": 3,
+          "bounded_component_name": "Snoqualmie River and Snoqualmie Falls"
+        },
+        {
+          "fragments": [
+            9446
+          ],
+          "component_scope": "lower_snoqualmie_tributary",
+          "finding": "The selected tributary continues along the labelled Snoqualmie River past the Tolt junction and Carnation, then Duvall and the lower floodplain to its Skykomish joining area. Horseshoe Lake and other floodplain waterbodies are mapped alongside the river; the selected through-route is the river corridor rather than a separate lake-to-lake transfer.",
+          "sources": [
+            "r218-usgstopo-lower-tributary",
+            "r218-usgstopo-middle-main"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "tributary",
+          "stage": 3,
+          "bounded_component_name": "Snoqualmie River through Carnation and Duvall"
+        },
+        {
+          "fragments": [
+            9444,
+            9445,
+            9446
+          ],
+          "component_scope": "shared_confluence_and_fragment_join",
+          "finding": "Independent original linework depicts Snoqualmie joining Skykomish west of Monroe and the combined downstream river continuing northwest as Snohomish River. This covers the actual inter-fragment/tributary junction at ordinary confluence scale. The end of tributary 9446 is this joining area, not the coastal terminal. Generalized selected positions are not used to assign a precise confluence vertex.",
+          "sources": [
+            "r218-usgstopo-middle-main",
+            "r218-usgstopo-lower-tributary",
+            "r218-usgstopo-lower-terminal"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "Skykomish–Snoqualmie confluence and Snohomish River beginning"
+        },
+        {
+          "fragments": [
+            9445
+          ],
+          "component_scope": "snohomish_lower_river",
+          "finding": "The selected downstream mainstem follows the continuously mapped Snohomish River through the city of Snohomish and around the broad lower floodplain to Everett. Overlapping clean views show the Pilchuck joining area and the river/slough network around Ebey Island. The selected corridor remains the mapped river course; adjacent floodplain lakes do not create an unestablished through-lake passage.",
+          "sources": [
+            "r218-usgstopo-lower-terminal"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 1,
+          "bounded_component_name": "Snohomish River"
+        },
+        {
+          "fragments": [
+            9445
+          ],
+          "component_scope": "actual_selected_terminal",
+          "finding": "The selected final mainstem approaches Everett along the labelled Snohomish River west of the principal delta islands and reaches its mapped mouth/Port Gardner setting at Preston Point. The surrounding Union, Steamboat and Ebey slough branches are visible and are distinguished from the selected terminal corridor. The simplified endpoint is not asserted as an exact present river mouth or bank intersection.",
+          "sources": [
+            "r218-usgstopo-lower-terminal"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 1,
+          "bounded_component_name": "Snohomish River mouth at the Preston Point–Port Gardner setting"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70873021",
+      "source_keys": [
+        "r216-cicy-graniel2010-hidrologia",
+        "r216-cicy-herrera-morales2010-lagunas",
+        "r218-arceo2021-carbonera"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10414
+          ],
+          "component_scope": "Chosen southeastern opening and first westward/northwestward chain, including the joins among these four selected parts.",
+          "finding": "The regional hydrology chapter gives karst context but no locality-level identification of this opening or a connected surface route through the initial parts. No named headwater or selected cenote connection is established.",
+          "sources": [
+            "r216-cicy-graniel2010-hidrologia"
+          ],
+          "correspondence": "selected_opening_and_first_joins_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem"
+        },
+        {
+          "fragments": [
+            10414
+          ],
+          "component_scope": "Northwestward inland continuation and its joins with the opening and central chain.",
+          "finding": "No acquired source depicts or describes a through-channel along these selected inland parts. General groundwater movement does not assign a river name or establish these particular connections.",
+          "sources": [
+            "r216-cicy-graniel2010-hidrologia"
+          ],
+          "correspondence": "selected_inland_through_links_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem"
+        },
+        {
+          "fragments": [
+            10414
+          ],
+          "component_scope": "Westward continuation, short intervening parts, northwestward bends and entry to the northern leg.",
+          "finding": "The retained chapters contain no corridor map identifying these selected bends or their intervening joins. Nearby lagoon names and the regional aquifer setting do not settle this western inland correspondence.",
+          "sources": [
+            "r216-cicy-graniel2010-hidrologia",
+            "r216-cicy-herrera-morales2010-lagunas"
+          ],
+          "correspondence": "selected_western_corridor_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem"
+        },
+        {
+          "fragments": [
+            10414
+          ],
+          "component_scope": "Northward inland leg and its northwestward approach toward the coast.",
+          "finding": "The CICY synthesis explains a regional setting in which groundwater can emerge at the coast. It does not identify a surface-water corridor linking these selected parts to the coastal zone, and the acquired field map has no coverage of this inland leg.",
+          "sources": [
+            "r216-cicy-graniel2010-hidrologia",
+            "r218-arceo2021-carbonera"
+          ],
+          "correspondence": "inland_to_coastal_transition_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem"
+        },
+        {
+          "fragments": [
+            10414
+          ],
+          "component_scope": "Northeastward final coastal approach before the last selected part.",
+          "finding": "Carbonera is an independently documented lagoon in the northern coastal setting. The narrow field-site map does not cover this selected approach or establish its joins through intervening wetlands. No particular canal, managed crossing or spring connection is assigned to the selected chain.",
+          "sources": [
+            "r216-cicy-herrera-morales2010-lagunas",
+            "r218-arceo2021-carbonera"
+          ],
+          "correspondence": "selected_wetland_and_managed_passages_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem"
+        },
+        {
+          "fragments": [
+            10414
+          ],
+          "component_scope": "Last northward coastal part and its actual endpoint, without replacing it with a nearby documented lagoon mouth.",
+          "finding": "Figure1 depicts a small Carbonera mouth-area sampling channel. Its regional locator and narrow local panel do not establish the selected last part, barrier crossing or actual endpoint as that channel. The documented lagoon opening is retained only as a contextual feature; no Gulf outlet correspondence is claimed for the selected terminal.",
+          "sources": [
+            "r218-arceo2021-carbonera"
+          ],
+          "correspondence": "actual_terminal_correspondence_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61447236",
+      "source_keys": [
+        "r218-dga-flow-los-choros2022",
+        "r218-ocampo2015-catalogue"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13999
+          ],
+          "component_scope": "Selected eastern opening and initial feeder",
+          "finding": "Figure2-1 depicts the chosen eastern mountain-side opening in a connected quebrada that descends southwest and west to the broad bend feeding the upper Pedernales corridor. No separate initial-feeder label is established. This is a mapped through-link, not merely basin membership.",
+          "sources": [
+            "r218-dga-flow-los-choros2022"
+          ],
+          "correspondence": "supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": null,
+          "candidate_name_role": null
+        },
+        {
+          "fragments": [
+            13999
+          ],
+          "component_scope": "Upper bend and Quebrada Pedernales",
+          "finding": "The map shows the selected northwesterly tributary corridor into the named Pedernales reach, its westward bend and turn toward Pelícano. The nearby El Tabaco branch remains distinct and is not substituted for the selected feeder.",
+          "sources": [
+            "r218-dga-flow-los-choros2022"
+          ],
+          "correspondence": "supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": "Quebrada Pedernales",
+          "candidate_name_role": "bounded_selected_component_only"
+        },
+        {
+          "fragments": [
+            13999
+          ],
+          "component_scope": "Quebrada Pelícano and Tres Cruces junction",
+          "finding": "The selected course continues south through the mapped Pelícano valley to its junction with the east-arriving Los Choros corridor at Tres Cruces. Printed p24 independently describes the Pelícano contribution from the north at Tres Cruces.",
+          "sources": [
+            "r218-dga-flow-los-choros2022"
+          ],
+          "correspondence": "supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": "Quebrada Pelícano",
+          "candidate_name_role": "bounded_selected_component_only"
+        },
+        {
+          "fragments": [
+            13999
+          ],
+          "component_scope": "Tres Cruces through Punta Colorada and El Trapiche",
+          "finding": "Own Figure2-1 continuously depicts the westbound main valley through the settlement and tributary-join setting. Printed p24 distinguishes the lateral contributions and the lower Choros Altos/La Higuera tributary. Road lines are distinguished from the blue hydrographic course by the legend.",
+          "sources": [
+            "r218-dga-flow-los-choros2022"
+          ],
+          "correspondence": "supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": "Río de Los Choros",
+          "candidate_name_role": "bounded_selected_component_only"
+        },
+        {
+          "fragments": [
+            13999
+          ],
+          "component_scope": "Lower Los Choros alluvial corridor and lateral joins",
+          "finding": "The selected lower west/northwest bends follow the mapped Los Choros course, including lower tributary approaches. The mapped channel corridor and the report drainage account support passage through the sediment-filled valley; no exact bank or present flow is asserted.",
+          "sources": [
+            "r218-dga-flow-los-choros2022"
+          ],
+          "correspondence": "supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": "Río de Los Choros",
+          "candidate_name_role": "bounded_selected_component_only"
+        },
+        {
+          "fragments": [
+            13999
+          ],
+          "component_scope": "Actual terminal approach and coastal outlet",
+          "finding": "The map follows the final westward reach, lower Romero junction setting and final coastal approach to the Pacific outlet. The selected terminal lies in that depicted outlet corridor. This is corridor-scale mouth correspondence, not a contemporary shoreline or open-water-flow claim.",
+          "sources": [
+            "r218-dga-flow-los-choros2022"
+          ],
+          "correspondence": "supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": "Río de Los Choros",
+          "candidate_name_role": "bounded_selected_component_only"
+        },
+        {
+          "fragments": [
+            13999
+          ],
+          "component_scope": "Lake, reservoir, managed and alluvial passages",
+          "finding": "No lake or reservoir interrupts the selected course on the inspected map. Printed p40 reports no reservoir, canal or major irrigation infrastructure identified in the study basin. Printed p24 describes lateral alluvial cones merging with main-valley sediments and generally dry channels outside unusually wet years. The finding concerns the natural mapped drainage corridor; it does not claim current operations or perennial hydraulic continuity.",
+          "sources": [
+            "r218-dga-flow-los-choros2022"
+          ],
+          "correspondence": "supported_at_required_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "candidate_name": null,
+          "candidate_name_role": null
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70844000",
+      "source_keys": [
+        "r218-inegi-ramos-arizpe2010",
+        "r218-inegi-parras2010",
+        "r218-inegi-san-pedro2010",
+        "r218-descroix-mayran-context"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10358
+          ],
+          "component_scope": "Chosen opening and unnamed southwestern Sierra La Paila feeder",
+          "finding": "The Ramos Arizpe relief map shows the selected small westward-to-southwestward opening and its successive foothill bends on the southwestern side of Sierra La Paila. This initial feeder is unnamed on the inspected map. Its ordinary corridor position and approach to the western foothill trunk are supported without assigning an exact surveyed source vertex.",
+          "sources": [
+            "r218-inegi-ramos-arizpe2010"
+          ],
+          "correspondence": "completed_bounded_unnamed_opening_and_feeder",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            10358
+          ],
+          "component_scope": "Western Arroyo El Carmen join and southward foothill descent",
+          "finding": "The opening joins the western foothill watercourse labeled Arroyo El Carmen. The consecutive southward passage along the Parras boundary and southwestward departure into the plain correspond on the adjoining Ramos Arizpe and Parras maps. The independently drawn eastern El Carmen approach is not substituted for this western selected route. No precise name-change point is assigned.",
+          "sources": [
+            "r218-inegi-ramos-arizpe2010",
+            "r218-inegi-parras2010"
+          ],
+          "correspondence": "completed_bounded_named_reach_join_and_boundary_passage",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            10358
+          ],
+          "component_scope": "Arroyo Grande Las Liebres westward plain corridor",
+          "finding": "The Parras relief map directly labels the selected westward and then northwestward plain watercourse Arroyo Grande Las Liebres. Its successive foothill-side tributary joins and approach to the San Pedro boundary are visible. Presa La Tapada and Presa Tanque Las Liebres are separately mapped local waterbodies; the selected route is not assigned an unproved crossing of either. Arroyo Mezquite Verde is a separately drawn, more southerly neighboring course.",
+          "sources": [
+            "r218-inegi-parras2010"
+          ],
+          "correspondence": "completed_bounded_named_plain_reach_and_intermediate_joins",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            10358
+          ],
+          "component_scope": "San Pedro entry and westward northern arc",
+          "finding": "The maps establish the Parras–San Pedro boundary setting and the adjoining streams, but do not establish a continuously connected watercourse along the entire selected westward arc. The San Pedro original labels nearby Arroyo Mezquite Verde and depicts several separate incoming channels. Their presence does not establish the selected transverse link or justify transferring that name.",
+          "sources": [
+            "r218-inegi-parras2010",
+            "r218-inegi-san-pedro2010"
+          ],
+          "correspondence": "boundary_setting_supported_selected_westward_through_link_unestablished",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            10358
+          ],
+          "component_scope": "Southwestern traverse near Presa Mala Noche and Cerro Los Indios",
+          "finding": "The San Pedro relief map identifies Presa Mala Noche, Cerro Los Indios and the neighboring Arroyo La Barranca drainage. Those anchors locate the selected lower corridor, but its specific westward-to-southwestward connections across the mapped plain/channel network are not established. A selected reservoir passage, diversion or other managed connection is not inferred from the nearby reservoir label.",
+          "sources": [
+            "r218-inegi-san-pedro2010"
+          ],
+          "correspondence": "lower_plain_and_waterbody_setting_supported_through_links_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            10358
+          ],
+          "component_scope": "Final northern Parras plain branch and actual inland terminal",
+          "finding": "The final part returns into the northern Parras plain north of Cerro La Casita. The Parras map depicts an unnamed small north–south stream segment at the final-tip surroundings. This supports the local endpoint setting, but the incoming selected connection from the San Pedro traverse is not established for the complete final part. No named lake crossing or receiving mouth is shown at the actual selected ending, and it is not extended to Laguna de Mayrán or to Río Nazas.",
+          "sources": [
+            "r218-inegi-parras2010",
+            "r218-inegi-san-pedro2010",
+            "r218-descroix-mayran-context"
+          ],
+          "correspondence": "actual_terminal_setting_supported_incoming_connection_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "source_key": "r218-bonilla2013-carbonera-unread",
+      "publication": "Bonilla-Gómez, Badillo-Alemán, Gallardo-Torres and Chiappa-Carrara (2013), Temporal variation, growth and natural mortality of two species of mojarras (Perciformes: Gerreidae) from a tropical coastal lagoon: La Carbonera, Yucatan, Mexico; Revista Ciencias Marinas y Costeras5:57–67",
+      "official_url": "https://www.revistas.una.ac.cr/index.php/revmar/article/download/5553/5379/0",
+      "observed_outcome": "The sole normal publisher-original acquisition completed direct HTTP200 with Content-Type text/html instead of the expected PDF. No returned body, original imprint, article prose or map pixels were read.",
+      "outcome_layer": "Completed direct HTTP-client response and unexpected content type; no HTTP401/403, authentication challenge or origin access-control denial is asserted.",
+      "restriction_scope": "Whole identified2013 article, companion/equivalent field-project content, further original/catalogue/reader/cache/mirror/figure/alternative acquisition routes and unread outputs remain paused. No retry, substitute source from the same project or alternate acquisition followed.",
+      "earlier_lawful_prose_exception": null,
+      "newly_observed_access_failure": true,
+      "explicit_origin_access_denial": false,
+      "material_effect": "The unread study supplies no evidence. The primary pending status records the actual inland, wetland and endpoint correspondence gaps; this failed optional publication is not counted as a second pending target.",
+      "aw_id": "hydro-system:70873021"
+    },
+    {
+      "publication": "Ocampo Painepán, Tania Rayén (2015). Análisis de la geomorfología y sedimentología de la Quebrada de los Choros, regiones de Atacama y Coquimbo, Chile (29°09' y 29°33'S). Universidad de Chile geology thesis; handle2250/137679.",
+      "official_url": "https://repositorio.uchile.cl/handle/2250/137679",
+      "failed_url": "https://repositorio.uchile.cl/bitstream/handle/2250/137679/Analisis-de-la-geomorfologia-y-sedimentologia-de-la-Quebrada-los-Choros-regiones-de-Atacama.pdf?isAllowed=y&sequence=1",
+      "observed_outcome": "Normal institutional catalogue opened and was read. Its sole normally linked original opening returned Anubis access-verification / JavaScript challenge HTML. No original PDF, report body or map pixels were acquired or read.",
+      "outcome_layer": "Web-reader returned access-verification challenge; origin HTTP unknown.",
+      "origin_http_status": null,
+      "restriction_scope": "Whole thesis and equivalent original, catalogue, reader, cache, mirror, figure, screenshot, alternative-format and unread-output acquisition/use routes stopped. No alternate copy or retry followed.",
+      "earlier_lawful_prose_exception": "Only actually read catalogue abstract and bibliographic metadata remain usable at bounded regional Los Choros geomorphology and episodic-drainage context; no map correspondence.",
+      "publication_identity_basis": "Catalogue identifies independent author sedimentology/geomorphology research with four excavations along the main quebrada. Discovery identifies the FONDECYT112023 mega-ensenada de Coquimbo research project; original imprint uninspected.",
+      "newly_observed_access_failure": true,
+      "explicit_access_challenge": true,
+      "aw_id": "hydro-system:61447236"
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "publication": "USGSTopo, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "limitation_kind": "bounded_cartographic_factual_use",
+      "access_stop": false,
+      "acquisition_stop": false,
+      "use_scope": "Own bounded geographic observations and ordinary source bibliography only. Original maps, crops, overlays, complete selected coordinates, dynamic original-view requests and acquisition receipts remain private.",
+      "aw_id": "hydro-system:70324935"
+    },
+    {
+      "publication": "DGA/Flow Hydro2022 Los Choros SIT497, borrowed geomorphology Figure2-9 and Ocampo2015-derived passages",
+      "official_url": "https://repositoriodirplan.mop.gob.cl/biblioteca/items/7d72c1af-fab4-486e-acda-90c4b22aba22",
+      "observed_notice": "Figure2-9 attribution text says Universidad de Chile,2015; adjacent geomorphology prose cites Ocampo2015.",
+      "restriction_scope": "No recovered Ocampo thesis content, borrowed figure or those derived geomorphology passages is used as source correspondence. The independently authored planning map Figure2-1 and separately read drainage/infrastructure prose remain usable.",
+      "new_access_stop": false,
+      "map_pixels_used": false,
+      "aw_id": "hydro-system:61447236",
+      "acquisition_stop": false
+    },
+    {
+      "publication": "DGA/Flow Hydro2022 Los Choros SIT497, Mapoteca-derived Table2-1, Figure2-2 and Figure2-11",
+      "official_url": "https://repositoriodirplan.mop.gob.cl/biblioteca/items/7d72c1af-fab4-486e-acda-90c4b22aba22",
+      "observed_notice": "Attribution text credits unspecified Mapoteca DGA content; Figure2-11 additionally credits Niemeyer1980.",
+      "restriction_scope": "No borrowed map/schematic is used to establish selected through-links while relationship to held northern DGA cartography remains unresolved. This is a content-level conservative exclusion, not a whole-report or institution-wide acquisition ban.",
+      "new_access_stop": false,
+      "map_pixels_used": false,
+      "aw_id": "hydro-system:61447236",
+      "acquisition_stop": false
+    },
+    {
+      "source_key": "r218-inegi-san-pedro2010",
+      "publication": "Compendio de información geográfica municipal2010: San Pedro, Coahuila de Zaragoza",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/05/05033.pdf",
+      "limitation_kind": "cartographic_caption_reliability_and_material_correspondence",
+      "observed_outcome": "The successfully read relief page prints inconsistent eastern longitude captions. The named landform/channel context is usable, but those captions are not used as precise coordinate proof.",
+      "restriction_scope": "Bounded reliability of the printed coordinate captions and unestablished selected lower links only; no publication-wide access or use stop.",
+      "material_effect": "Reinforces cautious lower correspondence; the concrete through-link gaps remain one material-pending primary status.",
+      "aw_id": "hydro-system:70844000",
+      "acquisition_stop": false
+    }
+  ]
+}

@@ -1,0 +1,992 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r253",
+  "sources": [
+    {
+      "source_key": "r253-ana-fortaleza2013",
+      "title": "Informe de identificación de fuentes contaminantes en la cuenca del río Fortaleza, Informe Técnico N°008-2013-ANA-DGCRH/CAVN",
+      "publisher": "Autoridad Nacional del Agua, Dirección de Gestión de Calidad de los Recursos Hídricos / Administración Local de Agua Barranca",
+      "authors": "César Augusto Villegas Neira and Elena René Guzmán Rojas identified as responsible field professionals",
+      "date": "December 2013; field work 4–11 September 2013",
+      "official_url": "https://sinia.minam.gob.pe/sites/default/files/siar-ancash/archivos/public/docs/3_identificacion_de_fuentes_contaminantes_en_rio_fortaleza.pdf",
+      "catalogue_url": "https://sinia.minam.gob.pe/documentos/informe-identificacion-fuentes-contaminantes-cuenca-rio-fortaleza",
+      "publication_identity": "Its own Fortaleza contamination-source field campaign and proposed monitoring network under POI2013, confirmed by original cover and field-method prose. This is distinct in actual survey purpose and project from the held Pativilca flood-treatment study, ANA basin inventories and plans, generic map annex, national vulnerable-quebrada study, MTC road-map publications and INGEMMET works.",
+      "actual_material_read": "Complete 49-page scanned PDF acquired. OCR reading of cover, identity, contents and prose on printed pages1–18, including field methods and site accounts. Page6 visually inspected to identify the cartographic credit and method prose. Rotated tables on pages12 and17 were not used for coordinate correspondence. Unread annexes are not evidence.",
+      "supports": "Authorial field naming and receiving-river sequence at Santa Rosa, Raquia, Chasquitambo, tributary confluences, Lampay and the coastal exit.",
+      "limits": "Geographic correspondence relies on the independently acquired imagery. The page6 OSNIRH–ANA base map and embedded locator figures are excluded as cartographic evidence while their underlying base-publication relationships remain unresolved. Historical monitoring is not present hydraulic/operational proof."
+    },
+    {
+      "source_key": "r253-esri-fortaleza",
+      "title": "Esri World Imagery: selected Cajacay–Fortaleza–Paramonga corridor",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "actual_material_read": "One complete original overview image, returned extent metadata, original-based part-index orientation aid, and eastern opening and lower/coastal crops visually inspected. All23 stored parts were compared at ordinary corridor scale.",
+      "supports": "Complete eastern upper branch, receiving join, southgoing mountain valley, lower fan/cultivated corridor and distinct coastal source/render endings.",
+      "limits": "Photographic geography only; no names, mosaic dates, present wet-thread position or management operation inferred."
+    },
+    {
+      "source_key": "r253-esri-kitimat-overview",
+      "title": "World Imagery: selected Kitimat mountain-to-estuary corridor view",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "material_actually_read": "Complete original image, matching service-returned extent metadata, full private part-index orientation aid, and three paired upper, middle and lower local original/aided reading regions. Opening and terminal settings were also inspected in the original overview.",
+      "independent_publication_identity": "Photographic mosaic independently maintained from the held Canadian naming services, DataBC/CBMT/CanMatrix cartography and report projects. This new coastal British Columbia view is geographically distinct from the held Ellesmere, Nevada, Knik and Mendoza views.",
+      "acquisition_outcome": "Original completed normally as an image/jpeg response. Matching extent metadata subsequently completed normally and was read before local registration. Requests were sequential and no acquisition remains active.",
+      "supports": "Ordinary geographic correspondence of every selected part, glacier-margin and river-valley continuity, all bends and stages, side-join context, and both stored marine endpoint settings.",
+      "limitations": "No hydronym, exact imagery epoch, current hydraulics, bank-level accuracy or legal naming boundary is inferred. Source imagery and reading derivatives are not public deliverables."
+    },
+    {
+      "source_key": "r253-mcelhanney-kitimat-summary2022",
+      "title": "Kitimat River Flood Risk Assessment – Summary Report",
+      "authors": [
+        "Clare Share",
+        "John Share"
+      ],
+      "publisher_or_client": "McElhanney, submitted to the District of Kitimat",
+      "publication_date": "2022-07-20",
+      "edition": "Revision003; cover project2353-10399-00",
+      "official_url": "https://kitimat-docs.simplicitycms.ca/docs/kitimat-river-flood-summary.pdf",
+      "material_actually_read": "Original front matter and contents, printed page3 purpose/location prose, reproduction notice extracted from the map page, and surrounding methodology/historical prose. Printed page3 was also rendered and visually read. No map pixels or linked map originals were inspected or used.",
+      "independent_publication_identity": "District-commissioned2020–2022 flood-risk, bathymetric-survey and mitigation project. Its own planning/location prose is positively distinct from SK108/Nass fisheries-survey material, provincial water-quality assessment and held cartographic deliveries.",
+      "supports": "Names the lower Kitimat River, its Little Wedeene and Hirsch tributary context, and the Douglas Channel receiver.",
+      "limitations": "Lower-river study scope supplies representative receiver identity; it does not by itself map the selected upper course. Original illustrations and unspecified underlying basemaps are excluded."
+    },
+    {
+      "source_key": "r253-mcelhanney-kitimat-project",
+      "title": "Kitimat Flood Risk Mitigation Strategy",
+      "publisher": "McElhanney",
+      "project_dates": "2020–2022",
+      "official_url": "https://www.mcelhanney.com/project/kitimat-flood-risk-mitigation-strategy/",
+      "material_actually_read": "Authorial HTML project account, including commission, bathymetric survey, lower-river and marine study scope, and reporting context. Linked drone images and map crops were not opened.",
+      "independent_publication_identity": "The engineering company’s own account of the same municipal flood-risk project, used as project-identity and bounded geographic prose rather than independent cartographic evidence.",
+      "supports": "Confirms project identity and lower Kitimat River–Douglas Channel setting.",
+      "limitations": "Not additional independent field evidence for the upper selected route; no linked map content used."
+    },
+    {
+      "source_key": "r253-conaf-llullaillaco1999-prestop",
+      "title": "Plan de Manejo Parque Nacional Llullaillaco, Documento de Trabajo N°301",
+      "publisher": "Corporación Nacional Forestal, II Región de Antofagasta, Unidad de Gestión Patrimonio Silvestre",
+      "date": "1999; catalogue posting27 June2024 is not the report edition",
+      "official_url": "https://www.conaf.cl/centro-documental/plan-de-manejo-del-pn-llullaillaco/",
+      "publication_identity": "Dedicated national-park management and conservation-planning project under Trabajo301, confirmed by the official catalogue and original front matter/resolution identifying its authors and institutional purpose. This is not the stopped current MOP/Vialidad portal, Codelco Pedernales2023 study, Loa/DGA cartographic aggregate, IGM sign-in folder or national hydrographic services. This project distinction does not clear borrowed maps or any underlying held material.",
+      "actual_material_read": "Pre-stop web-reader text from the successfully opened126-pagePDF: cover/imprint, prologue and management-resolution author/project identity; find results exposing the park access-route prose at PDF page12 and the short Río Frío southern-feeder/fan-infiltration passage at PDF page19. No original map pixels were obtained. A later screenshot failed, and the subsequent bundled text-open body is excluded in full.",
+      "supports": "Bounded Río Frío southern feeder/access-valley identity and Punta Negra receiving-salar context only.",
+      "limits": "No claim of full-report reading, inspected cartography, exact selected headwater naming, present fan hydrology or management operations. Earlier lawful text remains narrowly usable despite the subsequent publication acquisition pause."
+    },
+    {
+      "source_key": "r253-esri-frio-punta-negra",
+      "title": "Esri World Imagery: southern dry opening, Río Frío-area valley/fan and Punta Negra salar interior",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "actual_material_read": "One complete original overview, matching extent metadata, part-index orientation aid, opening crop and terminal crop visually inspected; all23 stored parts considered.",
+      "supports": "Continuous ordinary dry-valley, alluvial-fan and salar-floor setting through the actual source/render endpoint.",
+      "limits": "Photographic geography only, with no image-derived names, precise waterline, sediment-chemistry, flow-permanence or current-operation inference. Mosaic dates unverified."
+    },
+    {
+      "source_key": "r253-ibge-macaparana2022",
+      "title": "Macaparana – PE, Mapa Municipal,2609006",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística; Diretoria de Geociências",
+      "edition": "2022 edition; copyright2023 printed",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2022/PE/macaparana/A0_2609006_MM.pdf",
+      "source_type": "Original municipal reference cartography",
+      "acquisition_outcome": "Completed normal-original HTTP200 application/pdf; full one-page original visually read.",
+      "original_map_pixels_inspected": true,
+      "actual_read_scope": "Full original overview, western opening/Macaparana drainage panel, overlapping eastern continuation, coordinate frame and enlarged original production/edition/use-notice panel.",
+      "production_credits": "Coordenação de Estruturas Territoriais (CETE), technical/thematic coordination; Unidades Estaduais do IBGE, producing units; Centro de Documentação e Disseminação de Informações (CDDI), dissemination.",
+      "publication_independence": "Positively identified as this municipality’s own locally compiled Municipal Mesh map, with its actual title, product code, local cartographic footprint, edition and producing-unit imprint confirmed on the original. Its geography and production purpose distinguish it from held CPRM/SGB geological/water-point publications, ANA reservoir studies, state basin/management plans and university projects. This conclusion is not based solely on a different municipality or year, and does not release any held municipal product or directory. No credited underlying source was separately acquired.",
+      "supports": "Chosen western opening, local receiving channel and Macaparana transition.",
+      "limits": "Generalized statistical-purpose cartography with rights reserved and a printed fitness disclaimer; bounded factual reference only. No formal name registry, exact-bank, current-operation or redistribution claim."
+    },
+    {
+      "source_key": "r253-ibge-timbauba2021",
+      "title": "Timbaúba – PE, Mapa Municipal,2615300",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística; Diretoria de Geociências",
+      "edition": "April2021 edition,2020 collection",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/PE/timbauba/2615300_MM.pdf",
+      "source_type": "Original municipal reference cartography",
+      "acquisition_outcome": "Completed normal-original HTTP200 application/pdf; full one-page original visually read.",
+      "original_map_pixels_inspected": true,
+      "actual_read_scope": "Full original overview; enlarged selected western and eastern corridor panels, Timbaúba urban passage, adjacent impoundment setting, Panorama joining area and production/edition/use-notice panel.",
+      "production_credits": "Coordenação de Estruturas Territoriais (CETE), technical/thematic coordination; Unidades Estaduais do IBGE, producing units; Centro de Documentação e Disseminação de Informações (CDDI), dissemination.",
+      "publication_independence": "Positively identified as this municipality’s own locally compiled Municipal Mesh map, with its actual title, product code, local cartographic footprint, edition and producing-unit imprint confirmed on the original. Its geography and production purpose distinguish it from held CPRM/SGB geological/water-point publications, ANA reservoir studies, state basin/management plans and university projects. This conclusion is not based solely on a different municipality or year, and does not release any held municipal product or directory. No credited underlying source was separately acquired.",
+      "supports": "Macaparana eastward overlap, northeast approach, Timbaúba through-link and eastern receiving joins.",
+      "limits": "Generalized statistical-purpose cartography with rights reserved and a printed fitness disclaimer; bounded factual reference only. No formal name registry, exact-bank, current-operation or redistribution claim."
+    },
+    {
+      "source_key": "r253-ibge-itambe2022",
+      "title": "Itambé – PE, Mapa Municipal,2607653",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística; Diretoria de Geociências",
+      "edition": "2022 edition",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2022/PE/itambe/A0_2607653_MM.pdf",
+      "source_type": "Original municipal reference cartography",
+      "acquisition_outcome": "Completed normal-original HTTP200 application/pdf; full one-page original visually read.",
+      "original_map_pixels_inspected": true,
+      "actual_read_scope": "Full original overview, enlarged complete southern selected corridor with Panorama/Passagem tributary labels, Caricé and Capibaribe-Mirim eastern overlap, and production/edition/use-notice panel.",
+      "production_credits": "Coordenação de Estruturas Territoriais (CETE), technical/thematic coordination; Unidades Estaduais do IBGE, producing units; Centro de Documentação e Disseminação de Informações (CDDI), dissemination.",
+      "publication_independence": "Positively identified as this municipality’s own locally compiled Municipal Mesh map, with its actual title, product code, local cartographic footprint, edition and producing-unit imprint confirmed on the original. Its geography and production purpose distinguish it from held CPRM/SGB geological/water-point publications, ANA reservoir studies, state basin/management plans and university projects. This conclusion is not based solely on a different municipality or year, and does not release any held municipal product or directory. No credited underlying source was separately acquired.",
+      "supports": "Southern Itambé receiving corridor, joining tributaries and explicit lower Capibaribe-Mirim name.",
+      "limits": "Generalized statistical-purpose cartography with rights reserved and a printed fitness disclaimer; bounded factual reference only. No formal name registry, exact-bank, current-operation or redistribution claim."
+    },
+    {
+      "source_key": "r253-ibge-goiana2021",
+      "title": "Goiana – PE, Mapa Municipal,2606200",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística; Diretoria de Geociências",
+      "edition": "April2021 edition,2020 collection",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/PE/goiana/2606200_MM.pdf",
+      "source_type": "Original municipal reference cartography",
+      "acquisition_outcome": "Completed normal-original HTTP200 application/pdf; full one-page original visually read.",
+      "original_map_pixels_inspected": true,
+      "actual_read_scope": "Full original overview; enlarged western Capibaribe-Mirim approach and lower Goiana estuarine panels; separately inspected Barracão–Acaú/Pontinhas terminal setting, receiving Atlantic context and production/edition/use-notice panel.",
+      "production_credits": "Coordenação de Estruturas Territoriais (CETE), technical/thematic coordination; Unidades Estaduais do IBGE, producing units; Centro de Documentação e Disseminação de Informações (CDDI), dissemination.",
+      "publication_independence": "Positively identified as this municipality’s own locally compiled Municipal Mesh map, with its actual title, product code, local cartographic footprint, edition and producing-unit imprint confirmed on the original. Its geography and production purpose distinguish it from held CPRM/SGB geological/water-point publications, ANA reservoir studies, state basin/management plans and university projects. This conclusion is not based solely on a different municipality or year, and does not release any held municipal product or directory. No credited underlying source was separately acquired.",
+      "supports": "Capibaribe-Mirim lower course, Goiana representative receiving identity, connected estuary and separate source/render ending context.",
+      "limits": "Generalized statistical-purpose cartography with rights reserved and a printed fitness disclaimer; bounded factual reference only. No formal name registry, exact-bank, current-operation or redistribution claim."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:61035152",
+      "source_keys": [
+        "r253-ana-fortaleza2013",
+        "r253-esri-fortaleza"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13868
+          ],
+          "component_scope": "chosen eastern branch",
+          "finding": "The selected opening follows a narrow westward mountain valley east of Cajacay, continuing through its short bends and lateral tributary entries. The exact upper-branch hydronym is not established. The chosen vertex is not asserted to be the natural river source.",
+          "sources": [
+            "r253-esri-fortaleza"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "part_index_basis": "Zero-based original part indices within the identified selected fragment."
+        },
+        {
+          "fragments": [
+            13868
+          ],
+          "component_scope": "upper receiving join",
+          "finding": "The westward branch bends southwest into the larger southgoing receiving valley. The joining floor and downstream narrowing form a continuously visible geographic corridor; the northern alternative headwater is not substituted for the selected eastern branch.",
+          "sources": [
+            "r253-esri-fortaleza"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            5,
+            6,
+            7
+          ],
+          "part_index_basis": "Zero-based original part indices within the identified selected fragment."
+        },
+        {
+          "fragments": [
+            13868
+          ],
+          "component_scope": "fortaleza upper middle",
+          "finding": "The selection follows the southgoing Fortaleza valley through confined mountain reaches and visible lateral joining valleys. The field report independently names Fortaleza around Santa Rosa and Raquia and places the Marca and Huayllapampa confluences along the main river. Their tributary names do not rename the chosen eastern opening.",
+          "sources": [
+            "r253-esri-fortaleza",
+            "r253-ana-fortaleza2013"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            8,
+            9,
+            10,
+            11,
+            12
+          ],
+          "part_index_basis": "Zero-based original part indices within the identified selected fragment."
+        },
+        {
+          "fragments": [
+            13868
+          ],
+          "component_scope": "chasquitambo receiving valley",
+          "finding": "The continuous receiving valley turns southwest past the Chasquitambo area and the separately approaching Purísima drainage, then broadens toward the lower dry-valley corridor. The report names Fortaleza at Chasquitambo and upstream of the Purísima confluence. No present diversion routing is inferred.",
+          "sources": [
+            "r253-esri-fortaleza",
+            "r253-ana-fortaleza2013"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          "part_index_basis": "Zero-based original part indices within the identified selected fragment."
+        },
+        {
+          "fragments": [
+            13868
+          ],
+          "component_scope": "lower fan and cultivated valley",
+          "finding": "The selected route continues within the same lower valley and fan floor, between arid slopes and cultivated strips. Small mosaic/cloud patches do not obscure the ordinary receiving-valley connection. ANA places a downstream Fortaleza monitoring point below the Lampay setting; that historical description does not establish present infrastructure operation.",
+          "sources": [
+            "r253-esri-fortaleza",
+            "r253-ana-fortaleza2013"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            18,
+            19,
+            20
+          ],
+          "part_index_basis": "Zero-based original part indices within the identified selected fragment."
+        },
+        {
+          "fragments": [
+            13868
+          ],
+          "component_scope": "coastal plain and distinct endings",
+          "finding": "The lower course continues southwest across the cultivated Paramonga coastal plain to the Pacific coastal opening. The retained source endpoint lies in the mouth/coastal receiving setting; the separate rendered endpoint extends farther seaward. Both ending descriptions are retained without equating their exact positions or asserting a present wetted mouth.",
+          "sources": [
+            "r253-esri-fortaleza",
+            "r253-ana-fortaleza2013"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            21,
+            22
+          ],
+          "part_index_basis": "Zero-based original part indices within the identified selected fragment."
+        }
+      ],
+      "terminal": {
+        "class": "sea",
+        "source_endpoint_description": "Fortaleza mouth/coastal receiving setting on the Paramonga Pacific coast.",
+        "render_endpoint_description": "Separate farther-seaward rendered ending beyond the retained source endpoint.",
+        "source_render_endpoints_equal": false
+      }
+    },
+    {
+      "aw_id": "hydro-system:70115957",
+      "source_keys": [
+        "r253-esri-kitimat-overview",
+        "r253-mcelhanney-kitimat-summary2022",
+        "r253-mcelhanney-kitimat-project"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9171
+          ],
+          "component_scope": "chosen glacier margin opening",
+          "finding": "The eastern chosen opening lies in a glacier-margin mountain basin. The short westward approach crosses the connected exposed glacial foreland, then turns north into the same incised valley. The image establishes ordinary terrain continuity; neither a glacier name nor contemporary subglacial drainage is inferred.",
+          "sources": [
+            "r253-esri-kitimat-overview"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            1,
+            2
+          ],
+          "part_index_basis": "One-based stored part numbers within the identified selected fragment; numbering restarts for each FID."
+        },
+        {
+          "fragments": [
+            9171
+          ],
+          "component_scope": "northbound upper valley",
+          "finding": "The northward stream corridor remains in one mountain valley, with rocky and gravelly channel sections, vegetated margins and side drainage joins. No intervening major lake passage or separate-basin transfer is required by the selected route.",
+          "sources": [
+            "r253-esri-kitimat-overview"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ],
+          "part_index_basis": "One-based stored part numbers within the identified selected fragment; numbering restarts for each FID."
+        },
+        {
+          "fragments": [
+            9171
+          ],
+          "component_scope": "northwestward mountain bend",
+          "finding": "The upper corridor bends northwest between valley walls. Successive gravelly reaches, local tributary junctions and intervening forested reaches form an ordinary connected river corridor.",
+          "sources": [
+            "r253-esri-kitimat-overview"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19
+          ],
+          "part_index_basis": "One-based stored part numbers within the identified selected fragment; numbering restarts for each FID."
+        },
+        {
+          "fragments": [
+            9171
+          ],
+          "component_scope": "westbound middle valley",
+          "finding": "The selection turns west along the continuous valley floor. Local braids and bends lie within the same receiving corridor; tributaries approaching from adjoining mountain slopes are context rather than additional selected fragments.",
+          "sources": [
+            "r253-esri-kitimat-overview"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            20,
+            21
+          ],
+          "part_index_basis": "One-based stored part numbers within the identified selected fragment; numbering restarts for each FID."
+        },
+        {
+          "fragments": [
+            9171
+          ],
+          "component_scope": "turn into southbound valley",
+          "finding": "The westbound mountain reach opens into the broad valley and turns south. Gravel bars, branching channels and wooded islands continue down the same alluvial belt alongside the transport corridor.",
+          "sources": [
+            "r253-esri-kitimat-overview"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            22,
+            23,
+            24,
+            25,
+            26
+          ],
+          "part_index_basis": "One-based stored part numbers within the identified selected fragment; numbering restarts for each FID."
+        },
+        {
+          "fragments": [
+            9171
+          ],
+          "component_scope": "lower valley stage transfer",
+          "finding": "The broad southbound river continues past western side-stream joins toward the lower settlement corridor. The final stored part continues directly into the stage-2 fragment within the same alluvial valley; no stage-change geographic gap is present.",
+          "sources": [
+            "r253-esri-kitimat-overview"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            27,
+            28,
+            29,
+            30,
+            31,
+            32
+          ],
+          "part_index_basis": "One-based stored part numbers within the identified selected fragment; numbering restarts for each FID."
+        },
+        {
+          "fragments": [
+            9172
+          ],
+          "component_scope": "lower kitimat settlement reach",
+          "finding": "The river follows a widening gravel-bed corridor into the developed Kitimat valley and bends beside the town and industrial/service area. Independent municipal project prose identifies the lower receiving river as Kitimat River and distinguishes its Little Wedeene and Hirsch tributary context.",
+          "sources": [
+            "r253-esri-kitimat-overview",
+            "r253-mcelhanney-kitimat-summary2022",
+            "r253-mcelhanney-kitimat-project"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "stored_parts_one_based": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "part_index_basis": "One-based stored part numbers within the identified selected fragment; numbering restarts for each FID."
+        },
+        {
+          "fragments": [
+            9172
+          ],
+          "component_scope": "estuarine terminal",
+          "finding": "The lower river winds through the developed valley margin into the branching inner delta and tidal-flat setting at the head of the marine receiving channel. The rendered endpoint is farther landward than the separate source endpoint, and both lie in this same estuarine receiving setting. The municipal prose identifies the marine receiver as Douglas Channel; no exact present shoreline or tidal limit is asserted.",
+          "sources": [
+            "r253-esri-kitimat-overview",
+            "r253-mcelhanney-kitimat-summary2022",
+            "r253-mcelhanney-kitimat-project"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "stored_parts_one_based": [
+            7
+          ],
+          "part_index_basis": "One-based stored part numbers within the identified selected fragment; numbering restarts for each FID."
+        }
+      ],
+      "terminal_assessment": {
+        "fid": 9172,
+        "role": "mainstem",
+        "stage": 2,
+        "stored_terminal_class": "sea",
+        "render_terminal": "Landward inner-delta river/estuary corridor beside branching channels and tidal-flat terrain.",
+        "source_terminal": "Separate location farther seaward in the same delta-estuarine receiving setting.",
+        "source_and_render_differ": true,
+        "receiver_name": "Douglas Channel",
+        "receiver_scope": "Marine receiving system named by municipal prose; no surveyed bank, mouth vertex or present tidal boundary inferred.",
+        "terminal_correspondence_completed": true,
+        "source_keys": [
+          "r253-esri-kitimat-overview",
+          "r253-mcelhanney-kitimat-summary2022",
+          "r253-mcelhanney-kitimat-project"
+        ]
+      },
+      "branches_and_transfers": {
+        "selected_tributary_fragments": [],
+        "separate_tributary_terminals": [],
+        "glacier_transfer": "Connected eastern glacier-margin foreland to northbound river valley established at ordinary geographic scale; specific glacier name and current ice drainage unverified.",
+        "lake_transfer": "No essential selected major-lake transfer identified in the inspected corridor. Nearby small mountain waters and side valleys are not renamed or substituted for the selection.",
+        "stage_transfer": "Stage3 FID9171 continues into stage2 FID9172 in the same lower river corridor.",
+        "material_transfer_gap": null
+      }
+    },
+    {
+      "aw_id": "hydro-system:61369916",
+      "source_keys": [
+        "r253-conaf-llullaillaco1999-prestop",
+        "r253-esri-frio-punta-negra"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13969
+          ],
+          "component_scope": "southern western opening",
+          "finding": "The chosen western opening descends eastward from the mountain foot into a shallow dry alluvial floor, bends northeast and then north into the broader receiving valley. The continuously visible floor accounts for the selected opening without requiring a perennial stream or assigning a name to its first vertex.",
+          "sources": [
+            "r253-esri-frio-punta-negra"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            0
+          ],
+          "part_index_basis": "Zero-based original part indices within the identified selected fragment."
+        },
+        {
+          "fragments": [
+            13969
+          ],
+          "component_scope": "upper northward collector",
+          "finding": "The selection follows the northward valley below the western mountains, turns northeast and enters a more incised receiving corridor. Side gullies and fans join the same valley floor. The model bends remain in a connected valley setting; no separate-basin transfer is needed.",
+          "sources": [
+            "r253-esri-frio-punta-negra"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "part_index_basis": "Zero-based original part indices within the identified selected fragment."
+        },
+        {
+          "fragments": [
+            13969
+          ],
+          "component_scope": "middle valley and fan apex",
+          "finding": "The northeastward corridor narrows around projecting relief and then opens northward into a broad fan. The source image shows the intervening joining floor and multiple tributary fan approaches. This is the southern Río Frío-area valley described regionally by the previously read park-plan prose; exact reach-name boundaries remain unverified.",
+          "sources": [
+            "r253-esri-frio-punta-negra",
+            "r253-conaf-llullaillaco1999-prestop"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            5,
+            6,
+            7,
+            8
+          ],
+          "part_index_basis": "Zero-based original part indices within the identified selected fragment."
+        },
+        {
+          "fragments": [
+            13969
+          ],
+          "component_scope": "northward alluvial receiving floor",
+          "finding": "The selected line continues north within one broad alluvial receiving corridor between western foothills and eastern fan surfaces. It follows the central-to-western low floor among diffuse pale drainage traces. Current flow and a single incised channel across every dry segment are not required or inferred.",
+          "sources": [
+            "r253-esri-frio-punta-negra"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            9,
+            10,
+            11,
+            12
+          ],
+          "part_index_basis": "Zero-based original part indices within the identified selected fragment."
+        },
+        {
+          "fragments": [
+            13969
+          ],
+          "component_scope": "southern salar entry",
+          "finding": "The receiving fan narrows into the southern pale saline margin and opens continuously into the salar floor. The selected short bends remain within that connected fan/salar receiving setting. The pre-stop CONAF passage identifies Río Frío as a southern feeder of Punta Negra and describes infiltration in its fan; no present surface-water arrival is claimed.",
+          "sources": [
+            "r253-esri-frio-punta-negra",
+            "r253-conaf-llullaillaco1999-prestop"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          "part_index_basis": "Zero-based original part indices within the identified selected fragment."
+        },
+        {
+          "fragments": [
+            13969
+          ],
+          "component_scope": "salar interior and actual ending",
+          "finding": "The selection continues northeast and north across the broad brown interior of the same pale-edged salar, then curls west/southwest to its actual ending. The source and rendered ending occupy the same supplied interior-floor location and are separately retained as such. This long internal continuation is not established as a named natural river channel, a surveyed mouth or a currently wet thread.",
+          "sources": [
+            "r253-esri-frio-punta-negra",
+            "r253-conaf-llullaillaco1999-prestop"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            18,
+            19,
+            20,
+            21,
+            22
+          ],
+          "part_index_basis": "Zero-based original part indices within the identified selected fragment."
+        }
+      ],
+      "terminal": {
+        "class": "endorheic",
+        "source_endpoint_description": "Interior floor of the Punta Negra receiving salar, beyond the southern fan/saline-margin entry.",
+        "render_endpoint_description": "Same supplied interior salar-floor position, with no render-only displacement.",
+        "source_render_endpoints_equal": true
+      }
+    },
+    {
+      "aw_id": "hydro-system:60873152",
+      "source_keys": [
+        "r253-ibge-macaparana2022",
+        "r253-ibge-timbauba2021",
+        "r253-ibge-itambe2022",
+        "r253-ibge-goiana2021"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13815
+          ],
+          "component_scope": "Chosen western feeder and Macaparana approach.",
+          "finding": "The Macaparana original covers the chosen western opening and its ordinary receiving drainage into the channel labelled Riacho Banana west of the urban area. The first short approach is not assigned a precise hydronym. The next part continues through the same local channel/confluence setting into Macaparana; the adjacent Timbaúba sheet overlaps the eastern continuation. No separate-basin transfer or enclosed terminal waterbody is needed.",
+          "sources": [
+            "r253-ibge-macaparana2022",
+            "r253-ibge-timbauba2021"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Riacho Banana"
+          ],
+          "part_indices_zero_based": [
+            0,
+            1
+          ],
+          "part_index_basis": "Zero-based stored parts0–19, also explicitly listed as one-based parts1–20, of the sole FID13815 mainstem fragment in supplied order. No joining, reversing, simplifying, geometry correction or revalidation was performed."
+        },
+        {
+          "fragments": [
+            13815
+          ],
+          "component_scope": "East of Macaparana and the northeast swing toward Timbaúba.",
+          "finding": "The maps expose the continuing drainage east of Macaparana, successive meanders and side-stream joins, followed by the northeast-turning receiving corridor. These parts follow the same connected drainage despite the selection’s coarse angular segments. A precise upper-river name or name-transition boundary is not established from the sparse labels.",
+          "sources": [
+            "r253-ibge-macaparana2022",
+            "r253-ibge-timbauba2021"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            2,
+            3
+          ],
+          "part_index_basis": "Zero-based stored parts0–19, also explicitly listed as one-based parts1–20, of the sole FID13815 mainstem fragment in supplied order. No joining, reversing, simplifying, geometry correction or revalidation was performed."
+        },
+        {
+          "fragments": [
+            13815
+          ],
+          "component_scope": "Southern/western approach to Timbaúba and the town crossing.",
+          "finding": "The Timbaúba map shows the northward approach, its receiving join west of the urban area, and the through-town drainage. A mapped impoundment lies on the adjacent northwestern approach; the selected parts join the downstream corridor rather than requiring a passage across the impounded interior. This is geographic correspondence only, with no assertion about dam operation or current release.",
+          "sources": [
+            "r253-ibge-timbauba2021"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            4,
+            5
+          ],
+          "part_index_basis": "Zero-based stored parts0–19, also explicitly listed as one-based parts1–20, of the sole FID13815 mainstem fragment in supplied order. No joining, reversing, simplifying, geometry correction or revalidation was performed."
+        },
+        {
+          "fragments": [
+            13815
+          ],
+          "component_scope": "Eastward Timbaúba bends, Panorama/Passagem joins and northeast receiving reach.",
+          "finding": "The original maps show a continuous meandering corridor east of Timbaúba, its southeast bend and the successive joining channels near Panorama/Passagem. Rio Maçaranduba is labelled on the separate northern contributor. The selection continues northeast along the receiving river on the southern Itambé margin; neither that tributary name nor nearby settlement names are made aliases of the whole selection.",
+          "sources": [
+            "r253-ibge-timbauba2021",
+            "r253-ibge-itambe2022"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Rio Maçaranduba"
+          ],
+          "part_indices_zero_based": [
+            6,
+            7,
+            8
+          ],
+          "part_index_basis": "Zero-based stored parts0–19, also explicitly listed as one-based parts1–20, of the sole FID13815 mainstem fragment in supplied order. No joining, reversing, simplifying, geometry correction or revalidation was performed."
+        },
+        {
+          "fragments": [
+            13815
+          ],
+          "component_scope": "Southern Itambé bends, Caricé setting and the lower Capibaribe-Mirim approach.",
+          "finding": "The Itambé and Goiana originals overlap across the complete eastward/southeastward corridor, including short parts12–16, tributary mouths and the Caricé-area bends. Downstream labels explicitly identify Rio Capibaribe-Mirim. The selected river remains geographically continuous into its widened lower reach north of Goiana town; no missing reservoir outlet, canal transfer or separate drainage basin is indicated.",
+          "sources": [
+            "r253-ibge-itambe2022",
+            "r253-ibge-goiana2021"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Rio Capibaribe-Mirim"
+          ],
+          "part_indices_zero_based": [
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "part_index_basis": "Zero-based stored parts0–19, also explicitly listed as one-based parts1–20, of the sole FID13815 mainstem fragment in supplied order. No joining, reversing, simplifying, geometry correction or revalidation was performed."
+        },
+        {
+          "fragments": [
+            13815
+          ],
+          "component_scope": "Capibaribe-Mirim receiving join and lower estuarine network.",
+          "finding": "The Goiana original directly shows the lower Capibaribe-Mirim entering the larger estuarine network and labels the receiving course Rio Goiana. Parts17–19 occupy that connected lower-river and estuarine receiving plain. Their generalized straight sections cross inter-channel ground rather than matching every mapped tidal meander. The mapped network and common receiving setting establish ordinary continuity; these sections are not asserted to be a single present open-water thread.",
+          "sources": [
+            "r253-ibge-goiana2021"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Rio Capibaribe-Mirim",
+            "Rio Goiana"
+          ],
+          "part_indices_zero_based": [
+            16,
+            17,
+            18
+          ],
+          "part_index_basis": "Zero-based stored parts0–19, also explicitly listed as one-based parts1–20, of the sole FID13815 mainstem fragment in supplied order. No joining, reversing, simplifying, geometry correction or revalidation was performed."
+        },
+        {
+          "fragments": [
+            13815
+          ],
+          "component_scope": "Final approach toward Barracão on the Acaú-side estuary.",
+          "finding": "The final part remains in the same Goiana estuarine drainage setting and approaches the channel beside Barracão and Ilha dos Cachorros. The map shows continuation east/southeast past Acaú–Pontinhas to the Atlantic, but that downstream continuation is context, not an appended selected segment. No terminal lake or cross-basin transfer is required.",
+          "sources": [
+            "r253-ibge-goiana2021"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Rio Goiana"
+          ],
+          "part_indices_zero_based": [
+            19
+          ],
+          "part_index_basis": "Zero-based stored parts0–19, also explicitly listed as one-based parts1–20, of the sole FID13815 mainstem fragment in supplied order. No joining, reversing, simplifying, geometry correction or revalidation was performed."
+        },
+        {
+          "fragments": [
+            13815
+          ],
+          "component_scope": "Original-source terminal, evaluated separately.",
+          "finding": "The separate source endpoint corresponds to the Goiana estuarine channel setting beside Barracão, upstream of the Acaú–Pontinhas outlet bend and open Atlantic mouth. The supplied sea class is preserved, while the observed endpoint setting is described as estuarine rather than open ocean.",
+          "sources": [
+            "r253-ibge-goiana2021"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Rio Goiana"
+          ],
+          "part_indices_zero_based": [
+            19
+          ],
+          "part_index_basis": "Zero-based stored parts0–19, also explicitly listed as one-based parts1–20, of the sole FID13815 mainstem fragment in supplied order. No joining, reversing, simplifying, geometry correction or revalidation was performed."
+        },
+        {
+          "fragments": [
+            13815
+          ],
+          "component_scope": "Rendered terminal and final stored position, evaluated separately.",
+          "finding": "The rendered endpoint is slightly north/northeast of the source endpoint at the northern bank/margin of the same estuarine course. The final stored quantized position corresponds to this rendered endpoint. No correction is made and no claim of exact current bank alignment or open water is imposed.",
+          "sources": [
+            "r253-ibge-goiana2021"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Rio Goiana"
+          ],
+          "part_indices_zero_based": [
+            19
+          ],
+          "part_index_basis": "Zero-based stored parts0–19, also explicitly listed as one-based parts1–20, of the sole FID13815 mainstem fragment in supplied order. No joining, reversing, simplifying, geometry correction or revalidation was performed."
+        }
+      ],
+      "terminal_description": {
+        "source_endpoint": "Goiana estuarine channel setting beside Barracão, west of Acaú–Pontinhas and upstream of the open Atlantic mouth.",
+        "render_endpoint": "Distinct point slightly north/northeast, at the same estuary’s northern bank/margin beside Barracão. The stored final quantized position follows this rendered endpoint, not the separate source endpoint.",
+        "scope_limit": "The supplied sea classification is retained as metadata. Neither point is moved to the coast or treated as the observed open-ocean mouth; the actual selected ending is within the estuarine setting. Exact bank placement and present wetness are not established."
+      }
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "ANA, ANA realiza monitoreo de calidad del agua en la cuenca del río Fortaleza,21 January2025",
+      "official_url": "https://www.gob.pe/institucion/ana/noticias/1095093-ana-realiza-monitoreo-de-calidad-del-agua-en-la-cuenca-del-rio-fortaleza",
+      "observed_outcome": "Sole web-reader opening failed with reported418 I am a Teapot. No original article body was read; discovery snippets and an incidental later search hit were excluded.",
+      "outcome_layer": "Web-reader fetch response; no separately established origin-versus-intermediary attribution or HTTP401/403 assertion.",
+      "restriction_scope": "Exact article and equivalent original, reader, catalogue, cache, mirror and unread-output acquisition routes paused. No retry or alternative recovery.",
+      "earlier_lawful_observations": "Discovery bibliography only; no substantive evidence.",
+      "acquisition_stop": true,
+      "material_gap": false,
+      "aw_id": "hydro-system:61035152"
+    },
+    {
+      "publication": "Water Quality Assessment and Monitoring for the Lower Kitimat River – Technical Report, May2020",
+      "official_url": "https://www2.gov.bc.ca/assets/gov/environment/air-land-water/water/waterquality/water-quality-objectives/2020-05-05_kitimat_river_wqa_rpt_final.pdf",
+      "observed_outcome": "The sole original web-reader opening returned an explicit502 Bad Gateway. After that call finished, one identical-URL retry returned the same502. No report body, original prose or map pixels were read.",
+      "outcome_layer": "Completed web-reader reported502 outcomes; origin HTTP was not independently measured. No access-control denial is asserted.",
+      "restriction_scope": "This exact report and equivalent publication/project acquisition, catalogue, original, reader, cache, mirror, figure and unread-output recovery routes remain paused. The related2026 water-quality revision remains unrequested while its project relation is unresolved. This is not a ban on all provincial water-quality publications or BC sources.",
+      "earlier_lawful_observations": null,
+      "earlier_lawful_prose_exception": null,
+      "discovery_snippets_used_as_evidence": false,
+      "acquisition_stop": true,
+      "explicit_access_denial": false,
+      "material_gap": false,
+      "material_effect": "Optional source excluded; independent imagery and municipal project prose supply the completed correspondence and representative receiver identity.",
+      "aw_id": "hydro-system:70115957"
+    },
+    {
+      "publication": "Sanhueza et al.2020, Saywas y geografía sagrada en el Qhapaq Ñan del Despoblado de Atacama, Chungara52(3):485–508",
+      "official_url": "https://scielo.conicyt.cl/scielo.php?lng=e&nrm=iso&pid=S0717-73562020000300485&script=sci_arttext",
+      "observed_outcome": "Sole web-reader article opening returned Internal Error / Failed to fetch: Cache miss. Origin HTTP unknown. No original article body or figure pixels read.",
+      "outcome_layer": "Web-reader cache/availability failure, not an observed HTTP401/403 or established origin access denial.",
+      "restriction_scope": "Whole exact article and equivalent publisher/repository/catalogue/reader/cache/mirror/figure/original and unread-output routes paused. Later incidental discovery excerpts and equivalent URLs excluded. No original or alternate-route recovery.",
+      "earlier_lawful_observations": "Bibliographic/project discovery only; no substantive source exception.",
+      "acquisition_stop": true,
+      "material_gap": false,
+      "aw_id": "hydro-system:61369916"
+    },
+    {
+      "publication": "CONAF1999, Plan de Manejo Parque Nacional Llullaillaco, Documento de Trabajo301; official attached CONAF-PNLl.pdf,126 pages",
+      "official_url": "https://www.conaf.cl/centro-documental/plan-de-manejo-del-pn-llullaillaco/",
+      "observed_outcome": "After successful original reader text and bounded findings, a requested screenshot of zero-based PDF page19 returned Internal Error / Failed to fetch: Cache miss. No screenshot pixels were obtained. A subsequent text-open in the same sequential bundle executed after that stop and returned text; that post-stop request was an error and its entire returned body is excluded. No further acquisition followed.",
+      "outcome_layer": "Web-reader screenshot/cache failure; original HTTP outcome for that failed route unknown. No HTTP401/403 assertion.",
+      "restriction_scope": "Whole exact plan and equivalent original/catalogue/reader/cache/mirror/figure/screenshot/acquisition and unread-output recovery paused. The post-stop text response does not release this pause.",
+      "earlier_lawful_observations": "Only the actually read pre-stop cover/prologue/project-resolution text, access-route prose and brief southern Río Frío feeder/fan passage remain available as the bounded source above. No pre-stop map pixels exist.",
+      "acquisition_stop": true,
+      "material_gap": false,
+      "aw_id": "hydro-system:61369916"
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "publication": "ANA Fortaleza2013 report, page6 OSNIRH–ANA map and embedded locator figures",
+      "official_url": "https://sinia.minam.gob.pe/sites/default/files/siar-ancash/archivos/public/docs/3_identificacion_de_fuentes_contaminantes_en_rio_fortaleza.pdf",
+      "kind": "unresolved_borrowed_cartographic_input_excluded",
+      "observation": "Page6 credits OSNIRH–ANA. Underlying base-publication relation not affirmatively resolved; no borrowed map linework or locator pixels used to establish through-links. Independently authored field prose remains usable.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:61035152"
+    },
+    {
+      "publication": "Esri imagery and ANA Fortaleza2013 report",
+      "kind": "bounded_facts_and_private_originals",
+      "observation": "Own factual synthesis and normal bibliography only. No source maps/PDFs, crops, overlays, full coordinates, dynamic exports or private receipts are public-ready. No limited-distribution notice was observed in inspected report front matter.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:61035152"
+    },
+    {
+      "publication": "McElhanney Kitimat River Flood Risk Assessment – Summary Report and linked project maps",
+      "official_url": "https://kitimat-docs.simplicitycms.ca/docs/kitimat-river-flood-summary.pdf",
+      "kind": "borrowed_or_unspecified_cartographic_content_excluded",
+      "observation": "The report is an independent municipal project, but exact underlying base-map relationships were not established. No map pixels or linked map crops were used. Its own location/project prose retains the stated bounded scope.",
+      "restriction_scope": "Exclude unspecified underlying cartographic content and equivalent map recovery while its relation to inherited held sources remains unresolved; no new whole-project access ban is inferred.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70115957"
+    },
+    {
+      "publication": "Kitimat River Flood Risk Assessment – Summary Report",
+      "official_url": "https://kitimat-docs.simplicitycms.ca/docs/kitimat-river-flood-summary.pdf",
+      "kind": "copyright_and_reproduction_boundary",
+      "observation": "The original carries McElhanney copyright and a permission requirement for reproduction or distribution. Only independently written factual observations and normal bibliography are supplied.",
+      "restriction_scope": "No source pages, maps, images, text extracts or derivatives are redistributed.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70115957"
+    },
+    {
+      "publication": "World Imagery",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "kind": "photographic_scope_and_private_source_material",
+      "observation": "The normally completed image and local reading aids establish geographic correspondence only.",
+      "restriction_scope": "No imagery-derived name, epoch or current-operation claim; no original, crop, overlay, full selected coordinates or dynamic export request in public research.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70115957"
+    },
+    {
+      "publication": "CONAF Llullaillaco1999 plan",
+      "official_url": "https://www.conaf.cl/centro-documental/plan-de-manejo-del-pn-llullaillaco/",
+      "kind": "prestop_text_only_and_poststop_output_exclusion",
+      "observation": "Names and regional receiving direction use only bounded pre-stop reader prose. All uninspected or borrowed cartography, failed screenshot pixels and post-stop returned text are excluded. Successful earlier text is not original-map reading or acquisition clearance.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:61369916"
+    },
+    {
+      "publication": "Esri imagery and CONAF prior-read text",
+      "kind": "bounded_facts_and_private_originals",
+      "observation": "Own factual synthesis and ordinary bibliography only. Source originals, crops, overlays, full coordinates, dynamic exports and private receipts are excluded from public-ready material.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:61369916"
+    },
+    {
+      "publication": "IBGE municipal maps: Macaparana2609006, Timbaúba2615300, Itambé2607653 and Goiana2606200",
+      "official_urls": [
+        "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2022/PE/macaparana/A0_2609006_MM.pdf",
+        "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/PE/timbauba/2615300_MM.pdf",
+        "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2022/PE/itambe/A0_2607653_MM.pdf",
+        "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/PE/goiana/2606200_MM.pdf"
+      ],
+      "kind": "statistical_compilation_fitness_and_reproduction_notice",
+      "observation": "Original imprints identify semi-automatic compilation from the IBGE Digital Municipal Mesh with updates from varied sources, exclusive statistical collection/tabulation purpose, disclaimer for other uses and reproduction rights reserved. The Macaparana sheet prints ©IBGE2023 while its edition field is2022. Used only for bounded independently written geographic/name observations; no source originals or derivatives are redistributed. No formal registry, survey, current-flow or operation claim.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:60873152"
+    }
+  ]
+}
