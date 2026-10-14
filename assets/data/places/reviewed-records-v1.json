@@ -169,6 +169,13 @@
       "cityCount": 25,
       "publishedCount": 10,
       "sourceBlobSha": "eae7231ffad59e4d23a91937738310d36d7528b3"
+    },
+    {
+      "batch": "24-russia-renamed-and-central-cities",
+      "file": "reports/places/tier1-major-cities-batch24-russia-renamed-and-central-cities.json",
+      "cityCount": 23,
+      "publishedCount": 0,
+      "sourceBlobSha": "88466aa978bb7e4f0b7b4386a87b0d132bd58b67"
     }
   ],
   "records": [
@@ -7298,9 +7305,9 @@
   "stats": {
     "cityCount": 173,
     "timelineEntries": 407,
-    "stagedCount": 289,
-    "withheldCount": 116,
-    "sourceBatchCount": 23,
+    "stagedCount": 312,
+    "withheldCount": 139,
+    "sourceBatchCount": 24,
     "unrankedCount": 173,
     "urbanIdentityFlagged": 0
   }
