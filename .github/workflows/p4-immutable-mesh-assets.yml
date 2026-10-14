@@ -51,7 +51,7 @@ jobs:
           node tools/verify-render-mesh-assets-p4.mjs
           node tools/build-country-shared-boundaries.mjs --check
           node scripts/check-version.mjs
-          node --test tests/unit/prepared-polygon-mesh.test.mjs tests/unit/mesh-geometry-assets.test.mjs tests/unit/world-bundle-runtime.test.mjs tests/unit/country-shared-boundary-state.test.mjs
+          node --test tests/unit/gpu-mesh-country-strokes.test.mjs tests/unit/prepared-polygon-mesh.test.mjs tests/unit/mesh-geometry-assets.test.mjs tests/unit/world-bundle-runtime.test.mjs tests/unit/country-shared-boundary-state.test.mjs
       - name: Stage only newly published map assets and metadata
         shell: bash
         run: |
