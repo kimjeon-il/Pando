@@ -10,6 +10,7 @@ docs/architecture/platform-boundaries.md text eol=lf
 assets/data/historical-world/**/*.json text eol=lf
 assets/data/world/*.json text eol=lf
 assets/data/world/objects/*.json text eol=lf
+assets/data/terrain-preview/**/*.json text eol=lf
 native/app/reference-web/runtime.js text eol=lf
 native/app/reference-web/manifest.json text eol=lf
 native/assets/geometry/current/** text eol=lf
