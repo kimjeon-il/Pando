@@ -125,10 +125,12 @@ jobs:
           EMSDK_VERSION: ${{ needs.plan.outputs.emscripten_version }}
         run: |
           set -euo pipefail
-          build-native/emsdk/emsdk install "$EMSDK_VERSION"
-          build-native/emsdk/emsdk activate "$EMSDK_VERSION"
+          # emsdk_env.sh may clear EMSDK_VERSION; preserve the pinned value.
+          required_version="$EMSDK_VERSION"
+          build-native/emsdk/emsdk install "$required_version"
+          build-native/emsdk/emsdk activate "$required_version"
           source build-native/emsdk/emsdk_env.sh
-          emcc --version | head -1 | grep -F "$EMSDK_VERSION"
+          emcc --version | sed -n '1p' | grep -F "$required_version"
           emcmake cmake --preset pando-wasm
           cmake --build --preset pando-wasm
           node tools/package-shared-core-assets.mjs --build-dir build-native/p1/pando-wasm/shared/wasm
