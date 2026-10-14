@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { canonicalPlaceTextBytes, generatePlaceRelease, validateRuntimeApproval } from '../../tools/build-place-runtime.mjs';
 import { decodePlaceTile } from '../../assets/js/modules/place-codec.js';
@@ -25,6 +25,12 @@ test('release provenance uses Git LF bytes for either checkout line ending', () 
 
 test('only approved source-verified cities in current review batches are reproducibly published', () => {
   const generated = generatePlaceRelease();
+  const reviewFiles = readdirSync(new URL('../../reports/places/', import.meta.url))
+    .filter(name => /^tier1-major-cities-batch\d{2}[-a-z0-9]*\.json$/u.test(name))
+    .sort()
+    .map(name => 'reports/places/' + name);
+  assert.deepEqual(catalog.reviewBatches.map(batch => batch.file), reviewFiles);
+  assert.equal(catalog.stats.sourceBatchCount, reviewFiles.length);
   const approvedCount = approvals.approvedSourceIds.length;
   assert.equal(generated.recordCount, approvedCount);
   assert.equal(catalog.stats.cityCount, approvedCount);
