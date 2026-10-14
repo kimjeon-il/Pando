@@ -35,8 +35,13 @@ jobs:
         with:
           node-version: '24'
           cache: pnpm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - name: Install build dependencies
-        run: pnpm install --frozen-lockfile --ignore-scripts
+        run: |
+          pnpm install --frozen-lockfile --ignore-scripts
+          python -m pip install --disable-pip-version-check 'shapely==2.1.2'
       - name: Generate next-version country, shared-boundary and prepared polygon assets
         run: node tools/regenerate-render-mesh-assets-p4.mjs
       - name: Validate generated manifests, checksums, shared boundary and selected geometry
