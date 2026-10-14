@@ -10,44 +10,55 @@ export function createToolBindings() {
     dependencies = ports;
   }
 
-  function bindToolUI() {
-    dependencies.platform.$('addEntityBtn').addEventListener('click', () => {
-      dependencies.genericEditingB.requestDraftDiscard(() => dependencies.workspaceUiA.completeToolStart(
-        dependencies.territorialEditingA.enterTerritorialCreateWorkflow(), { destination: 'editor' }));
+  function listen(element, type, action) {
+    element?.addEventListener(type, async event => {
+      try { await action(event); }
+      catch (error) { dependencies.feedback.reportOperationError(error, '편집 도구 동작을 완료하지 못했습니다.', 'PL-TOOL-UI-001', 4200); }
     });
-    (0, dependencies.platform.$)('addDistributionBtn')?.addEventListener('click', () => {
-      (0, dependencies.genericEditingB.requestDraftDiscard)(() => {
-        (0, dependencies.workspaceUiA.closeSurface)('create');
-        const created = (0, dependencies.propertyEditingA.createDistributionLayerFromPrompt)({
-          beforeCreate: dependencies.genericEditingA.discardActiveDraftSilently,
-        });
-        if (created) (0, dependencies.workspaceUiA.completeToolStart)(true, { destination: 'editor' });
-        else (0, dependencies.workspaceUiB.openSurface)('create');
+  }
+
+  function bindToolUI() {
+    listen(dependencies.platform.$('addEntityBtn'), 'click', async () => {
+      await dependencies.genericEditingB.requestDraftDiscard(async () => dependencies.workspaceUiA.completeToolStart(
+        await dependencies.territorialEditingA.enterTerritorialCreateWorkflow(), { destination: 'editor' }));
+    });
+    listen((0, dependencies.platform.$)('addDistributionBtn'), 'click', async () => {
+      await dependencies.genericEditingB.requestDraftDiscard(async () => {
+        const generation = dependencies.domains.projectDomain.getGeneration();
+        try {
+          (0, dependencies.workspaceUiA.closeSurface)('create');
+          const created = await (0, dependencies.propertyEditingA.createDistributionLayerFromPrompt)({
+            beforeCreate: dependencies.genericEditingA.discardActiveDraftSilently,
+          });
+          if (dependencies.projectState.state.projectReplacing || generation !== dependencies.domains.projectDomain.getGeneration()) return;
+          if (created) (0, dependencies.workspaceUiA.completeToolStart)(true, { destination: 'editor' });
+          else (0, dependencies.workspaceUiB.openSurface)('create');
+        } catch (error) { dependencies.feedback.reportOperationError(error, '분포를 만들지 못했습니다.', 'PL-DISTRIBUTION-CREATE-001', 4200); }
       });
     });
-    (0, dependencies.platform.$)('territorialCreateNameInput')?.addEventListener('input', event => (0, dependencies.territorySelectionB.territorySelectionUpdateName)(event.currentTarget.value));
-    dependencies.platform.$('territorialCreateRegionalInput').addEventListener('change', event => dependencies.territorialEditingB.updateTerritorialCreateKind(event.currentTarget.checked));
-    (0, dependencies.platform.$)('territorialCreateParentInput')?.addEventListener('change', event => (0, dependencies.territorialEditingB.updateTerritorialCreateParent)(event.currentTarget.value));
-    (0, dependencies.platform.$)('territorialCreateSourceInput')?.addEventListener('change', event => (0, dependencies.territorialEditingB.updateTerritorialCreateSource)(event.currentTarget.value));
-    (0, dependencies.platform.$)('addLabelBtn')?.addEventListener('click', () => {
-      (0, dependencies.genericEditingB.requestDraftDiscard)(() => (0, dependencies.workspaceUiA.completeToolStart)((0, dependencies.countryEditingA.enterLabelMode)()));
+    listen((0, dependencies.platform.$)('territorialCreateNameInput'), 'input', event => (0, dependencies.territorySelectionB.territorySelectionUpdateName)(event.currentTarget.value));
+    listen(dependencies.platform.$('territorialCreateRegionalInput'), 'change', event => dependencies.territorialEditingB.updateTerritorialCreateKind(event.currentTarget.checked));
+    listen((0, dependencies.platform.$)('territorialCreateParentInput'), 'change', event => (0, dependencies.territorialEditingB.updateTerritorialCreateParent)(event.currentTarget.value));
+    listen((0, dependencies.platform.$)('territorialCreateSourceInput'), 'change', event => (0, dependencies.territorialEditingB.updateTerritorialCreateSource)(event.currentTarget.value));
+    listen((0, dependencies.platform.$)('addLabelBtn'), 'click', async () => {
+      await dependencies.genericEditingB.requestDraftDiscard(async () => dependencies.workspaceUiA.completeToolStart(await dependencies.countryEditingA.enterLabelMode()));
     });
-    (0, dependencies.platform.$)('addRiverBtn')?.addEventListener('click', () => {
-      (0, dependencies.genericEditingB.requestDraftDiscard)(() => (0, dependencies.workspaceUiA.completeToolStart)((0, dependencies.countryEditingB.enterTerrainGenericFeatureMode)('river')));
+    listen((0, dependencies.platform.$)('addRiverBtn'), 'click', async () => {
+      await dependencies.genericEditingB.requestDraftDiscard(async () => dependencies.workspaceUiA.completeToolStart(await dependencies.countryEditingB.enterTerrainGenericFeatureMode('river')));
     });
-    (0, dependencies.platform.$)('addLakeBtn')?.addEventListener('click', () => {
-      (0, dependencies.genericEditingB.requestDraftDiscard)(() => (0, dependencies.workspaceUiA.completeToolStart)((0, dependencies.countryEditingB.enterTerrainGenericFeatureMode)('lake')));
+    listen((0, dependencies.platform.$)('addLakeBtn'), 'click', async () => {
+      await dependencies.genericEditingB.requestDraftDiscard(async () => dependencies.workspaceUiA.completeToolStart(await dependencies.countryEditingB.enterTerrainGenericFeatureMode('lake')));
     });
-    (0, dependencies.platform.$)('modePrimaryBtn')?.addEventListener('click', () => { void (0, dependencies.taskPresentation.runModePrimaryAction)(); });
+    listen((0, dependencies.platform.$)('modePrimaryBtn'), 'click', () => { void (0, dependencies.taskPresentation.runModePrimaryAction)(); });
     for (const [id, command] of [['multiDrawnAddBtn', dependencies.countryCommitFlow.addMultiDraftPart], ['multiDrawnUndoBtn', dependencies.countryCommitFlow.undoMultiDraftPart]]) {
-      dependencies.platform.$(id)?.addEventListener('click', event => {
+      dependencies.platform.$(id)?.addEventListener('click', async event => {
         if (event.currentTarget.disabled || dependencies.projectState.state.modeProcessing) return;
-        // These synchronous commands own the idle guard; do not mark them busy before calling.
-        try { command(); }
+        // The command retains its idle guard while awaiting the Core draft ACK.
+        try { await command(); }
         catch (error) { dependencies.feedback.reportOperationError(error, '그리기 목록을 변경하지 못했습니다.', 'PL-MULTI-DRAFT-UI-001', 4200); }
       });
     }
-    (0, dependencies.platform.$)('territorySelectionStackList')?.addEventListener('click', event => {
+    listen((0, dependencies.platform.$)('territorySelectionStackList'), 'click', event => {
       const button = event.target.closest('button[data-item-kind]');
       if (!button || !event.currentTarget.contains(button)) return;
       const action = button.dataset.itemKind === 'part'
@@ -55,7 +66,7 @@ export function createToolBindings() {
         : () => dependencies.territorySelectionC.toggleTerritorySelectionComponent(button.dataset.itemId);
       void (0, dependencies.taskPresentation.runModePrimaryAction)(action);
     });
-    (0, dependencies.platform.$)('modeTaskResultsList')?.addEventListener('click', event => {
+    listen((0, dependencies.platform.$)('modeTaskResultsList'), 'click', event => {
       const button = event.target.closest('button[data-object-id]');
       if (!button || button.disabled || !event.currentTarget.contains(button)) return;
       const tool = dependencies.projectState.state.tool;
@@ -65,52 +76,59 @@ export function createToolBindings() {
         : () => dependencies.territorialEditingB.toggleTerritorialUnitMergeTarget(button.dataset.objectId);
       void (0, dependencies.taskPresentation.runModePrimaryAction)(action);
     });
-    (0, dependencies.platform.$)('modeTaskMinimizeBtn')?.addEventListener('click', dependencies.taskPresentation.toggleMapTaskWindow);
-    (0, dependencies.platform.$)('modeDirectLineMethodInput')?.addEventListener('change', event => {
+    listen((0, dependencies.platform.$)('modeTaskMinimizeBtn'), 'click', dependencies.taskPresentation.toggleMapTaskWindow);
+    listen((0, dependencies.platform.$)('modeDirectLineMethodInput'), 'change', event => {
       if (event.currentTarget.checked) void (0, dependencies.taskPresentation.runModePrimaryAction)(
         () => (0, dependencies.territorySelectionB.territorySelectionSelectMethod)('line'));
     });
-    (0, dependencies.platform.$)('modePolygonMethodInput')?.addEventListener('change', event => {
+    listen((0, dependencies.platform.$)('modePolygonMethodInput'), 'change', event => {
       if (event.currentTarget.checked) void (0, dependencies.taskPresentation.runModePrimaryAction)(
         () => (0, dependencies.territorySelectionB.territorySelectionSelectMethod)('polygon'));
     });
-    (0, dependencies.platform.$)('modeComponentsMethodInput')?.addEventListener('change', event => {
+    listen((0, dependencies.platform.$)('modeComponentsMethodInput'), 'change', event => {
       if (event.currentTarget.checked) void (0, dependencies.taskPresentation.runModePrimaryAction)(
         () => (0, dependencies.territorySelectionB.territorySelectionSelectMethod)('components'));
     });
-    (0, dependencies.platform.$)('territorialReferenceStartBtn')?.addEventListener('click', () => {
+    listen((0, dependencies.platform.$)('territorialReferenceStartBtn'), 'click', () => {
       void (0, dependencies.taskPresentation.runModePrimaryAction)(
         dependencies.territorySelectionB.territorySelectionStartReferenceMethod);
     });
-    (0, dependencies.platform.$)('modeMethodChangeKeepBtn')?.addEventListener('click', () => {
+    listen((0, dependencies.platform.$)('modeMethodChangeKeepBtn'), 'click', () => {
       (0, dependencies.territorySelectionB.territorySelectionCancelMethodChange)();
     });
-    (0, dependencies.platform.$)('modeMethodChangeConfirmBtn')?.addEventListener('click', () => {
+    listen((0, dependencies.platform.$)('modeMethodChangeConfirmBtn'), 'click', () => {
       void (0, dependencies.taskPresentation.runModePrimaryAction)(
         dependencies.territorySelectionB.territorySelectionConfirmMethodChange);
     });
-    (0, dependencies.platform.$)('modeRiverBoundaryInput')?.addEventListener('change', event => (0, dependencies.territorySelectionB.territorySelectionToggleRiverBoundaries)(event.currentTarget.checked));
-    (0, dependencies.platform.$)('modeDraftInsertBtn')?.addEventListener('click', () => {
-      dependencies.domains.editingDomain?.setDraftVertexInsertMode?.(!dependencies.domains.editingDomain.snapshot().draft.vertexInsertMode);
+    listen((0, dependencies.platform.$)('modeRiverBoundaryInput'), 'change', event => (0, dependencies.territorySelectionB.territorySelectionToggleRiverBoundaries)(event.currentTarget.checked));
+    listen((0, dependencies.platform.$)('modeDraftInsertBtn'), 'click', async () => {
+      try { await dependencies.domains.editingDomain.setDraftVertexInsertMode(!dependencies.domains.editingDomain.snapshot().draft.vertexInsertMode); }
+      catch (error) { dependencies.feedback.reportOperationError(error,'꼭짓점 삽입 모드를 변경하지 못했습니다.','PL-DRAFT-INSERT-001',4200); }
     });
-    (0, dependencies.platform.$)('modeDraftDoneBtn')?.addEventListener('click', () => { void dependencies.taskPresentation.completeCurrentDraft(); });
-    (0, dependencies.platform.$)('modeDraftRedrawBtn')?.addEventListener('click', () => dependencies.countryCommitFlow.redrawCurrentDraft());
-    (0, dependencies.platform.$)('modeDraftDeleteBtn')?.addEventListener('click', () => dependencies.domains.editingDomain?.deleteSelectedDraftPoint());
-    (0, dependencies.platform.$)('modeCancelBtn')?.addEventListener('click', () => {
+    listen((0, dependencies.platform.$)('modeDraftDoneBtn'), 'click', () => { void dependencies.taskPresentation.completeCurrentDraft(); });
+    listen((0, dependencies.platform.$)('modeDraftRedrawBtn'), 'click', async () => {
+      try { await dependencies.countryCommitFlow.redrawCurrentDraft(); }
+      catch(error) { dependencies.feedback.reportOperationError(error,'초안을 다시 그리지 못했습니다.','PL-DRAFT-REDRAW-001',4200); }
+    });
+    listen((0, dependencies.platform.$)('modeDraftDeleteBtn'), 'click', async () => {
+      try { await dependencies.domains.editingDomain.deleteSelectedDraftPoint(); }
+      catch (error) { dependencies.feedback.reportOperationError(error,'작성 중인 꼭짓점을 삭제하지 못했습니다.','PL-DRAFT-DELETE-001',4200); }
+    });
+    listen((0, dependencies.platform.$)('modeCancelBtn'), 'click', async () => {
       const selection = dependencies.projectState.state.territorySelectionSession;
       if (selection) {
-        if (selection.stage !== 'setup') (0, dependencies.territorySelectionB.territorySelectionBack)();
-        else (0, dependencies.countryEditingA.cancelActiveMode)();
+        if (selection.stage !== 'setup') await dependencies.territorySelectionB.territorySelectionBack();
+        else await dependencies.countryEditingA.cancelActiveMode();
         return;
       }
-      (0, dependencies.genericEditingB.requestDraftDiscard)(() => {
-        if (dependencies.projectState.state.geometryPreview.session) (0, dependencies.geometryOperations.discardActiveGeometryPreview)();
-        else if (dependencies.projectState.state.labelPlacementMode || dependencies.projectState.state.tool === 'label') (0, dependencies.countryEditingB.exitLabelMode)();
-        else if ((0, dependencies.surfaces.isGenericFeatureDraftTool)(dependencies.projectState.state.tool)) (0, dependencies.genericEditingA.cancelDraft)(true);
-        else (0, dependencies.countryEditingA.cancelActiveMode)();
+      await dependencies.genericEditingB.requestDraftDiscard(async () => {
+        if (dependencies.projectState.state.geometryPreview.session) await dependencies.geometryOperations.discardActiveGeometryPreview();
+        else if (dependencies.projectState.state.labelPlacementMode || dependencies.projectState.state.tool === 'label') await dependencies.countryEditingB.exitLabelMode();
+        else if ((0, dependencies.surfaces.isGenericFeatureDraftTool)(dependencies.projectState.state.tool)) await dependencies.genericEditingA.cancelDraft(true);
+        else await dependencies.countryEditingA.cancelActiveMode();
       });
     });
-    (0, dependencies.platform.$)('resetViewBtn').addEventListener('click', dependencies.navigation.resetView);
+    listen((0, dependencies.platform.$)('resetViewBtn'), 'click', dependencies.navigation.resetView);
   }
 
   return Object.freeze({

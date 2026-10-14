@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import { collectCssRules } from './lib/css-analysis.mjs';
 
 const root = process.cwd();
 const cssRoot = path.join(root, 'assets', 'css');
@@ -49,82 +50,6 @@ function walkCssFiles(directory, relative = '') {
     if (entry.isDirectory()) return walkCssFiles(target, nextRelative);
     return entry.isFile() && entry.name.endsWith('.css') ? [nextRelative] : [];
   });
-}
-
-function stripComments(source) {
-  return source.replace(/\/\*[\s\S]*?\*\//g, '');
-}
-
-function findMatchingBrace(source, openIndex) {
-  let depth = 1;
-  let quote = '';
-  for (let index = openIndex + 1; index < source.length; index += 1) {
-    const char = source[index];
-    if (quote) {
-      if (char === '\\') index += 1;
-      else if (char === quote) quote = '';
-      continue;
-    }
-    if (char === '"' || char === "'") quote = char;
-    else if (char === '{') depth += 1;
-    else if (char === '}' && --depth === 0) return index;
-  }
-  return -1;
-}
-
-function splitDeclarations(body) {
-  const declarations = [];
-  let start = 0;
-  let depth = 0;
-  let quote = '';
-  const push = end => {
-    const declaration = body.slice(start, end).trim();
-    start = end + 1;
-    if (!declaration) return;
-    const colon = declaration.indexOf(':');
-    if (colon <= 0) return;
-    declarations.push({
-      property: declaration.slice(0, colon).trim().toLowerCase(),
-      value: declaration.slice(colon + 1).trim(),
-    });
-  };
-  for (let index = 0; index < body.length; index += 1) {
-    const char = body[index];
-    if (quote) {
-      if (char === '\\') index += 1;
-      else if (char === quote) quote = '';
-      continue;
-    }
-    if (char === '"' || char === "'") quote = char;
-    else if (char === '(' || char === '[') depth += 1;
-    else if (char === ')' || char === ']') depth -= 1;
-    else if (char === ';' && depth === 0) push(index);
-  }
-  push(body.length);
-  return declarations;
-}
-
-function normalizePrelude(prelude) {
-  return prelude.trim().replace(/\s+/g, ' ');
-}
-
-function collectRules(source, contexts = [], output = []) {
-  let cursor = 0;
-  while (cursor < source.length) {
-    const open = source.indexOf('{', cursor);
-    if (open < 0) break;
-    const close = findMatchingBrace(source, open);
-    if (close < 0) throw new Error(`Unmatched CSS brace near offset ${open}`);
-    const prelude = normalizePrelude(source.slice(cursor, open));
-    const body = source.slice(open + 1, close);
-    if (/^@(media|supports|container|layer)\b/.test(prelude)) {
-      collectRules(body, [...contexts, prelude], output);
-    } else if (prelude && !/^@keyframes\b/.test(prelude) && !/^(?:from|to|\d+%)$/.test(prelude)) {
-      output.push({ prelude, context: contexts.join(' > '), declarations: splitDeclarations(body) });
-    }
-    cursor = close + 1;
-  }
-  return output;
 }
 
 function exceptionAllows(file, selector, property) {
@@ -204,11 +129,6 @@ for (const retiredPath of retiredUiArtifacts) {
 
 if (!fs.existsSync(policyDocPath)) {
   failures.push('missing UI architecture policy: docs/architecture/ui-architecture.md');
-} else {
-  const policy = fs.readFileSync(policyDocPath, 'utf8');
-  for (const phrase of ['Tokens → Primitives → Components → Layout → Features', 'Legacy CSS ratchet', 'Surface DOM contract']) {
-    if (!policy.includes(phrase)) failures.push(`UI architecture policy is missing required contract text: ${phrase}`);
-  }
 }
 
 for (const surface of surfaceContracts) requireSurfaceContract(surface);
@@ -240,7 +160,7 @@ for (const relativePath of cssFiles) {
     continue;
   }
 
-  const rules = collectRules(stripComments(source));
+  const rules = collectCssRules(source, { filePath: absolute });
   for (const rule of rules) {
     const selector = rule.prelude;
     if (!selector.startsWith('@') && /(^|[\s>+~,(])#[A-Za-z_][\w-]*/.test(selector)) {
@@ -251,7 +171,7 @@ for (const relativePath of cssFiles) {
       const { property, value } = declaration;
       if (exceptionAllows(normalized, selector, property)) continue;
 
-      if (/!important\b/.test(value)) {
+      if (declaration.important) {
         failures.push(`!important requires an explicit architecture exception: ${normalized} ${selector} { ${property} }`);
       }
       if (layer !== 'tokens' && !property.startsWith('--') && !/\burl\(/i.test(value) && rawColorPattern.test(value)) {

@@ -1,16 +1,12 @@
-import { createProjectSerializer } from '../../assets/js/modules/project-serializer.js';
-import { staticSerializerSnapshot } from '../helpers/timeline-project.mjs';
-import { initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { setImmediate } from 'node:timers/promises';
 import { createProgressiveStartup } from '../../assets/js/modules/app-progressive-startup.js';
 import { normalizeCountryCollection } from '../../assets/js/modules/country-feature.js';
-import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
-import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
 import { createTerritorialScopeResolver } from '../../assets/js/modules/territorial-scope.js';
 import { geometryRevision } from '../../assets/js/modules/geometry-versions.js';
-import { smallHistoricalWorld } from '../helpers/historical-world.mjs';
+import { createCoreStartupState,startupDocument,historicalStartupDocument,startupBaseline } from '../helpers/core-startup.mjs';
+import {createNodeCoreProject} from '../helpers/core-project.mjs';
 
 function deferred() {
   let resolve;
@@ -22,7 +18,7 @@ function deferred() {
 const square = size => ({ type: 'Polygon', coordinates: [[[0,0],[0,size],[size,size],[size,0],[0,0]]] });
 const collection = size => normalizeCountryCollection({ features: [{ id: 'A', geometry: square(size) }] });
 
-function startupFixture(t, { pauseAt = null, restored = false, onEditable = () => {}, startMonth = '', baselinePending = null } = {}) {
+async function startupFixture(t, { pauseAt = null, restored = false, restoredDelta = false, onEditable = () => {}, startMonth = '', baselinePending = null } = {}) {
   const noop = () => {};
   const geometry = deferred();
   const mesh = deferred();
@@ -33,16 +29,24 @@ function startupFixture(t, { pauseAt = null, restored = false, onEditable = () =
   const calls = [];
   const errors = [];
   let generation = 1;
-  const project = restored ? createProjectSerializer({ appVersion: '0.34.0', baseDataset: 'fixture', distributionModes: ['territorial','geometry'], readSnapshot: () => staticSerializerSnapshot({ territorialEntities: collection(10).features }) }).buildProject() : null;
-  const state = {
-    view: { globeZoom: 1, flatZoom: 1 }, projection: 'globe', territorialEntities: [],
-    dataReadiness: 'loading', historyDirtyEntityIds: new Set(), pendingCountryRenderIds: new Set(),
-    autosaveMode: 'delta', selected: null,
-  };
-  initializeTestTerritorialState(state);
-  state.timelineCursor = startMonth;
-const entityStore = createTerritorialEntityStore({ getState: () => state });
-  const entityRepository = createTerritorialEntityRepository({ entityStore });
+  let sourceReceipt;
+  const baselineProject=restoredDelta ? startupDocument(collection(10).features)
+    :historicalStartupDocument(normalizeCountryCollection({features:[{id:'state:ukraine',geometry:square(1)},{id:'A',geometry:square(10)}]}).features);
+  let project=restored ? startupDocument(collection(10).features):null;
+  if(restoredDelta) {
+    const producer=await createNodeCoreProject(baselineProject);
+    try {
+      await startupBaseline(baselineProject,producer.project,'2026-10',{kind:'static-features'});
+      const changed=await producer.project.executeCommand({commandId:'territorial.metadata',targets:[{domain:'territorial',id:'A'}],
+        payload:{id:'A',field:'notes',valuePresent:true,value:'restored delta'}});
+      assert.equal(changed.ok,true);
+      project=JSON.parse((await producer.client.exportSnapshot({format:'pandolab-autosave',version:'fixture',savedAt:'2026-10-04T00:00:00.000Z'})).storageJson);
+      assert.equal(project.format,'pandolab-autosave-delta');
+    } finally {producer.dispose();}
+  }
+  const owner=await createCoreStartupState(t,{ startMonth,view:{ globeZoom:1,flatZoom:1 },projection:'globe',
+    dataReadiness:'loading',historyDirtyEntityIds:new Set(),pendingCountryRenderIds:new Set(),autosaveMode:'delta' });
+  const { state,entityStore,entityRepository }=owner;
   const originalWindow = globalThis.window;
   const originalFrame = globalThis.requestAnimationFrame;
   globalThis.requestAnimationFrame = callback => globalThis.queueMicrotask(callback);
@@ -56,8 +60,7 @@ const entityStore = createTerritorialEntityStore({ getState: () => state });
       if (event.type === 'pandolab:interactive') interactive.resolve();
       if (event.type === 'pandolab:editable') {
         calls.push(['editable']);
-        onEditable({ state, entityStore, entityRepository });
-        editable.resolve();
+        Promise.resolve(onEditable({ state, entityStore, entityRepository,owner })).then(editable.resolve,editable.reject);
       }
     },
   };
@@ -86,7 +89,13 @@ const entityStore = createTerritorialEntityStore({ getState: () => state });
       completeAutosaveRecovery: () => pause('recovery'),
     } },
     domains: {
-      projectDomain: { restorePreview: async () => null, queueAutosave: () => calls.push(['autosave']),
+      projectDomain: { snapshot:owner.project.snapshot,getGeneration:owner.project.getGeneration,
+        state:owner.project.state,inspectImport:owner.project.inspectImport,
+        prepareImport:owner.project.prepareImport,admitStorageBaseline:owner.project.admitStorageBaseline,admit:async (input,options) => {
+        const accepted=await owner.project.admit(input,options);
+        if (options?.reason==='startup-canonical-territories' && pauseAt==='admission') await pause('admission');
+        return accepted;
+      },restorePreview: async () => null, queueAutosave: () => calls.push(['autosave']),
         ensurePreview: value => calls.push(['ensure-preview', value]) },
       layerTreeController: { beginHydration: noop, completeHydration: () => pause('hydration') },
       editingDomain: { setTool: noop },
@@ -104,7 +113,7 @@ const entityStore = createTerritorialEntityStore({ getState: () => state });
     applicationServicesA: { classifyBuiltinCountries: countries => ({ countries, subunits: [] }) },
     builtinBaseline: { prepareProjectBaseline: async () => {
       if (baselinePending) { paused.resolve(); await baselinePending; }
-      return { project: smallHistoricalWorld({ currentId: 'A', currentGeometry: square(10) }), sourceMonth: '2026-10' };
+      return sourceReceipt ||= await startupBaseline(baselineProject,owner.project,'2026-10',{kind:restoredDelta?'static-features':'stored-asset'});
     } },
     builtinCountries: { applyFreshBuiltinClassification: noop, installCanonicalCountryStore: noop, materializePristineCountriesSync: () => normalizeCountryCollection(globalThis.window.PANDOLAB_COUNTRIES) },
     countryRecords: { applyPristineLabelAnchors: noop }, layerTree: { pruneLayerItemVisibility: noop },
@@ -128,39 +137,52 @@ const entityStore = createTerritorialEntityStore({ getState: () => state });
   });
   const running = startup.init().catch(error => errors.push(error));
   return {
-    state, entityStore, entityRepository, calls, errors, editable, paused, resume, running, interactive, geometry, mesh,
+    owner,state, entityStore, entityRepository, calls, errors, editable, paused, resume, running, interactive, geometry, mesh,
     async promote() {
       await interactive.promise;
       geometry.resolve({ countries: collection(10), canonicalCountryStore: {} });
     },
-    replaceProject() {
+    async replaceProject() {
       generation += 1;
-      entityStore.replaceEntities(normalizeCountryCollection({ features: [{ id: 'replacement', geometry: square(20) }] }).features);
+      await owner.project.admit(owner.project.snapshot(),{ features:collection(20).features.map(row => ({ ...row,id:'replacement' })),preserveCursor:true });
       state.auditPreviewGeometryReferences = new Map([['replacement', { geometry: state.territorialEntities[0].geometry, revision: 0 }]]);
     },
   };
 }
+
+test('cold delta restoration resolves its verified source before the saved view and reuses it during promotion',async t=>{
+  const fixture=await startupFixture(t,{restoredDelta:true});
+  await fixture.interactive.promise;
+  const sourceId=fixture.owner.client.state().storageBaselineId;
+  assert.ok(sourceId>0);assert.equal(fixture.entityRepository.get('A').properties.notes,'restored delta');
+  assert.equal(fixture.owner.client.state().documentDirty,false);assert.equal(fixture.owner.client.state().canUndo,false);
+  assert.deepEqual(fixture.errors,[]);
+  await fixture.promote();await fixture.editable.promise;
+  assert.equal(fixture.owner.client.state().storageBaselineId,sourceId,'promotion uses the already verified source handle');
+  assert.equal(fixture.entityRepository.get('A').properties.notes,'restored delta');assert.deepEqual(fixture.errors,[]);
+  fixture.mesh.resolve({});await fixture.running;
+});
 test('staleBaselineDoesNotReplaceNewGeneration', async t => {
-  const pending = deferred(), fixture = startupFixture(t, { baselinePending: pending.promise });
+  const pending = deferred(), fixture = await startupFixture(t, { baselinePending: pending.promise });
   await fixture.promote(); await fixture.paused.promise;
-  fixture.replaceProject(); pending.resolve(); await setImmediate();
+  await fixture.replaceProject(); pending.resolve(); await setImmediate();
   assert.deepEqual(fixture.state.territorialEntities.map(row => row.id), ['replacement']);
   assert.deepEqual(fixture.errors, []);
   fixture.mesh.resolve({}); await fixture.running;
 });
 test('nonCurrentStartHasNoModernPreview', async t => {
-  const fixture = startupFixture(t, { startMonth: '2012-10' });
+  const fixture = await startupFixture(t, { startMonth: '2012-10' });
   await fixture.interactive.promise;
   assert.equal(fixture.calls.find(row => row[0] === 'initialize')[1].allowPreview, false);
   assert.equal(fixture.state.territorialEntities.some(row => row.id === 'RUS'), false);
 });
 
-for (const pauseAt of ['hydration', 'recovery']) {
+for (const pauseAt of ['admission', 'hydration', 'recovery']) {
   test(`project replacement while ${pauseAt} is pending prevents obsolete startup mutations`, async t => {
-    const fixture = startupFixture(t, { pauseAt, restored: pauseAt === 'recovery' });
+    const fixture = await startupFixture(t, { pauseAt, restored: pauseAt === 'recovery' });
     await fixture.promote();
     await fixture.paused.promise;
-    fixture.replaceProject();
+    await fixture.replaceProject();
     const replacementEntities = fixture.state.territorialEntities;
     const replacementReferences = fixture.state.auditPreviewGeometryReferences;
     const callCount = fixture.calls.length;
@@ -176,7 +198,7 @@ for (const pauseAt of ['hydration', 'recovery']) {
 for (const stage of ['geometry', 'hydration', 'recovery', 'mesh']) {
   test(`a rejected obsolete ${stage} operation leaves the replacement project and diagnostics untouched`, async t => {
     const pauseAt = ['hydration', 'recovery'].includes(stage) ? stage : null;
-    const fixture = startupFixture(t, { pauseAt, restored: stage === 'recovery' });
+    const fixture = await startupFixture(t, { pauseAt, restored: stage === 'recovery' });
     if (stage === 'geometry') await fixture.interactive.promise;
     else {
       await fixture.promote();
@@ -185,7 +207,7 @@ for (const stage of ['geometry', 'hydration', 'recovery', 'mesh']) {
         await setImmediate();
       } else await fixture.paused.promise;
     }
-    fixture.replaceProject();
+    await fixture.replaceProject();
     const replacementEntities = fixture.state.territorialEntities;
     const replacementReferences = fixture.state.auditPreviewGeometryReferences;
     const callCount = fixture.calls.length;
@@ -203,12 +225,13 @@ for (const stage of ['geometry', 'hydration', 'recovery', 'mesh']) {
 
 test('an immediate editable listener edit cannot bless stale preview geometry as current', async t => {
   let baselineGeometry;
-  const fixture = startupFixture(t, {
-    onEditable({ entityRepository, entityStore }) {
+  const fixture = await startupFixture(t, {
+    async onEditable({ entityRepository,owner }) {
       baselineGeometry = entityRepository.get('A').geometry;
       const changed = structuredClone(entityRepository.get('A'));
       changed.geometry.coordinates[0][1][1] = 12;
-      entityStore.applyChanges({ features: [changed] });
+      await owner.project.executeCommand({ commandId:'territorial.geometry',targets:[{ domain:'territorial',id:'A' }],
+        payload:{ id:'A',geometry:changed.geometry } });
     },
   });
   await fixture.promote();
@@ -229,11 +252,11 @@ test('an immediate editable listener edit cannot bless stale preview geometry as
 for (const replacementStage of ['editable-listener', 'pending-mesh']) {
   test(`replacement at ${replacementStage} cannot schedule an obsolete saved-project preview`, async t => {
     let callCount;
-    const fixture = startupFixture(t, {
+    const fixture = await startupFixture(t, {
       restored: true,
-      onEditable() {
+      async onEditable() {
         if (replacementStage !== 'editable-listener') return;
-        fixture.replaceProject();
+        await fixture.replaceProject();
         callCount = fixture.calls.length;
       },
     });
@@ -241,7 +264,7 @@ for (const replacementStage of ['editable-listener', 'pending-mesh']) {
     await fixture.editable.promise;
     await setImmediate();
     if (replacementStage === 'pending-mesh') {
-      fixture.replaceProject();
+      await fixture.replaceProject();
       callCount = fixture.calls.length;
     }
     const replacementEntities = fixture.state.territorialEntities;

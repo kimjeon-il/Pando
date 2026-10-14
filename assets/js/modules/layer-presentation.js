@@ -1,4 +1,4 @@
-export const LAYER_PRESENTATION_SCHEMA_VERSION = 4;
+import { LAYER_PRESENTATION_SCHEMA_VERSION } from './version-contract.js';
 
 // Presentation policy, not project state. GPU fills claim pixels front-to-back;
 // Canvas paints them back-to-front. Both implement the same territorial owner.

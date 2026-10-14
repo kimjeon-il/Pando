@@ -1,231 +1,81 @@
-import { createDocumentMutationRunner } from './document-mutation-runner.js';
-import { normalizeTemporalInterval } from './temporal.js';
-import { createTerritorialFeature, normalizeTerritorialEntities, territorialRootId } from './territorial-units.js';
+const text=value => String(value ?? '').trim();
+const declaredErrors=new Set(['not-found','locked','unsupported-relation-field','unsupported-field','invalid-flag',
+  'invalid-temporal','TIMELINE_ACTIVATION','unsupported-parent-type','invalid-parent','invalid-parent-geometry','invalid-source']);
+const errorCodes=Object.freeze({ TARGET_NOT_FOUND: 'not-found',OBJECT_LOCKED: 'locked' });
 
-const text = value => String(value ?? '').trim();
-
-export function createTerritorialApplicationService({
-  entityRepository,
-  entityStore,
-  commandPipeline,
-  createId,
-}) {
-  if (typeof createId !== 'function') throw new TypeError('Territorial service requires createId().');
-  if (!entityStore) throw new TypeError('영역 애플리케이션 서비스에는 엔티티 저장소가 필요합니다.');
-  const mutateDocument = createDocumentMutationRunner({ commandPipeline });
-  const entity = id => entityRepository.get(id);
-
-  function canDelete(id) {
-    const key = text(id);
-    const feature = entity(key);
-    if (!feature) return { ok: false, code: 'not-found' };
-    if (isLocked(key)) return { ok: false, code: 'locked', unit: feature };
-    const children = entityRepository.children(key);
-    if (children.length) return { ok: false, code: 'has-children', unit: feature, children };
-    return { ok: true, unit: feature, children: [] };
+/** Current Web result adaptation; C++ owns every candidate, validation and commit. */
+export function createTerritorialApplicationService({ entityRepository,commandOwner,createId }) {
+  if (typeof createId!=='function' || typeof entityRepository?.get!=='function' || typeof commandOwner?.executeCommand!=='function')
+    throw new TypeError('The read-only territorial repository, C++ command owner and platform ID allocator are required.');
+  const find=(rows,id) => rows.find(row => row.id===id) || null;
+  const locked=id => entityRepository.get(text(id))?.properties.locked===true;
+  function rejected(reply,id) {
+    const code=errorCodes[reply.error.code] || reply.error.code;
+    if (!declaredErrors.has(code)) throw Object.assign(new Error(reply.error.message),{ code: reply.error.code });
+    const unit=find(reply.beforeTerritorial,id),result={ ok: false,code };
+    if (unit && code!=='invalid-source') result.unit=unit;
+    if (['invalid-temporal','TIMELINE_ACTIVATION','invalid-parent','invalid-parent-geometry'].includes(code)) result.issues=[reply.error.message];
+    return result;
   }
-
-  function isLocked(id) {
-    return entity(id)?.properties?.locked === true;
+  async function execute(commandId,ids,payload) {
+    return commandOwner.executeCommand({ commandId,targets: ids.map(id => ({ domain: 'territorial',id })),payload });
   }
-
-  function updateMetadata(id, field, value) {
-    const key = text(id);
-    const feature = entityRepository.get(key);
-    if (!feature) return { ok: false, code: 'not-found' };
-    if (isLocked(key)) return { ok: false, code: 'locked', unit: feature };
-    if (field === 'parentId' || field === 'entityKind') {
-      return { ok: false, code: 'unsupported-relation-field', unit: feature };
-    }
-    if (!['name', 'notes', 'color', 'capital', 'flagDataUrl', 'validFrom', 'validTo', 'validity'].includes(field)) {
-      return { ok: false, code: 'unsupported-field', unit: feature };
-    }
-    let nextValue = value;
-    if (['name', 'color', 'capital'].includes(field)) nextValue = text(value);
-    if (field === 'notes') nextValue = String(value ?? '');
-    if (field === 'flagDataUrl' && value !== null && value !== undefined) {
-      if (typeof value !== 'string' || !value.trim()) return { ok: false, code: 'invalid-flag', unit: feature };
-      nextValue = value.trim();
-    }
-    if (field === 'validFrom' || field === 'validTo' || field === 'validity') {
-      try {
-        if (field === 'validity' && (!value || typeof value !== 'object'
-          || !Object.hasOwn(value, 'validFrom') || !Object.hasOwn(value, 'validTo'))) {
-          throw new TypeError('존속기간의 시작과 끝 값이 모두 필요합니다.');
-        }
-        const interval = normalizeTemporalInterval(
-          field === 'validity' ? value.validFrom : field === 'validFrom' ? value : feature.properties?.validFrom,
-          field === 'validity' ? value.validTo : field === 'validTo' ? value : feature.properties?.validTo,
-        );
-        nextValue = field === 'validity' ? { validFrom: interval.validFrom, validTo: interval.validTo } : interval[field];
-        if (field === 'validity' ? interval.validFrom !== null || interval.validTo !== null : nextValue !== null) return { ok: false, code: 'TIMELINE_ACTIVATION', unit: feature,
-          issues: ['날짜별 편집은 T4 구현 후 지원합니다.'] };
-      } catch (error) {
-        return { ok: false, code: 'invalid-temporal', issues: [String(error?.message || error)], unit: feature };
+  async function updateMetadata(id,field,value) {
+    const key=text(id),reply=await execute('territorial.metadata',[key],{ id: key,field,valuePresent: value!==undefined,
+      ...(value===undefined ? {} : { value }) });
+    return reply.ok ? { ok: true,changed: reply.changed,unit: find(reply.afterTerritorial,key) } : rejected(reply,key);
+  }
+  async function setLocked(id,value) {
+    const key=text(id),reply=await execute('territorial.lock',[key],{ ids: [key],locked: !!value });
+    return reply.ok ? { ok: true,changed: reply.changed,unit: find(reply.afterTerritorial,key) } : rejected(reply,key);
+  }
+  async function batch(commandId,items,properties) {
+    const requested=(items || []).map(item => ({ type: text(item?.type),id: text(item?.id) })).filter(item => item.type && item.id);
+    const ids=requested.map(item => item.id),reply=await execute(commandId,ids,{ ids,...properties });
+    if (!reply.ok) {
+      const failure=rejected(reply,ids[0]);
+      if (failure.code==='not-found') {
+        const missing=requested.find(item => !find(reply.beforeTerritorial,item.id));
+        return { ok: false,code: failure.code,id: missing.id,type: missing.type };
       }
+      return failure;
     }
-    if (field === 'validity') {
-      if ((feature.properties.validFrom ?? null) === nextValue.validFrom && (feature.properties.validTo ?? null) === nextValue.validTo) return { ok: true, changed: false, unit: feature };
-      mutateDocument({ type: 'territorial-metadata', affectedIds: [key] }, () => entityStore.transaction(() => {
-        entityStore.setField(key, 'validFrom', nextValue.validFrom);
-        entityStore.setField(key, 'validTo', nextValue.validTo);
-      }), { renderDirty: { domain: 'territorial', change: 'metadata' } });
-      return { ok: true, changed: true, unit: entityRepository.get(key) };
-    }
-    const currentValue = field === 'color' ? text(feature.properties?.style?.color)
-      : ['capital', 'flagDataUrl'].includes(field) ? feature.properties?.metadata?.[field] : feature.properties?.[field];
-    const comparable = ['validFrom', 'validTo'].includes(field) ? currentValue ?? null
-      : ['name', 'color', 'capital'].includes(field) ? text(currentValue)
-      : field === 'notes' ? String(currentValue ?? '') : currentValue;
-    if (comparable === nextValue && (nextValue !== undefined || !entityStore.hasField(key, field))) return { ok: true, changed: false, unit: feature };
-    mutateDocument({ type: 'territorial-metadata', affectedIds: [key] }, () => {
-      entityStore.setField(key, field, nextValue);
-    }, { renderDirty: { domain: 'territorial', change: 'metadata' } });
-    return { ok: true, changed: true, unit: entityRepository.get(key) };
+    return { ok: true,changed: reply.changed,units: ids.map(id => find(reply.afterTerritorial,id)).filter(Boolean) };
   }
-
-  function changeAdministrativeParent(id, parentId, { validateCandidate = null } = {}) {
-    const key = text(id);
-    const feature = entity(key);
-    if (!feature) return { ok: false, code: 'not-found' };
-    if (feature.properties?.locked === true) return { ok: false, code: 'locked', unit: feature };
-    if (feature.properties.entityKind !== 'general') {
-      return { ok: false, code: 'unsupported-parent-type', unit: feature };
+  async function copyIndependentRegion(sourceId,{ name = '',color = '' } = {}) {
+    const id=createId(),key=text(sourceId),reply=await execute('territorial.copy-region',[key,id],{ sourceId: key,id,name,color });
+    return reply.ok ? { ok: true,changed: reply.changed,unit: find(reply.afterTerritorial,id) } : rejected(reply,key);
+  }
+  async function changeAdministrativeParent(id,parentId,{ validateCandidate = null } = {}) {
+    const key=text(id),payload={ id: key,parentId: text(parentId) };
+    if (!validateCandidate) {
+      const reply=await execute('territorial.parent',[key],payload);
+      return reply.ok ? { ok: true,changed: reply.changed,unit: find(reply.afterTerritorial,key) } : rejected(reply,key);
     }
-    const nextParentId = text(parentId);
-    if (text(feature.properties?.parentId) === nextParentId) return { ok: true, changed: false, unit: feature };
-
-    const previousUnits = entityRepository.list();
-    const candidateUnits = previousUnits.map(candidate => String(candidate.id) === key
-      ? { ...candidate, properties: { ...candidate.properties, parentId: nextParentId, coverageMode: nextParentId ? candidate.properties.coverageMode : 'explicit' } }
-      : candidate);
+    const prepared=await commandOwner.prepareCommand({ commandId: 'territorial.parent',targets: [{ domain: 'territorial',id: key }],payload });
+    if (!prepared.ok) return rejected(prepared,key);
+    if (!prepared.changed) return { ok: true,changed: false,unit: find(prepared.beforeTerritorial,key) };
+    let validation,validationError;
     try {
-      normalizeTerritorialEntities(candidateUnits, { cloneGeometry: geometry => geometry });
-      const proposed = new Map(candidateUnits.map(candidate => [candidate.id, candidate]));
-      for (const before of previousUnits) if (before.properties.locked && territorialRootId(before, id => entityRepository.get(id)) !== territorialRootId(proposed.get(before.id), id => proposed.get(id))) throw new Error(before.id + ': 잠긴 객체의 루트를 변경할 수 없습니다.');
-    } catch (error) { return { ok: false, code: 'invalid-parent', issues: [error.message], unit: feature }; }
-    if (typeof validateCandidate === 'function') {
-      try {
-        const extraValidation = validateCandidate({ feature, previousUnits, candidateUnits, parentId: nextParentId });
-        if (extraValidation === false || extraValidation?.ok === false) {
-          return {
-            ok: false,
-            code: 'invalid-parent-geometry',
-            issues: extraValidation?.issues || [extraValidation?.message || '상위 단위 변경 조건을 만족하지 않습니다.'],
-            unit: feature,
-          };
-        }
-      } catch (error) {
-        return { ok: false, code: 'invalid-parent-geometry', issues: [String(error?.message || error)], unit: feature };
-      }
+      validation=await validateCandidate({ feature: find(prepared.beforeTerritorial,key),previousUnits: prepared.beforeTerritorial,
+        candidateUnits: prepared.preview.territorialViews,parentId: payload.parentId });
+    } catch (error) { validationError=error; }
+    if (validationError || validation===false || validation?.ok===false) {
+      await commandOwner.cancelCandidate(prepared.candidateId);
+      return { ok: false,code: 'invalid-parent-geometry',issues: validationError ? [String(validationError.message || validationError)]
+        : validation?.issues || [validation?.message || '상위 단위 변경 조건을 만족하지 않습니다.'],unit: find(prepared.beforeTerritorial,key) };
     }
-
-    mutateDocument({ type: 'territorial-parent', affectedIds: [key] }, () => {
-      entityStore.applyChanges({ features: [candidateUnits.find(candidate => candidate.id === key)] });
-    }, { renderDirty: { domain: 'territorial', change: 'structure' } });
-    return { ok: true, changed: true, unit: entityRepository.get(key) };
+    const reply=await commandOwner.confirmCandidate(prepared.candidateId,prepared.state.epoch);
+    return reply.ok ? { ok: true,changed: reply.changed,unit: find(reply.afterTerritorial,key) } : rejected(reply,key);
   }
-
-  function setColorBatch(items, color, { history = {} } = {}) {
-    const requested = (items || []).map(item => ({ type: text(item?.type), id: text(item?.id) }))
-      .filter(item => item.type && item.id);
-    if (!requested.length) return { ok: true, changed: false, units: [] };
-
-    const units = [];
-    for (const item of requested) {
-      const feature = entity(item.id);
-      if (!feature) return { ok: false, code: 'not-found', id: item.id, type: item.type };
-      units.push(feature);
-    }
-    const changed = requested.filter((item, index) => units[index].properties?.style?.color !== color);
-    if (!changed.length) return { ok: true, changed: false, units };
-
-    mutateDocument(
-      {
-        ...history,
-        type: history.type || 'territorial-color-batch',
-        affectedIds: changed.map(item => item.id),
-      },
-      () => entityStore.transaction(() => {
-        for (const item of changed) {
-          entityStore.setField(item.id, 'color', color);
-        }
-      }),
-      { renderDirty: { domain: 'territorial', change: 'metadata' } },
-    );
-    return { ok: true, changed: true, units: requested.map(item => entityRepository.get(item.id)).filter(Boolean) };
+  function canDelete(id) {
+    const key=text(id),unit=entityRepository.get(key);
+    if (!unit) return { ok: false,code: 'not-found' };
+    if (unit.properties.locked) return { ok: false,code: 'locked',unit };
+    const children=entityRepository.children(key);
+    return children.length ? { ok: false,code: 'has-children',unit,children } : { ok: true,unit,children: [] };
   }
-
-  function setLockedBatch(items, locked, { history = {} } = {}) {
-    const next = !!locked;
-    const requested = (items || []).map(item => ({ type: text(item?.type), id: text(item?.id) }))
-      .filter(item => item.type && item.id);
-    if (!requested.length) return { ok: true, changed: false, units: [] };
-
-    const units = [];
-    for (const item of requested) {
-      const feature = entity(item.id);
-      if (!feature) return { ok: false, code: 'not-found', id: item.id, type: item.type };
-      units.push(feature);
-    }
-    const changed = requested.filter((item, index) => {
-      const feature = units[index];
-      return (feature.properties?.locked === true) !== next;
-    });
-    if (!changed.length) return { ok: true, changed: false, units };
-
-    mutateDocument(
-      {
-        ...history,
-        type: history.type || 'territorial-lock-batch',
-        affectedIds: changed.map(item => item.id),
-      },
-      () => entityStore.transaction(() => {
-        for (const item of changed) {
-          entityStore.setLocked(item.id, next);
-        }
-      }),
-      { renderDirty: { domain: 'territorial', change: 'metadata' } },
-    );
-    return { ok: true, changed: true, units: requested.map(item => entityRepository.get(item.id)).filter(Boolean) };
-  }
-
-  function setLocked(id, locked, { history = {} } = {}) {
-    const key = text(id);
-    const next = !!locked;
-    const feature = entity(key);
-    if (!feature) return { ok: false, code: 'not-found' };
-    if ((feature.properties?.locked === true) === next) return { ok: true, changed: false, unit: feature };
-    mutateDocument(
-      { ...history, type: 'territorial-lock', affectedIds: [key] },
-      () => entityStore.setLocked(key, next),
-      { renderDirty: { domain: 'territorial', change: 'metadata' } },
-    );
-    return { ok: true, changed: true, unit: entityRepository.get(key) };
-  }
-
-  function copyIndependentRegion(sourceId, { name = '', color = '' } = {}) {
-    const source = entityRepository.get(sourceId);
-    if (!source || source.properties.entityKind !== 'general') return { ok: false, code: 'invalid-source' };
-    const feature = createTerritorialFeature({
-      id: createId(), entityKind: 'regional',
-      name, color, geometry: source.geometry,
-    });
-    mutateDocument({ type: 'territorial-copy-region', affectedIds: [feature.id] }, () => {
-      entityStore.appendEntities([feature]);
-    }, { renderDirty: { domain: 'territorial', change: 'structure' } });
-    return { ok: true, changed: true, unit: entityRepository.get(feature.id) };
-  }
-
-  return Object.freeze({
-    copyIndependentRegion,
-    canDelete,
-    isLocked,
-    updateMetadata,
-    changeAdministrativeParent,
-
-    setColorBatch,
-    setLocked,
-    setLockedBatch,
-  });
+  return Object.freeze({ updateMetadata,setLocked,setLockedBatch: (items,value) => batch('territorial.lock',items,{ locked: !!value }),
+    setColorBatch: (items,color) => batch('territorial.color',items,{ color: color || null }),copyIndependentRegion,
+    changeAdministrativeParent,canDelete,isLocked: locked });
 }

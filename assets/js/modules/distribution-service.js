@@ -1,194 +1,132 @@
-import { createDocumentMutationRunner } from './document-mutation-runner.js';
-import {
-  DISTRIBUTION_MODES,
-  DISTRIBUTION_RENDER_MODES,
-  createDistributionEntry,
-  createDistributionLayer,
-  distributionEntriesForLayer,
-  normalizeDistributionEntries,
-  normalizeDistributionLayers,
-} from './distribution-model.js';
+import { distributionEntriesForLayer } from './distribution-model.js';
 
 const text = value => String(value ?? '').trim();
+const fields = Object.freeze({ distributionLayer: 'distributionLayers', distributionEntry: 'distributionEntries' });
+const responseError = message => Object.assign(new Error(message), { code: 'PL-CORE-RESPONSE' });
+const operationError = result => Object.assign(new Error(result.error.message), result.error);
 
-export function createDistributionService({
-  documentStore,
-  presentationStore,
-  commandPipeline,
-  writeLayerColor,
-  territorialExists = () => true,
-}) {
-  const mutateDocument = createDocumentMutationRunner({ commandPipeline });
-  const layers = () => documentStore.readLayers();
-  const entries = () => documentStore.readEntries();
+/** UI result adaptation only. C++ owns validation, mutation, history and dirty. */
+export function createDistributionService({ documentModel, commandOwner } = {}) {
+  if (typeof documentModel?.list !== 'function') {
+    throw new TypeError('The accepted Core document read model is required.');
+  }
+  if (typeof commandOwner?.executeCommand !== 'function') throw new TypeError('The Core document command owner is required.');
+  const layers = () => documentModel.list('distributionLayer');
+  const entries = () => documentModel.list('distributionEntry');
   const layerById = id => layers().find(layer => layer.id === text(id)) || null;
-
-  function listLayers() {
-    return layers();
+  const ref = (domain, id) => ({ domain, id: text(id) });
+  async function execute(commandId, targets, payload) {
+    const result = await commandOwner.executeCommand({ commandId, targets, payload: structuredClone(payload) });
+    if (typeof result?.ok !== 'boolean' || typeof result.changed !== 'boolean'
+      || (!result.ok && (typeof result.error?.code !== 'string' || typeof result.error?.message !== 'string'))) {
+      throw responseError('A complete Core command acknowledgement is required.');
+    }
+    return result;
   }
-
-  function listEntries(layerId) {
-    return distributionEntriesForLayer(entries(), layerId);
+  function rows(result, side, domain) {
+    const values = result[side]?.[fields[domain]];
+    if (!Array.isArray(values)) throw responseError('The accepted Core operation projection is required.');
+    return values;
   }
-
+  function accepted(result, side, domain, id) {
+    const value = rows(result, side, domain).find(row => row.id === text(id));
+    if (!value) throw responseError('An accepted ' + domain + ' is missing: ' + id);
+    return value;
+  }
+  // Read-model menu candidates; command admission and cycle validation stay in C++.
   function parentCandidates(id) {
     const layer = layerById(id);
     if (!layer) return [];
-    const descendants = new Set();
-    const queue = [layer.id];
+    const descendants = new Set(), queue = [layer.id];
     while (queue.length) {
       const parentId = queue.shift();
       for (const candidate of layers()) {
         if (candidate.parentId !== parentId || descendants.has(candidate.id)) continue;
-        descendants.add(candidate.id);
-        queue.push(candidate.id);
+        descendants.add(candidate.id); queue.push(candidate.id);
       }
     }
-    return layers().filter(candidate => candidate.id !== layer.id
-      && !descendants.has(candidate.id));
+    return layers().filter(candidate => candidate.id !== layer.id && !descendants.has(candidate.id));
   }
-
-  function createLayer(options) {
-    const layer = createDistributionLayer(options);
-    if (layerById(layer.id)) throw new Error(`분포 레이어 ID가 중복되었습니다: ${layer.id}`);
-    mutateDocument({ type: 'distribution-create', affectedIds: [layer.id] }, () => {
-      documentStore.replaceLayers(normalizeDistributionLayers([...layers(), layer]));
-    }, { renderDirty: { domain: 'distribution', change: 'structure' } });
-    return layerById(layer.id);
+  async function createLayer(options) {
+    const target = ref('distributionLayer', options?.id);
+    const result = await execute('distribution.layer.create', [target], { options });
+    if (!result.ok) throw operationError(result);
+    return accepted(result, 'after', 'distributionLayer', target.id);
   }
-
-  function updateLayer(id, field, value) {
-    const current = layerById(id);
-    if (!current) return { ok: false, code: 'not-found' };
-    if (current.locked && field !== 'locked') return { ok: false, code: 'locked', layer: current };
-    const nextLayers = structuredClone(layers());
-    const layer = nextLayers.find(candidate => candidate.id === current.id);
-    if (field === 'color') writeLayerColor(layer, value);
-    else layer[field] = value;
-    let normalized;
-    try {
-      normalized = normalizeDistributionLayers(nextLayers);
-    } catch (error) {
-      return { ok: false, code: 'invalid', error, layer: current };
+  async function updateLayer(id, field, value) {
+    const result = await execute('distribution.layer.metadata', [ref('distributionLayer', id)], { id: text(id), field, value });
+    if (!result.ok) {
+      const code = result.error.code;
+      if (code === 'not-found') return { ok: false, code };
+      if (code === 'locked') return { ok: false, code, layer: accepted(result, 'before', 'distributionLayer', id) };
+      if (code === 'invalid') return { ok: false, code, error: operationError(result), layer: accepted(result, 'before', 'distributionLayer', id) };
+      throw operationError(result);
     }
-    const normalizedCurrent = normalized.find(candidate => candidate.id === current.id);
-    if (JSON.stringify(normalizedCurrent) === JSON.stringify(current)) {
-      return { ok: true, changed: false, layer: current };
+    return { ok: true, changed: result.changed, layer: accepted(result, 'after', 'distributionLayer', id) };
+  }
+  async function addEntry(options) {
+    const target = ref('distributionEntry', options?.id), layerId = text(options?.layerId);
+    const result = await execute('distribution.entry.create', [target], { options });
+    if (!result.ok) {
+      const code = result.error.code;
+      if (code === 'layer-not-found') return { ok: false, code };
+      if (['locked', 'territorial-unit-not-found', 'invalid'].includes(code)) {
+        const outcome = { ok: false, code, layer: accepted(result, 'before', 'distributionLayer', layerId) };
+        if (code === 'invalid') outcome.error = operationError(result);
+        return outcome;
+      }
+      throw operationError(result);
     }
-    mutateDocument({ type: 'distribution-metadata', affectedIds: [current.id] }, () => {
-      documentStore.replaceLayers(normalized);
-    }, { renderDirty: { domain: 'distribution', change: 'metadata' } });
-    return { ok: true, changed: true, layer: layerById(current.id) };
+    const entry = accepted(result, 'after', 'distributionEntry', target.id);
+    return { ok: true, entry, layer: accepted(result, 'after', 'distributionLayer', entry.layerId) };
   }
-
-  function addEntry(options) {
-    const layer = layerById(options?.layerId);
-    if (!layer) return { ok: false, code: 'layer-not-found' };
-    if (layer.locked) return { ok: false, code: 'locked', layer };
-    if (options?.mode === DISTRIBUTION_MODES.TERRITORIAL && !territorialExists(options.territorialUnitId)) {
-      return { ok: false, code: 'territorial-unit-not-found', layer };
+  async function updateEntry(id, value) {
+    const result = await execute('distribution.entry.value', [ref('distributionEntry', id)], { id: text(id), value });
+    if (!result.ok) {
+      const code = result.error.code;
+      if (code === 'not-found' || code === 'locked') return { ok: false, code };
+      if (code === 'invalid') return { ok: false, code, error: operationError(result) };
+      throw operationError(result);
     }
-    let entry;
-    try {
-      entry = createDistributionEntry(options);
-      const nextEntries = normalizeDistributionEntries([...entries(), entry], { layerExists: id => !!layerById(id) });
-      mutateDocument({ type: 'distribution-entry-create', affectedIds: [entry.id, layer.id] }, () => {
-        documentStore.replaceEntries(nextEntries);
-      }, { renderDirty: { domain: 'distribution', change: 'geometry' } });
-    } catch (error) {
-      return { ok: false, code: 'invalid', error, layer };
-    }
-    return { ok: true, entry: entries().find(candidate => candidate.id === entry.id), layer };
+    return result.changed ? { ok: true, changed: true, entry: accepted(result, 'after', 'distributionEntry', id) }
+      : { ok: true, changed: false };
   }
-
-  function removeEntry(id) {
-    const entry = entries().find(candidate => candidate.id === text(id));
-    const layer = entry ? layerById(entry.layerId) : null;
-    if (!entry || !layer) return { ok: false, code: 'not-found' };
-    if (layer.locked) return { ok: false, code: 'locked', layer, entry };
-    mutateDocument({ type: 'distribution-entry-delete', affectedIds: [entry.id, layer.id] }, () => {
-      documentStore.replaceEntries(entries().filter(candidate => candidate.id !== entry.id));
-    }, { renderDirty: { domain: 'distribution', change: 'geometry' } });
-    return { ok: true, layer, entry };
+  async function removeEntry(id) {
+    const result = await execute('distribution.entry.remove', [ref('distributionEntry', id)], { id: text(id) });
+    if (!result.ok && result.error.code === 'not-found') return { ok: false, code: 'not-found' };
+    if (!result.ok && result.error.code !== 'locked') throw operationError(result);
+    const entry = accepted(result, 'before', 'distributionEntry', id);
+    const layer = accepted(result, 'before', 'distributionLayer', entry.layerId);
+    return result.ok ? { ok: true, layer, entry } : { ok: false, code: 'locked', layer, entry };
   }
-
-  function updateEntry(id, value) {
-    const current = entries().find(candidate => candidate.id === text(id));
-    const layer = current ? layerById(current.layerId) : null;
-    if (!current || !layer) return { ok: false, code: 'not-found' };
-    if (layer.locked) return { ok: false, code: 'locked' };
-    let next;
-    try {
-      next = normalizeDistributionEntries(entries().map(entry => entry.id === current.id ? { ...entry, value } : entry),
-        { layerExists: layerId => !!layerById(layerId) });
-    } catch (error) {
-      return { ok: false, code: 'invalid', error };
-    }
-    if (next.find(entry => entry.id === current.id)?.value === current.value) return { ok: true, changed: false };
-    mutateDocument({ type: 'distribution-entry-update', affectedIds: [current.id, layer.id] }, () => {
-      documentStore.replaceEntries(next);
-    }, { renderDirty: { domain: 'distribution', change: 'value' } });
-    return { ok: true, changed: true, entry: entries().find(entry => entry.id === current.id) };
+  async function deleteLayer(id) {
+    const result = await execute('distribution.layer.remove', [ref('distributionLayer', id)], { id: text(id) });
+    if (!result.ok && result.error.code === 'not-found') return { ok: false, code: 'not-found' };
+    if (!result.ok && result.error.code !== 'locked') throw operationError(result);
+    const layer = accepted(result, 'before', 'distributionLayer', id);
+    if (!result.ok) return { ok: false, code: 'locked', layer };
+    return { ok: true, layer, removedEntryCount: rows(result, 'before', 'distributionEntry').filter(entry => entry.layerId === layer.id).length };
   }
-
-  function deleteLayer(id) {
-    const current = layerById(id);
-    if (!current) return { ok: false, code: 'not-found' };
-    if (current.locked) return { ok: false, code: 'locked', layer: current };
-    const removedEntries = listEntries(current.id);
-    mutateDocument({
-      type: 'distribution-delete',
-      affectedIds: [current.id, ...removedEntries.map(entry => entry.id)],
-    }, () => {
-      const nextLayers = layers().filter(candidate => candidate.id !== current.id)
-        .map(candidate => candidate.parentId === current.id ? { ...candidate, parentId: '' } : candidate);
-      documentStore.replaceLayers(normalizeDistributionLayers(nextLayers));
-      documentStore.replaceEntries(entries().filter(entry => entry.layerId !== current.id));
-    }, { renderDirty: { domain: 'distribution', change: 'structure' } });
-    return { ok: true, layer: current, removedEntryCount: removedEntries.length };
+  async function append({ layers: newLayers = [], entries: newEntries = [] }) {
+    const targets = [...newLayers.map(layer => ref('distributionLayer', layer.id)), ...newEntries.map(entry => ref('distributionEntry', entry.id))];
+    const imported = { layers: newLayers.length, entries: newEntries.length };
+    const result = await execute('distribution.import', targets, { layers: newLayers, entries: newEntries });
+    if (!result.ok) throw operationError(result);
+    return imported;
   }
-
-  function append({ layers: newLayers = [], entries: newEntries = [] }) {
-    const nextLayers = normalizeDistributionLayers([...layers(), ...newLayers]);
-    const layerIds = new Set(nextLayers.map(layer => layer.id));
-    const nextEntries = normalizeDistributionEntries([...entries(), ...newEntries], { layerExists: id => layerIds.has(text(id)) });
-    mutateDocument({
-      type: 'distribution-import',
-      affectedIds: [...newLayers, ...newEntries].map(item => text(item.id)).filter(Boolean),
-    }, () => {
-      documentStore.replaceLayers(nextLayers);
-      documentStore.replaceEntries(nextEntries);
-    }, { renderDirty: { domain: 'distribution', change: 'structure' } });
-    return { layers: newLayers.length, entries: newEntries.length };
+  async function setRenderMode(value) {
+    const result = await execute('distribution.render-mode', [], { value });
+    if (!result.ok) throw operationError(result);
+    if (typeof result.after?.distributionSettings?.renderMode !== 'string') throw responseError('The accepted distribution render mode is required.');
+    return result.after.distributionSettings.renderMode;
   }
-
-  function setRenderMode(value) {
-    const mode = value === DISTRIBUTION_RENDER_MODES.SINGLE
-      ? DISTRIBUTION_RENDER_MODES.SINGLE
-      : DISTRIBUTION_RENDER_MODES.OVERLAP;
-    presentationStore.setRenderMode(mode);
-    return mode;
+  async function setBoundaryVisible(value) {
+    const result = await execute('distribution.boundary-visible', [], { value });
+    if (!result.ok) throw operationError(result);
+    if (typeof result.after?.distributionSettings?.boundaryVisible !== 'boolean') throw responseError('The accepted distribution boundary visibility is required.');
+    return result.after.distributionSettings.boundaryVisible;
   }
-
-  function setBoundaryVisible(value) {
-    const visible = value !== false;
-    presentationStore.setBoundaryVisible(visible);
-    return visible;
-  }
-
-  return Object.freeze({
-    getLayer: layerById,
-    listLayers,
-    listEntries,
-    parentCandidates,
-    createLayer,
-    updateLayer,
-    addEntry,
-    updateEntry,
-    removeEntry,
-    deleteLayer,
-    append,
-    setRenderMode,
-    setBoundaryVisible,
-  });
+  return Object.freeze({ getLayer: layerById, listLayers: layers,
+    listEntries: layerId => distributionEntriesForLayer(entries(), layerId), parentCandidates,
+    createLayer, updateLayer, addEntry, updateEntry, removeEntry, deleteLayer, append, setRenderMode, setBoundaryVisible });
 }

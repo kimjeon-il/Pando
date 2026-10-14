@@ -1,4 +1,4 @@
-import { initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
+import { testCoreProject, initializeTestTerritorialState,executeTerritorialTestCommand } from '../helpers/timeline-project.mjs';
 import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -48,14 +48,14 @@ test('rank is discarded while nested general objects and cycle checks remain ava
   assert.throws(() => normalizeTerritorialEntities([parent, child]), /순환/);
 });
 
-test('country extent includes detached descendants once and caches geometry work', () => {
+test('country extent includes detached descendants once and caches geometry work', async () => {
   const country = { type: 'Feature', id: 'DNK', properties: {}, geometry: geometry() };
-  let revision = 1, unions = 0;
+  let unions = 0;
   const units = [unit('p'), unit('c', 'p', { geometry: geometry(4.5), color: '#ee8800' })];
   const before = structuredClone({ country, units });
-  const state={territorialEntities:[createTerritorialFeature({id:'DNK',entityKind:'general',geometry:country.geometry}),...units],get stateRevision(){return revision;}};
-  initializeTestTerritorialState(state);
-  const repository=createTerritorialEntityRepository({entityStore:createTerritorialEntityStore({getState:()=>state})});
+  const state={territorialEntities:[createTerritorialFeature({id:'DNK',entityKind:'general',geometry:country.geometry}),...units]};
+  await initializeTestTerritorialState(state);
+  const repository=createTerritorialEntityRepository({entityStore:createTerritorialEntityStore({ documentModel:testCoreProject(state).documentModel,commandOwner:testCoreProject(state).client })});
   const resolver = createTerritorialScopeResolver({
     entityRepository: repository,
     clipper: () => ({ difference: engine.difference, union: (...args) => { unions++; return engine.union(...args); } }),
@@ -68,15 +68,15 @@ test('country extent includes detached descendants once and caches geometry work
   assert.equal(unions, 1);
   assert.equal(resolveTerritorialColor(units[0], { entityRepository: repository, countryColor: () => '#123456' }), '#123456');
   assert.equal(resolveTerritorialColor(units[1], { entityRepository: repository, countryColor: () => '#123456' }), '#ee8800');
-  revision++;
+  await executeTerritorialTestCommand(state,'territorial.metadata',{id:'DNK',field:'notes',valuePresent:true,value:'new revision'});
   resolver.scope('DNK'); assert.equal(unions, 2);
   assert.deepEqual({ country, units }, before);
 });
 
-test('parent style inheritance stops at explicit style without changing country palette', () => {
+test('parent style inheritance stops at explicit style without changing country palette', async () => {
   const units = [unit('p', 'DNK', { color: '#ff9900' }), unit('c', 'p')];
   const state = { territorialEntities: [createTerritorialFeature({ id:'DNK',entityKind:'general',geometry:geometry() }), ...units] };
-  initializeTestTerritorialState(state);
-  const repository = createTerritorialEntityRepository({ entityStore: createTerritorialEntityStore({ getState: () => state }) });
+  await initializeTestTerritorialState(state);
+  const repository = createTerritorialEntityRepository({ entityStore: createTerritorialEntityStore({ documentModel:testCoreProject(state).documentModel,commandOwner:testCoreProject(state).client }) });
   assert.equal(resolveTerritorialColor(units[1], { entityRepository: repository, countryColor: () => '#112233' }), '#ff9900');
 });

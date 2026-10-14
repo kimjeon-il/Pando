@@ -7,7 +7,7 @@ import { mapInteractionEntries as interactionEntries } from '../../assets/js/mod
 import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
 import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
 import { createEditDisplayPreparation } from '../../assets/js/modules/edit-display-preparation.js';
-import { createSelectionDomain } from '../../assets/js/modules/selection-domain.js';
+import { createNodeSelection } from '../helpers/core-selection.mjs';
 import { createSelectionPass } from '../../assets/js/modules/selection-pass.js';
 
 const mapInteractionEntries = (snapshot, state, options = {}) => {
@@ -76,18 +76,22 @@ test('worker ownership removes shared boundaries between unrelated objects witho
   assert.equal(JSON.stringify([left, right]), before);
 });
 
-test('late leave from another hover source cannot clear the current row, while reset clears all', () => {
-  const domain = createSelectionDomain();
+test('late leave from another hover source cannot clear the current row, while reset clears all', async () => {
+  const owner=await createNodeSelection({ territorialIds:['DEU','AUT'] });
+  const domain = owner.domain;
   const a = normalizeObjectRef({ domain: 'territorial', type: 'entity', id: 'DEU' });
   const b = normalizeObjectRef({ domain: 'territorial', type: 'entity', id: 'AUT' });
-  domain.setHover(a, { source: 'map' });
-  domain.setHover(b, { source: 'list' });
-  domain.setHover(null, { source: 'map' });
-  assert.equal(domain.snapshot().hover.key, b.key);
-  domain.setHover(null, { source: 'list', expectedKey: a.key });
-  assert.equal(domain.snapshot().hover.key, b.key);
-  domain.resetProject(2);
-  assert.equal(domain.snapshot().hover, null);
+  try {
+    await domain.setHover(a, { source: 'map' });
+    await domain.setHover(b, { source: 'list' });
+    await domain.setHover(null, { source: 'map' });
+    assert.equal(domain.snapshot().hover.key, b.key);
+    await domain.setHover(null, { source: 'list', expectedKey: a.key });
+    assert.equal(domain.snapshot().hover.key, b.key);
+    owner.setGeneration(2);
+    await domain.resetProject(2);
+    assert.equal(domain.snapshot().hover, null);
+  } finally { owner.dispose(); }
 });
 
 test('a pending owned boundary does not poison its ready geometry cache', () => {

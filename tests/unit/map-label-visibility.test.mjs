@@ -2,6 +2,8 @@ import { createMapVisualFrame } from '../../assets/js/modules/map-visual-frame.j
 import { defaultUserPreferences, normalizeUserPreferences } from '../../assets/js/modules/user-preferences.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { readFileSync } from 'node:fs';
+import { createNodeCoreProject } from '../helpers/core-project.mjs';
 import { createTerritorialLabels } from '../../assets/js/modules/app-territorial-labels.js';
 import { createApplicationPorts, MAP_RESOURCE_OWNER_PORTS, PROJECT_IO_OWNER_PORTS } from '../../assets/js/modules/app-capability-ports.js';
 import { createMapSettings } from '../../assets/js/modules/app-map-settings.js';
@@ -94,7 +96,7 @@ test('flag-only markers keep zoom and per-object visibility rules', () => {
   assert.deepEqual(controller.visibleLabelLayout().territorialLabels.map(feature => feature.id), ['BBB']);
 });
 
-test('symbol and hierarchy visibility switches refresh labels while retaining independent preferences', t => {
+test('symbol and hierarchy visibility switches refresh labels while retaining independent preferences', async t => {
   const previousDocument = Object.getOwnPropertyDescriptor(globalThis, 'document');
   Object.defineProperty(globalThis, 'document', {
     configurable: true,
@@ -105,6 +107,12 @@ test('symbol and hierarchy visibility switches refresh labels while retaining in
     else delete globalThis.document;
   });
   const { controller, state, layoutFrame } = fixture();
+  const seed = JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json', import.meta.url), 'utf8'));
+  seed.layerVisibility = { ...state.layerVisibility };
+  const core = await createNodeCoreProject(seed);
+  t.after(() => core.dispose());
+  Object.defineProperty(state, 'layerVisibility', { get: () => core.documentModel.snapshot().layerVisibility });
+  Object.defineProperty(state, 'layerPresentation', { get: () => core.documentModel.snapshot().layerPresentation });
   const frames = [], layouts = [];
   const rendering = createRenderingDomain({
     prepareView: layoutFrame,
@@ -115,6 +123,7 @@ test('symbol and hierarchy visibility switches refresh labels while retaining in
   let baseInvalidations = 0, autosaves = 0;
   settings.connect(capabilityPortsForFixture(PROJECT_IO_OWNER_PORTS.mapSettings, {
     state, $: () => null, expandedMapDisplayGroups: new Set(), DISTRIBUTION_GROUP_TYPES: {},
+    reportOperationError: error => assert.fail(error.stack),
     userPreferences: defaultUserPreferences(), saveUserPreferences: next => normalizeUserPreferences(next), setUserPreferences() {},
     normalizeLayerPresentation: value => value, markLayerTreeDirty() {},
     gpuMapRenderer: { invalidateCountryPalette() {} },
@@ -122,20 +131,24 @@ test('symbol and hierarchy visibility switches refresh labels while retaining in
       invalidateLabels: rendering.invalidateLabels,
       invalidateBaseScene: () => { baseInvalidations += 1; },
     },
-    projectDomain: { queuePresentationAutosave: () => { autosaves += 1; } },
+    projectDomain: { getGeneration: core.project.getGeneration,executeCommand: async envelope => {
+      const result = await core.project.executeCommand(envelope);
+      if (result.ok && result.changed) autosaves += 1;
+      return result;
+    } },
   }));
-  settings.setLayerVisibility('basemapLabels', false);
+  await settings.setLayerVisibility('basemapLabels', false);
   frames.shift()();
   assert.equal(layouts.at(-1).territorialFlags.size, 2);
-  settings.setLayerVisibility('countryFlags', false);
+  await settings.setLayerVisibility('countryFlags', false);
   frames.shift()();
   assert.deepEqual(layouts.at(-1).territorialLabels.map(feature => feature.id), ['SUBUNIT']);
-  settings.setLayerVisibility('labels', false);
+  await settings.setLayerVisibility('labels', false);
   frames.shift()();
   assert.equal(layouts.at(-1).userLabels.length, 0);
-  settings.setLayerVisibility('basemapLabels', true);
-  settings.setLayerVisibility('countryFlags', true);
-  settings.setLayerVisibility('labels', true);
+  await settings.setLayerVisibility('basemapLabels', true);
+  await settings.setLayerVisibility('countryFlags', true);
+  await settings.setLayerVisibility('labels', true);
   assert.equal(frames.length, 1, 'successive visibility changes share a frame');
   frames.shift()();
   assert.equal(layouts.at(-1).territorialLabels.length, 4);
@@ -143,18 +156,18 @@ test('symbol and hierarchy visibility switches refresh labels while retaining in
   assert.equal(layouts.at(-1).userLabels.length, 1);
   assert.equal(baseInvalidations, 0);
   assert.equal(autosaves, 6);
-  settings.setLayerVisibility('countries', false);
+  await settings.setLayerVisibility('countries', false);
   frames.shift()();
   assert.deepEqual(layouts.at(-1).territorialLabels.map(feature => feature.id), ['SUBUNIT']);
   assert.equal(state.layerVisibility.countryFlags, true);
-  settings.setLayerVisibility('subunits', false);
+  await settings.setLayerVisibility('subunits', false);
   frames.shift()();
   assert.equal(layouts.at(-1).territorialLabels.length, 0);
-  settings.setLayerVisibility('countries', true);
+  await settings.setLayerVisibility('countries', true);
   frames.shift()();
   assert.deepEqual(layouts.at(-1).territorialLabels.map(feature => feature.id), ['AAA', 'BBB', 'NOFLAG']);
   assert.equal(state.layerVisibility.subunits, false);
-  settings.setLayerVisibility('subunits', true);
+  await settings.setLayerVisibility('subunits', true);
   frames.shift()();
   assert.equal(layouts.at(-1).territorialLabels.length, 4);
   assert.equal(baseInvalidations, 4);
@@ -198,6 +211,7 @@ test('place language toggles persist independently and invalidate only label lay
   const settings = createMapSettings();
   let current = defaultUserPreferences(), invalidations = 0, saved = 0;
   const flat = {
+    reportOperationError: error => assert.fail(error.stack),
     userPreferences: current,
     saveUserPreferences: next => { saved++; return normalizeUserPreferences(next); },
     setUserPreferences: next => { current = next; flat.userPreferences = next; },

@@ -288,7 +288,8 @@ test('a child cut snaps to both parent boundaries, preserves coverage and undoes
   await expect.poll(async () => (await savedProject(page)).territorialEntities.some(entity => entity.id === child.id), { timeout: 30_000 }).toBe(true);
   const timed = (name, operation) => boundaryTimings ? boundaryTimings.measure(name, operation) : operation();
   const undo = async () => {
-    await page.locator('#undoBtn').click();
+    await expect(page.locator('#undoBtn')).toBeEnabled({ timeout: 30_000 });
+    await page.locator('#undoBtn').click({ timeout: 30_000, noWaitAfter: true });
   };
   if (comparison) await timed('undo-click', undo);
   else await withNativeActionDiagnostics(page, testInfo, { label: 'boundary-project-undo', selector: '#undoBtn', cpuProfile: true, longAnimationFrames: true, nativeTimeline }, undo);

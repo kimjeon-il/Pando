@@ -1,89 +1,70 @@
-import { createLatestWorkerJobScheduler, createWorkerCancellationError } from './worker-job-scheduler.js';
+import { createLatestWorkerJobScheduler } from './worker-job-scheduler.js';
+import { createWorkerRpcClient } from './worker-rpc.js';
 
-// Owns patch and full-rebuild transport, pending RPCs, cancellation and recovery. Consumers
-// decide whether geometry may be committed and install returned mesh resources.
+// Scheduling owns latest-wins policy; RPC owns transport and request lifetime.
 export function createGpuMeshWorkerJobs({ createWorker, createRebuildWorker = createWorker, isCurrent, onMesh = () => {}, onError = () => {} }) {
-  let worker = null;
-  let rebuildRequest = null;
+  let rpc = null;
+  let rebuildRpc = null;
+  let outputBytes = 0;
   function cancelRebuild() {
-    if (!rebuildRequest) return;
-    const pending = rebuildRequest;
-    rebuildRequest = null;
-    pending.worker.terminate();
-    pending.resolve(null);
+    rebuildRpc?.stop('superseded');
+    rebuildRpc = null;
   }
-  function rebuild(payload, accepts = () => true) {
+  async function rebuild(payload, accepts = () => true) {
     cancelRebuild();
-    return new Promise((resolve, reject) => {
-      const current = createRebuildWorker();
-      const pending = { worker: current, resolve };
-      rebuildRequest = pending;
-      const finish = (value, error) => {
-        if (rebuildRequest !== pending) return;
-        rebuildRequest = null;
-        current.terminate();
-        if (error) reject(error); else resolve(value);
-      };
-      current.onmessage = ({ data }) => {
-        if (rebuildRequest !== pending) return;
-        if (data?.token !== payload.token || Number(data?.projectGeneration ?? payload.projectGeneration) !== Number(payload.projectGeneration) || !accepts()) {
-          finish(null); return;
-        }
-        if (!data.ok) { finish(null, new Error(data.message || '동적 지도 메시를 준비하지 못했습니다.')); return; }
-        finish(data.mesh);
-      };
-      current.onerror = event => finish(null, accepts() ? new Error(event.message || '동적 지도 메시 Worker 오류') : null);
-      try { current.postMessage(payload); } catch (error) { finish(null, error); }
+    const current = createWorkerRpcClient({
+      createWorker: createRebuildWorker,
+      getProjectRevision: () => Number(payload.projectGeneration || 0),
+      isCurrent: ({ message }) => accepts() && Number(message.projectRevision) === Number(payload.projectGeneration || 0),
+    });
+    rebuildRpc = current;
+    try {
+      const response = await current.request('geometry.mesh', { features: payload.features || [] }, {
+        projectRevision: payload.projectGeneration, metadata: { geometryRevision: payload.geometryRevision },
+      });
+      return response.result;
+    } catch (error) {
+      if (error.cancelled || !accepts()) return null;
+      throw error;
+    } finally {
+      current.stop('completed');
+      if (rebuildRpc === current) rebuildRpc = null;
+    }
+  }
+  function ensureRpc() {
+    return rpc ||= createWorkerRpcClient({
+      createWorker,
+      isCurrent: ({ entry, message }) => Number(message.projectRevision) === Number(entry.projectRevision) && isCurrent(entry.metadata),
+      onCrash: onError,
     });
   }
-  const requests = new Map();
-  let outputBytes = 0;
   const scheduler = createLatestWorkerJobScheduler({
     maxConcurrent: 1,
     isCurrent,
-    execute: entry => new Promise((resolve, reject) => {
-      const current = ensureWorker(), payload = entry.payload || {};
-      requests.set(Number(payload.token), { resolve, reject });
-      try {
-        current.postMessage({ token: Number(payload.token), geometryRevision: Number(entry.geometryRevision),
-          targetRevision: Number(entry.targetRevision), jobKey: entry.jobKey, features: payload.features || [] });
-      } catch (error) { requests.delete(Number(payload.token)); reject(error); }
-    }),
-  });
-  function ensureWorker() {
-    if (worker) return worker;
-    const current = createWorker();
-    worker = current;
-    current.onmessage = event => {
-      if (worker !== current) return;
-      const message = event.data || {}, token = Number(message.token || 0), pending = requests.get(token);
-      if (!pending) return;
-      requests.delete(token);
-      if (!message.ok) { pending.reject(new Error(message.message || '변경 국가 메시를 만들지 못했습니다.')); return; }
-      const mesh = message.mesh;
+    cancelRunning: () => { rpc?.stop('superseded'); rpc = null; },
+    execute: async entry => {
+      const operation = entry.payload?.polygonPreparation ? 'geometry.prepare' : 'geometry.mesh';
+      const requestPayload = entry.payload?.polygonPreparation || { features: entry.payload?.features || [] };
+      const response = await ensureRpc().request(operation, requestPayload, {
+        requestId: entry.requestId, projectRevision: entry.targetRevision, metadata: { geometryRevision: entry.geometryRevision, targetRevision: entry.targetRevision, jobKey: entry.jobKey, payload: { token: entry.payload?.token } },
+      });
+      const mesh = response.result;
       outputBytes += ['positions', 'countryIndices', 'triangleIndices', 'lineIndices', 'strokeStartsEnds']
         .reduce((sum, key) => sum + Number(mesh?.[key]?.byteLength || 0), 0);
-      onMesh(mesh);
-      pending.resolve(mesh);
-    };
-    current.onerror = event => {
-      if (worker !== current) return;
-      const error = new Error(event.message || '변경 국가 메시 Worker 오류');
-      for (const pending of requests.values()) pending.reject(error);
-      requests.clear(); current.terminate(); worker = null;
-      onError(event);
-    };
-    return current;
-  }
+      if (operation === 'geometry.mesh') onMesh(mesh);
+      return mesh;
+    },
+  });
   return Object.freeze({
     rebuild, cancelRebuild,
     enqueue: entry => scheduler.enqueue(entry),
+    preparePolygons: (items, revision) => scheduler.enqueue({ jobKey: 'overlay-preparation', geometryRevision: revision,
+      targetRevision: revision, payload: { polygonPreparation: { items } } }).promise,
     cancelAll(reason = 'cancelled') {
       cancelRebuild();
       scheduler.cancelAll(reason);
-      const error = createWorkerCancellationError('국가 메시 계산을 취소했습니다.', reason);
-      for (const request of requests.values()) request.reject(error);
-      requests.clear(); worker?.terminate(); worker = null;
+      rpc?.stop(reason);
+      rpc = null;
     },
     stats: () => scheduler.stats(),
     outputBytes: () => outputBytes,
