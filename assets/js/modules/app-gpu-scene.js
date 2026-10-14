@@ -148,7 +148,10 @@ export function createGpuScene() {
       },
     };
     const requiredPolygons = [...gpuSceneDomains].flatMap(([name, domain]) =>
-      !currentRenderScene || gpuSceneDirtyDomains.has(name) ? domain.polygons : []);
+      !currentRenderScene || gpuSceneDirtyDomains.has(name)
+        ? [...domain.polygons, ...domain.strokes.filter(item =>
+          item.geometry?.type === 'Polygon' || item.geometry?.type === 'MultiPolygon')]
+        : []);
     const missing = renderSceneBuilder.missingPolygons(requiredPolygons, sceneInput);
     if (missing.length) {
       const signature = missing.map(item => item.cacheKey).join('|');

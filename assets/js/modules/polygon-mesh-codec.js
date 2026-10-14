@@ -1,7 +1,8 @@
 const MAGIC = 0x50474d31;
-const FORMAT = 1;
-const fields = [['positions', Float32Array], ['indices', Uint32Array], ['featureIds', Uint32Array],
-  ['ringCoordinates', Float64Array], ['ringOffsets', Uint32Array], ['polygonOffsets', Uint32Array]];
+const FORMAT = 2;
+const fields = [['positions', Float32Array], ['indices', Uint32Array], ['boundaryIndices', Uint32Array],
+  ['featureIds', Uint32Array], ['ringCoordinates', Float64Array], ['ringOffsets', Uint32Array],
+  ['polygonOffsets', Uint32Array]];
 const headerWords = 4 + fields.length;
 const align = (offset, size) => Math.ceil(offset / size) * size;
 
@@ -33,9 +34,24 @@ export function decodePolygonMesh(buffer, { algorithmVersion } = {}) {
     packet[name] = new Type(buffer, offset, length); offset += bytes;
   });
   if (offset !== buffer.byteLength || packet.positions.length % 2 || packet.indices.length % 3
-    || packet.featureIds.length !== packet.positions.length / 2) fail('length');
+    || packet.boundaryIndices.length % 2 || packet.featureIds.length !== packet.positions.length / 2) fail('length');
   packet.vertexCount = packet.positions.length / 2; packet.triangleCount = packet.indices.length / 3;
+  packet.segmentCount = packet.boundaryIndices.length / 2;
   if (!packet.triangleCount) fail('empty triangulation');
   for (const index of packet.indices) if (index >= packet.vertexCount) fail('vertex index');
+
+  // Persist boundary indices only. Decode stroke endpoints from the exact
+  // quantized position buffer used by fill triangles.
+  const startsEnds = new Float32Array(packet.boundaryIndices.length * 2);
+  for (let i = 0; i < packet.boundaryIndices.length; i += 2) {
+    const a = packet.boundaryIndices[i], b = packet.boundaryIndices[i + 1];
+    if (a >= packet.vertexCount || b >= packet.vertexCount) fail('boundary vertex index');
+    const ax = packet.positions[a * 2], ay = packet.positions[a * 2 + 1];
+    const bx = packet.positions[b * 2], by = packet.positions[b * 2 + 1];
+    if (!Number.isFinite(ax) || !Number.isFinite(ay) || !Number.isFinite(bx) || !Number.isFinite(by)
+      || (ax === bx && ay === by)) fail('boundary edge');
+    startsEnds.set([ax, ay, bx, by], i * 2);
+  }
+  packet.startsEnds = startsEnds;
   return Object.freeze(packet);
 }
