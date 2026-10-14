@@ -1,10 +1,15 @@
+// Revision 4 refines fill/stroke boundaries without changing the v2 packed layout.
+// Keep accepting revision 3 for older pinned fixtures; reject unknown revisions.
+const SUPPORTED_MESH_ALGORITHM_REVISIONS = new Set([3, 4]);
+
 export function decodeCountryMesh(buffer, ids = []) {
   if (!(buffer instanceof ArrayBuffer) || buffer.byteLength < 32) throw new Error("Invalid country mesh buffer");
   const prefix = new Uint32Array(buffer, 0, 8);
   const formatVersion = Number(prefix[1]);
   const headerWords = formatVersion >= 2 ? 12 : 8;
   const header = new Uint32Array(buffer, 0, headerWords);
-  if (header[0] !== 0x434d4731 || ![1, 2].includes(formatVersion) || header[2] !== 258 || header[6] < 1 || header[7] !== 3) {
+  if (header[0] !== 0x434d4731 || ![1, 2].includes(formatVersion) || header[2] !== 258
+    || header[6] < 1 || !SUPPORTED_MESH_ALGORITHM_REVISIONS.has(header[7])) {
     throw new Error('외부 GPU 메시 형식 또는 알고리즘 리비전이 올바르지 않습니다.');
   }
   const countryCount = header[2];
