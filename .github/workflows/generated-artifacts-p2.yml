@@ -96,6 +96,7 @@ jobs:
           node native/tools/m97/cut-kernel-generate.mjs
           node native/tools/m97/cut-kernel-generate.mjs --check
           node --test native/tools/m97/current-geometry-source.test.mjs
+          node --test tests/unit/p5-spherical-area-delegation.test.mjs tests/unit/polygon-geometry.test.mjs tests/unit/country-shared-boundary.test.mjs
       - name: Regenerate the existing Qt reference calculation bundle
         if: needs.plan.outputs.reference == 'true'
         run: |

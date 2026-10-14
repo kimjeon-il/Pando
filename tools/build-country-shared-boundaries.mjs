@@ -1,6 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { gzipSync, gunzipSync } from 'node:zlib';
+// The runtime boundary topology now uses the source-pinned C++ integral.
+import './load-spherical-core.mjs';
 import { fileURLToPath } from 'node:url';
 import { buildCountrySharedBoundarySegments, serializeCountrySharedBoundarySegments } from '../assets/js/modules/boundary-topology.js';
 import { countryGeometrySignature } from '../assets/js/modules/country-shared-boundary-cache.js';
