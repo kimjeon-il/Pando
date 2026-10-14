@@ -1,5 +1,6 @@
 const overlaps = (a, b) => a[0] <= b[2] && a[2] >= b[0] && a[1] <= b[3] && a[3] >= b[1];
 export const segmentBounds = row => [Math.min(row.a[0], row.b[0]), Math.min(row.a[1], row.b[1]), Math.max(row.a[0], row.b[0]), Math.max(row.a[1], row.b[1])];
+export const padBoundaryBounds = (bounds, epsilon = 1e-7) => bounds.map((value, index) => value + (index < 2 ? -epsilon : epsilon));
 
 /** Geographic broad phase only. Exact topology still uses its original tolerance. */
 export function createBoundarySpatialIndex() {

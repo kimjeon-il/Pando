@@ -27,7 +27,7 @@
     },
     {
       "path": "assets/js/modules/boundary-spatial-index.js",
-      "sha256": "e8721595a89faadfdaa8c61a70505c8f941e12db8ceed189ba829904d2878b5f"
+      "sha256": "2efc716326c74a8e98e8de0408b94ff746868dbe9a9a53e4f491114153803a71"
     },
     {
       "path": "assets/js/modules/coordinate-bounds.js",
@@ -51,7 +51,7 @@
     },
     {
       "path": "assets/js/modules/geometry-versions.js",
-      "sha256": "e28a1992e25049a32ef8accd7a1e5bfa4871a85556c0a6aa5a6cbef61f27333a"
+      "sha256": "1875f423e3663f92b4634275fc8be09c137ca8ae94f18552d534025f02cfa7d9"
     },
     {
       "path": "assets/js/modules/map-edit-geometry.js",
@@ -67,7 +67,7 @@
     },
     {
       "path": "assets/js/modules/polygon-geometry.js",
-      "sha256": "6be22e651d35883ca93df2743bd6ed55d1d04dded2cbb8fde0339217d19a871f"
+      "sha256": "b1f964b5f8253e22e39868f99fdb43a9c9637f7665dd26dca5882137730e03cc"
     },
     {
       "path": "assets/js/modules/ring-hit-test.js",
@@ -153,7 +153,7 @@
     },
     {
       "path": "native/assets/geometry/current/cut/boundary-spatial-index.js",
-      "sha256": "e8721595a89faadfdaa8c61a70505c8f941e12db8ceed189ba829904d2878b5f",
+      "sha256": "2efc716326c74a8e98e8de0408b94ff746868dbe9a9a53e4f491114153803a71",
       "resource": ":/cut/current/boundary-spatial-index.js",
       "kind": "cutModule"
     },
@@ -189,7 +189,7 @@
     },
     {
       "path": "native/assets/geometry/current/cut/geometry-versions.js",
-      "sha256": "e28a1992e25049a32ef8accd7a1e5bfa4871a85556c0a6aa5a6cbef61f27333a",
+      "sha256": "1875f423e3663f92b4634275fc8be09c137ca8ae94f18552d534025f02cfa7d9",
       "resource": ":/cut/current/geometry-versions.js",
       "kind": "cutModule"
     },
@@ -207,7 +207,7 @@
     },
     {
       "path": "native/assets/geometry/current/cut/polygon-geometry.js",
-      "sha256": "6be22e651d35883ca93df2743bd6ed55d1d04dded2cbb8fde0339217d19a871f",
+      "sha256": "b1f964b5f8253e22e39868f99fdb43a9c9637f7665dd26dca5882137730e03cc",
       "resource": ":/cut/current/polygon-geometry.js",
       "kind": "cutModule"
     },
@@ -249,7 +249,7 @@
     },
     {
       "path": "native/assets/geometry/current/polygon-geometry.js",
-      "sha256": "6be22e651d35883ca93df2743bd6ed55d1d04dded2cbb8fde0339217d19a871f",
+      "sha256": "b1f964b5f8253e22e39868f99fdb43a9c9637f7665dd26dca5882137730e03cc",
       "resource": ":/geometry/polygon-geometry.js",
       "kind": "normalizer"
     },
