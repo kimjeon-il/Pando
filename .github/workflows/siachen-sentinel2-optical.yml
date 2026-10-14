@@ -34,7 +34,7 @@ jobs:
           from report_paths import report_path
           import json
           from pathlib import Path
-          p=report_path("reports/research/siachen")
+          p=report_path("assets/data/research/siachen")
           x=json.loads((p/'siachen_s2_optical_comparison.json').read_text())
           assert set(x['scenes']) == {'2025','2026'}
           for year,record in x['scenes'].items():
@@ -49,9 +49,9 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add reports/research/siachen/siachen_s2_*_optical.png
-          git add reports/research/siachen/siachen_s2_optical_comparison.json
-          git add reports/research/siachen/README_s2_optical.md
+          git add "$(python tools/report_paths.py assets/data/research/siachen)"/siachen_s2_*_optical.png
+          git add "$(python tools/report_paths.py assets/data/research/siachen)"/siachen_s2_optical_comparison.json
+          git add "$(python tools/report_paths.py assets/data/research/siachen)"/README_s2_optical.md
           if ! git diff --cached --quiet; then
             git commit -m "research: record Sentinel-2 georeferenced optical comparisons"
             git fetch origin work/gis
@@ -64,8 +64,8 @@ jobs:
           name: siachen-sentinel2-optical
           path: |
             reports/research/siachen/siachen_s2_*_optical.png
-            reports/research/siachen/siachen_s2_*_optical.png
+            assets/data/research/siachen/siachen_s2_*_optical.png
             reports/research/siachen/siachen_s2_optical_comparison.json
-            reports/research/siachen/siachen_s2_optical_comparison.json
+            assets/data/research/siachen/siachen_s2_optical_comparison.json
             reports/research/siachen/README_s2_optical.md
-            reports/research/siachen/README_s2_optical.md
+            assets/data/research/siachen/README_s2_optical.md
