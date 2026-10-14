@@ -148,7 +148,10 @@ export function createInteractionPackets() {
       strokes,
     };
     interactionInputs.set(domain, input); interactionLayers.set(domain, layer);
-    const allPolygons = [...interactionInputs.values()].flatMap(value => value.polygons);
+    const polygonStrokes = items => items.filter(item =>
+      item.geometry?.type === 'Polygon' || item.geometry?.type === 'MultiPolygon');
+    const allPolygons = [...interactionInputs.values()].flatMap(value =>
+      [...value.polygons, ...polygonStrokes(value.strokes)]);
     const missing = interactionSceneBuilder.missingPolygons(allPolygons, input);
     if (missing.length) {
       const signature = missing.map(item => item.cacheKey).join('|');
@@ -167,7 +170,7 @@ export function createInteractionPackets() {
             dependencies.feedback.reportOperationError(error, '편집 미리보기 면을 준비하지 못했습니다.', 'PL-MESH-PREPARE', 4200);
         });
       }
-      if (interactionSceneBuilder.missingPolygons(polygons, input).length) return [];
+      if (interactionSceneBuilder.missingPolygons([...polygons, ...polygonStrokes(strokes)], input).length) return [];
     } else if (pendingPreparation) {
       pendingPreparation = null; interactionSceneBuilder.cancelPreparation();
     }

@@ -14,7 +14,8 @@ export function createPreparedPolygonMeshStore({ engine, loadManifest = null, lo
   async function prepare(item, context) {
     context.throwIfCancelled();
     let encoded = digests.get(packets.get(item.cacheKey));
-    if (!packets.has(item.cacheKey)) {
+    // A cache-key mapping may survive eviction of its encoded payload.
+    if (!encoded) {
       const geometry = simplifyRenderGeometry(item.geometry, { lod: item.lod || 'high',
         policy: item.lodPolicy || 'exact', projection: item.projection || 'flat' });
       const digest = await polygonGeometryDigest(geometry);
