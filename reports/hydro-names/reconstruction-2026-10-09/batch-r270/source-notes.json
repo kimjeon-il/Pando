@@ -1,0 +1,1937 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r270",
+  "sources": [
+    {
+      "source_key": "r270-esri-world-imagery-70956334",
+      "title": "World Imagery: bounded selected Guatemala Pacific river and coastal plain",
+      "publisher": "Esri and World Imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "bibliography": "Esri and contributors. World Imagery, multiscale satellite/aerial-image mosaic. Selected original view read 14 October 2026.",
+      "publication_identity": "Independently maintained photographic mosaic, positively distinguished from held MAGA/CONAP/CONAGUA/ICC reports and E501/Uaxactún/JOG cartography. This new selected regional view does not recover an older held image.",
+      "acquisition": "The matching export response and returned original completed normally in the assigned service turn. Original reading followed confirmed terminal completion.",
+      "actual_material_read": "Complete original overview, separate unchanged stored-path orientation aid, original-resolution northern and southern reading windows, and clean terminal detail with separate source/render endpoint comparison. All original parts and fragment joins were inspected using the returned actual extent.",
+      "content_read": true,
+      "original_map_pixels_inspected": true,
+      "limitations": "Unverified individual mosaic dates; ordinary alluvial and coastal-estuarine correspondence only. Generalized path offsets are not repaired. No exact current bank, bar opening, wet thread or legal shoreline is asserted.",
+      "use_notice": "Only independently written facts and ordinary bibliography are public-ready. Originals, crops, overlays, exact view parameters and acquisition records remain private."
+    },
+    {
+      "source_key": "r270-conred-1006-2015",
+      "title": "Amenaza por deslizamientos e inundaciones, departamento de Suchitepéquez, municipio de Santo Domingo Suchitepéquez, código 1006",
+      "authors": [
+        "D. Juarros",
+        "A. Pacheco"
+      ],
+      "publisher": "SE-CONRED, SIG",
+      "year": 2015,
+      "edition": "Printed SIG-SE-CONRED 2015; basic cartography Instituto Geográfico Nacional 2010–2015",
+      "scale": "1:60,000",
+      "official_url": "https://conred.gob.gt/wp-content/uploads/2025/11/SUCHITEPEQUEZ%201006.pdf",
+      "source_type": "Primary municipal hazard/cartographic compilation",
+      "publication_identity": "Own Santo Domingo Suchitepéquez municipal editorial unit, code 1006, named geographic extent, scale and original imprint were inspected. The separately scoped product is distinct from held Melchor 1711 and Tiquisate 506. Its stated IGN 2010–2015 basic-cartography input is not the stopped historical military-map edition/project.",
+      "actual_material_read": "Whole single-sheet original and margins; enlarged upper and lower Nahualate-side corridor, El Arico/Bolivia setting, San José Los Tiestos, San Pedro Nahualate, Nueva Venecia, Barra Nahualate and Pacific coast.",
+      "content_read": true,
+      "original_map_pixels_inspected": true,
+      "limitations": "Flood-hazard shading obscures some hydrographic strokes and is not surface-water evidence. Municipal boundaries are expressly non-authoritative; artificial urban channels and mitigation works were excluded from hazard modeling. Hosting date is not the map edition. No distribution restriction was observed in the inspected margins.",
+      "use_notice": "Own factual correspondence and ordinary bibliography only; original map and reading derivatives remain private."
+    },
+    {
+      "source_key": "r270-segeplan-1006-2011",
+      "title": "Plan de Desarrollo Santo Domingo, Suchitepéquez",
+      "authors": [
+        "Consejo Municipal de Desarrollo del Municipio de Santo Domingo, Suchitepéquez",
+        "Secretaría de Planificación y Programación de la Presidencia, Dirección de Planificación Territorial"
+      ],
+      "publisher": "SEGEPLAN/DPT",
+      "year": 2011,
+      "publication_identifier": "Serie PDM SEGEPLAN, CM1006",
+      "official_url": "https://portal.segeplan.gob.gt/segeplan/wp-content/uploads/2022/07/PDM_1006.pdf",
+      "source_type": "Primary municipal planning account; bounded authorial prose only",
+      "publication_identity": "The original front matter identifies its own municipal participatory-planning project, authors and serial identifier. It is independently issued planning prose, distinct from the held ICC María Linda hydrological study, CONAP management plans, MAGA Fisiografía report and municipal hazard-map originals. No borrowed map or held-project content was used.",
+      "actual_material_read": "Original imprint, authorship and reproduction notice; bounded authorial hydrology on printed p51 (PDF page59).",
+      "supports": "Identifies Nahualate on the eastern side and its lower separation from Tiquisate, while distinguishing Sis and Icán as different rivers.",
+      "content_read": true,
+      "original_map_pixels_inspected": false,
+      "limitations": "Historical relative-geography prose only. It establishes a representative river identity with the independent geographic reading, not an official hydronym-register entry or exact channel-boundary survey.",
+      "use_notice": "Reproduction permitted only with unchanged contents and authorship/editing credits; no original or borrowed figure is redistributed here."
+    },
+    {
+      "source_key": "r270-esri-world-imagery-70113006",
+      "title": "World Imagery: bounded selected lower river and estuarine corridor",
+      "publisher": "Esri and World Imagery contributors",
+      "publication_date": "Composite mosaic; individual scene dates unverified; selected view read 14 October 2026",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "bibliography": "Esri and contributors. World Imagery, multiscale satellite/aerial-image mosaic. Selected original view read 14 October 2026.",
+      "publication_identity": "Independently maintained photographic mosaic, distinct from held Canadian naming families, CanMatrix distribution, CBMT3978/Toporama, DataBC base/base and stopped survey/report maps. This selected coastal British Columbia view does not recover an older held view.",
+      "acquisition": "Matching export response and returned original completed normally in the assigned service turn; the original was read only after terminal completion.",
+      "actual_material_read": "Complete original, a separate unchanged-path orientation aid, overlapping original-resolution southern/middle/northern clean windows and a terminal clean enlargement. All 21 original parts, both fragments, their join, the opening, side-reservoir junction and separate source/render/stored endings were read. Registration uses the actual returned image extent.",
+      "content_read": true,
+      "original_map_pixels_inspected": true,
+      "limitations": "Photographic geographic evidence only. No hydronym labels, verified scene date, present discharge, saltwater measurement, surveyed bank or tidal boundary. Mosaic colour seams are not treated as physical barriers.",
+      "use_notice": "Only independently written observations and ordinary bibliography are public-ready. Originals, crops, overlays, coordinates, dynamic requests, private paths and transfer records remain private."
+    },
+    {
+      "source_key": "r270-bchydro-falls-water-use-plan-2006",
+      "title": "Falls River Project Water Use Plan",
+      "authors": [
+        "BC Hydro"
+      ],
+      "publisher": "BC Hydro",
+      "publication_date": "2006-04-04",
+      "edition": "Revised for Acceptance by the Comptroller of Water Rights",
+      "official_url": "https://www.bchydro.com/content/dam/hydro/medialib/internet/documents/info/pdf/wup_fall_river.pdf",
+      "bibliography": "BC Hydro. Falls River Project Water Use Plan. Revised for Acceptance by the Comptroller of Water Rights, 4 April 2006. Printed pages 1, 3 and 4.",
+      "source_type": "Utility-authored water-use operating plan; authorial descriptive prose",
+      "publication_identity": "A separately identified utility operating-plan project, following the 2002–2003 consultative process, distinct from the held fisheries-survey, restoration, water-quality, invasive-plant and geological publications. Figures and their unestablished cartographic bases are excluded.",
+      "actual_material_read": "Normal original-PDF text return: title, edition, date and bounded Location, Existing Works and basin-description prose on printed pages 1, 3 and 4.",
+      "supports": "Identifies the Ecstall receiving river, its separate Falls River/Big Falls Creek tributary and Big Falls Reservoir.",
+      "content_read": true,
+      "original_map_pixels_inspected": false,
+      "limitations": "Descriptive prose is naming/relationship evidence, not a full-route map or current operating assessment. Neither Figure 2-1 nor Figure 2-2 was inspected or used. Association of the prose name with this selected corridor is a bounded inference from the distinct receiver/reservoir relationship and independently read imagery, rather than a direct printed label on a route map.",
+      "use_notice": "Only own bounded factual synthesis and bibliography; no copied report or illustrations."
+    },
+    {
+      "source_key": "r270-esri-world-imagery-60253201",
+      "title": "World Imagery: selected Pacific Colombia alluvial-river and coastal-estuarine corridor",
+      "authors": [
+        "Esri and imagery contributors"
+      ],
+      "publisher": "Esri",
+      "publication_date": "Mosaic scene dates unverified; selected original read 14 October 2026",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "bibliography": "Esri and contributors. World Imagery, multiscale satellite/aerial-image mosaic. Selected original view read 14 October 2026.",
+      "publication_identity": "Independent photographic mosaic, distinct from the stopped regional imagery views and held forestry, DHIME/IGAC, SGC and TPC cartography.",
+      "acquisition": "Assigned-turn export metadata and its returned original completed normally, sequentially. The original was read only after terminal completion.",
+      "actual_material_read": "Complete original overview, unchanged-path orientation aid and three overlapping native-resolution clean windows covering all 26 original parts, fragment seam, cloud-fringed lower corridor, divided meander and separately inspected source/render endings. Registration uses the returned actual image extent.",
+      "content_read": true,
+      "original_map_pixels_inspected": true,
+      "limitations": "Mixed/unverified scene dates, cloud and canopy limit exact channel-bank and flow claims. Imagery supplies geographic correspondence, not a hydronym or formal registry identification.",
+      "use_notice": "Only independent factual observations and ordinary bibliography are public-ready; originals, crops, coordinates, dynamic exports and receipts remain private."
+    },
+    {
+      "source_key": "r270-iiap-timbiqui-bubuey-flora",
+      "title": "Flora asociada a los ríos Timbiquí y Buebuey, municipio de Timbiquí, Cauca – 2013",
+      "authors": [
+        "Nelsy Sofia Bonilla Urrutia"
+      ],
+      "publisher": "Instituto de Investigaciones Ambientales del Pacífico John Von Neumann (IIAP)",
+      "publication_date": "4 November 2020, version 1.0; fieldwork 16–21 June 2013",
+      "doi": "10.15472/f3qcam",
+      "official_url": "https://ipt.biodiversidad.co/iiap/resource?r=florariostimbiquiybubueycaucaiiap2013",
+      "publication_identity": "IIAP–OZBESCAC community water-supply field project with its own vegetation collections, named participant communities and sampling methods; separate from the held San Juan/Tapaje diagnostic, REDCAM and forestry projects.",
+      "actual_material_read": "Normal HTML citation, licence, geographic/project coverage and sampling prose, before the later Saija report stop. No occurrence archive or map acquired.",
+      "supports": "Regional distinction among Timbiquí, Bubuey and their water-supply tributaries.",
+      "limitations": "A regional and tributary-site account, not a located name anchor for this selected river. No subsequent project re-query.",
+      "content_read": true,
+      "original_map_pixels_inspected": false,
+      "use_notice": "CC-BY-NC 4.0. Bounded own synthesis and citation only."
+    },
+    {
+      "source_key": "r270-iiap-saija-sierpe-fauna",
+      "title": "Análisis ecológico de la fauna en las fuentes abastecedoras de agua para comunidades indígenas de Osbezcac en la cuenca del río Saija, Timbiquí – Cauca",
+      "authors": [
+        "Jimmy Moya Robledo",
+        "Nelsy Sofia Urrutia"
+      ],
+      "publisher": "IIAP; SiB Colombia IPT",
+      "publication_date": "Citation year 2014; version 1.6, published 18 December 2018; fieldwork 10–15 June 2013",
+      "doi": "10.15472/tljx5i",
+      "official_url": "https://ipt.biodiversidad.co/iiap/resource?r=sierpe",
+      "publication_identity": "Specific IIAP–OSBEZCAC community water-supply ecology programme, with fieldwork around La Sierpe and its own fauna-survey methods.",
+      "actual_material_read": "Normal HTML bibliography, rights, geographic coverage, project identity and methods before the subsequent report stop. No map or archive read.",
+      "supports": "Saija basin/coastal context and distinct links toward Bubuey.",
+      "limitations": "Basin-level coverage does not locate a hydronym on the selected receiver. Its visibly malformed general headwater coordinate statement is excluded. No post-stop re-query or expansion of this reading.",
+      "content_read": true,
+      "original_map_pixels_inspected": false,
+      "use_notice": "CC-BY-NC 4.0. Bounded pre-stop factual observations only."
+    },
+    {
+      "source_key": "r270-emcaservicios-puerto-saija",
+      "title": "En Puerto Saija se inicia con estudios y diseños para alcantarillado",
+      "authors": [
+        "EMCASERVICIOS S.A. E.S.P."
+      ],
+      "publisher": "EMCASERVICIOS; Plan Departamental de Agua del Cauca",
+      "publication_date": "6 June; year not displayed in the read date line",
+      "official_url": "https://www.pdacauca.gov.co/en-puerto-saija-se-inicia-con-estudios-y-disenos-para-alcantarillado/",
+      "publication_identity": "Primary stakeholder report for a municipal/departmental sanitation consultancy under a reactivated tripartite agreement. Distinct purpose, participants and activity from INVÍAS contract 931/12 riverbank construction and the IIAP ecology programme.",
+      "actual_material_read": "Normal HTML heading, displayed date and complete main article paragraphs. Linked photographs were not opened.",
+      "supports": "States that Puerto Saija communicates with the Pacific through the Río Saija.",
+      "limitations": "The article does not provide a sufficiently located settlement/river anchor to transfer that name to this selected corridor. Historical project prose is not a current construction-status statement.",
+      "content_read": true,
+      "original_map_pixels_inspected": false
+    },
+    {
+      "source_key": "r270-esri-world-imagery-70957227",
+      "title": "World Imagery: bounded selected Guatemala Pacific river and coastal plain",
+      "publisher": "Esri and World Imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "bibliography": "Esri and contributors. World Imagery, multiscale satellite/aerial-image mosaic. Selected original view read 14 October 2026.",
+      "publication_identity": "Independently maintained photographic mosaic, positively distinguished from held MAGA/CONAP/CONAGUA/ICC reports and E501/Uaxactún/JOG cartography. This new selected regional view does not recover an older held image.",
+      "acquisition": "The matching export response and returned original completed normally in the assigned service turn. Original reading followed confirmed terminal completion.",
+      "actual_material_read": "Complete original overview, separate unchanged stored-path orientation aid, original-resolution northern and southern reading windows, and clean terminal detail with separate source/render endpoint comparison. All original parts and fragment joins were inspected using the returned actual extent.",
+      "content_read": true,
+      "original_map_pixels_inspected": true,
+      "limitations": "Unverified individual mosaic dates; ordinary alluvial and coastal-estuarine correspondence only. Generalized path offsets are not repaired. No exact current bank, bar opening, wet thread or legal shoreline is asserted.",
+      "use_notice": "Only independently written facts and ordinary bibliography are public-ready. Originals, crops, overlays, exact view parameters and acquisition records remain private."
+    },
+    {
+      "source_key": "r270-conred-513-2015",
+      "title": "Amenaza por deslizamientos e inundaciones, departamento de Escuintla, municipio de Nueva Concepción, código 513",
+      "authors": [
+        "D. Juarros",
+        "A. Pacheco"
+      ],
+      "publisher": "SE-CONRED, SIG",
+      "year": 2015,
+      "edition": "Printed SIG-SE-CONRED 2015; basic cartography Instituto Geográfico Nacional 2010–2015",
+      "scale": "1:50,000",
+      "official_url": "https://conred.gob.gt/wp-content/uploads/2025/11/ESCUINTLA-513.pdf",
+      "source_type": "Primary municipal hazard/cartographic compilation",
+      "publication_identity": "Own Nueva Concepción municipal editorial unit, code 513, named geographic extent, scale and original imprint were inspected. The separately scoped product is distinct from held Melchor 1711 and Tiquisate 506. Its stated IGN 2010–2015 basic-cartography input is not the stopped historical military-map edition/project.",
+      "actual_material_read": "Whole single-sheet original and margins; enlarged eastern boundary corridor, Canoguitas/La Gomera setting, Santa Odilia, Vista Alegre, Santa Marta del Mar, Barra del Río Coyolate and Pacific shore.",
+      "content_read": true,
+      "original_map_pixels_inspected": true,
+      "limitations": "Flood-hazard shading obscures some hydrographic strokes and is not surface-water evidence. Municipal boundaries are expressly non-authoritative; artificial urban channels and mitigation works were excluded from hazard modeling. Hosting date is not the map edition. No distribution restriction was observed in the inspected margins.",
+      "use_notice": "Own factual correspondence and ordinary bibliography only; original map and reading derivatives remain private."
+    },
+    {
+      "source_key": "r270-segeplan-513-2010",
+      "title": "Plan de Desarrollo Nueva Concepción, Escuintla",
+      "authors": [
+        "Consejo Municipal de Desarrollo del Municipio de Nueva Concepción, Escuintla",
+        "Secretaría de Planificación y Programación de la Presidencia, Dirección de Planificación Territorial"
+      ],
+      "publisher": "SEGEPLAN/DPT",
+      "year": 2010,
+      "publication_identifier": "Serie PDM SEGEPLAN, CM513",
+      "official_url": "https://portal.segeplan.gob.gt/segeplan/wp-content/uploads/2022/07/PDM_513.pdf",
+      "source_type": "Primary municipal planning account; bounded authorial prose only",
+      "publication_identity": "The original front matter identifies its own municipal participatory-planning project, authors and serial identifier. It is independently issued planning prose, distinct from the held ICC María Linda hydrological study, CONAP management plans, MAGA Fisiografía report and municipal hazard-map originals. No borrowed map or held-project content was used.",
+      "actual_material_read": "Original imprint, authorship, reproduction notice and introduction; bounded geographic prose on printed pp10–11 (PDF pages18–19) and hydrology on printed p38 (PDF page46).",
+      "supports": "Identifies Coyolate as the eastern river dividing Nueva Concepción from La Gomera and distinguishes Madre Vieja on the west. Describes separate Coyolate and Madre Vieja microregions and the Pacific coastal setting.",
+      "content_read": true,
+      "original_map_pixels_inspected": false,
+      "limitations": "Historical relative-geography prose only. It establishes a representative river identity with the independent geographic reading, not an official hydronym-register entry or exact channel-boundary survey.",
+      "use_notice": "Reproduction permitted only with unchanged contents and authorship/editing credits; no original or borrowed figure is redistributed here."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70956334",
+      "source_keys": [
+        "r270-esri-world-imagery-70956334",
+        "r270-conred-1006-2015",
+        "r270-segeplan-1006-2011"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10634
+          ],
+          "component_scope": "selected opening and braided alluvial reach",
+          "finding": "The northern selected opening and southwest turn occupy the broad sedimentary river corridor among cultivated fields. The river, side channels and bars are visible in the clean original. The selected line remains in the same alluvial floor despite offsets from the contemporary main channel.",
+          "sources": [
+            "r270-esri-world-imagery-70956334"
+          ],
+          "correspondence": "supported_at_ordinary_connected_alluvial_coastal_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            0
+          ],
+          "original_part_span_zero_based_inclusive": [
+            0,
+            0
+          ],
+          "original_part_span_one_based_inclusive": [
+            1,
+            1
+          ],
+          "original_combined_part_span_zero_based_inclusive": [
+            0,
+            0
+          ],
+          "original_combined_part_span_one_based_inclusive": [
+            1,
+            1
+          ]
+        },
+        {
+          "fragments": [
+            10634
+          ],
+          "component_scope": "southward plain and fragment join",
+          "finding": "The three successive original parts continue south along one connected river corridor, including its local bends and narrower cultivated-floodplain reaches. The shared endpoint with the following lower-stage fragment lies in this same corridor; no drainage divide or unverified transfer is crossed.",
+          "sources": [
+            "r270-esri-world-imagery-70956334"
+          ],
+          "correspondence": "supported_at_ordinary_connected_alluvial_coastal_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            1,
+            2,
+            3
+          ],
+          "original_part_span_zero_based_inclusive": [
+            1,
+            3
+          ],
+          "original_part_span_one_based_inclusive": [
+            2,
+            4
+          ],
+          "original_combined_part_span_zero_based_inclusive": [
+            1,
+            3
+          ],
+          "original_combined_part_span_one_based_inclusive": [
+            2,
+            4
+          ]
+        },
+        {
+          "fragments": [
+            10635
+          ],
+          "component_scope": "southwest lower river",
+          "finding": "The lower-stage opening turns southwest through the continuous river and sedimentary floodplain. Its straightened stored sections cut across local bends and fields within the same alluvial corridor; they do not imply a different tributary or an artificial connector.",
+          "sources": [
+            "r270-esri-world-imagery-70956334"
+          ],
+          "correspondence": "supported_at_ordinary_connected_alluvial_coastal_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "original_part_indices": [
+            0
+          ],
+          "original_part_span_zero_based_inclusive": [
+            0,
+            0
+          ],
+          "original_part_span_one_based_inclusive": [
+            1,
+            1
+          ],
+          "original_combined_part_span_zero_based_inclusive": [
+            4,
+            4
+          ],
+          "original_combined_part_span_one_based_inclusive": [
+            5,
+            5
+          ]
+        },
+        {
+          "fragments": [
+            10635
+          ],
+          "component_scope": "lower meanders and settlement approach",
+          "finding": "Both original parts continue down the lower river toward the coastal settlements. The meandering watercourse, vegetated banks and adjacent abandoned bends remain continuously visible. Neighboring small waterways and mapped lagunetas are not renamed as selected river components.",
+          "sources": [
+            "r270-esri-world-imagery-70956334"
+          ],
+          "correspondence": "supported_at_ordinary_connected_alluvial_coastal_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "original_part_indices": [
+            1,
+            2
+          ],
+          "original_part_span_zero_based_inclusive": [
+            1,
+            2
+          ],
+          "original_part_span_one_based_inclusive": [
+            2,
+            3
+          ],
+          "original_combined_part_span_zero_based_inclusive": [
+            5,
+            6
+          ],
+          "original_combined_part_span_one_based_inclusive": [
+            6,
+            7
+          ]
+        },
+        {
+          "fragments": [
+            10635
+          ],
+          "component_scope": "coastal estuary and distinct endings",
+          "finding": "The final two parts enter the broad river-mouth/estuarine setting behind the Pacific beach. The render ending lies farther inland and northeast in adjoining estuarine floodplain; the separate source ending is nearer the outer channel and coastal opening. The quantized final stored position corresponds to the render ending. Both are covered at ordinary coastal-corridor scale without asserting exact active bank or tide-stage shoreline.",
+          "sources": [
+            "r270-esri-world-imagery-70956334"
+          ],
+          "correspondence": "supported_at_ordinary_connected_alluvial_coastal_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "original_part_indices": [
+            3,
+            4
+          ],
+          "original_part_span_zero_based_inclusive": [
+            3,
+            4
+          ],
+          "original_part_span_one_based_inclusive": [
+            4,
+            5
+          ],
+          "original_combined_part_span_zero_based_inclusive": [
+            7,
+            8
+          ],
+          "original_combined_part_span_one_based_inclusive": [
+            8,
+            9
+          ]
+        }
+      ],
+      "part_basis": "Original part indices are zero-based within each original fragment. All local and combined-order spans are inclusive; explicit one-based equivalents are also supplied. Combined order preserves the original fragment order. Every original FID, logical ID, role, stage, part and stored position is retained. Source endpoint, render endpoint and quantized final stored position are separate. No joining, reversal, simplification, repair, source-geometry reconstruction or natural-headwater inference is made.",
+      "terminal_observations": {
+        "stored_terminal_class": "sea",
+        "stored_class_preserved": true,
+        "source_endpoint": "Separately inspected nearer the outer river-channel/mouth setting immediately behind the Pacific shore.",
+        "render_endpoint": "Separately inspected farther inland and northeast on the adjoining estuarine floodplain, not collapsed onto the source ending.",
+        "stored_final_coordinate": "Preserved separately; the quantized final stored position corresponds to the render ending at the reading scale.",
+        "geographic_interpretation": "All three endings share the continuous Nahualate river-mouth and Pacific coastal-estuarine setting.",
+        "receiving_water_name": "Océano Pacífico",
+        "receiving_water_feature_type": "ocean",
+        "limit": "No precise present mouth, open sandbar, surveyed shoreline, bank or tide-stage claim."
+      },
+      "bounded_name_observations": [
+        {
+          "name": "Río Nahualate",
+          "feature_type": "river",
+          "role": "Representative named lower receiving-river corridor.",
+          "is_representative_river_candidate": true,
+          "source_keys": [
+            "r270-conred-1006-2015",
+            "r270-segeplan-1006-2011"
+          ]
+        },
+        {
+          "name": "Barra Nahualate",
+          "feature_type": "coastal locality/mouth setting",
+          "role": "Mapped coastal orientation, not a separate river synonym.",
+          "is_representative_river_candidate": false,
+          "source_keys": [
+            "r270-conred-1006-2015"
+          ]
+        },
+        {
+          "name": "Océano Pacífico",
+          "feature_type": "ocean",
+          "role": "Named marine receiving setting.",
+          "is_representative_river_candidate": false,
+          "source_keys": [
+            "r270-conred-1006-2015",
+            "r270-segeplan-1006-2011"
+          ]
+        }
+      ],
+      "scope_gap": "Exact hydronym limits, modern channel position and the natural headwaters are not established. These are scope limits; no necessary selected geographic link remains unresolved.",
+      "uncertainties": [
+        "The selected opening is an interior lowland river position, not a demonstrated natural source.",
+        "The generalized stored line sometimes crosses adjacent fields within the same ordinary alluvial corridor; no path was repaired to follow a modern water thread.",
+        "Historical cartography and mixed-date imagery do not establish current flow, exact mouth/bar opening, bank lines, municipal legal boundaries or official naming status.",
+        "Accepted/scalar/Korean names remain null; formal registry verification and product application remain false."
+      ],
+      "completion_scope": "All 9 original parts and 47 stored positions, every original fragment and stage, the chosen interior opening, downstream joins, lower river, coastal setting and separate source/render/stored endings have ordinary geographic correspondence. Río Nahualate is supported as the bounded representative system name."
+    },
+    {
+      "aw_id": "hydro-system:70113006",
+      "source_keys": [
+        "r270-esri-world-imagery-70113006",
+        "r270-bchydro-falls-water-use-plan-2006"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9169
+          ],
+          "component_scope": "southeastern selected opening",
+          "finding": "The opening lies within the broad river and adjoining wet alluvial floor. Its northwestward course and successive short parts remain in that same connected corridor; the starting position is an interior selection, not a demonstrated natural headwater. Vegetated margins and small side channels do not require the stored generalized line to coincide with one present water thread.",
+          "sources": [
+            "r270-esri-world-imagery-70113006"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            0,
+            1,
+            2
+          ],
+          "original_part_span_zero_based_inclusive": [
+            0,
+            2
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            0,
+            2
+          ],
+          "original_part_span_one_based_inclusive": [
+            1,
+            3
+          ],
+          "aggregate_part_span_one_based_inclusive": [
+            1,
+            3
+          ]
+        },
+        {
+          "fragments": [
+            9169
+          ],
+          "component_scope": "upper selection large bend",
+          "finding": "Both original parts follow the broad northward and then westward river bend, including the elongated vegetated island and adjacent side channel. The river’s ordinary alluvial corridor is continuous around the bend; no cross-divide transfer is needed.",
+          "sources": [
+            "r270-esri-world-imagery-70113006"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            3,
+            4
+          ],
+          "original_part_span_zero_based_inclusive": [
+            3,
+            4
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            3,
+            4
+          ],
+          "original_part_span_one_based_inclusive": [
+            4,
+            5
+          ],
+          "aggregate_part_span_one_based_inclusive": [
+            4,
+            5
+          ]
+        },
+        {
+          "fragments": [
+            9169
+          ],
+          "component_scope": "northward turn and fragment join",
+          "finding": "The two short parts turn north into the wider receiving reach. Their end joins the next original fragment in the same visible river corridor. The separate eastern reservoir is outside the selected mainstem, rather than an omitted selected lake segment.",
+          "sources": [
+            "r270-esri-world-imagery-70113006"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            5,
+            6
+          ],
+          "original_part_span_zero_based_inclusive": [
+            5,
+            6
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            5,
+            6
+          ],
+          "original_part_span_one_based_inclusive": [
+            6,
+            7
+          ],
+          "aggregate_part_span_one_based_inclusive": [
+            6,
+            7
+          ]
+        },
+        {
+          "fragments": [
+            9170
+          ],
+          "component_scope": "reservoir side junction and westward bend",
+          "finding": "The mainstem continues north past the separate eastern reservoir outlet and then bends west around bars and a vegetated projection. The named relation in BC Hydro’s own prose identifies Ecstall River as the receiver and Falls River/Big Falls Creek as the separate eastern tributary.",
+          "sources": [
+            "r270-esri-world-imagery-70113006",
+            "r270-bchydro-falls-water-use-plan-2006"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "original_part_indices": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "original_part_span_zero_based_inclusive": [
+            0,
+            3
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            7,
+            10
+          ],
+          "original_part_span_one_based_inclusive": [
+            1,
+            4
+          ],
+          "aggregate_part_span_one_based_inclusive": [
+            8,
+            11
+          ]
+        },
+        {
+          "fragments": [
+            9170
+          ],
+          "component_scope": "northwestern narrowing reach",
+          "finding": "The three successive parts follow the broad but narrowing northwestward river between steep wooded slopes. Their joins, western-bank tributary setting and downstream turn are visible in the overlapping middle and northern clean windows.",
+          "sources": [
+            "r270-esri-world-imagery-70113006"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "original_part_indices": [
+            4,
+            5,
+            6
+          ],
+          "original_part_span_zero_based_inclusive": [
+            4,
+            6
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            11,
+            13
+          ],
+          "original_part_span_one_based_inclusive": [
+            5,
+            7
+          ],
+          "aggregate_part_span_one_based_inclusive": [
+            12,
+            14
+          ]
+        },
+        {
+          "fragments": [
+            9170
+          ],
+          "component_scope": "lower barred reach",
+          "finding": "The route proceeds through a bar-bearing widening and the eastern tributary-mouth setting into the broad lower reach. Straight stored segments approximate bends and margins; the continuously visible river provides the ordinary connection without claiming a surveyed bank or current tide line.",
+          "sources": [
+            "r270-esri-world-imagery-70113006"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "original_part_indices": [
+            7,
+            8,
+            9
+          ],
+          "original_part_span_zero_based_inclusive": [
+            7,
+            9
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            14,
+            16
+          ],
+          "original_part_span_one_based_inclusive": [
+            8,
+            10
+          ],
+          "aggregate_part_span_one_based_inclusive": [
+            15,
+            17
+          ]
+        },
+        {
+          "fragments": [
+            9170
+          ],
+          "component_scope": "broad estuarine ending",
+          "finding": "All four final original parts remain within the same broad lower river corridor. Source endpoint, render endpoint and quantized final stored position were each located separately in the terminal window. The river continues beyond the selected ending; no new river-to-river junction or open-ocean mouth is asserted at those points.",
+          "sources": [
+            "r270-esri-world-imagery-70113006"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "original_part_indices": [
+            10,
+            11,
+            12,
+            13
+          ],
+          "original_part_span_zero_based_inclusive": [
+            10,
+            13
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            17,
+            20
+          ],
+          "original_part_span_one_based_inclusive": [
+            11,
+            14
+          ],
+          "aggregate_part_span_one_based_inclusive": [
+            18,
+            21
+          ]
+        }
+      ],
+      "part_basis": "Original fragment indices and original part indices within each fragment are zero-based; every span is inclusive. FID9169 stage3 has local zero-based parts0–6 (one-based1–7), aggregate0–6 (1–7). FID9170 stage2 has local parts0–13 (1–14), aggregate7–20 (8–21). Both roles are mainstem and logical FID2953 is preserved. All21 parts and61 stored positions remain in original fragment/part order. No joining, reversal, simplification, repair, source-geometry reconstruction or natural-headwater inference. Source endpoint, render endpoint and quantized stored ending are separate.",
+      "terminal_observations": {
+        "stored_terminal_class": "sea",
+        "stored_class_preserved": true,
+        "terminal_fid": 9170,
+        "source_endpoint": "Separately located within the broad lower receiving-water reach, slightly beyond the render ending.",
+        "render_endpoint": "Separately located within that same continuous broad river/estuarine reach.",
+        "stored_final_coordinate": "Separately retained quantized final position, corresponding closely to the render endpoint without replacing its higher-precision definition.",
+        "geographic_interpretation": "The final selected corridor is continuously visible and continues beyond the ending. The stored sea class is preserved as metadata; it does not establish open ocean, salinity, an exact coastline or a river mouth at that point.",
+        "receiving_water_name": "Ecstall River",
+        "receiving_water_feature_type": "lower river/estuarine reach",
+        "limit": "No downstream junction is asserted at the selection boundary and no unselected downstream extension is reconstructed."
+      },
+      "bounded_name_observations": [
+        {
+          "name": "Ecstall River",
+          "feature_type": "river",
+          "role": "Representative name for the selected receiving-river corridor.",
+          "is_representative_river_candidate": true,
+          "source_keys": [
+            "r270-bchydro-falls-water-use-plan-2006"
+          ]
+        },
+        {
+          "name": "Falls River / Big Falls Creek",
+          "feature_type": "river/creek",
+          "role": "Separate eastern tributary in the utility account; not transferred to the selected mainstem.",
+          "is_representative_river_candidate": false,
+          "source_keys": [
+            "r270-bchydro-falls-water-use-plan-2006"
+          ]
+        },
+        {
+          "name": "Big Falls Reservoir",
+          "feature_type": "reservoir",
+          "role": "Separate eastern reservoir context; not a selected river-name synonym.",
+          "is_representative_river_candidate": false,
+          "source_keys": [
+            "r270-bchydro-falls-water-use-plan-2006"
+          ]
+        }
+      ],
+      "scope_gap": "The selection starts and finishes within the observed river/estuarine corridor. Neither endpoint is promoted to a natural source, surveyed river mouth or precise tidal boundary.",
+      "uncertainties": [
+        "Individual mosaic scene dates, current water level, present flow and exact bank position are unverified.",
+        "Generalized parts may lie along vegetated margins while the ordinary connected river corridor is clear.",
+        "The source/render/stored endings are close but remain distinct; the sea-class metadata is not a measured estuarine limit.",
+        "Formal registry, legal name extent and natural headwater position are unverified. Accepted/scalar/Korean names remain null and product application remains false.",
+        "The representative name is inferred by combining the utility’s named receiving-river relationship with photographic geography; the utility map figures are not claimed as read."
+      ],
+      "completion_scope": "All21 original parts and61 stored positions in the stage3 FID9169 and stage2 FID9170 mainstem fragments, their joining point and separate source/render/stored endings have ordinary connected river/estuarine-corridor coverage. The independently identified utility account supplies the bounded Ecstall River name."
+    },
+    {
+      "aw_id": "hydro-system:60253201",
+      "source_keys": [
+        "r270-esri-world-imagery-60253201",
+        "r270-iiap-timbiqui-bubuey-flora",
+        "r270-iiap-saija-sierpe-fauna",
+        "r270-emcaservicios-puerto-saija"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            11593
+          ],
+          "component_scope": "eastern selected river",
+          "finding": "The eastern opening and next three original parts occupy the same forested alluvial river corridor. The visible river bends around low vegetated ground while the generalized stored chords cut its bends. The adjoining valley floor provides continuous corridor correspondence; the opening is not treated as a surveyed natural headwater.",
+          "sources": [
+            "r270-esri-world-imagery-60253201"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "original_part_span_zero_based_inclusive": [
+            0,
+            3
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            0,
+            3
+          ],
+          "original_part_span_one_based_inclusive": [
+            1,
+            4
+          ]
+        },
+        {
+          "fragments": [
+            11593
+          ],
+          "component_scope": "northward bend and fragment seam",
+          "finding": "The next two parts follow the northward turn and then the northwest-running valley to the original fragment seam. A secondary channel surrounds a small low island near the turn. Both the seam and the adjacent valley remain in the same continuous alluvial setting; no new tributary record is created.",
+          "sources": [
+            "r270-esri-world-imagery-60253201"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            4,
+            5
+          ],
+          "original_part_span_zero_based_inclusive": [
+            4,
+            5
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            4,
+            5
+          ],
+          "original_part_span_one_based_inclusive": [
+            5,
+            6
+          ]
+        },
+        {
+          "fragments": [
+            11594
+          ],
+          "component_scope": "western meandering middle reach",
+          "finding": "The first five stage 2 parts turn through the western meandering river and adjoining floodplain. The long diagonal chords shorten pronounced modern bends, but the unmarked image shows the ordinary river corridor joining the same successive bends. No intervening ridge or separate receiver is identified.",
+          "sources": [
+            "r270-esri-world-imagery-60253201"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "original_part_indices": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "original_part_span_zero_based_inclusive": [
+            0,
+            4
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            6,
+            10
+          ],
+          "original_part_span_one_based_inclusive": [
+            1,
+            5
+          ]
+        },
+        {
+          "fragments": [
+            11594
+          ],
+          "component_scope": "westward alluvial reach",
+          "finding": "These four original parts continue west across the broad, low alluvial floor, first shortening a pair of bends and then following a straighter reach. The river is visible on both sides of the nearby cloud margin, and the selected corridor stays within the connected floodplain.",
+          "sources": [
+            "r270-esri-world-imagery-60253201"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "original_part_indices": [
+            5,
+            6,
+            7,
+            8
+          ],
+          "original_part_span_zero_based_inclusive": [
+            5,
+            8
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            11,
+            14
+          ],
+          "original_part_span_one_based_inclusive": [
+            6,
+            9
+          ]
+        },
+        {
+          "fragments": [
+            11594
+          ],
+          "component_scope": "cloud fringed northwestern lowland",
+          "finding": "These five parts turn northwest and north through the lower alluvial and wetland corridor. Successive exposed river reaches, low intervening ground and the same valley alignment connect across local cloud patches. Clouds prevent exact present-channel and bank tracing, but do not conceal a necessary basin crossing or an unresolved receiver transfer at ordinary corridor scale.",
+          "sources": [
+            "r270-esri-world-imagery-60253201"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "original_part_indices": [
+            9,
+            10,
+            11,
+            12,
+            13
+          ],
+          "original_part_span_zero_based_inclusive": [
+            9,
+            13
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            15,
+            19
+          ],
+          "original_part_span_one_based_inclusive": [
+            10,
+            14
+          ]
+        },
+        {
+          "fragments": [
+            11594
+          ],
+          "component_scope": "divided lower meander",
+          "finding": "The next four parts enter a wider river beside settled/cleared land, cross the generalized lower meander and continue west to the widening tidal-looking reach. Multiple visible channels enclose vegetated islands within this same lower corridor. The straight stored chord crosses low island ground, so it is not asserted to be the exact modern wet channel or assigned an independent branch name.",
+          "sources": [
+            "r270-esri-world-imagery-60253201"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "original_part_indices": [
+            14,
+            15,
+            16,
+            17
+          ],
+          "original_part_span_zero_based_inclusive": [
+            14,
+            17
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            20,
+            23
+          ],
+          "original_part_span_one_based_inclusive": [
+            15,
+            18
+          ]
+        },
+        {
+          "fragments": [
+            11594
+          ],
+          "component_scope": "broad estuarine terminal reach",
+          "finding": "The last two original parts follow the widening southwestern lower reach into the broad coastal-estuarine channel. The source endpoint and render endpoint were inspected separately and lie in the same connected receiving-water setting. The stored endpoint remains a third separately recorded definition; no precise tidal limit, open-ocean boundary or surveyed river mouth is inferred.",
+          "sources": [
+            "r270-esri-world-imagery-60253201"
+          ],
+          "correspondence": "supported_at_ordinary_connected_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "original_part_indices": [
+            18,
+            19
+          ],
+          "original_part_span_zero_based_inclusive": [
+            18,
+            19
+          ],
+          "aggregate_part_span_zero_based_inclusive": [
+            24,
+            25
+          ],
+          "original_part_span_one_based_inclusive": [
+            19,
+            20
+          ]
+        }
+      ],
+      "part_basis": "Original local indices are zero-based and every span is inclusive. FID 11593 stage 3 has local parts 0–5 (one-based 1–6), aggregate 0–5. FID 11594 stage 2 has local parts 0–19 (one-based 1–20), aggregate 6–25. Both are mainstem fragments of logical FID 3391. All 26 original parts and 66 stored positions, FIDs, roles, stages, fragment order and seam remain preserved. No joining, reversal, simplification, repair or source-geometry reconstruction. Source endpoint, render endpoint and quantized stored final position remain separate.",
+      "terminal_observations": {
+        "stored_terminal_class": "sea",
+        "stored_class_preserved": true,
+        "source_endpoint": "Independently located in the broad lower coastal-estuarine receiving channel.",
+        "render_endpoint": "Located separately nearby in that same connected channel; it is not collapsed into the source endpoint.",
+        "stored_final_coordinate": "Retained as its own quantized ending definition and compared separately with the render endpoint.",
+        "geographic_interpretation": "The last two selected parts enter the same broad receiving reach through a continuous lower-river/wetland corridor. Generalization shortens bends and clips low bank or island margins; no literal water crossing of land is asserted.",
+        "receiving_water_name": null,
+        "receiving_water_feature_type": "Coastal-estuarine channel",
+        "limit": "The sea terminal class is retained without declaring this point a surveyed river mouth, exact tidal boundary or open-ocean shoreline."
+      },
+      "bounded_name_observations": [
+        {
+          "name": "Río Saija",
+          "feature_type": "river",
+          "role": "Regional basin/coastal-river context; the municipal-service article links Puerto Saija and the Pacific by this river. No sufficiently located correspondence anchor is established for the selected receiver.",
+          "is_representative_river_candidate": false,
+          "source_keys": [
+            "r270-iiap-saija-sierpe-fauna",
+            "r270-emcaservicios-puerto-saija"
+          ]
+        },
+        {
+          "name": "Río Bubuey",
+          "feature_type": "river",
+          "role": "Distinct adjacent regional river in the field-project prose; not assigned to the selected path.",
+          "is_representative_river_candidate": false,
+          "source_keys": [
+            "r270-iiap-timbiqui-bubuey-flora",
+            "r270-iiap-saija-sierpe-fauna"
+          ]
+        }
+      ],
+      "scope_gap": "Direct name-to-selected-receiver correspondence is unestablished in the actually read prose. Generalized chords, cloud patches and shoreline detail do not leave a necessary ordinary geographic link unresolved.",
+      "scope_hold_reason": "All ordinary geographic links and the coastal-estuarine receiving setting are supported. The bounded pass has no sufficiently located direct hydronym anchor for this selected receiver. This is a name-evidence limit, not a missing necessary geographic connector.",
+      "uncertainties": [
+        "Cloud patches and vegetation limit exact present banks and wet-thread tracing; ordinary connected alluvial and wetland geography is sufficient for the stated result.",
+        "The original selection starts at an interior valley point. It does not establish a natural headwater.",
+        "Lower meander chords are generalized and may cross low island or bank ground; no new surface-flow route is inferred.",
+        "The source, render and stored endings remain distinct; no precise coast, tidal limit or mouth survey is claimed.",
+        "Regional named-river prose lacks a sufficiently located selected-receiver anchor. Accepted, scalar and Korean names remain null; no formal registry or product application is claimed."
+      ],
+      "completion_scope": "All 26 parts and 66 positions of the two original mainstem fragments, every seam and ordinary alluvial/wetland connection, and the separately inspected source/render/stored endings have geographic correspondence. The bounded research pass is complete with a null representative name."
+    },
+    {
+      "aw_id": "hydro-system:70957227",
+      "source_keys": [
+        "r270-esri-world-imagery-70957227",
+        "r270-conred-513-2015",
+        "r270-segeplan-513-2010"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10636
+          ],
+          "component_scope": "selected opening and upper plain",
+          "finding": "The first five original parts follow the same broad southwest-trending river corridor from the selected interior opening. Bars, vegetated river margins and adjacent farmland distinguish it from smaller field drains. Straightened offsets remain on the alluvial floor and do not require a missing cross-divide connection.",
+          "sources": [
+            "r270-esri-world-imagery-70957227"
+          ],
+          "correspondence": "supported_at_ordinary_connected_alluvial_coastal_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "original_part_span_zero_based_inclusive": [
+            0,
+            4
+          ],
+          "original_part_span_one_based_inclusive": [
+            1,
+            5
+          ],
+          "original_combined_part_span_zero_based_inclusive": [
+            0,
+            4
+          ],
+          "original_combined_part_span_one_based_inclusive": [
+            1,
+            5
+          ]
+        },
+        {
+          "fragments": [
+            10636
+          ],
+          "component_scope": "middle southwest bends",
+          "finding": "This longer original part continues southwest with the river through cultivated lowlands, including its short angular stored turn near the downstream end. The surrounding meander/floodplain corridor stays connected in the clean original; no lake or differently named incoming branch is required.",
+          "sources": [
+            "r270-esri-world-imagery-70957227"
+          ],
+          "correspondence": "supported_at_ordinary_connected_alluvial_coastal_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            5
+          ],
+          "original_part_span_zero_based_inclusive": [
+            5,
+            5
+          ],
+          "original_part_span_one_based_inclusive": [
+            6,
+            6
+          ],
+          "original_combined_part_span_zero_based_inclusive": [
+            5,
+            5
+          ],
+          "original_combined_part_span_one_based_inclusive": [
+            6,
+            6
+          ]
+        },
+        {
+          "fragments": [
+            10636
+          ],
+          "component_scope": "southward meander corridor",
+          "finding": "Both original parts follow the southward lower river and adjacent floodplain, including a westward bend and small joining lowland drainage. The stored path and actual meanders share one continuous valley-floor setting.",
+          "sources": [
+            "r270-esri-world-imagery-70957227"
+          ],
+          "correspondence": "supported_at_ordinary_connected_alluvial_coastal_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            6,
+            7
+          ],
+          "original_part_span_zero_based_inclusive": [
+            6,
+            7
+          ],
+          "original_part_span_one_based_inclusive": [
+            7,
+            8
+          ],
+          "original_combined_part_span_zero_based_inclusive": [
+            6,
+            7
+          ],
+          "original_combined_part_span_one_based_inclusive": [
+            7,
+            8
+          ]
+        },
+        {
+          "fragments": [
+            10636
+          ],
+          "component_scope": "lower plain approach",
+          "finding": "These two original parts remain along the meandering lower river between cultivated settlements to the west and broad fields to the east. Old bends and adjacent drainage do not establish a change of representative river identity.",
+          "sources": [
+            "r270-esri-world-imagery-70957227"
+          ],
+          "correspondence": "supported_at_ordinary_connected_alluvial_coastal_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            8,
+            9
+          ],
+          "original_part_span_zero_based_inclusive": [
+            8,
+            9
+          ],
+          "original_part_span_one_based_inclusive": [
+            9,
+            10
+          ],
+          "original_combined_part_span_zero_based_inclusive": [
+            8,
+            9
+          ],
+          "original_combined_part_span_one_based_inclusive": [
+            9,
+            10
+          ]
+        },
+        {
+          "fragments": [
+            10636
+          ],
+          "component_scope": "terminal river estuary and distinct endings",
+          "finding": "The final original part reaches the river’s coastal-estuarine setting. The visible lower channel bends along the beachward margin; source and render endings were separately located on the nearby western coastal edge, with the source ending slightly farther seaward. The final stored position is retained independently and corresponds to the render ending. Current wet-thread or exact mouth coincidence is not required or claimed.",
+          "sources": [
+            "r270-esri-world-imagery-70957227"
+          ],
+          "correspondence": "supported_at_ordinary_connected_alluvial_coastal_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            10
+          ],
+          "original_part_span_zero_based_inclusive": [
+            10,
+            10
+          ],
+          "original_part_span_one_based_inclusive": [
+            11,
+            11
+          ],
+          "original_combined_part_span_zero_based_inclusive": [
+            10,
+            10
+          ],
+          "original_combined_part_span_one_based_inclusive": [
+            11,
+            11
+          ]
+        }
+      ],
+      "part_basis": "Original part indices are zero-based within each original fragment. All local and combined-order spans are inclusive; explicit one-based equivalents are also supplied. Combined order preserves the original fragment order. Every original FID, logical ID, role, stage, part and stored position is retained. Source endpoint, render endpoint and quantized final stored position are separate. No joining, reversal, simplification, repair, source-geometry reconstruction or natural-headwater inference is made.",
+      "terminal_observations": {
+        "stored_terminal_class": "sea",
+        "stored_class_preserved": true,
+        "source_endpoint": "Separately inspected on the western side of the river-mouth/coastal setting, slightly farther seaward than the render ending.",
+        "render_endpoint": "Separately inspected just inland/northeast of the source ending on the same coastal-estuarine margin.",
+        "stored_final_coordinate": "Preserved separately; the quantized final stored position corresponds to the render ending at the reading scale.",
+        "geographic_interpretation": "The lower river and all three terminal positions belong to the same Pacific coastal-estuarine corridor. The visible watercourse bends along the beachward margin rather than requiring the selected terminal to coincide with its exact current wet thread.",
+        "receiving_water_name": "Océano Pacífico",
+        "receiving_water_feature_type": "ocean",
+        "limit": "No exact present mouth, open sandbar, legal coastline, active bank or present discharge is asserted."
+      },
+      "bounded_name_observations": [
+        {
+          "name": "Río Coyolate",
+          "feature_type": "river",
+          "role": "Representative named eastern receiving-river corridor.",
+          "is_representative_river_candidate": true,
+          "source_keys": [
+            "r270-segeplan-513-2010",
+            "r270-conred-513-2015"
+          ]
+        },
+        {
+          "name": "Barra del Río Coyolate",
+          "feature_type": "coastal locality/mouth setting",
+          "role": "Mapped terminal orientation, not an additional river name.",
+          "is_representative_river_candidate": false,
+          "source_keys": [
+            "r270-conred-513-2015"
+          ]
+        },
+        {
+          "name": "Río Madre Vieja",
+          "feature_type": "river",
+          "role": "Distinct western neighboring river explicitly separated in the planning prose; not selected and not a synonym.",
+          "is_representative_river_candidate": false,
+          "source_keys": [
+            "r270-segeplan-513-2010"
+          ]
+        },
+        {
+          "name": "Océano Pacífico",
+          "feature_type": "ocean",
+          "role": "Named marine receiving setting.",
+          "is_representative_river_candidate": false,
+          "source_keys": [
+            "r270-conred-513-2015",
+            "r270-segeplan-513-2010"
+          ]
+        }
+      ],
+      "scope_gap": "Exact hydronym limits, modern channel position and the natural headwaters are not established. These are scope limits; no necessary selected geographic link remains unresolved.",
+      "uncertainties": [
+        "The selected opening is an interior lowland river position, not a demonstrated natural source.",
+        "The generalized stored line sometimes crosses adjacent fields within the same ordinary alluvial corridor; no path was repaired to follow a modern water thread.",
+        "Historical cartography and mixed-date imagery do not establish current flow, exact mouth/bar opening, bank lines, municipal legal boundaries or official naming status.",
+        "Accepted/scalar/Korean names remain null; formal registry verification and product application remain false."
+      ],
+      "completion_scope": "All 11 original parts and 49 stored positions, every original fragment and stage, the chosen interior opening, downstream joins, lower river, coastal setting and separate source/render/stored endings have ordinary geographic correspondence. Río Coyolate is supported as the bounded representative system name."
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "CONRED municipal susceptibility/hazard map for Tiquisate, Escuintla, code 506; linked edition unverified",
+      "official_url": "https://conred.gob.gt/wp-content/uploads/2026/07/ESCUINTLA-506.pdf",
+      "observed_outcome": "The sole normal catalogue-linked web-reader opening returned Internal Error / Cache miss. No original body, imprint or map pixels were returned or read.",
+      "outcome_layer": "Web-reader availability failure; origin HTTP status unknown.",
+      "origin_http_status": null,
+      "restriction_scope": "Whole exact Tiquisate municipal-map publication and project-equivalent original, older-path/edition recovery, catalogue, reader/cache, mirror, alternate-format, figure and unread-output recovery remain paused. No retry or alternate retrieval followed.",
+      "earlier_lawful_observations": "The national CONRED catalogue identified the Tiquisate link only. No substantive geographic excerpt from the unavailable original was used.",
+      "newly_observed_access_failure": true,
+      "explicit_access_denial": false,
+      "acquisition_stop": true,
+      "material_gap_for_current_target": false,
+      "material_effect": "Optional corroboration unavailable. Independent imagery and separately scoped municipal maps and planning prose complete the selected corridor and representative identity.",
+      "aw_id": "hydro-system:70956334"
+    },
+    {
+      "publication": "MAGA Fisiografía technical publication",
+      "official_url": "https://www.maga.gob.gt/download/fisiografia.pdf",
+      "observed_outcome": "Inherited web-reader HTTP403; no current request.",
+      "restriction_scope": "Whole exact technical publication and equivalent recovery routes remain stopped. No MAGA-wide ban.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:70956334",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "CONAP Plan Maestro 2009–2013 PN Mirador–Río Azul y BP Naachtún–Dos Lagunas",
+      "official_url": "https://conap.gob.gt/wp-content/uploads/2019/08/PM-PN-Mirador-Rio-Azul-y-BP-Naachtun-Dos-Lagunas.pdf",
+      "observed_outcome": "Inherited HTTP403; no current request.",
+      "restriction_scope": "Whole exact management-plan publication and equivalents remain stopped.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:70956334",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "CONAP IV Plan Maestro Reserva de Biosfera Sierra de las Minas",
+      "official_url": "https://conap.gob.gt/wp-content/uploads/2019/08/PM-RB-Sierra-de-las-Minas_Vigente.pdf",
+      "observed_outcome": "Inherited completed original HTTP403; no current request.",
+      "restriction_scope": "Whole exact plan and equivalents remain stopped.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:70956334",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "CONAP Plan Maestro Parque Nacional Río Dulce",
+      "official_url": "https://conap.gob.gt/wp-content/uploads/2019/10/PM-PN-R%C3%ADo-Dulce.pdf",
+      "observed_outcome": "Inherited completed original HTTP403; no current request.",
+      "restriction_scope": "Whole exact plan and equivalents remain stopped; no CONAP-wide ban.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:70956334",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "CONRED Amenaza por deslizamientos e inundaciones, Melchor de Mencos,2015, municipal code 1711",
+      "official_url": "https://conred.gob.gt/mapas/municipales_ameindes/PETEN/MELCHOR%20DE%20MENCOS/PETEN%201711.pdf",
+      "observed_outcome": "Inherited original HTTP404; map pixels unavailable.",
+      "restriction_scope": "Exact municipal publication and equivalents remain unavailable and unrequested. This is not a whole-CONRED restriction.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:70956334",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "ICC Estudio hidrológico de la cuenca del río María Linda; ISBN978-9929-8241-6-4",
+      "official_url": "https://icc.org.gt/es/estudio-hidrologico-de-la-cuenca-del-rio-maria-linda/",
+      "observed_outcome": "Inherited linked-original web-reader Cache miss; origin HTTP unknown.",
+      "restriction_scope": "Whole exact report/project-equivalent original, catalogue, figure, reader/cache, mirror, alternate-format and unread-output recovery remain paused. Prior catalogue title, ICC attribution and ISBN only; no geographic evidence.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:70956334",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "Central America 1:250,000 Series E501 Huehuetenango D-15-N-III and Livingston D-16-N-I",
+      "official_url": null,
+      "observed_outcome": "Inherited exact original-image web-reader Cache miss; origin HTTP unknown.",
+      "restriction_scope": "Both exact military-map publications, underlying project-equivalent recovery and unread output remain paused. A different sheet, host or date alone is not independence. No E501-wide institutional ban is invented.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:70956334",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "Uaxactun Guatemala 2268 II, 1995; specifically restricted JOG charts and Latin America JOG catalogue",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/guatemala/uaxactun-guatemala-50k-2268ii-1995.pdf",
+      "observed_outcome": "Inherited Uaxactún and named JOG printed limited-distribution exclusions; Latin America JOG catalogue had an Anubis access denial.",
+      "restriction_scope": "Exact restricted originals, chart-equivalents and catalogue-equivalent retrieval remain excluded. Public-looking copies or substitute editions do not clear distribution restrictions; no whole-JOG ban is inferred.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:70956334",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "CONAGUA Río Sonora aquifer DR2624 and RH28 Papaloapan technical-study publication of 12 February 2018",
+      "official_url": "https://sigagis.conagua.gob.mx/gas1/Edos_Acuiferos_18/sonora/DR_2624.pdf",
+      "observed_outcome": "Inherited publication-specific403 stops; no current request.",
+      "restriction_scope": "Exact publications and equivalents remain stopped. Other individually recorded CONAGUA aquifer/project limitations remain unchanged; no institution-wide ban or service clearance is inferred.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:70956334",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "Canadian CGN/geogratis expanded/name-search records, ambiguous Canadian gazetteers and UNECE naming publications; diffusion.mern service",
+      "official_url": null,
+      "observed_outcome": "Inherited naming-family exclusions and unresolved original record identities; no new request or response.",
+      "restriction_scope": "Recorded family/service and equivalent-route holds remain unchanged. No naming-record or gazetteer recovery was attempted.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:70113006",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "CanMatrix related-publication family; CBMT3978 and equivalent Toporama service",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer",
+      "observed_outcome": "Inherited CanMatrix original403 and related-sheet tool denial; inherited CBMT original-image tunnel403 with origin image-server HTTP unobserved.",
+      "restriction_scope": "CanMatrix related acquisitions remain paused while publication scope is unresolved; a new sheet alone is not independent. The whole CBMT3978 service and equivalents remain held.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:70113006",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "DataBC base/base MapServer and equivalent routes",
+      "official_url": "https://delivery.maps.gov.bc.ca/arcgis/rest/services/base/base/MapServer",
+      "observed_outcome": "Inherited unexplained layer21 web-reader failure; origin HTTP unknown.",
+      "restriction_scope": "Whole exact service/equivalent acquisition and content-use hold preserved. No institutional ban is inferred.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:70113006",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "USGS Professional Paper1386-J, Satellite Image Atlas of Glaciers of the World—North America",
+      "official_url": "https://pubs.usgs.gov/pp/p1386j/",
+      "observed_outcome": "Inherited original HTTP403; no current request.",
+      "restriction_scope": "Entire PP1386-J and equivalent original, figure, reader/cache, mirror and other retrieval routes remain stopped.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:70113006",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "Nimpkish Knotweed Eradication Project: Summary Report (2018 to 2021), January 2022",
+      "official_url": "https://www2.gov.bc.ca/assets/gov/environment/plants-animals-and-ecosystems/invasive-species/guidance-resources/plants_animals_ecosystems_invasive_species_guidance__nimpkish_knotweed_summary_report.pdf",
+      "observed_outcome": "Inherited r269 reader502 availability pause; no current request or report content used.",
+      "restriction_scope": "Whole exact report/project-equivalent acquisition and unread-output recovery remain paused. The separate previously read BC Parks2003 planning prose is neither an institution-wide clearance nor a ban.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:70113006",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "Stuart S. Holland, Landforms of British Columbia: A Physiographic Outline, Bulletin48,1976; W. Blake,Jr., Geological Survey of Canada Radiocarbon Dates XXV, Paper85-7,1986",
+      "official_url": null,
+      "observed_outcome": "Inherited r265 original-reader size failure and Cache miss respectively; no current acquisition.",
+      "restriction_scope": "Each exact publication/project and equivalents remain stopped, including unread originals, maps, figures, catalogues, mirrors and alternate formats.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:70113006",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "BC Fisheries SK108/Nass survey material; Homathko9H Level2; related unresolved Machmell1997 assessment project",
+      "official_url": null,
+      "observed_outcome": "Inherited unresolved publication and project relationships; no current acquisition or substantive snippet use.",
+      "restriction_scope": "Both unidentified survey constraints remain; a changed basin, date, report label or host does not clear them. Machmell’s relationship remains unresolved.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:70113006",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "Water Quality Assessment and Monitoring for the Lower Kitimat River, May2020, and unresolved related2026 revision",
+      "official_url": "https://www2.gov.bc.ca/assets/gov/environment/air-land-water/water/waterquality/water-quality-objectives/2020-05-05_kitimat_river_wqa_rpt_final.pdf",
+      "observed_outcome": "Inherited two reader502 outcomes for the2020 report; the2026 revision remains unrequested, not newly denied.",
+      "restriction_scope": "Exact report/equivalents and unresolved project relationship preserved. No BC-wide or institution-wide ban.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:70113006",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "Other exact British Columbia park, forestry, habitat and geological source holds",
+      "official_url": null,
+      "observed_outcome": "Inherited restrictions only; no present request.",
+      "restriction_scope": "The exact Tweedsmuir brochure, Halfway Ranch maps, TFL45 licence/map,2018_M336 map, North/Central Coast grizzly-habitat report, Homathko2006 monitoring project and Whiting-glacier article/image retain their recorded publication and use scopes. Successful unrelated own prose does not release them.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:70113006",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "Exact stopped World Imagery selected-area views",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "observed_outcome": "Inherited exact Ellesmere, Nevada, Knik lower, Mendoza, southern Labrador, northeastern Patagonia and coastal-Alaska view restrictions; no recovery.",
+      "restriction_scope": "Every exact stopped view, equivalents and unread outputs remain held. This separately coordinated coastal-BC view is geographically distinct; no global service ban is inferred.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:70113006",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "Environment and Climate Change Canada / Water Survey of Canada, Station Reference Index and equivalent index views",
+      "official_url": "https://wateroffice.ec.gc.ca/station_metadata/reference_index_e.html?stnIndex=5470",
+      "observed_outcome": "Inherited r204 Cache-miss publication hold, explicitly retained in r216 despite a later normal response. No current index was opened.",
+      "restriction_scope": "Whole reference-index publication/equivalent views and substitute recovery remain held. Incidental discovery metadata is excluded; no WSC-wide ban is inferred.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:70113006",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "IIAP, Análisis físico-químico y ecológico de las fuentes abastecedoras de agua para comunidades indígenas de OSBEZCAC en la cuenca del río Saija, Timbiquí – Cauca, July 2013",
+      "official_url": "https://siatpc.co/documentos/avances/analisis_fisicoquimico_y_ecologico_de_las_fuentes_abastecedoras_de_agua_para_comunidades_indigenas_de_ozbescac_en_la_cuenca_del_rio_saija_timbiqui.pdf",
+      "observed_outcome": "The sole normal web-reader opening returned Failed to fetch: (403) Forbidden. No original report body or map pixels were returned or read.",
+      "outcome_layer": "Web-reader reported 403; no independent origin HTTP measurement.",
+      "origin_http_status": null,
+      "explicit_access_denial": true,
+      "restriction_scope": "Whole exact report and project-equivalent original, catalogue, dataset re-query, reader/cache, mirror, alternate-format, map/figure and unread-output recovery remain stopped. No retry or alternate request followed.",
+      "earlier_lawful_observations": "Only the previously completed IIAP dataset metadata/project-prose readings retain their bounded contextual scope. No new reading of that project followed the report stop.",
+      "newly_observed_access_failure": true,
+      "inherited": false,
+      "acquisition_stop": true,
+      "material_effect": "Potential direct river-location corroboration unavailable. Geographic correspondence is independently complete; a name-evidence limitation remains.",
+      "bibliographic_limit": "Title, date and project identity established from bibliographic discovery; the original report imprint remains uninspected.",
+      "aw_id": "hydro-system:60253201"
+    },
+    {
+      "publication": "Instituto Nacional de Vías, Informe de gestión 2012, maritime/fluvial programme; Puerto Saija bank-protection project, contract 931/12",
+      "official_url": "https://www.invias.gov.co/index.php/normativa/politicas-y-lineamientos/servicios-al-ciudadano/proyectos-invias/maritima-y-fluvial-1/928-informe-de-gestion-2012/file",
+      "observed_outcome": "The sole normal web-reader opening returned Failed to fetch: (403) Forbidden. No original report prose or map pixels were returned or read.",
+      "outcome_layer": "Web-reader reported 403; no independent origin HTTP measurement.",
+      "origin_http_status": null,
+      "explicit_access_denial": true,
+      "restriction_scope": "Whole exact report and project-equivalent original, catalogue, companion material used for recovery, reader/cache, mirror, alternative-path, map/figure and unread-output recovery remain stopped. The discovered alternate archive path was not requested.",
+      "earlier_lawful_observations": "Bibliographic discovery only. Search-derived location prose and coordinates are excluded from geographic/name evidence.",
+      "newly_observed_access_failure": true,
+      "inherited": false,
+      "acquisition_stop": true,
+      "material_effect": "Optional place-to-river anchor unavailable. This does not create a geographic link gap in the independently read imagery.",
+      "bibliographic_limit": "Title, date and project identity established from bibliographic discovery; the original report imprint remains uninspected.",
+      "aw_id": "hydro-system:60253201"
+    },
+    {
+      "publication": "Servicio Geológico Colombiano, Atlas Geológico de Colombia 2023, Plancha 5–13",
+      "official_url": "https://www2.sgc.gov.co/MGC/Documents/Atlas_2023/PDF/Pl_5-13.pdf",
+      "observed_outcome": "Inherited source restriction; no acquisition or recovery for this target. Web reader reported Internal Error: Failed to fetch, (500) Unknown error fetching. No map pixels or original PDF acquired.",
+      "restriction_scope": "Missing sheet and equivalent copies, formats, figures, catalogue, original, reader, cache and mirror acquisition routes paused. No alternate acquisition or retry.",
+      "newly_observed_access_failure": false,
+      "inherited": true,
+      "acquisition_stop": true,
+      "material_effect": "Excluded from new acquisition and selected-route evidence; not an institution-wide prohibition.",
+      "aw_id": "hydro-system:60253201",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "IDEAM DHIME Cartografia_Basica/Hidrografia and Hidrografia_Anotaciones, IGAC 1:100,000 hydrography",
+      "official_url": "https://dhime.ideam.gov.co/server/rest/services/Cartografia_Basica/Hidrografia/MapServer",
+      "observed_outcome": "Inherited source restriction; no acquisition or recovery for this target. Both service metadata requests completed HTTP200. The sole bounded upper-corridor original map export subsequently ended with TimeoutError: The read operation timed out. No original map pixels acquired.",
+      "restriction_scope": "Missing hydrography/annotation cartography, all equivalent export, original, reader, cache and mirror routes paused for availability. No smaller export or alternate retrieval.",
+      "newly_observed_access_failure": false,
+      "inherited": true,
+      "acquisition_stop": true,
+      "material_effect": "Excluded from new acquisition and selected-route evidence; not an institution-wide prohibition.",
+      "aw_id": "hydro-system:60253201",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "Municipio de Argelia Cauca, Plan Municipal de Gestión del Riesgo de Desastres, septiembre de 2012",
+      "official_url": "https://repositorio.gestiondelriesgo.gov.co/bitstream/handle/20.500.11762/28527/PMGRD_ArgeliaCauca_2012.pdf?isAllowed=y&sequence=2",
+      "observed_outcome": "Inherited source restriction; no acquisition or recovery for this target. Sole original-file request completed HTTPError 502 Bad Gateway. No PDF body or map pixels acquired.",
+      "restriction_scope": "Whole missing publication and all equivalent copies, formats, figures, catalogue, original, reader, cache and mirror routes paused for availability. No retry or alternate acquisition.",
+      "newly_observed_access_failure": false,
+      "inherited": true,
+      "acquisition_stop": true,
+      "material_effect": "Excluded from new acquisition and selected-route evidence; not an institution-wide prohibition.",
+      "aw_id": "hydro-system:60253201",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "Municipio de López de Micay, Plan de Desarrollo Municipal 2012–2015: Para volver a creer",
+      "official_url": "https://uvsalud.univalle.edu.co/pdf/procesos_de_interes/cauca/18._lopez_de_micay.pdf",
+      "observed_outcome": "Inherited source restriction; no acquisition or recovery for this target. Sole original-file request completed HTTPError 502 Bad Gateway. No PDF body or map pixels acquired.",
+      "restriction_scope": "Whole missing publication and all equivalent copies, formats, figures, catalogue, original, reader, cache and mirror routes paused for availability. No retry or alternate acquisition.",
+      "newly_observed_access_failure": false,
+      "inherited": true,
+      "acquisition_stop": true,
+      "material_effect": "Excluded from new acquisition and selected-route evidence; not an institution-wide prohibition.",
+      "aw_id": "hydro-system:60253201",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "U.S. Defense Mapping Agency Aerospace Center, Tactical Pilotage Chart L–26D, Colombia; Ecuador, compiled 1992, 1:500,000",
+      "official_url": "https://maps.lib.utexas.edu/maps/tpc/txu-pclmaps-oclc-22834566_l-26d.jpg",
+      "observed_outcome": "Inherited source restriction; no acquisition or recovery for this target. Perry-Castañeda catalogue read succeeded. The sole original-map web click returned Cache miss, with no HTTP status. No original pixels acquired.",
+      "restriction_scope": "Missing chart and equivalent copies, formats, image, original, reader, cache, mirror and acquisition routes paused. No retry.",
+      "newly_observed_access_failure": false,
+      "inherited": true,
+      "acquisition_stop": true,
+      "material_effect": "Excluded from new acquisition and selected-route evidence; not an institution-wide prohibition.",
+      "aw_id": "hydro-system:60253201",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "INVEMAR, Informe Técnico REDCAM 2021",
+      "official_url": "https://servicios.invemar.org.co/documents/37438/75549/Informe%2BREDCAM%2B2021.pdf/f833fc29-4fec-a645-33e7-8271a7f22685?t=1670244377197",
+      "observed_outcome": "Inherited source restriction; no acquisition or recovery for this target. Sole original-file request completed HTTPError 502 Bad Gateway. No PDF body or original map pixels acquired.",
+      "restriction_scope": "Whole missing report, all maps and equivalent copies, formats, catalogue, original, reader, cache and mirror routes paused for availability. No retry or alternate acquisition.",
+      "newly_observed_access_failure": false,
+      "inherited": true,
+      "acquisition_stop": true,
+      "material_effect": "Excluded from new acquisition and selected-route evidence; not an institution-wide prohibition.",
+      "aw_id": "hydro-system:60253201",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "IIAP/SIAT-PC, Diagnóstico de la calidad ambiental del recurso hídrico, San Juan y Tapaje (bibliographic discovery identity; original title/imprint uninspected)",
+      "official_url": "https://siatpc.co/documentos/avances/calidad_ambiental_del_recurso_hidrico_san_juan_y_tapaje.pdf",
+      "observed_outcome": "Inherited source restriction; no acquisition or recovery for this target. Sole normal-original acquisition completed direct HTTP404, Content-Type text/html. No body, original imprint, report prose or map read.",
+      "restriction_scope": "Whole exact diagnostic and project-equivalent publication, original/catalogue/reader/cache/figure/PDF/mirror acquisition and unread-output reading paused.",
+      "newly_observed_access_failure": false,
+      "inherited": true,
+      "acquisition_stop": true,
+      "material_effect": "Excluded from new acquisition and selected-route evidence; not an institution-wide prohibition.",
+      "aw_id": "hydro-system:60253201",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "Palacios Moreno, Mario A., and Pinto Tovar, César Augusto (1992), Estudio de la influencia de la marea en el río Guapi, Boletín Científico CCCP 3:3–13; DOI 10.26640/01213423.3.3_13. Bibliographic discovery identity; original imprint uninspected.",
+      "official_url": "https://ojs.dimar.mil.co/index.php/CCCP/article/view/302?articlesBySimilarityPage=1",
+      "observed_outcome": "Inherited source restriction; no acquisition or recovery for this target. The sole normal publisher-landing opening returned web-reader Failed to fetch: Cache miss. No article body, original PDF or map pixels were acquired or read.",
+      "restriction_scope": "Whole exact article and equivalent content from its identified 1992 Guapi tidal field study, including original, catalogue, DOI, reader, cache, mirror, PDF, figures and unread-output acquisition/recovery routes, remain paused. No retry or alternate route followed. This is not a DIMAR- or CCCP-wide stop.",
+      "newly_observed_access_failure": false,
+      "inherited": true,
+      "acquisition_stop": true,
+      "material_effect": "Excluded from new acquisition and selected-route evidence; not an institution-wide prohibition.",
+      "aw_id": "hydro-system:60253201",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "CVC, Plan de Ordenación Forestal para la Unidad de Ordenación Forestal Dagua, December2024",
+      "official_url": "https://www.cvc.gov.co/sites/default/files/2025-02/POF%20Dagua-Documento%20S%C3%ADntesis.pdf",
+      "observed_outcome": "Inherited source restriction; no acquisition or recovery for this target. Parsed PDF prose opened normally. A screenshot call returned a source marker but no map pixels were inspected by this worker. The subsequent sole local-original request terminated with HTTP403 text/html and no PDF body received. No retry or equivalent recovery followed.",
+      "restriction_scope": "Whole exact forest-plan publication and project-equivalent original, catalogue, map, figure, reader/cache, mirror, alternate-format and unread-output recovery are paused.",
+      "newly_observed_access_failure": false,
+      "inherited": true,
+      "acquisition_stop": true,
+      "material_effect": "Excluded from new acquisition and selected-route evidence; not an institution-wide prohibition.",
+      "aw_id": "hydro-system:60253201",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "Banco de la República, Proceso de Comunidades Negras archival photograph record336: workshop at San Francisco de Naya",
+      "official_url": "https://babel.banrepcultural.org/digital/collection/PCN/id/336/",
+      "observed_outcome": "Inherited source restriction; no acquisition or recovery for this target. The first normal web-reader opening returned502 Bad Gateway. After its terminal response, one identical-URL retry also returned502 Bad Gateway. No record body or photograph pixels were read.",
+      "restriction_scope": "Exact archival record, its photograph and equivalent original, catalogue, reader/cache, mirror, alternate-format and unread-output recovery remain paused. No collection-wide or institution-wide ban is inferred.",
+      "newly_observed_access_failure": false,
+      "inherited": true,
+      "acquisition_stop": true,
+      "material_effect": "Excluded from new acquisition and selected-route evidence; not an institution-wide prohibition.",
+      "aw_id": "hydro-system:60253201",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "Sociedad Geográfica de Colombia historical geography PDF identified by filename059_apunt_geogr.pdf; complete title, author and date unverified",
+      "official_url": "https://www.sogeocol.edu.co/documentos/059_apunt_geogr.pdf",
+      "observed_outcome": "Inherited source restriction; no acquisition or recovery for this target. The sole normal web-reader opening returned Failed to fetch:(403) Forbidden. No original body or map pixels were read.",
+      "restriction_scope": "Whole exact publication and equivalent original, catalogue, reader/cache, mirror, alternative-path, map/figure and unread-output recovery remain stopped. The discovered 2022/05 path was not requested. No retry or alternative retrieval followed.",
+      "newly_observed_access_failure": false,
+      "inherited": true,
+      "acquisition_stop": true,
+      "material_effect": "Excluded from new acquisition and selected-route evidence; not an institution-wide prohibition.",
+      "aw_id": "hydro-system:60253201",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "The larva and female of Perigomphus basicornis Amaya-Vallejo, Novelo-Gutiérrez & Realpe,2017, and the first record of Perigomphus pallidistylus (Belle,1972) for Colombia (Insecta: Odonata: Gomphidae),2018; PMC 6087423",
+      "official_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6087423/",
+      "observed_outcome": "Inherited source restriction; no acquisition or recovery for this target. The sole normal reader opening returned Checking your browser – reCAPTCHA and only a browser-check notice. No article body or figure was returned or read.",
+      "restriction_scope": "Whole exact article and project-equivalent original, catalogue, reader/cache, publisher/author copy, mirror, alternate-format, figure and unread-output recovery remain paused. No retry or alternate acquisition followed.",
+      "newly_observed_access_failure": false,
+      "inherited": true,
+      "acquisition_stop": true,
+      "material_effect": "Excluded from new acquisition and selected-route evidence; not an institution-wide prohibition.",
+      "aw_id": "hydro-system:60253201",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "Urbano-Bonilla et al.,2023, A new species of rheophilic armored catfish of Rineloricaria (Siluriformes: Loricariidae) from the Vaupés River, Amazonas basin, Colombia; DOI 10.1111/jfb.15500",
+      "official_url": "https://onlinelibrary.wiley.com/doi/full/10.1111/jfb.15500",
+      "observed_outcome": "Inherited source restriction; no acquisition or recovery for this target. The sole normal reader opening returned Failed to fetch:(403) Forbidden. No original article, comparative voucher body or figure was read.",
+      "restriction_scope": "Whole exact article and project-equivalent original, catalogue, reader/cache, publisher/author copy, mirror, alternate-format, figure and unread-output recovery remain paused. No retry or alternate acquisition followed.",
+      "newly_observed_access_failure": false,
+      "inherited": true,
+      "acquisition_stop": true,
+      "material_effect": "Excluded from new acquisition and selected-route evidence; not an institution-wide prohibition.",
+      "aw_id": "hydro-system:60253201",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "Hábitos alimentarios de tres especies de peces lenguados (Pleuronectiformes: Achiridae) en la Bahía de Buenaventura, Pacífico Colombiano, Revista de Biología Tropical,2021; complete author list not verified from the original",
+      "official_url": "https://www.scielo.sa.cr/scielo.php?pid=s0034-77442021000301055&script=sci_arttext",
+      "observed_outcome": "Inherited source restriction; no acquisition or recovery for this target. The sole normal reader opening returned Internal Error / (400) Timeout fetching. No original article body, table or figure was returned or read.",
+      "restriction_scope": "Whole exact article and project-equivalent original, catalogue, reader/cache, publisher/author copy, mirror, alternate-format, figure and unread-output recovery remain paused. No retry or alternate acquisition followed.",
+      "newly_observed_access_failure": false,
+      "inherited": true,
+      "acquisition_stop": true,
+      "material_effect": "Excluded from new acquisition and selected-route evidence; not an institution-wide prohibition.",
+      "aw_id": "hydro-system:60253201",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "CONRED municipal susceptibility/hazard map for Tiquisate, Escuintla, code 506; linked edition unverified",
+      "official_url": "https://conred.gob.gt/wp-content/uploads/2026/07/ESCUINTLA-506.pdf",
+      "observed_outcome": "The sole normal catalogue-linked web-reader opening returned Internal Error / Cache miss. No original body, imprint or map pixels were returned or read.",
+      "outcome_layer": "Web-reader availability failure; origin HTTP status unknown.",
+      "origin_http_status": null,
+      "restriction_scope": "Whole exact Tiquisate municipal-map publication and project-equivalent original, older-path/edition recovery, catalogue, reader/cache, mirror, alternate-format, figure and unread-output recovery remain paused. No retry or alternate retrieval followed.",
+      "earlier_lawful_observations": "The national CONRED catalogue identified the Tiquisate link only. No substantive geographic excerpt from the unavailable original was used.",
+      "newly_observed_access_failure": true,
+      "explicit_access_denial": false,
+      "acquisition_stop": true,
+      "material_gap_for_current_target": false,
+      "material_effect": "Optional corroboration unavailable. Independent imagery and separately scoped municipal maps and planning prose complete the selected corridor and representative identity.",
+      "aw_id": "hydro-system:70957227"
+    },
+    {
+      "publication": "MAGA Fisiografía technical publication",
+      "official_url": "https://www.maga.gob.gt/download/fisiografia.pdf",
+      "observed_outcome": "Inherited web-reader HTTP403; no current request.",
+      "restriction_scope": "Whole exact technical publication and equivalent recovery routes remain stopped. No MAGA-wide ban.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:70957227",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "CONAP Plan Maestro 2009–2013 PN Mirador–Río Azul y BP Naachtún–Dos Lagunas",
+      "official_url": "https://conap.gob.gt/wp-content/uploads/2019/08/PM-PN-Mirador-Rio-Azul-y-BP-Naachtun-Dos-Lagunas.pdf",
+      "observed_outcome": "Inherited HTTP403; no current request.",
+      "restriction_scope": "Whole exact management-plan publication and equivalents remain stopped.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:70957227",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "CONAP IV Plan Maestro Reserva de Biosfera Sierra de las Minas",
+      "official_url": "https://conap.gob.gt/wp-content/uploads/2019/08/PM-RB-Sierra-de-las-Minas_Vigente.pdf",
+      "observed_outcome": "Inherited completed original HTTP403; no current request.",
+      "restriction_scope": "Whole exact plan and equivalents remain stopped.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:70957227",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "CONAP Plan Maestro Parque Nacional Río Dulce",
+      "official_url": "https://conap.gob.gt/wp-content/uploads/2019/10/PM-PN-R%C3%ADo-Dulce.pdf",
+      "observed_outcome": "Inherited completed original HTTP403; no current request.",
+      "restriction_scope": "Whole exact plan and equivalents remain stopped; no CONAP-wide ban.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:70957227",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "CONRED Amenaza por deslizamientos e inundaciones, Melchor de Mencos,2015, municipal code 1711",
+      "official_url": "https://conred.gob.gt/mapas/municipales_ameindes/PETEN/MELCHOR%20DE%20MENCOS/PETEN%201711.pdf",
+      "observed_outcome": "Inherited original HTTP404; map pixels unavailable.",
+      "restriction_scope": "Exact municipal publication and equivalents remain unavailable and unrequested. This is not a whole-CONRED restriction.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:70957227",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "ICC Estudio hidrológico de la cuenca del río María Linda; ISBN978-9929-8241-6-4",
+      "official_url": "https://icc.org.gt/es/estudio-hidrologico-de-la-cuenca-del-rio-maria-linda/",
+      "observed_outcome": "Inherited linked-original web-reader Cache miss; origin HTTP unknown.",
+      "restriction_scope": "Whole exact report/project-equivalent original, catalogue, figure, reader/cache, mirror, alternate-format and unread-output recovery remain paused. Prior catalogue title, ICC attribution and ISBN only; no geographic evidence.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:70957227",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "Central America 1:250,000 Series E501 Huehuetenango D-15-N-III and Livingston D-16-N-I",
+      "official_url": null,
+      "observed_outcome": "Inherited exact original-image web-reader Cache miss; origin HTTP unknown.",
+      "restriction_scope": "Both exact military-map publications, underlying project-equivalent recovery and unread output remain paused. A different sheet, host or date alone is not independence. No E501-wide institutional ban is invented.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:70957227",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "Uaxactun Guatemala 2268 II, 1995; specifically restricted JOG charts and Latin America JOG catalogue",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/guatemala/uaxactun-guatemala-50k-2268ii-1995.pdf",
+      "observed_outcome": "Inherited Uaxactún and named JOG printed limited-distribution exclusions; Latin America JOG catalogue had an Anubis access denial.",
+      "restriction_scope": "Exact restricted originals, chart-equivalents and catalogue-equivalent retrieval remain excluded. Public-looking copies or substitute editions do not clear distribution restrictions; no whole-JOG ban is inferred.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:70957227",
+      "new_acquisition_performed": false
+    },
+    {
+      "publication": "CONAGUA Río Sonora aquifer DR2624 and RH28 Papaloapan technical-study publication of 12 February 2018",
+      "official_url": "https://sigagis.conagua.gob.mx/gas1/Edos_Acuiferos_18/sonora/DR_2624.pdf",
+      "observed_outcome": "Inherited publication-specific403 stops; no current request.",
+      "restriction_scope": "Exact publications and equivalents remain stopped. Other individually recorded CONAGUA aquifer/project limitations remain unchanged; no institution-wide ban or service clearance is inferred.",
+      "inherited": true,
+      "newly_observed_access_failure": false,
+      "material_gap_for_current_target": false,
+      "aw_id": "hydro-system:70957227",
+      "new_acquisition_performed": false
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "kind": "other_guatemala_exact_holds",
+      "notice": "INGUAT MapasInguat catalogue, Baja Verapaz download818, Izabal download1170, Panimá–Matanzas whitewater account, Renace FAQ/ficha/PPE and MEM OXECII report retain their exact recorded catalogue, publication and project restrictions. None was reacquired or used; unrelated municipal planning prose is not their recovery.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70956334"
+    },
+    {
+      "kind": "municipal_cartographic_identity_and_use",
+      "notice": "CONRED municipal products are identified by their independently issued municipal editorial units, own code, mapped extent, scale, title and imprint. The inspected basic-cartography credit is IGN 2010–2015, distinct from the held E501/Uaxactún/JOG military projects. Shared national-series membership does not silently release held municipal originals. Hazard colors are not waterbody polygons; boundaries are expressly non-authoritative.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70956334"
+    },
+    {
+      "kind": "planning_prose_scope",
+      "notice": "Only independently authored municipal planning prose and front matter were used from the SEGEPLAN plans. Their maps, photographs and borrowed cartographic inputs were not read or used. The reproduction notice requires unchanged contents and authorship/editing credits; only concise own facts and normal bibliography are prepared here.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70956334"
+    },
+    {
+      "kind": "photographic_scope",
+      "notice": "The new Pacific-coast imagery views are geographically distinct from earlier held Knik, Mendoza, Labrador and Alaska views. Exact older cancelled/refused views and unread output remain stopped. New source pixels were read only after terminal success; imagery supplies no hydronym labels or present-flow measurement.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70956334"
+    },
+    {
+      "kind": "discovery_exclusion",
+      "notice": "Search-result prose, uninspected map labels and incidental gazetteer material are excluded from substantive evidence. No nearby river or settlement name is treated as a synonym by proximity.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70956334"
+    },
+    {
+      "kind": "underlying_cartography_uninspected",
+      "notice": "BC Hydro’s own prose is used within the positively identified operating-plan project. Its location-map base and schematic were not established or used; no held Canadian cartography is recovered.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70113006"
+    },
+    {
+      "kind": "excluded_discovery_content",
+      "notice": "Incidental Canadian gazetteer/name records, held WSC reference-index metadata, Wikipedia and mirrors, and unrequested fisheries, treaty, park, tidal and general-web leads are not substantive evidence.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70113006"
+    },
+    {
+      "kind": "generalized_line_scope",
+      "notice": "The river and connected alluvial corridor supply correspondence. Minor line-to-bank offsets, islands and mosaic seams do not imply a physical barrier or authorize coordinate edits.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70113006"
+    },
+    {
+      "kind": "unresolved_forestry_relationship",
+      "publication": "CVC Naya forest-ordering synthesis and its relation to the stopped Dagua project",
+      "official_url": "https://www.cvc.gov.co/sites/default/files/2025-03/POF%20Naya-Documento%20S%C3%ADntesis.pdf",
+      "notice": "The historical relationship remains unresolved. No original, catalogue, figure or equivalent acquisition was made; no new failure is asserted.",
+      "acquisition_performed": false,
+      "aw_id": "hydro-system:60253201"
+    },
+    {
+      "kind": "unresolved_historical_projects",
+      "publication": "Historical Sinú/Manso/Urrá regional works",
+      "notice": "Exact project identities remain unresolved; no potentially equivalent study was recovered. No country- or institution-wide ban is inferred.",
+      "acquisition_performed": false,
+      "aw_id": "hydro-system:60253201"
+    },
+    {
+      "kind": "discovery_only",
+      "notice": "Search-derived river labels, community coordinates, INVÍAS location descriptions and unread map labels are not source-reading evidence. No inferred upstream tributary or branch name is assigned.",
+      "aw_id": "hydro-system:60253201"
+    },
+    {
+      "kind": "source_material_privacy",
+      "notice": "Only own factual synthesis and normal bibliography are public-ready. All original photographs, crops, orientation aids, coordinates, private paths and acquisition receipts are excluded.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:60253201"
+    },
+    {
+      "kind": "other_guatemala_exact_holds",
+      "notice": "INGUAT MapasInguat catalogue, Baja Verapaz download818, Izabal download1170, Panimá–Matanzas whitewater account, Renace FAQ/ficha/PPE and MEM OXECII report retain their exact recorded catalogue, publication and project restrictions. None was reacquired or used; unrelated municipal planning prose is not their recovery.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70957227"
+    },
+    {
+      "kind": "municipal_cartographic_identity_and_use",
+      "notice": "CONRED municipal products are identified by their independently issued municipal editorial units, own code, mapped extent, scale, title and imprint. The inspected basic-cartography credit is IGN 2010–2015, distinct from the held E501/Uaxactún/JOG military projects. Shared national-series membership does not silently release held municipal originals. Hazard colors are not waterbody polygons; boundaries are expressly non-authoritative.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70957227"
+    },
+    {
+      "kind": "planning_prose_scope",
+      "notice": "Only independently authored municipal planning prose and front matter were used from the SEGEPLAN plans. Their maps, photographs and borrowed cartographic inputs were not read or used. The reproduction notice requires unchanged contents and authorship/editing credits; only concise own facts and normal bibliography are prepared here.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70957227"
+    },
+    {
+      "kind": "photographic_scope",
+      "notice": "The new Pacific-coast imagery views are geographically distinct from earlier held Knik, Mendoza, Labrador and Alaska views. Exact older cancelled/refused views and unread output remain stopped. New source pixels were read only after terminal success; imagery supplies no hydronym labels or present-flow measurement.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70957227"
+    },
+    {
+      "kind": "discovery_exclusion",
+      "notice": "Search-result prose, uninspected map labels and incidental gazetteer material are excluded from substantive evidence. No nearby river or settlement name is treated as a synonym by proximity.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70957227"
+    }
+  ]
+}
