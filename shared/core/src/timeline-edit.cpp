@@ -1,8 +1,6 @@
 #include <pandoeditor/timeline-edit.h>
 #include <pandoeditor/temporal.h>
 #include <algorithm>
-#include <iomanip>
-#include <sstream>
 #include <set>
 
 namespace pandoeditor {
@@ -11,14 +9,6 @@ bool active(const Validity& validity,const TemporalValue& point) {
     const auto dates=normalizeTemporalInterval(validity.from,validity.to);
     return (!dates.start || !(point.endKey<dates.start->startKey))
         && (!dates.end || !(dates.end->endKey<point.endKey));
-}
-std::string previousMonth(const TemporalValue& point) {
-    int year=point.year,month=*point.month-1;
-    if(!month){month=12;year=year==1?-1:year-1;}
-    std::ostringstream out;
-    if(year<0)out<<'-';else if(year>9999)out<<'+';
-    out<<std::setw(4)<<std::setfill('0')<<std::abs(year)<<'-'<<std::setw(2)<<month;
-    return out.str();
 }
 std::string nextRecordId(const TimelineRecords& rows,const std::string& base) {
     std::set<std::string> ids;
@@ -45,7 +35,7 @@ template<class Rows,class Change> TimelineRecords replace(const TimelineRecords&
     const auto index=std::distance(rows.begin(),it);
     changed.id=nextRecordId(original,it->id+":"+month.canonical);
     changed.validity.from=month.canonical;
-    rows[index].validity.to=previousMonth(month);
+    rows[index].validity.to=shiftTemporalMonth(month.canonical,-1);
     rows.insert(rows.begin()+index+1,std::move(changed));
     return result;
 }
@@ -68,7 +58,7 @@ TimelineRecords truncateTimelineEntityAtMonth(const TimelineRecords& original,co
                                               const std::string& cursor) {
     const auto month=parseTemporal(cursor);
     if(month.precision!="month")throw TimelineError("INVALID_TIMELINE_CURSOR","month precision required");
-    const auto lastMonth=previousMonth(month);
+    const auto lastMonth=shiftTemporalMonth(month.canonical,-1);
     auto result=original;
     const auto truncate=[&](auto& rows) {
         using Row=typename std::decay_t<decltype(rows)>::value_type;
