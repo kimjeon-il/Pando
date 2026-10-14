@@ -3,8 +3,8 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import test from 'node:test';
-// This immutable historical Web source is a comparison fixture only, not a runtime fallback.
-import * as reference from '../../native/tests/fixtures/web-m6/source/temporal.js';
+// This pinned month-precision Web source is a comparison fixture only, not a runtime fallback.
+import * as reference from '../../tests/fixtures/portability/web-9300609-oracle/assets/js/modules/temporal.js';
 
 const runtimePath=resolve(process.env.PANDOEDITOR_WASM_MODULE
   ?? 'build-native/wasm/wasm/pandoeditor-core.js');
