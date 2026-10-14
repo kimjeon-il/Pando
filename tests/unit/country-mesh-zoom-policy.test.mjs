@@ -43,3 +43,13 @@ test('focus and editing force canonical across modes and release to the current 
     assert.equal(resolveCountryMeshQuality({ projection, zoom: 1, previous: 'canonical' }), 'preview');
   }
 });
+
+test('mobile high-detail preference retains canonical geometry at any zoom once ready', () => {
+  for (const projection of ['globe', 'flat']) {
+    for (const zoom of [1, 1.5, 2, 3, 10]) {
+      assert.equal(resolveCountryMeshQuality({ projection, zoom, previous: 'preview', preferCanonical: true }), 'canonical');
+      assert.equal(resolveCountryMeshQuality({ projection, zoom, previous: 'canonical', preferCanonical: true }), 'canonical');
+    }
+    assert.equal(resolveCountryMeshQuality({ projection, zoom: 1, previous: 'canonical', preferCanonical: false }), 'preview');
+  }
+});

@@ -1,12 +1,19 @@
+import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const repo = fileURLToPath(new URL('../', import.meta.url));
+const mapping = JSON.parse(readFileSync(new URL('./report-paths.json', import.meta.url), 'utf8'));
 
-// Report callers name the current repository-relative path explicitly.
-export function reportPath(relative, root = repo) {
-  if (typeof relative !== 'string' || !relative.startsWith('reports/') || relative.split('/').includes('..')) {
-    throw new TypeError('Expected a current reports/ path.');
+export function reportPath(legacy, root = repo) {
+  let target = mapping.files[legacy] ?? legacy;
+  for (const [old, replacement] of Object.entries(mapping.directories)) {
+    const recursive = ['assets/data/research/siachen', 'native/reports/places'].includes(old);
+    if (legacy === old || (recursive && legacy.startsWith(old + '/'))) {
+      target = mapping.files[legacy] ?? replacement + legacy.slice(old.length);
+      break;
+    }
   }
-  return resolve(root, relative);
+  const migrated = existsSync(resolve(root, 'reports/places/source-manifest.json'));
+  return resolve(root, migrated || existsSync(resolve(root, target)) ? target : legacy);
 }
