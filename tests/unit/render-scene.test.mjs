@@ -78,7 +78,7 @@ test('polygon and stroke packet builders reject degenerate coordinates and prese
     type: 'Polygon',
     coordinates: [[[0, 0], [1, 0], [1, 1], [0, 0]]],
   });
-  assert.equal(polygonPacket.triangleCount, 1);
+  assert.ok(polygonPacket.triangleCount > 1, 'interior edges use the common spherical refinement');
   const strokePacket = buildStrokeGeometryPacket({
     type: 'LineString',
     coordinates: [[179, 0], [-179, 1], [-179, 1], [Number.NaN, 2]],

@@ -4,7 +4,7 @@ import {gunzipSync} from 'node:zlib';
 import test from 'node:test';
 import {buildCurrentWorld} from '../../tools/territorial-current-world.mjs';
 import {encodeCanonicalCountryPacket} from '../../tools/canonical-country-packet-encoder.mjs';
-import {buildCountrySharedBoundarySegments} from '../../assets/js/modules/boundary-topology.js';
+import {buildCountrySharedBoundarySegments,serializeCountrySharedBoundarySegments} from '../../assets/js/modules/boundary-topology.js';
 import {countryGeometrySignature} from '../../assets/js/modules/country-shared-boundary-cache.js';
 import {classifyBuiltinCountries} from '../../assets/js/modules/builtin-subunits.js';
 const root=new URL('../../',import.meta.url);
@@ -21,5 +21,5 @@ test('catalog current snapshot reproduces canonical shared-boundary signatures a
  const countries=[...candidate.countries.features,...candidate.subunits.map(unit=>({id:unit.properties.metadata.builtinSubunit.sourceCountryId,geometry:unit.geometry}))];
  const packet=JSON.parse(gunzipSync(fs.readFileSync(new URL('assets/data/'+worldBundle.compatibility.sharedBoundaries.canonical,root))));
  assert.deepEqual(Object.fromEntries(countries.map(f=>[String(f.id),countryGeometrySignature(f)])),packet.signatures);
- assert.deepEqual(buildCountrySharedBoundarySegments(countries),packet.segments);
+ assert.deepEqual(serializeCountrySharedBoundarySegments(buildCountrySharedBoundarySegments(countries)),packet.segments);
 });

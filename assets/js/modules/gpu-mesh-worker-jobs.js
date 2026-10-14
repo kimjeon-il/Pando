@@ -41,21 +41,25 @@ export function createGpuMeshWorkerJobs({ createWorker, createRebuildWorker = cr
   const scheduler = createLatestWorkerJobScheduler({
     maxConcurrent: 1,
     isCurrent,
-    cancelRunning: entry => rpc?.cancel(entry.requestId, 'superseded'),
+    cancelRunning: () => { rpc?.stop('superseded'); rpc = null; },
     execute: async entry => {
-      const response = await ensureRpc().request('geometry.mesh', { features: entry.payload?.features || [] }, {
+      const operation = entry.payload?.polygonPreparation ? 'geometry.prepare' : 'geometry.mesh';
+      const requestPayload = entry.payload?.polygonPreparation || { features: entry.payload?.features || [] };
+      const response = await ensureRpc().request(operation, requestPayload, {
         requestId: entry.requestId, projectRevision: entry.targetRevision, metadata: { geometryRevision: entry.geometryRevision, targetRevision: entry.targetRevision, jobKey: entry.jobKey, payload: { token: entry.payload?.token } },
       });
       const mesh = response.result;
       outputBytes += ['positions', 'countryIndices', 'triangleIndices', 'lineIndices', 'strokeStartsEnds']
         .reduce((sum, key) => sum + Number(mesh?.[key]?.byteLength || 0), 0);
-      onMesh(mesh);
+      if (operation === 'geometry.mesh') onMesh(mesh);
       return mesh;
     },
   });
   return Object.freeze({
     rebuild, cancelRebuild,
     enqueue: entry => scheduler.enqueue(entry),
+    preparePolygons: (items, revision) => scheduler.enqueue({ jobKey: 'overlay-preparation', geometryRevision: revision,
+      targetRevision: revision, payload: { polygonPreparation: { items } } }).promise,
     cancelAll(reason = 'cancelled') {
       cancelRebuild();
       scheduler.cancelAll(reason);
