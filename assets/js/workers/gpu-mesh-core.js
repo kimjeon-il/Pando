@@ -3,7 +3,7 @@
 ((scope) => {
   const MAX_RENDER_EDGE_DEGREES = 0.499;
   const MAX_REFINEMENT_PASSES = 40;
-  const MESH_ALGORITHM_REVISION = 3;
+  const MESH_ALGORITHM_REVISION = 4;
   const DEG_TO_RAD = Math.PI / 180;
   const PARAM_EPSILON = 1e-12;
   const AREA_EPSILON = 1e-20;

@@ -5,7 +5,7 @@ const fixedGeometry = JSON.parse(readFileSync(new URL('../../assets/data/territo
   .features.find(feature => feature.id === 'AND').geometry;
 
 test('actual scene prepares fixed assets, edited Worker meshes and latest style without blocking publication', async ({ page }) => {
-  await page.goto('/assets/data/prepared-polygons/generated/v1/manifest.json');
+  await page.goto('/assets/data/prepared-polygons/generated/v2/manifest.json');
   const result = await page.evaluate(async geometry => {
     const { createGpuScene } = await import('/assets/js/modules/app-gpu-scene.js');
     const { createRenderSceneBuilder } = await import('/assets/js/modules/render-scene.js');
@@ -57,7 +57,7 @@ test('actual scene prepares fixed assets, edited Worker meshes and latest style 
 });
 
 test('draft and preview fills share Worker preparation and discard superseded interaction geometry', async ({ page }) => {
-  await page.goto('/assets/data/prepared-polygons/generated/v1/manifest.json');
+  await page.goto('/assets/data/prepared-polygons/generated/v2/manifest.json');
   const result = await page.evaluate(async () => {
     const { createInteractionPackets } = await import('/assets/js/modules/app-interaction-packets.js');
     const { createRenderSceneBuilder } = await import('/assets/js/modules/render-scene.js');
@@ -92,7 +92,7 @@ test('draft and preview fills share Worker preparation and discard superseded in
 });
 
 test('real WebGL faces stay within the independently projected concave shell and hole at maximum review scale', async ({ page }) => {
-  await page.goto('/assets/data/prepared-polygons/generated/v1/manifest.json');
+  await page.goto('/assets/data/prepared-polygons/generated/v2/manifest.json');
   const results = await page.evaluate(async () => {
     const { buildPolygonGeometryPacket } = await import('/assets/js/modules/render-scene.js');
     const { createGpuPolygonOverlayPass } = await import('/assets/js/modules/gpu-polygon-overlay-pass.js');

@@ -23,7 +23,7 @@ const polygonPreparation = Promise.all([
   const base = new URL('../../../', self.location.href);
   const { loadAsset } = createStoredAssetLoader({ dataRevision: globalThis.PANDOLAB_BUILD_META.dataRevision,
     cachePolicy: 'immutable', resolveUrl: asset => {
-      if (!asset.url.startsWith('assets/data/prepared-polygons/generated/v1/') || asset.url.includes('..'))
+      if (!asset.url.startsWith('assets/data/prepared-polygons/generated/v2/') || asset.url.includes('..'))
         throw new Error('Invalid prepared polygon asset path');
       const url = new URL(asset.url, base); url.searchParams.set('sha256', asset.sha256); return url;
     } });
@@ -32,7 +32,8 @@ const polygonPreparation = Promise.all([
       if (!spec) throw new Error('Required prepared polygon manifest is missing from build metadata');
       const result = await loadAsset(spec, 'mesh', 'polygon-manifest', 'Prepared polygon manifest', buffer => JSON.parse(new TextDecoder().decode(buffer)));
       const manifest = result.value;
-      if (manifest.schema !== 'pandolab-prepared-polygon-meshes' || manifest.schemaVersion !== 1
+      if (manifest.schema !== 'pandolab-prepared-polygon-meshes' || manifest.schemaVersion !== 2
+        || manifest.meshFormatVersion !== 2
         || manifest.algorithmVersion !== engine.MESH_ALGORITHM_REVISION || manifest.maxEdgeDegrees !== engine.MAX_RENDER_EDGE_DEGREES
         || manifest.algorithmSourceSha256 !== spec.algorithmSourceSha256) throw new Error('Prepared polygon algorithm identity mismatch');
       return manifest;

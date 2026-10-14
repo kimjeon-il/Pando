@@ -12,16 +12,16 @@ const context = { throwIfCancelled() {} };
 
 test('fixed assets and transferred copies retain holes, geometry and algorithm identity', async () => {
   const packet = engine.buildPolygonGeometryPacket(geometry), encoded = encodePolygonMesh(packet);
-  const decoded = decodePolygonMesh(encoded, { algorithmVersion: 3 });
+  const decoded = decodePolygonMesh(encoded, { algorithmVersion: engine.MESH_ALGORITHM_REVISION });
   assert.deepEqual(decoded.indices, packet.indices);
   assert.deepEqual(decoded.boundaryIndices, packet.boundaryIndices);
   assert.deepEqual(decoded.startsEnds, packet.startsEnds);
   assert.equal(decoded.segmentCount, packet.segmentCount);
   const obsolete = encoded.slice(0);
   new Uint32Array(obsolete)[1] = 1;
-  assert.throws(() => decodePolygonMesh(obsolete, { algorithmVersion: 3 }), /format/);
-  assert.throws(() => decodePolygonMesh(encoded, { algorithmVersion: 2 }), /algorithm/);
-  assert.throws(() => decodePolygonMesh(encoded.slice(0, -1), { algorithmVersion: 3 }), /Invalid/);
+  assert.throws(() => decodePolygonMesh(obsolete, { algorithmVersion: engine.MESH_ALGORITHM_REVISION }), /format/);
+  assert.throws(() => decodePolygonMesh(encoded, { algorithmVersion: engine.MESH_ALGORITHM_REVISION - 1 }), /algorithm/);
+  assert.throws(() => decodePolygonMesh(encoded.slice(0, -1), { algorithmVersion: engine.MESH_ALGORITHM_REVISION }), /Invalid/);
   const digest = await polygonGeometryDigest(geometry);
   const store = createPreparedPolygonMeshStore({ engine,
     loadManifest: async () => ({ meshes: { [digest]: { id: digest } } }), loadAsset: async () => encoded });

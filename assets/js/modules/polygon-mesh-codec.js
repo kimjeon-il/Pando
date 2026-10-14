@@ -1,5 +1,6 @@
 const MAGIC = 0x50474d31;
-const FORMAT = 2;
+export const POLYGON_MESH_FORMAT_VERSION = 2;
+const FORMAT = POLYGON_MESH_FORMAT_VERSION;
 const fields = [['positions', Float32Array], ['indices', Uint32Array], ['boundaryIndices', Uint32Array],
   ['featureIds', Uint32Array], ['ringCoordinates', Float64Array], ['ringOffsets', Uint32Array],
   ['polygonOffsets', Uint32Array]];
