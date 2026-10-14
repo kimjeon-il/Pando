@@ -16,6 +16,7 @@
 #include <QFont>
 #include <QRawFont>
 #include <QImage>
+#include <QQuickWindow>
 #include <QDebug>
 
 #include <cstdlib>
@@ -33,7 +34,14 @@ int main(int argc, char *argv[])
     qInfo().noquote()<<"PANDO_BUILD commit=" PANDO_BUILD_COMMIT
         " dirtySourceHash=" PANDO_BUILD_DIRTY_SOURCE_HASH " sourceHash=" PANDO_BUILD_SOURCE_HASH;
 
-    const bool smokeCheck=QCoreApplication::arguments().contains(QStringLiteral("--smoke-check"));
+    QString smokeCapturePath;
+    for(const QString &argument: QCoreApplication::arguments()) {
+        constexpr auto prefix = "--smoke-capture=";
+        if(argument.startsWith(QLatin1String(prefix)))
+            smokeCapturePath=argument.mid(int(sizeof("--smoke-capture=")-1));
+    }
+    const bool smokeCheck=QCoreApplication::arguments().contains(QStringLiteral("--smoke-check"))
+        || !smokeCapturePath.isEmpty();
     if(smokeCheck)QStandardPaths::setTestModeEnabled(true);
     EditorControllerConfig editorConfig;
     editorConfig.bootstrapWorld=!smokeCheck;
@@ -63,7 +71,16 @@ int main(int argc, char *argv[])
         const bool flagReady=!QImage(QStringLiteral(":/defaults/flags/native/ad.svg")).isNull();
         qInfo().noquote()<<QStringLiteral("PORTABLE_SMOKE qml=PASS font=%1 korean=%2 svg=%3 autosave=OFF world=OFF")
             .arg(font.family()).arg(fontReady?"PASS":"FAIL").arg(flagReady?"PASS":"FAIL");
-        application.exit(fontReady&&flagReady?EXIT_SUCCESS:EXIT_FAILURE);
+        bool screenshotReady = true;
+        if(!smokeCapturePath.isEmpty()) {
+            auto *window=qobject_cast<QQuickWindow *>(engine.rootObjects().front());
+            const QImage image=window && window->isVisible() ? window->grabWindow() : QImage();
+            screenshotReady=!image.isNull() && image.width()>=160 && image.height()>=120
+                && image.save(smokeCapturePath, "PNG");
+            qInfo().noquote()<<QStringLiteral("PORTABLE_CAPTURE %1 size=%2x%3")
+                .arg(screenshotReady?"PASS":"FAIL").arg(image.width()).arg(image.height());
+        }
+        application.exit(fontReady&&flagReady&&screenshotReady?EXIT_SUCCESS:EXIT_FAILURE);
     });
 
     return application.exec();
