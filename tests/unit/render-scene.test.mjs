@@ -168,3 +168,18 @@ test('RenderScene uses display LOD only for independent unprotected chunks', () 
   assert.ok(protectedScene.polygons[0].vertexCount >= coarse.polygons[0].vertexCount);
   assert.ok(builder.stats().cacheBytes <= builder.stats().cacheBudgetBytes);
 });
+
+test('polygon fill and outline share the refined boundary across styles and outline-only paths', () => {
+  const geometry = { type: 'Polygon',
+    coordinates: [[[0, 0], [8, 0], [8, 5], [0, 5], [0, 0]]] };
+  const fill = { key: 'region:fill', geometryRevision: 1, geometry };
+  const outline = { key: 'region:outline', geometryRevision: 1, geometry };
+  const builder = createRenderSceneBuilder();
+  const first = builder.build({ polygons: [fill], strokes: [outline] });
+  assert.ok(first.strokes[0].segmentCount > 4);
+  assert.strictEqual(first.strokes[0].startsEnds, first.polygons[0].startsEnds);
+  const recolored = builder.patch(first, { strokes: [{ ...outline, style: { color: '#ff0000' } }] });
+  assert.strictEqual(recolored.strokes[0].startsEnds, first.strokes[0].startsEnds);
+  const onlyOutline = createRenderSceneBuilder().build({ strokes: [outline] });
+  assert.deepEqual(onlyOutline.strokes[0].startsEnds, first.strokes[0].startsEnds);
+});

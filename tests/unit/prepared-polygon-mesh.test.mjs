@@ -12,7 +12,14 @@ const context = { throwIfCancelled() {} };
 
 test('fixed assets and transferred copies retain holes, geometry and algorithm identity', async () => {
   const packet = engine.buildPolygonGeometryPacket(geometry), encoded = encodePolygonMesh(packet);
-  assert.deepEqual(decodePolygonMesh(encoded, { algorithmVersion: 3 }).indices, packet.indices);
+  const decoded = decodePolygonMesh(encoded, { algorithmVersion: 3 });
+  assert.deepEqual(decoded.indices, packet.indices);
+  assert.deepEqual(decoded.boundaryIndices, packet.boundaryIndices);
+  assert.deepEqual(decoded.startsEnds, packet.startsEnds);
+  assert.equal(decoded.segmentCount, packet.segmentCount);
+  const obsolete = encoded.slice(0);
+  new Uint32Array(obsolete)[1] = 1;
+  assert.throws(() => decodePolygonMesh(obsolete, { algorithmVersion: 3 }), /format/);
   assert.throws(() => decodePolygonMesh(encoded, { algorithmVersion: 2 }), /algorithm/);
   assert.throws(() => decodePolygonMesh(encoded.slice(0, -1), { algorithmVersion: 3 }), /Invalid/);
   const digest = await polygonGeometryDigest(geometry);
@@ -22,6 +29,7 @@ test('fixed assets and transferred copies retain holes, geometry and algorithm i
   structuredClone(first, { transfer: [first.packet.positions.buffer] });
   const next = await store.prepare({ cacheKey: 'fixed', geometry }, context);
   assert.deepEqual(next.packet.positions, packet.positions);
+  assert.deepEqual(next.packet.startsEnds, packet.startsEnds);
   const anotherRole = await store.prepare({ cacheKey: 'selected', geometry: structuredClone(geometry) }, context);
   assert.deepEqual(anotherRole.packet.indices, packet.indices);
   assert.equal(store.stats().assetHits, 1);
@@ -36,6 +44,8 @@ test('edited shapes build once, cancellation prevents admission and memory is bo
   const tiny = createPreparedPolygonMeshStore({ engine, byteBudget: 1 });
   assert.ok((await tiny.prepare({ cacheKey: 'oversized', geometry }, context)).packet.triangleCount);
   assert.equal(tiny.stats().bytes, 0);
+  assert.ok((await tiny.prepare({ cacheKey: 'oversized', geometry }, context)).packet.segmentCount,
+    'evicted cache-key mappings must be rebuilt');
   await assert.rejects(store.prepare({ cacheKey: 'cancelled', geometry }, {
     throwIfCancelled: () => { throw Object.assign(new Error('cancelled'), { cancelled: true }); },
   }), /cancelled/);
@@ -62,4 +72,29 @@ test('production scene adopts only the latest prepared batch and reuses style ch
   assert.strictEqual(recolored.polygons[0].positions, scene.polygons[0].positions);
   assert.equal(recolored.polygons[0].style.color, '#ff0000');
   assert.equal(requests.length, 2);
+});
+
+test('one Worker mesh serves both fill and outline roles and survives style changes', async () => {
+  const submitted = [];
+  const builder = createRenderSceneBuilder({ meshJobs: {
+    preparePolygons: async items => {
+      submitted.push(items);
+      return { packets: items.map(item => ({ cacheKey: item.cacheKey,
+        packet: engine.buildPolygonGeometryPacket(item.geometry) })) };
+    },
+    cancelAll() {},
+  } });
+  const fill = { key: 'shape:fill', geometry, geometryRevision: 'fixed-1' };
+  const outline = { key: 'shape:outline', geometry, geometryRevision: 'fixed-1' };
+  assert.equal(builder.missingPolygons([fill, outline]).length, 2);
+  await builder.preparePolygons([fill, outline]);
+  assert.equal(submitted.length, 1);
+  assert.equal(submitted[0].length, 1, 'matching polygon sources must share one Worker transfer');
+  const scene = builder.build({ polygons: [fill], strokes: [outline] });
+  assert.strictEqual(scene.strokes[0].startsEnds, scene.polygons[0].startsEnds);
+  assert.equal(scene.strokes[0].segmentCount, scene.polygons[0].segmentCount);
+  const recolored = builder.patch(scene, { strokes: [{ ...outline, style: { color: '#ff0000' } }] });
+  assert.strictEqual(recolored.strokes[0].startsEnds, scene.strokes[0].startsEnds);
+  assert.equal(submitted.length, 1);
+  builder.releasePrepared();
 });

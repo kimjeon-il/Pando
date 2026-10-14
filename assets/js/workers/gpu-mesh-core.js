@@ -599,7 +599,9 @@
       polygonOffsets.push(ringOffsets.length - 1);
     }
     return Object.freeze({ positions: Float32Array.from(mesh.positions, value => value * 1e-6),
-      indices: mesh.triangleIndices, featureIds: Uint32Array.from(mesh.countryIndices),
+      indices: mesh.triangleIndices, boundaryIndices: mesh.lineIndices,
+      startsEnds: mesh.strokeStartsEnds, segmentCount: mesh.lineIndices.length / 2,
+      featureIds: Uint32Array.from(mesh.countryIndices),
       vertexCount: mesh.positions.length / 2, triangleCount: mesh.triangleIndices.length / 3,
       ringCoordinates: new Float64Array(ringCoordinates), ringOffsets: new Uint32Array(ringOffsets),
       polygonOffsets: new Uint32Array(polygonOffsets), algorithmVersion: MESH_ALGORITHM_REVISION,
