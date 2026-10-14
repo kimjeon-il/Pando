@@ -6,6 +6,8 @@ on:
     paths:
       - '.github/workflows/p4-immutable-mesh-assets.yml'
       - 'tools/regenerate-render-mesh-assets-p4.mjs'
+      - 'tools/verify-render-mesh-assets-p4.mjs'
+      - 'assets/js/workers/gpu-mesh-core.js'
   workflow_dispatch:
 
 permissions:
