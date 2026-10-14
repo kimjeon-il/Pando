@@ -131,4 +131,21 @@ int main() {
     assert(temporalContains(endedMidMonth,month));
     assert(!temporalContains(endedMidMonth,parseTemporal("1914-07-31")));
     assert(temporalContains(normalizeTemporalInterval("1914-07-15",std::nullopt),parseTemporal("1914-07-31")));
+    // Navigation uses the shared calendar kernel; no Qt-specific BCE/year-zero rules.
+    assert(shiftTemporalMonth("1914-07",-1)=="1914-06");
+    assert(shiftTemporalMonth("1914-12",1)=="1915-01");
+    assert(shiftTemporalMonth("1914-07",12)=="1915-07");
+    assert(shiftTemporalMonth("0001-01",-1)=="-0001-12");
+    assert(shiftTemporalMonth("-0001-12",1)=="0001-01");
+    assert(shiftTemporalMonth("0001-05",-12)=="-0001-05");
+    assert(shiftTemporalMonth("-0001-05",12)=="0001-05");
+    assert(shiftTemporalMonth("9999-03",12)=="+10000-03");
+    assert(shiftTemporalMonth("+10000-03",-12)=="9999-03");
+    assert(shiftTemporalMonth("-0001-01",-1)=="-0002-12");
+    assert(shiftTemporalMonth("1916-02",12)=="1917-02");
+    assert(shiftTemporalMonth("1900-01",13)=="1901-02");
+    invalid([]{shiftTemporalMonth("1914",-1);});
+    invalid([]{shiftTemporalMonth("1914-07-01",1);});
+    invalid([]{shiftTemporalMonth("+999999-12",1);});
+    invalid([]{shiftTemporalMonth("-999999-01",-1);});
 }

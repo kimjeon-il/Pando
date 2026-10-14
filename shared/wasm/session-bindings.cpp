@@ -1,6 +1,7 @@
 #include <pandoeditor/document-session.h>
 #include <pandoeditor/projectcodec.h>
 #include <pandoeditor/sphericalpolygon.h>
+#include <pandoeditor/temporal.h>
 #include <pandoeditor/webcommands.h>
 #include <pandoeditor/webcontentcommands.h>
 #include <pandoeditor/webpresentationcommands.h>
@@ -86,6 +87,66 @@ val polygonRing(const val& input,bool shell) {
         output.polygons.push_back({normalizeSphericalRing(parsed.polygons.at(0).at(0),shell)});
         return val::global("JSON").call<val>("parse",projectcodec::webGeometryValue(output).encode())["coordinates"][0];
     });
+}
+// P5-3: Web receives immutable plain-date values, while all calendar/interval
+// arithmetic stays in the same C++ core that Qt links. No JavaScript calendar kernel.
+val temporalKeyForWeb(const TemporalKey& key) {
+    auto output=val::array();
+    output.set(0,key.year);output.set(1,key.month);output.set(2,key.day);
+    return output;
+}
+val temporalValueForWeb(const TemporalValue& input) {
+    auto output=val::object();
+    output.set("source",webString(input.text));
+    output.set("canonical",webString(input.canonical));
+    output.set("precision",webString(input.precision));
+    output.set("year",input.year);
+    output.set("month",input.month?val(*input.month):val::null());
+    output.set("day",input.day?val(*input.day):val::null());
+    output.set("startKey",temporalKeyForWeb(input.startKey));
+    output.set("endKey",temporalKeyForWeb(input.endKey));
+    return output;
+}
+std::optional<std::string> temporalEndpointForWeb(const val& value) {
+    return value.isNull()||value.isUndefined()?std::nullopt:std::optional<std::string>(text(value,"PL-TEMPORAL-001",true));
+}
+val temporalParseForWeb(const std::string& input) {
+    return boundary([&]{return temporalValueForWeb(parseTemporal(input));});
+}
+val temporalMonthEndForWeb(const std::string& input) {
+    return boundary([&]{return temporalValueForWeb(temporalMonthEnd(input));});
+}
+int temporalCompareForWeb(const std::string& left,const std::string& right,bool leftEnd,bool rightEnd) {
+    return boundary([&]{return compareTemporal(parseTemporal(left),parseTemporal(right),
+        leftEnd?TemporalBoundary::End:TemporalBoundary::Start,
+        rightEnd?TemporalBoundary::End:TemporalBoundary::Start);});
+}
+val temporalNormalizeIntervalForWeb(val from,val to) {
+    return boundary([&] {
+        TemporalInterval interval;
+        try {interval=normalizeTemporalInterval(temporalEndpointForWeb(from),temporalEndpointForWeb(to));}
+        catch(const std::invalid_argument& error) {
+            if(std::string(error.what())=="INVALID_DATE: reversed interval")
+                fail("PL-TEMPORAL-INTERVAL","유효기간 시작은 종료보다 늦을 수 없습니다.");
+            throw;
+        }
+        auto result=val::object();
+        result.set("validFrom",optional(interval.validFrom));
+        result.set("validTo",optional(interval.validTo));
+        return result;
+    });
+}
+bool temporalContainsForWeb(val from,val to,const std::string& point) {
+    return boundary([&]{return temporalContains(
+        normalizeTemporalInterval(temporalEndpointForWeb(from),temporalEndpointForWeb(to)),parseTemporal(point));});
+}
+bool temporalIntervalsOverlapForWeb(val fromA,val toA,val fromB,val toB) {
+    return boundary([&] {return temporalIntervalsOverlap(
+        normalizeTemporalInterval(temporalEndpointForWeb(fromA),temporalEndpointForWeb(toA)),
+        normalizeTemporalInterval(temporalEndpointForWeb(fromB),temporalEndpointForWeb(toB)));});
+}
+std::string temporalShiftMonthForWeb(const std::string& month,int delta) {
+    return boundary([&]{return shiftTemporalMonth(month,delta);});
 }
 // P5-1: source of truth is sphericalRingSignedArea in shared/core.
 // Keep this Web boundary read-only; later migration can remove the separate
@@ -626,6 +687,13 @@ EMSCRIPTEN_BINDINGS(pandoeditor_document_session) {
     emscripten::constant("coreCompilerVersion",compilerVersion);
     emscripten::function("sphericalRingSignedArea",&sphericalRingAreaForWeb);
     emscripten::function("sphericalRingSignedAreas",&sphericalRingAreasForWeb);
+    emscripten::function("temporalParse",&temporalParseForWeb);
+    emscripten::function("temporalMonthEnd",&temporalMonthEndForWeb);
+    emscripten::function("temporalCompare",&temporalCompareForWeb);
+    emscripten::function("temporalNormalizeInterval",&temporalNormalizeIntervalForWeb);
+    emscripten::function("temporalContains",&temporalContainsForWeb);
+    emscripten::function("temporalIntervalsOverlap",&temporalIntervalsOverlapForWeb);
+    emscripten::function("temporalShiftMonth",&temporalShiftMonthForWeb);
     emscripten::function("normalizePolygonGeometry",&polygonGeometry);
     emscripten::function("normalizePolygonRing",&polygonRing);
     emscripten::function("hasCanonicalPolygonWinding",&canonicalPolygonGeometry);
