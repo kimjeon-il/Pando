@@ -4,6 +4,7 @@ import { createBoundarySpatialIndex, segmentBounds, padBoundaryBounds } from './
 import { countryGeometrySignature } from './country-shared-boundary-cache.js';
 import { territorialRootId } from './territorial-units.js';
 
+const { sphericalSignedArea } = globalThis.PandoLabPolygonGeometry;
 const cloneCoordinate = coordinate => [Number(coordinate[0]), Number(coordinate[1])];
 
 function quantized(value, precision) {
@@ -51,7 +52,7 @@ export function boundarySourceSegments(feature, fallbackId = 0) {
     (polygon.rings || []).forEach((ring, ringIndex) => {
       const limit = Math.max(0, ring.length - 1);
       if (!limit) return;
-      let area = globalThis.PandoLabPolygonGeometry.sphericalSignedArea(ring);
+      let area = sphericalSignedArea(ring);
       // The common spherical integral may include a full turn around a pole.
       // Use its signed smaller region, without offsetting ordinary tiny areas.
       if (area > 2 * Math.PI) area -= 4 * Math.PI;
