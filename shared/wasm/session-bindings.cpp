@@ -87,6 +87,45 @@ val polygonRing(const val& input,bool shell) {
         return val::global("JSON").call<val>("parse",projectcodec::webGeometryValue(output).encode())["coordinates"][0];
     });
 }
+// P5-1: source of truth is sphericalRingSignedArea in shared/core.
+// Keep this Web boundary read-only; later migration can remove the separate
+// browser JavaScript integral after fixture parity is established.
+Ring checkedSphericalRing(const val& input) {
+    array(input,"INVALID_POLYGON_RING");
+    const auto length=input["length"].as<unsigned>();
+    if(length<4||length>2'000'000)
+        fail("INVALID_POLYGON_RING","Expected 4..2,000,000 coordinates.");
+    Ring ring;ring.reserve(length);
+    for(unsigned index=0;index<length;++index) {
+        const val coordinate=input[index];
+        array(coordinate,"INVALID_POLYGON_COORDINATE");
+        if(coordinate["length"].as<unsigned>()!=2||!type(coordinate[0],"number")
+           ||!type(coordinate[1],"number"))
+            fail("INVALID_POLYGON_COORDINATE","Expected a numeric longitude/latitude pair.");
+        const double longitude=coordinate[0].as<double>();
+        const double latitude=coordinate[1].as<double>();
+        if(!std::isfinite(longitude)||!std::isfinite(latitude)||std::abs(latitude)>90)
+            fail("INVALID_POLYGON_COORDINATE","Expected finite geographic coordinates.");
+        ring.push_back({longitude,latitude});
+    }
+    if(ring.front().x!=ring.back().x||ring.front().y!=ring.back().y)
+        fail("INVALID_POLYGON_RING","Ring must be closed.");
+    return ring;
+}
+double sphericalRingAreaForWeb(const val& input) {
+    return boundary([&]{return sphericalRingSignedArea(checkedSphericalRing(input));});
+}
+val sphericalRingAreasForWeb(const val& inputs) {
+    return boundary([&] {
+        array(inputs,"INVALID_POLYGON_RING");
+        const auto count=inputs["length"].as<unsigned>();
+        if(count>16'384)fail("INVALID_POLYGON_RING","Batch exceeds 16,384 rings.");
+        auto values=val::array();
+        for(unsigned index=0;index<count;++index)
+            values.set(index,sphericalRingSignedArea(checkedSphericalRing(inputs[index])));
+        return values;
+    });
+}
 bool canonicalPolygonGeometry(const val& input) {
     try {
         const auto encoded=val::global("JSON").call<val>("stringify",input).as<std::string>();
@@ -585,6 +624,8 @@ EMSCRIPTEN_BINDINGS(pandoeditor_document_session) {
     emscripten::constant("coreAbiVersion",1);
     emscripten::constant("coreSourceSha256",std::string(PANDOEDITOR_CORE_SOURCE_SHA256));
     emscripten::constant("coreCompilerVersion",compilerVersion);
+    emscripten::function("sphericalRingSignedArea",&sphericalRingAreaForWeb);
+    emscripten::function("sphericalRingSignedAreas",&sphericalRingAreasForWeb);
     emscripten::function("normalizePolygonGeometry",&polygonGeometry);
     emscripten::function("normalizePolygonRing",&polygonRing);
     emscripten::function("hasCanonicalPolygonWinding",&canonicalPolygonGeometry);
