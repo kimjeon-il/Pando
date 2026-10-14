@@ -169,3 +169,57 @@ test('Argentina outlines follow the surviving fill after packed sliver removal',
     'the failed border must remain covered by the final outline');
   assert.deepEqual(feature.geometry, before, 'packing must preserve canonical source geometry');
 });
+
+test('discarded boundary slivers do not introduce packed zero-length outlines', () => {
+  // Reduced from a generated parent scope with an intersection beside a
+  // canonical vertex. Both vertices pack to the same microdegree position.
+  const geometry = { type: 'Polygon', coordinates: [[
+    [48.667817, 46.107815], [48.665375, 46.102362], [46.507941, 39.293572],
+    [46.50794102685089, 39.29357195929389], [46.51083212010883, 39.28918904405941],
+    [46.517656, 39.278844], [46.52510326301004, 39.27274946911331],
+    [46.541841, 39.259052], [19.680276, 54.436678], [48.667817, 46.107815],
+  ]] };
+  const mesh = meshCore.buildGpuMeshFeatures([{ id: 'SCOPE', geometry }], earcut, { validate: true });
+  assert.ok(mesh.stats.removedDegenerateTriangleCount > 0);
+  assertBoundaryEdgesBelongToFill(mesh);
+  for (let i = 0; i < mesh.lineIndices.length; i += 2) {
+    const a = mesh.lineIndices[i], b = mesh.lineIndices[i + 1];
+    assert.notDeepEqual(Array.from(mesh.positions.slice(a * 2, a * 2 + 2)),
+      Array.from(mesh.positions.slice(b * 2, b * 2 + 2)));
+  }
+});
+
+test('source triangulation slivers discarded before refinement still reconcile outlines', () => {
+  const geometry = { type: 'Polygon', coordinates: [[
+    [19.957644, 53.374773], [19.95803, 53.374919], [19.958496, 53.374925],
+    [19.958729, 53.374928], [19.959197, 53.374839], [19.959822, 53.374611],
+    [19.957188, 53.374299], [19.957493, 53.374536], [19.957644, 53.374773],
+  ]] };
+  const mesh = meshCore.buildGpuMeshFeatures([{ id: 'COLLINEAR', geometry }], earcut, { validate: true });
+  assertBoundaryEdgesBelongToFill(mesh);
+  const perimeter = mesh.lineIndices.reduce((sum, vertex, i) => {
+    if (i % 2) return sum;
+    const end = mesh.lineIndices[i + 1];
+    return sum + Math.hypot(mesh.positions[vertex * 2] - mesh.positions[end * 2],
+      mesh.positions[vertex * 2 + 1] - mesh.positions[end * 2 + 1]);
+  }, 0);
+  const ring = geometry.coordinates[0];
+  const expectedPerimeter = ring.slice(1).reduce((sum, point, i) => sum
+    + Math.hypot(point[0] - ring[i][0], point[1] - ring[i][1]) * 1e6, 0);
+  assert.ok(Math.abs(perimeter - expectedPerimeter) < 1,
+    'collinear source edges must retain their complete outline length');
+});
+
+test('a polygon collapsed by packing leaves no ghost outline', () => {
+  const geometry = { type: 'Polygon', coordinates: [[
+    [46.503704, 39.518468], [46.518276, 39.525444], [46.52641363309966, 39.53694818060085],
+    [46.51827640800008, 39.52544382700002], [46.50370365400005, 39.51846750900002],
+    [46.499489324376, 39.51548391294333], [46.503704, 39.518468],
+  ]] };
+  const before = structuredClone(geometry);
+  const mesh = meshCore.buildGpuMeshFeatures([{ id: 'SLIVER', geometry }], earcut, { validate: true });
+  assert.ok(mesh.stats.removedDegenerateTriangleCount > 0);
+  assert.equal(mesh.triangleIndices.length, 0);
+  assert.equal(mesh.lineIndices.length, 0, 'discarded fill must not leave strokes');
+  assert.deepEqual(geometry, before);
+});

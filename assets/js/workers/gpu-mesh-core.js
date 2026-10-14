@@ -209,7 +209,7 @@
     return cleanGeo.length >= 3 ? { geo: cleanGeo, parameter } : null;
   }
 
-  function refineTriangles(geoPoints, parameterPoints, sourceTriangles, parameterSpace, validate, maxEdgeDegrees = MAX_RENDER_EDGE_DEGREES, boundaryChains = []) {
+  function refineTriangles(geoPoints, parameterPoints, sourceTriangles, parameterSpace, validate, maxEdgeDegrees = MAX_RENDER_EDGE_DEGREES, boundaryChains = [], removedTriangles = []) {
     const vectors = geoPoints.map(unitVector);
     const minimumEdgeDot = Math.cos(Math.max(0.01, Number(maxEdgeDegrees) - 0.000002) * DEG_TO_RAD);
     let triangles = [];
@@ -217,7 +217,10 @@
       const a = sourceTriangles[index];
       const b = sourceTriangles[index + 1];
       const c = sourceTriangles[index + 2];
-      if (Math.abs(signedArea(parameterPoints[a], parameterPoints[b], parameterPoints[c])) <= AREA_EPSILON) continue;
+      if (Math.abs(signedArea(parameterPoints[a], parameterPoints[b], parameterPoints[c])) <= AREA_EPSILON) {
+        removedTriangles.push([a, b, c]);
+        continue;
+      }
       triangles.push(a, b, c);
     }
     const sourceArea = validate ? triangleAreaSum(parameterPoints, triangles) : 0;
@@ -297,6 +300,7 @@
       const next = [];
       const add = (a, b, c) => {
         if (Math.abs(signedArea(parameterPoints[a], parameterPoints[b], parameterPoints[c])) > AREA_EPSILON) next.push(a, b, c);
+        else removedTriangles.push([a, b, c]);
       };
       for (let index = 0; index < triangles.length; index += 3) {
         const a = triangles[index];
@@ -454,7 +458,10 @@
         if (packed[a][0] === packed[b][0] && packed[a][1] === packed[b][1]) continue;
         const pair = key(a, b);
         if (!chain.visible[index]) { hidden.add(pair); continue; }
-        sources.set(pair, { a, b, pair });
+        // Quantization can collapse a narrow polygon into a retraced path.
+        // Cancel paired edges just as the discarded-triangle perimeter does.
+        if (sources.has(pair)) sources.delete(pair);
+        else sources.set(pair, { a, b, pair });
         if (!candidates.has(pair)) candidates.set(pair, new Map());
       }
     }
@@ -507,7 +514,8 @@
       }
       for (const [edge, source] of perimeter) {
         if (sources.has(edge)) sources.delete(edge);
-        else if (!hidden.has(edge) && !isArtificialPolarClosureEdge(points[source.a], points[source.b]))
+        else if (normalized[source.a] !== normalized[source.b]
+          && !hidden.has(edge) && !isArtificialPolarClosureEdge(points[source.a], points[source.b]))
           sources.set(edge, source);
       }
     }
@@ -606,6 +614,7 @@
           return { vertices, visible: vertices.map((a, index) =>
             !isArtificialPolarClosureEdge(geoPoints[a], geoPoints[vertices[(index + 1) % vertices.length]])) };
         });
+        const removedTriangles = [];
         let localTriangles = refineTriangles(
           geoPoints,
           parameterPoints,
@@ -614,6 +623,7 @@
           validate,
           maxEdgeDegrees,
           boundaryChains,
+          removedTriangles,
         );
         localTriangles = unwrapTriangleLongitudes(geoPoints, localTriangles);
         const packedTriangles = removePackedDegenerateTriangles(geoPoints, localTriangles, parameterSpace);
@@ -630,7 +640,8 @@
         // without updating the original boundary chain. Reconcile display
         // strokes with the FINAL packed triangle boundary after those clones
         // and discarded degenerate triangles have been decided.
-        for (const [a, b] of finalTriangleBoundaryEdges(geoPoints, localTriangles, boundaryChains, packedTriangles.removedTriangles)) {
+        for (const [a, b] of finalTriangleBoundaryEdges(geoPoints, localTriangles, boundaryChains,
+          removedTriangles.concat(packedTriangles.removedTriangles))) {
           const start = vertexOffset + a, end = vertexOffset + b;
           const ax = positions[start * 2], ay = positions[start * 2 + 1];
           const bx = positions[end * 2], by = positions[end * 2 + 1];

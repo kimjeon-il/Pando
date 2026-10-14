@@ -240,7 +240,7 @@ test('precomputed cache resolves source refs once and later patches reuse untouc
   assert.deepEqual(coordinates(state), cached);
 });
 
-function countryWorker(t, cache) {
+function countryWorker(t, cache, quality = 'preview') {
   const moduleUrl = new URL('../../assets/js/workers/country-shared-boundary-worker.js', import.meta.url).href;
   const wrapper = `import { parentPort, workerData } from 'node:worker_threads';
     import { gzipSync } from 'node:zlib';
@@ -262,12 +262,12 @@ function countryWorker(t, cache) {
     const failed = error => { clearTimeout(timeout); worker.off('message', received); reject(error); };
     worker.once('message', received);
     worker.once('error', failed);
-    worker.postMessage({ requestId: ++requestId, projectGeneration: 8, geometryRevision: 3, quality: 'preview', ...message });
+    worker.postMessage({ requestId: ++requestId, projectGeneration: 8, geometryRevision: 3, quality, ...message });
   });
 }
 
-test('the real Worker preserves unchanged replace preparation and updates only patched contacts', async t => {
-  const request = countryWorker(t);
+test('the real Worker preserves canonical replace preparation and updates only patched contacts', async t => {
+  const request = countryWorker(t, undefined, 'canonical');
   const rows = [rectangle('A', 0, 0, 1, 1), rectangle('B', 1, 0, 2, 1), rectangle('C', 4, 0, 5, 1)];
   const first = await request({ type: 'replace', features: rows });
   assert.equal(first.projectGeneration, 8); assert.equal(first.geometryRevision, 3);
