@@ -6,11 +6,8 @@ on:
     branches: [main]
   workflow_dispatch:
     inputs:
-      web_sha:
-        description: Exact Web candidate SHA (empty uses current repository or peer main)
-        required: false
-      app_sha:
-        description: Exact App candidate SHA (empty uses current repository or peer main)
+      commit_sha:
+        description: Exact monorepo commit to verify (empty uses the selected ref)
         required: false
 permissions:
   contents: read
@@ -26,75 +23,73 @@ jobs:
         run: git config --global core.autocrlf false
       - uses: actions/checkout@v4
         with:
-          path: web
+          path: source
           fetch-depth: 0
           persist-credentials: false
-          ref: ${{ inputs.web_sha || github.sha }}
+          ref: ${{ inputs.commit_sha || github.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Resolve immutable comparison pair
-        id: pair
-        working-directory: web
+      - name: Classify changed Web and native paths
+        id: changes
+        working-directory: source
         shell: bash
         env:
-          PARITY_SIDE: web
-          WEB_SHA: ${{ inputs.web_sha }}
-          APP_SHA: ${{ inputs.app_sha }}
-          PARITY_BASE: ${{ github.event.pull_request.base.sha || '' }}
+          PARITY_BASE: ${{ github.event.pull_request.base.sha || github.event.before || '' }}
           PARITY_CHANGES: ${{ github.workspace }}/changes.json
-        run: node tools/parity/ci-pair.mjs
-      - uses: actions/checkout@v4
-        with:
-          repository: kimjeon-il/PandoEditor
-          ref: ${{ steps.pair.outputs.app }}
-          path: app
-          fetch-depth: 0
-          persist-credentials: false
+        run: node tools/parity/ci-changes.mjs
+      - name: Skip unrelated changes
+        if: steps.changes.outputs.run == 'false'
+        run: echo "No registered parity feature changed."
       - uses: pnpm/action-setup@v4
+        if: steps.changes.outputs.run != 'false'
         with:
-          package_json_file: web/package.json
+          package_json_file: source/package.json
       - name: Install Web dependencies
-        working-directory: web
+        if: steps.changes.outputs.run != 'false'
+        working-directory: source
         run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Install Linux native dependencies
-        if: runner.os == 'Linux'
+        if: runner.os == 'Linux' && steps.changes.outputs.run != 'false'
         run: sudo apt-get update && sudo apt-get install -y ninja-build zlib1g-dev libegl1-mesa-dev libxkbcommon-x11-0 libxcb-cursor0 fonts-noto-cjk
       - uses: jurplel/install-qt-action@v4
+        if: steps.changes.outputs.run != 'false'
         with:
           version: '6.8.3'
           arch: ${{ runner.os == 'Windows' && 'win64_msvc2022_64' || 'linux_gcc_64' }}
           modules: qtshadertools qtimageformats
           cache: true
       - name: Install Windows zlib
-        if: runner.os == 'Windows'
+        if: runner.os == 'Windows' && steps.changes.outputs.run != 'false'
         shell: pwsh
         run: vcpkg install zlib:x64-windows
       - name: Configure Linux build
-        if: runner.os == 'Linux'
-        run: cmake -S app -B native-build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+        if: runner.os == 'Linux' && steps.changes.outputs.run != 'false'
+        run: cmake -S source/native -B native-build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
       - name: Configure Windows build
-        if: runner.os == 'Windows'
+        if: runner.os == 'Windows' && steps.changes.outputs.run != 'false'
         shell: pwsh
-        run: cmake -S app -B native-build -A x64 -DBUILD_TESTING=ON "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+        run: cmake -S source/native -B native-build -A x64 -DBUILD_TESTING=ON "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
       - name: Install browser for Windows input tests
-        if: runner.os == 'Windows'
-        working-directory: web
+        if: runner.os == 'Windows' && steps.changes.outputs.run != 'false'
+        working-directory: source
         run: pnpm exec playwright install chromium
       - name: Test the verification framework
+        if: steps.changes.outputs.run != 'false'
         shell: bash
         run: |
-          node --test web/tests/unit/web-app-parity-*.test.mjs
-          node --test app/tools/parity/*.test.mjs
+          node --test source/tests/unit/web-app-parity-*.test.mjs source/tools/parity/ci-changes.test.mjs
+          node --test source/native/tools/parity/*.test.mjs
       - name: Run selected or complete registered evidence
+        if: steps.changes.outputs.run != 'false'
         shell: bash
         run: |
           options=()
           if [ -f changes.json ]; then options+=(--changed "$PWD/changes.json"); fi
           if [ "${{ runner.os }}" = Windows ]; then options+=(--ui); fi
-          node app/tools/run-final-oracles.mjs --root app --web-root web --build-dir native-build --build --official --out evidence/parity.json "${options[@]}"
+          node source/native/tools/run-final-oracles.mjs --root source/native --web-root source --build-dir native-build --build --official --out evidence/parity.json "${options[@]}"
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && steps.changes.outputs.run != 'false'
         with:
           name: web-app-parity-${{ runner.os }}-${{ github.sha }}
           path: |

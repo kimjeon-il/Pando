@@ -2,7 +2,6 @@ import { TERRITORIAL_SYMBOL_KEYS } from './layer-presentation.js';
 import { PLACE_LANGUAGES, togglePlaceLanguage } from './place-contract.js';
 import { distributionValueRange } from './distribution-model.js';
 import { clearMenuPosition, createMenuPositionScheduler, exitMenuOnTab, positionRootMenu, positionSubmenu } from './menu-presentation.js';
-import { hasDatedTimelineRecords } from './timeline-resolver.js';
 
 const SYMBOL_VISIBILITY_KEYS = new Set(Object.values(TERRITORIAL_SYMBOL_KEYS).flatMap(keys => Object.values(keys)));
 
@@ -13,7 +12,6 @@ const SYMBOL_VISIBILITY_KEYS = new Set(Object.values(TERRITORIAL_SYMBOL_KEYS).fl
 export function createMapSettings() {
   let dependencies;
   let LAYER_STYLE_TARGETS;
-  let projectSerializer;
   let desktopViewMenuPath = [];
   let desktopViewMenuOpenTimer = null;
   let desktopViewMenuCloseTimer = null;
@@ -25,7 +23,33 @@ export function createMapSettings() {
   const displayMenuPresentation = new Map();
   function connect(ports) {
     if (dependencies) throw new Error('map-settings already connected');
+    if (typeof ports?.feedback?.reportOperationError !== 'function') throw new TypeError('Map settings require their operation error reporter.');
     dependencies = ports;
+  }
+
+  function requireProjectOwner() {
+    const project = dependencies.domains.projectDomain;
+    if (typeof project?.executeCommand !== 'function' || typeof project.getGeneration !== 'function') {
+      throw new TypeError('Map settings require the Core project command owner.');
+    }
+    return project;
+  }
+
+  async function executePresentation(payload) {
+    const project = requireProjectOwner();
+    const generation = project.getGeneration();
+    const result = await project.executeCommand({ commandId: 'presentation.apply', targets: [], payload: structuredClone(payload) });
+    if (typeof result?.ok !== 'boolean' || typeof result.changed !== 'boolean') throw Object.assign(new Error('A complete presentation acknowledgement is required.'), { code: 'PL-CORE-RESPONSE' });
+    if (!result.ok) throw Object.assign(new Error(result.error.message), result.error);
+    return project.getGeneration() === generation ? result : null;
+  }
+
+  async function runViewAction(operation) {
+    try { await operation(); }
+    catch (error) {
+      dependencies.feedback.reportOperationError(error, '지도 표시 설정을 변경하지 못했습니다.', 'PL-VIEW-COMMAND-001', 4200);
+      renderMapDisplaySettings();
+    }
   }
 
   function syncProjectionButtons() {
@@ -75,8 +99,8 @@ export function createMapSettings() {
     return true;
   }
 
-  function setLayerVisibility(key, visible) {
-    dependencies.projectState.state.layerVisibility[key] = visible;
+  async function setLayerVisibility(key, visible) {
+    if (!await executePresentation({ action: 'visibility', key, visible })) return false;
     if (!isDesktopViewMenu() && !SYMBOL_VISIBILITY_KEYS.has(key) && key !== 'labels') {
       if (visible) dependencies.objectModelA.expandedMapDisplayGroups.add(key);
       else dependencies.objectModelA.expandedMapDisplayGroups.delete(key);
@@ -92,7 +116,6 @@ export function createMapSettings() {
       dependencies.domains.renderingDomain?.invalidateBaseScene?.('layer-visibility');
       if (TERRITORIAL_SYMBOL_KEYS[key]) dependencies.domains.renderingDomain.invalidateLabels('layer-visibility');
     }
-    dependencies.domains.projectDomain.queuePresentationAutosave();
   }
 
   function syncPlaceLanguageChecks() {
@@ -116,29 +139,10 @@ export function createMapSettings() {
     return true;
   }
 
-  function updateLayerPresentationStyle(group, patch) {
+  async function updateLayerPresentationStyle(group, patch) {
     const target = LAYER_STYLE_TARGETS[group];
     if (!target) return false;
-    const currentStyle = (0, dependencies.applicationServicesB.layerStyle)(dependencies.projectState.state.layerPresentation, target.presentationGroup);
-    const objectStyles = { ...dependencies.projectState.state.layerPresentation.objectStyles };
-    if (group === 'subunits') {
-      for (const key of Object.keys(objectStyles)) {
-        if (key.startsWith('territorial:entity:') && dependencies.territorialModel.entityRepository.get(key.slice('territorial:entity:'.length))?.properties.parentId) objectStyles[key] = { ...objectStyles[key], ...patch };
-      }
-    }
-    dependencies.projectState.state.layerPresentation = (0, dependencies.modelValidation.normalizeLayerPresentation)({
-      ...dependencies.projectState.state.layerPresentation,
-      objectStyles,
-      styles: {
-        ...dependencies.projectState.state.layerPresentation.styles,
-        [target.presentationGroup]: {
-          ...currentStyle,
-          ...patch,
-          boundaryWidth: 1,
-          labelsVisible: currentStyle.labelsVisible,
-        },
-      },
-    });
+    if (!await executePresentation({ action: 'groupStyle', group: target.presentationGroup, patch })) return false;
     syncMapDisplayDisclosures();
     if (target.presentationGroup === 'countries' || target.presentationGroup === 'subunits') {
       dependencies.rendering.gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'country-presentation');
@@ -147,7 +151,24 @@ export function createMapSettings() {
       dependencies.rendering.gpuMapRenderer.invalidatePhysicalStyle('hydro-presentation');
     }
     dependencies.domains.renderingDomain?.invalidateOverlayStyle?.('layer-presentation-style');
-    dependencies.domains.projectDomain.queuePresentationAutosave();
+    return true;
+  }
+
+  async function setTerrainMode(mode) {
+    if (!await executePresentation({ action: 'terrainMode', mode })) return false;
+    dependencies.rendering.gpuMapRenderer.invalidatePhysicalStyle('terrain-mode');
+    (0, dependencies.hydroModel.syncPhysicalControls)();
+    syncMapDisplayDisclosures();
+    (0, dependencies.layers.markLayerTreeDirty)();
+    dependencies.domains.renderingDomain.invalidateBaseScene('terrain-mode');
+    return true;
+  }
+
+  async function setDistributionControl(action, value, reason) {
+    if (!await executePresentation({ action, value })) return false;
+    if (action === 'distributionActiveLayer') dependencies.distributionPresentation.bumpVisibilityRevision();
+    syncDistributionPresentationControls();
+    dependencies.domains.renderingDomain.invalidateOverlayStyle(reason);
     return true;
   }
 
@@ -490,7 +511,6 @@ export function createMapSettings() {
     const requestedDesktop = isDesktopViewMenu();
     const desktop = displayMenuLayout ?? requestedDesktop;
     const surface = (0, dependencies.platform.$)('mapDisplaySurface');
-    dependencies.projectState.state.layerPresentation = (0, dependencies.modelValidation.normalizeLayerPresentation)(dependencies.projectState.state.layerPresentation);
     document.querySelectorAll('[data-layer-style-panel]').forEach(panel => {
       const group = panel.dataset.layerStylePanel;
       createLayerInlineStylePanel(group);
@@ -571,7 +591,6 @@ export function createMapSettings() {
   }
 
   function renderMapDisplaySettings() {
-    dependencies.projectState.state.layerPresentation = (0, dependencies.modelValidation.normalizeLayerPresentation)(dependencies.projectState.state.layerPresentation);
     for (const input of document.querySelectorAll('#mapDisplaySurface input[data-layer-visibility]')) {
       input.checked = dependencies.projectState.state.layerVisibility[input.dataset.layerVisibility] !== false;
     }
@@ -601,6 +620,7 @@ export function createMapSettings() {
   }
 
   function bindMapDisplayUI() {
+    requireProjectOwner();
     const surface = (0, dependencies.platform.$)('mapDisplaySurface');
     if (!surface) return;
     const visibilityInputs = [
@@ -610,30 +630,22 @@ export function createMapSettings() {
       ['labels', 'labelsVisible'],
     ];
     for (const [group, id] of visibilityInputs) {
-      (0, dependencies.platform.$)(id)?.addEventListener('change', event => setLayerVisibility(group, event.currentTarget.checked));
+      (0, dependencies.platform.$)(id)?.addEventListener('change', event => runViewAction(() => setLayerVisibility(group, event.currentTarget.checked)));
     }
     for (const input of surface.querySelectorAll('[data-place-language]')) {
       input.addEventListener('change', event => setPlaceLanguage(event.currentTarget.dataset.placeLanguage, event.currentTarget.checked));
     }
     for (const input of surface.querySelectorAll('[data-territorial-symbol]')) {
-      input.addEventListener('change', event => setLayerVisibility(event.currentTarget.dataset.territorialSymbol, event.currentTarget.checked));
+      input.addEventListener('change', event => runViewAction(() => setLayerVisibility(event.currentTarget.dataset.territorialSymbol, event.currentTarget.checked)));
     }
     surface.addEventListener('change', event => {
       const input = event.target.closest?.('[data-layer-style-color]');
-      if (input) updateLayerPresentationStyle(input.dataset.layerStyleColor, { colorVisible: input.checked });
+      if (input) return runViewAction(() => updateLayerPresentationStyle(input.dataset.layerStyleColor, { colorVisible: input.checked }));
     });
     for (const id of ['terrainNoneRadio', 'terrainPoliticalRadio', 'terrainPhysicalRadio']) {
       (0, dependencies.platform.$)(id)?.addEventListener('change', event => {
         if (!event.currentTarget.checked) return;
-        const mode = event.currentTarget.value;
-        dependencies.projectState.state.physicalSettings.terrainVisible = mode !== 'none';
-        if (mode !== 'none') dependencies.projectState.state.physicalSettings.terrainStyle = mode === 'physical' ? 'physical' : 'political';
-        dependencies.rendering.gpuMapRenderer.invalidatePhysicalStyle('terrain-mode');
-        (0, dependencies.hydroModel.syncPhysicalControls)();
-        syncMapDisplayDisclosures();
-        (0, dependencies.layers.markLayerTreeDirty)();
-        dependencies.domains.renderingDomain?.invalidateBaseScene?.('terrain-mode');
-        dependencies.domains.projectDomain.queuePresentationAutosave();
+        return runViewAction(() => setTerrainMode(event.currentTarget.value));
       });
     }
     surface.addEventListener('click', event => {
@@ -777,35 +789,25 @@ export function createMapSettings() {
     surface.addEventListener('scroll', () => {
       if (desktopMenuOpen()) desktopViewMenuPositioner.schedule();
     }, true);
-    surface.addEventListener('change', event => {
+    surface.addEventListener('change', event => runViewAction(async () => {
       syncDesktopMenuChecks();
       const boundary = event.target.closest('[data-layer-style-boundary]');
-      if (boundary) updateLayerPresentationStyle(boundary.dataset.layerStyleBoundary, { boundaryVisible: boundary.checked });
+      if (boundary) await updateLayerPresentationStyle(boundary.dataset.layerStyleBoundary, { boundaryVisible: boundary.checked });
       const blend = event.target.closest('[data-layer-style-blend-mode]');
-      if (blend) updateLayerPresentationStyle(blend.dataset.layerStyleBlendMode, { blendMode: blend.value });
+      if (blend) await updateLayerPresentationStyle(blend.dataset.layerStyleBlendMode, { blendMode: blend.value });
       if (event.target.matches('input[name="distributionLayerMode"]') && event.target.checked) {
-        dependencies.objectModelA.distributionService.setRenderMode(event.target.value);
-        syncDistributionPresentationControls();
-        dependencies.domains.renderingDomain.invalidateOverlayStyle('distribution-render-mode');
-        dependencies.domains.projectDomain.queuePresentationAutosave();
+        await setDistributionControl('distributionRenderMode', event.target.value, 'distribution-render-mode');
       }
       if (event.target.id === 'distributionActiveLayerInput') {
-        dependencies.projectState.state.distributionSettings.activeLayerId = event.target.value;
-        dependencies.distributionPresentation.bumpVisibilityRevision();
-        syncDistributionPresentationControls();
-        dependencies.domains.renderingDomain.invalidateOverlayStyle('distribution-active-layer');
-        dependencies.domains.projectDomain.queuePresentationAutosave();
+        await setDistributionControl('distributionActiveLayer', event.target.value, 'distribution-active-layer');
       }
       if (event.target.id === 'distributionBoundaryVisibleInput') {
-        dependencies.objectModelA.distributionService.setBoundaryVisible(event.target.checked);
-        syncDistributionPresentationControls();
-        dependencies.domains.renderingDomain.invalidateOverlayStyle('distribution-boundary-visibility');
-        dependencies.domains.projectDomain.queuePresentationAutosave();
+        await setDistributionControl('distributionBoundaryVisible', event.target.checked, 'distribution-boundary-visibility');
       }
-    });
+    }));
     surface.addEventListener('input', event => {
       const opacity = event.target.closest('[data-layer-style-opacity]');
-      if (opacity) updateLayerPresentationStyle(opacity.dataset.layerStyleOpacity, { opacity: Number(opacity.value) / 100 });
+      if (opacity) return runViewAction(() => updateLayerPresentationStyle(opacity.dataset.layerStyleOpacity, { opacity: Number(opacity.value) / 100 }));
     });
     renderMapDisplaySettings();
   }
@@ -879,28 +881,6 @@ export function createMapSettings() {
       labels: { presentationGroup: 'labels', label: '지명' },
     }));
 
-    (projectSerializer = (0, dependencies.projectServices.createProjectSerializer)({
-      schemaVersion: dependencies.applicationConstantsA.PROJECT_SCHEMA_VERSION,
-      appVersion: dependencies.platformConfigurationA.APP_VERSION,
-      baseDataset: dependencies.platformConfigurationA.BASE_DATASET,
-      genericFeatureSchemaVersion: dependencies.applicationConstantsA.GENERIC_FEATURE_SCHEMA_VERSION,
-      distributionSchemaVersion: dependencies.applicationConstantsA.DISTRIBUTION_SCHEMA_VERSION,
-      distributionModes: Object.values(dependencies.territorialModel.DISTRIBUTION_MODES),
-      terrainDataset: dependencies.platformConfigurationB.TERRAIN_DATASET,
-      hydroDataset: dependencies.platformConfigurationA.HYDRO_DATASET,
-      readSnapshot: () => ({
-        baseDatasetFingerprint: dependencies.builtinBaseline.projectBaseline?.baseDatasetFingerprint,
-        territorialEntities: dependencies.territorialModel.entityStore.identities(),
-        projectFields: (0, dependencies.projectServices.pickProjectFields)(dependencies.projectState.state, { clone: value => value }),
-        entityDelta: (0, dependencies.projectSnapshots.buildEntityDelta)(),
-        fullAutosave: dependencies.projectState.state.autosaveMode === 'full'
-          || hasDatedTimelineRecords(dependencies.projectState.state.timelineRecords),
-        terrainManifest: dependencies.projectState.state.terrainManifest,
-        terrainSourceInfo: dependencies.rendering.gpuMapRenderer?.activeTerrainSourceInfo?.(),
-        hydroManifest: dependencies.projectState.state.hydroManifest,
-      }),
-    }));
-
     (desktopViewMenuPositioner = createMenuPositionScheduler(positionDesktopViewMenus));
   }
 
@@ -909,9 +889,9 @@ export function createMapSettings() {
     get bindMapDisplayUI() { return bindMapDisplayUI; },
     get closeDesktopViewMenuGroup() { return closeDesktopViewMenuGroup; },
     initializeLAYER_STYLE_TARGETS,
-    get projectSerializer() { return projectSerializer; },
     get renderMapDisplaySettings() { return renderMapDisplaySettings; },
     get setLayerVisibility() { return setLayerVisibility; },
+    get setTerrainMode() { return setTerrainMode; },
     get setPlaceLanguage() { return setPlaceLanguage; },
     get setProjection() { return setProjection; },
     get syncMapDisplayDisclosures() { return syncMapDisplayDisclosures; },

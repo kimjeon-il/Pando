@@ -37,3 +37,4 @@ export function createGpuWorkerChannels({ WorkerClass = globalThis.Worker } = {}
     dispose() { if (disposed) return; disposed = true; for (const channel of channels) channel.terminate(); },
   });
 }
+// @worker-transport dedicated: channel owner connects GPU worker ports and routes native worker events

@@ -8,6 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).parents[1]
 APP = read_application_sources(ROOT)
 PROJECT = (ROOT / "assets" / "js" / "modules" / "project-state.js").read_text(encoding="utf-8")
+PROJECT_DOMAIN = (ROOT / "assets" / "js" / "modules" / "project-domain.js").read_text(encoding="utf-8")
 SERIALIZER = (ROOT / "assets" / "js" / "modules" / "project-serializer.js").read_text(encoding="utf-8")
 VERSIONS = (ROOT / "assets" / "js" / "modules" / "version-contract.js").read_text(encoding="utf-8")
 TERRITORIAL = (ROOT / "assets" / "js" / "modules" / "territorial-units.js").read_text(encoding="utf-8")
@@ -19,7 +20,7 @@ class CurrentSchemaPolicyTests(unittest.TestCase):
     def test_project_save_and_load_use_central_schema_contract(self):
         self.assertIn("schemaVersion = PROJECT_SCHEMA_VERSION", SERIALIZER)
         self.assertIn("schemaVersion,", SERIALIZER)
-        self.assertIn("prepareProjectForActivation(project", APP)
+        self.assertIn("commandOwner.inspectImport(JSON.stringify(project)", PROJECT_DOMAIN)
         self.assertIn("export const PROJECT_SCHEMA_VERSION = 10", VERSIONS)
         self.assertIn("export { PROJECT_SCHEMA_VERSION }", PROJECT)
         self.assertNotIn("migrateProject", PROJECT)

@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 2,
+  "sourceOwner": "repository Web modules",
+  "build": {
+    "esbuild": "0.25.10",
+    "target": "es2016",
+    "format": "iife",
+    "globalName": "ReferenceWeb"
+  },
+  "sourceEncoding": "UTF-8 LF",
+  "files": [
+    {
+      "path": "assets/js/modules/reference-image-georef.js",
+      "sha256": "a113e9cbcf3a944ed9f9a41e1e716fa566d46b5b914aa5e137493759ef810c21"
+    },
+    {
+      "path": "assets/js/modules/reference-image-line-refiner.js",
+      "sha256": "a1d46b6f1d4488b22d39ff84c416b3f217cd7fcf4561a60c3b30ffce20976830"
+    },
+    {
+      "path": "assets/js/modules/reference-image-live-wire.js",
+      "sha256": "912c3a949928e082ac20bee3c2764ac2ba3191a698476ee99982232993ac0099"
+    },
+    {
+      "path": "assets/js/modules/reference-image-source-mapping.js",
+      "sha256": "e16d1ac4f67abdcb6759932d419aede9a7ea2a4ecfd11cb917685edac14d918c"
+    },
+    {
+      "path": "assets/js/modules/reference-image-transform.js",
+      "sha256": "a8c7dab3d04d1ff8e0660432335306e771ecfbb1d2a48400a0767b2b65db65d9"
+    },
+    {
+      "path": "native/app/reference-web/adapter.js",
+      "sha256": "c3b6cb1d7b2b0aa40cd57ecb764d9f23d5ad2b7b19c9017035a51a8522ffe1c5"
+    }
+  ],
+  "runtime": {
+    "path": "native/app/reference-web/runtime.js",
+    "sha256": "0c78b4ef29b0e97d33562be739aa84be4a0dd4952c091ceffa63ec2fdf8f9211"
+  }
+}

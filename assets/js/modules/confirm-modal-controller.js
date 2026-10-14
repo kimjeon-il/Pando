@@ -13,10 +13,22 @@ export function createConfirmModalController({
   elements,
   setChoices,
   beforeOpen = () => {},
+  reportOperationError,
 }) {
+  if (typeof reportOperationError !== 'function') throw new TypeError('The confirm modal operation error boundary is required.');
   let action = null;
   let cancelAction = null;
   let restoreFocusTarget = null;
+
+  function cancel(pending) {
+    try {
+      const result = pending?.();
+      if (result && typeof result.then === 'function') return Promise.resolve(result).catch(error => {
+        reportOperationError(error, { operation: 'cancel' }); return false;
+      });
+      return result;
+    } catch (error) { reportOperationError(error, { operation: 'cancel' }); return false; }
+  }
 
   const focusableElements = () => [...(elements.modal?.querySelectorAll?.(FOCUSABLE_SELECTOR) || [])]
     .filter(element => !element.hidden && !element.closest('[hidden], .hidden, [aria-hidden="true"]'));
@@ -36,7 +48,7 @@ export function createConfirmModalController({
     elements.impactSection?.classList.add('hidden');
     action = null;
     if (restore) restoreFocus();
-    if (!confirmed) pendingCancel?.();
+    if (!confirmed) return cancel(pendingCancel);
   }
 
   function open({
@@ -44,7 +56,7 @@ export function createConfirmModalController({
     choices = [], impacts = [], onConfirm = null, onCancel = null,
   } = {}) {
     if (!elements.modal) return false;
-    cancelAction?.();
+    cancel(cancelAction);
     cancelAction = typeof onCancel === 'function' ? onCancel : null;
     beforeOpen();
     const active = document.activeElement;
@@ -83,10 +95,11 @@ export function createConfirmModalController({
     return true;
   }
 
-  function confirm() {
+  async function confirm() {
     const pending = action;
     close({ confirmed: true });
-    pending?.();
+    try { return await pending?.(); }
+    catch (error) { reportOperationError(error, { operation: 'confirm' }); return false; }
   }
 
   function handleKeydown(event) {

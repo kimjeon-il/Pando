@@ -128,36 +128,37 @@ export function createColorPicker() {
     if (picker.hasAttribute('data-color-custom-only')) control.element.scrollIntoView({ block: 'nearest' });
   }
 
-  function resetTerritorialColor() {
+  async function resetTerritorialColor() {
     const ref = dependencies.projectState.state.selected;
     if (ref?.domain !== 'territorial' || ref.type !== 'entity') return false;
-    return dependencies.objectMetadata.commitTerritorialMetadata(ref, 'color', '').ok;
+    return (await dependencies.objectMetadata.commitTerritorialMetadata(ref, 'color', '')).ok;
   }
 
-  function resetGenericFeatureColor() {
+  async function resetGenericFeatureColor() {
     if (dependencies.projectState.state.selected?.domain !== 'generic') return false;
     const feature = dependencies.projectState.state.genericFeatures.find(item => String(item.id) === String(dependencies.projectState.state.selected.id));
     if (!feature) return false;
-    feature.properties ||= {};
     const color = (0, dependencies.colorModel.readDomainColor)(dependencies.colorModel.COLOR_DOMAINS.GENERIC, { feature }, { fallback: (0, dependencies.objectModelA.defaultGenericFeatureColor)(feature) });
     if (color.isDefault) {
       const defaultColor = (0, dependencies.objectModelA.defaultGenericFeatureColor)(feature);
       syncColorPicker('generic', { value: defaultColor, defaultColor, isDefault: true });
       return true;
     }
-    dependencies.domains.projectDomain.recordHistory();
-    (0, dependencies.colorModel.writeDomainColor)(dependencies.colorModel.COLOR_DOMAINS.GENERIC, { feature }, '', { clear: true, fallback: (0, dependencies.objectModelA.defaultGenericFeatureColor)(feature) });
-    (0, dependencies.propertyEditingA.applyGenericSelectionIntent)(String(feature.id), true);
-    dependencies.domains.projectDomain.queueAutosave();
+    const generation=dependencies.domains.projectDomain.getGeneration(),id=String(feature.id);
+    const result=await dependencies.domains.projectDomain.executeCommand({ commandId: 'generic.color-reset',targets: [{ domain: 'generic',id }],payload: { id } });
+    if(!result.ok)throw Object.assign(new Error(result.error.message),{ code: result.error.code });
+    if(generation!==dependencies.domains.projectDomain.getGeneration() || dependencies.projectState.state.projectReplacing)return false;
+    if(dependencies.projectState.state.selected?.domain==='generic' && dependencies.projectState.state.selected.id===id)
+      await (0, dependencies.propertyEditingA.applyGenericSelectionIntent)(id,true);
     (0, dependencies.feedback.setActionStatus)('기타 객체 색상을 기본값으로 되돌렸습니다.', 'success');
     return true;
   }
 
-  function applyColorPickerSelection(kind, value, isDefault = false) {
+  async function applyColorPickerSelection(kind, value, isDefault = false) {
     if (kind === 'multiProperties') {
       const color = normalizeEditorColor(value, '#3f6fae');
       syncColorPicker('multiProperties', { value: color, defaultColor: color, isDefault: false });
-      (0, dependencies.objectOperationsA.batchSetColor)(color);
+      await (0, dependencies.objectOperationsA.batchSetColor)(color);
       return true;
     }
     if (isDefault) {
@@ -168,7 +169,7 @@ export function createColorPicker() {
     if (kind === 'entity') {
       const ref = dependencies.projectState.state.selected;
       if (ref?.domain !== 'territorial') return false;
-      return dependencies.objectMetadata.commitTerritorialMetadata(ref, 'color', color).ok;
+      return (await dependencies.objectMetadata.commitTerritorialMetadata(ref, 'color', color)).ok;
     }
     if (kind === 'distribution') {
       if (dependencies.projectState.state.selected?.domain !== 'distribution') return false;
@@ -180,7 +181,7 @@ export function createColorPicker() {
       return (0, dependencies.objectMetadata.commitHydroEdit)('editorColor', normalizeEditorColor(value, dependencies.hydroPresentation.HYDRO_TOOL_CONFIG[feature.properties.category].color));
     }
     if (dependencies.projectState.state.selected?.domain !== 'generic') return false;
-    (0, dependencies.objectMetadata.commitGenericFeatureMeta)('color', color);
+    await (0, dependencies.objectMetadata.commitGenericFeatureMeta)('color', color);
     return true;
   }
 
@@ -236,6 +237,18 @@ export function createColorPicker() {
   }
 
   function bindColorPickers() {
+    const commitColor = async (picker, kind, value, isDefault, close) => {
+      try {
+        const accepted = await applyColorPickerSelection(kind, value, isDefault);
+        if (accepted && close) closeColorPicker(picker, { restoreFocus: true });
+        return accepted;
+      } catch (error) {
+        dependencies.readiness.reliabilityDiagnostic.push({ category: 'editor-color', code: error?.code || 'PL-EDITOR-COLOR',
+          message: String(error?.message || error), stack: String(error?.stack || '') });
+        dependencies.feedback.setActionStatus('객체 색상을 변경하지 못했습니다.', 'error', 4200);
+        return false;
+      }
+    };
     document.querySelectorAll('[data-color-picker]').forEach(picker => {
       const kind = picker.dataset.colorPicker;
       const trigger = picker.querySelector('.ui-color-trigger');
@@ -246,20 +259,18 @@ export function createColorPicker() {
       const customOnly = picker.hasAttribute('data-color-custom-only');
       populateColorPalette(swatches);
       if (!customOnly) trigger?.addEventListener('click', () => openColorPicker(picker));
-      defaultButton?.addEventListener('click', () => {
-        if (applyColorPickerSelection(kind, '', true)) closeColorPicker(picker, { restoreFocus: true });
-      });
-      swatches?.addEventListener('click', event => {
+      defaultButton?.addEventListener('click', () => commitColor(picker, kind, '', true, true));
+      swatches?.addEventListener('click', async event => {
         const button = event.target.closest('[data-color-value]');
         if (!button) return;
-        if (applyColorPickerSelection(kind, button.dataset.colorValue)) closeColorPicker(picker, { restoreFocus: true });
+        await commitColor(picker, kind, button.dataset.colorValue, false, true);
       });
       customButton?.addEventListener('click', () => {
         if (customOnly && picker.classList.contains('is-open')) closeColorPicker(picker, { restoreFocus: true });
         else openCustomColorPicker(picker);
       });
-      if (!customOnly) input?.addEventListener('change', event => {
-        applyColorPickerSelection(kind, event.target.value);
+      if (!customOnly) input?.addEventListener('change', async event => {
+        await commitColor(picker, kind, event.target.value, false, false);
         trigger?.focus({ preventScroll: true });
       });
     });

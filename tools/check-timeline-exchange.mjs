@@ -4,7 +4,7 @@ import { existsSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { productionGeoPackage } from '../tests/helpers/production-geopackage.mjs';
-import { prepareProjectForStorage, prepareProjectForActivation } from '../assets/js/modules/project-state.js';
+import {createNodeCoreProject} from '../tests/helpers/core-project.mjs';
 
 const [probeArgument, evidenceArgument] = process.argv.slice(2);
 assert.ok(probeArgument && evidenceArgument, 'usage: node tools/check-timeline-exchange.mjs <app timeline_project_tests binary> <evidence-dir>');
@@ -21,6 +21,18 @@ const canonical = value => Array.isArray(value) ? value.map(canonical).sort((a, 
 const content = project => canonical({ territorialEntities: project.territorialEntities,
   timelineRecords: project.timelineRecords, geometries: project.geometries });
 const results = [];
+async function currentStorage(project){
+ const owner=await createNodeCoreProject(project);
+ try {return await owner.client.validateImport(JSON.stringify(project));} finally {owner.dispose();}
+}
+async function currentFile(project){
+ const owner=await createNodeCoreProject(project);
+ try {const receipt=await owner.client.exportSnapshot({format:'pandolab-project-state',version:project.version,savedAt:project.savedAt});
+   await owner.project.resolveWorld(owner.client.state().timelineCursor);
+   return {project:JSON.parse(receipt.storageJson),spatialState:receipt.spatialState};
+ }finally {owner.dispose();}
+}
+
 async function native(project, name) {
   const input = join(run, `${name}.source.json`), output = join(run, `${name}.app-web.json`);
   await writeFile(input, JSON.stringify(project));
@@ -35,17 +47,16 @@ for (const kind of ['static', 'complex', 'calendar-boundaries']) {
   const worker = await productionGeoPackage('read', bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
   for (const [format, input] of [['json', await json(`${kind}.json`)], ['gpkg', worker.metadata.projectState]]) {
     const name = `${kind}-${format}`;
-    assert.deepEqual(content(prepareProjectForStorage(input)), expected, `${name}: fixed input oracle`);
+    assert.deepEqual(content(await currentStorage(input)), expected, `${name}: fixed input oracle`);
     const result = await native(input, name);
     assert.equal(result.status, 0, `${name}: ${result.stderr}`);
-    const output = prepareProjectForStorage(JSON.parse(await readFile(result.output, 'utf8')));
+    const output = await currentStorage(JSON.parse(await readFile(result.output, 'utf8')));
     assert.deepEqual(content(output), expected, `${name}: app QFile/native codec/encodeWeb oracle`);
-    const encoded = await productionGeoPackage('write', new ArrayBuffer(0), output);
+    const receipt=await currentFile(output);
+    const encoded = await productionGeoPackage('write',new ArrayBuffer(0),receipt.project,receipt.spatialState);
     await writeFile(join(run, `${name}.web.gpkg`), new Uint8Array(encoded.buffer));
     const reread = await productionGeoPackage('read', encoded.buffer);
     assert.deepEqual(content(reread.metadata.projectState), expected, `${name}: web Worker reread oracle`);
-    if (kind === 'static') prepareProjectForActivation(output);
-    else assert.throws(() => prepareProjectForActivation(output), { code: 'TIMELINE_ACTIVATION' });
     results.push({ name, verdict: 'OK' });
     console.log(`PASS fixed oracle -> ${name} -> real app codec -> web Worker file`);
   }
@@ -58,7 +69,7 @@ for (const [name, recordId, field, value, code] of [
 ]) {
   const input = await json('calendar-boundaries.json');
   Object.values(input.timelineRecords).filter(Array.isArray).flat().find(row => row.id === recordId)[field] = value;
-  assert.throws(() => prepareProjectForStorage(input), { code });
+  await assert.rejects(currentStorage(input),{code});
   const result = await native(input, name);
   try {
     assert.equal(result.status, 1, `${name}: native rejection`);

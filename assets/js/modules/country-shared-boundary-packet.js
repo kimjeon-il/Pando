@@ -1,7 +1,9 @@
 import { buildGpuStrokeInstances } from './gpu-stroke-geometry.js';
-import { buildCountrySharedBoundarySegments, hasOpposingBoundaryInteriors } from './boundary-topology.js';
-import { buildRenderableBoundarySegments } from './geographic-boundary.js';
+import { buildCountrySharedBoundaryContact, hasOpposingBoundaryInteriors, createPreparedBoundaryStore,
+  attachBoundarySegmentReferences, serializeCountrySharedBoundarySegments, topologyNodeKey } from './boundary-topology.js';
 import { createBoundarySpatialIndex, segmentBounds } from './boundary-spatial-index.js';
+import { connectBoundarySegments } from './boundary-lines.js';
+import { buildRefinedBoundarySegments, MAX_BOUNDARY_EDGE_DEGREES } from './geographic-boundary.js';
 
 export function shouldShowSharedCountryBorders(settings) {
   return settings?.terrainVisible === true && settings?.terrainStyle === 'physical';
@@ -11,58 +13,116 @@ export function visibleCountrySharedSegments(segments = [], isVisible = () => tr
   return segments.filter(segment => segment.ownerIds.some(isVisible));
 }
 
-export function reconcileCountrySharedBoundarySegments(previous, features, changedIds) {
-  const changed = new Set([...changedIds].map(String));
-  if (!changed.size) return previous;
-  const current = [...features];
-  const bounds = new Map(current.map(feature => {
-    const value = [Infinity, Infinity, -Infinity, -Infinity];
-    const visit = item => {
-      if (!Array.isArray(item)) return;
-      if (typeof item[0] === 'number' && typeof item[1] === 'number') {
-        value[0] = Math.min(value[0], item[0]); value[1] = Math.min(value[1], item[1]);
-        value[2] = Math.max(value[2], item[0]); value[3] = Math.max(value[3], item[1]);
-      } else for (const child of item) visit(child);
-    };
-    visit(feature?.geometry?.coordinates);
-    return [String(feature.id), value];
-  }));
-  const keyOf = segment => [segment.start, segment.end]
-    .map(point => `${Math.round(point[0] * 1e7)},${Math.round(point[1] * 1e7)}`)
-    .sort().join('|');
-  const merged = new Map();
-  const add = segment => {
-    const key = keyOf(segment);
-    const prior = merged.get(key);
-    if (prior) prior.ownerIds = [...new Set([...prior.ownerIds, ...segment.ownerIds])].sort();
-    else merged.set(key, { ...segment, ownerIds: [...segment.ownerIds].sort() });
-  };
-  for (const segment of previous) {
-    const remaining = segment.ownerIds.filter(id => !changed.has(id));
-    if (remaining.length >= 2) add({ ...segment, ownerIds: remaining });
+const sharedSegmentKey = segment => [topologyNodeKey(segment.start), topologyNodeKey(segment.end)].sort().join('|');
+const contactKey = ids => JSON.stringify([...ids].sort());
+
+/** Prepared features and contact adjacency survive Worker patch messages. */
+export function createCountrySharedBoundaryState() {
+  const preparedStore = createPreparedBoundaryStore();
+  const contacts = new Map(), contactsByOwner = new Map(), edges = new Map();
+  let contactComputationCount = 0;
+  function updateEdge(key) {
+    const record = edges.get(key);
+    if (!record.contributions.size) { edges.delete(key); return; }
+    const segments = [...record.contributions.values()];
+    if (segments.length === 1) { record.value = segments[0]; return; }
+    const refs = [];
+    for (const segment of segments) for (const ref of segment.refs) {
+      if (!refs.some(previous => previous.featureId === ref.featureId && previous.polygonIndex === ref.polygonIndex
+        && previous.ringIndex === ref.ringIndex && previous.segmentIndex === ref.segmentIndex)) refs.push(ref);
+    }
+    record.value = { ...segments[0], ownerIds: [...new Set(segments.flatMap(segment => segment.ownerIds))].sort(), refs };
   }
-  const pairKeys = new Set();
-  for (const feature of current) {
-    const id = String(feature.id);
-    if (!changed.has(id)) continue;
-    for (const other of current) {
-      const otherId = String(other.id);
-      if (id === otherId) continue;
-      const pairKey = [id, otherId].sort().join('|');
-      if (pairKeys.has(pairKey)) continue;
-      pairKeys.add(pairKey);
-      const left = bounds.get(id), right = bounds.get(otherId);
-      if (left[0] > right[2] + 1e-7 || right[0] > left[2] + 1e-7
-        || left[1] > right[3] + 1e-7 || right[1] > left[3] + 1e-7) continue;
-      for (const segment of buildCountrySharedBoundarySegments([feature, other])) add(segment);
+  function removeContact(key) {
+    const contact = contacts.get(key);
+    if (!contact) return;
+    for (const id of contact.ids) {
+      const adjacent = contactsByOwner.get(id);
+      adjacent.delete(key);
+      if (!adjacent.size) contactsByOwner.delete(id);
+    }
+    for (const segment of contact.segments) {
+      const edgeKey = sharedSegmentKey(segment);
+      const record = edges.get(edgeKey);
+      if (!record) continue;
+      record.contributions.delete(key);
+      updateEdge(edgeKey);
+    }
+    contacts.delete(key);
+  }
+  function addContact(ids, segments) {
+    if (!segments.length) return;
+    const key = contactKey(ids);
+    contacts.set(key, { ids, segments });
+    for (const id of ids) {
+      if (!contactsByOwner.has(id)) contactsByOwner.set(id, new Set());
+      contactsByOwner.get(id).add(key);
+    }
+    for (const segment of segments) {
+      const edgeKey = sharedSegmentKey(segment);
+      if (!edges.has(edgeKey)) edges.set(edgeKey, { contributions: new Map(), value: segment });
+      edges.get(edgeKey).contributions.set(key, segment);
+      updateEdge(edgeKey);
     }
   }
-  return [...merged.values()];
+  function reconcile(changed) {
+    const obsolete = new Set([...changed].flatMap(id => [...(contactsByOwner.get(id) || [])]));
+    for (const key of obsolete) removeContact(key);
+    const visited = new Set();
+    for (const id of changed) {
+      const left = preparedStore.get(id);
+      if (!left?.segments.length) continue;
+      for (const right of preparedStore.nearby(left.bounds)) {
+        if (left.id === right.id) continue;
+        const ids = [left.id, right.id].sort(), key = contactKey(ids);
+        if (visited.has(key)) continue;
+        visited.add(key);
+        contactComputationCount++;
+        addContact(ids, buildCountrySharedBoundaryContact(left, right));
+      }
+    }
+  }
+  function seed(segments, changed) {
+    contacts.clear(); contactsByOwner.clear(); edges.clear();
+    const pairs = new Map();
+    for (const source of segments) {
+      const ownerIds = source.ownerIds.filter(id => preparedStore.get(id) && !changed.has(id));
+      if (ownerIds.length < 2) continue;
+      const segment = attachBoundarySegmentReferences({ ...source, ownerIds,
+        ...(source.refs ? { refs: source.refs.filter(ref => ownerIds.includes(String(ref.featureId))) } : {}) }, preparedStore);
+      for (let left = 0; left < ownerIds.length; left++) for (let right = left + 1; right < ownerIds.length; right++) {
+        const ids = [ownerIds[left], ownerIds[right]].sort(), key = contactKey(ids);
+        if (!pairs.has(key)) pairs.set(key, { ids, segments: [] });
+        pairs.get(key).segments.push({ ...segment, ownerIds: ids,
+          refs: segment.refs.filter(ref => ids.includes(String(ref.featureId))) });
+      }
+    }
+    for (const pair of pairs.values()) addContact(pair.ids, pair.segments);
+    reconcile(changed);
+  }
+  function replace(features, { cachedSegments, changedIds } = {}) {
+    const changed = preparedStore.replace(features);
+    if (cachedSegments) seed(cachedSegments, changedIds === undefined ? changed : new Set([...changedIds].map(String)));
+    else reconcile(changed);
+    return changed;
+  }
+  function patch(features = [], removedIds = []) {
+    const changed = preparedStore.patch(features, removedIds);
+    reconcile(changed);
+    return changed;
+  }
+  return { preparedStore, replace, patch,
+    segments: () => [...edges.values()].map(record => record.value),
+    features: () => preparedStore.values().map(prepared => prepared.feature),
+    stats: () => ({ ...preparedStore.stats(), contactComputationCount, contactCount: contacts.size }) };
 }
 
 // Keep each owner set contiguous so the GPU can apply the same per-country
 // visibility rule as Canvas without rebuilding geometry when visibility flips.
-export function prepareCountrySharedBoundaryPacket(segments = [], features = []) {
+export function prepareCountrySharedBoundaryPacket(segments = [], features = [], { preparedStore, maxEdgeDegrees = MAX_BOUNDARY_EDGE_DEGREES } = {}) {
+  const store = preparedStore || createPreparedBoundaryStore();
+  if (!preparedStore) store.replace(features);
+  segments = segments.map(segment => segment.refs || !features.length ? segment : attachBoundarySegmentReferences(segment, store));
   const byId = new Map(features.map(feature => [String(feature.id), feature]));
   const internalOwners = {};
   const excluded = createBoundarySpatialIndex();
@@ -81,7 +141,7 @@ export function prepareCountrySharedBoundaryPacket(segments = [], features = [])
       exteriorSegments.add(segment); // The territorial stroke already owns sibling contacts.
       return;
     }
-    if (!hasOpposingBoundaryInteriors(segment, owners)) {
+    if (!hasOpposingBoundaryInteriors(segment, owners.map(owner => String(owner.id)))) {
       exteriorSegments.add(segment);
       children.forEach(id => outlineIds.add(id));
       const row = { a: segment.start, b: segment.end, ownerIds: children };
@@ -96,7 +156,7 @@ export function prepareCountrySharedBoundaryPacket(segments = [], features = [])
   const outlines = [];
   for (const id of [...outlineIds].sort()) {
     if (byId.get(id).boundaryRootId !== id) continue;
-    for (const [start, end] of buildRenderableBoundarySegments(byId.get(id).geometry)) {
+    for (const [start, end] of store.get(id).renderableSegments) {
       const row = { a: start, b: end };
       const bounds = segmentBounds(row).map((value, index) => value + (index < 2 ? -1e-7 : 1e-7));
       const dx = end[0] - start[0], dy = end[1] - start[1];
@@ -118,15 +178,36 @@ export function prepareCountrySharedBoundaryPacket(segments = [], features = [])
       if (cursor < 1 - 1e-9) outlines.push({ start: point(cursor), end, ownerIds: [id] });
     }
   }
-  const packet = prepareStrokePacket(segments.filter(segment => !exteriorSegments.has(segment)));
+  const packet = prepareStrokePacket(segments.filter(segment => !exteriorSegments.has(segment)), maxEdgeDegrees);
   return { ...packet, ownerIds: [...new Set([...packet.ownerIds, ...byId.keys()])], internalOwners,
-    outlineOverrides: prepareStrokePacket(outlines), outlineOwnerIds: [...outlineIds].sort() };
+    outlineOverrides: prepareStrokePacket(outlines, maxEdgeDegrees), outlineOwnerIds: [...outlineIds].sort() };
 }
 
-function prepareStrokePacket(segments) {
-  const ordered = [...segments].sort((left, right) =>
+function prepareStrokePacket(segments, maxEdgeDegrees) {
+  const sources = [...segments].sort((left, right) =>
     left.ownerIds.join('|').localeCompare(right.ownerIds.join('|')));
+  const groups = new Map();
+  for (const segment of sources) {
+    const key = segment.ownerIds.join('|');
+    if (!groups.has(key)) groups.set(key, { ownerIds: segment.ownerIds, edges: [] });
+    groups.get(key).edges.push([segment.start, segment.end]);
+  }
+  // Classification and overlap subtraction use source edges. Only the final
+  // display chains are seam-split and refined, retaining a phase across seams.
+  const ordered = [], phases = [];
+  for (const { ownerIds, edges } of groups.values()) {
+    for (const line of connectBoundarySegments(edges)) {
+      let phase = 0;
+      const renderable = buildRefinedBoundarySegments({ type: 'LineString', coordinates: line }, maxEdgeDegrees);
+      for (const [start, end] of renderable) {
+        ordered.push({ start, end, ownerIds });
+        phases.push(phase);
+        phase += Math.hypot(end[0] - start[0], end[1] - start[1]);
+      }
+    }
+  }
   const startsEnds = new Float32Array(ordered.length * 4);
+  const chainPhase = new Float32Array(phases);
   const ownerRanges = {};
   ordered.forEach((segment, index) => {
     const key = segment.ownerIds.join('|');
@@ -135,11 +216,12 @@ function prepareStrokePacket(segments) {
     startsEnds.set([...segment.start, ...segment.end], index * 4);
   });
   return {
-    segments: ordered,
+    segments: serializeCountrySharedBoundarySegments(ordered),
     startsEnds,
+    chainPhase,
     ownerRanges,
     ownerIds: [...new Set(ordered.flatMap(segment => segment.ownerIds))],
-    preparedGeometry: buildGpuStrokeInstances(startsEnds, null, ownerRanges),
+    preparedGeometry: buildGpuStrokeInstances(startsEnds, chainPhase, ownerRanges),
   };
 }
 

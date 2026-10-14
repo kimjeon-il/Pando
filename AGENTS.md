@@ -6,8 +6,8 @@ or `AGENTS.override.md` provides more specific rules.
 ## Branch and permanent worktree policy (mandatory)
 
 Read [docs/branch-policy.md](docs/branch-policy.md) before choosing a branch or
-local worktree. These rules apply to this repository and its independently
-managed Web/App counterpart:
+local worktree. Web lives at the repository root and the Qt app lives in
+`native/`; both use the same commit and branch:
 
 - Reuse the long-lived branches `work/ui`, `work/objects`, `work/gis`, and
   `work/places` according to the task's primary purpose; `main` is the
@@ -28,8 +28,7 @@ managed Web/App counterpart:
   resolve conflicts without silently choosing one side.
 - Never merge `work/*` into `main`, commit directly to `main`, deploy, or
   transfer changes between categories without explicit user instructions.
-- Web and App are separate repositories: matching branch names do not imply
-  matching code or commits. Verify and maintain each repository independently.
+- Verify Web and App changes independently even though they share a commit.
 - Exception branches or temporary worktrees require a concrete need and user
   approval. Do not delete them automatically after integration.
 

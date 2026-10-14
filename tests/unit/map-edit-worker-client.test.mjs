@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+const ready = dataRevision => ({ rpc: 'pandolab-worker-rpc', protocolVersion: 1, type: 'event', operation: 'map-edit.ready', payload: { dataRevision } });
+
 import { createMapEditWorkerClient } from '../../assets/js/modules/map-edit-worker-client.js';
 
 test('timed out geometry calculation terminates its worker and retries from current project data', async t => {
@@ -12,7 +14,7 @@ test('timed out geometry calculation terminates its worker and retries from curr
       const worker = createFakeWorker();
       if (!workers.length) worker.postMessage = function(message) {
         this.messages.push(message);
-        if (message.type === 'rebase') Promise.resolve().then(() => this.onmessage({ data: { type: 'ready' } }));
+        if (message.operation === 'map-edit.rebase') Promise.resolve().then(() => this.onmessage({ data: ready(message.payload.dataRevision) }));
       };
       workers.push(worker);
       return worker;
@@ -31,7 +33,7 @@ test('timed out geometry calculation terminates its worker and retries from curr
   assert.equal(workers[0].terminated, true);
   features = [{ id: 'BBB', geometry: null }];
   await client.execute('territory-components', { payload: {} });
-  assert.deepEqual(workers[1].messages[0].editSources.patches.map(row => ({...row.metadata, geometry: row.geometry})), features);
+  assert.deepEqual(workers[1].messages[0].payload.editSources.patches.map(row => ({...row.metadata, geometry: row.geometry})), features);
 });
 
 function createFakeWorker() {
@@ -42,9 +44,9 @@ function createFakeWorker() {
     onerror: null,
     postMessage(message) {
       this.messages.push(message);
-      if (message.type === 'rebase') Promise.resolve().then(() => this.onmessage({ data: { type: 'ready' } }));
-      if (message.type === 'execute') Promise.resolve().then(() => this.onmessage({
-        data: { type: 'result', requestId: message.requestId, dataRevision: message.dataRevision, ok: true, result: { affectedIds: ['AAA'] } },
+      if (message.operation === 'map-edit.rebase') Promise.resolve().then(() => this.onmessage({ data: ready(message.payload.dataRevision) }));
+      if (message.type === 'request') Promise.resolve().then(() => this.onmessage({
+        data: { ...message, type: 'result', ok: true, result: { affectedIds: ['AAA'] } },
       }));
     },
     terminate() { this.terminated = true; },
@@ -65,7 +67,7 @@ test('map edit worker client rebases, executes and commits with one revision str
   const response = await client.execute('merge', { targetId: 'AAA' });
   assert.deepEqual(response.result.affectedIds, ['AAA']);
   client.commit(response.requestId);
-  assert.deepEqual(workers[0].messages.map(message => message.type), ['rebase', 'execute', 'commit']);
+  assert.deepEqual(workers[0].messages.map(message => message.operation), ['map-edit.rebase', 'merge', 'map-edit.commit']);
 });
 
 test('map edit worker client relies on postMessage structured cloning for scoped patches', async () => {
@@ -81,9 +83,9 @@ test('map edit worker client relies on postMessage structured cloning for scoped
   client.rebase();
   await Promise.resolve();
   client.syncPatch(['AAA', 'MISSING', 'AAA']);
-  assert.deepEqual(worker.messages[1].removedIds, ['MISSING']);
-  assert.deepEqual(worker.messages[1].features, [feature]);
-  assert.equal(worker.messages[1].features[0], feature);
+  assert.deepEqual(worker.messages[1].payload.removedIds, ['MISSING']);
+  assert.deepEqual(worker.messages[1].payload.features, [feature]);
+  assert.equal(worker.messages[1].payload.features[0], feature);
 });
 
 test('map edit worker client reuses one rebased worker for consecutive operations', async () => {
@@ -97,7 +99,7 @@ test('map edit worker client reuses one rebased worker for consecutive operation
   });
   await client.execute('merge', { targetId: 'AAA' });
   await client.execute('annex', { targetId: 'AAA' });
-  assert.deepEqual(worker.messages.map(message => message.type), ['rebase', 'execute', 'execute']);
+  assert.deepEqual(worker.messages.map(message => message.operation), ['map-edit.rebase', 'merge', 'annex']);
 });
 
 
@@ -110,20 +112,20 @@ test('boundary requests reuse synchronized sources and send only geometry, hiera
     getBoundaryFeatures: () => [{ ...country, properties: { color } }, unit], schedule: callback => Promise.resolve().then(callback) });
   t.after(() => client.stop());
   await client.execute('boundary-prepare', { payload: { targetIds: ['A'], mode: 'coast' } });
-  assert.equal(worker.messages[0].boundaryIds.length, 2);
+  assert.equal(worker.messages[0].payload.boundaryIds.length, 2);
   color = 'blue';
   await client.execute('boundary-prepare', { payload: { targetIds: ['A'], mode: 'coast' } });
-  assert.equal(worker.messages.filter(message => message.type === 'boundary-sync').length, 0);
+  assert.equal(worker.messages.filter(message => message.operation === 'map-edit.boundary-sync').length, 0);
   unit = { ...unit, properties: { ...unit.properties, locked: true } };
   await client.execute('boundary-move', { payload: { preparationId: 'test', nodeKey: '0,0', coordinate: [1, 0] } });
-  const patches = worker.messages.filter(message => message.type === 'boundary-sync');
+  const patches = worker.messages.filter(message => message.operation === 'map-edit.boundary-sync');
   assert.equal(patches.length, 1);
-  assert.deepEqual(patches[0].features, [unit]);
-  assert.strictEqual(patches[0].features[0].geometry, unit.geometry);
-  const execute = worker.messages.filter(message => message.type === 'execute').at(-1);
-  assert.equal(execute.payload.preparationId, 'test');
+  assert.deepEqual(patches[0].payload.features, [unit]);
+  assert.strictEqual(patches[0].payload.features[0].geometry, unit.geometry);
+  const execute = worker.messages.filter(message => message.type === 'request').at(-1);
+  assert.equal(execute.payload.payload.preparationId, 'test');
   client.invalidateBoundaryCache();
-  assert.equal(worker.messages.at(-1).type, 'boundary-invalidate');
+  assert.equal(worker.messages.at(-1).operation, 'map-edit.boundary-invalidate');
 });
 
 function manualWorkerClient(t) {
@@ -148,7 +150,7 @@ test('retired edit worker errors cannot clear replacement readiness', t => {
   const retiredError = workers[0].onerror;
   client.stop();
   const revision = client.rebase();
-  workers[1].onmessage({ data: { type: 'ready', dataRevision: revision } });
+  workers[1].onmessage({ data: ready(revision) });
   assert.equal(client.stats().ready, true);
   retiredError({ message: 'retired bootstrap failure' });
   assert.equal(client.stats().ready, true);
@@ -164,9 +166,9 @@ test('retired edit worker ready messages cannot ready a same-revision replacemen
   client.invalidateBoundaryCache();
   assert.equal(workers.length, 2);
   assert.equal(client.stats().dataRevision, revision);
-  retiredMessage({ data: { type: 'ready', dataRevision: revision } });
+  retiredMessage({ data: ready(revision) });
   assert.equal(client.stats().ready, false);
-  workers[1].onmessage({ data: { type: 'ready', dataRevision: revision } });
+  workers[1].onmessage({ data: ready(revision) });
   assert.equal(client.stats().ready, true);
 });
 
@@ -175,7 +177,7 @@ test('stopped edit worker ignores ready messages without a replacement', t => {
   const revision = client.rebase();
   const retiredMessage = workers[0].onmessage;
   client.stop();
-  retiredMessage({ data: { type: 'ready', dataRevision: revision } });
+  retiredMessage({ data: ready(revision) });
   assert.equal(client.stats().ready, false);
   assert.equal(client.stats().workerActive, false);
   assert.equal(workers.length, 1);
@@ -184,7 +186,7 @@ test('stopped edit worker ignores ready messages without a replacement', t => {
 test('active edit worker errors clear readiness without cancelling the native error', t => {
   const { client, workers } = manualWorkerClient(t);
   const revision = client.rebase();
-  workers[0].onmessage({ data: { type: 'ready', dataRevision: revision } });
+  workers[0].onmessage({ data: ready(revision) });
   let prevented = false;
   workers[0].onerror({ message: 'active bootstrap failure', preventDefault: () => { prevented = true; } });
   assert.equal(client.stats().ready, false);

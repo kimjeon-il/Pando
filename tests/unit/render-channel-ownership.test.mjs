@@ -5,6 +5,7 @@ import { makeSvgSceneProxy, rendererOwnsSceneGeometry } from '../../assets/js/mo
 import * as ownership from '../../assets/js/modules/render-channel-ownership.js';
 import { createGpuScene } from '../../assets/js/modules/app-gpu-scene.js';
 import { createInteractionPackets } from '../../assets/js/modules/app-interaction-packets.js';
+import { createRenderSceneBuilder, buildPolygonGeometryPacket } from '../../assets/js/modules/render-scene.js';
 
 test('scene ownership stays reserved through recovery without claiming startup ownership', () => {
   for (const renderer of ['webgl2', 'webgl1', 'webgl-recovering', 'canvas-worker', 'canvas2d']) {
@@ -80,7 +81,7 @@ for (const channel of ['preview', 'draft']) test(`${channel} presentation-only u
   assert.equal(values.has('stroke'), false);
 });
 
-test('rejoining unchanged interaction packets preserves ownership until geometry changes', () => {
+test('rejoining unchanged interaction packets preserves ownership until geometry changes', async t => {
   const values = new Map(), classes = new Set(['selected-candidate']), attributes = new Map();
   let revision = 1;
   const node = {
@@ -92,13 +93,26 @@ test('rejoining unchanged interaction packets preserves ownership until geometry
   };
   const layer = { selectAll: () => ({ each: fn => fn.call(node) }) };
   const packets = createInteractionPackets();
-  packets.connect({ preferences: {}, renderScene: {
-    createRenderSceneBuilder: () => ({ build: data => data }),
+  const previousWorker = globalThis.Worker;
+  globalThis.Worker = class {
+    postMessage(request) {
+      if (request.type !== 'request') return;
+      globalThis.queueMicrotask(() => this.onmessage?.({ data: { ...request, type: 'result', ok: true,
+        result: { packets: request.payload.items.map(item => ({ cacheKey: item.cacheKey, packet: buildPolygonGeometryPacket(item.geometry) })) } } }));
+    }
+    terminate() { this.onmessage = null; }
+  };
+  t.after(() => { packets.initializeInteractionSceneBuilder(); globalThis.Worker = previousWorker; });
+  packets.connect({ preferences: {}, platform: { runtimeAssetUrl: path => path }, feedback: { reportOperationError: error => { throw error; } },
+    projectState: { state: { projection: 'flat' } }, renderScene: {
+    createRenderSceneBuilder,
     selectionGeometryRevision: () => revision, featureFromGeometry: geometry => ({ type: 'Feature', geometry }), syncGpuInteractionState() {},
   }, domains: { renderingDomain: { invalidateGpuInteraction() {} } } });
   packets.initializeInteractionSceneBuilder();
   packets.initializeCurrentGpuInteractionFillItems();
-  assert.equal(packets.syncGpuInteractionLayer('draft', layer), true);
+  assert.equal(packets.syncGpuInteractionLayer('draft', layer), false, 'fill preparation is asynchronous');
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.ok(packets.currentGpuDraftPackets.length);
   ownership.applySvgInteractionOwnership(node, { fillOwner: 'gpu', strokeOwner: 'gpu' });
   assert.equal(packets.syncGpuInteractionLayer('draft', layer), false);
   assert.equal(values.get('fill'), 'none');
@@ -107,6 +121,7 @@ test('rejoining unchanged interaction packets preserves ownership until geometry
   assert.equal(packets.syncGpuInteractionLayer('draft', layer), true);
   assert.equal(values.has('fill'), false);
   assert.equal(values.has('stroke'), false);
+  await new Promise(resolve => setTimeout(resolve, 0));
 });
 
 test('persistent territorial paint and derived boundaries have only the scene renderer as visual owner', async () => {
