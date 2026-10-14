@@ -1,0 +1,832 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r234",
+  "sources": [
+    {
+      "source_key": "r234-esri-yukon-imagery",
+      "title": "World Imagery: three bounded northern Yukon headward, middle-valley and coastal-delta views",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "source_independence": "Independently maintained photographic imagery mosaic, not a retrieval of held Canadian cartographic sheets, naming records or fisheries-plan figures. The selected Yukon scenes are distinct from the exact held Ellesmere and Nevada views. The shared service turn was serialized.",
+      "observed_outcome": "Three separate original image requests each completed HTTP200, image/jpeg, with complete transfers. No fallback, retry or partial-body reading occurred.",
+      "actual_material_read": "All three completed corridor images, private orientation views and clean enlarged western-opening, eastward-link and eastern-delta details. The complete opening-to-marine sequence and every stored part were considered at ordinary corridor scale.",
+      "supports": "Full geographic correspondence, intermediate joins, passage inventory and the actual eastern delta-to-sea ending.",
+      "limits": "Imagery supplies no hydronym or formal registry status. Acquisition dates of the constituent mosaic scenes and present hydraulic conditions were not established. Original images and reading aids are private."
+    },
+    {
+      "source_key": "r234-chs-arc4032024",
+      "title": "Canadian Sailing Directions, ARC403: Western Arctic",
+      "publisher": "Canadian Hydrographic Service, Fisheries and Oceans Canada",
+      "edition": "2024/03",
+      "catalogue_number": "Fs74-40E-PDF",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/chs-shc-ARC403-eng-202403-41232306.pdf",
+      "source_independence": "Physically retained original with an established successful acquisition and separate Western Arctic publication identity. Distinct from held ARC401 and ATL120; no new external request or missing-source reacquisition occurred.",
+      "actual_material_read": "Cover, edition, catalogue and reproduction notice; Chapter1 printed1-6 and1-7, especially paragraphs88,93–96 and104–105. Printed1-6 was visually inspected in the retained original as well as the local text.",
+      "supports": "Explicit Blow River and delta identity, placement of Trent Bay between Running and Blow mouths, and placement of Shoalwater Bay between the Blow delta and Tent Island. This geographically distinguishes the receiving delta to which the selected continuous river leads.",
+      "limits": "Coastal prose does not give separate names to the western feeder or chosen delta distributary. No inland river name is inferred directly from a nearby label. Used for historical geographic correspondence, not current navigation advice.",
+      "use_notice": "The original permits personal noncommercial reproduction and requires permission for commercial reproduction. Only own factual synthesis and ordinary bibliography are delivered; no original page, image or derivative is redistributed."
+    },
+    {
+      "source_key": "r234-usgstopo-nevada-overview",
+      "title": "USGSTopo, The National Map: bounded northwestern Nevada corridor view",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "source_type": "Original cartographic service image",
+      "actual_material_read": "Full selected corridor overview from the northern Wall Canyon opening through the actual western Black Rock Desert endpoint. Original pixels and local reading crops were visually inspected.",
+      "publication_identity": "Independently maintained multiscale National Map reference cartography, identified in the retained successful original service metadata; not a recovery route to a stopped report or unknown old output.",
+      "acquisition_outcome": "Completed direct HTTP200 image/png; original transfer complete before visual reading.",
+      "limits": "Ordinary geographic and naming correspondence only; no formal registry verification, current-flow guarantee or original-image redistribution."
+    },
+    {
+      "source_key": "r234-usgstopo-nevada-upper",
+      "title": "USGSTopo, The National Map: bounded northwestern Nevada corridor view",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "source_type": "Original cartographic service image",
+      "actual_material_read": "Chosen opening, repeated Wall Canyon Creek labels, Cottonwood junction and northern canyon approach. Original pixels and local reading crops were visually inspected.",
+      "publication_identity": "Independently maintained multiscale National Map reference cartography, identified in the retained successful original service metadata; not a recovery route to a stopped report or unknown old output.",
+      "acquisition_outcome": "Completed direct HTTP200 image/png; original transfer complete before visual reading.",
+      "limits": "Ordinary geographic and naming correspondence only; no formal registry verification, current-flow guarantee or original-image redistribution."
+    },
+    {
+      "source_key": "r234-usgstopo-nevada-middle",
+      "title": "USGSTopo, The National Map: bounded northwestern Nevada corridor view",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "source_type": "Original cartographic service image",
+      "actual_material_read": "Cottonwood/Pole Canyon passage, High Rock Creek receiving junction and lake entry, High Rock Lake–Fly Creek spillway, Fly Creek marsh approach and Mud Meadow Reservoir. Original pixels and local reading crops were visually inspected.",
+      "publication_identity": "Independently maintained multiscale National Map reference cartography, identified in the retained successful original service metadata; not a recovery route to a stopped report or unknown old output.",
+      "acquisition_outcome": "Completed direct HTTP200 image/png; original transfer complete before visual reading.",
+      "limits": "Ordinary geographic and naming correspondence only; no formal registry verification, current-flow guarantee or original-image redistribution."
+    },
+    {
+      "source_key": "r234-usgstopo-nevada-lower",
+      "title": "USGSTopo, The National Map: bounded northwestern Nevada corridor view",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "source_type": "Original cartographic service image",
+      "actual_material_read": "Mud Meadow Reservoir outlet, broad lower valley, fans, shallow pans and actual terminal playa. Original pixels and local reading crops were visually inspected.",
+      "publication_identity": "Independently maintained multiscale National Map reference cartography, identified in the retained successful original service metadata; not a recovery route to a stopped report or unknown old output.",
+      "acquisition_outcome": "Completed direct HTTP200 image/png; original transfer complete before visual reading.",
+      "limits": "Ordinary geographic and naming correspondence only; no formal registry verification, current-flow guarantee or original-image redistribution."
+    },
+    {
+      "source_key": "r234-sinclair1963-recon20",
+      "title": "Ground-water appraisal of the Black Rock Desert area, northwestern Nevada",
+      "authors": "William C. Sinclair",
+      "publisher": "State of Nevada Department of Conservation and Natural Resources, prepared cooperatively by the U.S. Geological Survey",
+      "publication": "Ground-Water Resources—Reconnaissance Series, Report20",
+      "publication_date": "October1963",
+      "official_url": "https://data.nbmg.unr.edu/public/Geothermal/GreyLiterature/Sinclair_BlckRckDsrt_GrndwtrApp_1963.pdf",
+      "source_type": "Original public-agency field-investigation report",
+      "publication_identity": "Own Black Rock Desert reconnaissance project with about30 days of fieldwork during January1960–May1963, described on printed3; not the stopped Diamond Valley, Walker or Big Smoky/Clayton/Alkali studies.",
+      "actual_material_read": "Cover and title/imprint; foreword and contents; original authorial location/extent prose on printed2, investigation methods on printed3, drainage on printed7–8, and bounded discharge/evaporation context on printed15–16. Cover and drainage pages were also visually read.",
+      "acquisition_outcome": "Completed direct HTTP200 application/pdf,86-page scan containing duplicated report material and the advertised plate.",
+      "map_read_scope": "Plate1 extracted credit text identifies AMS Vya/Lovelock1958 base and adapted Willden1961 geology. Plate pixels and borrowed underlying cartography are not used as geographic evidence; no unseen-map claim is made.",
+      "limits": "Historical field-study account. The cover’s State Engineer property/do-not-remove stamp concerns its office copy, not a distribution prohibition. Own factual reading and ordinary bibliography only."
+    },
+    {
+      "source_key": "r234-ineter-pfafstetter2014",
+      "title": "Cuencas Hidrográficas de Nicaragua bajo la metodología Pfafstetter: Álbum de mapas",
+      "publisher": "INETER, ANA, UNI and GIZ / PROATAS",
+      "year": 2014,
+      "official_url": "https://cira.unan.edu.ni/wp-content/uploads/2016/07/Album-Cuencas-Nic-Revisado_ANA.pdf",
+      "material_actually_read": "Retained lawful original: cover and credits/reproduction notice; PDF page 11 / printed 5 national map; PDF page 22 / printed 16 Pacific-basin description and tables; PDF page 23 / printed 17 Pacific-basin map, with target-specific original map enlargement.",
+      "source_role": "Direct Estero Real system setting and distinct Olomega/Tecomapa reach geography; generalized national and basin-scale cartography.",
+      "own_observation": "The atlas distinguishes the Pacific drainage from the Río Negro neighboring drainage, maps the Olomega and Tecomapa upper reaches separately, and connects the Estero Real coastal system to the Fonseca receiving setting.",
+      "limits": "The basin map prints scale 1:3,000,000 and the national map 1:1,900,000; neither alone resolves every small opening or precise current channel. Reserved publication rights, commercial-use/reproduction prohibition and prior INETER permission for educational/divulgative reproduction are preserved. Factual reading only; no source maps or derivatives are published."
+    },
+    {
+      "source_key": "r234-marena-estero2006",
+      "title": "Plan de Manejo del Área Protegida Reserva Natural Delta del Estero Real",
+      "publisher": "Ministerio del Ambiente y los Recursos Naturales, Dirección General de Áreas Protegidas; prepared by FUNDAR and NICATIERRA under PRODEP coordination",
+      "year": 2006,
+      "publication_date": "June 2006",
+      "official_url": "https://www.crc.uri.edu/download/Plan_del_Estero_Real.pdf",
+      "material_actually_read": "Original PDF cover, contents and introductory project identity; printed/PDF pages 9,19–20,23,26–27,31–32,35,39,59–60 and72. Original map pixels on page23 (Mapa Base) and page72 (Concesiones Camaroneras), including map margins and December2005 SIG credits, were personally inspected.",
+      "source_role": "Independent reserve-specific management-plan cartography and authorial hydrographic/estuarine context.",
+      "own_observation": "The 1:140,000 base map repeatedly labels the continuous Estero Real river/estuary from the eastern lowlands through Puerto Morazán and the large western tidal bends. It places the lower arm in the Fonseca setting. The separate concession map documents shrimp-farming margins around the principal channel.",
+      "limits": "Historical management-plan information, not current legal, environmental-risk or operating advice. Original map credits identify Luis A. Valerio H. for SIG preparation, Fabio Buitrago for review, NAD27/UTM zone16 and December2005. No officials-only or limited-distribution notice was found in the inspected front matter/map margins. No redistribution permission is inferred. Its reserve-management project is distinct from the held national ENDE-REDD+2018 atlas and INETER national-base service.",
+      "public_copy_url": "https://www.crc.uri.edu/download/Plan_del_Estero_Real.pdf",
+      "hosting_note": "Institutional copy hosted by the University of Rhode Island Coastal Resources Center; original credits MARENA/FUNDAR/NICATIERRA."
+    },
+    {
+      "source_key": "r234-esri-nicaragua-upper",
+      "title": "World Imagery: bounded Malpaisillo–Olomega-side headward corridor view",
+      "publisher": "Esri; retained service credits Esri, Vantor, Earthstar Geographics and the GIS User Community",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "accessed_date": "2026-10-13",
+      "material_actually_read": "Completed original image, entire selected upper corridor and a local opening enlargement; retained service description and attribution.",
+      "source_role": "Independent photographic geographic correspondence of the selected southern opening, cultivated plain and upper valley.",
+      "limits": "Mosaic dates and specific contributing image date unverified. Imagery establishes geographic corridor, not names, perennial flow or present control-structure operation. Source image and reading aids remain private."
+    },
+    {
+      "source_key": "r234-esri-nicaragua-middle",
+      "title": "World Imagery: bounded middle Estero Real plain and wetland corridor view",
+      "publisher": "Esri; retained service credits Esri, Vantor, Earthstar Geographics and the GIS User Community",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "accessed_date": "2026-10-13",
+      "material_actually_read": "Completed original image across the upper-valley overlap, middle plain, wetland through-passage and lower-channel overlap.",
+      "source_role": "Independent photographic corroboration of the middle connections and transition into the broad estuary.",
+      "limits": "Minor clouds and mosaic differences do not establish current hydraulic conditions. Names come from cartographic publications. Source imagery and reading aids remain private."
+    },
+    {
+      "source_key": "r234-esri-nicaragua-coast",
+      "title": "World Imagery: bounded lower Estero Real estuary and selected terminal view",
+      "publisher": "Esri; retained service credits Esri, Vantor, Earthstar Geographics and the GIS User Community",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "accessed_date": "2026-10-13",
+      "material_actually_read": "Completed original image, large estuarine bends, pond-lined channel, both final selected parts and actual endpoint setting.",
+      "source_role": "Independent photographic correspondence of the lower estuary, fragment join and terminal receiving water.",
+      "limits": "Does not assign names to individual side channels, identify pond ownership or establish present sluice/tidal operation. Source image and reading aids remain private."
+    },
+    {
+      "source_key": "r234-senamhi-chancay-huaral2015",
+      "title": "Impacto del cambio socio-económico y climático en la gestión de recursos hídricos (Cuenca del río Chancay-Huaral)",
+      "author": "Darwin Santos Villar; reviewer Waldo Lavado Casimiro",
+      "publisher": "Servicio Nacional de Meteorología e Hidrología del Perú, Dirección General de Hidrología y Recursos Hídricos",
+      "date": "November2015",
+      "official_url": "https://sigrid.cenepred.gob.pe/docs/PARA%20PUBLICAR/SENAMHI/Impacto%20del%20Cambio%20Socio%20Economico%20y%20Climatico%20en%20la%20Gestion%20de%20Recursos%20Hidricos.pdf",
+      "publication_identity": "Independently authored hydrological modeling project: own WEAP calibration/validation, ArcGIS catchment delineation, SENAMHI monthly records and CMIP5 scenario analysis. Original credits identify Santos Villar and November2015. It concerns Chancay-Huaral in Lima, rather than the held Chancay-Lambayeque plan/service; it is a separate modeling output from the June2012 quality-monitoring cartographic publication and INRENA2002 hydrobalance study.",
+      "acquisition": "Normal original completedHTTP200 application/pdf,56pages. Original read locally after actual completion; no retry.",
+      "actual_material_read": [
+        "Cover/credits and contents, bounded extracted text",
+        "Study-area and river/tributary prose, printed10–11",
+        "Own Figure1 geographic/hydrographic map, printed12/PDF13, visually read; caption explicitly Fuente: Elaboración propia",
+        "Regulated-lake, transfer and river-use context, printed16–17 and19, bounded text",
+        "Own ArcGIS/WEAP methods, printed27–29, and Figure14 on printed28/PDF29 with caption on printed29, visually read",
+        "References printed49–50 for publication/provenance identity",
+        "Figure4 hydraulic diagram on printed18/PDF19 visually read before the later INRENA2002 request; its detailed topology and labels are excluded from the substantive finding"
+      ],
+      "map_provenance": "Figure1 explicitly credits own preparation. Figure14 is the author’s own delineation/network for this modeling study, described in the methods. Figure4 has no explicit source credit in its caption; the surrounding chapter cites PROFODUA2005 and ANA2011a, and the bibliography also lists MINAG2002. Its actual underlying diagram source cannot be established and is not asserted to be independent. Figure5 is attributed to ANA2002b and was not visually read or used.",
+      "source_scope_limits": "Only the actually read own map/model geography and bounded authorial prose support the finding. Detailed Figure4 content is excluded, and neither Figure4 nor Figure5 nor any equivalent underlying map was freshly read or recovered after the INRENA2002 pause. Historical station/management context does not establish current operations. No formal-registry verification."
+    },
+    {
+      "source_key": "r234-esri-chancay-opening",
+      "title": "World Imagery: Chancay-Huaral selected highland opening detail",
+      "publisher": "Esri and imagery contributors",
+      "date": "Mosaic dates unverified; accessed2026-10-13",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "publication_identity": "Independently maintained photographic imagery product, distinct from national hydrology/geological/transport publications and the stopped northern Ellesmere and Nevada selected views.",
+      "acquisition": "Normal original completedHTTP200 image/jpeg and was read locally after terminal completion.",
+      "actual_material_read": "Chosen eastern swale, lake-cluster-side receiving join and southwest continuation; complete source image and private orientation aid visually inspected.",
+      "source_scope_limits": "Geographic corridor evidence only. No image-derived river name, present operation, exact-bank or survey-date assertion. Originals and all reading aids remain private."
+    },
+    {
+      "source_key": "r234-esri-chancay-upper",
+      "title": "World Imagery: Chancay-Huaral selected upper corridor overview",
+      "publisher": "Esri and imagery contributors",
+      "date": "Mosaic dates unverified; accessed2026-10-13",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "publication_identity": "Independently maintained photographic imagery product, distinct from national hydrology/geological/transport publications and the stopped northern Ellesmere and Nevada selected views.",
+      "acquisition": "Normal original completedHTTP200 image/jpeg and was read locally after terminal completion. First direct502 resolved by one identical exact-URL retry.",
+      "actual_material_read": "Upper selected feeder and Vichaycocha receiving valley through its eastern tributary mouths; complete source image and private orientation aid visually inspected.",
+      "source_scope_limits": "Geographic corridor evidence only. No image-derived river name, present operation, exact-bank or survey-date assertion. Originals and all reading aids remain private."
+    },
+    {
+      "source_key": "r234-esri-chancay-middle",
+      "title": "World Imagery: Chancay-Huaral selected middle corridor overview",
+      "publisher": "Esri and imagery contributors",
+      "date": "Mosaic dates unverified; accessed2026-10-13",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "publication_identity": "Independently maintained photographic imagery product, distinct from national hydrology/geological/transport publications and the stopped northern Ellesmere and Nevada selected views.",
+      "acquisition": "Normal original completedHTTP200 image/jpeg and was read locally after terminal completion.",
+      "actual_material_read": "Baños-side turn, westward valley, Acos–Carac-side joins and southwest middle corridor; complete source image and private orientation aid visually inspected.",
+      "source_scope_limits": "Geographic corridor evidence only. No image-derived river name, present operation, exact-bank or survey-date assertion. Originals and all reading aids remain private."
+    },
+    {
+      "source_key": "r234-esri-chancay-lower",
+      "title": "World Imagery: Chancay-Huaral selected lower/coastal corridor overview",
+      "publisher": "Esri and imagery contributors",
+      "date": "Mosaic dates unverified; accessed2026-10-13",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "publication_identity": "Independently maintained photographic imagery product, distinct from national hydrology/geological/transport publications and the stopped northern Ellesmere and Nevada selected views.",
+      "acquisition": "Normal original completedHTTP200 image/jpeg and was read locally after terminal completion.",
+      "actual_material_read": "Santo Domingo-side valley, irrigated lower plain and actual Pacific river-mouth setting; complete source image and private orientation aid visually inspected.",
+      "source_scope_limits": "Geographic corridor evidence only. No image-derived river name, present operation, exact-bank or survey-date assertion. Originals and all reading aids remain private."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:80049815",
+      "source_keys": [
+        "r234-esri-yukon-imagery",
+        "r234-chs-arc4032024"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2492
+          ],
+          "component_scope": "Western headward opening and south-turning feeder",
+          "finding": "The selected opening lies in a narrow mountain-floor drainage bordered by bare slopes and grassy valley margins. The visible stream corridor continues south-southeast and bends into the eastward passage. Small nearby upland ponds are outside this selected feeder. The imagery establishes the chosen opening and connection without supplying a separate headwater hydronym.",
+          "sources": [
+            "r234-esri-yukon-imagery"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2492
+          ],
+          "component_scope": "Eastward mountain passage and joining northward valley",
+          "finding": "A continuous narrow stream valley runs east around the southern end of the intervening ridge, passes through the mountain notch and joins the broader drainage extending north-northeast. The selected successive bends and intermediate joins are visible. Scattered snow on adjacent ridges and tributary gullies does not constitute a selected glacier passage. No lake, reservoir or artificial transfer is needed to connect this section.",
+          "sources": [
+            "r234-esri-yukon-imagery"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2492
+          ],
+          "component_scope": "Upper northward course and bend into the middle valley",
+          "finding": "The selected course follows the continuous river floor north between mountain flanks, with side gullies and tributaries entering the same collector. Its short westward bend and renewed northeast turn correspond to the visible valley and channel belt. No separate through-link is inferred merely from watershed membership.",
+          "sources": [
+            "r234-esri-yukon-imagery"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2492
+          ],
+          "component_scope": "Middle northeast corridor and foothill joins",
+          "finding": "The middle view continuously depicts the northeast-trending river, broadening gravel bars, bends and western and eastern side-stream joins. The river leaves the confined upland valley for the lower rolling plain. Nearby ponds remain lateral to the selected corridor. Individual side tributaries are not assigned names from imagery.",
+          "sources": [
+            "r234-esri-yukon-imagery"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2492
+          ],
+          "component_scope": "Lower river and approach to the coastal delta",
+          "finding": "The selected northeast course stays within the continuous gravel-and-channel belt across the low plain. Side-stream confluences, abandoned meanders and adjacent ponds are visible before the river enters the low coastal distributary area. The regional named-delta identification is independently supplied by ARC403 rather than inferred from satellite appearance alone.",
+          "sources": [
+            "r234-esri-yukon-imagery",
+            "r234-chs-arc4032024"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2492
+          ],
+          "component_scope": "Eastern delta distributary and actual marine ending",
+          "finding": "The lower view shows the river dividing across a pond- and wetland-rich delta. The selected eastward branch continues through the delta to an opening on its eastern coastal margin, followed by the rendered extension into adjoining marine water. This is the Blow delta setting: ARC403 places Trent Bay between Running River and Blow River, and Shoalwater Bay between the Blow delta and Tent Island. The extension beyond the coastal opening is a receiving-sea display segment, not a separately named river channel across the sea.",
+          "sources": [
+            "r234-esri-yukon-imagery",
+            "r234-chs-arc4032024"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_and_receiving_setting_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2492
+          ],
+          "component_scope": "Whole-selection passage inventory",
+          "finding": "All selected parts and their joins are covered. The route contains a mountain feeder, narrow valley passage, broader river and coastal wetland/distributary passage. No selected large lake, reservoir, dam, canal, managed diversion or glacier crossing is visible in the materials read. Delta ponds and abandoned channels are not promoted to separately traversed named lakes. Source correspondence is geographic; present discharge, navigability and exact bank positions are not asserted.",
+          "sources": [
+            "r234-esri-yukon-imagery",
+            "r234-chs-arc4032024"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70544991",
+      "source_keys": [
+        "r234-usgstopo-nevada-overview",
+        "r234-usgstopo-nevada-upper",
+        "r234-usgstopo-nevada-middle",
+        "r234-usgstopo-nevada-lower",
+        "r234-sinclair1963-recon20"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9776
+          ],
+          "component_scope": "Chosen northern opening and Wall Canyon Creek",
+          "finding": "The opening lies on the mapped southward intermittent drainage west of Badger Mountain. Repeated Wall Canyon Creek labels follow its same valley through the refuge boundary and the broad southward bend toward the Yellow Hills. The selected opening is on this labeled creek, rather than on nearby Cottonwood Creek or a spring point.",
+          "sources": [
+            "r234-usgstopo-nevada-overview",
+            "r234-usgstopo-nevada-upper"
+          ],
+          "correspondence": "completed_ordinary_corridor_join_and_receiving_setting_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Wall Canyon Creek is the supported bounded upper hydronym."
+        },
+        {
+          "fragments": [
+            9776
+          ],
+          "component_scope": "Cottonwood junction and Pole Canyon passage into High Rock Creek",
+          "finding": "The originals show Cottonwood Creek joining the chosen Wall Canyon corridor from the east. The selection continues through the single deeply incised canyon south of that junction to the meeting with the separately mapped High Rock Creek trunk. The upper portion has less continuous blue linework than the canyon relief, but the enclosed canyon passage and its receiving junction are directly shown without an intervening basin crossing. The mapped Pole Canyon label applies to the canyon; it is not silently converted into a new river name.",
+          "sources": [
+            "r234-usgstopo-nevada-overview",
+            "r234-usgstopo-nevada-upper",
+            "r234-usgstopo-nevada-middle"
+          ],
+          "correspondence": "completed_ordinary_corridor_join_and_receiving_setting_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Cottonwood Creek is adjoining tributary context; the selected canyon reach remains separately scoped. High Rock Creek is the receiving trunk."
+        },
+        {
+          "fragments": [
+            9776
+          ],
+          "component_scope": "High Rock Creek canyon and entry into the High Rock Lake receiving margin",
+          "finding": "The selected southward and southeastward bends follow the labeled High Rock Creek corridor, including the Mahogany Creek junction, the canyon mouth and the wet northern/western margin of High Rock Lake. Little High Rock Creek joins the same lake setting from the southwest and is not substituted for the selected northern entry.",
+          "sources": [
+            "r234-usgstopo-nevada-overview",
+            "r234-usgstopo-nevada-middle"
+          ],
+          "correspondence": "completed_ordinary_corridor_join_and_receiving_setting_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "High Rock Creek is the bounded river name; High Rock Lake is a separate waterbody."
+        },
+        {
+          "fragments": [
+            9776
+          ],
+          "component_scope": "High Rock Lake margin and northeast Fly Creek spillway",
+          "finding": "The detailed original draws an intermittent Fly Creek connection from the lake’s northeast margin through the adjacent col into the incised northeastern spillway. The generalized selected turn across the northern lake-margin setting corresponds to this same mapped lake-to-spillway geography. Sinclair’s own drainage account identifies the landslide-impounded lake, former pluvial overflow into Fly Creek and ordinary lake levels below the col. This supports the geographic passage while qualifying natural-system naming; present overflow is neither required nor asserted.",
+          "sources": [
+            "r234-usgstopo-nevada-overview",
+            "r234-usgstopo-nevada-middle",
+            "r234-sinclair1963-recon20"
+          ],
+          "correspondence": "completed_ordinary_corridor_join_and_receiving_setting_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "High Rock Lake and Fly Creek retain separate identities. Historical spillway geography is not treated as proof that the whole selection is one naturally named river."
+        },
+        {
+          "fragments": [
+            9776
+          ],
+          "component_scope": "Fly Creek canyon, lower marsh and Mud Meadow Reservoir entry",
+          "finding": "From the northeast lake margin the selection follows the mapped Fly Creek canyon to its flatter eastern fan and marsh, then enters Mud Meadow Reservoir where the northern Mud Meadow Creek collector also arrives. The originals depict the canyon bends, marsh approach and receiving waterbody together. No unseen canal transfer is used.",
+          "sources": [
+            "r234-usgstopo-nevada-overview",
+            "r234-usgstopo-nevada-middle"
+          ],
+          "correspondence": "completed_ordinary_corridor_join_and_receiving_setting_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Fly Creek is the bounded intervening reach. Mud Meadow Reservoir is a distinct named receiving waterbody; the northern Mud Meadow Creek headwaters are not selected."
+        },
+        {
+          "fragments": [
+            9776
+          ],
+          "component_scope": "Mud Meadow Reservoir passage and southward outlet corridor",
+          "finding": "The selected southward passage crosses the narrow reservoir setting and follows the adjoining low outlet corridor below its southern end, along the western foot of Black Mountain and Big Mountain. Both the middle and lower originals show the same reservoir-to-valley continuation; no claim about dam operations or present water levels is made.",
+          "sources": [
+            "r234-usgstopo-nevada-overview",
+            "r234-usgstopo-nevada-middle",
+            "r234-usgstopo-nevada-lower"
+          ],
+          "correspondence": "completed_ordinary_corridor_join_and_receiving_setting_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Mud Meadow Creek is directly labeled in the reservoir and receiving collector setting."
+        },
+        {
+          "fragments": [
+            9776
+          ],
+          "component_scope": "Lower collector, alluvial approach and upper western Black Rock Desert floor",
+          "finding": "The selected lower route occupies the continuously mapped axial receiving lowland south of the reservoir, with scattered wet patches, tributary fan entries and the Chipper Creek surroundings. The northwestern receiving corridor opens into the western Black Rock Desert floor between the Calico Mountains and the western flank of the Black Rock Range. The broad floor is continuous at ordinary scale; a separately drawn river thread across every fan or shallow pan is not required. Sinclair’s regional account independently places Mud Meadow Creek entering Black Rock Desert from the northwest.",
+          "sources": [
+            "r234-usgstopo-nevada-overview",
+            "r234-usgstopo-nevada-lower",
+            "r234-sinclair1963-recon20"
+          ],
+          "correspondence": "completed_ordinary_corridor_join_and_receiving_setting_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Mud Meadow Creek remains the bounded lower-collector identity. Chipper Creek is an adjoining mapped drainage and is not assigned as the name of the selected whole."
+        },
+        {
+          "fragments": [
+            9776
+          ],
+          "component_scope": "Actual terminal in the western Black Rock Desert playa",
+          "finding": "The final selected southward continuation enters and remains within the mapped western Black Rock Desert playa and ends in its interior beside the elongated shallow-water patch. The endpoint and its preceding receiving floor are both covered. No extra ridge, separate lake-to-lake transfer or river line across the playa is inferred.",
+          "sources": [
+            "r234-usgstopo-nevada-overview",
+            "r234-usgstopo-nevada-lower"
+          ],
+          "correspondence": "completed_ordinary_corridor_join_and_receiving_setting_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Black Rock Desert identifies the receiving geographic setting. No new lake name or river-name extension is assigned to the terminal floor."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70964233",
+      "source_keys": [
+        "r234-ineter-pfafstetter2014",
+        "r234-marena-estero2006",
+        "r234-esri-nicaragua-upper",
+        "r234-esri-nicaragua-middle",
+        "r234-esri-nicaragua-coast"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10665
+          ],
+          "component_scope": "selected opening",
+          "finding": "The selected southern opening occupies a low foothill drainage depression south of Malpaisillo. The original upper image shows its vegetated drainage corridor continuing north through the cultivated plain, then turning northwest/west into the upper river valley. The smallest opening has no independently established hydronym. Farmland, roads and drainage modification are acknowledged without inventing operation or perennial-flow facts.",
+          "sources": [
+            "r234-esri-nicaragua-upper",
+            "r234-ineter-pfafstetter2014"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            10665
+          ],
+          "component_scope": "olomega side upper valley",
+          "finding": "The selected route continues northwest through the southern valley below the Mina Santa Pancha setting. The Pacific-basin atlas distinguishes Olomega on this southern approach and Tecomapa on the adjacent northern/eastern drainage. Overlapping original imagery shows the continuous vegetated river valley and the joining-drainage zone. These reach names coexist within the representative Estero Real system; no exact name-change vertex is assigned.",
+          "sources": [
+            "r234-ineter-pfafstetter2014",
+            "r234-esri-nicaragua-upper",
+            "r234-esri-nicaragua-middle"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            10665
+          ],
+          "component_scope": "middle plain wetland passage",
+          "finding": "The corridor passes west/northwest across the low agricultural plain and road crossing into a sinuous floodplain and wetland-channel setting. The reserve base map carries the Estero Real corridor continuously across the lower part of this passage, while the overlapping upper/middle images expose the approach and the broadened wetland. Nearby meanders and side channels remain part of the receiving setting, rather than independently assigned river-name aliases.",
+          "sources": [
+            "r234-ineter-pfafstetter2014",
+            "r234-marena-estero2006",
+            "r234-esri-nicaragua-upper",
+            "r234-esri-nicaragua-middle"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            10665
+          ],
+          "component_scope": "lower estuary and managed margins",
+          "finding": "The reserve map labels Estero Real repeatedly through the large bends at and below Puerto Morazán. The original images show the same continuous widening estuarine channel, mangrove/wetland margins and extensive rectangular pond complexes. The plan independently maps shrimp-farming concessions along this estuary. The selected principal channel is retained through this managed landscape; no route through individual ponds or present sluice operation is inferred.",
+          "sources": [
+            "r234-marena-estero2006",
+            "r234-esri-nicaragua-middle",
+            "r234-esri-nicaragua-coast"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            10666
+          ],
+          "component_scope": "terminal fragment and actual endpoint",
+          "finding": "The final fragment continues west along the broad Estero Real tidal arm. Its actual terminal lies within that broad lower-estuary receiving water, which the reserve map connects onward toward the Golfo de Fonseca. Both the supplied source and rendered endpoint settings are within this same marine-estuarine corridor at the research scale. The selected line is not extended to an invented outer-gulf mouth.",
+          "sources": [
+            "r234-marena-estero2006",
+            "r234-esri-nicaragua-coast"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61073888",
+      "source_keys": [
+        "r234-senamhi-chancay-huaral2015",
+        "r234-esri-chancay-opening",
+        "r234-esri-chancay-upper",
+        "r234-esri-chancay-middle",
+        "r234-esri-chancay-lower"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13875
+          ],
+          "component_scope": "Chosen eastern highland opening and westward receiving join",
+          "finding": "The detailed original imagery shows the chosen opening in a highland swale southeast of the lake cluster. Its northwestward approach meets the westward drainage below that cluster, which turns southwest around the rocky spur into the same descending valley. The selected opening is not reassigned to a neighboring lake outlet merely because that outlet is more conspicuous. This establishes ordinary feeder-to-valley correspondence; no hydronym for the precise opening is inferred from imagery.",
+          "sources": [
+            "r234-esri-chancay-opening",
+            "r234-esri-chancay-upper"
+          ],
+          "correspondence": "supported_at_ordinary_regional_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "named_reach_scope": "Unnamed selected headward feeder of the representative system"
+        },
+        {
+          "fragments": [
+            13875
+          ],
+          "component_scope": "Upper descent through the Vichaycocha receiving valley",
+          "finding": "The upper image follows the same southwest-descending valley, its southward turn and intervening tributary mouths into the settled upper corridor. The study’s own map and modeled network distinguish Vichaycocha from the eastern Chicrín tributary and place their receiving junction on this upper river route. The selected course is the receiving valley, rather than a passage through the large eastern lake bodies.",
+          "sources": [
+            "r234-senamhi-chancay-huaral2015",
+            "r234-esri-chancay-upper"
+          ],
+          "correspondence": "supported_at_ordinary_regional_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "named_reach_scope": "Río Vichaycocha upper-reach scope"
+        },
+        {
+          "fragments": [
+            13875
+          ],
+          "component_scope": "Baños-side junction and turn into the westward main valley",
+          "finding": "The original imagery and study maps show the selected southward reach meeting the eastern Baños-side valley and turning west-southwest. The Baños and Quiles drainage network is separately depicted in the model; these are tributary inputs rather than alternative names imposed on the selected upper branch. The route remains continuously in the open river valley through this junction setting.",
+          "sources": [
+            "r234-senamhi-chancay-huaral2015",
+            "r234-esri-chancay-upper",
+            "r234-esri-chancay-middle"
+          ],
+          "correspondence": "supported_at_ordinary_regional_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "named_reach_scope": "Transition to the representative Río Chancay-Huaral receiving corridor"
+        },
+        {
+          "fragments": [
+            13875
+          ],
+          "component_scope": "Westward middle valley and Acos–Carac-side joins",
+          "finding": "The valley continues west through successive side-valley mouths toward the Acos and Carac junction setting. The independent model and Figure1 map provide the geographic continuation where small cloud patches affect the imagery. The selected westward and southwestward parts and their joins all occupy this same receiving corridor; the northern Carac approach remains a separately named tributary.",
+          "sources": [
+            "r234-senamhi-chancay-huaral2015",
+            "r234-esri-chancay-middle"
+          ],
+          "correspondence": "supported_at_ordinary_regional_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "named_reach_scope": "Río Chancay-Huaral main receiving river"
+        },
+        {
+          "fragments": [
+            13875
+          ],
+          "component_scope": "Southwest middle corridor and Añasmayo–Huataya receiving sequence",
+          "finding": "The continuous mapped river follows the southwest-trending valley and local bend through the successive southern and northern tributary mouths. The study identifies Añasmayo on the left and Huataya on the right, and its own map/model network distinguish them from the selected trunk. The imagery confirms the intervening incised valley and broad local bend at ordinary corridor scale.",
+          "sources": [
+            "r234-senamhi-chancay-huaral2015",
+            "r234-esri-chancay-middle"
+          ],
+          "correspondence": "supported_at_ordinary_regional_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "named_reach_scope": "Río Chancay-Huaral"
+        },
+        {
+          "fragments": [
+            13875
+          ],
+          "component_scope": "Santo Domingo and lower valley opening",
+          "finding": "The selected corridor passes the study’s Santo Domingo control-station setting and continues southwest from the narrow mountain valley into the progressively wider cultivated valley. Both the source map and original lower image show continuous river-valley correspondence across all these parts. Irrigation branches and field subdivision are adjacent to the receiving river, not evidence of an unestablished inter-basin transfer.",
+          "sources": [
+            "r234-senamhi-chancay-huaral2015",
+            "r234-esri-chancay-middle",
+            "r234-esri-chancay-lower"
+          ],
+          "correspondence": "supported_at_ordinary_regional_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "named_reach_scope": "Río Chancay-Huaral"
+        },
+        {
+          "fragments": [
+            13875
+          ],
+          "component_scope": "Irrigated lower plain and southward river passage",
+          "finding": "The lower image shows the broad alluvial river bed continuing through the cultivated plain between Huaral-side and Aucallama-side lands, then turning south along the foothill margin. The study’s own network continues the river past the lower irrigation-demand nodes. The selected path remains in the same river corridor despite local braided bars, diversions and neighboring cultivated channels; no present allocation or flow rate is asserted.",
+          "sources": [
+            "r234-senamhi-chancay-huaral2015",
+            "r234-esri-chancay-lower"
+          ],
+          "correspondence": "supported_at_ordinary_regional_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "named_reach_scope": "Río Chancay-Huaral lower receiving river"
+        },
+        {
+          "fragments": [
+            13875
+          ],
+          "component_scope": "Final southwest approach and actual Pacific mouth",
+          "finding": "The final selected part follows the same lower river corridor southwest through the coastal plain to the beach and Pacific receiving water south of the Chancay settlement setting. The completed original imagery shows the river-mouth approach and coastal receiving setting, corroborating the terminal depicted in the study map. This establishes the actual selected terminal without claiming an exact modern shoreline or a continuously open wetted mouth.",
+          "sources": [
+            "r234-senamhi-chancay-huaral2015",
+            "r234-esri-chancay-lower"
+          ],
+          "correspondence": "supported_at_ordinary_regional_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "named_reach_scope": "Río Chancay-Huaral terminal"
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "BLM Black Rock Desert–High Rock Canyon Emigrant Trails National Conservation Area and associated wilderness resource-management planning publication, Proposed RMP/Final EIS volume1; September2003 discovery identity, original imprint uninspected",
+      "official_url": "https://eplanning.blm.gov/public_projects/lup/101115/139040/171092/Black_Rock_High_Rock_PRMP_FEIS_vol1.pdf",
+      "observed_outcome": "The normal-original PDF request redirected to the eplanning public-project document route and completed HTTP200 Content-Type text/html; charset=utf-8 rather than PDF. Returned body and headers were not read.",
+      "outcome_layer": "Completed direct HTTP-client redirect and wrong-body response; not HTTP401/403 or an asserted access-control denial.",
+      "restriction_scope": "Whole identified planning publication and project-equivalent copies, sections, maps, companion recovery and unread outputs paused. No retry, alternative host/format, reader or content recovery followed.",
+      "earlier_lawful_prose_exception": null,
+      "source_evidence_excluded": "All discovery extracts and any unseen report prose/maps. The discovered stream-eligibility table is not used.",
+      "acquisition_stop": true,
+      "explicit_access_denial": false,
+      "newly_observed_access_failure": true,
+      "material_gap": false,
+      "material_effect": "Optional planning source unavailable. The independent originals already establish full geographic correspondence; this does not change the completed naming-scope hold into another pending status.",
+      "aw_id": "hydro-system:70544991"
+    },
+    {
+      "publication": "ANA DGCRH, Mapas del Monitoreo de la Calidad del Agua Superficial de la Cuenca del Rio Chancay-Huaral 2012",
+      "official_url": "https://sinia.minam.gob.pe/mapas/mapas-monitoreo-calidad-agua-superficial-cuenca-rio-chancay-huaral-2012",
+      "observed_outcome": "Sole web-reader catalogue opening returned Internal Error: UnexpectedStatusCode. No original HTTP status or body exposed.",
+      "outcome_layer": "web-reader unknown-status availability failure; originHTTP unknown",
+      "restriction_scope": "Whole exact June2012 water-quality monitoring cartographic publication and equivalent catalogue/original/reader/cache/mirror/format acquisition routes paused; no linked map acquisition or substantive snippet evidence.",
+      "earlier_lawful_observations": "Discovery bibliography only; no substantive catalogue or map evidence.",
+      "acquisition_stop": true,
+      "newly_observed_access_failure": true,
+      "aw_id": "hydro-system:61073888"
+    },
+    {
+      "publication": "INRENA DGAS / ATDR Chancay-Huaral, Evaluación y ordenamiento de los recursos hídricos de la cuenca Chancay-Huaral: hidrología superficial,2002; repository1733/ANA0000739/0387_It1+It2",
+      "official_url": "https://www.ana.gob.pe/sites/default/files/publication/files/estudio_hidrologico_chancay_huaral_0_0.pdf",
+      "observed_outcome": "Initial normal-original acquisition and the one permitted identical exact-URL retry both completed directHTTP502 text/html. No original or error-body content read.",
+      "outcome_layer": "Completed direct-client HTTP availability responses; no access-control or origin-vs-intermediary attribution asserted.",
+      "restriction_scope": "Whole exact study, associated annexes/maps and equivalent original/catalogue/reader/cache/mirror/format acquisition and unread-output routes paused after unresolved bounded retry.",
+      "earlier_lawful_observations": "Discovery bibliography only; no original report evidence.",
+      "acquisition_stop": true,
+      "newly_observed_access_failure": true,
+      "aw_id": "hydro-system:61073888"
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "source_key": "r234-esri-yukon-imagery",
+      "kind": "photographic_geography_and_redistribution_boundary",
+      "observation": "The three complete originals establish continuous ordinary geographic correspondence. They do not supply names, image dates, current flow or legal naming limits. Source images, crops, overlays, dynamic requests and full selected coordinates remain private.",
+      "acquisition_stop": false,
+      "publication": "World Imagery: three bounded northern Yukon headward, middle-valley and coastal-delta views",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "aw_id": "hydro-system:80049815"
+    },
+    {
+      "source_key": "r234-chs-arc4032024",
+      "kind": "coastal_name_scope",
+      "observation": "Blow River is established for the named delta and connected representative system. The western feeder, individual delta branch and marine extension do not receive a whole-feature scalar name.",
+      "acquisition_stop": false,
+      "publication": "Canadian Sailing Directions, ARC403: Western Arctic",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/chs-shc-ARC403-eng-202403-41232306.pdf",
+      "aw_id": "hydro-system:80049815"
+    },
+    {
+      "publication": "USGSTopo, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "kind": "bounded_cartographic_factual_use",
+      "observation": "Source imagery and local orientation aids remain private. Scale-dependent omission of minor blue channel linework does not by itself create an access stop or geographic gap when the enclosed canyon or continuous receiving floor is mapped.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70544991"
+    },
+    {
+      "publication": "Sinclair1963 Reconnaissance20",
+      "official_url": "https://data.nbmg.unr.edu/public/Geothermal/GreyLiterature/Sinclair_BlckRckDsrt_GrndwtrApp_1963.pdf",
+      "kind": "historical_spillway_and_separate_name_scopes",
+      "observation": "The High Rock Lake–Fly Creek geographic passage is supported, while the author distinguishes a normally closed lake basin and pluvial overflow. This qualification limits whole-system natural-name interpretation; it is not an unmet present-flow requirement or an acquisition restriction.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70544991"
+    },
+    {
+      "source_key": "r234-ineter-pfafstetter2014",
+      "publication": "Cuencas Hidrográficas de Nicaragua bajo la metodología Pfafstetter: Álbum de mapas",
+      "official_url": "https://cira.unan.edu.ni/wp-content/uploads/2016/07/Album-Cuencas-Nic-Revisado_ANA.pdf",
+      "kind": "ordinary_reproduction_and_use_notice",
+      "previously_recorded_notice": true,
+      "observation": "The inspected retained original reserves publication rights, prohibits commercial content use/reproduction and requires prior INETER permission for educational/divulgative reproduction. Only bounded own factual observations and normal bibliography are prepared.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70964233"
+    },
+    {
+      "source_key": "r234-marena-estero2006",
+      "publication": "Plan de Manejo del Área Protegida Reserva Natural Delta del Estero Real, June2006",
+      "official_url": "https://www.crc.uri.edu/download/Plan_del_Estero_Real.pdf",
+      "kind": "historical_map_and_private_originals_scope",
+      "observation": "Bounded factual reading of the independently prepared protected-area plan and its credited December2005 cartography. No original pages, map crops or derivatives are public-ready; no current legal/operational assertion.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70964233"
+    },
+    {
+      "source_keys": [
+        "r234-esri-nicaragua-upper",
+        "r234-esri-nicaragua-middle",
+        "r234-esri-nicaragua-coast"
+      ],
+      "publication": "World Imagery: three bounded northwestern Nicaragua corridor views",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "kind": "photographic_geography_and_redistribution_boundary",
+      "observation": "All three completed original images were inspected. They support geographic correspondence without adding names or current-operation claims. Originals, image crops, orientation aids, dynamic requests and full selected coordinates remain private.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70964233"
+    },
+    {
+      "publication": "Esri World Imagery selected Chancay-Huaral upper overview",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "observation": "First normal image request completed directHTTP502. After actual termination, the single identical exact-URL retry completedHTTP200 image/jpeg; the complete image was read. No continuing view/service pause.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:61073888"
+    },
+    {
+      "publication": "SENAMHI2015 Chancay-Huaral study, Figure4 and Figure5 constituent scope",
+      "source_key": "r234-senamhi-chancay-huaral2015",
+      "kind": "unresolved_underlying_constituent_provenance",
+      "observation": "Figure4 was visually inspected before INRENA2002 failed, but its underlying provenance is not established. Its detailed topology/names are excluded from the finding; no fresh reading after the stop. Figure5 is attributed ANA2002b, was not visually read, and is excluded. Own Figures1/14 and bounded authorial prose remain independently usable.",
+      "acquisition_stop": false,
+      "official_url": "https://sigrid.cenepred.gob.pe/docs/PARA%20PUBLICAR/SENAMHI/Impacto%20del%20Cambio%20Socio%20Economico%20y%20Climatico%20en%20la%20Gestion%20de%20Recursos%20Hidricos.pdf",
+      "aw_id": "hydro-system:61073888"
+    },
+    {
+      "publication": "SENAMHI2015 original and Esri World Imagery",
+      "kind": "bounded_factual_reading_and_private_originals",
+      "observation": "Own factual synthesis and ordinary bibliography only. Original PDFs/images, map crops, orientation aids, selected coordinate series, dynamic export requests and acquisition receipts remain private. No limited-distribution or citation-clearance notice appeared in the inspected report front matter; no hydronyms or current-operation claims are inferred from imagery alone.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:61073888"
+    }
+  ]
+}

@@ -1,0 +1,864 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r197",
+  "sources": [
+    {
+      "source_key": "r197-usgstopo-manokinak-azun",
+      "title": "USGS The National Map, USGSTopo multiscale reference cartography: bounded Kgun–Manokinak–Azun corridor views",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Independently maintained seamless TNM reference-map service integrating hydrography, geographic names and other public-domain datasets; not the held USGS WRI, PP or WSP reports or their figures.",
+      "edition": "Service metadata reports a September 4, 2026-v1.2 data refresh; individual source compilation dates are not established.",
+      "actual_read_scope": "Retained service description and credits; six newly acquired original map views covering the full selection: overview, chosen opening/southern Kgun arm, northwestern lake connections, western Manokinak/Nuskealik setting, lower Manokinak–Azun junction, and actual Azun terminal. Original pixels and enlarged reading crops inspected separately from private orientation overlays.",
+      "supports": "Direct component labels and ordinary lake, downstream river, junction and terminal correspondence; explicit observations of unestablished headward and intermediate selected through-links.",
+      "limitations": "A multiscale reference compilation, not a current channel survey or formal naming register. A displayed nearby name or waterbody does not establish all chosen wetland connectors.",
+      "use_notice": "Source credits identify USGS The National Map and contributing public datasets. Originals, crops, overlays and dynamic map requests remain private; only own factual synthesis and normal bibliography are supplied."
+    },
+    {
+      "source_key": "r197-adfg-western-catalog2014-unavailable",
+      "title": "Catalog of Waters Important for Spawning, Rearing or Migration of Anadromous Fishes, Western Region, Special Publication No. 14-06 (2014)",
+      "publisher": "Alaska Department of Fish and Game",
+      "official_url": "https://www.adfg.alaska.gov/anadromouspdfs/2014wst_CATALOG.pdf",
+      "publication_identity": "State fisheries anadromous-water inventory publication, independently compiled under ADF&G’s catalog program; distinct from the USGS report projects.",
+      "actual_read_scope": "No original catalogue body, table or map read. Discovery metadata only located the publication; discovery extracts are excluded from substantive naming and geographic evidence.",
+      "supports": "None.",
+      "limitations": "Original endpoint returned HTML rather than PDF; entire publication and equivalents paused.",
+      "used_as_substantive_evidence": false
+    },
+    {
+      "source_key": "r197-ssrh-2003",
+      "bibliography": "Valladares, Andrea. Cuenca del Lago Fagnano, Cuenca Nº82. Sistema Nacional de Información Hídrica / Subsecretaría de Recursos Hídricos, Argentina. Prepared December 2003.",
+      "official_url": "https://www.argentina.gob.ar/sites/default/files/82.pdf",
+      "source_kind": "Original official basin-description publication",
+      "actual_material_read": "Three-page original: title, hydrography prose on p. 2, bibliography and authorship/date on p. 3; p. 1 locator visually inspected.",
+      "original_acquisition": "Completed HTTP 200 application/pdf.",
+      "publication_independence": "Basin-specific SNIH descriptive report, with its own title, author and bibliography; distinct from Argenmap, historical raster mosaics and the La Pampa thematic map.",
+      "supports": "Claro course and inlet; Fagnano name and westward Azopardo outlet; Seno Almirantazgo receiver.",
+      "limits": "Locator is not detailed corridor evidence. Historical level/monitoring statements are not treated as current."
+    },
+    {
+      "source_key": "r197-claro-2011",
+      "bibliography": "Casalinuovo, M. A. 2011. Informe Final Río Claro. Scientific study of the Claro recreational-fishery system for Tierra del Fuego provincial water-resources management; provincial legislature-hosted original.",
+      "official_url": "https://www.legistdf.gob.ar/lp/novedadesip/Com.%20Of.%202014/C.%20Of.%20N%20017-14/CD/Informe%20Final%20Claro%202011.pdf",
+      "source_kind": "Original field-study report with project cartography",
+      "actual_material_read": "Printed pp. 5–6,13–14,22–28 and52–56; Maps 1–4 visually inspected, including opening, joins and lake inlet. The original has 28 two-page spreads.",
+      "original_acquisition": "Completed HTTP 200 application/pdf.",
+      "publication_independence": "The report identifies its 2009–2011 study, provincial imagery/digital-map inputs and six field campaigns; its maps are project syntheses supplemented by field observations, not recovery of a held IGN map.",
+      "supports": "Selected Claro opening, all river joins to Fagnano, and wetland/lake-tributary context.",
+      "limits": "Historical beaver barriers and fish passage are not present operational observations; source-digitized branch lengths do not replace model length."
+    },
+    {
+      "source_key": "r197-rivers-igm",
+      "bibliography": "Instituto Geográfico Militar, Chile. SIIE_v3 Quebradas ríos, natural-watercourse layer 40. Active service read 13 October 2026.",
+      "official_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Quebradas_r%C3%ADos/MapServer",
+      "layer_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Quebradas_r%C3%ADos/MapServer/40",
+      "source_kind": "Original official hydrographic service",
+      "actual_material_read": "One bounded selected-corridor raster and its western reading detail, including the server-rendered Río Azopardo label. Existing successfully read layer metadata was consulted locally.",
+      "original_acquisition": "Completed HTTP 200 image/png.",
+      "publication_independence": "Previously established SIIE_v3 natural-watercourse project, distinct from the IGM 250K sign-in folder and MMA SIMBIO_HIDROGRAFIA.",
+      "supports": "Azopardo lake outlet and lower west-northwest valley.",
+      "limits": "Argentine reaches are outside its depicted coverage. The source-line endpoint is not asserted identical to the model tip."
+    },
+    {
+      "source_key": "r197-water-igm",
+      "bibliography": "Instituto Geográfico Militar, Chile. SIIE_v3 Cuerpos de agua, layer 37. Active service read 13 October 2026.",
+      "official_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Cuerpos_de_agua/MapServer",
+      "layer_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Cuerpos_de_agua/MapServer/37",
+      "source_kind": "Original official waterbody service",
+      "actual_material_read": "One bounded selected-corridor raster and western reading detail; existing successfully read layer metadata consulted locally.",
+      "original_acquisition": "Completed HTTP 200 image/png.",
+      "publication_independence": "Separately established public SIIE_v3 waterbody publication, distinct from the held IGM 250K folder and MMA hydrography.",
+      "supports": "Western Fagnano lake footprint and outlet approach.",
+      "limits": "The lake polygon is clipped at the national boundary; no missing Argentine lake coverage or marine polygon is invented."
+    },
+    {
+      "source_key": "r197-apn-2021",
+      "bibliography": "Administración de Parques Nacionales. Plan de Gestión, Parque Nacional Tierra del Fuego 2021–2030. Figure 6: Cuencas de la Isla Grande de Tierra del Fuego, Dirección General de Recursos Hídricos, provincial Secretaría de Ambiente, Desarrollo Sostenible y Cambio Climático.",
+      "official_url": "https://sib.gob.ar/archivos/Plan_de_Gestion_del_Parque_Nacional_Tierra_del_Fuego_2021-2030.pdf",
+      "source_kind": "Official park-management plan with attributed provincial basin cartography",
+      "actual_material_read": "Cover, preparation/team credits, hydrography at printed pp. 14–15, Figure 6 at PDF p. 30 / printed p. 15; full figure and lake/coast reading details visually inspected.",
+      "original_acquisition": "Completed HTTP 200 application/pdf.",
+      "publication_independence": "Identified 2019 participatory management-planning process revised for 2021; Figure 6 is credited to provincial DGRH basin classification, not Esteban 2014 or IGN Argenmap/mosaics.",
+      "supports": "Whole Fagnano lake, boundary-crossing passage, western outlet and Seno Almirantazgo regional setting.",
+      "limits": "Regional map scale supports the complete lake/receiver setting rather than exact bank positions."
+    },
+    {
+      "source_key": "r197-esteban-2014",
+      "bibliography": "Esteban, Federico Damián, et al. 2014. Basement geometry and sediment thickness of Lago Fagnano (Tierra del Fuego). Andean Geology 41(2), DOI 10.5027/andgeoV41n2-a02.",
+      "official_url": "https://www.scielo.cl/scielo.php?pid=S0718-71062014000200002&script=sci_arttext",
+      "source_kind": "Research article, prior HTML prose only",
+      "actual_material_read": "HTML title/authors, introduction, regional and bathymetric descriptions, and methods before the later direct-request denial. No figure pixels or downloaded original body read.",
+      "used_for_correspondence": false,
+      "limits": "Whole publication now stopped. Prior prose is retained only as read-scope history; geographic completion does not depend on it.",
+      "used_as_substantive_evidence": false
+    },
+    {
+      "source_key": "r197-inegi-tamaulipas-2020",
+      "title": "Condensado Estatal Tamaulipas",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI), Dirección General de Geografía y Medio Ambiente",
+      "edition": "First edition 2020; copyright 2021; scale 1:750,000",
+      "official_url": "https://en.www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/tamps/889463837107.pdf",
+      "actual_material_read": "Completed one-sheet original PDF: whole-sheet overview, unmarked full selected-corridor enlargement, lower lagoon-edge enlargement, hydrographic legend, technical imprint and reproduction notice. A separate private orientation aid was not treated as source evidence.",
+      "acquisition_outcome": "HTTP 200, application/pdf",
+      "independence_basis": "Identified state cartographic compilation, previously documented independently in the Conchos and Soto la Marina research. Its imprint derives planimetry from older 1:250,000 series III and adds state statistical/road information; it is not the held sixth-edition 2023 national topographic sheet family.",
+      "limits": "Generalized historical mapping; does not establish the unresolved plain connections or present flow and operations. Printed written-permission requirement for reproduction is retained."
+    },
+    {
+      "source_key": "r197-inegi-reynosa-2010",
+      "title": "Compendio de información geográfica municipal 2010: Reynosa, Tamaulipas",
+      "publisher": "INEGI",
+      "edition": "2010; municipal geographical code 28032",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/28/28032.pdf",
+      "actual_material_read": "Completed ten-page original PDF; title and municipal identity; PDF page 3 hydrography and land-use prose; PDF page 6 Relieve map, legend and source statement.",
+      "acquisition_outcome": "HTTP 200, application/pdf",
+      "independence_basis": "Separately compiled Reynosa municipal thematic profile with its own municipal footprint and statistics. Its relief map credits physiography, 2010 municipal framework, older topographic series II and INEGI–CONAGUA 2007 hydrography. It is not the San Luis Río Colorado municipal publication or the held 2023 national topographic originals.",
+      "limits": "Municipal footprint and generalized hydrographic coverage; watercourse inventory is not a reach assignment."
+    },
+    {
+      "source_key": "r197-inegi-rio-bravo-2010",
+      "title": "Compendio de información geográfica municipal 2010: Río Bravo, Tamaulipas",
+      "publisher": "INEGI",
+      "edition": "2010; municipal geographical code 28033",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/28/28033.pdf",
+      "actual_material_read": "Completed ten-page original PDF; title and municipal identity; PDF page 3 hydrography and land-use prose; PDF page 6 Relieve map, legend and source statement.",
+      "acquisition_outcome": "HTTP 200, application/pdf",
+      "independence_basis": "Local Río Bravo municipal thematic compilation with its own tables and mapped administrative footprint. Its older hydrographic/physiographic compilation identity is distinct from both held San Luis Río Colorado26055 and the national 2023 topographic originals.",
+      "limits": "The municipal river listing chiefly identifies Río Bravo at the northern boundary. It does not name or connect the selected southern plain traverse."
+    },
+    {
+      "source_key": "r197-inegi-matamoros-2010",
+      "title": "Compendio de información geográfica municipal 2010: Matamoros, Tamaulipas",
+      "publisher": "INEGI",
+      "edition": "2010; municipal geographical code 28022",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/28/28022.pdf",
+      "actual_material_read": "Completed eleven-page original PDF; title and municipal identity; PDF page 3 hydrography prose; PDF page 7 Relieve map, lagoon setting, legend and source statement.",
+      "acquisition_outcome": "HTTP 200, application/pdf",
+      "independence_basis": "Local Matamoros municipal thematic compilation, with its own lagoon-rich footprint and municipal hydrography tables. It is an independently issued compilation using older reference data, not the held San Luis Río Colorado profile or sixth-edition national topographic sheet family.",
+      "limits": "The list of named local rivers and lagoons does not attach any of those river names to the selected canal or the full modeled route."
+    },
+    {
+      "source_key": "r197-usgstopo-pinto-west",
+      "title": "USGS The National Map, USGSTopo: Fried Liver Wash, western Pinto Basin and upper Pinto Wash",
+      "publisher": "U.S. Geological Survey",
+      "bibliography": "U.S. Geological Survey. The National Map, USGSTopo seamless multiscale topographic reference service. Bounded southeastern California corridor view, accessed 13 October 2026.",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "source_type": "Primary original federal reference cartography",
+      "publication_identity": "Independently maintained National Map cartographic service. It is not a plate, mirror, reissue or recovery route for any stopped USGS research report or the DWR Bulletin118 Pinto basin profile.",
+      "access_status": "Normal original raster request completed HTTP200 image/png; pixels visually read after actual request termination.",
+      "original_map_pixels_inspected": true,
+      "actual_read_scope": "Full original plus enlarged unaltered opening and canyon/fan crops; source pixels inspected separately from a private path-orientation aid.",
+      "metadata_basis": "Previously successful retained service metadata describes a seamless map combining National Map and other public-domain themes, including hydrography and geographic names. The service refresh date is not a survey date for every displayed feature.",
+      "use_notice": "Own bounded factual synthesis and ordinary bibliography only. Original images and private orientation aids are not distributed. No formal name-boundary, exact-bank, perennial-flow or current-water-condition verification."
+    },
+    {
+      "source_key": "r197-usgstopo-pinto-middle",
+      "title": "USGS The National Map, USGSTopo: Pinto Wash across Pinto Basin and the Eagle-Coxcomb outlet",
+      "publisher": "U.S. Geological Survey",
+      "bibliography": "U.S. Geological Survey. The National Map, USGSTopo seamless multiscale topographic reference service. Bounded southeastern California corridor view, accessed 13 October 2026.",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "source_type": "Primary original federal reference cartography",
+      "publication_identity": "Independently maintained National Map cartographic service. It is not a plate, mirror, reissue or recovery route for any stopped USGS research report or the DWR Bulletin118 Pinto basin profile.",
+      "access_status": "Normal original raster request completed HTTP200 image/png; pixels visually read after actual request termination.",
+      "original_map_pixels_inspected": true,
+      "actual_read_scope": "Full original and separate private orientation aid, including Smoke Tree Wash and San Bernardino Wash receiving settings, main basin and eastern bend.",
+      "metadata_basis": "Previously successful retained service metadata describes a seamless map combining National Map and other public-domain themes, including hydrography and geographic names. The service refresh date is not a survey date for every displayed feature.",
+      "use_notice": "Own bounded factual synthesis and ordinary bibliography only. Original images and private orientation aids are not distributed. No formal name-boundary, exact-bank, perennial-flow or current-water-condition verification."
+    },
+    {
+      "source_key": "r197-usgstopo-pinto-lower",
+      "title": "USGS The National Map, USGSTopo: Lower Pinto Wash, plantation plain and Palen Lake",
+      "publisher": "U.S. Geological Survey",
+      "bibliography": "U.S. Geological Survey. The National Map, USGSTopo seamless multiscale topographic reference service. Bounded southeastern California corridor view, accessed 13 October 2026.",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "source_type": "Primary original federal reference cartography",
+      "publication_identity": "Independently maintained National Map cartographic service. It is not a plate, mirror, reissue or recovery route for any stopped USGS research report or the DWR Bulletin118 Pinto basin profile.",
+      "access_status": "Normal original raster request completed HTTP200 image/png; pixels visually read after actual request termination.",
+      "original_map_pixels_inspected": true,
+      "actual_read_scope": "Full original and separate private orientation aid, including aqueduct crossing, lower fan, plain, labelled Palen Lake and southwestern lake setting.",
+      "metadata_basis": "Previously successful retained service metadata describes a seamless map combining National Map and other public-domain themes, including hydrography and geographic names. The service refresh date is not a survey date for every displayed feature.",
+      "use_notice": "Own bounded factual synthesis and ordinary bibliography only. Original images and private orientation aids are not distributed. No formal name-boundary, exact-bank, perennial-flow or current-water-condition verification."
+    },
+    {
+      "source_key": "r197-usgstopo-pinto-terminal",
+      "title": "USGS The National Map, USGSTopo: Palen Lake, intervening alluvial plain and Ford Dry Lake",
+      "publisher": "U.S. Geological Survey",
+      "bibliography": "U.S. Geological Survey. The National Map, USGSTopo seamless multiscale topographic reference service. Bounded southeastern California corridor view, accessed 13 October 2026.",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "source_type": "Primary original federal reference cartography",
+      "publication_identity": "Independently maintained National Map cartographic service. It is not a plate, mirror, reissue or recovery route for any stopped USGS research report or the DWR Bulletin118 Pinto basin profile.",
+      "access_status": "Normal original raster request completed HTTP200 image/png; pixels visually read after actual request termination.",
+      "original_map_pixels_inspected": true,
+      "actual_read_scope": "Full original and separate private orientation aid covering the Palen margin, complete southeastward plain transfer and actual Ford Dry Lake endpoint.",
+      "metadata_basis": "Previously successful retained service metadata describes a seamless map combining National Map and other public-domain themes, including hydrography and geographic names. The service refresh date is not a survey date for every displayed feature.",
+      "use_notice": "Own bounded factual synthesis and ordinary bibliography only. Original images and private orientation aids are not distributed. No formal name-boundary, exact-bank, perennial-flow or current-water-condition verification."
+    },
+    {
+      "source_key": "r197-usgstopo-pinto-opening",
+      "title": "USGS The National Map, USGSTopo: Chosen apron opening and Fried Liver Wash at Malapai Hill",
+      "publisher": "U.S. Geological Survey",
+      "bibliography": "U.S. Geological Survey. The National Map, USGSTopo seamless multiscale topographic reference service. Bounded southeastern California corridor view, accessed 13 October 2026.",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "source_type": "Primary original federal reference cartography",
+      "publication_identity": "Independently maintained National Map cartographic service. It is not a plate, mirror, reissue or recovery route for any stopped USGS research report or the DWR Bulletin118 Pinto basin profile.",
+      "access_status": "Normal original raster request completed HTTP200 image/png; pixels visually read after actual request termination.",
+      "original_map_pixels_inspected": true,
+      "actual_read_scope": "Full detailed original, including the chosen western apron and the separately mapped Fried Liver Wash corridor.",
+      "metadata_basis": "Previously successful retained service metadata describes a seamless map combining National Map and other public-domain themes, including hydrography and geographic names. The service refresh date is not a survey date for every displayed feature.",
+      "use_notice": "Own bounded factual synthesis and ordinary bibliography only. Original images and private orientation aids are not distributed. No formal name-boundary, exact-bank, perennial-flow or current-water-condition verification."
+    },
+    {
+      "source_key": "r197-usgstopo-pinto-fan",
+      "title": "USGS The National Map, USGSTopo: Fried Liver-Washington-Pinto fan connections",
+      "publisher": "U.S. Geological Survey",
+      "bibliography": "U.S. Geological Survey. The National Map, USGSTopo seamless multiscale topographic reference service. Bounded southeastern California corridor view, accessed 13 October 2026.",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "source_type": "Primary original federal reference cartography",
+      "publication_identity": "Independently maintained National Map cartographic service. It is not a plate, mirror, reissue or recovery route for any stopped USGS research report or the DWR Bulletin118 Pinto basin profile.",
+      "access_status": "Normal original raster request completed HTTP200 image/png; pixels visually read after actual request termination.",
+      "original_map_pixels_inspected": true,
+      "actual_read_scope": "Full detailed original and separate private orientation aid distinguishing the labelled northeastward channels from the selected northward fan shortcut.",
+      "metadata_basis": "Previously successful retained service metadata describes a seamless map combining National Map and other public-domain themes, including hydrography and geographic names. The service refresh date is not a survey date for every displayed feature.",
+      "use_notice": "Own bounded factual synthesis and ordinary bibliography only. Original images and private orientation aids are not distributed. No formal name-boundary, exact-bank, perennial-flow or current-water-condition verification."
+    },
+    {
+      "source_key": "r197-kunkel1963-pinto",
+      "title": "Hydrologic and Geologic Reconnaissance of Pinto Basin, Joshua Tree National Monument, Riverside County, California; USGS Water-Supply Paper1475-O",
+      "publisher": "U.S. Geological Survey; historical HTML transcription hosted by NPS History",
+      "bibliography": "Kunkel, Fred.1963. Hydrologic and geologic reconnaissance of Pinto Basin, Joshua Tree National Monument, Riverside County, California. USGS Water-Supply Paper1475-O. Historical HTML transcription, accessed 13 October 2026.",
+      "official_url": "https://www.npshistory.com/publications/geology/wsp/1475-O/sec2.htm",
+      "related_urls": [
+        "https://www.npshistory.com/publications/geology/wsp/1475-O/intro.htm",
+        "https://www.npshistory.com/publications/geology/wsp/1475-O/sec1.htm"
+      ],
+      "source_type": "Primary research report, read in an established historical HTML transcription",
+      "publication_identity": "A specific NPS-requested USGS Pinto pumping and groundwater reconnaissance, with fieldwork during1955–1959. The introduction establishes the independent project purpose and area; it is not the DWR Bulletin118 basin profile, Nevada WSP423, national1967 flood WSP1880-B or another stopped report.",
+      "access_status": "Three serial HTML openings completed normally with readable text; no map request or unresolved acquisition.",
+      "original_map_pixels_inspected": false,
+      "actual_read_scope": "Introduction purpose/location; Physiography and Geology general features; Water Resources surface-water and source/movement paragraphs. No plate28 or other unseen figure is claimed as read.",
+      "supports": "The report describes an eastward basin-floor sandy wash, its southward exit between Eagle and Coxcomb Mountains, and the drainage system reaching Palen Lake. These support ordinary basin and receiving relationships, not the selected western apron shortcut or Palen-to-Ford transfer.",
+      "use_notice": "Bounded own factual synthesis only; historical hydrogeological context does not verify present operations or exact ephemeral threads."
+    },
+    {
+      "source_key": "r197-sapphire2023-hydrology",
+      "title": "Sapphire Solar Project, Riverside County, California: Hydrology, Hydraulics, and Water Quality Technical Study, Draft, February2023",
+      "publisher": "Dudek, prepared for Sapphire Solar, LLC; official CEQAnet-hosted AppendixP",
+      "bibliography": "Dudek. February2023. Sapphire Solar Project, Riverside County, California: Hydrology, Hydraulics, and Water Quality Technical Study. Draft, AppendixP.",
+      "official_url": "https://files.ceqanet.lci.ca.gov/287768-2/attachment/n81ui-B7T0V-LOxUHRRaVZo0WVb2g21grqKd2saqpMRRIhhbFw0ZTkuyzWPk0veOSYlygJaOUBxgDdw90",
+      "source_type": "Primary commissioned project hydrology study",
+      "publication_identity": "A separately commissioned solar-site engineering study, with its own report and project cartography. Figure3 expressly credits USGS NHD2022 and an Esri imagery basemap; it is not the stopped DWR Pinto basin profile or an equivalent delivery of it.",
+      "access_status": "Normal original request completed HTTP200 application/pdf; bounded text and Figure3 pixels read after termination.",
+      "original_map_pixels_inspected": true,
+      "actual_read_scope": "Cover and contents for identity; printed pages3–4 environmental-setting/surface-water text; Figure3 USGS Hydrologic Setting, original PDF page42. No DWR appendix or reproduced DWR basin-profile content used.",
+      "supports": "Figure3 distinguishes Upper/Middle/Lower Pinto Wash, Palen Lake and Ship Creek-Ford Dry Lake watershed areas. Its watershed boundaries provide regional setting, not selected through-channel evidence.",
+      "use_notice": "Retain Draft status. Own bounded facts and ordinary bibliography only; do not redistribute original maps, PDF pages or source imagery."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:80224898",
+      "source_keys": [
+        "r197-usgstopo-manokinak-azun"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2689
+          ],
+          "component_scope": "Selected small wetland/pond opening south of Kgun Lake",
+          "finding": "The opening enlargement shows small ponds, marsh symbols and fine branching channels in the chosen initial setting. It does not continuously establish the complete selected westward opening and subsequent northward transfer into the larger southern lake-approach channel. Nearby water and the supplied modeled joins do not establish that missing through-link.",
+          "sources": [
+            "r197-usgstopo-manokinak-azun"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            2689
+          ],
+          "component_scope": "Southern channel approach into the elongated Kgun Lake arm",
+          "finding": "The readable opening map shows the larger northward channel network entering the elongated southern lake arm. The selected approach and its lake entrance are geographically accounted for at ordinary corridor scale. The small approach channel has no independently established hydronym.",
+          "sources": [
+            "r197-usgstopo-manokinak-azun"
+          ],
+          "correspondence": "complete_ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            2689
+          ],
+          "component_scope": "Elongated southern arm and southwestern Kgun Lake passage",
+          "finding": "Overlapping opening, northern and overview originals show the connected open-water arms, intervening lake neck and southwestern side of Kgun Lake. The selected long northward arm and westward turn occupy this lake passage. Kgun Lake is directly labeled on the original cartography; it is a lake component and is not assigned as a river-group name. No exact shoreline registration is required.",
+          "sources": [
+            "r197-usgstopo-manokinak-azun"
+          ],
+          "correspondence": "complete_ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "candidate_name": "Kgun Lake"
+        },
+        {
+          "fragments": [
+            2689
+          ],
+          "component_scope": "Selected northwestern lake, pond and wetland transfer toward the Manokinak corridor",
+          "finding": "The northern original depicts a Kgun-side channel, several separate lakes and ponds, small branching streams and a separately labeled Manokinak River farther west. The complete selected northward loop, southwestward lake-chain traverse and westward transfer are not established as a connected water route by the source. Individual mapped water bodies and an eventual receiving river do not resolve those intervening through-links.",
+          "sources": [
+            "r197-usgstopo-manokinak-azun"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            2689
+          ],
+          "component_scope": "Westward network traverse and selected detour north of Nuskealik Lake",
+          "finding": "The western original maps the Nungatak and Manokinak river network, intervening lakes and marshes, and Nuskealik Lake to the south. The selected westward traverse and southwestward detour through the lakes before its eastward return are not continuously established as the chosen water route. A clearly mapped Manokinak course lies in this network, but its name cannot be extended across the unresolved selected lake/wetland connections.",
+          "sources": [
+            "r197-usgstopo-manokinak-azun"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            2689
+          ],
+          "component_scope": "Selected Manokinak River corridor beside Nuskealik Lake and broad downstream reach",
+          "finding": "The western and lower originals overlap across the eastward return and show the selected connected river corridor east of Nuskealik Lake, the broad water reach below it, the southwestward turn near Iwaktok Hill and the subsequent large bends. Repeated Manokinak River labels support this component. The lake beside the river is not silently substituted for a demonstrated through-lake passage.",
+          "sources": [
+            "r197-usgstopo-manokinak-azun"
+          ],
+          "correspondence": "complete_ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "candidate_name": "Manokinak River"
+        },
+        {
+          "fragments": [
+            2689
+          ],
+          "component_scope": "Mapped Manokinak–Azun branch junction",
+          "finding": "The lower original shows the southern branch leaving the westward Manokinak corridor, with Azun River labels along the selected southern branch. The branch junction and the selected transfer into it are geographically established. This is evidence for connected distinct named components, not a requirement that both have one name.",
+          "sources": [
+            "r197-usgstopo-manokinak-azun"
+          ],
+          "correspondence": "complete_ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "candidate_name": "Azun River"
+        },
+        {
+          "fragments": [
+            2689
+          ],
+          "component_scope": "Azun River large bends and eastern tributary junction",
+          "finding": "The lower and terminal originals show the selected continuous Azun River channel through its large bends and the eastern tributary connection labeled Talik River. The source distinguishes neighboring Anerkochik and other wetland channels from the selected river. All stored joins in this lower interval are accounted for at ordinary corridor scale.",
+          "sources": [
+            "r197-usgstopo-manokinak-azun"
+          ],
+          "correspondence": "complete_ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "candidate_name": "Azun River"
+        },
+        {
+          "fragments": [
+            2689
+          ],
+          "component_scope": "Final Azun bend and actual selected terminal in the widened lower channel",
+          "finding": "The terminal original covers the final large bend, the final selected part and the widened Azun River channel containing both supplied endpoint positions. The selected tip is geographically accounted for in that lower river setting, upstream of the outer coast shown by the wider regional context. The model sea class is not independent evidence that this tip is a surveyed river mouth; the selection is not extended to a different coastal ending.",
+          "sources": [
+            "r197-usgstopo-manokinak-azun"
+          ],
+          "correspondence": "complete_ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "candidate_name": "Azun River"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61619717",
+      "source_keys": [
+        "r197-ssrh-2003",
+        "r197-claro-2011",
+        "r197-rivers-igm",
+        "r197-water-igm",
+        "r197-apn-2021"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14674
+          ],
+          "component_scope": "Chosen southwest opening and northward Claro reach",
+          "finding": "The selected opening matches the southern start of the mapped upper Claro corridor, continuing north to its pronounced eastward bend. The field-study sector map distinguishes it from adjacent headward tributaries.",
+          "sources": [
+            "r197-claro-2011",
+            "r197-ssrh-2003"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            14674
+          ],
+          "component_scope": "Eastward upper river and intermediate joins",
+          "finding": "Study Maps 1–2 continue the same Claro across the eastward reach and its intervening tributary junctions.",
+          "sources": [
+            "r197-claro-2011"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            14674
+          ],
+          "component_scope": "Southeast-trending middle Claro",
+          "finding": "The mapped river continues southeast through the study’s canyon and lower-valley sectors. Its floodplain includes peatland, meadow and wooded settings.",
+          "sources": [
+            "r197-claro-2011",
+            "r197-ssrh-2003"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            14674
+          ],
+          "component_scope": "Lower Claro, Indio junction and Fagnano inlet",
+          "finding": "Maps 1–4 distinguish the eastern Indio input from the selected Claro. The lower Claro then enters Fagnano/Khami’s north shore through the mapped low wetland corridor. Yehuin, Chepelmuth and Yakush belong to the separate tributary chain rather than the selected lake passage.",
+          "sources": [
+            "r197-claro-2011",
+            "r197-ssrh-2003"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            14674
+          ],
+          "component_scope": "Claro inlet to the central lake passage",
+          "finding": "The inlet opens into the continuous Fagnano/Khami water body. The selection turns west inside that lake; it is not an additional named river reach.",
+          "sources": [
+            "r197-claro-2011",
+            "r197-apn-2021",
+            "r197-ssrh-2003"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            14674
+          ],
+          "component_scope": "Long westward transboundary lake interval",
+          "finding": "The provincial basin map in the APN plan depicts continuous Fagnano across the national boundary, accounting for the long lake-scale selection. IGM independently depicts the western Chilean portion.",
+          "sources": [
+            "r197-apn-2021",
+            "r197-water-igm",
+            "r197-ssrh-2003"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            14674
+          ],
+          "component_scope": "Western lake narrowing and outlet approach",
+          "finding": "IGM’s western lake polygon and the regional basin map establish the narrowing and west-northwest outlet approach. Shoreline-scale differences are not treated as a distinct channel transfer.",
+          "sources": [
+            "r197-water-igm",
+            "r197-apn-2021",
+            "r197-ssrh-2003"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            14674
+          ],
+          "component_scope": "Named Azopardo outlet",
+          "finding": "IGM explicitly labels the west-northwest outlet Río Azopardo. Its line follows the selected valley from the western end of Fagnano toward the head of Seno Almirantazgo.",
+          "sources": [
+            "r197-rivers-igm",
+            "r197-water-igm",
+            "r197-ssrh-2003",
+            "r197-apn-2021"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            14674
+          ],
+          "component_scope": "Actual selected western terminal",
+          "finding": "The final selected part reaches the Azopardo outlet/head-of-Seno-Almirantazgo setting shown by IGM linework and the provincial basin map. APN and SSRH prose identify this marine receiver. The selected tip is retained without asserting exact coincidence with the shorter source-line endpoint or a surveyed shoreline.",
+          "sources": [
+            "r197-rivers-igm",
+            "r197-apn-2021",
+            "r197-ssrh-2003"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70846851",
+      "source_keys": [
+        "r197-inegi-tamaulipas-2020",
+        "r197-inegi-reynosa-2010",
+        "r197-inegi-rio-bravo-2010",
+        "r197-inegi-matamoros-2010"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10362
+          ],
+          "component_scope": "Chosen western opening and initial southeastward turn across the state-border surroundings",
+          "finding": "The state original covers the chosen western opening and border-area turn. Its neighboring intermittent watercourses do not establish a continuous channel following this selected opening and turn. The Reynosa profile adds physiographic context on the eastern side, without a matching named initial stream.",
+          "sources": [
+            "r197-inegi-tamaulipas-2020",
+            "r197-inegi-reynosa-2010"
+          ],
+          "correspondence": "opening_and_first_through_link_unestablished",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            10362
+          ],
+          "component_scope": "Northeastward return toward the La Llorona surroundings",
+          "finding": "The selected return is geographically near the mapped La Llorona waterbody and Plan de Ayala surroundings. Reynosa hydrography identifies La Llorona as a presa. Neither original establishes the full selected connection to, or passage through, that waterbody; the reservoir name remains adjacent context.",
+          "sources": [
+            "r197-inegi-tamaulipas-2020",
+            "r197-inegi-reynosa-2010"
+          ],
+          "correspondence": "reservoir_adjacent_connection_unestablished",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            10362
+          ],
+          "component_scope": "La Llorona–Doroteo Arango agricultural-plain traverse",
+          "finding": "Original mapping places the traverse across the agricultural plain and the road corridor near Doroteo Arango. It does not show a continuous watercourse accounting for the selected links across this interval. Municipal basin membership and local stream inventories cannot fill that gap.",
+          "sources": [
+            "r197-inegi-tamaulipas-2020",
+            "r197-inegi-reynosa-2010",
+            "r197-inegi-rio-bravo-2010"
+          ],
+          "correspondence": "central_plain_through_links_unestablished",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            10362
+          ],
+          "component_scope": "Eastward approach to the mapped waterbody at Santa Apolonia",
+          "finding": "The state original locates the selected eastward approach toward the mapped small waterbody at Santa Apolonia. The Río Bravo relief map supplies the corresponding southern waterbody setting but no continuous western feeder. This waterbody is not assigned the name Vaso La Mesa, which the municipal map places separately farther north.",
+          "sources": [
+            "r197-inegi-tamaulipas-2020",
+            "r197-inegi-rio-bravo-2010"
+          ],
+          "correspondence": "waterbody_setting_supported_incoming_connector_unestablished",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            10362
+          ],
+          "component_scope": "Santa Apolonia–El Realito–El Moquetito managed corridor",
+          "finding": "The southeastern selection follows the mapped straight canal corridor beside El Realito and west of Valle Hermoso toward El Moquetito. The original legend identifies its dot-marked line as canal symbology. This supports a managed-water corridor at ordinary map scale, including the small internal joins, without an observed channel name or natural-river identity.",
+          "sources": [
+            "r197-inegi-tamaulipas-2020",
+            "r197-inegi-rio-bravo-2010",
+            "r197-inegi-matamoros-2010"
+          ],
+          "correspondence": "completed_bounded_managed_corridor_correspondence",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            10362
+          ],
+          "component_scope": "Lower departure from El Moquetito toward La Libertad Número Dos",
+          "finding": "The original depicts a canal approaching La Libertad Número Dos from the Centenario de la Constitución side and a branched lagoon-margin waterbody. The selected lower continuation departs from that depicted route. The inspected originals do not establish the selected through-link across this lower plain to the lagoon margin; this is more than an unspecified exact-bank position.",
+          "sources": [
+            "r197-inegi-tamaulipas-2020",
+            "r197-inegi-matamoros-2010"
+          ],
+          "correspondence": "lower_plain_to_lagoon_through_link_unestablished",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            10362
+          ],
+          "component_scope": "Actual terminal at the Bahía Rincón de las Bayas–Laguna Madre margin",
+          "finding": "The actual tip is in the lagoon-edge setting beside La Libertad Número Dos. The state original names the adjoining bay Bahía Rincón de las Bayas, and the Matamoros relief map places this western embayment within the Laguna Madre setting. This identifies the terminal waterbody context, not an independently verified river mouth or the Gulf entrance.",
+          "sources": [
+            "r197-inegi-tamaulipas-2020",
+            "r197-inegi-matamoros-2010"
+          ],
+          "correspondence": "completed_actual_terminal_setting_only",
+          "component_correspondence_completed": true
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70728698",
+      "source_keys": [
+        "r197-usgstopo-pinto-west",
+        "r197-usgstopo-pinto-middle",
+        "r197-usgstopo-pinto-lower",
+        "r197-usgstopo-pinto-terminal",
+        "r197-usgstopo-pinto-opening",
+        "r197-usgstopo-pinto-fan",
+        "r197-kunkel1963-pinto",
+        "r197-sapphire2023-hydrology"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9877
+          ],
+          "component_scope": "Chosen western opening northwest of Malapai Hill",
+          "finding": "The selected opening occupies the western apron northwest of Malapai Hill. The original maps show the named Fried Liver Wash farther east, continuing south past the hill, but do not show a feeder linking the chosen initial apron to that wash. The later approach reaches the mapped wash setting; the chosen initial through-link remains unestablished.",
+          "sources": [
+            "r197-usgstopo-pinto-west",
+            "r197-usgstopo-pinto-opening"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            9877
+          ],
+          "component_scope": "Fried Liver Wash through Pleasant Valley",
+          "finding": "The mapped wash bends east below Malapai Hill, passes the vegetated valley patch and Pleasant Valley, and follows the canyon toward the Washington Wash receiving setting. Repeated Fried Liver Wash labels and continuous mapped channel support this selected western corridor. Washington Wash is separately labelled as an adjoining southern corridor; it is not substituted for the entire selection.",
+          "sources": [
+            "r197-usgstopo-pinto-west"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9877
+          ],
+          "component_scope": "Western Pinto Basin fan transfer",
+          "finding": "The source distinguishes Fried Liver Wash and Washington Wash as channels extending northeast across the fan to Pinto Wash. The selected route instead turns north across intervening ground and reaches an unnamed channel approaching Pinto Wash from the west. The detailed original does not depict that selected northward cross-fan connection. The mapped channels share a receiving system, but that fact alone does not establish this chosen transfer.",
+          "sources": [
+            "r197-usgstopo-pinto-west",
+            "r197-usgstopo-pinto-fan"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            9877
+          ],
+          "component_scope": "Upper Pinto Wash and incoming desert-wash joins",
+          "finding": "Repeated Pinto Wash labels follow the eastward and northeastward selected receiving corridor. The map shows the Smoke Tree Wash approach from the south and San Bernardino Wash approach from the northwest, with their receiving junctions in the Pinto corridor. These distinct tributary labels do not rename the complete selected system.",
+          "sources": [
+            "r197-usgstopo-pinto-west",
+            "r197-usgstopo-pinto-middle"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9877
+          ],
+          "component_scope": "Pinto Wash across the main basin and eastern bend",
+          "finding": "The original cartography follows Pinto Wash east across the broad basin floor along the north side of the Eagle Mountains and around the eastern bend. Kunkel describes the eastward sandy drainage and its southward passage between the Eagle and Coxcomb Mountains. This supplies ordinary corridor correspondence across the basin, without requiring coincidence with individual ephemeral threads.",
+          "sources": [
+            "r197-usgstopo-pinto-middle",
+            "r197-kunkel1963-pinto"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9877
+          ],
+          "component_scope": "Eagle-Coxcomb outlet and lower Pinto Wash fan",
+          "finding": "The selected southward passage follows the directly labelled Pinto Wash between the Eagle and Coxcomb Mountains, crosses the Colorado River Aqueduct setting and continues down the lower fan toward the plantation area. The aqueduct and nearby artificial basins are distinct mapped features; the selected route is not assigned their names or treated as an aqueduct route. The mapped wash becomes less explicit near cultivated ground, while the independent study establishes its receiving drainage toward Palen Lake.",
+          "sources": [
+            "r197-usgstopo-pinto-middle",
+            "r197-usgstopo-pinto-lower",
+            "r197-kunkel1963-pinto"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9877
+          ],
+          "component_scope": "Lower valley connection to Palen Lake",
+          "finding": "The source map places the selected lower plain and eastward approach between the lower Pinto Wash fan and Palen Lake. Kunkel expressly identifies the Pinto drainage system as discharging to Palen Lake, supporting this general receiving relationship at ordinary valley scale. A precise contemporary channel through plantations, road crossings or the final lake-margin fan is not established or required for this bounded relationship; no present operation or current inundation is asserted.",
+          "sources": [
+            "r197-usgstopo-pinto-lower",
+            "r197-kunkel1963-pinto"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9877
+          ],
+          "component_scope": "Palen Lake passage and southwest margin",
+          "finding": "Palen Lake is directly labelled on the mapped dry-lake polygon. The selected route crosses its western/southwestern lake setting and follows the southern marginal plain. This supports the lake identification and ordinary passage setting; it does not establish an outlet channel or an onward natural-river name.",
+          "sources": [
+            "r197-usgstopo-pinto-lower",
+            "r197-usgstopo-pinto-terminal"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9877
+          ],
+          "component_scope": "Palen-to-Ford plain and alluvial-fan transfer",
+          "finding": "The selected extension continues southeast from the Palen Lake margin across the broad plain and fan toes west and south of the Palen Mountains toward Ford Dry Lake. The original map depicts separate playas, discontinuous drainage markings and alluvial fans, but no through-channel establishing the complete selected inter-playa transfer. The independent project figure distinguishes Palen Lake and Ship Creek-Ford Dry Lake watershed areas; watershed boundaries are not proof of the selected hydraulic connection.",
+          "sources": [
+            "r197-usgstopo-pinto-terminal",
+            "r197-sapphire2023-hydrology"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            9877
+          ],
+          "component_scope": "Actual Ford Dry Lake terminal",
+          "finding": "The final selected parts and endpoint lie in the western portion of the mapped Ford Dry Lake complex north of Interstate 10. The dry-lake label and polygon directly establish the actual terminal setting. This is distinct from Palen Lake upstream and does not close the unsupported intervening plain transfer.",
+          "sources": [
+            "r197-usgstopo-pinto-terminal"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "ADF&G 2014 Western Region Anadromous Waters Catalog, Special Publication No. 14-06",
+      "official_url": "https://www.adfg.alaska.gov/anadromouspdfs/2014wst_CATALOG.pdf",
+      "observed_outcome": "The sole direct normal-original request terminated HTTP200 with Content-Type text/html instead of a PDF. No catalogue body, table or map read. No alternate reader, URL, edition or equivalent acquisition followed.",
+      "outcome_layer": "Completed direct HTTP-client response and reported media type; wrong-body availability result, not an asserted HTTP403 or established challenge.",
+      "restriction_scope": "Whole identified catalogue publication/project equivalents, related original, catalogue, reader/cache, mirror, map and alternate-format acquisition and unread-output reading paused.",
+      "earlier_lawful_observations": null,
+      "newly_observed_access_failure": true,
+      "material_gap": false,
+      "material_effect": "Optional corroborating inventory unavailable. Material through-link gaps are independently observed in the readable USGSTopo maps; this does not create a second primary status.",
+      "aw_id": "hydro-system:80224898"
+    },
+    {
+      "publication": "Esteban et al. 2014, Basement geometry and sediment thickness of Lago Fagnano (Tierra del Fuego), Andean Geology 41(2), DOI 10.5027/andgeoV41n2-a02",
+      "official_url": "https://www.scielo.cl/scielo.php?pid=S0718-71062014000200002&script=sci_arttext",
+      "observed_outcome": "The HTML web reader opened successfully. A subsequent sequential direct request to the same normal HTML URL completed HTTP 403, with no downloaded body or map inspected. No retry or alternate route followed.",
+      "outcome_layer": "Completed direct HTTP-client403 response; not a tool-approval cancellation.",
+      "restriction_scope": "Whole article, figures, original/PDF/HTML, publisher/repository, catalogue, reader, cache, screenshot, mirror, alternative-format and equivalent acquisition routes stopped, including unread output.",
+      "earlier_lawful_prose_exception": "Only the actually read pre-denial HTML prose and bibliography remain bounded context. No figure or map evidence was acquired.",
+      "material_effect": "No remaining ordinary-correspondence gap; independent Claro field cartography, IGM hydrography/waterbody mapping and APN provincial-basin map establish the selection.",
+      "newly_observed_access_failure": true,
+      "aw_id": "hydro-system:61619717"
+    },
+    {
+      "publication": "California Department of Water Resources, California’s Groundwater Bulletin118, Pinto Valley Groundwater Basin7-006 basin description",
+      "official_url": "https://water.ca.gov/-/media/DWR-Website/Web-Pages/Programs/Groundwater-Management/Bulletin-118/Files/2003-Basin-Descriptions/7_006_PintoValley.pdf",
+      "observed_outcome": "The sole normal original-file request terminated with HTTPError403 Forbidden. No PDF, report prose or original map pixels were acquired or read. No retry, reader, mirror or alternate route followed.",
+      "outcome_layer": "Direct HTTP-client response reporting status403, not a web-reader cache failure.",
+      "restriction_scope": "Entire identified Pinto Valley7-006 publication and equivalent originals, catalogue/metadata, readers, figures, cache, mirrors and other acquisition or unread-output routes stopped. A different related Bulletin118 basin profile was not used as an alternative while the publication relationship remained unresolved. No DWR-wide prohibition is inferred.",
+      "earlier_lawful_prose_exception": null,
+      "newly_observed_access_failure": true,
+      "limitation_kind": "http403_publication_stop",
+      "material_gap": false,
+      "material_effect": "Optional profile excluded. The source-material-pending status rests on specific gaps shown by independently readable cartography; this stop is not a second primary pending status.",
+      "aw_id": "hydro-system:70728698"
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "publication": "USGS The National Map, USGSTopo multiscale reference cartography",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "observed_notice": "Retained metadata credits USGS The National Map and contributing public datasets. All six bounded originals terminated normally and were inspected.",
+      "outcome_layer": "Cartographic source attribution and substantive correspondence limitation, not an acquisition restriction.",
+      "restriction_scope": "Own factual name/corridor synthesis only. Headward and intermediate selected wetland/lake links remain unestablished; no service-wide access stop is inferred.",
+      "aw_id": "hydro-system:80224898",
+      "acquisition_stop": false
+    },
+    {
+      "source_key": "r197-ssrh-2003",
+      "official_url": "https://www.argentina.gob.ar/sites/default/files/82.pdf",
+      "notice": "The original PDF carries copy/change restrictions in its document permissions. No source text, pages or cartographic derivatives are redistributed.",
+      "effect": "Own factual observations and ordinary bibliography only; not an acquisition or geographic gap.",
+      "aw_id": "hydro-system:61619717",
+      "acquisition_stop": false
+    },
+    {
+      "source_key": "r197-claro-2011",
+      "official_url": "https://www.legistdf.gob.ar/lp/novedadesip/Com.%20Of.%202014/C.%20Of.%20N%20017-14/CD/Informe%20Final%20Claro%202011.pdf",
+      "notice": "Original study cartography and all private reading aids remain undistributed. No unrestricted reproduction permission inferred.",
+      "effect": "Factual synthesis with attribution only.",
+      "aw_id": "hydro-system:61619717",
+      "acquisition_stop": false
+    },
+    {
+      "source_key": "r197-apn-2021",
+      "official_url": "https://sib.gob.ar/archivos/Plan_de_Gestion_del_Parque_Nacional_Tierra_del_Fuego_2021-2030.pdf",
+      "notice": "The basin figure retains its provincial DGRH source attribution. Public hosting is not treated as unrestricted redistribution permission.",
+      "effect": "Own observations and bibliography only.",
+      "aw_id": "hydro-system:61619717",
+      "acquisition_stop": false
+    },
+    {
+      "publication": "INEGI Condensado Estatal Tamaulipas, first edition2020, copyright2021",
+      "official_url": "https://en.www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/tamps/889463837107.pdf",
+      "observed_outcome": "Original printed notice requires prior written authorization for full or partial reproduction.",
+      "outcome_layer": "Source-use notice, not an acquisition denial",
+      "restriction_scope": "Original map, crops, orientation aids and other source imagery remain private. Public findings contain only original factual synthesis and ordinary bibliography.",
+      "new_access_stop": false,
+      "reobserved_existing_notice": true,
+      "aw_id": "hydro-system:70846851",
+      "acquisition_stop": false
+    },
+    {
+      "publication": "USGSTopo: Fried Liver-Pinto-Palen-Ford selected corridor",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "observed_outcome": "Six original raster requests completedHTTP200 and were visually read. They support named wash corridors and both dry-lake settings but do not establish the selected opening, western cross-fan shortcut or full inter-playa transfer.",
+      "outcome_layer": "Substantive geographic correspondence limitation, not an access or availability failure.",
+      "restriction_scope": "Only the stated selected connections remain unestablished. All other bounded observations stay usable; no service-wide stop inferred.",
+      "limitation_kind": "material_opening_fan_and_interplaya_connector_gaps",
+      "material_gap": true,
+      "aw_id": "hydro-system:70728698",
+      "acquisition_stop": false
+    }
+  ]
+}

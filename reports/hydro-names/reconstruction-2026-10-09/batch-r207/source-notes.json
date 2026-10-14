@@ -1,0 +1,679 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r207",
+  "sources": [
+    {
+      "source_key": "r207-inegi-matehuala-integrated-2019",
+      "title": "Estudio de información integrada de la Cuenca Interior de Matehuala y otras",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "edition": "2019; ix + 80 pages; product 702825188313",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/nueva_estruc/702825188313.pdf",
+      "acquisition_outcome": "The first normal-original acquisition completed with HTTP 200 and an application/pdf body. The complete original was read locally at the stated pages.",
+      "actually_read": [
+        "Title, cataloguing/copyright and project presentation pages.",
+        "Printed page VII: regional location and included municipalities.",
+        "Printed page 35: section4.1 hydrography, section4.1.1 Matehuala and caption4.1 San Gabriel; adjacent San Luis Potosí prose was not used for the selected route.",
+        "Printed page36, map4.1 Cuencas: original northern/central-eastern corridor pixels, locality and stream labels, legend and source attribution.",
+        "Printed page37, map4.2 Magnitud de orden Horton Strahler: full-sheet context and enlarged selected corridor from Palo Blanco to the San José del Refugio setting, legend and source attribution.",
+        "Printed page79 bibliography: dates and identities of hydrographic/topographic source datasets."
+      ],
+      "actual_map_scope": "Map4.1 is 1:800,000; map4.2 is 1:700,000. These establish regional drainage relationships and the interior plain gap, without proving every small branch or an exact current water limit.",
+      "publication_identity": "The original presentation identifies the project Estudios de Información Integrada de Cuencas Hidrográficas de México. The acquired book contains thematic analysis and 2014 field observations; map4.2 cites Red hidrográfica 1:50,000, edición2.0,2010. Its bibliography identifies Información Topográfica Digital1:250,000 serieIII2005 and other pre2023 bases. It is not the held national sixth-edition2023 topographic publication, a municipal-compendium copy, or a held CONAGUA aquifer report.",
+      "limits": "The publisher/search title saying2009 is not the original edition: the acquired cataloguing and copyright pages establish2019. Matehuala is a basin title, not a read river label. No natural name or complete southern selected through-link is established."
+    },
+    {
+      "source_key": "r207-inegi-villa-guadalupe-municipal2010",
+      "title": "Compendio de información geográfica municipal 2010: Villa de Guadalupe, San Luis Potosí",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "edition": "2010; clave geoestadística24047; ten-page municipal compilation",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/24/24047.pdf",
+      "acquisition_outcome": "The first normal-original acquisition completed with HTTP 200 and an application/pdf body.",
+      "actually_read": [
+        "Cover and municipal identification.",
+        "Geographic-location, physiography and hydrography tables on PDF pages2–3.",
+        "Relieve map on PDF page6, including the full original map, lower eastern plain enlargement, legend and source credits."
+      ],
+      "actual_map_scope": "Municipal generalized relief and drainage; 1:250,000 source linework. The map locates the lower eastern plain and distinguishes El Ojo de Agua and Gorrión side-drainages, without establishing the long selected north–south through-link or naming the stored terminus.",
+      "publication_identity": "Municipal multitheme compendium project, using Marco Geoestadístico Municipal2010 v4.3, Información Topográfica Digital1:250,000 serieIII and the2007 INEGI-CONAGUA drainage map. Its scope and credited source lineage are distinct from the held national2023 publication and exact held municipal originals.",
+      "limits": "Municipal basin table and listed local streams are not a whole-feature identity. El Refugio, the intermittent waterbody listed in the table, is not substituted for the stored eastern terminal."
+    },
+    {
+      "source_key": "r207-bertotto-bernardi-richter2022-volcanismo",
+      "title": "Volcanismo en la provincia de La Pampa: aportes teóricos y didácticos",
+      "authors": [
+        "Gustavo Walter Bertotto",
+        "Mauro Ignacio Bernardi",
+        "Aldo Javier Richter"
+      ],
+      "publisher": "Editorial de la Universidad Nacional de La Pampa, Colección Articulación Universidad–Escuela Secundaria",
+      "edition": "First edition,2022; ISBN978-950-863-455-9",
+      "official_url": "https://www.unlpam.edu.ar/images/extension/edunlpam/Volcanismo%20en%20la%20provincia%20de%20La%20Pampa.pdf",
+      "catalogue_url": "https://www.unlpam.edu.ar/cultura-y-extension/edunlpam/catalogo/articulacion-universidad-escuela-secundaria/volcanismo-la-pampa",
+      "publication_identity_basis": "The publisher discovery identifies a university–secondary-school teaching project based on UNLPam research. The original title, introduction and figure credit confirm an independently authored educational synthesis. Figure2.9 is explicitly credited as prepared by M.I.Bernardi, not as a reproduction of the held IGN or SEGEMAR sheets.",
+      "acquisition_outcome": "Initial normal-original request completed HTTP200 application/pdf; no retry or fallback.",
+      "actual_originals_inspected": "Original title and colophon; introduction printed p.1; relevant lava-flow descriptions printed pp.56–63; author-produced Figure2.9 printed p.59 visually inspected in full and enlarged; relevant bibliography printed pp.100–104. No exact unit assignment or drainage correspondence is derived from the thematic map.",
+      "actual_observation": "The selected southern Mendoza–western Puelén region lies within the regional volcanic figure. The source distinguishes regional lava flows including El Puesto and Pampa de Ranquelcó, the Puelén settlement anchor and the distinct Río Colorado farther south. It does not map the selected river, and no exact lava-unit boundary crossing is asserted.",
+      "map_attribution": "Figure2.9: Elaborado por M.I.Bernardi. The book cites numerous geological publications, including held Agua Escondida; no material expressly derived from that held sheet is used to establish drainage correspondence, and the sheet was not acquired.",
+      "limits": "Regional lava units, lava paths, slopes and geological ages are not drainage continuity, river names, current flow or terminal-water evidence. Thematic geographic coverage is not full hydrographic correspondence.",
+      "use_notice": "The colophon includes a reserved-rights/reproduction notice and explicitly states Creative Commons Attribution–NonCommercial–ShareAlike4.0. Bounded own factual synthesis and attribution only; source pages and private reading aids remain undistributed."
+    },
+    {
+      "source_key": "r207-pires2017-cfi-salinas",
+      "title": "Evaluación de Li (Mg y K) en las Salinas del “corredor magmático” NO-SE de la Provincia de la Pampa",
+      "author": "Mónica A. Pires",
+      "publisher": "Consejo Federal de Inversiones / Provincia de La Pampa",
+      "edition": "Informe Final,July2017",
+      "official_url": "http://biblioteca.cfi.org.ar/wp-content/uploads/sites/2/2018/02/15919-00-01-litio-la-pampa-informe-final-julio-2017.pdf",
+      "publication_identity_basis": "A separately commissioned CFI geochemical investigation of22 saline bodies, based on its own2016–2017 field sampling, GPS positioning, laboratory work and author-prepared location maps. The original title, acknowledgements and methods confirm this identity, distinct from the held basin-map, groundwater2018 chapter, protected-area and geological-sheet projects.",
+      "acquisition_outcome": "Initial normal-original request completed HTTP200 application/pdf. Complete response was received before reading; no retry or alternate route.",
+      "actual_originals_inspected": "Original title, contents, acknowledgements and summary; project scope and relevant methods on printed pp.8,11–12,18–22; Sector2 context pp.60–64; Maps8 and9 visually inspected; map index p.305.",
+      "actual_observation": "Map8 distinguishes the Puelén area, La Salinilla, Salitral de La Perra and Salina Grande. Map9 and the La Salinilla prose identify that saline body south of the actual selected ending; the detailed map does not extend north to the selection endpoint. The regional map supplies lower/terminal terrain context without tracing the selected channel.",
+      "map_attribution": "The methods identify24 project maps prepared using satellite images available through Google Earth, GPS field sampling and author-added reference information. No underlying external mapping service was acquired.",
+      "limits": "The study surveys saline bodies rather than the selected entire surface-drainage route. Its general map does not establish the opening, middle joins or an outlet at the selected endpoint. Historical field water/salt conditions are not current observations. La Salinilla is not adopted as the receiving water merely because it is nearby.",
+      "use_notice": "No officials-only, limited-distribution or explicit citation-clearance notice was encountered in the inspected front matter and relevant sections. No blanket license claim is made. Source pages, imagery, sampling coordinates and private reading aids remain undistributed; own bounded facts and ordinary bibliography only."
+    },
+    {
+      "source_key": "r207-arroyo-schulz-dapena2018-unavailable",
+      "title": "Caracterización hidroquímica e isotópica del acuífero de la meseta basáltica del departamento Puelén, La Pampa",
+      "authors": [
+        "Carina Arroyo",
+        "Carlos Juan Schulz",
+        "Cristina Dapeña"
+      ],
+      "publisher": "Universidad Nacional de Salta; El Agua Subterránea Recurso sin Fronteras: Química, Calidad y Contaminación del Agua,pp.83–90",
+      "edition": "2018; ISBN978-987-633-540-9; discovery bibliography only",
+      "official_url": "https://bicyt.conicet.gov.ar/fichas/produccion/12072519",
+      "publication_identity_basis": "Discovery describes an independent aquifer field-sampling and hydrochemical/isotopic investigation, distinct from regional cartographic or volcanic-sheet projects. Discovery is identity evidence only.",
+      "actual_originals_inspected": "None. The initial catalogue reader call and one identical retry both timed out.",
+      "supports": null,
+      "limits": "Whole exact publication/equivalent routes paused; no original chapter, map or substantive discovery snippet used.",
+      "used_as_substantive_evidence": false
+    },
+    {
+      "source_key": "r207-inegi-comondu2010",
+      "title": "Compendio de información geográfica municipal 2010: Comondú, Baja California Sur",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "municipal_code": "03001",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/03/03001.pdf",
+      "material_read": "Normal 11-page original PDF: cover, location/physiography context, hydrography table on PDF pages 3–4 and Relieve on PDF page 7. The full Relieve sheet, original headward, northern/middle, lower-corridor and terminal enlargements, legend and source credits were visually inspected. Other thematic maps are not selected-route evidence.",
+      "actual_map_sources": "Relieve credits Marco Geoestadístico 2010 version 4.3, Información Topográfica Digital 1:250000 series II, the national physiographic compilation and INEGI–CONAGUA 2007 Red Hidrográfica Digital.",
+      "independent_publication_identity": "Separately issued municipal geographic/statistical compilation with its own tables and thematic maps. Its actual older inputs distinguish it from the held national 2023 topographic project and the separately held municipal volumes. No underlying national topographic original was acquired.",
+      "observed_acquisition": "One normal-original request completed HTTP200 with PDF content; no retry or alternative route.",
+      "supports": "Chosen headward feeder within Comondú; northern, middle and lower connected course; direct La Purísima label; coastal terminal.",
+      "limitations": "Municipal footprint clips the eastern circuit, supplied by Loreto. Historical generalized mapping supports ordinary corridor geography, not exact banks or current flow.",
+      "source_use_notice": "Attribution and source credits retained. Own factual synthesis only; original maps and reading aids remain private. No officials-only or limited-distribution restriction was encountered."
+    },
+    {
+      "source_key": "r207-inegi-loreto2010",
+      "title": "Compendio de información geográfica municipal 2010: Loreto, Baja California Sur",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "municipal_code": "03009",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/03/03009.pdf",
+      "material_read": "Normal 10-page original PDF: cover, location/physiographic table, hydrography table on PDF page 3, and Relieve on PDF page 6. The full Relieve sheet, enlarged western-border circuit, legend and source credits were visually inspected.",
+      "actual_map_sources": "Marco Geoestadístico 2010 version 4.3, Información Topográfica Digital 1:250000 series II and III, the national physiographic compilation and INEGI–CONAGUA 2007 Red Hidrográfica Digital.",
+      "independent_publication_identity": "Loreto’s municipal compilation supplies its own footprint, tables and thematic maps, complementary to Comondú. It is not an alternate sheet of the held national 2023 topographic publication or a copy of a specifically held municipal volume.",
+      "observed_acquisition": "One normal-original request completed HTTP200 with PDF content; no retry or alternative route.",
+      "supports": "Eastern headward circuit and the two transitions across the municipal map footprints.",
+      "limitations": "The municipality only covers a small headward portion of the selection. Listed upper stream names are not automatically assigned to a particular unlabeled line.",
+      "source_use_notice": "Own factual observations with publisher credit; no map redistribution. No officials-only or limited-distribution restriction was encountered."
+    },
+    {
+      "source_key": "r207-inegi-bcs-hydrology1996-retained",
+      "title": "Estudio hidrológico del estado de Baja California Sur",
+      "publisher": "Instituto Nacional de Estadística, Geografía e Informática (INEGI), with Gobierno del Estado de Baja California Sur",
+      "year": 1996,
+      "isbn": "970-13-0797-6",
+      "product_id": "702825222222",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/historicos/2104/702825222222/702825222222_1.pdf",
+      "material_read": "Surviving first-part original PDF from the earlier permitted acquisition. Cover, copyright/imprint, presentation, relevant contents and hydrological prose were read. Substantive target use is limited to printed pages 17–18, section 5.5.3, and original Figure 5.3C on printed page 89/PDF page 95, visually inspected in full. Other regional passages were read only for orientation; unacquired second-part content is excluded.",
+      "independent_publication_identity": "The actual presentation identifies the Estudios Hidrológicos Estatales synthesis project; the imprint identifies January 1996 publication. This is a separately issued hydrological synthesis, not a substitute national 2023 sheet, held geographic-synthesis chapter or stopped CONAGUA aquifer report.",
+      "observed_acquisition": "Existing complete local original reused; no new network acquisition. The earlier normal-original acquisition completed HTTP200.",
+      "supports": "Representative La Purísima name, upper-course naming context, meaningful joins and direction changes, and coastal receiving setting.",
+      "limitations": "Generalized historical map and narrative. The study’s principal-source description is not treated as the exact chosen opening or proof that every selected feeder has the same name.",
+      "source_use_notice": "Copyright and attribution retained. The 500-copy printing statement is not a distribution restriction. Only bounded factual synthesis is supplied; original map and derivatives remain private."
+    },
+    {
+      "source_key": "r207-psf-programme",
+      "title": "Strategic Salmon Recovery Program",
+      "publisher": "Pacific Salmon Foundation",
+      "material_read": "Programme introduction and Squamish report catalogue.",
+      "actual_read_scope": "Commissioning/project identity only; no river map evidence.",
+      "independent_identity": "PSF identifies Pacific Salmon Endowment Fund Society funding2001–2006 and its watershed recovery programme with a separate Squamish plan.",
+      "used_as_substantive_evidence": false,
+      "official_url": "https://psf.ca/work/watershed/salmon-recovery/"
+    },
+    {
+      "source_key": "r207-golder2005-squamish",
+      "title": "Squamish River Watershed Salmon Recovery Plan, Final Report",
+      "authors": "Golder Associates Ltd.",
+      "publisher_or_client": "Pacific Salmon Foundation",
+      "date": "2005-05-13",
+      "report_number": "03-1417-026",
+      "material_read": "Complete original received; front matter, submission/project context, executive-summary geographic context, printed pages10–14 and Figure1 attribution text inspected.",
+      "actual_read_scope": "Planning prose supports receiving identity, glacial Elaho, tributary relationship, lower canyon and power-diversion context. Figure1 attribution only; no map pixels used.",
+      "independent_identity": "Commissioned PSF recovery-planning synthesis with its own Technical Advisory Committee and project03-1417-026, affirmatively distinguished from unidentified SK108/Nass and HomathkoLevel2/9H. Borrowed cartography separately withheld.",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/Library/332825.pdf"
+    },
+    {
+      "source_key": "r207-kwl2017-ifhmp",
+      "title": "Integrated Flood Hazard Management Plan: Background Report, Final Report",
+      "authors": "Kerr Wood Leidal Associates Ltd., with Arlington Group and SNC-Lavalin",
+      "publisher_or_client": "District of Squamish",
+      "date": "2017-09",
+      "report_number": "463.278-300",
+      "material_read": "Complete original received; front matter/contents, relevant watershed and river sections2.1–2.2,2.8,4.1, source attribution and limitations. Actual map/orthophoto pixels inspected on PDF pages37,84,86,176.",
+      "actual_read_scope": "Figure2-1 lower-river structural-works map; Figure5-1 Mamquam junction and Figure5-3 Cheakamus junction over credited District2013 orthophoto; AppendixD drawingSW6 over credited GeoBC6April2009 orthophoto, with2013 survey/LiDAR context. No flood-design outputs applied.",
+      "independent_identity": "District-commissioned2014–2017 flood-risk project, its municipal orthophoto and local field/survey drawings; distinct survey/editorial project, not a DataBC basemap-service retrieval or fisheries-project substitute.",
+      "official_url": "https://squamish.ca/assets/IFHMP/09252017/63a63fc5e6/FINAL-SquamishIFHMP-BackgroundReport_20170913.pdf"
+    },
+    {
+      "source_key": "r207-srws-elaho-restoration",
+      "title": "Elaho River Restoration Project in Partnership with Squamish Nation",
+      "publisher": "Squamish River Watershed Society",
+      "date": "Undated page; project narrative through autumn2021",
+      "material_read": "Project Background, Site Location and Objectives prose.",
+      "actual_read_scope": "Elaho component and Sims/Clendinning tributary context, locally surveyed obstruction/restoration-project history only. No embedded images, videos or map pixels inspected.",
+      "independent_identity": "Authorial SRWS/Squamish Nation restoration project beginning2017, with its own obstruction surveys and works; not SK108 or Homathko9H.",
+      "official_url": "https://www.squamishwatershed.com/elaho-river-restoration.html"
+    },
+    {
+      "source_key": "r207-chappaz2006-elaho",
+      "title": "A short trip to the headwaters of the Toba River",
+      "authors": "Nicolas Chappaz",
+      "publisher": "The Open Earth Project",
+      "date": "2006-10-15; updated2006-10-28",
+      "material_read": "Author/date, first-person Elaho Glacier/snouth emergence and divide observations, captions and maps-used bibliography.",
+      "actual_read_scope": "Independent personal field-observation context for glacial Elaho headwaters. Photos and cited maps not opened; no complete path claim.",
+      "independent_identity": "Original named-author four-day expedition account across Clendinning Park, not an institutional fisheries inventory or a reproduction of held cartography.",
+      "official_url": "https://www.open-earth.org/document/natureR_main.php?natureId=286"
+    },
+    {
+      "source_key": "r207-brooks1994-unavailable",
+      "title": "The Fluvial Reworking of Late Pleistocene Drift, Squamish River Drainage Basin, Southwestern British Colombia",
+      "authors": "Gregory R. Brooks",
+      "publisher": "Géographie physique et Quaternaire48(1):51–68",
+      "date": "1994",
+      "doi": "10.7202/032972ar",
+      "material_read": "Bibliographic discovery only; sole DOI/publisher opening unavailable.",
+      "actual_read_scope": "No article body or figure read. Discovery snippets excluded from geographic evidence.",
+      "independent_identity": "Identified SFU geomorphology/valley-sediment study; distinct research/editorial project. Acquisition failed before any original reading.",
+      "used_as_substantive_evidence": false,
+      "official_url": "https://doi.org/10.7202/032972ar"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70860477",
+      "source_keys": [
+        "r207-inegi-matehuala-integrated-2019",
+        "r207-inegi-villa-guadalupe-municipal2010"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10381
+          ],
+          "component_scope": "Palo Blanco opening and southward Santa Rita del Sotol approach",
+          "finding": "The chosen northern opening lies in the small drainage setting beside and northeast of Palo Blanco. The regional basin maps depict the receiving north–south valley and the southward connection beside Santa Rita del Sotol. The selected western turn and continuation can be located at ordinary corridor scale. The source does not provide a natural name for this opening or the receiving trunk; Palo Blanco and Santa Rita del Sotol are locality names, not river names.",
+          "sources": [
+            "r207-inegi-matehuala-integrated-2019"
+          ],
+          "correspondence": "bounded_corridor_supported_name_unknown",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            10381
+          ],
+          "component_scope": "Southward approach east of Cedral and tributary joins",
+          "finding": "The selected course bends southwest and then south along the valley east of Cedral, west of Guadalupe de los Faz. The acquired basin cartography shows successive eastern hillside drainages entering this receiving corridor and distinguishes the more westerly Cedral approach. Its generalized representation supports the ordinary valley continuation, without assigning a separate name to the selected trunk or every incoming stream. No content from the unavailable Cedral municipal original is used.",
+          "sources": [
+            "r207-inegi-matehuala-integrated-2019"
+          ],
+          "correspondence": "bounded_corridor_supported_name_unknown",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            10381
+          ],
+          "component_scope": "San Lorenzo and eastern Matehuala corridor",
+          "finding": "The selected south-running route passes west of the San Lorenzo locality and along the eastern side of the Matehuala setting. Both basin maps show the connected drainage and its joins from the western urban/plain side and eastern hills. The separately labeled Jaquis approach lies farther west; the selected route does not ascend that branch. No Jaquis name is transferred to the whole selection.",
+          "sources": [
+            "r207-inegi-matehuala-integrated-2019"
+          ],
+          "correspondence": "bounded_corridor_supported_name_unknown",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            10381
+          ],
+          "component_scope": "Maravillas and El Mezquite receiving valley",
+          "finding": "The selected mainstem continues south through the valley west of Maravillas and beside El Mezquite. The more detailed stream-order map shows its receiving drainage and repeated side-channel joins. The La Milpita label belongs to a western approach and does not establish the name of this long selected north–south route. No independently supported selected-river name was read.",
+          "sources": [
+            "r207-inegi-matehuala-integrated-2019"
+          ],
+          "correspondence": "bounded_corridor_supported_name_unknown",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            10381
+          ],
+          "component_scope": "San Gabriel convergence and accumulation setting",
+          "finding": "The route reaches the San Gabriel setting, where drainage from the northern valley meets the western and eastern approaches on the basin maps. The study includes a November 2014 field photograph of an impoundment in flood-prone ground at San Gabriel and describes endorheic accumulation. This supports the convergence and lowland setting, rather than a named lake transit or the subsequent long southward through-link.",
+          "sources": [
+            "r207-inegi-matehuala-integrated-2019"
+          ],
+          "correspondence": "bounded_join_and_accumulation_setting_supported",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            10381
+          ],
+          "component_scope": "South of San Gabriel toward El Milagro de Guadalupe",
+          "finding": "The selected line continues south across the broad interior plain toward the El Milagro de Guadalupe setting. The acquired stream-order and basin maps show distinct local branches, some ending on the plain, but do not establish the whole chosen southward through-channel from the San Gabriel convergence to the Milagro drainage. The general endorheic basin description and nearby road cannot supply that missing hydraulic/corridor connection. This is the principal material gap.",
+          "sources": [
+            "r207-inegi-matehuala-integrated-2019",
+            "r207-inegi-villa-guadalupe-municipal2010"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            10381
+          ],
+          "component_scope": "Stored final turn west of San José del Refugio",
+          "finding": "The actual stored final turn lies in the interior plain south of El Milagro de Guadalupe and west of San José del Refugio. The two basin maps and the Villa de Guadalupe relief map locate that setting. The report describes basin accumulation southwest of San José del Refugio, but does not identify the stored tip as a distinct named lake, reservoir or natural-channel terminus. Neither the prior San Gabriel lowland nor the locality named Presa de Maltos is substituted for the stored endpoint. The connection into this final plain remains unestablished.",
+          "sources": [
+            "r207-inegi-matehuala-integrated-2019",
+            "r207-inegi-villa-guadalupe-municipal2010"
+          ],
+          "correspondence": "terminal_setting_supported_through_link_pending",
+          "component_correspondence_completed": false
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61533397",
+      "source_keys": [
+        "r207-bertotto-bernardi-richter2022-volcanismo",
+        "r207-pires2017-cfi-salinas"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14505
+          ],
+          "component_scope": "Chosen western opening and east-southeast upper progression",
+          "finding": "The author-produced volcanic map covers the southern Mendoza volcanic-terrain setting of this selected interval. It has no depiction establishing the chosen opening or this selected drainage channel; an exact lava-unit association is not assigned.",
+          "sources": [
+            "r207-bertotto-bernardi-richter2022-volcanismo"
+          ],
+          "correspondence": "regional_context_only_selected_drainage_unestablished",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            14505
+          ],
+          "component_scope": "Upper southward turn and approach to the long middle interval",
+          "finding": "The regional volcanic-terrain figure includes the broad setting of the selected southward turn. Its lava-unit boundaries do not establish a watercourse or the connection through the turn; an exact unit crossing is not assigned.",
+          "sources": [
+            "r207-bertotto-bernardi-richter2022-volcanismo"
+          ],
+          "correspondence": "regional_context_only_selected_drainage_unestablished",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            14505
+          ],
+          "component_scope": "Long eastward middle interval through the basaltic plateau",
+          "finding": "The volcanic source covers the western La Pampa plateau surrounding this middle interval. Neither the mapped lava-flow names nor the regional slope description establishes the intervening selected surface-drainage through-links.",
+          "sources": [
+            "r207-bertotto-bernardi-richter2022-volcanismo"
+          ],
+          "correspondence": "regional_context_only_selected_drainage_unestablished",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            14505
+          ],
+          "component_scope": "Southeast lower turn west of Puelén",
+          "finding": "The volcanic map covers the lower plateau; the CFI regional sampling map begins to provide eastern-sector context. They do not depict the complete selected approach as a named or continuously connected drainage.",
+          "sources": [
+            "r207-bertotto-bernardi-richter2022-volcanismo",
+            "r207-pires2017-cfi-salinas"
+          ],
+          "correspondence": "regional_context_only_selected_drainage_unestablished",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            14505
+          ],
+          "component_scope": "Final south-southeast approach and actual terminal setting",
+          "finding": "The CFI regional map places the selected ending inland west-southwest of Puelén and north of the separately mapped La Salinilla. Its enlarged La Salinilla map does not reach the selected endpoint. A receiving-water identity and the final through-link remain unestablished; La Salinilla is not assigned as the terminal.",
+          "sources": [
+            "r207-bertotto-bernardi-richter2022-volcanismo",
+            "r207-pires2017-cfi-salinas"
+          ],
+          "correspondence": "regional_context_only_selected_drainage_unestablished",
+          "component_correspondence_completed": false
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70841827",
+      "source_keys": [
+        "r207-inegi-comondu2010",
+        "r207-inegi-loreto2010",
+        "r207-inegi-bcs-hydrology1996-retained"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10265
+          ],
+          "component_scope": "chosen mountain opening",
+          "finding": "The Comondú Relieve original depicts the selected small headward drainage near Cerro Picacho, descending into an eastward receiving channel before the turn toward the municipal boundary. The nearby parallel southern drainages remain distinct. The chosen point is a model opening on this mapped feeder, not a claim about the officially recognized source. No printed hydronym is securely assigned to the complete chosen opening.",
+          "sources": [
+            "r207-inegi-comondu2010"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            10265
+          ],
+          "component_scope": "eastern loop and boundary crossings",
+          "finding": "The paired municipal maps supply complementary coverage where Comondú clips the eastern circuit. Loreto depicts the stream entering its western mountain margin, turning north and then returning northwest toward Comondú. The joining reaches align across the two municipal footprints. This closes the intervening channel connection; it is not inferred from basin membership alone.",
+          "sources": [
+            "r207-inegi-comondu2010",
+            "r207-inegi-loreto2010"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            10265
+          ],
+          "component_scope": "northern westward receiving corridor",
+          "finding": "Comondú depicts the northern receiving watercourse continuing west, with joining northern and southern mountain channels, then bending southwest to the southward valley. The selected northern bends and intervening joins follow this connected watercourse. The 1996 study independently describes an upper joined course, Las Cruces and other tributaries, followed by a westward reach and the La Pintada southward turn; its prose does not establish exact name-transition vertices.",
+          "sources": [
+            "r207-inegi-comondu2010",
+            "r207-inegi-bcs-hydrology1996-retained"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            10265
+          ],
+          "component_scope": "southward valley and lower named course",
+          "finding": "The selected course turns south through the connected valley and then southwest into the channel directly labeled La Purísima by Comondú. The hydrological study identifies the same regional river and describes the southwestward continuation below San Isidro. Its Figure 5.3C distinguishes this drainage from the neighboring San Gregorio and Comondú watercourses.",
+          "sources": [
+            "r207-inegi-comondu2010",
+            "r207-inegi-bcs-hydrology1996-retained"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "candidate_name": "Arroyo La Purísima"
+        },
+        {
+          "fragments": [
+            10265
+          ],
+          "component_scope": "lower plain joins and final turn",
+          "finding": "The municipal original depicts the lower joined channel crossing the plain, curving west and then south to the coast. The selection follows those connected lower reaches, including the final southward leg. No intervening lake, reservoir or unproved plain crossing is required to join the selected lower corridor to its coastal endpoint.",
+          "sources": [
+            "r207-inegi-comondu2010"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "candidate_name": "Arroyo La Purísima"
+        },
+        {
+          "fragments": [
+            10265
+          ],
+          "component_scope": "actual coastal terminal",
+          "finding": "The actual stored endpoint corresponds at ordinary map scale to the Pacific-side termination of the La Purísima corridor. Both the municipal original and hydrological Figure 5.3C carry the drainage to the Pacific coast. This finding concerns the selected coastal endpoint, not an earlier inland end or an extension to another bay. The source generalization does not establish a surveyed mouth position or contemporary shoreline.",
+          "sources": [
+            "r207-inegi-comondu2010",
+            "r207-inegi-bcs-hydrology1996-retained"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            10265
+          ],
+          "component_scope": "waterbody and flow scope",
+          "finding": "The inspected maps establish an arid mountain-valley and coastal-plain stream system without a named reservoir, lake or glacier passage on the selection. Comondú’s table lists La Purísima as perennial and Loreto lists intermittent upper streams. Those historical classifications do not establish year-round water at every selected reach or present operating conditions.",
+          "sources": [
+            "r207-inegi-comondu2010",
+            "r207-inegi-loreto2010",
+            "r207-inegi-bcs-hydrology1996-retained"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "candidate_name": null
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70264330",
+      "source_keys": [
+        "r207-golder2005-squamish",
+        "r207-kwl2017-ifhmp",
+        "r207-chappaz2006-elaho",
+        "r207-srws-elaho-restoration"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9348
+          ],
+          "component_scope": "Chosen western opening and upper glacial passage",
+          "finding": "The independent expedition account directly describes Elaho River emerging at the Elaho Glacier snout. Golder describes Elaho as a glacial stream. Neither establishes the selected opening, its initial bend and its through-link to the downstream selected valley. Remaining gap: Usable source depiction linking the actual selected opening across the glacier/proglacial setting into the upper Elaho channel. No intervening lake is asserted from uninspected cartography.",
+          "sources": [
+            "r207-chappaz2006-elaho",
+            "r207-golder2005-squamish"
+          ],
+          "correspondence": "material_pending_actual_opening",
+          "component_correspondence_completed": false,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            9348
+          ],
+          "component_scope": "Upper and middle Elaho corridor, tributary junctions and lower canyon",
+          "finding": "Authorial project prose identifies a glacial Elaho River, its lower canyon and its connection to Squamish River. The restoration project identifies Sims Creek and Clendinning Creek as tributaries. Their separate names are not assigned to the selected trunk. The acquired prose does not continuously trace all selected upper and middle Elaho parts. Remaining gap: Independent readable corridor cartography covering the upper southeast reach, southward valley, intermediate tributary junctions and final Elaho approach.",
+          "sources": [
+            "r207-golder2005-squamish",
+            "r207-srws-elaho-restoration"
+          ],
+          "correspondence": "component_identity_supported_continuous_path_pending",
+          "component_correspondence_completed": false,
+          "candidate_name": "Elaho River"
+        },
+        {
+          "fragments": [
+            9348,
+            9349
+          ],
+          "component_scope": "Elaho–Squamish confluence and first fragment join",
+          "finding": "Golder independently states that Elaho joins Squamish River upstream of the lower watershed. This establishes the named tributary relationship but does not locate the selected join on usable inspected map pixels. The separate upper Squamish headwater branch is not substituted for the selected Elaho approach. Remaining gap: A usable map or equivalent primary geographic depiction of the selected confluence and its adjacent through-links.",
+          "sources": [
+            "r207-golder2005-squamish"
+          ],
+          "correspondence": "named_relationship_supported_selected_join_pending",
+          "component_correspondence_completed": false,
+          "candidate_name": "Elaho River / Squamish River"
+        },
+        {
+          "fragments": [
+            9349
+          ],
+          "component_scope": "Upper and middle receiving Squamish valley",
+          "finding": "Planning accounts describe the receiving Squamish valley, the upstream canyon, downstream braided-to-meandering progression and Ashlu contribution. Golder records a Cheakamus power diversion into Squamish. These are bounded corridor and managed-inflow context; no selected crossing of Daisy Reservoir or a powerhouse is inferred. Continuous selected correspondence north of the mapped District reach remains incomplete. Remaining gap: Independent usable depiction from the Elaho junction through the middle Squamish valley to the lower mapped reach, including significant junction settings.",
+          "sources": [
+            "r207-golder2005-squamish",
+            "r207-kwl2017-ifhmp"
+          ],
+          "correspondence": "named_corridor_context_supported_continuous_path_pending",
+          "component_correspondence_completed": false,
+          "candidate_name": "Squamish River"
+        },
+        {
+          "fragments": [
+            9349
+          ],
+          "component_scope": "Cheakamus confluence setting and Brackendale lower corridor",
+          "finding": "KWL Figure2-1 and the District2013 orthophoto-backed Figure5-3 depict the Cheakamus entry into the lower Squamish and the connected southward river corridor. The selected continuation follows Squamish, rather than the separate Cheakamus branch.",
+          "sources": [
+            "r207-kwl2017-ifhmp"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "candidate_name": "Squamish River"
+        },
+        {
+          "fragments": [
+            9349,
+            9350
+          ],
+          "component_scope": "Second fragment join and lower river past Mamquam",
+          "finding": "The KWL location map and independently attributed District2013 orthophoto Figure5-1 show the connected Squamish reach and Mamquam confluence. The mapped lower-river alignment crosses the second stored fragment join without switching to Mamquam or the disconnected sloughs.",
+          "sources": [
+            "r207-kwl2017-ifhmp"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "candidate_name": "Squamish River"
+        },
+        {
+          "fragments": [
+            9350
+          ],
+          "component_scope": "Diked lower channel, estuary and actual stored sea terminal",
+          "finding": "KWL Figure2-1 depicts Squamish continuing beside the training-berm/Spit corridor into Howe Sound; its estuary account describes the western main channel. DrawingSW6 supplies independent orthophoto-backed lower-channel context. This supports the selected ending at the estuary/Howe Sound interface. Scope: Historical2017 publication context, not a claim about present berm configuration, exact bank position, freshwater/tidal limit or flow operation.",
+          "sources": [
+            "r207-kwl2017-ifhmp",
+            "r207-golder2005-squamish"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "candidate_name": "Squamish River; Howe Sound receiving inlet"
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "INEGI, Compendio de información geográfica municipal 2010: Cedral, San Luis Potosí",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/24/24007.pdf",
+      "observed_outcome": "The sole normal-original acquisition yielded before completion. Its terminal-status request was cancelled by automatic approval review. The terminal HTTP response, transfer result and body remain unknown. No original text, map, headers or other output was read.",
+      "outcome_layer": "Tool approval cancellation; not an observed HTTP error or an established origin denial.",
+      "restriction_scope": "Whole exact municipal publication, companions/equivalents, further acquisition and unread outputs remain paused. No retry, new poll, original/reader/cache/catalogue/mirror/screenshot or equivalent recovery followed.",
+      "earlier_lawful_prose_exception": null,
+      "newly_observed_access_failure": false,
+      "approval_cancelled": true,
+      "unresolved_acquisition_outcome": true,
+      "material_effect": "The successfully acquired independent basin study supplies bounded northern-corridor observations. The remaining material gap is the selected southern interior through-link, not a claim that all northern source coverage is missing.",
+      "aw_id": "hydro-system:70860477"
+    },
+    {
+      "publication": "Arroyo, Carina; Schulz, Carlos Juan; Dapeña, Cristina (2018), Caracterización hidroquímica e isotópica del acuífero de la meseta basáltica del departamento Puelén, La Pampa. In El Agua Subterránea Recurso sin Fronteras: Química, Calidad y Contaminación del Agua, pp.83–90, Universidad Nacional de Salta; ISBN978-987-633-540-9. Bibliographic discovery identity only.",
+      "official_url": "https://bicyt.conicet.gov.ar/fichas/produccion/12072519",
+      "observed_outcome": "Initial normal web-reader catalogue opening and one identical-URL same-reader retry both returned (400) Timeout fetching. No catalogue body, chapter body or map was acquired or read.",
+      "outcome_layer": "Two completed explicit web-reader fetch timeouts; origin HTTP status unobserved. No HTTP denial or authentication outcome asserted.",
+      "restriction_scope": "Whole exact publication and equivalent catalogue, original, reader, cache, mirror, screenshot and alternative-format routes paused. No alternate route or original-file fallback followed.",
+      "earlier_lawful_prose_exception": null,
+      "newly_observed_access_failure": true,
+      "explicit_access_denial": false,
+      "material_effect": "No hydrographic or terminal evidence was obtained. Discovery snippets are bibliographic leads only.",
+      "aw_id": "hydro-system:61533397"
+    },
+    {
+      "publication": "Narciso, Zanettini, Santamaría and Mallimacci (2007), Hoja Geológica 3769-II Agua Escondida, SEGEMAR Boletín300,54pp.",
+      "official_url": null,
+      "observed_outcome": "Bibliography in the normally read 2022 volcanic book resolves the title, authors, year and bulletin of the previously paused sheet. Earlier first-hand records preserve a reader timeout followed by one original request returning HTTP502; the exact earlier URL is not preserved. No new sheet request or reading occurred.",
+      "restriction_scope": "The existing whole-publication/equivalent pause remains. The more precise bibliographic identity does not clear the earlier failure. Do not infer or construct its missing URL.",
+      "newly_observed_access_failure": false,
+      "acquisition_attempted_in_this_batch": false,
+      "aw_id": "hydro-system:61533397"
+    },
+    {
+      "publication": "Brooks, Gregory R. (1994), The Fluvial Reworking of Late Pleistocene Drift, Squamish River Drainage Basin, Southwestern British Colombia, Géographie physique et Quaternaire48(1):51–68, DOI10.7202/032972ar",
+      "official_url": "https://doi.org/10.7202/032972ar",
+      "observed_outcome": "The sole DOI/publisher web-reader opening returned Internal Error: URL is not accessible via this tool. No article body or map pixels were read.",
+      "outcome_layer": "Unexplained web-reader availability failure; origin HTTP unknown.",
+      "origin_http_status": null,
+      "restriction_scope": "Whole article, figures and equivalent original/catalogue/reader/cache/mirror routes paused. No retry, original fallback or ResearchGate recovery.",
+      "earlier_lawful_prose_exception": null,
+      "newly_observed_access_failure": true,
+      "aw_id": "hydro-system:70264330"
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "publication": "Bertotto, Bernardi and Richter2022, Volcanismo en la provincia de La Pampa",
+      "official_url": "https://www.unlpam.edu.ar/images/extension/edunlpam/Volcanismo%20en%20la%20provincia%20de%20La%20Pampa.pdf",
+      "observed_notice": "Colophon states reserved reproduction rights together with Creative Commons Attribution–NonCommercial–ShareAlike4.0.",
+      "material_gap": false,
+      "aw_id": "hydro-system:61533397",
+      "acquisition_stop": false,
+      "restriction_scope": "Keep originals and map derivatives private; publish only own bounded facts with attribution. No new access denial inferred."
+    },
+    {
+      "publication": "Golder2005 Squamish River Watershed Salmon Recovery Plan, Figure1",
+      "observation": "Figure1 credits watershed data to MSRM and street data to DMTI Spatial Inc. The exact drainage dataset and its relation to held DataBC/TRIM are not affirmatively resolved.",
+      "aw_id": "hydro-system:70264330",
+      "acquisition_stop": false,
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/Library/332825.pdf",
+      "restriction_scope": "Figure1 drainage/cartographic content not used; no pixels inspected. This is an unresolved underlying-content relationship, not an HTTP failure, publication-wide ban or MSRM-wide restriction. Already read authorial project prose remains bounded evidence."
+    },
+    {
+      "publication": "KWL2017 IFHMP Background Report",
+      "observation": "Printed limitations reserve professional reliance to the District client. Copyright notice prohibits other material reuse without KWL written permission. DrawingSW6 is marked preliminary/do not use for design.",
+      "aw_id": "hydro-system:70264330",
+      "acquisition_stop": false,
+      "official_url": "https://squamish.ca/assets/IFHMP/09252017/63a63fc5e6/FINAL-SquamishIFHMP-BackgroundReport_20170913.pdf",
+      "restriction_scope": "Only bounded original factual geographic observations and bibliography; no professional design reliance, reproduction, originals or derivatives supplied publicly. No officials-only or limited-distribution label was observed."
+    },
+    {
+      "source_keys": [
+        "r207-golder2005-squamish",
+        "r207-kwl2017-ifhmp",
+        "r207-chappaz2006-elaho",
+        "r207-srws-elaho-restoration"
+      ],
+      "observation": "Originals, figures, photos, private source-reading aids and any full path coordinates are not redistribution deliverables.",
+      "aw_id": "hydro-system:70264330",
+      "acquisition_stop": false,
+      "restriction_scope": "Public-ready result consists solely of own concise factual observations, ordinary source URLs and bounded bibliography."
+    }
+  ]
+}

@@ -1,0 +1,883 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r244",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r243",
+    "commit": "0459c6682fb5a9e8660543b5dd23a66e424835e3",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r243/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:61527658",
+    "hydro-system:90102360",
+    "hydro-system:90090707",
+    "hydro-system:70816429"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:61527658",
+      "category": "river_group",
+      "system_id": "61527658",
+      "original_queue_rank": 781,
+      "baseline_logical_fid": 3598,
+      "geometry_fids": [
+        14491
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -69.402083,
+        -36.78125,
+        -68.73125,
+        -36.414583
+      ],
+      "rendered_mainstem_length_km": 105.327,
+      "rendered_network_length_km": 105.327,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "selected_part_count": 18
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_source_material_pending",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "region": "Payunia, southern Mendoza, Argentina",
+      "candidate_name_role": null,
+      "source_keys": [
+        "r244-mendoza-imagery-overview",
+        "r244-mendoza-imagery-upper",
+        "r244-mendoza-imagery-middle",
+        "r244-bertotto-bernardi-richter2022"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": "One lower receiving-link gap: the selected fan/plain continuation through eastern volcanic-depression terrain to the coincident stored source/render endings (parts10–17 zero-based). Regional terrain is seen, but the complete ordinary through-link remains unestablished.",
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "The selected Payunia volcanic-foot corridor has independently read opening, western lava-margin, broad southern turn and middle receiving-floor correspondence. The eastern lower fan/plain-to-ending transfer remains unestablished.",
+      "completion_scope": "Bounded upper and middle geography is complete for zero-based parts0–9. Parts10–17 have regional terrain coverage but an unestablished lower receiving connection, so the full selection remains source-material-pending.",
+      "supported_name_scope": "No supported representative natural-river name, true alias, separate selected tributary name or receiving-lake name was obtained. Payunia and the volcano/lava-flow names are geographic/geological context, not hydronym candidates.",
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "whole_feature_uniform_name_established": false,
+        "scope_limits": [
+          "A satellite terrain view does not establish perennial flow, exact banks, current wet extent or present hydraulic connectivity.",
+          "The endorheic core label is retained only as supplied metadata; it does not establish a named lake or salina at the stored endpoint.",
+          "The successful overview covers the lower area but does not by itself demonstrate its entire selected receiving connection. The cancelled terminal-detail request and every unread output remain excluded.",
+          "The thematic volcanic book is useful regional context and is not a hydrographic replacement for held IGN/SEGEMAR cartography."
+        ]
+      },
+      "bounded_name_observations": [],
+      "terminal_review": {
+        "source_endpoint": {
+          "description": "Stored eastern ending in the volcanic-plain/depression setting; receiving through-link not established.",
+          "correspondence_complete": false
+        },
+        "render_endpoint": {
+          "description": "Coincides with the stored source ending; retained separately and no farther downstream route appended.",
+          "correspondence_complete": false
+        }
+      }
+    },
+    {
+      "aw_id": "hydro-system:90102360",
+      "category": "river_group",
+      "system_id": "90102360",
+      "original_queue_rank": 782,
+      "baseline_logical_fid": 2862,
+      "geometry_fids": [
+        8877
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -35.685417,
+        66.58125,
+        -34.519105,
+        67.039583
+      ],
+      "rendered_mainstem_length_km": 105.103,
+      "rendered_network_length_km": 105.103,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "selected_part_count": 51
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_name_scope_hold",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "region": "Southeast Greenland; ice/nunatak terrain and coastal bedrock margin north of the mapped Tasiilap Karra / Kap Gustav Holm cape setting",
+      "candidate_name_role": "No representative natural-river hydronym is supported for the whole ice, exposed-rock and coastal composite.",
+      "source_keys": [
+        "r244-geus-greenland-national-1995"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": "Freshly acquired and visually read original GEUS national cartography accounts for all51 selected parts, from the northern ice/nunatak opening through successive ice and exposed-bedrock passages to the coastal land/ice-margin ending. Both separately supplied source and rendered terminal positions were considered. No representative natural-river hydronym is established. The result is a completed null name-scope hold, with no material source-coverage gap.",
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "Freshly acquired and visually read original GEUS national cartography accounts for all51 selected parts, from the northern ice/nunatak opening through successive ice and exposed-bedrock passages to the coastal land/ice-margin ending. Both separately supplied source and rendered terminal positions were considered. No representative natural-river hydronym is established. The result is a completed null name-scope hold, with no material source-coverage gap.",
+      "completion_scope": "Freshly acquired and visually read original GEUS national cartography accounts for all51 selected parts, from the northern ice/nunatak opening through successive ice and exposed-bedrock passages to the coastal land/ice-margin ending. Both separately supplied source and rendered terminal positions were considered. No representative natural-river hydronym is established. The result is a completed null name-scope hold, with no material source-coverage gap.",
+      "supported_name_scope": "Freshly acquired and visually read original GEUS national cartography accounts for all51 selected parts, from the northern ice/nunatak opening through successive ice and exposed-bedrock passages to the coastal land/ice-margin ending. Both separately supplied source and rendered terminal positions were considered. No representative natural-river hydronym is established. The result is a completed null name-scope hold, with no material source-coverage gap.",
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "whole_feature_uniform_name_established": false,
+        "scope_limits": [
+          "Complete ordinary geographic correspondence does not establish that the entire modeled composite is a continuous natural river. No representative river hydronym is supported, and no assertion is made that every local watercourse is officially unnamed.",
+          "Historical national-scale compilation supports terrain and broad ending correspondence, not precise current glacier-front, bank, coastline or endpoint land/ice/water classification.",
+          "No current surface or subglacial hydraulics, selected lake throughflow, surveyed river length, Korean name or formal-register status is established."
+        ]
+      },
+      "bounded_name_observations": [],
+      "context_name_observations": [
+        {
+          "name": "Tasiilap Karra / Kap Gustav Holm",
+          "feature_type": "cape label",
+          "scope": "Directly printed nearby coastal reference south/east of the final selection. Used only to orient the ordinary terminal region; not assigned to the selected river or any inferred glacier/fjord.",
+          "is_representative_river_candidate": false,
+          "source_keys": [
+            "r244-geus-greenland-national-1995"
+          ]
+        }
+      ],
+      "terminal_review": {
+        "source_endpoint_description": "Coastal bedrock/ice-margin setting beside the final eastward approach, south of the rendered endpoint at this scale.",
+        "render_endpoint_description": "Nearby northward end in the same generalized coastal-margin setting; the inventory sea class is not substituted for actual map evidence."
+      }
+    },
+    {
+      "aw_id": "hydro-system:90090707",
+      "category": "river_group",
+      "system_id": "90090707",
+      "original_queue_rank": 783,
+      "baseline_logical_fid": 2855,
+      "geometry_fids": [
+        8870
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -29.575,
+        68.447577,
+        -28.507924,
+        69.085417
+      ],
+      "rendered_mainstem_length_km": 104.627,
+      "rendered_network_length_km": 104.627,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "selected_part_count": 41
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_name_scope_hold",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "region": "East Greenland; Watkins Bjerge vicinity, mountain ice and exposed-rock corridors, and the coastal margin west of Kap Ravn",
+      "candidate_name_role": "No representative natural-river hydronym is supported for the whole ice, exposed-rock and coastal composite.",
+      "source_keys": [
+        "r244-geus-greenland-national-1995"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": "The fresh GEUS national original was separately inspected over all41 parts of this selection. It accounts for the upper mountain ice/rock opening, eastward ridge-and-margin passage, long southward ice trough, lower exposed-rock margins and both separate terminal settings on the coast west of Kap Ravn. Geographic correspondence is complete at ordinary regional/corridor scale, but a representative natural-river hydronym is unsupported. This is a completed null name-scope hold without a material source gap.",
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "The fresh GEUS national original was separately inspected over all41 parts of this selection. It accounts for the upper mountain ice/rock opening, eastward ridge-and-margin passage, long southward ice trough, lower exposed-rock margins and both separate terminal settings on the coast west of Kap Ravn. Geographic correspondence is complete at ordinary regional/corridor scale, but a representative natural-river hydronym is unsupported. This is a completed null name-scope hold without a material source gap.",
+      "completion_scope": "The fresh GEUS national original was separately inspected over all41 parts of this selection. It accounts for the upper mountain ice/rock opening, eastward ridge-and-margin passage, long southward ice trough, lower exposed-rock margins and both separate terminal settings on the coast west of Kap Ravn. Geographic correspondence is complete at ordinary regional/corridor scale, but a representative natural-river hydronym is unsupported. This is a completed null name-scope hold without a material source gap.",
+      "supported_name_scope": "The fresh GEUS national original was separately inspected over all41 parts of this selection. It accounts for the upper mountain ice/rock opening, eastward ridge-and-margin passage, long southward ice trough, lower exposed-rock margins and both separate terminal settings on the coast west of Kap Ravn. Geographic correspondence is complete at ordinary regional/corridor scale, but a representative natural-river hydronym is unsupported. This is a completed null name-scope hold without a material source gap.",
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "whole_feature_uniform_name_established": false,
+        "scope_limits": [
+          "Complete ordinary geographic correspondence does not establish that the entire modeled composite is a continuous natural river. No representative river hydronym is supported, and no assertion is made that every local watercourse is officially unnamed.",
+          "Historical national-scale compilation supports terrain and broad ending correspondence, not precise current glacier-front, bank, coastline or endpoint land/ice/water classification.",
+          "No current surface or subglacial hydraulics, selected lake throughflow, surveyed river length, Korean name or formal-register status is established."
+        ]
+      },
+      "bounded_name_observations": [],
+      "context_name_observations": [
+        {
+          "name": "Watkins Bjerge",
+          "feature_type": "mountain range label",
+          "scope": "Directly printed regional mountain reference beside the upper selected terrain. It does not supply a river or inferred glacier name.",
+          "is_representative_river_candidate": false,
+          "source_keys": [
+            "r244-geus-greenland-national-1995"
+          ]
+        },
+        {
+          "name": "Kap Ravn",
+          "feature_type": "cape label",
+          "scope": "Directly printed coastal reference east of the final selected coastal opening. The selection is not renamed after this cape.",
+          "is_representative_river_candidate": false,
+          "source_keys": [
+            "r244-geus-greenland-national-1995"
+          ]
+        },
+        {
+          "name": "Nansen Fjord",
+          "feature_type": "fjord label",
+          "scope": "Directly printed larger neighboring fjord to the southwest; excluded as the name of the distinct selected terminal opening and as a representative river candidate.",
+          "is_representative_river_candidate": false,
+          "source_keys": [
+            "r244-geus-greenland-national-1995"
+          ]
+        }
+      ],
+      "terminal_review": {
+        "source_endpoint_description": "More landward/northwestern position at the lower ice/bedrock-margin coastal approach.",
+        "render_endpoint_description": "Farther southeast position in the same small coastal-opening setting west of Kap Ravn."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70816429",
+      "category": "river_group",
+      "system_id": "70816429",
+      "original_queue_rank": 784,
+      "baseline_logical_fid": 3186,
+      "geometry_fids": [
+        10229
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -104.827083,
+        28.60625,
+        -104.20625,
+        28.935417
+      ],
+      "rendered_mainstem_length_km": 104.258,
+      "rendered_network_length_km": 104.258,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "selected_part_count": 25
+      },
+      "candidate_name": "La Copa",
+      "candidate_names": [
+        "La Copa"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "region": "Chihuahua, Mexico: eastern Polvorillas valley, northern Camargo turn and middle wash, La Copa receiving corridor, and the final Aldama interior lowland.",
+      "candidate_name_role": "representative_system_identity_with_bounded_named_lower_reach",
+      "source_keys": [
+        "r244-inegi-ojinaga2010",
+        "r244-inegi-camargo2010-retained",
+        "r244-inegi-aldama2010",
+        "r244-inegi-julimes2010-context"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "La Copa is directly attached to the selected northwestern receiving drainage in the Ojinaga original. Readable adjoining Ojinaga, Camargo and Aldama maps establish the ordinary geographic connection from the eastern Polvorillas reach, around the southern turn and through the middle valley to that named lower corridor and the final interior receiving floor. This supports a representative system identity, without making Polvorillas an alias or assigning La Copa uniformly to every stored part.",
+      "completion_scope": "All 25 stored parts, major joins and both coincident endings are covered by actually read adjoining municipal Relieve maps at useful ordinary corridor/alluvial-floor scale. Ojinaga covers the eastern Polvorillas and northwestern La Copa reaches; retained Camargo covers the connecting southern turn and northward middle wash; Aldama covers the final receiving floor and actual endpoint. No unexamined lake-to-feeder transfer or distinct-basin connection remains. No photographic image was requested or used.",
+      "supported_name_scope": "La Copa is directly attached to the selected northwestern receiving drainage in the Ojinaga original. Readable adjoining Ojinaga, Camargo and Aldama maps establish the ordinary geographic connection from the eastern Polvorillas reach, around the southern turn and through the middle valley to that named lower corridor and the final interior receiving floor. This supports a representative system identity, without making Polvorillas an alias or assigning La Copa uniformly to every stored part.",
+      "naming_scope_details": {
+        "representative_system_identity": "La Copa",
+        "whole_feature_uniform_name_established": false,
+        "scope_limits": [
+          "La Copa is a representative lower receiving-system identity, not a uniform name for all 25 parts.",
+          "Polvorillas and La Copa are separately mapped watercourse names; no alias relationship or precise name-transition vertex is established.",
+          "The unnamed middle wash, exact selected opening name and final receiving-floor name remain unestablished.",
+          "Historical generalized thematic maps establish ordinary geographic correspondence, not present water extent, continuous current surface flow, detailed bank alignment or water-management operation.",
+          "The stored endorheic terminal class is not independent cartographic evidence of a named lake or surveyed hydrologic closure.",
+          "Formal registry verification and Korean-name verification were not performed."
+        ]
+      },
+      "bounded_name_observations": [
+        {
+          "name": "Polvorillas",
+          "feature_type": "intermittent watercourse",
+          "scope": "Directly printed on the selected eastern upper drainage in Ojinaga. Bounded upper-reach name, not an alias of La Copa and not a uniform whole-composite assignment.",
+          "source_keys": [
+            "r244-inegi-ojinaga2010"
+          ]
+        },
+        {
+          "name": "La Copa",
+          "feature_type": "intermittent receiving watercourse",
+          "scope": "Directly printed on the selected northwestern lower drainage in Ojinaga. Supports representative receiving-system identity after the complete connected corridor has been reviewed. A precise change-of-name point is unestablished.",
+          "source_keys": [
+            "r244-inegi-ojinaga2010"
+          ]
+        },
+        {
+          "name": "Sierra Mojina",
+          "feature_type": "relief setting",
+          "scope": "Mapped relief beside the northern Camargo middle wash; not a hydronym.",
+          "source_keys": [
+            "r244-inegi-camargo2010-retained"
+          ]
+        },
+        {
+          "name": "Sierra El Jabalí",
+          "feature_type": "relief setting",
+          "scope": "Mapped relief west of the final Aldama receiving floor; not a river or terminal-lake name.",
+          "source_keys": [
+            "r244-inegi-aldama2010"
+          ]
+        }
+      ],
+      "terminal_review": {
+        "stored_terminal_class": "endorheic",
+        "source_terminal": "The stored source endpoint lies within the mapped interior alluvial drainage floor east of Sierra El Jabalí, after the final westward and southwestward bend.",
+        "render_terminal": "The rendered ending coincides with that same source endpoint and receiving-floor setting; no additional downstream extension is implied.",
+        "source_and_render_endings_equal_in_stored_metadata": true,
+        "source_terminal_geographic_correspondence_complete": true,
+        "render_terminal_geographic_correspondence_complete": true,
+        "terminal_name": null,
+        "terminal_class_limit": "Endorheic is retained as stored model metadata. The inspected municipal maps do not independently establish a named terminal lake or a surveyed natural closure at that exact point.",
+        "source_keys": [
+          "r244-inegi-aldama2010"
+        ]
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [
+      "hydro-system:90102360",
+      "hydro-system:90090707"
+    ],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [
+      "hydro-system:61527658"
+    ],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 3,
+    "supported_representative_system_identities": 1,
+    "scope_holds": 2,
+    "access_pending": 0,
+    "material_pending": 1
+  },
+  "totals_after": {
+    "recorded_targets": 919,
+    "non_pending_records": 612,
+    "source_access_pending": 3,
+    "source_material_pending": 304,
+    "source_any_pending": 307,
+    "scope_holds": 193,
+    "river_groups": 821,
+    "lakes": 98,
+    "unrecorded": 3146,
+    "unrecorded_river_groups": 2634,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573",
+    "hydro-system:80032711",
+    "hydro-system:60007816",
+    "hydro-system:80013873",
+    "hydro-system:61501314",
+    "hydro-system:60761631",
+    "hydro-system:70895720",
+    "hydro-system:61398344",
+    "hydro-system:61355098",
+    "hydro-system:70933800",
+    "hydro-system:60026849",
+    "hydro-system:70574060",
+    "hydro-system:70890643",
+    "hydro-system:80064967",
+    "hydro-system:70856797",
+    "hydro-system:60174418",
+    "hydro-system:61547907",
+    "hydro-system:70463083",
+    "hydro-system:61520061",
+    "hydro-system:70895492",
+    "hydro-system:70898394",
+    "hydro-system:70865140",
+    "hydro-system:80072439",
+    "hydro-system:70549678",
+    "hydro-system:70566840",
+    "hydro-system:80048422",
+    "hydro-system:60557376",
+    "hydro-system:61514286",
+    "hydro-system:61509423",
+    "hydro-system:80068731",
+    "hydro-system:80015064",
+    "hydro-system:61520170",
+    "hydro-system:70156165",
+    "hydro-system:70784507",
+    "hydro-system:80067417",
+    "hydro-system:80019756",
+    "hydro-system:70244256",
+    "hydro-system:80060230",
+    "hydro-system:61543259",
+    "hydro-system:60007312",
+    "hydro-system:60022881",
+    "hydro-system:61456098",
+    "hydro-system:70290797",
+    "hydro-system:60441146",
+    "hydro-system:61554706",
+    "hydro-system:70110341",
+    "hydro-system:80067260",
+    "hydro-system:70214162",
+    "hydro-system:80034507",
+    "hydro-system:61536265",
+    "hydro-system:61561008",
+    "hydro-system:80066184",
+    "hydro-system:70202296",
+    "hydro-system:61545841",
+    "hydro-system:61350841",
+    "hydro-system:80064018",
+    "hydro-system:70957614",
+    "hydro-system:70851521",
+    "hydro-system:70049998",
+    "hydro-system:61298121",
+    "hydro-system:80033385",
+    "hydro-system:61205785",
+    "hydro-system:80035867",
+    "hydro-system:70009700",
+    "hydro-system:60440371",
+    "hydro-system:80049373",
+    "hydro-system:70749063",
+    "hydro-system:70844211",
+    "hydro-system:60001814",
+    "hydro-system:61507976",
+    "hydro-system:70834534",
+    "hydro-system:80070226",
+    "hydro-system:61357020",
+    "hydro-system:70846952",
+    "hydro-system:70004800",
+    "hydro-system:80043969",
+    "hydro-system:80165177",
+    "hydro-system:70043276",
+    "hydro-system:60490135",
+    "hydro-system:60237339",
+    "hydro-system:70023641",
+    "hydro-system:70281204",
+    "hydro-system:61570080",
+    "hydro-system:70789628",
+    "hydro-system:80234498",
+    "hydro-system:60016868",
+    "hydro-system:70276504",
+    "hydro-system:70901807",
+    "hydro-system:80086174",
+    "hydro-system:60809372",
+    "hydro-system:60100857",
+    "hydro-system:70026619",
+    "hydro-system:70500400",
+    "hydro-system:60010615",
+    "hydro-system:70608588",
+    "hydro-system:70832638",
+    "hydro-system:61383955",
+    "hydro-system:61555573",
+    "hydro-system:80068976",
+    "hydro-system:80048308",
+    "hydro-system:80001778",
+    "hydro-system:70324446",
+    "hydro-system:80051383",
+    "hydro-system:60804761",
+    "hydro-system:70817056",
+    "hydro-system:80032843",
+    "hydro-system:70045452",
+    "hydro-system:70877500",
+    "hydro-system:80042519",
+    "hydro-system:70084321",
+    "hydro-system:61519454",
+    "hydro-system:61546367",
+    "hydro-system:60627295",
+    "hydro-system:61038090",
+    "hydro-system:60407824",
+    "hydro-system:80047056",
+    "hydro-system:70888155",
+    "hydro-system:61189702",
+    "hydro-system:70084119",
+    "hydro-system:70025722",
+    "hydro-system:70001071",
+    "hydro-system:70360842",
+    "hydro-system:70007286",
+    "hydro-system:60001879",
+    "hydro-system:70776067",
+    "hydro-system:61266023",
+    "hydro-system:70806740",
+    "hydro-system:60516711",
+    "hydro-system:80020100",
+    "hydro-system:70835654",
+    "hydro-system:80029665",
+    "hydro-system:61609128",
+    "hydro-system:70853324",
+    "hydro-system:70775288",
+    "hydro-system:70008834",
+    "hydro-system:61422869",
+    "hydro-system:80214289",
+    "hydro-system:70210252",
+    "hydro-system:70091013",
+    "hydro-system:60774621",
+    "hydro-system:61390812",
+    "hydro-system:60613563",
+    "hydro-system:61564085",
+    "hydro-system:70048797",
+    "hydro-system:61533139",
+    "hydro-system:60000681",
+    "hydro-system:70728795",
+    "hydro-system:80148544",
+    "hydro-system:70478140",
+    "hydro-system:70243977",
+    "hydro-system:70170668",
+    "hydro-system:80290543",
+    "hydro-system:61524461",
+    "hydro-system:70246501",
+    "hydro-system:70253588",
+    "hydro-system:70735407",
+    "hydro-system:60339076",
+    "hydro-system:70870606",
+    "hydro-system:61551054",
+    "hydro-system:61508438",
+    "hydro-system:60412032",
+    "hydro-system:70209891",
+    "hydro-system:70221206",
+    "hydro-system:70752436",
+    "hydro-system:70840433",
+    "hydro-system:60000722",
+    "hydro-system:80039501",
+    "hydro-system:80043520",
+    "hydro-system:80125244",
+    "hydro-system:70478139",
+    "hydro-system:80028550",
+    "hydro-system:61436404",
+    "hydro-system:80231563",
+    "hydro-system:61286514",
+    "hydro-system:61543734",
+    "hydro-system:80033212",
+    "hydro-system:61512470",
+    "hydro-system:60768475",
+    "hydro-system:70735496",
+    "hydro-system:61555954",
+    "hydro-system:70618884",
+    "hydro-system:80160360",
+    "hydro-system:70830375",
+    "hydro-system:80018800",
+    "hydro-system:61540978",
+    "hydro-system:80261384",
+    "hydro-system:60297933",
+    "hydro-system:80044582",
+    "hydro-system:61555857",
+    "hydro-system:70184883",
+    "hydro-system:70531357",
+    "hydro-system:70768467",
+    "hydro-system:61483978",
+    "hydro-system:60024169",
+    "hydro-system:61266022",
+    "hydro-system:60042998",
+    "hydro-system:61545451",
+    "hydro-system:70974386",
+    "hydro-system:70658860",
+    "hydro-system:61064290",
+    "hydro-system:80224898",
+    "hydro-system:70846851",
+    "hydro-system:70728698",
+    "hydro-system:60011738",
+    "hydro-system:70135325",
+    "hydro-system:80080193",
+    "hydro-system:70891116",
+    "hydro-system:60001922",
+    "hydro-system:70840684",
+    "hydro-system:61144131",
+    "hydro-system:61279996",
+    "hydro-system:60575428",
+    "hydro-system:61330558",
+    "hydro-system:61352932",
+    "hydro-system:80011023",
+    "hydro-system:61516926",
+    "hydro-system:70188223",
+    "hydro-system:70245111",
+    "hydro-system:70094242",
+    "hydro-system:61521416",
+    "hydro-system:70828969",
+    "hydro-system:80062264",
+    "hydro-system:80160778",
+    "hydro-system:60409921",
+    "hydro-system:60000770",
+    "hydro-system:60571197",
+    "hydro-system:70860477",
+    "hydro-system:61533397",
+    "hydro-system:70264330",
+    "hydro-system:70105802",
+    "hydro-system:70331549",
+    "hydro-system:80081015",
+    "hydro-system:70766071",
+    "hydro-system:61382960",
+    "hydro-system:80037596",
+    "hydro-system:60775848",
+    "hydro-system:80051354",
+    "hydro-system:80266652",
+    "hydro-system:70316227",
+    "hydro-system:61528356",
+    "hydro-system:70882065",
+    "hydro-system:80042509",
+    "hydro-system:80031210",
+    "hydro-system:80108382",
+    "hydro-system:70026340",
+    "hydro-system:60007489",
+    "hydro-system:80032969",
+    "hydro-system:80091078",
+    "hydro-system:80255237",
+    "hydro-system:70824140",
+    "hydro-system:61562621",
+    "hydro-system:70974390",
+    "hydro-system:80107981",
+    "hydro-system:70871537",
+    "hydro-system:70530540",
+    "hydro-system:61557326",
+    "hydro-system:70873021",
+    "hydro-system:70844000",
+    "hydro-system:80071292",
+    "hydro-system:70016501",
+    "hydro-system:80031039",
+    "hydro-system:61400064",
+    "hydro-system:80119986",
+    "hydro-system:60006761",
+    "hydro-system:80002475",
+    "hydro-system:80092693",
+    "hydro-system:70961272",
+    "hydro-system:80021745",
+    "hydro-system:80038868",
+    "hydro-system:70000271",
+    "hydro-system:60264271",
+    "hydro-system:70809540",
+    "hydro-system:60263863",
+    "hydro-system:70870227",
+    "hydro-system:61279344",
+    "hydro-system:61502899",
+    "hydro-system:61563356",
+    "hydro-system:61147748",
+    "hydro-system:61518797",
+    "hydro-system:61579517",
+    "hydro-system:70136698",
+    "hydro-system:70850906",
+    "hydro-system:70504450",
+    "hydro-system:61352393",
+    "hydro-system:80020685",
+    "hydro-system:60015602",
+    "hydro-system:70934230",
+    "hydro-system:80141411",
+    "hydro-system:60101923",
+    "hydro-system:70961435",
+    "hydro-system:80297510",
+    "hydro-system:61514837",
+    "hydro-system:80105076",
+    "hydro-system:60263868",
+    "hydro-system:61514869",
+    "hydro-system:80017611",
+    "hydro-system:61527658"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r244-mendoza-imagery-overview",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"
+    },
+    {
+      "source_key": "r244-mendoza-imagery-upper",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"
+    },
+    {
+      "source_key": "r244-mendoza-imagery-middle",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"
+    },
+    {
+      "source_key": "r244-bertotto-bernardi-richter2022",
+      "official_url": "https://www.unlpam.edu.ar/images/extension/edunlpam/Volcanismo%20en%20la%20provincia%20de%20La%20Pampa.pdf"
+    },
+    {
+      "source_key": "r244-geus-greenland-national-1995",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r244-inegi-ojinaga2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08052.pdf"
+    },
+    {
+      "source_key": "r244-inegi-camargo2010-retained",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08011.pdf"
+    },
+    {
+      "source_key": "r244-inegi-aldama2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08002.pdf"
+    },
+    {
+      "source_key": "r244-inegi-julimes2010-context",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08038.pdf"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "0459c6682fb5a9e8660543b5dd23a66e424835e3",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      781,
+      782,
+      783,
+      784
+    ],
+    "next_unrecorded_id": "hydro-system:60255845",
+    "progress_rule": "Follow the actual continental order: Americas, Asia, Africa, Europe, then other, with all rivers before lakes. Preserve original queue IDs and ranks for continuity; apply documented geographic deferrals without counting them as name research, and place deferred objects into their corrected later phase by length-descending, stable-ID order. Prior candidate and scope-held assessments remain unresolved where stated.",
+    "geographic_deferrals": [
+      {
+        "aw_id": "hydro-system:80061063",
+        "original_queue_rank": 186,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 66.56–68.17°N and 179.97–177.11°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory bounding box and selected-route geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80065687",
+        "original_queue_rank": 349,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at66.725–67.849775°N and178.2–175.960242°W place this object on Chukotka west of Alaska, adjoining the previously corrected Chukotka selection. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory bounding box and selected-route geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80100188",
+        "original_queue_rank": 387,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 64.939583–66.26978°N and 174.05625–173.320833°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory/order bounding box and geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80119243",
+        "original_queue_rank": 391,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 65.451531–66.491667°N and 176.777083–175.672917°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory/order bounding box and geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80083978",
+        "original_queue_rank": 470,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained original inventory/order bounds at66.522917–67.00625°N and177.333333–174.842957°W place this current object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Existing fixed-queue bounding box and geographic placement only; no naming source or selected geometry acquired for this correction."
+      },
+      {
+        "aw_id": "hydro-system:80099814",
+        "original_queue_rank": 511,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained original inventory/order bounds at65.952083–66.502083°N and172.004167–170.400621°W place this current object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Existing fixed-queue bounding box and geographic placement only; no naming source or selected geometry acquired for this correction."
+      }
+    ]
+  }
+}

@@ -1,0 +1,733 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r196",
+  "sources": [
+    {
+      "source_key": "r196-usgstopo-death-valley-north",
+      "title": "The National Map, USGSTopo: Death Valley north bounded view",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Independently maintained multiscale National Map reference cartography; retained service metadata identifies its own National Map geographic-name, hydrography, elevation and other public-domain source themes. It is not a plate or alternate delivery route of a held USGS water or glacier report.",
+      "edition_note": "Service viewed 13 October 2026. Retained metadata reports a 4 September 2026 service-data refresh; this is not a field-survey date for each mapped feature.",
+      "actual_material_read": "Northern regional map: Copper Canyon/Last Chance Canyon opening setting, distinct Cottonwood Creek and Oriental Wash approaches, Death Valley Wash and Little Grapevine Creek vicinity.",
+      "access_status": "Normal original bounded raster completed HTTP 200 and was visually inspected.",
+      "supports": "Northern regional map: Copper Canyon/Last Chance Canyon opening setting, distinct Cottonwood Creek and Oriental Wash approaches, Death Valley Wash and Little Grapevine Creek vicinity.",
+      "limits": "Generalized cartographic corridor and local-name evidence, not a formal naming decision, proof of current wetness, exact channel banks or an established selected through-link where none is depicted.",
+      "use_notice": "Own bounded factual observations and ordinary bibliography only; original map imagery, crops and orientation derivatives are not republished."
+    },
+    {
+      "source_key": "r196-usgstopo-death-valley-middle",
+      "title": "The National Map, USGSTopo: Death Valley middle bounded view",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Independently maintained multiscale National Map reference cartography; retained service metadata identifies its own National Map geographic-name, hydrography, elevation and other public-domain source themes. It is not a plate or alternate delivery route of a held USGS water or glacier report.",
+      "edition_note": "Service viewed 13 October 2026. Retained metadata reports a 4 September 2026 service-data refresh; this is not a field-survey date for each mapped feature.",
+      "actual_material_read": "Middle regional map: named Death Valley Wash, Little Grapevine receiving vicinity, the downstream wash and northern valley-floor approach toward Mesquite Flat.",
+      "access_status": "Normal original bounded raster completed HTTP 200 and was visually inspected.",
+      "supports": "Middle regional map: named Death Valley Wash, Little Grapevine receiving vicinity, the downstream wash and northern valley-floor approach toward Mesquite Flat.",
+      "limits": "Generalized cartographic corridor and local-name evidence, not a formal naming decision, proof of current wetness, exact channel banks or an established selected through-link where none is depicted.",
+      "use_notice": "Own bounded factual observations and ordinary bibliography only; original map imagery, crops and orientation derivatives are not republished."
+    },
+    {
+      "source_key": "r196-usgstopo-death-valley-south",
+      "title": "The National Map, USGSTopo: Death Valley south bounded view",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Independently maintained multiscale National Map reference cartography; retained service metadata identifies its own National Map geographic-name, hydrography, elevation and other public-domain source themes. It is not a plate or alternate delivery route of a held USGS water or glacier report.",
+      "edition_note": "Service viewed 13 October 2026. Retained metadata reports a 4 September 2026 service-data refresh; this is not a field-survey date for each mapped feature.",
+      "actual_material_read": "Southern regional map: selected Mesquite Flat approach, Highway 190 crossing, Salt Creek, Cottonball Marsh/basin surroundings, Furnace Creek Wash and the actual southern endpoint setting.",
+      "access_status": "Normal original bounded raster completed HTTP 200 and was visually inspected.",
+      "supports": "Southern regional map: selected Mesquite Flat approach, Highway 190 crossing, Salt Creek, Cottonball Marsh/basin surroundings, Furnace Creek Wash and the actual southern endpoint setting.",
+      "limits": "Generalized cartographic corridor and local-name evidence, not a formal naming decision, proof of current wetness, exact channel banks or an established selected through-link where none is depicted.",
+      "use_notice": "Own bounded factual observations and ordinary bibliography only; original map imagery, crops and orientation derivatives are not republished."
+    },
+    {
+      "source_key": "r196-usgstopo-death-valley-opening",
+      "title": "The National Map, USGSTopo: Death Valley opening bounded view",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Independently maintained multiscale National Map reference cartography; retained service metadata identifies its own National Map geographic-name, hydrography, elevation and other public-domain source themes. It is not a plate or alternate delivery route of a held USGS water or glacier report.",
+      "edition_note": "Service viewed 13 October 2026. Retained metadata reports a 4 September 2026 service-data refresh; this is not a field-survey date for each mapped feature.",
+      "actual_material_read": "Detailed opening map: Copper Canyon and Last Chance Canyon relief and labels, western fan approach, distinct Cottonwood Creek/Oriental Wash network and northern Death Valley Wash. The selected western fan through-link is not established.",
+      "access_status": "Normal original bounded raster completed HTTP 200 and was visually inspected.",
+      "supports": "Detailed opening map: Copper Canyon and Last Chance Canyon relief and labels, western fan approach, distinct Cottonwood Creek/Oriental Wash network and northern Death Valley Wash. The selected western fan through-link is not established.",
+      "limits": "Generalized cartographic corridor and local-name evidence, not a formal naming decision, proof of current wetness, exact channel banks or an established selected through-link where none is depicted.",
+      "use_notice": "Own bounded factual observations and ordinary bibliography only; original map imagery, crops and orientation derivatives are not republished."
+    },
+    {
+      "source_key": "r196-usgstopo-death-valley-transfer",
+      "title": "The National Map, USGSTopo: Death Valley transfer bounded view",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Independently maintained multiscale National Map reference cartography; retained service metadata identifies its own National Map geographic-name, hydrography, elevation and other public-domain source themes. It is not a plate or alternate delivery route of a held USGS water or glacier report.",
+      "edition_note": "Service viewed 13 October 2026. Retained metadata reports a 4 September 2026 service-data refresh; this is not a field-survey date for each mapped feature.",
+      "actual_material_read": "Detailed middle-transfer map: Death Valley Wash ending its depicted northern corridor, Mesquite Flat/dune context and the separate southeastern Salt Creek approach. The full selected connecting route is not established.",
+      "access_status": "Normal original bounded raster completed HTTP 200 and was visually inspected.",
+      "supports": "Detailed middle-transfer map: Death Valley Wash ending its depicted northern corridor, Mesquite Flat/dune context and the separate southeastern Salt Creek approach. The full selected connecting route is not established.",
+      "limits": "Generalized cartographic corridor and local-name evidence, not a formal naming decision, proof of current wetness, exact channel banks or an established selected through-link where none is depicted.",
+      "use_notice": "Own bounded factual observations and ordinary bibliography only; original map imagery, crops and orientation derivatives are not republished."
+    },
+    {
+      "source_key": "r196-usgstopo-death-valley-terminal",
+      "title": "The National Map, USGSTopo: Death Valley terminal bounded view",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Independently maintained multiscale National Map reference cartography; retained service metadata identifies its own National Map geographic-name, hydrography, elevation and other public-domain source themes. It is not a plate or alternate delivery route of a held USGS water or glacier report.",
+      "edition_note": "Service viewed 13 October 2026. Retained metadata reports a 4 September 2026 service-data refresh; this is not a field-survey date for each mapped feature.",
+      "actual_material_read": "Detailed southern map: repeated Salt Creek labels, Cottonball Basin and separate western Cottonball Marsh, narrow eastern basin passage, Furnace Creek Wash and labelled Middle Basin containing the actual selected endpoint.",
+      "access_status": "Normal original bounded raster completed HTTP 200 and was visually inspected.",
+      "supports": "Detailed southern map: repeated Salt Creek labels, Cottonball Basin and separate western Cottonball Marsh, narrow eastern basin passage, Furnace Creek Wash and labelled Middle Basin containing the actual selected endpoint.",
+      "limits": "Generalized cartographic corridor and local-name evidence, not a formal naming decision, proof of current wetness, exact channel banks or an established selected through-link where none is depicted.",
+      "use_notice": "Own bounded factual observations and ordinary bibliography only; original map imagery, crops and orientation derivatives are not republished."
+    },
+    {
+      "source_key": "r196-nps-deva-gmp-water",
+      "title": "Death Valley National Park General Management Plan, Water Resources background",
+      "publisher": "National Park Service",
+      "official_url": "https://www.nps.gov/deva/general-management-plan.htm",
+      "publication_identity": "Park-wide historical management-plan narrative independently issued by NPS; already identified as this publication in prior source bibliography. It is not a USGS report reproduction.",
+      "edition_note": "Historical management plan with early-2000s planning context; exact issue year not newly established. HTML read 13 October 2026.",
+      "actual_material_read": "HTML introduction and Water Resources background, especially the Surface Water discussion distinguishing the park streams.",
+      "access_status": "HTML opened normally; relevant passage read through the successful page. No plan map or attachment acquired.",
+      "supports": "The plan recognizes Salt Creek among the park streams and discusses local springs and seasonal variation; regional context only.",
+      "limits": "Historical regional prose does not establish the selected western fan or Mesquite Flat through-links, a uniform whole-system name, exact stream-name boundaries or current flow.",
+      "use_notice": "Short own factual paraphrase and normal bibliography; no extended quotation or plan reproduction."
+    },
+    {
+      "source_key": "r196-apitz-zulia59",
+      "bibliography": "Apitz de Parra, Alicia. Estado Zulia. GeoVenezuela, vol. 7, chapter 59, pp. 490–631. Fundación Empresas Polar. Standalone chapter extract; edition year not independently verified from its title page.",
+      "official_url": "https://bibliofep.fundacionempresaspolar.org/media/1378337/gv_t7_c59_p490_631_zulia_lres_single_preview.pdf",
+      "source_kind": "Original regional geography chapter with attributed hydrographic cartography",
+      "actual_material_read": "Author/title page; printed pp. 505 and 514–517; Figure 13 Hidrografía, printed p. 515 (PDF page 26), including enlarged western river detail and source credit.",
+      "original_acquisition": "Completed HTTP 200, application/pdf; 142-page original.",
+      "map_provenance": "Figure 13 credits the Venezuelan environment ministry and Servicio Autónomo de Geografía y Cartografía Nacional, 1996. The actual chapter figure was read; no acquisition of its underlying national source is claimed.",
+      "publication_independence": "Identified geography-chapter project and national/regional hydrography, previously documented independently. It is not the held Delta Amacuro 1994 state sheet, FEP Delta educational sheet 173, Hackley map, or Commons Zulia category.",
+      "limits": "Regional generalized cartography, not a naming registry or current channel survey."
+    },
+    {
+      "source_key": "r196-casler1990-palmar",
+      "bibliography": "Casler, Clark L.; Elsa González Bencomo; Margarita Romero; Jesús Toledo; José M. Brito. 1990. Inventario de la ictiofauna del río Palmar y afluentes, estado Zulia, Venezuela. Boletín del Centro de Investigaciones Biológicas 24:1–50.",
+      "official_url": "https://produccioncientificaluz.org/index.php/boletin/article/download/341/341",
+      "source_kind": "Original field-study article and study-area cartography",
+      "actual_material_read": "Printed/PDF pp. 1–7: title, affiliations, project purpose, study-area and mouth descriptions; Figures 1 and 2 at pp. 5–6 visually read in full, including north-up Figure 1.",
+      "original_acquisition": "Completed HTTP 200, application/pdf; 50-page original.",
+      "map_provenance": "Study-area and sampling-station figures printed in the original article. No separate external map credit appears in their captions.",
+      "publication_independence": "The original identifies 1989 field sampling for the western Palmar El Diluvio impoundment-impact project by Universidad del Zulia and regional environment-ministry researchers. This affirmative field-project identity is distinct from the unresolved Guanipa/Boca Bagre biological article and Rivas 2009 nutrient study.",
+      "limits": "Predates impoundment; its dam is a proposed site. Used with later reservoir evidence, not asserted as a current reservoir map."
+    },
+    {
+      "source_key": "r196-rincon2017-palmar",
+      "bibliography": "Rincón Ramírez, José Elí. 2017. Estado de conservación de los ríos en la costa occidental del Lago de Maracaibo. Chapter 1, pp. 15–28, in Douglas Rodríguez-Olarte (ed.), Ríos en riesgo de Venezuela, vol. 1. Universidad Centroccidental Lisandro Alvarado, Colección Recursos Hidrobiológicos de Venezuela. First digital edition 15 February 2017. Volume ISBN 978-980-12-9350-7.",
+      "official_url": "https://acading.org.ve/wp-content/uploads/2023/02/2017_Rios_Riesgo_Venezuela_V1_libro.pdf",
+      "source_kind": "Investigator-authored regional synthesis with original chapter figures and field photographs",
+      "actual_material_read": "Volume title and publication/copyright page; chapter opening at printed p. 15; Figure 1 at printed p. 17; Palmar section printed p. 20 and following p. 22; Figure 2 and full caption at printed p. 21, especially panels c–d.",
+      "original_acquisition": "Completed HTTP 200, application/pdf; 239-page original.",
+      "map_provenance": "Chapter Figure 1 depicts western-lake drainages; Figure 2c shows lower Palmar and Figure 2d shows the identified reservoir. The reservoir photograph is contextual confirmation, not a substitute for corridor cartography.",
+      "publication_independence": "Identified UCLA edited research volume and University of Zulia conservation-synthesis chapter, already independently documented in prior lawful work. Citations to Casler and other studies are not treated as unseen underlying originals.",
+      "limits": "No assertion of current dam operations, exact banks, contemporary flow or reservoir water level."
+    },
+    {
+      "source_key": "r196-igm-natural-watercourses",
+      "title": "SIIE_v3 Quebradas ríos — natural-watercourse feature layer 40",
+      "publisher": "Instituto Geográfico Militar, Chile",
+      "official_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Quebradas_r%C3%ADos/MapServer",
+      "layer_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Quebradas_r%C3%ADos/MapServer/40",
+      "edition": "Undated active service, read 13 October 2026",
+      "evidence_type": "Primary original official hydrographic cartography",
+      "material_read": "Layer metadata and one bounded full-selected-corridor original raster, both HTTP 200. The complete raster and its eastern, middle and western reading crops were visually inspected. Source nombre labels were server-rendered; no source vector geometry or full dataset was acquired.",
+      "publication_identity_basis": "Previously established public SIIE_v3 natural-watercourse service, independently distinguished from the held IGM 250K sign-in folder in the retained r98/r99/r155 source records. No held report map was recovered.",
+      "supports": "Chosen opening, all 26 stored parts at ordinary geographic scale, intervening junctions, separate Chimborazo and Profeta tributary labels, channel approaches to the salar, and the inland selected truncation.",
+      "limits": "Natural-watercourse linework does not establish present flow, uniform naming, hydraulic operation, exact banks or a surveyed natural source and terminal. The middle selection generalizes a converging multi-strand corridor.",
+      "use_notice": "Copyright field blank; no unrestricted redistribution permission inferred. Own factual observations and ordinary bibliography only."
+    },
+    {
+      "source_key": "r196-igm-waterbodies",
+      "title": "SIIE_v3 Cuerpos de agua — polygon layer 37",
+      "publisher": "Instituto Geográfico Militar, Chile",
+      "official_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Cuerpos_de_agua/MapServer",
+      "layer_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Cuerpos_de_agua/MapServer/37",
+      "edition": "Undated active service, read 13 October 2026",
+      "evidence_type": "Primary original official surface cartography and bounded selected-feature attributes",
+      "material_read": "Service metadata, one bounded whole-corridor original raster, layer metadata and a bounded attribute-only query around the selected intervening surface all completed HTTP 200. Raster visually inspected. The two returned records both identify Salar Mar Muerto, with tipo and hidrocuerp equal to Salar; no polygon coordinates were requested.",
+      "publication_identity_basis": "Established independently published SIIE_v3 waterbody service used in retained r98 records; distinct from the stopped IGM 250K folder and held hydrology reports.",
+      "supports": "Salar Mar Muerto footprint, source-classified salt-flat identity, selected interior passage and relation to surrounding channel endings.",
+      "limits": "Generic surface mapping is not evidence of permanent open water or surface-hydraulic continuity. Nearby or absent polygons do not establish current wetness or a comprehensive impoundment inventory.",
+      "use_notice": "Service and layer copyright fields blank; no unrestricted redistribution permission inferred. Own factual observations and ordinary bibliography only."
+    },
+    {
+      "source_key": "r196-ibge-simao-dias-2022",
+      "title": "Simão Dias–SE, Mapa Municipal Estatístico, 2807105",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística, Diretoria de Geociências",
+      "edition": "Malha Territorial2022",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2022/mapas_municipais_estatisticos/SE/simao_dias_2807105/simao_dias_2807105_mme_a0.pdf",
+      "actual_material_read": "Completed normal original PDF, one sheet; whole-map overview and selected headward, middle, Caiçá-join and legend views.",
+      "acquisition_outcome": "HTTP200 application/pdf",
+      "independence_basis": "Separately issued Simão Dias municipal statistical compilation, with its own geographic product and municipal extent; not the held Nossa Senhora da Glória municipal product, bridge-impact report or geomorphology article."
+    },
+    {
+      "source_key": "r196-ibge-riachao-2020",
+      "title": "Riachão do Dantas–SE, Mapa Municipal, 2805802",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística, Diretoria de Geociências",
+      "edition": "2020 collection, printed04/2021",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/SE/riachao_do_dantas/2805802_MM.pdf",
+      "actual_material_read": "Completed normal original PDF, one sheet; overview, Jacaré approach, reservoir, middle/eastern drainage and printed source-use note.",
+      "acquisition_outcome": "HTTP200 application/pdf",
+      "independence_basis": "Separately issued municipal compilation for Riachão do Dantas; its identified municipal hydrography and reference mapping are not a reproduction of the stopped bridge or university article."
+    },
+    {
+      "source_key": "r196-ibge-estancia-2007",
+      "title": "Estância–SE, Mapa Municipal Estatístico, 2802106",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística, Diretoria de Geociências",
+      "edition": "Malha Territorial2007,09-10-2007,1:75,000",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/contagem_da_populacao_e_censo_agropecuario_2007/mapas_municipais_estatisticos/se/estancia.pdf",
+      "actual_material_read": "Completed normal original PDF, one sheet; whole-map overview, Boquim/Arauá overlap, Estância/Piauitinga confluence, widening estuary, actual terminal setting, legend and edition.",
+      "acquisition_outcome": "HTTP200 application/pdf",
+      "independence_basis": "Independently issued 2007 municipal compilation based on systematic mapping and the municipal mesh, predating the bridge-specific 2008 RIMA and distinct from its thematic maps."
+    },
+    {
+      "source_key": "r196-santos-piaui-2017",
+      "title": "Bacia do rio Piauí-SE: cartografia das unidades de modelado de relevo com auxílio de geoprocessamento",
+      "authors": [
+        "Lucas Marcone dos Santos",
+        "Alexandre Herculano de Souza Lima",
+        "Luan Lacerda Ramos",
+        "Ronaldo Missura"
+      ],
+      "publisher": "Os Desafios da Geografia Física na Fronteira do Conhecimento, v.1(2017), pp.5117–5125",
+      "official_url": "https://ocs.ige.unicamp.br/ojs/sbgfa/article/view/2222/2053",
+      "catalogue_url": "https://ocs.ige.unicamp.br/ojs/sbgfa/article/view/2222",
+      "doi": "10.20396/sbgfa.v1i2017.2222",
+      "actual_material_read": "Catalogue and PDF study-area/methodology prose before the figure cache failure; no figure pixels.",
+      "role": "Regional context only; not component correspondence.",
+      "used_as_substantive_evidence": false
+    },
+    {
+      "source_key": "r196-der-piaui-bridge-2008",
+      "title": "EIA-RIMA Ponte sobre o Rio Piauí, rodovia SE-100, Indiaroba–Estância, OS2008-068D",
+      "publisher": "DER/SE; NeoCorp/Desenvolvimento de Projetos Ltda.; ADEMA host",
+      "edition": "2008, bibliographic identity from discovery only",
+      "official_url": "https://adema.se.gov.br/wp-content/uploads/2017/03/rima_ponte_rio__piaui.pdf",
+      "actual_material_read": "None; both direct original requests returned HTTP502.",
+      "role": "Unavailable publication record only; no substantive evidence.",
+      "used_as_substantive_evidence": false
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70658860",
+      "source_keys": [
+        "r196-usgstopo-death-valley-north",
+        "r196-usgstopo-death-valley-middle",
+        "r196-usgstopo-death-valley-south",
+        "r196-usgstopo-death-valley-opening",
+        "r196-usgstopo-death-valley-transfer",
+        "r196-usgstopo-death-valley-terminal",
+        "r196-nps-deva-gmp-water"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9851
+          ],
+          "component_scope": "Northwestern chosen opening and canyon descent",
+          "finding": "The chosen northwestern opening and first southeastward descent occupy the Copper Canyon and Last Chance Canyon landform setting. The source relief and labelled canyons orient the beginning, but do not supply a stream hydronym for the whole upper selection. Cottonwood Creek is a separately mapped northeastern approach. Canyon names are not promoted to verified river names.",
+          "sources": [
+            "r196-usgstopo-death-valley-north",
+            "r196-usgstopo-death-valley-opening"
+          ],
+          "correspondence": "local_canyon_setting_established; continuing_fan_connection_unresolved",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            9851
+          ],
+          "component_scope": "Western alluvial-fan approach and connection to Death Valley Wash",
+          "finding": "After the canyon outlet, the selected route proceeds south across the western valley-floor and fan setting before reaching the mapped Death Valley Wash corridor. The detailed source separately depicts Cottonwood Creek and Oriental Wash joining the northern wash farther east. It does not establish the full selected western through-route or its joining passage into that wash. Those nearby names and shared valley membership cannot substitute for the missing selected connection.",
+          "sources": [
+            "r196-usgstopo-death-valley-north",
+            "r196-usgstopo-death-valley-opening"
+          ],
+          "correspondence": "material_selected_through_link_unestablished",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            9851
+          ],
+          "component_scope": "Death Valley Wash and Grapevine receiving reach",
+          "finding": "The selected middle route corresponds at ordinary corridor scale to the repeatedly labelled Death Valley Wash, including the crossing near Ubehebe Crater Road, the separately labelled Little Grapevine Creek approach from the northeast, and the southeastward valley between the western mountains and the Grapevine Range. This establishes the local wash name and receiving setting; the selection contains no separate tributary fragment tracing Little Grapevine Creek.",
+          "sources": [
+            "r196-usgstopo-death-valley-north",
+            "r196-usgstopo-death-valley-middle"
+          ],
+          "correspondence": "ordinary_named_corridor_and_join_correspondence_established",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9851
+          ],
+          "component_scope": "Death Valley Wash to Mesquite Flat and Salt Creek transfer",
+          "finding": "South of the mapped Death Valley Wash, the selection continues over a long valley-floor interval through the Mesquite Flat setting and toward the Highway 190 crossing near Devils Cornfield. The detailed map shows the northern wash, the intervening flat and dunes, and a separate Salt Creek channel farther southeast, but does not establish the entire chosen through-link between them. Dune or valley-floor relief and the model line alone are insufficient connection evidence.",
+          "sources": [
+            "r196-usgstopo-death-valley-middle",
+            "r196-usgstopo-death-valley-transfer",
+            "r196-usgstopo-death-valley-south"
+          ],
+          "correspondence": "material_selected_plain_to_creek_through_link_unestablished",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            9851
+          ],
+          "component_scope": "Salt Creek corridor and Cottonball Basin entry",
+          "finding": "From the Highway 190 crossing onward, the selected southeastward route corresponds at ordinary scale to the repeatedly labelled Salt Creek channel and its approach to Cottonball Basin. The creek is mapped distinctly from the unestablished Mesquite Flat transfer. The NPS management plan independently recognizes Salt Creek as a park stream; that regional prose does not join it to the entire northern wash selection.",
+          "sources": [
+            "r196-usgstopo-death-valley-south",
+            "r196-usgstopo-death-valley-terminal",
+            "r196-nps-deva-gmp-water"
+          ],
+          "correspondence": "ordinary_named_corridor_correspondence_established",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9851
+          ],
+          "component_scope": "Cottonball Basin and southern Salt Creek passage",
+          "finding": "The source depicts Salt Creek entering the eastern Cottonball Basin setting and continuing south along the narrow eastern salt-flat corridor west of Furnace Creek. The selected nearly north-south segment occupies that same generalized passage. Cottonball Marsh is separately labelled along the western basin margin, and its wetland label is not assigned to the selected eastern channel. No exact modern bank, seasonal wetted extent, or continuous-flow assertion is required or made.",
+          "sources": [
+            "r196-usgstopo-death-valley-south",
+            "r196-usgstopo-death-valley-terminal"
+          ],
+          "correspondence": "ordinary_basin_and_channel_passage_correspondence_established",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9851
+          ],
+          "component_scope": "Furnace Creek Wash receiving setting and actual Middle Basin terminal",
+          "finding": "The selected final southward reach passes the separately mapped Furnace Creek Wash receiving setting and ends within the mapped Middle Basin salt-flat setting on the Salt Creek corridor. The map depicts the surrounding creek and playa passage beyond this modeled endpoint; therefore the selected endpoint is not asserted to be the natural creek mouth, the southernmost Death Valley outlet, or an open-sea terminal.",
+          "sources": [
+            "r196-usgstopo-death-valley-south",
+            "r196-usgstopo-death-valley-terminal"
+          ],
+          "correspondence": "ordinary_actual_selected_terminal_setting_established",
+          "component_correspondence_completed": true
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60006529",
+      "source_keys": [
+        "r196-apitz-zulia59",
+        "r196-casler1990-palmar",
+        "r196-rincon2017-palmar"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10819
+          ],
+          "component_scope": "Chosen western opening and upper northeast-trending Palmar",
+          "finding": "Casler Figures 1–2 name the western mountain branch Río Palmar; its northeast ascent in map view and northern bend correspond to the selected opening and upper course. The separately mapped Río Lajas lies to the south and is not the chosen opening.",
+          "sources": [
+            "r196-casler1990-palmar",
+            "r196-apitz-zulia59"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            10819
+          ],
+          "component_scope": "Northern bend, Lajas join and El Diluvio/Tres Ríos passage",
+          "finding": "Casler maps the Palmar–Lajas junction and El Diluvio dam site, with the Palmar continuing southeast. Rincón’s 2017 prose and Figure 2d identify the resulting El Diluvio/Tres Ríos reservoir and its Palmar, Lajas and Caño Pescado inputs. Together these establish the selected through-corridor without requiring a modern reservoir shoreline or operating record.",
+          "sources": [
+            "r196-casler1990-palmar",
+            "r196-rincon2017-palmar",
+            "r196-apitz-zulia59"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            10819
+          ],
+          "component_scope": "Middle southeast-trending river and intermediate joins",
+          "finding": "Casler maps a continuous named Palmar below El Diluvio, passing the road-crossing and Villa del Rosario setting and receiving the separately identified La Ge tributary. The selected bends and uninterrupted downstream corridor agree with this map and the regional hydrography.",
+          "sources": [
+            "r196-casler1990-palmar",
+            "r196-apitz-zulia59",
+            "r196-rincon2017-palmar"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            10819
+          ],
+          "component_scope": "Lower plain and eastward reach",
+          "finding": "The source maps continue the named Palmar eastward across the western lake plain, including the intervening mapped reaches and joins. Rincón describes the middle and lower agricultural corridor; no different named mainstem is introduced along the selection.",
+          "sources": [
+            "r196-casler1990-palmar",
+            "r196-apitz-zulia59",
+            "r196-rincon2017-palmar"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            10819
+          ],
+          "component_scope": "Southeast lake approach and actual terminal",
+          "finding": "Both Casler study maps and the Zulia hydrography carry the lower Palmar to the west shore of Lago de Maracaibo. Casler’s mouth station and prose corroborate the terminal. The selected ending is the Palmar lake mouth, not an open-sea outlet or the Los Olivitos wetland system.",
+          "sources": [
+            "r196-casler1990-palmar",
+            "r196-apitz-zulia59",
+            "r196-rincon2017-palmar"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61356938",
+      "source_keys": [
+        "r196-igm-natural-watercourses",
+        "r196-igm-waterbodies"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13965
+          ],
+          "component_scope": "Eastern selected opening and southwestward feeder",
+          "finding": "The eastern opening lies on an unnamed natural-watercourse line that continues slightly beyond the selected starting position. The selected southwestward feeder passes a separate approach from the east and joins a longer northern approach before continuing southwest. The chosen opening is geographically supported, without identifying it as the natural source or assigning either neighboring branch name.",
+          "sources": [
+            "r196-igm-natural-watercourses"
+          ],
+          "correspondence": "covered_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13965
+          ],
+          "component_scope": "Southwestern descent and Chimborazo junction",
+          "finding": "The selected route continues southwest, then south and west through the mapped joining network. The source explicitly labels Q. Chimborazo on the separate southeastern approach at the southern turn. The selected headward branch approaches from the northeast and does not ascend that labeled southeastern branch; the label is not extended to the complete selection.",
+          "sources": [
+            "r196-igm-natural-watercourses"
+          ],
+          "correspondence": "covered_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13965
+          ],
+          "component_scope": "Southern westward bend and northwestern receiving course",
+          "finding": "The selected southern bend follows the connected receiving drainage westward and then northwest. Separate channels enter from the south and northeast. Several short modeled bends simplify the source channel, but the approach, southern turn and northwestern continuation are accounted for at ordinary corridor scale.",
+          "sources": [
+            "r196-igm-natural-watercourses"
+          ],
+          "correspondence": "covered_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13965
+          ],
+          "component_scope": "Middle converging channel strands",
+          "finding": "The selected line follows the common west-northwest receiving corridor where southern and northern channel strands converge. It locally lies between the individually drawn strands and crosses from the vicinity of one to the other before their mapped convergence. The source supplies the connected converging-channel setting; this is generalized corridor correspondence rather than evidence for a separate natural channel along every modeled segment. No exact channel thread, bank or present inter-strand surface flow is asserted.",
+          "sources": [
+            "r196-igm-natural-watercourses"
+          ],
+          "correspondence": "covered_as_generalized_converging_channel_corridor",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13965
+          ],
+          "component_scope": "Northward turn and approach to the salar",
+          "finding": "The selected route turns north, passes a separate eastern joining drainage, then continues northwest along the mapped southern approach to the compact salt-flat surface. Nearby eastern parallel approaches remain distinct. The channel-line ending at the salt-flat margin is explained by the separately mapped salar footprint rather than treated as an unviewed land interval.",
+          "sources": [
+            "r196-igm-natural-watercourses",
+            "r196-igm-waterbodies"
+          ],
+          "correspondence": "covered_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13965
+          ],
+          "component_scope": "Salar Mar Muerto passage and northern departure",
+          "finding": "The selected route enters the southern end of the compact mapped surface, crosses its interior northward and leaves beside the northern channel junction. The IGM polygon attributes explicitly name Salar Mar Muerto and classify it as Salar. The natural-watercourse and surface originals together show the southern and northern channel endings meeting the corresponding margins. Geographic passage is therefore accounted for at ordinary scale. No permanent lake, continuous river channel across salt crust, overflow regime or operating managed connection is established.",
+          "sources": [
+            "r196-igm-natural-watercourses",
+            "r196-igm-waterbodies"
+          ],
+          "correspondence": "covered_salar_surface_and_margin_connections",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13965
+          ],
+          "component_scope": "Northwestern branch and Profeta junction",
+          "finding": "North of the salar, the selected course follows the mapped west-northwest channel while a separate northeastern branch enters the same junction setting. Farther west the watercourse labeled Q. del Profeta approaches from the south and joins the selected receiving course. The selected route does not ascend that southern Profeta branch, and its hydronym is not imposed on the unnamed western course or the salar crossing.",
+          "sources": [
+            "r196-igm-natural-watercourses"
+          ],
+          "correspondence": "covered_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13965
+          ],
+          "component_scope": "Western selected terminal",
+          "finding": "The final selection follows the mapped westward natural-watercourse corridor and ends on that line, inland and east of a further mapped confluence. The source channel continues west beyond the selected tip. The tip is geographically accounted for, but it is not independently established as a natural river mouth, salar sink or hydrological endorheic terminus. No extension to a coast or different receiving basin is substituted for the actual selected ending.",
+          "sources": [
+            "r196-igm-natural-watercourses"
+          ],
+          "correspondence": "covered_inland_modeled_truncation_setting",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13965
+          ],
+          "component_scope": "Surface and managed-passage scope across the complete selection",
+          "finding": "The whole-corridor waterbody view maps Salar Mar Muerto across the selected northward interruption; its other visible northeastern polygon is outside the selected opening. No additional lake or reservoir passage is established in the inspected selected corridor. Blank portions of this layer do not prove absence of temporary water, salt crust or small impoundments. No managed passage is identified or assumed.",
+          "sources": [
+            "r196-igm-natural-watercourses",
+            "r196-igm-waterbodies"
+          ],
+          "correspondence": "covered_for_mapped_surface_roles",
+          "component_correspondence_completed": true
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61064290",
+      "source_keys": [
+        "r196-ibge-simao-dias-2022",
+        "r196-ibge-riachao-2020",
+        "r196-ibge-estancia-2007"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13873
+          ],
+          "component_scope": "Chosen headward opening south of Tingui, west of Simão Dias",
+          "finding": "The Simão Dias original identifies Rio Jacaré on a headward branch south of Tingui and west of Lagoa da Vaca. The selected initial northern arm and its eastward hook are not actually connected to that named branch in the inspected cartography. Regional proximity is insufficient to establish this selected opening. The remaining southern continuation of part 1 approaches the mapped Jacaré corridor.",
+          "sources": [
+            "r196-ibge-simao-dias-2022"
+          ],
+          "correspondence": "selected_opening_through_link_unestablished",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            13873
+          ],
+          "component_scope": "Upper Jacaré through Conceição de Campinas and São Domingos to the Caiçá join",
+          "finding": "The municipal original follows the selected southeastward valley through Conceição de Campinas and São Domingos, then east across the southern Simão Dias area. Rio Jacaré and the separately arriving Rio Caiçá are labelled near the eastern municipal boundary; their joined continuation runs toward Boeiro. All selected internal part joins in this corridor are accounted for at ordinary map scale.",
+          "sources": [
+            "r196-ibge-simao-dias-2022"
+          ],
+          "correspondence": "completed_corridor_correspondence",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13873
+          ],
+          "component_scope": "Jacaré approach west of Lagarto",
+          "finding": "The Riachão do Dantas original traces Rio Jacaré south from Boeiro past Serrinha and Santo Antônio, across the western tributary junction near Jacaré and toward Jiboia. The selected southward turn, short intermediate parts and eastward approach to the impounded reach correspond to that mapped drainage. Nearby western watercourses carry their own Piauí/Piauitinga labels; no universal upstream name transition is inferred.",
+          "sources": [
+            "r196-ibge-simao-dias-2022",
+            "r196-ibge-riachao-2020"
+          ],
+          "correspondence": "completed_corridor_and_joins",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13873
+          ],
+          "component_scope": "Mapped reservoir and downstream managed passage near Lagarto",
+          "finding": "The original depicts the widened reservoir between Jiboia, Apertado de Pedra and Barragem, beside the road labelled Estrada da Barragem Dionísio Machado. The selected west-to-east course crosses the depicted reservoir and continues into the mapped eastern/southeastern surface channel. This establishes the impounded geographic passage; it does not assert an independent reservoir hydronym or present operations.",
+          "sources": [
+            "r196-ibge-riachao-2020"
+          ],
+          "correspondence": "completed_impounded_surface_corridor",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13873
+          ],
+          "component_scope": "Middle course toward Boquim and Arauá",
+          "finding": "The Riachão do Dantas original follows the channel past Cocão and the western Piauí tributary connection, Fazenda Piauí, Oiteiros and the Boquim-side corridor. Its southeastern continuation corresponds to the selected course toward the area covered by the Estância original. The latter traces the named Piauí corridor past Boquim and the eastern side of Arauá to its turn east toward Estância. The overlapping maps account for the selected small parts and tributary joins without adding the separate northern Piauitinga approach at Estância.",
+          "sources": [
+            "r196-ibge-riachao-2020",
+            "r196-ibge-estancia-2007"
+          ],
+          "correspondence": "completed_middle_corridor_and_joins",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13873
+          ],
+          "component_scope": "Estância and upper estuarine widening",
+          "finding": "The Estância original shows the river arriving from the west, the separate Piauitinga approach from the north, and the joined Rio Piauí along the southern side of Estância. The selected route continues east, turns south and then southeast through the Porto Grande/Miranga setting into the widening, island-bearing estuarine channel.",
+          "sources": [
+            "r196-ibge-estancia-2007"
+          ],
+          "correspondence": "completed_confluence_and_estuarine_corridor",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13873
+          ],
+          "component_scope": "Actual selected terminal in the Piauí estuary",
+          "finding": "The actual terminal falls within the broad mapped Piauí estuarine channel in the Santa Luzia do Itanhy–Pindoba/Ilha das Tartarugas setting. The same original shows the island-bearing river continuing farther south toward the coast. The selected terminal is therefore accounted for as an estuarine endpoint, not asserted to be the ocean entrance. Exact tidal banks, individual island sides and current tidal or flow conditions are not required or claimed.",
+          "sources": [
+            "r196-ibge-estancia-2007"
+          ],
+          "correspondence": "completed_actual_estuarine_terminal",
+          "component_correspondence_completed": true
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "MMA SIMBIO_HIDROGRAFIA — Red Hidrografica, layer 0",
+      "publisher": "Ministerio del Medio Ambiente, Chile",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HIDROGRAFIA/MapServer/0?f=pjson",
+      "observed_outcome": "The sole web-reader metadata request returned Internal Error and stated that the URL was not accessible via this tool. No metadata body, original map pixels or HTTP status was exposed.",
+      "outcome_layer": "Unexplained web-reader/tool availability result; origin HTTP unknown.",
+      "restriction_scope": "Whole identified hydrography service and equivalent original, metadata, reader, cache, figure, export and alternative acquisition routes paused. No fallback or new service-output reading followed.",
+      "earlier_lawful_observations": "Earlier recorded observations for other selected rivers retain only their original stated scope; they supply no new correspondence evidence for this selection.",
+      "newly_observed_access_failure": true,
+      "explicit_access_denial": false,
+      "material_gap_remaining": false,
+      "aw_id": "hydro-system:61356938"
+    },
+    {
+      "publication": "Línea de Base Ambiental de Tres Zonas del Norte Grande, Informe Final Versión 2, January 2011; title/date from discovery metadata only",
+      "publisher": "Ministerio de Energía, Chile",
+      "official_url": "https://minenergia.cl/archivos_bajar/Informe_Final_Linea_Base_Ambiental_tres_Zonas_del_Norte_Grande.pdf",
+      "observed_outcome": "First direct original request completed HTTP 502 with text/html. One permitted retry of the identical exact URL, after the first request terminated, also completed HTTP 502 with text/html. No PDF, report prose or figure was read.",
+      "outcome_layer": "Completed original HTTP-client responses, both 502; no separate authentication or authorization denial observed.",
+      "restriction_scope": "Whole identified report/project publication and equivalent original, catalogue, reader, cache, figure, mirror and alternate-format acquisition routes paused after the failed exact-URL retry.",
+      "earlier_lawful_observations": null,
+      "newly_observed_access_failure": true,
+      "explicit_access_denial": false,
+      "material_gap_remaining": false,
+      "aw_id": "hydro-system:61356938"
+    },
+    {
+      "source_key": "r196-der-piaui-bridge-2008",
+      "publication": "DER/SE–NeoCorp, EIA-RIMA Ponte sobre o Rio Piauí, rodovia SE-100, Indiaroba–Estância, OS2008-068D, 2008",
+      "official_url": "https://adema.se.gov.br/wp-content/uploads/2017/03/rima_ponte_rio__piaui.pdf",
+      "observed_outcome": "First normal-original acquisition completed HTTP502 text/html. One identical-URL bounded retry also completed HTTP502 text/html. No PDF, report prose or map pixels were acquired or read.",
+      "outcome_layer": "Two completed direct original-file HTTP502 availability responses; not an authorization denial.",
+      "restriction_scope": "Whole bridge-specific publication, companions and equivalent original/catalogue/reader/cache/figure/mirror/format acquisition routes paused; no further output reading.",
+      "earlier_lawful_prose_exception": null,
+      "newly_observed_access_failure": true,
+      "aw_id": "hydro-system:61064290"
+    },
+    {
+      "source_key": "r196-santos-piaui-2017",
+      "publication": "Santos, Lima, Ramos and Missura, Bacia do rio Piauí-SE: cartografia das unidades de modelado de relevo com auxílio de geoprocessamento, DOI10.20396/sbgfa.v1i2017.2222",
+      "official_url": "https://ocs.ige.unicamp.br/ojs/sbgfa/article/view/2222/2053",
+      "related_urls": [
+        "https://ocs.ige.unicamp.br/ojs/sbgfa/article/view/2222"
+      ],
+      "observed_outcome": "Catalogue and nine-page PDF reader opened normally. The sole Figure2 screenshot request, PDF page6/printed5122, returned Failed to fetch: Cache miss. No map pixels were returned or inspected. No alternate acquisition followed.",
+      "outcome_layer": "Web screenshot/cache availability failure; origin HTTP unknown.",
+      "restriction_scope": "Whole article, figures and equivalent PDF/catalogue/reader/cache/mirror/format acquisition and uninspected-output reading paused.",
+      "earlier_lawful_prose_exception": "Previously read bibliography, study-area and methodology prose only: southern Sergipe Piauí basin and the authors’ 2017 geomorphological mapping using TOPODATA and SRH2014 inputs. No selected-route map evidence.",
+      "newly_observed_access_failure": true,
+      "aw_id": "hydro-system:61064290"
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "publication": "The National Map USGSTopo: bounded Death Valley views",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "observed_outcome": "All six original bounded map images completed HTTP 200 and were visually inspected. The maps establish local canyons, Death Valley Wash, Salt Creek, basin passages and the actual Middle Basin endpoint setting, but not the two specified selected through-links.",
+      "outcome_layer": "Substantive geographic/cartographic correspondence limitation, not HTTP, reader, transport or access failure.",
+      "restriction_scope": "The unresolved selected western fan connection and Mesquite Flat transfer only. Successful local named-corridor observations remain usable; no service-wide acquisition restriction is inferred.",
+      "limitation_kind": "material_selected_fan_and_plain_connector_gaps",
+      "material_gap": true,
+      "material_effect": "One river_group_source_material_pending primary classification; no additional access-pending state or completed naming-scope hold.",
+      "aw_id": "hydro-system:70658860",
+      "acquisition_stop": false
+    },
+    {
+      "source_key": "r196-apitz-zulia59",
+      "official_url": "https://bibliofep.fundacionempresaspolar.org/media/1378337/gv_t7_c59_p490_631_zulia_lres_single_preview.pdf",
+      "notice": "Fundación Empresas Polar chapter and source cartography are kept private. No permission to redistribute source maps or derivatives is inferred from public hosting.",
+      "effect": "Own factual observations and bibliography only; no material evidence gap.",
+      "aw_id": "hydro-system:60006529",
+      "acquisition_stop": false
+    },
+    {
+      "source_key": "r196-rincon2017-palmar",
+      "official_url": "https://acading.org.ve/wp-content/uploads/2023/02/2017_Rios_Riesgo_Venezuela_V1_libro.pdf",
+      "notice": "Printed copyright the authors, 2017; the publication states that author-provided names and information need not express their institutions’ views.",
+      "effect": "Retain author attribution and research-only naming scope. No original pages, crops or other derivatives redistributed; no access stop.",
+      "aw_id": "hydro-system:60006529",
+      "acquisition_stop": false
+    },
+    {
+      "source_key": "r196-ibge-simao-dias-2022",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2022/mapas_municipais_estatisticos/SE/simao_dias_2807105/simao_dias_2807105_mme_a0.pdf",
+      "observation": "The inspected margin states IBGE reproduction rights and a statistical-use/fitness limitation; image source credits include2022 Planet Labs material, all rights reserved.",
+      "restriction_scope": "Keep original, crops and overlays private. Bounded factual naming observations only; no source imagery redistribution or authoritative contemporary mapping claim.",
+      "access_stop": false,
+      "aw_id": "hydro-system:61064290",
+      "acquisition_stop": false
+    },
+    {
+      "source_key": "r196-ibge-riachao-2020",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/SE/riachao_do_dantas/2805802_MM.pdf",
+      "observation": "Printed note states semi-automatic municipal compilation, exclusive intended statistical collection/tabulation use, disclaimer for other uses and IBGE reproduction rights.",
+      "restriction_scope": "Source-fitness and reproduction caveat, not an officials-only reading prohibition. Keep source material private; factual synthesis only.",
+      "access_stop": false,
+      "aw_id": "hydro-system:61064290",
+      "acquisition_stop": false
+    },
+    {
+      "source_key": "r196-ibge-estancia-2007",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/contagem_da_populacao_e_censo_agropecuario_2007/mapas_municipais_estatisticos/se/estancia.pdf",
+      "observation": "Printed note identifies semi-automatic assembly from Brazilian systematic mapping and the municipal mesh, without full integration/completeness treatment; IBGE reproduction rights are reserved.",
+      "restriction_scope": "Historical/generalized mapping and reproduction caveat. No original, crop or overlay distribution and no current-bank/operation claim.",
+      "access_stop": false,
+      "aw_id": "hydro-system:61064290",
+      "acquisition_stop": false
+    }
+  ]
+}

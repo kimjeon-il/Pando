@@ -1,0 +1,917 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r262",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r261",
+    "commit": "e840f861820ef8fe5eba28dca9094dd9b882cf66",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r261/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:61499857",
+    "hydro-system:60208923",
+    "hydro-system:70973081",
+    "hydro-system:61419675"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:61499857",
+      "category": "river_group",
+      "system_id": "61499857",
+      "original_queue_rank": 854,
+      "baseline_logical_fid": 3567,
+      "geometry_fids": [
+        14079
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -58.388555,
+        -33.539583,
+        -57.854167,
+        -33.439583
+      ],
+      "rendered_mainstem_length_km": 71.966,
+      "rendered_network_length_km": 71.966,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "selected_part_count": 11
+      },
+      "candidate_name": "Río San Salvador",
+      "candidate_names": [
+        "Río San Salvador"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "region": "Soriano, northern tributary and lower Río San Salvador west of Dolores",
+      "candidate_name_role": "Representative named receiving-river system. The selected northern feeder is not asserted to carry this name.",
+      "source_keys": [
+        "r262-world-imagery-61499857",
+        "r262-cervetto-monitoring-2018",
+        "r262-mtop-rss0-prestop-text"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "The full selected northern tributary and lower alluvial route connects to Río San Salvador and its Río Uruguay mouth approach. Río San Salvador is supported as the representative receiving-system name; the northern feeder remains unnamed. All11 stored parts and both distinct terminal positions have ordinary geographic correspondence.",
+      "completion_scope": "Complete valley/alluvial-floor correspondence and supported receiving-system identity, without a whole-route natural-river scalar name or formal registry determination.",
+      "supported_name_scope": "The full selected northern tributary and lower alluvial route connects to Río San Salvador and its Río Uruguay mouth approach. Río San Salvador is supported as the representative receiving-system name; the northern feeder remains unnamed. All11 stored parts and both distinct terminal positions have ordinary geographic correspondence.",
+      "naming_scope_details": {
+        "representative_system_identity": "Río San Salvador",
+        "whole_feature_uniform_name_established": false,
+        "scope_limits": [
+          "The northern feeder name is unconfirmed. Arroyo Magallanes appears in the monitoring material but is not assigned to this selected corridor from its nearby label.",
+          "Coarse selected positions locally cross cultivated or grassy portions of the same floodplain instead of tracing each contemporary meander; no geometry correction is made.",
+          "Source and rendered endpoints differ slightly in the same river-mouth approach. The retained sea terminal classification is not treated as evidence of a marine outlet.",
+          "Local imagery scene dates, current flow, exact banks, navigation depths and formal naming-register status are unverified."
+        ]
+      },
+      "bounded_name_observations": [
+        {
+          "name": "Río San Salvador",
+          "scope": "Named lower receiving system west of Dolores, downstream of the selected northern feeder junction; representative candidate only for the composite.",
+          "source_keys": [
+            "r262-world-imagery-61499857",
+            "r262-cervetto-monitoring-2018"
+          ]
+        },
+        {
+          "name": "Río Uruguay",
+          "scope": "Broad downstream receiving river at the San Salvador mouth; not the representative name of the selected upstream composite.",
+          "source_keys": [
+            "r262-world-imagery-61499857",
+            "r262-cervetto-monitoring-2018"
+          ]
+        }
+      ],
+      "country": "Uruguay"
+    },
+    {
+      "aw_id": "hydro-system:60208923",
+      "category": "river_group",
+      "system_id": "60208923",
+      "original_queue_rank": 855,
+      "baseline_logical_fid": 3385,
+      "geometry_fids": [
+        11577,
+        11578
+      ],
+      "minimum_stage": 2,
+      "bbox": [
+        -77.105633,
+        3.760417,
+        -76.664583,
+        3.877083
+      ],
+      "rendered_mainstem_length_km": 70.992,
+      "rendered_network_length_km": 70.992,
+      "geometry_summary": {
+        "fragment_count": 2,
+        "mainstem_fragment_count": 2,
+        "tributary_fragment_count": 0,
+        "selected_part_count": 41
+      },
+      "candidate_name": "Río Dagua",
+      "candidate_names": [
+        "Río Dagua"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "region": "Western Valle del Cauca, Colombia: selected junction-side Dagua valley through the forested lower river plain to the coastal estuarine wetland south of Buenaventura.",
+      "candidate_name_role": "Representative named receiving-river system; bounded confluence, river and tidal-arm names remain separate.",
+      "source_keys": [
+        "r262-colombia-world-imagery",
+        "r262-dagua-ballesteros2022",
+        "r262-cvc-dagua-forest2024-prestop"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "Representative identity of the selected connected river-and-coastal-receiving system. The field study identifies the Dagua at the selected junction-side opening and at Córdoba; independent imagery connects the intervening valley and downstream estuarine landscape. It does not establish one scalar name for every modern tidal arm, the exact naming boundary at the opening, or upstream portions outside the selection.",
+      "completion_scope": "All stored parts and both terminal definitions were actually considered against the original photographic material. Ordinary connected canyon, alluvial and coastal-wetland correspondence is supported throughout. Clouds and channel generalization limit exact current-thread or bank claims, but leave no necessary receiving connection unresolved. Naming is representative, not formal registry acceptance or blanket reach naming.",
+      "supported_name_scope": "Representative identity of the selected connected river-and-coastal-receiving system. The field study identifies the Dagua at the selected junction-side opening and at Córdoba; independent imagery connects the intervening valley and downstream estuarine landscape. It does not establish one scalar name for every modern tidal arm, the exact naming boundary at the opening, or upstream portions outside the selection.",
+      "naming_scope_details": {
+        "representative_system_identity": "Río Dagua",
+        "whole_feature_uniform_name_established": false,
+        "scope_limits": [
+          "The candidate is representative; names of individual tidal branches and exact local name limits remain unestablished.",
+          "This selection begins near a confluence and does not represent the entire natural Dagua source-to-mouth length.",
+          "Cloud, vegetation, generalized geometry and mosaic dates limit exact present channel/bank interpretation; ordinary corridor continuity is nevertheless supported.",
+          "The source and rendered sea-class endings occupy the same estuarine receiving setting but are not identical points or asserted surveyed outlets.",
+          "The CVC forest-plan403 remains an exact publication/project hold despite earlier lawful prose and successful unrelated sources."
+        ]
+      },
+      "bounded_name_observations": [
+        {
+          "name": "Río Dagua",
+          "role": "Named river anchored by the independently documented sampling stations; representative system candidate.",
+          "source_keys": [
+            "r262-dagua-ballesteros2022"
+          ]
+        },
+        {
+          "name": "Bitaco",
+          "role": "Name in the study’s Unión Bitaco-Dagua station designation; a confluence-side context, not an alternative whole-selection name.",
+          "source_keys": [
+            "r262-dagua-ballesteros2022"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70973081",
+      "category": "river_group",
+      "system_id": "70973081",
+      "original_queue_rank": 856,
+      "baseline_logical_fid": 3314,
+      "geometry_fids": [
+        10710,
+        10711
+      ],
+      "minimum_stage": 2,
+      "bbox": [
+        -83.79375,
+        10.166667,
+        -83.489617,
+        10.549105
+      ],
+      "rendered_mainstem_length_km": 69.095,
+      "rendered_network_length_km": 69.095,
+      "geometry_summary": {
+        "fragment_count": 2,
+        "mainstem_fragment_count": 2,
+        "tributary_fragment_count": 0,
+        "selected_part_count": 32
+      },
+      "candidate_name": "Río Tortuguero",
+      "candidate_names": [
+        "Río Tortuguero"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "region": "Guápiles–Pococí lowlands and Tortuguero coastal lagoon corridor, Limón, Costa Rica",
+      "candidate_name_role": "Representative downstream receiving-river system identity for the selected composite.",
+      "source_keys": [
+        "r262-imn-tortuguero",
+        "r262-sinac-tortuguero-plan",
+        "r262-esri-tortuguero-overview",
+        "r262-esri-guapiles-headward"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "The upper Guápiles corridor and middle alluvial collector continue into the directly named Tortuguero receiver and its lower forest/lagoon setting. Río Tortuguero is a representative system candidate, without renaming the bounded Guápiles component or the drawn offshore extension. The coastal end is generalized across the lagoon/barrier setting and is not an exact modern open river mouth.",
+      "completion_scope": "All 32 original parts across both mainstem fragments were compared at ordinary connected alluvial/wetland-corridor scale. The Guápiles opening, joined middle corridor, explicitly named Tortuguero receiver, lower forest/lagoon approach and distinct shoreward/offshore endings have source correspondence. Exact name transitions, current fine channel position and a precise open coastal mouth remain outside the supported claim.",
+      "supported_name_scope": "The upper Guápiles corridor and middle alluvial collector continue into the directly named Tortuguero receiver and its lower forest/lagoon setting. Río Tortuguero is a representative system candidate, without renaming the bounded Guápiles component or the drawn offshore extension. The coastal end is generalized across the lagoon/barrier setting and is not an exact modern open river mouth.",
+      "naming_scope_details": {
+        "representative_system_identity": "Río Tortuguero",
+        "whole_feature_uniform_name_established": false,
+        "scope_limits": [
+          "The upper Guápiles corridor and middle alluvial collector continue into the directly named Tortuguero receiver and its lower forest/lagoon setting. Río Tortuguero is a representative system candidate, without renaming the bounded Guápiles component or the drawn offshore extension. The coastal end is generalized across the lagoon/barrier setting and is not an exact modern open river mouth.",
+          "Separate metadata endpoints retained and independently oriented against original imagery. The schematic shore crossing is not represented as an observed active river outlet."
+        ]
+      },
+      "bounded_name_observations": [
+        {
+          "name": "Río Guápiles",
+          "scope": "Southern Guápiles-town and upper agricultural corridor, principally original FID 10710 parts 0–6. Exact source and downstream name-transition vertex are not fixed.",
+          "basis": "Direct Guápiles label on IMN Figure 2, compared with the independently read headward and overview imagery.",
+          "source_keys": [
+            "r262-imn-tortuguero",
+            "r262-esri-guapiles-headward",
+            "r262-esri-tortuguero-overview"
+          ]
+        },
+        {
+          "name": "Río Tortuguero",
+          "scope": "Eastward receiver beside Zacatales and the Agua Fría junction, continuing through the forested lower corridor toward the Tortuguero coastal waterway.",
+          "basis": "Direct river label and mapped joining watercourse in SINAC Figure 5-4, with the connected lower route in Figures 5-1/5-2 and independent imagery.",
+          "source_keys": [
+            "r262-sinac-tortuguero-plan",
+            "r262-esri-tortuguero-overview"
+          ]
+        },
+        {
+          "name": "Río Agua Fría",
+          "scope": "Southern side branch at the park’s Agua Fría sector; not substituted for the selected west-to-east receiver.",
+          "basis": "SINAC Figure 5-4 identifies the Agua Fría water-route branch meeting Río Tortuguero.",
+          "source_keys": [
+            "r262-sinac-tortuguero-plan"
+          ]
+        },
+        {
+          "name": "Tortuguero / Cuatro Esquinas",
+          "scope": "Named coastal settlement and park-sector context for the selected lagoon/barrier terminal; these settlement/sector labels are not river aliases.",
+          "source_keys": [
+            "r262-sinac-tortuguero-plan"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61419675",
+      "category": "river_group",
+      "system_id": "61419675",
+      "original_queue_rank": 857,
+      "baseline_logical_fid": 3545,
+      "geometry_fids": [
+        13992
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -68.70625,
+        -27.647917,
+        -68.56875,
+        -27.16875
+      ],
+      "rendered_mainstem_length_km": 67.168,
+      "rendered_network_length_km": 67.168,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "selected_part_count": 18
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_name_scope_hold",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "region": "Argentine high Andes, Salina de Laguna Verde closed basin",
+      "candidate_name_role": null,
+      "source_keys": [
+        "r262-esri-61419675-overview",
+        "r262-ianigla-abaucan-lagunaverde2018-prestop-prose"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": "Río Salado supplies a bounded northern inflow identity, but no supported receiving-river name represents the selected downstream lake/salar chain. Salina de Laguna Verde is basin context and is not automatically promoted to a natural-river candidate.",
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "Complete ordinary correspondence is established for the Argentine head-valley–river–lake–salar composite and its endorheic ending. Río Salado is bounded to the northern receiving river, with Laguna de la Salina/Tres Quebradas as its receiving lake. No supported river name represents the entire downstream selected composite, so the completed result is a null-name scope hold.",
+      "completion_scope": "All18 parts, every join, the northern river/lake transition, connected saline floor, engineered-pond vicinity, lower basin narrowing, southern lake and separately retained source/render ending were read. No necessary receiver or terrain link remains unresolved. Exact wet threads, present exchange and current pond operation are outside this ordinary-geography finding.",
+      "supported_name_scope": "Río Salado supplies a bounded northern inflow identity, but no supported receiving-river name represents the selected downstream lake/salar chain. Salina de Laguna Verde is basin context and is not automatically promoted to a natural-river candidate.",
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "whole_feature_uniform_name_established": false,
+        "scope_limits": [
+          "The whole selected composite has no supported representative natural-river name. Southern individual lake names remain unassigned in this finding.",
+          "Río Salado and the northern lake name are supported at bounded scope; they are not silently extended across the downstream salar and southern waterbody.",
+          "Scene dates, present wetness, seasonal surface exchange, modern lake edges and operation of the rectangular pond complex are unverified and unnecessary for ordinary geography.",
+          "The report map screenshot was unavailable. Its failure is a separate exact-source access limitation, not a material-pending geography status or an observed HTTP403."
+        ]
+      },
+      "bounded_name_observations": [
+        {
+          "name": "Río Salado",
+          "scope": "Northern receiving river and approach to the northern lake only; not a name for all downstream lake/salar parts.",
+          "source_keys": [
+            "r262-ianigla-abaucan-lagunaverde2018-prestop-prose",
+            "r262-esri-61419675-overview"
+          ]
+        },
+        {
+          "name": "Laguna de la Salina / Tres Quebradas",
+          "scope": "Northern receiving lake reached from Río Salado.",
+          "source_keys": [
+            "r262-ianigla-abaucan-lagunaverde2018-prestop-prose",
+            "r262-esri-61419675-overview"
+          ]
+        },
+        {
+          "name": "Salina de Laguna Verde",
+          "scope": "Endorheic basin context only; separate from Abaucán and not a whole-feature river-name candidate.",
+          "source_keys": [
+            "r262-ianigla-abaucan-lagunaverde2018-prestop-prose"
+          ]
+        }
+      ],
+      "country": "Argentina"
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [
+      "hydro-system:61419675"
+    ],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 4,
+    "supported_representative_system_identities": 3,
+    "scope_holds": 1,
+    "access_pending": 0,
+    "material_pending": 0
+  },
+  "totals_after": {
+    "recorded_targets": 991,
+    "non_pending_records": 669,
+    "source_access_pending": 3,
+    "source_material_pending": 319,
+    "source_any_pending": 322,
+    "scope_holds": 219,
+    "river_groups": 893,
+    "lakes": 98,
+    "unrecorded": 3074,
+    "unrecorded_river_groups": 2562,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573",
+    "hydro-system:80032711",
+    "hydro-system:60007816",
+    "hydro-system:80013873",
+    "hydro-system:61501314",
+    "hydro-system:60761631",
+    "hydro-system:70895720",
+    "hydro-system:61398344",
+    "hydro-system:61355098",
+    "hydro-system:70933800",
+    "hydro-system:60026849",
+    "hydro-system:70574060",
+    "hydro-system:70890643",
+    "hydro-system:80064967",
+    "hydro-system:70856797",
+    "hydro-system:60174418",
+    "hydro-system:61547907",
+    "hydro-system:70463083",
+    "hydro-system:61520061",
+    "hydro-system:70895492",
+    "hydro-system:70898394",
+    "hydro-system:70865140",
+    "hydro-system:80072439",
+    "hydro-system:70549678",
+    "hydro-system:70566840",
+    "hydro-system:80048422",
+    "hydro-system:60557376",
+    "hydro-system:61514286",
+    "hydro-system:61509423",
+    "hydro-system:80068731",
+    "hydro-system:80015064",
+    "hydro-system:61520170",
+    "hydro-system:70156165",
+    "hydro-system:70784507",
+    "hydro-system:80067417",
+    "hydro-system:80019756",
+    "hydro-system:70244256",
+    "hydro-system:80060230",
+    "hydro-system:61543259",
+    "hydro-system:60007312",
+    "hydro-system:60022881",
+    "hydro-system:61456098",
+    "hydro-system:70290797",
+    "hydro-system:60441146",
+    "hydro-system:61554706",
+    "hydro-system:70110341",
+    "hydro-system:80067260",
+    "hydro-system:70214162",
+    "hydro-system:80034507",
+    "hydro-system:61536265",
+    "hydro-system:61561008",
+    "hydro-system:80066184",
+    "hydro-system:70202296",
+    "hydro-system:61545841",
+    "hydro-system:61350841",
+    "hydro-system:80064018",
+    "hydro-system:70957614",
+    "hydro-system:70851521",
+    "hydro-system:70049998",
+    "hydro-system:61298121",
+    "hydro-system:80033385",
+    "hydro-system:61205785",
+    "hydro-system:80035867",
+    "hydro-system:70009700",
+    "hydro-system:60440371",
+    "hydro-system:80049373",
+    "hydro-system:70749063",
+    "hydro-system:70844211",
+    "hydro-system:60001814",
+    "hydro-system:61507976",
+    "hydro-system:70834534",
+    "hydro-system:80070226",
+    "hydro-system:61357020",
+    "hydro-system:70846952",
+    "hydro-system:70004800",
+    "hydro-system:80043969",
+    "hydro-system:80165177",
+    "hydro-system:70043276",
+    "hydro-system:60490135",
+    "hydro-system:60237339",
+    "hydro-system:70023641",
+    "hydro-system:70281204",
+    "hydro-system:61570080",
+    "hydro-system:70789628",
+    "hydro-system:80234498",
+    "hydro-system:60016868",
+    "hydro-system:70276504",
+    "hydro-system:70901807",
+    "hydro-system:80086174",
+    "hydro-system:60809372",
+    "hydro-system:60100857",
+    "hydro-system:70026619",
+    "hydro-system:70500400",
+    "hydro-system:60010615",
+    "hydro-system:70608588",
+    "hydro-system:70832638",
+    "hydro-system:61383955",
+    "hydro-system:61555573",
+    "hydro-system:80068976",
+    "hydro-system:80048308",
+    "hydro-system:80001778",
+    "hydro-system:70324446",
+    "hydro-system:80051383",
+    "hydro-system:60804761",
+    "hydro-system:70817056",
+    "hydro-system:80032843",
+    "hydro-system:70045452",
+    "hydro-system:70877500",
+    "hydro-system:80042519",
+    "hydro-system:70084321",
+    "hydro-system:61519454",
+    "hydro-system:61546367",
+    "hydro-system:60627295",
+    "hydro-system:61038090",
+    "hydro-system:60407824",
+    "hydro-system:80047056",
+    "hydro-system:70888155",
+    "hydro-system:61189702",
+    "hydro-system:70084119",
+    "hydro-system:70025722",
+    "hydro-system:70001071",
+    "hydro-system:70360842",
+    "hydro-system:70007286",
+    "hydro-system:60001879",
+    "hydro-system:70776067",
+    "hydro-system:61266023",
+    "hydro-system:70806740",
+    "hydro-system:60516711",
+    "hydro-system:80020100",
+    "hydro-system:70835654",
+    "hydro-system:80029665",
+    "hydro-system:61609128",
+    "hydro-system:70853324",
+    "hydro-system:70775288",
+    "hydro-system:70008834",
+    "hydro-system:61422869",
+    "hydro-system:80214289",
+    "hydro-system:70210252",
+    "hydro-system:70091013",
+    "hydro-system:60774621",
+    "hydro-system:61390812",
+    "hydro-system:60613563",
+    "hydro-system:61564085",
+    "hydro-system:70048797",
+    "hydro-system:61533139",
+    "hydro-system:60000681",
+    "hydro-system:70728795",
+    "hydro-system:80148544",
+    "hydro-system:70478140",
+    "hydro-system:70243977",
+    "hydro-system:70170668",
+    "hydro-system:80290543",
+    "hydro-system:61524461",
+    "hydro-system:70246501",
+    "hydro-system:70253588",
+    "hydro-system:70735407",
+    "hydro-system:60339076",
+    "hydro-system:70870606",
+    "hydro-system:61551054",
+    "hydro-system:61508438",
+    "hydro-system:60412032",
+    "hydro-system:70209891",
+    "hydro-system:70221206",
+    "hydro-system:70752436",
+    "hydro-system:70840433",
+    "hydro-system:60000722",
+    "hydro-system:80039501",
+    "hydro-system:80043520",
+    "hydro-system:80125244",
+    "hydro-system:70478139",
+    "hydro-system:80028550",
+    "hydro-system:61436404",
+    "hydro-system:80231563",
+    "hydro-system:61286514",
+    "hydro-system:61543734",
+    "hydro-system:80033212",
+    "hydro-system:61512470",
+    "hydro-system:60768475",
+    "hydro-system:70735496",
+    "hydro-system:61555954",
+    "hydro-system:70618884",
+    "hydro-system:80160360",
+    "hydro-system:70830375",
+    "hydro-system:80018800",
+    "hydro-system:61540978",
+    "hydro-system:80261384",
+    "hydro-system:60297933",
+    "hydro-system:80044582",
+    "hydro-system:61555857",
+    "hydro-system:70184883",
+    "hydro-system:70531357",
+    "hydro-system:70768467",
+    "hydro-system:61483978",
+    "hydro-system:60024169",
+    "hydro-system:61266022",
+    "hydro-system:60042998",
+    "hydro-system:61545451",
+    "hydro-system:70974386",
+    "hydro-system:70658860",
+    "hydro-system:61064290",
+    "hydro-system:80224898",
+    "hydro-system:70846851",
+    "hydro-system:70728698",
+    "hydro-system:60011738",
+    "hydro-system:70135325",
+    "hydro-system:80080193",
+    "hydro-system:70891116",
+    "hydro-system:60001922",
+    "hydro-system:70840684",
+    "hydro-system:61144131",
+    "hydro-system:61279996",
+    "hydro-system:60575428",
+    "hydro-system:61330558",
+    "hydro-system:61352932",
+    "hydro-system:80011023",
+    "hydro-system:61516926",
+    "hydro-system:70188223",
+    "hydro-system:70245111",
+    "hydro-system:70094242",
+    "hydro-system:61521416",
+    "hydro-system:70828969",
+    "hydro-system:80062264",
+    "hydro-system:80160778",
+    "hydro-system:60409921",
+    "hydro-system:60000770",
+    "hydro-system:60571197",
+    "hydro-system:70860477",
+    "hydro-system:61533397",
+    "hydro-system:70264330",
+    "hydro-system:70105802",
+    "hydro-system:70331549",
+    "hydro-system:80081015",
+    "hydro-system:70766071",
+    "hydro-system:61382960",
+    "hydro-system:80037596",
+    "hydro-system:60775848",
+    "hydro-system:80051354",
+    "hydro-system:80266652",
+    "hydro-system:70316227",
+    "hydro-system:61528356",
+    "hydro-system:70882065",
+    "hydro-system:80042509",
+    "hydro-system:80031210",
+    "hydro-system:80108382",
+    "hydro-system:70026340",
+    "hydro-system:60007489",
+    "hydro-system:80032969",
+    "hydro-system:80091078",
+    "hydro-system:80255237",
+    "hydro-system:70824140",
+    "hydro-system:61562621",
+    "hydro-system:70974390",
+    "hydro-system:80107981",
+    "hydro-system:70871537",
+    "hydro-system:70530540",
+    "hydro-system:61557326",
+    "hydro-system:70873021",
+    "hydro-system:70844000",
+    "hydro-system:80071292",
+    "hydro-system:70016501",
+    "hydro-system:80031039",
+    "hydro-system:61400064",
+    "hydro-system:80119986",
+    "hydro-system:60006761",
+    "hydro-system:80002475",
+    "hydro-system:80092693",
+    "hydro-system:70961272",
+    "hydro-system:80021745",
+    "hydro-system:80038868",
+    "hydro-system:70000271",
+    "hydro-system:60264271",
+    "hydro-system:70809540",
+    "hydro-system:60263863",
+    "hydro-system:70870227",
+    "hydro-system:61279344",
+    "hydro-system:61502899",
+    "hydro-system:61563356",
+    "hydro-system:61147748",
+    "hydro-system:61518797",
+    "hydro-system:61579517",
+    "hydro-system:70136698",
+    "hydro-system:70850906",
+    "hydro-system:70504450",
+    "hydro-system:61352393",
+    "hydro-system:80020685",
+    "hydro-system:60015602",
+    "hydro-system:70934230",
+    "hydro-system:80141411",
+    "hydro-system:60101923",
+    "hydro-system:70961435",
+    "hydro-system:80297510",
+    "hydro-system:61514837",
+    "hydro-system:80105076",
+    "hydro-system:60263868",
+    "hydro-system:61514869",
+    "hydro-system:80017611",
+    "hydro-system:61527658",
+    "hydro-system:80047494",
+    "hydro-system:60527398",
+    "hydro-system:70196019",
+    "hydro-system:70859345",
+    "hydro-system:60499037",
+    "hydro-system:80018005",
+    "hydro-system:61564069",
+    "hydro-system:80044412",
+    "hydro-system:80192797",
+    "hydro-system:80253647",
+    "hydro-system:60222363",
+    "hydro-system:80028424",
+    "hydro-system:70702983",
+    "hydro-system:70866231",
+    "hydro-system:80258097"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r262-world-imagery-61499857",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"
+    },
+    {
+      "source_key": "r262-cervetto-monitoring-2018",
+      "official_url": "https://www.gub.uy/ministerio-ambiente/sites/ministerio-ambiente/files/documentos/publicaciones/Informe_rio_San_Salvador_2018.pdf"
+    },
+    {
+      "source_key": "r262-mtop-rss0-prestop-text",
+      "official_url": "https://www.gub.uy/ministerio-transporte-obras-publicas/comunicacion/publicaciones/cartas-nauticas-rio-san-salvador"
+    },
+    {
+      "source_key": "r262-colombia-world-imagery",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"
+    },
+    {
+      "source_key": "r262-dagua-ballesteros2022",
+      "official_url": "https://www.scielo.sa.cr/scielo.php?pid=S0034-77442022000100589&script=sci_arttext"
+    },
+    {
+      "source_key": "r262-cvc-dagua-forest2024-prestop",
+      "official_url": "https://www.cvc.gov.co/sites/default/files/2025-02/POF%20Dagua-Documento%20S%C3%ADntesis.pdf"
+    },
+    {
+      "source_key": "r262-imn-tortuguero",
+      "official_url": "https://cglobal.imn.ac.cr/documentos/publicaciones/EstudioCuencas/EstudioCuencas-cuencaRioTortuguero.pdf"
+    },
+    {
+      "source_key": "r262-sinac-tortuguero-plan",
+      "official_url": "https://www.acto.go.cr/wp-content/uploads/2020/05/PlanGeneral-de-Manejo-PN-Tortuguero-2014-2023.pdf"
+    },
+    {
+      "source_key": "r262-esri-tortuguero-overview",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"
+    },
+    {
+      "source_key": "r262-esri-guapiles-headward",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"
+    },
+    {
+      "source_key": "r262-esri-61419675-overview",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"
+    },
+    {
+      "source_key": "r262-ianigla-abaucan-lagunaverde2018-prestop-prose",
+      "official_url": "https://www.glaciaresargentinos.gob.ar/wp-content/uploads/provincias/Catamarca/docs/informes/informe_final_abaucan-laguna-verde_25-04-2018.pdf"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "e840f861820ef8fe5eba28dca9094dd9b882cf66",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      854,
+      855,
+      856,
+      857
+    ],
+    "next_unrecorded_id": "hydro-system:70635340",
+    "progress_rule": "Follow the actual continental order: Americas, Asia, Africa, Europe, then other, with all rivers before lakes. Preserve original queue IDs and ranks for continuity; apply documented geographic deferrals without counting them as name research, and place deferred objects into their corrected later phase by length-descending, stable-ID order. Prior candidate and scope-held assessments remain unresolved where stated.",
+    "geographic_deferrals": [
+      {
+        "aw_id": "hydro-system:80061063",
+        "original_queue_rank": 186,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 66.56–68.17°N and 179.97–177.11°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory bounding box and selected-route geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80065687",
+        "original_queue_rank": 349,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at66.725–67.849775°N and178.2–175.960242°W place this object on Chukotka west of Alaska, adjoining the previously corrected Chukotka selection. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory bounding box and selected-route geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80100188",
+        "original_queue_rank": 387,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 64.939583–66.26978°N and 174.05625–173.320833°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory/order bounding box and geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80119243",
+        "original_queue_rank": 391,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 65.451531–66.491667°N and 176.777083–175.672917°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory/order bounding box and geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80083978",
+        "original_queue_rank": 470,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained original inventory/order bounds at66.522917–67.00625°N and177.333333–174.842957°W place this current object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Existing fixed-queue bounding box and geographic placement only; no naming source or selected geometry acquired for this correction."
+      },
+      {
+        "aw_id": "hydro-system:80099814",
+        "original_queue_rank": 511,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained original inventory/order bounds at65.952083–66.502083°N and172.004167–170.400621°W place this current object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Existing fixed-queue bounding box and geographic placement only; no naming source or selected geometry acquired for this correction."
+      },
+      {
+        "aw_id": "hydro-system:80082812",
+        "original_queue_rank": 843,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained fixed-queue bounds at66.6875–67.044233°N and173.235417–172.270833°W place this current object on Chukotka, west of Alaska, adjoining earlier geographically corrected Chukotka entries. Actual continental order takes priority over provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Existing fixed-queue bounding box and geographic placement only; no naming source or selected geometry acquired for this correction."
+      }
+    ]
+  }
+}

@@ -1,0 +1,1119 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r241",
+  "sources": [
+    {
+      "source_key": "r241-dma-tpc-k27c-1990",
+      "title": "Tactical Pilotage Chart K–27C: Grenada, Guyana, Trinidad and Tobago, Venezuela",
+      "publisher": "U.S. Defense Mapping Agency Aerospace Center, St. Louis, Missouri; original preserved by University of Texas Perry–Castañeda Library",
+      "edition": "4",
+      "scale": "1:500,000",
+      "date": "Compiled June 1990; lithographed November 1990",
+      "official_url": "https://maps.lib.utexas.edu/maps/tpc/txu-pclmaps-oclc-22834566_k-27c.jpg",
+      "publication_identity": "The exact separately compiled original, edition, title and publishing project were independently identified in earlier lawful research and confirmed here from the original imprint. This is not held TPC L–26D, the restricted Guasipati JOG chart, the SAGECAN Delta1994 state sheet, FEP educational lámina173 or the Hackley national geological publication. The distinction rests on the actual original publication identity and compilation, not a changed host or sheet number alone.",
+      "primary_source_scope": "Original historical government cartographic compilation; not a present hydrological survey or formal name registry.",
+      "acquisition_outcome": "One exact normal-original request completed HTTP200, image/jpeg; original pixels were then inspected locally.",
+      "material_read": "Whole-chart overview; title, compiler, scale, edition and printing date; civil-user and source-limit marginal notes; enlarged unaltered pixels covering the chosen opening, all successive upper and middle channels, the Tucupita-to-Macareo join, complete broad lower corridor, both terminal settings and the labeled Barra de Macareo opening. A private orientation aid was used only to locate the supplied selection.",
+      "supports": "Complete ordinary-scale geographic correspondence; distinct Caño Tucupita and Caño Macareo labels; actual coastal receiving opening and separate source/render terminal settings.",
+      "limitations": "Historical generalized cartography with roads, settlement marks and aeronautical overprinting. It does not establish exact present banks, tidal direction, continuous modern flow, formal hydronym boundaries, a natural river source, or an official mouth vertex.",
+      "source_use_notice": "The inspected margin offers civil-user purchase information; no officials-only or limited-distribution notice was encountered. Printed notes say adequate source material was unavailable for detailed vegetation patterns and that boundaries are not necessarily authoritative. Aeronautical information is dated June 1, 1990; no current-navigation use is asserted. Originals and derived reading aids remain private."
+    },
+    {
+      "source_key": "r241-fep-delta45",
+      "title": "Estado Delta Amacuro",
+      "author": "Carmen Eleonora Rondón León",
+      "publication": "GeoVenezuela, tomo 6, capítulo 45, pp.126–197",
+      "publisher": "Fundación Empresas Polar",
+      "year": null,
+      "year_note": "Exact chapter publication year was not independently established from the acquired extract.",
+      "official_url": "https://bibliofep.fundacionempresaspolar.org/media/1045/gv_t6_c45_p126_197_lres_single_preview.pdf",
+      "publication_identity": "Separately authored state-geography editorial chapter. Figure14 explicitly credits DCOC–Infrawin y Asociados,1996. The chapter and this thematic figure were positively distinguished from the held SAGECAN1994 original and the unresolved SAGECAN-derived FEP lámina173; no held map or RAP37-derived biological material is recovered or used.",
+      "primary_source_scope": "Authored regional geographical synthesis and an attributed thematic figure, used only as corroborating context.",
+      "acquisition_outcome": "One normal-original request completed HTTP200, application/pdf.",
+      "material_read": "Title and author on printed126; relevant regional wetland/coastal passage on139; waterway-network prose on145; access and Macareo context on184–185; original Figure14 on186 with printed title, geographic grid and DCOC–Infrawin1996 credit, visually inspected in full. Other biological tables and unseen figures are not used.",
+      "supports": "Tucupita and Macareo are separately named channels of the Orinoco delta network; lower-delta wetland/coastal setting and the Macareo coastal outlet context.",
+      "limitations": "The generalized thematic figure does not independently resolve every selected small-channel link. The TPC original supplies those links. No present navigation, water quality, vegetation inventory, management operation or territorial conclusion is adopted.",
+      "source_use_notice": "Author and publisher attribution retained. No limited-distribution notice was encountered in the inspected material. Only independently written factual synthesis and ordinary bibliography are public-ready; the original and local reading aids remain private."
+    },
+    {
+      "source_key": "r241-esri-nunavik-overview",
+      "title": "World Imagery: northern Nunavik selected river-corridor overview",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "evidence_kind": "independent_satellite_aerial_imagery",
+      "publication_identity": "Independently maintained photographic imagery mosaic. It is not a recovery of held Canadian topographic or naming services, geological field-study maps, coastal reports or mine-restoration figures. The selected northern Quebec views are distinct from the held Ellesmere, Nevada and Knik views.",
+      "acquisition_outcome": "One normal original request completed HTTP200 image/jpeg, with terminal execution exit0. No image retry was needed.",
+      "actual_reading": "Complete original overview, private orientation image and clean middle-corridor enlargement. All 27 selected parts were considered from the eastern opening to the northwest coastal ending.",
+      "source_original_acquired": true,
+      "original_pixels_actually_read": true,
+      "scene_date": "Contributing image dates are not established. Visible mosaic seams, clouds and snow are not interpreted as present-day hydraulic observations.",
+      "supports": "Ordinary geographic correspondence at corridor scale only.",
+      "limits": "No hydronym labels, formal naming boundaries, measured present flow or exact-bank guarantee. Originals and all derivatives remain private."
+    },
+    {
+      "source_key": "r241-esri-nunavik-upper",
+      "title": "World Imagery: eastern Nunavik opening, lakes and upper river",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "evidence_kind": "independent_satellite_aerial_imagery",
+      "publication_identity": "Independently maintained photographic imagery mosaic. It is not a recovery of held Canadian topographic or naming services, geological field-study maps, coastal reports or mine-restoration figures. The selected northern Quebec views are distinct from the held Ellesmere, Nevada and Knik views.",
+      "acquisition_outcome": "One normal original request completed HTTP200 image/jpeg, with terminal execution exit0. No image retry was needed.",
+      "actual_reading": "Complete original upper view, private orientation image and clean enlarged readings of the chosen southern feeder, broad upper lake, western lake/outlet and upper river bends.",
+      "source_original_acquired": true,
+      "original_pixels_actually_read": true,
+      "scene_date": "Contributing image dates are not established. Visible mosaic seams, clouds and snow are not interpreted as present-day hydraulic observations.",
+      "supports": "Ordinary geographic correspondence at corridor scale only.",
+      "limits": "No hydronym labels, formal naming boundaries, measured present flow or exact-bank guarantee. Originals and all derivatives remain private."
+    },
+    {
+      "source_key": "r241-esri-nunavik-lower",
+      "title": "World Imagery: northwest Nunavik lower river and actual coastal ending",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "evidence_kind": "independent_satellite_aerial_imagery",
+      "publication_identity": "Independently maintained photographic imagery mosaic. It is not a recovery of held Canadian topographic or naming services, geological field-study maps, coastal reports or mine-restoration figures. The selected northern Quebec views are distinct from the held Ellesmere, Nevada and Knik views.",
+      "acquisition_outcome": "One normal original request completed HTTP200 image/jpeg, with terminal execution exit0. No image retry was needed.",
+      "actual_reading": "Complete original lower view and private part/endpoint orientation aid. Lower tributary joins, river bends, alluvial coastal corridor, stored source endpoint and farther rendered ending were separately inspected.",
+      "source_original_acquired": true,
+      "original_pixels_actually_read": true,
+      "scene_date": "Contributing image dates are not established. Visible mosaic seams, clouds and snow are not interpreted as present-day hydraulic observations.",
+      "supports": "Ordinary geographic correspondence at corridor scale only.",
+      "limits": "No hydronym labels, formal naming boundaries, measured present flow or exact-bank guarantee. Originals and all derivatives remain private."
+    },
+    {
+      "source_key": "r241-museum-small-mammals2024",
+      "title": "Studying Small Mammals in the Arctic",
+      "publisher": "Canadian Museum of Nature",
+      "publication_date": "2024-01-30",
+      "official_url": "https://nature.ca/en/studying-small-mammals-in-the-arctic/",
+      "evidence_kind": "primary_field_project_transcript",
+      "publication_identity": "First-person museum small-mammal monitoring project around Salluit, using live trapping and cameras, begun in 2018. This project and its authorial transcript are positively distinct from the held 1989–1991 Ungava geological field study, 2018 mine-restoration plan and Canadian naming/cartographic services.",
+      "acquisition_outcome": "Normal web reader returned the HTML article and transcript successfully.",
+      "actual_reading": "Article title/date, field transcript, named participants, project history, acknowledgements and media credits. No video, image or external map was acquired or treated as read.",
+      "observations": "The field speakers place their small-mammal work around Salluit and identify a site at Foucault River.",
+      "limits": "Regional name-use evidence only. The transcript does not locate the selected opening, lakes, joins or exact river mouth; it cannot by itself assign Foucault River to this selection.",
+      "use_notice": "Museum copyright is retained. Only a short independently written factual summary and ordinary bibliography are public-ready."
+    },
+    {
+      "source_key": "r241-invemar-guapi2009-prose",
+      "title": "Ordenamiento ambiental de los manglares del municipio de Guapi, departamento del Cauca (Pacífico colombiano)",
+      "authors": "Rodríguez Peláez, J.C.; López Rodríguez, A.; Sierra-Correa, P.C.; Hernández Ortiz, M.; Almario, G.; Prieto, L.M.; Bolaños, J.; Martínez, H.",
+      "publisher": "INVEMAR; Corporación Autónoma Regional del Cauca; Ministerio de Ambiente, Vivienda y Desarrollo Territorial",
+      "year": 2009,
+      "series": "Serie de documentos generales INVEMAR 33",
+      "isbn": "978-958-8448-13-8",
+      "official_url": "https://www.invemar.org.co/redcostera1/invemar/docs/9306manglares_Guapii_pagina_web.pdf",
+      "publication_independence": "Own local mangrove field/community planning study under MAVDT agreement025 and CRC cooperation0673/08. The original confirms local co-investigators, 88 field verification points and its own ecological work. It is not REDCAM2021 water-quality monitoring, the Iscuandé UAV mudflat study, the Tapaje diagnostic, a municipal Micay plan or the national hydrography service. Its borrowed cartographic inputs are separately excluded.",
+      "actual_material_read": "Completed original PDF acquired normally; front matter, publication/use statement, printed pp4–5 study-area prose, pp14–17 cartographic and field methods, p41 georeferenced soil-sampling discussion/table, and pp78–79 coastal mangrove/river prose. No map pixels were inspected or used.",
+      "evidence_scope": "Independent project identity, coastal Guapi/Guajuí and Limones-arm context, and tidal mangrove-channel environment. Not a complete upstream route source.",
+      "acquisition_outcome": "Completed direct HTTP200 application/pdf, exit0; original text read.",
+      "source_use_notice": "Original bears copyright and allows reproduction of text with attribution. No original text, map or derivative image is redistributed; ordinary own factual synthesis only."
+    },
+    {
+      "source_key": "r241-iiap-pacific2013-prose",
+      "title": "Plan Estratégico de la Macrocuenca del Pacífico: Informe Final",
+      "publisher": "Instituto de Investigaciones Ambientales del Pacífico; Ministry-hosted original",
+      "date": "June2013, Quibdó",
+      "official_url": "https://www.minambiente.gov.co/wp-content/uploads/2021/10/01-02-Linea-Base-y-Diagnostico-1.pdf",
+      "publication_independence": "Specific Pacific macrobasin strategic-planning compilation with its own original title, technical team and hydrological methodology, already independently distinguished in earlier bibliography and newly read here. It is not the held San Juan/Tapaje water-quality diagnostic or the unidentified Caribbean Sinú/Manso/Urrá regional works. Borrowed national cartography is not cleared by this project identity.",
+      "actual_material_read": "Completed original PDF; cover/technical-team pages, printed p25 hydrological-data methods, and pp47–48 section3.1.2.5, bifurcation prose and Table9. No map pixels read.",
+      "evidence_scope": "Broad named Guapi bifurcation into Guapi and Limones arms, and separate Guajuí basin context. Does not locate every selected reach or the hidden opening.",
+      "acquisition_outcome": "Completed direct HTTP200 application/pdf, exit0; original text read.",
+      "source_use_notice": "No redistribution of the original. Internally questionable regional location statements, numeric basin areas and discharge percentages are not adopted."
+    },
+    {
+      "source_key": "r241-esri-guapi-upper",
+      "title": "Esri World Imagery: bounded Guapi eastern opening and western upper valley view",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "publication_independence": "Independently maintained photographic mosaic, distinct from held IGAC/DHIME vector mapping and stopped regional publications. This selected area is not any recorded stopped Ellesmere, Nevada or Knik view.",
+      "actual_material_read": "Full original upper-area image read, then a private orientation aid from the same source. FID11600 all26 parts and the adjacent stage transition were considered; extensive cloud obstruction of eastern parts is explicitly retained.",
+      "evidence_scope": "Ordinary geographic corridor and junction observations only; no hydronym labels or present-day hydraulic interpretation.",
+      "acquisition_outcome": "Completed direct HTTP200 image/jpeg, exit0; full original pixels actually inspected.",
+      "source_use_notice": "Image and private working orientation aid are not redistributed."
+    },
+    {
+      "source_key": "r241-esri-guapi-middle",
+      "title": "Esri World Imagery: bounded Guapi middle trunk and eastern selected tributary view",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "publication_independence": "Independently maintained photographic mosaic, distinct from held IGAC/DHIME vector mapping and stopped regional publications. This selected area is not any recorded stopped Ellesmere, Nevada or Knik view.",
+      "actual_material_read": "Full original middle-area image read, then a private orientation aid from the same source. FID11601 all16 parts, FID11603 all5 parts, upper/lower overlaps and their joins were inspected.",
+      "evidence_scope": "Ordinary geographic corridor and junction observations only; no hydronym labels or present-day hydraulic interpretation.",
+      "acquisition_outcome": "Completed direct HTTP200 image/jpeg, exit0; full original pixels actually inspected.",
+      "source_use_notice": "Image and private working orientation aid are not redistributed."
+    },
+    {
+      "source_key": "r241-esri-guapi-lower",
+      "title": "Esri World Imagery: bounded Guapi lower bifurcation and estuarine terminal view",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "publication_independence": "Independently maintained photographic mosaic, distinct from held IGAC/DHIME vector mapping and stopped regional publications. This selected area is not any recorded stopped Ellesmere, Nevada or Knik view.",
+      "actual_material_read": "Full original lower-area image read, then a private orientation aid from the same source. FID11602 all19 parts, lower bifurcation, side-channel joins and separate source/render endpoint settings were inspected.",
+      "evidence_scope": "Ordinary geographic corridor and junction observations only; no hydronym labels or present-day hydraulic interpretation.",
+      "acquisition_outcome": "Completed direct HTTP200 image/jpeg, exit0; full original pixels actually inspected.",
+      "source_use_notice": "Image and private working orientation aid are not redistributed."
+    },
+    {
+      "source_key": "r241-esri-sonora-upper",
+      "title": "World Imagery: selected Sonora upper dry-valley view",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "material_read": "Complete original and private orientation aid, covering the eastern opening, westward road passage, principal joining approach and southwestward dry corridor through parts1–6.",
+      "independent_publication_identity": "Separately maintained satellite/aerial photographic mosaic, positively identified in retained service-source records. It is not a reproduction or recovery of INEGI, CONAGUA, DOF or applicant-study cartography. The selected Sonora views are geographically distinct from the exact held Ellesmere, Nevada and Knik imagery views.",
+      "observed_acquisition": "One original-image request completed HTTP200 image/jpeg with a complete transfer; source pixels were inspected after terminal completion.",
+      "supports": "Ordinary physical-corridor correspondence only.",
+      "limitations": "Unlabelled imagery does not supply hydronyms. Mosaic acquisition date, current water flow, individual control-structure operation and exact present banks are unverified.",
+      "source_use_notice": "Originals, crops and full-coordinate orientation aids remain private; only independently written factual observations and normal bibliography are deliverable."
+    },
+    {
+      "source_key": "r241-esri-sonora-middle",
+      "title": "World Imagery: selected Sonora middle receiving-valley view",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "material_read": "Complete original and private orientation aid, covering the overlapping upper approach, parts5–9 around isolated hills and major join, southwestward part10 and transition into part11.",
+      "independent_publication_identity": "Separately maintained satellite/aerial photographic mosaic, positively identified in retained service-source records. It is not a reproduction or recovery of INEGI, CONAGUA, DOF or applicant-study cartography. The selected Sonora views are geographically distinct from the exact held Ellesmere, Nevada and Knik imagery views.",
+      "observed_acquisition": "One original-image request completed HTTP200 image/jpeg with a complete transfer; source pixels were inspected after terminal completion.",
+      "supports": "Ordinary physical-corridor correspondence only.",
+      "limitations": "Unlabelled imagery does not supply hydronyms. Mosaic acquisition date, current water flow, individual control-structure operation and exact present banks are unverified.",
+      "source_use_notice": "Originals, crops and full-coordinate orientation aids remain private; only independently written factual observations and normal bibliography are deliverable."
+    },
+    {
+      "source_key": "r241-esri-sonora-lower",
+      "title": "World Imagery: selected Sonora lower plain and coastal-ending view",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "material_read": "Complete original, private orientation aid and clean local terminal crop; parts10–19, diffuse agricultural plain, pond/levee landscape, coastal lagoon, opening and separately recorded source/render terminal settings.",
+      "independent_publication_identity": "Separately maintained satellite/aerial photographic mosaic, positively identified in retained service-source records. It is not a reproduction or recovery of INEGI, CONAGUA, DOF or applicant-study cartography. The selected Sonora views are geographically distinct from the exact held Ellesmere, Nevada and Knik imagery views.",
+      "observed_acquisition": "One original-image request completed HTTP200 image/jpeg with a complete transfer; source pixels were inspected after terminal completion.",
+      "supports": "Ordinary physical-corridor correspondence only.",
+      "limitations": "Unlabelled imagery does not supply hydronyms. Mosaic acquisition date, current water flow, individual control-structure operation and exact present banks are unverified.",
+      "source_use_notice": "Originals, crops and full-coordinate orientation aids remain private; only independently written factual observations and normal bibliography are deliverable."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:60009678",
+      "source_keys": [
+        "r241-dma-tpc-k27c-1990",
+        "r241-fep-delta45"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10827
+          ],
+          "component_scope": "Selected opening northeast of the Tucupita town setting and initial eastward then northeastward passage.",
+          "finding": "The original depicts a narrow continuous channel beside the northeastern road corridor, with the initial bend and subsequent north/northeast continuation. Road and settlement overprinting can be distinguished from the blue channel. The selected beginning is already within this delta-waterway network; it is not substituted with the much broader Macareo farther east or the unselected western river at Tucupita.",
+          "sources": [
+            "r241-dma-tpc-k27c-1990"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Caño Tucupita"
+          ],
+          "stored_parts": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "part_index_basis": "One-based stored-part numbering within the listed fragment."
+        },
+        {
+          "fragments": [
+            10827
+          ],
+          "component_scope": "Road-adjacent northeastward upper channel and its continuation beyond the road.",
+          "finding": "The continuous blue channel follows the road-adjacent passage and continues northeast through the wetland after the road ends. The original directly prints Caño Tucupita across this channel, distinguishing it from the wider southern/eastern Macareo reach and neighboring northern caños. The short bend and northward section between the stored parts are present.",
+          "sources": [
+            "r241-dma-tpc-k27c-1990"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Caño Tucupita"
+          ],
+          "stored_parts": [
+            5,
+            6,
+            7
+          ],
+          "part_index_basis": "One-based stored-part numbering within the listed fragment."
+        },
+        {
+          "fragments": [
+            10827
+          ],
+          "component_scope": "Northeastward Tucupita wetland corridor and its join into the broad Macareo receiver.",
+          "finding": "The thin selected channel continues northeast through successive bends and joins the western side of the broader Macareo corridor. The entire connecting line and receiver are visible, including the southern parallel Macareo arm and small island/channel setting. This is a mapped through-link rather than inference from proximity of two labels.",
+          "sources": [
+            "r241-dma-tpc-k27c-1990"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Caño Tucupita",
+            "Caño Macareo"
+          ],
+          "stored_parts": [
+            8,
+            9,
+            10,
+            11
+          ],
+          "part_index_basis": "One-based stored-part numbering within the listed fragment."
+        },
+        {
+          "fragments": [
+            10827
+          ],
+          "component_scope": "Broad lower receiving channel, northeastward continuation and northward outer bend.",
+          "finding": "The selected continuation is within the broad waterway directly labeled CAÑO MACAREO. The map shows the successive lower bends, the island-bearing broader segment, minor lateral channels and the near-coastal northward turn. Nearby Cocuina and the eastern Mariusa island-channel setting are distinct unselected waterways.",
+          "sources": [
+            "r241-dma-tpc-k27c-1990"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Caño Macareo"
+          ],
+          "stored_parts": [
+            12,
+            13,
+            14,
+            15
+          ],
+          "part_index_basis": "One-based stored-part numbering within the listed fragment."
+        },
+        {
+          "fragments": [
+            10827
+          ],
+          "component_scope": "Northwestward final selected channel and approach to the coastal opening.",
+          "finding": "Beyond the northern bend, the broad Macareo channel turns northwest and remains continuously connected to the charted Barra de Macareo opening. Small lateral arms and near-mouth islands are depicted; the selected line does not switch into the separate western Cocuina outlet or continue around the eastern Mariusa channel.",
+          "sources": [
+            "r241-dma-tpc-k27c-1990"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Caño Macareo",
+            "Barra de Macareo"
+          ],
+          "stored_parts": [
+            16,
+            17
+          ],
+          "part_index_basis": "One-based stored-part numbering within the listed fragment."
+        },
+        {
+          "fragments": [
+            10827
+          ],
+          "component_scope": "Separately retained original-source and rendered terminal settings.",
+          "finding": "The source terminal is in the broad lower Macareo approach short of the open coastal receiving area. The rendered terminal extends farther northwest toward the mapped Barra de Macareo opening beside its small near-mouth islands. Both settings and their intervening receiving passage are depicted on the original. They are described separately, without moving either point or equating a historical shoreline pixel with an exact modern mouth.",
+          "sources": [
+            "r241-dma-tpc-k27c-1990"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Caño Macareo",
+            "Barra de Macareo"
+          ],
+          "stored_parts": [
+            17
+          ],
+          "part_index_basis": "One-based stored-part numbering within the listed fragment."
+        },
+        {
+          "fragments": [
+            10827
+          ],
+          "component_scope": "Delta wetland channels and nearby small waterbodies over the complete selection.",
+          "finding": "The selection is represented throughout by connected mapped channels, with minor widenings and nearby wetland waterbodies. No separate selected through-lake, reservoir or engineered-control transfer is needed to explain this route. Nearby small lakes and other delta channels are not added to the selection. Ordinary channel-network correspondence does not require current-flow or operating evidence.",
+          "sources": [
+            "r241-dma-tpc-k27c-1990"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          "part_index_basis": "One-based stored-part numbering within the listed fragment."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70000252",
+      "source_keys": [
+        "r241-esri-nunavik-overview",
+        "r241-esri-nunavik-upper",
+        "r241-esri-nunavik-lower",
+        "r241-museum-small-mammals2024"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8927
+          ],
+          "component_scope": "Chosen southern feeder and its entry into the eastern upper lake system",
+          "finding": "The opening occupies a small northward-running upland drainage among elongated pools and low ridges. The detailed imagery shows its receiving channel and linked lake arm reaching the broad upper lake. The generalized selection cuts across local bends, but the ordinary receiving corridor is visible; no separate-basin or missing lake-to-feeder transfer is identified. This is a selected opening, not a claim to the unique natural source.",
+          "sources": [
+            "r241-esri-nunavik-overview",
+            "r241-esri-nunavik-upper"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            0
+          ]
+        },
+        {
+          "fragments": [
+            8927
+          ],
+          "component_scope": "Broad upper lake passage and northwest/west outlet",
+          "finding": "The selected passage belongs to the broad lake and its western outlet channel. A separate eastern lake arm and side waters remain distinguishable from the chosen exit. The outlet continues into the same western receiving channel. Neither lake nor outlet receives a supported individual name from the inspected material.",
+          "sources": [
+            "r241-esri-nunavik-overview",
+            "r241-esri-nunavik-upper"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "fragments": [
+            8927
+          ],
+          "component_scope": "Westward channel, a smaller elongated through-lake and its western outlet",
+          "finding": "The original imagery shows the westward channel reaching a smaller north-south elongated lake, continuing through its connected waterbody and leaving westward into a winding river. Tributary and side-pool entrances remain separate. The continuous lake/channel setting establishes ordinary correspondence without requiring the generalized line to match every bank or the present wetted thread.",
+          "sources": [
+            "r241-esri-nunavik-overview",
+            "r241-esri-nunavik-upper"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            5,
+            6,
+            7
+          ]
+        },
+        {
+          "fragments": [
+            8927
+          ],
+          "component_scope": "Northwestward river bends and approach to the north-running middle corridor",
+          "finding": "The river follows a visible northwestward valley with alternating narrow channels, bends and small tributary junctions. It joins the north-running receiving corridor at the upper-middle transition. Nearby ponds are not substituted for the visible main receiving passage.",
+          "sources": [
+            "r241-esri-nunavik-overview",
+            "r241-esri-nunavik-upper"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "fragments": [
+            8927
+          ],
+          "component_scope": "Northward and northwestward middle valley with tributary joins",
+          "finding": "The inspected middle enlargement shows a continuous valley and river from the upper transition through successive tributary joins, local channel splitting and reunions, and the northwest continuation. No major through-lake, glacier passage or managed impoundment is evident in this selected middle interval. Seasonal snow elsewhere in the imagery is not treated as a glacier.",
+          "sources": [
+            "r241-esri-nunavik-overview"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            13,
+            14,
+            15,
+            16,
+            17
+          ]
+        },
+        {
+          "fragments": [
+            8927
+          ],
+          "component_scope": "Larger eastern tributary junction, lower northward bend and westward turn",
+          "finding": "The selected river receives a substantial eastern drainage, then follows the same broad corridor through a westward bend, a northward reach and another turn west. The lower image and overview overlap continuously. The eastern tributary is a joining context feature, not a separate selected fragment and not a name transferred to the selected river.",
+          "sources": [
+            "r241-esri-nunavik-overview",
+            "r241-esri-nunavik-lower"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            18,
+            19,
+            20,
+            21,
+            22,
+            23
+          ]
+        },
+        {
+          "fragments": [
+            8927
+          ],
+          "component_scope": "Northwestward lower valley and widened alluvial approach to the coast",
+          "finding": "The river continues through the lower valley, with visible bars, side channels and tributary joins, into the broader coastal alluvial corridor. The selected parts remain in this ordinary receiving setting; no separate managed canal, lake-basin transfer or unseen connection is needed to explain them.",
+          "sources": [
+            "r241-esri-nunavik-overview",
+            "r241-esri-nunavik-lower"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            24,
+            25
+          ]
+        },
+        {
+          "fragments": [
+            8927
+          ],
+          "component_scope": "Final northward lower river, stored source endpoint and rendered extension into the coastal inlet setting",
+          "finding": "The stored source endpoint lies in the lower estuarine river corridor before its opening into the wider inlet. The rendered extension proceeds farther north along the same coastal receiving-water margin and ends at the inlet-edge setting. These are distinct endpoints. The core sea class is retained only as supplied metadata; no precise tidal boundary or surveyed mouth point is inferred, and the selection is not extended through the rest of the inlet.",
+          "sources": [
+            "r241-esri-nunavik-overview",
+            "r241-esri-nunavik-lower"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            26
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60263868",
+      "source_keys": [
+        "r241-invemar-guapi2009-prose",
+        "r241-iiap-pacific2013-prose",
+        "r241-esri-guapi-upper",
+        "r241-esri-guapi-middle",
+        "r241-esri-guapi-lower"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            11600
+          ],
+          "component_scope": "chosen eastern opening and cloud obscured westward upper connection",
+          "finding": "The chosen eastern opening and much of the westward upper corridor lie beneath extensive opaque clouds and cloud shadow. Parts1–8 are substantially obscured; parts9–11 contain intermittent exposed valley pieces but do not independently establish the continuous link back to the opening. The selected geometry is not used to fill those unseen links. The missing evidence is usable original coverage of this specific headward-to-western connection, not an exact-bank or current-flow requirement.",
+          "sources": [
+            "r241-esri-guapi-upper"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11
+          ],
+          "part_index_basis": "One-based stored-part numbering within the listed fragment."
+        },
+        {
+          "fragments": [
+            11600
+          ],
+          "component_scope": "western exposed upper valley and large northward turn",
+          "finding": "The western part of the upper selection follows an exposed winding valley through forest, with a pale channel and depositional margins discernible between local clouds. It reaches the prominent west-end turn into the northward receiving valley. This western geographic observation does not establish the unseen eastern continuation.",
+          "sources": [
+            "r241-esri-guapi-upper"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19
+          ],
+          "part_index_basis": "One-based stored-part numbering within the listed fragment."
+        },
+        {
+          "fragments": [
+            11600
+          ],
+          "component_scope": "northward upper trunk to stage transition",
+          "finding": "The selected route turns north along a meandering, locally wider river corridor. Forest, tributary gullies and intermittent cloud patches occur alongside it, but the ordinary valley continuation through the stage transition is observable.",
+          "sources": [
+            "r241-esri-guapi-upper",
+            "r241-esri-guapi-middle"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": [
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26
+          ],
+          "part_index_basis": "One-based stored-part numbering within the listed fragment."
+        },
+        {
+          "fragments": [
+            11601
+          ],
+          "component_scope": "middle northward trunk and large eastern join",
+          "finding": "The middle trunk meanders north through low forested terrain, develops broad looping bends and receives the substantial eastern tributary near its downstream end. The exposed channel, floodplain setting and overlapping views establish the ordinary middle-corridor continuation through all sixteen parts. Isolated cloud patches and model-to-meander displacement are not treated as separate-basin gaps.",
+          "sources": [
+            "r241-esri-guapi-middle",
+            "r241-esri-guapi-upper"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "stored_parts": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16
+          ],
+          "part_index_basis": "One-based stored-part numbering within the listed fragment."
+        },
+        {
+          "fragments": [
+            11603
+          ],
+          "component_scope": "separate eastern selected tributary",
+          "finding": "The independently selected eastern branch follows a winding receiving valley westward, with looping bends and a visible confluence into the northward trunk. Its initial section is locally hazy/clouded, but the surrounding corridor and westward connection are identifiable at the ordinary geographic scale of this selection. It is retained as a separate stage3 tributary; no branch name is assigned from unnamed imagery.",
+          "sources": [
+            "r241-esri-guapi-middle"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "tributary",
+          "stage": 3,
+          "stored_parts": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "part_index_basis": "One-based stored-part numbering within the listed fragment."
+        },
+        {
+          "fragments": [
+            11602
+          ],
+          "component_scope": "lower trunk after tributary join",
+          "finding": "Below the tributary junction the wider trunk bends northwest across the low coastal plain. The overlapping middle and lower images show a continuous broad channel with side channels and forested banks, leading toward a major lower bifurcation.",
+          "sources": [
+            "r241-esri-guapi-middle",
+            "r241-esri-guapi-lower"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 1,
+          "stored_parts": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "part_index_basis": "One-based stored-part numbering within the listed fragment."
+        },
+        {
+          "fragments": [
+            11602
+          ],
+          "component_scope": "northern lower distributary and tidal channel connections",
+          "finding": "At the large lower division, a broad channel continues west while the selected branch continues north. The northern branch is visible through several bends, receives or connects with western tidal channels, and broadens toward its northern receiving junction. These are ordinary channel-network connections, without any assertion about instantaneous flow direction or discharge allocation.",
+          "sources": [
+            "r241-esri-guapi-lower"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 1,
+          "stored_parts": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18
+          ],
+          "part_index_basis": "One-based stored-part numbering within the listed fragment."
+        },
+        {
+          "fragments": [
+            11602
+          ],
+          "component_scope": "actual mainstem source and render endings",
+          "finding": "The stored source ending lies near the last bend of the selected northward tidal branch. The rendered ending extends farther northeast into a wider receiving channel at the eastern-river junction. The image shows one continuous waterway between these endpoint settings. The metadata class is sea, but the actual observed endpoint setting is an inner estuarine channel/junction, not a surveyed open-ocean shoreline. No additional unselected extension to open water is claimed.",
+          "sources": [
+            "r241-esri-guapi-lower"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 1,
+          "stored_parts": [
+            19
+          ],
+          "part_index_basis": "One-based stored-part numbering within the listed fragment."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70821821",
+      "source_keys": [
+        "r241-esri-sonora-upper",
+        "r241-esri-sonora-middle",
+        "r241-esri-sonora-lower"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10243
+          ],
+          "component_scope": "eastern opening and westward dry valley",
+          "finding": "The chosen eastern opening occupies a small dry drainage corridor through low dissected hills. Westward channel traces emerge onto a broader alluvial floor, cross the north-south road corridor and approach the larger joining valley. Neighboring hill gullies remain separate until their visible joins. The coarse selected bends are treated as corridor orientation, not surveyed banks.",
+          "sources": [
+            "r241-esri-sonora-upper"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": [
+            1,
+            2,
+            3
+          ],
+          "part_index_basis": "One-based stored-part numbering within the listed fragment."
+        },
+        {
+          "fragments": [
+            10243
+          ],
+          "component_scope": "southwestward receiving approach",
+          "finding": "The upper corridor turns southwest along a broad, locally vegetated dry wash, passing disturbed or cultivated ground and low isolated hills. Its floor continues into the small westward bend at the base of the hill group. Tributary traces and bare patches occur within the same receiving floor; they do not create a separate-basin gap.",
+          "sources": [
+            "r241-esri-sonora-upper",
+            "r241-esri-sonora-middle"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": [
+            4,
+            5,
+            6
+          ],
+          "part_index_basis": "One-based stored-part numbering within the listed fragment."
+        },
+        {
+          "fragments": [
+            10243
+          ],
+          "component_scope": "northwestward hill gap and major join",
+          "finding": "The selected route turns northwest through the opening between isolated hills, then follows the westward dry tributary floor to a much broader southwest-trending receiving corridor. The northern and northeastern branches joining that broad corridor are distinguishable from the selected eastern approach. All three parts and both direction changes have ordinary geographic correspondence.",
+          "sources": [
+            "r241-esri-sonora-middle"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": [
+            7,
+            8,
+            9
+          ],
+          "part_index_basis": "One-based stored-part numbering within the listed fragment."
+        },
+        {
+          "fragments": [
+            10243
+          ],
+          "component_scope": "southwestward valley and southern plain transition",
+          "finding": "Below the joining area the broad drainage belt runs southwest beside rectangular agricultural fields. The selection then turns south onto the low alluvial plain east of the main cultivated blocks. Sparse or diffuse channels and field boundaries occupy this continuous floor; a currently wet single thread or a precisely surveyed distributary choice is not asserted.",
+          "sources": [
+            "r241-esri-sonora-middle",
+            "r241-esri-sonora-lower"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": [
+            10,
+            11
+          ],
+          "part_index_basis": "One-based stored-part numbering within the listed fragment."
+        },
+        {
+          "fragments": [
+            10243
+          ],
+          "component_scope": "southern agricultural alluvial passage",
+          "finding": "A continuous low north-south alluvial corridor passes cultivated rectangles, a circular irrigated field and scattered facilities, between isolated hill groups. Local drainage traces are diffuse and parts of the selected corridor cross modified agricultural ground, but the receiving plain continues south to the coastal lowland. No interbasin ridge, intervening separate lake basin or missing lake-to-feeder transfer is established by the inspected imagery. This is geographic correspondence, not proof of current drainage operations.",
+          "sources": [
+            "r241-esri-sonora-lower"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": [
+            12,
+            13,
+            14,
+            15
+          ],
+          "part_index_basis": "One-based stored-part numbering within the listed fragment."
+        },
+        {
+          "fragments": [
+            10243
+          ],
+          "component_scope": "coastal join and modified estuarine floor",
+          "finding": "The southern corridor reaches a broad joining lowland with a substantial drainage approach from the east. The selected route turns west across low ground among rectilinear pond cells, levee-like boundaries and channels, then crosses shallow wetland/lagoon terrain. The modified ponds and dry or saline patches share the same coastal receiving floor. Their exact operation, present hydraulic connectivity through individual embankments and water salinity are not determined.",
+          "sources": [
+            "r241-esri-sonora-lower"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": [
+            16,
+            17,
+            18
+          ],
+          "part_index_basis": "One-based stored-part numbering within the listed fragment."
+        },
+        {
+          "fragments": [
+            10243
+          ],
+          "component_scope": "render terminal in coastal lagoon",
+          "finding": "The final stored rendered part crosses the western lagoon/estuarine basin and turns south to its southern margin, just east of the coastal opening. The endpoint lies in the lagoon-edge/sand-margin setting rather than at the separately recorded offshore source endpoint. The full lower image and clean terminal crop show the basin, shore opening and both endpoint settings.",
+          "sources": [
+            "r241-esri-sonora-lower"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": [
+            19
+          ],
+          "part_index_basis": "One-based stored-part numbering within the listed fragment."
+        },
+        {
+          "fragments": [
+            10243
+          ],
+          "component_scope": "separate source terminal context",
+          "finding": "The separately supplied source endpoint falls on the marine side of the lagoon opening, west-northwest of the rendered endpoint. This is a reading of that recorded endpoint in the photographic coastal setting; the original source path was not reconstructed. Neither endpoint is promoted to an official river mouth or evidence of permanently open present-day flow.",
+          "sources": [
+            "r241-esri-sonora-lower"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": [
+            19
+          ],
+          "part_index_basis": "One-based stored-part numbering within the listed fragment."
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "Ornithological survey in Nunavik Far North: search for Golden Eagle nest and data collection for the northern component of the Québec Breeding Bird Atlas; discovery title, original imprint uninspected",
+      "official_url": "https://mffp.gouv.qc.ca/documents/faune/rapport-inventaire-aigle-royal-nunavik-en.pdf",
+      "observed_outcome": "The first normal original request completed direct HTTP502 with Content-Type text/html and terminal exit0. One subsequent identical-URL request was started under the bounded transient-retry criterion, but its terminal-status check was refused at tool level. The subsequent request terminal result and origin HTTP remain unknown. No returned report body, original imprint, map or partial output was read.",
+      "outcome_layer": "First request: completed direct HTTP-client availability response. Subsequent request: explicit tool-level refusal of terminal-status observation; origin HTTP and completion unknown.",
+      "restriction_scope": "Whole exact report and equivalent original, catalogue, reader, cache, mirror, figure, alternate-format and unread-output recovery routes remain stopped. No further polling, output reading, retry or alternate route followed.",
+      "earlier_lawful_observations": null,
+      "explicit_access_denial": true,
+      "origin_access_denial_observed": false,
+      "acquisition_stop": true,
+      "material_gap": false,
+      "material_effect": "Optional naming corroboration supplies no substantive evidence. Independent imagery completes the geographic correspondence; supported whole-selection naming remains absent.",
+      "aw_id": "hydro-system:70000252"
+    },
+    {
+      "publication": "Palacios Moreno, Mario A., and Pinto Tovar, César Augusto (1992), Estudio de la influencia de la marea en el río Guapi, Boletín Científico CCCP 3:3–13; DOI 10.26640/01213423.3.3_13. Bibliographic discovery identity; original imprint uninspected.",
+      "official_url": "https://ojs.dimar.mil.co/index.php/CCCP/article/view/302?articlesBySimilarityPage=1",
+      "observed_outcome": "The sole normal publisher-landing opening returned web-reader Failed to fetch: Cache miss. No article body, original PDF or map pixels were acquired or read.",
+      "outcome_layer": "Web-reader availability failure; origin HTTP status unknown.",
+      "origin_http_status": null,
+      "restriction_scope": "Whole exact article and equivalent content from its identified 1992 Guapi tidal field study, including original, catalogue, DOI, reader, cache, mirror, PDF, figures and unread-output acquisition/recovery routes, remain paused. No retry or alternate route followed. This is not a DIMAR- or CCCP-wide stop.",
+      "earlier_lawful_prose_exception": null,
+      "newly_observed_access_failure": true,
+      "explicit_access_denial": false,
+      "acquisition_stop": true,
+      "material_effect": "Optional lower-river/tidal corroboration is unavailable. Search abstracts and snippets are not source reading and supply no selected-path evidence. The remaining upper geographic gap is separately identified from the imagery.",
+      "aw_id": "hydro-system:60263868"
+    },
+    {
+      "publication": "INEGI, Compendio de información geográfica municipal2010: Hermosillo, Sonora",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/26/26030.pdf",
+      "observed_outcome": "The sole original-file acquisition yielded before a terminal result. The subsequent terminal-status action was rejected at tool level; no terminal HTTP response or source body was observed. No header, prose, map or unread output was subsequently inspected.",
+      "outcome_layer": "Tool-level rejection; source HTTP and terminal transfer outcome unknown. No originHTTP401/403 is asserted.",
+      "restriction_scope": "Exact Hermosillo2010 municipal publication, equivalent acquisition/recovery routes and unread outputs remain stopped. No retry, alternate route or use. This is not an INEGI-wide prohibition.",
+      "earlier_lawful_prose_exception": null,
+      "source_used": false,
+      "newly_observed_access_failure": true,
+      "material_effect": "No naming evidence supplied; ordinary geographic correspondence is independently complete.",
+      "aw_id": "hydro-system:70821821"
+    },
+    {
+      "publication": "Diario Oficial de la Federación,8 September1970 issue; Declaration5 concerning Arroyo La Poza and Estero de Tastiota, discovery identity only",
+      "official_url": "https://dof.gob.mx/abrirPDF.php?anio=1970&archivo=08091970-MAT.pdf&repo=repositorio%2F",
+      "observed_outcome": "The sole original reader opening returned Internal Error / Cache miss. No issue, declaration original or original pixels were read. Search-discovery excerpts are excluded from substantive findings.",
+      "outcome_layer": "Web-reader availability failure; originHTTP unknown, not an observed access-control denial.",
+      "restriction_scope": "Exact issue/declaration and equivalent original, catalogue, reader, cache, mirror, screenshot and unread-output recovery routes paused. No retry or alternate route.",
+      "earlier_lawful_prose_exception": null,
+      "source_used": false,
+      "newly_observed_access_failure": true,
+      "material_effect": "No naming evidence supplied; the primary state remains completed name-scope hold.",
+      "aw_id": "hydro-system:70821821"
+    },
+    {
+      "publication": "Manifestación de Impacto Ambiental, Granja Acuícola NASE; SEMARNAT file26MP01511217, discovery identity only",
+      "official_url": "https://dsiappsdev.semarnat.gob.mx/inai/F69/2018/146/4T/26MP01511217-MIA.pdf",
+      "observed_outcome": "The one normal-original request completed a120-second timeout, with zero response-body bytes and client exit28. No responseHTTP status, original text or map was obtained.",
+      "outcome_layer": "Completed client transport/availability timeout, not an HTTP access denial.",
+      "restriction_scope": "This bounded pass ended without exercising the optional identical-URL transient retry. The exact study/equivalent recovery routes and unread outputs remain unrequested after the timeout; no alternate request or map recovery.",
+      "earlier_lawful_prose_exception": null,
+      "source_used": false,
+      "newly_observed_access_failure": true,
+      "material_effect": "No source evidence supplied. This optional availability failure is not a missing geographic through-link.",
+      "aw_id": "hydro-system:70821821"
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "publication": "Tactical Pilotage Chart K–27C, edition4, 1990",
+      "official_url": "https://maps.lib.utexas.edu/maps/tpc/txu-pclmaps-oclc-22834566_k-27c.jpg",
+      "kind": "historical_cartographic_generalization_and_bounded_names",
+      "observation": "Original maps and derived reading aids are not redistributed. The representative receiving-system name does not rename the separately labeled upper Tucupita channel; no current-navigation, exact-bank or modern-flow claim.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:60009678"
+    },
+    {
+      "publication": "Estado Delta Amacuro, GeoVenezuela, tomo6, capítulo45",
+      "official_url": "https://bibliofep.fundacionempresaspolar.org/media/1045/gv_t6_c45_p126_197_lres_single_preview.pdf",
+      "kind": "authored_regional_synthesis_and_attributed_thematic_map",
+      "observation": "Figure14 credits DCOC–Infrawin y Asociados,1996; it is regional corroboration, not detailed selected-route proof or acquisition of an underlying full map. Author/publisher attribution retained and originals remain private.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:60009678"
+    },
+    {
+      "publication": "World Imagery: three bounded northern Nunavik views",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "kind": "bounded_geographic_observation_and_imagery_use",
+      "observation": "Only independently written geographic observations and ordinary bibliography are public-ready. Original images, private orientation aids, coordinates, exact dynamic requests and receipts are excluded from public delivery. No names or present hydraulic conditions are inferred from imagery.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70000252"
+    },
+    {
+      "publication": "Canadian Museum of Nature, Studying Small Mammals in the Arctic",
+      "official_url": "https://nature.ca/en/studying-small-mammals-in-the-arctic/",
+      "kind": "regional_transcript_scope",
+      "observation": "Actual transcript reading supports regional Foucault River name use only, with no selected-reach assignment or video/map-reading claim.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70000252"
+    },
+    {
+      "publication": "Cuervo Ferrin (2024), Universidad Santiago de Cali GIS thesis, Figure1 and equivalent borrowed base cartography",
+      "official_url": "https://repositorio.usc.edu.co/server/api/core/bitstreams/629c79c9-3ca1-494d-96f3-8c0bff567318/content",
+      "restriction_scope": "Borrowed IGAC base drainage/shoreline only; not a whole-thesis or university restriction.",
+      "permitted_scope": "Authorial project identity, methods and coastal study-area prose only.",
+      "observation": "The original map credits IGAC/Colombia en mapas alongside thematic sources. The specific hydrographic base identity and relationship to held IGAC1:100,000/DHIME content are unresolved, so it is excluded from selected-route correspondence.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:60263868"
+    },
+    {
+      "publication": "CORPONARIÑO, Zonificación y codificación de cuencas en el departamento de Nariño; Subzona Río Iscuandé cartography. Original imprint uninspected.",
+      "official_url": "https://corponarino.gov.co/expedientes/intervencion/ZONIFICACION%20Y%20CODIFICACION%20CUENCAS.pdf",
+      "restriction_scope": "Proposed hydrographic cartography and equivalent borrowed content; no new acquisition failure or institution-wide ban.",
+      "permitted_scope": "Bibliographic discovery only; no original body or map used.",
+      "observation": "Not requested. Bibliographic discovery identifies IGAC/IDEAM/CORPONARIÑO hydrography at1:100,000, leaving its actual base-network relationship to held DHIME/IGAC cartography unresolved. Discovery labels and map descriptions are not evidence.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:60263868"
+    },
+    {
+      "publication": "PNN Sanquianga management plan 2018–2023, Maps 5/6 and equivalent borrowed base cartography",
+      "official_url": "https://www.parquesnacionales.gov.co/wp-content/uploads/2020/10/plan-de-manejo-pnn-sanquianga.pdf",
+      "restriction_scope": "Borrowed drainage/shoreline base only; not a whole-plan or PNN restriction.",
+      "permitted_scope": "Actual authorial geographic, boundary, access and hydrographic prose.",
+      "observation": "The map source margins identify IGAC among the underlying cartographic sources. Their exact base-network identity and relationship to held DHIME/IGAC 1:100,000 remain unresolved. These maps are not used for new selected-route correspondence.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:60263868"
+    },
+    {
+      "publication": "INVÍAS/Consorcio E&D Fluviales 2022 Tapaje Vol. IV, IGAC-credited Figures 2/3 and other uninspected cartography",
+      "public_copy_url": "https://es.scribd.com/document/798547183/Volumen-IV-El-Charco-V2-2022-03-11",
+      "restriction_scope": "Unresolved borrowed cartographic content; no new network failure or whole-study ban.",
+      "permitted_scope": "Actual authorial course/locality prose and project metadata only.",
+      "observation": "Readable captions explicitly credit IGAC in Figures 2/3. No figure pixels were requested; no claim is made for Figure 5 or other uninspected source maps. Held-map equivalence is not cleared by contractor authorship.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:60263868"
+    },
+    {
+      "publication": "Rodríguez Peláez et al. (2009), Ordenamiento ambiental de los manglares del municipio de Guapi",
+      "official_url": "https://www.invemar.org.co/redcostera1/invemar/docs/9306manglares_Guapii_pagina_web.pdf",
+      "kind": "borrowed_cartographic_provenance_limit",
+      "acquisition_stop": false,
+      "restriction_scope": "Map drainage/toponymy and underlying base cartography only; not the independently written field and methodology prose.",
+      "observation": "The methods identify PLANECO-PC/INVEMAR 2008 drainage and toponymy, UAC-LLAS 2006 thematic data, Landsat 2001, SPOT4 2000, and IGAC 1:25,000 georeferencing. The original editions and relationship of the borrowed hydrographic base to held material are not established. No source map pixels were inspected or used for route correspondence.",
+      "aw_id": "hydro-system:60263868"
+    },
+    {
+      "publication": "IIAP (2013), Plan Estratégico de la Macrocuenca del Pacífico, Informe Final",
+      "official_url": "https://www.minambiente.gov.co/wp-content/uploads/2021/10/01-02-Linea-Base-y-Diagnostico-1.pdf",
+      "kind": "borrowed_cartographic_provenance_and_text_quality_limit",
+      "acquisition_stop": false,
+      "restriction_scope": "Borrowed IGAC/IDEAM map content excluded from this target. Authorial Guapi bifurcation prose is used only within its stated broad scope.",
+      "observation": "Methods mention IGAC 1:50,000 and 1:100,000 information without settling the held base-network relationship. No original map pixels were read. The Guapi section also contains internally questionable regional location statements; those statements, areas and discharge percentages are not adopted.",
+      "aw_id": "hydro-system:60263868"
+    },
+    {
+      "publication": "Esri World Imagery, three bounded Guapi-region views",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "kind": "imagery_resolution_epoch_cloud_and_name_limit",
+      "acquisition_stop": false,
+      "observation": "All three original JPEGs were actually read after complete successful transfers. They are an independently maintained photographic mosaic, not the held national vector hydrography or a substitute copy of any stopped report. Acquisition dates and present-day hydrologic conditions were not established. The imagery supplies corridor observations, not river names; broad clouds obscure the chosen eastern opening.",
+      "aw_id": "hydro-system:60263868"
+    },
+    {
+      "publication": "All consulted sources",
+      "kind": "publication_boundary",
+      "acquisition_stop": false,
+      "observation": "Only independently written factual synthesis, bounded selected identifiers, ordinary bibliography and uncertainty are included. Original PDFs, images, maps, working crops, overlays and full coordinates are not redistributed.",
+      "aw_id": "hydro-system:60263868"
+    },
+    {
+      "publication": "World Imagery selected Sonora views",
+      "kind": "photographic_evidence_scope_and_nonredistribution",
+      "observation": "Source pixels support ordinary landform/corridor observations only. No label reading, formal registry verification, present-flow or water-management inference.",
+      "restriction_scope": "Originals, crops, overlays and full coordinates stay private; own factual synthesis and ordinary bibliography only.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70821821"
+    }
+  ]
+}

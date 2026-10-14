@@ -1,0 +1,670 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r213",
+  "sources": [
+    {
+      "source_key": "r213-dfo-southampton-socioeconomic-prose",
+      "title": "Socio-economic Overview of the Southampton Island Area of Interest",
+      "publisher": "Fisheries and Oceans Canada",
+      "publication_date": null,
+      "page_date_modified": "2025-12-19",
+      "material_read": "Normally opened HTML: introduction, report objective and data-source descriptions; Commercial and emerging fisheries subsection; Figure 1 caption, attribution and text long description. No map pixels read.",
+      "own_observation": "The text long description of the January 2020 Arctic-char quota figure lists Snowbank River as a searun Arctic-char location. The report credits the figure to DFO Arctic Region Marine Conservation and Planning and GIS programs. The inspected text does not establish inland routing or locate the selected mouth.",
+      "independence": "The inspected introduction and methodology identify a socioeconomic baseline for Southampton Island marine-protection planning, developed in consultation with DFO Marine Planning and Conservation and using fisheries-program information and community consultation. This establishes its independently authored planning purpose, distinct from ARC401 sailing directions, the Gjoa Haven inventory and geological field-project reports. No borrowed cartographic linework is used.",
+      "evidence_scope": "regional_name_context_only",
+      "selected_course_correspondence": false,
+      "official_url": "https://www.dfo-mpo.gc.ca/publications/oceans/southampton-socio-economic-economique/index-eng.html"
+    },
+    {
+      "source_key": "r213-nwt-fishery-regulations-unavailable",
+      "title": "Northwest Territories Fishery Regulations, C.R.C., c.847; archived version of 22 March 2006",
+      "publisher": "Department of Justice Canada",
+      "material_read": "No legislative body read; normal archived-page opening returned Cache miss.",
+      "own_observation": "No substantive geographic evidence was obtained.",
+      "independence": "A separately identified statutory fisheries instrument and version, distinct from the held Quebec Fishery Regulations 1990 source and hydrographic sailing directions.",
+      "evidence_scope": "bibliography_and_access_outcome_only",
+      "selected_course_correspondence": false,
+      "used_as_substantive_evidence": false,
+      "official_url": "https://laws.justice.gc.ca/eng/regulations/C.R.C.%2C_c._847/20060322/P1TT3xt3.html?wbdisable=false"
+    },
+    {
+      "source_key": "r213-usgstopo-wulik-overview",
+      "title": "USGS The National Map, USGSTopo MapServer: bounded Wulik River corridor overview",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "bibliography": "U.S. Geological Survey. The National Map, USGSTopo multiscale topographic reference map. Wulik River corridor, Alaska. Accessed 13 October 2026.",
+      "access_status": "Completed HTTP 200 image/png; original map visually read.",
+      "material_read": "One original whole-corridor image and overlapping middle-corridor reading crops. Direct Wulik River, West Fork Wulik River, Ferric Creek, Ikalukrok Creek, Tutak Creek and Kivalina River labels and their connected geographic settings were read.",
+      "evidence_scope": "Primary cartographic evidence for representative identity, full selected-corridor correspondence and major junctions.",
+      "independence_basis": "Independently maintained National Map composite reference cartography with a successful acquisition history; not an equivalent of or a recovery route for stopped USGS reports, ADF&G reports or unidentified Utukok geological-project publications.",
+      "metadata_basis": "Previously lawfully retained successful service metadata describes National Map and other public-domain datasets and credits their contributors. Its service refresh is not a field-survey date for each feature.",
+      "completed": true
+    },
+    {
+      "source_key": "r213-usgstopo-wulik-headward",
+      "title": "USGS The National Map, USGSTopo MapServer: eastern feeder and upper Wulik detail",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "bibliography": "U.S. Geological Survey. The National Map, USGSTopo multiscale topographic reference map. Eastern feeder and upper Wulik River, Alaska. Accessed 13 October 2026.",
+      "access_status": "Completed HTTP 200 image/png; original map visually read.",
+      "material_read": "One original closer upper-corridor view and its opening crop, showing the eastern feeder valley, its Wulik junction, upper trunk labels and braided valley sections.",
+      "evidence_scope": "Chosen opening and feeder-to-trunk correspondence at ordinary corridor scale; no exact natural-source vertex or feeder name established.",
+      "independence_basis": "Same independently maintained USGSTopo service; acquisitions were sequential within the assigned shared-service turn.",
+      "completed": true
+    },
+    {
+      "source_key": "r213-usgstopo-wulik-terminal",
+      "title": "USGS The National Map, USGSTopo MapServer: lower Wulik delta and Kivalina Lagoon detail",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "bibliography": "U.S. Geological Survey. The National Map, USGSTopo multiscale topographic reference map. Lower Wulik River and Kivalina Lagoon, Alaska. Accessed 13 October 2026.",
+      "access_status": "Completed HTTP 200 image/png; original map visually read.",
+      "material_read": "One original closer lower-river and terminal view showing repeated Wulik labels, connected delta channels, nearby lakes, the separate Kivalina River, Kivalina Lagoon and settlement context.",
+      "evidence_scope": "Lower wetland through-channel and actual selected terminal correspondence; no current tidal stage, bank or active distributary determination.",
+      "independence_basis": "Same independently maintained USGSTopo service; acquisition completed before the shared turn was released.",
+      "completed": true
+    },
+    {
+      "source_key": "r213-usgstopo-whiting-overview",
+      "title": "USGSTopo, The National Map: bounded Whiting Lake–South Whiting–Whiting overview",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "material_read": "One complete original map, visually inspected, with a private orientation derivative. Depicts the named lake, South Whiting outlet, Whiting main river and coast; does not establish the southern opening-to-lake approach.",
+      "acquisition_status": "complete_original_http200",
+      "edition_scope": "Live multiscale service inspected13October2026. Underlying feature dates and present physical conditions are not established.",
+      "identity_basis": "Independently maintained National Map multiscale cartographic service, distinct from held report publications and Canadian naming/base-map services."
+    },
+    {
+      "source_key": "r213-usgstopo-whiting-upper",
+      "title": "USGSTopo, The National Map: bounded Canadian upper Whiting detail",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "material_read": "One complete original upper detail and a private original-image crop, visually inspected. Direct Whiting Lake and South Whiting River labels; connected lake/outlet/junction geography; missing southern opening and approach through-link.",
+      "acquisition_status": "complete_original_http200"
+    },
+    {
+      "source_key": "r213-usgstopo-whiting-lower",
+      "title": "USGSTopo, The National Map: bounded lower Whiting and coastal-approach detail",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "material_read": "One complete original lower detail, visually inspected. Cross-border braids, Alaska valley and stored terminal in the lower Whiting coastal approach.",
+      "acquisition_status": "complete_original_http200"
+    },
+    {
+      "source_key": "r213-juneau1993-unit15c",
+      "title": "Juneau State Land Plan, Unit15c: Whiting River",
+      "publisher": "Alaska Department of Natural Resources, Division of Mining, Land and Water",
+      "publication_date": "December1993",
+      "official_url": "https://dnr.alaska.gov/mlw/planning/areaplans/juneau/",
+      "normal_original_url": "https://dnr.alaska.gov/mlw/planning/areaplans/juneau/pdf/unit-15c.pdf",
+      "material_read": "Official plan landing; all three Unit15c pages, printed3-281–3-283. Prose and table distinguish Crescent Lake, Whiting River and its mouth. The original map on printed3-283 was visually inspected.",
+      "identity_basis": "Independent adopted state land-planning publication and its own Unit15c management map, distinct from the held Kenai1997 plan and federal report projects.",
+      "acquisition_status": "complete_original_http200",
+      "use_notice": "State copyright applies to the planning publication. Only bounded own factual observations and normal bibliography are supplied."
+    },
+    {
+      "source_key": "r213-kerr1931-prior-prose",
+      "title": "Explorations between Stikine and Taku Rivers, B.C.",
+      "authors": [
+        "F.A.Kerr"
+      ],
+      "year": 1931,
+      "publication": "Geological Survey of Canada Summary Report1930 PartA, pp41A–55A, No2292",
+      "publisher": "Canada Department of Mines, Geological Survey",
+      "official_url": "https://emrlibrary.gov.yk.ca/gsc/summary-reports/GSC-Summary-report-1930a-and-map/summary-report-1930-a.pdf",
+      "material_read": "Original report front matter and authorial chapter prose pp41A–45A read before the later directory failure. No original map pixels read. The complete203-page PDF did not supply the advertised pocket Figure4.",
+      "actual_usable_scope": "Field-expedition identity, Whiting cross-border corridor, South/North junction, Crescent Lake setting and historical upper glacial/lake observations. Uncertain or second-hand lake accounts are not treated as exact selected-route proof.",
+      "identity_basis": "Documented1930 exploratory field season along the Coast Range batholith, distinct from modern topographic services, held Canadian naming records and Nass fisheries inventory.",
+      "acquisition_status": "prior_original_prose_read_then_companion_directory_availability_pause"
+    },
+    {
+      "source_key": "r213-pelto2020-prior-prose",
+      "title": "Whiting River Headwater Glacier, British Columbia Separates into Four",
+      "authors": [
+        "Mauri Pelto"
+      ],
+      "publication": "From a Glaciers Perspective",
+      "publication_date": "2020-10-16",
+      "page_revision_date": "2024-04-23",
+      "official_url": "https://glacierchange.blog/2020/10/16/whiting-river-headwater-glaciers-british-columbia-retreat-and-separation/",
+      "material_read": "Authorial HTML prose and captions before linked-image Cache miss. No image pixels read.",
+      "actual_usable_scope": "A pair of largely unnamed glacier systems west of Whiting Lake in the upper Whiting region and author-described retreat/detachment. The prose does not identify the entire selected opening.",
+      "identity_basis": "Author’s own1984–2020 Landsat comparison and glacier-change analysis, distinct from the held USGS atlas publications.",
+      "acquisition_status": "prior_html_prose_read_then_linked_image_availability_pause"
+    },
+    {
+      "source_key": "r213-mb-herchmer1988",
+      "title": "Bedrock Geology Compilation Map Series: Herchmer, NTS 54E",
+      "publisher": "Manitoba Energy and Mines, Geological Services, Mineral Resources Division",
+      "edition": "Printed 1988",
+      "scale": "1:250,000",
+      "official_url": "https://www.gov.mb.ca/iem/info/libmin/bgcms/bgcms_herchmer.pdf",
+      "source_type": "Original regional bedrock-compilation map with hydrographic base",
+      "source_independence": "The original identifies a separate regional bedrock-compilation publication, printed in 1988. Its publishing identity and prior successful original reading distinguish it from the unresolved provincial-geology request and the separately held Manitoba surficial field projects.",
+      "access_date": "2026-10-13",
+      "actual_material_read": "Complete one-sheet original: overall extent, imprint and source credits; detailed northeastern selected opening, connected small lakes and eastward outlet to the sheet boundary.",
+      "original_map_pixels_inspected": true,
+      "prose_read": true,
+      "acquisition_outcome": "Normal original completed HTTP 200 with application/pdf.",
+      "limits": "Historical regional hydrographic base. The eastern sheet edge cuts the selected route and is complemented by the overlapping regional and park maps. Geological contacts and magnetic contours were not interpreted as watercourses."
+    },
+    {
+      "source_key": "r213-mb-highway-map11",
+      "title": "Manitoba official highway map, regional sheet map11: Churchill–Wapusk–Hudson Bay coast",
+      "publisher": "Province of Manitoba, Transportation and Infrastructure",
+      "edition": "Original PDF metadata records creation on 7 February 2023; separate printed edition title/date not visible",
+      "official_url": "https://www.gov.mb.ca/mti/map/pdf/map11.pdf",
+      "source_type": "Original provincial regional cartography",
+      "source_independence": "Separately bounded Churchill–Wapusk regional compilation, with prior successful original reading and actual 2023 PDF identity; distinguished from the held Western Manitoba map4 publication.",
+      "access_date": "2026-10-13",
+      "actual_material_read": "Complete one-sheet original, overall extent and detailed railway/headward lake-chain, Hoot Creek, Broad River, tributary junctions and coastal outlet.",
+      "original_map_pixels_inspected": true,
+      "prose_read": false,
+      "acquisition_outcome": "Normal original completed HTTP 200 with application/pdf.",
+      "limits": "Generalized regional hydrography. Used for ordinary corridor continuity and directly visible labels, not exact banks or contemporary flow."
+    },
+    {
+      "source_key": "r213-parks-wapusk-map",
+      "title": "Map of Wapusk National Park",
+      "publisher": "Parks Canada",
+      "edition": "Separate printed compilation date not established; accompanying publication page historically modified 11 April 2024",
+      "official_url": "https://parks.canada.ca/pn-np/mb/wapusk/visit/carte-map/carte-map-01",
+      "linked_original_url": "https://pcweb2.azureedge.net/-/media/pn-np/mb/wapusk/WET4/visit/carte-map/wnp-carte-map-740x995-e.gif",
+      "source_type": "Original park cartography",
+      "source_independence": "Independently compiled Parks Canada park publication; recorded supplier credits are Natural Resources Canada, Manitoba Land Inventory and Parks Canada Agency. This is not the stopped CBMT service.",
+      "access_date": "2026-10-13",
+      "actual_material_read": "Complete original image, including Broad River (Anaskosipiy), Kelsey Creek, separate Skidmore Lake, neighboring Owl River, actual Broad outlet, coast and tidal-flat legend.",
+      "original_map_pixels_inspected": true,
+      "prose_read": false,
+      "acquisition_outcome": "Normal original completed HTTP 200 with image/gif.",
+      "limits": "General-orientation park map. It omits the detailed western selected lake-chain/Hoot feeder, supplied by the other two originals. Not a navigation or present-day hydraulic source."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:80108382",
+      "source_keys": [
+        "r213-dfo-southampton-socioeconomic-prose"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2563
+          ],
+          "component_scope": "western-opening-and-upper-course",
+          "finding": "The selected western opening and first four selected parts have no independently read source depiction in this pass.",
+          "sources": [],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "role": "chosen_headward_opening_and_upper_mainstem"
+        },
+        {
+          "fragments": [
+            2563
+          ],
+          "component_scope": "upper-central-course",
+          "finding": "No permitted source was read that depicts these selected parts or their shared joins.",
+          "sources": [],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "role": "upper_and_middle_mainstem"
+        },
+        {
+          "fragments": [
+            2563
+          ],
+          "component_scope": "southeastward-middle-lower-course",
+          "finding": "The southeastward selected corridor has not been matched to a primary source map.",
+          "sources": [],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "role": "middle_to_lower_mainstem"
+        },
+        {
+          "fragments": [
+            2563
+          ],
+          "component_scope": "lower-coastal-approach",
+          "finding": "No primary map or route prose read in this pass identifies this selected lower approach.",
+          "sources": [],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "role": "lower_mainstem_and_coastal_approach"
+        },
+        {
+          "fragments": [
+            2563
+          ],
+          "component_scope": "actual-selected-terminal",
+          "finding": "The DFO planning publication lists Snowbank River among regional Arctic-char fishing locations, but its inspected description does not locate or depict this selected terminal.",
+          "sources": [],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "role": "actual_terminal"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80067444",
+      "source_keys": [
+        "r213-usgstopo-wulik-overview",
+        "r213-usgstopo-wulik-headward",
+        "r213-usgstopo-wulik-terminal"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2518
+          ],
+          "component_scope": "eastern_mountain_feeder_opening",
+          "finding": "The chosen eastern opening follows the unnamed westward feeder valley north of Sheep Mountain. The source depicts the feeder continuously westward into the labeled Wulik River. The selected line generalizes local bends and the junction approach; no intervening divide, lake or different drainage transfer is needed at ordinary corridor scale.",
+          "sources": [
+            "r213-usgstopo-wulik-overview",
+            "r213-usgstopo-wulik-headward"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "candidate_name": null,
+          "candidate_name_role": null
+        },
+        {
+          "fragments": [
+            2518
+          ],
+          "component_scope": "feeder_join_and_upper_wulik",
+          "finding": "The feeder meets the north-to-south Wulik trunk. Repeated Wulik River labels follow the selected upper valley, including widened braided sections and intervening tributary entries. The stored parts remain within the same continuously depicted trunk corridor.",
+          "sources": [
+            "r213-usgstopo-wulik-overview",
+            "r213-usgstopo-wulik-headward"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "candidate_name": "Wulik River",
+          "candidate_name_role": "direct_named_receiving_reach"
+        },
+        {
+          "fragments": [
+            2518
+          ],
+          "component_scope": "southwest_turn_and_west_fork_join",
+          "finding": "The selected Wulik corridor turns southwest past the Ferric Creek entry setting and continues to the clearly depicted West Fork Wulik River junction. The West Fork approaches separately from the north; the chosen line stays on the Wulik approach and the joined downstream braided trunk. Connected river linework covers every selected interval.",
+          "sources": [
+            "r213-usgstopo-wulik-overview"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "candidate_name": "Wulik River",
+          "candidate_name_role": "direct_named_mainstem"
+        },
+        {
+          "fragments": [
+            2518
+          ],
+          "component_scope": "lower_middle_and_ikalukrok_join",
+          "finding": "The braided Wulik continues southwest through the Ikalukrok Creek confluence setting and past the Tutak Creek entry, then bends toward the west. Ikalukrok is a separately labeled tributary corridor. Repeated Wulik labels and continuous channel linework identify the selected receiving river throughout these stored parts.",
+          "sources": [
+            "r213-usgstopo-wulik-overview"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "candidate_name": "Wulik River",
+          "candidate_name_role": "direct_named_mainstem"
+        },
+        {
+          "fragments": [
+            2518
+          ],
+          "component_scope": "lower_wetland_and_delta_channels",
+          "finding": "The lower Wulik remains continuously mapped through broad wetland surroundings, multiple branches and the southwestward delta approach. Nearby lakes and the separate Kivalina River corridor are distinguishable from the selected Wulik channel. Wetland symbols do not replace or interrupt the depicted through-channel.",
+          "sources": [
+            "r213-usgstopo-wulik-overview",
+            "r213-usgstopo-wulik-terminal"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "candidate_name": "Wulik River",
+          "candidate_name_role": "direct_named_lower_reach"
+        },
+        {
+          "fragments": [
+            2518
+          ],
+          "component_scope": "actual_selected_terminal",
+          "finding": "The actual stored endpoint lies in the Wulik delta-channel and Kivalina Lagoon entry setting opposite the Kivalina settlement area. The source depicts the Wulik distributary connection into the lagoon. The short final generalized turn is interpreted within this terminal corridor; the selected path is not extended across the lagoon or through the coastal barrier to an open-sea mouth.",
+          "sources": [
+            "r213-usgstopo-wulik-overview",
+            "r213-usgstopo-wulik-terminal"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "candidate_name": "Wulik River",
+          "candidate_name_role": "terminal_delta_reach"
+        },
+        {
+          "fragments": [
+            2518
+          ],
+          "component_scope": "lake_glacial_and_managed_passages",
+          "finding": "The inspected route comprises a mountain feeder, connected river valley, braided lower river and coastal delta. Adjacent lakes are not selected through-lake transfers. Kivalina Lagoon is the terminal receiving setting. No selected glacier, reservoir, canal or managed-diversion passage is depicted by the read source cartography.",
+          "sources": [
+            "r213-usgstopo-wulik-overview",
+            "r213-usgstopo-wulik-headward",
+            "r213-usgstopo-wulik-terminal"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "candidate_name": null,
+          "candidate_name_role": null
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70026340",
+      "source_keys": [
+        "r213-usgstopo-whiting-overview",
+        "r213-usgstopo-whiting-upper",
+        "r213-usgstopo-whiting-lower",
+        "r213-juneau1993-unit15c",
+        "r213-kerr1931-prior-prose",
+        "r213-pelto2020-prior-prose"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9018
+          ],
+          "component_scope": "southern_canadian_opening_and_lake_approach_gap",
+          "finding": "The selected southern Canadian opening runs westward, turns north and then northeast toward the small southern arm of Whiting Lake. Both inspected federal views show this opening and much of the approach beyond the continuously depicted water network. The final approach also crosses the space between a separate southern stream and the lake arm without a mapped through-link. The earlier field and glacier prose describes the broader upper Whiting setting, but does not locate this entire selected path. Neither the chosen opening nor its full connection to the first depicted lake arm is established. This is a substantive source-correspondence gap, not a requirement for exact ice margins, banks or current flows.",
+          "sources": [
+            "r213-usgstopo-whiting-overview",
+            "r213-usgstopo-whiting-upper",
+            "r213-kerr1931-prior-prose",
+            "r213-pelto2020-prior-prose"
+          ],
+          "correspondence": "material_chosen_opening_and_lake_approach_unestablished",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            9018
+          ],
+          "component_scope": "southern_lake_arm_and_whiting_lake_passage",
+          "finding": "From the first depicted southern lake arm, the selected route enters and traverses the elongated waterbody directly labeled Whiting Lake. The southern arm, central lake passage and north-end departure setting are visibly connected at ordinary lake scale. The lake name is retained as a component name, not assigned to the upstream opening or to the whole river group.",
+          "sources": [
+            "r213-usgstopo-whiting-overview",
+            "r213-usgstopo-whiting-upper"
+          ],
+          "correspondence": "complete_at_ordinary_lake_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            9018
+          ],
+          "component_scope": "south_whiting_outlet_corridor_and_main_river_join",
+          "finding": "The outlet at the northern end of Whiting Lake continues through a braided valley, receives an eastern tributary, and bends northwest and west to join the larger Whiting corridor. The map directly labels this selected outlet reach South Whiting River. The entire remaining upper-stage fragment and its join with the next selected fragment are geographically accounted for. Kerr’s earlier field prose independently describes the South and North Whiting junction and the downstream border connection, without establishing a modern name-boundary vertex.",
+          "sources": [
+            "r213-usgstopo-whiting-overview",
+            "r213-usgstopo-whiting-upper",
+            "r213-kerr1931-prior-prose"
+          ],
+          "correspondence": "complete_at_ordinary_river_and_junction_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            9019
+          ],
+          "component_scope": "whiting_main_river_and_international_boundary",
+          "finding": "After the South Whiting junction, the selected lower-stage fragment follows the directly labeled Whiting River southwest and west across the international boundary. Connected channel polygons and braided reaches establish the selected upper portion of this fragment. Distinct South Whiting and Whiting reach names coexist; no single scalar name is extended across every component.",
+          "sources": [
+            "r213-usgstopo-whiting-overview",
+            "r213-usgstopo-whiting-upper",
+            "r213-usgstopo-whiting-lower",
+            "r213-kerr1931-prior-prose"
+          ],
+          "correspondence": "complete_at_ordinary_cross_border_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2
+        },
+        {
+          "fragments": [
+            9019
+          ],
+          "component_scope": "alaska_whiting_valley_and_crescent_tributary",
+          "finding": "The selected route continues down the same broad braided Whiting valley, turns southwest below the Crescent Lake tributary, and follows the lower valley toward the coast. The overview and lower detail depict the channel throughout these parts. The independent Juneau State Land Plan map also labels the river and the separate Crescent Lake branch. The selected mainstem does not traverse Crescent Lake.",
+          "sources": [
+            "r213-usgstopo-whiting-overview",
+            "r213-usgstopo-whiting-lower",
+            "r213-juneau1993-unit15c"
+          ],
+          "correspondence": "complete_at_ordinary_river_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2
+        },
+        {
+          "fragments": [
+            9019
+          ],
+          "component_scope": "actual_selected_terminal_in_lower_whiting",
+          "finding": "The last two selected parts lie in the connected lower Whiting braid and coastal-estuary approach. The stored endpoint is inside the mapped lower-river corridor, upstream of its wider opening into Port Snettisham; it is not extended to a different mouth point. The map and state planning source establish the local lower-river identity and coastal setting without requiring an exact modern shoreline or tidal boundary.",
+          "sources": [
+            "r213-usgstopo-whiting-overview",
+            "r213-usgstopo-whiting-lower",
+            "r213-juneau1993-unit15c"
+          ],
+          "correspondence": "complete_at_ordinary_selected_terminal_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70024773",
+      "source_keys": [
+        "r213-mb-herchmer1988",
+        "r213-mb-highway-map11",
+        "r213-parks-wapusk-map"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8989
+          ],
+          "component_scope": "Chosen opening and connected headward lake chain",
+          "finding": "The selected opening corresponds to the narrow blue-water lake/channel corridor immediately east of the railway, north of the separately drawn southwestern Broad River branch. The chosen opening is covered; it is not asserted to be the natural head of Broad River. The selected continuation follows the connected small-lake and blue-channel chain northeast of the opening. The original Herchmer hydrographic base depicts the connections; adjacent geological contacts and magnetic contours are not used as channels. The lakes have no directly read names. The selected route leaves the mapped headward lake chain and continues east across the Herchmer sheet edge into the overlapping provincial regional map. The regional map identifies the continuing feeder corridor as Hoot Creek. A separate southern branch belongs to the southwestern Broad River approach.",
+          "sources": [
+            "r213-mb-herchmer1988",
+            "r213-mb-highway-map11"
+          ],
+          "correspondence": "established_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            8989
+          ],
+          "component_scope": "Hoot Creek and its Broad River junction",
+          "finding": "The eastward selected corridor corresponds to the connected Hoot Creek feeder in the provincial map, with the small side-water branches distinguished from the selected continuation. The selected eastward reach remains within the Hoot Creek corridor before its northward approach to the shared Broad River trunk. The map supplies the continuous through-link; proximity to a river label alone is not the evidence. The selected eastward feeder turns north and joins the Broad River corridor. The provincial original depicts Hoot Creek, the joining southern Broad branch and their continuing northward trunk. The park map overlaps the shared trunk, but does not supply the detailed headward lake chain.",
+          "sources": [
+            "r213-mb-highway-map11",
+            "r213-parks-wapusk-map"
+          ],
+          "correspondence": "established_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            8989
+          ],
+          "component_scope": "Northward and east-northeast Broad River",
+          "finding": "The selected northward corridor follows the labelled Broad River on the overlapping provincial and park originals, west and north of the separately depicted Skidmore Lake. Side-water and lake outlines are not incorporated into the selected route merely because they are nearby. The selected change from the northward inland reach to the east-northeast middle course corresponds to the continuing Broad channel on both originals. The selected middle reach and the adjoining side-stream junctions correspond to the continuing Broad River corridor. The provincial original provides the more detailed tributary pattern; the park original independently depicts the shared named course.",
+          "sources": [
+            "r213-mb-highway-map11",
+            "r213-parks-wapusk-map"
+          ],
+          "correspondence": "established_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            8989
+          ],
+          "component_scope": "Lower tributary joins and coastal approach",
+          "finding": "The selected lower approach follows Broad River through the western tributary-junction setting. The originals distinguish Kelsey Creek from the continuing Broad trunk; the provincial map also shows the Beale Creek network. These tributary names are not assigned to the whole selected system. The short selected north-northeast segment remains on the continuous lower Broad channel before the coastal turn, as depicted on the overlapping originals. The selected northeast continuation approaches the coastal bend on Broad River rather than following a neighboring coastal stream. The park original identifies the Broad management-camp area and adjacent coast.",
+          "sources": [
+            "r213-mb-highway-map11",
+            "r213-parks-wapusk-map"
+          ],
+          "correspondence": "established_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            8989
+          ],
+          "component_scope": "Actual Hudson Bay terminal",
+          "finding": "The final selected eastward coastal bend corresponds to the distinct Broad River mouth entering Hudson Bay. The park original depicts its tidal-flat setting and distinguishes this outlet from the Owl River outlet farther south. The actual terminal is covered at ordinary corridor scale.",
+          "sources": [
+            "r213-mb-highway-map11",
+            "r213-parks-wapusk-map"
+          ],
+          "correspondence": "established_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "DFO, Socio-economic Overview of the Southampton Island Area of Interest",
+      "official_url": "https://www.dfo-mpo.gc.ca/publications/oceans/southampton-socio-economic-economique/index-eng.html",
+      "observed_outcome": "The HTML opened and was read normally. A subsequent normal-original HTML retrieval had no recoverable terminal result; its origin HTTP and transfer outcome remain unknown. No retrieved file, partial file, header content or map pixels were read.",
+      "outcome_layer": "Unresolved execution/transfer outcome; no origin access-denial status established.",
+      "restriction_scope": "Further acquisition and output reading of this publication and equivalent routes paused. No replacement request or alternate route followed.",
+      "earlier_lawful_observations": "The previously read HTML introduction, methodology, fisheries prose and January2020 Figure1 text description remain usable only in their actual regional scope.",
+      "newly_observed_access_failure": false,
+      "availability_failure": true,
+      "material_gap": true,
+      "aw_id": "hydro-system:80108382"
+    },
+    {
+      "publication": "Northwest Territories Fishery Regulations, C.R.C., c.847; archived version of 22 March 2006",
+      "official_url": "https://laws.justice.gc.ca/eng/regulations/C.R.C.%2C_c._847/20060322/P1TT3xt3.html?wbdisable=false",
+      "observed_outcome": "The sole normal archived-page opening returned web-reader Failed to fetch: Cache miss. No source body was acquired or read.",
+      "outcome_layer": "Web-reader availability failure; origin HTTP response unknown.",
+      "restriction_scope": "This exact archived legislative publication and equivalent acquisition routes remain paused. No retry, alternative version or alternate route was requested.",
+      "earlier_lawful_observations": null,
+      "newly_observed_access_failure": false,
+      "availability_failure": true,
+      "material_gap": true,
+      "aw_id": "hydro-system:80108382"
+    },
+    {
+      "publication": "Mauri Pelto (2020), Whiting River Headwater Glacier, British Columbia Separates into Four, From a Glaciers Perspective; HTML date October16,2020 and revision April23,2024.",
+      "official_url": "https://glacierchange.blog/2020/10/16/whiting-river-headwater-glaciers-british-columbia-retreat-and-separation/",
+      "failed_url": "https://glacierchange.blog/wp-content/uploads/2024/04/whiting-river-headwater-glaciers-1984-2020.jpg",
+      "observed_outcome": "Normal HTML read successfully. Sole linked 1984–2020 image request returned web-reader Cache miss; no pixels or origin HTTP status supplied.",
+      "outcome_layer": "Web-reader availability; origin HTTP unknown.",
+      "restriction_scope": "Whole article/image publication and equivalent acquisition and uninspected-output reading paused. No fallback or repeat.",
+      "earlier_lawful_prose_exception": "Authorial HTML describes unnamed glaciers west of Whiting Lake in the headwaters of the Whiting system. No image correspondence established.",
+      "newly_observed_access_failure": true,
+      "limitation_kind": "unresolved_web_reader_availability_pause",
+      "explicit_access_denial": false,
+      "material_effect": "Earlier actually read prose supplies bounded regional context only. It does not establish the selected southern opening-to-lake through-link. No separate access-pending primary status is added.",
+      "aw_id": "hydro-system:70026340"
+    },
+    {
+      "publication": "F.A.Kerr (1931), Explorations between Stikine and Taku Rivers, B.C., Geological Survey of Canada Summary Report1930 PartA, pp41A–55A, No2292.",
+      "official_url": "https://emrlibrary.gov.yk.ca/gsc/summary-reports/GSC-Summary-report-1930a-and-map/summary-report-1930-a.pdf",
+      "failed_url": "https://emrlibrary.gov.yk.ca/gsc/summary-reports/GSC-Summary-report-1930a-and-map/",
+      "observed_outcome": "Original PDF completed direct HTTP200 application/pdf and authorial pp41A–45A prose was read. Advertised pocket Figure4 was absent from complete203-page PDF. Subsequent sole normal parent publication-directory opening returned web-reader URL is not accessible via this tool, without body or origin HTTP status.",
+      "outcome_layer": "Web-reader unexplained availability; origin HTTP unknown.",
+      "restriction_scope": "Whole report, companion Figure4 and equivalent further acquisition and uninspected-output reading paused. No alternate catalogue or map request.",
+      "earlier_lawful_prose_exception": "Actually read pp41A–45A field prose only; cross-border Whiting, South/North junction and glacial upper setting. No map pixels read.",
+      "newly_observed_access_failure": true,
+      "limitation_kind": "unresolved_web_reader_availability_pause",
+      "explicit_access_denial": false,
+      "material_effect": "Earlier actually read prose supplies bounded regional context only. It does not establish the selected southern opening-to-lake through-link. No separate access-pending primary status is added.",
+      "aw_id": "hydro-system:70026340"
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "publication": "USGSTopo, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "limitation_kind": "bounded_cartographic_factual_use",
+      "observed_notice": "Retained successful service metadata credits The National Map and contributing datasets.",
+      "use_scope": "Own bounded factual geographic observations and ordinary bibliography only. Original maps, crops, orientation derivatives, full coordinates and dynamic requests remain private. No original-map redistribution or current-survey guarantee is asserted.",
+      "access_stop": false,
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:80067444"
+    },
+    {
+      "publication": "USGSTopo, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "observation": "Three originals completed normally and were visually inspected. Missing selected opening-to-lake correspondence is a geographic evidence gap, not a service access stop.",
+      "access_stop": false,
+      "aw_id": "hydro-system:70026340",
+      "acquisition_stop": false
+    },
+    {
+      "publication": "Juneau State Land Plan, Unit15c",
+      "official_url": "https://dnr.alaska.gov/mlw/planning/areaplans/juneau/pdf/unit-15c.pdf",
+      "observation": "Ordinary bounded factual use of original state planning prose and map. Source images and derivatives are not redistributed.",
+      "access_stop": false,
+      "aw_id": "hydro-system:70026340",
+      "acquisition_stop": false
+    },
+    {
+      "publication": "Kerr1931, GSC Summary Report1930 PartA",
+      "official_url": "https://emrlibrary.gov.yk.ca/gsc/summary-reports/GSC-Summary-report-1930a-and-map/summary-report-1930-a.pdf",
+      "observation": "The successfully acquired complete report did not include its advertised pocket Figure4. That absence is a content gap; the later directory failure is separately recorded with its actual outcome.",
+      "access_stop": false,
+      "aw_id": "hydro-system:70026340",
+      "acquisition_stop": false
+    },
+    {
+      "source_keys": [
+        "r213-mb-herchmer1988",
+        "r213-mb-highway-map11",
+        "r213-parks-wapusk-map"
+      ],
+      "observation": "Historical and generalized regional/park maps establish ordinary corridor correspondence. The park map is intended for general orientation, not navigation.",
+      "effect": "No current-bank, present-flow, navigation or official-registry conclusion.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70024773"
+    },
+    {
+      "source_keys": [
+        "r213-mb-herchmer1988",
+        "r213-mb-highway-map11",
+        "r213-parks-wapusk-map"
+      ],
+      "observation": "Original source maps and research derivatives remain private.",
+      "effect": "Public-ready output contains only own factual observations, bounded publication metadata and ordinary bibliography; no source imagery, full coordinates or research receipts.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70024773"
+    }
+  ]
+}

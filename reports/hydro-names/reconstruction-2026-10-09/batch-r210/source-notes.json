@@ -1,0 +1,839 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r210",
+  "sources": [
+    {
+      "source_key": "r210-usgstopo-arctic-overview",
+      "title": "USGSTopo, The National Map: upper Aichilik–Egaksrak coastal corridor overview",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "source_type": "independently maintained multiscale cartographic service",
+      "publication_identity": "USGSTopo is the national seamless reference-map service, affirmatively distinguished in retained successful service metadata and source records from specific stopped USGS reports, station publications and unidentified Utukok geological work.",
+      "access_status": "original_acquired_successfully_and_visually_read",
+      "actual_read_scope": "One bounded original map, visually inspected over the selected route, with original reading crops for the upper, middle and lower corridors. Direct Aichilik River, Egaksrak River, Leffingwell Fork, Kogotpak River, Beaufort Lagoon and Egaksrak Lagoon labels and connected or unconnected drainage depiction were read.",
+      "source_date_scope": "Service metadata credits a September 4, 2026-v1.2 refresh; that is not asserted as the survey date of every underlying feature.",
+      "use_scope": "Own bounded factual observations and ordinary bibliography only; source originals and derivatives are not redistributed."
+    },
+    {
+      "source_key": "r210-usgstopo-arctic-headward",
+      "title": "USGSTopo, The National Map: southwestern Aichilik headward valley detail",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "source_type": "independently maintained multiscale cartographic service",
+      "publication_identity": "USGSTopo is the national seamless reference-map service, affirmatively distinguished in retained successful service metadata and source records from specific stopped USGS reports, station publications and unidentified Utukok geological work.",
+      "access_status": "original_acquired_successfully_and_visually_read",
+      "actual_read_scope": "One bounded original map, visually inspected for the chosen feeder, its bend and junction into the upper Aichilik valley, adjacent side tributaries and upslope snow/glacial symbols. The initial direct HTTP502 was resolved by one identical-URL retry that returned HTTP200 image/png.",
+      "source_date_scope": "Service metadata credits a September 4, 2026-v1.2 refresh; that is not asserted as the survey date of every underlying feature.",
+      "use_scope": "Own bounded factual observations and ordinary bibliography only; source originals and derivatives are not redistributed."
+    },
+    {
+      "source_key": "r210-usgstopo-arctic-lower",
+      "title": "USGSTopo, The National Map: Aichilik–Egaksrak lower coastal-plain and delta detail",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "source_type": "independently maintained multiscale cartographic service",
+      "publication_identity": "USGSTopo is the national seamless reference-map service, affirmatively distinguished in retained successful service metadata and source records from specific stopped USGS reports, station publications and unidentified Utukok geological work.",
+      "access_status": "original_acquired_successfully_and_visually_read",
+      "actual_read_scope": "One bounded original map, visually inspected for the Aichilik braid belt, the selected eastward wetland-plain traverse, the Egaksrak approach and actual terminal delta/lagoon margin; original crops were read for the lateral traverse and terminal.",
+      "source_date_scope": "Service metadata credits a September 4, 2026-v1.2 refresh; that is not asserted as the survey date of every underlying feature.",
+      "use_scope": "Own bounded factual observations and ordinary bibliography only; source originals and derivatives are not redistributed."
+    },
+    {
+      "source_key": "peru-verde-expedition-2003",
+      "title": "Expedición en la cuenca baja del río Piura, junio del 2002",
+      "authors": [
+        "Manuel Apaza",
+        "Guido Seminario",
+        "Carolina Tovar",
+        "Pablo Martínez"
+      ],
+      "editors": [
+        "Manuel Apaza",
+        "Carolina Tovar"
+      ],
+      "publisher": "Asociación Perú Verde and Comité Holandés de la IUCN",
+      "publication_year": 2003,
+      "project_identity": "Plan de Manejo Participativo del Estuario de Virrilá; independently conducted boat/GPS field expedition of22–24June2002.",
+      "official_url": "https://rsis.ramsar.org/RISapp/files/54275910/documents/PE2455_lit210522_7.pdf",
+      "host_role": "Ramsar site supporting-literature attachment, preserving the independently issued original",
+      "original_acquired": true,
+      "original_map_read": true,
+      "prose_read": true,
+      "actual_material_read": "Title and imprint PDFpp1–2; project, methods and corridor observations pp4–15; Map1 on PDFp17; annex route table PDFp20 as a private orientation aid; ancillary avifauna section pp21–23. Map2 was rendered but not inspected and is not evidence.",
+      "map_evidence_scope": "The independently recorded expedition route and author observations support ordinary lower river/lake corridor context. Peru Digital1.0 base geography is not treated as an independent field survey. The expedition ends at Puente Virrilá.",
+      "acquisition_outcome": "Normal original completed HTTP200 application/pdf.",
+      "independence_basis": "Actual original identifies a2002 Perú Verde/IUCN participatory estuary-management field expedition, distinct from held MTC mapping and ANA river-basin/engineering studies.",
+      "use_limits": "No limited-distribution, officials-only or citation-clearance notice observed in the inspected title/imprint/project pages. Ordinary rights remain; no source original, map, crop, coordinates or derivative is redistributed."
+    },
+    {
+      "source_key": "minam-sechura-2021",
+      "title": "El reino del desierto y los humedales: Biodiversidad y conservación en Sechura, Piura",
+      "authors": [
+        "Mónica Alzamora",
+        "Alexander More",
+        "Frank Suarez"
+      ],
+      "publisher": "Ministerio del Ambiente, with Programa de las Naciones Unidas para el Desarrollo technical/content participation",
+      "edition": "Primera edición, octubre2021; Depósito Legal2021-11636",
+      "publication_year": 2021,
+      "project_identity": "Iniciativa de Pesquerías Costeras en América Latina (CFI), conservation/editorial project supporting local estuary and coastal-management work.",
+      "official_url": "https://cdn.www.gob.pe/uploads/document/file/2363169/Publicaci%C3%B3n%20.pdf",
+      "original_acquired": true,
+      "original_map_read": true,
+      "prose_read": true,
+      "actual_material_read": "Original imprint PDFp4; hydrologic prose PDFpp25 and27 (printed29 and31); Virrilá prose and Map11a PDFp92 (printed96); Map11b PDFp93 (printed97); Map12a-b PDFp109 (printed115); bounded incidental prose PDFp108. Other rendered map pages were not inspected and are not evidence.",
+      "map_evidence_scope": "Regional location maps and an annotated estuary image support named lake/estuary context and the internal Virrilá passage. They do not resolve the eastern opening, selected estuary-entry channel or selected final shore crossing. Map3 adapted imagery was not used as a new independent through-link observation.",
+      "acquisition_outcome": "Normal original completed HTTP200 application/pdf.",
+      "independence_basis": "Original imprint verifies the CFI/MINAM/PNUD conservation project, already distinguished in lawful prior research from stopped transport and basin-plan material.",
+      "use_limits": "All authorship and editing rights reserved. Partial or total reproduction requires authors’ and editors’ authorization. This is a reproduction notice, not a factual-reading prohibition. Original and derivatives remain private."
+    },
+    {
+      "source_key": "ana-vulnerable-quebradas-2015-2016",
+      "title": "Identificación de poblaciones vulnerables por activación de quebradas2015–2016",
+      "author": "Autoridad Nacional del Agua, Dirección de Estudios de Proyectos Hidráulicos Multisectoriales",
+      "publication_year": "Catalogue2016; original imprint uninspected",
+      "identifier": "ANA repository20.500.12543/198; ANA0000014; catalogue legal-deposit identifier2015-12868",
+      "official_url": "https://repositorio.ana.gob.pe/bitstream/handle/20.500.12543/198/ANA0000014.pdf?isAllowed=y&sequence=4",
+      "catalogue_url": "https://alicia.concytec.gob.pe/vufind/Record/ANAI_ec4921611e3ddff2848dd4488a82121b/Details",
+      "original_acquired": false,
+      "original_map_read": false,
+      "prose_read": false,
+      "actual_material_read": "ALICIA bibliographic metadata only. No original body, map or error-body content read.",
+      "independence_basis": "Catalogue affirmatively identifies the21-region/13-AAA national quebrada-vulnerability inventory with563 vulnerable localities, a separate project from held Chancay/Tumbes basin plans and individual river/aquifer studies. This was not cleared merely by a different title/year or ledger absence.",
+      "acquisition_outcome": "Initial normal original completed directHTTP502 text/html; one identical exact-URL retry after termination also completed directHTTP502 text/html. Whole publication/equivalents remain paused.",
+      "substantive_evidence": false,
+      "use_limits": "Catalogue reports open access with CC BY-NC-ND4.0; original notices uninspected. No source content is reproduced.",
+      "used_as_substantive_evidence": false
+    },
+    {
+      "source_key": "r210-nluis-aklavik107b1976",
+      "title": "Aklavik, Northwest Territories, District of Mackenzie, 107B, Land Use Information Series, 1976 edition",
+      "publisher": "Department of the Environment for Indian and Northern Affairs",
+      "scale": "1:250,000",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_107b.jpg",
+      "source_independence": "Exact prior lawful publication identity and detailed imprint were preserved in the earlier Aklavik source bibliography. The original describes its Arctic Land Use Research thematic project and its Surveys and Mapping Branch historical base. This was not acquired through the held NLUIS index or as a CanMatrix/CBMT recovery route.",
+      "observed_outcome": "One normal original request completed HTTP200, image/jpeg. Original pixels were subsequently read.",
+      "actual_material_read": "Full-sheet overview, western map strip, enlarged southwestern Shallow Bay and delta-channel area, title/imprint, base compilation credit and printed introduction/use cautions.",
+      "supports": "Direct lower geographic labels and ordinary eastern delta/Shallow Bay context. Most of the chosen western route lies outside its mapped extent.",
+      "limits": "Historical generalized cartography. Printed introduction calls the information interim and partly preliminary/reconnaissance, notes approximate thematic boundaries and adjoining-map differences, and dates updated information to November1975. Not a modern registry or precise channel survey.",
+      "use_notice": "Only bounded own factual observations and normal bibliography are supplied. Original map and research derivatives are not redistribution deliverables."
+    },
+    {
+      "source_key": "r210-dolly-varden-ifmp2019-prestop",
+      "title": "Integrated fisheries management plan for Dolly Varden (Salvelinus malma malma) of the Gwich'in Settlement Area and Inuvialuit Settlement Region, Northwest Territories and Yukon North Slope. Volume1: The Plan, 2019 Update",
+      "authors_publishers": [
+        "Fisheries and Oceans Canada",
+        "Fisheries Joint Management Committee",
+        "Gwich'in Renewable Resources Board",
+        "Parks Canada Agency"
+      ],
+      "year": 2019,
+      "official_url": "https://www.dfo-mpo.gc.ca/fisheries-peches/ifmp-gmp/dolly-varden/2019/index-eng.html",
+      "actual_material_read": "HTML citation and foreword; sections1–3 on the planning project, river systems and Big Fish River fishery/mouth setting; figure-list metadata. These were read before the Figure1 availability pause. No original map pixels were read.",
+      "source_independence": "Independently identified community fisheries-planning process involving the West Side Working Group, Aklavik HTC, FJMC, GRRB, DFO and Parks Canada. It is distinct from held navigation volumes and unrelated fisheries field reports.",
+      "supports": "Big Fish River as a western Mackenzie Delta river-system name and a delta-mouth context only.",
+      "limits": "Earlier read prose is usable only in its actual scope. No unseen figure, fine selected through-link, current fishing rule or formal naming status is inferred. Further publication/equivalent acquisition is paused."
+    },
+    {
+      "source_key": "r210-aklavik-conservation2016",
+      "title": "Aklavik Inuvialuit Community Conservation Plan / Akaqvikmiut Nunamikini Nunutailivikautinich",
+      "authors_publishers": [
+        "Aklavik Hunters and Trappers Committee",
+        "Aklavik Community Corporation",
+        "Wildlife Management Advisory Council (NWT)",
+        "Fisheries Joint Management Committee",
+        "Joint Secretariat"
+      ],
+      "year": 2016,
+      "official_url": "https://wmacns.ca/documents/347/2016-Aklavik-Community-Conservation-Plan-R.pdf",
+      "source_independence": "The actual cover, acknowledgements and introduction establish the Aklavik/Inuvik community working-group conservation process and the Aklavik2016 review, with IRC and ENR GIS support. This is distinct from the specifically held Ulukhaktok/Holman working-group plan. No held fisheries-plan figure was identified as reproduced in the two site maps consulted.",
+      "observed_outcome": "One normal original request completed HTTP200, application/pdf;195pages. Relevant prose and original map pixels were read after completion.",
+      "actual_material_read": "Cover and adoption/front matter; acknowledgements and introduction on printed11–12; site720DE description on printed66–67; original Map21 on printed66 and Map17 on printed58 with their captions and visible margins; brief associated Shallow Bay site description.",
+      "supports": "The community's Big Fish River watershed/riparian-site identity, inclusion of Canoe Lake within that described site, and Mackenzie Bay/Shallow Bay receiving setting.",
+      "limits": "The broad management/riparian polygons do not establish individual selected through-links; their underlying satellite basemap origin is not fully identified in the consulted credits and is not used as detailed river-line proof. Conservation-site membership does not prove the chosen branch, lake passage or terminal connection.",
+      "use_notice": "No officials-only or author-permission-before-citation notice observed in the consulted front matter. Bounded own factual synthesis and bibliography only; no source maps, satellite background or derivative imagery redistributed."
+    },
+    {
+      "source_key": "r210-chs-arc4032024",
+      "title": "Canadian Sailing Directions, ARC403: Western Arctic",
+      "publisher": "Canadian Hydrographic Service, Fisheries and Oceans Canada",
+      "edition": "2024/03",
+      "catalogue_number": "Fs74-40E-PDF",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/chs-shc-ARC403-eng-202403-41232306.pdf",
+      "source_independence": "Physically retained, successfully acquired independent Western Arctic volume; distinct from held ARC401 and ATL120. No new external request was made.",
+      "actual_material_read": "Retained original text on printed1-7, especially paragraphs112 and114–118: West Channel, Shallow Bay, Tiktalik Channel and Reindeer Channel relationships. Prior original acquisition and imprint/use notice were preserved in the source record.",
+      "supports": "Tiktalik Channel connects West Channel with the southwest side of Shallow Bay; regional receiving-water context.",
+      "limits": "Coastal prose does not identify the selected foothill opening or prove the entire chosen final delta passage. This is geographic context, not current navigation advice.",
+      "use_notice": "The original distinguishes personal noncommercial reproduction from commercial reproduction requiring permission. Only own factual synthesis and ordinary bibliography are delivered."
+    },
+    {
+      "source_key": "r210-usgstopo-yakutat-overview",
+      "title": "USGSTopo, The National Map: bounded Seward–Malaspina border and coastal overview",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "material_read": "One complete original map image, visually inspected with private reading crops. Canadian terrain is blank; US-side glacier, Hitchcock Hills, Malaspina Lake and coastal outlet geography are visible.",
+      "acquisition_status": "complete_original_http200",
+      "edition_scope": "Live service inspected13October2026; retained metadata says data refreshed4September2026. Composite source dates and contemporary physical conditions are not established.",
+      "identity_basis": "Independently maintained National Map multiscale cartographic service, already successfully used and distinct from held USGS glacier chapters and geological reports."
+    },
+    {
+      "source_key": "r210-usgstopo-yakutat-lake-outlet",
+      "title": "USGSTopo, The National Map: bounded eastern Malaspina foreland, Malaspina Lake and coastal outlet detail",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "material_read": "One complete original detail map, visually inspected, including the selected foreland approach, both lake-crossing tributary fragments, lake outlet and actual terminal setting.",
+      "acquisition_status": "complete_original_http200",
+      "limits": "Does not depict the continuous ice-margin-to-first-stream foreland through-link."
+    },
+    {
+      "source_key": "r210-samsonov2021-sar",
+      "title": "Measuring the state and temporal evolution of glaciers in Alaska and Yukon using synthetic-aperture-radar-derived (SAR-derived) 3D time series of glacier surface flow",
+      "authors": [
+        "Sergey Samsonov",
+        "Kristy Tiampo",
+        "Ryan Cassotto"
+      ],
+      "year": 2021,
+      "publication": "The Cryosphere15:4221–4239",
+      "doi": "10.5194/tc-15-4221-2021",
+      "official_url": "https://tc.copernicus.org/articles/15/4221/2021/index.html",
+      "normal_original_url": "https://tc.copernicus.org/articles/15/4221/2021/tc-15-4221-2021.pdf",
+      "material_read": "Publisher landing/abstract; original PDF front matter and relevant study-area/data and figure discussion on printed4221–4222 and4226–4229; Figure4 on4227 and Figure7 on4229 visually inspected, with close reading of the original22December2019 Sentinel-1 SAR panel7a. Unneeded mathematical sections and other glacier panels were not relied on.",
+      "identity_basis": "The authors’ independently developed regional Sentinel-1 speckle-offset study for2016–2021, with ASTER and TerraSAR-X elevation context. This is a distinct observation/modeling project, not the held PP1386 atlas chapters, Kindstedt Eclipse-firn project, Canadian topographic service or the NASA2023 Landsat scene.",
+      "acquisition_status": "explicit_reader_size_limit_resolved_by_one_same_original_http200",
+      "limits": "Regional glacier surface observations only. Colored OGGM flow lines are modeled approximations; they do not establish a selected liquid-water route across the lower foreland.",
+      "use_notice": "Author copyright2021; Creative Commons Attribution4.0 stated in original front matter. Only bounded own observations and bibliography supplied."
+    },
+    {
+      "source_key": "r210-nasa2023-malaspina-prose",
+      "title": "Malaspina Glacier in a Riot of Color",
+      "publisher": "NASA Earth Observatory",
+      "authors": [
+        "Lindsey Doermann",
+        "Wanmei Liang (image credit)"
+      ],
+      "publication_date": "2023-11-25",
+      "scene_date": "2023-10-27",
+      "official_url": "https://science.nasa.gov/earth/earth-observatory/malaspina-glacier-in-a-riot-of-color-152121/",
+      "material_read": "HTML article prose and image-acquisition metadata only, before the linked-image failure. No original image pixels read.",
+      "identity_basis": "Specifically identified27October2023 Landsat9 OLI-2 scene and Earth Observatory article.",
+      "actual_usable_scope": "Seward supplies the Malaspina glacier; glacier lobes merge on the coastal plain; moraines and coastal lagoon setting are described. This prose is contextual, not proof of the selected foreland link.",
+      "acquisition_status": "prior_html_prose_only_then_unresolved_linked_image_failure"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:80037596",
+      "source_keys": [
+        "r210-usgstopo-arctic-overview",
+        "r210-usgstopo-arctic-headward",
+        "r210-usgstopo-arctic-lower"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2346
+          ],
+          "component_scope": "chosen southwestern opening",
+          "finding": "The selected southwestern opening follows the short feeder valley into the upper Aichilik corridor. The detailed map depicts the feeder turning east and then north into the continuously mapped trunk. The stored line simplifies these bends and is offset onto the valley side; ordinary valley correspondence does not require exact-bank agreement. Glacial or permanent-snow symbols occur upslope to the west, but no selected through-glacier passage is needed or established.",
+          "sources": [
+            "r210-usgstopo-arctic-headward",
+            "r210-usgstopo-arctic-overview"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2346
+          ],
+          "component_scope": "upper aichilik valley",
+          "finding": "The subsequent northeast and north approach remains within the continuously depicted upper valley, with repeated Aichilik River labels. Side tributaries enter the same trunk; no intervening lake, reservoir or separate-drainage transfer is depicted.",
+          "sources": [
+            "r210-usgstopo-arctic-headward",
+            "r210-usgstopo-arctic-overview"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2346
+          ],
+          "component_scope": "upper middle aichilik bends",
+          "finding": "The selected northward corridor follows Aichilik River through mountain-valley bends and widening braided reaches. The western tributary entrance and the nearby Leffingwell Fork approach are distinguishable from the selected northward trunk.",
+          "sources": [
+            "r210-usgstopo-arctic-overview"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2346
+          ],
+          "component_scope": "middle aichilik and foothill exit",
+          "finding": "The middle route continues along the labeled Aichilik valley, past the mapped eastern tributary approach and through the northwest bend into the foothill exit. Continuous river and braid-belt depiction establishes the stored joins at ordinary corridor scale.",
+          "sources": [
+            "r210-usgstopo-arctic-overview"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2346
+          ],
+          "component_scope": "lower aichilik coastal plain approach",
+          "finding": "The long northeast approach follows the lower Aichilik floodplain and reaches its broad braid belt. Kogotpak River is separately labeled on the western side. The selected line generalizes the river corridor; this correspondence does not establish the subsequent eastward transfer across the intervening plain.",
+          "sources": [
+            "r210-usgstopo-arctic-overview",
+            "r210-usgstopo-arctic-lower"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2346
+          ],
+          "component_scope": "aichilik to egaksrak lateral plain traverse",
+          "finding": "After reaching the Aichilik braid belt, the selected route turns east across the intervening coastal wetland plain toward Egaksrak River, crossing separately depicted small drainage lines. The detailed original does not show a continuous lateral watercourse, linked waterbody chain or mapped junction establishing this selected transfer. Nearby names, wetland coverage and the shared coastal destination cannot supply the missing link.",
+          "sources": [
+            "r210-usgstopo-arctic-overview",
+            "r210-usgstopo-arctic-lower"
+          ],
+          "correspondence": "material_through_link_not_established",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2346
+          ],
+          "component_scope": "lower egaksrak delta approach",
+          "finding": "The last northward river approach lies in the separately labeled Egaksrak River lower braid belt and delta channels. Its local correspondence to the downstream delta is established, independently of the unresolved upstream lateral transfer.",
+          "sources": [
+            "r210-usgstopo-arctic-overview",
+            "r210-usgstopo-arctic-lower"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2346
+          ],
+          "component_scope": "actual selected terminal",
+          "finding": "The stored terminal continues into the Egaksrak delta tidal-flat and lagoon-margin complex, southeast of the mapped Beaufort Lagoon label and adjoining the Egaksrak Lagoon setting. The selected endpoint is assessed at that delta/lagoon-margin scale; an exact present-day shoreline, active distributary or marine name boundary is not assigned.",
+          "sources": [
+            "r210-usgstopo-arctic-overview",
+            "r210-usgstopo-arctic-lower"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2346
+          ],
+          "component_scope": "waterbody glacier wetland and managed context",
+          "finding": "The mapped route contains mountain streams, braided river valleys, coastal wetlands and a tidal delta setting. Small lakes and ponds are visible near the coastal delta but no selected through-lake, reservoir or managed-channel connector is established or required in the completed upstream/downstream portions. The material uncertainty is the specific lateral wetland-plain transfer, not a demand to establish current flow, operations or every minor bank.",
+          "sources": [
+            "r210-usgstopo-arctic-headward",
+            "r210-usgstopo-arctic-overview",
+            "r210-usgstopo-arctic-lower"
+          ],
+          "correspondence": "material_through_link_not_established",
+          "component_correspondence_completed": false
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60775848",
+      "source_keys": [
+        "peru-verde-expedition-2003",
+        "minam-sechura-2021"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13805
+          ],
+          "component_scope": "eastern opening and approach",
+          "finding": "The selected eastern opening, southwest descent and westward bend lie outside the independently surveyed expedition corridor. No acquired source identifies this selected feeder or proves its continuation into the lower Piura route.",
+          "sources": [
+            "peru-verde-expedition-2003",
+            "minam-sechura-2021"
+          ],
+          "correspondence": "material_gap",
+          "component_correspondence_completed": false,
+          "role": "mainstem"
+        },
+        {
+          "fragments": [
+            13805
+          ],
+          "component_scope": "northern hook and lower river join",
+          "finding": "The selected northern hook and southward approach precede the securely recognized Tabanco corridor. The acquired regional maps do not establish the actual selected feeder-to-river join.",
+          "sources": [
+            "peru-verde-expedition-2003",
+            "minam-sechura-2021"
+          ],
+          "correspondence": "material_gap",
+          "component_correspondence_completed": false,
+          "role": "mainstem"
+        },
+        {
+          "fragments": [
+            13805
+          ],
+          "component_scope": "lower piura tabanco approach",
+          "finding": "The expedition route and its Tabanco discussion identify the southward lower Piura passage toward the Ramón wetland complex at ordinary corridor scale.",
+          "sources": [
+            "peru-verde-expedition-2003"
+          ],
+          "correspondence": "ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem"
+        },
+        {
+          "fragments": [
+            13805
+          ],
+          "component_scope": "ramon wetland passage",
+          "finding": "The mapped survey traverses the Ramón wetland, with documented river branches and reconnection. The selected passage lies in this connected lake corridor; no claim is made that every mapped branch bears the river name.",
+          "sources": [
+            "peru-verde-expedition-2003",
+            "minam-sechura-2021"
+          ],
+          "correspondence": "ordinary_connected_waterbody_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem"
+        },
+        {
+          "fragments": [
+            13805
+          ],
+          "component_scope": "ramon salinas connector",
+          "finding": "The survey explicitly continues from Ramón through the Sánchez, Tres Brazos and Peñal setting toward Las Salinas. This supports the selected connecting corridor without asserting present hydraulic operations.",
+          "sources": [
+            "peru-verde-expedition-2003",
+            "minam-sechura-2021"
+          ],
+          "correspondence": "ordinary_connected_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem"
+        },
+        {
+          "fragments": [
+            13805
+          ],
+          "component_scope": "salinas lake passage",
+          "finding": "Both inspected map publications identify Las Salinas/Salinas here. The field survey crosses the lake to its southern outlet setting, supporting an internal lake passage at ordinary scale.",
+          "sources": [
+            "peru-verde-expedition-2003",
+            "minam-sechura-2021"
+          ],
+          "correspondence": "ordinary_connected_waterbody_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem"
+        },
+        {
+          "fragments": [
+            13805
+          ],
+          "component_scope": "selected salinas eastern virrila entry",
+          "finding": "A regional connection is documented, but the expedition took the southern Zapayal approach after unsuccessful entries at Palo Parado and Garita García. The selected more direct approach is not resolved by the acquired maps; the alternative surveyed route is not substituted for it.",
+          "sources": [
+            "peru-verde-expedition-2003",
+            "minam-sechura-2021"
+          ],
+          "correspondence": "material_selected_connector_gap",
+          "component_correspondence_completed": false,
+          "role": "mainstem"
+        },
+        {
+          "fragments": [
+            13805
+          ],
+          "component_scope": "eastern entry to main estuary",
+          "finding": "The western part is within the mapped Virrilá estuary corridor. Its connection from the selected eastern approach remains dependent on the unresolved entry choice.",
+          "sources": [
+            "peru-verde-expedition-2003",
+            "minam-sechura-2021"
+          ],
+          "correspondence": "partial_correspondence_join_unresolved",
+          "component_correspondence_completed": false,
+          "role": "mainstem"
+        },
+        {
+          "fragments": [
+            13805
+          ],
+          "component_scope": "virrila main estuary and northern turn",
+          "finding": "MINAM Map11b depicts the continuous east-west estuary and its northern turn toward the coast. The selected internal estuary passage is supported at ordinary waterbody scale.",
+          "sources": [
+            "minam-sechura-2021",
+            "peru-verde-expedition-2003"
+          ],
+          "correspondence": "ordinary_connected_waterbody_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem"
+        },
+        {
+          "fragments": [
+            13805
+          ],
+          "component_scope": "actual stored terminal",
+          "finding": "The stored last segment heads northwest from the estuary toward Bahía de Sechura. MINAM depicts the estuary mouth by Parachique, but does not establish this selected shore crossing. The expedition ends at Puente Virrilá and cannot independently close the terminal. Neither its endpoint nor another Piura mouth replaces the stored terminal.",
+          "sources": [
+            "minam-sechura-2021",
+            "peru-verde-expedition-2003"
+          ],
+          "correspondence": "material_selected_terminal_gap",
+          "component_correspondence_completed": false,
+          "role": "mainstem"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80051354",
+      "source_keys": [
+        "r210-nluis-aklavik107b1976",
+        "r210-dolly-varden-ifmp2019-prestop",
+        "r210-aklavik-conservation2016",
+        "r210-chs-arc4032024"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2493
+          ],
+          "component_scope": "Selected southern opening and northeast foothill course",
+          "finding": "The conservation plan places a multi-branched Big Fish River watershed west of Aklavik and includes Canoe Lake in its site description. Its management-area and riparian overlay does not distinguish the selected initial feeder from neighboring upper branches or demonstrate the selected eastward connection. This part lies west of the independently read Aklavik land-use sheet's coverage. No actual selected lake passage is established by the mention of Canoe Lake.",
+          "sources": [
+            "r210-aklavik-conservation2016",
+            "r210-nluis-aklavik107b1976"
+          ],
+          "correspondence": "regional_watershed_context_only_selected_opening_and_through_links_unestablished",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2493
+          ],
+          "component_scope": "Central northward course and westward bend",
+          "finding": "The community map shows the Big Fish site extending from the foothills toward the western delta. Its broad colored riparian polygons cover the river corridors; they do not supply continuously readable source linework for the chosen northward, west-bending and renewed northward route. The actual intermediate joins remain unestablished. No distinct tributary name is assigned from this generalized watershed portrayal.",
+          "sources": [
+            "r210-aklavik-conservation2016"
+          ],
+          "correspondence": "selected_intermediate_through_links_unestablished",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2493
+          ],
+          "component_scope": "Northeast approach to delta channel network",
+          "finding": "Aklavik107B directly depicts a lower Big Fish River label near the western map edge and the neighboring Moose, West and Tiktalik channel network south of Shallow Bay. Its eastern portion is consistent with the selected delta-side approach, but the course preceding the sheet edge and the complete chosen approach-to-channel join are not demonstrated by the acquired coverage. The earlier fisheries-plan prose independently recognizes the Big Fish River mouth in the Mackenzie Delta; a mouth reference alone is not proof of this selected connection.",
+          "sources": [
+            "r210-nluis-aklavik107b1976",
+            "r210-dolly-varden-ifmp2019-prestop"
+          ],
+          "correspondence": "named_lower_neighborhood_supported_complete_selected_join_unestablished",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2493
+          ],
+          "component_scope": "Northwest delta passage and actual terminal setting",
+          "finding": "The land-use original labels Shallow Bay and shows the wetland-rich southern delta channel network. ARC403 states that Tiktalik Channel on the southwest side of Shallow Bay connects with West Channel. The community plan separately identifies the Mackenzie Bay and Shallow Bay conservation site. Together these support the receiving setting and ordinary named-channel relationship, but not the entire selected northwest passage beyond the land-use sheet's western edge or its chosen final channel-to-bay connection. The selected bayward extension cannot itself supply independent source proof.",
+          "sources": [
+            "r210-nluis-aklavik107b1976",
+            "r210-chs-arc4032024",
+            "r210-aklavik-conservation2016"
+          ],
+          "correspondence": "receiving_bay_setting_supported_selected_final_through_link_unestablished",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2493
+          ],
+          "component_scope": "Lake, wetland and managed-passage scope",
+          "finding": "The lower source map depicts extensive wetlands, ponds and branching delta channels. No discrete selected reservoir, dam, canal or glacier passage is established from the materials read. Canoe Lake is part of the community site's description but is not proved to be traversed by the selected route. Missing upper and delta through-links remain substantive evidence gaps rather than precise-bank or current-operation questions.",
+          "sources": [
+            "r210-nluis-aklavik107b1976",
+            "r210-aklavik-conservation2016"
+          ],
+          "correspondence": "passage_inventory_incomplete_because_selected_links_unestablished",
+          "component_correspondence_completed": false
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80266652",
+      "source_keys": [
+        "r210-usgstopo-yakutat-overview",
+        "r210-usgstopo-yakutat-lake-outlet",
+        "r210-samsonov2021-sar",
+        "r210-nasa2023-malaspina-prose"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2735
+          ],
+          "component_scope": "chosen canadian opening and upper ice corridor",
+          "finding": "The Canadian opening lies in the broad upper Seward ice corridor south of the Mount Logan massif. The Sentinel-1 scene in Figure7a depicts its long eastward course and the southward bend at the eastern end. This supplies geographic ice-corridor correspondence for all42 stored parts, without asserting a natural surface river or reproducing the paper’s modeled glacier-flow lines as measured water channels. USGSTopo is blank on this Canadian reach.",
+          "sources": [
+            "r210-samsonov2021-sar",
+            "r210-nasa2023-malaspina-prose"
+          ],
+          "correspondence": "complete_geographic_ice_corridor_only",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2736
+          ],
+          "component_scope": "cross border seward malaspina corridor",
+          "finding": "The SAR scene and overlapping federal cartography depict the southward glacier passage across the border, the narrowing between adjacent mountain spurs, and the opening into Malaspina Glacier beside the Hitchcock Hills. The whole selected middle fragment and both stage-boundary joins have geographic ice-corridor correspondence. No natural-river name or mapped liquid-water path is established across the ice.",
+          "sources": [
+            "r210-samsonov2021-sar",
+            "r210-usgstopo-yakutat-overview",
+            "r210-nasa2023-malaspina-prose"
+          ],
+          "correspondence": "complete_geographic_ice_corridor_only",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2
+        },
+        {
+          "fragments": [
+            2737
+          ],
+          "component_scope": "lower mainstem glacier margin approach",
+          "finding": "The initial lower-stage section runs east around the southern Hitchcock Hills and then southeast through the mapped eastern Malaspina ice-margin setting. The local small lake and hill-side streams remain separate components rather than evidence of one river named Malaspina. The SAR scene supplies broader glacier-terrain context.",
+          "sources": [
+            "r210-usgstopo-yakutat-overview",
+            "r210-samsonov2021-sar"
+          ],
+          "correspondence": "complete_geographic_glacier_margin_context",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 1
+        },
+        {
+          "fragments": [
+            2737
+          ],
+          "component_scope": "ice margin to first foreland stream gap",
+          "finding": "Between the eastern Malaspina ice-margin approach and the first continuously depicted stream entering the northeastern Malaspina Lake margin, the selected line crosses a ridged, pond-rich foreland. The federal map does not depict a continuous connecting channel over this interval. The regional SAR scene identifies glacier/debris terrain but does not establish this selected drainage through-link. This is a substantive connection gap, not a demand for exact contemporary glacier margins, banks, water levels or vertex agreement.",
+          "sources": [
+            "r210-usgstopo-yakutat-overview",
+            "r210-usgstopo-yakutat-lake-outlet",
+            "r210-samsonov2021-sar"
+          ],
+          "correspondence": "material_foreland_through_connection_unestablished",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 1
+        },
+        {
+          "fragments": [
+            2737
+          ],
+          "component_scope": "mapped foreland stream lake entry and join",
+          "finding": "Once the depicted foreland stream begins, its channel and wetland-expanded reach can be followed into the northeastern margin of Malaspina Lake and to the lake outlet corridor. The selected tributary junction is in this connected lake-margin setting. These observations do not bridge the separately identified upstream foreland gap.",
+          "sources": [
+            "r210-usgstopo-yakutat-overview",
+            "r210-usgstopo-yakutat-lake-outlet"
+          ],
+          "correspondence": "complete_at_ordinary_lake_and_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 1
+        },
+        {
+          "fragments": [
+            2738
+          ],
+          "component_scope": "western selected lake tributary stage3",
+          "finding": "All six selected parts lie across the southern island-and-peninsula margin of Malaspina Lake. This is a generalized lake-crossing component, not an independently established river with the name Malaspina. Its opening and continuation into the next selected tributary stage are within the same depicted lake complex.",
+          "sources": [
+            "r210-usgstopo-yakutat-overview",
+            "r210-usgstopo-yakutat-lake-outlet"
+          ],
+          "correspondence": "complete_at_ordinary_lake_scale",
+          "component_correspondence_completed": true,
+          "role": "tributary",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            2739
+          ],
+          "component_scope": "eastern selected lake tributary stage2",
+          "finding": "All five parts continue east through Malaspina Lake toward the northeastern lake-margin/outlet junction with the selected mainstem. The open-water lake passage, continuation from the preceding tributary stage and receiving connection are depicted. The stored tributary role is retained without inventing a separately named tributary river.",
+          "sources": [
+            "r210-usgstopo-yakutat-overview",
+            "r210-usgstopo-yakutat-lake-outlet"
+          ],
+          "correspondence": "complete_at_ordinary_lake_and_junction_scale",
+          "component_correspondence_completed": true,
+          "role": "tributary",
+          "stage": 2
+        },
+        {
+          "fragments": [
+            2737
+          ],
+          "component_scope": "coastal outlet and actual selected terminal",
+          "finding": "The eastern lake outlet continues through the broad coastal channel to the selected terminal immediately inside the ocean-side barrier. The map labels Sudden Stream and Kame Stream in this outlet area, with the smaller Kame approach entering the coastal channel from the west. These are bounded outlet-reach/locality names, not names for the full glacier-to-coast selection. The terminal is geographically accounted for in the coastal outlet; no exact tidal limit, present shoreline or extension beyond the stored endpoint is assigned.",
+          "sources": [
+            "r210-usgstopo-yakutat-overview",
+            "r210-usgstopo-yakutat-lake-outlet"
+          ],
+          "correspondence": "complete_at_ordinary_coastal_outlet_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 1
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "Autoridad Nacional del Agua, Dirección de Estudios de Proyectos Hidráulicos Multisectoriales, Identificación de poblaciones vulnerables por activación de quebradas2015–2016; ANA0000014, repository20.500.12543/198",
+      "official_url": "https://repositorio.ana.gob.pe/bitstream/handle/20.500.12543/198/ANA0000014.pdf?isAllowed=y&sequence=4",
+      "observed_outcome": "The normal-original request completed directHTTP502 with text/html. After actual termination, the one identical exact-URL retry also completed directHTTP502 with text/html. No original body, map pixels or error-body content was read.",
+      "outcome_layer": "Completed direct HTTP-client availability responses; not an access-control denial.",
+      "restriction_scope": "Whole identified national2015–2016 study, associated maps, equivalent originals/catalogues/readers/caches/mirrors/formats and unread outputs remain paused after unresolved bounded retry. No alternative acquisition.",
+      "earlier_lawful_observations": "ALICIA catalogue bibliographic/project identity only; no substantive original evidence.",
+      "newly_observed_access_failure": true,
+      "aw_id": "hydro-system:60775848"
+    },
+    {
+      "publication": "DFO/FJMC/GRRB/Parks Canada Dolly Varden Integrated Fisheries Management Plan, Volume1: The Plan, 2019 Update",
+      "official_url": "https://www.dfo-mpo.gc.ca/fisheries-peches/ifmp-gmp/dolly-varden/2019/img/fig1-eng.jpg",
+      "parent_publication_url": "https://www.dfo-mpo.gc.ca/fisheries-peches/ifmp-gmp/dolly-varden/2019/index-eng.html",
+      "observed_outcome": "The HTML publication was read normally. Its sole normally linked Figure1 opening returned web-reader Failed to fetch: Cache miss. No image pixels or origin HTTP response were exposed.",
+      "outcome_layer": "Web-reader availability failure; origin HTTP unknown.",
+      "restriction_scope": "Whole identified publication and equivalent original, figure, catalogue, reader, cache, mirror, alternate-format and unread-output routes remain paused. No retry or alternate recovery followed. Related2010 plan appendices were not acquired as missing-map substitutes.",
+      "earlier_lawful_prose_exception": "Only the citation, foreword and actual sections1–3 prose read before the failure; no original-map observations.",
+      "newly_observed_access_failure": true,
+      "explicit_access_denial": false,
+      "material_gap": true,
+      "aw_id": "hydro-system:80051354"
+    },
+    {
+      "publication": "NASA Earth Observatory, Malaspina Glacier in a Riot of Color,25November2023; Landsat9 OLI-2 scene27October2023",
+      "official_url": "https://science.nasa.gov/earth/earth-observatory/malaspina-glacier-in-a-riot-of-color-152121/",
+      "observed_outcome": "HTML article opened normally. The sole normally linked original-image opening returned unexplained web-reader Internal Error. No observable image pixels, terminal origin HTTP status or explicit technical size/format limit was supplied.",
+      "outcome_layer": "Web-reader unexplained image-fetch failure; origin HTTP unknown.",
+      "restriction_scope": "Whole identified article/scene publication, equivalent image formats and copies, catalogue/reader/cache/mirror acquisition and unread-output reading remain paused. No fallback, retry or alternative route followed.",
+      "earlier_lawful_prose_exception": "Previously actually read article prose and scene metadata only, as described in bibliography.",
+      "limitation_kind": "unresolved_original_image_availability_pause",
+      "newly_observed_access_failure": true,
+      "explicit_access_denial": false,
+      "material_gap": false,
+      "material_effect": "Independent SAR imagery supplies the Canadian glacier geography. The separate lower foreland connection remains substantively unestablished in the successfully read sources.",
+      "aw_id": "hydro-system:80266652"
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "publication": "USGSTopo headward detail original",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "observed_outcome": "Initial normal-original request terminated with direct HTTP502 text/html. After that terminal response, one identical exact-URL retry completed HTTP200 image/png. Only the successful original was visually read.",
+      "outcome_layer": "Direct-client HTTP responses; no authentication, access denial, cancellation or alternate route.",
+      "continuing_acquisition_stop": false,
+      "aw_id": "hydro-system:80037596",
+      "acquisition_stop": false
+    },
+    {
+      "publication": "USGSTopo, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "limitation_kind": "bounded_cartographic_factual_use",
+      "access_stop": false,
+      "acquisition_stop": false,
+      "observed_notice": "Retained successful service metadata credits USGS The National Map and contributing public datasets.",
+      "use_scope": "Own factual observations and ordinary bibliography only. Original maps, crops, overlays, full coordinates and dynamic requests remain private; no original-map redistribution or present-survey guarantee is asserted.",
+      "aw_id": "hydro-system:80037596"
+    },
+    {
+      "publication": "USGSTopo selected Aichilik–Egaksrak coastal-plain corridor views",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "limitation_kind": "material_lateral_wetland_plain_connector_gap",
+      "access_stop": false,
+      "acquisition_stop": false,
+      "observed_outcome": "The three originals were successfully acquired and visually inspected. They do not establish the selected lateral Aichilik-to-Egaksrak through-link.",
+      "restriction_scope": "Only the unsupported selected connector; observed upstream and downstream components remain usable. No service-wide stop is inferred.",
+      "aw_id": "hydro-system:80037596"
+    },
+    {
+      "publication": "El reino del desierto y los humedales, MINAM2021",
+      "official_url": "https://cdn.www.gob.pe/uploads/document/file/2363169/Publicaci%C3%B3n%20.pdf",
+      "observed_notice": "Original imprint reserves authorship/editing rights and requires authors’ and editors’ authorization for partial or total reproduction.",
+      "new_access_stop": false,
+      "previously_recorded_notice": true,
+      "aw_id": "hydro-system:60775848",
+      "acquisition_stop": false,
+      "restriction_scope": "Reproduction only; ordinary factual reading and citation permitted. Originals and derivatives stay private."
+    },
+    {
+      "source_keys": [
+        "r210-nluis-aklavik107b1976"
+      ],
+      "observation": "Thematic information is interim and partly preliminary/reconnaissance; map boundaries are approximate and information may differ across adjoining sheets. Original introduction and imprint were inspected.",
+      "effect": "Historical ordinary correspondence only. This is an interpretive caution, not a source access stop.",
+      "aw_id": "hydro-system:80051354",
+      "acquisition_stop": false
+    },
+    {
+      "source_keys": [
+        "r210-aklavik-conservation2016"
+      ],
+      "observation": "Maps21 and17 are community conservation-site thematic portrayals. The consulted acknowledgements credit IRC and ENR GIS support but do not fully identify the underlying satellite basemap.",
+      "effect": "Own site descriptions and broad thematic context remain usable. No detailed selected-channel or hydraulic proof is derived from the unspecified basemap. No publication-wide access restriction is asserted.",
+      "aw_id": "hydro-system:80051354",
+      "acquisition_stop": false
+    },
+    {
+      "source_keys": [
+        "r210-nluis-aklavik107b1976",
+        "r210-dolly-varden-ifmp2019-prestop",
+        "r210-aklavik-conservation2016",
+        "r210-chs-arc4032024"
+      ],
+      "observation": "Originals, map crops, comparison materials and full selected coordinates are private research materials.",
+      "effect": "Public-ready result contains only own factual observations, bounded bibliographic metadata and ordinary source URLs.",
+      "aw_id": "hydro-system:80051354",
+      "acquisition_stop": false
+    },
+    {
+      "publication": "USGSTopo bounded Yakutat views",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "observation": "Ordinary factual cartographic use only; source originals, crops and orientation derivatives remain private. The missing foreland link is a correspondence limitation, not a service access stop.",
+      "access_stop": false,
+      "aw_id": "hydro-system:80266652",
+      "acquisition_stop": false
+    },
+    {
+      "publication": "Samsonov, Tiampo and Cassotto2021",
+      "official_url": "https://tc.copernicus.org/articles/15/4221/2021/index.html",
+      "observation": "PDF reader explicitly reported content length23739629 exceeded its limit; one sequential request at the identical original PDF URL completed HTTP200 and the complete original was read. This is a resolved technical limit, not an acquisition stop.",
+      "access_stop": false,
+      "aw_id": "hydro-system:80266652",
+      "acquisition_stop": false
+    }
+  ]
+}
