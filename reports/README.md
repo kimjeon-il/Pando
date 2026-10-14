@@ -37,6 +37,7 @@
 
 | ID | 보고서 | 원문 수정일 | 상태 | 지도 반영 |
 | --- | --- | --- | --- | --- |
+| `DEV-073` | [P2 — C++ 생성물 자동화 실행·검증](development/testing/p2-generated-artifact-automation-2026-10-14.md) | 2026-10-14 | `implemented` | `not-applicable` |
 | `DEV-072` | [Info tab v9 — implementation and visual verification](development/testing/info-tab-v9-visual-validation-2026-10-06.md) | 2026-10-06 | `historical-record` | `not-applicable` |
 | `DEV-071` | [P1 — 원격 개발환경 표준화·검증](development/testing/p1-remote-development-validation-2026-10-14.md) | 2026-10-14 | `implemented` | `not-applicable` |
 | `DEV-070` | [P0 — 원격 개발 체계·도구 의존성·성능 기준 조사](development/testing/remote-toolchain-p0-audit-2026-10-14.md) | 2026-10-14 | `investigating` | `not-applicable` |
@@ -119,7 +120,7 @@
 | 지명 조사 원문 | [감사 결과](places/place-data-audit.md), [검토 세부표](places/place-candidate-review.md), [출처 매니페스트](places/source-manifest.json) |
 | 앱 UI·배포 기록 | [UI 통합 검증](development/app/common-ui-integration.md), [경계 분리 배포 근거](development/app/platform-boundaries-deployment.md) |
 | 앱 참조 이미지 | [앱 검증 증거](development/app/evidence/reference-image-web-parity/review.md) |
-| 역사 수계 조사 | [r152~r266 조사 데이터](hydro-names/reconstruction-2026-10-09/) |
+| 역사 수계 조사 | [r152~r194 조사 데이터](hydro-names/reconstruction-2026-10-09/) |
 
 ## 기존 원본·생성 자료
 
