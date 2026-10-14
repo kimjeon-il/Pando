@@ -5,6 +5,7 @@ import { createCountrySharedBoundaryState, prepareCountrySharedBoundaryPacket } 
 import { boundarySourceSegments, buildCountrySharedBoundarySegments, serializeCountrySharedBoundarySegments, hasOpposingBoundaryInteriors } from '../../assets/js/modules/boundary-topology.js';
 import { countryGeometrySignature } from '../../assets/js/modules/country-shared-boundary-cache.js';
 import { geometryRevisionKey } from '../../assets/js/modules/geometry-versions.js';
+import { MAX_BOUNDARY_EDGE_DEGREES } from '../../assets/js/modules/geographic-boundary.js';
 
 const rectangle = (id, west, south, east, north, root = id) => {
   const geometry = { type: 'Polygon', coordinates: [[[west, south], [east, south], [east, north], [west, north], [west, south]]] };
@@ -12,6 +13,71 @@ const rectangle = (id, west, south, east, north, root = id) => {
     boundaryGeometryRevision: geometryRevisionKey(geometry) };
 };
 const coordinates = state => serializeCountrySharedBoundarySegments(state.segments());
+
+const packetLength = packet => packet.segments.reduce((sum, segment) => sum
+  + Math.hypot(segment.end[0] - segment.start[0], segment.end[1] - segment.start[1]), 0);
+
+test('display subdivision updates owner ranges and keeps dash phases along reversed connected source edges', () => {
+  const input = [
+    { start: [0, 0], end: [2, 0], ownerIds: ['A', 'B'] },
+    { start: [50, 1], end: [52, 1], ownerIds: ['X', 'Y'] },
+    { start: [4, 0], end: [2, 0], ownerIds: ['A', 'B'] },
+    { start: [10, 0], end: [11, 0], ownerIds: ['A', 'B'] },
+  ];
+  const before = structuredClone(input);
+  const packet = prepareCountrySharedBoundaryPacket(input);
+  assert.deepEqual(input, before);
+  assert.equal(packetLength(packet), 7);
+  assert.ok(packet.segments.length > input.length);
+  const first = packet.ownerRanges['A|B'], second = packet.ownerRanges['X|Y'];
+  assert.equal(first.first, 0);
+  assert.equal(second.first, first.count);
+  assert.equal(first.count + second.count, packet.segments.length);
+  assert.equal(packet.startsEnds.length, packet.segments.length * 4);
+  assert.deepEqual(packet.preparedGeometry.ownerRanges, packet.ownerRanges);
+  assert.equal(packet.preparedGeometry.capCount, 6, 'subdivision must not create separate dash chains');
+  packet.segments.forEach((segment, index) => {
+    assert.ok(Math.max(Math.abs(segment.end[0] - segment.start[0]), Math.abs(segment.end[1] - segment.start[1]))
+      <= MAX_BOUNDARY_EDGE_DEGREES + 1e-6);
+    assert.deepEqual(segment.ownerIds, index < second.first ? ['A', 'B'] : ['X', 'Y']);
+    const expectedPhase = segment.start[0] < 4 ? segment.start[0]
+      : segment.start[0] < 20 ? segment.start[0] - 10 : segment.start[0] - 50;
+    assert.ok(Math.abs(packet.chainPhase[index] - expectedPhase) < 1e-5);
+    assert.equal(packet.preparedGeometry.instances[index * 10 + 8], packet.chainPhase[index]);
+  });
+});
+
+test('replacement outlines are subdivided only after the internal contact is removed', () => {
+  const state = createCountrySharedBoundaryState();
+  state.replace([rectangle('ROOT', 0, 0, 2, 6), rectangle('CHILD', 2, 1, 3, 5, 'ROOT')]);
+  const packet = prepareCountrySharedBoundaryPacket(state.segments(), state.features(), { preparedStore: state.preparedStore });
+  assert.equal(packetLength(packet), 4);
+  assert.deepEqual(packet.internalOwners['CHILD|ROOT'], ['CHILD']);
+  const outlines = packet.outlineOverrides;
+  assert.ok(Math.abs(packetLength(outlines) - 12) < 1e-9);
+  assert.deepEqual(outlines.ownerIds, ['ROOT']);
+  assert.deepEqual(outlines.preparedGeometry.ownerRanges, outlines.ownerRanges);
+  assert.equal(outlines.preparedGeometry.capCount, 2);
+  for (const segment of outlines.segments) {
+    assert.ok(Math.max(Math.abs(segment.end[0] - segment.start[0]), Math.abs(segment.end[1] - segment.start[1]))
+      <= MAX_BOUNDARY_EDGE_DEGREES + 1e-6);
+    if (segment.start[0] === 2 && segment.end[0] === 2) {
+      assert.ok(Math.max(segment.start[1], segment.end[1]) <= 1 || Math.min(segment.start[1], segment.end[1]) >= 5);
+    }
+  }
+});
+
+test('dateline display pieces keep one dash phase without a long closing chord', () => {
+  const packet = prepareCountrySharedBoundaryPacket([{ start: [179, 0], end: [-179, 0], ownerIds: ['A', 'B'] }]);
+  assert.equal(packetLength(packet), 2);
+  let phase = 0;
+  packet.segments.forEach((segment, index) => {
+    assert.ok(Math.abs(segment.end[0] - segment.start[0]) <= MAX_BOUNDARY_EDGE_DEGREES + 1e-6);
+    assert.ok(Math.abs(packet.chainPhase[index] - phase) < 1e-5);
+    assert.equal(packet.preparedGeometry.instances[index * 10 + 8], packet.chainPhase[index]);
+    phase += Math.hypot(segment.end[0] - segment.start[0], segment.end[1] - segment.start[1]);
+  });
+});
 
 test('parent-child exterior classification is unchanged by equivalent dateline longitude representations', () => {
   const child = rectangle('CHILD', 179, 0, 179.5, 1, 'ROOT');
@@ -196,7 +262,8 @@ test('the real Worker preserves unchanged replace preparation and updates only p
   const rows = [rectangle('A', 0, 0, 1, 1), rectangle('B', 1, 0, 2, 1), rectangle('C', 4, 0, 5, 1)];
   const first = await request({ type: 'replace', features: rows });
   assert.equal(first.projectGeneration, 8); assert.equal(first.geometryRevision, 3);
-  assert.equal(first.packet.startsEnds.length, 4);
+  assert.ok(first.packet.ownerRanges['A|B'].count > 1);
+  assert.equal(first.packet.startsEnds.length, first.packet.ownerRanges['A|B'].count * 4);
   const same = await request({ type: 'replace', features: structuredClone(rows) });
   assert.deepEqual(same.preparationStats, first.preparationStats);
   const moved = await request({ type: 'patch', features: [rectangle('B', 3, 0, 4, 1)] });
