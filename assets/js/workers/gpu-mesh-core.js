@@ -432,6 +432,63 @@
     return { triangles: output, removed };
   }
 
+  function finalTriangleBoundaryEdges(points, triangles, chains) {
+    // Source rings decide which coast/seam edges exist. Final fill triangles
+    // decide which vertices may actually represent those visible edges.
+    const MICRO = 1e6, WORLD = 360 * MICRO, HALF = 180 * MICRO;
+    const packed = points.map(point => [Math.round(point[0] * MICRO), Math.round(point[1] * MICRO)]);
+    const normalized = packed.map(([longitude, latitude]) =>
+      `${((longitude + HALF) % WORLD + WORLD) % WORLD - HALF},${latitude}`);
+    const key = (a, b) => normalized[a] < normalized[b]
+      ? `${normalized[a]}|${normalized[b]}` : `${normalized[b]}|${normalized[a]}`;
+
+    const sources = [];
+    const candidates = new Map();
+    for (const chain of chains) {
+      for (let index = 0; index < chain.vertices.length; index += 1) {
+        if (!chain.visible[index]) continue;
+        const a = chain.vertices[index], b = chain.vertices[(index + 1) % chain.vertices.length];
+        if (packed[a][0] === packed[b][0] && packed[a][1] === packed[b][1]) continue;
+        const pair = key(a, b);
+        sources.push({ a, b, pair });
+        if (!candidates.has(pair)) candidates.set(pair, new Map());
+      }
+    }
+    if (!sources.length) return [];
+
+    for (let i = 0; i < triangles.length; i += 3) {
+      const a = triangles[i], b = triangles[i + 1], c = triangles[i + 2];
+      for (const [left, right] of [[a, b], [b, c], [c, a]]) {
+        const pair = key(left, right);
+        const matches = candidates.get(pair);
+        if (!matches) continue;
+        const triangleEdge = edgeKey(left, right);
+        const previous = matches.get(triangleEdge);
+        if (previous) previous.count++;
+        else matches.set(triangleEdge, { a: left, b: right, count: 1 });
+      }
+    }
+
+    return sources.map(({ a, b, pair }) => {
+      const boundary = [...candidates.get(pair).values()].filter(edge => edge.count === 1);
+      if (!boundary.length) {
+        throw Object.assign(new Error(`GPU 외곽선과 채색 경계 불일치: ${points[a].join(',')} → ${points[b].join(',')}`),
+          { code: 'PL-MESH-BOUNDARY' });
+      }
+      let chosen = null, bestDistance = Infinity;
+      for (const edge of boundary) {
+        const forward = normalized[edge.a] === normalized[a];
+        const start = forward ? edge.a : edge.b, end = forward ? edge.b : edge.a;
+        const distance = Math.abs(packed[a][0] - packed[start][0])
+          + Math.abs(packed[a][1] - packed[start][1])
+          + Math.abs(packed[b][0] - packed[end][0])
+          + Math.abs(packed[b][1] - packed[end][1]);
+        if (distance < bestDistance) { bestDistance = distance; chosen = [start, end]; }
+      }
+      return chosen;
+    });
+  }
+
   function buildGpuMeshFeatures(features, earcutImpl, options = {}) {
     if (typeof earcutImpl !== 'function') throw new Error('GPU 삼각분할 엔진이 없습니다.');
     const validate = !!options.validate;
@@ -526,19 +583,16 @@
           countryIndices.push(countryIndex);
         }
         for (const index of localTriangles) triangleIndices.push(vertexOffset + index);
-        // The stroke uses the exact refined indices of its fill boundary
-        // and coordinates from the same quantized position buffer.
-        for (const chain of boundaryChains) {
-          for (let index = 0; index < chain.vertices.length; index += 1) {
-            if (!chain.visible[index]) continue;
-            const start = vertexOffset + chain.vertices[index];
-            const end = vertexOffset + chain.vertices[(index + 1) % chain.vertices.length];
-            const ax = positions[start * 2], ay = positions[start * 2 + 1];
-            const bx = positions[end * 2], by = positions[end * 2 + 1];
-            if (ax === bx && ay === by) continue;
-            lineIndices.push(start, end);
-            strokeStartsEnds.push(ax * 1e-6, ay * 1e-6, bx * 1e-6, by * 1e-6);
-          }
+        // Longitude unwrap can duplicate a vertex for a fill triangle
+        // without updating the original boundary chain. Reconcile display
+        // strokes with the FINAL packed triangle boundary after those clones
+        // and discarded degenerate triangles have been decided.
+        for (const [a, b] of finalTriangleBoundaryEdges(geoPoints, localTriangles, boundaryChains)) {
+          const start = vertexOffset + a, end = vertexOffset + b;
+          const ax = positions[start * 2], ay = positions[start * 2 + 1];
+          const bx = positions[end * 2], by = positions[end * 2 + 1];
+          lineIndices.push(start, end);
+          strokeStartsEnds.push(ax * 1e-6, ay * 1e-6, bx * 1e-6, by * 1e-6);
         }
 
         for (let index = 0; index < localTriangles.length; index += 3) {
