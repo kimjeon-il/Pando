@@ -1,0 +1,49 @@
+name: Temporary objects-to-GIS merge staging
+
+on:
+  push:
+    branches:
+      - sync/objects-to-gis-20261014
+    paths:
+      - .github/workflows/sync-objects-to-gis-20261014.yml
+
+permissions:
+  contents: write
+
+jobs:
+  stage-merge:
+    if: github.repository == 'kimjeon-il/Pando'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out source history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Merge into isolated GIS staging branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch origin refs/heads/work/gis:refs/remotes/origin/work/gis refs/heads/work/objects:refs/remotes/origin/work/objects
+          git switch -C sync/gis-resolved-20261014 origin/work/gis
+          if ! git merge --no-commit --no-ff -X ours origin/work/objects; then
+            echo 'Merge requires explicit conflict resolution.'
+            git status --short
+            git ls-files -u
+            exit 1
+          fi
+          if [[ -n "$(git ls-files -u)" ]]; then
+            echo 'Unmerged paths remain.'
+            git ls-files -u
+            exit 1
+          fi
+          git commit -m 'Merge work/objects into work/gis (2026-10-14)'
+          git diff HEAD^1 HEAD --check
+          node --check tools/report-paths.mjs
+          python -m py_compile tools/report_paths.py
+          git push origin HEAD:refs/heads/sync/gis-resolved-20261014
+          echo "Staged merge commit: $(git rev-parse HEAD)"
