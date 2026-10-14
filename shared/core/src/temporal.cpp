@@ -151,6 +151,18 @@ std::string shiftTemporalMonth(const std::string& cursor,int offset) {
     const auto month=std::to_string(monthIndex+1);
     return prefix+digits+"-"+(month.size()==1?"0":"")+month;
 }
+TemporalKey temporalFollowingDay(const TemporalKey& date) {
+    if(date.year==0||date.year<-999999||date.year>999999)
+        throw std::invalid_argument("INVALID_DATE: year out of range");
+    if(date.month<1||date.month>12)throw std::invalid_argument("INVALID_DATE: month");
+    const int last=monthDays(date.year,date.month);
+    if(date.day<1||date.day>last)throw std::invalid_argument("INVALID_DATE: day");
+    if(date.day<last)return {date.year,date.month,date.day+1};
+    if(date.month<12)return {date.year,date.month+1,1};
+    // +999999-12-31 transitions to an internal +1000000-01-01 event
+    // sentinel; it must never be serialized as a public TemporalValue.
+    return {date.year==-1?1:date.year+1,1,1};
+}
 std::pair<std::int64_t,std::int64_t> temporalBounds(const Validity& validity) {
     const auto interval=normalizeTemporalInterval(validity.from,validity.to);
     return {interval.start?interval.start->start:-infinity,
