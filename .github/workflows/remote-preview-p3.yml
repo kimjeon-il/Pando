@@ -124,6 +124,8 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
       - name: Verify the active built-in world mesh decoder and GPU capability wiring
         run: node --test tests/unit/country-mesh-codec-runtime.test.mjs tests/unit/gpu-scene-platform-port.test.mjs
+      - name: Verify the C++ area delegation and boundary-edit handoff
+        run: node --test tests/unit/p5-spherical-area-delegation.test.mjs tests/unit/edit-preview-handoff.test.mjs tests/unit/country-shared-boundary-state.test.mjs
       - name: Run real desktop and emulated mobile screenshots plus startup observability
         shell: bash
         env:
@@ -257,7 +259,8 @@ jobs:
         run: |
           set -euo pipefail
           cmake --build --preset "$PANDO_P3_QT_PRESET" --target split_geometry_normalizer_tests 2>&1 | tee p3-p5-qt-area-build.log
-          ctest --test-dir "build-native/p3/$PANDO_P3_QT_PRESET" -C Release -R '^split_geometry_normalizer_tests
+          ctest --test-dir "build-native/p3/$PANDO_P3_QT_PRESET" -C Release -R p5_spherical_area_qt_bridge --output-on-failure 2>&1 | tee p3-p5-qt-area-ctest.log
+      - name: Capture a real nonblank Qt Quick application window under Linux Xvfb
         if: runner.os == 'Linux'
         shell: bash
         run: |
@@ -293,47 +296,6 @@ jobs:
             p3-ctest.log
             p3-p5-qt-area-build.log
             p3-p5-qt-area-ctest.log
-            p3-qt-regenerated-geometry.patch
-            test-results/p3-qt
-            build-native/p3/${{ matrix.preset }}/native/build-provenance.json
-            build-native/p3/${{ matrix.preset }}/Testing/Temporary/LastTest.log
-          if-no-files-found: warn
-          retention-days: 10
- --output-on-failure 2>&1 | tee p3-p5-qt-area-ctest.log
-      - name: Capture a real nonblank Qt Quick application window under Linux Xvfb
-        if: runner.os == 'Linux'
-        shell: bash
-        run: |
-          set -euo pipefail
-          app="$PWD/build-native/p3/pando-native-qt-ci-linux/native/app/pandoeditor"
-          bash native/tools/p3-capture-smoke.sh \
-            "$app" "$PWD/test-results/p3-qt/native-smoke.log" \
-            "$PWD/test-results/p3-qt/native-window.png"
-      - name: Record Qt binary identity for this platform
-        shell: bash
-        if: success()
-        env:
-          P3_OS: ${{ matrix.os_id }}
-        run: |
-          mkdir -p test-results/p3-qt
-          if [ "$P3_OS" = windows ]; then
-            find build-native/p3/pando-native-qt-ci-windows -type f -name pandoeditor.exe -print | head -1 > test-results/p3-qt/binary-path.txt
-          else
-            find build-native/p3/pando-native-qt-ci-linux -type f -name pandoeditor -print | head -1 > test-results/p3-qt/binary-path.txt
-          fi
-          test -s test-results/p3-qt/binary-path.txt
-          while IFS= read -r bin; do
-            cp "$bin" "test-results/p3-qt/pandoeditor-$P3_OS$(echo "$bin" | grep -q '.exe$' && printf '.exe' || true)"
-            sha256sum "$bin" > test-results/p3-qt/binary-sha256.txt
-          done < test-results/p3-qt/binary-path.txt
-      - name: Archive binaries, Qt screenshots, CTest logs and failure receipts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: p3-qt-${{ matrix.os_id }}-${{ github.sha }}
-          path: |
-            p3-qt-build.log
-            p3-ctest.log
             p3-qt-regenerated-geometry.patch
             test-results/p3-qt
             build-native/p3/${{ matrix.preset }}/native/build-provenance.json
