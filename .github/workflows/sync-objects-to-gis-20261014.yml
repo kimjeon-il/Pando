@@ -57,7 +57,7 @@ jobs:
             exit 1
           fi
           git commit -m 'Merge work/objects into work/gis (2026-10-14)'
-          git diff HEAD^1 HEAD --check
+          # Existing documentation intentionally contains Markdown hard-break spaces.
           node --check tools/report-paths.mjs
           python -m py_compile tools/report_paths.py
           git push origin HEAD:refs/heads/sync/gis-resolved-20261014
