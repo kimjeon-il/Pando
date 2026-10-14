@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-# Capture an actual Qt Quick window, not a black Xvfb root framebuffer.
-# Exit nonzero if the QML smoke check fails or the screenshot is blank.
+# Ask Qt Quick to grab its actual rendered window while it still exists.
 set -euo pipefail
 if [ "$#" -ne 3 ]; then
   echo "Usage: p3-capture-smoke.sh APP_BINARY LOG_PATH PNG_PATH" >&2
@@ -11,35 +10,25 @@ log="$(realpath -m "$2")"
 screenshot="$(realpath -m "$3")"
 test -x "$app"
 mkdir -p "$(dirname "$log")" "$(dirname "$screenshot")"
-command -v xdotool
-command -v import
-command -v identify
-xvfb-run -a -s '-screen 0 1280x800x24' bash -c '
-  set -euo pipefail
-  app="$1"; log="$2"; screenshot="$3"
-  export QT_QPA_PLATFORM=xcb QT_QUICK_BACKEND=software
-  "$app" --smoke-check > "$log" 2>&1 &
-  pid=$!
-  valid=0
-  for attempt in $(seq 1 30); do
-    if ! kill -0 "$pid" 2>/dev/null; then break; fi
-    window=$(xdotool search --onlyvisible --pid "$pid" 2>/dev/null | head -1 || true)
-    if [ -z "$window" ]; then
-      window=$(xdotool search --onlyvisible --name "Pandoeditor" 2>/dev/null | head -1 || true)
-    fi
-    if [ -n "$window" ]; then
-      import -window "$window" "$screenshot" 2>/dev/null || true
-      if [ -s "$screenshot" ]; then
-        colors=$(identify -format "%k" "$screenshot" 2>/dev/null || echo 0)
-        if [ "$colors" -ge 8 ] 2>/dev/null; then valid=1; break; fi
-      fi
-    fi
-    sleep 0.07
-  done
-  wait "$pid"
-  if [ "$valid" -ne 1 ]; then
-    echo "P3_QT_SCREENSHOT_BLANK_OR_WINDOW_NOT_FOUND" >&2
-    exit 3
-  fi
-  echo "Captured nonblank Qt Quick window: $screenshot"
-' bash "$app" "$log" "$screenshot"
+command -v identify >/dev/null
+
+set +e
+QT_QPA_PLATFORM=xcb QT_QUICK_BACKEND=software \
+  xvfb-run -a -s '-screen 0 1280x800x24' \
+  "$app" --smoke-check "--smoke-capture=$screenshot" >"$log" 2>&1
+status=$?
+set -e
+cat "$log"
+if [ "$status" -ne 0 ]; then
+  echo "P3_QT_SMOKE_FAILED: status=$status" >&2
+  exit "$status"
+fi
+test -s "$screenshot" || { echo 'P3_QT_CAPTURE_MISSING' >&2; exit 3; }
+colors="$(identify -format '%k' "$screenshot")"
+width="$(identify -format '%w' "$screenshot")"
+height="$(identify -format '%h' "$screenshot")"
+if [ "$colors" -lt 8 ] || [ "$width" -lt 160 ] || [ "$height" -lt 120 ]; then
+  echo "P3_QT_CAPTURE_BLANK: $width x $height colors=$colors" >&2
+  exit 3
+fi
+echo "P3_QT_CAPTURE_OK: $width x $height colors=$colors"
