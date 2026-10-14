@@ -24,7 +24,7 @@ export function historicalWorldTrace(project, sourceMonth) {
   const rings = createRingHitTester(ring => ring);
   const contains = (geometry, point) => (geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates)
     .some(polygon => rings.contains(point, polygon[0]) && !polygon.slice(1).some(ring => rings.contains(point, ring)));
-  return { schemaVersion: 1, months: ['1900-01', '1941-04', '1945-11', '1991-08', '1991-12', '2012-10', '2014-02', '2014-03', '2015-10', '2020-10', '2020-11', sourceMonth].map(month => {
+  return { schemaVersion: 1, months: ['1900-01', '1941-04', '1945-11', '1963-04', '1963-05', '1975-11', '1975-12', '1991-08', '1991-12', '1999-09', '1999-10', '2002-04', '2002-05', '2011-06', '2011-07', '2012-10', '2014-02', '2014-03', '2015-10', '2020-10', '2020-11', sourceMonth].map(month => {
     const view = resolveWorld(project.territorialEntities, project.timelineRecords, archive, month);
     return { month, entities: view.entities.map(row => {
       const info = row.identity.properties.metadata.historicalTimeline;

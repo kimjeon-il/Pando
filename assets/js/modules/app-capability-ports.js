@@ -38,6 +38,8 @@ export function createSpatialDataPorts(providers) {
       get normalizeClippedLandGeometry() { return providers.cutGeometry.normalizeClippedLandGeometry; },
     }),
     domains: Object.freeze({
+      get commandOwner() { return providers.domainAssembly.commandOwner; },
+      get documentModel() { return providers.domainAssembly.documentModel; },
       get editingDomain() { return providers.domainAssembly.editingDomain; },
       get layerTreeController() { return providers.domainAssembly.layerTreeController; },
       get projectDomain() { return providers.domainAssembly.projectDomain; },
@@ -56,7 +58,6 @@ export function createSpatialDataPorts(providers) {
       get planCoastEdit() { return providers.runtime.planCoastEdit; },
       get planSharedBoundaryEdit() { return providers.runtime.planSharedBoundaryEdit; },
       get previewIsCurrent() { return providers.runtime.previewIsCurrent; },
-      get runMapEditTransaction() { return providers.runtime.runMapEditTransaction; },
     }),
     geometryModel: Object.freeze({
       get ensureClosedRing() { return providers.runtime.ensureClosedRing; },
@@ -139,9 +140,6 @@ export function createSpatialDataPorts(providers) {
       get selectionPerformanceMetrics() { return providers.serviceAssembly.selectionPerformanceMetrics; },
     }),
     snapshots: Object.freeze({
-      get applySharedProjectFields() { return providers.projectSnapshots.applySharedProjectFields; },
-      get normalizeProjectObjects() { return providers.projectSnapshots.normalizeProjectObjects; },
-      get restoreEntitiesFromSnapshot() { return providers.projectSnapshots.restoreEntitiesFromSnapshot; },
       get snapshotEditable() { return providers.projectSnapshots.snapshotEditable; },
     }),
     spatialFactories: Object.freeze({
@@ -174,13 +172,13 @@ export function createSpatialDataPorts(providers) {
       get territorialRootId() { return providers.runtime.territorialRootId; },
       get entityRepository() { return providers.domainAssembly.territorialEntityRepository; },
       get entityStore() { return providers.domainAssembly.territorialEntityStore; },
-      get assertProjectReferenceIntegrity() { return providers.runtime.assertProjectReferenceIntegrity; },
       get buildSharedBoundaryTopology() { return providers.runtime.buildSharedBoundaryTopology; },
       get composeRiverBoundaryTerritoryComponents() { return providers.runtime.composeRiverBoundaryTerritoryComponents; },
       get createRingHitTester() { return providers.runtime.createRingHitTester; },
       get DISTRIBUTION_MODES() { return providers.runtime.DISTRIBUTION_MODES; },
       get normalizeTerritorialEntities() { return providers.runtime.normalizeTerritorialEntities; },
-      get TERRITORIAL_COVERAGE_MODES() { return providers.runtime.TERRITORIAL_COVERAGE_MODES; },    }),
+      get TERRITORIAL_COVERAGE_MODES() { return providers.runtime.TERRITORIAL_COVERAGE_MODES; },
+    }),
     territoryGeometry: Object.freeze({
       get geometryMultiCoordinates() { return providers.territoryComponents.geometryMultiCoordinates; },
       get multiPolygonPlanarArea() { return providers.territoryComponents.multiPolygonPlanarArea; },
@@ -188,9 +186,6 @@ export function createSpatialDataPorts(providers) {
       get pointInRing() { return providers.landRelations.pointInRing; },
       get pointOnSegment() { return providers.landRelations.pointOnSegment; },
       get ringHitTester() { return providers.landRelations.ringHitTester; },
-    }),
-    validation: Object.freeze({
-      get restoreEditTransactionSnapshot() { return providers.projectSnapshots.restoreEditTransactionSnapshot; },
     }),
   };
   return Object.freeze(ports);
@@ -293,10 +288,10 @@ function createMapResourcePorts(providers) {
     }),
     objectCatalog: Object.freeze({
       get builtinSubunitSourceId() { return providers.runtime.builtinSubunitSourceId; },
-      get GENERIC_FEATURE_ROLE_RULES() { return providers.runtime.GENERIC_FEATURE_ROLE_RULES; },
       get MAP_OBJECT_CATEGORIES() { return providers.runtime.MAP_OBJECT_CATEGORIES; },
       get MAP_OBJECT_CATEGORY_ORDER() { return providers.runtime.MAP_OBJECT_CATEGORY_ORDER; },
-      get MAP_OBJECT_TYPES() { return providers.runtime.MAP_OBJECT_TYPES; },    }),
+      get MAP_OBJECT_TYPES() { return providers.runtime.MAP_OBJECT_TYPES; },
+    }),
     objectPresentation: Object.freeze({
       get createTerritorialScopeResolver() { return providers.runtime.createTerritorialScopeResolver; },
       get genericFeatureGeometryKind() { return providers.runtime.genericFeatureGeometryKind; },

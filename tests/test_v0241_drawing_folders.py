@@ -22,12 +22,12 @@ class V0241GenericFeatureFlatListTests(unittest.TestCase):
         transaction = read_module(ROOT,'gis-import-transaction.js')
         importer = function_source(transaction,'importGeoJson')
         self.assertIn('genericFeatureService.addMany(supported)', importer)
-        self.assertIn('documentStore.replaceFeatures(normalizeGenericFeatureCollection([...genericFeatures(), ...normalized]))', GENERIC_FEATURE_SERVICE)
+        self.assertIn("execute('generic.import', ids.map(ref), { features })", function_source(GENERIC_FEATURE_SERVICE,'addMany'))
         self.assertIn('supported.push(normalizeGenericFeatureSemantics(f))', importer)
         self.assertIn('const sourceId = String(f.id', importer)
         self.assertIn('sourceId,', importer)
         self.assertNotIn('createImportedGenericFeatureFolder', importer)
-        self.assertIn("mutateDocument({ type: 'generic-feature-import'", function_source(GENERIC_FEATURE_SERVICE,'addMany'))
+        self.assertIn("accepted(result, 'after', id)", function_source(GENERIC_FEATURE_SERVICE,'addMany'))
 
     def test_editor_and_layer_tree_have_no_folder_controls(self):
         self.assertNotIn('id="genericFeatureFolderInput"', INDEX)

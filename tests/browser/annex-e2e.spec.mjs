@@ -284,7 +284,7 @@ test('annex - line', async ({ page }) => {
   const context = await openAnnex(page, [27.5, 41.8]);
   await page.locator('#modeDirectLineMethodInput').check();
   await expect(page.locator('#modeTaskInstruction')).toHaveText('가져올 영토를 가로질러 선을 그리세요.', { timeout: 60_000 });
-  await drawStroke(page, [[26, 41.8], [29, 41.8]], { closed: false });
+  await drawStroke(page, [[29, 41.8], [26, 41.8]], { closed: false });
   await expect(page.locator('.draft-shape.cut-valid')).toHaveCount(1, { timeout: 45_000 });
   await expect(page.locator('.draft-split-preview')).toHaveCount(2);
   await page.locator('#modeDraftDoneBtn').click();
@@ -303,7 +303,7 @@ test('annex - line SVG fallback shows the same small candidate', async ({ page }
   const context = await openAnnex(page, [27.5, 41.8], { renderer: 'canvas' });
   await page.locator('#modeDirectLineMethodInput').check();
   await expect(page.locator('#modeTaskInstruction')).toHaveText('가져올 영토를 가로질러 선을 그리세요.', { timeout: 60_000 });
-  await drawStroke(page, [[26, 41.8], [29, 41.8]], { closed: false });
+  await drawStroke(page, [[29, 41.8], [26, 41.8]], { closed: false });
   await expect(page.locator('.draft-shape.cut-valid')).toHaveCount(1, { timeout: 45_000 });
   await page.locator('#modeDraftDoneBtn').click();
   await expect(page.locator('path.territory-candidate')).toHaveCount(2);
@@ -321,7 +321,7 @@ test('annex - line candidate stays local on the globe', async ({ page }) => {
   const context = await openAnnex(page, [27.5, 41.8]);
   await page.locator('#modeDirectLineMethodInput').check();
   await expect(page.locator('#modeTaskInstruction')).toHaveText('가져올 영토를 가로질러 선을 그리세요.', { timeout: 60_000 });
-  await drawStroke(page, [[26, 41.8], [29, 41.8]], { closed: false });
+  await drawStroke(page, [[29, 41.8], [26, 41.8]], { closed: false });
   await expect(page.locator('.draft-shape.cut-valid')).toHaveCount(1, { timeout: 45_000 });
   await page.locator('#globeBtn').evaluate(button => button.click());
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_VIEW_STATE__?.projection)).toBe('globe');

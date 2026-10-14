@@ -314,25 +314,43 @@ function canvasFallbackWorkerMain() {
       }
     }
 
-    function renderTerrain(message, projection, width, height, dpr) {
+    function renderTerrain(message, projection, width, height, dpr, visibleLand) {
       if (!message.physicalSettings?.terrainVisible || !terrainManifest?.levels?.length) return true;
       const levels = terrainManifest.levels;
-      const baseLevel = levels[Math.min(1, levels.length - 1)];
-      const targetLevel = message.meshQuality === 'preview' ? baseLevel
-        : terrainLevelForView(projection, message.terrainDpr || dpr);
+      // Source detail follows the physical view scale and original DPR,
+      // independently of the preview/canonical country mesh quality.
+      const targetLevel = terrainLevelForView(projection, message.terrainDpr || dpr);
       const targetSpecs = visibleTerrainTileSpecs(targetLevel, message, projection, width, height, false);
       const neighbours = terrainNeighbourSpecs(targetLevel, targetSpecs);
-      const terrainComplete = targetSpecs.every(spec => terrainTiles.has(spec.key));
+      const baseLevel = levels[0];
+      const baseSpecs = visibleTerrainTileSpecs(baseLevel, message, projection, width, height, true);
+      const baseReady = baseSpecs.every(spec => terrainTiles.has(spec.key));
+      const terrainComplete = baseReady && targetSpecs.every(spec => terrainTiles.has(spec.key));
+      const missingSpecs = targetSpecs.filter(spec => !terrainTiles.has(spec.key));
+      const fallbackSpecs = missingSpecs.length
+        ? levels.filter(level => level.id !== targetLevel.id && level.id !== baseLevel.id)
+          .flatMap(level => visibleTerrainTileSpecs(level, message, projection, width, height))
+          .filter(spec => terrainTiles.has(spec.key) && missingSpecs.some(target =>
+            spec.bounds[0] < target.bounds[2] && spec.bounds[2] > target.bounds[0]
+            && spec.bounds[3] < target.bounds[1] && spec.bounds[1] > target.bounds[3]))
+          .sort((a, b) => a.level - b.level)
+        : [];
       terrainProtectedKeys.clear();
-      for (const spec of [...targetSpecs, ...neighbours]) terrainProtectedKeys.add(spec.key);
+      for (const spec of [...baseSpecs, ...targetSpecs, ...neighbours, ...fallbackSpecs]) terrainProtectedKeys.add(spec.key);
       for (let index = terrainFetchQueue.length - 1; index >= 0; index -= 1) {
         const key = terrainFetchQueue[index].spec.key;
         if (terrainProtectedKeys.has(key)) continue;
         terrainQueuedKeys.delete(key);
         terrainFetchQueue.splice(index, 1);
       }
-      for (const spec of targetSpecs) requestTerrainTile(spec, 10_000);
+      // Acquire complete world coverage before filling the fetch slots with
+      // detailed tiles. The world base remains pinned across view changes.
+      for (const spec of baseSpecs) requestTerrainTile(spec, 50_000);
+      for (const spec of targetSpecs) requestTerrainTile(spec, 30_000);
       for (const spec of neighbours) requestTerrainTile(spec, 120);
+      const drawSpecs = baseReady
+        ? [...baseSpecs, ...fallbackSpecs, ...(targetLevel.id === baseLevel.id ? [] : targetSpecs)]
+        : [];
       const style = message.physicalSettings.terrainStyle === 'physical' ? 'physical' : 'political';
       context.save();
       context.globalAlpha = 1;
@@ -340,7 +358,9 @@ function canvasFallbackWorkerMain() {
       if (style === 'political') {
         context.setTransform(dpr, 0, 0, dpr, 0, 0);
         context.beginPath();
-        self.d3.geo.path().projection(projection).context(context)({ type: 'FeatureCollection', features });
+        // Use the same adopted country geometry as the Canvas substrate
+        // and country fills, including country visibility and edit patches.
+        self.d3.geo.path().projection(projection).context(context)({ type: 'FeatureCollection', features: visibleLand });
         for (const packet of message.scenePolygons || []) {
           if (packet.role === 'territorial-fill') self.d3.geo.path().projection(projection).context(context)(self.PandoLabCanvasSceneComposition.geometryFor(packet));
         }
@@ -354,13 +374,13 @@ function canvasFallbackWorkerMain() {
         context.clip();
         context.setTransform(1, 0, 0, 1, 0, 0);
       }
-      for (const spec of targetSpecs) {
+      for (const spec of drawSpecs) {
         const tile = terrainTiles.get(spec.key);
         if (!tile) continue;
         tile.lastUsed = performance.now();
         const image = tile[style];
         if (message.projection === 'flat') drawFlatTerrainTile(spec, image, projection, dpr);
-        else drawGlobeTerrainTile(spec, image, projection, message, dpr, targetLevel.id === 0);
+        else drawGlobeTerrainTile(spec, image, projection, message, dpr, spec.level === baseLevel.id);
       }
       context.restore();
       return terrainComplete;
@@ -543,6 +563,18 @@ function canvasFallbackWorkerMain() {
       return String(feature?.id || index);
     }
 
+    function retainCountryGeometry(feature, previous) {
+      return typeof feature.boundaryGeometryRevision === 'string'
+        && feature.boundaryGeometryRevision === previous?.boundaryGeometryRevision
+        ? { ...feature, geometry: previous.geometry } : feature;
+    }
+
+    function replaceCountryFeatures(incoming, generation) {
+      const previous = Number(generation || projectGeneration) === projectGeneration
+        ? new Map(features.map((feature, index) => [countryId(feature, index), feature])) : new Map();
+      return incoming.map((feature, index) => retainCountryGeometry(feature, previous.get(countryId(feature, index))));
+    }
+
     function countryOutlineFeature(feature) {
       const geometry = feature?.geometry;
       if (geometry && countryOutlineCache.has(geometry)) return countryOutlineCache.get(geometry);
@@ -604,7 +636,7 @@ function canvasFallbackWorkerMain() {
         context.globalAlpha = 1;
           },
           terrain: () => {
-        terrainComplete = renderTerrain(message, projection, width, height, dpr);
+        terrainComplete = renderTerrain(message, projection, width, height, dpr, visibleLand);
         if (!substrate || substrate.width !== pixelWidth || substrate.height !== pixelHeight) substrate = new OffscreenCanvas(pixelWidth, pixelHeight);
         const substrateContext = substrate.getContext('2d');
         substrateContext.clearRect(0, 0, pixelWidth, pixelHeight);
@@ -614,11 +646,10 @@ function canvasFallbackWorkerMain() {
         context.lineWidth = theme.strokes.country.width;
           },
           'country-fill': () => {
-        for (let index = 0; message.visible && index < features.length; index += 1) {
-          const feature = features[index];
-          if (hiddenCountryIds.has(countryId(feature, index))) continue;
-          const fill = message.fills[countryId(feature, index)];
-          if (!(fill.fillAlpha > 0)) continue;
+        for (const feature of visibleLand) {
+          const fill = message.fills[countryId(feature)];
+          // Geometry patches and style messages can cross a background frame.
+          if (!fill || !(fill.fillAlpha > 0)) continue;
           context.beginPath();
           geoPath(feature);
           context.globalAlpha = fill.fillAlpha;
@@ -686,7 +717,7 @@ function canvasFallbackWorkerMain() {
     self.onmessage = event => {
       const message = event.data || {};
       if (message.type === 'init') {
-        features = message.features || [];
+        features = replaceCountryFeatures(message.features || [], message.projectGeneration);
         geometryRevision = Number(message.geometryRevision || 0);
         projectGeneration = Number(message.projectGeneration || 0);
         countrySharedBoundary = message.sharedBoundary || null;
@@ -718,7 +749,8 @@ function canvasFallbackWorkerMain() {
           });
           return;
         }
-        features = message.features || [];
+        features = replaceCountryFeatures(message.features || [], message.projectGeneration);
+        if (message.fills) mergeRenderState({ fills: message.fills });
         geometryRevision = incomingGeometryRevision;
         projectGeneration = Number(message.projectGeneration || projectGeneration);
         // Keep the previously presented shared strokes until the matching
@@ -749,11 +781,16 @@ function canvasFallbackWorkerMain() {
           if (removed.has(id)) return [];
           if (updates.has(id)) {
             seen.add(id);
-            return [updates.get(id)];
+            return [retainCountryGeometry(updates.get(id), feature)];
           }
           return [feature];
         });
         for (const [id, feature] of updates) if (!seen.has(id)) features.push(feature);
+        if (message.fills) {
+          const fills = { ...lastRenderMessage?.fills, ...message.fills };
+          for (const id of removed) delete fills[id];
+          mergeRenderState({ fills });
+        }
         geometryRevision = incomingGeometryRevision;
         projectGeneration = Number(message.projectGeneration || projectGeneration);
         // Keep the previously presented shared strokes until the matching
@@ -797,7 +834,7 @@ function canvasFallbackWorkerMain() {
           pumpTerrainFetchQueue();
           render(mergeRenderState(message), message.renderRequestId);
         } catch (error) {
-          self.postMessage({ type: 'error', message: error?.message || String(error) });
+          self.postMessage({ type: 'error', message: error?.stack || error?.message || String(error) });
         }
       }
     };

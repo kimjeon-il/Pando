@@ -5,6 +5,7 @@ export function createTerritorySelectionWorkflow() {
   let adapters;
   let previewTimer = null;
   let previewGeneration = 0;
+  let sessionRequestSequence = 0;
   const text = value => String(value ?? '').trim();
 
   function connect(ports) {
@@ -176,12 +177,16 @@ export function createTerritorySelectionWorkflow() {
     (0, dependencies.taskUi.updateModeButtons)();
   }
 
-  function start(kind, options = {}) {
+  async function start(kind, options = {}) {
     if (!adapters?.has(kind)) return false;
-    clear({ discardPreview: true, refreshUi: false });
+    const generation = dependencies.domains.projectDomain.getGeneration();
+    const request = sessionRequestSequence + 1;
+    await clear({ discardPreview: true, refreshUi: false });
+    if (request !== sessionRequestSequence || generation !== dependencies.domains.projectDomain.getGeneration()) return false;
     const current = createSession(kind, options);
     dependencies.projectState.state.territorySelectionSession = current;
-    dependencies.domains.editingDomain?.setTool(current.tool, { announce: false });
+    if (!await dependencies.domains.editingDomain.setTool(current.tool, { announce: false })
+      || request !== sessionRequestSequence || generation !== dependencies.domains.projectDomain.getGeneration()) return false;
     dependencies.projectState.state.territorySelectionSession = current;
     (0, dependencies.taskUi.setModeBanner)('');
     refresh('territory-selection-start');
@@ -199,16 +204,20 @@ export function createTerritorySelectionWorkflow() {
       current.previewPending = false;
       if (!preserveReady) current.previewReadyKey = null;
     }
-    if (discard) (0, dependencies.geometryOperations.discardActiveGeometryPreview)({ announce: false });
+    if (discard) dependencies.geometryOperations.discardActiveGeometryPreview({ announce: false }).catch(error=>dependencies.feedback.reportOperationError(error,
+      '미리보기를 취소하지 못했습니다.','PL-PREVIEW-CANCEL',4200));
     (0, dependencies.taskUi.updateModeButtons)();
   }
 
-  function clear({ discardPreview = true, refreshUi = true } = {}) {
+  async function clear({ discardPreview = true, refreshUi = true } = {}) {
+    const request = ++sessionRequestSequence;
     const current = session();
     cancelSelectionComputation(current);
     cancelPreview({ discard: discardPreview });
-    dependencies.domains.editingDomain?.clearDraft?.({ reason: 'territory-selection-clear', render: false });
+    const generation = dependencies.domains.projectDomain.getGeneration();
     dependencies.projectState.state.territorySelectionSession = null;
+    await dependencies.domains.editingDomain.clearDraft({ reason: 'territory-selection-clear', render: false });
+    if (request !== sessionRequestSequence || generation !== dependencies.domains.projectDomain.getGeneration()) return false;
     (0, dependencies.riverCandidates.resetRiverPartitionState)();
     if (refreshUi) refresh('territory-selection-clear');
     return !!current;
@@ -236,10 +245,11 @@ export function createTerritorySelectionWorkflow() {
     current.previewReadyKey = null;
   }
 
-  function clearCurrentSelection(current = session(), { clearDraft = true, refreshUi = false } = {}) {
+  async function clearCurrentSelection(current = session(), { clearDraft = true, refreshUi = false } = {}) {
     if (!current) return false;
     touchSelection(current);
-    if (clearDraft) dependencies.domains.editingDomain?.clearDraft?.({ reason: 'territory-selection-current-clear', render: false });
+    if (clearDraft) await dependencies.domains.editingDomain.clearDraft({ reason: 'territory-selection-current-clear', render: false });
+    if (current !== session()) return false;
     current.activePhase = null;
     current.activeMethod = null;
     current.requestedMethod = null;
@@ -260,11 +270,12 @@ export function createTerritorySelectionWorkflow() {
     return true;
   }
 
-  function resetSelection(current = session(), { keepRequestedMethod = true, refreshUi = true } = {}) {
+  async function resetSelection(current = session(), { keepRequestedMethod = true, refreshUi = true } = {}) {
     if (!current) return false;
     configureCreationPolicy(current);
     const requestedMethod = current.requestedMethod;
-    clearCurrentSelection(current, { refreshUi: false });
+    await clearCurrentSelection(current, { refreshUi: false });
+    if (current !== session()) return false;
     current.requestedMethod = keepRequestedMethod ? requestedMethod : null;
     current.parts = [];
     current.componentIndex = null;
@@ -315,7 +326,7 @@ export function createTerritorySelectionWorkflow() {
     };
   }
 
-  function restoreCurrentSelection(current, snapshot) {
+  async function restoreCurrentSelection(current, snapshot) {
     Object.assign(current, {
       activePhase: snapshot.activePhase,
       activeMethod: snapshot.activeMethod,
@@ -333,7 +344,8 @@ export function createTerritorySelectionWorkflow() {
       riverPartitionCandidates: snapshot.riverPartitionCandidates,
       riverPartitionDonorResults: snapshot.riverPartitionDonorResults,
     });
-    dependencies.domains.editingDomain?.replaceDraftCoordinates?.(snapshot.draftCoords, { record: false, inputPhase: 'refine' });
+    await dependencies.domains.editingDomain.replaceDraftCoordinates(snapshot.draftCoords, { record: false, inputPhase: 'refine' });
+    if (current !== session()) return false;
     refreshCombinedGeometry(current);
   }
 
@@ -407,7 +419,8 @@ export function createTerritorySelectionWorkflow() {
   async function activateMethod(current, method) {
     if (!current || !['line', 'polygon', 'components'].includes(method)) return false;
     const previous = currentSelectionSnapshot(current);
-    clearCurrentSelection(current, { refreshUi: false });
+    await clearCurrentSelection(current, { refreshUi: false });
+    if (current !== session()) return false;
     current.activeMethod = method;
     current.activePhase = 'preparing';
     clearTimeout(current.computationTimer);
@@ -421,7 +434,8 @@ export function createTerritorySelectionWorkflow() {
     catch (error) { dependencies.feedback.reportOperationError(error, '기준 영역을 준비하지 못했습니다.', 'PL-TERRITORY-SOURCE', 3800); }
     if (current !== session() || methodEpoch !== current.computationEpoch) return false;
     if (!prepared) {
-      restoreCurrentSelection(current, previous);
+      await restoreCurrentSelection(current, previous);
+      if (current !== session()) return false;
       refresh('territory-selection-prepare-failed');
       return false;
     }
@@ -434,13 +448,15 @@ export function createTerritorySelectionWorkflow() {
     }
     if (current !== session() || activationEpoch !== current.computationEpoch) return false;
     if (!sourceReady) {
-      restoreCurrentSelection(current, previous);
+      await restoreCurrentSelection(current, previous);
+      if (current !== session()) return false;
       refresh('territory-selection-source-rebuild-failed');
       return false;
     }
     current.activePhase = method === 'components' ? 'components' : 'drawing';
     if (current.activePhase === 'drawing') {
-      dependencies.domains.editingDomain?.startDraft?.({ coords: [] });
+      await dependencies.domains.editingDomain.startDraft({ coords: [] });
+      if (current !== session()) return false;
       (0, dependencies.taskUi.setModeBanner)((0, dependencies.interactionPresentation.defaultDraftInstruction)());
     } else {
       (0, dependencies.territoryComponentUi.updateTerritoryComponentSelectionFeedback)();
@@ -487,7 +503,7 @@ export function createTerritorySelectionWorkflow() {
     return true;
   }
 
-  function back() {
+  async function back() {
     const current = session();
     if (!current) return false;
     if (current.methodChangeConfirmation) {
@@ -506,8 +522,10 @@ export function createTerritorySelectionWorkflow() {
       cancelSelectionComputation(current);
       cancelPreview({ discard: false, preserveReady: true });
       current.stage = 'setup';
-      dependencies.domains.editingDomain.cancelActiveGesture('territory-selection-back-setup');
-      dependencies.domains.editingDomain.clearDraftHover('territory-selection-back-setup');
+      await dependencies.domains.editingDomain.cancelActiveGesture('territory-selection-back-setup');
+      if (current !== session()) return false;
+      await dependencies.domains.editingDomain.clearDraftHover('territory-selection-back-setup');
+      if (current !== session()) return false;
       (0, dependencies.taskUi.setModeBanner)('');
       refresh('territory-selection-back-setup');
       return true;
@@ -549,7 +567,7 @@ export function createTerritorySelectionWorkflow() {
 
   async function archiveComponentsAndActivate(current, method) {
     if (current !== session() || current.stage !== 'selection' || !canAddPart(current)) return false;
-    if (!addPart()) return false;
+    if (!await addPart() || current !== session()) return false;
     return activateMethod(current, method);
   }
 
@@ -610,7 +628,7 @@ export function createTerritorySelectionWorkflow() {
         && current.methodsRequiringSources.includes(current.requestedMethod)));
   }
 
-  function toggleSourceCountry(countryId) {
+  async function toggleSourceCountry(countryId) {
     const current = session();
     const id = text(countryId);
     if (!countryPickingActive(current) || !id || !dependencies.territorialModel.entityRepository.get(id)) return false;
@@ -629,7 +647,7 @@ export function createTerritorySelectionWorkflow() {
     return applySourceCountryToggle(current, id, { reset: !!current.activeMethod });
   }
 
-  function applySourceCountryToggle(current, id, { reset = false } = {}) {
+  async function applySourceCountryToggle(current, id, { reset = false } = {}) {
     const adapter = adapterFor(current);
     if (!current || !id || adapter?.canUseSource?.(current, id) !== true) return false;
     const selected = new Set(current.sourceCountryIds.map(text));
@@ -638,7 +656,8 @@ export function createTerritorySelectionWorkflow() {
     current.settingsRevision += 1;
     if (reset) {
       const requestedMethod = current.requestedMethod;
-      resetSelection(current, { keepRequestedMethod: true, refreshUi: false });
+      await resetSelection(current, { keepRequestedMethod: true, refreshUi: false });
+      if (current !== session()) return false;
       current.requestedMethod = requestedMethod;
       current.stage = 'selection';
     }
@@ -650,7 +669,7 @@ export function createTerritorySelectionWorkflow() {
     return current ? adapterFor(current)?.sourceInstruction || '' : '';
   }
 
-  function finishDraft() {
+  async function finishDraft() {
     const current = session();
     if (!current || current.stage !== 'selection' || current.activePhase !== 'drawing'
       || !['line', 'polygon'].includes(current.activeMethod)) return false;
@@ -659,7 +678,8 @@ export function createTerritorySelectionWorkflow() {
       current.candidates = [];
       current.selectedCandidateIds = [];
       current.activePhase = 'result';
-      dependencies.domains.editingDomain?.clearDraft?.({ reason: 'territory-selection-parts-review', render: false });
+      await dependencies.domains.editingDomain.clearDraft({ reason: 'territory-selection-parts-review', render: false });
+    if (current !== session()) return false;
       refreshCombinedGeometry(current);
       if (!previewReady(current)) schedulePreview();
       refresh('territory-selection-parts-review');
@@ -734,7 +754,7 @@ export function createTerritorySelectionWorkflow() {
     return null;
   }
 
-  function setCurrentCandidates(candidates) {
+  async function setCurrentCandidates(candidates) {
     const current = session();
     if (!current || current.stage !== 'selection') return false;
     touchSelection(current);
@@ -745,7 +765,8 @@ export function createTerritorySelectionWorkflow() {
     current.currentGeometry = smallest?.geometry || null;
     current.activePhase = 'candidate';
     refreshCombinedGeometry(current);
-    dependencies.domains.editingDomain?.clearDraft?.({ reason: 'territory-selection-candidate-ready', render: false });
+    await dependencies.domains.editingDomain.clearDraft({ reason: 'territory-selection-candidate-ready', render: false });
+    if (current !== session()) return false;
     refresh('territory-selection-candidates');
     return !!smallest;
   }
@@ -804,14 +825,15 @@ export function createTerritorySelectionWorkflow() {
     return true;
   }
 
-  function startNextDraft(current) {
+  async function startNextDraft(current) {
     current.activePhase = 'drawing';
-    dependencies.domains.editingDomain?.startDraft?.({ coords: [] });
+    await dependencies.domains.editingDomain.startDraft({ coords: [] });
+    if (current !== session()) return false;
     (0, dependencies.taskUi.setModeBanner)((0, dependencies.interactionPresentation.defaultDraftInstruction)());
     refresh('territory-selection-next-part');
   }
 
-  function addPart() {
+  async function addPart() {
     const current = session();
     if (!canAddPart(current)) return false;
     touchSelection(current);
@@ -846,7 +868,8 @@ export function createTerritorySelectionWorkflow() {
     (0, dependencies.riverCandidates.resetRiverPartitionState)();
     refreshCombinedGeometry(current);
     schedulePreview();
-    dependencies.domains.editingDomain?.clearDraft?.({ reason: 'territory-selection-part-archived', render: false });
+    await dependencies.domains.editingDomain.clearDraft({ reason: 'territory-selection-part-archived', render: false });
+    if (current !== session()) return false;
     refresh('territory-selection-part-archived');
     return true;
   }
@@ -898,7 +921,7 @@ export function createTerritorySelectionWorkflow() {
     return true;
   }
 
-  function redraw() {
+  async function redraw() {
     const current = session();
     if (!current || current.stage !== 'selection' || current.activePhase === 'components') return false;
     touchSelection(current);
@@ -906,7 +929,7 @@ export function createTerritorySelectionWorkflow() {
     current.candidates = [];
     current.selectedCandidateIds = [];
     refreshCombinedGeometry(current);
-    startNextDraft(current);
+    await startNextDraft(current);
     return true;
   }
 

@@ -1,7 +1,8 @@
-import { readApplicationOwners } from '../../scripts/lib/application-source.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
+import { collectCssRules } from '../../scripts/lib/css-analysis.mjs';
+import { parseJavaScript, walkJavaScript } from '../../scripts/lib/source-analysis.mjs';
 
 import { createRenderDevice, isRenderDevice } from '../../assets/js/modules/render-device.js';
 import { createSelectionPacket } from '../../assets/js/modules/selection-packet.js';
@@ -54,32 +55,37 @@ test('SelectionPacket separates state, geometry, style, and boundary revisions',
   assert.equal(packet.channels.primary[1].geometryRevision, 'region-5');
 });
 
-test('selection layer architecture uses one legacy Pando host and z4 controls', async () => {
+test('map CSS keeps base, GPU, overlay and interaction layers in painting order', async () => {
   const css = await readFile(new URL('../../assets/css/components/map-viewport.css', import.meta.url), 'utf8');
-  const app = readApplicationOwners('map-host');
-  assert.match(css, /\.map-base-svg\s*\{\s*z-index:\s*0/);
-  assert.match(css, /\.gpu-map-canvas\s*\{\s*z-index:\s*1/);
-  assert.match(css, /\.map-interaction-svg\s*\{\s*z-index:\s*4/);
-  assert.match(css, /\.map-svg\s*\{[\s\S]*?z-index:\s*2/);
-  assert.match(css, /\.map-overlay-svg\s*\{[\s\S]*?z-index:\s*2/);
-  assert.doesNotMatch(css, /gpu-selection-canvas/);
-  const mapHost = app.indexOf('mapHost = createPreferredMapHost(mapEl)');
-  const projectedSvg = app.indexOf("svg = map.append('svg').attr('class', 'map-svg map-overlay-svg')", mapHost);
-  const interactionSvg = app.indexOf("map.append('svg').attr('class', 'map-interaction-svg')", projectedSvg);
-  assert.ok(mapHost > 0 && mapHost < projectedSvg && projectedSvg < interactionSvg);
-  assert.match(app, /function createPreferredMapHost\(mapEl\)\s*\{[\s\S]*createLegacyMapHost/);
-  assert.doesNotMatch(app, /selectionCanvasHost|gpu-selection-canvas/);
-  assert.doesNotMatch(app, /create.*External.*Host|attachExternalDevice|externalFrame/);
+  const rules = collectCssRules(css);
+  const zIndex = selector => {
+    const values = rules.filter(rule => !rule.context && rule.selectors.includes(selector))
+      .flatMap(rule => rule.declarations.filter(item => item.property === 'z-index').map(item => Number(item.value)));
+    assert.equal(values.length, 1, `missing or conflicting layer ownership: ${selector}`);
+    assert.ok(Number.isFinite(values[0]), selector);
+    return values[0];
+  };
+  assert.ok(zIndex('.map-base-svg') < zIndex('.gpu-map-canvas'));
+  assert.ok(zIndex('.gpu-map-canvas') < zIndex('.map-overlay-svg'));
+  assert.equal(zIndex('.map-svg'), zIndex('.map-overlay-svg'));
+  assert.ok(zIndex('.map-overlay-svg') < zIndex('.map-interaction-svg'));
+  assert.ok(!rules.some(rule => rule.selectors.some(selector => selector.includes('gpu-selection-canvas'))));
 });
 
-test('main renderer owns the only RenderDevice and all shared GPU passes', async () => {
-  const main = await readFile(new URL('../../assets/js/modules/gpu-map-renderer.js', import.meta.url), 'utf8');
-  const selection = await readFile(new URL('../../assets/js/modules/selection-pass.js', import.meta.url), 'utf8');
-  assert.match(main, /createRenderDevice\(\{/);
-  assert.match(main, /getRenderDevice:\s*\(\)\s*=>\s*renderDevice/);
-  assert.match(main, /createSceneColorCache\(\)/);
-  assert.match(main, /createGpuPolygonOverlayPass\(\{/);
-  assert.match(main, /createGpuStrokeRenderer\(\{/);
-  assert.match(main, /selectionPass\.initialize\?\.\(renderDevice, \{ strokeRenderer, polygonPass: polygonOverlayPass \}\)/);
-  assert.doesNotMatch(selection, /createRenderDevice|getContext\s*\(/);
+test('main renderer creates the RenderDevice while selection consumes an injected device', async () => {
+  for (const [file, ownsDevice] of [['gpu-map-renderer.js', true], ['selection-pass.js', false]]) {
+    const code = parseJavaScript(await readFile(new URL(`../../assets/js/modules/${file}`, import.meta.url), 'utf8'), { filePath: file });
+    const factories = new Set(code.ast.body.filter(node => node.type === 'ImportDeclaration'
+      && node.source.value.endsWith('/render-device.js')).flatMap(node => node.specifiers
+      .filter(item => item.imported?.name === 'createRenderDevice').map(item => item.local.name)));
+    let createsDevice = false, createsContext = false;
+    walkJavaScript(code, node => {
+      if (node.type !== 'CallExpression') return;
+      if (node.callee.type === 'Identifier' && factories.has(node.callee.name)) createsDevice = true;
+      if (node.callee.type === 'MemberExpression'
+        && (node.callee.computed ? node.callee.property.value : node.callee.property.name) === 'getContext') createsContext = true;
+    });
+    assert.equal(createsDevice, ownsDevice, file);
+    if (!ownsDevice) assert.equal(createsContext, false, file);
+  }
 });

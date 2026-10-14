@@ -4,7 +4,9 @@ import { geometryRevision } from './geometry-versions.js';
 import { freezeEditingGeometry } from './editing-render-packet.js';
 import { boundaryTouchesGeometry } from './territorial-interaction-policy.js';
 import { resolveTerritorialColor } from './color-adapter.js';
-import { prepareProjectForActivation } from './project-state.js';
+import { createCoreDocumentClient } from './core-document-client.js';
+import { createCoreDocumentReadModel } from './core-document-read-model.js';
+import { coreSelectionRefToWeb,webSelectionRefToCore } from './core-object-ref.js';
 /** DomainAssembly: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -26,13 +28,46 @@ export function createDomainAssembly() {
   let layerTreeController;
   let territorialEntityStore;
   let territorialEntityRepository;
+  let commandOwner;
+  let documentModel;
+  let domainsReady;
   function connect(ports) {
     if (dependencies) throw new Error('domain-assembly already connected');
     dependencies = ports;
   }
 
   function initializeDomainBoundaries() {
+    return domainsReady ||= initializeAcceptedDomains();
+  }
+  function invalidateAcceptedImpact(reason,outcome,{ history = false } = {}) {
+    const impact=outcome.delta?.impact;
+    if(!impact || !Array.isArray(impact.geometryDomains) || !Array.isArray(impact.identityDomains)
+      || typeof impact.timelineChanged!=='boolean')throw new TypeError('Canonical C++ command render impact is required.');
+    const domains=new Set(impact.geometryDomains);
+    const identities=new Set(impact.identityDomains);
+    if(domains.has('territorial') || impact.timelineChanged) {
+      renderingDomain.invalidateCountryPatch(reason);
+      renderingDomain.invalidateTerritorialPatch(reason);
+    }
+    if(domains.has('hydro'))renderingDomain.invalidateHydroPatch(reason);
+    if(domains.has('generic'))renderingDomain.invalidateGenericPatch(reason);
+    if(domains.has('label'))renderingDomain.invalidateLabels(reason);
+    if(domains.has('distributionEntry') || domains.has('distributionLayer')
+      || identities.has('distributionEntry') || identities.has('distributionLayer'))renderingDomain.invalidateOverlayGeometry('distribution',reason);
+    if(history) {
+      if(identities.has('territorial')) {
+        dependencies.rendering.gpuMapRenderer.invalidateCountryPalette({ base: true,emphasis: true },reason);
+        renderingDomain.invalidateBaseScene(reason);
+      }
+      if(identities.has('territorial') || identities.has('label'))renderingDomain.invalidateLabels(reason);
+      if(identities.has('hydro') && !domains.has('hydro'))renderingDomain.invalidateHydroPatch(reason);
+      if(identities.has('generic') && !domains.has('generic'))renderingDomain.invalidateGenericPatch(reason);
+    }
+  }
+  async function initializeAcceptedDomains() {
     if (projectDomain || selectionDomain || renderingDomain || gisDomain || editingDomain) return;
+    await commandOwner.load(JSON.stringify(documentModel.snapshot()));
+    dependencies.projectSession.installDocumentProjection({ documentModel,commandOwner,entityStore: territorialEntityStore });
     const domainListeners = new Map();
     // Rendering domains are created before initSvg() so project/GIS services can
     // be available during bootstrap. Resource references are plain snapshots;
@@ -59,9 +94,9 @@ export function createDomainAssembly() {
       return renderResourceSnapshotFrameId;
     };
     const domainContext = Object.freeze({
-      getProjectSnapshot: () => projectDomain?.snapshot?.() || dependencies.mapSettingsUi.projectSerializer.buildProject(),
+      getProjectSnapshot: () => documentModel.snapshot(),
       getSessionSnapshot: () => (0, dependencies.platform.deepClone)({ projection: dependencies.projectState.state.projection, view: dependencies.projectState.state.view, selected: dependencies.projectState.state.selected }),
-      dispatchProjectCommand: command => projectDomain?.dispatch?.(command),
+      dispatchProjectCommand: command => projectDomain.executeCommand(command),
       requestRender: invalidation => renderingDomain?.requestRender?.(invalidation) || false,
       publish: (name, detail) => {
         for (const listener of domainListeners.get(String(name)) || []) listener(detail);
@@ -81,20 +116,31 @@ export function createDomainAssembly() {
       reportDiagnostic: entry => dependencies.readiness.reliabilityDiagnostic.push({ category: 'domain', ...entry }),
     });
     projectDomain = (0, dependencies.domainFactories.createProjectDomain)({
-      context: domainContext,
-      getSnapshot: () => dependencies.mapSettingsUi.projectSerializer.buildProject(),
+      commandOwner,documentModel,
+      appVersion: dependencies.platformConfigurationA.APP_VERSION,
+      readBuiltinSelectionCatalogs: () => [
+        { domain: 'placeBuiltin',refs: dependencies.countryLabelModel.builtinPlaceSelectionReferences() },
+        { domain: 'hydroBuiltin',refs: dependencies.physicalResources.builtinHydroSelectionReferences() },
+      ],
+      readPresentationCatalog: () => dependencies.layerTree.presentationCatalog(),
+      publishCommand: async (outcome,{ reason } = {}) => {
+        if(outcome.ok && outcome.changed && (reason==='project-undo' || reason==='project-redo')) await dependencies.projectSnapshots.finishHistoryTravel();
+        if(reason==='command-rollback') {
+          selectionUiController.presentPrimary({ refreshOnly: true });
+          renderingDomain.invalidateProject('command-rollback');
+        }
+      },
       replaceSnapshot: (project, options) => {
         const resetOptions = {
           projectGeneration: options?.generation,
           skipRenderReset: options?.skipRenderReset === true,
           prepared: options?.prepared,
           preserveBuiltinMesh: options?.preserveBuiltinMesh === true,
+          catalogAlreadyAdmitted: true,
         };
         if (project) return (0, dependencies.projectRestore.applyAtlasState)(project, options?.reason === 'load', resetOptions);
         return (0, dependencies.projectRestore.resetProjectInPlace)(resetOptions);
       },
-      serializer: dependencies.mapSettingsUi.projectSerializer,
-      history: dependencies.projectSnapshots.historyService,
       persistence: dependencies.persistence.persistenceService,
       saveState: dependencies.projectSession.saveState,
       prepareEmpty: async () => {
@@ -103,56 +149,33 @@ export function createDomainAssembly() {
           dependencies.builtinBaseline.prepareProjectBaseline(),
           dependencies.rendering.gpuMapRenderer.ensureBuiltinMeshBaseline(countryIds),
         ]);
-        return { project: baseline.project, builtinMeshReady: true };
+        return { baselineId:baseline.baselineId,
+          builtinMeshReady: true };
       },
-      prepareRestore: async project => prepareProjectForActivation(project,
-        project.format === 'pandolab-autosave-delta' ? await dependencies.builtinBaseline.prepareProjectBaseline() : {}),
-      createProjectFile: async project => {
+      createProjectFile: async (project,{ spatialState }) => {
         await (0, dependencies.gisServicesA.ensureGisIoRuntime)();
         if (!window.PandoLabGIS?.exportGeoPackage) throw new Error('GeoPackage 저장 모듈을 불러오지 못했습니다.');
-        return window.PandoLabGIS.exportGeoPackage(project, () => undefined);
+        return window.PandoLabGIS.exportGeoPackage(project, () => undefined,{ spatialState });
       },
-      captureReplacement: () => ({
-        project: dependencies.mapSettingsUi.projectSerializer.buildProject(),
-        history: [...dependencies.projectState.state.history], historyMeta: [...dependencies.projectState.state.historyMeta],
-        future: [...dependencies.projectState.state.future], futureMeta: [...dependencies.projectState.state.futureMeta],
-        selection: selectionDomain.snapshot(),
-        save: dependencies.projectSession.saveState.checkpoint(),
-      }),
-      restoreReplacement: (checkpoint, generation) => {
-        (0, dependencies.projectRestore.applyAtlasState)(checkpoint.project, false, { projectGeneration: generation, skipRenderReset: true });
-        Object.assign(dependencies.projectSnapshots.historyStore, {
-          history: checkpoint.history, historyMeta: checkpoint.historyMeta,
-          future: checkpoint.future, futureMeta: checkpoint.futureMeta,
-        });
-        const selection = checkpoint.selection.selection;
-        selectionDomain.setMany(selection.items, { primary: selection.items.find(item => item.key === selection.primaryKey), scope: selection.scope, reason: 'project-rollback' });
-        selectionDomain.setHover(checkpoint.selection.hover);
-        dependencies.projectSession.saveState.restore(checkpoint.save);
+      restoreReplacement: async (project, generation) => {
+        await (0, dependencies.projectRestore.applyAtlasState)(project, false, { projectGeneration: generation,skipRenderReset: true,
+          preserveCoreSession: true,catalogAlreadyAdmitted: true });
         dependencies.lifecycleUi.projectUi.syncHistory();
         renderingDomain?.invalidateProject?.('project-rollback');
       },
       invalidateProject: reason => renderingDomain?.invalidateProject?.(reason),
-      invalidateHistory: reason => {
-        renderingDomain?.invalidateCountryPatch?.(reason);
-        renderingDomain?.invalidateOverlayGeometry?.('overlay', reason);
-      },
+      invalidateCommand: invalidateAcceptedImpact,
+      invalidateHistory: (reason,outcome) => invalidateAcceptedImpact(reason,outcome,{ history: true }),
       reportDiagnostic: entry => dependencies.readiness.reliabilityDiagnostic.push({ category: 'project', ...entry }),
-      commandPipeline: dependencies.objectModelB.projectCommandPipeline,
-      restoreEntitiesFromDelta: (project, suppliedBase = null) => (0, dependencies.modelValidation.restoreEntitiesFromDelta)(project, {
-        base: suppliedBase || dependencies.builtinBaseline.projectBaseline.baseEntities,
-        baseDataset: dependencies.builtinBaseline.projectBaseline.baseDataset,
-        baseDatasetFingerprint: dependencies.builtinBaseline.projectBaseline.baseDatasetFingerprint,
-        clone: dependencies.platform.deepClone,
-      }),
       onProjectChanged: event => {
         window.dispatchEvent(new CustomEvent('pandolab:project-changed', { detail: event }));
+        dependencies.lifecycleUi.projectUi.syncHistory();
       },
-      onReplacementState: (replacing, reason) => {
+      onReplacementState: async (replacing, reason) => {
         dependencies.projectState.state.projectReplacing = replacing;
         if (replacing) {
           resetReferenceImageSession();
-          editingDomain?.cancelActiveGesture?.(`project-${reason}-preparing`);
+          await editingDomain.cancelActiveGesture(`project-${reason}-preparing`);
           if (reason === 'new') (0, dependencies.feedback.setActionStatus)('새 프로젝트 준비 중…', 'working', 0);
         }
       },
@@ -162,14 +185,15 @@ export function createDomainAssembly() {
       onReplacementError: (error, reason) => {
         if (reason === 'new') (0, dependencies.feedback.setActionStatus)(error?.message || '새 프로젝트를 준비하지 못했습니다. 기존 프로젝트를 유지했습니다.', 'error', 0);
       },
-      onProjectReset: event => {
-        selectionDomain?.resetProject(event.generation);
-        selectionUiController?.resetProject?.();
-        editingDomain?.resetProject?.(event.generation);
+      onProjectReset: async event => {
+        await selectionDomain.resetProject(event.generation);
+        selectionUiController.resetProject();
+        await editingDomain.resetProject(event.generation);
         renderingDomain?.resetProjectGeneration(event.generation, { preserveBuiltinMesh: event.preserveBuiltinMesh === true });
       },
     });
 
+    dependencies.persistence.initializeCoreServices({ commandOwner: projectDomain,documentModel });
     gisDomain = (0, dependencies.domainFactories.createGisDomain)({
       projectDomain,
       importService: () => dependencies.gisRuntime.gisWorkflow.ensure(),
@@ -185,7 +209,10 @@ export function createDomainAssembly() {
         },
         queryBounds: dependencies.riverCandidates.riverPartitionQueryBounds,
         queryLogicalFeatures: bounds => dependencies.rendering.gpuMapRenderer.queryHydroLogicalFeatures(bounds, { category: 'river' }),
-        loadLogicalFeature: logicalId => dependencies.rendering.gpuMapRenderer.loadHydroLogicalFeature(logicalId),
+        loadLogicalFeature: async logicalId => {
+          const feature=await dependencies.rendering.gpuMapRenderer.loadHydroLogicalFeature(logicalId);
+          if(feature)await dependencies.physicalResources.admitHydroFeatures([feature]);return feature;
+        },
         getEditRivers: boundsList => dependencies.projectState.state.hydroEdits.filter(feature => (
           feature?.properties?.category === 'river'
           && feature.geometry
@@ -197,16 +224,16 @@ export function createDomainAssembly() {
     });
 
     selectionDomain = (0, dependencies.domainFactories.createSelectionDomain)({
-      context: domainContext,
+      commandOwner,
+      refAdapter: { fromCore: coreSelectionRefToWeb,toCore: ref => webSelectionRefToCore(ref,
+        { isStoredHydro: id => documentModel.get({ domain: 'hydro',id })!==null }) },
       projectDomain,
-      selectionPacketFactory: dependencies.selectionServices.createSelectionPacket,
-      normalizeRef: dependencies.selectionServices.normalizeObjectRef,
-      refExists: dependencies.objectLookup.objectRefExists,
       onSelectionChanged: (snapshot, _reason, previousSelection) => {
         const previous = previousSelection.items.find(item => item.key === previousSelection.primaryKey) || null;
         if (previous?.domain === 'hydro' && dependencies.projectState.state.tool === 'select'
           && previous.key !== dependencies.projectState.state.selected?.key) {
-          editingDomain?.cancelActiveGesture('object-target-changed', { emitChange: false });
+          editingDomain.cancelActiveGesture('object-target-changed',{ emitChange: false }).catch(error => dependencies.feedback.reportOperationError(error,
+            '이전 객체의 편집 동작을 취소하지 못했습니다.','PL-EDIT-SELECTION-CANCEL-001',4200));
         }
         editingDomain?.refreshEditingPresentation('selection-edit-target');
         selectionUiController?.sync?.(snapshot);
@@ -228,13 +255,10 @@ export function createDomainAssembly() {
       distributionService: dependencies.objectModelA.distributionService,
       distributionEntriesForLayer: dependencies.distributionServices.distributionEntriesForLayer,
       genericFeatureById: id => dependencies.projectState.state.genericFeatures.find(feature => String(feature.id) === String(id)),
-      normalizeGenericFeatureSemantics: dependencies.modelValidation.normalizeGenericFeatureSemantics,
       genericFeatureGeometryKind: dependencies.objectPresentation.genericFeatureGeometryKind,
-      genericFeatureRole: dependencies.applicationServicesA.genericFeatureRole,
       genericFeatureRoleLabel: dependencies.objectPresentation.genericFeatureRoleLabel,
       genericFeatureRoleHelp: dependencies.objectModelA.genericFeatureRoleHelp,
       genericFeatureName: dependencies.objectPresentation.genericFeatureName,
-      genericFeatureRoleLabels: dependencies.applicationConstantsA.GENERIC_FEATURE_ROLE_LABELS,
       defaultGenericFeatureColorFor: dependencies.objectModelA.defaultGenericFeatureColor,
       labelById: dependencies.countryLabelModel.labelById,
       labelKey: dependencies.labelPresentation.labelKey,
@@ -259,15 +283,13 @@ export function createDomainAssembly() {
       syncStatusBar: dependencies.readinessUi.syncStatusBar,
       createEmptyState: dependencies.platformConfigurationB.createEmptyState,
       createSemanticIcon: dependencies.applicationFactories.createSemanticIcon,
-      onHydroLoaded: full => {
+      onHydroLoaded: async full => {
+        await dependencies.physicalResources.admitHydroFeatures([full]);
         const key = String(full.properties?.pandolab_id || full.id);
-        dependencies.projectState.state.hydroFeatureCache.set(key, full);
-        for (const [fid, cached] of dependencies.projectState.state.hydroFeatureByFid) {
-          if (String(cached?.properties?.pandolab_id || cached?.id) === key) dependencies.projectState.state.hydroFeatureByFid.set(fid, full);
-        }
         const selected = dependencies.projectState.state.selected;
         if (selected?.domain === 'hydro' && selected.id === key) objectPropertyController.present(selected, { refreshOnly: true });
       },
+      reportOperationError: dependencies.feedback.reportOperationError,
     });
 
     const defaultTerritorialColor = view => resolveTerritorialColor({ ...view.feature, properties: { ...view.properties, style: {} } }, {
@@ -333,6 +355,11 @@ export function createDomainAssembly() {
         dependencies.readiness.reliabilityDiagnostic.push({ category: 'editor-flag', code: 'PL-EDITOR-FLAG', message: String(error?.message || error) });
         dependencies.feedback.setActionStatus('깃발을 불러오지 못했습니다.', 'error', 4200);
       },
+      reportEditError: (error, operation) => {
+        dependencies.readiness.reliabilityDiagnostic.push({ category: 'editor-territorial', code: error?.code || 'PL-EDITOR-TERRITORIAL', operation,
+          message: String(error?.message || error), stack: String(error?.stack || '') });
+        dependencies.feedback.setActionStatus('영역 정보를 변경하지 못했습니다.', 'error', 4200);
+      },
       metrics: dependencies.rendering.selectionPerformanceMetrics,
     });
 
@@ -388,6 +415,7 @@ export function createDomainAssembly() {
     territorialPropertyController.bind();
 
     editingDomain = (0, dependencies.domainFactories.createEditingDomain)({
+      commandOwner,
       context: domainContext,
       projectDomain,
       gisDomain,
@@ -400,8 +428,8 @@ export function createDomainAssembly() {
           : dependencies.projectState.state.geometryPreview.session,
         getCurrentTool: () => dependencies.projectState.state.tool,
         discardGeometryPreview: dependencies.geometryOperations.discardActiveGeometryPreview,
-        clearHover: () => { dependencies.interactionStateCommands.setHoverHit(null); selectionDomain.setHover(null); },
-        resetForTool: tool => {
+        clearHover: async () => { dependencies.interactionStateCommands.setHoverHit(null);await selectionDomain.setHover(null); },
+        resetForTool: async tool => {
           dependencies.projectState.state.boundaryPreparation?.cancel();
           dependencies.projectState.state.boundaryPreparation = null;
           dependencies.projectState.state.labelPlacementMode = false;
@@ -426,7 +454,7 @@ export function createDomainAssembly() {
           if (!['river', 'lake'].includes(tool)) dependencies.projectState.state.multiDraft = null;
           const territorySelection = dependencies.projectState.state.territorySelectionSession;
           if (territorySelection && !territorySelection.applying && territorySelection.tool !== tool) {
-            (0, dependencies.territorySelectionA.clearTerritorySelection)({ discardPreview: true, refreshUi: false });
+            await dependencies.territorySelectionA.clearTerritorySelection({ discardPreview: true, refreshUi: false });
           }
         },
         applyToolPresentation: (tool, options = {}) => {
@@ -439,6 +467,7 @@ export function createDomainAssembly() {
       },
       previewController: dependencies.geometryOperations.editPreviewController,
       draftServices: {
+        reportOperationError: (error,code) => dependencies.feedback.reportOperationError(error,'작성 중인 경로를 변경하지 못했습니다.',code,4200),
         getToolConfig: tool => {
           if (dependencies.projectState.state.geometryPreview.session) return null;
           const config = (0, dependencies.countryEditingA.draftToolConfig)(tool);
@@ -513,7 +542,7 @@ export function createDomainAssembly() {
           if (!hydroEdit) return false;
           return true;
         },
-        captureObjectGestureSnapshot: () => (0, dependencies.snapshots.snapshotEditable)(),
+        captureObjectGestureSnapshot: () => ({ expectedEpoch: commandOwner.state().epoch,projectGeneration: projectDomain.getGeneration() }),
         getObjectVertexTarget: () => {
           if (dependencies.projectState.state.tool !== 'select') return null;
           const selected = dependencies.projectState.state.selected;
@@ -534,28 +563,24 @@ export function createDomainAssembly() {
           });
           return feature;
         },
-        commitObjectGesture: ({ source, feature, changed, snapshot, previewId }) => {
+        commitObjectGesture: async ({ source, feature, changed, snapshot, previewId }) => {
           const hydroEdit = (0, dependencies.hydroModel.isHydroEditFeature)(source);
           if (!changed) {
             renderingDomain?.invalidateEditedGeometryPatch?.(hydroEdit ? 'hydro' : 'generic', 'vertex-preview-no-change');
             return false;
           }
-          const issues = ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type) ? (0, dependencies.geometryModel.validateStructuredGeometry)(feature) : [];
-          if (issues.length) {
-            (0, dependencies.feedback.setActionStatus)(issues[0].message || '유효하지 않은 geometry라 꼭짓점 이동을 되돌렸습니다.', 'error', 3800);
-            return false;
-          }
-          source.geometry = (0, dependencies.platform.deepClone)(feature.geometry);
+          const result=await projectDomain.executeCommand({ commandId: 'hydro.geometry',expectedEpoch: snapshot.expectedEpoch,
+            targets: [{ domain: 'hydro',id: source.id }],payload: { id: source.id,geometry: feature.geometry } });
+          if(!result.ok)throw Object.assign(new Error(result.error.message),{ code: result.error.code });
+          if(!result.changed || snapshot.projectGeneration!==projectDomain.getGeneration() || dependencies.projectState.state.projectReplacing)return false;
+          const accepted=documentModel.get({ domain: 'hydro',id: source.id });
           if (hydroEdit) dependencies.spatialQuery.mapObjectGeometryRevisions.hydro += 1;
           else dependencies.spatialQuery.mapObjectGeometryRevisions.generic += 1;
-          dependencies.projectState.state.stateRevision += 1;
-          projectDomain.commitHistorySnapshot(snapshot);
           if (previewId) dependencies.geometryOperations.editPreviewController.handoff(previewId, {
             kind: 'object', objectKey: (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'hydro', type: source.properties.category, id: source.id }).key,
-            geometry: source.geometry, geometryRevision: geometryRevision(source.geometry),
+            geometry: accepted.geometry, geometryRevision: geometryRevision(accepted.geometry),
           });
           renderingDomain?.invalidateEditedGeometryPatch?.(hydroEdit ? 'hydro' : 'generic', 'vertex-edit-commit');
-          projectDomain.queueAutosave();
           (0, dependencies.feedback.setActionStatus)('꼭짓점을 이동했습니다.', 'success');
           return true;
         },
@@ -662,7 +687,7 @@ export function createDomainAssembly() {
             if (!ready || !current()) return false;
             const result = dependencies.projectState.state.geometryPreview.session;
             if (result.validation.blocking || !result.delta.newBoundaries.length) {
-              (0, dependencies.geometryOperations.discardActiveGeometryPreview)({ announce: false });
+              await dependencies.geometryOperations.discardActiveGeometryPreview({ announce: false });
               return false;
             }
             accepted = dependencies.geometryOperations.editPreviewController.handoff(session.previewId, {
@@ -783,6 +808,7 @@ export function createDomainAssembly() {
           .find(feature => String(feature.id) === String(snapshot.targetRefs[0].id))?.geometry),
       getEditingRenderPacket: () => editingDomain?.createRenderPacket?.(),
       emitEditingInteraction: event => editingDomain?.handleInteraction?.(event),
+      reportEditingOperationError: error => dependencies.feedback.reportOperationError(error,'편집 동작을 적용하지 못했습니다.','PL-EDIT-INTERACTION-001',4200),
       domLayers: () => ({
         baseSvg: dependencies.mapLayers.baseSvg,
         svg: dependencies.mapLayers.svg,
@@ -1128,8 +1154,15 @@ export function createDomainAssembly() {
   }
 
   function initializeDomainState() {
+    territorialEntityStore?.dispose();
+    commandOwner?.dispose();
+    documentModel=createCoreDocumentReadModel(dependencies.projectSession.initialDocument());
+    commandOwner=createCoreDocumentClient({ onTransition: (result,operation) => {
+      documentModel.acceptTransition(result,operation);
+      dependencies.projectSession.saveState.sync();
+    } });
     (territorialEntityStore = (0, dependencies.territorialServicesA.createTerritorialEntityStore)({
-      getState: () => dependencies.projectState.state,
+      documentModel,commandOwner,
       onEntitiesReplaced: (entities, { changedIds, previous }) => {
         const prior = new Map(previous.map(feature => [String(feature.id), feature]));
         const after = new Map(entities.map(feature => [String(feature.id), feature]));
@@ -1166,18 +1199,21 @@ export function createDomainAssembly() {
     (objectPropertyController = null);
 
     (layerTreeController = null);
+    domainsReady=null;
   }
 
-  function setTimelineMonth(month) {
-    const current = dependencies.projectState.state;
-    if (current.projectReplacing || current.modeProcessing || current.geometryPreview?.session
-      || current.territorySelectionSession || editingDomain?.draftInputActive?.()) {
+  async function setTimelineMonth(month) {
+    const canPublish = () => {
+      const current = dependencies.projectState.state;
+      return !(current.projectReplacing || current.modeProcessing || current.geometryPreview?.session
+        || current.territorySelectionSession || editingDomain?.draftInputActive?.());
+    };
+    if (!canPublish()) {
       throw Object.assign(new Error('편집을 확정하거나 취소한 뒤 시간대를 이동하세요.'), { code: 'TIMELINE_DRAFT_ACTIVE' });
     }
-    const changed = territorialEntityStore.setTimelineCursor(month);
+    const changed = await territorialEntityStore.setTimelineCursor(month, { canPublish });
     if (!changed) return false;
     dependencies.rendering.gpuMapRenderer.invalidateCountryPreview();
-    selectionDomain?.prune(null, { reason: 'timeline-cursor' });
     renderingDomain?.invalidateProject?.('timeline-cursor');
     return true;
   }
@@ -1186,7 +1222,9 @@ export function createDomainAssembly() {
     connect,
     initializeDomainState,
     setTimelineMonth,
-    get timelineMonth() { return dependencies.projectState.state.timelineCursor || ''; },
+    get timelineMonth() { return commandOwner.state()?.timelineCursor || ''; },
+    get commandOwner() { return commandOwner; },
+    get documentModel() { return documentModel; },
     get territorialPropertyController() { return territorialPropertyController; },
     get editingDomain() { return editingDomain; },
     get gisDomain() { return gisDomain; },

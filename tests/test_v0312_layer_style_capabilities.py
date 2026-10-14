@@ -11,9 +11,10 @@ HTML = (ROOT / 'index.html').read_text(encoding='utf-8')
 
 class LayerStyleCapabilityTests(unittest.TestCase):
     def test_layer_controls_only_expose_supported_capabilities(self):
-        targets = MAP_SETTINGS[MAP_SETTINGS.index('(LAYER_STYLE_TARGETS = Object.freeze({'):MAP_SETTINGS.index('(projectSerializer =')]
+        start = MAP_SETTINGS.index('(LAYER_STYLE_TARGETS = Object.freeze({')
+        targets = MAP_SETTINGS[start:MAP_SETTINGS.index('}));', start)]
         rows = dict(re.findall(r"(\w+): \{([^}]*)\}", targets))
-        self.assertEqual(set(rows), {'countries','subunits','regions','distributions','rivers','lakes','genericFeatures'})
+        self.assertEqual(set(rows), {'countries','subunits','regions','distributions','rivers','lakes','genericFeatures','labels'})
         for group in ('countries','subunits','regions'):
             for capability in ('color','opacity','boundary'):
                 self.assertIn(f'{capability}: true', rows[group])
@@ -23,6 +24,7 @@ class LayerStyleCapabilityTests(unittest.TestCase):
             self.assertIn('opacity: true', rows[group])
             self.assertNotIn('boundary: true', rows[group])
             self.assertNotIn('blendMode: true', rows[group])
+        self.assertNotIn('opacity: true', rows['labels'])
 
     def test_distribution_controls_live_in_view_not_layer_tree(self):
         self.assertIn('id="distributionViewSettingsTitle">분포', HTML)
