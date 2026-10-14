@@ -1,0 +1,615 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r192",
+  "sources": [
+    {
+      "source_key": "r192-usgstopo-overview",
+      "title": "USGS The National Map, USGSTopo: Alaska–Yukon selected-corridor overview",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "bibliography": "U.S. Geological Survey. The National Map, USGSTopo multiscale topographic reference service. Bounded St. Elias Mountains view, accessed 13 October 2026.",
+      "publication_identity": "Independently maintained National Map reference-cartography service, not a plate, reissue or retrieval route for a held USGS research report or glacier atlas.",
+      "metadata_basis": "Successfully read normal service-directory description and contributing-dataset credits. Its September 4, 2026-v1.2 refresh is not a survey date for each mapped feature.",
+      "access_status": "Normal original raster completed HTTP200 image/png.",
+      "actual_read_scope": "Full original overview, then separate private orientation aid; Canadian blank coverage and southern mapped terrain. The absent Canadian detail supplies no inferred cartographic evidence.",
+      "original_map_pixels_inspected": true,
+      "use_notice": "Own factual synthesis and normal bibliography only; source imagery, orientation aids and dynamic rendering parameters remain private."
+    },
+    {
+      "source_key": "r192-usgstopo-hubbard-south",
+      "title": "USGS The National Map, USGSTopo: Hubbard Glacier and adjoining southern ice corridors",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "bibliography": "U.S. Geological Survey. The National Map, USGSTopo multiscale topographic reference service. Bounded Hubbard Glacier corridor view, accessed 13 October 2026.",
+      "publication_identity": "The same independently maintained National Map reference service; original views were requested serially after each preceding acquisition terminated.",
+      "access_status": "Normal original raster completed HTTP200 image/png.",
+      "actual_read_scope": "Full original and separately read orientation aid: border passage, all U.S. mainstem fragments, Hubbard label, neighbouring glaciers, eastern selected tributary and southern coastal setting.",
+      "original_map_pixels_inspected": true,
+      "use_notice": "Bounded terrain correspondence only; no present glacier dynamics or surveyed hydrographic continuity inferred. Original maps and derivatives remain private."
+    },
+    {
+      "source_key": "r192-usgstopo-russell-ending",
+      "title": "USGS The National Map, USGSTopo: eastern ice-margin tributary and Russell Fiord ending",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "bibliography": "U.S. Geological Survey. The National Map, USGSTopo multiscale topographic reference service. Bounded northern Russell Fiord view, accessed 13 October 2026.",
+      "access_status": "Normal original raster completed HTTP200 image/png.",
+      "actual_read_scope": "Full original, then separate orientation aid; all selected tributary parts, ice-margin join, final lowland/wetland traverse and actual endpoint; original Russell Fiord, Disenchantment Bay, Gilbert Point and Variegated Glacier labels inspected.",
+      "original_map_pixels_inspected": true,
+      "use_notice": "Own factual observations only; original imagery and orientation derivatives are not redistributed. Map compilation dates and current ice-front position were not established."
+    },
+    {
+      "source_key": "r192-kluane2005-prose",
+      "title": "Kluane National Park and Reserve of Canada, visitor brochure",
+      "publisher": "Parks Canada",
+      "catalogue_number": "R63-262/2005E",
+      "isbn": "0-662-39082-2",
+      "official_url": "https://parks.canada.ca/pn-np/yt/kluane/visit/~/media/7390da8308714ab69e3fd2aabeea8c7a.ashx",
+      "bibliography": "Parks Canada. Kluane National Park and Reserve of Canada. Visitor brochure, catalogue R63-262/2005E, ISBN 0-662-39082-2.",
+      "publication_identity": "Parks Canada's park-specific visitor interpretation publication, distinct from the Canadian national raster/registry services and USGS atlas project.",
+      "actual_read_scope": "Web PDF text, four pages: catalogue imprint, mountain-and-icefield setting and regional park context. No original map pixels were acquired; screenshot failure ended further acquisition.",
+      "original_map_pixels_inspected": false,
+      "evidence_scope": "Prior prose only; no selected opening or intermediate-route correspondence.",
+      "access_status": "Prose read before subsequent screenshot Cache miss; whole publication and equivalents now paused."
+    },
+    {
+      "source_key": "r192-kindstedt2025-prose",
+      "title": "Ongoing firn warming at Eclipse Icefield, Yukon, indicates potential widespread meltwater percolation and retention in firn pack across the St. Elias Range",
+      "authors": [
+        "Ingalise Kindstedt",
+        "Dominic Winski",
+        "C. Max Stevens",
+        "Emma Skelton",
+        "Luke Copland",
+        "Karl Kreutz",
+        "Mikaila Mannello",
+        "Renée Clavette",
+        "Jacob Holmes",
+        "Mary Albert",
+        "Scott N. Williamson"
+      ],
+      "publisher": "Copernicus Publications on behalf of the European Geosciences Union",
+      "journal": "The Cryosphere",
+      "year": 2025,
+      "volume": 19,
+      "pages": "3655–3680",
+      "official_url": "https://tc.copernicus.org/articles/19/3655/2025/",
+      "doi_url": "https://doi.org/10.5194/tc-19-3655-2025",
+      "bibliography": "Kindstedt, I., et al. 2025. Ongoing firn warming at Eclipse Icefield, Yukon, indicates potential widespread meltwater percolation and retention in firn pack across the St. Elias Range. The Cryosphere 19:3655–3680. DOI:10.5194/tc-19-3655-2025.",
+      "publication_identity": "Modern Eclipse Icefield field-observation and firn-modeling project with a 2023 firn-core/GPR campaign and comparisons to earlier field data. It is not the historical USGS glacier-atlas project. The proposed locator's own caption credits ESRI base imagery.",
+      "actual_read_scope": "Successfully read article HTML identity, licence, abstract, introduction, Figure1 caption and initial methods; assets page. Normal direct article HTML also completed HTTP200. Figure1 original was not acquired or visually read.",
+      "original_map_pixels_inspected": false,
+      "evidence_scope": "Bounded St. Elias/Eclipse glacial regional context only; no selected-route map evidence.",
+      "use_notice": "Copyright authors2025, Creative Commons Attribution4.0. Only own bounded facts and normal citation are retained; no imagery is redistributed.",
+      "access_status": "Previously read prose retained. Figure acquisition could not start because the execution connection failed; HTTP unknown and further requests paused."
+    },
+    {
+      "source_key": "r192-ibge-pracuuba2020",
+      "title": "Pracuúba – AP, Mapa Municipal, 1600550",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística, Diretoria de Geociências, Coordenação de Estruturas Territoriais",
+      "edition": "2020 municipal-map collection; printed territorial edition 04/2021",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/AP/pracuuba/1600550_MM.pdf",
+      "publication_identity": "Separately issued municipal-statistical cartography for Pracuúba, product 1600550; the original identifies the specific municipality, producing unit and compilation project.",
+      "original_inspected": true,
+      "actual_read_scope": "Complete one-sheet original overview, title and margin notices; enlarged western selected opening and inland corridor, Pracuúba/Ponta Baixa lake complex, northbound wetland corridor, eastern coastal setting and actual selected terminal area.",
+      "own_observations": "The map depicts the inland feeder network, Pracuúba lake arms and the separately labelled Rio Flechal, Rio Macari and Igarapé do Garrote in their regional setting. The selected final eastward crossing is not established as a continuous mapped outlet.",
+      "use_notice": "Semi-automated municipal compilation using multiple sources, intended for IBGE statistical collection and tabulation, with a disclaimer for other purposes and reserved reproduction rights. Treated as generalized reference cartography, not a dedicated hydrological survey or formal naming registry."
+    },
+    {
+      "source_key": "r192-unifap-amapa-dtp2020",
+      "title": "Município de Amapá, Produto C – Diagnóstico Técnico-Participativo, Plano Municipal de Saneamento Básico",
+      "publisher": "Universidade Federal do Amapá, Fundação Nacional de Saúde and Município de Amapá; PMSB technical team",
+      "coordination": [
+        "Alan Cavalcanti da Cunha",
+        "Alaan Ubaiara Brito"
+      ],
+      "edition": "Title matter dated Amapá/AP 2020; posted file is the December 2022 version",
+      "official_url": "https://saneamento.unifap.br/wp-content/uploads/2022/12/DTP-Ap_NICT.pdf",
+      "publication_identity": "Amapá municipal sanitation diagnosis and its original PMSB 2019–2020 mapping/field-study project. Its title matter, personnel, maps and technical methods identify a distinct project from IBGE municipal products, the political-map news release, and the Marajó HOLOS/NHM report.",
+      "original_inspected": true,
+      "actual_read_scope": "342-page original acquired. Cover and title/credit matter read; bounded relevant prose on printed pages 167–168 and 195–198; original map pixels on pages 168 (Map 4.8), 197 (Maps 5.2–5.3), 198 (Map 5.4) and 213 (Map 6.1). The whole report was not substantively read.",
+      "own_observations": "The prose and maps distinguish Rio Flechal/Flexal from Rio Amapá Pequeno, which joins it. The Flechal is shown continuing northward toward the Atlantic; coastal plains and lakes are depicted east of its course. The study discusses Lago Bom Nome and the coastal wetland setting, but does not establish the selected eastern outlet.",
+      "map_basis": "Maps 4.8 and 6.1 credit the PMSB team and identify IBGE 2004, ANA 2006 and TEDPLAN 2019 inputs. Maps 5.2–5.4 credit PMSB 2019 and the Amapá InSAR/BCDCAP 2017–2019 terrain model.",
+      "use_notice": "Historical municipal sanitation and terrain-analysis context. No inference about present flow direction, tidal conditions, bank position or infrastructure operation is made."
+    },
+    {
+      "source_key": "r192-nluis-herschel-island117d-1976",
+      "title": "Land Use Information Series: Herschel Island, Yukon Territory, sheet 117D, 1:250,000",
+      "year": 1976,
+      "edition": "1976 edition",
+      "publisher": "Lands Directorate, Environmental Management Service, Department of the Environment, for Indian and Northern Affairs",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_117d.jpg",
+      "normal_urls": [
+        "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_117d.jpg"
+      ],
+      "bibliography": "Department of the Environment, Lands Directorate. 1976. Herschel Island, Yukon Territory. Land Use Information Series, sheet 117D, 1:250,000. Prepared for Indian and Northern Affairs.",
+      "source_type": "Primary historical thematic land-resource map with base hydrography and marginal resource descriptions",
+      "publication_identity": "The original imprint and introduction identify an Arctic Land Use Research program product compiling renewable-resource and human-activity information for regional planning. This is a separately compiled land-resource publication, distinct from the stopped CanMatrix distribution, CBMT/Toporama service, geographic-name search records and held geological field projects. Its base map credits Surveys and Mapping Branch reproduction material, modified by the Department of the Environment; independent underlying hydrographic data are not claimed.",
+      "actual_acquisition": "One normal original JPEG acquisition completed HTTP 200 image/jpeg. The complete image was available before local reading.",
+      "actual_read_scope": "Whole-sheet overview; original title, scale, edition, publisher credits, nomenclature notice and introduction; enlarged lower Babbage course, Trail joining vicinity, delta and Phillips Bay shoreline. Portions of the physiography and fish-resource marginal text were inspected for context but are not used as current ecological or hydrological claims.",
+      "cartographic_correspondence": true,
+      "source_observations": [
+        "The selected northern course corresponds to the named Babbage River.",
+        "Trail River is separately labelled at the joining vicinity, and the selected lower course continues north to the Babbage delta.",
+        "The observed terminal enters southern Phillips Bay; Babbage Bight is a separately labelled coastal water area to the east."
+      ],
+      "use_notice": "The original describes the maps as interim, partly based on preliminary or reconnaissance information. Its nomenclature notice says names had not been submitted to the Canadian Board on Geographical Names and might be revised. Ordinary factual synthesis and bibliography only are supplied; originals and reading aids are not redistributed.",
+      "limits": "Historical generalized cartography supports ordinary corridor correspondence within the sheet. It does not establish current formal name status, precise banks or tidal conditions, surveyed river length, or the source-to-lower-course links lying beyond the sheet."
+    },
+    {
+      "source_key": "r192-codema-somuncura2008-scope",
+      "title": "Plan de Manejo del Área Natural Protegida Meseta de Somuncurá, Provincia de Río Negro; Decreto 465/2008, Boletín Oficial de Río Negro 4634, suplemento, 3 de julio de 2008",
+      "publisher": "Gobierno de Río Negro; Consejo de Ecología y Medio Ambiente",
+      "official_url": "https://rionegro.gov.ar/download/boletin/4634supl.pdf",
+      "publication_identity_basis": "An independently commissioned protected-area management project approved by Decreto465/2008. The original describes its own thematic GIS, Landsat interpretation and FUNDAL GPS fieldwork. A surviving normally acquired original was read locally; no new request or stopped geological-sheet original was used.",
+      "actual_material_read": "Original front matter/decree and title; hydrological text on printed pages35–36; GIS methodology on printed77; Map1 on printed36; original full-page and northeastern views of Caminos, ferrocarril y poblaciones en el ANP on120 and Espejos y Cursos de aguas sobre curvas de nivel on124, including the map axes and northern extent. Relevant bibliography was inspected as bibliography only.",
+      "observations": [
+        "The plan describes temporarily occupied closed depressions and linear arroyo/cañadón drainage in the Somuncurá region.",
+        "Its basin account separately associates Yaminué, Treneta and Comicó with Indio Muerto, and Chasicó, Paja Alta and Valcheta with Curicó. These are adjacent regional relationships, not selected-route names.",
+        "The GIS methodology expressly specifies UTM Zone19 South. The displayed northern map frame lies south of the supplied selection, so the annex cannot establish the selected opening, course or endpoint."
+      ],
+      "limits": "This is a successfully read adjacent-region source with a geographic coverage mismatch for the present target. It supplies no affirmative selected-channel correspondence. Its regional drainage names are not whole-feature identity evidence.",
+      "source_acquisition_completed": true,
+      "original_inspected": true,
+      "new_external_acquisition": false
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:80261384",
+      "source_keys": [
+        "r192-usgstopo-overview",
+        "r192-usgstopo-hubbard-south",
+        "r192-usgstopo-russell-ending",
+        "r192-kluane2005-prose",
+        "r192-kindstedt2025-prose"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2730
+          ],
+          "component_scope": "Chosen northern opening and early southward Canadian traverse",
+          "finding": "The federal reference view is largely blank over this Canadian selection. Read regional prose establishes a mountain-and-icefield setting, but it does not locate the chosen opening or distinguish its sequence of ice corridors. No original Canadian map pixels were successfully read.",
+          "sources": [
+            "r192-usgstopo-overview",
+            "r192-kluane2005-prose",
+            "r192-kindstedt2025-prose"
+          ],
+          "correspondence": "regional_context_only_selected_opening_unestablished",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2730
+          ],
+          "component_scope": "Remaining Canadian southward and eastward traverse to the Alaska border",
+          "finding": "The selected Canadian bends and their complete connection to the mapped U.S. Hubbard corridor remain without readable cartographic correspondence. Blank map coverage is a material-content limitation, not an access failure. Glacier proximity or the modeled connection is not substituted for the missing source coverage.",
+          "sources": [
+            "r192-usgstopo-overview",
+            "r192-usgstopo-hubbard-south"
+          ],
+          "correspondence": "selected_intermediate_glacial_corridor_unestablished",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2730,
+            2731
+          ],
+          "component_scope": "U.S. portion of the first mainstem fragment and its join to the second",
+          "finding": "The original depicts the southeastern border entry and adjoining mountain-bounded ice corridor continuously into the labelled Hubbard Glacier. This establishes the selected U.S. terrain passage at ordinary corridor scale, without asserting a natural river channel or exact ice-flow line.",
+          "sources": [
+            "r192-usgstopo-hubbard-south"
+          ],
+          "correspondence": "glacial_terrain_correspondence_established",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2731
+          ],
+          "component_scope": "Second mainstem fragment through the Hubbard Glacier corridor",
+          "finding": "The full selected north–south passage lies within the mapped Hubbard ice corridor, alongside mountain projections, and reaches the eastern ice-margin join. The neighbouring Valerie, Miller and Turner glaciers are separately mapped and are not substituted for this selection.",
+          "sources": [
+            "r192-usgstopo-hubbard-south",
+            "r192-usgstopo-russell-ending"
+          ],
+          "correspondence": "glacial_terrain_correspondence_established",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2733,
+            2731,
+            2732
+          ],
+          "component_scope": "Entire eastern tributary fragment and common ice-margin join",
+          "finding": "The tributary selection starts on mapped ice east of the main selected route, follows the eastern mountain margin and meets the main selection at the southern ice edge. All of its parts have readable terrain coverage. No distinct river or tributary-glacier name is established for this line.",
+          "sources": [
+            "r192-usgstopo-hubbard-south",
+            "r192-usgstopo-russell-ending"
+          ],
+          "correspondence": "whole_tributary_glacial_terrain_correspondence_established",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2732
+          ],
+          "component_scope": "Final mainstem fragment through the ice-margin and coastal setting to its actual terminal",
+          "finding": "The final selection follows the eastern ice margin, crosses a mapped lowland and wetland/outwash setting near the Variegated Glacier drainage, then ends within water labelled Russell Fiord. Disenchantment Bay is the separate western waterbody beyond the Gilbert Point peninsula. This terrain correspondence does not demonstrate one continuous named river or a present ice-front position.",
+          "sources": [
+            "r192-usgstopo-russell-ending"
+          ],
+          "correspondence": "selected_terminal_terrain_and_receiving_water_established",
+          "component_correspondence_completed": true
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60297933",
+      "source_keys": [
+        "r192-ibge-pracuuba2020",
+        "r192-unifap-amapa-dtp2020"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            11622
+          ],
+          "component_scope": "Chosen headward opening and southeast-oriented inland feeder",
+          "finding": "The municipal original depicts the headwater drainage network and the southeast-oriented feeder corridor into the eastward inland watercourse. The selected opening was considered in the original-map enlargement. No hydronym is established for this initial feeder; the nearby municipal-boundary river is not substituted for it.",
+          "sources": [
+            "r192-ibge-pracuuba2020"
+          ],
+          "correspondence": "bounded_ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            11622
+          ],
+          "component_scope": "Inland eastward course toward the settled Pracuúba lowland",
+          "finding": "The original municipal map shows the eastward drainage corridor through Floresta Estadual do Amapá and toward the Pernambuco/Flexal locality setting. The locality labels Flexal and Flechal do not themselves name every selected river reach.",
+          "sources": [
+            "r192-ibge-pracuuba2020"
+          ],
+          "correspondence": "bounded_ordinary_corridor_correspondence",
+          "component_correspondence_completed": true,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            11622
+          ],
+          "component_scope": "Southward turn and approach to the western lake arms near Ponta Baixa",
+          "finding": "The municipal original depicts the drainage and lake-arm setting west and southwest of Pracuúba, including Ponta Baixa. The selected broad approach is recognizable, but its complete connection into and through the lake complex is not established by that regional depiction alone.",
+          "sources": [
+            "r192-ibge-pracuuba2020"
+          ],
+          "correspondence": "partial_correspondence_with_required_lake_join_pending",
+          "component_correspondence_completed": false,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            11622
+          ],
+          "component_scope": "Lake passage and northbound exit past the Pracuúba settlement setting",
+          "finding": "The municipal map exposes multiple connected lake arms around Pracuúba and Ponta Baixa. It does not establish the full selected through-passage and its direct northern continuation toward the São Miguel do Flexal wetland corridor. A label for the entire selected lake complex is not assigned.",
+          "sources": [
+            "r192-ibge-pracuuba2020"
+          ],
+          "correspondence": "required_lake_and_outlet_through_links_pending",
+          "component_correspondence_completed": false,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            11622
+          ],
+          "component_scope": "Long northbound lowland/wetland connector",
+          "finding": "Rio Flechal is directly labelled in municipal cartography, and the sanitation study distinguishes it from Rio Amapá Pequeno and describes their junction. However, the selected northbound connector is not continuously matched to the depicted Flechal course. The mere presence of the named river nearby is insufficient to complete this component.",
+          "sources": [
+            "r192-ibge-pracuuba2020",
+            "r192-unifap-amapa-dtp2020"
+          ],
+          "correspondence": "regional_identity_supported_selected_connector_pending",
+          "component_correspondence_completed": false,
+          "candidate_name": "Rio Flechal"
+        },
+        {
+          "fragments": [
+            11622
+          ],
+          "component_scope": "Eastward wetland/lake crossing before the fragment join",
+          "finding": "The selected route turns east through the coastal lake/wetland setting. The municipal map depicts lakes and separate small drainage branches there, while the sanitation figures show the Flechal continuing farther north past the Amapá Pequeno junction. Neither original establishes the complete selected eastward through-link. The study's Lago Bom Nome reference is regional context only, not proof that every selected lake segment belongs to that lake.",
+          "sources": [
+            "r192-ibge-pracuuba2020",
+            "r192-unifap-amapa-dtp2020"
+          ],
+          "correspondence": "required_eastward_wetland_through_link_pending",
+          "component_correspondence_completed": false,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            11623
+          ],
+          "component_scope": "Final northeast reach, inter-fragment continuation and explicit selected sea endpoint",
+          "finding": "The second fragment and its actual sea endpoint were considered separately from the longer inland fragment. Its coastal ending lies south of the independently depicted Igarapé do Garrote outlet and east of the Flechal corridor. The originals do not show a continuous selected channel from the eastern lake/wetland crossing to this coast point. No alternate mapped river mouth was substituted for the selected terminal.",
+          "sources": [
+            "r192-ibge-pracuuba2020",
+            "r192-unifap-amapa-dtp2020"
+          ],
+          "correspondence": "fragment_join_and_actual_terminal_source_material_pending",
+          "component_correspondence_completed": false,
+          "candidate_name": null
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80044582",
+      "source_keys": [
+        "r192-nluis-herschel-island117d-1976"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2486
+          ],
+          "component_scope": "Chosen western opening, initial southeastern descent and eastward bend",
+          "finding": "The selected opening and initial southern/eastward course are outside the acquired Herschel Island map. No independent original cartography was inspected for these parts or their intervening joins. Their connection to the named downstream river is not established by this pass.",
+          "sources": [],
+          "correspondence": "material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2486
+          ],
+          "component_scope": "Upper and middle northeastern course and successive joins",
+          "finding": "This long selected valley interval is south of the inspected map. The downstream Babbage label does not establish the chosen headward branch or these through-links.",
+          "sources": [],
+          "correspondence": "material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2486
+          ],
+          "component_scope": "Eastern approach and transition into the northern map",
+          "finding": "Most of this eastern approach is outside the acquired map. The final part crosses its southern edge into the visible Babbage corridor, but the southern approach and whole cross-edge join were not compared with an adjoining original.",
+          "sources": [
+            "r192-nluis-herschel-island117d-1976"
+          ],
+          "correspondence": "partial_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2486
+          ],
+          "component_scope": "Northern turn, westward reach and Trail River joining vicinity",
+          "finding": "The original shows the selected turn from the southern edge into a northwestward and then westward reach of Babbage River. The joining vicinity of the separately labelled Trail River and the subsequent northward continuation agree at ordinary corridor scale.",
+          "sources": [
+            "r192-nluis-herschel-island117d-1976"
+          ],
+          "correspondence": "complete",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2486
+          ],
+          "component_scope": "Lower northward Babbage River and coastal-plain joins",
+          "finding": "The labelled Babbage course continues north across the coastal plain. Its northward bends and adjacent Deep Creek network correspond to the selected lower corridor; the neighboring rivers and ponds are distinguishable from this course.",
+          "sources": [
+            "r192-nluis-herschel-island117d-1976"
+          ],
+          "correspondence": "complete",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2486
+          ],
+          "component_scope": "Northwestern delta course and actual coastal ending",
+          "finding": "The selected final westward and northwestern course corresponds to the mapped Babbage delta entering the southern side of Phillips Bay, west of the Babbage Bight coast. The river-to-bay continuation is visible at ordinary regional scale; individual modern distributary banks and exact shoreline positions are not assigned.",
+          "sources": [
+            "r192-nluis-herschel-island117d-1976"
+          ],
+          "correspondence": "complete",
+          "component_correspondence_completed": true
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61555857",
+      "source_keys": [
+        "r192-codema-somuncura2008-scope"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14559
+          ],
+          "component_scope": "Northwestern chosen opening and first southeast approach",
+          "finding": "The pinned opening and first four parts form the northwestern approach. They lie north of the inspected Somuncurá map coverage. The source supplies no channel, headwater identity or initial drainage connection for this selection.",
+          "sources": [
+            "r192-codema-somuncura2008-scope"
+          ],
+          "correspondence": "opening_and_upper_approach_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            14559
+          ],
+          "component_scope": "Long upper eastward reach and southeast turn",
+          "finding": "The selection continues through a substantial easterly interval and then turns southeast. No inspected independent cartography establishes the selected through-course, its contributing channels or the connection across this upper interval. Adjacent regional basin names are not substituted for those links.",
+          "sources": [
+            "r192-codema-somuncura2008-scope"
+          ],
+          "correspondence": "upper_trunk_and_joins_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            14559
+          ],
+          "component_scope": "Southward bend and middle southeast corridor",
+          "finding": "The selected line makes a short southerly bend and then runs southeast through ten stored parts. The readable management-plan maps end to the south and cannot identify this corridor or demonstrate the intervening joins. Discovery of a possible local name was not promoted to evidence.",
+          "sources": [
+            "r192-codema-somuncura2008-scope"
+          ],
+          "correspondence": "middle_course_and_intermediate_joins_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            14559
+          ],
+          "component_scope": "Northeast reversal and subsequent eastward middle reach",
+          "finding": "The selection reverses toward the northeast, turns east, and resumes a southeast trend. Neither the selected reversal nor the through-link across the intervening lowland is established by an inspected source. No lake, wetland, saline-flat or dry-channel passage is inferred from the modeled line alone.",
+          "sources": [
+            "r192-codema-somuncura2008-scope"
+          ],
+          "correspondence": "middle_reversal_and_lowland_passages_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            14559
+          ],
+          "component_scope": "Lower southeast approach",
+          "finding": "The selected lower line trends southeast through a sequence of short parts. Its ordinary channel identity, tributary joins and any depression or saline-flat passage are unresolved. The stopped article supplied no readable source body or map, and its discovery excerpts do not establish this lower course.",
+          "sources": [
+            "r192-codema-somuncura2008-scope"
+          ],
+          "correspondence": "lower_course_and_depression_approach_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            14559
+          ],
+          "component_scope": "Final southern bend, eastward leg and actual internal endpoint",
+          "finding": "The preserved selection bends south and then east/northeast before terminating internally. No inspected source identifies the actual selected terminal or establishes its entry into a named receiving waterbody or salt flat. The endpoint is not reassigned to the nearest discovered regional feature.",
+          "sources": [
+            "r192-codema-somuncura2008-scope"
+          ],
+          "correspondence": "actual_terminal_and_final_connector_pending",
+          "component_correspondence_completed": false
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "Parks Canada, Kluane National Park and Reserve of Canada visitor brochure, catalogue R63-262/2005E, ISBN0-662-39082-2",
+      "official_url": "https://parks.canada.ca/pn-np/yt/kluane/visit/~/media/7390da8308714ab69e3fd2aabeea8c7a.ashx",
+      "observed_outcome": "The original web PDF text opened and reported four pages. The sole screenshot request for zero-based page3 returned Failed to fetch: Cache miss. No pixels were exposed; origin HTTP unknown.",
+      "outcome_layer": "Web-reader screenshot availability failure, not an observed origin HTTP denial.",
+      "restriction_scope": "Whole visitor publication, map content and equivalent original, reader, cache, screenshot, mirror, format and other acquisition routes paused. No retry or alternate request.",
+      "earlier_lawful_observations": "Only the actual pre-stop brochure prose and bibliographic identity described above.",
+      "newly_observed_access_failure": true,
+      "material_gap": true,
+      "aw_id": "hydro-system:80261384"
+    },
+    {
+      "publication": "Kindstedt et al.2025, The Cryosphere19:3655–3680, Eclipse Icefield firn-study article and Figure1",
+      "official_url": "https://tc.copernicus.org/articles/19/3655/2025/",
+      "attempted_original_url": "https://tc.copernicus.org/articles/19/3655/2025/tc-19-3655-2025-f01-web.jpg",
+      "observed_outcome": "The attempted sole figure-original acquisition could not create an execution process because the execution-server transport was disconnected. No session or source HTTP result was returned; no image was acquired or read.",
+      "outcome_layer": "Execution-connection failure before process creation, not approval rejection, access denial or a measured HTTP response.",
+      "restriction_scope": "Further article/figure and equivalent acquisition or unread-output reading is paused because the attempted image outcome was not established. No retry or alternative figure route followed.",
+      "earlier_lawful_observations": "Only already-read article prose, caption, licence and project identity; no original figure observations.",
+      "newly_observed_access_failure": false,
+      "execution_connection_failure": true,
+      "unresolved_acquisition_outcome": true,
+      "material_gap": true,
+      "aw_id": "hydro-system:80261384"
+    },
+    {
+      "publication": "IBGE disponibiliza na Internet 14 novos mapas políticos estaduais",
+      "official_url": "https://agenciadenoticias.ibge.gov.br/agencia-sala-de-imprensa/2013-agencia-de-noticias/releases/10123-ibge-disponibiliza-na-internet-14-novos-mapas-politicos-estaduais",
+      "observed_outcome": "The sole article open returned 403 Forbidden. No article body was read.",
+      "outcome_layer": "Web-reader-reported HTTP403; origin response not independently measured",
+      "restriction_scope": "Whole news article and equivalent copies and acquisition routes stopped. No retry or alternate article reading followed.",
+      "earlier_lawful_observations": null,
+      "material_gap": false,
+      "effect_on_result": "The optional news article supplies no substantive evidence. The correspondence gaps above arise in the independently read maps and are not counted as an additional access-limited status.",
+      "aw_id": "hydro-system:60297933"
+    },
+    {
+      "publication": "Stelfox, H.A., and Ironside, G.R. (compilers), Land/wildlife integration no. 2: proceedings of the 21–24 March 1982 Banff technical workshop; Ecological Land Classification Series 17, En73-3/17-PDF",
+      "official_url": "https://publications.gc.ca/collections/collection_2019/eccc/En73-3-17.pdf",
+      "observed_outcome": "The reader completed with an explicit content-length limit. One sequential normal-original request then completed HTTP 200 with text/html after redirection to an archived-information page, rather than the requested PDF. No report body or original figures were read.",
+      "outcome_layer": "Explicit reader technical-size limit followed by completed HTTP wrong-content availability outcome; not an access-control denial.",
+      "restriction_scope": "The whole publication, companions/equivalent copies and acquisition routes remain paused; no alternative catalogue, mirror, original, cache or output-file reading followed.",
+      "earlier_lawful_observations": null,
+      "material_effect": "No usable independent bibliography was obtained to establish the specific proposed southern NLUIS product. Discovery excerpts are excluded from substantive findings.",
+      "availability_failure": true,
+      "newly_observed_access_failure": false,
+      "aw_id": "hydro-system:80044582"
+    },
+    {
+      "source_key": "r192-reichler2010-unread",
+      "publication": "Reichler, Valeria A. (2010). Estratigrafía y paleontología del Cenozoico marino del Gran Bajo y Salinas del Gualicho, Argentina, y descripción de 17 especies nuevas. Andean Geology37(1):177–219. DOI10.4067/S0718-71062010000100008.",
+      "official_url": "https://www.scielo.cl/pdf/andgeol/v37n1/art08.pdf",
+      "observed_outcome": "The single direct original request terminated with HTTP403 and Content-Type text/html. No article/PDF body, error-response body or figure was inspected. No retry or alternate acquisition followed.",
+      "outcome_layer": "Completed direct HTTP-client403 response; origin-versus-intermediary identity not independently established.",
+      "http_status": 403,
+      "restriction_scope": "Whole article and equivalent original, publisher, catalogue, reader, cache, mirror, alternate-format and figure acquisition routes stopped, including unread output.",
+      "earlier_lawful_prose_exception": null,
+      "material_effect": "No substantive article material or selected-corridor map was obtained. Search discovery is excluded from evidence.",
+      "newly_observed_access_failure": true,
+      "explicit_http_denial": true,
+      "publication_identity_basis": "Discovery identified a UBA primary stratigraphic/palaeontological field-study project introducing new fossil species, distinct from the held official geological-sheet programs. That independent article identity did not clear the unresolved provenance of its38i/38j-derived base map; the map was neither acquired nor used.",
+      "aw_id": "hydro-system:61555857"
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "publication": "Município de Amapá, Produto C – Diagnóstico Técnico-Participativo",
+      "official_url": "https://saneamento.unifap.br/wp-content/uploads/2022/12/DTP-Ap_NICT.pdf",
+      "observed_outcome": "The reader returned an explicit completed content-length limit. One sequential request to the same normal original URL completed HTTP200 with the complete PDF, which was then read.",
+      "restriction_scope": "Resolved reader-size limitation; no access denial or continuing publication stop.",
+      "aw_id": "hydro-system:60297933",
+      "acquisition_stop": false
+    },
+    {
+      "publication": "Pracuúba – AP, Mapa Municipal, 1600550, 04/2021",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/AP/pracuuba/1600550_MM.pdf",
+      "observation": "Printed statistical-purpose and semi-automatic-compilation disclaimer; IBGE reproduction rights reserved.",
+      "aw_id": "hydro-system:60297933",
+      "acquisition_stop": false,
+      "restriction_scope": "Bounded factual geographic research only. No original map, crop, overlay or other source reproduction is supplied with this finding. No officials-only restriction was observed."
+    },
+    {
+      "publication": "Proposed NLUIS Blow River117A",
+      "limitation_kind": "unacquired_product_identity_unresolved",
+      "observed_outcome": "Not requested. No new network failure or source body reading occurred.",
+      "restriction_scope": "The exact product was not independently established from a usable bibliographic source. The successfully read117D does not alone establish the selected upper corridor.",
+      "used_as_substantive_evidence": false,
+      "aw_id": "hydro-system:80044582",
+      "acquisition_stop": false
+    },
+    {
+      "publication": "Plan de Manejo del Área Natural Protegida Meseta de Somuncurá (2008)",
+      "official_url": "https://rionegro.gov.ar/download/boletin/4634supl.pdf",
+      "limitation_kind": "selected_corridor_outside_inspected_map_extent",
+      "observed_outcome": "The surviving original was read successfully. The inspected annex maps cover neighboring terrain south of the present selected line.",
+      "restriction_scope": "Geographic relevance/content limit for this target, not a publication-wide access stop. Only own bounded factual observations and ordinary bibliography are retained.",
+      "aw_id": "hydro-system:61555857",
+      "acquisition_stop": false
+    }
+  ]
+}

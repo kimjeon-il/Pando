@@ -7,7 +7,7 @@
 - 기준일: **1914-07-31**.
 - 도엽: [Meßtischblatt 21 Hügum](https://www.deutschefotothek.de/documents/obj/71051510), 1878년 측량·발행, **1:25,000**, SLUB WMS ID 10006020, 레이어 df_dk_0010001_0619.
 - 법적 근거: [1865년 국경획정위원회 의정서 Article I §§2–3](https://da.wikisource.org/wiki/Freden_i_Wien_(1864)_Gr%C3%A6nsereguleringskommissionen). 26번 Gjelsbro부터 Gels Å를 따라 Flads Å 합류점까지 국경. 합류 이후는 **Flads Å의 오른쪽 강변**을 따라 27번으로 향한다.
-- [역사적 국경·해안선 복원 공통 규칙](../../../docs/historical-border-reconstruction-policy.md): 평면 최대 확대 64, 2560 CSS px, 표시 정밀화 종료 기준 0.5 px. 하천 경로·연대·국가 귀속·위상 오류는 별도 필수 검증.
+- [역사적 국경·해안선 복원 공통 규칙](../../../../docs/historical-border-reconstruction-policy.md): 평면 최대 확대 64, 2560 CSS px, 표시 정밀화 종료 기준 0.5 px. 하천 경로·연대·국가 귀속·위상 오류는 별도 필수 검증.
 - 웹·앱 work/gis에서 작업, main 미변경.
 
 ## 1. 원본 지도 육안 판독

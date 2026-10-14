@@ -1,0 +1,724 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r167",
+  "sources": [
+    {
+      "source_key": "r167-kennecott084666-survey-metadata",
+      "title": "Till sampling survey, Brodeur Peninsula, Nunavut, NTS58A/7,16, Kennecott Canada Exploration Inc.,2002–2004",
+      "publisher": "Natural Resources Canada, Canadian geochemical survey metadata; underlying field project by Kennecott Canada Exploration Inc.",
+      "official_url": "https://geochem.nrcan.gc.ca/cdogs/content/svy/svy290174_e.htm",
+      "source_type": "Official bibliographic and project-area metadata for a separately issued company exploration assessment",
+      "publication_identity": "A company-led kimberlite-indicator till-sampling exploration project associated with Nunavut Assessment Report084666. Its issuance and project purpose are distinct from federal base-map services, NTS/CanMatrix cartography and geographical-name registries.",
+      "acquired_date_utc": "2026-10-12",
+      "actual_acquisition": "Exact survey metadata opened normally in the web reader.",
+      "actual_read_scope": "Survey title and description,48-sample project statement, publication history, geographic-extent metadata and page modification date. No linked map or interactive location map was read.",
+      "source_observations": [
+        "The metadata describes a Kennecott Canada Exploration Inc. exploration program during2002–2004 with48 till samples.",
+        "The property is described as being in the McBean Bay and Brodeur River areas.",
+        "The publication history identifies G.Rogers(2004), Report of geological and geophysical exploration, Nunavut Assessment Report084666."
+      ],
+      "bibliographic_note": "Page modified2025-05-18. The title gives NTS58A/7,16; body prose gives58A/16,17. This apparent metadata inconsistency is retained and not silently corrected.",
+      "limits": "Project metadata and stated extent do not depict a river course, source, through-lake connection, junction or mouth. They do not independently establish any selected component or candidate identity.",
+      "cartographic_correspondence": false,
+      "use_notice": "Only bounded own factual observations and ordinary bibliography retained for public synthesis. No original report, source map or derivative is delivered."
+    },
+    {
+      "source_key": "r167-kennecott084666-publication-unavailable",
+      "title": "Report of geological and geophysical exploration",
+      "author": "Rogers, G.",
+      "year": 2004,
+      "publisher": "Kennecott Canada Exploration Inc.",
+      "series": "Nunavut Assessment Report084666",
+      "official_url": "https://geochem.nrcan.gc.ca/cdogs/content/pub/pub02673_e.htm",
+      "source_type": "Unavailable linked publication record for an independently identified company field-survey assessment",
+      "acquired_date_utc": "2026-10-12",
+      "actual_acquisition": "Sole linked publication-page request returned web-reader Cache miss.",
+      "actual_read_scope": "None. Report body, maps, original imprint and any publication-specific use notice were not acquired or read.",
+      "limits": "Bibliography comes from the preceding successfully read survey metadata. Missing assessment publication/maps and equivalent acquisition routes paused.",
+      "cartographic_correspondence": false
+    },
+    {
+      "source_key": "r167-usgs-topo-south-texas-west",
+      "title": "USGSTopo, The National Map: western Jim Hogg County selected opening and eastward plain corridor",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_type": "Independently maintained seamless multiscale cartographic service; not a numbered USGS report or a route to stopped report plates.",
+      "acquired_date_utc": "2026-10-12",
+      "actual_acquisition": "One bounded original image completed HTTP200 with image/png. All four service acquisitions were sequential and completed before substantive image reading.",
+      "actual_read_scope": "Full bounded original at readable overview scale, separate selected-path orientation and enlarged original opening detail; complete western opening and contiguous approach overlap.",
+      "edition_and_epoch": "Live service rendering accessed on the stated date; no single compilation edition or field-survey date is asserted for these bounded views.",
+      "limits": "Ordinary regional/corridor correspondence only. Current flow, exact banks, small-water hydraulic transfers, wetland exchange and formal registry status are unverified. Source coverage does not establish the specifically recorded through-link gaps.",
+      "use_notice": "Only own bounded factual observations and ordinary bibliography are public-ready. Original cartography, local reading aids, source coordinates and acquisition details remain private."
+    },
+    {
+      "source_key": "r167-usgs-topo-south-texas-middle",
+      "title": "USGSTopo, The National Map: selected southern approach, Vargas Creek and eastern small-lake corridor",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_type": "Independently maintained seamless multiscale cartographic service; not a numbered USGS report or a route to stopped report plates.",
+      "acquired_date_utc": "2026-10-12",
+      "actual_acquisition": "One bounded original image completed HTTP200 with image/png. All four service acquisitions were sequential and completed before substantive image reading.",
+      "actual_read_scope": "Full bounded original, separate selected-path orientation and enlarged original Vargas Creek/eastern small-lake details; southern approach, named middle corridor and the selected eastward extension.",
+      "edition_and_epoch": "Live service rendering accessed on the stated date; no single compilation edition or field-survey date is asserted for these bounded views.",
+      "limits": "Ordinary regional/corridor correspondence only. Current flow, exact banks, small-water hydraulic transfers, wetland exchange and formal registry status are unverified. Source coverage does not establish the specifically recorded through-link gaps.",
+      "use_notice": "Only own bounded factual observations and ordinary bibliography are public-ready. Original cartography, local reading aids, source coordinates and acquisition details remain private."
+    },
+    {
+      "source_key": "r167-usgs-topo-south-texas-southeast",
+      "title": "USGSTopo, The National Map: US281, Callo Padrones vicinity and southern/northeastern inland selected passage",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_type": "Independently maintained seamless multiscale cartographic service; not a numbered USGS report or a route to stopped report plates.",
+      "acquired_date_utc": "2026-10-12",
+      "actual_acquisition": "One bounded original image completed HTTP200 with image/png. All four service acquisitions were sequential and completed before substantive image reading.",
+      "actual_read_scope": "Full bounded original, separate selected-path orientation and enlarged original Callo Padrones context; US281 transfer, southernmost turn and northeastward plain passage.",
+      "edition_and_epoch": "Live service rendering accessed on the stated date; no single compilation edition or field-survey date is asserted for these bounded views.",
+      "limits": "Ordinary regional/corridor correspondence only. Current flow, exact banks, small-water hydraulic transfers, wetland exchange and formal registry status are unverified. Source coverage does not establish the specifically recorded through-link gaps.",
+      "use_notice": "Only own bounded factual observations and ordinary bibliography are public-ready. Original cartography, local reading aids, source coordinates and acquisition details remain private."
+    },
+    {
+      "source_key": "r167-usgs-topo-south-texas-terminal",
+      "title": "USGSTopo, The National Map: US77 inland transfer, Cayo Soledad and actual coastal terminal",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_type": "Independently maintained seamless multiscale cartographic service; not a numbered USGS report or a route to stopped report plates.",
+      "acquired_date_utc": "2026-10-12",
+      "actual_acquisition": "One bounded original image completed HTTP200 with image/png. All four service acquisitions were sequential and completed before substantive image reading.",
+      "actual_read_scope": "Full bounded original, separate selected-path orientation and enlarged original coastal context; US77 crossing, full Cayo Soledad approach, local waterbody passage, marsh transfer and actual endpoint.",
+      "edition_and_epoch": "Live service rendering accessed on the stated date; no single compilation edition or field-survey date is asserted for these bounded views.",
+      "limits": "Ordinary regional/corridor correspondence only. Current flow, exact banks, small-water hydraulic transfers, wetland exchange and formal registry status are unverified. Source coverage does not establish the specifically recorded through-link gaps.",
+      "use_notice": "Only own bounded factual observations and ordinary bibliography are public-ready. Original cartography, local reading aids, source coordinates and acquisition details remain private."
+    },
+    {
+      "source_key": "r167-nluis-washburn-77e-1983",
+      "title": "Land Use Information Series: Washburn Lake, District of Franklin, Northwest Territories, sheet77E",
+      "publisher": "Lands Directorate, Environmental Conservation Service, Environment Canada, with Indian and Northern Affairs; thematic cartography by the Land Resource Research Institute, Research Branch, Agriculture Canada",
+      "year": 1983,
+      "information_date": "December1982",
+      "scale": "1:250,000",
+      "base_map": "National Topographic Series77E, Edition1",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_77e.jpg",
+      "evidence_kind": "primary_original_cartography_and_map_margin_prose",
+      "actual_read_scope": "Original title, publishing imprint, graticule, introduction, hydrographic legend, fish-resource comments and source-only corridor windows from the selected western opening to the eastern map edge were visually read. A separate private approximate orientation aid located the selected corridor; it was not used as substitute geographic evidence. No original beyond the eastern map boundary was observed.",
+      "acquisition_outcome": "The sole normal original request completed HTTP200 with image/jpeg; the original title and imprint confirmed the proposed publication.",
+      "source_independence": "The actual original is an Environment Canada land-resource thematic publication with its own project content and imprint, hosted by Agriculture and Agri-Food Canada. It is not a CanMatrix raster delivery, CBMT3978 service image, Canadian Geographical Names record or replacement copy of a stopped geological report. Its NTS base-map and Polar Continental Shelf Project logistical credits do not equate it with those excluded publications.",
+      "limits": "Historical generalized cartography. The introduction describes interim information, including preliminary or reconnaissance material and approximate thematic boundaries. Fish-resource comments state that rivers in the map area flow for a short summer period and are dry or frozen in winter. These are historical regional cautions, not current hydrology or fishing advice. The actual terminal is outside this sheet.",
+      "use_notice": "Printed Crown copyright. Only own bounded observations and ordinary bibliography are supplied; source originals, crops and orientation aids are not redistributed."
+    },
+    {
+      "source_key": "r167-nluis-denmark-bay-67f-unconfirmed",
+      "title": "Northern Land Use Information Series: Denmark Bay, sheet67F, proposed original",
+      "publisher": "Environment Canada land-use mapping project; exact original imprint not inspected",
+      "year": null,
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_67f.jpg",
+      "bibliographic_discovery_url": "https://recherche-collection-search.bac-lac.gc.ca/eng/home/record?app=fonandcol&idnumber=18663&resource=folderlist",
+      "evidence_kind": "unconfirmed_acquisition_and_bibliographic_discovery_only",
+      "actual_read_scope": "No original, header, partial-file content or map pixels read. Independent archival discovery identified Denmark Bay67F within the Environment Canada NLUIS project. The normal original filename was inferred from the publisher convention and was not represented as a retrieved link; source title/imprint were never confirmed from a successful response.",
+      "acquisition_outcome": "The sole normal-original acquisition began. Its terminal-status call was refused for missing or mismatched trusted user authorization context. After exact user evidence was supplied, one identical status-call retry returned Unknown process. No terminal HTTP result or completed body was confirmed.",
+      "source_independence": "Proposed independently identified Environment Canada thematic map content, distinct from the held index and from stopped CanMatrix/GSC/naming publications. This identity assessment did not clear the index or any previously stopped sheet.",
+      "limits": "Whole missing map/publication and equivalent acquisition routes remain paused after the unresolved request. No source correspondence, map name, original publication year or original use notice is inferred from bibliographic discovery."
+    },
+    {
+      "source_key": "r167-ign-chico-historical500k",
+      "title": "Mosaico cartas 1:500.000 histórico, selected Ciaike–Chico corridor",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms",
+      "edition": "Historical multi-sheet mosaic; individual constituent sheet dates not established from the bounded view.",
+      "scale": "1:500,000",
+      "source_type": "Official historical topographic raster cartography",
+      "publication_identity_basis": "Separately catalogued historical cartas_mosaicos publication, affirmatively distinguished in prior lawful records from the stopped IGN Argenmap publication. The retained successful catalogue identifies the historical500k layer; absent mainland250k/100k layers were not requested.",
+      "actual_originals_inspected": "One successful complete bounded whole-corridor original map, followed by ordinary-scale reading of upper, boundary-join, lower-valley and actual-terminal portions. No second acquisition or missing-extent retry.",
+      "supports": "Ciaike and Río Chico map labels; complete boundary departure/return setting; lower Chico course, nearby lakes and actual estuarine receiving area.",
+      "limits": "Western Chilean opening has no cartography in this bounded historical raster. The independently acquired MMA hydrography covers it. Constituent dates and present hydrographic conditions remain unestablished.",
+      "use_notice": "No unrestricted redistribution inferred. Original raster and private reading aids are excluded from public-ready materials."
+    },
+    {
+      "source_key": "r167-mma-chaike-hydro",
+      "title": "SIMBIO_HIDROGRAFIA — Red Hidrografica, layer 0",
+      "publisher": "Ministerio del Medio Ambiente, Chile",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HIDROGRAFIA/MapServer",
+      "edition": "Undated active hydrographic publication; bounded original read 12 October 2026.",
+      "source_type": "Official bounded vector hydrography with direct feature attributes",
+      "publication_identity_basis": "The exact independently established MMA SIMBIO hydrographic publication is distinct from paused MOP map portals, DGA/Loa studies, IGM250K sign-in material and other restricted publications.",
+      "actual_originals_inspected": "Retained successful layer metadata and one new complete bounded original feature response containing 85 hydrographic features; no exceeded-transfer-limit flag. Original lines and direct NOMBRE/TIPO_DREN attributes were inspected over the western opening and full Chilean/border sequence.",
+      "supports": "Unnamed Quebrada opening; direct Río Chaike o Chico and Río de los Pozuelos reach attributes; intermediate joins and the natural course south of the selected border-aligned fragment.",
+      "limits": "No numeric source survey scale or current hydrologic epoch established. This line service does not supply lake polygons or prove present flow.",
+      "use_notice": "Metadata description/copyright fields blank; no redistribution permission inferred. Original features and private cartographic reading aids remain private."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:80020100",
+      "source_keys": [
+        "r167-kennecott084666-survey-metadata",
+        "r167-kennecott084666-publication-unavailable"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2308
+          ],
+          "component_scope": "Selected southeastern opening and northern bends",
+          "finding": "No independent original map was acquired for the selected opening and its northward bends. The supplied selected path is orientation only and cannot establish a natural channel, lake passage or name.",
+          "sources": [],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false,
+          "material_gap": true
+        },
+        {
+          "fragments": [
+            2308
+          ],
+          "component_scope": "Selected northward middle corridor and northwestward turn",
+          "finding": "No primary cartography establishes the entire middle succession, each intervening join or any selected lake or tributary connection. Nearby place names and regional membership are not substitutes for this missing correspondence.",
+          "sources": [],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false,
+          "material_gap": true
+        },
+        {
+          "fragments": [
+            2308
+          ],
+          "component_scope": "Selected lower northwestward and westward corridor",
+          "finding": "The successfully read survey metadata places a company project in the McBean Bay and Brodeur River areas, but its textual extent and place labels do not show the selected route or its joins. The linked assessment publication was unavailable. Brodeur River remains an untested local-area lead, not a mapped component candidate.",
+          "sources": [],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false,
+          "context_only_sources": [
+            "r167-kennecott084666-survey-metadata"
+          ],
+          "material_gap": true
+        },
+        {
+          "fragments": [
+            2308
+          ],
+          "component_scope": "Selected final western bends and actual terminal",
+          "finding": "The actual last stored part and endpoint were retained in the source-assessment scope. No original cartography establishes their channel connection, receiving water or actual terminal setting. A nearby named river point was not substituted for this endpoint.",
+          "sources": [],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false,
+          "material_gap": true
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70835654",
+      "source_keys": [
+        "r167-usgs-topo-south-texas-west",
+        "r167-usgs-topo-south-texas-middle",
+        "r167-usgs-topo-south-texas-southeast",
+        "r167-usgs-topo-south-texas-terminal"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10259
+          ],
+          "component_scope": "Western selected opening and eastward Jim Hogg County plain passage",
+          "finding": "The readable original covers the selected western opening, its initial eastward and northward bends, the long eastward continuation and every stored join across the Jim Hogg County plain. Roads, contours, isolated small water features and separately mapped intermittent channels are visible. No continuous mapped waterway follows the complete selected opening or its eastward through-passage. The northern channels and nearby water symbols cannot supply the missing selected connection.",
+          "sources": [
+            "r167-usgs-topo-south-texas-west"
+          ],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false,
+          "material_gap": true
+        },
+        {
+          "fragments": [
+            10259
+          ],
+          "component_scope": "Southward selected approach across the Jim Hogg–Brooks County surroundings toward Vargas Creek",
+          "finding": "The contiguous sources cover the selected southeastern continuation, southward turn and approach to the separately mapped Vargas Creek west of Tacubaya. This route traverses road, contour, vegetation and scattered small-water settings. The full selected through-waterway and its transfer into Vargas Creek are not established by the cartography. This is a concrete dryland-connection gap, not an exact-bank or individual-vertex requirement.",
+          "sources": [
+            "r167-usgs-topo-south-texas-west",
+            "r167-usgs-topo-south-texas-middle"
+          ],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false,
+          "material_gap": true
+        },
+        {
+          "fragments": [
+            10259
+          ],
+          "component_scope": "Mapped Vargas Creek middle corridor and its eastern small-lake setting",
+          "finding": "Repeated Vargas Creek labels identify the dashed blue channel running southeast across the FM755 surroundings and then east along the Brooks–Starr/Hidalgo county-boundary setting. The selected middle route corresponds to this corridor at ordinary regional scale, including the intermediate bends and the tributary-entry setting. Local generalized offsets and the selected northerly loop are not treated as exact bank failures. The source carries the mapped creek east to a small lake; it does not extend that named creek through the later selected cross-plain route. Perennial flow, formal name limits and a uniform whole-system name are not established.",
+          "sources": [
+            "r167-usgs-topo-south-texas-middle"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_scope": "Parts 12–14 and the western portion of part 15; the later eastward extension within part 15 is treated separately.",
+          "bounded_component_name": "Vargas Creek",
+          "material_gap": false
+        },
+        {
+          "fragments": [
+            10259
+          ],
+          "component_scope": "Selected transfer beyond the Vargas Creek small-lake setting and across US281",
+          "finding": "After the mapped Vargas Creek/lake setting, the selected route proceeds east across the plain and US281. Readable cartography shows road and ranch-land context and separately mapped drainage south/east of the highway, but does not establish the selected waterway across the intervening land. The creek name on the western side and an unrelated mapped stream on the eastern side are insufficient to establish this through-link.",
+          "sources": [
+            "r167-usgs-topo-south-texas-middle",
+            "r167-usgs-topo-south-texas-southeast"
+          ],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false,
+          "bounded_component_scope": "Eastern portion of part 15, then parts 16–17.",
+          "material_gap": true
+        },
+        {
+          "fragments": [
+            10259
+          ],
+          "component_scope": "Unnamed channel segment and selected bypass through the Callo Padrones small-water surroundings",
+          "finding": "The selected route briefly corresponds at ordinary corridor scale to an unnamed dashed blue channel approaching the mapped Callo Padrones waterbody. It then passes north of that waterbody and continues southeast through scattered small-water and contour settings. The source does not establish the selected bypass, the complete small-water transfers or their continuation. Callo Padrones and the separately labelled El Callo provide nearby geographic context only; neither is imposed as a river name or treated as proof that the selected route passes through a lake.",
+          "sources": [
+            "r167-usgs-topo-south-texas-southeast"
+          ],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false,
+          "material_gap": true
+        },
+        {
+          "fragments": [
+            10259
+          ],
+          "component_scope": "Selected southern turn and long northeastward inland passage",
+          "finding": "The originals cover the actual southernmost turn, the subsequent northerly and northeasterly sequence, every stored intermediate join, road crossings and the many isolated or clustered small waterbodies of the inland plain. They do not depict a continuous waterway or an explicit natural/managed through-connection along this complete selected passage. Common lowland setting, nearby blue polygons and the model line are not substituted for hydraulic or geographic through-link evidence.",
+          "sources": [
+            "r167-usgs-topo-south-texas-southeast",
+            "r167-usgs-topo-south-texas-terminal"
+          ],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false,
+          "material_gap": true
+        },
+        {
+          "fragments": [
+            10259
+          ],
+          "component_scope": "Selected eastward US77 crossing and southeastward approach to Cayo Soledad",
+          "finding": "The source spans the selected US77 crossing south of Armstrong, its eastward continuation, the southeastward bends and the complete approach to Cayo Soledad. It shows dryland/vegetation, ranch roads, contours and isolated waters, but no continuous channel along the selected through-passage to the western end of Cayo Soledad. The short final approach overlaps the lagoon setting; that local overlap does not close the preceding inland gap.",
+          "sources": [
+            "r167-usgs-topo-south-texas-terminal"
+          ],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false,
+          "material_gap": true
+        },
+        {
+          "fragments": [
+            10259
+          ],
+          "component_scope": "Bounded Cayo Soledad waterbody passage",
+          "finding": "The original directly labels Cayo Soledad on the elongated blue-outlined, stippled coastal waterbody. The selected eastward segment runs within its ordinary generalized corridor before turning northeast. This supports a bounded local waterbody name and passage, without assigning Cayo Soledad to the preceding inland route or asserting present inundation or exact shorelines.",
+          "sources": [
+            "r167-usgs-topo-south-texas-terminal"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_scope": "Eastern end of part 34, all of short part 35 and the initial portion of part 36, before the selected northeastward coastal transfer.",
+          "bounded_component_name": "Cayo Soledad",
+          "material_gap": false
+        },
+        {
+          "fragments": [
+            10259
+          ],
+          "component_scope": "Selected northeast/east transfer from Cayo Soledad toward the coastal lagoon edge",
+          "finding": "After Cayo Soledad, the selected route turns northeast across the mapped shore and marsh/land setting, then east to the tidal lagoon edge. The source depicts the coastal marsh and a separate northern tidal inlet, but no complete channel along this selected transfer. The intervening wetland and coastal proximity do not establish the missing through-connection. This is not a claim that exchange is impossible or a diagnosis of a model error.",
+          "sources": [
+            "r167-usgs-topo-south-texas-terminal"
+          ],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false,
+          "bounded_component_scope": "Middle portion of the final stored part, after leaving the Cayo Soledad corridor and before the actual endpoint.",
+          "material_gap": true
+        },
+        {
+          "fragments": [
+            10259
+          ],
+          "component_scope": "Actual final endpoint at the western tidal-lagoon edge east of Kenedy County",
+          "finding": "The actual selected endpoint was inspected at the blue tidal-lagoon shoreline and indented coastal-marsh edge, north of the mapped Rincón de la Soledad setting. It was not replaced with Cayo Soledad, an upstream channel end or a nearby named feature. The generalized coastal terminal setting is established; an ordinary named-river mouth and the preceding unproved marsh through-connection are not. A name for the terminal lagoon is not assigned from these bounded views.",
+          "sources": [
+            "r167-usgs-topo-south-texas-terminal"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_scope": "Actual endpoint of the final stored part.",
+          "material_gap": false
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80029665",
+      "source_keys": [
+        "r167-nluis-washburn-77e-1983"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2322
+          ],
+          "component_scope": "headward_opening",
+          "finding": "The western selected opening lies in a small-lake and stream landscape leading north and then east into the larger irregular lake succession. The original shows these associated waters and their connecting channel setting. No feeder hydronym, definitive natural source or perennial-flow claim is established.",
+          "sources": [
+            "r167-nluis-washburn-77e-1983"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2322
+          ],
+          "component_scope": "western_lake_succession",
+          "finding": "The selected eastward and then southeast/eastward succession corresponds to the mapped irregular lakes and connecting streams before the large central lake. The later northeast turn toward that central lake is distinguishable from separate southern lake and stream arrivals. Names and current flow conditions are unestablished.",
+          "sources": [
+            "r167-nluis-washburn-77e-1983"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2322
+          ],
+          "component_scope": "long_central_lake_passage",
+          "finding": "The original shows a large irregular lake with a broad western part and a long southeast-reaching arm, including islands and northern bays. The selection crosses this connected lake and follows its eastern end. The large VICTORIA lettering and thematic management boundaries are not hydronyms or river geometry.",
+          "sources": [
+            "r167-nluis-washburn-77e-1983"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2322
+          ],
+          "component_scope": "central_lake_outlet_and_eastern_lakes",
+          "finding": "The selected northeast turn from the long central lake and its ensuing eastward course correspond to mapped stream links and the adjoining eastern lake. The map distinguishes northern incoming lake/stream branches from the eastward selected continuation. No name is established for these individual waters.",
+          "sources": [
+            "r167-nluis-washburn-77e-1983"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2322
+          ],
+          "component_scope": "southeastern_descent_to_lower_river",
+          "finding": "From the eastern lake the selection turns southeast through smaller connected waters and channels to the more substantial eastward lower stream. The original depicts this connected descent and associated side branches at ordinary regional/corridor scale. No exact channel-bank or modeled-vertex correspondence is claimed.",
+          "sources": [
+            "r167-nluis-washburn-77e-1983"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2322
+          ],
+          "component_scope": "lower_eastward_channel_and_widenings",
+          "finding": "The original shows the distinctive eastward lower river, elongated widenings, the larger lake-like widening and successive northern and southern stream arrivals. These align with the selected lower corridor to the eastern map edge. The part of the last listed subline beyond that edge is not established by this map.",
+          "sources": [
+            "r167-nluis-washburn-77e-1983"
+          ],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2322
+          ],
+          "component_scope": "eastern_sheet_crossing_and_lower_northward_reach",
+          "finding": "The selected path turns north after leaving the eastern Washburn Lake map coverage. No successful adjacent-map acquisition was confirmed, and no adjacent original pixels were read. Its lake connections, material lower joins and northward continuity therefore remain source-material pending.",
+          "sources": [],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2322
+          ],
+          "component_scope": "final_lake_channel_connections_and_actual_terminal",
+          "finding": "The selected final northward/northeast approach and actual terminal are outside the read original. No receiving bay, river mouth, terminal-channel connection or whole-system river identity is established from source evidence. Nearby coastal labels elsewhere on the Washburn Lake map are not substituted for the actual terminal.",
+          "sources": [],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61609128",
+      "source_keys": [
+        "r167-ign-chico-historical500k",
+        "r167-mma-chaike-hydro"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14668
+          ],
+          "component_scope": "Western unnamed opening and first named-course junction",
+          "finding": "The complete western opening is exposed in the bounded MMA hydrography. The selected west-to-east approach follows the ordinary corridor of an unnamed Quebrada feature into the Río Chaike o Chico network. Its extreme first modeled position extends a short distance west of the mapped line end, without a separate large unviewed corridor. The unnamed feeder remains unnamed; the downstream name is not retroactively assigned to it. The historical IGN view has no cartography over this western opening and is not used for it.",
+          "sources": [
+            "r167-mma-chaike-hydro"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            14668
+          ],
+          "component_scope": "Upper eastward named course and northward bend",
+          "finding": "MMA features directly named Río Chaike o Chico expose the eastward upper reach, tributary joins and turn toward the north. IGN labels the same general Chilean river corridor R. Ciaike. Both depict the ordinary valley/channel sequence; the minor angular departures of the selected rendering are not treated as exact-bank evidence.",
+          "sources": [
+            "r167-ign-chico-historical500k",
+            "r167-mma-chaike-hydro"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "Río Chaike o Chico"
+        },
+        {
+          "fragments": [
+            14668
+          ],
+          "component_scope": "Northward river sequence and intermediate junctions",
+          "finding": "Both originals cover the northward passage and every intervening selected part. MMA attaches Río de los Pozuelos to a source segment along part of this connecting network, leaves the following short Río segment unnamed, and uses Río Chaike o Chico again on a later source segment. IGN depicts the same connected regional course in the Ciaike setting. The different source segment labels are preserved rather than forcing one scalar label across each component.",
+          "sources": [
+            "r167-ign-chico-historical500k",
+            "r167-mma-chaike-hydro"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_names": [
+            "Río de los Pozuelos",
+            "Río Chaike o Chico"
+          ]
+        },
+        {
+          "fragments": [
+            14668
+          ],
+          "component_scope": "Northward departure from the natural course toward the border connector",
+          "finding": "The originals expose this entire transition. The selected line turns north away from the mapped river toward the international-border setting. The actual mapped watercourse continues east farther south, downstream of the Laguna Timone outlet junction toward Estancia Brazo Norte. Readable land/border cartography alone does not positively identify the selected departure as a particular non-river feature or establish a through-waterway; this transition remains part of the concrete material-pending gap.",
+          "sources": [
+            "r167-ign-chico-historical500k",
+            "r167-mma-chaike-hydro"
+          ],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            14669
+          ],
+          "component_scope": "Both parts of the border-aligned middle fragment and its joins",
+          "finding": "Both parts and both adjoining transitions were inspected in the existing originals. IGN places the nearly east-west selection in the border-marker/land setting north of the river, while MMA exposes the watercourse farther south. The source river passes east from the Laguna Timone junction through the Estancia Brazo Norte setting and then bends northeast toward Pali Aike. The sources do not establish a natural channel, lake passage or managed transfer along the selected northern connector, nor positively identify its whole extent as a specific non-river feature. This selected through-connection is therefore unresolved and material-pending. Laguna Timone is off-route tributary-lake context.",
+          "sources": [
+            "r167-ign-chico-historical500k",
+            "r167-mma-chaike-hydro"
+          ],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            14670
+          ],
+          "component_scope": "Southward return from the border connector and re-entry into the river corridor",
+          "finding": "The originals expose the short return south from the border-aligned fragment and northeastward re-entry near Pali Aike. The initial selected return lacks an established waterway or positively identified non-river explanation linking it back from the border connector. Farther east, the selected passage rejoins the mapped Ciaike/Chico river corridor. The gap is limited to the connector and its adjoining departure/return, rather than the entire lower fragment.",
+          "sources": [
+            "r167-ign-chico-historical500k",
+            "r167-mma-chaike-hydro"
+          ],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            14670
+          ],
+          "component_scope": "Argentine Río Chico valley and intermediate bends",
+          "finding": "The historical IGN original covers the northeastward valley, its southern tributary joins and the bends past the Pali Aike/Andeón, Tres Hermanos and Bella Vista settings. Its river label is R. Chico. Nearby Laguna Pali Aike and Laguna Bismarck lie away from the selected river passage and are not converted into through-lake connectors. All stored parts and their joins are visible at ordinary corridor scale.",
+          "sources": [
+            "r167-ign-chico-historical500k"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "Río Chico"
+        },
+        {
+          "fragments": [
+            14670
+          ],
+          "component_scope": "Lower Río Chico, final stored parts and actual estuarine endpoint",
+          "finding": "The IGN original covers the entire lower northeastward Río Chico valley past Bella Vista and La Vega, the final eastward approach near Río Chico/Chimen Aike, and the actual selected endpoint at the mapped estuarine foreshore beside Río Gallegos. The river opens into the same coastal receiving-water setting as the Gallegos mouth; this is the actual selected terminal rather than an upstream confluence or merely a nearby name. Historical shoreline symbols do not establish present tidal stage, precise banks or current inundation.",
+          "sources": [
+            "r167-ign-chico-historical500k"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "Río Chico"
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "Rogers, G. (2004), Report of geological and geophysical exploration, Kennecott Canada Exploration Inc., Nunavut Assessment Report 084666",
+      "official_url": "https://geochem.nrcan.gc.ca/cdogs/content/pub/pub02673_e.htm",
+      "observed_outcome": "The sole linked publication-page request returned web-reader Cache miss. No publication body, original report or map pixels were acquired. No direct original, mirror, alternative catalogue, cache or retry followed.",
+      "outcome_layer": "Web-reader availability failure; origin HTTP status unknown. No HTTP403 or authorization denial is asserted.",
+      "earlier_lawful_prose_exception": "The preceding survey metadata was successfully read. It identifies the company exploration project, its 2002–2004 till sampling, the McBean Bay/Brodeur River area and the report bibliography. It supplies no selected-route map correspondence.",
+      "limitation_kind": "publication_page_cache_miss",
+      "material_gap": true,
+      "material_effect": "No source cartography from this report establishes even the selected lower-corridor connection. The opening, all intervening components and actual terminal also remain without cartographic correspondence.",
+      "aw_id": "hydro-system:80020100",
+      "restriction_scope": "Missing assessment publication and its equivalent maps, figures, original, catalogue, reader, cache, screenshot, mirror, format and acquisition routes paused.",
+      "newly_observed_access_failure": true
+    },
+    {
+      "publication": "Northern Land Use Information Series: Northern Land Use, official map index",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html",
+      "observed_outcome": "Inherited record contains an earlier direct-index request without a conclusive terminal outcome. Later successful index observations do not explicitly resolve that uncertainty. No new request made in this pass.",
+      "outcome_layer": "Inherited unresolved acquisition outcome; no new HTTP or reader response.",
+      "limitation_kind": "inherited_unresolved_index_acquisition",
+      "material_gap": true,
+      "aw_id": "hydro-system:80020100",
+      "restriction_scope": "New acquisition of the index remains paused for this pass. No sheet content or coverage is inferred from an unavailable index. This is not an institution-wide or NLUIS-series-wide denial.",
+      "newly_observed_access_failure": false
+    },
+    {
+      "publication": "Arctic Bay Place Names Atlas and its printable community-name maps",
+      "official_url": "https://arcticbay.gcrc.carleton.ca/pdf_maps/57H_Ikirasaarjuk.pdf",
+      "observed_outcome": "Discovered as a community atlas lead only. Its relationship to incompletely identified inherited Canadian gazetteer restrictions could not be established from already permitted evidence. No introduction, index or map was requested.",
+      "outcome_layer": "Unresolved publication-identity overlap, not a new network failure.",
+      "limitation_kind": "unresolved_inherited_naming_publication_relation",
+      "material_gap": true,
+      "aw_id": "hydro-system:80020100",
+      "restriction_scope": "Proposed atlas introduction/maps remain held. Different hosting and a community-project description alone were not treated as clearance.",
+      "newly_observed_access_failure": false
+    },
+    {
+      "publication": "Northern Land Use Information Series: Denmark Bay, sheet67F, proposed original",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_67f.jpg",
+      "observed_outcome": "The normal-original request started, but its terminal-status call was refused on authorization-context grounds. Following exact user authorization evidence, one identical status-call retry returned Unknown process. No terminal HTTP result, completed original body or source pixels were confirmed, and no output file or partial content was read.",
+      "outcome_layer": "Authorization-context tool refusal followed by process/session loss; HTTP unknown, not an observed origin access denial.",
+      "restriction_scope": "Whole missing Denmark Bay67F publication and equivalent original, catalogue, reader, cache, mirror, alternative-format and partial-file-reading routes paused. No fresh request or alternative acquisition followed.",
+      "earlier_lawful_prose_exception": "Bibliographic discovery identity only; no substantive original map or prose observations.",
+      "limitation_kind": "availability_pause_after_unresolved_acquisition",
+      "material_effect": "No source coverage was established for the selected eastern cross-sheet continuation, lower northward reach and actual terminal.",
+      "aw_id": "hydro-system:80029665",
+      "newly_observed_access_failure": true
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "aw_id": "hydro-system:80020100",
+      "publication": "Till sampling survey, Brodeur Peninsula, Nunavut, NTS58A/7,16, Kennecott Canada Exploration Inc.,2002–2004",
+      "official_url": "https://geochem.nrcan.gc.ca/cdogs/content/svy/svy290174_e.htm",
+      "observed_outcome": "Only bounded own factual observations and ordinary bibliography retained for public synthesis. No original report, source map or derivative is delivered.",
+      "outcome_layer": "Source-use or reproduction notice, not an access denial.",
+      "restriction_scope": "Only own factual prose and ordinary bibliography are public-ready. Source originals and cartographic reading materials remain private.",
+      "limitation_kind": "publication_use_notice"
+    },
+    {
+      "aw_id": "hydro-system:70835654",
+      "publication": "USGSTopo, The National Map: western Jim Hogg County selected opening and eastward plain corridor",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "observed_outcome": "Only own bounded factual observations and ordinary bibliography are public-ready. Original cartography, local reading aids, source coordinates and acquisition details remain private.",
+      "outcome_layer": "Source-use or reproduction notice, not an access denial.",
+      "restriction_scope": "Only own factual prose and ordinary bibliography are public-ready. Source originals and cartographic reading materials remain private.",
+      "limitation_kind": "publication_use_notice"
+    },
+    {
+      "aw_id": "hydro-system:70835654",
+      "publication": "USGSTopo, The National Map: selected southern approach, Vargas Creek and eastern small-lake corridor",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "observed_outcome": "Only own bounded factual observations and ordinary bibliography are public-ready. Original cartography, local reading aids, source coordinates and acquisition details remain private.",
+      "outcome_layer": "Source-use or reproduction notice, not an access denial.",
+      "restriction_scope": "Only own factual prose and ordinary bibliography are public-ready. Source originals and cartographic reading materials remain private.",
+      "limitation_kind": "publication_use_notice"
+    },
+    {
+      "aw_id": "hydro-system:70835654",
+      "publication": "USGSTopo, The National Map: US281, Callo Padrones vicinity and southern/northeastern inland selected passage",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "observed_outcome": "Only own bounded factual observations and ordinary bibliography are public-ready. Original cartography, local reading aids, source coordinates and acquisition details remain private.",
+      "outcome_layer": "Source-use or reproduction notice, not an access denial.",
+      "restriction_scope": "Only own factual prose and ordinary bibliography are public-ready. Source originals and cartographic reading materials remain private.",
+      "limitation_kind": "publication_use_notice"
+    },
+    {
+      "aw_id": "hydro-system:70835654",
+      "publication": "USGSTopo, The National Map: US77 inland transfer, Cayo Soledad and actual coastal terminal",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "observed_outcome": "Only own bounded factual observations and ordinary bibliography are public-ready. Original cartography, local reading aids, source coordinates and acquisition details remain private.",
+      "outcome_layer": "Source-use or reproduction notice, not an access denial.",
+      "restriction_scope": "Only own factual prose and ordinary bibliography are public-ready. Source originals and cartographic reading materials remain private.",
+      "limitation_kind": "publication_use_notice"
+    },
+    {
+      "publication": "USGSTopo, The National Map: bounded south Texas selected-route views",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "limitation_kind": "material_headward_inland_and_coastal_connector_gaps",
+      "observed_outcome": "All four sequential original map images completed HTTP200 with image/png and were visually read. They do not establish the selected opening, full inland dryland/small-water transfers or final Cayo Soledad-to-coastal-lagoon marsh connection.",
+      "outcome_layer": "Substantive cartographic/source-correspondence limitation, not HTTP, transport, reader or access failure.",
+      "material_gap": true,
+      "material_effect": "One river_group_source_material_pending primary classification; no completed representative identity, completed scope hold or additional access-pending count.",
+      "aw_id": "hydro-system:70835654",
+      "restriction_scope": "Only the recorded unestablished selected through-connections. Mapped Vargas Creek, Cayo Soledad and actual coastal endpoint observations remain usable; no service-wide acquisition stop is inferred.",
+      "acquisition_stop": false
+    },
+    {
+      "aw_id": "hydro-system:80029665",
+      "publication": "Land Use Information Series: Washburn Lake, District of Franklin, Northwest Territories, sheet77E",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_77e.jpg",
+      "observed_outcome": "Printed Crown copyright. Only own bounded observations and ordinary bibliography are supplied; source originals, crops and orientation aids are not redistributed.",
+      "outcome_layer": "Source-use or reproduction notice, not an access denial.",
+      "restriction_scope": "Only own factual prose and ordinary bibliography are public-ready. Source originals and cartographic reading materials remain private.",
+      "limitation_kind": "publication_use_notice"
+    },
+    {
+      "aw_id": "hydro-system:61609128",
+      "publication": "Mosaico cartas 1:500.000 histórico, selected Ciaike–Chico corridor",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms",
+      "observed_outcome": "No unrestricted redistribution inferred. Original raster and private reading aids are excluded from public-ready materials.",
+      "outcome_layer": "Source-use or reproduction notice, not an access denial.",
+      "restriction_scope": "Only own factual prose and ordinary bibliography are public-ready. Source originals and cartographic reading materials remain private.",
+      "limitation_kind": "publication_use_notice"
+    },
+    {
+      "aw_id": "hydro-system:61609128",
+      "publication": "SIMBIO_HIDROGRAFIA — Red Hidrografica, layer 0",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HIDROGRAFIA/MapServer",
+      "observed_outcome": "Metadata description/copyright fields blank; no redistribution permission inferred. Original features and private cartographic reading aids remain private.",
+      "outcome_layer": "Source-use or reproduction notice, not an access denial.",
+      "restriction_scope": "Only own factual prose and ordinary bibliography are public-ready. Source originals and cartographic reading materials remain private.",
+      "limitation_kind": "publication_use_notice"
+    },
+    {
+      "publication": "IGN Mosaico cartas 1:500.000 histórico, bounded Ciaike–Chico view",
+      "observed_outcome": "The complete original map was successfully acquired. Western Chilean opening cartography is absent; the eastern Chilean/border and Argentine corridor is readable.",
+      "outcome_layer": "Content of successfully acquired cartography, not an access denial or availability failure.",
+      "material_gap": false,
+      "aw_id": "hydro-system:61609128",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms",
+      "restriction_scope": "Absent western raster content is not evidence and was not retried. Independently acquired MMA hydrography covers the selected opening. No service-wide stop is created.",
+      "acquisition_stop": false
+    }
+  ]
+}

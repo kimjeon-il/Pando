@@ -3,6 +3,19 @@ name: Objects timeline native parity
 on:
   push:
     branches: [work/objects]
+    paths:
+      - '.github/workflows/native-object-timeline-native-parity.yml'
+      - 'shared/core/**'
+      - 'native/CMakeLists.txt'
+      - 'native/tests/core/**'
+      - 'native/tests/fixtures/portability/timeline*.json'
+      - 'native/tests/temporal*'
+      - 'native/tests/timeline*'
+      - 'native/tools/generate-timeline*'
+      - 'tools/generate-timeline*'
+      - 'assets/js/modules/temporal.js'
+      - 'assets/js/modules/timeline*.js'
+      - 'tests/fixtures/portability/timeline-*'
   workflow_dispatch:
 
 permissions:
