@@ -1,0 +1,1077 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r251",
+  "sources": [
+    {
+      "source_key": "r251-geus-greenland-national-1995-90085152",
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": [
+        "Jan C. Escher",
+        "T. Christopher R. Pulvertaft"
+      ],
+      "year": 1995,
+      "publisher": "Geological Survey of Greenland, Copenhagen; digital original distributed by GEUS Dataverse",
+      "scale": "1:2 500 000",
+      "bibliographic_citation": "Escher, J. C., and Pulvertaft, T. C. R. (1995). Geological map of Greenland, 1:2 500 000. Copenhagen: Geological Survey of Greenland. GEUS Dataverse. https://doi.org/10.22008/FK2/SYAL4J",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J",
+      "catalogue_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi:10.22008/FK2/SYAL4J",
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16855",
+      "evidence_kind": "original_historical_geological_cartography",
+      "acquisition_outcome": "No new external request. The physically retained complete official original, acquired normally in r244, was read locally for this target. Its completed original transfer and actual retained catalogue terms were confirmed before use.",
+      "actual_material_read": "Actual original national overview; enlarged western Greenland region and local graticule context; clean full selected-corridor pixels and a separate private unchanged-part orientation aid covering all 35 parts and 100 positions; enlarged clean terminal and separate source/render orientation; printed Jakobshavn Isfjord and Ilulissat/Jakobshavn labels; Inland Ice legend; projection, topographic-source credits, 1995 printing, copyright and recommended citation. Retained official catalogue bibliography and actual Custom Dataset Terms were read locally.",
+      "supports": "Complete ordinary geographic correspondence for the inland-ice opening, southward and westward ice sequence, ice/bedrock-margin approach, historical inner-fjord passage and separate source/render endings. Bounded receiving-fjord label only.",
+      "source_independence": "The actual GGU/KMS national compilation is identified by its original imprint, authorship, catalogue and datafile. It is an already lawfully retained original, not acquisition of PP1386-C, held Sheet 10, an equivalent reader request or a naming/marine-source recovery. Earlier findings about other targets are not used as cartographic evidence for this selection.",
+      "limits": "Historical generalized geological/glaciological mapping, not a natural-river or naming-register survey. Inland Ice contours and isopachs do not establish surface or subglacial hydraulic continuity. No modern glacier front, current land/ice/water terminal class, exact bank, selected lake throughflow or continuous natural-river hydronym is established.",
+      "source_epoch_note": "The map was printed in 1995; later digital publication and present local reading do not make it contemporary drainage mapping.",
+      "use_notice": "Actual GEUS Custom Dataset Terms permit bounded internal use, extraction and processing under their stated conditions and restrict redistribution of original and processed data and production or transfer of new maps. Copyright is credited to GGU and KMS. Originals, crops and cartographic orientation/comparison materials remain private; only independently written factual observations and ordinary bibliography acknowledging GEUS are public-ready."
+    },
+    {
+      "source_key": "r251-usgstopo-texas-overview",
+      "title": "USGSTopo, The National Map: Little Prong–Buffalo Bayou–Houston–lower San Jacinto regional corridor",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "source_type": "Original multiscale reference cartography",
+      "accessed_date_utc": "2026-10-14",
+      "publication_identity": "USGS The National Map independently maintained seamless multiscale reference-cartography publication, positively identified from normally retained service metadata. Its stated inputs include National Hydrography Dataset, Geographic Names Information System, 3DEP and other TNM/public datasets. These are four views of one compilation, not independent maps or recovery of held USGS research reports, USACE project plates, Texas map books or stopped selected views.",
+      "material_actually_read": "Complete original regional raster and three local orientation crops read. Covers the chosen opening, every stored part, Barker passage, full Houston corridor, tributary entries and both terminal settings.",
+      "acquisition_outcome": "Completed original HTTP200 image/png; original pixels read after the complete response.",
+      "source_original_acquired": true,
+      "original_pixels_actually_read": true,
+      "edition_or_scene_date": "Contributing layer survey epochs are not established. The retained service metadata states a September 4, 2026 refresh; that is not a survey or current-water date.",
+      "use_scope": "Own ordinary-scale factual observations and normal bibliography only; no original raster, crop, orientation derivative, full coordinates or dynamic request is redistributed."
+    },
+    {
+      "source_key": "r251-usgstopo-texas-upper",
+      "title": "USGSTopo, The National Map: Little Prong, upper Buffalo Bayou and Barker Reservoir",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "source_type": "Original multiscale reference cartography",
+      "accessed_date_utc": "2026-10-14",
+      "publication_identity": "USGS The National Map independently maintained seamless multiscale reference-cartography publication, positively identified from normally retained service metadata. Its stated inputs include National Hydrography Dataset, Geographic Names Information System, 3DEP and other TNM/public datasets. These are four views of one compilation, not independent maps or recovery of held USGS research reports, USACE project plates, Texas map books or stopped selected views.",
+      "material_actually_read": "Complete original raster, enlarged original opening crop and private orientation aids read. Read unnamed headward drainage, Little Prong labels, its Buffalo Bayou receiving join, Grand Parkway passage, Barker interior, Mason Creek join, dam/outlet and northern Addicks-side contribution.",
+      "acquisition_outcome": "Completed original HTTP200 image/png; original pixels read after the complete response.",
+      "source_original_acquired": true,
+      "original_pixels_actually_read": true,
+      "edition_or_scene_date": "Contributing layer survey epochs are not established. The retained service metadata states a September 4, 2026 refresh; that is not a survey or current-water date.",
+      "use_scope": "Own ordinary-scale factual observations and normal bibliography only; no original raster, crop, orientation derivative, full coordinates or dynamic request is redistributed."
+    },
+    {
+      "source_key": "r251-usgstopo-texas-middle",
+      "title": "USGSTopo, The National Map: Buffalo Bayou through western and central Houston",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "source_type": "Original multiscale reference cartography",
+      "accessed_date_utc": "2026-10-14",
+      "publication_identity": "USGS The National Map independently maintained seamless multiscale reference-cartography publication, positively identified from normally retained service metadata. Its stated inputs include National Hydrography Dataset, Geographic Names Information System, 3DEP and other TNM/public datasets. These are four views of one compilation, not independent maps or recovery of held USGS research reports, USACE project plates, Texas map books or stopped selected views.",
+      "material_actually_read": "Complete original raster and local orientation aid read. Read repeated Buffalo Bayou labels, western suburban bends, Memorial corridor, central Houston and Whiteoak Bayou joining setting.",
+      "acquisition_outcome": "Completed original HTTP200 image/png; original pixels read after the complete response.",
+      "source_original_acquired": true,
+      "original_pixels_actually_read": true,
+      "edition_or_scene_date": "Contributing layer survey epochs are not established. The retained service metadata states a September 4, 2026 refresh; that is not a survey or current-water date.",
+      "use_scope": "Own ordinary-scale factual observations and normal bibliography only; no original raster, crop, orientation derivative, full coordinates or dynamic request is redistributed."
+    },
+    {
+      "source_key": "r251-usgstopo-texas-lower",
+      "title": "USGSTopo, The National Map: Eastern Houston, lower Buffalo Bayou and Lynchburg–Brownwood terminal setting",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "source_type": "Original multiscale reference cartography",
+      "accessed_date_utc": "2026-10-14",
+      "publication_identity": "USGS The National Map independently maintained seamless multiscale reference-cartography publication, positively identified from normally retained service metadata. Its stated inputs include National Hydrography Dataset, Geographic Names Information System, 3DEP and other TNM/public datasets. These are four views of one compilation, not independent maps or recovery of held USGS research reports, USACE project plates, Texas map books or stopped selected views.",
+      "material_actually_read": "Complete original raster, local channel orientation aid and enlarged original terminal crop read. Read channelized/industrial reach, Brays, Sims, Vince, Hunting and Greens joining settings, eastern reach, Carpenters mouth, San Jacinto receiving setting, source endpoint near Lynchburg Ferry and separately located rendered Brownwood ending.",
+      "acquisition_outcome": "Completed original HTTP200 image/png; original pixels read after the complete response.",
+      "source_original_acquired": true,
+      "original_pixels_actually_read": true,
+      "edition_or_scene_date": "Contributing layer survey epochs are not established. The retained service metadata states a September 4, 2026 refresh; that is not a survey or current-water date.",
+      "use_scope": "Own ordinary-scale factual observations and normal bibliography only; no original raster, crop, orientation derivative, full coordinates or dynamic request is redistributed."
+    },
+    {
+      "source_key": "r251-hcfcd-buffalo-profile",
+      "title": "Buffalo Bayou — Watershed Overview",
+      "publisher": "Harris County Flood Control District",
+      "official_url": "https://www.hcfcd.org/Activity/Projects/Buffalo-Bayou",
+      "source_type": "District-authored public watershed profile, prose/table only",
+      "accessed_date_utc": "2026-10-14",
+      "publication_identity": "The District’s public watershed/project-directory editorial page, reached through its normally read Find Your Watershed index. Distinct from the identified held USACE flood-protection studies, Texas map books and USGS research reports. No linked study, figure or borrowed underlying map was acquired.",
+      "material_actually_read": "Page title and Watershed Overview table, which identifies Buffalo Bayou as the primary stream. This supplies narrow naming corroboration only, not whole-route or terminal cartographic evidence.",
+      "acquisition_outcome": "Normal completed web-reader HTML response; direct-origin HTTP was not separately measured.",
+      "source_original_acquired": true,
+      "original_pixels_actually_read": false,
+      "use_scope": "Own brief factual paraphrase only. Page footer states copyright/all rights reserved; no website imagery or table reproduction."
+    },
+    {
+      "source_key": "r251-baffin-imagery",
+      "title": "Esri World Imagery: selected Borden Peninsula Mala corridor",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "evidence_kind": "independent_photographic_geography",
+      "acquisition_outcome": "Sequential export metadata and linked complete original image completed HTTP200 before local reading.",
+      "actual_material_read": "Complete original corridor image, separate selected-part orientation aid, and clean western-opening and eastern-lower/terminal crops. All22stored parts were compared at ordinary terrain scale.",
+      "supports": "Full selected opening, tributary joins, north-to-east receiving turn, incised valley, alluvial/braided lower corridor and distinct source/render coastal ending.",
+      "source_independence": "Separately maintained photographic mosaic; this Borden Peninsula footprint is geographically distinct from held northern Archer Fiord, Hot Creek, Knik and Mendoza views and is not recovery of held federal mapping.",
+      "limits": "No imagery-derived name, verified scene date, exact-bank, continuously wet-thread, current flow or glacier-hydraulics claim.",
+      "use_notice": "Original imagery and all derivatives stay private; own factual observations and ordinary bibliography only."
+    },
+    {
+      "source_key": "r251-scotter1985-mala-prose",
+      "title": "A Pingo in the Mala River Valley, Baffin Island, Northwest Territories, Canada",
+      "authors": "George W. Scotter",
+      "publication": "Arctic38(3):244–245",
+      "year": 1985,
+      "doi": "10.14430/arctic2139",
+      "official_url": "https://pubs.aina.ucalgary.ca/arctic/Arctic38-3-244.pdf",
+      "evidence_kind": "primary_field_geographic_prose",
+      "acquisition_outcome": "Complete original PDF completed HTTP200 application/pdf before local reading.",
+      "actual_material_read": "Extracted original prose of both printed pages244–245: title/author, abstract, introduction, geological setting, description, discussion and reference list. No photographs or stereopair pixels were viewed or used.",
+      "supports": "Author’s1983 field site locates the named Mala River valley in the selected lower-middle corridor, approximately25km inland from its mouth, with a broad braided floodplain and tributary alluvial fans.",
+      "source_independence": "Specifically identified1983 Borden Peninsula pingo field observation published as a1985 journal note. This is a different field place, study and publication from the held1992 Melville Hills survey, unidentified PCSP2014/NRCan2014 reports, CanMatrix maps and PP1386-J. No borrowed federal map or figure is used.",
+      "limits": "Field-site prose anchors the named valley; it does not independently trace the selected opening or define all river-name boundaries. Historical observation, not present hydraulic or pingo-status verification.",
+      "use_notice": "Only own bounded factual synthesis and ordinary bibliography; no original text, photographs or stereo pairs redistributed."
+    },
+    {
+      "source_key": "r251-arc402-baffin-prose",
+      "title": "Canadian Sailing Directions, ARC402: Eastern Arctic",
+      "publisher": "Canadian Hydrographic Service, Fisheries and Oceans Canada",
+      "edition": "January2025",
+      "catalogue_number": "Fs74-39E-PDF",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/chs-shc-ARC402-eng-202501-41273515.pdf",
+      "evidence_kind": "primary_coastal_prose",
+      "acquisition_outcome": "Previously completed HTTP200 original reread locally after later-restriction lookup; no new external request.",
+      "actual_material_read": "Cover, reproduction/imprint pageii and change recordiii; Chapter4 printed4-12–4-13, paragraphs182–208, especially191 and195–197. Prose only, no CHS chart pixels acquired or used.",
+      "supports": "Mala River is named at the west coast of Navy Board Inlet, with alluvial flats at its mouth; a separate northern river is distinguished.",
+      "source_independence": "Distinct CHS Eastern Arctic editorial volume, already positively identified independently of held ARC401 and terrestrial map/registry/field-report families.",
+      "limits": "Coastal prose alone does not resolve every inland reach or assign one name to each terminal braid; combined with the field-site anchor and original imagery.",
+      "use_notice": "Personal noncommercial reproduction permitted; commercial reproduction requires permission. Only own factual synthesis and bibliography provided; no pages or extracts redistributed."
+    },
+    {
+      "source_key": "r251-ellesmere-imagery",
+      "title": "Esri World Imagery: selected southeastern Ellesmere icefield and outlet-glacier corridor",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "evidence_kind": "independent_photographic_geography",
+      "acquisition_outcome": "Sequential export metadata and complete linked original completed HTTP200 before local reading.",
+      "actual_material_read": "Complete original corridor image, separate numbered-part orientation aid, and clean western, middle and terminal panels. All31stored parts and both separately stored endpoints were compared at ordinary ice/valley scale.",
+      "supports": "Chosen icefield opening, upper passage, southward glacial valley, broad ice-branch joins, lower tongue and ice-covered terminal receiving setting.",
+      "source_independence": "The new southeastern Ellesmere footprint was compared with the held northern Archer Fiord corridor before acquisition: it is wholly more than three degrees of latitude south and farther west, with no overlapping target geography or equivalent recovery purpose. The held exact Archer Fiord view and unread outputs remain stopped. This is independent photographic imagery rather than CanMatrix/CBMT or held report cartography.",
+      "limits": "No imagery-derived hydronym, verified scene epoch, present subglacial route, precise glacier boundary or current sea-ice/flow claim.",
+      "use_notice": "Originals, crops and orientation aids remain private; only own factual observations and ordinary bibliography are supplied."
+    },
+    {
+      "source_key": "r251-dalton2019-pow",
+      "title": "Iceberg production and characteristics around the Prince of Wales Icefield, Ellesmere Island,1997–2015",
+      "authors": "Abigail Dalton, Luke Copland, Adrienne Tivy, Wesley Van Wychen and Alison Cook",
+      "publication": "Arctic, Antarctic, and Alpine Research51(1):412–427",
+      "year": 2019,
+      "doi": "10.1080/15230430.2019.1634442",
+      "official_url": "https://cryospheric.org/wp-content/uploads/2019/09/dalton-et-al-2019-iceberg-production-around-pow-aaar.pdf",
+      "evidence_kind": "primary_remote_sensing_research_and_original_labeled_figures",
+      "acquisition_outcome": "Complete original PDF completed HTTP200 application/pdf before local reading.",
+      "actual_material_read": "Title/citation cover; original abstract, introduction, study-area and methodology prose on printed412–414; original figure1 pixels/caption on printed414 and figure5 pixels/caption on printed422; relevant study table location/name text. Figure2 radar imagery was not viewed or used.",
+      "supports": "Prince of Wales Icefield regional identity; Trinity Glacier as the bounded lower outlet; Talbot Inlet and separation from Wykeham and Talbot glaciers. Figure5 establishes the historical marine receiving arrangement.",
+      "source_independence": "Authors’ own1997–2015 iceberg-plume and terminus study from SAR and Landsat scenes. Read original methods and figure credits identify new2014/2015 Landsat composition and1998–2015 terminus outlines, not a reproduced map from the held2002 PP1386-J atlas or Canadian federal topographic/naming products. It is not an equivalent recovery of an old held publication.",
+      "limits": "Figures establish historical named-glacier/inlet geography, not exact present terminus, hydrology or a river name. Different image epochs can show different front positions without changing the ordinary receiving setting.",
+      "use_notice": "Original article states CC BY4.0 with author attribution. Figure1 credits USGS/NASA Landsat8 July–September2015; figure5 credits USGS/NASA Landsat August29,2014. Separately credited radar products in an unused figure are not redistributed. This deliverable contains only own factual synthesis and ordinary bibliography."
+    },
+    {
+      "source_key": "r251-arc402-ellesmere-prose",
+      "title": "Canadian Sailing Directions, ARC402: Eastern Arctic",
+      "publisher": "Canadian Hydrographic Service, Fisheries and Oceans Canada",
+      "edition": "January2025",
+      "catalogue_number": "Fs74-39E-PDF",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/chs-shc-ARC402-eng-202501-41273515.pdf",
+      "evidence_kind": "primary_coastal_prose",
+      "acquisition_outcome": "Retained normally completed original read locally after later-restriction check; no new external request.",
+      "actual_material_read": "Cover and reproduction/imprint pageii; Chapter9 printed9-3–9-5, paragraphs43–63, with detailed Talbot Inlet context in55–58. Prose only; no navigation chart pixels acquired.",
+      "supports": "Southeastern Ellesmere coast and Talbot Inlet as a glacier-fringed marine receiving setting.",
+      "source_independence": "Separately issued CHS Eastern Arctic editorial volume, distinct from held ARC401, terrestrial basemaps, naming registries and field-report projects.",
+      "limits": "Context only for this selection; the nearby Talbot Glacier name in the prose is not transferred to the selected lower glacier, which is separately identified from the study figures.",
+      "use_notice": "Personal noncommercial reproduction permitted; commercial reproduction requires permission. Only own factual synthesis and normal bibliography provided."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:90085152",
+      "source_keys": [
+        "r251-geus-greenland-national-1995-90085152"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8863
+          ],
+          "component_scope": "northeastern inland ice opening",
+          "finding": "The chosen northeastern opening, short western lead and long southwestward first part lie within the original map's Inland Ice terrain east of the coastal exposed-rock belt. Its complete interval was read. Ice-thickness shading and surface/bedrock contours are geographic context, not river-channel evidence.",
+          "sources": [
+            "r251-geus-greenland-national-1995-90085152"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            1
+          ]
+        },
+        {
+          "fragments": [
+            8863
+          ],
+          "component_scope": "southward inland ice corridor",
+          "finding": "The southward, slightly southwestward sequence remains within the broad mapped ice sheet. Every intermediate stored part and join is covered. The final bend enters the westward lower-ice approach; the original supplies no named natural-river line or selected lake passage here.",
+          "sources": [
+            "r251-geus-greenland-national-1995-90085152"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "fragments": [
+            8863
+          ],
+          "component_scope": "westward lower ice passage",
+          "finding": "The numerous short westward parts and small southern steps cross the lower Inland Ice toward the coastal bedrock margin east of Jakobshavn Isfjord. The continuous mapped ice setting accounts for all intervals and joins at ordinary geographic scale. No separate-basin transfer or serial lake connection is inferred, and the contour and isopach lines are not interpreted as watercourses.",
+          "sources": [
+            "r251-geus-greenland-national-1995-90085152"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25
+          ]
+        },
+        {
+          "fragments": [
+            8863
+          ],
+          "component_scope": "inner fjord approach",
+          "finding": "The lower western sequence reaches the pale ice-margin corridor between exposed-rock masses bordering the inner Jakobshavn Isfjord setting. Original clean pixels expose the full approach and its transition toward the historical fjord-side margin. National-map scale and epoch do not establish a precise current glacier front or an ordinary river mouth.",
+          "sources": [
+            "r251-geus-greenland-national-1995-90085152"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Jakobshavn Isfjord"
+          ],
+          "stored_parts_one_based": [
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33
+          ]
+        },
+        {
+          "fragments": [
+            8863
+          ],
+          "component_scope": "historical inner fjord and separate endings",
+          "finding": "The last westward bends and final short southward rendered part occupy the generalized historical inner Jakobshavn Isfjord setting west of the mapped lower-ice approach, with exposed rock to the north and south. The printed fjord label, surrounding margin and both separately supplied ending positions were read. The source position is slightly northwest of the rendered position, and the rendered final extension runs southward in the same inner-fjord setting. These do not establish a river channel, current ice/water boundary or current hydraulic connection.",
+          "sources": [
+            "r251-geus-greenland-national-1995-90085152"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Jakobshavn Isfjord"
+          ],
+          "stored_parts_one_based": [
+            34,
+            35
+          ],
+          "source_endpoint_description": "The separately supplied source ending lies slightly northwest of the displayed ending in the historical inner Jakobshavn Isfjord setting; no surveyed mouth or present-day physical terminal class is asserted.",
+          "render_endpoint_description": "The displayed ending is slightly southeast of the source ending, after the short final southward extension, within the same ordinary historical inner-fjord setting."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70806622",
+      "source_keys": [
+        "r251-usgstopo-texas-overview",
+        "r251-usgstopo-texas-upper",
+        "r251-usgstopo-texas-middle",
+        "r251-usgstopo-texas-lower",
+        "r251-hcfcd-buffalo-profile"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9995
+          ],
+          "component_scope": "Chosen western drainage south of Katy, through the Little Prong corridor",
+          "finding": "The actual chosen opening lies in the mapped minor-drainage network near the Crossover Road setting. The regional and upper originals show its south/east receiving corridor through developed land into the channel labeled Little Prong. The headmost connector has no separately supported hydronym; Little Prong is not promoted to the name of the entire system. Local road and development offsets do not establish a separate basin or require an exact channel alignment.",
+          "sources": [
+            "r251-usgstopo-texas-overview",
+            "r251-usgstopo-texas-upper"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Little Prong"
+          ],
+          "part_indices_zero_based": [
+            0
+          ],
+          "whole_selection_part_indices_zero_based": [
+            0
+          ]
+        },
+        {
+          "fragments": [
+            9995
+          ],
+          "component_scope": "Northeast turn and upper Buffalo Bayou joining setting west of Grand Parkway",
+          "finding": "The Little Prong receiving corridor turns northeast toward the channel mapped and repeatedly labeled Buffalo Bayou near Grand Parkway. The larger northwestern Buffalo/Willow Fork approach is a separate incoming reach, not the selected opening.",
+          "sources": [
+            "r251-usgstopo-texas-overview",
+            "r251-usgstopo-texas-upper"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Little Prong",
+            "Buffalo Bayou"
+          ],
+          "part_indices_zero_based": [
+            1
+          ],
+          "whole_selection_part_indices_zero_based": [
+            1
+          ]
+        },
+        {
+          "fragments": [
+            9995
+          ],
+          "component_scope": "Grand Parkway crossing and eastward entry into the Barker receiving floor",
+          "finding": "The mapped Buffalo Bayou continues east through the developed western margin and into the broad wetland/reservoir floor enclosed by Barker Dam. Small artificial ponds and side drains do not replace the through-going receiving corridor.",
+          "sources": [
+            "r251-usgstopo-texas-overview",
+            "r251-usgstopo-texas-upper"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Buffalo Bayou",
+            "Barker Reservoir"
+          ],
+          "part_indices_zero_based": [
+            2
+          ],
+          "whole_selection_part_indices_zero_based": [
+            2
+          ]
+        },
+        {
+          "fragments": [
+            9995
+          ],
+          "component_scope": "Barker Reservoir interior, northward bend and Mason Creek joining setting",
+          "finding": "Buffalo Bayou is mapped across the southern reservoir interior, turns northeast and receives the separately labeled Mason Creek from the northwest. The continuous managed receiving floor and mapped bayou lead onward toward the reservoir outlet. This is ordinary geographic passage through the impoundment setting, without claims about present impounded water, release rates or gate operation.",
+          "sources": [
+            "r251-usgstopo-texas-overview",
+            "r251-usgstopo-texas-upper"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Buffalo Bayou",
+            "Barker Reservoir",
+            "Mason Creek"
+          ],
+          "part_indices_zero_based": [
+            3,
+            4,
+            5,
+            6
+          ],
+          "whole_selection_part_indices_zero_based": [
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "fragments": [
+            9995
+          ],
+          "component_scope": "Barker outlet, Highway 6 and northern Addicks-side drainage contribution",
+          "finding": "The selected route reaches the eastern Barker Dam/outlet setting, passes into the downstream Buffalo Bayou corridor and receives the north-side drainage from the Addicks setting before continuing east. Addicks Reservoir itself is north of the selected mainstem and is not a selected lake crossing or an alias of Barker.",
+          "sources": [
+            "r251-usgstopo-texas-overview",
+            "r251-usgstopo-texas-upper",
+            "r251-usgstopo-texas-middle"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Buffalo Bayou",
+            "Barker Reservoir",
+            "Addicks Reservoir"
+          ],
+          "part_indices_zero_based": [
+            7
+          ],
+          "whole_selection_part_indices_zero_based": [
+            7
+          ]
+        },
+        {
+          "fragments": [
+            9995
+          ],
+          "component_scope": "Western Houston and suburban Buffalo Bayou bends",
+          "finding": "The selected sequence follows the continuous named Buffalo Bayou through the western developed corridor, the southern bend by the Memorial/Bunker Hill/Piney Point surroundings and the northward turn toward the Memorial corridor. Regional and detailed views retain the same receiving channel despite simplified selected bends.",
+          "sources": [
+            "r251-usgstopo-texas-overview",
+            "r251-usgstopo-texas-middle"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Buffalo Bayou"
+          ],
+          "part_indices_zero_based": [
+            8,
+            9,
+            10
+          ],
+          "whole_selection_part_indices_zero_based": [
+            8,
+            9,
+            10
+          ]
+        },
+        {
+          "fragments": [
+            9995
+          ],
+          "component_scope": "Memorial corridor, central Houston and Whiteoak Bayou joining setting",
+          "finding": "The repeatedly labeled Buffalo Bayou continues east through the Memorial green corridor into central Houston. The northern Whiteoak Bayou joins near the downtown end of this interval. It is a contextual tributary, not a selected modeled tributary or whole-system alias.",
+          "sources": [
+            "r251-usgstopo-texas-overview",
+            "r251-usgstopo-texas-middle",
+            "r251-usgstopo-texas-lower"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Buffalo Bayou",
+            "Whiteoak Bayou"
+          ],
+          "part_indices_zero_based": [
+            11
+          ],
+          "whole_selection_part_indices_zero_based": [
+            11
+          ]
+        },
+        {
+          "fragments": [
+            9995
+          ],
+          "component_scope": "Eastward urban bayou and southeast turn toward Harrisburg",
+          "finding": "The mapped Buffalo Bayou remains continuous east of downtown, passes the mapped bend/cutoff surroundings and widens southeast toward Harrisburg. The selection stays on the receiving trunk rather than the northern tributary network.",
+          "sources": [
+            "r251-usgstopo-texas-overview",
+            "r251-usgstopo-texas-middle",
+            "r251-usgstopo-texas-lower"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Buffalo Bayou"
+          ],
+          "part_indices_zero_based": [
+            12,
+            13,
+            14
+          ],
+          "whole_selection_part_indices_zero_based": [
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "fragments": [
+            9995
+          ],
+          "component_scope": "Brays Bayou joining setting and eastward industrial-channel turn",
+          "finding": "Brays Bayou enters the broad Buffalo receiving corridor from the southwest near Harrisburg. The selected trunk turns east through the industrial waterfront and upper-channel widening. Brays is not part of the chosen opening.",
+          "sources": [
+            "r251-usgstopo-texas-overview",
+            "r251-usgstopo-texas-lower"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Buffalo Bayou",
+            "Brays Bayou"
+          ],
+          "part_indices_zero_based": [
+            15
+          ],
+          "whole_selection_part_indices_zero_based": [
+            15
+          ]
+        },
+        {
+          "fragments": [
+            9995
+          ],
+          "component_scope": "Sims Bayou mouth and lower industrial corridor",
+          "finding": "The selected receiving trunk bends northeast beyond the southern Sims Bayou joining setting. Map labels continue to identify Buffalo Bayou on the broad industrial channel. No present navigation dimensions or operating condition are inferred.",
+          "sources": [
+            "r251-usgstopo-texas-overview",
+            "r251-usgstopo-texas-lower"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Buffalo Bayou",
+            "Sims Bayou"
+          ],
+          "part_indices_zero_based": [
+            16
+          ],
+          "whole_selection_part_indices_zero_based": [
+            16
+          ]
+        },
+        {
+          "fragments": [
+            9995
+          ],
+          "component_scope": "Vince Bayou contribution and Galena Park-side receiving reach",
+          "finding": "The short stored parts occupy the continuous lower Buffalo corridor beside the industrial waterfront, with Vince Bayou mapped as a southern side entry. They are preserved as separate stored parts and are not interpreted as separate rivers.",
+          "sources": [
+            "r251-usgstopo-texas-overview",
+            "r251-usgstopo-texas-lower"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Buffalo Bayou",
+            "Vince Bayou"
+          ],
+          "part_indices_zero_based": [
+            17,
+            18
+          ],
+          "whole_selection_part_indices_zero_based": [
+            17,
+            18
+          ]
+        },
+        {
+          "fragments": [
+            9995
+          ],
+          "component_scope": "Northward bend, Hunting Bayou and Greens Bayou joining settings",
+          "finding": "The broad receiving channel turns north and east. Hunting Bayou enters from the north near the western end and Greens Bayou enters farther east. Both entries are directly mapped; neither is a whole-system alias or an additional selected fragment.",
+          "sources": [
+            "r251-usgstopo-texas-overview",
+            "r251-usgstopo-texas-lower"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Buffalo Bayou",
+            "Hunting Bayou",
+            "Greens Bayou"
+          ],
+          "part_indices_zero_based": [
+            19,
+            20
+          ],
+          "whole_selection_part_indices_zero_based": [
+            19,
+            20
+          ]
+        },
+        {
+          "fragments": [
+            9995
+          ],
+          "component_scope": "Eastern channel bend and Deer Park-side lower reach",
+          "finding": "The named broad Buffalo Bayou corridor bends southeast and then east past the industrial shoreline, minor southern side channels and the Patrick Bayou vicinity. The channel continues toward the San Jacinto receiving setting. Exact docks, banks and current channel lines are outside this finding.",
+          "sources": [
+            "r251-usgstopo-texas-overview",
+            "r251-usgstopo-texas-lower"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Buffalo Bayou"
+          ],
+          "part_indices_zero_based": [
+            21,
+            22
+          ],
+          "whole_selection_part_indices_zero_based": [
+            21,
+            22
+          ]
+        },
+        {
+          "fragments": [
+            9995
+          ],
+          "component_scope": "Lower Buffalo/San Jacinto receiving setting and Brownwood-side rendered ending",
+          "finding": "The lower map shows continuous receiving water from the eastern Buffalo Bayou channel to the Lynchburg Ferry/San Jacinto mouth setting and around the intervening peninsula into the Brownwood-side tidal water. The stored source endpoint is near Lynchburg Ferry, while the rendered endpoint is farther southeast at the mapped Brownwood shoreline setting. The straight final rendered extension crosses intervening land and shoreline; it is not asserted to be an all-water channel. Ordinary common receiving-setting correspondence is established, with no extension to an outer Galveston Bay or Gulf mouth.",
+          "sources": [
+            "r251-usgstopo-texas-overview",
+            "r251-usgstopo-texas-lower"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Buffalo Bayou",
+            "San Jacinto River"
+          ],
+          "part_indices_zero_based": [
+            23
+          ],
+          "whole_selection_part_indices_zero_based": [
+            23
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80017514",
+      "source_keys": [
+        "r251-baffin-imagery",
+        "r251-scotter1985-mala-prose",
+        "r251-arc402-baffin-prose"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2302
+          ],
+          "component_scope": "western opening",
+          "finding": "The chosen western opening is on a small highland drainage corridor near residual snow patches. It continues east along a shallow valley before joining the north-trending valley.",
+          "sources": [
+            "r251-baffin-imagery"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            1,
+            2
+          ]
+        },
+        {
+          "fragments": [
+            2302
+          ],
+          "component_scope": "northward receiving transfer",
+          "finding": "The selected northward corridor receives side gullies and reaches the broad east-trending canyon at the bend. Original imagery shows a common receiving floor through the turn.",
+          "sources": [
+            "r251-baffin-imagery"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "fragments": [
+            2302
+          ],
+          "component_scope": "upper eastward canyon",
+          "finding": "Long eastward incised valley beneath plateau margins, with successive north- and south-side tributary fans. The receiving valley is continuous through every short stored part.",
+          "sources": [
+            "r251-baffin-imagery"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "fragments": [
+            2302
+          ],
+          "component_scope": "middle valley turn",
+          "finding": "Southeasterly bend and eastward continuation through the confined pale-rock valley. Side fans locally push the braided river across the common valley floor. Scotter’s independently located Mala valley field site corroborates this named corridor.",
+          "sources": [
+            "r251-baffin-imagery",
+            "r251-scotter1985-mala-prose"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            13,
+            14,
+            15,
+            16
+          ]
+        },
+        {
+          "fragments": [
+            2302
+          ],
+          "component_scope": "lower braided plain",
+          "finding": "The valley opens onto lower tundra terrain and receives the northern tributary valley. The broad braided and alluvial corridor continues east through the selected lower parts toward the coast.",
+          "sources": [
+            "r251-baffin-imagery"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            17,
+            18,
+            19,
+            20,
+            21
+          ]
+        },
+        {
+          "fragments": [
+            2302
+          ],
+          "component_scope": "coastal terminal",
+          "finding": "The selected ending lies in the broad southern part of the alluvial/deltaic coastal floor entering Navy Board Inlet. The stored source endpoint and slightly more easterly/southerly rendered ending occupy the same receiving setting and are described separately.",
+          "sources": [
+            "r251-baffin-imagery",
+            "r251-arc402-baffin-prose"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            22
+          ],
+          "scope_limit": "No claim that either selected point equals the current wet-thread mouth; ordinary delta/shore correspondence is sufficient."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80007710",
+      "source_keys": [
+        "r251-ellesmere-imagery",
+        "r251-dalton2019-pow",
+        "r251-arc402-ellesmere-prose"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2297
+          ],
+          "component_scope": "western icefield opening",
+          "finding": "The chosen western opening is within continuous snow/ice terrain. The selected northeastward arc reaches the ice-covered passage at the northern end of a nunatak/ridge chain.",
+          "sources": [
+            "r251-ellesmere-imagery"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ]
+        },
+        {
+          "fragments": [
+            2297
+          ],
+          "component_scope": "upper ice passage",
+          "finding": "Eastward snow/ice passage around exposed peaks joins the larger north–south glacial valley. The original image shows uninterrupted ice terrain and the valley receiving relationship; present subglacial drainage is not inferred.",
+          "sources": [
+            "r251-ellesmere-imagery"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ]
+        },
+        {
+          "fragments": [
+            2297
+          ],
+          "component_scope": "southward valley glacier",
+          "finding": "The selection follows the south-trending broad glacier beside the rock spine and bends east at its junction with the wider trunk. Visible glacier bands and common ice floor establish the ordinary transfer.",
+          "sources": [
+            "r251-ellesmere-imagery"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            14,
+            15,
+            16,
+            17
+          ]
+        },
+        {
+          "fragments": [
+            2297
+          ],
+          "component_scope": "broad eastward ice join",
+          "finding": "The widening trunk receives additional ice from the south/west and curves northeast around the central rocky ridge before meeting the north-side glacier branch. Blue surface meltwater pools are visible within the ice, but no independently named lake passage is asserted.",
+          "sources": [
+            "r251-ellesmere-imagery"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25
+          ]
+        },
+        {
+          "fragments": [
+            2297
+          ],
+          "component_scope": "lower trinity tongue",
+          "finding": "After the northern ice-branch join, the common glacier turns southeast between mountain walls and widens toward its front. The study’s original labeled imagery identifies this lower outlet as Trinity Glacier.",
+          "sources": [
+            "r251-ellesmere-imagery",
+            "r251-dalton2019-pow"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            26,
+            27,
+            28,
+            29,
+            30
+          ]
+        },
+        {
+          "fragments": [
+            2297
+          ],
+          "component_scope": "ice front and marine ending",
+          "finding": "The final stored part reaches the broad ice-front/ice-mélange receiving setting in inner Talbot Inlet. The rendered endpoint and the more southerly stored source endpoint are both separately retained within this ice-covered marine-front setting.",
+          "sources": [
+            "r251-ellesmere-imagery",
+            "r251-dalton2019-pow"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            31
+          ]
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [],
+  "additional_source_use_notices": [
+    {
+      "publication": "Geological map of Greenland 1:2 500 000",
+      "official_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi:10.22008/FK2/SYAL4J",
+      "kind": "existing_custom_dataset_terms_and_copyright_reapplied",
+      "observed_outcome": "Actual retained catalogue terms and original copyright/production imprint read locally.",
+      "outcome_layer": "Published source-use notice; no new acquisition failure.",
+      "restriction_scope": "Actual GEUS Custom Dataset Terms permit bounded internal use, extraction and processing under their stated conditions and restrict redistribution of original and processed data and production or transfer of new maps. Copyright is credited to GGU and KMS. Originals, crops and cartographic orientation/comparison materials remain private; only independently written factual observations and ordinary bibliography acknowledging GEUS are public-ready.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:90085152"
+    },
+    {
+      "publication": "Geological map of Greenland 1:2 500 000",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J",
+      "kind": "source_epoch_theme_and_fjord_name_scope",
+      "observed_outcome": "Complete ordinary selected-terrain and historical inner-fjord correspondence, with a bounded fjord label but no representative natural-river hydronym.",
+      "outcome_layer": "Substantive feature-type and name-scope limitation, not an acquisition failure.",
+      "restriction_scope": "Completed null name-scope hold. No modern glacier-front, present hydraulic continuity, exact mouth, whole-route fjord naming or scalar river-name claim.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:90085152"
+    },
+    {
+      "publication": "USGSTopo, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "kind": "bounded_multiscale_cartographic_and_managed_corridor_scope",
+      "observation": "Four normally completed originals were visually read. Composite cartography supports ordinary named receiving corridors, managed/reservoir passage and tidal receiving settings. Original rasters and reading derivatives are not redistributed.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70806622"
+    },
+    {
+      "publication": "USGSTopo, lower Buffalo Bayou–Lynchburg–Brownwood view",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "kind": "distinct_terminal_positions_and_generalized_final_extension",
+      "observation": "The source endpoint lies near Lynchburg Ferry and the render endpoint lies farther southeast at Brownwood. The straight final extension crosses intervening land and shoreline. This limits exact geometric claims, not ordinary common receiving-water correspondence; no acquisition stop or material missing through-link is inferred.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70806622"
+    },
+    {
+      "publication": "Harris County Flood Control District, Buffalo Bayou watershed profile",
+      "official_url": "https://www.hcfcd.org/Activity/Projects/Buffalo-Bayou",
+      "kind": "copyright_and_narrow_prose_reading_scope",
+      "observation": "Page carries copyright/all-rights-reserved footer. Only own brief factual observation that the profile names Buffalo Bayou as its primary stream is used. No images, tables, linked plans or maps are republished.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70806622"
+    },
+    {
+      "kind": "representative_not_scalar_name",
+      "acquisition_stop": false,
+      "observation": "Mala River names the supported receiving system; selected upper feeders and individual delta threads are not all renamed.",
+      "aw_id": "hydro-system:80017514"
+    },
+    {
+      "kind": "historical_prose_and_imagery_scope",
+      "acquisition_stop": false,
+      "observation": "Field prose and imagery establish ordinary geographic correspondence; exact current banks, flow and shoreline are outside scope.",
+      "aw_id": "hydro-system:80017514"
+    },
+    {
+      "kind": "inherited_sources_preserved",
+      "acquisition_stop": false,
+      "observation": "Inherited naming-family, CanMatrix/CBMT/Toporama, NLUIS-index, PP1386-J, ARC401 and unresolved Canadian report controls remain unchanged. Incidental CGN and secondary search results were not opened or used as evidence.",
+      "aw_id": "hydro-system:80017514"
+    },
+    {
+      "kind": "glacier_name_not_river_identity",
+      "acquisition_stop": false,
+      "observation": "Trinity Glacier and Talbot Inlet remain bounded glacier/marine names. Whole river-group candidate, scalar, accepted and Korean names remain null.",
+      "aw_id": "hydro-system:80007710"
+    },
+    {
+      "kind": "ordinary_glacial_correspondence",
+      "acquisition_stop": false,
+      "observation": "Continuous ice terrain and receiving-valley joins establish selected correspondence without exact current glacier hydraulics or a separately named surface channel through every part.",
+      "aw_id": "hydro-system:80007710"
+    },
+    {
+      "kind": "inherited_exact_view_hold_preserved",
+      "acquisition_stop": false,
+      "observation": "The held northern Archer Fiord World Imagery view and equivalent unread-output recovery remain stopped; the completed new southeastern Ellesmere request releases no historic restriction.",
+      "aw_id": "hydro-system:80007710"
+    },
+    {
+      "kind": "source_epoch_and_reproduction",
+      "acquisition_stop": false,
+      "observation": "Historical research figures and a mosaic of unverified epoch support geographic scope only. No source pixels, crops, overlays, full coordinates or current glacier-front claim are public-ready.",
+      "aw_id": "hydro-system:80007710"
+    },
+    {
+      "kind": "inherited_source_controls",
+      "acquisition_stop": false,
+      "observation": "Canadian naming-family, CanMatrix/CBMT/Toporama, NLUIS-index, PP1386-J, ARC401 and unresolved Nunavut/PCSP/NRCan report controls are preserved. Discovery-only glacier inventory/gazetteer and unrelated sources were not opened or used.",
+      "aw_id": "hydro-system:80007710"
+    }
+  ]
+}
