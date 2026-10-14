@@ -209,7 +209,7 @@
     return cleanGeo.length >= 3 ? { geo: cleanGeo, parameter } : null;
   }
 
-  function refineTriangles(geoPoints, parameterPoints, sourceTriangles, parameterSpace, validate, maxEdgeDegrees = MAX_RENDER_EDGE_DEGREES) {
+  function refineTriangles(geoPoints, parameterPoints, sourceTriangles, parameterSpace, validate, maxEdgeDegrees = MAX_RENDER_EDGE_DEGREES, boundaryChains = []) {
     const vectors = geoPoints.map(unitVector);
     const minimumEdgeDot = Math.cos(Math.max(0.01, Number(maxEdgeDegrees) - 0.000002) * DEG_TO_RAD);
     let triangles = [];
@@ -272,6 +272,26 @@
         geoPoints.push(geoMidpoint);
         vectors.push(unitVector(geoMidpoint));
         midpointIndices.set(key, midpointIndex);
+      }
+
+      // Carry each boundary midpoint into the line mesh as triangle edges
+      // split. Preserve visibility inherited from the original ring edge.
+      for (const chain of boundaryChains) {
+        const vertices = [];
+        const visible = [];
+        for (let index = 0; index < chain.vertices.length; index += 1) {
+          const a = chain.vertices[index];
+          const b = chain.vertices[(index + 1) % chain.vertices.length];
+          const midpoint = midpointIndices.get(edgeKey(a, b));
+          vertices.push(a);
+          visible.push(chain.visible[index]);
+          if (midpoint !== undefined) {
+            vertices.push(midpoint);
+            visible.push(chain.visible[index]);
+          }
+        }
+        chain.vertices = vertices;
+        chain.visible = visible;
       }
 
       const next = [];
@@ -479,6 +499,13 @@
           }
         }
 
+        // Keep the original artificial pole/seam edges hidden even when
+        // their triangles gain new boundary vertices during refinement.
+        const boundaryChains = ringStarts.map((start, ringIndex) => {
+          const vertices = Array.from({ length: ringCounts[ringIndex] }, (_, index) => start + index);
+          return { vertices, visible: vertices.map((a, index) =>
+            !isArtificialPolarClosureEdge(geoPoints[a], geoPoints[vertices[(index + 1) % vertices.length]])) };
+        });
         let localTriangles = refineTriangles(
           geoPoints,
           parameterPoints,
@@ -486,6 +513,7 @@
           parameterSpace,
           validate,
           maxEdgeDegrees,
+          boundaryChains,
         );
         localTriangles = unwrapTriangleLongitudes(geoPoints, localTriangles);
         const packedTriangles = removePackedDegenerateTriangles(geoPoints, localTriangles, parameterSpace);
@@ -498,16 +526,18 @@
           countryIndices.push(countryIndex);
         }
         for (const index of localTriangles) triangleIndices.push(vertexOffset + index);
-        for (let ringIndex = 0; ringIndex < rings.length; ringIndex += 1) {
-          const start = vertexOffset + ringStarts[ringIndex];
-          const count = ringCounts[ringIndex];
-          for (let index = 0; index < count; index += 1) {
-            const next = (index + 1) % count;
-            const a = geoPoints[ringStarts[ringIndex] + index];
-            const b = geoPoints[ringStarts[ringIndex] + next];
-            if (isArtificialPolarClosureEdge(a, b)) continue;
-            lineIndices.push(start + index, start + next);
-            strokeStartsEnds.push(a[0], a[1], b[0], b[1]);
+        // The stroke uses the exact refined indices of its fill boundary
+        // and coordinates from the same quantized position buffer.
+        for (const chain of boundaryChains) {
+          for (let index = 0; index < chain.vertices.length; index += 1) {
+            if (!chain.visible[index]) continue;
+            const start = vertexOffset + chain.vertices[index];
+            const end = vertexOffset + chain.vertices[(index + 1) % chain.vertices.length];
+            const ax = positions[start * 2], ay = positions[start * 2 + 1];
+            const bx = positions[end * 2], by = positions[end * 2 + 1];
+            if (ax === bx && ay === by) continue;
+            lineIndices.push(start, end);
+            strokeStartsEnds.push(ax * 1e-6, ay * 1e-6, bx * 1e-6, by * 1e-6);
           }
         }
 
