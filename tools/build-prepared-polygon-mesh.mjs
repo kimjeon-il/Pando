@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { gunzipSync, gzipSync } from 'node:zlib';
 import '../assets/js/vendor/earcut.min.js';
 import '../assets/js/workers/gpu-mesh-core.js';
-import { encodePolygonMesh } from '../assets/js/modules/polygon-mesh-codec.js';
+import { encodePolygonMesh, POLYGON_MESH_FORMAT_VERSION } from '../assets/js/modules/polygon-mesh-codec.js';
 import './load-spherical-core.mjs';
 import '../assets/js/vendor/polygon-clipping.min.js';
 import { createGeometryVersionStore } from '../assets/js/modules/geometry-version-store.js';
@@ -13,7 +13,7 @@ import { resolveWorld } from '../assets/js/modules/timeline-resolver.js';
 import { createTerritorialScopeResolver } from '../assets/js/modules/territorial-scope.js';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
-const destination = 'assets/data/prepared-polygons/generated/v1';
+const destination = 'assets/data/prepared-polygons/generated/v2';
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 const readJson = file => JSON.parse(file.endsWith('.gz') ? gunzipSync(readFileSync(resolve(root, file))) : readFileSync(resolve(root, file), 'utf8'));
 const geometries = new Map(), inputHashes = {};
@@ -80,7 +80,8 @@ for (const [digest, geometry] of [...geometries].sort(([a], [b]) => a.localeComp
   if (count % 25 === 0) console.log(`Prepared ${count}/${geometries.size} fixed polygon meshes`);
 }
 const algorithmSourceSha256 = sha256(readFileSync(resolve(root, 'assets/js/workers/gpu-mesh-core.js'), 'utf8').replace(/\r\n/g, '\n'));
-const manifest = { schema: 'pandolab-prepared-polygon-meshes', schemaVersion: 1,
+const manifest = { schema: 'pandolab-prepared-polygon-meshes', schemaVersion: 2,
+  meshFormatVersion: POLYGON_MESH_FORMAT_VERSION,
   algorithmVersion: engine.MESH_ALGORITHM_REVISION, algorithmSourceSha256,
   maxEdgeDegrees: engine.MAX_RENDER_EDGE_DEGREES, inputHashes, precisionDiscards, meshes };
 writeFileSync(resolve(root, `${destination}/manifest.json`), JSON.stringify(manifest, null, 2) + '\n');

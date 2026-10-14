@@ -21,7 +21,7 @@ const DATA_MANIFEST_PATHS = Object.freeze([
   'assets/data/places/manifest.json',
   'assets/data/territorial-entities/generated/v2/index.json',
   'assets/data/historical-world/generated/v1/manifest.json',
-  'assets/data/prepared-polygons/generated/v1/manifest.json',
+  'assets/data/prepared-polygons/generated/v2/manifest.json',
 ]);
 
 function gitRevision() {
@@ -73,8 +73,8 @@ const historicalBytes = readFileSync(resolve(projectRoot, 'assets/data/historica
 const historicalWorld = { url: 'assets/data/historical-world/generated/v1/manifest.json', encoding: 'identity',
   compressedBytes: historicalBytes.length, decodedBytes: historicalBytes.length,
   sha256: createHash('sha256').update(historicalBytes).digest('hex'), sourceMonth: JSON.parse(historicalBytes).sourceMonth };
-const preparedPolygonBytes = readFileSync(resolve(projectRoot, 'assets/data/prepared-polygons/generated/v1/manifest.json'));
-const preparedPolygonMeshes = { url: 'assets/data/prepared-polygons/generated/v1/manifest.json', encoding: 'identity',
+const preparedPolygonBytes = readFileSync(resolve(projectRoot, 'assets/data/prepared-polygons/generated/v2/manifest.json'));
+const preparedPolygonMeshes = { url: 'assets/data/prepared-polygons/generated/v2/manifest.json', encoding: 'identity',
   compressedBytes: preparedPolygonBytes.length, decodedBytes: preparedPolygonBytes.length,
   sha256: createHash('sha256').update(preparedPolygonBytes).digest('hex'),
   algorithmSourceSha256: JSON.parse(preparedPolygonBytes).algorithmSourceSha256 };

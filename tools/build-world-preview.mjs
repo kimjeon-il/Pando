@@ -258,7 +258,7 @@ const manifest = {
       sha256: sha256(canonicalCountryPacket),
       header: canonicalCountryPacketHeader.words,
     },
-    canonicalMesh: { url: 'world-mesh-v0.12.6.bin.gz', encoding: 'gzip', compressedBytes: canonicalMeshBytes.length, decodedBytes: canonicalMeshDecoded.length, sha256: sha256(canonicalMeshBytes), header: meshHeader(canonicalMeshDecoded) },
+    canonicalMesh: { url: legacySourceManifest.assets.canonicalMesh.url, encoding: 'gzip', compressedBytes: canonicalMeshBytes.length, decodedBytes: canonicalMeshDecoded.length, sha256: sha256(canonicalMeshBytes), header: meshHeader(canonicalMeshDecoded) },
   },
 };
 const manifestBytes = Buffer.from(`${JSON.stringify(manifest, null, 2)}\n`);
