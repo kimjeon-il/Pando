@@ -34,6 +34,13 @@ managed Web/App counterpart:
   approval. Do not delete them automatically after integration.
 
 
+## Canonical report location (mandatory)
+
+- Store all standalone human-readable research, investigation, audit, QA, and validation reports for both Web and Native App at the repository-root `reports/` directory on **every work branch**. Follow `reports/README.md` and `reports/TEMPLATE.md`; maintain the report index and record source revision, verification scope/status, and unverified claims explicitly.
+- Do not create standalone reports in `docs/`, `native/docs/`, `assets/data/`, `tools/`, `.superpowers/`, `native/reports/`, or the repository root. Relocate existing standalone reports to the same canonical report category before editing them, and update relative references and report-producing callers.
+- Do **not** relocate technical contracts, architecture/design specifications, implementation plans, mixed contract-and-progress documents, task/SDD ledgers, original GIS/source data, executable inputs, fixtures, machine-generated diagnostic data, or raw build/test logs merely because they mention results. Keep those in their canonical owner locations. Reclassify mixed documents only after separating their report-only content without changing technical contracts.
+- Preserve research evidence/provenance; reporting a test result is not proof of an unexecuted check, integration, deployment, or GIS data application.
+
 ## Historical GIS reconstruction policy (mandatory)
 
 For **all historical borders, coastlines, reclamations, river boundaries,
