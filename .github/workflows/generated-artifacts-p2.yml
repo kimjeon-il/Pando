@@ -96,7 +96,6 @@ jobs:
           node native/tools/m97/cut-kernel-generate.mjs
           node native/tools/m97/cut-kernel-generate.mjs --check
           node --test native/tools/m97/current-geometry-source.test.mjs
-          node --test tests/unit/p5-spherical-area-delegation.test.mjs tests/unit/polygon-geometry.test.mjs tests/unit/country-shared-boundary.test.mjs
       - name: Regenerate the existing Qt reference calculation bundle
         if: needs.plan.outputs.reference == 'true'
         run: |
@@ -142,6 +141,16 @@ jobs:
         run: |
           node --test tests/unit/shared-core-assets.test.mjs tests/unit/core-wasm-loader.test.mjs
           PANDOEDITOR_WASM_MODULE="$PWD/build-native/p1/pando-wasm/shared/wasm/pandoeditor-core.js" node --test shared/tests/wasm-document-session.test.mjs shared/tests/p5-spherical-area-wasm.test.mjs shared/tests/p5-temporal-wasm.test.mjs shared/tests/p5-timeline-wasm.test.mjs
+
+      - name: Verify regenerated geometry against source-matched C++ calculations
+        if: needs.plan.outputs.geometry == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "$PANDO_P2_WASM" = "true" ]; then
+            export PANDOEDITOR_WASM_MODULE="$PWD/build-native/p1/pando-wasm/shared/wasm/pandoeditor-core.js"
+          fi
+          node --test tests/unit/p5-spherical-area-delegation.test.mjs tests/unit/polygon-geometry.test.mjs tests/unit/country-shared-boundary.test.mjs
 
       - name: Validate all generated source fingerprints and output hashes
         run: |
