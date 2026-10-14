@@ -1,0 +1,1081 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r249",
+  "sources": [
+    {
+      "source_key": "r249-casma-2007-prose",
+      "title": "Evaluación de los recursos hídricos en las cuencas de los ríos Casma, Culebras y Huarmey: Estudio hidrológico en la cuenca del río Casma. Informe final",
+      "publisher": "Ministerio de Agricultura; INRENA, Intendencia de Recursos Hídricos; Administración Técnica del Distrito de Riego Casma-Huarmey",
+      "authors": "Hydrology responsibility: Daniel Loyaga Torres; GIS: Lizzet Quiroz Rodríguez; project responsibility: Carlos Romero Hernández",
+      "edition": "December 2007, IRH-H-CASMA-MD_REV00",
+      "official_url": "https://sigrid.cenepred.gob.pe/docs/PARA%20PUBLICAR/ANA/Estudio_hidrologico_Casma.pdf",
+      "normal_equivalent_url": "https://www.ana.gob.pe/sites/default/files/publication/files/estudio_hidrologico_casma_0_0.pdf",
+      "catalogue_url": "https://alicia.concytec.gob.pe/vufind/index.php/Record/ANAI_ec5a67fc27d1adb84e61aaa9ff04dfe5",
+      "acquisition_outcome": "Normal original completed HTTP200 application/pdf.",
+      "actual_read_scope": "Cover and project-staff front matter; authorial project/methodology prose in section1.6, especially printed pages4–8; authorial hydrography in printed pages48 and51, additionally visually inspected as PDF pages58 and61. Cover was also visually inspected. No report map, borrowed topographic panel, diagram linework or cartographic label was used.",
+      "publication_independence": "The specific ATDR Casma-Huarmey hydrology component of a three-basin project is identified by the actual original, its project team, June–December2007 work program, local inventory coordination and October reconnaissance. Its authorial findings are distinct from the recorded Chancay-Lambayeque, Ica, Acarí, Grande/Nazca, Chicama, Rímac, Locumba, Chancay-Huaral and national vulnerable-quebradas studies. Only own prose is used; borrowed underlying cartography is excluded rather than presumed independent.",
+      "supports": "Representative Casma system, upper/middle naming sequence, separate tributaries and Pacific ending.",
+      "limits": "Historical report; not current hydraulic-operation or registry evidence. The passage on Sechín’s bank side differs between printed pages48 and51, so no bank-side conclusion is taken from it."
+    },
+    {
+      "source_key": "r249-casma-catalogue",
+      "title": "ALICIA catalogue record for Estudio hidrológico en la cuenca del río Casma (Informe final)",
+      "publisher": "CONCYTEC / ANA institutional repository metadata",
+      "official_url": "https://alicia.concytec.gob.pe/vufind/index.php/Record/ANAI_ec5a67fc27d1adb84e61aaa9ff04dfe5",
+      "acquisition_outcome": "Normal web-reader HTML body returned.",
+      "actual_read_scope": "Title, authors,2007 date, repository record20.500.12543/1732, open-access level and purpose.",
+      "supports": "Bibliography and publication/project identity only.",
+      "limits": "Catalogue is not map pixels or independent geographic correspondence."
+    },
+    {
+      "source_key": "r249-casma-imagery-overview",
+      "title": "World Imagery: Casma highland-to-coast overview",
+      "publisher": "Esri and World Imagery contributors",
+      "date": "Accessed14October2026; individual scene epochs unverified",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "acquisition_outcome": "Completed HTTP200 image/jpeg; corresponding completed HTTP200 JSON extent metadata.",
+      "actual_read_scope": "Complete original and private part-index orientation aid: all selected parts in regional context, connected valley sequence and sea receiving setting.",
+      "publication_independence": "Independently maintained satellite/aerial photographic mosaic. Distinct Ancash scene, not a reproduction or recovery route for held ANA/MTC cartography or the exact stopped Mendoza, Knik, Ellesmere and Nevada views. The three views are from one service, not three independent publications.",
+      "supports": "Ordinary geographic continuity and receiving setting.",
+      "limits": "No local hydronym labels; not a present-flow, exact-bank or current-operation assessment."
+    },
+    {
+      "source_key": "r249-casma-imagery-upper",
+      "title": "World Imagery: Casma selected eastern opening and upper-valley detail",
+      "publisher": "Esri and World Imagery contributors",
+      "date": "Accessed14October2026; individual scene epochs unverified",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "acquisition_outcome": "Completed HTTP200 image/jpeg; corresponding completed HTTP200 JSON extent metadata.",
+      "actual_read_scope": "Complete original and private orientation aid: chosen highland opening, descending hollow, upper bends, tributary receiving valleys and the overlap with the middle valley.",
+      "publication_independence": "Independently maintained satellite/aerial photographic mosaic. Distinct Ancash scene, not a reproduction or recovery route for held ANA/MTC cartography or the exact stopped Mendoza, Knik, Ellesmere and Nevada views. The three views are from one service, not three independent publications.",
+      "supports": "Ordinary geographic continuity and receiving setting.",
+      "limits": "No local hydronym labels; not a present-flow, exact-bank or current-operation assessment."
+    },
+    {
+      "source_key": "r249-casma-imagery-lower",
+      "title": "World Imagery: Casma middle/lower valley and coastal receiving floor",
+      "publisher": "Esri and World Imagery contributors",
+      "date": "Accessed14October2026; individual scene epochs unverified",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "acquisition_outcome": "Completed HTTP200 image/jpeg; corresponding completed HTTP200 JSON extent metadata.",
+      "actual_read_scope": "Complete original, private part-index orientation aid and local endpoint crop: middle overlap, lower cultivated bends, all final parts and separately marked source/render nearshore ends.",
+      "publication_independence": "Independently maintained satellite/aerial photographic mosaic. Distinct Ancash scene, not a reproduction or recovery route for held ANA/MTC cartography or the exact stopped Mendoza, Knik, Ellesmere and Nevada views. The three views are from one service, not three independent publications.",
+      "supports": "Ordinary geographic continuity and receiving setting.",
+      "limits": "No local hydronym labels; not a present-flow, exact-bank or current-operation assessment."
+    },
+    {
+      "publisher": "Gouvernement du Québec, Centre d’expertise hydrique du Québec",
+      "year": 2011,
+      "cartographers": [
+        "Marie-Lise Paquin",
+        "Eric Levasseur"
+      ],
+      "approval_credit": "Joëlle Bérubé",
+      "cartographic_base": "BDGA1:1000000; NAD83 Québec Lambert",
+      "evidence_kind": "primary_original_regional_cartography",
+      "acquisition_outcome": "Normal original completed HTTP200 application/pdf before local reading.",
+      "source_independence": "Separately issued CEHQ hydrological-statistical editorial project with its own map title, cartographers, approval, date, legend and scale; positively distinguished from held Canadian naming services, CanMatrix/CBMT and Quebec geological or LaGrande studies. Shared base geography is not claimed to be an independent hydrographic survey.",
+      "use_notice": "Only own bounded observations and normal bibliography; source originals and derivatives remain private.",
+      "source_key": "r249-cehq08-2011",
+      "title": "Débits spécifiques d’étiage annuels — Région hydrographique08",
+      "edition": "July2011",
+      "scale": "1:1750000",
+      "official_url": "https://www.cehq.gouv.qc.ca/debit-etiage/cartes/debit_etiage_08_specifique_annuel.pdf",
+      "actual_material_read": "Complete single-sheet overview, full selected-corridor original pixels, separate readable name/corridor region, title/legend/imprint, and private orientation comparison using the embedded map projection.",
+      "supports": "Pontax northern branch and common lower receiving system; separate Machisakahikanistikw southern-branch label; lower joins and coastal correspondence.",
+      "limits": "The 081101 station annotation obscures the eastern/southern upper interval. Generalized linework does not establish current channels, low-flow quantities, legal name extent or registry status."
+    },
+    {
+      "publisher": "Gouvernement du Québec, Centre d’expertise hydrique du Québec",
+      "year": 2011,
+      "cartographers": [
+        "Marie-Lise Paquin",
+        "Eric Levasseur"
+      ],
+      "approval_credit": "Joëlle Bérubé",
+      "cartographic_base": "BDGA1:1000000; NAD83 Québec Lambert",
+      "evidence_kind": "primary_original_regional_cartography",
+      "acquisition_outcome": "Normal original completed HTTP200 application/pdf before local reading.",
+      "source_independence": "Separately issued CEHQ hydrological-statistical editorial project with its own map title, cartographers, approval, date, legend and scale; positively distinguished from held Canadian naming services, CanMatrix/CBMT and Quebec geological or LaGrande studies. Shared base geography is not claimed to be an independent hydrographic survey.",
+      "use_notice": "Only own bounded observations and normal bibliography; source originals and derivatives remain private.",
+      "source_key": "r249-cehq09-2011",
+      "title": "Débits spécifiques d’étiage estivaux — Région hydrographique09",
+      "edition": "July2011",
+      "scale": "1:2300000",
+      "official_url": "https://www.cehq.gouv.qc.ca/debit-etiage/cartes/debit_etiage_09_specifique_estival.pdf",
+      "actual_material_read": "Whole-sheet original overview, title/legend/credit text and two original southwest-coast enlargements with separate orientation aid.",
+      "supports": "Neighboring river and coastal context; only the far western selected mouth/lower reach falls inside the printed frame.",
+      "limits": "Most of the selected path lies beyond the southern map frame; no inland coverage is claimed from this sheet. Shares the BDGA compilation with region08."
+    },
+    {
+      "source_key": "r249-james-imagery",
+      "title": "Esri World Imagery: selected eastern James Bay two-branch river corridor",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "evidence_kind": "independent_photographic_geography",
+      "acquisition_outcome": "Extent metadata completed HTTP200 application/json, followed sequentially by its normally linked original completing HTTP200 image/jpeg; both terminal completions preceded reading.",
+      "actual_material_read": "Complete original overview; overlapping eastern and western clean-pixel panels and separate orientation aids covering every selected part, both openings, the inter-fragment junction, lower river and the separate source/render mainstem endpoints.",
+      "supports": "Continuous ordinary geographic correspondence of all mainstem and tributary parts, including the interval hidden by the CEHQ annotation.",
+      "source_independence": "Independent satellite/aerial mosaic. The new James Bay view is geographically distinct from held Ellesmere, Nevada, Knik and Mendoza selected views and does not recover held Canadian mapping or geological figures.",
+      "limits": "No printed hydronyms, individual scene-date verification, current wetland hydraulics, tidal state, exact banks or formal registry verification.",
+      "use_notice": "Original imagery and all crops/orientation derivatives remain private; only own factual synthesis and normal bibliography."
+    },
+    {
+      "source_key": "r249-ibge-oeiras2010",
+      "title": "Oeiras do Pará–PA, Mapa Municipal Estatístico, 1505205",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística (IBGE), Diretoria de Geociências",
+      "edition": "Malha territorial 2010; printed edition 6/21/2011",
+      "scale": "1:100,000; two map sheets",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/pa/oeiras_do_para_v2.pdf",
+      "publication_identity": "Separately edited Oeiras municipal statistical compilation, with its own municipal code, extent, chronology and CCAR/CETE/CDDI production imprint. The original credits systematic Brazilian mapping from IBGE, DSG and others plus the IBGE municipal mesh and diverse updates. This is not a copy of held Breves municipal products, Navy chart4351, HOLOS/SECTAM-NHM drainage figures or SGB sub-bacia39.",
+      "access_status": "Completed original HTTP200 application/pdf; original pixels read within the stated scope.",
+      "source_original_acquired": true,
+      "original_pixels_actually_read": true,
+      "actual_read_scope": "Both full original sheets visually read, then enlarged first-sheet lower river, Anavera label, joining/widening, town and selected ending; southern-sheet opening and long wetland corridor; printed title, scale, chronology, production/compilation and rights notice. Private orientation markers were used only to locate source-reading areas.",
+      "use_scope": "Historical mixed-source statistical reference cartography. Semi-automatic compilation and incomplete integration/completeness caveat; IBGE reproduction rights reserved. Own bounded facts only, no original or derivative redistribution, current-bank, flow-operation or formal-register claim."
+    },
+    {
+      "source_key": "r249-ibge-portel2010",
+      "title": "Portel–PA, Mapa Municipal Estatístico, 1505809",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística (IBGE), Diretoria de Geociências",
+      "edition": "Malha territorial 2010; printed edition 05/27/2011",
+      "scale": "1:250,000; two map sheets",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/pa/portel_v2.pdf",
+      "publication_identity": "Positively identified Portel municipal geographic/statistical compilation from the recovered original bibliography, followed by fresh successful acquisition and original visual reading. Its full later record shows nomenclature/use limitations rather than an acquisition hold. It is independent of held Breves, Marajó HOLOS/SECTAM-NHM and SGB publications.",
+      "access_status": "Completed original HTTP200 application/pdf; original pixels read within the stated scope.",
+      "source_original_acquired": true,
+      "original_pixels_actually_read": true,
+      "actual_read_scope": "Both sheets at overview scale. First-sheet northeastern extent and enlarged Araticu label beside Oeiras, Ilha das Flores, lower Rio Oeiras joining river and estuarine receiving context inspected. Title, scale, compilation/rights and production imprint read. The selected eastern and southern opening is not claimed covered by this map.",
+      "use_scope": "Historical municipal reference cartography, semi-automatic multi-source compilation with incomplete integration/completeness treatment; reproduction rights reserved. No lost prior original is represented as retained or reused."
+    },
+    {
+      "source_key": "r249-fapespa-oeiras2023",
+      "title": "Estatística Municipal: Oeiras do Pará",
+      "publisher": "Fundação Amazônia de Amparo a Estudos e Pesquisas (FAPESPA), Coordenadoria de Estatística e Disseminação da Informação",
+      "edition": "Printed copyright2023; 71-page official PDF hosted in March2024 directory",
+      "official_url": "https://www.fapespa.pa.gov.br/wp-content/uploads/2024/03/Oeiras-do-Para.pdf",
+      "publication_identity": "Own administrative municipal socioeconomic/environmental statistical-profile editorial project covering144 municipalities. Front matter and technical credits affirmatively distinguish it from the held HOLOS2005/SECTAM-NHM2004 drainage study. No map, underlying report or borrowed figure was requested or used.",
+      "access_status": "Normal original PDF-reader body returned; origin HTTP not independently measured; authorial prose read.",
+      "source_original_acquired": true,
+      "original_pixels_actually_read": false,
+      "actual_read_scope": "Original parsed PDF front matter, copyright, editorial/technical team and project presentation, plus section2.8 Hidrografia on printed12/PDF12. No scan/map pixels used.",
+      "own_observations": "The profile places the municipal seat on Rio Araticu, a tributary of Rio Pará, and distinguishes eastern Curucará/Anauerá from western Caracuru/Oeiras tributaries. This independently confirms receiving-system naming but cannot supply either missing upper connector.",
+      "use_scope": "Only independently written bounded hydrography prose and bibliography. Printed permission allows reproduction with attribution and without sale/commercial use; originals remain private."
+    },
+    {
+      "source_key": "r249-world-imagery-para-opening",
+      "title": "Esri World Imagery: selected Pará southern opening and wetland-to-eastern-river setting",
+      "publisher": "Esri and World Imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "publication_identity": "New independently maintained photographic-mosaic view of this Pará target. It is unrelated to the exact held northern Ellesmere, Hot Creek, Knik and Mendoza views and does not recover any held Brazilian publication.",
+      "access_status": "Completed extent metadata HTTP200 application/json and sequential original HTTP200 image/jpeg; image pixels read.",
+      "source_original_acquired": true,
+      "original_pixels_actually_read": true,
+      "actual_read_scope": "One entire returned original image visually read, plus original-pixel enlargements of the chosen forested opening and the northeastern eastward transfer. A private point-orientation image was also inspected; no unseen imagery used.",
+      "edition_or_scene_date": "Individual image acquisition date not established; scattered cloud obscuration and vegetation conceal some small features.",
+      "own_observations": "A broad elongated wetland with branching dark drainage traces is visible along the selected middle of the southern corridor. The west-to-east opening and the later crossing of the vegetated Transcametá strip into the eastern river corridor are not sufficiently established. No absence of a connection, modern hydraulic state or basin divide is asserted.",
+      "use_scope": "Own geographic factual synthesis only. No imagery, crops, overlays, exact dynamic export requests or image output links redistributed."
+    },
+    {
+      "source_key": "r249-south-baffin-imagery",
+      "title": "Esri World Imagery: selected southern Baffin Island lake-and-river corridor",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "evidence_kind": "independent_photographic_geography",
+      "acquisition_outcome": "The normal extent-metadata request completed HTTP200 application/json; the sequentially requested linked original completed HTTP200 image/jpeg. Both actual terminal completions preceded source reading, and no source acquisition remained active at service handoff.",
+      "actual_material_read": "Complete original overview, overlapping northern/middle/southern clean-pixel panels and separate orientation aids; closer local original-pixel crops of the chosen opening, southwestern lake-to-pond link and lower coastal waterway. Every selected part and the source/render endings was considered.",
+      "supports": "Full ordinary connected feeder, valley, lake/river and coastal receiving geography.",
+      "source_independence": "Independent satellite/aerial mosaic with its own editorial product identity, not recovery of held Canadian naming records, CanMatrix/CBMT cartography, NLUIS/Stewart-Bernier maps, PP1386-J or unidentified Nunavut geological/PCSP publications. This southern Baffin view is distinct from held Ellesmere, Nevada, Knik and Mendoza selected views.",
+      "limits": "No hydronym labels, individual source-scene date verification, exact banks, current lake/wetland hydraulics, discharge, tidal classification or formal registry evidence. The rendered coastal extension is not treated as a natural river channel.",
+      "use_notice": "Source original, crops and orientation derivatives remain private. Only own factual synthesis and ordinary bibliography are public-ready."
+    },
+    {
+      "source_key": "r249-arc402-scope-only",
+      "title": "Canadian Sailing Directions, ARC402: Eastern Arctic",
+      "publisher": "Canadian Hydrographic Service, Fisheries and Oceans Canada",
+      "edition": "January2025",
+      "catalogue_number": "Fs74-39E-PDF",
+      "issn": "2816-4539",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/chs-shc-ARC402-eng-202501-41273515.pdf",
+      "acquisition_outcome": "Retained complete original from the successful recent acquisition, read locally after exact later-restriction lookup; no external request.",
+      "actual_material_read": "Retained cover/front-matter text, publication/reproduction notice, contents and chapter1 regional-scope introduction. No new chart or map pixels consulted.",
+      "evidence_kind": "publication_scope_only",
+      "used_as_substantive_geographic_evidence": false,
+      "supports": "Only the scope decision: this Eastern Arctic volume is not used to infer a name or detailed inland coverage for the selected southern corridor.",
+      "source_independence": "Separately edited CHS geographic-prose volume, previously positively distinguished from held ARC401, naming services, topographic archives and geological/PCSP maps.",
+      "limits": "No matching whole-selection river name or inland corridor observation adopted. Held ARC401 and charts were not requested as substitutes.",
+      "use_notice": "Commercial reproduction requires prior permission; only own bounded factual scope note and bibliography, no source pages or extracts."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:60977351",
+      "source_keys": [
+        "r249-casma-2007-prose",
+        "r249-casma-catalogue",
+        "r249-casma-imagery-overview",
+        "r249-casma-imagery-upper",
+        "r249-casma-imagery-lower"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13823
+          ],
+          "component_scope": "Chosen highland opening and southwest-then-south headward passage.",
+          "finding": "The upper original shows the selected opening on sparsely vegetated mountain terrain and its descending drainage hollow into the greener enclosed valley. Parts 1–3 follow the same receiving hollow and valley as they bend southwest and south. Local clouds lie mainly beside this passage; the geographic trough and continuation remain readable. No lake or glacier crossing is required, and no precise name is imposed on the opening.",
+          "sources": [
+            "r249-casma-imagery-overview",
+            "r249-casma-imagery-upper"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "fragments": [
+            13823
+          ],
+          "component_scope": "Upper valley bends and tributary receiving settings.",
+          "finding": "The selection turns west within a continuous vegetated valley, with adjoining steep ridges and tributary hollows, then makes the southern and northwestern bends. The upper original and overview expose the full ordinary valley connection through all seven stored parts. Small generalized offsets and sparse clouds do not establish a separate-basin transfer. The report places Chacchan on the upper main-course sequence and distinguishes Pira and Vado as contributing tributaries; it is not used to rename all adjacent streams.",
+          "sources": [
+            "r249-casma-imagery-overview",
+            "r249-casma-imagery-upper",
+            "r249-casma-2007-prose"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Río Chacchan"
+          ],
+          "stored_parts_one_based": [
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ]
+        },
+        {
+          "fragments": [
+            13823
+          ],
+          "component_scope": "Middle westward corridor and broad cultivated receiving area.",
+          "finding": "The images show a continuous incised-to-cultivated valley through the westward parts and the northwestern swing, including the broad receiving junction before the lower entrenched bends. The 2007 study calls its middle main course Grande and places the Yaután contribution before the lower Casma naming scope. Precise reach-name transition points are not digitized from the prose.",
+          "sources": [
+            "r249-casma-imagery-overview",
+            "r249-casma-imagery-upper",
+            "r249-casma-imagery-lower",
+            "r249-casma-2007-prose"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Río Grande"
+          ],
+          "stored_parts_one_based": [
+            11,
+            12,
+            13,
+            14,
+            15
+          ]
+        },
+        {
+          "fragments": [
+            13823
+          ],
+          "component_scope": "Lower southern bend and northwestward approach to the coastal plain.",
+          "finding": "A wide continuous irrigated valley curves southwest, west and northwest between dry hills. All selected parts remain within this connected valley and receiving floor; fields, channel belts, roads and tributary fans are visible. The corridor then opens toward the larger coastal settlement and tributary join. This is ordinary geographic correspondence and does not depend on a presently wet individual thread.",
+          "sources": [
+            "r249-casma-imagery-overview",
+            "r249-casma-imagery-lower",
+            "r249-casma-2007-prose"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Río Casma"
+          ],
+          "stored_parts_one_based": [
+            16,
+            17,
+            18,
+            19,
+            20
+          ]
+        },
+        {
+          "fragments": [
+            13823
+          ],
+          "component_scope": "Final cultivated plain, drainage outlets and Pacific shore.",
+          "finding": "The lower original shows the selected continuation through the broad cultivated coastal receiving floor to the Pacific coast. The generalized final path crosses this shared floor rather than following every visible channel bend. The shore, lower drainage channels and common receiving coast are continuously exposed; no separate enclosed basin or missing lake-to-feeder transfer appears.",
+          "sources": [
+            "r249-casma-imagery-overview",
+            "r249-casma-imagery-lower",
+            "r249-casma-2007-prose"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Río Casma"
+          ],
+          "stored_parts_one_based": [
+            21,
+            22,
+            23
+          ]
+        },
+        {
+          "fragments": [
+            13823
+          ],
+          "component_scope": "Original-source terminal setting, retained independently of the rendered end.",
+          "finding": "The stored source endpoint falls in Pacific coastal water just off the cultivated lower Casma shore, near the southern side of the exposed lower drainage-outlet setting. It is evaluated as the receiving sea setting, not moved to the current visible channel mouth or shore edge.",
+          "sources": [
+            "r249-casma-imagery-lower",
+            "r249-casma-2007-prose"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Río Casma"
+          ],
+          "stored_parts_one_based": [
+            23
+          ]
+        },
+        {
+          "fragments": [
+            13823
+          ],
+          "component_scope": "Rendered terminal setting, retained independently of the original-source end.",
+          "finding": "The distinct rendered endpoint is slightly northwest of the stored source endpoint in the same nearshore Pacific receiving water. The final rendered segment and endpoint are kept as supplied. Image scale does not justify an exact tidal edge, bank or active outfall claim.",
+          "sources": [
+            "r249-casma-imagery-lower",
+            "r249-casma-2007-prose"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Río Casma"
+          ],
+          "stored_parts_one_based": [
+            23
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70198169",
+      "source_keys": [
+        "r249-cehq08-2011",
+        "r249-cehq09-2011",
+        "r249-james-imagery"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9255
+          ],
+          "component_scope": "Eastern southern-branch opening",
+          "finding": "The selected eastern opening follows a narrow westward drainage corridor through low wooded and wetland terrain. Its bends and receiving passage remain continuous across the eastern photographic panel; the selection is not extended to a different headwater.",
+          "sources": [
+            "r249-james-imagery"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            1
+          ],
+          "scope_limit": "No separate opening name, exact bank or currently wet thread is inferred."
+        },
+        {
+          "fragments": [
+            9255
+          ],
+          "component_scope": "Southern branch through lowland bends",
+          "finding": "The southern channel and its adjoining wetland valley continue west, bending through several broad lowland curves and receiving small lateral drainages. Imagery exposes the interval hidden under the CEHQ station panel.",
+          "sources": [
+            "r249-james-imagery",
+            "r249-cehq08-2011"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "scope_limit": "The station081101 annotation masks part of the original regional map; the missing cartographic interval is supplied by independent imagery."
+        },
+        {
+          "fragments": [
+            9255
+          ],
+          "component_scope": "Southern branch joins the northern receiving river",
+          "finding": "The selected southern branch turns northwest through a common low valley to the junction with the separately retained northern tributary fragment. The CEHQ original places Rivière Machisakahikanistikw along the southern branch and Rivière Pontax on the northern river that continues into the shared lower corridor.",
+          "sources": [
+            "r249-james-imagery",
+            "r249-cehq08-2011"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            7
+          ],
+          "scope_limit": "The separately named southern branch is not an alias of Pontax."
+        },
+        {
+          "fragments": [
+            9256
+          ],
+          "component_scope": "Northern tributary opening and westward river",
+          "finding": "The selected northern opening is already in a visible river channel. It winds west and southwest through rocky wooded terrain and broadens toward the receiving valley; both stored opening parts have ordinary continuous correspondence.",
+          "sources": [
+            "r249-james-imagery",
+            "r249-cehq08-2011"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "tributary",
+          "stage": 3,
+          "stored_parts_one_based": [
+            1,
+            2
+          ]
+        },
+        {
+          "fragments": [
+            9256
+          ],
+          "component_scope": "Northern river bends and lateral joins",
+          "finding": "The northern river makes westward and southwestward bends through the same connected channel-and-valley system, passing small lateral drainage joins. CEHQ places the Pontax name along this northern branch.",
+          "sources": [
+            "r249-james-imagery",
+            "r249-cehq08-2011"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "tributary",
+          "stage": 3,
+          "stored_parts_one_based": [
+            3,
+            4
+          ]
+        },
+        {
+          "fragments": [
+            9256
+          ],
+          "component_scope": "Tributary source/render confluence ending",
+          "finding": "The last retained tributary part reaches the shared junction with the mainstem southern branch. Its stored source and rendered endpoints coincide at that confluence; neither is the marine mouth.",
+          "sources": [
+            "r249-james-imagery",
+            "r249-cehq08-2011"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "tributary",
+          "stage": 3,
+          "stored_parts_one_based": [
+            5
+          ],
+          "scope_limit": "The role and ending remain distinct from the mainstem sea terminal."
+        },
+        {
+          "fragments": [
+            9255
+          ],
+          "component_scope": "Shared lower receiving corridor",
+          "finding": "Below the two-fragment join, the broader river winds northwest and west through a continuous wooded/wetland lowland. Bends, small side joins and the widening coastal approach are readable in the western photographic panel and the regional map. The named Pontax branch continues through this receiving system.",
+          "sources": [
+            "r249-james-imagery",
+            "r249-cehq08-2011"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "fragments": [
+            9255
+          ],
+          "component_scope": "Lower river and bay-mouth setting",
+          "finding": "The lower river turns west through a sediment-lined mouth with bars and broad tidal-flat surroundings on the east side of James Bay. The photographs separate it from the larger neighboring outlet to the south.",
+          "sources": [
+            "r249-james-imagery",
+            "r249-cehq08-2011",
+            "r249-cehq09-2011"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            15
+          ],
+          "scope_limit": "Neither tidal state nor the exact active mouth branch is asserted."
+        },
+        {
+          "fragments": [
+            9255
+          ],
+          "component_scope": "Separate mainstem source sea endpoint",
+          "finding": "The stored source endpoint occupies the river-mouth/channel and sediment-flat receiving setting. It remains separately recorded from the rendered endpoint and from the tributary confluence.",
+          "sources": [
+            "r249-james-imagery",
+            "r249-cehq08-2011"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            15
+          ]
+        },
+        {
+          "fragments": [
+            9255
+          ],
+          "component_scope": "Separate mainstem rendered sea endpoint",
+          "finding": "The rendered endpoint lies slightly southeast within the same coastal-mouth setting. The two terminal locations have ordinary shared river-to-bay correspondence without collapsing or moving them.",
+          "sources": [
+            "r249-james-imagery",
+            "r249-cehq08-2011"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            15
+          ],
+          "scope_limit": "No surveyed shoreline or present flow-state assertion."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60527398",
+      "source_keys": [
+        "r249-ibge-oeiras2010",
+        "r249-ibge-portel2010",
+        "r249-fapespa-oeiras2023",
+        "r249-world-imagery-para-opening"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13717
+          ],
+          "component_scope": "Chosen short eastward opening and its proposed turn north into the southern wetland",
+          "finding": "The selection begins in a forested and partly cleared tract near the Transcametá road. The municipal sheet shows nearby streams and a wetland corridor but no supported transfer for this opening. Original imagery shows the forest/road/clearing setting and nearby wetland; it does not sufficiently establish the selected opening-to-wetland connection. This is a concrete receiving-link gap, not a demand for an exact bank, visible current water thread or culvert-operation evidence.",
+          "sources": [
+            "r249-ibge-oeiras2010",
+            "r249-world-imagery-para-opening"
+          ],
+          "correspondence": "material_through_link_unestablished",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            0,
+            1,
+            2
+          ],
+          "whole_selection_part_indices_zero_based": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "fragments": [
+            13717
+          ],
+          "component_scope": "Northward southern wetland corridor after the opening gap",
+          "finding": "The municipal southern sheet and imagery agree on the elongated low wetland corridor with branch traces, vegetated patches and ordinary receiving connections within that corridor. The route can be followed through this common wetland setting without requiring a single visible blue/wet thread throughout. No individual pool, river name, regulated reservoir or present-flow direction is assigned. The first portion of part2 and final portion of part10 are bounded by the separate connector limits.",
+          "sources": [
+            "r249-ibge-oeiras2010",
+            "r249-world-imagery-para-opening"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ],
+          "whole_selection_part_indices_zero_based": [
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ]
+        },
+        {
+          "fragments": [
+            13717
+          ],
+          "component_scope": "Northeastern departure from the elongated wetland across the Transcametá strip toward the eastern river",
+          "finding": "The selected route turns east from the wetland toward the separately mapped Anavera corridor. The sources depict both receiving settings but do not establish their selected cross-connection through the intervening vegetated/road strip. The imagery shows wooded ground and adjacent drainage traces without sufficient continuous geographic evidence for that transfer. No separate basin or impossible connection is inferred merely from the image.",
+          "sources": [
+            "r249-ibge-oeiras2010",
+            "r249-world-imagery-para-opening"
+          ],
+          "correspondence": "material_through_link_unestablished",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            10,
+            11,
+            12
+          ],
+          "whole_selection_part_indices_zero_based": [
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "fragments": [
+            13717
+          ],
+          "component_scope": "Mapped eastern river corridor and north-to-west bend toward the larger receiving river",
+          "finding": "The first-sheet river labelled RIO ANAVERA follows the same general northward corridor and westward bending reach as the selected middle route. Its connection with the separately named Rio Caracuru setting and northward continuation are mapped. The exact printed label is retained as a bounded middle-reach observation; FAPESPA spells a corresponding eastern tributary Anauerá, but that spelling is not promoted to a whole-selection alias.",
+          "sources": [
+            "r249-ibge-oeiras2010",
+            "r249-ibge-portel2010",
+            "r249-fapespa-oeiras2023"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Rio Anavera"
+          ],
+          "part_indices_zero_based": [
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19
+          ],
+          "whole_selection_part_indices_zero_based": [
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19
+          ]
+        },
+        {
+          "fragments": [
+            13717
+          ],
+          "component_scope": "Agro-Oeste/Vila Boa Vista setting, channel widening, Ilha das Flores and Rio Oeiras join",
+          "finding": "The maps depict a connected receiving river past Agro-Oeste and Vila Boa Vista, broadening around Ilha das Flores and receiving the separately named Rio Oeiras from the west. Portel directly labels the lower course Rio Araticu. These joins are ordinary mapped river/floodplain correspondence; exact banks and contemporary tidal flow or management operation are not required or claimed. Caracuru and Oeiras remain distinct tributary/reach names rather than aliases.",
+          "sources": [
+            "r249-ibge-oeiras2010",
+            "r249-ibge-portel2010",
+            "r249-fapespa-oeiras2023"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Rio Araticu",
+            "Rio Caracuru",
+            "Rio Oeiras"
+          ],
+          "part_indices_zero_based": [
+            20,
+            21,
+            22,
+            23
+          ],
+          "whole_selection_part_indices_zero_based": [
+            20,
+            21,
+            22,
+            23
+          ]
+        },
+        {
+          "fragments": [
+            13718
+          ],
+          "component_scope": "Stage2 lower estuarine Araticu past Oeiras do Pará to the actual selected ending",
+          "finding": "The second fragment remains in the continuous broad lower Rio Araticu corridor past Oeiras do Pará and beside the Ilha Grande/Furo do Oeiras setting. Both the stored source endpoint and the rendered endpoint lie within that lower river setting north of town. They remain before the farther northern opening into Rio Pará; no route to that mouth or the open ocean is appended. The supplied sea class is retained as metadata only. The side furo and receiving Pará are not whole-selection river aliases.",
+          "sources": [
+            "r249-ibge-oeiras2010",
+            "r249-ibge-portel2010",
+            "r249-fapespa-oeiras2023"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "bounded_names": [
+            "Rio Araticu",
+            "Furo do Oeiras"
+          ],
+          "part_indices_zero_based": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "whole_selection_part_indices_zero_based": [
+            24,
+            25,
+            26,
+            27,
+            28
+          ]
+        }
+      ],
+      "terminal_description": {
+        "source_endpoint": "Within the broad lower Araticu north of Oeiras do Pará, before the farther Rio Pará opening.",
+        "render_endpoint": "Within the same broad lower river setting; not substituted for or treated as identical to the source endpoint."
+      },
+      "bounded_receiving_system_candidate": {
+        "name": "Rio Araticu",
+        "role": "supported_downstream_receiving_identity_with_incomplete_upper_correspondence",
+        "source_keys": [
+          "r249-ibge-portel2010",
+          "r249-ibge-oeiras2010",
+          "r249-fapespa-oeiras2023"
+        ],
+        "scope": "Mapped middle/lower receiving river and actual terminal setting only. It is not a completed representative for the whole selected composite until the two upper connector limits are resolved."
+      }
+    },
+    {
+      "aw_id": "hydro-system:80189571",
+      "source_keys": [
+        "r249-south-baffin-imagery",
+        "r249-arc402-scope-only"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2661
+          ],
+          "component_scope": "Northern feeder opening and southward receiving channel",
+          "finding": "The chosen opening lies in a narrow southwesterly feeder valley that joins the larger southward incised drainage. The upper clean-pixel panel and closer local opening crop expose that ordinary connection through the rocky terrain.",
+          "sources": [
+            "r249-south-baffin-imagery"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            1,
+            2,
+            3
+          ],
+          "scope_limit": "The selected opening is retained without extension to another headwater; nearby ponds are not all asserted to be serial through-flow lakes."
+        },
+        {
+          "fragments": [
+            2661
+          ],
+          "component_scope": "Upper valley bends and lateral joins",
+          "finding": "The receiving corridor bends southeast and then south between low ridges, receiving lateral ravines and passing a small broadened-water section. The original shows a continuous valley/river setting despite generalized selected-line offsets.",
+          "sources": [
+            "r249-south-baffin-imagery"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            4,
+            5,
+            6,
+            7
+          ],
+          "scope_limit": "This is ordinary valley correspondence, not a surveyed centerline or exact current wet thread."
+        },
+        {
+          "fragments": [
+            2661
+          ],
+          "component_scope": "Upper large-lake passage and southern outlet",
+          "finding": "The selected upper valley reaches the northern side of a large elongated inland lake. The lake extends south and narrows through a short outlet passage into the next lake-rich valley. The whole lake and both approach/outlet settings are visible in overlapping northern and middle original-pixel panels.",
+          "sources": [
+            "r249-south-baffin-imagery"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            8,
+            9
+          ],
+          "scope_limit": "The waterbody has no independently established proper name in the inspected source."
+        },
+        {
+          "fragments": [
+            2661
+          ],
+          "component_scope": "Southwestern lake chain to the western pond and river",
+          "finding": "The next elongated waterbody narrows toward its western side. A short low connecting passage links that western lake margin to the smaller pond immediately west, which opens south into a clearly visible river. A closer crop of the same successfully acquired original exposes this local receiving connection.",
+          "sources": [
+            "r249-south-baffin-imagery"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            10,
+            11
+          ],
+          "scope_limit": "An additional source request was unnecessary once the local original-pixel crop established ordinary connected lake/valley terrain. No current discharge or exact active channel is asserted."
+        },
+        {
+          "fragments": [
+            2661
+          ],
+          "component_scope": "Middle river, small lakes and tributary joins",
+          "finding": "The river proceeds south through several small lake-like widenings, bends west around rocky ground and returns southeast into a common receiving valley. Eastern side-valleys and waterbodies join this corridor, while larger lakes farther west remain separate contextual features.",
+          "sources": [
+            "r249-south-baffin-imagery"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            12,
+            13,
+            14,
+            15,
+            16
+          ],
+          "scope_limit": "The finding does not assign one river name to the individual lake passages or tributaries."
+        },
+        {
+          "fragments": [
+            2661
+          ],
+          "component_scope": "Lower southward valley and broadened-water reaches",
+          "finding": "The selected route follows a southward river valley, passes broadened water and shallow alluvial reaches, then bends southeast toward the lower lake/inlet approach. Overlapping middle and southern panels cover the interval.",
+          "sources": [
+            "r249-south-baffin-imagery"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            17,
+            18
+          ],
+          "scope_limit": "Scattered clouds and image-mosaic boundaries limit fine channel detail but do not interrupt ordinary receiving-valley correspondence."
+        },
+        {
+          "fragments": [
+            2661
+          ],
+          "component_scope": "Lower lake-like coastal reach and outlet approach",
+          "finding": "The lower waterway occupies a long confined water-filled valley beside rocky slopes. Its eastern margin and southern continuation are visible alongside a darker mosaic patch. The corridor opens into a sediment-rich mouth and the head of a larger marine inlet.",
+          "sources": [
+            "r249-south-baffin-imagery"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            19,
+            20,
+            21
+          ],
+          "scope_limit": "The source does not establish exact tidal limits or whether every broadened lower water section is classified as a lake, river or inlet; ordinary connected geography is sufficient."
+        },
+        {
+          "fragments": [
+            2661
+          ],
+          "component_scope": "Stored source sea endpoint at the inlet head",
+          "finding": "The stored source terminal is in the sediment-lined upper marine receiving setting where the river/valley opens into the inlet. Its local position is distinct from the much farther south rendered ending.",
+          "sources": [
+            "r249-south-baffin-imagery"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            22
+          ],
+          "scope_limit": "The sea classification is retained from the supplied metadata; no new legal shoreline or tidal boundary is asserted."
+        },
+        {
+          "fragments": [
+            2661
+          ],
+          "component_scope": "Separate rendered extension and marine endpoint",
+          "finding": "The final rendered part continues far south to the outer marine receiving water. Its generalized straight segment crosses the inlet-side land margin instead of tracing every bend of the open water; the photographed inlet independently supplies the continuous coastal receiving connection around those projections. The rendered endpoint is in the outer marine water.",
+          "sources": [
+            "r249-south-baffin-imagery"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            22
+          ],
+          "scope_limit": "This terminal extension is not asserted to be a natural river channel, and it is not renamed or moved. Source and rendered endings remain separate; no geometry correction or revalidation occurred."
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [],
+  "additional_source_use_notices": [
+    {
+      "publication": "INRENA / ATDR Casma-Huarmey, Estudio hidrológico en la cuenca del río Casma,2007",
+      "official_url": "https://sigrid.cenepred.gob.pe/docs/PARA%20PUBLICAR/ANA/Estudio_hidrologico_Casma.pdf",
+      "kind": "authorial_prose_only_and_unestablished_underlying_map_editions",
+      "observation": "The methods describe borrowed IGN/INRENA national cartography, ONERN antecedents and OGATEIRN thematic material. Their exact constituent edition relationships were not established, so report maps and borrowed linework were not visually inspected or used. The independently described local project’s own hydrography prose is used. No whole-report access refusal is asserted.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:60977351"
+    },
+    {
+      "publication": "Esri World Imagery: bounded Casma corridor views",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "kind": "photographic_geography_and_private_source_material",
+      "observation": "Three complete imagery originals and matching extents were received and the originals visually read. Photographic evidence supplies ordinary terrain and receiving-floor correspondence, without hydronyms, epoch or current-operation claims. All originals, crops, orientation aids and full positions remain private.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:60977351"
+    },
+    {
+      "publication": "CEHQ regions08/09 low-flow maps",
+      "source_keys": [
+        "r249-cehq08-2011",
+        "r249-cehq09-2011"
+      ],
+      "kind": "generalized_thematic_cartography_and_map_frame",
+      "observation": "Station081101 obscures the region08 eastern interval; most selected inland parts are outside region09. These source-coverage limits are supplied by independent imagery and are not acquisition failures. Low-flow numerical estimates are not used.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70198169"
+    },
+    {
+      "publication": "Esri World Imagery, eastern James Bay selected corridor",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "kind": "photographic_scope",
+      "observation": "Imagery supplies ordinary receiving geography, not hydronyms, bank surveys or current wetland/tidal operation. Original and derived images remain private.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70198169"
+    },
+    {
+      "publication": "IBGE Oeiras do Pará2010 and Portel2010 municipal statistical maps",
+      "kind": "historical_statistical_cartography_and_rights",
+      "observation": "Original printed semi-automatic IBGE/DSG/municipal compilation and incomplete integration/completeness caveats retained. IBGE reproduction rights reserved. Only own factual correspondence observations and bibliography; no original or derived map redistribution.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:60527398"
+    },
+    {
+      "publication": "FAPESPA Estatística Municipal: Oeiras do Pará, copyright2023",
+      "official_url": "https://www.fapespa.pa.gov.br/wp-content/uploads/2024/03/Oeiras-do-Para.pdf",
+      "kind": "authorial_prose_only",
+      "observation": "Front matter and hydrography prose only. No profile map, original scan pixels or underlying borrowed research figure is evidence.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:60527398"
+    },
+    {
+      "publication": "Esri World Imagery selected Pará opening/wetland view",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "kind": "image_interpretation_and_material_connector_limit",
+      "observation": "A normally acquired and read image confirms the elongated wetland but not both upper transfer links. Scene date and present flow unestablished; source/derivative redistribution excluded. This is a substantive source limit, not an acquisition stop.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:60527398"
+    },
+    {
+      "publication": "Esri World Imagery: selected southern Baffin corridor",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "kind": "photographic_name_scope_and_terminal_extension",
+      "observation": "Imagery establishes ordinary connected geography without hydronyms. The marine rendered extension is not asserted to trace a natural river. Original source and derivative imagery remain private.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:80189571"
+    },
+    {
+      "publication": "Canadian Sailing Directions ARC402, January2025",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/chs-shc-ARC402-eng-202501-41273515.pdf",
+      "kind": "consulted_publication_scope_only",
+      "observation": "Front matter and contents were consulted to bound the volume; no name or inland/terminal correspondence was adopted from it. No ARC401 or held chart substitute was requested.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:80189571"
+    }
+  ]
+}
