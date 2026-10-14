@@ -1,0 +1,650 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r214",
+  "sources": [
+    {
+      "source_key": "r214-usgstopo-egegik-overview",
+      "title": "USGS The National Map, USGSTopo: Bear Creek–Becharof Lake–Egegik overview",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "bibliography": "U.S. Geological Survey. The National Map, USGSTopo multiscale topographic reference cartography. Alaska Peninsula. Accessed 13 October 2026.",
+      "access_status": "Completed HTTP 200 image/png; original pixels visually inspected.",
+      "material_read": "One original whole-corridor map: southeastern tributary setting, entire lake passage, Egegik River outlet and lower corridor, Egegik Bay and King Salmon junction context.",
+      "evidence_scope": "Ordinary corridor-scale geographic correspondence and directly displayed named components.",
+      "independence_basis": "The independently maintained National Map reference-cartography project combines its contemporary public datasets; it is not a copy or acquisition route for the held Becharof WRIA map, OFR97-127, other stopped USGS reports or held ADF&G publications. All four service acquisitions were serialized.",
+      "metadata_basis": "Previously retained successful service metadata identifies the National Map composite and its contributing public datasets. Its refresh date is not a field-survey date for each river.",
+      "completed": true
+    },
+    {
+      "source_key": "r214-usgstopo-egegik-headward",
+      "title": "USGS The National Map, USGSTopo: chosen eastern feeder, Bear Creek and southeastern lake arm",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "bibliography": "U.S. Geological Survey. The National Map, USGSTopo multiscale topographic reference cartography. Alaska Peninsula. Accessed 13 October 2026.",
+      "access_status": "Completed HTTP 200 image/png; original pixels visually inspected.",
+      "material_read": "One original headward map and bounded reading enlargements: unnamed eastern feeder, Bear Creek join and repeated labels, creek mouth, southeastern Becharof arm, adjacent Ruth Lake and distinct neighboring tributaries.",
+      "evidence_scope": "Ordinary corridor-scale geographic correspondence and directly displayed named components.",
+      "independence_basis": "The independently maintained National Map reference-cartography project combines its contemporary public datasets; it is not a copy or acquisition route for the held Becharof WRIA map, OFR97-127, other stopped USGS reports or held ADF&G publications. All four service acquisitions were serialized.",
+      "metadata_basis": "Previously retained successful service metadata identifies the National Map composite and its contributing public datasets. Its refresh date is not a field-survey date for each river.",
+      "completed": true
+    },
+    {
+      "source_key": "r214-usgstopo-egegik-lower",
+      "title": "USGS The National Map, USGSTopo: Becharof outlet and Egegik River lower corridor",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "bibliography": "U.S. Geological Survey. The National Map, USGSTopo multiscale topographic reference cartography. Alaska Peninsula. Accessed 13 October 2026.",
+      "access_status": "Completed HTTP 200 image/png; original pixels visually inspected.",
+      "material_read": "One original lower-corridor map: lake outlet, widened upper river, Shosky entry, connected downstream bends, Egg Island and broad Egegik–King Salmon junction.",
+      "evidence_scope": "Ordinary corridor-scale geographic correspondence and directly displayed named components.",
+      "independence_basis": "The independently maintained National Map reference-cartography project combines its contemporary public datasets; it is not a copy or acquisition route for the held Becharof WRIA map, OFR97-127, other stopped USGS reports or held ADF&G publications. All four service acquisitions were serialized.",
+      "metadata_basis": "Previously retained successful service metadata identifies the National Map composite and its contributing public datasets. Its refresh date is not a field-survey date for each river.",
+      "completed": true
+    },
+    {
+      "source_key": "r214-usgstopo-egegik-terminal",
+      "title": "USGS The National Map, USGSTopo: Egegik–King Salmon River junction and actual selected terminal",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "bibliography": "U.S. Geological Survey. The National Map, USGSTopo multiscale topographic reference cartography. Alaska Peninsula. Accessed 13 October 2026.",
+      "access_status": "Completed HTTP 200 image/png; original pixels visually inspected.",
+      "material_read": "One original terminal detail: separately labeled Egegik and King Salmon rivers, King Salmon Island, Egg Island, Egegik settlement, joined open waters and marsh-edge terminal setting.",
+      "evidence_scope": "Ordinary corridor-scale geographic correspondence and directly displayed named components.",
+      "independence_basis": "The independently maintained National Map reference-cartography project combines its contemporary public datasets; it is not a copy or acquisition route for the held Becharof WRIA map, OFR97-127, other stopped USGS reports or held ADF&G publications. All four service acquisitions were serialized.",
+      "metadata_basis": "Previously retained successful service metadata identifies the National Map composite and its contributing public datasets. Its refresh date is not a field-survey date for each river.",
+      "completed": true
+    },
+    {
+      "source_key": "r214-blm-egegik-aa94269-2018",
+      "title": "Summary Report on the Federal Interest in Lands underlying the Egegik River, Becharof Lake, and Ruth Lake and Outlet in Alaska",
+      "author": "Jack Frost, Navigable Waters Specialist",
+      "publisher": "Bureau of Land Management, Alaska State Office",
+      "date": "2018-11-08",
+      "report_identifier": "Memorandum to File AA-94269 (1864)",
+      "official_url": "https://www.blm.gov/sites/default/files/docs/2025-08/AK_Egegik_Becharof_Ruth_Report_11-8-18.pdf",
+      "bibliography": "Frost, Jack. 8 November 2018. Summary Report on the Federal Interest in Lands underlying the Egegik River, Becharof Lake, and Ruth Lake and Outlet in Alaska. BLM Alaska State Office, File AA-94269, 11 pages.",
+      "access_status": "Normal PDF reader opened successfully.",
+      "material_read": "Original report cover and authorial Location, lake and outlet discussion, printed pages 1–5; later historical prose was read but is not required for correspondence.",
+      "evidence_scope": "The report expressly treats Egegik River–Becharof Lake as a system, describes the northwestward lake outlet toward Bristol Bay, and identifies Bellim Bay as part of Becharof Lake. It does not identify the selected eastern feeder or locate this selected terminal.",
+      "independence_basis": "Official RDI case listing and original memorandum identify the separate AA-94269 land-interest and navigability adjudication project, including its state application and BLM authorship. This is distinct from the held WRIA map and OFR97-127 project; cited underlying reports or maps were not acquired.",
+      "completed": true
+    },
+    {
+      "source_key": "r214-unesco5756-2012",
+      "title": "Canal del Dique – Dike Canal, Tentative List submission 5756",
+      "publisher_or_author": "Permanent Delegation of Colombia to UNESCO; UNESCO World Heritage Centre hosting",
+      "date": "2012-09-27",
+      "official_url": "https://whc.unesco.org/en/tentativelists/5756/",
+      "publication_identity": "Colombia’s specific cultural-heritage nomination, with submission identity5756 and named submitting delegation. This administrative nomination is distinct from geological mapping, the DHIME service and the held Sinú or POMCA field projects.",
+      "actual_material_read": "Normal HTML description, environmental context and outlet description. No map acquired.",
+      "supports": "Artificial Calamar–Cartagena canal identity and distinction among three additional coastal arms.",
+      "limits": "Regional prose does not locate the full selected route. Tentative-list submission is not proof of World Heritage inscription or a formal hydronym registry.",
+      "outcome": "HTML opened and read normally."
+    },
+    {
+      "source_key": "r214-sabanalarga2020-prose",
+      "title": "Plan de Desarrollo Municipal 2020–2023: Sabanalarga, Ciudad Estratégica",
+      "publisher_or_author": "Municipio de Sabanalarga; Jorge Luis Manotas Manotas administration",
+      "date": "2020-06-12",
+      "official_url": "https://www.uniatlantico.edu.co/wp-content/uploads/2021/12/Plan-de-Desarrollo-Sabanalarga-2020-2023.pdf",
+      "publication_identity": "Specific municipal planning exercise prepared from local diagnostics and community consultations for Sabanalarga. Distinct from Argelia/López de Micay municipal plans and the Sinú/Manso/Urrá work.",
+      "actual_material_read": "Parsed PDF front matter and printed pp210–211,215–216,231–232 hydrology prose and inventories; no map pixels read.",
+      "supports": "Guájaro receiving-waterbody context and several distinct tributary relationships; the municipal area includes both Guájaro/Dique and Magdalena drainage settings.",
+      "limits": "The IGAC-credited hydrological map on printed p211 is excluded from correspondence while its relationship to held hydrography is unresolved. Prose does not identify the selected first feeder.",
+      "outcome": "PDF reader and bounded cached text reading completed normally."
+    },
+    {
+      "source_key": "r214-guajaro-field2013-article2015",
+      "title": "La modelación hidrodinámica para la gestión hídrica del embalse del Guájaro, Colombia",
+      "publisher_or_author": "F. Torres-Bejarano, J. Padilla Coba, C. Rodríguez Cuevas, H. Ramírez León and R. Cantero Rodelo; Revista Internacional de Métodos Numéricos para Cálculo y Diseño en Ingeniería",
+      "doi": "10.1016/j.rimni.2015.04.001",
+      "edition_note": "Scipedia article identity2015; journal issue imprint not separately inspected.",
+      "official_url": "https://www.scipedia.com/public/Torres-Bejarano_et_al._2015a",
+      "publication_identity": "Own Guájaro July/October2013 ADCP/bathymetric field campaigns, EFDC model and USGS satellite-derived reservoir outlines distinguish this research from the UNAL2002 delta project and the DHIME cartographic service.",
+      "actual_material_read": "HTML methodology and reservoir-description sections; original linked location Figure2 and bathymetry Figure4 visually inspected.",
+      "supports": "Reservoir form and named El Limón/Villa Rosa connection context.",
+      "limits": "The figures cannot resolve the selected feeder, regulated connector or downstream route. Historical surveys do not establish present operations.",
+      "outcome": "Article HTML and both linked images completed directHTTP200; image pixels were read."
+    },
+    {
+      "source_key": "r214-corchal2018-prose",
+      "title": "Plan de Manejo Santuario de Flora y Fauna El Corchal “El Mono Hernández”,2018–2023",
+      "publisher_or_author": "Sánchez,G. and SFF Corchal team; Parques Nacionales Naturales de Colombia, Dirección Territorial Caribe, with TNC contributors",
+      "date": "2018",
+      "official_url": "https://www.parquesnacionales.gov.co/wp-content/uploads/2020/10/plan-de-manejo-sff-el-corchal-el-mono-hernandez.pdf",
+      "publication_identity": "The sanctuary’s own2012–2017 reformulation and2018 management plan, including local field/planning work. Distinct from the PNN Paramillo/Sinú water-valuation study and the UNAL2002 delta study. Borrowed works do not inherit clearance from this plan.",
+      "actual_material_read": "Parsed front matter, printed pp55–57 locality description, pp79–82 lagoon/channel and mangrove setting, and pp91–92 textual ecological analysis. No map pixels acquired.",
+      "supports": "Local Barbacoas coastal wetland setting and multiple separately named lagoons and channels.",
+      "limits": "The selected branch and terminal cannot be established from this prose. Screenshot outcome below pauses further plan/map acquisition; no unseen or borrowed figure is evidence.",
+      "outcome": "Parsed PDF prose succeeded; sole selected map screenshot supplied only a bare reference."
+    },
+    {
+      "source_key": "r214-nluis-erichsen47e1981",
+      "title": "Erichsen Lake, District of Franklin, Northwest Territories; Land Use Information Series, sheet47E",
+      "publisher": "Department of the Environment, Lands Directorate, Environmental Conservation Service; Indian and Northern Affairs",
+      "publication_year": 1981,
+      "scale": "1:250,000",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_47e.jpg",
+      "bibliography": "Department of the Environment (1981), Erichsen Lake, sheet47E, Land Use Information Series, 1:250,000. Thematic cartography by the Land Resource Research Institute, Research Branch, Agriculture Canada,1981. Base map produced1965–1966 and printed1967 by the Surveys and Mapping Branch, Department of Energy, Mines and Resources.",
+      "actual_material_read": "Original map pixels: publication imprint and title; introductory and fish-resources prose; western Gifford valley; Asta Lake, connecting river and fiord-head terminal. Enlarged original label confirms Asta Lake.",
+      "source_independence": "An independently issued1981 Lands Directorate land-use compilation, positively identified by its contemporary production credits and original imprint. Its fish-resources account identifies a Department of Fisheries and Oceans reconnaissance survey in July and August1980. It is distinct from the held NLUIS web index and56G acquisition, CGN records, later CanMatrix distribution, and the unavailable2026 bedrock map. Shared institutional attribution alone is not used to infer equivalence or independence.",
+      "supports": "The eastern lower-reach name and ordinary Gifford River–Asta Lake–Gifford Fiord correspondence.",
+      "limits": "The western selected route lies outside this sheet. The introduction describes interim information, some preliminary or reconnaissance data and approximate thematic boundaries, current to December1980. Historical cartography does not establish present braid positions, exact banks, legal naming boundaries, contemporary flow conditions or registry status.",
+      "use_notice": "Printed Crown copyright1981. Original imagery and derived reading aids are not redistributed. Public-ready content is own factual synthesis and ordinary bibliography."
+    },
+    {
+      "source_key": "r214-cngo-ofm2026-catalogue",
+      "title": "Open File Map",
+      "publisher": "Canada-Nunavut Geoscience Office",
+      "official_url": "https://cngo-bgcn.ca/open-file-map/",
+      "actual_material_read": "Catalogue prose and title/link for OFM2026-05, Bedrock geology, Autridge Bay, Baffin Island, Nunavut, NTS47F east. The linked map archive was unavailable and unread.",
+      "evidence_role": "Bibliographic identification only, not geographic correspondence.",
+      "supports": "Identification of the unavailable publication and its normal linked URL.",
+      "limits": "No map, archive body, map imprint or underlying data was read. Other2026 maps listed there are not substitute evidence.",
+      "used_as_substantive_evidence": false
+    },
+    {
+      "source_key": "r214-belanger2024-cumberland-prose",
+      "title": "Use of satellite imagery to estimate distribution and abundance of Cumberland Sound beluga whales reveals frequent use of a glacial river estuary",
+      "authors": "Amanda M. Belanger; Bryanna A. H. Sherbo; James D. Roth; Cortney A. Watt",
+      "publisher": "Frontiers in Marine Science",
+      "publication_date": "2024-01-08",
+      "volume": "10 (2023)",
+      "article_number": "1305536",
+      "doi": "10.3389/fmars.2023.1305536",
+      "official_url": "https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2023.1305536/full",
+      "evidence_kind": "Original research article; actually read HTML prose only.",
+      "actual_read_scope": "Publisher identity, introduction, methods, discussion sections4.1–4.2 and rights/data-availability statements; Figure1 acquisition failed and no figure pixels were read.",
+      "observation": "The authors identify Ranger River as carrying Penny Ice Cap meltwater into the Millut Bay estuary of Clearwater Fiord. They distinguish a smaller river offshoot toward Shilmilik Bay. These are regional naming facts, not correspondence for the selected inland route or terminal.",
+      "source_independence": "This University of Manitoba/DFO study analyzed WorldView images collected in2020–2022 for beluga distribution. Its own research identity is distinct from the held geological, hydrographic-navigation and historical publications; no borrowed or unseen map was used.",
+      "limits": "Prose cannot identify every selected ice/rock/lake/river passage or distinguish the actual selected terminal branch. No current hydrological, navigational or registry conclusion.",
+      "use_notice": "Article CC BY; Maxar imagery has separate copyright and distribution restrictions. Only own factual synthesis is delivered."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:80291047",
+      "source_keys": [
+        "r214-usgstopo-egegik-overview",
+        "r214-usgstopo-egegik-headward",
+        "r214-usgstopo-egegik-lower",
+        "r214-usgstopo-egegik-terminal",
+        "r214-blm-egegik-aa94269-2018"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2769
+          ],
+          "component_scope": "chosen_eastern_feeder",
+          "finding": "The chosen opening lies on a mapped eastern tributary approaching Bear Creek. Blue stream linework continues west from the opening to its junction with the northward Bear Creek valley. The generalized initial bends remain in that same feeder corridor; no lake, glacier, divide crossing or unshown through-link is required.",
+          "sources": [
+            "r214-usgstopo-egegik-headward"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "candidate_name": null,
+          "candidate_name_role": null
+        },
+        {
+          "fragments": [
+            2769
+          ],
+          "component_scope": "bear_creek_join_and_lake_entry",
+          "finding": "After the eastern feeder joins, the selected path turns northwest along the repeatedly labeled Bear Creek valley and then north into the southeastern arm of Becharof Lake. The creek, intermediate tributary entries and its actual lake entry are continuously depicted. Salmon Creek, Cleo Creek and Becharof Creek are separately mapped neighboring tributaries rather than substituted names for this chosen feeder.",
+          "sources": [
+            "r214-usgstopo-egegik-headward",
+            "r214-usgstopo-egegik-overview"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "candidate_name": "Bear Creek",
+          "candidate_name_role": "direct_named_upstream_component"
+        },
+        {
+          "fragments": [
+            2769
+          ],
+          "component_scope": "southeastern_arm_and_becharof_passage",
+          "finding": "The selected route enters the southeastern arm and continues through the large, continuously connected Becharof Lake toward its northwestern outlet. The island-rich arm, opening into the main lake, long southern-side lake traverse and diagonal approach to the outlet are all visible. Generalized lake lines clip shoreline details and islands; they do not establish a surveyed navigable track. The lake remains a separately named water body, even where river labels are rendered across its surface.",
+          "sources": [
+            "r214-usgstopo-egegik-overview",
+            "r214-usgstopo-egegik-headward",
+            "r214-usgstopo-egegik-lower"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "candidate_name": "Becharof Lake",
+          "candidate_name_role": "direct_named_lake_component"
+        },
+        {
+          "fragments": [
+            2769
+          ],
+          "component_scope": "lake_outlet_and_upper_egegik",
+          "finding": "The lake narrows at its northwestern outlet into a continuously mapped Egegik River reach, then widens into a lagoon-like river reach and narrows again downstream. Original linework and repeated Egegik labels establish this lake-to-river passage and the ensuing northwestern turn. The source does not depict a dam or managed transfer along this selected outlet.",
+          "sources": [
+            "r214-usgstopo-egegik-overview",
+            "r214-usgstopo-egegik-lower"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "candidate_name": "Egegik River",
+          "candidate_name_role": "direct_named_receiving_river"
+        },
+        {
+          "fragments": [
+            2769
+          ],
+          "component_scope": "middle_and_lower_egegik",
+          "finding": "The selected corridor follows the labeled Egegik River past the Shosky Creek entry, downstream bends and island-divided lower reaches toward Egegik settlement. All intervening selected parts lie in the same depicted connected river corridor. The route passes the Egg Island setting before approaching the broad King Salmon River junction.",
+          "sources": [
+            "r214-usgstopo-egegik-lower",
+            "r214-usgstopo-egegik-terminal"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "candidate_name": "Egegik River",
+          "candidate_name_role": "direct_named_mainstem"
+        },
+        {
+          "fragments": [
+            2769
+          ],
+          "component_scope": "actual_terminal_at_king_salmon_junction",
+          "finding": "The selected terminal turns north from lower Egegik River toward the eastern margin of the King Salmon River mouth beside King Salmon Island. The original map shows the broad joined waters and marsh-edge setting continuously. The selected endpoint is therefore described as the Egegik–King Salmon confluence margin; it is not an independently established open-coast or seaward Egegik Bay endpoint. The north-turning terminal segment does not establish downstream flow direction in the King Salmon arm.",
+          "sources": [
+            "r214-usgstopo-egegik-terminal",
+            "r214-usgstopo-egegik-lower",
+            "r214-usgstopo-egegik-overview"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "candidate_name": "King Salmon River",
+          "candidate_name_role": "separately_named_terminal_junction_component"
+        },
+        {
+          "fragments": [
+            2769
+          ],
+          "component_scope": "glacial_reservoir_and_managed_passage_review",
+          "finding": "Becharof Lake is the substantive selected lake passage. Ruth Lake and its outlet lie south of the chosen Bear Creek approach and are not traversed by this selection. The inspected chosen route shows no selected glacier, reservoir, canal or managed diversion. The lower widened river and marsh-margin terminal are accounted for explicitly; nearby lakes and tributaries are not treated as extra selected transfers.",
+          "sources": [
+            "r214-usgstopo-egegik-overview",
+            "r214-usgstopo-egegik-headward",
+            "r214-usgstopo-egegik-lower",
+            "r214-usgstopo-egegik-terminal"
+          ],
+          "correspondence": "complete_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "candidate_name": null,
+          "candidate_name_role": null
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60007489",
+      "source_keys": [
+        "r214-unesco5756-2012",
+        "r214-sabanalarga2020-prose",
+        "r214-guajaro-field2013-article2015",
+        "r214-corchal2018-prose"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10823
+          ],
+          "component_scope": "Chosen northern opening and south-then-west approach in the Sabanalarga setting.",
+          "finding": "Municipal prose distinguishes several tributaries and their receivers, including Cajón–Platanal and Molinero/Isabel López relationships. It does not locate the selected opening continuously; none of those names is assigned to it.",
+          "sources": [
+            "r214-sabanalarga2020-prose"
+          ],
+          "correspondence": "opening_and_tributary_identity_unresolved",
+          "component_correspondence_completed": false,
+          "role": "mainstem"
+        },
+        {
+          "fragments": [
+            10823
+          ],
+          "component_scope": "Eastern reservoir-vicinity continuation and southwestward turn.",
+          "finding": "The Guájaro field-study location and bathymetry figures show the reservoir’s elongated northern body and broader southern sector. They support the regional reservoir setting, but their inspected detail does not establish every selected through-link or the initial entry.",
+          "sources": [
+            "r214-guajaro-field2013-article2015"
+          ],
+          "correspondence": "reservoir_context_supported_selected_passage_incomplete",
+          "component_correspondence_completed": false,
+          "role": "mainstem"
+        },
+        {
+          "fragments": [
+            10823
+          ],
+          "component_scope": "Southward continuation from the reservoir vicinity toward the canal/wetland belt.",
+          "finding": "The field-study prose identifies El Limón and Villa Rosa as the two regulated Guájaro–Canal del Dique connections. That relationship does not by itself establish which connection, if either, the selected southward line represents.",
+          "sources": [
+            "r214-guajaro-field2013-article2015"
+          ],
+          "correspondence": "named_hydrosystem_relationship_supported_selected_connector_unresolved",
+          "component_correspondence_completed": false,
+          "role": "mainstem"
+        },
+        {
+          "fragments": [
+            10823
+          ],
+          "component_scope": "Long southwestern continuation across the middle lowland toward the lower delta setting.",
+          "finding": "The cultural nomination describes the artificial canal and connected wetland environment. No inspected primary cartography establishes this selected diagonal as a continuous canal, named river, or complete chain of lake/wetland connectors.",
+          "sources": [
+            "r214-unesco5756-2012"
+          ],
+          "correspondence": "material_intermediate_through_link_gap",
+          "component_correspondence_completed": false,
+          "role": "mainstem"
+        },
+        {
+          "fragments": [
+            10823
+          ],
+          "component_scope": "Westward lower continuation and actual selected coastal terminal.",
+          "finding": "The nomination distinguishes the Cartagena outlet, the Matunilla and Lequerica outlets to Barbacoas, and Correa to the Caribbean. Corchal planning prose identifies the nearby coastal lagoon/channel network. Those regional descriptions do not establish the chosen branch and its full westward approach; the model’s sea class is not independent mouth evidence.",
+          "sources": [
+            "r214-unesco5756-2012",
+            "r214-corchal2018-prose"
+          ],
+          "correspondence": "coastal_network_context_supported_actual_branch_unresolved",
+          "component_correspondence_completed": false,
+          "role": "mainstem"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80032969",
+      "source_keys": [
+        "r214-nluis-erichsen47e1981"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2335
+          ],
+          "component_scope": "Chosen western opening and initial eastward reach",
+          "finding": "This initial reach is outside the independently inspected Erichsen Lake map. The opening, any small-waterbody passages and the first eastward link have no original-source correspondence in this pass.",
+          "sources": [],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2335
+          ],
+          "component_scope": "Northward turn, northern bend and returning southeastward links",
+          "finding": "The selected bends remain west of the inspected map boundary. No original evidence establishes their connecting channel, any intervening ponds or lakes, or a river name.",
+          "sources": [],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2335
+          ],
+          "component_scope": "Eastward middle route and connection into the lower mapped valley",
+          "finding": "The east end of part18, using one-based part numbering, reaches the map's western edge in the broad lower Gifford valley. Most of this component is outside the map. The western through-link into that visible reach remains unestablished; a downstream name alone cannot fill it.",
+          "sources": [
+            "r214-nluis-erichsen47e1981"
+          ],
+          "correspondence": "partially_observed_material_through_link_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2335
+          ],
+          "component_scope": "Map-edge entry, broad braided valley and approach to Asta Lake",
+          "finding": "The selected eastern course follows the map's broad, multichannel valley labeled Gifford River. The map shows continuous blue channels through the bends and the intervening tributary junctions toward the lake approach. Ordinary valley and channel correspondence is established without selecting a precise contemporary braid or bank.",
+          "sources": [
+            "r214-nluis-erichsen47e1981"
+          ],
+          "correspondence": "ordinary_reach_and_join_correspondence_complete",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2335
+          ],
+          "component_scope": "River entrance, Asta Lake passage and downstream outlet",
+          "finding": "The broad lower river enters the northwestern end of the lake labeled Asta Lake and continues from its southeastern end into the same descending valley. The selected passage and its short adjoining part correspond to this river–lake–river connection. Asta is the lake's printed label, not a second name imposed on the whole selected river.",
+          "sources": [
+            "r214-nluis-erichsen47e1981"
+          ],
+          "correspondence": "ordinary_lake_through_passage_complete",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2335
+          ],
+          "component_scope": "Asta outlet, lower river and head of Gifford Fiord",
+          "finding": "A continuous channel descends from Asta Lake past mapped rapid symbols and opens into the northwestern head of Gifford Fiord. The selected final parts follow this corridor and end at that river-to-fiord transition. The terminal is the fiord head, rather than a farther seaward place. No glacier or managed-water connector is needed for this inspected lower section.",
+          "sources": [
+            "r214-nluis-erichsen47e1981"
+          ],
+          "correspondence": "ordinary_outlet_and_actual_terminal_correspondence_complete",
+          "component_correspondence_completed": true
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80091078",
+      "source_keys": [
+        "r214-belanger2024-cumberland-prose"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2544
+          ],
+          "component_scope": "chosen_headward_opening",
+          "finding": "No independent source pixels establish the chosen northeastern opening or its initial westward and southward terrain succession. The regional Penny Ice Cap reference does not locate this selected opening.",
+          "sources": [
+            "r214-belanger2024-cumberland-prose"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2544
+          ],
+          "component_scope": "upper_westward_traverse",
+          "finding": "The selected upper westward traverse, its bends and adjoining ice, rock or water intervals remain uninspected in independent cartography. No continuous terrain correspondence or natural-river identity is inferred from the modeled trace.",
+          "sources": [
+            "r214-belanger2024-cumberland-prose"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2544
+          ],
+          "component_scope": "central_southwestward_and_westward_transfer",
+          "finding": "The selected southwestward descent, westward reach and subsequent southern turn lack independent readable through-link material. A regional source-to-estuary statement cannot supply these particular joins.",
+          "sources": [
+            "r214-belanger2024-cumberland-prose"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2544
+          ],
+          "component_scope": "lower_southward_descent_and_western_return",
+          "finding": "The southward descent and western excursion remain materially unestablished. Any intervening lake, ice-margin, exposed-rock or river passage would need ordinary source correspondence; none is assumed from line shape.",
+          "sources": [
+            "r214-belanger2024-cumberland-prose"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2544
+          ],
+          "component_scope": "coastal_approach",
+          "finding": "The lower southeastward/southward approach lacks inspected source cartography. The literature identifies a main Ranger River input and a separate smaller offshoot, so a nearby named estuary cannot select the actual branch.",
+          "sources": [
+            "r214-belanger2024-cumberland-prose"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2544
+          ],
+          "component_scope": "source_endpoint_vicinity_and_actual_rendered_terminal",
+          "finding": "The supplied source endpoint and the rendered endpoint are distinct. Their vicinity and the final southward extension have no inspected independent pixels. Neither point is treated as a surveyed river mouth; the receiving bay for the actual selected extension remains unconfirmed.",
+          "sources": [
+            "r214-belanger2024-cumberland-prose"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "Delta del Canal del Dique, evolución reciente; Boletín de Ciencias de la Tierra15,2003, article95477; associated UNAL–Ministerio del Medio Ambiente2002 delta-project material where equivalent",
+      "official_url": "https://revistas.unal.edu.co/index.php/rbct/article/download/95477/79277",
+      "observed_outcome": "The normal-original acquisition began, but its terminal-status confirmation was stopped. A later permitted identical status check could not recover the transfer session. Original HTTP and transfer outcome remain unknown; no output file, response body or map was read.",
+      "outcome_layer": "Stopped terminal-status confirmation followed by unavailable transfer-session outcome; origin HTTP unknown.",
+      "origin_http_status": null,
+      "restriction_scope": "Whole article, related2002 delta-project equivalents, maps and alternative original/catalogue/reader/cache/mirror acquisition or output-reading routes remain paused. No further request or file reading.",
+      "earlier_lawful_prose_exception": null,
+      "newly_observed_access_failure": true,
+      "aw_id": "hydro-system:60007489"
+    },
+    {
+      "publication": "Sánchez,G./PNN, Plan de Manejo SFF El Corchal “El Mono Hernández”,2018–2023",
+      "official_url": "https://www.parquesnacionales.gov.co/wp-content/uploads/2020/10/plan-de-manejo-sff-el-corchal-el-mono-hernandez.pdf",
+      "observed_outcome": "Parsed original PDF prose opened normally. The sole screenshot of PDFpage56 (zero-based55), local-setting Figure18, returned only a bare reference without observable image pixels or an explicit completed technical size/format limit.",
+      "outcome_layer": "Unresolved web-reader screenshot outcome; originHTTPunknown.",
+      "origin_http_status": null,
+      "restriction_scope": "Whole plan, maps, related/equivalent copies and acquisition routes paused. No original fallback, further screenshot or alternate retrieval.",
+      "earlier_lawful_prose_exception": "Only the actually read front matter and bounded locality, hydrographic and ecological prose described in the bibliography. No unseen map correspondence.",
+      "newly_observed_access_failure": true,
+      "aw_id": "hydro-system:60007489"
+    },
+    {
+      "publication": "Canada-Nunavut Geoscience Office, OFM2026-05: Bedrock geology, Autridge Bay, Baffin Island, Nunavut, NTS47F east; original imprint uninspected",
+      "official_url": "https://m.cngo.ca/wp-content/uploads/20260228132422/OFM2026-05.zip",
+      "catalogue_url": "https://cngo-bgcn.ca/open-file-map/",
+      "observed_outcome": "The sole normal catalogue-linked archive opening returned web-reader Failed to fetch: Cache miss. No archive body, original map pixels or origin HTTP response was supplied.",
+      "outcome_layer": "Web-reader availability failure; origin HTTP outcome unknown.",
+      "restriction_scope": "Whole exact publication and equivalent acquisition/output-reading routes paused. Related2026 companion maps remain unrequested while their same-project relationship is unresolved. No alternate route, format, mirror or retry followed.",
+      "earlier_lawful_observations": "The successfully read catalogue supplies only publication title and link metadata. No geographic observation from OFM2026-05 exists.",
+      "newly_observed_access_failure": false,
+      "availability_failure": true,
+      "material_gap": true,
+      "acquisition_performed": true,
+      "aw_id": "hydro-system:80032969"
+    },
+    {
+      "publication": "Reeves, R., and Lee, D. (2024), Arctic 77(2), June 2024, pp.116–139, article 79753; complete title and original imprint uninspected",
+      "official_url": "https://journalhosting.ucalgary.ca/index.php/arctic/article/view/79753",
+      "observed_outcome": "The sole normal publisher-landing opening returned web-reader Failed to fetch: (403) Forbidden. No article body or map pixels were acquired or read.",
+      "outcome_layer": "Web-reader-reported HTTP403; origin response not separately measured.",
+      "restriction_scope": "Whole article and equivalent original, catalogue, reader, cache, mirror, figure and other acquisition/output-reading routes stopped. Indexed download links were not requested.",
+      "earlier_lawful_observations": null,
+      "newly_observed_access_failure": true,
+      "aw_id": "hydro-system:80091078"
+    },
+    {
+      "publication": "Belanger, A.M., Sherbo, B.A.H., Roth, J.D., and Watt, C.A. (2024), Use of satellite imagery to estimate distribution and abundance of Cumberland Sound beluga whales reveals frequent use of a glacial river estuary; Frontiers in Marine Science 10:1305536, published 8 January 2024, DOI10.3389/fmars.2023.1305536",
+      "official_url": "https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2023.1305536/full",
+      "failed_figure_url": "https://www.frontiersin.org/files/Articles/1305536/xml-images/fmars-10-1305536-g001.webp",
+      "observed_outcome": "The publisher HTML opened and was read normally. The sole normally linked Figure1 opening returned web-reader Failed to fetch: Cache miss. No image pixels or terminal origin HTTP status were supplied.",
+      "outcome_layer": "Web image-reader availability failure; origin HTTP unknown.",
+      "restriction_scope": "Further whole-article and equivalent publication/figure acquisition and uninspected-output reading paused. No direct-original fallback, different figure, PDF, mirror or other route followed.",
+      "earlier_lawful_observations": "Previously read publisher HTML prose and bibliographic/use statements only; no map correspondence.",
+      "newly_observed_access_failure": true,
+      "aw_id": "hydro-system:80091078"
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "publication": "USGSTopo, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "limitation_kind": "bounded_cartographic_factual_use",
+      "observed_notice": "Retained successful service metadata credits the National Map and contributing public datasets.",
+      "use_scope": "Own geographic observations and ordinary bibliography only; source maps, reading crops, orientation derivatives and full coordinate paths are excluded from public output.",
+      "access_stop": false,
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:80291047"
+    },
+    {
+      "publication": "BLM AA-94269 summary report, 8 November 2018",
+      "official_url": "https://www.blm.gov/sites/default/files/docs/2025-08/AK_Egegik_Becharof_Ruth_Report_11-8-18.pdf",
+      "limitation_kind": "bounded_authorial_prose_use",
+      "use_scope": "Own concise factual summary of the authorial system/location discussion. Cited underlying reports, unseen maps and current legal or navigation advice are excluded.",
+      "access_stop": false,
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:80291047"
+    },
+    {
+      "source_key": "r214-sabanalarga2020-prose",
+      "limit": "Not used: actual relationship to held national hydrography remains unresolved. This is not a new whole-plan or institution-wide access ban.",
+      "aw_id": "hydro-system:60007489",
+      "acquisition_stop": false,
+      "restriction_scope": "IGAC-credited hydrological map only"
+    },
+    {
+      "limit": "Only own factual observations and ordinary bibliography are public-ready. Original PDFs, images, local renderings, full coordinates and private acquisition records are not published. No officials-only or limited-distribution condition was observed in the material actually inspected; unseen material is not assessed.",
+      "aw_id": "hydro-system:60007489",
+      "acquisition_stop": false,
+      "restriction_scope": "All sources"
+    },
+    {
+      "publication": "Retained Canada-Nunavut Geoscience Office Summary of Activities2020 and proposed2026 bedrock-map companions",
+      "kind": "unresolved_actual_field_project_relationship",
+      "observation": "Previously retained2020 introductory prose identifies the Fury and Hecla Geoscience Project2017–2020. The exact relation of the proposed2026 map to that field project has not been established from its unread imprint. After the2026 archive failure, no new2020 map pixels or companion output was read.",
+      "effect": "Do not use retained or new related map content to fill the western gap while the publication relationship remains unresolved. This is not an agency-wide restriction or a new failure of the2020 original.",
+      "new_network_failure": false,
+      "aw_id": "hydro-system:80032969",
+      "acquisition_stop": false
+    },
+    {
+      "publication": "Proposed NLUIS Agu Bay47F",
+      "kind": "unrequested_identity_gap",
+      "observation": "No exact independent normal-original bibliography was established without relying on the held index. No filename was guessed and no47F original was requested.",
+      "effect": "No new access denial or NLUIS-wide ban is inferred. The map supplies no evidence in this pass.",
+      "new_network_failure": false,
+      "aw_id": "hydro-system:80032969",
+      "acquisition_stop": false
+    },
+    {
+      "publication": "Belanger et al.2024, Frontiers in Marine Science10:1305536",
+      "official_url": "https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2023.1305536/full",
+      "kind": "separate_third_party_image_distribution_restriction",
+      "observed_notice": "The article states that its underlying satellite images are unavailable for distribution under the Maxar copyright agreement. Figures2 and3 identify separate Maxar licensing. Article prose is CC BY.",
+      "handling": "No original imagery, source pages or derivatives delivered. This redistribution boundary is not treated as an independent access denial.",
+      "aw_id": "hydro-system:80091078",
+      "acquisition_stop": false
+    }
+  ]
+}

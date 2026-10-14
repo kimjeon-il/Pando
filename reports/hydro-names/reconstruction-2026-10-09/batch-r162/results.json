@@ -1,0 +1,735 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r162",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r161",
+    "commit": "83af9fc5b54865ad9718054b6fe4dfa1bb139025",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r161/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:61546367",
+    "hydro-system:60627295",
+    "hydro-system:61038090",
+    "hydro-system:90128531"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:61546367",
+      "category": "river_group",
+      "system_id": "61546367",
+      "original_queue_rank": 451,
+      "baseline_logical_fid": 3612,
+      "geometry_fids": [
+        14520
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -61.979167,
+        -38.998078,
+        -61.172917,
+        -38.010417
+      ],
+      "rendered_mainstem_length_km": 177.54,
+      "rendered_network_length_km": 177.54,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -61.979167,
+          -38.998078,
+          -61.172917,
+          -38.010417
+        ]
+      },
+      "candidate_name": "Río Sauce Grande",
+      "research_category": "river_group_source_material_pending",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "candidate_names": [
+        "Río Sauce Grande"
+      ],
+      "region": "Southwestern Buenos Aires Province, Argentina; Sierra de la Ventana–Saldungaray, Paso de las Piedras, Paso Mayor and Monte Hermoso–Sauce Grande coastal corridor.",
+      "candidate_name_role": "bounded_receiving_system_candidate_with_terminal_material_gap",
+      "source_keys": [
+        "r162-ign-historical500k-sauce-grande",
+        "r162-gil2009-2010-sauce-grande",
+        "r161-ign-historical-capabilities"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": "The named river, distinct headward component, reservoir, lake and lower approach have readable primary correspondence, but the final selected coastal connection is not demonstrated. This is one source-material-pending case, not a completed representative assignment or completed naming-scope hold.",
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "Río Sauce Grande is a bounded receiving-system candidate. The selected Nacimiento/Destierro Primero opening, Paso de las Piedras reservoir, middle river, Laguna Sauce Grande and eastward lower approach are supported. The final selected southward dune crossing lies west of the outlet depicted by the successful maps and remains unestablished.",
+      "completion_scope": "The unchanged one-fragment,36-part selection was compared against a successfully acquired historical topographic original and the independently authored doctoral study's original maps, including the headward opening, upper joins, reservoir passage, middle river, lagoon, lower outflow and the selected terminal. A substantial final coastal connection remains unestablished. The supported Sauce Grande candidate is retained with one primary material-pending status, no accepted scalar and no application.",
+      "supported_name_scope": "The mapped Sauce Grande river corridor through the intermontane valley, Paso de las Piedras reservoir, downstream plain and Laguna Sauce Grande outlet approach. The headward Nacimiento/Destierro Primero component and the two standing-water bodies retain their distinct identities.",
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "component_scope_limits": [
+          "Sauce Grande is a bounded receiving-system candidate, not a uniform scalar for the headward stream, reservoir, lagoon and unresolved terminal.",
+          "The opening is mapped as Nacimiento or Destierro Primero; its precise naming transition into Sauce Grande is not fixed.",
+          "Basin membership or a nearby named river mouth does not establish the selected dune crossing.",
+          "Historic cartography and the thesis do not establish current dam operations, current lake/river flow permanence or a formal current name registry."
+        ]
+      },
+      "bounded_name_observations": [
+        {
+          "name": "Arroyo Nacimiento / Destierro Primero",
+          "role": "Distinct selected headward corridor; exact name-transition vertex not assigned",
+          "source_keys": [
+            "r162-ign-historical500k-sauce-grande",
+            "r162-gil2009-2010-sauce-grande",
+            "r161-ign-historical-capabilities"
+          ]
+        },
+        {
+          "name": "Río Sauce Grande",
+          "role": "Bounded receiving-river candidate; selected terminal remains unresolved",
+          "source_keys": [
+            "r162-ign-historical500k-sauce-grande",
+            "r162-gil2009-2010-sauce-grande",
+            "r161-ign-historical-capabilities"
+          ]
+        },
+        {
+          "name": "Embalse / Dique Paso de las Piedras",
+          "role": "Distinct selected reservoir passage",
+          "source_keys": [
+            "r162-ign-historical500k-sauce-grande",
+            "r162-gil2009-2010-sauce-grande",
+            "r161-ign-historical-capabilities"
+          ]
+        },
+        {
+          "name": "Laguna Sauce Grande",
+          "role": "Distinct selected lagoon passage",
+          "source_keys": [
+            "r162-ign-historical500k-sauce-grande",
+            "r162-gil2009-2010-sauce-grande",
+            "r161-ign-historical-capabilities"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60627295",
+      "category": "river_group",
+      "system_id": "60627295",
+      "original_queue_rank": 452,
+      "baseline_logical_fid": 3435,
+      "geometry_fids": [
+        13779
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -39.45,
+        -4.55625,
+        -39.06222,
+        -3.381137
+      ],
+      "rendered_mainstem_length_km": 177.419,
+      "rendered_network_length_km": 177.419,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -39.45,
+          -4.55625,
+          -39.06222,
+          -3.381137
+        ]
+      },
+      "candidate_name": "Rio Curu",
+      "research_category": "river_group_source_material_pending",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "candidate_names": [
+        "Riacho Bananeira",
+        "Rio Canindé",
+        "Rio Curu"
+      ],
+      "region": "Ceará, Brazil; Canindé–Paramoti–Pentecoste–São Luís do Curu–Paraipaba/Paracuru corridor",
+      "candidate_name_role": "Directly supported lower component name; not an accepted identity for the complete selected river group.",
+      "source_keys": [
+        "r162-ibge-caninde-2010",
+        "r162-ibge-pentecoste-2010",
+        "r162-ibge-sao_luis_do_curu-2010",
+        "r162-ibge-sao_goncalo_do_amarante-2010",
+        "r162-ibge-paraipaba-2010",
+        "r162-ibge-paracuru-2010"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": "The complete selected São Mateus–Canindé urban through-link and its northeastern/northern continuation into the mapped Canindé reach are not established by the actually inspected municipal originals. This is a real continuous-geography gap, not merely an unlabelled reach.",
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "The selected route follows separately named Bananeira/Canindé reaches and Açude Pentecoste before the lower Curu and Atlantic mouth. The São Mateus–Canindé urban through-link and its northeastern/northern continuation are unestablished, so the lower Rio Curu name remains a bounded component candidate rather than a completed representative identity.",
+      "completion_scope": "The selected route follows separately named Bananeira/Canindé reaches and Açude Pentecoste before the lower Curu and Atlantic mouth. The São Mateus–Canindé urban through-link and its northeastern/northern continuation are unestablished, so the lower Rio Curu name remains a bounded component candidate rather than a completed representative identity. One primary source-material-pending classification; source-access outcomes remain detail and are not counted again.",
+      "supported_name_scope": "Separate mapped Bananeira/Canindé upper and middle reaches, Açude Pentecoste, and the lower Curu corridor. The unresolved selected connection prevents a completed representative-system finding.",
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "component_scope_limits": [
+          "Historical municipal cartography does not establish present reservoir operation, present shoreline or current flow.",
+          "No complete single-name identity is established for all selected reaches, waterbodies and connectors.",
+          "The precise Bananeira–Canindé naming boundary and formal registry status are unverified.",
+          "No reservoir aliases, São Domingos inventory facts or report-map contents were adopted from discovery snippets or failed originals."
+        ]
+      },
+      "bounded_name_observations": [
+        {
+          "name": "Riacho Bananeira",
+          "role": "Directly labelled bounded upper reach",
+          "source_keys": [
+            "r162-ibge-caninde-2010",
+            "r162-ibge-pentecoste-2010",
+            "r162-ibge-sao_luis_do_curu-2010",
+            "r162-ibge-sao_goncalo_do_amarante-2010",
+            "r162-ibge-paraipaba-2010",
+            "r162-ibge-paracuru-2010"
+          ]
+        },
+        {
+          "name": "Rio Canindé",
+          "role": "Distinct named upper/middle reaches; urban connection remains unresolved",
+          "source_keys": [
+            "r162-ibge-caninde-2010",
+            "r162-ibge-pentecoste-2010",
+            "r162-ibge-sao_luis_do_curu-2010",
+            "r162-ibge-sao_goncalo_do_amarante-2010",
+            "r162-ibge-paraipaba-2010",
+            "r162-ibge-paracuru-2010"
+          ]
+        },
+        {
+          "name": "Açude Pentecoste",
+          "role": "Distinct mapped reservoir passage and outlet",
+          "source_keys": [
+            "r162-ibge-caninde-2010",
+            "r162-ibge-pentecoste-2010",
+            "r162-ibge-sao_luis_do_curu-2010",
+            "r162-ibge-sao_goncalo_do_amarante-2010",
+            "r162-ibge-paraipaba-2010",
+            "r162-ibge-paracuru-2010"
+          ]
+        },
+        {
+          "name": "Rio Curu",
+          "role": "Directly supported lower receiving corridor and Atlantic mouth only",
+          "source_keys": [
+            "r162-ibge-caninde-2010",
+            "r162-ibge-pentecoste-2010",
+            "r162-ibge-sao_luis_do_curu-2010",
+            "r162-ibge-sao_goncalo_do_amarante-2010",
+            "r162-ibge-paraipaba-2010",
+            "r162-ibge-paracuru-2010"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61038090",
+      "category": "river_group",
+      "system_id": "61038090",
+      "original_queue_rank": 453,
+      "baseline_logical_fid": 3467,
+      "geometry_fids": [
+        13869
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -77.795849,
+        -10.732535,
+        -77.09375,
+        -9.85625
+      ],
+      "rendered_mainstem_length_km": 177.294,
+      "rendered_network_length_km": 177.294,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -77.795849,
+          -10.732535,
+          -77.09375,
+          -9.85625
+        ]
+      },
+      "candidate_name": "Río Pativilca",
+      "research_category": "river_group_source_material_pending",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "candidate_names": [
+        "Río Pativilca"
+      ],
+      "region": "Ancash–Lima, Peru; upper Pativilca valley through Chiquián, Cahua and the Pacific outlet north of Barranca.",
+      "candidate_name_role": "Provisional representative receiving-river/system candidate supported for the mapped main valley and Pacific outlet. The selected initial headward branch connection is not fully established, so this is not a completed representative-system assignment.",
+      "source_keys": [
+        "r162-ingemmet-c8a-map1",
+        "r162-ingemmet-c8a-report",
+        "r162-concytec-c8a-metadata"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": "The selected first headward branch and its receiving join remain unestablished among the mapped northern feeders; downstream main-valley and Pacific-mouth correspondence does not resolve that opening.",
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "Río Pativilca is a provisional candidate for this selection. The 1985 INGEMMET map and study support the main valley, major tributary joins and Pacific outlet north of Barranca, but do not securely establish the selected first headward branch. The record remains material-pending, with accepted, scalar and Korean names null and product application false.",
+      "completion_scope": "One primary material-pending record. The source-map review covered the full extent visually, including all major downstream joins and the actual coast, but the first selected headward branch connection remains unestablished. This is neither completed representative identity nor completed name-scope hold. The cancelled source acquisition is factual access detail, not a second primary pending count.",
+      "supported_name_scope": "Provisional representative receiving-river/system candidate supported for the mapped main valley and Pacific outlet. The selected initial headward branch connection is not fully established, so this is not a completed representative-system assignment.",
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "component_scope_limits": [
+          "Río Pativilca is a provisional representative-system candidate, not an accepted whole-selection name while the opening remains unresolved.",
+          "The report’s historical Piscapaccha/Picharagra, Aquia and Chiquián names are reach descriptions, not separate accepted names or formal registry validation.",
+          "The 1985 map also uses Pativilca farther upstream than the local naming sequence described in the report; the differing cartographic and reported name scope is preserved without assigning exact transition vertices.",
+          "No Korean, accepted or whole-feature scalar name is assigned. Current legal registry status and present hydraulic conditions are unverified."
+        ]
+      },
+      "bounded_name_observations": [
+        {
+          "name": "Río Pativilca",
+          "role": "Mapped receiving valley and Pacific mouth; initial selected branch remains unresolved",
+          "source_keys": [
+            "r162-ingemmet-c8a-map1",
+            "r162-ingemmet-c8a-report",
+            "r162-concytec-c8a-metadata"
+          ]
+        },
+        {
+          "name": "Piscapaccha / Picharagra, Aquia and Chiquián",
+          "role": "Historical upper-reach descriptions in the original report; not a uniform selected name or fixed boundary",
+          "source_keys": [
+            "r162-ingemmet-c8a-map1",
+            "r162-ingemmet-c8a-report",
+            "r162-concytec-c8a-metadata"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:90128531",
+      "category": "river_group",
+      "system_id": "90128531",
+      "original_queue_rank": 454,
+      "baseline_logical_fid": 2884,
+      "geometry_fids": [
+        8914,
+        8915
+      ],
+      "minimum_stage": 2,
+      "bbox": [
+        -48.753907,
+        61.93125,
+        -47.45,
+        63.158333
+      ],
+      "rendered_mainstem_length_km": 177.187,
+      "rendered_network_length_km": 177.187,
+      "geometry_summary": {
+        "fragment_count": 2,
+        "mainstem_fragment_count": 2,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -48.753907,
+          61.93125,
+          -47.45,
+          63.158333
+        ]
+      },
+      "candidate_name": null,
+      "research_category": "river_group_name_scope_hold",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "candidate_names": [],
+      "region": "Southwestern Greenland, inland ice and the historical inner Sermilik ice-front/fjord setting east of Paamiut.",
+      "candidate_name_role": "No representative natural-river identity established; the source-labelled Sermilik fjord setting is context only.",
+      "source_keys": [
+        "r162-geus-greenland-national-1995",
+        "r162-geus-sydgronland-sheet1-2007"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": "The whole selected inland-ice, ice/bedrock-margin and historical inner Sermilik terminal setting is visible in the two original maps, but they do not establish one named continuous natural river along the modeled line.",
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "FID 8914 opens inland in the southwestern Greenland ice sheet and runs southward before its lower westward turn across the ice/bedrock margin. The 1995 national original covers the opening and northern corridor beyond the regional sheet boundary; the 2007 Sheet 1 original overlaps the southern ice corridor, exposes the lower turn, and continues through the FID 8914–8915 junction and the entire short western FID 8915 to the historical inner Sermilik ice-front/fjord setting. Ice, exposed bedrock, coastal water and cartographic contour/geological symbols are distinguished. No source maps this modeled sequence as one continuous named natural river.",
+      "completion_scope": "Both fragments and all 34 stored parts were compared with the newly acquired original geographic graticules, mapped terrain and coastal setting. National and regional coverage overlap around the 62°30′N regional boundary. The lower loop/turn, fragment junction and actual final selected endpoint are covered. No substantial unviewed interval remains at ordinary terrain/corridor scale; exact banks, name-change vertices, present-day ice-front position and hydraulic continuity are outside this finding.",
+      "supported_name_scope": "No whole-route natural-river hydronym established.",
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "component_scope_limits": [
+          "Sermilik is retained solely as the directly read geographic context label of the fjord setting, not as the selected river name.",
+          "No glacier or other local name is inferred for an unlabelled selected section.",
+          "The stored sea-terminal class and continuous model parts do not independently prove a present-day natural river or ordinary river mouth.",
+          "The maps are historical thematic cartography. A current web acquisition is not a contemporary drainage or glacier-front survey.",
+          "A null candidate means that this research did not establish the name; it does not assert that no local or official name exists."
+        ]
+      },
+      "bounded_name_observations": [
+        {
+          "name": "Sermilik",
+          "role": "Mapped historical inner fjord/ice-front context only, not a river or glacier name for the modeled selection",
+          "source_keys": [
+            "r162-geus-greenland-national-1995",
+            "r162-geus-sydgronland-sheet1-2007"
+          ]
+        }
+      ]
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [
+      "hydro-system:90128531"
+    ],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [
+      "hydro-system:61546367",
+      "hydro-system:60627295",
+      "hydro-system:61038090"
+    ],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 1,
+    "supported_representative_system_identities": 0,
+    "scope_holds": 1,
+    "access_pending": 0,
+    "material_pending": 3
+  },
+  "totals_after": {
+    "recorded_targets": 591,
+    "non_pending_records": 467,
+    "source_access_pending": 3,
+    "source_material_pending": 121,
+    "source_any_pending": 124,
+    "scope_holds": 148,
+    "river_groups": 493,
+    "lakes": 98,
+    "unrecorded": 3474,
+    "unrecorded_river_groups": 2962,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573",
+    "hydro-system:80032711",
+    "hydro-system:60007816",
+    "hydro-system:80013873",
+    "hydro-system:61501314",
+    "hydro-system:60761631",
+    "hydro-system:70895720",
+    "hydro-system:61398344",
+    "hydro-system:61355098",
+    "hydro-system:70933800",
+    "hydro-system:60026849",
+    "hydro-system:70574060",
+    "hydro-system:70890643",
+    "hydro-system:80064967",
+    "hydro-system:70856797",
+    "hydro-system:60174418",
+    "hydro-system:61547907",
+    "hydro-system:70463083",
+    "hydro-system:61520061",
+    "hydro-system:70895492",
+    "hydro-system:70898394",
+    "hydro-system:70865140",
+    "hydro-system:80072439",
+    "hydro-system:70549678",
+    "hydro-system:70566840",
+    "hydro-system:80048422",
+    "hydro-system:60557376",
+    "hydro-system:61514286",
+    "hydro-system:61509423",
+    "hydro-system:80068731",
+    "hydro-system:80015064",
+    "hydro-system:61520170",
+    "hydro-system:70156165",
+    "hydro-system:70784507",
+    "hydro-system:80067417",
+    "hydro-system:80019756",
+    "hydro-system:70244256",
+    "hydro-system:80060230",
+    "hydro-system:61543259",
+    "hydro-system:60007312",
+    "hydro-system:60022881",
+    "hydro-system:61456098",
+    "hydro-system:70290797",
+    "hydro-system:60441146",
+    "hydro-system:61554706",
+    "hydro-system:70110341",
+    "hydro-system:80067260",
+    "hydro-system:70214162",
+    "hydro-system:80034507",
+    "hydro-system:61536265",
+    "hydro-system:61561008",
+    "hydro-system:80066184",
+    "hydro-system:70202296",
+    "hydro-system:61545841",
+    "hydro-system:61350841",
+    "hydro-system:80064018",
+    "hydro-system:70957614",
+    "hydro-system:70851521",
+    "hydro-system:70049998",
+    "hydro-system:61298121",
+    "hydro-system:80033385",
+    "hydro-system:61205785",
+    "hydro-system:80035867",
+    "hydro-system:70009700",
+    "hydro-system:60440371",
+    "hydro-system:80049373",
+    "hydro-system:70749063",
+    "hydro-system:70844211",
+    "hydro-system:60001814",
+    "hydro-system:61507976",
+    "hydro-system:70834534",
+    "hydro-system:80070226",
+    "hydro-system:61357020",
+    "hydro-system:70846952",
+    "hydro-system:70004800",
+    "hydro-system:80043969",
+    "hydro-system:80165177",
+    "hydro-system:70043276",
+    "hydro-system:60490135",
+    "hydro-system:60237339",
+    "hydro-system:70023641",
+    "hydro-system:70281204",
+    "hydro-system:61570080",
+    "hydro-system:70789628",
+    "hydro-system:80234498",
+    "hydro-system:60016868",
+    "hydro-system:70276504",
+    "hydro-system:70901807",
+    "hydro-system:80086174",
+    "hydro-system:60809372",
+    "hydro-system:60100857",
+    "hydro-system:70026619",
+    "hydro-system:70500400",
+    "hydro-system:60010615",
+    "hydro-system:70608588",
+    "hydro-system:70832638",
+    "hydro-system:61383955",
+    "hydro-system:61555573",
+    "hydro-system:80068976",
+    "hydro-system:80048308",
+    "hydro-system:80001778",
+    "hydro-system:70324446",
+    "hydro-system:80051383",
+    "hydro-system:60804761",
+    "hydro-system:70817056",
+    "hydro-system:80032843",
+    "hydro-system:70045452",
+    "hydro-system:70877500",
+    "hydro-system:80042519",
+    "hydro-system:70084321",
+    "hydro-system:61519454",
+    "hydro-system:61546367",
+    "hydro-system:60627295",
+    "hydro-system:61038090"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r162-ign-historical500k-sauce-grande",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "r162-gil2009-2010-sauce-grande",
+      "official_url": "https://repositoriodigital.uns.edu.ar/handle/123456789/2069"
+    },
+    {
+      "source_key": "r161-ign-historical-capabilities",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "r162-ibge-caninde-2010",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/ce/caninde_v2.pdf"
+    },
+    {
+      "source_key": "r162-ibge-pentecoste-2010",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/ce/pentecoste_v2.pdf"
+    },
+    {
+      "source_key": "r162-ibge-sao_luis_do_curu-2010",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/ce/sao_luis_do_curu_v2.pdf"
+    },
+    {
+      "source_key": "r162-ibge-sao_goncalo_do_amarante-2010",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/ce/sao_goncalo_do_amarante_v2.pdf"
+    },
+    {
+      "source_key": "r162-ibge-paraipaba-2010",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/ce/paraipaba_v2.pdf"
+    },
+    {
+      "source_key": "r162-ibge-paracuru-2010",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/ce/paracuru_v2.pdf"
+    },
+    {
+      "source_key": "r162-ingemmet-c8a-map1",
+      "official_url": "https://repositorio.ingemmet.gob.pe/bitstream/20.500.12544/253/35/C008a-Mapa1_litologico.pdf"
+    },
+    {
+      "source_key": "r162-ingemmet-c8a-report",
+      "official_url": "https://repositorio.ingemmet.gob.pe/bitstream/20.500.12544/253/2/C008a-Boletin-Estudio_geodinamico_cuenca_rio_Pativilca.pdf"
+    },
+    {
+      "source_key": "r162-concytec-c8a-metadata",
+      "official_url": "https://alicia.concytec.gob.pe/vufind/Record/INGEMMET_c25802d11ec04d127afb5d0c3d32bef7/Details"
+    },
+    {
+      "source_key": "r162-ana-pativilca-flood-study-excluded",
+      "official_url": "https://sigrid.cenepred.gob.pe/sigridv3/storage/biblioteca/14540_tratamiento-de-cauce-del-rio-pativilca-para-el-control-de-inundaciones.pdf"
+    },
+    {
+      "source_key": "r162-geus-greenland-national-1995",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r162-geus-sydgronland-sheet1-2007",
+      "official_url": "https://doi.org/10.22008/FK2/L4LGK6"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "83af9fc5b54865ad9718054b6fe4dfa1bb139025",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      451,
+      452,
+      453,
+      454
+    ],
+    "next_unrecorded_id": "hydro-system:60407824",
+    "progress_rule": "Follow the actual continental order: Americas, Asia, Africa, Europe, then other, with all rivers before lakes. Preserve original queue IDs and ranks for continuity; apply documented geographic deferrals without counting them as name research, and place deferred objects into their corrected later phase by length-descending, stable-ID order. Prior candidate and scope-held assessments remain unresolved where stated.",
+    "geographic_deferrals": [
+      {
+        "aw_id": "hydro-system:80061063",
+        "original_queue_rank": 186,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 66.56–68.17°N and 179.97–177.11°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory bounding box and selected-route geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80065687",
+        "original_queue_rank": 349,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at66.725–67.849775°N and178.2–175.960242°W place this object on Chukotka west of Alaska, adjoining the previously corrected Chukotka selection. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory bounding box and selected-route geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80100188",
+        "original_queue_rank": 387,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 64.939583–66.26978°N and 174.05625–173.320833°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory/order bounding box and geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80119243",
+        "original_queue_rank": 391,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 65.451531–66.491667°N and 176.777083–175.672917°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory/order bounding box and geographic placement; geographic classification only, no naming source acquired."
+      }
+    ]
+  }
+}

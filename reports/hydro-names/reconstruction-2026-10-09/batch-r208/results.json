@@ -1,0 +1,809 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r208",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r207",
+    "commit": "7de8ce814f9a41a37c2352e904be2dc003a31d46",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r207/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:70105802",
+    "hydro-system:61267216",
+    "hydro-system:70331549",
+    "hydro-system:80081015"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:70105802",
+      "category": "river_group",
+      "system_id": "70105802",
+      "original_queue_rank": 637,
+      "baseline_logical_fid": 2950,
+      "geometry_fids": [
+        9157
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -84.083333,
+        54.127083,
+        -82.442729,
+        54.377083
+      ],
+      "rendered_mainstem_length_km": 135.387,
+      "rendered_network_length_km": 135.387,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -84.083333,
+          54.127083,
+          -82.442729,
+          54.377083
+        ]
+      },
+      "candidate_name": "Lakitusaki River",
+      "candidate_names": [
+        "Lakitusaki River"
+      ],
+      "research_category": "river_group_source_material_pending",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "region": "Northern Ontario, Canada; western James Bay lowland coastal setting.",
+      "candidate_name_role": "Named coastal candidate only; geographic correspondence to the whole selected system is unestablished.",
+      "source_keys": [
+        "r208-iba-on129-ekwan-lakitusaki",
+        "r208-kataquapit-ghost-towns"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": "No independently read corridor map or adequate primary route account establishes the southwestern opening, full upper and middle route, intermediate joins or waterbody passages, lower approach, and actual selected terminal. Read coastal prose supports Lakitusaki as a candidate but cannot bridge those connections.",
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "Read sources identify the Lakitusaki mouth in the northwestern James Bay coastal-marsh setting and place a historical trading-post visit on that named river. This is regional context only. The selected inland path and its final turn have not been independently traced into that mouth; no adjacent river, lake or settlement name is assigned by proximity.",
+      "completion_scope": {
+        "selected_fragments_considered": [
+          9157
+        ],
+        "all_supplied_encoded_parts_considered": true,
+        "full_mainstem_and_tributary_corridors_inspected": false,
+        "full_selected_route_correspondence_established": false,
+        "all_material_confluences_inspected": false,
+        "all_material_waterbody_passages_inspected": false,
+        "actual_selected_terminal_correspondence_established": false,
+        "regional_receiving_setting_supported": true,
+        "material_gaps": [
+          "Actual selected southwestern opening and upper continuation.",
+          "Complete upper-to-middle connection and intermediate joins.",
+          "Any lake, wetland, reservoir, glacier or managed passage, if present; none is independently established.",
+          "Lower approach and connection across the final bend.",
+          "Actual selected terminal and its channel or estuarine connection to James Bay."
+        ],
+        "pending_reason": "Missing primary geographic correspondence remains material; this is not a completed representative-system result or a completed naming-scope hold."
+      },
+      "supported_name_scope": "A real coastal river and its mouth in the northwestern James Bay region, independently named by the conservation-site account and firsthand travel recollection. No individual selected route component has been conclusively assigned this name.",
+      "naming_scope_details": {
+        "representative_system_identity": "Lakitusaki River",
+        "whole_feature_uniform_name_established": false,
+        "scope_limits": [
+          "Lakitusaki is a coastal candidate, not an accepted whole-system identity.",
+          "No selected feeder, intermediate lake or hydraulic connector is independently named.",
+          "The actual terminal may be a lower-channel or estuarine setting; a modeled sea endpoint does not establish a present open-water boundary.",
+          "No exact current bank, flow allocation, operation, Indigenous-name equivalence or formal registry decision is claimed.",
+          "The unavailable article and unrequested geophysical-map relationship are separate limitations."
+        ]
+      }
+    },
+    {
+      "aw_id": "hydro-system:61267216",
+      "category": "river_group",
+      "system_id": "61267216",
+      "original_queue_rank": 638,
+      "baseline_logical_fid": 3508,
+      "geometry_fids": [
+        13916
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -70.316229,
+        -18.672917,
+        -69.333333,
+        -18.435417
+      ],
+      "rendered_mainstem_length_km": 135.346,
+      "rendered_network_length_km": 135.346,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -70.316229,
+          -18.672917,
+          -69.333333,
+          -18.435417
+        ]
+      },
+      "candidate_name": "Río San José",
+      "candidate_names": [
+        "Río San José"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "region": "Arica y Parinacota, northern Chile: Tignamar approach, Azapa valley and Arica Pacific coast.",
+      "candidate_name_role": "representative_named_receiving_river_system_including_a_distinct_named_headward_river",
+      "source_keys": [
+        "r208-igm-san-jose-natural-watercourses",
+        "r208-igm-san-jose-waterbodies",
+        "r208-arica-municipal-plan2017"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "Río San José is the supported receiving-system identity through the middle/lower valley and Arica coastal ending. The selected upstream course is Río Tignamar. The names coexist as distinct reaches; no single hydronym or exact transition vertex is imposed on every selected part.",
+      "completion_scope": "All 28 selected parts correspond at ordinary corridor scale: the chosen Río Tignamar opening and joins, Río Seco confluence, receiving Río San José/Azapa valley, Arica urban continuation and actual Pacific terminal. IGM and independent municipal originals provide complementary coverage; the unavailable optional book is not required.",
+      "supported_name_scope": "Río San José is the supported receiving-system identity through the middle/lower valley and Arica coastal ending. The selected upstream course is Río Tignamar. The names coexist as distinct reaches; no single hydronym or exact transition vertex is imposed on every selected part.",
+      "naming_scope_details": {
+        "representative_system_identity": "Río San José",
+        "whole_feature_uniform_name_established": false,
+        "scope_limits": [
+          "The representative system identity does not turn the distinct Río Tignamar reach into a uniform Río San José scalar label. Formal registry and Korean naming remain unverified.",
+          "Correspondence is at ordinary river-corridor and city/coastal scale, not exact banks, present shoreline coordinates, present wetness or a surveyed source point.",
+          "The selected coastal reach is independently depicted through the urban corridor. Neither a continuously wet outlet nor a present wetland boundary is inferred.",
+          "No operational inventory of irrigation intakes, off-route transfers or minor impoundments is established. These do not require an unsupported through-link in the continuously depicted selected river.",
+          "The optional biodiversity book supplied no substantive original evidence after two completed HTTP502 responses; the finding does not depend on its discovery excerpts."
+        ]
+      },
+      "bounded_name_observations": [
+        {
+          "name": "Río Tignamar",
+          "role": "Selected headward river; spelling as rendered by IGM."
+        },
+        {
+          "name": "Río San José",
+          "role": "Selected receiving trunk and coastal river."
+        },
+        {
+          "name": "Río Seco",
+          "role": "Separately named northern joining river, not a selected upstream component."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70331549",
+      "category": "river_group",
+      "system_id": "70331549",
+      "original_queue_rank": 639,
+      "baseline_logical_fid": 3030,
+      "geometry_fids": [
+        9450,
+        9451
+      ],
+      "minimum_stage": 2,
+      "bbox": [
+        -56.425,
+        47.779934,
+        -55.86875,
+        48.502083
+      ],
+      "rendered_mainstem_length_km": 135.333,
+      "rendered_network_length_km": 135.333,
+      "geometry_summary": {
+        "fragment_count": 2,
+        "mainstem_fragment_count": 2,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -56.425,
+          47.779934,
+          -55.86875,
+          48.502083
+        ]
+      },
+      "candidate_name": "Salmon River",
+      "candidate_names": [
+        "Salmon River"
+      ],
+      "research_category": "river_group_source_material_pending",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "region": "Newfoundland, Canada",
+      "candidate_name_role": "conditional_system_candidate_with_distinct_named_components",
+      "source_keys": [
+        "r208-canal-jeddore-profile",
+        "r208-nlhydro-north-salmon-advisory2019",
+        "r208-nlhydro-ea2369-unit8-2025",
+        "r208-donnet-coast-of-bays2018",
+        "r208-chs-atl103-202607"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": "The chosen northern feeder, connected lake/reservoir passages, cross-fragment join and lower Salmon River route to the actual stored terminal are not established by permitted corridor-scale sources.",
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "North Salmon River and the Jeddore/Long Pond contributing system are documented regional components; Salmon River(East Bay) is the lower-river candidate. No whole-selection representative identity is completed.",
+      "completion_scope": "Both stored fragments were considered. Independent sources identify regional river, reservoir and coastal components, but the chosen northern feeder, lake-chain through-links, reservoir crossing, cross-fragment join and actual terminal correspondence remain incomplete.",
+      "supported_name_scope": "North Salmon River and the Jeddore/Long Pond contributing system are documented regional components; Salmon River(East Bay) is the lower-river candidate. No whole-selection representative identity is completed.",
+      "naming_scope_details": {
+        "representative_system_identity": "Salmon River",
+        "whole_feature_uniform_name_established": false,
+        "scope_limits": [
+          "Representative system identity does not require a uniform hydronym over all tributaries, reservoirs and lower reaches. The obstacle here is missing geographic through-link evidence.",
+          "The selected opening has not been identified from a permitted original source. Crooked Lake is not promoted from discovery to a confirmed mapped reach.",
+          "The relationship of selected reservoir passages to the separate powerhouse discharge is not established. No present discharge, operating schedule, island side or exact bank requirement has been imposed.",
+          "The actual stored terminal remains a required uncompleted component; East Bay receiving-water context is not substituted for a mapped river-to-coast connection.",
+          "Formal name-registry status remains unverified; incidental CGN search hits were not opened or used."
+        ]
+      },
+      "bounded_name_observations": [
+        {
+          "name": "North Salmon River",
+          "role": "Distinct headward river documented in regional station/operator prose; full selected connection remains pending."
+        },
+        {
+          "name": "Round Pond; Jeddore Lake / Long Pond",
+          "role": "Named regional lake and headpond context, not alternative names for the river."
+        },
+        {
+          "name": "Salmon River (East Bay); Salmon River (powerhouse)",
+          "role": "Separate lower-river and hydroelectric-discharge categories in the independent oceanography study; not conflated as one selected channel."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80081015",
+      "category": "river_group",
+      "system_id": "80081015",
+      "original_queue_rank": 640,
+      "baseline_logical_fid": 918,
+      "geometry_fids": [
+        2535
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -89.120833,
+        67.0625,
+        -87.495621,
+        67.402083
+      ],
+      "rendered_mainstem_length_km": 135.101,
+      "rendered_network_length_km": 135.101,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -89.120833,
+          67.0625,
+          -87.495621,
+          67.402083
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_source_material_pending",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "region": "Mainland Nunavut, Canada; selected corridor in the Ellice Hills and southwestern Lefroy Bay map-sheet vicinity. Regional description is orientation only, not independent route correspondence.",
+      "candidate_name_role": "no_source_supported_whole_system_or_component_candidate",
+      "source_keys": [],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": "No usable primary route source establishes the chosen southwestern opening, upper and middle through-links, lower turns or the actual final receiving-water connection. Curtis River remains an unverified discovery lead.",
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "Curtis River is an unverified discovery lead. No successfully inspected primary map or route-specific primary prose establishes its relationship to the entire selected corridor or any complete selected component.",
+      "completion_scope": "Every selected part was considered for source orientation, but no primary geographic map of the route was successfully inspected. Opening-to-terminal correspondence remains materially incomplete.",
+      "supported_name_scope": "Curtis River is an unverified discovery lead. No successfully inspected primary map or route-specific primary prose establishes its relationship to the entire selected corridor or any complete selected component.",
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "whole_feature_uniform_name_established": false,
+        "scope_limits": [
+          "Absence of usable source material is not evidence that the selected river has no local or official name.",
+          "The read Caslys project prose contains no route-specific geographic or naming evidence.",
+          "No lake, glacier, reservoir, managed connector, current flow, exact bank or surveyed endpoint is established. Such precision was not required; ordinary chosen through-links nevertheless remain material gaps.",
+          "No official registry verification was attempted under the preserved CGN expanded/name-search exclusion."
+        ]
+      },
+      "bounded_name_observations": [
+        {
+          "name": "Curtis River",
+          "role": "unverified_regional_and_lower_corridor_name_lead",
+          "url": "https://www.gov.nu.ca/sites/default/files/publications/2022-01/kivalliq_ecological_land_classification_map_atlas_section_4p1-25.pdf",
+          "substantive_evidence": false,
+          "acquisition_performed": false,
+          "limitation": "Search discovery exposed this label, but the atlas original, page body and map pixels were not acquired. No name is assigned from an indexed label or nearby-name point."
+        }
+      ]
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [
+      "hydro-system:70105802",
+      "hydro-system:70331549",
+      "hydro-system:80081015"
+    ],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 1,
+    "supported_representative_system_identities": 1,
+    "scope_holds": 0,
+    "access_pending": 0,
+    "material_pending": 3
+  },
+  "totals_after": {
+    "recorded_targets": 775,
+    "non_pending_records": 533,
+    "source_access_pending": 3,
+    "source_material_pending": 239,
+    "source_any_pending": 242,
+    "scope_holds": 164,
+    "river_groups": 677,
+    "lakes": 98,
+    "unrecorded": 3290,
+    "unrecorded_river_groups": 2778,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573",
+    "hydro-system:80032711",
+    "hydro-system:60007816",
+    "hydro-system:80013873",
+    "hydro-system:61501314",
+    "hydro-system:60761631",
+    "hydro-system:70895720",
+    "hydro-system:61398344",
+    "hydro-system:61355098",
+    "hydro-system:70933800",
+    "hydro-system:60026849",
+    "hydro-system:70574060",
+    "hydro-system:70890643",
+    "hydro-system:80064967",
+    "hydro-system:70856797",
+    "hydro-system:60174418",
+    "hydro-system:61547907",
+    "hydro-system:70463083",
+    "hydro-system:61520061",
+    "hydro-system:70895492",
+    "hydro-system:70898394",
+    "hydro-system:70865140",
+    "hydro-system:80072439",
+    "hydro-system:70549678",
+    "hydro-system:70566840",
+    "hydro-system:80048422",
+    "hydro-system:60557376",
+    "hydro-system:61514286",
+    "hydro-system:61509423",
+    "hydro-system:80068731",
+    "hydro-system:80015064",
+    "hydro-system:61520170",
+    "hydro-system:70156165",
+    "hydro-system:70784507",
+    "hydro-system:80067417",
+    "hydro-system:80019756",
+    "hydro-system:70244256",
+    "hydro-system:80060230",
+    "hydro-system:61543259",
+    "hydro-system:60007312",
+    "hydro-system:60022881",
+    "hydro-system:61456098",
+    "hydro-system:70290797",
+    "hydro-system:60441146",
+    "hydro-system:61554706",
+    "hydro-system:70110341",
+    "hydro-system:80067260",
+    "hydro-system:70214162",
+    "hydro-system:80034507",
+    "hydro-system:61536265",
+    "hydro-system:61561008",
+    "hydro-system:80066184",
+    "hydro-system:70202296",
+    "hydro-system:61545841",
+    "hydro-system:61350841",
+    "hydro-system:80064018",
+    "hydro-system:70957614",
+    "hydro-system:70851521",
+    "hydro-system:70049998",
+    "hydro-system:61298121",
+    "hydro-system:80033385",
+    "hydro-system:61205785",
+    "hydro-system:80035867",
+    "hydro-system:70009700",
+    "hydro-system:60440371",
+    "hydro-system:80049373",
+    "hydro-system:70749063",
+    "hydro-system:70844211",
+    "hydro-system:60001814",
+    "hydro-system:61507976",
+    "hydro-system:70834534",
+    "hydro-system:80070226",
+    "hydro-system:61357020",
+    "hydro-system:70846952",
+    "hydro-system:70004800",
+    "hydro-system:80043969",
+    "hydro-system:80165177",
+    "hydro-system:70043276",
+    "hydro-system:60490135",
+    "hydro-system:60237339",
+    "hydro-system:70023641",
+    "hydro-system:70281204",
+    "hydro-system:61570080",
+    "hydro-system:70789628",
+    "hydro-system:80234498",
+    "hydro-system:60016868",
+    "hydro-system:70276504",
+    "hydro-system:70901807",
+    "hydro-system:80086174",
+    "hydro-system:60809372",
+    "hydro-system:60100857",
+    "hydro-system:70026619",
+    "hydro-system:70500400",
+    "hydro-system:60010615",
+    "hydro-system:70608588",
+    "hydro-system:70832638",
+    "hydro-system:61383955",
+    "hydro-system:61555573",
+    "hydro-system:80068976",
+    "hydro-system:80048308",
+    "hydro-system:80001778",
+    "hydro-system:70324446",
+    "hydro-system:80051383",
+    "hydro-system:60804761",
+    "hydro-system:70817056",
+    "hydro-system:80032843",
+    "hydro-system:70045452",
+    "hydro-system:70877500",
+    "hydro-system:80042519",
+    "hydro-system:70084321",
+    "hydro-system:61519454",
+    "hydro-system:61546367",
+    "hydro-system:60627295",
+    "hydro-system:61038090",
+    "hydro-system:60407824",
+    "hydro-system:80047056",
+    "hydro-system:70888155",
+    "hydro-system:61189702",
+    "hydro-system:70084119",
+    "hydro-system:70025722",
+    "hydro-system:70001071",
+    "hydro-system:70360842",
+    "hydro-system:70007286",
+    "hydro-system:60001879",
+    "hydro-system:70776067",
+    "hydro-system:61266023",
+    "hydro-system:70806740",
+    "hydro-system:60516711",
+    "hydro-system:80020100",
+    "hydro-system:70835654",
+    "hydro-system:80029665",
+    "hydro-system:61609128",
+    "hydro-system:70853324",
+    "hydro-system:70775288",
+    "hydro-system:70008834",
+    "hydro-system:61422869",
+    "hydro-system:80214289",
+    "hydro-system:70210252",
+    "hydro-system:70091013",
+    "hydro-system:60774621",
+    "hydro-system:61390812",
+    "hydro-system:60613563",
+    "hydro-system:61564085",
+    "hydro-system:70048797",
+    "hydro-system:61533139",
+    "hydro-system:60000681",
+    "hydro-system:70728795",
+    "hydro-system:80148544",
+    "hydro-system:70478140",
+    "hydro-system:70243977",
+    "hydro-system:70170668",
+    "hydro-system:80290543",
+    "hydro-system:61524461",
+    "hydro-system:70246501",
+    "hydro-system:70253588",
+    "hydro-system:70735407",
+    "hydro-system:60339076",
+    "hydro-system:70870606",
+    "hydro-system:61551054",
+    "hydro-system:61508438",
+    "hydro-system:60412032",
+    "hydro-system:70209891",
+    "hydro-system:70221206",
+    "hydro-system:70752436",
+    "hydro-system:70840433",
+    "hydro-system:60000722",
+    "hydro-system:80039501",
+    "hydro-system:80043520",
+    "hydro-system:80125244",
+    "hydro-system:70478139",
+    "hydro-system:80028550",
+    "hydro-system:61436404",
+    "hydro-system:80231563",
+    "hydro-system:61286514",
+    "hydro-system:61543734",
+    "hydro-system:80033212",
+    "hydro-system:61512470",
+    "hydro-system:60768475",
+    "hydro-system:70735496",
+    "hydro-system:61555954",
+    "hydro-system:70618884",
+    "hydro-system:80160360",
+    "hydro-system:70830375",
+    "hydro-system:80018800",
+    "hydro-system:61540978",
+    "hydro-system:80261384",
+    "hydro-system:60297933",
+    "hydro-system:80044582",
+    "hydro-system:61555857",
+    "hydro-system:70184883",
+    "hydro-system:70531357",
+    "hydro-system:70768467",
+    "hydro-system:61483978",
+    "hydro-system:60024169",
+    "hydro-system:61266022",
+    "hydro-system:60042998",
+    "hydro-system:61545451",
+    "hydro-system:70974386",
+    "hydro-system:70658860",
+    "hydro-system:61064290",
+    "hydro-system:80224898",
+    "hydro-system:70846851",
+    "hydro-system:70728698",
+    "hydro-system:60011738",
+    "hydro-system:70135325",
+    "hydro-system:80080193",
+    "hydro-system:70891116",
+    "hydro-system:60001922",
+    "hydro-system:70840684",
+    "hydro-system:61144131",
+    "hydro-system:61279996",
+    "hydro-system:60575428",
+    "hydro-system:61330558",
+    "hydro-system:61352932",
+    "hydro-system:80011023",
+    "hydro-system:61516926",
+    "hydro-system:70188223",
+    "hydro-system:70245111",
+    "hydro-system:70094242",
+    "hydro-system:61521416",
+    "hydro-system:70828969",
+    "hydro-system:80062264",
+    "hydro-system:80160778",
+    "hydro-system:60409921",
+    "hydro-system:60000770",
+    "hydro-system:60571197",
+    "hydro-system:70860477",
+    "hydro-system:61533397",
+    "hydro-system:70264330",
+    "hydro-system:70105802",
+    "hydro-system:70331549",
+    "hydro-system:80081015"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r208-iba-on129-ekwan-lakitusaki",
+      "official_url": "https://www.ibacanada.ca/site.jsp?siteID=ON129"
+    },
+    {
+      "source_key": "r208-kataquapit-ghost-towns",
+      "official_url": "https://underthenorthernsky.com/the-book/ghost-towns/"
+    },
+    {
+      "source_key": "r208-martini1981-jamesbay-unavailable",
+      "official_url": "https://www.tandfonline.com/doi/abs/10.1080/04353676.1981.11880021"
+    },
+    {
+      "source_key": "r208-igm-san-jose-natural-watercourses",
+      "official_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Quebradas_r%C3%ADos/MapServer"
+    },
+    {
+      "source_key": "r208-igm-san-jose-waterbodies",
+      "official_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Cuerpos_de_agua/MapServer"
+    },
+    {
+      "source_key": "r208-arica-municipal-plan2017",
+      "official_url": "https://eae.mma.gob.cl/storage/documents/04_Anteproyecto_PRC_Arica.pdf.pdf"
+    },
+    {
+      "source_key": "r208-canal-jeddore-profile",
+      "official_url": "https://www.canal.gov.nl.ca/root/main/station_details_e.asp?envirodat=NF02ZE0018"
+    },
+    {
+      "source_key": "r208-nlhydro-north-salmon-advisory2019",
+      "official_url": "https://nlhydro.com/public-advisory-controlled-release-of-water-continuing-in-upper-salmon-area/"
+    },
+    {
+      "source_key": "r208-nlhydro-ea2369-unit8-2025",
+      "official_url": "https://www.gov.nl.ca/eccc/files/EA-2369-Bay-dEspoir-hydroelectric-Generating-Unit-8-registration.pdf"
+    },
+    {
+      "source_key": "r208-donnet-coast-of-bays2018",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/40654473.pdf"
+    },
+    {
+      "source_key": "r208-chs-atl103-202607",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/chs-shc-ATL103-eng-202607-41337232.pdf"
+    },
+    {
+      "source_key": "r208-caslys-nunavut-elc-project-prose",
+      "official_url": "https://www.caslys.ca/portfolio/nunavut-elc/"
+    },
+    {
+      "source_key": "r208-gsc2003-c23-unavailable",
+      "official_url": "https://publications.gc.ca/collections/collection_2013/rncan-nrcan/M44-2003-C23-eng.pdf"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "7de8ce814f9a41a37c2352e904be2dc003a31d46",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      637,
+      638,
+      639,
+      640
+    ],
+    "next_unrecorded_id": "hydro-system:80033455",
+    "progress_rule": "Follow the actual continental order: Americas, Asia, Africa, Europe, then other, with all rivers before lakes. Preserve original queue IDs and ranks for continuity; apply documented geographic deferrals without counting them as name research, and place deferred objects into their corrected later phase by length-descending, stable-ID order. Prior candidate and scope-held assessments remain unresolved where stated.",
+    "geographic_deferrals": [
+      {
+        "aw_id": "hydro-system:80061063",
+        "original_queue_rank": 186,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 66.56–68.17°N and 179.97–177.11°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory bounding box and selected-route geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80065687",
+        "original_queue_rank": 349,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at66.725–67.849775°N and178.2–175.960242°W place this object on Chukotka west of Alaska, adjoining the previously corrected Chukotka selection. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory bounding box and selected-route geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80100188",
+        "original_queue_rank": 387,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 64.939583–66.26978°N and 174.05625–173.320833°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory/order bounding box and geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80119243",
+        "original_queue_rank": 391,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 65.451531–66.491667°N and 176.777083–175.672917°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory/order bounding box and geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80083978",
+        "original_queue_rank": 470,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained original inventory/order bounds at66.522917–67.00625°N and177.333333–174.842957°W place this current object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Existing fixed-queue bounding box and geographic placement only; no naming source or selected geometry acquired for this correction."
+      },
+      {
+        "aw_id": "hydro-system:80099814",
+        "original_queue_rank": 511,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained original inventory/order bounds at65.952083–66.502083°N and172.004167–170.400621°W place this current object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Existing fixed-queue bounding box and geographic placement only; no naming source or selected geometry acquired for this correction."
+      }
+    ]
+  }
+}

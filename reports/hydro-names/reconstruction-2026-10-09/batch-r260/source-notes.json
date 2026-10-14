@@ -1,0 +1,971 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r260",
+  "sources": [
+    {
+      "source_key": "r260-nv-topo-overview",
+      "title": "USGSTopo, The National Map: Gabbs regional overview",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "material_actually_read": "Complete regional raster visually read as a reduced display, plus a private selected-position orientation aid. The unnamed northeastern opening, Lodi-side valley, Gabbs Wash lower corridor, southern approach around the isolated ridge and western playa are visible.",
+      "acquisition_outcome": "Completed direct original HTTP200 image/png; terminal client exit0; pixels actually exposed and read.",
+      "publication_identity": "Independently maintained National Map seamless operational reference cartography, positively identified by retained lawful service records. This is a new bounded regional original, not a stopped report figure, field-project map or recovery of cancelled metadata.",
+      "evidence_scope": "Ordinary geographic correspondence and visible bounded labels only. Composite source epochs, formal registry status and exact banks are not asserted."
+    },
+    {
+      "source_key": "r260-nv-topo-east",
+      "title": "USGSTopo, The National Map: Northeastern canyon, Lodi Valley and eastern Gabbs floor",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "material_actually_read": "Entire original read in two overlapping unaltered local crops and separate orientation aids. Chosen unnamed canyon opening; broad southward floor east of Lodi Hills; Lodi Valley southwest passage; Gabbs settlement and airport context; lower bend into Gabbs Wash.",
+      "acquisition_outcome": "Completed direct original HTTP200 image/png; terminal client exit0; pixels actually exposed and read.",
+      "publication_identity": "Independently maintained National Map seamless operational reference cartography, positively identified by retained lawful service records. This is a new bounded regional original, not a stopped report figure, field-project map or recovery of cancelled metadata.",
+      "evidence_scope": "Ordinary geographic correspondence and visible bounded labels only. Composite source epochs, formal registry status and exact banks are not asserted."
+    },
+    {
+      "source_key": "r260-nv-topo-west",
+      "title": "USGSTopo, The National Map: Lower Gabbs Wash and western receiving playa",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "material_actually_read": "Entire original read as a reduced display and separate orientation aid. Repeated Gabbs Wash labels, terminal wetland/playa mosaic, southern passage around isolated hills, Gabbs Valley label and actual end inside western playa.",
+      "acquisition_outcome": "Completed direct original HTTP200 image/png; terminal client exit0; pixels actually exposed and read.",
+      "publication_identity": "Independently maintained National Map seamless operational reference cartography, positively identified by retained lawful service records. This is a new bounded regional original, not a stopped report figure, field-project map or recovery of cancelled metadata.",
+      "evidence_scope": "Ordinary geographic correspondence and visible bounded labels only. Composite source epochs, formal registry status and exact banks are not asserted."
+    },
+    {
+      "source_key": "r260-nm-topo-overview",
+      "title": "USGSTopo, The National Map: Stanley–Moriarty–Estancia selected corridor",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "material_actually_read": "Entire original read in overlapping northern and southern crops, with separate selected-position orientation aids. Full lowland setting, northern opening, road crossings, small depressions and southern terminal playa geometry.",
+      "acquisition_outcome": "Completed direct original HTTP200 image/png; terminal client exit0; pixels actually exposed and read.",
+      "publication_identity": "Independently maintained National Map seamless operational reference cartography, positively identified by retained lawful service records. New bounded New Mexico regional originals are distinct from the held Salt Basin2006-1358 report/project and cancelled metadata.",
+      "evidence_scope": "Visible topography, bounded labels, source-material gaps and ordinary geographic correspondence. No formal registry, precise wet thread or contemporary water operation is asserted."
+    },
+    {
+      "source_key": "r260-nm-topo-north",
+      "title": "USGSTopo, The National Map: Northern selected draws, Otto and Moriarty",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "material_actually_read": "Entire original read in two overlapping crops and separate orientation aids. Unnamed opening; Big Draw and King Draw labels; Otto floor; small lake/depression by Stinking Spring; selected southwest continuation toward Bachelor Draw and Interstate40.",
+      "acquisition_outcome": "Completed direct original HTTP200 image/png; terminal client exit0; pixels actually exposed and read.",
+      "publication_identity": "Independently maintained National Map seamless operational reference cartography, positively identified by retained lawful service records. New bounded New Mexico regional originals are distinct from the held Salt Basin2006-1358 report/project and cancelled metadata.",
+      "evidence_scope": "Visible topography, bounded labels, source-material gaps and ordinary geographic correspondence. No formal registry, precise wet thread or contemporary water operation is asserted."
+    },
+    {
+      "source_key": "r260-nm-topo-south",
+      "title": "USGSTopo, The National Map: Moriarty to the Estancia playa complex",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "material_actually_read": "Entire original read in two overlapping crops and separate orientation aids. Woodman Draw, Buffalo Draw and Salt Draw context; southern alluvial floor; isolated northern playa; intervening depression rims and ground; main long terminal playa.",
+      "acquisition_outcome": "Completed direct original HTTP200 image/png; terminal client exit0; pixels actually exposed and read.",
+      "publication_identity": "Independently maintained National Map seamless operational reference cartography, positively identified by retained lawful service records. New bounded New Mexico regional originals are distinct from the held Salt Basin2006-1358 report/project and cancelled metadata.",
+      "evidence_scope": "Visible topography, bounded labels, source-material gaps and ordinary geographic correspondence. No formal registry, precise wet thread or contemporary water operation is asserted."
+    },
+    {
+      "source_key": "r260-nm-topo-terminal",
+      "title": "USGSTopo, The National Map: Laguna del Perro and adjacent separate playas",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "material_actually_read": "Entire original read in two overlapping unaltered crops. Repeated Laguna del Perro labels identify the long continuous playa containing the selected terminal. Separate eastern depressions, La Salina and Salina Lake farther south provide bounded exclusion context only; the selection does not reach them.",
+      "acquisition_outcome": "Completed direct original HTTP200 image/png; terminal client exit0; pixels actually exposed and read.",
+      "publication_identity": "Independently maintained National Map seamless operational reference cartography, positively identified by retained lawful service records. New bounded New Mexico regional originals are distinct from the held Salt Basin2006-1358 report/project and cancelled metadata.",
+      "evidence_scope": "Visible topography, bounded labels, source-material gaps and ordinary geographic correspondence. No formal registry, precise wet thread or contemporary water operation is asserted."
+    },
+    {
+      "source_key": "r260-ineter-pfafstetter2014",
+      "title": "Cuencas Hidrográficas de Nicaragua bajo la metodología Pfafstetter: Álbum de mapas",
+      "creator": "INETER, Autoridad Nacional del Agua, Universidad Nacional de Ingeniería, GIZ-PROATAS",
+      "year": 2014,
+      "place": "Managua, Nicaragua",
+      "official_url": "https://cira.unan.edu.ni/wp-content/uploads/2016/07/Album-Cuencas-Nic-Revisado_ANA.pdf",
+      "publication_identity": "Original credits identify the separately issued PROATAS interinstitutional watershed-delimitation project. Recovered preflight positively distinguished this atlas from the held INETER IDE national-base service, MARENA ENDE-REDD atlas and Wawa mapping/study publications; later notices were checked before acquisition.",
+      "acquisition_outcome": "One original download completed HTTP200 application/pdf; terminal completion confirmed before reading.",
+      "actual_material_read": "Original PDF title, credits/project and reproduction notice, contents; section 8 and Tables 11–12 on printed page12 / PDFpage18; original Map5 on printed page13 / PDFpage19 at whole-sheet, southern-basin and enlarged Indio-corridor scale, including western feeder, receiving junctions, lower wetland, coastal channel and Greytown setting.",
+      "supports": "Named Indio receiving drainage, continuous selected western-feeder connection, ordinary whole-corridor correspondence and actual coast-parallel continuation to the southern coastal outlet setting.",
+      "limitations": "Regional1:1,000,000 cartography and historical basin synthesis. It does not assign a name to the selected western feeder, establish current banks/flow, or constitute formal registry verification. The narrative headwater-location wording and published70km river length were not used to set selected source identity or replace the pinned78.284km model length.",
+      "source_use_notice": "Publication rights reserved; commercial reproduction/use prohibited, and educational/divulgative reproduction requires prior INETER permission. Only independently written factual observations and normal bibliography are provided; originals and reading derivatives are not redistributed."
+    },
+    {
+      "source_key": "r260-incer1985-prose",
+      "title": "Toponimias indígenas de Nicaragua",
+      "author": "Jaime Incer",
+      "publisher": "Asociación Libro Libre, San José, Costa Rica",
+      "year": 1985,
+      "isbn": "9977-901-15-5",
+      "public_copy_url": "https://enriquebolanos.org/media/publicacion/LL_ToponimiasindigenasNicaraguaJaimeIncer.pdf",
+      "publication_identity": "Independent authorial toponymic book, positively identified in recovered bibliography and confirmed in its original title/imprint; not an equivalent of held modern national-map services, Wawa projects or military map sheets.",
+      "acquisition_outcome": "One original download completed HTTP200 application/pdf.",
+      "actual_material_read": "Original PDF extracted text: title/imprint, contents and beginning of the prologue; Rama-territory nomenclature discussion printed pp21–23, especially printedp22/PDFp23; printedp28 Tobí entry read for regional context only. No original book map or borrowed historical map was used.",
+      "supports": "Historical English Indian River equivalent and the independently authored recognition of Indio as a southeastern Nicaraguan river.",
+      "limitations": "Historical authorial prose, not formal registry evidence or detailed selected-route cartography. Cited older maps were not acquired or read. Tobí/Caño Negro were not assigned to the selected western feeder.",
+      "source_use_notice": "Bounded factual synthesis only. Original book and illustrations remain private; no redistribution rights inferred from the digital hosting.",
+      "official_url": "https://enriquebolanos.org/media/publicacion/LL_ToponimiasindigenasNicaraguaJaimeIncer.pdf",
+      "url_role": "Verified public digital copy hosting URL; not a claim that the host is the original book publisher."
+    },
+    {
+      "source_key": "r260-nicaragua-imagery-overview",
+      "title": "World Imagery: selected Río Indio corridor overview",
+      "publisher": "Esri World Imagery and contributing imagery providers",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "publication_identity": "New independently selected southern Nicaragua photographic view, unrelated to exact stopped Arctic, Alaska, Labrador, Mendoza and Patagonia views. Coordinated service turn; no stopped metadata recovery.",
+      "acquisition_outcome": "One original acquisition completed HTTP200 image/jpeg; terminal completion confirmed and original pixels inspected.",
+      "actual_material_read": "Whole original overview plus separate original western, middle and eastern panels, compared with every selected stored part, both fragment stages and the lower join.",
+      "supports": "Photographic ordinary-geography correspondence only; no hydronyms.",
+      "limitations": "Mosaic scene dates unestablished; clouds, shadows and canopy conceal some small water threads. Atlas continuous river mapping is used where it independently supplies the ordinary geographic through-link. No present-flow, exact-bank, tidal or management-operation claim.",
+      "source_use_notice": "Original images, crops, orientation aids and exact export parameters remain private."
+    },
+    {
+      "source_key": "r260-nicaragua-imagery-opening",
+      "title": "World Imagery: Río Indio western feeder and receiving-junction detail",
+      "publisher": "Esri World Imagery and contributing imagery providers",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "publication_identity": "New independently selected southern Nicaragua photographic view, unrelated to exact stopped Arctic, Alaska, Labrador, Mendoza and Patagonia views. Coordinated service turn; no stopped metadata recovery.",
+      "acquisition_outcome": "One original acquisition completed HTTP200 image/jpeg; terminal completion confirmed and original pixels inspected.",
+      "actual_material_read": "Whole original western detail, chosen opening, westward feeder, northern hook, receiving junction and initial eastward trunk; original and separate orientation panel read.",
+      "supports": "Photographic ordinary-geography correspondence only; no hydronyms.",
+      "limitations": "Mosaic scene dates unestablished; clouds, shadows and canopy conceal some small water threads. Atlas continuous river mapping is used where it independently supplies the ordinary geographic through-link. No present-flow, exact-bank, tidal or management-operation claim.",
+      "source_use_notice": "Original images, crops, orientation aids and exact export parameters remain private."
+    },
+    {
+      "source_key": "r260-nicaragua-imagery-terminal",
+      "title": "World Imagery: lower Río Indio coastal receiving corridor",
+      "publisher": "Esri World Imagery and contributing imagery providers",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "publication_identity": "New independently selected southern Nicaragua photographic view, unrelated to exact stopped Arctic, Alaska, Labrador, Mendoza and Patagonia views. Coordinated service turn; no stopped metadata recovery.",
+      "acquisition_outcome": "One original acquisition completed HTTP200 image/jpeg; terminal completion confirmed and original pixels inspected.",
+      "actual_material_read": "Whole original coastal detail, lower wetland approach, eastgoing channel, coast-parallel southern continuation and Greytown outlet setting; separate source and render endpoints each located in original detail.",
+      "supports": "Photographic ordinary-geography correspondence only; no hydronyms.",
+      "limitations": "Mosaic scene dates unestablished; clouds, shadows and canopy conceal some small water threads. Atlas continuous river mapping is used where it independently supplies the ordinary geographic through-link. No present-flow, exact-bank, tidal or management-operation claim.",
+      "source_use_notice": "Original images, crops, orientation aids and exact export parameters remain private."
+    },
+    {
+      "source_key": "r260-esri-baja70756810-overview",
+      "title": "World Imagery: bounded Baja California selected alluvial corridor and northern playa/lake-basin overview",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "source_type": "Original photographic imagery mosaic; accompanying service and bounded export metadata",
+      "observed_acquisition": "The service metadata and one selected original JPEG completed normally with HTTP 200. A later identical-parameter export-metadata request also completed HTTP 200 and returned valid JSON; its linked image was not requested. No active request remains.",
+      "material_read": "Service identity, description, credits, image-format capabilities and global extent. Complete 2200×2200 original overview was exposed at 1600×1600; native-size 1100×1100 southeastern,southwestern and northwestern excerpts were read. The same complete original and three excerpts were subsequently read with private ordinal selected-part orientation aids using the confirmed export extent. All24 stored parts and both separately retained terminal fields were considered. Export JSON extent,width,height and spatial reference were read; the linked generated original was neither requested nor used.",
+      "independent_publication_identity": "A new target-specific photographic mosaic of the selected Baja California corridor, not a reproduction of the held INEGI national topographic project or any Mexican report. The footprint is geographically distinct from every preserved held World Imagery view, including northern Ellesmere,Hot Creek,Knik,Mendoza,southern Labrador,northeastern Patagonia and coastal Alaska.",
+      "supports": "Continuous selected alluvial plain,mountain-toe turn,piedmont receiving corridor,fan joins,playa approach and northern shallow-water basin ending.",
+      "limitations": "No labels or formal naming register. No target-specific contributor, scene date, present discharge, infrastructure operation, water quality or exact bank position established. Strong scene seams and wet/dry differences prevent treating the mosaic as one contemporary hydrological state.",
+      "source_use_notice": "Service credits Esri,Vantor,Earthstar Geographics and the GIS User Community. Independently written observations and ordinary bibliography only; no source pixels,crops,overlays,dynamic requests or coordinates are included in public-ready text."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70596277",
+      "source_keys": [
+        "r260-nv-topo-overview",
+        "r260-nv-topo-east",
+        "r260-nv-topo-west"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9815
+          ],
+          "component_scope": "Initial unnamed upland draw and southward canyon exit.",
+          "finding": "Contours and shaded relief show the chosen opening in a small southeastern-draining hollow. It merges into an enclosed southward canyon and opens onto the valley floor. No stream hydronym is directly printed on this selected headward corridor. The separate Gabbs Wash upper branch lies farther west and is not substituted for the chosen opening.",
+          "sources": [
+            "r260-nv-topo-overview",
+            "r260-nv-topo-east"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            1,
+            2,
+            3
+          ],
+          "part_index_basis": "One-based stored-part numbering within the identified fragment. Component scopes may overlap at joins."
+        },
+        {
+          "fragments": [
+            9815
+          ],
+          "component_scope": "Southward alluvial corridor east and south of Lodi Hills.",
+          "finding": "The selected canyon discharges onto one broad southward low floor, east of the Lodi Hills and west of the adjoining mountain front. The corridor continues past Lodi Tanks and turns southwest through the mapped Lodi Valley setting. Topographic floor and descending contours support ordinary receiving continuity without requiring a blue stream line through each dry reach.",
+          "sources": [
+            "r260-nv-topo-overview",
+            "r260-nv-topo-east"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Lodi Valley"
+          ],
+          "stored_parts_one_based": [
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "part_index_basis": "One-based stored-part numbering within the identified fragment. Component scopes may overlap at joins."
+        },
+        {
+          "fragments": [
+            9815
+          ],
+          "component_scope": "Southwestern passage west of Gabbs and westward lower receiving transition.",
+          "finding": "The southwest selected path crosses the same open alluvial floor near the highway and Gabbs plain. It turns west and joins the mapped lower corridor labeled Gabbs Wash. The broad floor stays continuous around the selected bends; roads, an airport and sparse small water features are context, not claimed hydraulic links. No divide into a separate basin is depicted along the chosen path.",
+          "sources": [
+            "r260-nv-topo-overview",
+            "r260-nv-topo-east",
+            "r260-nv-topo-west"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Gabbs Wash"
+          ],
+          "stored_parts_one_based": [
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "part_index_basis": "One-based stored-part numbering within the identified fragment. Component scopes may overlap at joins."
+        },
+        {
+          "fragments": [
+            9815
+          ],
+          "component_scope": "Westward Gabbs Wash along the southern side of the low hills.",
+          "finding": "The original cartography repeatedly labels the westward intermittent lower watercourse Gabbs Wash. The selected stored parts follow this receiving belt toward its expanding western alluvial and wetland/playa margin. This bounded label is not extended to the distant northeastern opening or every terminal-floor segment.",
+          "sources": [
+            "r260-nv-topo-overview",
+            "r260-nv-topo-west"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Gabbs Wash"
+          ],
+          "stored_parts_one_based": [
+            15,
+            16,
+            17,
+            18
+          ],
+          "part_index_basis": "One-based stored-part numbering within the identified fragment. Component scopes may overlap at joins."
+        },
+        {
+          "fragments": [
+            9815
+          ],
+          "component_scope": "Wetland/playa margin and passage south of the isolated ridge.",
+          "finding": "The wash enters a low wetland and playa mosaic. The selected continuation passes south of the isolated ridge and northwest across the same broad floor into the large western playa. Relief and contours show the continuous alluvial receiving setting; no exact wet thread, current inundation or drainage operation is asserted. Gabbs Valley is a valley label, not a river name.",
+          "sources": [
+            "r260-nv-topo-overview",
+            "r260-nv-topo-west"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Gabbs Valley"
+          ],
+          "stored_parts_one_based": [
+            18,
+            19,
+            20,
+            21
+          ],
+          "part_index_basis": "One-based stored-part numbering within the identified fragment. Component scopes may overlap at joins."
+        },
+        {
+          "fragments": [
+            9815
+          ],
+          "component_scope": "Stored source ending in the western playa.",
+          "finding": "The separately retained source terminal falls inside the broad western playa on the northwestern continuation of the selected receiving floor. Its endorheic class agrees with this basin-interior setting. It is not a mapped river mouth on a surveyed bank.",
+          "sources": [
+            "r260-nv-topo-overview",
+            "r260-nv-topo-west"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            21,
+            22
+          ],
+          "part_index_basis": "One-based stored-part numbering within the identified fragment. Component scopes may overlap at joins."
+        },
+        {
+          "fragments": [
+            9815
+          ],
+          "component_scope": "Stored rendered ending in the western playa.",
+          "finding": "The rendered terminal is recorded separately and coincides with the stored source terminal. The final selected segment reaches the same playa interior. Neither endpoint was moved to a blue line, shoreline or name label.",
+          "sources": [
+            "r260-nv-topo-overview",
+            "r260-nv-topo-west"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            21,
+            22
+          ],
+          "part_index_basis": "One-based stored-part numbering within the identified fragment. Component scopes may overlap at joins."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70702983",
+      "source_keys": [
+        "r260-nm-topo-overview",
+        "r260-nm-topo-north",
+        "r260-nm-topo-south",
+        "r260-nm-topo-terminal"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9871
+          ],
+          "component_scope": "Initial unnamed northern low draw and southeastern approach.",
+          "finding": "The selected opening lies in a shallow topographically depicted hollow north of the named Cañada de la Narrias corridor. It continues southeast through descending low ground toward the Big Draw setting. The separately labeled Cañada de la Narrias lies west and is not substituted for the selected opening. No hydronym is directly established for the initial stored part.",
+          "sources": [
+            "r260-nm-topo-overview",
+            "r260-nm-topo-north"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            1,
+            2,
+            3
+          ],
+          "part_index_basis": "One-based stored-part numbering within the identified fragment. Component scopes may overlap at joins."
+        },
+        {
+          "fragments": [
+            9871
+          ],
+          "component_scope": "Northern draw sequence and southward lowland toward Otto.",
+          "finding": "The detailed original labels Big Draw near the selected northern swale and King Draw on its southern lowland continuation. The stored path follows the same broad receiving lowland past the highway and Otto vicinity, with contours and relief sufficient for ordinary corridor correspondence. Draw labels are bounded landform observations; no claim makes them one river name.",
+          "sources": [
+            "r260-nm-topo-overview",
+            "r260-nm-topo-north"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Big Draw",
+            "King Draw"
+          ],
+          "stored_parts_one_based": [
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ],
+          "part_index_basis": "One-based stored-part numbering within the identified fragment. Component scopes may overlap at joins."
+        },
+        {
+          "fragments": [
+            9871
+          ],
+          "component_scope": "Small mapped depression near Stinking Spring and selected southwest transfer.",
+          "finding": "The selected route enters the small elongated depression beside the Stinking Spring label, then leaves its southwestern side toward the Bachelor Draw/Moriarty floor. The depression and surrounding lowlands are mapped, but the original does not establish a specific ordinary outlet or an uninterrupted depressed receiving trough from that enclosed waterbody setting into the downstream draw. Regional proximity and the modeled connection do not settle this lake-to-feeder transfer. This is a bounded unresolved link, not a finding that transfer is impossible.",
+          "sources": [
+            "r260-nm-topo-overview",
+            "r260-nm-topo-north"
+          ],
+          "correspondence": "selected_through_connection_not_established",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Stinking Spring",
+            "Bachelor Draw"
+          ],
+          "stored_parts_one_based": [
+            8,
+            9,
+            10,
+            11
+          ],
+          "part_index_basis": "One-based stored-part numbering within the identified fragment. Component scopes may overlap at joins."
+        },
+        {
+          "fragments": [
+            9871
+          ],
+          "component_scope": "Southward alluvial floor west of Lobo Hill.",
+          "finding": "South of the northern depression setting the selection follows the broad low floor past Moriarty and its airport, then south through the Woodman Draw, Buffalo Draw and Salt Draw surroundings. The original shows a continuous lowland on the western side of the higher Lobo Hill terrain. These landform labels provide bounded context rather than hydronyms covering the whole selection. No exact current channel or water-management connection is required for these mapped floor portions.",
+          "sources": [
+            "r260-nm-topo-overview",
+            "r260-nm-topo-south"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Woodman Draw",
+            "Buffalo Draw",
+            "Salt Draw"
+          ],
+          "stored_parts_one_based": [
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "part_index_basis": "One-based stored-part numbering within the identified fragment. Component scopes may overlap at joins."
+        },
+        {
+          "fragments": [
+            9871
+          ],
+          "component_scope": "Small northeastern playa and southwestern transfer to the long terminal playa.",
+          "finding": "The selected line passes through a small playa north and east of the main Laguna del Perro basin, then crosses its mapped depression margin and intervening higher ground before entering the long southern playa. Cartography depicts individual closed depressions and their bounding contour/relief margins rather than one continuous playa polygon or an established joining low-floor outlet along this selected transfer. The available originals do not establish the necessary playa-to-receiver through-connection. Merely belonging to the wider Estancia lowlands is not sufficient. No present wetness, precise bank or operational flow is demanded.",
+          "sources": [
+            "r260-nm-topo-overview",
+            "r260-nm-topo-south"
+          ],
+          "correspondence": "selected_through_connection_not_established",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            15,
+            16,
+            17,
+            18
+          ],
+          "part_index_basis": "One-based stored-part numbering within the identified fragment. Component scopes may overlap at joins."
+        },
+        {
+          "fragments": [
+            9871
+          ],
+          "component_scope": "Northern Laguna del Perro arm and continuous southward playa interior.",
+          "finding": "After reaching the main elongated playa, the selected route runs south within its continuously mapped floor. The terminal detail directly labels the same elongated waterbody Laguna del Perro and shows that its narrow waist connects the northern and southern mapped sections. Nearby small eastern playas and the more distant Salina Lake are separate; their names are not applied to this selection.",
+          "sources": [
+            "r260-nm-topo-overview",
+            "r260-nm-topo-south",
+            "r260-nm-topo-terminal"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Laguna del Perro"
+          ],
+          "stored_parts_one_based": [
+            18,
+            19,
+            20
+          ],
+          "part_index_basis": "One-based stored-part numbering within the identified fragment. Component scopes may overlap at joins."
+        },
+        {
+          "fragments": [
+            9871
+          ],
+          "component_scope": "Stored source end within Laguna del Perro.",
+          "finding": "The separately preserved source endpoint lies inside the northern-to-central portion of the mapped Laguna del Perro floor. Its endorheic class accords with the basin-interior receiving setting. It does not select the whole lake or its southern extremity.",
+          "sources": [
+            "r260-nm-topo-south",
+            "r260-nm-topo-terminal"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Laguna del Perro"
+          ],
+          "stored_parts_one_based": [
+            20
+          ],
+          "part_index_basis": "One-based stored-part numbering within the identified fragment. Component scopes may overlap at joins."
+        },
+        {
+          "fragments": [
+            9871
+          ],
+          "component_scope": "Stored rendered end within Laguna del Perro.",
+          "finding": "The rendered endpoint is recorded separately and coincides with the stored source endpoint. The final stored segment remains inside the same long playa. No endpoint relocation, surveyed shore or currently wet river mouth is asserted.",
+          "sources": [
+            "r260-nm-topo-south",
+            "r260-nm-topo-terminal"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Laguna del Perro"
+          ],
+          "stored_parts_one_based": [
+            20
+          ],
+          "part_index_basis": "One-based stored-part numbering within the identified fragment. Component scopes may overlap at joins."
+        }
+      ],
+      "material_gaps": [
+        {
+          "stored_part_numbers_one_based": [
+            8,
+            9,
+            10,
+            11
+          ],
+          "gap": "Small-depression southwestern exit near Stinking Spring into the Bachelor Draw/Moriarty receiving floor.",
+          "required_evidence": "Ordinary geographic evidence of the actual receiving-floor/outlet link across this depression boundary; a present wet thread is unnecessary."
+        },
+        {
+          "stored_part_numbers_one_based": [
+            15,
+            16,
+            17,
+            18
+          ],
+          "gap": "Transfer from the separate northeastern playa across its margin and intervening ground into Laguna del Perro.",
+          "required_evidence": "Ordinary source evidence establishing a connecting alluvial/playa floor or outlet rather than solely the model line or regional basin proximity."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70971121",
+      "source_keys": [
+        "r260-ineter-pfafstetter2014",
+        "r260-incer1985-prose",
+        "r260-nicaragua-imagery-overview",
+        "r260-nicaragua-imagery-opening",
+        "r260-nicaragua-imagery-terminal"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10687
+          ],
+          "component_scope": "chosen western feeder opening",
+          "finding": "The chosen opening lies on a small wooded feeder directed west and northwest. Atlas Map 5 depicts this thin tributary within the Indio basin, including the westward receiving course. Opening imagery shows its forested low-relief corridor and visible meander sections, with cloud and canopy interruptions. The continuous original map supplies the obscured ordinary through-link; no separate spring or tributary name is inferred.",
+          "sources": [
+            "r260-ineter-pfafstetter2014",
+            "r260-nicaragua-imagery-overview",
+            "r260-nicaragua-imagery-opening"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            0,
+            1,
+            2
+          ],
+          "part_index_basis": "Zero-based stored-part indices, restarting within each selected fragment."
+        },
+        {
+          "fragments": [
+            10687
+          ],
+          "component_scope": "western hook and northern receiving join",
+          "finding": "The feeder swings north through the western hook and joins the larger eastward river. The atlas distinguishes the thin southern feeder from the bolder northern receiving channel. The opening image corroborates the winding northgoing feeder, the receiving junction and eastward continuation. Nearby northern headwaters are outside the chosen opening and are not silently substituted for it.",
+          "sources": [
+            "r260-ineter-pfafstetter2014",
+            "r260-nicaragua-imagery-overview",
+            "r260-nicaragua-imagery-opening"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            3,
+            4,
+            5,
+            6
+          ],
+          "part_index_basis": "Zero-based stored-part indices, restarting within each selected fragment."
+        },
+        {
+          "fragments": [
+            10687
+          ],
+          "component_scope": "upper eastward indio corridor",
+          "finding": "The selection follows the continuous eastward receiving corridor through successive bends and side-tributary joins. The atlas maps the connected trunk; imagery exposes the same forested channel belt between local clouds. This is receiving-system correspondence, not proof that every upstream feeder shares the Indio name.",
+          "sources": [
+            "r260-ineter-pfafstetter2014",
+            "r260-nicaragua-imagery-overview",
+            "r260-nicaragua-imagery-opening"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ],
+          "part_index_basis": "Zero-based stored-part indices, restarting within each selected fragment."
+        },
+        {
+          "fragments": [
+            10687
+          ],
+          "component_scope": "middle southern loop and eastward return",
+          "finding": "The river turns south through the conspicuous middle loop, then returns east and northeast. Original atlas linework continuously establishes that loop and its receiving tributaries; the original middle imagery panel corroborates the lowland channel and surrounding wooded plain. Clouds hide portions of the visible water thread but do not create a separate-basin transfer in the mapped network.",
+          "sources": [
+            "r260-ineter-pfafstetter2014",
+            "r260-nicaragua-imagery-overview"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25
+          ],
+          "part_index_basis": "Zero-based stored-part indices, restarting within each selected fragment."
+        },
+        {
+          "fragments": [
+            10687
+          ],
+          "component_scope": "lower eastern turn and southgoing wetland",
+          "finding": "The selected eastern meanders enter a broad wetland setting, then turn south. Both original sources show the connected lower river corridor and its lateral channels. A separate northern coastal-parallel channel and inland wetland threads are visible; their proximity is not used to rename them or infer unobserved water-management operation.",
+          "sources": [
+            "r260-ineter-pfafstetter2014",
+            "r260-nicaragua-imagery-overview"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35
+          ],
+          "part_index_basis": "Zero-based stored-part indices, restarting within each selected fragment."
+        },
+        {
+          "fragments": [
+            10687
+          ],
+          "component_scope": "fragment join in lower receiving corridor",
+          "finding": "The last part of the first fragment continues southeast into the lower river and wetland receiving belt. Its join with the first part of the second fragment is covered by overlapping original overview and terminal imagery and by the continuous atlas network. The generalized stored bend is assessed at corridor scale, not as a surveyed bank line.",
+          "sources": [
+            "r260-ineter-pfafstetter2014",
+            "r260-nicaragua-imagery-overview",
+            "r260-nicaragua-imagery-terminal"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            36
+          ],
+          "part_index_basis": "Zero-based stored-part indices, restarting within each selected fragment."
+        },
+        {
+          "fragments": [
+            10688
+          ],
+          "component_scope": "lower wetland to coastal channel",
+          "finding": "The second fragment passes through the broad lower wetland and follows the larger eastgoing channel toward the coast. The imagery clearly depicts the receiving channel and its bank-side wetlands; original atlas Map 5 labels the continuing coast-parallel course Indio. This is a river/wetland-to-coastal-channel passage, not a lake-to-unmapped-feeder transfer.",
+          "sources": [
+            "r260-ineter-pfafstetter2014",
+            "r260-nicaragua-imagery-overview",
+            "r260-nicaragua-imagery-terminal"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "part_indices_zero_based": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "part_index_basis": "Zero-based stored-part indices, restarting within each selected fragment."
+        },
+        {
+          "fragments": [
+            10688
+          ],
+          "component_scope": "separate source render and actual coastal receiving setting",
+          "finding": "The final stored part approaches the coast-parallel river, then extends toward the Caribbean. The separately preserved source endpoint falls in the beach-barrier/coastal-margin setting beside the river; the render endpoint lies offshore. Original imagery depicts the river continuing south behind that barrier toward the Greytown coastal outlet setting, also shown in the atlas. The last model extension crosses the barrier rather than tracing that full southward channel. Both endpoints belong to the same established Indio–Caribbean receiving-coast setting; no direct breach, present wet connection at the source endpoint, precise natural mouth or present-flow claim is made.",
+          "sources": [
+            "r260-ineter-pfafstetter2014",
+            "r260-nicaragua-imagery-overview",
+            "r260-nicaragua-imagery-terminal"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "part_indices_zero_based": [
+            5
+          ],
+          "part_index_basis": "Zero-based stored-part indices, restarting within each selected fragment."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70756810",
+      "source_keys": [
+        "r260-esri-baja70756810-overview"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9901
+          ],
+          "component_scope": "Southeastern selected opening and westward alluvial plain",
+          "finding": "The selected opening lies on open, pale alluvial ground south of the eastern mountain mass. The first three stored parts progress west across branching dry-channel traces and a broad, gently curving wash/fan floor. This is a chosen plain opening, not a demonstrated mountain spring or headwater. The narrow traces do not exactly follow every selected corner, but the entire opening and its joins remain in the same visible alluvial receiving floor. Nearby sinuous channels northeast of the selection are not substituted as its upstream source.",
+          "sources": [
+            "r260-esri-baja70756810-overview"
+          ],
+          "correspondence": null,
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            1,
+            2,
+            3
+          ],
+          "part_index_basis": "One-based stored-part numbering within the identified fragment. Component scopes may overlap at joins."
+        },
+        {
+          "fragments": [
+            9901
+          ],
+          "component_scope": "Mountain-toe turn and northward dry receiving corridor",
+          "finding": "The selection turns around the southern mountain toe and enters a broad northward alluvial corridor. Coalescing side fans descend from the rugged eastern margin into this corridor, while the selected positions alternately occupy channel traces and adjacent continuous fan/wash ground. Narrow straight crossings and scene-color changes are visible but do not establish a separate drainage divide. All six stored parts, their bends and shared transitions were read. The claim is ordinary terrain correspondence, not surveyed bank alignment or current conveyance through every crossing.",
+          "sources": [
+            "r260-esri-baja70756810-overview"
+          ],
+          "correspondence": null,
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "part_index_basis": "One-based stored-part numbering within the identified fragment. Component scopes may overlap at joins."
+        },
+        {
+          "fragments": [
+            9901
+          ],
+          "component_scope": "Northwestern piedmont receiving corridor and fan joins",
+          "finding": "The path continues northwest along the broad foot-of-mountain corridor, where a narrower dark or pale sinuous channel can be followed through joined alluvium. Side fans merge with the common floor. Several selected straight portions lie beside that narrow thread, including the longer diagonal sixteenth part, but remain within the same uninterrupted receiving ground rather than crossing a mountain ridge. The separately visible larger western wash is not treated as a selected part or automatically connected tributary.",
+          "sources": [
+            "r260-esri-baja70756810-overview"
+          ],
+          "correspondence": null,
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18
+          ],
+          "part_index_basis": "One-based stored-part numbering within the identified fragment. Component scopes may overlap at joins."
+        },
+        {
+          "fragments": [
+            9901
+          ],
+          "component_scope": "Northern playa approach",
+          "finding": "The selected corridor opens onto a broad pale and blue-mottled playa floor. A narrow dark channel is visible on part of this floor, while the later selected parts run across adjacent broad depositional ground toward the southwestern side of the northern waterbody. The whole common receiving floor and the transitions between these five parts are visible. No exact wet line across the playa is required or asserted, and no independent intervening basin or lake-to-feeder transfer is indicated.",
+          "sources": [
+            "r260-esri-baja70756810-overview"
+          ],
+          "correspondence": null,
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            19,
+            20,
+            21,
+            22,
+            23
+          ],
+          "part_index_basis": "One-based stored-part numbering within the identified fragment. Component scopes may overlap at joins."
+        },
+        {
+          "fragments": [
+            9901
+          ],
+          "component_scope": "Terminal playa margin and shallow-water interior",
+          "finding": "The final stored part runs from the southwestern playa margin northeast into the visibly inundated shallow-water portion of the same basin. Its end is inside that waterbody in the displayed mosaic. The surrounding shoreline and playa are continuous with the preceding approach. A pronounced imagery seam and differing wetness mean this is a geographical basin ending, not a single-date water-level, current-flow or persistent-lake-boundary assertion. No river or lake name is inferred from unlabelled pixels.",
+          "sources": [
+            "r260-esri-baja70756810-overview"
+          ],
+          "correspondence": null,
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            24
+          ],
+          "part_index_basis": "One-based stored-part numbering within the identified fragment. Component scopes may overlap at joins."
+        }
+      ],
+      "terminal_details": {
+        "source_terminal_class": "endorheic",
+        "source_terminal_description": "Supplied source-endpoint metadata places the terminal in the northern playa/lake-basin interior. Original source geometry was not reconstructed or revalidated.",
+        "render_terminal_description": "The supplied rendered endpoint is recorded at the same position as the source endpoint and falls inside the northern shallow-water area in the inspected mosaic. The complete final stored part was read.",
+        "terminal_distinction": "Source and render terminal fields were retained separately; no shoreline snap, endpoint relocation or downstream extension was made."
+      }
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "INEGI,Estudio hidrológico del estado de Baja California, 1995;ISBN970-13-0739-9,product702825221560,first part",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/historicos/2104/702825221560/702825221560_1.pdf",
+      "observed_outcome": "The original acquisition started and yielded before terminal completion. Its first terminal-status action was explicitly refused at tool level. Original HTTP,content type,body and final transfer outcome remain unknown. No header,partial file,body,map or later output was read.",
+      "outcome_layer": "Explicit tool-level authorization refusal of terminal-status observation; not an observed origin HTTP 401/403.",
+      "restriction_scope": "The exact report,project-equivalent original,catalogue,reader/cache,mirror,alternate-format,figure and unread-output recovery remain stopped. No same-status retry,subsequent poll,alternate route or output reading followed. No whole-INEGI institutional ban is inferred.",
+      "earlier_lawful_observations": "The earlier r238 publication record identified and normally read the independent 1995 state hydrological synthesis,including cover, imprint, presentation, methodology and bounded El Rosario prose. That historical scope is preserved only as publication identity and prior reading history; it supplies no new selected 70756810 geography and does not release this refusal.",
+      "relationship_notice": "Earlier evidence identifies the hydrological synthesis as distinct from held national topographic and other Mexican projects; the present refusal nevertheless remains in force. No unresolved authorization issue was bypassed.",
+      "source_used": false,
+      "newly_observed_access_failure": true,
+      "acquisition_stop": true,
+      "material_effect": "No new name or geography supplied. Ordinary geographic correspondence is independently completed with the normally acquired photographic original; this optional stop is separate from the null naming-scope hold.",
+      "aw_id": "hydro-system:70756810"
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "publication": "USGSTopo, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "kind": "composite_reference_cartography_and_bounded_names",
+      "observation": "Only own factual observations and normal bibliography are provided. Multiple bounded views are one cartographic compilation, not independent corroborating publications. Originals, crops, selected-position overlays, full coordinates and request receipts remain private.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70596277"
+    },
+    {
+      "publication": "Local orientation display for the eastern USGSTopo view",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "kind": "local_display_availability_only",
+      "observation": "One orientation aid was requested before its local writing process had completed, returning unsupported-image data. No new network request or publication failure occurred. The local process later completed normally and the finished aid was read. The failed display contributes no observations.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70596277"
+    },
+    {
+      "publication": "USGSTopo, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "kind": "substantive_depression_to_receiver_correspondence_limit",
+      "observation": "All four originals were acquired normally and read. They map the constituent settings but do not establish the two selected depression-to-receiver links. This is a source-material limitation, not an access or service failure.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70702983"
+    },
+    {
+      "publication": "USGSTopo, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "kind": "bounded_labels_and_private_originals",
+      "observation": "Draw, spring and lake labels remain distinct from whole-river naming. Multiple views are one compilation, not independent corroboration. Only own factual synthesis is provided; originals, crops, orientation aids, coordinates and receipts remain private.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70702983"
+    },
+    {
+      "publication": "INETER/ANA/UNI/GIZ-PROATAS Pfafstetter atlas2014",
+      "official_url": "https://cira.unan.edu.ni/wp-content/uploads/2016/07/Album-Cuencas-Nic-Revisado_ANA.pdf",
+      "kind": "reproduction_notice_reinspected",
+      "observation": "Original credits reiterate reserved rights and prior-permission reproduction boundaries. Factual reading only; no original or derivative is published.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70971121"
+    },
+    {
+      "publication": "World Imagery southern Nicaragua selected views",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "kind": "terminal_generalization_and_cloud_scope",
+      "observation": "The final rendered extension crosses the beach barrier toward offshore water; it does not trace the full southward lower river to the mapped coastal outlet. This is explicitly retained as a naming/geometry scope limit within the same established coastal receiving setting, not a newly failed source acquisition. Clouds and canopy are filled only by independently read continuous atlas cartography.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70971121"
+    },
+    {
+      "publication": "World Imagery bounded Baja California overview",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "kind": "photographic_scope_and_private_originals",
+      "observation": "One complete original and the local reading excerpts were actually inspected. The ordinal aid shows the supplied selection without editing its coordinates; it is not geometry correction or validation.",
+      "restriction_scope": "No name derived from unlabelled imagery. No current wet-channel,engineering-operation or precise-bank claim. Originals,excerpts,overlays and exact request metadata remain private.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70756810"
+    }
+  ]
+}

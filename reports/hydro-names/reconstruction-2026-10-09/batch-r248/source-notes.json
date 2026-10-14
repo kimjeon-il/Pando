@@ -1,0 +1,1081 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r248",
+  "sources": [
+    {
+      "source_key": "r248-cr-world-imagery",
+      "title": "Esri World Imagery, selected central Costa Rica river corridor",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "publication_identity": "Independent remotely sensed imagery mosaic for the selected central Costa Rica corridor. It is geographically distinct from held northern Ellesmere, Nevada, Knik-lower and Mendoza selected views, and is not recovery of the held Central America, JOG, SGN/IGN or watershed-project maps. Shared-service turn was coordinated.",
+      "actual_material_read": "One completed normal-original JPEG overview, followed by actual visual reading of the original overview and local upper, middle, lower, chosen-opening and terminal detail crops. Private orientation aids preserve the two original fragments and all 50 stored parts. Original, unoverlaid details were also read.",
+      "access_outcome": "Completed HTTP200 image/jpeg; original transfer terminated normally with exit 0.",
+      "supports": "All selected ordinary valley/channel corridors, urban joins, incised middle receiving valley, lower floodplain and Pacific coastal terminal setting.",
+      "limits": "Unlabelled photographic mosaic, with no per-pixel acquisition dates inspected. Vegetation, local haze and image scale do not resolve each bank or infrastructure operation. It supplies geography, not formal hydronym-registry validation.",
+      "use_notice": "Source imagery and local crops/orientation derivatives remain private; public output contains independently written observations and the normal service bibliography only."
+    },
+    {
+      "source_key": "r248-cr-quesada-waylen2012",
+      "title": "Diferencias hidrológicas anuales y estacionales en regiones adyacentes: estudio de las subcuencas de los ríos Virilla y Grande de San Ramón, Costa Rica",
+      "authors": [
+        "Marvin E. Quesada Q.",
+        "Peter R. Waylen"
+      ],
+      "publisher": "Cuadernos de Geografía: Revista Colombiana de Geografía, Universidad Nacional de Colombia",
+      "year": 2012,
+      "bibliography": "Vol. 21, Núm. 2; published 1 July 2012; DOI 10.15446/rcdg.v21n2.32218",
+      "official_url": "https://revistas.unal.edu.co/index.php/rcg/article/view/32218",
+      "publication_identity": "Independent UCR/University of Florida hydroclimatological comparison using ICE monthly discharge records and statistical analysis. Its actual author affiliations and methods identify the research, rather than a new title or host alone. It is distinct from held CNE PROIGE prevention, ACOSA management, IMN characterization,2021 water-quality,1984 biochemical-oxygen and Reventazón field projects; also distinct from the held UNAL Canal del Dique2002/2003 delta project.",
+      "actual_material_read": "Publisher HTML title, authors, abstract, introduction, Características generales de las subcuencas, Datos y metodología and relevant station descriptions/results and conclusion prose. No linked map, figure, PDF or underlying borrowed cartography was acquired or used.",
+      "access_outcome": "Publisher HTML reader completed normally with text/html.",
+      "supports": "Grande de Tárcoles receiving river and basin identity and Pacific outlet context; Virilla and Grande de San Ramón as eastern/western subbasins; combined Tiribí–Virilla drainage at San Miguel and downstream Tárcoles at Balsa.",
+      "limits": "Authorial hydrological prose is used at ordinary network scale with the independent imagery. It does not name the exact chosen opening, fix every name transition or establish current dam operation. Its flow statistics are not re-evaluated."
+    },
+    {
+      "source_key": "r248-cr-imn-catalogue-bibliography-only",
+      "title": "Estudio de las cuencas hidrográficas de Costa Rica, official publication catalogue",
+      "publisher": "Instituto Meteorológico Nacional",
+      "official_url": "https://cglobal.imn.ac.cr/index.php/publications/estudio-de-las-cuencas-hidrograficas-de-costa-rica/",
+      "actual_material_read": "Pre-stop catalogue description of the national 34-basin characterization study and its explicit Grande de Tárcoles chapter link.",
+      "supports": "Bibliographic identity only; not selected-route hydrography.",
+      "used_as_substantive_evidence": false,
+      "limits": "The linked chapter failed and remains unavailable; catalogue text is not original map reading."
+    },
+    {
+      "source_key": "r248-wrottesley-imagery-overview",
+      "title": "Esri World Imagery: bounded Boothia Peninsula selected-corridor overview",
+      "publisher": "Esri World Imagery",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "evidence_kind": "independent_photographic_geography",
+      "acquisition_outcome": "Normal extent-metadata request completed HTTP 200 application/json, followed sequentially by its original image completing HTTP 200 image/jpeg. Both commands terminated normally before the next request.",
+      "actual_material_read": "Complete original exposed, then overlapping southern, middle and northern clean-pixel enlargements and separate orientation aids read.",
+      "supports": "Whole selected opening-to-coast context; middle river bends and ordinary receiving corridor.",
+      "source_independence": "Independently maintained satellite/aerial imagery publication with its own editorial and product identity; not recovery of held Canadian topographic sheets, naming records, NLUIS maps or geological field-project figures. These Boothia Peninsula views are geographically distinct from the held Ellesmere, Nevada, Knik and Mendoza exact views.",
+      "limits": "No hydronym labels, verified individual scene dates, current discharge, exact banks, mandatory serial lake passage, wetland hydraulic operation or formal registry evidence. Actual returned extent was retained for local reading; no selected geometry was repaired.",
+      "use_notice": "Only own factual synthesis and ordinary bibliography are public-ready. Original imagery and all crops or orientation derivatives remain private."
+    },
+    {
+      "source_key": "r248-wrottesley-imagery-opening",
+      "title": "Esri World Imagery: southern feeder opening and northwest receiving-valley detail",
+      "publisher": "Esri World Imagery",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "evidence_kind": "independent_photographic_geography",
+      "acquisition_outcome": "Normal extent-metadata request completed HTTP 200 application/json, followed sequentially by its original image completing HTTP 200 image/jpeg. Both commands terminated normally before the next request.",
+      "actual_material_read": "Complete original covered by two overlapping clean-pixel panels and separate orientation aids, including the opening bend and receiving junction.",
+      "supports": "Opening, northwest feeder, lateral joins and transition to the broader river.",
+      "source_independence": "Independently maintained satellite/aerial imagery publication with its own editorial and product identity; not recovery of held Canadian topographic sheets, naming records, NLUIS maps or geological field-project figures. These Boothia Peninsula views are geographically distinct from the held Ellesmere, Nevada, Knik and Mendoza exact views.",
+      "limits": "No hydronym labels, verified individual scene dates, current discharge, exact banks, mandatory serial lake passage, wetland hydraulic operation or formal registry evidence. Actual returned extent was retained for local reading; no selected geometry was repaired.",
+      "use_notice": "Only own factual synthesis and ordinary bibliography are public-ready. Original imagery and all crops or orientation derivatives remain private."
+    },
+    {
+      "source_key": "r248-wrottesley-imagery-north",
+      "title": "Esri World Imagery: northern lake-rich lowland and coastal-mouth detail",
+      "publisher": "Esri World Imagery",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "evidence_kind": "independent_photographic_geography",
+      "acquisition_outcome": "Normal extent-metadata request completed HTTP 200 application/json, followed sequentially by its original image completing HTTP 200 image/jpeg. Both commands terminated normally before the next request.",
+      "actual_material_read": "Complete original covered by three overlapping clean-pixel panels and separate orientation aids: lake-rich southern lowland, lower bends/junction and mouth; source and rendered endpoints read separately.",
+      "supports": "Northern lowland, receiving tributary-loop setting, lower river and both stored terminal settings.",
+      "source_independence": "Independently maintained satellite/aerial imagery publication with its own editorial and product identity; not recovery of held Canadian topographic sheets, naming records, NLUIS maps or geological field-project figures. These Boothia Peninsula views are geographically distinct from the held Ellesmere, Nevada, Knik and Mendoza exact views.",
+      "limits": "No hydronym labels, verified individual scene dates, current discharge, exact banks, mandatory serial lake passage, wetland hydraulic operation or formal registry evidence. Actual returned extent was retained for local reading; no selected geometry was repaired.",
+      "use_notice": "Only own factual synthesis and ordinary bibliography are public-ready. Original imagery and all crops or orientation derivatives remain private."
+    },
+    {
+      "source_key": "r248-chs-arc4032024-wrottesley",
+      "title": "Canadian Sailing Directions, ARC403: Western Arctic",
+      "publisher": "Canadian Hydrographic Service, Fisheries and Oceans Canada",
+      "edition": "2024/03",
+      "catalogue_number": "Fs74-40E-PDF",
+      "issn": "2816-4555",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/chs-shc-ARC403-eng-202403-41232306.pdf",
+      "evidence_kind": "primary_coastal_geographic_prose",
+      "acquisition_outcome": "Previously normally acquired complete original remained physically available; read locally after exact later-restriction lookup. No new external ARC403 or chart request.",
+      "actual_material_read": "Retained cover, edition/catalogue and reproduction notice on printed page iii; Chapter 9 printed page 9-10, especially paragraph 151 and neighboring coastal context, including physical visual inspection of the complete original PDF page 170.",
+      "bounded_observation": "Wrottesley River enters the head of Wrottesley Inlet south of Reid Point through a southeast-trending valley. Nearby Pattinson Harbour and its two draining lakes are separately described to the north.",
+      "supports": "Coastal river name, receiving inlet identity and distinction from adjacent coastal drainages. Combined with the imagery-supported valley-to-mouth correspondence, this supports Wrottesley River as the representative receiving system.",
+      "source_independence": "Previously positively identified separate CHS sailing-directions editorial volume. Its own coastal descriptions are distinct from held ARC401, Canadian naming services, CanMatrix/CBMT cartography and unidentified geological or PCSP project material.",
+      "limits": "Does not name or individually trace the inland feeder, ponds, lakes or all selected parts. It supplies no formal registry verification and is not used for current navigation advice.",
+      "use_notice": "The original permits personal noncommercial reproduction and requires prior written permission for commercial reproduction. Only concise independent factual synthesis and normal bibliography are supplied."
+    },
+    {
+      "source_key": "r248-usgstopo-nv-overview",
+      "title": "USGSTopo, The National Map: Spring Creek–Dixie Valley complete selected corridor",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "accessed_date_utc": "2026-10-14",
+      "source_type": "Independent multiscale federal reference cartography",
+      "observed_acquisition": "New original bounded raster completed HTTP200 image/png; terminal exit0 confirmed before actual pixel reading.",
+      "actual_read_scope": "Full original overview and private orientation image covering every stored part, chosen opening, axial valley, joining fans, Dixie lowland and actual salt-marsh ending.",
+      "original_map_pixels_inspected": true,
+      "publication_independence": "Retained successfully acquired service metadata was actually read: TNM/NHD/GNIS/3DEP and other credited themes. This separately maintained cartographic service is not an edition, copied plate or recovery route for WRI88-4048, SIR2014-5152 or the2009–11 Dixie field study. New target views do not recover the stopped Stonecabin, Hot Creek or Inglutalik outputs.",
+      "metadata_basis": "One physically retained, confirmed successful prior service metadata original reused; no additional metadata request. September4,2026-v1.2 is a service refresh, not a survey date for each feature.",
+      "use_notice": "Own factual paraphrase and ordinary bibliography only. Original maps, crops and orientation aids remain private; formal registered name boundaries, current flow and management operation are not established."
+    },
+    {
+      "source_key": "r248-usgstopo-nv-upper",
+      "title": "USGSTopo, The National Map: Gooseberry Creek fan and upper Spring Creek",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "accessed_date_utc": "2026-10-14",
+      "source_type": "Independent multiscale federal reference cartography",
+      "observed_acquisition": "New original bounded raster completed HTTP200 image/png; terminal exit0 confirmed before actual pixel reading.",
+      "actual_read_scope": "Full original upper view, separate orientation, enlarged original opening crop and Gooseberry Creek label crop; all northern opening/fan, Spring Creek axial reach and tributary joins in this coverage.",
+      "original_map_pixels_inspected": true,
+      "publication_independence": "Retained successfully acquired service metadata was actually read: TNM/NHD/GNIS/3DEP and other credited themes. This separately maintained cartographic service is not an edition, copied plate or recovery route for WRI88-4048, SIR2014-5152 or the2009–11 Dixie field study. New target views do not recover the stopped Stonecabin, Hot Creek or Inglutalik outputs.",
+      "metadata_basis": "One physically retained, confirmed successful prior service metadata original reused; no additional metadata request. September4,2026-v1.2 is a service refresh, not a survey date for each feature.",
+      "use_notice": "Own factual paraphrase and ordinary bibliography only. Original maps, crops and orientation aids remain private; formal registered name boundaries, current flow and management operation are not established."
+    },
+    {
+      "source_key": "r248-usgstopo-nv-middle",
+      "title": "USGSTopo, The National Map: Spring Creek narrows and Jersey Valley receiving plain",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "accessed_date_utc": "2026-10-14",
+      "source_type": "Independent multiscale federal reference cartography",
+      "observed_acquisition": "New original bounded raster completed HTTP200 image/png; terminal exit0 confirmed before actual pixel reading.",
+      "actual_read_scope": "Full original middle view and separate orientation; wetland-symbol valley, Pleasant Valley narrows, Spring Creek/Jersey Valley Wash shared fan, managed linework and southwestward receiving floor.",
+      "original_map_pixels_inspected": true,
+      "publication_independence": "Retained successfully acquired service metadata was actually read: TNM/NHD/GNIS/3DEP and other credited themes. This separately maintained cartographic service is not an edition, copied plate or recovery route for WRI88-4048, SIR2014-5152 or the2009–11 Dixie field study. New target views do not recover the stopped Stonecabin, Hot Creek or Inglutalik outputs.",
+      "metadata_basis": "One physically retained, confirmed successful prior service metadata original reused; no additional metadata request. September4,2026-v1.2 is a service refresh, not a survey date for each feature.",
+      "use_notice": "Own factual paraphrase and ordinary bibliography only. Original maps, crops and orientation aids remain private; formal registered name boundaries, current flow and management operation are not established."
+    },
+    {
+      "source_key": "r248-usgstopo-nv-lower",
+      "title": "USGSTopo, The National Map: lower Spring Creek, Dixie Meadows and Humboldt Salt Marsh",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "accessed_date_utc": "2026-10-14",
+      "source_type": "Independent multiscale federal reference cartography",
+      "observed_acquisition": "New original bounded raster completed HTTP200 image/png; terminal exit0 confirmed before actual pixel reading.",
+      "actual_read_scope": "Full original lower view and separate orientation; direct lower Spring Creek labels, Cottonwood fan, Dixie Meadows receiving floor, marsh margin and actual endpoint.",
+      "original_map_pixels_inspected": true,
+      "publication_independence": "Retained successfully acquired service metadata was actually read: TNM/NHD/GNIS/3DEP and other credited themes. This separately maintained cartographic service is not an edition, copied plate or recovery route for WRI88-4048, SIR2014-5152 or the2009–11 Dixie field study. New target views do not recover the stopped Stonecabin, Hot Creek or Inglutalik outputs.",
+      "metadata_basis": "One physically retained, confirmed successful prior service metadata original reused; no additional metadata request. September4,2026-v1.2 is a service refresh, not a survey date for each feature.",
+      "use_notice": "Own factual paraphrase and ordinary bibliography only. Original maps, crops and orientation aids remain private; formal registered name boundaries, current flow and management operation are not established."
+    },
+    {
+      "source_key": "r248-usgstopo-nm-overview",
+      "title": "USGSTopo, The National Map: complete selected Jornada–Lake Tank corridor",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "accessed_date_utc": "2026-10-14",
+      "source_type": "Independent multiscale federal reference cartography",
+      "observed_acquisition": "New bounded original raster completed HTTP200 image/png; terminal exit0 confirmed before actual pixel reading.",
+      "actual_read_scope": "Full original overview and separate private orientation covering every stored part0–32, western opening, middle dry corridors and playa setting, southern basin and actual terminal.",
+      "original_map_pixels_inspected": true,
+      "publication_independence": "Actually read retained successful service metadata identifies the separately maintained TNM/NHD/GNIS/3DEP composite. It is not a report plate or recovery of held western-US research publications, Stonecabin or Inglutalik outputs. New Mexico views are geographically distinct from those exact stopped views.",
+      "metadata_basis": "One physically retained successful service metadata original reused for the two desert targets; no duplicated metadata acquisition. The September4,2026-v1.2 refresh is not a uniform field-survey date.",
+      "use_notice": "Own factual paraphrase and normal bibliography only; original maps, crops and orientation aids remain private. No formal registry determination, current flow, exact banks or tank operation claimed."
+    },
+    {
+      "source_key": "r248-usgstopo-nm-upper",
+      "title": "USGSTopo, The National Map: Cutter, upper draws and Aleman receiving corridor",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "accessed_date_utc": "2026-10-14",
+      "source_type": "Independent multiscale federal reference cartography",
+      "observed_acquisition": "New bounded original raster completed HTTP200 image/png; terminal exit0 confirmed before actual pixel reading.",
+      "actual_read_scope": "Full original upper view, separate orientation and enlarged original Hackberry Draw label crop; western opening, southeastern Jornada Lakes margin, upper named draws, Aleman receiving setting, Prisor Hill and Upham approach.",
+      "original_map_pixels_inspected": true,
+      "publication_independence": "Actually read retained successful service metadata identifies the separately maintained TNM/NHD/GNIS/3DEP composite. It is not a report plate or recovery of held western-US research publications, Stonecabin or Inglutalik outputs. New Mexico views are geographically distinct from those exact stopped views.",
+      "metadata_basis": "One physically retained successful service metadata original reused for the two desert targets; no duplicated metadata acquisition. The September4,2026-v1.2 refresh is not a uniform field-survey date.",
+      "use_notice": "Own factual paraphrase and normal bibliography only; original maps, crops and orientation aids remain private. No formal registry determination, current flow, exact banks or tank operation claimed."
+    },
+    {
+      "source_key": "r248-usgstopo-nm-middle",
+      "title": "USGSTopo, The National Map: Upham Hills, Jornada Draw and central playa/plain corridor",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "accessed_date_utc": "2026-10-14",
+      "source_type": "Independent multiscale federal reference cartography",
+      "observed_acquisition": "New bounded original raster completed HTTP200 image/png; terminal exit0 confirmed before actual pixel reading.",
+      "actual_read_scope": "Full original middle view, separate orientation and enlarged original central-playa/contour crop; Upham Hills passage, Jornada Draw, central playa complex, Gilmore Draw vicinity and southeastern receiving plain.",
+      "original_map_pixels_inspected": true,
+      "publication_independence": "Actually read retained successful service metadata identifies the separately maintained TNM/NHD/GNIS/3DEP composite. It is not a report plate or recovery of held western-US research publications, Stonecabin or Inglutalik outputs. New Mexico views are geographically distinct from those exact stopped views.",
+      "metadata_basis": "One physically retained successful service metadata original reused for the two desert targets; no duplicated metadata acquisition. The September4,2026-v1.2 refresh is not a uniform field-survey date.",
+      "use_notice": "Own factual paraphrase and normal bibliography only; original maps, crops and orientation aids remain private. No formal registry determination, current flow, exact banks or tank operation claimed."
+    },
+    {
+      "source_key": "r248-usgstopo-nm-lower",
+      "title": "USGSTopo, The National Map: Antelope Flat and Lake Tank receiving corridor",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "accessed_date_utc": "2026-10-14",
+      "source_type": "Independent multiscale federal reference cartography",
+      "observed_acquisition": "New bounded original raster completed HTTP200 image/png; terminal exit0 confirmed before actual pixel reading.",
+      "actual_read_scope": "Full original lower view and separate orientation; pan chain, Antelope Flat surroundings, long southern lowland, small tanks/roads, Doña Ana Hills margin and northern Lake Tank terminal.",
+      "original_map_pixels_inspected": true,
+      "publication_independence": "Actually read retained successful service metadata identifies the separately maintained TNM/NHD/GNIS/3DEP composite. It is not a report plate or recovery of held western-US research publications, Stonecabin or Inglutalik outputs. New Mexico views are geographically distinct from those exact stopped views.",
+      "metadata_basis": "One physically retained successful service metadata original reused for the two desert targets; no duplicated metadata acquisition. The September4,2026-v1.2 refresh is not a uniform field-survey date.",
+      "use_notice": "Own factual paraphrase and normal bibliography only; original maps, crops and orientation aids remain private. No formal registry determination, current flow, exact banks or tank operation claimed."
+    },
+    {
+      "source_key": "r248-worldimagery-nm-middle",
+      "title": "World Imagery: selected middle Jornada playa and southeast receiving-floor corridor",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "accessed_date_utc": "2026-10-14",
+      "source_type": "Independent photographic imagery mosaic",
+      "observed_acquisition": "One new original completed HTTP200 image/jpeg and exit0; its sequential same-view extent metadata completed HTTP200 application/json and exit0.",
+      "actual_read_scope": "Full original image and extent-based private orientation image, covering the Upham/Point-of-Rocks corridor, central playa parts16–17 and the southeast receiving-floor/pan chain through parts18–23.",
+      "original_map_pixels_inspected": true,
+      "publication_independence": "Independently maintained photographic mosaic with documented successful original-reading history; a genuinely new New Mexico target view, distinct from the held Ellesmere, Hot Creek, Knik and Mendoza selected views and not a reproduction of a stopped report.",
+      "supports": "Continuous sediment/vegetated low corridor through the specifically questioned central-playa southeastward passage.",
+      "limits": "No hydronym, current wet-thread, exact spill height, verified mosaic acquisition date or present operation inference. Original imagery, metadata response, crops and orientations stay private."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70976999",
+      "source_keys": [
+        "r248-cr-world-imagery",
+        "r248-cr-quesada-waylen2012"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10720
+          ],
+          "component_scope": "eastern chosen opening and upper urban approach",
+          "finding": "The eastern chosen opening is within a west-leading foothill drainage corridor at the eastern edge of the metropolitan basin. Its wooded valley continues through the urban fringe and southern city corridor. Haze, vegetation and the small channel width preclude bank-by-bank tracing, but the ordinary valley and receiving continuity are visible. The chosen vertex is not identified as the river’s natural spring; no exact upper hydronym is assigned.",
+          "sources": [
+            "r248-cr-world-imagery"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ],
+          "part_index_basis": "Zero-based stored part indices within the listed fragment."
+        },
+        {
+          "fragments": [
+            10720
+          ],
+          "component_scope": "southern urban corridor and northward bend",
+          "finding": "The selected corridor follows the connected southern urban drainage westward, then turns north along the western metropolitan edge. Vegetated channel margins, the valley floor and the joins remain geographically continuous despite bridges and dense development. Tiribí is supported as a tributary/subbasin name by the independent hydrological study, without extending that name uniformly to every opening segment.",
+          "sources": [
+            "r248-cr-world-imagery",
+            "r248-cr-quesada-waylen2012"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          "part_index_basis": "Zero-based stored part indices within the listed fragment."
+        },
+        {
+          "fragments": [
+            10720
+          ],
+          "component_scope": "northwestern urban join and larger collector",
+          "finding": "The northbound urban tributary reaches the larger, deeply incised collector at the northwestern metropolitan edge; the selection then follows its westward bend. The imagery distinguishes the joining valley from parallel northern urban tributaries. The hydrological study places combined Tiribí–Virilla drainage upstream of the Virilla station at San Miguel.",
+          "sources": [
+            "r248-cr-world-imagery",
+            "r248-cr-quesada-waylen2012"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            18,
+            19,
+            20,
+            21,
+            22
+          ],
+          "part_index_basis": "Zero-based stored part indices within the listed fragment."
+        },
+        {
+          "fragments": [
+            10720
+          ],
+          "component_scope": "middle incised westbound corridor to fragment boundary",
+          "finding": "West of the urban area, the selected larger collector occupies a continuous incised valley through cultivated and wooded hills, receiving side tributaries and continuing to the northern-branch junction near the fragment boundary. Dark or locally widened reaches and water-management structures do not interrupt the ordinary valley correspondence; no present operating route, exact impoundment name or hydraulic allocation is asserted.",
+          "sources": [
+            "r248-cr-world-imagery"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "original_part_indices": [
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33
+          ],
+          "part_index_basis": "Zero-based stored part indices within the listed fragment."
+        },
+        {
+          "fragments": [
+            10721
+          ],
+          "component_scope": "western junction and canyon exit",
+          "finding": "The second fragment continues from the same shared junction through the westbound receiving canyon and out toward lower-relief country. The independently read study places Virilla and Grande de San Ramón within the receiving Grande de Tárcoles system. Grande de San Ramón is a distinct joining branch, not an alias of the selected eastern upper route.",
+          "sources": [
+            "r248-cr-world-imagery",
+            "r248-cr-quesada-waylen2012"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "original_part_indices": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "part_index_basis": "Zero-based stored part indices within the listed fragment."
+        },
+        {
+          "fragments": [
+            10721
+          ],
+          "component_scope": "southwestward lower floodplain",
+          "finding": "The receiving channel turns southwest across an increasingly broad agricultural and wooded floodplain. The image shows a continuous meandering river, bars and tributary approaches. The simplified stored path is treated as orientation through this corridor, without requiring its line to follow every contemporary meander.",
+          "sources": [
+            "r248-cr-world-imagery"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "original_part_indices": [
+            7,
+            8,
+            9,
+            10
+          ],
+          "part_index_basis": "Zero-based stored part indices within the listed fragment."
+        },
+        {
+          "fragments": [
+            10721
+          ],
+          "component_scope": "lower floodplain and estuarine approach",
+          "finding": "The selected route continues southwest through the lower alluvial corridor and widened tidal/estuarine approach. Broad bends, bars, vegetated floodplain and coastal wetland channels are visible. The main receiving passage remains continuous to the coastal mouth; side wetland channels are not promoted into separate selected branches.",
+          "sources": [
+            "r248-cr-world-imagery"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "original_part_indices": [
+            11,
+            12,
+            13,
+            14
+          ],
+          "part_index_basis": "Zero-based stored part indices within the listed fragment."
+        },
+        {
+          "fragments": [
+            10721
+          ],
+          "component_scope": "rendered terminal and distinct source end setting",
+          "finding": "The final stored part reaches the Pacific coastal mouth/estuarine receiving setting. The stored source endpoint lies slightly southwest of the displayed terminal in the same coastal receiving zone. These two endpoints are retained as distinct records; neither is moved to the imagery’s bank, bar or instantaneous waterline. The visible mouth joins the coastal ocean.",
+          "sources": [
+            "r248-cr-world-imagery",
+            "r248-cr-quesada-waylen2012"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "original_part_indices": [
+            15
+          ],
+          "part_index_basis": "Zero-based stored part indices within the listed fragment."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80026473",
+      "source_keys": [
+        "r248-wrottesley-imagery-overview",
+        "r248-wrottesley-imagery-opening",
+        "r248-wrottesley-imagery-north",
+        "r248-chs-arc4032024-wrottesley"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2317
+          ],
+          "component_scope": "Southern feeder opening and eastern bend",
+          "finding": "The selected opening lies in a visible narrow drainage valley. The corridor bends east around low terrain, turns north and continues into the northwest-trending receiving valley. The normally completed southern-detail original shows the whole bend and its receiving passage.",
+          "sources": [
+            "r248-wrottesley-imagery-opening",
+            "r248-wrottesley-imagery-overview"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            1
+          ]
+        },
+        {
+          "fragments": [
+            2317
+          ],
+          "component_scope": "Northwest feeder valley and side-stream joins",
+          "finding": "The narrow valley continues northwest through rocky uplands, receives visible side drainages and opens toward the wider alluvial corridor. The selected parts follow that connected valley setting despite generalized line offsets.",
+          "sources": [
+            "r248-wrottesley-imagery-opening",
+            "r248-wrottesley-imagery-overview"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            2,
+            3
+          ]
+        },
+        {
+          "fragments": [
+            2317
+          ],
+          "component_scope": "Join to the broader northern river corridor",
+          "finding": "The southeastern branch reaches a broad sediment-lined channel and low valley floor. The selected route then turns north through the common receiving corridor; nearby elongated lakes are retained as surrounding valley context rather than assigned the river name.",
+          "sources": [
+            "r248-wrottesley-imagery-opening",
+            "r248-wrottesley-imagery-overview"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "fragments": [
+            2317
+          ],
+          "component_scope": "Middle river and alluvial bends",
+          "finding": "A continuous northward river corridor with bends, bars, adjoining ponds and lateral drainage joins is readable throughout the overview and its overlapping middle enlargement. The lower end is also covered by the northern original.",
+          "sources": [
+            "r248-wrottesley-imagery-overview",
+            "r248-wrottesley-imagery-north"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            7,
+            8,
+            9,
+            10,
+            11
+          ]
+        },
+        {
+          "fragments": [
+            2317
+          ],
+          "component_scope": "Lake-rich lowland, meander interior and eastern tributary junction",
+          "finding": "The northern detail shows a single broad connected river lowland containing many ponds and elongated lakes, a western river channel and a substantial eastern tributary loop that meets it. The generalized selected line crosses the lowland and meander interior while the visible connected river skirts waterbodies and follows wider bends. This is geographic correspondence within the shared receiving valley, not evidence that every intersected pond is a serial river-through-lake passage.",
+          "sources": [
+            "r248-wrottesley-imagery-north",
+            "r248-wrottesley-imagery-overview"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ]
+        },
+        {
+          "fragments": [
+            2317
+          ],
+          "component_scope": "Lower river approach to the inlet",
+          "finding": "The river continues north down the broad valley, passing minor lateral drainages, and widens into the sandy coastal mouth. The lower original links the inland receiving river to the inlet-head setting described in ARC403.",
+          "sources": [
+            "r248-wrottesley-imagery-north",
+            "r248-wrottesley-imagery-overview",
+            "r248-chs-arc4032024-wrottesley"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            18,
+            19
+          ]
+        },
+        {
+          "fragments": [
+            2317
+          ],
+          "component_scope": "Stored source sea terminal",
+          "finding": "The stored source terminal lies in the lower mouth/channel and sandy alluvial-fan setting at the inlet head. The northern original supports this coastal receiving correspondence independently of the rendered endpoint.",
+          "sources": [
+            "r248-wrottesley-imagery-north",
+            "r248-chs-arc4032024-wrottesley"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            19
+          ]
+        },
+        {
+          "fragments": [
+            2317
+          ],
+          "component_scope": "Separate rendered sea terminal",
+          "finding": "The rendered terminal extends farther toward the inlet-side sandy mouth margin than the source terminal. Both occupy the same river-to-inlet receiving setting, and ARC403 identifies the river entering Wrottesley Inlet south of Reid Point.",
+          "sources": [
+            "r248-wrottesley-imagery-north",
+            "r248-chs-arc4032024-wrottesley"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            19
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70573305",
+      "source_keys": [
+        "r248-usgstopo-nv-overview",
+        "r248-usgstopo-nv-upper",
+        "r248-usgstopo-nv-middle",
+        "r248-usgstopo-nv-lower"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9794
+          ],
+          "component_scope": "Chosen northeastern opening and upper fan",
+          "finding": "The chosen opening lies on the mapped Gooseberry Creek fan west of the Tobin Range. Its westward and northward selected bends occupy the same open receiving fan; the model does not follow every cartographic intermittent-channel bend.",
+          "sources": [
+            "r248-usgstopo-nv-overview",
+            "r248-usgstopo-nv-upper"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            0
+          ]
+        },
+        {
+          "fragments": [
+            9794
+          ],
+          "component_scope": "Northern fan to axial Spring Creek setting",
+          "finding": "The selected southwestward route passes the Jim/Cow/Sheep Creek fan mouths and reaches the Spring Creek axial valley. Original relief, contours and intermittent drainage show one continuous descending valley-floor receiving corridor; no intervening divide or separate-lake transfer is required. No exact wet thread is asserted across the dry fan interval.",
+          "sources": [
+            "r248-usgstopo-nv-overview",
+            "r248-usgstopo-nv-upper"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            1,
+            2
+          ]
+        },
+        {
+          "fragments": [
+            9794
+          ],
+          "component_scope": "Spring Creek upper valley and joining tributaries",
+          "finding": "Repeated direct Spring Creek labels follow the main north–south valley. Wilder/Peavine entry, Bartlett Creek and the Kennedy/Gladiator Creek joining setting are visible. Local straight blue linework occurs beside the channel; present ditch operation is not inferred.",
+          "sources": [
+            "r248-usgstopo-nv-overview",
+            "r248-usgstopo-nv-upper",
+            "r248-usgstopo-nv-middle"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11
+          ]
+        },
+        {
+          "fragments": [
+            9794
+          ],
+          "component_scope": "Lower Pleasant Valley narrows",
+          "finding": "The selected middle route follows the Spring Creek wetland-symbol valley and its constricted southward continuation through the Pleasant Valley narrows, then opens onto the northern Dixie receiving plain.",
+          "sources": [
+            "r248-usgstopo-nv-overview",
+            "r248-usgstopo-nv-middle"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            12,
+            13,
+            14,
+            15,
+            16
+          ]
+        },
+        {
+          "fragments": [
+            9794
+          ],
+          "component_scope": "Spring Creek and Jersey Valley Wash shared fan floor",
+          "finding": "The selected route traverses the broad adjoining Spring Creek–Jersey Valley Wash fan/field setting and turns southwest. Both mapped channels share the same open receiving floor, with no cartographic divide; ordinary corridor correspondence is supported without assigning Jersey Valley Wash as an alias of Spring Creek or claiming operation of local rectilinear drains.",
+          "sources": [
+            "r248-usgstopo-nv-overview",
+            "r248-usgstopo-nv-middle",
+            "r248-usgstopo-nv-lower"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            17,
+            18
+          ]
+        },
+        {
+          "fragments": [
+            9794
+          ],
+          "component_scope": "Southwestward lower Spring Creek receiving corridor",
+          "finding": "The route crosses the continuously mapped low-gradient floor toward the mapped lower Spring Creek, then meets its southward corridor near the Cottonwood Creek fan. Detailed mapping retains direct Spring Creek labels even where the selected centerline traverses adjacent dry receiving ground.",
+          "sources": [
+            "r248-usgstopo-nv-overview",
+            "r248-usgstopo-nv-middle",
+            "r248-usgstopo-nv-lower"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            19,
+            20,
+            21,
+            22,
+            23
+          ]
+        },
+        {
+          "fragments": [
+            9794
+          ],
+          "component_scope": "Dixie Meadows and salt-marsh approach",
+          "finding": "Lower Spring Creek ends in the broad Dixie Meadows/Dixie Valley receiving floor. The selected western and southwestern extension crosses that uninterrupted lowland to the northern margin of Humboldt Salt Marsh. A blue thread through every dry portion is not required or asserted.",
+          "sources": [
+            "r248-usgstopo-nv-overview",
+            "r248-usgstopo-nv-lower"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            24,
+            25,
+            26,
+            27
+          ]
+        },
+        {
+          "fragments": [
+            9794
+          ],
+          "component_scope": "Actual selected salt-marsh ending",
+          "finding": "The last stored parts lie inside the mapped Humboldt Salt Marsh receiving area. Source and rendered terminal descriptions are preserved separately; both correspond to this inland marsh/playa interior, not an ocean or an inferred outflow.",
+          "sources": [
+            "r248-usgstopo-nv-overview",
+            "r248-usgstopo-nv-lower"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            28,
+            29
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70754150",
+      "source_keys": [
+        "r248-usgstopo-nm-overview",
+        "r248-usgstopo-nm-upper",
+        "r248-usgstopo-nm-middle",
+        "r248-usgstopo-nm-lower",
+        "r248-worldimagery-nm-middle"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9900
+          ],
+          "component_scope": "Chosen western opening and northeastern turn",
+          "finding": "The selected opening occupies the shallow eastern-facing terrain west of Cutter, then follows the open receiving ground to the southeastern end of the Jornada Lakes setting. Source contours and relief support this ordinary descending dry corridor. The path is not assigned to a current wetted tributary or forced through the named lake polygons.",
+          "sources": [
+            "r248-usgstopo-nm-overview",
+            "r248-usgstopo-nm-upper"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            0
+          ]
+        },
+        {
+          "fragments": [
+            9900
+          ],
+          "component_scope": "Hackberry and McLendon draw corridor",
+          "finding": "The southeastward upper route follows the mapped shallow Hackberry Draw and McLendon Draw terrain and continues east of Spaceport America. It stays within the broad descending draw/plain corridor, with minor tanks and roads. These bounded draw labels do not establish one whole-composite river name.",
+          "sources": [
+            "r248-usgstopo-nm-overview",
+            "r248-usgstopo-nm-upper"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ]
+        },
+        {
+          "fragments": [
+            9900
+          ],
+          "component_scope": "Aleman receiving area and Prisor Hill passage",
+          "finding": "The selected route reaches the mapped Aleman Draw pond/channel setting, then passes the western side of Prisor Hill into the southern draw/plain corridor. Mapped contours and water-linework provide the joining and local hill-passage context; current tank management or through-flow is not asserted.",
+          "sources": [
+            "r248-usgstopo-nm-overview",
+            "r248-usgstopo-nm-upper"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            9,
+            10,
+            11
+          ]
+        },
+        {
+          "fragments": [
+            9900
+          ],
+          "component_scope": "Upham Hills and Jornada Draw approach",
+          "finding": "The route continues beside the Lyons Draw setting, around the western margin of Upham Hills and through the broad Jornada Draw corridor between the hills and Point of Rocks. Topography and original imagery show its connection into the central sediment/pan chain.",
+          "sources": [
+            "r248-usgstopo-nm-overview",
+            "r248-usgstopo-nm-upper",
+            "r248-usgstopo-nm-middle",
+            "r248-worldimagery-nm-middle"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            12,
+            13,
+            14,
+            15
+          ]
+        },
+        {
+          "fragments": [
+            9900
+          ],
+          "component_scope": "Central Jornada playa passage",
+          "finding": "These parts occupy the connected low sediment and playa complex south of the Jornada Draw label. Topography gives the pan margins and surrounding relief; actual photographic pixels show a continuous broad receiving floor through the selected bends.",
+          "sources": [
+            "r248-usgstopo-nm-overview",
+            "r248-usgstopo-nm-middle",
+            "r248-worldimagery-nm-middle"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            16,
+            17
+          ]
+        },
+        {
+          "fragments": [
+            9900
+          ],
+          "component_scope": "Southeastern playa-floor continuation and pan chain",
+          "finding": "The originally questioned southeastward exit from the central playa is supported by the independently read imagery: the selected route remains within a continuous pale sediment/vegetated receiving swale and pan-margin corridor, passing between and around the nearby low uplands. It reaches the southeastern low ground adjoining Antelope Flat. The evidence supports ordinary dry receiving-floor correspondence, not a surveyed spill elevation, perennial connection or a blue-line channel through every segment.",
+          "sources": [
+            "r248-usgstopo-nm-overview",
+            "r248-usgstopo-nm-middle",
+            "r248-usgstopo-nm-lower",
+            "r248-worldimagery-nm-middle"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            18,
+            19,
+            20,
+            21,
+            22
+          ]
+        },
+        {
+          "fragments": [
+            9900
+          ],
+          "component_scope": "Antelope Flat to northern Lake Tank approach",
+          "finding": "The route continues south across the broad low corridor east of the Doña Ana Hills, with small mapped pans/tanks and local roads. Contours constrain the lowland between higher ground to either side and lead to the Lake Tank depression. Adjacent Cottonwood, Goldenburg and Ropes draw labels are not promoted to selected-reach names from proximity alone.",
+          "sources": [
+            "r248-usgstopo-nm-overview",
+            "r248-usgstopo-nm-middle",
+            "r248-usgstopo-nm-lower"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31
+          ]
+        },
+        {
+          "fragments": [
+            9900
+          ],
+          "component_scope": "Actual Lake Tank ending",
+          "finding": "The last stored segment ends in the northern part of the mapped Lake Tank waterbody/depression east of the Doña Ana Mountains. The source and rendered endpoint descriptions are separate and retain this inland receiving setting; neither is moved to the Río Grande or an invented external outlet.",
+          "sources": [
+            "r248-usgstopo-nm-overview",
+            "r248-usgstopo-nm-lower"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            32
+          ]
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "Instituto Meteorológico Nacional, Estudio de las cuencas hidrográficas de Costa Rica: Cuenca río Grande de Tárcoles",
+      "official_url": "https://cglobal.imn.ac.cr/documentos/publicaciones/EstudioCuencas/EstudioCuencas-cuencaRioGrandeTarcoles.pdf",
+      "observed_outcome": "The sole linked chapter opening returned Internal Error: (400) Timeout fetching. No original chapter prose or cartographic pixels were returned or read.",
+      "outcome_layer": "Completed web-reader availability result; origin HTTP unknown, not an observed HTTP401/403.",
+      "restriction_scope": "Exact Tárcoles chapter and equivalent copies, editions, maps, combined-volume recovery of this chapter, original/catalogue/reader/cache/mirror and unread-output acquisition remain paused. No fallback. This is not a new ban on all IMN publications.",
+      "earlier_lawful_observations": "Before the failure, the official catalogue was read. It identifies the national 34-basin study and links this named chapter; it provides no detailed selected-route evidence.",
+      "acquisition_stop": true,
+      "material_gap": false,
+      "aw_id": "hydro-system:70976999"
+    },
+    {
+      "publication": "Calidad fisicoquímica y microbiológica del agua superficial del río Grande de Tárcoles, Costa Rica: un enfoque ecológico, 2021; SciELO article identifier S1659-42662021000100006",
+      "official_url": "https://www.scielo.sa.cr/scielo.php?lng=en&nrm=iso&pid=S1659-42662021000100006&script=sci_arttext",
+      "observed_outcome": "The sole normal reader opening returned Internal Error: Cache miss. No article body or figure was read.",
+      "outcome_layer": "Completed web-reader/cache availability result; origin HTTP unknown.",
+      "restriction_scope": "Whole exact article and equivalent original, catalogue, reader/cache, mirror, alternate-format, figure and unread-output recovery routes paused. No retry or alternate route.",
+      "earlier_lawful_observations": "Discovery title and independent ecological water-quality study identity only; search excerpts excluded from substantive evidence.",
+      "acquisition_stop": true,
+      "material_gap": false,
+      "aw_id": "hydro-system:70976999"
+    },
+    {
+      "publication": "Municipalidad de San José, Diagnóstico Cantonal 2016",
+      "official_url": "https://www.msj.go.cr/docu/Informes%20y%20Estudios%20de%20Desarrollo%20Urbano/Diagn%C3%B3stico%20Cantonal%202016.pdf",
+      "observed_outcome": "The normal-original request completed direct HTTP502 text/html with client exit 22. After its confirmed termination, the one allowed identical exact-URL retry also completed direct HTTP502 text/html and exit 22. No source body or PDF was read.",
+      "outcome_layer": "Two terminal direct-client HTTP availability failures; no HTTP401/403 or challenge observed.",
+      "restriction_scope": "Whole exact municipal diagnosis and equivalent original, catalogue, reader/cache, mirror, alternate-format, map and unread-output recovery paused after the identical retry.",
+      "earlier_lawful_observations": "Discovery title, municipal planning-project identity and URL only; search excerpts excluded from substantive evidence.",
+      "acquisition_stop": true,
+      "material_gap": false,
+      "aw_id": "hydro-system:70976999"
+    },
+    {
+      "publication": "Chacón and Sequeira-B., Comportamiento de la carga orgánica en la Cuenca 24: Virilla–Tárcoles, Costa Rica; Revista Tecnología en Marcha 7(3), pp. 27–34, 1984 issue; DOI 10.18845/tm.v7i3.3394",
+      "official_url": "https://revistas.tec.ac.cr/index.php/tec_marcha/article/view/3394",
+      "requested_original_url": "https://revistas.tec.ac.cr/index.php/tec_marcha/article/download/3394/3072/9144",
+      "observed_outcome": "Publisher article and PDF-wrapper pages opened normally. The sole linked original-PDF reader opening returned Internal Error: Cache miss. No original PDF or figure was read.",
+      "outcome_layer": "Completed web-reader/cache availability result; origin HTTP unknown.",
+      "restriction_scope": "Whole exact article and equivalent originals, figures, PDF/HTML, catalogue, reader/cache/mirror and unread-output recovery paused. No subsequent acquisition.",
+      "earlier_lawful_observations": "Only actually read publisher metadata and abstract remain usable: authorship/affiliations, independent 17-station AyA/UCR biochemical-oxygen research identity and the named Virilla/Grande de Tárcoles study waters. Issue says 1984 whereas the automated citation says 2019; this discrepancy is not silently resolved. No selected-route correspondence comes from that abstract.",
+      "acquisition_stop": true,
+      "material_gap": false,
+      "aw_id": "hydro-system:70976999"
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "publication": "Esri World Imagery",
+      "notice": "Only independent factual descriptions and normal bibliography leave the research workspace. No original raster, crop, overlay or dynamic request is published.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70976999"
+    },
+    {
+      "publication": "Quesada and Waylen 2012",
+      "notice": "Prose-only source use. Uninspected figures and unspecified underlying map editions are excluded from correspondence evidence.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70976999"
+    },
+    {
+      "publication": "Recovered historical source notes",
+      "notice": "Used only for restriction and bibliographic preflight. Lost original cartographic pixels were not claimed as read or reused.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70976999"
+    },
+    {
+      "publication": "Esri World Imagery: Boothia Peninsula selected views",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "source_keys": [
+        "r248-wrottesley-imagery-overview",
+        "r248-wrottesley-imagery-opening",
+        "r248-wrottesley-imagery-north"
+      ],
+      "kind": "photographic_and_generalized_corridor_scope",
+      "observation": "Imagery establishes terrain and receiving-corridor correspondence without hydronym labels or current hydraulic proof. Ponds and the meander interior are not asserted to be serial through-lake links. No original pixels, crops or orientation derivatives are redistributed.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:80026473"
+    },
+    {
+      "publication": "Canadian Sailing Directions, ARC403: Western Arctic,2024/03",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/chs-shc-ARC403-eng-202403-41232306.pdf",
+      "source_key": "r248-chs-arc4032024-wrottesley",
+      "kind": "bounded_coastal_prose_and_reproduction_notice",
+      "observation": "Own coastal prose supplies the receiving river name and inlet context. Inland naming scope, formal registry and current navigation are outside its use here. Original pages and derivatives remain private.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:80026473"
+    },
+    {
+      "kind": "scale_dependent_dry_valley_and_fan_correspondence",
+      "publication": "USGSTopo selected Nevada views",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "observation": "Overview hydrography and detailed relief/name views jointly establish the continuous receiving floor. Exact dry-channel alignment and current wet connectivity are not asserted.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70573305"
+    },
+    {
+      "kind": "bounded_dry_playa_receiving_floor_and_name_scope",
+      "publication": "USGSTopo selected New Mexico views and one independent World Imagery middle view",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "observation": "The continuous broad middle receiving floor was read in original photography and complementary cartography; current wet flow is not inferred. Names remain limited to directly supported draws and terminal Lake Tank.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70754150"
+    },
+    {
+      "kind": "independent_photographic_source_scope",
+      "publication": "World Imagery selected middle Jornada playa view",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "observation": "Original image and same-view extent metadata completed normally; the extent was used only for private orientation. No photographic name, uniform imagery date or current hydrological operation is asserted.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70754150"
+    }
+  ]
+}

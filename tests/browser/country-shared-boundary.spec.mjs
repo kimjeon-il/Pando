@@ -37,13 +37,15 @@ test.describe('mobile country-border handoff', () => {
   test.use({ viewport: { width: 390, height: 844 }, isMobile: true, deviceScaleFactor: 2, trace: 'off' });
 
   for (const renderer of ['webgl2', 'canvas']) {
-    test(`keeps a presented shared boundary through mesh changes (${renderer})`, async ({ page }) => {
+    test(`keeps precise borders visible through zoom without mesh switching (${renderer})`, async ({ page }) => {
       test.setTimeout(150_000);
       await page.goto(`/?renderer=${renderer}&demTerrain=raster&debug=1`);
       await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
       await expect.poll(() => page.evaluate(() =>
         window.__PANDOLAB_GPU_METRICS__?.countrySharedBoundarySegmentCount || 0),
       { timeout: 40_000 }).toBeGreaterThan(100);
+      await expect.poll(() => page.evaluate(() =>
+        window.__PANDOLAB_GPU_METRICS__?.activeMeshQuality)).toBe('canonical');
       const start = await page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.meshSwitchCount || 0);
       await page.evaluate(() => {
         window.__countryBorderSamples = [];
@@ -77,7 +79,7 @@ test.describe('mobile country-border handoff', () => {
         samples: window.__countryBorderSamples,
         switches: window.__PANDOLAB_GPU_METRICS__?.meshSwitchCount || 0,
       }));
-      expect(result.switches).toBeGreaterThan(start);
+      expect(result.switches).toBe(start);
       expect(result.samples.length).toBeGreaterThan(12);
       expect(result.samples.every(row => row.ready && row.count > 100)).toBe(true);
     });

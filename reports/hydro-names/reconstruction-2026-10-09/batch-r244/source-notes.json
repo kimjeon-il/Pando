@@ -1,0 +1,788 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r244",
+  "sources": [
+    {
+      "source_key": "r244-mendoza-imagery-overview",
+      "title": "Esri World Imagery: selected southern Mendoza volcanic corridor overview",
+      "publisher": "Esri World Imagery",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "publication_identity": "Independently maintained satellite/aerial imagery mosaic. The selected Mendoza views are distinct from held IGN Argenmap, historical500k and SEGEMAR/Agua Escondida mapping, and from the previously held Knik lower view. No held map is recovered.",
+      "access_status": "completed_direct200_image_jpeg",
+      "actual_reading": "One completed original JPEG was visually read in its full overview presentation before the later terminal-detail cancellation. It covers the selected opening, western margin, middle floor, lower plain and eastern end at regional terrain scope. The lower receiving through-link remains unestablished; no post-stop detail recovery from this image is claimed.",
+      "source_original_acquired": true,
+      "original_pixels_actually_read": true,
+      "edition_or_scene_date": "Individual image acquisition dates and scene-specific contributors not established; current service access is not a current-field-flow claim.",
+      "use_scope": "Own bounded factual observations and ordinary bibliography only; original images and all private reading aids remain undistributed."
+    },
+    {
+      "source_key": "r244-mendoza-imagery-upper",
+      "title": "Esri World Imagery: selected western volcanic apron and upper dry corridor",
+      "publisher": "Esri World Imagery",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "publication_identity": "Independently maintained satellite/aerial imagery mosaic. The selected Mendoza views are distinct from held IGN Argenmap, historical500k and SEGEMAR/Agua Escondida mapping, and from the previously held Knik lower view. No held map is recovered.",
+      "access_status": "completed_direct200_image_jpeg",
+      "actual_reading": "One completed original JPEG was visually read; a private selected-part orientation comparison was also read. Opening and upper/middle transition inspected at ordinary corridor scale.",
+      "source_original_acquired": true,
+      "original_pixels_actually_read": true,
+      "edition_or_scene_date": "Individual image acquisition dates and scene-specific contributors not established; current service access is not a current-field-flow claim.",
+      "use_scope": "Own bounded factual observations and ordinary bibliography only; original images and all private reading aids remain undistributed."
+    },
+    {
+      "source_key": "r244-mendoza-imagery-middle",
+      "title": "Esri World Imagery: selected middle volcanic plain and receiving floor",
+      "publisher": "Esri World Imagery",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "publication_identity": "Independently maintained satellite/aerial imagery mosaic. The selected Mendoza views are distinct from held IGN Argenmap, historical500k and SEGEMAR/Agua Escondida mapping, and from the previously held Knik lower view. No held map is recovered.",
+      "access_status": "completed_direct200_image_jpeg",
+      "actual_reading": "One completed original JPEG was visually read; a private selected-part orientation comparison was also read. Middle apron, broad turn, joining runnels and eastern receiving floor inspected; this does not extend the detailed reading over the full lower/terminal component.",
+      "source_original_acquired": true,
+      "original_pixels_actually_read": true,
+      "edition_or_scene_date": "Individual image acquisition dates and scene-specific contributors not established; current service access is not a current-field-flow claim.",
+      "use_scope": "Own bounded factual observations and ordinary bibliography only; original images and all private reading aids remain undistributed."
+    },
+    {
+      "source_key": "r244-bertotto-bernardi-richter2022",
+      "title": "Volcanismo en la provincia de La Pampa: aportes teóricos y didácticos",
+      "authors": [
+        "Gustavo Walter Bertotto",
+        "Mauro Ignacio Bernardi",
+        "Aldo Javier Richter"
+      ],
+      "publisher": "Editorial de la Universidad Nacional de La Pampa; Colección Articulación Universidad–Escuela Secundaria",
+      "year": 2022,
+      "edition": "First edition; ISBN978-950-863-455-9",
+      "official_url": "https://www.unlpam.edu.ar/images/extension/edunlpam/Volcanismo%20en%20la%20provincia%20de%20La%20Pampa.pdf",
+      "publication_identity": "Recovered publication records positively identify an independently authored UNLPam teaching/research synthesis. The newly read title, colophon and introduction confirm that project identity. Figure2.9 is credited to M.I.Bernardi. Citation of held Agua Escondida is retained as a use limitation, not permission to acquire that sheet.",
+      "access_status": "completed_direct200_application_pdf",
+      "actual_reading": "Original title, colophon, contents and introduction; authorial regional and lava-flow prose printed pp47–48 and56–61; Figure2.9 printed p59 visually read in full; bibliography printed p103. Other extracted or downloaded pages are not claimed as fully read.",
+      "source_original_acquired": true,
+      "original_pixels_actually_read": true,
+      "observations": "Provides Payunia volcanic-region context, distinguishes Payún Matru and Payún Liso as volcanic features, and describes temporary drainage into sediment-filled lava windows in the Pampa de Los Carrizales setting. Figure2.9 locates regional lava flows and geographic anchors, not the selected river route.",
+      "limits": "Neither the regional thematic figure nor lava-flow names prove the selected lower hydrological transfer or a river name. No exact lava-unit assignment is made. Material borrowed from held geological sheets is excluded as drainage evidence.",
+      "use_scope": "Colophon states reserved reproduction rights together with CC BY-NC-SA4.0. Only independently written bounded facts and normal bibliography are supplied; original pages and all derivatives remain private."
+    },
+    {
+      "source_key": "r244-geus-greenland-national-1995",
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": [
+        "Jan C. Escher",
+        "T. Christopher R. Pulvertaft"
+      ],
+      "year": 1995,
+      "publisher": "Geological Survey of Greenland; official digital original distributed by GEUS",
+      "scale": "1:2 500 000",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J",
+      "catalogue_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi:10.22008/FK2/SYAL4J",
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16855",
+      "material_type": "Original single-sheet geological, topographic and glaciological compilation",
+      "current_acquisition": "Fresh official catalogue and exactly linked complete original PDF acquired in separate sequential requests, both terminal HTTP200 with successful completion. The catalogue was read before the original acquisition. The original was subsequently rendered and its actual pixels inspected. Original files lost before the October 13 workspace reset and earlier reports were not substituted for a current map reading.",
+      "actual_read_scope": "One successfully acquired national original was actually read over both distinct Greenland selections. Catalogue, source imprint and reading scopes are described separately below.",
+      "publication_and_underlying_material_identity": "The actual original names J. C. Escher as main compiler, N. Henriksen as project coordinator, Bengaard and Henriksen for North and East Greenland onshore compilation, and Pulvertaft for offshore compilation. Greenland onshore geology uses published and unpublished GGU maps. Topography is compiled and reproduced by KMS and GGU from their published and unpublished topographic maps for land and the Inland Ice margin. Ice-surface contours use GEOSAT and ERS-1 altimetry, compiled/modelled by S. Ekholm of KMS; sub-ice bedrock contours use airborne radar ice-thickness data and KMS modelling. The imprint specifies WGS84, UTM zone24 and 1995 printing. This positively identified GGU national geological/topographic compilation is not a copy of the held USGS PP1386-C glacier atlas or the separately held 1997 GEUS Dove Bugt sheet. No independence of every shared older control datum is claimed; the original identifies the actual compilation project and source families.",
+      "source_epoch_note": "Printed1995 historical cartography. The catalogue digital-version date is not the map epoch. No contemporary ice-front or drainage claim follows from a fresh reading.",
+      "supports": "Complete ordinary regional/corridor-scale ice, exposed-rock and coastal terminal-setting correspondence for the assigned selected parts.",
+      "limits": "Not a river register or continuous natural-watercourse survey. Ice-surface contours, ice-thickness isopachs, sub-ice bedrock contours and aeromagnetic lineaments are distinct symbols and are not treated as river traces. No current surface/subglacial hydraulic connection, exact bank or current ice-front position is inferred.",
+      "reuse_limit": "The actual GEUS Custom Dataset Terms permit internal use, extraction and processing under stated conditions and restrict redistribution of original and processed data and production or transfer of new maps. Copyright is credited to GGU and KMS. Originals, crops and all cartographic orientation/comparison materials stay private. Public-ready material is independently written factual observations and ordinary bibliography with GEUS attribution.",
+      "actual_read_scope_by_target": {
+        "hydro-system:90102360": "Official catalogue publication identity, exact original-file identity and complete Custom Dataset Terms; original national overview, southeastern Greenland regional graticule, complete selected corridor and private unchanged-path orientation, enlarged original graticule control intersections and terminal/coastal context, Inland Ice legend and original production, topographic-source, projection, copyright and recommended-citation imprint.",
+        "hydro-system:90090707": "Fresh national original overview and southeastern regional geography; newly rendered clean and private orientation views over all41 stored parts and128 positions of this second selection, including the opening, upper transverse ridge passage, every middle join and bend, lower ice/rock corridor and both source/render terminal positions; wider Watkins Bjerge, Kap Ravn and neighboring Nansen Fjord context; original graticule and WGS84/UTM24 projection; actual Inland Ice legend and full source-production/copyright imprint. The complete current catalogue Custom Dataset Terms were read during the earlier successful acquisition in the same batch."
+      }
+    },
+    {
+      "source_key": "r244-inegi-ojinaga2010",
+      "title": "Compendio de información geográfica municipal 2010: Ojinaga, Chihuahua",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "municipal_code": "08052",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08052.pdf",
+      "actual_material_read": "Fresh complete 10-page original. Cover and geographic/physiographic tables on PDF pages 1–2 and hydrography table on PDF page 3 read. PDF page 6 Relieve inspected as a full original page and clean enlarged southern map area; printed legend and source credits read. A separate private part-index orientation aid located the selected corridor.",
+      "actual_map_sources": "Marco Geoestadístico Municipal 2010 version 4.3; national physiographic compilation 1:1,000,000 series I; Información Topográfica Digital 1:250,000 series II and III; INEGI–CONAGUA 2007 Mapa de la Red Hidrográfica Digital de México 1:250,000.",
+      "publication_identity": "Before original acquisition, completed bibliographic discovery exposed the exact Ojinaga volume’s own Relieve credits, positively identifying its older series II/III and 2007 underlying inputs and separate municipal editorial compilation. Actual original reading confirmed them. Independence is not inferred solely from another municipality, title, year or host; the held national 2023 publication and exact Hermosillo volume remain excluded.",
+      "observed_acquisition": "One normal-original request completed HTTP200 application/pdf. Original content was read after confirmed terminal completion. No retry, denial, cancellation or incomplete transfer.",
+      "supports": "Direct Polvorillas and La Copa watercourse labels; eastern selected valley, lower receiving corridor and municipal clipping boundaries.",
+      "limitations": "The Ojinaga plate alone omits the southern/middle Camargo interval and the final Aldama endpoint. Municipal hydrographic basin names are not treated as river aliases."
+    },
+    {
+      "source_key": "r244-inegi-camargo2010-retained",
+      "title": "Compendio de información geográfica municipal 2010: Camargo, Chihuahua",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "municipal_code": "08011",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08011.pdf",
+      "actual_material_read": "Physically retained complete original acquired in the preceding research pass. No reacquisition. PDF page 7 Relieve re-read as a full original page and clean northern-map enlargement, with source credits and a separate private part-index orientation aid. The present observations concern the northern tongue and selected southern turn, not merely the earlier pass’s different corridor.",
+      "actual_map_sources": "Marco Geoestadístico Municipal 2010 version 4.3; national physiographic compilation 1:1,000,000 series I; Información Topográfica Digital 1:250,000 series II and III; INEGI–CONAGUA 2007 Mapa de la Red Hidrográfica Digital de México 1:250,000.",
+      "publication_identity": "The exact Camargo compilation and its own source credits were established from recovered bibliography and the retained original. Its identified older map inputs distinguish it from the held national 2023 topographic publication; no other municipality’s credits are substituted.",
+      "observed_acquisition": "No new request. The physically retained original’s prior successful acquisition and reading scope were checked before this new local reading.",
+      "supports": "The complete selected southern turn, receiving-wash joins and northward middle valley beside Sierra Mojina.",
+      "limitations": "Generalized municipal clipping and historical topographic inputs; no new name is attached to the unnamed middle interval."
+    },
+    {
+      "source_key": "r244-inegi-aldama2010",
+      "title": "Compendio de información geográfica municipal 2010: Aldama, Chihuahua",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "municipal_code": "08002",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08002.pdf",
+      "actual_material_read": "Fresh complete 10-page original. Cover, geographic/physiographic and hydrographic tables on PDF pages 1–3 read. PDF page 6 Relieve inspected as a full original page and clean enlarged southeastern map area, including legend and printed credits; separate private endpoint orientation aid.",
+      "actual_map_sources": "Marco Geoestadístico Municipal 2010 version 4.3; national physiographic compilation 1:1,000,000 series I; Información Topográfica Digital 1:250,000 series II and III; INEGI–CONAGUA 2007 Mapa de la Red Hidrográfica Digital de México 1:250,000.",
+      "publication_identity": "Before original acquisition, completed bibliographic discovery exposed the exact Aldama volume’s own Relieve credits, positively identifying its older series II/III and 2007 underlying inputs and separate municipal editorial compilation. Actual original reading confirmed them. Independence is not inferred solely from another municipality, title, year or host; the held national 2023 publication and exact Hermosillo volume remain excluded.",
+      "observed_acquisition": "One normal-original request completed HTTP200 application/pdf. Original content was read after confirmed terminal completion. No retry, denial, cancellation or incomplete transfer.",
+      "supports": "The lower map-boundary passage, final bend and actual source/render endpoint setting east of Sierra El Jabalí.",
+      "limitations": "The plate maps drainage and alluvial-floor context, not a named terminal lake or a confirmed natural terminal closure. The stored endpoint is not extended farther downstream."
+    },
+    {
+      "source_key": "r244-inegi-julimes2010-context",
+      "title": "Compendio de información geográfica municipal 2010: Julimes, Chihuahua",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "municipal_code": "08038",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08038.pdf",
+      "actual_material_read": "Fresh complete 10-page original. Cover, hydrography table on PDF page 3 and full PDF page 6 Relieve with printed legend and credits read.",
+      "actual_map_sources": "Marco Geoestadístico Municipal 2010 version 4.3; national physiographic compilation 1:1,000,000 series I; Información Topográfica Digital 1:250,000 series II and III; INEGI–CONAGUA 2007 Mapa de la Red Hidrográfica Digital de México 1:250,000.",
+      "publication_identity": "Before original acquisition, completed bibliographic discovery exposed the exact Julimes volume’s own Relieve credits, positively identifying its older series II/III and 2007 underlying inputs and separate municipal editorial compilation. Actual original reading confirmed them. Independence is not inferred solely from another municipality, title, year or host; the held national 2023 publication and exact Hermosillo volume remain excluded.",
+      "observed_acquisition": "One normal-original request completed HTTP200 application/pdf. Original content was read after confirmed terminal completion. No retry, denial, cancellation or incomplete transfer.",
+      "supports": "Neighboring western municipal and drainage context only; no necessary selected through-link or hydronym supplied.",
+      "limitations": "This neighboring map is not used to extend La Víbora or any other western tributary name onto the selected route and is not required for the completed selected-path correspondence."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:61527658",
+      "source_keys": [
+        "r244-mendoza-imagery-overview",
+        "r244-mendoza-imagery-upper",
+        "r244-mendoza-imagery-middle",
+        "r244-bertotto-bernardi-richter2022"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14491
+          ],
+          "component_scope": "Northwestern opening on the western volcanic apron of the Payún Matru field",
+          "finding": "The selected opening occupies a dry, locally incised volcanic apron. Small runnels and sediment-filled hollows lead southwest toward the western margin corridor. This is ordinary terrain and drainage-corridor correspondence; no river label or perennial-flow claim is supplied.",
+          "sources": [
+            "r244-mendoza-imagery-overview",
+            "r244-mendoza-imagery-upper"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            0
+          ]
+        },
+        {
+          "fragments": [
+            14491
+          ],
+          "component_scope": "Southward western lava-margin corridor",
+          "finding": "The selection follows a broad southward corridor along and locally across the margin of dark rough lava terrain. Adjacent sediment-covered ground and minor runnels form the receiving setting. The source supports that ordinary corridor, without turning lava-surface texture into a named river or claiming an exact wet channel.",
+          "sources": [
+            "r244-mendoza-imagery-overview",
+            "r244-mendoza-imagery-upper"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "fragments": [
+            14491
+          ],
+          "component_scope": "Southeast-trending apron and broad middle turn",
+          "finding": "The route continues southeast along the volcanic-foot plain, then makes a broad southward and northeastward turn around rougher intervening relief into the middle sediment-filled floor. The overlapping original views expose the transition and its small converging dry runnels at ordinary valley/fan scale. No separately named tributary is established.",
+          "sources": [
+            "r244-mendoza-imagery-upper",
+            "r244-mendoza-imagery-middle"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "fragments": [
+            14491
+          ],
+          "component_scope": "East- and southeast-trending middle embayment",
+          "finding": "The selected middle corridor occupies a sediment-filled embayment among rough lava surfaces and eroded low relief, broadening eastward. Its dry floor, pale patches and small joining runnels are visible in the original. No lake outlet, glacier transfer or managed passage is evidenced here. This completed bounded geography does not establish a single named natural river.",
+          "sources": [
+            "r244-mendoza-imagery-overview",
+            "r244-mendoza-imagery-middle"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            7,
+            8,
+            9
+          ]
+        },
+        {
+          "fragments": [
+            14491
+          ],
+          "component_scope": "Lower fan/plain continuation through the eastern volcanic-depression terrain to the coincident stored source and render endings",
+          "finding": "The previously read complete overview includes the lower volcanic plain, pale local depressions and rough lava surfaces through the eastern selected ending. It provides regional terrain coverage, but does not sufficiently establish the entire selected receiving continuation from the lower fan/plain through that terrain to the final ending. The attempted closer terminal view has no verified terminal result and is wholly excluded. This is one bounded lower receiving-link gap, not a requirement to trace exact banks or a currently wet thread, and not a finding that no drainage exists. No nearby pale playa is substituted for the selected ending.",
+          "sources": [
+            "r244-mendoza-imagery-overview"
+          ],
+          "correspondence": "material_receiving_continuation_unestablished",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:90102360",
+      "source_keys": [
+        "r244-geus-greenland-national-1995"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8877
+          ],
+          "component_scope": "northern opening and westward nunatak passage",
+          "finding": "The chosen opening and short westward/southwestward parts lie among small exposed-bedrock islands and intervening ice terrain. The initial westward bend and the subsequent southward interval are visible on the original. No named natural-watercourse trace is established.",
+          "sources": [
+            "r244-geus-greenland-national-1995"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "fragments": [
+            8877
+          ],
+          "component_scope": "western southward turn and eastern return",
+          "finding": "The long western/southward part skirts and crosses generalized rock/ice margins, turns east between elongated exposed-rock ridges, then bends southeast and south into the broader pale ice corridor. All intermediate stored joins are accounted for at the map scale. Blue ice-contour linework is not treated as a river.",
+          "sources": [
+            "r244-geus-greenland-national-1995"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "fragments": [
+            8877
+          ],
+          "component_scope": "middle ice and rock island corridor",
+          "finding": "The selection continues east and southeast through the broad corridor between elongated rock ridges to the southwest and smaller rock islands to the east. Its short joins and bends pass the eastern ends of mapped ridges and continue toward the denser coastal bedrock belt. These are ordinary terrain observations, not proof of glacier hydraulic routing.",
+          "sources": [
+            "r244-geus-greenland-national-1995"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33
+          ]
+        },
+        {
+          "fragments": [
+            8877
+          ],
+          "component_scope": "lower exposed rock and margin passages",
+          "finding": "The lower eastward then southeastward selection traverses the more closely spaced coastal rock/ice-margin mosaic. The enlarged original exposes the crossing of a broad mapped rock mass, intervening pale passages and the next southeastern rock-margin approach. No distinct selected lake or missing lake-to-feeder transfer is identified in the original.",
+          "sources": [
+            "r244-geus-greenland-national-1995"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47
+          ]
+        },
+        {
+          "fragments": [
+            8877
+          ],
+          "component_scope": "coastal approach and separate terminal settings",
+          "finding": "The final eastward parts and short northward ending occupy the coastal bedrock/ice-margin belt beside small unnamed embayments north of the directly printed Tasiilap Karra / Kap Gustav Holm cape label. The source and rendered endings were considered separately and both fall within this same ordinary coastal-margin setting; the rendered position is slightly northward of the source position. The national map does not justify exact present land/ice/water assignment or an ordinary river-mouth claim.",
+          "sources": [
+            "r244-geus-greenland-national-1995"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            48,
+            49,
+            50,
+            51
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:90090707",
+      "source_keys": [
+        "r244-geus-greenland-national-1995"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8870
+          ],
+          "component_scope": "northwestern mountain opening",
+          "finding": "The chosen northwestern opening and first short eastward parts lie in the mapped mountain ice/exposed-rock mosaic immediately east of the wider Gunnbjørn Fjeld and Watkins Bjerge labels. The opening bends and initial narrow ice/rock passage are all exposed in the original. The mountain names are regional references, not river or glacier assignments.",
+          "sources": [
+            "r244-geus-greenland-national-1995"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "fragments": [
+            8870
+          ],
+          "component_scope": "eastward upper ridge and ice margin",
+          "finding": "The selected path follows a generally eastward upper passage, traverses a generalized exposed-rock ridge/mass and its ice margin, and turns southeast then south at the eastern end of that mass. All intervening short parts and joins are covered. The original does not map this whole itinerary as one named natural river.",
+          "sources": [
+            "r244-geus-greenland-national-1995"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20
+          ]
+        },
+        {
+          "fragments": [
+            8870
+          ],
+          "component_scope": "middle southward ice trough",
+          "finding": "The middle southward and southeastward sequence occupies the broad ice passage between long exposed-rock ridges and isolated rock masses. It passes the western side of a long north-south rock ridge, continues between the next flanking massifs and enters the lower straight southward corridor. No contemporary route over or beneath the ice is inferred from the selected line or blue topographic contours.",
+          "sources": [
+            "r244-geus-greenland-national-1995"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28
+          ]
+        },
+        {
+          "fragments": [
+            8870
+          ],
+          "component_scope": "lower ice trough and coastal rock margin",
+          "finding": "The selected line continues down the pale ice corridor between the western and eastern bedrock ridges, then bends southeast through the lower margin beside the coastal exposed-rock belt. The original supplies continuous ordinary geographic context through all these bends and joins. No distinct selected lake passage or missing basin transfer is required or claimed.",
+          "sources": [
+            "r244-geus-greenland-national-1995"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            28,
+            29,
+            30,
+            31,
+            32,
+            33
+          ]
+        },
+        {
+          "fragments": [
+            8870
+          ],
+          "component_scope": "coastal approach and separate source render endings",
+          "finding": "The last southeastward parts reach a small coastal opening between mapped rock promontories west of the Kap Ravn reference. The source endpoint is the more landward/northwestern terminal position, while the rendered endpoint extends farther southeast toward the coast in the same ordinary terminal setting. Both were considered separately on the original. The nearby larger Nansen Fjord lies to the southwest and is not substituted for this selected opening. National-scale historical mapping does not establish a precise present river mouth, current glacier front or exact terminal land/ice/water class.",
+          "sources": [
+            "r244-geus-greenland-national-1995"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70816429",
+      "source_keys": [
+        "r244-inegi-ojinaga2010",
+        "r244-inegi-camargo2010-retained",
+        "r244-inegi-aldama2010",
+        "r244-inegi-julimes2010-context"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10229
+          ],
+          "component_scope": "eastern opening and polvorillas reach",
+          "finding": "The selected eastern opening descends south through a confined tributary valley and successive side-gully joins. Ojinaga’s Relieve plate directly labels this eastern drainage Polvorillas. The opening is treated as the chosen model start, not a verified named spring or an independently surveyed headwater.",
+          "sources": [
+            "r244-inegi-ojinaga2010"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "part_index_basis": "One-based stored part numbers."
+        },
+        {
+          "fragments": [
+            10229
+          ],
+          "component_scope": "southwestern descent and southern turn",
+          "finding": "The eastern drainage continues southwest and rounds the southern bend into a broader receiving valley. Ojinaga covers the eastern approach; the adjoining northern Camargo plate shows the connecting wash at the bend and its meeting with the northward valley. The name is bounded to the mapped eastern reach, without inventing a precise name-change point.",
+          "sources": [
+            "r244-inegi-ojinaga2010",
+            "r244-inegi-camargo2010-retained"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": [
+            7
+          ],
+          "part_index_basis": "One-based stored part numbers."
+        },
+        {
+          "fragments": [
+            10229
+          ],
+          "component_scope": "northern camargo middle valley",
+          "finding": "The route follows the connected wash northwest and north along the northern Camargo tongue, beside Sierra Mojina. The readable original shows the same receiving valley, tributary joins and continuation across the municipal clipping boundary. A separate name for this middle interval is not established.",
+          "sources": [
+            "r244-inegi-camargo2010-retained"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": [
+            8,
+            9,
+            10,
+            11,
+            12
+          ],
+          "part_index_basis": "One-based stored part numbers."
+        },
+        {
+          "fragments": [
+            10229
+          ],
+          "component_scope": "la copa receiving approach",
+          "finding": "The northward middle valley passes into Ojinaga and bends northwest onto the drainage directly labeled La Copa. Several east-side tributaries enter the same lower corridor. The map supplies a receiving-watercourse identity rather than a claim that every upper branch carries this name.",
+          "sources": [
+            "r244-inegi-ojinaga2010",
+            "r244-inegi-camargo2010-retained"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": [
+            13,
+            14,
+            15,
+            16
+          ],
+          "part_index_basis": "One-based stored part numbers."
+        },
+        {
+          "fragments": [
+            10229
+          ],
+          "component_scope": "la copa northwestern reach",
+          "finding": "The selected course continues west and northwest across the broad alluvial floor southwest of Sierra El Guaje. La Copa is printed on this connected lower drainage, distinct from the eastern Polvorillas label and the separately mapped Alamitos drainage farther north.",
+          "sources": [
+            "r244-inegi-ojinaga2010"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": [
+            17,
+            18,
+            19,
+            20
+          ],
+          "part_index_basis": "One-based stored part numbers."
+        },
+        {
+          "fragments": [
+            10229
+          ],
+          "component_scope": "lower plain and aldama approach",
+          "finding": "The lower corridor trends northwest through the plain toward the Ojinaga–Aldama map boundary. The adjoining thematic plates show compatible receiving-floor and drainage continuity. Generalized map correspondence is sufficient here; no present wet thread or exact bank alignment is required.",
+          "sources": [
+            "r244-inegi-ojinaga2010",
+            "r244-inegi-aldama2010"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": [
+            21,
+            22,
+            23
+          ],
+          "part_index_basis": "One-based stored part numbers."
+        },
+        {
+          "fragments": [
+            10229
+          ],
+          "component_scope": "final bend and interior draining floor",
+          "finding": "The final selected parts turn west and southwest within the mapped interior alluvial drainage floor east of Sierra El Jabalí. Aldama’s enlarged southeastern map shows the relevant drainage branches and the complete endpoint setting. No terminal lake name, surveyed closed-basin boundary or independently named downstream watercourse is established.",
+          "sources": [
+            "r244-inegi-aldama2010"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": [
+            24,
+            25
+          ],
+          "part_index_basis": "One-based stored part numbers."
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "Esri World Imagery: exact selected Mendoza lower/terminal detail view",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "observed_outcome": "The original acquisition yielded before terminal completion was confirmed. Its first terminal-status request was cancelled. Terminal HTTP status, content type and body outcome remain unknown. No headers, body, partial image or later output from that request was read.",
+      "outcome_layer": "Terminal-status tool cancellation; not an observed origin HTTP error or access denial.",
+      "restriction_scope": "Exact lower/terminal selected view and equivalent acquisition, polling and unread-output recovery remain stopped. No whole-service publication ban is inferred.",
+      "earlier_lawful_prose_exception": null,
+      "earlier_lawful_observations": "Only the separately completed and actually read overview, upper and middle views retain their stated scope. Their success does not clear this exact stopped view.",
+      "newly_observed_access_failure": false,
+      "unresolved_acquisition_outcome": true,
+      "acquisition_stop": true,
+      "origin_http_status": null,
+      "aw_id": "hydro-system:61527658"
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "publication": "World Imagery inspected Mendoza overview, upper and middle views",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "kind": "imagery_scale_epoch_and_reproduction",
+      "observation": "Three completed source images were read. Scene dates and the exact wet channel are not established. Only own geographic synthesis is distributed.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:61527658"
+    },
+    {
+      "publication": "Bertotto, Bernardi and Richter2022 volcanic educational synthesis",
+      "official_url": "https://www.unlpam.edu.ar/images/extension/edunlpam/Volcanismo%20en%20la%20provincia%20de%20La%20Pampa.pdf",
+      "kind": "regional_geological_scope_and_borrowed_source_boundary",
+      "observation": "Original source is independently authored; Figure2.9 credits M.I.Bernardi. Held Agua Escondida appears in its bibliography. Neither cited sheet content nor geological flow polygons are used to establish the selected drainage.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:61527658"
+    },
+    {
+      "publication": "Geological map of Greenland 1:2 500 000",
+      "official_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi:10.22008/FK2/SYAL4J",
+      "kind": "custom_dataset_terms_and_copyright",
+      "observed_outcome": "Actual current catalogue terms and original imprint read after successful acquisitions.",
+      "restriction_scope": "The actual GEUS Custom Dataset Terms permit internal use, extraction and processing under stated conditions and restrict redistribution of original and processed data and production or transfer of new maps. Copyright is credited to GGU and KMS. Originals, crops and all cartographic orientation/comparison materials stay private. Public-ready material is independently written factual observations and ordinary bibliography with GEUS attribution.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:90102360"
+    },
+    {
+      "publication": "Geological map of Greenland 1:2 500 000",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J",
+      "kind": "source_epoch_theme_and_naming_scope",
+      "observed_outcome": "Complete ordinary geographic correspondence without a supported whole-feature natural-river name or hydraulic-continuity claim.",
+      "restriction_scope": "A completed null naming-scope hold; no present ice-front, exact river mouth or scalar river-name claim.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:90102360"
+    },
+    {
+      "publication": "Geological map of Greenland 1:2 500 000",
+      "official_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi:10.22008/FK2/SYAL4J",
+      "kind": "custom_dataset_terms_and_copyright",
+      "observed_outcome": "Actual current catalogue terms and original imprint read after successful acquisitions.",
+      "restriction_scope": "The actual GEUS Custom Dataset Terms permit internal use, extraction and processing under stated conditions and restrict redistribution of original and processed data and production or transfer of new maps. Copyright is credited to GGU and KMS. Originals, crops and all cartographic orientation/comparison materials stay private. Public-ready material is independently written factual observations and ordinary bibliography with GEUS attribution.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:90090707"
+    },
+    {
+      "publication": "Geological map of Greenland 1:2 500 000",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J",
+      "kind": "source_epoch_theme_and_naming_scope",
+      "observed_outcome": "Complete ordinary geographic correspondence without a supported whole-feature natural-river name or hydraulic-continuity claim.",
+      "restriction_scope": "A completed null naming-scope hold; no present ice-front, exact river mouth or scalar river-name claim.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:90090707"
+    },
+    {
+      "publication": "INEGI Ojinaga, Camargo, Aldama and Julimes municipal geographic compilations 2010",
+      "official_urls": [
+        "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08052.pdf",
+        "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08011.pdf",
+        "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08002.pdf",
+        "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08038.pdf"
+      ],
+      "observation": "Original source attribution, legends and cartographic-input credits were inspected. Only independently written factual observations and ordinary bibliography are supplied. Originals and derivative reading aids are not redistributed.",
+      "outcome_layer": "Source-use and map-scale limitation, not an acquisition denial.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70816429"
+    },
+    {
+      "publication": "World Imagery, optional selected Chihuahua corroboration",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "observation": "No selected Chihuahua imagery request was started and no photographic pixels were used. Completion rests on the actually inspected municipal maps; there is no new Chihuahua image-service HTTP or denial observation.",
+      "outcome_layer": "Unrequested optional material; no newly observed acquisition failure.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70816429"
+    }
+  ]
+}

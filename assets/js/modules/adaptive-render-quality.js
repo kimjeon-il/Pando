@@ -48,7 +48,7 @@ export function renderQualityProfile(tier, {
   const interaction = phase === 'interaction';
   const definitions = {
     [RENDER_QUALITY_TIERS.COARSE]: {
-      backgroundLod: 'coarse', dprCap: 1.25, labelDensity: 0.52,
+      backgroundLod: 'coarse', dprCap: mobile ? 1.5 : 1.25, labelDensity: 0.52,
       // Resolution is a data-quality decision, not an interaction budget.
       // Once canonical data is available we keep the same target level while
       // moving and only throttle requests/uploads in the renderer.
@@ -58,7 +58,7 @@ export function renderQualityProfile(tier, {
       interactionUploadBudgetBytes: 256 * 1024, settleUploadBudgetBytes: 2 * MIB,
     },
     [RENDER_QUALITY_TIERS.MEDIUM]: {
-      backgroundLod: 'medium', dprCap: mobile ? 1.5 : 1.75, labelDensity: 0.76,
+      backgroundLod: 'medium', dprCap: mobile ? 2 : 1.75, labelDensity: 0.76,
       terrainResolutionScale: 1, terrainCacheBudgetBytes: 64 * MIB,
       hydroCacheBudgetBytes: 72 * MIB, overlayGpuBudgetBytes: 96 * MIB,
       renderPacketCacheBudgetBytes: 96 * MIB,

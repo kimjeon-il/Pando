@@ -1,0 +1,727 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r168",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r167",
+    "commit": "d151c253d606c5d7f1c9686f3e40035dd50bb7bd",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r167/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:70817052",
+    "hydro-system:80024209",
+    "hydro-system:60691613",
+    "hydro-system:70853324"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:70817052",
+      "category": "river_group",
+      "system_id": "70817052",
+      "original_queue_rank": 476,
+      "baseline_logical_fid": 3188,
+      "geometry_fids": [
+        10233
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -96.2875,
+        28.85671,
+        -95.439583,
+        29.83125
+      ],
+      "rendered_mainstem_length_km": 172.565,
+      "rendered_network_length_km": 172.565,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -96.2875,
+          28.85671,
+          -95.439583,
+          29.83125
+        ]
+      },
+      "candidate_name": "San Bernard River",
+      "candidate_names": [
+        "San Bernard River",
+        "Little Bernard Creek",
+        "East Bernard Creek"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "region": "Texas coastal plain: western Sealy/Rexville surroundings, East Bernard Creek and the San Bernard River corridor to the Texas open coast.",
+      "candidate_name_role": "San Bernard River is the directly mapped receiving river and supported bounded representative identity for this connected selected drainage corridor. The upstream selection approaches through a short unnamed headward channel, Little Bernard Creek and East Bernard Creek. Those reach names remain separate; San Bernard River is not assigned as a uniform name to every selected part.",
+      "source_keys": [
+        "r168-usgs-topo-san-bernard-opening",
+        "r168-usgs-topo-san-bernard-upper",
+        "r168-usgs-topo-san-bernard-middle",
+        "r168-usgs-topo-san-bernard-terminal"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "Texas San Bernard River system, approached through Little Bernard Creek and East Bernard Creek; the separate Brazos River and managed-water crossings are not alternative river names.",
+      "completion_scope": "Completed bounded geographic correspondence of the single selected mainstem and all 24 stored parts against four readable original USGSTopo views. The chosen short opening, Little Bernard and East Bernard creek corridors, direct receiving-river junction, full San Bernard middle and lower course, nearby reservoir/canal settings, Intracoastal Waterway connection and actual open-coast terminal are covered. No meaningful opening, intermediate through-connection or terminal gap remains at ordinary corridor scale. Exact vertex/bank fit, formal natural-source attribution and current flow operations are outside this finding.",
+      "supported_name_scope": "Little Bernard Creek identifies the named upper approach through Rexville; East Bernard Creek identifies the following mapped creek reach to its San Bernard junction; San Bernard River identifies the selected receiving-river corridor and coastal outlet. Intracoastal Waterway is a separate managed-water crossing/joining feature.",
+      "naming_scope_details": {
+        "representative_system_identity": "San Bernard River",
+        "whole_feature_uniform_name_established": false,
+        "scope_limits": [
+          "The short initial mapped approach has no independently established local hydronym; its component name remains null.",
+          "Little Bernard Creek and East Bernard Creek are directly displayed reach names, but their formal alias relationship and exact naming-transition boundary are unverified.",
+          "San Bernard River is a bounded representative receiving-system candidate, not a whole-object scalar name applied to every tributary and managed-water crossing.",
+          "Generalized line segments clip bends or sit away from mapped banks locally. This does not negate the positively mapped connected corridor, and no exact-bank or vertex correspondence is asserted.",
+          "Current river-mouth condition, water levels, flow permanence, tidal direction, canal transfers and reservoir operation are unverified.",
+          "Formal registry identity, official natural source, surveyed mouth position and Korean forms are unverified."
+        ]
+      },
+      "bounded_name_observations": [
+        {
+          "name": "Little Bernard Creek",
+          "role": "Mapped upper creek component only.",
+          "source_keys": [
+            "r168-usgs-topo-san-bernard-opening",
+            "r168-usgs-topo-san-bernard-upper",
+            "r168-usgs-topo-san-bernard-middle",
+            "r168-usgs-topo-san-bernard-terminal"
+          ]
+        },
+        {
+          "name": "East Bernard Creek",
+          "role": "Mapped following creek reach to the San Bernard junction; distinct displayed reach name.",
+          "source_keys": [
+            "r168-usgs-topo-san-bernard-opening",
+            "r168-usgs-topo-san-bernard-upper",
+            "r168-usgs-topo-san-bernard-middle",
+            "r168-usgs-topo-san-bernard-terminal"
+          ]
+        },
+        {
+          "name": "San Bernard River",
+          "role": "Supported representative receiving river and coastal outlet, not a uniform name of every upstream component.",
+          "source_keys": [
+            "r168-usgs-topo-san-bernard-opening",
+            "r168-usgs-topo-san-bernard-upper",
+            "r168-usgs-topo-san-bernard-middle",
+            "r168-usgs-topo-san-bernard-terminal"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80024209",
+      "category": "river_group",
+      "system_id": "80024209",
+      "original_queue_rank": 477,
+      "baseline_logical_fid": 832,
+      "geometry_fids": [
+        2313
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -110.44375,
+        71.189583,
+        -107.969075,
+        71.633908
+      ],
+      "rendered_mainstem_length_km": 172.257,
+      "rendered_network_length_km": 172.257,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -110.44375,
+          71.189583,
+          -107.969075,
+          71.633908
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_name_scope_hold",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "region": "Northern Victoria Island, Arctic Canada: Burns Lake and its western feeder, eastward inland drainage and the west-side coastal outlet into Hadley Bay.",
+      "candidate_name_role": "no_supported_representative_river_name; named lake component retained separately",
+      "source_keys": [
+        "r168-nluis-burns-lake-77g-1982",
+        "r168-nluis-cape-stang-77h-1982"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": "The original maps provide complete ordinary-scale geographic correspondence and a named selected lake, but do not assign a supported river name to the selected whole corridor. Burns Lake and Hadley Bay must retain their lake and receiving-water roles.",
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "The selection begins in the small-stream and lake country west of Burns Lake, turns north and east into the lake's northwestern approach, crosses Burns Lake southward, then follows its southeastern outlet and a long eastward channel. It bends northeast through several elongated lakes, turns east from the last large lake and then north to the western shore of Hadley Bay. The actual terminal lies just inside the Cape Stang sheet. It is distinct from the separate larger southern-head drainage visible farther east on that map; a neighboring Nanook River name is not transferred to this selection.",
+      "completion_scope": "Completed bounded geographic and naming-scope reading of all44 selected constituent sublines against two original1:250,000 land-resource maps. Separate original windows account for the initial stream/lake approach, Burns Lake inlet and passage, its southeastern outlet, middle eastward channel and joins, northeastern lake chain, lower eastward and northward reaches, cross-sheet continuation and actual Hadley Bay terminal. There is no material unseen geographic interval at ordinary corridor scale. The remaining gap is a representative river name, not missing cartographic material or a requirement for exact modeled-bank agreement.",
+      "supported_name_scope": "Burns Lake is directly labeled on the selected inland lake passage. Hadley Bay is the mapped receiving coastal water. Neither label names the whole selected river-and-lake corridor, and no representative river name is established by the inspected originals.",
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "bounded_named_river_component": null,
+        "bounded_named_lake_component": "Burns Lake",
+        "terminal_receiving_water": "Hadley Bay",
+        "whole_feature_uniform_name_established": false,
+        "formal_registry_status": "unverified",
+        "scope_limits": [
+          "The clearly supported Burns Lake component is retained despite the unresolved whole-system river name.",
+          "Neither the Burns Lake sheet title nor Hadley Bay is promoted to a representative river name.",
+          "The selected west-side outlet is not replaced with a neighboring southern-head drainage, and Nanook River is not inferred for this selection.",
+          "Historical map silence does not establish that the waters lack a present local or official name.",
+          "Source-scale correspondence does not establish current year-round flow, every branch name, surveyed river length, exact lake boundaries or a precise modern mouth."
+        ]
+      },
+      "bounded_name_observations": [
+        {
+          "name": "Burns Lake",
+          "role": "Directly mapped selected lake passage only; no whole river-group name.",
+          "source_keys": [
+            "r168-nluis-burns-lake-77g-1982",
+            "r168-nluis-cape-stang-77h-1982"
+          ]
+        },
+        {
+          "name": "Hadley Bay",
+          "role": "Receiving coastal water only, not a river name.",
+          "source_keys": [
+            "r168-nluis-burns-lake-77g-1982",
+            "r168-nluis-cape-stang-77h-1982"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60691613",
+      "category": "river_group",
+      "system_id": "60691613",
+      "original_queue_rank": 478,
+      "baseline_logical_fid": 3438,
+      "geometry_fids": [
+        13786
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -38.925,
+        -4.810417,
+        -37.821498,
+        -4.34375
+      ],
+      "rendered_mainstem_length_km": 172.133,
+      "rendered_network_length_km": 172.133,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -38.925,
+          -4.810417,
+          -37.821498,
+          -4.34375
+        ]
+      },
+      "candidate_name": "Rio Pirangi",
+      "candidate_names": [
+        "Rio Pirangi",
+        "Riacho do Cipó"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "region": "Ceará, Brazil; Quixadá/Ibaretama–Ocara/Morada Nova–Beberibe–Parajuru/Fortim coastal corridor",
+      "candidate_name_role": "Supported practical representative identity of the receiving river system, with a separately named selected feeder and distinct reservoir retained.",
+      "source_keys": [
+        "r168-ibge-ibaretama-2022",
+        "r168-ibge-ocara-2022",
+        "r168-ibge-beberibe-2022"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "Ceará Pirangi ending at Parajuru between the Beberibe and Fortim settings; not the identically named rivers in Rio Grande do Norte or Pernambuco. The selected opening is a Cipó-side feeder, not automatically the natural headwater of the whole named Pirangi.",
+      "completion_scope": "Complete ordinary corridor-scale correspondence of the opening, Cipó receiving join, all selected encoded parts, Batente inflow/body/outlet, intermediate and canal/road crossing settings, lower waterbody widening and actual coastal ending. No exact bank/vertex or current flow-operation standard is imposed.",
+      "supported_name_scope": "Repeated direct Pirangi labels and continuous municipal-map correspondence support the receiving main corridor from the Cipó join through the Batente setting to the Parajuru coast. Cipó is restricted to its mapped component; Batente is a waterbody name.",
+      "naming_scope_details": {
+        "representative_system_identity": "Rio Pirangi",
+        "whole_feature_uniform_name_established": false,
+        "scope_limits": [
+          "Initial feeder and adjoining small waterbody names remain unestablished. Geographic correspondence is complete at the stated corridor scale.",
+          "The exact Cipó/Pirangi formal name-change boundary and naming-registry status are unverified.",
+          "Açude Batente is preserved as the directly read reservoir spelling, without inventing aliases, operational status or a uniform natural-river name.",
+          "No separate formal waterbody name is established for the broad lower-river widening near Pirangi/Caroé.",
+          "Municipal compilation is historical/generalized source cartography. It does not establish present reservoir operation, canal transfer, shoreline or tidal branch.",
+          "The full selected composite is represented practically by the receiving Rio Pirangi; accepted, whole-feature scalar and Korean names remain null."
+        ]
+      },
+      "bounded_name_observations": [
+        {
+          "name": "Riacho do Cipó",
+          "role": "Directly mapped feeder component only.",
+          "source_keys": [
+            "r168-ibge-ibaretama-2022",
+            "r168-ibge-ocara-2022",
+            "r168-ibge-beberibe-2022"
+          ]
+        },
+        {
+          "name": "Açude Batente",
+          "role": "Distinct selected impoundment passage, not a river-name alias.",
+          "source_keys": [
+            "r168-ibge-ibaretama-2022",
+            "r168-ibge-ocara-2022",
+            "r168-ibge-beberibe-2022"
+          ]
+        },
+        {
+          "name": "Rio Pirangi",
+          "role": "Supported representative receiving river through the lower Parajuru coastal corridor.",
+          "source_keys": [
+            "r168-ibge-ibaretama-2022",
+            "r168-ibge-ocara-2022",
+            "r168-ibge-beberibe-2022"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70853324",
+      "category": "river_group",
+      "system_id": "70853324",
+      "original_queue_rank": 479,
+      "baseline_logical_fid": 3232,
+      "geometry_fids": [
+        10374
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -101.039583,
+        23.233333,
+        -100.710417,
+        24.389583
+      ],
+      "rendered_mainstem_length_km": 172.099,
+      "rendered_network_length_km": 172.099,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -101.039583,
+          23.233333,
+          -100.710417,
+          24.389583
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_source_material_pending",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "region": "Northern San Luis Potosí, Mexico: the plain west of Sierra de Catorce through Vanegas, approaching the Zacatecas and Nuevo León boundary setting.",
+      "candidate_name_role": "No selected natural reach name is sufficiently supported by the inspected originals. Nearby named intermittent arroyos and lake labels are retained only as context.",
+      "source_keys": [
+        "r168-inegi-matehuala-f1401",
+        "r168-inegi-vanegas-compendium",
+        "r168-inegi-galeana-compendium"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": "The selected long north-going plain connection from the Miguel Hidalgo / Laguna Seca setting through Catorce and Vanegas is not established by the source channels. Northern drainage approaches and the final ending also lack a demonstrated connected selected waterway or named receiving lake. This is one material-pending feature, not a completed naming-scope hold.",
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "El Salado is the regional hydrographic context, not a demonstrated river name for the selected feature. The selected line runs longitudinally through a dryland plain with distinct intermittent arroyo approaches. Nearby Catorce/Matehuala/Huertecillas basin names, Arroyo Don Emeterio, Arroyo el Mezquital and El Coyote do not establish a whole-system identity.",
+      "completion_scope": "A bounded three-original pass is complete as research activity; geographic/naming correspondence remains materially incomplete. No new source acquisitions are necessary to restate the same identified gap.",
+      "supported_name_scope": null,
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "representative_river_identity_established": false,
+        "mapped_receiving_course_identity_established": false,
+        "continuous_selected_natural_channel_established": false,
+        "whole_selection_identity_pending": true,
+        "component_scope_limits": [
+          "Unmapped or unestablished through-links are not evidence that drainage cannot occur.",
+          "The finding requires ordinary geographical source correspondence, not an exact-bank, exact-vertex or present-flow test.",
+          "Natural-channel and lake labels are not transferred merely because the selection crosses or approaches them.",
+          "No current water extent, seasonal flow, discharge or reservoir operation claim is made."
+        ]
+      },
+      "bounded_name_observations": []
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [
+      "hydro-system:80024209"
+    ],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [
+      "hydro-system:70853324"
+    ],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 3,
+    "supported_representative_system_identities": 2,
+    "scope_holds": 1,
+    "access_pending": 0,
+    "material_pending": 1
+  },
+  "totals_after": {
+    "recorded_targets": 615,
+    "non_pending_records": 472,
+    "source_access_pending": 3,
+    "source_material_pending": 140,
+    "source_any_pending": 143,
+    "scope_holds": 151,
+    "river_groups": 517,
+    "lakes": 98,
+    "unrecorded": 3450,
+    "unrecorded_river_groups": 2938,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573",
+    "hydro-system:80032711",
+    "hydro-system:60007816",
+    "hydro-system:80013873",
+    "hydro-system:61501314",
+    "hydro-system:60761631",
+    "hydro-system:70895720",
+    "hydro-system:61398344",
+    "hydro-system:61355098",
+    "hydro-system:70933800",
+    "hydro-system:60026849",
+    "hydro-system:70574060",
+    "hydro-system:70890643",
+    "hydro-system:80064967",
+    "hydro-system:70856797",
+    "hydro-system:60174418",
+    "hydro-system:61547907",
+    "hydro-system:70463083",
+    "hydro-system:61520061",
+    "hydro-system:70895492",
+    "hydro-system:70898394",
+    "hydro-system:70865140",
+    "hydro-system:80072439",
+    "hydro-system:70549678",
+    "hydro-system:70566840",
+    "hydro-system:80048422",
+    "hydro-system:60557376",
+    "hydro-system:61514286",
+    "hydro-system:61509423",
+    "hydro-system:80068731",
+    "hydro-system:80015064",
+    "hydro-system:61520170",
+    "hydro-system:70156165",
+    "hydro-system:70784507",
+    "hydro-system:80067417",
+    "hydro-system:80019756",
+    "hydro-system:70244256",
+    "hydro-system:80060230",
+    "hydro-system:61543259",
+    "hydro-system:60007312",
+    "hydro-system:60022881",
+    "hydro-system:61456098",
+    "hydro-system:70290797",
+    "hydro-system:60441146",
+    "hydro-system:61554706",
+    "hydro-system:70110341",
+    "hydro-system:80067260",
+    "hydro-system:70214162",
+    "hydro-system:80034507",
+    "hydro-system:61536265",
+    "hydro-system:61561008",
+    "hydro-system:80066184",
+    "hydro-system:70202296",
+    "hydro-system:61545841",
+    "hydro-system:61350841",
+    "hydro-system:80064018",
+    "hydro-system:70957614",
+    "hydro-system:70851521",
+    "hydro-system:70049998",
+    "hydro-system:61298121",
+    "hydro-system:80033385",
+    "hydro-system:61205785",
+    "hydro-system:80035867",
+    "hydro-system:70009700",
+    "hydro-system:60440371",
+    "hydro-system:80049373",
+    "hydro-system:70749063",
+    "hydro-system:70844211",
+    "hydro-system:60001814",
+    "hydro-system:61507976",
+    "hydro-system:70834534",
+    "hydro-system:80070226",
+    "hydro-system:61357020",
+    "hydro-system:70846952",
+    "hydro-system:70004800",
+    "hydro-system:80043969",
+    "hydro-system:80165177",
+    "hydro-system:70043276",
+    "hydro-system:60490135",
+    "hydro-system:60237339",
+    "hydro-system:70023641",
+    "hydro-system:70281204",
+    "hydro-system:61570080",
+    "hydro-system:70789628",
+    "hydro-system:80234498",
+    "hydro-system:60016868",
+    "hydro-system:70276504",
+    "hydro-system:70901807",
+    "hydro-system:80086174",
+    "hydro-system:60809372",
+    "hydro-system:60100857",
+    "hydro-system:70026619",
+    "hydro-system:70500400",
+    "hydro-system:60010615",
+    "hydro-system:70608588",
+    "hydro-system:70832638",
+    "hydro-system:61383955",
+    "hydro-system:61555573",
+    "hydro-system:80068976",
+    "hydro-system:80048308",
+    "hydro-system:80001778",
+    "hydro-system:70324446",
+    "hydro-system:80051383",
+    "hydro-system:60804761",
+    "hydro-system:70817056",
+    "hydro-system:80032843",
+    "hydro-system:70045452",
+    "hydro-system:70877500",
+    "hydro-system:80042519",
+    "hydro-system:70084321",
+    "hydro-system:61519454",
+    "hydro-system:61546367",
+    "hydro-system:60627295",
+    "hydro-system:61038090",
+    "hydro-system:60407824",
+    "hydro-system:80047056",
+    "hydro-system:70888155",
+    "hydro-system:61189702",
+    "hydro-system:70084119",
+    "hydro-system:70025722",
+    "hydro-system:70001071",
+    "hydro-system:70360842",
+    "hydro-system:70007286",
+    "hydro-system:60001879",
+    "hydro-system:70776067",
+    "hydro-system:61266023",
+    "hydro-system:70806740",
+    "hydro-system:60516711",
+    "hydro-system:80020100",
+    "hydro-system:70835654",
+    "hydro-system:80029665",
+    "hydro-system:61609128",
+    "hydro-system:70853324"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r168-usgs-topo-san-bernard-opening",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r168-usgs-topo-san-bernard-upper",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r168-usgs-topo-san-bernard-middle",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r168-usgs-topo-san-bernard-terminal",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r168-nluis-burns-lake-77g-1982",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_77g.jpg"
+    },
+    {
+      "source_key": "r168-nluis-cape-stang-77h-1982",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_77h.jpg"
+    },
+    {
+      "source_key": "r168-ibge-ibaretama-2022",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2022/CE/ibaretama/A0_2305266_MM.pdf"
+    },
+    {
+      "source_key": "r168-ibge-ocara-2022",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2022/CE/ocara/A0_2309458_MM.pdf"
+    },
+    {
+      "source_key": "r168-ibge-beberibe-2022",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2022/CE/beberibe/A0_2302206_MM.pdf"
+    },
+    {
+      "source_key": "r168-inegi-matehuala-f1401",
+      "official_url": "https://en.www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/imagen_cartografica/1_250_000/794551154625_geo.pdf"
+    },
+    {
+      "source_key": "r168-inegi-vanegas-compendium",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/24/24044.pdf"
+    },
+    {
+      "source_key": "r168-inegi-galeana-compendium",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/19/19017.pdf"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "d151c253d606c5d7f1c9686f3e40035dd50bb7bd",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      476,
+      477,
+      478,
+      479
+    ],
+    "next_unrecorded_id": "hydro-system:80027515",
+    "progress_rule": "Follow the actual continental order: Americas, Asia, Africa, Europe, then other, with all rivers before lakes. Preserve original queue IDs and ranks for continuity; apply documented geographic deferrals without counting them as name research, and place deferred objects into their corrected later phase by length-descending, stable-ID order. Prior candidate and scope-held assessments remain unresolved where stated.",
+    "geographic_deferrals": [
+      {
+        "aw_id": "hydro-system:80061063",
+        "original_queue_rank": 186,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 66.56–68.17°N and 179.97–177.11°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory bounding box and selected-route geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80065687",
+        "original_queue_rank": 349,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at66.725–67.849775°N and178.2–175.960242°W place this object on Chukotka west of Alaska, adjoining the previously corrected Chukotka selection. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory bounding box and selected-route geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80100188",
+        "original_queue_rank": 387,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 64.939583–66.26978°N and 174.05625–173.320833°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory/order bounding box and geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80119243",
+        "original_queue_rank": 391,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 65.451531–66.491667°N and 176.777083–175.672917°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory/order bounding box and geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80083978",
+        "original_queue_rank": 470,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained original inventory/order bounds at66.522917–67.00625°N and177.333333–174.842957°W place this current object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Existing fixed-queue bounding box and geographic placement only; no naming source or selected geometry acquired for this correction."
+      }
+    ]
+  }
+}

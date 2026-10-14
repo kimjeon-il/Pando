@@ -1,0 +1,954 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r258",
+  "sources": [
+    {
+      "source_key": "r258-usgstopo-chickamin-overview",
+      "title": "USGSTopo, The National Map: Chickamin Glacier, Chickamin River and coastal receiving setting",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "source_type": "Original seamless multiscale reference cartography",
+      "accessed_date_utc": "2026-10-14",
+      "publication_identity": "The independently maintained National Map reference-cartography project, positively identified by retained lawful service-description and publishing records. This regional original is distinct from stopped individual USGS reports, glacier-atlas sections, naming-dictionary material, Canadian base-map services and unidentified provincial fisheries inventories. The stopped service-metadata request was not refreshed.",
+      "material_actually_read": "One complete original regional PNG; clean original-pixel upper, middle and lower crops; an enlarged clean terminal crop; separate private selected-part orientation comparisons. All 27 parts of FID9122 and all 9 parts of FID9123 were covered, including the chosen opening, glacier arc, glacier-margin lake and outlet setting, named main river, tributary joins, lower valley and both retained terminal positions.",
+      "acquisition_outcome": "One direct original-image request completed HTTP200 with image/png and client exit0 before any source pixels were read. No failure, retry, metadata refresh or alternate acquisition occurred.",
+      "observations": "Chickamin Glacier is directly labeled across the selected glaciated opening. Chickamin River is repeatedly labeled from the lake-outlet/upper valley through the middle, lower and coastal-mouth reaches. South Fork Chickamin River and Leduc River are separately labeled incoming branches. The whole selected setting lies on the Alaska side of the mapped international boundary.",
+      "limits": "A composite multiscale map, not one field-survey epoch or a formal name-registry lookup. Glacier geography and ordinary receiving corridors do not establish present ice-front, subglacial flow, exact banks, exact name-change points, present tidal limits or a natural river along the generalized rendered sea-terminal extension. Source images, crops, coordinates and reading aids remain private."
+    },
+    {
+      "source_key": "r258-worldimagery-colombia60222363-overview",
+      "title": "Esri World Imagery: selected western Colombia60222363 corridor overview",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "source_type": "Satellite/aerial photographic mosaic",
+      "acquisition_outcome": "Matching export metadata and returned original each completed HTTP200; original JPEG fully received.",
+      "actual_material_read": "Complete original overview pixels and three local orientation/detail crops covering upper valley, large middle loop and lower estuary.",
+      "evidence_scope": "Ordinary terrain/channel correspondence, receiving junctions and both ending settings. Does not establish hydronyms, exact banks or current flow.",
+      "publication_independence": "A new independently maintained photographic view, geographically distinct from all recorded held selected views and not recovery of IGAC cartography or a held report.",
+      "epoch": "Exact component imagery dates not established",
+      "rights_notice": "Source imagery and derivatives remain private; no redistribution permission inferred."
+    },
+    {
+      "source_key": "r258-worldimagery-colombia60222363-opening",
+      "title": "Esri World Imagery: selected southeastern60222363 opening detail",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "source_type": "Satellite/aerial photographic mosaic",
+      "acquisition_outcome": "Matching export metadata and returned original each completed HTTP200; original JPEG fully received.",
+      "actual_material_read": "Complete finer headward image, local selected-path orientation copy and enlarged unmarked crop of the southern opening-to-receiver terrain.",
+      "evidence_scope": "Resolves the east–west receiving valley and separate northern junction. The chosen southern side-valley outlet and intervening trough remain indistinct, so its terrain-level through-link is not established.",
+      "publication_independence": "Same permitted photographic publication as the overview; no independent source count is claimed.",
+      "epoch": "Exact image date not established",
+      "rights_notice": "Original and derivative images remain private."
+    },
+    {
+      "source_key": "r258-cvc-cajambre-forest-plan-prose",
+      "title": "Plan de Ordenación Forestal Sostenible de la Cuenca Hidrográfica del Río Cajambre, Capítulo I: Caracterización, parte1",
+      "publisher": "CVC; Consejo Comunitario del Río Cajambre; FUNDACOFAN project",
+      "official_url": "https://portal-hidroclimatologico.cvc.gov.co/sites/default/files/archivosAdjuntos/planordenacionforestalsostenibleriocajambre-capitulo_i_caracterizacionparte1_0.pdf",
+      "publication_date": null,
+      "date_note": "Original includes2008 fieldwork; publication date not established.",
+      "source_type": "Primary local forest-management characterization prose",
+      "actual_material_read": "Parsed original introduction, printed pp2–7 geography/access prose; bounded project-fieldwork and source-credit text. No map pixels read.",
+      "evidence_scope": "Confluence naming, broad Farallones-to-Pacific setting and distinct contributor names.",
+      "publication_independence": "Its introduction identifies a local community/CVC/FUNDACOFAN characterization project, distinct from held national hydrography and Caribbean studies.",
+      "rights_notice": "Printed Copia No Controlada CVC is retained as document-control wording, not an access denial or open redistribution license. Borrowed base-map identity is unresolved; figures are excluded."
+    },
+    {
+      "source_key": "r258-buenaventura-pot-v1-prose",
+      "title": "P.O.T. Buenaventura: Convivencia Pacífica desde la Diversidad. Volumen1, Diagnóstico General y Prospectiva",
+      "publisher": "Secretaría de Planeación y Ordenamiento Territorial, Municipio de Buenaventura; ESAP repository",
+      "official_url": "https://repositoriocdim.esap.edu.co/bitstreams/42d1c017-be43-4aad-b76b-c362ae3a1604/download",
+      "publication_date": null,
+      "date_note": "Publication date not verified from the inspected original.",
+      "source_type": "Primary municipal territorial diagnosis",
+      "actual_material_read": "Parsed original title, participatory project methodology and printed p41 hydrographic prose; bounded source-credit/bibliographic text. No map pixels read.",
+      "evidence_scope": "Distinctive downstream directional route, confluence and mouth naming.",
+      "publication_independence": "Own municipal/community planning exercise, distinct from held Argelia, López de Micay and Sinú projects. It shares CVC contextual inputs with the forestry plan, so complete information independence is not claimed.",
+      "rights_notice": "No reproduction permission inferred. Unidentified borrowed cartography is not used."
+    },
+    {
+      "source_key": "r258-usgstopo-california-overview",
+      "title": "USGSTopo, The National Map: selected northeastern California overview",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Independently maintained seamless multiscale National Map reference cartography, affirmatively distinguished by retained lawful source descriptions from held numbered USGS reports, their project plates, place-name dictionaries and exact stopped regional views. These are new regional originals, not recovery of cancelled metadata.",
+      "accessed_date_utc": "2026-10-14",
+      "acquisition_status": "completed_direct_http200_image_png",
+      "source_original_acquired": true,
+      "original_pixels_actually_read": true,
+      "material_actually_read": "Full original regional pixels read, including chosen eastern opening, Bull/Deep/Secret corridors, Shaffer Mountain gorge, Willow/Susan joins and terminal lake interior. Private orientation copy used only to locate supplied selected parts.",
+      "edition_or_scene_date": "No common field-survey date for contributing layers established; no service metadata refresh requested.",
+      "evidence_scope": "Ordinary geographic and mapped-name correspondence, not exact banks, current discharge, formal name registration or surveyed hydrological connections.",
+      "source_use_scope": "Own factual synthesis and normal bibliography only; original cartography and reading materials not redistributed."
+    },
+    {
+      "source_key": "r258-usgstopo-california-upper",
+      "title": "USGSTopo, The National Map: upper Bull–Deep–Secret Creek corridor",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Independently maintained seamless multiscale National Map reference cartography, affirmatively distinguished by retained lawful source descriptions from held numbered USGS reports, their project plates, place-name dictionaries and exact stopped regional views. These are new regional originals, not recovery of cancelled metadata.",
+      "accessed_date_utc": "2026-10-14",
+      "acquisition_status": "completed_direct_http200_image_png",
+      "source_original_acquired": true,
+      "original_pixels_actually_read": true,
+      "material_actually_read": "Full upper original pixels read, including unnamed chosen feeder, Bull/Deep junction, northwestward creek/fan, westward receiving-floor transfer and separately situated Mud Flat depressions.",
+      "edition_or_scene_date": "No common field-survey date for contributing layers established; no service metadata refresh requested.",
+      "evidence_scope": "Ordinary geographic and mapped-name correspondence, not exact banks, current discharge, formal name registration or surveyed hydrological connections.",
+      "source_use_scope": "Own factual synthesis and normal bibliography only; original cartography and reading materials not redistributed."
+    },
+    {
+      "source_key": "r258-usgstopo-california-lower",
+      "title": "USGSTopo, The National Map: Secret Creek gorge, Willow–Susan join and terminal slough/lake corridor",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Independently maintained seamless multiscale National Map reference cartography, affirmatively distinguished by retained lawful source descriptions from held numbered USGS reports, their project plates, place-name dictionaries and exact stopped regional views. These are new regional originals, not recovery of cancelled metadata.",
+      "accessed_date_utc": "2026-10-14",
+      "acquisition_status": "completed_direct_http200_image_png",
+      "source_original_acquired": true,
+      "original_pixels_actually_read": true,
+      "material_actually_read": "Full lower original pixels and a bounded enlargement read. Actual Secret Creek gorge and Willow confluence, lower Susan channel, Dill/Whitehead slough setting, Hartson disambiguation and lake-interior ending inspected.",
+      "edition_or_scene_date": "No common field-survey date for contributing layers established; no service metadata refresh requested.",
+      "evidence_scope": "Ordinary geographic and mapped-name correspondence, not exact banks, current discharge, formal name registration or surveyed hydrological connections.",
+      "source_use_scope": "Own factual synthesis and normal bibliography only; original cartography and reading materials not redistributed."
+    },
+    {
+      "source_key": "r258-lahontan-basin-table",
+      "title": "Lahontan Region Basin Plan, Chapter 2 and Table 2-1; 2024-hosted Mono Basin amendment text",
+      "publisher": "California Regional Water Quality Control Board, Lahontan Region",
+      "official_url": "https://www.waterboards.ca.gov/lahontan/water_issues/programs/basin_plan/docs/2024/r6monobpa.pdf",
+      "publication_identity": "Independently identified regulatory planning text and surface-water/receiving-water inventory. The same official table was previously lawfully identified in r119; no later exact hold was found, and it is not a held USGS or BLM map-project equivalent.",
+      "accessed_date_utc": "2026-10-14",
+      "acquisition_status": "successful_pdf_text_reader",
+      "origin_http_status_independently_measured": false,
+      "material_actually_read": "Opening amendment annotation, printed page 2-5 bounded Susan–Honey statement, and printed pages 2-14–2-15 geographic/receiving-water rows for Susan River, Willow Creek, Honey Lake, Hartson Lake and Snowstorm Mountain drainage. No original scan or map pixels read.",
+      "original_pixels_actually_read": false,
+      "edition_note": "Opening annotation describes proposed Mono Basin amendment language. No current legal adoption or water-quality conclusion is asserted.",
+      "evidence_scope": "Bounded lower receiving relationships and feature classes; upper table hierarchy is preserved as differing from the directly read selected map labels, not used to establish every selected transfer.",
+      "source_use_scope": "Own short geographic paraphrase and ordinary bibliography only."
+    },
+    {
+      "source_key": "r258-usgstopo-alaska-overview",
+      "title": "USGSTopo, The National Map: selected northern Alaska lake-chain and Inaru corridor overview",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Independently maintained seamless multiscale National Map reference cartography, affirmatively distinguished by retained lawful source descriptions from held numbered USGS reports, their project plates, place-name dictionaries and exact stopped regional views. These are new regional originals, not recovery of cancelled metadata.",
+      "accessed_date_utc": "2026-10-14",
+      "acquisition_status": "completed_direct_http200_image_png",
+      "source_original_acquired": true,
+      "original_pixels_actually_read": true,
+      "material_actually_read": "Full original overview pixels read, with private selected-path orientation aid. Initial lakes, Niklavik neighborhood, Tractor/northern lake detour, Inaru lower corridor, Sisgravik setting and separate Meade system inspected.",
+      "edition_or_scene_date": "No common field-survey date for contributing layers established; no service metadata refresh requested.",
+      "evidence_scope": "Ordinary geographic and mapped-name correspondence, not exact banks, current discharge, formal name registration or surveyed hydrological connections.",
+      "source_use_scope": "Own factual synthesis and normal bibliography only; original cartography and reading materials not redistributed."
+    },
+    {
+      "source_key": "r258-usgstopo-alaska-upper",
+      "title": "USGSTopo, The National Map: western lake sequence, Niklavik neighborhood and Tractor Lake detail",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Independently maintained seamless multiscale National Map reference cartography, affirmatively distinguished by retained lawful source descriptions from held numbered USGS reports, their project plates, place-name dictionaries and exact stopped regional views. These are new regional originals, not recovery of cancelled metadata.",
+      "accessed_date_utc": "2026-10-14",
+      "acquisition_status": "completed_direct_http200_image_png",
+      "source_original_acquired": true,
+      "original_pixels_actually_read": true,
+      "material_actually_read": "Full original upper pixels read, plus bounded clean enlargements of initial lakes and Tractor/northern interlake setting. Mapped local channels and several missing complete selected transfers were distinguished.",
+      "edition_or_scene_date": "No common field-survey date for contributing layers established; no service metadata refresh requested.",
+      "evidence_scope": "Ordinary geographic and mapped-name correspondence, not exact banks, current discharge, formal name registration or surveyed hydrological connections.",
+      "source_use_scope": "Own factual synthesis and normal bibliography only; original cartography and reading materials not redistributed."
+    },
+    {
+      "source_key": "r258-usgstopo-alaska-lower",
+      "title": "USGSTopo, The National Map: northern feeder, lower Inaru and Sisgravik–Kuyanak terminal detail",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Independently maintained seamless multiscale National Map reference cartography, affirmatively distinguished by retained lawful source descriptions from held numbered USGS reports, their project plates, place-name dictionaries and exact stopped regional views. These are new regional originals, not recovery of cancelled metadata.",
+      "accessed_date_utc": "2026-10-14",
+      "acquisition_status": "completed_direct_http200_image_png",
+      "source_original_acquired": true,
+      "original_pixels_actually_read": true,
+      "material_actually_read": "Full original lower pixels read, including northern-chain departure, Inaru join and meanders, western Sisgravik entry, southern lake lobe and adjacent Kuyanak Bay. Clean terminal enlargement inspected; separate source/render points used only as private orientation.",
+      "edition_or_scene_date": "No common field-survey date for contributing layers established; no service metadata refresh requested.",
+      "evidence_scope": "Ordinary geographic and mapped-name correspondence, not exact banks, current discharge, formal name registration or surveyed hydrological connections.",
+      "source_use_scope": "Own factual synthesis and normal bibliography only; original cartography and reading materials not redistributed."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70069288",
+      "source_keys": [
+        "r258-usgstopo-chickamin-overview"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9122
+          ],
+          "component_scope": "Chosen glaciated opening, eastward traverse, southern bend and return toward the glacier-margin lake.",
+          "finding": "The original depicts the entire opening and curved passage within the glaciated trough labeled Chickamin Glacier, south of the mapped Canada boundary. The selected route passes east across the upper ice, bends south beside the mountain mass and returns west to the northern glacier-margin lake setting. This is geographic glacier correspondence; no active stream or subglacial channel is inferred.",
+          "sources": [
+            "r258-usgstopo-chickamin-overview"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Chickamin Glacier"
+          ],
+          "stored_parts": {
+            "first": 1,
+            "last": 8,
+            "index_base": 1
+          },
+          "part_index_basis": "One-based stored-part numbering, restarting within each selected fragment."
+        },
+        {
+          "fragments": [
+            9122
+          ],
+          "component_scope": "Glacier-margin lake/foreland and westward upper receiving valley.",
+          "finding": "The selected continuation crosses the northwestern lake-margin/foreland setting into the lake western outlet corridor, which is mapped continuously into the westward river valley. Chickamin River is directly labeled along that receiving valley. The lake has no separately established name in this reading; the generalized path is not required to match its exact mapped shore or one active braid.",
+          "sources": [
+            "r258-usgstopo-chickamin-overview"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Chickamin River"
+          ],
+          "stored_parts": {
+            "first": 9,
+            "last": 14,
+            "index_base": 1
+          },
+          "part_index_basis": "One-based stored-part numbering, restarting within each selected fragment."
+        },
+        {
+          "fragments": [
+            9122
+          ],
+          "component_scope": "Southwestern mountain-valley reach and westward turn.",
+          "finding": "A continuously mapped river corridor connects the upper valley to its southwestern bend and the short westward reach. Repeated Chickamin River labels follow the selected corridor, and mapped lateral creeks join it without an intervening separate basin. The full selected parts are visible in clean original pixels.",
+          "sources": [
+            "r258-usgstopo-chickamin-overview"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Chickamin River"
+          ],
+          "stored_parts": {
+            "first": 15,
+            "last": 18,
+            "index_base": 1
+          },
+          "part_index_basis": "One-based stored-part numbering, restarting within each selected fragment."
+        },
+        {
+          "fragments": [
+            9122
+          ],
+          "component_scope": "Southbound enclosed valley and broad lower junction floor.",
+          "finding": "The selected river continues south through the mountain corridor and opens into a wider braided/wetland receiving floor. South Fork Chickamin River approaches from the east and joins this same floor. The selected route is the mapped Chickamin main corridor; the South Fork is a separate adjoining branch and is not an alias for the whole selection.",
+          "sources": [
+            "r258-usgstopo-chickamin-overview"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Chickamin River",
+            "South Fork Chickamin River"
+          ],
+          "stored_parts": {
+            "first": 19,
+            "last": 24,
+            "index_base": 1
+          },
+          "part_index_basis": "One-based stored-part numbering, restarting within each selected fragment."
+        },
+        {
+          "fragments": [
+            9122
+          ],
+          "component_scope": "Northwestward lower-valley bend to the mainstem fragment boundary.",
+          "finding": "The original shows a continuous broad channel-and-wetland floor carrying the selected northwestward bend toward the separately labeled Leduc River approach from the north. Chickamin River labels continue through this receiving setting. The FID9122 ending and FID9123 opening occupy the same downstream valley; stored fragment and part boundaries are retained without joining or geometry editing.",
+          "sources": [
+            "r258-usgstopo-chickamin-overview"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Chickamin River",
+            "Leduc River"
+          ],
+          "stored_parts": {
+            "first": 25,
+            "last": 27,
+            "index_base": 1
+          },
+          "part_index_basis": "One-based stored-part numbering, restarting within each selected fragment."
+        },
+        {
+          "fragments": [
+            9123
+          ],
+          "component_scope": "Downstream westward bend, southwestward valley and coastal approach.",
+          "finding": "The selected downstream fragment follows the mapped Chickamin River valley west and then southwest through broad meanders. Lateral creek joins and the lower branching channel belt are visible all the way to the estuarine approach. No lake-to-river transfer or separate-basin link is left unestablished.",
+          "sources": [
+            "r258-usgstopo-chickamin-overview"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "bounded_names": [
+            "Chickamin River"
+          ],
+          "stored_parts": {
+            "first": 1,
+            "last": 8,
+            "index_base": 1
+          },
+          "part_index_basis": "One-based stored-part numbering, restarting within each selected fragment."
+        },
+        {
+          "fragments": [
+            9123
+          ],
+          "component_scope": "Lower Chickamin mouth and separately retained rendered coastal extension.",
+          "finding": "The stored source endpoint lies in the mapped lower Chickamin estuarine channel/mouth setting. The stored rendered endpoint is farther southwest at the adjoining southeastern coastal margin of the receiving marine inlet; on this map it is not asserted to occupy the same river thread or an exact waterline. The final generalized extension traverses that coastal-margin setting. Both positions were compared separately with original pixels, and the supplied sea-terminal classification is retained as metadata. The map establishes one coastal receiving setting, without claiming a natural river course along the entire extension or assigning an unobserved marine-waterbody name.",
+          "sources": [
+            "r258-usgstopo-chickamin-overview"
+          ],
+          "correspondence": "completed_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "bounded_names": [
+            "Chickamin River"
+          ],
+          "stored_parts": {
+            "first": 9,
+            "last": 9,
+            "index_base": 1
+          },
+          "part_index_basis": "One-based stored-part numbering, restarting within each selected fragment."
+        }
+      ],
+      "assignment_region_correction": "The inventory region hint and initial border-area orientation are not country evidence. The inspected original places the selected path on the Alaska side of the international boundary."
+    },
+    {
+      "aw_id": "hydro-system:60222363",
+      "source_keys": [
+        "r258-worldimagery-colombia60222363-overview",
+        "r258-worldimagery-colombia60222363-opening",
+        "r258-cvc-cajambre-forest-plan-prose",
+        "r258-buenaventura-pot-v1-prose"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            11586
+          ],
+          "component_scope": "chosen southeastern opening",
+          "finding": "The selected first southern side-valley approaches the clearly visible east–west receiver near the first/second-part transition. The receiver and a separate northern junction are readable, but haze, cloud and canopy obscure the intervening trough and southern side-valley mouth. The ordinary valley connection itself cannot be distinguished confidently from forested slope texture. This is not merely an unseen wet thread, exact bank or first coordinate. Regional prose does not locate this short chosen branch.",
+          "sources": [
+            "r258-worldimagery-colombia60222363-overview",
+            "r258-worldimagery-colombia60222363-opening"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": {
+            "first": 1,
+            "last": 1,
+            "index_base": 1
+          },
+          "part_index_basis": "One-based stored-part numbering, restarting within each selected fragment."
+        },
+        {
+          "fragments": [
+            11586
+          ],
+          "component_scope": "upper westward receiving valley",
+          "finding": "The narrow receiving channel is visible beneath forested valley walls, turns west and receives a separate northern tributary before continuing through the same valley. The photograph supports ordinary valley and junction correspondence throughout these parts, while the opening upstream is kept separate. No exact named boundary is read from imagery.",
+          "sources": [
+            "r258-worldimagery-colombia60222363-overview",
+            "r258-worldimagery-colombia60222363-opening"
+          ],
+          "correspondence": "completed_ordinary_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": {
+            "first": 2,
+            "last": 10,
+            "index_base": 1
+          },
+          "part_index_basis": "One-based stored-part numbering, restarting within each selected fragment."
+        },
+        {
+          "fragments": [
+            11586
+          ],
+          "component_scope": "northwestward foothill corridor and major join",
+          "finding": "The selected route follows a continuous valley northwest out of steeper terrain into the forested lowland, then reaches a major northern-branch junction at the head of the prominent southward loop. Imagery establishes the approach and junction. The positional interpretation of this receiving junction as the Barco-area join is supported by the two original prose accounts and their distinctive downstream directional sequence.",
+          "sources": [
+            "r258-worldimagery-colombia60222363-overview",
+            "r258-cvc-cajambre-forest-plan-prose",
+            "r258-buenaventura-pot-v1-prose"
+          ],
+          "correspondence": "completed_ordinary_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": {
+            "first": 11,
+            "last": 20,
+            "index_base": 1
+          },
+          "part_index_basis": "One-based stored-part numbering, restarting within each selected fragment."
+        },
+        {
+          "fragments": [
+            11586
+          ],
+          "component_scope": "large southwest then north loop",
+          "finding": "The same visible lowland river makes the selected large southwestward excursion, rounds its southern end and returns north. There is no separate-basin jump or missing lake transfer. The municipal account describes the corresponding Cajambre course from Barco southwest to El Llano and then north toward Aragón.",
+          "sources": [
+            "r258-worldimagery-colombia60222363-overview",
+            "r258-buenaventura-pot-v1-prose"
+          ],
+          "correspondence": "completed_ordinary_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": {
+            "first": 21,
+            "last": 26,
+            "index_base": 1
+          },
+          "part_index_basis": "One-based stored-part numbering, restarting within each selected fragment."
+        },
+        {
+          "fragments": [
+            11586
+          ],
+          "component_scope": "northwestward middle and lower meanders",
+          "finding": "The route continues northwest along a widening, repeatedly bending lowland river. Visible tributary mouths and bends connect the northern end of the loop to the lower estuarine reach. Sparse clouds do not obscure the ordinary receiving corridor or introduce another material gap. No lake, glacier or managed impoundment passage is implicated.",
+          "sources": [
+            "r258-worldimagery-colombia60222363-overview",
+            "r258-buenaventura-pot-v1-prose"
+          ],
+          "correspondence": "completed_ordinary_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts": {
+            "first": 27,
+            "last": 39,
+            "index_base": 1
+          },
+          "part_index_basis": "One-based stored-part numbering, restarting within each selected fragment."
+        },
+        {
+          "fragments": [
+            11587
+          ],
+          "component_scope": "lower tidal channel to mouth",
+          "finding": "The stage-2 selection follows the same lower channel, first north and then west through a broad estuarine bend to the coastal aperture. Forested/mangrove-like islands and adjoining tidal branches are visible. The lower branch does not require a cross-land or lake-to-feeder transfer. Source prose identifies the corresponding receiving mouth as Boca Cajambre.",
+          "sources": [
+            "r258-worldimagery-colombia60222363-overview",
+            "r258-buenaventura-pot-v1-prose"
+          ],
+          "correspondence": "completed_ordinary_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "stored_parts": {
+            "first": 1,
+            "last": 8,
+            "index_base": 1
+          },
+          "part_index_basis": "One-based stored-part numbering, restarting within each selected fragment."
+        },
+        {
+          "fragments": [
+            11587
+          ],
+          "component_scope": "actual source and render endings",
+          "finding": "The stored source endpoint is in the broad mouth-channel setting. The render endpoint is displaced mainly south, slightly west, into the same broad estuarine receiving water. Both are short of a claim to the exact outer ocean shoreline; the visible estuarine aperture continues west to Pacific coastal water. Their different positions are preserved, not repaired or equated.",
+          "sources": [
+            "r258-worldimagery-colombia60222363-overview",
+            "r258-buenaventura-pot-v1-prose"
+          ],
+          "correspondence": "completed_ordinary_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "stored_parts": {
+            "first": 9,
+            "last": 9,
+            "index_base": 1
+          },
+          "part_index_basis": "One-based stored-part numbering, restarting within each selected fragment."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70561071",
+      "source_keys": [
+        "r258-usgstopo-california-overview",
+        "r258-usgstopo-california-upper",
+        "r258-usgstopo-california-lower",
+        "r258-lahontan-basin-table"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9791
+          ],
+          "component_scope": "Chosen eastern gully and northward receiving creek",
+          "finding": "The chosen eastern opening occupies a small mapped unnamed feeder valley. It joins the northward Bull Creek corridor, which reaches the Deep Creek receiving channel. Skedaddle Creek farther south is a separate drainage and is not substituted for this opening.",
+          "sources": [
+            "r258-usgstopo-california-overview",
+            "r258-usgstopo-california-upper"
+          ],
+          "correspondence": "completed_ordinary_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Bull Creek"
+          ],
+          "part_indices_zero_based": [
+            0,
+            1,
+            2
+          ],
+          "part_index_basis": "Zero-based stored-part indices within the sole selected fragment."
+        },
+        {
+          "fragments": [
+            9791
+          ],
+          "component_scope": "Deep Creek, northwestward fan and highway-side receiving floor",
+          "finding": "The selection follows the directly labeled Deep Creek northwestward through the low mountain-front corridor and onto the open floor east of Secret Creek. The westward continuation crosses the highway-side alluvial floor into the mapped Secret Creek drainage. Channel linework is discontinuous across the final open interval, but the mapped low receiving floor is continuous without a separate enclosed lake or intervening divide. This is ordinary geographic correspondence, not a claim of a continuous wet channel or current managed operation.",
+          "sources": [
+            "r258-usgstopo-california-overview",
+            "r258-usgstopo-california-upper"
+          ],
+          "correspondence": "completed_ordinary_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Deep Creek",
+            "Secret Creek"
+          ],
+          "part_indices_zero_based": [
+            3,
+            4,
+            5,
+            6
+          ],
+          "part_index_basis": "Zero-based stored-part indices within the sole selected fragment."
+        },
+        {
+          "fragments": [
+            9791
+          ],
+          "component_scope": "Southwestern Secret Creek corridor and north/west Shaffer Mountain passage",
+          "finding": "The selected middle parts follow Secret Creek southwest across the plain, enter the mapped gorge along the north and west sides of Shaffer Mountain, and emerge at the lower Willow Creek corridor. Mud Flat and Little Mud Flat lie separately east of this passage. The direct map establishes the selected gorge route; the Basin Plan table lists a different regional Snowstorm/Petes hierarchy and is not used to rename this reach.",
+          "sources": [
+            "r258-usgstopo-california-overview",
+            "r258-usgstopo-california-upper",
+            "r258-usgstopo-california-lower"
+          ],
+          "correspondence": "completed_ordinary_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Secret Creek",
+            "Willow Creek"
+          ],
+          "part_indices_zero_based": [
+            7,
+            8,
+            9,
+            10,
+            11
+          ],
+          "part_index_basis": "Zero-based stored-part indices within the sole selected fragment."
+        },
+        {
+          "fragments": [
+            9791
+          ],
+          "component_scope": "Lower Willow Creek and Susan River join",
+          "finding": "The lower map directly shows Willow Creek approaching and joining the eastward Susan River north of Standish and west of Litchfield. Wards Lake is an adjacent feature, not a required lake transit. Generalized selected positions remain within the connected receiving corridor; no exact bank fitting is asserted.",
+          "sources": [
+            "r258-usgstopo-california-overview",
+            "r258-usgstopo-california-lower",
+            "r258-lahontan-basin-table"
+          ],
+          "correspondence": "completed_ordinary_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Willow Creek",
+            "Susan River"
+          ],
+          "part_indices_zero_based": [
+            12,
+            13
+          ],
+          "part_index_basis": "Zero-based stored-part indices within the sole selected fragment."
+        },
+        {
+          "fragments": [
+            9791
+          ],
+          "component_scope": "Lower Susan River, slough/wetland and agricultural receiving plain",
+          "finding": "The long final stored part first occupies the lower Susan receiving corridor, then turns southeast across its continuous slough/wetland and agricultural floor toward Dill Slough and the Whitehead Slough corridor. Mapped side channels, canals, fields and wetland passages are components of this common receiving plain. The whole part is not assigned to a single precise managed channel; no current diversion operation is inferred. Nearby Hartson Slough and Hartson Lake remain distinct from the final selected approach.",
+          "sources": [
+            "r258-usgstopo-california-overview",
+            "r258-usgstopo-california-lower"
+          ],
+          "correspondence": "completed_ordinary_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Susan River",
+            "Dill Slough",
+            "Whitehead Slough"
+          ],
+          "part_indices_zero_based": [
+            14
+          ],
+          "part_index_basis": "Zero-based stored-part indices within the sole selected fragment."
+        },
+        {
+          "fragments": [
+            9791
+          ],
+          "component_scope": "Northwestern lake entry and selected interior ending",
+          "finding": "The final continuation passes from the Whitehead Slough-side receiving margin into the large terminal lake basin and ends within its interior, east of the separately mapped Hartson Lake management area. The official geographic table identifies Honey Lake as the internally drained saline receiver of the Susan River. A named natural river is not projected across the lake interior.",
+          "sources": [
+            "r258-usgstopo-california-overview",
+            "r258-usgstopo-california-lower",
+            "r258-lahontan-basin-table"
+          ],
+          "correspondence": "completed_ordinary_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Honey Lake"
+          ],
+          "part_indices_zero_based": [
+            14
+          ],
+          "part_index_basis": "Zero-based stored-part indices within the sole selected fragment."
+        }
+      ],
+      "terminal_distinctions": {
+        "core_terminal_class": "endorheic",
+        "source_endpoint_description": "Stored source ending lies within the Honey Lake interior beyond the selected northwestern slough-margin entry.",
+        "render_endpoint_description": "Stored render ending is coincident with the source ending in the Honey Lake interior; it is not a separate outlet or a named river mouth.",
+        "source_and_render_endpoints_coincide_in_pinned_metadata": true,
+        "actual_receiver": "Honey Lake",
+        "source_keys": [
+          "r258-usgstopo-california-overview",
+          "r258-usgstopo-california-lower",
+          "r258-lahontan-basin-table"
+        ],
+        "completion": true
+      }
+    },
+    {
+      "aw_id": "hydro-system:80028424",
+      "source_keys": [
+        "r258-usgstopo-alaska-overview",
+        "r258-usgstopo-alaska-upper",
+        "r258-usgstopo-alaska-lower"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2319
+          ],
+          "component_scope": "Chosen southwestern wetland feeder and first unnamed lake sequence",
+          "finding": "Original maps show the chosen wetland/small-stream setting, an initial rounded lake and several elongated lakes north and east. Local channels and individual lake settings are visible, but the complete selected west-then-north and eastward lake-to-lake sequence is not established throughout. The eastern continuation of part 1 is not accepted merely because nearby lakes and wetlands occupy one low plain.",
+          "sources": [
+            "r258-usgstopo-alaska-overview",
+            "r258-usgstopo-alaska-upper"
+          ],
+          "correspondence": "material_through_connection_unestablished",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            0,
+            1
+          ],
+          "part_index_basis": "Zero-based stored-part indices within the sole selected fragment."
+        },
+        {
+          "fragments": [
+            2319
+          ],
+          "component_scope": "Northeastern wetland and small-lake passage crossing the Niklavik neighborhood",
+          "finding": "The selection turns northeast and crosses the mapped Niklavik Creek neighborhood before turning north toward Tractor Lake. The maps show multiple branching minor streams and separate lakes; they do not establish the entire selected transfer from this west/east drainage into the northward lake approach. Niklavik is a bounded mapped name, not proof of the modeled through-route.",
+          "sources": [
+            "r258-usgstopo-alaska-overview",
+            "r258-usgstopo-alaska-upper"
+          ],
+          "correspondence": "material_through_connection_unestablished",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Niklavik Creek"
+          ],
+          "part_indices_zero_based": [
+            2,
+            3,
+            4
+          ],
+          "part_index_basis": "Zero-based stored-part indices within the sole selected fragment."
+        },
+        {
+          "fragments": [
+            2319
+          ],
+          "component_scope": "Tractor Lake and successive northern neighboring lakes",
+          "finding": "The selection passes through Tractor Lake and then turns east/northeast across narrow intervening land and additional lake settings into the southern part of a larger northern lake, followed by an eastward exit. The needed transfer from the selected eastern Tractor Lake margin to the next narrow lake, onward northern interlake links, and the selected eastern exit are not all demonstrated by the inspected cartography. These are specific lake-to-lake/source-feeder gaps, not a demand for exact bank matching or current wetness. The northern lake label was too small for a confident spelling and is not promoted to a name observation.",
+          "sources": [
+            "r258-usgstopo-alaska-overview",
+            "r258-usgstopo-alaska-upper",
+            "r258-usgstopo-alaska-lower"
+          ],
+          "correspondence": "material_through_connection_unestablished",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Tractor Lake"
+          ],
+          "part_indices_zero_based": [
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "part_index_basis": "Zero-based stored-part indices within the sole selected fragment."
+        },
+        {
+          "fragments": [
+            2319
+          ],
+          "component_scope": "Southeastern wetland descent toward the Inaru meander corridor",
+          "finding": "A minor-stream network and the downstream approach to Inaru are mapped, but the entire selected connection from the northern lake-chain exit to that feeder is not established. The mapped lower approach does not close the missing upstream lake transfer.",
+          "sources": [
+            "r258-usgstopo-alaska-overview",
+            "r258-usgstopo-alaska-upper",
+            "r258-usgstopo-alaska-lower"
+          ],
+          "correspondence": "material_through_connection_unestablished",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            10
+          ],
+          "part_index_basis": "Zero-based stored-part indices within the sole selected fragment."
+        },
+        {
+          "fragments": [
+            2319
+          ],
+          "component_scope": "Connected lower river and meander corridor",
+          "finding": "These parts correspond at ordinary scale to the directly labeled Inaru River meanders and downstream widening. Generalized positions sometimes cut across meander interiors, but the same uninterrupted receiving river corridor is clear. Northern lake outlets and the major Meade River system to the south remain distinct.",
+          "sources": [
+            "r258-usgstopo-alaska-overview",
+            "r258-usgstopo-alaska-lower"
+          ],
+          "correspondence": "completed_ordinary_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Inaru River"
+          ],
+          "part_indices_zero_based": [
+            11,
+            12,
+            13,
+            14
+          ],
+          "part_index_basis": "Zero-based stored-part indices within the sole selected fragment."
+        },
+        {
+          "fragments": [
+            2319
+          ],
+          "component_scope": "Lower Inaru entry, lake passage and southern-lobe render ending",
+          "finding": "The selected rendered continuation follows the lower Inaru approach into the western/southwestern Sisgravik Lake setting and ends within its southern lobe. Map network labels extend across lake water; that does not make the lake a river alias. The source endpoint is stored separately and lies near the adjacent Kuyanak Bay-side northern margin; no exact shoreline or narrow-neck hydraulic connection is inferred from the generalized metadata.",
+          "sources": [
+            "r258-usgstopo-alaska-overview",
+            "r258-usgstopo-alaska-lower"
+          ],
+          "correspondence": "completed_ordinary_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Inaru River",
+            "Sisgravik Lake"
+          ],
+          "part_indices_zero_based": [
+            15,
+            16,
+            17
+          ],
+          "part_index_basis": "Zero-based stored-part indices within the sole selected fragment."
+        }
+      ],
+      "terminal_distinctions": {
+        "core_terminal_class": "sea",
+        "source_endpoint_description": "Stored source ending lies near the northern margin of Kuyanak Bay, immediately south of the southern Sisgravik Lake lobe; exact bank placement is not established.",
+        "render_endpoint_description": "Stored render ending is displaced northeast from the source ending and lies within the mapped southern lobe of Sisgravik Lake after the selected lower Inaru approach.",
+        "source_and_render_endpoints_coincide_in_pinned_metadata": false,
+        "actual_render_receiver": "Sisgravik Lake, southern lobe",
+        "source_endpoint_receiver_context": "Kuyanak Bay northern margin",
+        "terminal_metadata_limit": "The stored sea class is preserved as inventory metadata; it is not used to override the inspected lake/bay distinction or assert a new observed coast line.",
+        "source_keys": [
+          "r258-usgstopo-alaska-overview",
+          "r258-usgstopo-alaska-lower"
+        ],
+        "completion": true
+      },
+      "material_correspondence_gaps": [
+        {
+          "part_indices_zero_based": [
+            0,
+            1
+          ],
+          "gap": "Complete transfer through the first unnamed western lake sequence, especially the part-1 eastward continuation."
+        },
+        {
+          "part_indices_zero_based": [
+            2,
+            3,
+            4
+          ],
+          "gap": "Connection from the western/Niklavik drainage neighborhood into the selected northward Tractor Lake approach."
+        },
+        {
+          "part_indices_zero_based": [
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "gap": "Selected Tractor Lake eastern exit, subsequent northern interlake transfers and eastward northern-lake exit."
+        },
+        {
+          "part_indices_zero_based": [
+            10
+          ],
+          "gap": "Complete northern-lake-chain exit to the minor feeder that reaches the Inaru corridor."
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [],
+  "additional_source_use_notices": [
+    {
+      "publication": "USGSTopo, The National Map: Chickamin regional original",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "kind": "bounded_cartographic_and_name_scope",
+      "observation": "One completed original and local reading aids support ordinary geographic and directly labeled name correspondence only. The upper glacier and separate tributary names are not river aliases; the render extension is not presented as a mapped natural channel.",
+      "acquisition_stop": false,
+      "material_gap": false,
+      "aw_id": "hydro-system:70069288"
+    },
+    {
+      "publication": "USGSTopo, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "kind": "private_originals_and_derivatives",
+      "observation": "Only independently written factual observations and normal bibliography are public-ready. Original images, crops, overlays, full selected coordinates, dynamic view requests, receipts and local paths remain private.",
+      "acquisition_stop": false,
+      "material_gap": false,
+      "aw_id": "hydro-system:70069288"
+    },
+    {
+      "publication": "CVC Cajambre forestry characterization and Buenaventura POT source figures",
+      "restriction_scope": "Borrowed map panels/base hydrography only; not the independently authored prose or whole-publication access.",
+      "observed_outcome": "Underlying cartographic edition/project relationship was not affirmatively resolved. No original map pixels were requested or used.",
+      "acquisition_stop": false,
+      "permitted_scope": "Actually read authorial project, geography and hydrographic prose.",
+      "aw_id": "hydro-system:60222363"
+    },
+    {
+      "publication": "World Imagery selected opening detail",
+      "restriction_scope": "Actual photographic evidence quality at first selected opening.",
+      "observed_outcome": "Acquisition succeeded. Haze/cloud and canopy leave the southern opening side-valley mouth and intervening trough to the east–west receiver indistinct at ordinary terrain scale.",
+      "acquisition_stop": false,
+      "permitted_scope": "Visible terrain/channel observations only.",
+      "aw_id": "hydro-system:60222363"
+    },
+    {
+      "publication": "USGSTopo selected northeastern California originals",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "kind": "bounded_representative_and_receiving_floor_scope",
+      "observation": "Three successful originals actually read. Common canyon, fan, alluvial, slough and lake receiving settings establish ordinary correspondence without extending one hydronym over every component.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70561071"
+    },
+    {
+      "publication": "Lahontan Basin Plan 2024-hosted amendment/table text",
+      "official_url": "https://www.waterboards.ca.gov/lahontan/water_issues/programs/basin_plan/docs/2024/r6monobpa.pdf",
+      "kind": "regional_hierarchy_and_edition_limit",
+      "observation": "Actually read lower receiving rows support Willow–Susan–Honey. Upper Deep/Secret/Snowstorm/Petes hierarchy differs from mapped selected labels. Draft-amendment annotation retained; no legal-status determination or map reading claimed.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70561071"
+    },
+    {
+      "publication": "USGSTopo selected northern Alaska originals",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "kind": "material_interlake_through_connection_gaps",
+      "observation": "All three originals completed normally and were visually read. They establish bounded lower Inaru/lake/bay observations but not the necessary western and northern lake-chain transfers. This is a geographic content gap, not an acquisition stop.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:80028424"
+    },
+    {
+      "publication": "USGSTopo terminal lake and bay cartography",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "kind": "lake_network_label_and_source_render_distinction",
+      "observation": "Inaru network labeling extends into Sisgravik Lake. The lake and adjacent Kuyanak Bay remain distinct named features; the separately stored source and render ending contexts are not collapsed.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:80028424"
+    }
+  ]
+}

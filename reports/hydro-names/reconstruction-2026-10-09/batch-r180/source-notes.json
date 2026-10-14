@@ -1,0 +1,668 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r180",
+  "sources": [
+    {
+      "source_key": "r180-cehq-regions0713-annual-2014-retained",
+      "title": "Débits spécifiques d’étiage annuels — Régions hydrographiques07 et13",
+      "publisher": "Gouvernement du Québec, Centre d’expertise hydrique du Québec",
+      "authors": [
+        "Marie-Lise Paquin, cartographie",
+        "Eric Levasseur, cartographie"
+      ],
+      "approval_credit": "Joëlle Bérubé",
+      "edition": "July2011; updated December2014",
+      "scale": "1:2,250,000",
+      "cartographic_base": "BDGA1:1,000,000; NAD83 Québec Lambert",
+      "official_url": "https://www.cehq.gouv.qc.ca/debit-etiage/cartes/debit_etiage_07_13specifique_annuel.pdf",
+      "access_date_utc": "2026-10-12",
+      "acquired_scope": "Reused the actual complete original retained from r179, whose normal original acquisition completed HTTP200 application/pdf. No repeat source request was made.",
+      "actually_inspected": "Whole-sheet overview; title, legend and cartographic credits; readable unmarked original corridor from chosen opening to coast; enlarged lower lake and coastal-course region. Private orientation of every selected part was compared with the unmarked original.",
+      "supports": "Visible Durocher and Musquaro lake passages, connected lower course, both-fragment join and ordinary Gulf of St.Lawrence outlet setting.",
+      "limits": "The opening is generalized away and a station-data box obscures a substantial upper route. Lac du Grand Priant is a printed map-context label with unestablished exact extent. The sheet does not directly print a Rivière Musquaro river label along this corridor. No present operating conditions or formal registry status are established.",
+      "publication_independence": "Independently issued CEHQ hydrologic low-flow cartography with its own project, credits and BDGA compilation. This is not an alternate format of the stopped CanMatrix, CBMT or geological companion publications.",
+      "source_use_limits": "No redistribution permission inferred. Original map and private reading aids are excluded; only own bounded factual observations and normal bibliography are public-ready."
+    },
+    {
+      "source_key": "r180-cehq-regions0713-annual-2014",
+      "title": "Débits spécifiques d’étiage annuels — Régions hydrographiques 07 et 13",
+      "publisher": "Gouvernement du Québec, Centre d’expertise hydrique du Québec",
+      "cartography": [
+        "Marie-Lise Paquin",
+        "Eric Levasseur"
+      ],
+      "approval_credit": "Joëlle Bérubé",
+      "edition": "July 2011; updated December 2014",
+      "scale": "1:2,250,000",
+      "cartographic_base": "BDGA 1:1,000,000; NAD83 Québec Lambert",
+      "official_url": "https://www.cehq.gouv.qc.ca/debit-etiage/cartes/debit_etiage_07_13specifique_annuel.pdf",
+      "access_date_utc": "2026-10-12",
+      "acquired_scope": "The complete normal original acquired successfully in the preceding batch was reused locally; no duplicate external request was made.",
+      "actually_inspected": "Single-sheet overview and credits; bounded unmarked views of the selected opening, every northern lake/river part, Gravel approach, Walker passage, receiving-river bends, fragment join and Port-Cartier coast. Private orientation aids were compared with the unmarked original.",
+      "supports": "Continuous ordinary regional correspondence south of the initial opening, separate neighboring Schmon/Pasteur routes, Walker lake and lower coast-reaching course.",
+      "limits": "The chosen initial east-west connection is not independently depicted. Small upper waterbodies and river names are not inferred from nearby labels. Hydrologic estimates and current operations are outside the finding.",
+      "publication_independence": "Independently issued CEHQ low-flow mapping project with hydrologic-map title, credits and provincial BDGA base; not an alternate format of held CanMatrix, CBMT3978 or geological companion maps.",
+      "source_use_limits": "Only bounded own observations and normal bibliography are public-ready. No reproduction right is inferred."
+    },
+    {
+      "source_key": "r180-bellavance-lacwalker-2018",
+      "title": "Projet de parc national du Lac-Walker : Descriptions géologiques, géomorphologiques et sites d’intérêt",
+      "author": "Denis Bellavance",
+      "publisher": "Québec, Ministère du Développement durable, de l’Environnement et de la Lutte contre les changements climatiques, Direction de l’expertise en biodiversité, Équipe Écologie et territoire",
+      "edition": "July 2018",
+      "bibliographic_extent": "69 pages",
+      "cartography": [
+        "Sophie Benoit",
+        "Danielle Leclerc"
+      ],
+      "project_lead": "Mathieu St-Onge, Direction des parcs nationaux, Ministère des Forêts, de la Faune et des Parcs",
+      "official_url": "https://stqc380donopppdtce01.blob.core.windows.net/donnees-ouvertes/Cadre_ecologique_reference/CERQ_Publications/Bellavance2018_Descriptions%20geologiques_geomorphologiques_et_sites_d_interets_du_projet_de_parc_national_Lac-Walker.pdf",
+      "bibliographic_landing_url": "https://www.environnement.gouv.qc.ca/biodiversite/cadre-ecologique/publications.htm",
+      "access_date_utc": "2026-10-12",
+      "acquired_scope": "The official ecological-reference bibliography opened normally. One sequential request for its linked normal original completed HTTP200, application/pdf. The completed original was then inspected; no fallback or retry occurred.",
+      "actually_inspected": "Cover/imprint and contents pp1–5; mandate, methods and regional description pp7–8; original Carte1 p9, including readable northern corridor, Ulysse-Morin, Gravel, Walker, outlet, lower river and Port-Cartier coastal views; report prose pp45–47 and50, including p46 confluence photograph and captions; bibliography pp67–69. Extracted titles/labels of Cartes2 and3 were read for provenance context only; they are not separate inspected map evidence.",
+      "map_scope": "Carte1, Localisation du projet de parc national du Lac-Walker, graphic scale0–12km, covers the southern part of the selection and extends to the Saint-Laurent coast. It does not cover the selected headward opening.",
+      "supports": "The independently cartographed and labeled Gravel–Ulysse-Morin–Walker–aux Rochers sequence, separate neighboring river/lake identities, connected Walker outlet, lower fragment join and ordinary coastal terminal.",
+      "publication_independence": "The imprint and mandate identify a separately commissioned park-characterization project. Methods describe ecological cartography, satellite/aerial-photo analysis and field reconnaissance in2012,2014 and2017, with additional field travel in2016. Original cartography is credited to the project team. The inspected Carte1 is a report-authored location map, not a reproduced held sheet. Geological references in the bibliography are not independently acquired or treated as source evidence.",
+      "provenance_limits": "Carte1 does not separately enumerate each underlying hydrographic dataset. The inspected methods and imprint establish the authored project context; no unseen companion map or stopped base-map service is recovered through this report.",
+      "source_use_limits": "No limited-distribution or permission-before-citation notice was identified in the inspected front matter and notice search. No source map, photograph or private orientation derivative is published."
+    },
+    {
+      "source_key": "USGSTOPO_R180_KUKPUK_OVERVIEW",
+      "title": "USGS Topo: bounded Woolfe Fork–Ipewik–Kukpuk regional view",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Current USGS Topo seamless multiscale TNM reference-map composite, independently maintained from individual report, plate, station and historical-sheet publications.",
+      "publication_refresh_metadata": "Retained service metadata states data refreshed September 4, 2026-v1.2; this is not a compilation or field-survey date for every depicted feature.",
+      "access_date_utc": "2026-10-12",
+      "acquisition_outcome": "One bounded original PNG completed HTTP200 and was visually inspected only after its terminal response.",
+      "actual_material_read": "Complete bounded regional view, with original source pixels inspected across the Woolfe Fork, Ipewik, Kukpuk and coastal-inlet setting. The full selection was oriented privately against it.",
+      "evidence_type": "original primary cartography",
+      "limits": "Bounded corridor and name-placement evidence; not a formal registry record, exact current-bank survey or proof of present flow. Private geometry overlays were orientation aids only."
+    },
+    {
+      "source_key": "USGSTOPO_R180_WOOLFE_IPEWIK_UPPER",
+      "title": "USGS Topo: bounded Woolfe Fork and upper Ipewik view",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Current USGS Topo seamless multiscale TNM reference-map composite, independently maintained from individual report, plate, station and historical-sheet publications.",
+      "publication_refresh_metadata": "Retained service metadata states data refreshed September 4, 2026-v1.2; this is not a compilation or field-survey date for every depicted feature.",
+      "access_date_utc": "2026-10-12",
+      "acquisition_outcome": "One bounded original PNG completed HTTP200 and was visually inspected only after its terminal response.",
+      "actual_material_read": "Complete original upper view and full-resolution eastern-opening, Woolfe-junction and upper-Ipewik-bend details. Woolfe Fork labels, its tributary opening, confluence with Ipewik, continuous Ipewik bends and the Windy Lake side drainage were actually read.",
+      "evidence_type": "original primary cartography",
+      "limits": "Bounded corridor and name-placement evidence; not a formal registry record, exact current-bank survey or proof of present flow. Private geometry overlays were orientation aids only."
+    },
+    {
+      "source_key": "USGSTOPO_R180_IPEWIK_MIDDLE",
+      "title": "USGS Topo: bounded middle Ipewik and Niilik junction view",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Current USGS Topo seamless multiscale TNM reference-map composite, independently maintained from individual report, plate, station and historical-sheet publications.",
+      "publication_refresh_metadata": "Retained service metadata states data refreshed September 4, 2026-v1.2; this is not a compilation or field-survey date for every depicted feature.",
+      "access_date_utc": "2026-10-12",
+      "acquisition_outcome": "One bounded original PNG completed HTTP200 and was visually inspected only after its terminal response.",
+      "actual_material_read": "Complete original middle view and overlapping full-resolution eastern and western details, including continuous Ipewik bends, intermediate tributary mouths and the separately labelled Niilik River confluence.",
+      "evidence_type": "original primary cartography",
+      "limits": "Bounded corridor and name-placement evidence; not a formal registry record, exact current-bank survey or proof of present flow. Private geometry overlays were orientation aids only."
+    },
+    {
+      "source_key": "USGSTOPO_R180_IPEWIK_KUKPUK_JOIN",
+      "title": "USGS Topo: bounded lower Ipewik–Kukpuk confluence and coastal-plain view",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Current USGS Topo seamless multiscale TNM reference-map composite, independently maintained from individual report, plate, station and historical-sheet publications.",
+      "publication_refresh_metadata": "Retained service metadata states data refreshed September 4, 2026-v1.2; this is not a compilation or field-survey date for every depicted feature.",
+      "access_date_utc": "2026-10-12",
+      "acquisition_outcome": "One bounded original PNG completed HTTP200 and was visually inspected only after its terminal response.",
+      "actual_material_read": "Complete original lower view and overlapping full-resolution eastern, confluence and western details, covering lower Ipewik, the Ipewik–Kukpuk junction, coastal plain and westward Kukpuk corridor.",
+      "evidence_type": "original primary cartography",
+      "limits": "Bounded corridor and name-placement evidence; not a formal registry record, exact current-bank survey or proof of present flow. Private geometry overlays were orientation aids only."
+    },
+    {
+      "source_key": "USGSTOPO_R180_KUKPUK_MARRYAT_TERMINAL",
+      "title": "USGS Topo: bounded Kukpuk delta and Marryat Inlet terminal view",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "Current USGS Topo seamless multiscale TNM reference-map composite, independently maintained from individual report, plate, station and historical-sheet publications.",
+      "publication_refresh_metadata": "Retained service metadata states data refreshed September 4, 2026-v1.2; this is not a compilation or field-survey date for every depicted feature.",
+      "access_date_utc": "2026-10-12",
+      "acquisition_outcome": "One bounded original PNG completed HTTP200 and was visually inspected only after its terminal response.",
+      "actual_material_read": "Complete original terminal view and full-resolution delta detail, including coastal wetlands, distinct adjacent lakes, Kukpuk delta branches, the directly labelled main mouth and Marryat Inlet.",
+      "evidence_type": "original primary cartography",
+      "limits": "Bounded corridor and name-placement evidence; not a formal registry record, exact current-bank survey or proof of present flow. Private geometry overlays were orientation aids only."
+    },
+    {
+      "source_key": "USGSTOPO_R180_SAN_GORGONIO_UPPER",
+      "title": "USGS Topo, bounded Burnt Canyon–San Gorgonio River–Windy Point view",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "USGS Topo current multiscale composite reference-map service, independently maintained from the individual USGS report, plate and station publications with inherited holds.",
+      "publication_refresh_metadata": "Previously retained successful service metadata states data refreshed September 4, 2026-v1.2; individual underlying compilation dates are not established.",
+      "access_date_utc": "2026-10-12",
+      "acquisition_outcome": "One serialized bounded original PNG acquisition completed HTTP200. Content was inspected only after terminal success.",
+      "actual_material_read": "Original upper view and overlapping original-pixel crops were visually inspected. They cover the chosen Burnt Canyon opening, Big Oaks and Gilman canyon settings, Banning Canyon, Hathaway and Smith Creek joining settings, Cabazon, the San Gorgonio–Whitewater joining setting, and the rectangular-basin landscape south of the Whitewater channel.",
+      "evidence_type": "Original primary cartography",
+      "limits": "Composite cartography supports bounded geographic observations, not present flow, exact banks, current shoreline, facility operation or formal registry identity. Private orientation overlays locate the supplied selection and are not independent source evidence."
+    },
+    {
+      "source_key": "USGSTOPO_R180_WHITEWATER_MIDDLE",
+      "title": "USGS Topo, bounded Whitewater River–Palm Springs–Palm Desert–Indio view",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "USGS Topo current multiscale composite reference-map service, independently maintained from the individual USGS report, plate and station publications with inherited holds.",
+      "publication_refresh_metadata": "Previously retained successful service metadata states data refreshed September 4, 2026-v1.2; individual underlying compilation dates are not established.",
+      "access_date_utc": "2026-10-12",
+      "acquisition_outcome": "One serialized bounded original PNG acquisition completed HTTP200. Content was inspected only after terminal success.",
+      "actual_material_read": "Original middle view and overlapping original-pixel crops were visually inspected. They distinguish the directly labelled Whitewater channel from the selected southwestern basin/Chino-side excursion; cover the Palm Canyon Wash join, Cathedral City, Rancho Mirage, Palm Desert and Indian Wells; and show the northward Indio bend and the separate Coachella Canal.",
+      "evidence_type": "Original primary cartography",
+      "limits": "Composite cartography supports bounded geographic observations, not present flow, exact banks, current shoreline, facility operation or formal registry identity. Private orientation overlays locate the supplied selection and are not independent source evidence."
+    },
+    {
+      "source_key": "USGSTOPO_R180_WHITEWATER_LOWER",
+      "title": "USGS Topo, bounded Indio–Coachella–Thermal–Whitewater lake-entry view",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "USGS Topo current multiscale composite reference-map service, independently maintained from the individual USGS report, plate and station publications with inherited holds.",
+      "publication_refresh_metadata": "Previously retained successful service metadata states data refreshed September 4, 2026-v1.2; individual underlying compilation dates are not established.",
+      "access_date_utc": "2026-10-12",
+      "acquisition_outcome": "One serialized bounded original PNG acquisition completed HTTP200. Content was inspected only after terminal success.",
+      "actual_material_read": "Original lower view and overlapping original-pixel crops were visually inspected. They cover the Indio bend, Coachella, Wasteway Number Three and Wasteway Number Two joining settings, Thermal, the straightened lower Whitewater corridor, the road/pond terrain west of its mapped lower channel, and the mapped Whitewater entry to Salton Sea.",
+      "evidence_type": "Original primary cartography",
+      "limits": "Composite cartography supports bounded geographic observations, not present flow, exact banks, current shoreline, facility operation or formal registry identity. Private orientation overlays locate the supplied selection and are not independent source evidence."
+    },
+    {
+      "source_key": "USGSTOPO_R180_SALTON_TERMINAL",
+      "title": "USGS Topo, bounded northwestern Salton Sea and interior-terminal view",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "USGS Topo current multiscale composite reference-map service, independently maintained from the individual USGS report, plate and station publications with inherited holds.",
+      "publication_refresh_metadata": "Previously retained successful service metadata states data refreshed September 4, 2026-v1.2; individual underlying compilation dates are not established.",
+      "access_date_utc": "2026-10-12",
+      "acquisition_outcome": "One serialized bounded original PNG acquisition completed HTTP200. Content was inspected only after terminal success.",
+      "actual_material_read": "The completed original terminal map was visually inspected across its full extent, with the lake-entry region also covered at original-pixel scale by the overlapping lower map. It identifies Salton Sea and shows the selected long open-water continuation and actual interior endpoint. This continuation is not a mapped river channel.",
+      "evidence_type": "Original primary cartography",
+      "limits": "Composite cartography supports bounded geographic observations, not present flow, exact banks, current shoreline, facility operation or formal registry identity. Private orientation overlays locate the supplied selection and are not independent source evidence."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70246501",
+      "source_keys": [
+        "r180-cehq-regions0713-annual-2014-retained"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9332
+          ],
+          "component_scope": "Chosen northern opening and first small lake-like reach",
+          "finding": "The actual short headward opening is absent from the generalized linework. The following southward small waterbody is depicted without a name, but its connection through the masked upper corridor cannot be established. A nearby northern or western river label is not assigned to it.",
+          "sources": [
+            "r180-cehq-regions0713-annual-2014-retained"
+          ],
+          "correspondence": "material_gap",
+          "component_correspondence_completed": false,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            9332
+          ],
+          "component_scope": "Upper southwest bend, southeast return and approach toward Durocher",
+          "finding": "The station074902 data box physically covers the selected upper route and its intermediate waterbody connections. The supplied model route cannot reveal hidden source linework, and visible reaches above and below the box do not prove the intervening through-links.",
+          "sources": [
+            "r180-cehq-regions0713-annual-2014-retained"
+          ],
+          "correspondence": "material_gap",
+          "component_correspondence_completed": false,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            9332
+          ],
+          "component_scope": "Visible Durocher lake passage and southeast connection",
+          "finding": "Below the data box, the selected path follows the depicted lake corridor carrying the Lac Durocher label, continues southeast, and turns eastward toward the northern Musquaro approach. The obscured upstream approach remains a separate material gap; the lake name is not extended to every feeder or connector.",
+          "sources": [
+            "r180-cehq-regions0713-annual-2014-retained"
+          ],
+          "correspondence": "supported_visible_lake_corridor_at_ordinary_regional_scale",
+          "component_correspondence_completed": true,
+          "candidate_name": "Lac Durocher"
+        },
+        {
+          "fragments": [
+            9332
+          ],
+          "component_scope": "Northern narrowing and approach into Musquaro",
+          "finding": "The source depicts the connected southward neck and widening approach into the long central lake complex, separate from the neighboring eastern Goyelle drainage. This confirms ordinary geographic correspondence without assigning a river name.",
+          "sources": [
+            "r180-cehq-regions0713-annual-2014-retained"
+          ],
+          "correspondence": "supported_at_ordinary_regional_corridor_scale",
+          "component_correspondence_completed": true,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            9332
+          ],
+          "component_scope": "Lac Musquaro passage and southern lake-complex exit",
+          "finding": "The selected long southward route traverses the extensive irregular waterbody labeled Lac Musquaro, including its narrowing, broadening and southern connections. The source shows the passage as connected at regional scale. Exact internal lake-versus-river boundaries and names of individual bays or narrows are not established.",
+          "sources": [
+            "r180-cehq-regions0713-annual-2014-retained"
+          ],
+          "correspondence": "supported_lake_passage_at_ordinary_regional_scale",
+          "component_correspondence_completed": true,
+          "candidate_name": "Lac Musquaro"
+        },
+        {
+          "fragments": [
+            9332
+          ],
+          "component_scope": "Southwest return, broadened lower waters and southeast bend",
+          "finding": "The selected southwest-trending river/waterbody corridor and subsequent southeast bend follow the original hydrographic linework. The sheet prints Lac du Grand Priant across this lower lake setting. The label is retained as mapped context, without assigning that name to every selected reach or resolving its exact lake-name extent. The eastern Washicoutai corridor remains distinct.",
+          "sources": [
+            "r180-cehq-regions0713-annual-2014-retained"
+          ],
+          "correspondence": "supported_corridor_with_bounded_lake_label_context",
+          "component_correspondence_completed": true,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            9333
+          ],
+          "component_scope": "Join between both selected mainstem fragments and lower coastal course",
+          "finding": "The final southeast bend of the first fragment continues into the eastward and southeastward course of the second on the original map. This is a source-observed geographic continuation at regional scale, not merely acceptance of the model fragment join.",
+          "sources": [
+            "r180-cehq-regions0713-annual-2014-retained"
+          ],
+          "correspondence": "supported_at_ordinary_regional_corridor_scale",
+          "component_correspondence_completed": true,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            9333
+          ],
+          "component_scope": "Actual selected terminal approach and receiving coast",
+          "finding": "The final southward selected segment follows the mapped lower watercourse to the depicted Gulf of St.Lawrence coast. The source supports this ordinary coastal outlet setting. Exact bank, tidal boundary, named bay and open-sea mouth placement are not certified and are not imposed as extra completion requirements.",
+          "sources": [
+            "r180-cehq-regions0713-annual-2014-retained"
+          ],
+          "correspondence": "supported_terminal_setting_at_ordinary_regional_scale",
+          "component_correspondence_completed": true,
+          "candidate_name": null
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70253588",
+      "source_keys": [
+        "r180-cehq-regions0713-annual-2014",
+        "r180-bellavance-lacwalker-2018"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9346
+          ],
+          "component_scope": "Chosen headward opening and first connection to the mapped northern watercourse",
+          "finding": "The short selected east-west opening is not continuously depicted as a separate connection to the north-south headwater line on the generalized CEHQ original. The later park-study map begins well south of this opening. Basin membership and the adjacent mapped headwater waterbody do not establish this chosen initial connection.",
+          "sources": [
+            "r180-cehq-regions0713-annual-2014"
+          ],
+          "correspondence": "material_gap",
+          "component_correspondence_completed": false,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            9346
+          ],
+          "component_scope": "Northern lake-and-river chain and approach to the park-study extent",
+          "finding": "South of the unresolved opening, the selected westward bend, southeastward descent, broadened waters and intervening southward links correspond to the continuous eastern chain on the CEHQ original. The western Schmon route is distinct. The nearby Petit lac du Nord label is not assigned to a selected waterbody because its placement alone is insufficient. No upstream river name is extended from a downstream label.",
+          "sources": [
+            "r180-cehq-regions0713-annual-2014"
+          ],
+          "correspondence": "supported_ordinary_corridor_with_unnamed_waterbodies",
+          "component_correspondence_completed": true,
+          "candidate_name": null
+        },
+        {
+          "fragments": [
+            9346
+          ],
+          "component_scope": "Lac Ulysse-Morin approach, lake passage and outgoing Gravel corridor",
+          "finding": "Carte1 places Lac Ulysse-Morin on the selected northern approach to the Gravel valley. Its longitudinal lake passage and outgoing river are visible, consistent with the broader CEHQ chain. The lake keeps its own identity; the adjoining river reaches are not all renamed as the lake.",
+          "sources": [
+            "r180-cehq-regions0713-annual-2014",
+            "r180-bellavance-lacwalker-2018"
+          ],
+          "correspondence": "supported_lake_and_connecting_corridor_at_ordinary_scale",
+          "component_correspondence_completed": true,
+          "candidate_name": "Lac Ulysse-Morin"
+        },
+        {
+          "fragments": [
+            9346
+          ],
+          "component_scope": "Lower Rivière Gravel, tributary join and entry to northern Lac Walker",
+          "finding": "The selected southwest-trending and then southward meandering valley follows the labeled Gravel corridor on Carte1 to the northern end of Lac Walker. The report describes the Petite rivière Gravel confluence and subsequent southwestward reach. Its separate western Schmon valley also enters Walker; that western route is not substituted for the selection.",
+          "sources": [
+            "r180-cehq-regions0713-annual-2014",
+            "r180-bellavance-lacwalker-2018"
+          ],
+          "correspondence": "supported_named_river_and_lake_entry",
+          "component_correspondence_completed": true,
+          "candidate_name": "Rivière Gravel"
+        },
+        {
+          "fragments": [
+            9346
+          ],
+          "component_scope": "Longitudinal Lac Walker passage and southern lake outlet",
+          "finding": "The selected north-to-south lake passage follows the elongated Walker waterbody and reaches its mapped southern outlet. Carte1 distinguishes neighboring Lac Pasteur to the east and Lac Quatre Lieues to the southwest. Neither adjoining lake is treated as a selected through-passage.",
+          "sources": [
+            "r180-cehq-regions0713-annual-2014",
+            "r180-bellavance-lacwalker-2018"
+          ],
+          "correspondence": "supported_lake_passage_and_outlet_at_ordinary_scale",
+          "component_correspondence_completed": true,
+          "candidate_name": "Lac Walker"
+        },
+        {
+          "fragments": [
+            9346
+          ],
+          "component_scope": "Upper Rivière aux Rochers below Walker and eastward course to the fragment join",
+          "finding": "The Walker outlet leads south along the separately labeled Rivière aux Rochers, then turns east. Carte1 and the report’s MacDonald discussion distinguish the adjoining Quatre Lieues/MacDonald connection. The eastward selected course reaches the source-depicted bend at the FID boundary; the supplied fragments are not treated as separate unrelated rivers.",
+          "sources": [
+            "r180-cehq-regions0713-annual-2014",
+            "r180-bellavance-lacwalker-2018"
+          ],
+          "correspondence": "supported_named_receiving_corridor",
+          "component_correspondence_completed": true,
+          "candidate_name": "Rivière aux Rochers"
+        },
+        {
+          "fragments": [
+            9346,
+            9347
+          ],
+          "component_scope": "Joined lower Rivière aux Rochers and Port-Cartier coastal terminal",
+          "finding": "The two-fragment join lies on the continuous mapped receiving corridor. The selected lower fragment turns south and east through the Port-Cartier approach and reaches the river’s coastal outlet. Carte1 depicts the lower watercourse, its coastal branches and connection to the Golfe du Saint-Laurent; CEHQ independently shows the coast-reaching river. This establishes the ordinary terminal setting without assigning an exact shoreline, bank, tidal boundary or current branch-operation condition.",
+          "sources": [
+            "r180-cehq-regions0713-annual-2014",
+            "r180-bellavance-lacwalker-2018"
+          ],
+          "correspondence": "supported_lower_corridor_and_actual_coastal_connection_at_ordinary_scale",
+          "component_correspondence_completed": true,
+          "candidate_name": "Rivière aux Rochers"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80056614",
+      "source_keys": [
+        "USGSTOPO_R180_KUKPUK_OVERVIEW",
+        "USGSTOPO_R180_WOOLFE_IPEWIK_UPPER",
+        "USGSTOPO_R180_IPEWIK_MIDDLE",
+        "USGSTOPO_R180_IPEWIK_KUKPUK_JOIN",
+        "USGSTOPO_R180_KUKPUK_MARRYAT_TERMINAL"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2497
+          ],
+          "component_scope": "Chosen eastern opening and local feeder",
+          "finding": "The chosen opening is in the upper Woolfe Fork valley beside a short eastern feeder. Original cartography depicts this feeder joining the continuously mapped Woolfe Fork channel. The selected opening is not identified as the ultimate natural source or a formal named-source point.",
+          "sources": [
+            "USGSTOPO_R180_KUKPUK_OVERVIEW",
+            "USGSTOPO_R180_WOOLFE_IPEWIK_UPPER"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2497
+          ],
+          "component_scope": "Woolfe Fork northward corridor",
+          "finding": "Repeated Woolfe Fork labels follow the connected northward channel. The eastern and western side feeders are visibly connected to that channel; none is given the scalar name of the receiving river. The selected path is coarse and locally cuts small valley bends.",
+          "sources": [
+            "USGSTOPO_R180_WOOLFE_IPEWIK_UPPER"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2497
+          ],
+          "component_scope": "Woolfe Fork–Ipewik River junction",
+          "finding": "The source shows Woolfe Fork meeting the separately labelled Ipewik River, which approaches from the east, then the combined channel continues north and northwest. This mapped confluence, rather than proximity of labels or model connectivity, supports the name transition.",
+          "sources": [
+            "USGSTOPO_R180_WOOLFE_IPEWIK_UPPER"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2497
+          ],
+          "component_scope": "Upper Ipewik bends and Windy Lake side-drainage setting",
+          "finding": "The original map shows a continuous meandering Ipewik River around the upper northern bends and onward to the western valley. The pinned selection makes pronounced cutoffs north of several actual mapped bends. Correspondence is to this continuous receiving-river corridor, not to an asserted separate waterway along each cutoff. Windy Lake lies north of the main river on a side drainage; the selected route does not require a through-lake passage. Its name is not extended to the river.",
+          "sources": [
+            "USGSTOPO_R180_KUKPUK_OVERVIEW",
+            "USGSTOPO_R180_WOOLFE_IPEWIK_UPPER"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale_with_pronounced_generalization",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2497
+          ],
+          "component_scope": "Middle Ipewik corridor and Niilik River joining setting",
+          "finding": "Repeated Ipewik River labels and the continuous mapped westward channel cover the middle bends and intervening side-tributary mouths. Niilik River is separately labelled on the northern incoming waterway, and its confluence with Ipewik is visible. The selected route approaches from the east along Ipewik and proceeds southwest after the junction; Niilik is a tributary context, not an assigned name for the selection.",
+          "sources": [
+            "USGSTOPO_R180_KUKPUK_OVERVIEW",
+            "USGSTOPO_R180_IPEWIK_MIDDLE"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2497
+          ],
+          "component_scope": "Lower Ipewik hill-valley corridor",
+          "finding": "The named Ipewik channel remains continuous through the southwestward hill-valley bends and small branching reaches. Several selected straight sections run north or west of mapped meanders. The geographic association uses the full connected river corridor and its successive tributary mouths, without inventing direct cross-hill channels along the coarse line.",
+          "sources": [
+            "USGSTOPO_R180_KUKPUK_OVERVIEW",
+            "USGSTOPO_R180_IPEWIK_KUKPUK_JOIN"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2497
+          ],
+          "component_scope": "Ipewik–Kukpuk junction and western Kukpuk reach",
+          "finding": "Near the Kayaksik Mountain setting, the Ipewik River is mapped joining Kukpuk River, which approaches from the south. The combined channel turns northwest and west across the coastal wetland plain. Repeated Kukpuk River labels and the continuous mapped channel establish the receiving-river identity. Local ponds and the Ogsochuk-area side-creek setting do not require a selected through-lake transfer.",
+          "sources": [
+            "USGSTOPO_R180_IPEWIK_KUKPUK_JOIN"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2497
+          ],
+          "component_scope": "Coastal plain, delta branches and actual Marryat Inlet terminal",
+          "finding": "Kukpuk River continues across the wetland plain, around the coastal bends and into its broad branched delta at Marryat Inlet. The source explicitly labels the northern main mouth Kukpuk River and the receiving inlet Marryat Inlet; a southern distributary is separately labelled. The actual selected terminal is in this mapped mouth/inlet setting. No exact present shoreline, marsh-island edge, tidal opening, active distributary or seaward extension is assigned. Nearby coastal lakes are distinct mapped waterbodies outside the selected through-route.",
+          "sources": [
+            "USGSTOPO_R180_IPEWIK_KUKPUK_JOIN",
+            "USGSTOPO_R180_KUKPUK_MARRYAT_TERMINAL"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70735407",
+      "source_keys": [
+        "USGSTOPO_R180_SAN_GORGONIO_UPPER",
+        "USGSTOPO_R180_WHITEWATER_MIDDLE",
+        "USGSTOPO_R180_WHITEWATER_LOWER",
+        "USGSTOPO_R180_SALTON_TERMINAL"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9886
+          ],
+          "component_scope": "Chosen Burnt Canyon opening and upper San Gorgonio canyon",
+          "finding": "The chosen opening is on a mapped headward channel in the Burnt Canyon setting. The channel continues into the directly labelled San Gorgonio River through the Big Oaks/Gilman canyon setting and south through Banning Canyon. The selected start is not asserted to be the official or ultimate river source.",
+          "sources": [
+            "USGSTOPO_R180_SAN_GORGONIO_UPPER"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9886
+          ],
+          "component_scope": "Banning–Cabazon pass and upper named river joins",
+          "finding": "Repeated San Gorgonio River labels and the connected wash corridor cover the eastward pass below Banning and Cabazon, including the Hathaway and Smith Creek joining settings and the approach toward Windy Point. Dashed channel and broad wash depiction do not establish perennial flow. The nearby Colorado River Aqueduct is separately shown; it is not treated as the selected through-link.",
+          "sources": [
+            "USGSTOPO_R180_SAN_GORGONIO_UPPER"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9886
+          ],
+          "component_scope": "San Gorgonio–Whitewater joining setting and selected southwestern basin/plain excursion",
+          "finding": "The original cartography maps the San Gorgonio River joining Whitewater River by Windy Point and shows the Whitewater channel continuing east, then southeast. The selected route instead makes a substantial southwestern excursion across a rectangular-basin array and the Chino-side road/plain landscape before returning toward the river corridor. The inspected maps do not establish that selected through-connection. Nearby river naming, basin structures and modeled connectivity are not evidence of a surface-water transfer across it. This is broader than a minor bank or bend offset.",
+          "sources": [
+            "USGSTOPO_R180_SAN_GORGONIO_UPPER",
+            "USGSTOPO_R180_WHITEWATER_MIDDLE"
+          ],
+          "correspondence": "named_junction_supported_but_selected_through_link_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            9886
+          ],
+          "component_scope": "Palm Springs–Cathedral City–Rancho Mirage–Palm Desert corridor",
+          "finding": "Repeated Whitewater River labels and the connected mapped corridor support the long southeastward and then eastward valley reach, including the Palm Canyon Wash joining setting and the Cathedral City, Rancho Mirage and Palm Desert reaches. Numerous nearby ornamental ponds and side washes are distinct; no selected passage through each pond is inferred.",
+          "sources": [
+            "USGSTOPO_R180_WHITEWATER_MIDDLE"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9886
+          ],
+          "component_scope": "Indian Wells bend, Indio, Coachella and Thermal lower corridor",
+          "finding": "The cartography directly labels Whitewater River through Indian Wells, the northward Indio bend, Coachella and Thermal, continuing along a visibly straightened lower corridor. Wasteway Number Three and Wasteway Number Two are separately named side connections. Coachella Canal remains a distinct mapped canal, and its name is not transferred to the selected river. Facility operations, present discharge and any formal alternative lower-channel name were not established.",
+          "sources": [
+            "USGSTOPO_R180_WHITEWATER_MIDDLE",
+            "USGSTOPO_R180_WHITEWATER_LOWER"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale_with_lower_connector_limit",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9886
+          ],
+          "component_scope": "Lower road/pond approach and selected lake-entry transfer",
+          "finding": "The maps clearly show the lower Whitewater channel entering Salton Sea. The selected approach leaves the mapped channel toward the west, traverses road/pond terrain and the western lakeshore margin, then reaches the lake by a different selected line. No continuous mapped waterway establishes that full selected cross-terrain connection. This is not a claim about an exact current river-mouth vertex or the present waterline. The supported river-to-lake context cannot by itself supply the missing selected connection.",
+          "sources": [
+            "USGSTOPO_R180_WHITEWATER_LOWER",
+            "USGSTOPO_R180_SALTON_TERMINAL"
+          ],
+          "correspondence": "material_selected_through_link_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            9886
+          ],
+          "component_scope": "Long Salton Sea interior continuation and actual terminal",
+          "finding": "The remaining selected southeastward continuation and its actual endpoint lie within the mapped Salton Sea waterbody. The lake is directly labelled in the original cartography. The long interior model line is not a mapped river channel and is not assigned the Whitewater River or San Gorgonio River name. No hydraulic path within the lake or exact present shoreline is asserted.",
+          "sources": [
+            "USGSTOPO_R180_WHITEWATER_LOWER",
+            "USGSTOPO_R180_SALTON_TERMINAL"
+          ],
+          "correspondence": "lake_geography_supported_river_identity_excluded",
+          "component_correspondence_completed": true
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "Géologie de la région du lac Bohier, RG97-07; summer1996 field-mapping project, original imprint uninspected",
+      "official_url": "https://gq.mines.gouv.qc.ca/documents/examine/RG9707/RG9707.pdf",
+      "observed_outcome": "The sole normal-original request has no conclusively recovered terminal or HTTP outcome. Local process-status recovery established only that no matching process was active; it did not establish successful transfer. No original, header body, map or companion was inspected.",
+      "outcome_layer": "Unresolved acquisition-completion metadata; HTTP and transfer outcome unknown. No access denial or HTTP failure is asserted.",
+      "restriction_scope": "Whole identified report, companion maps and equivalent acquisition or output-reading routes remain paused pending explicit resolution. No retry, alternate route or companion request occurred.",
+      "earlier_lawful_observations": "Discovery bibliography only; no substantive evidence.",
+      "newly_observed_access_failure": false,
+      "unresolved_acquisition_outcome": true,
+      "material_effect": "No additional original evidence became available for the selected opening and upper connections masked on the CEHQ sheet.",
+      "aw_id": "hydro-system:70246501"
+    },
+    {
+      "publication": "Pourvoirie Rivière Musquaro, La pourvoirie, current operator territory-description webpage",
+      "official_url": "https://musquaro.ca/la-pourvoirie/",
+      "observed_outcome": "The sole page opening returned only a request-verification interstitial. The operator territory prose and any embedded maps were not obtained or read. No verification interaction, retry or alternate route followed.",
+      "outcome_layer": "Web-reader presentation of a request-verification interstitial; HTTP status unreported.",
+      "restriction_scope": "This publication/page and equivalent acquisition routes remain stopped after the verification interstitial. No challenge was attempted.",
+      "earlier_lawful_observations": null,
+      "newly_observed_access_failure": true,
+      "material_effect": "No substantive local river-name evidence from this page is used; discovery excerpts do not establish a candidate.",
+      "aw_id": "hydro-system:70246501"
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "publication": "USGS Topo, bounded selected California corridor views",
+      "observed_outcome": "Four original bounded map acquisitions completed HTTP200 and were visually read. They do not establish the two selected basin/plain and lower road/pond-to-lake through-connections.",
+      "outcome_layer": "Substantive cartographic/geographic correspondence limitation, not HTTP, transport or access failure.",
+      "restriction_scope": "Only the unestablished selected through-links. Supported named reaches and terminal-lake observations remain usable. No service-wide or equivalent-publication acquisition ban is inferred.",
+      "limitation_kind": "material_intermediate_and_lake_entry_connector_gaps",
+      "source_keys": [
+        "USGSTOPO_R180_SAN_GORGONIO_UPPER",
+        "USGSTOPO_R180_WHITEWATER_MIDDLE",
+        "USGSTOPO_R180_WHITEWATER_LOWER",
+        "USGSTOPO_R180_SALTON_TERMINAL"
+      ],
+      "material_gap": true,
+      "aw_id": "hydro-system:70735407",
+      "acquisition_stop": false,
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    }
+  ]
+}

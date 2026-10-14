@@ -1,0 +1,888 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r233",
+  "sources": [
+    {
+      "source_key": "r233-usgstopo-overview",
+      "publisher": "U.S. Geological Survey",
+      "title": "USGSTopo, The National Map: selected southwestern Oregon overview",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "material_read": "Whole selected Coquille system overview, including upper Camas Valley, Middle Fork canyon, Myrtle Point fork joins, lower floodplain, estuary and Bandon entrance.",
+      "acquisition_observation": "One new normal-original cartographic image completed direct HTTP200 image/png and was visually read. No retry.",
+      "independence_basis": "Independently maintained National Map multiscale reference cartography combining the stated National Map and public-domain datasets; not recovery of any stopped USGS report, Oregon study or earlier unconfirmed service view.",
+      "metadata_basis": "A retained successfully acquired service-metadata original was read. It describes the multiscale reference map and contributing datasets. Its stated refresh does not date every underlying feature.",
+      "source_scope": "Displayed geographic names and ordinary connected-corridor correspondence. Source originals and private orientation aids are not republished; no formal naming-registry or present-flow claim."
+    },
+    {
+      "source_key": "r233-usgstopo-head",
+      "publisher": "U.S. Geological Survey",
+      "title": "USGSTopo, The National Map: selected upper Middle Fork and Camas Valley view",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "material_read": "Whole original headward corridor; chosen opening, displayed Middle Fork labels, Kinnan Reservoir side connection, Camas Valley, southwestern canyon, Rock Creek setting and Remote approach; enlarged opening reading.",
+      "acquisition_observation": "One new normal-original cartographic image completed direct HTTP200 image/png and was visually read. No retry.",
+      "independence_basis": "Independently maintained National Map multiscale reference cartography combining the stated National Map and public-domain datasets; not recovery of any stopped USGS report, Oregon study or earlier unconfirmed service view.",
+      "metadata_basis": "A retained successfully acquired service-metadata original was read. It describes the multiscale reference map and contributing datasets. Its stated refresh does not date every underlying feature.",
+      "source_scope": "Displayed geographic names and ordinary connected-corridor correspondence. Source originals and private orientation aids are not republished; no formal naming-registry or present-flow claim."
+    },
+    {
+      "source_key": "r233-usgstopo-middle",
+      "publisher": "U.S. Geological Survey",
+      "title": "USGSTopo, The National Map: selected Remote–Myrtle Point middle-corridor view",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "material_read": "Whole middle original; Remote, Bridge and lower Middle Fork; Middle/South Fork join, Myrtle Point, North Fork confluence, receiving Coquille through Norway and Arago; enlarged confluence reading.",
+      "acquisition_observation": "One new normal-original cartographic image completed direct HTTP200 image/png and was visually read. No retry.",
+      "independence_basis": "Independently maintained National Map multiscale reference cartography combining the stated National Map and public-domain datasets; not recovery of any stopped USGS report, Oregon study or earlier unconfirmed service view.",
+      "metadata_basis": "A retained successfully acquired service-metadata original was read. It describes the multiscale reference map and contributing datasets. Its stated refresh does not date every underlying feature.",
+      "source_scope": "Displayed geographic names and ordinary connected-corridor correspondence. Source originals and private orientation aids are not republished; no formal naming-registry or present-flow claim."
+    },
+    {
+      "source_key": "r233-usgstopo-lower",
+      "publisher": "U.S. Geological Survey",
+      "title": "USGSTopo, The National Map: selected lower Coquille and Bandon-estuary view",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "material_read": "Whole lower original; fragment join, side reservoir setting, Coquille town, northern bend, Riverton, Parkersburg, Randolph, Prosper, Bullards and actual Bandon ending; enlarged entrance-estuary reading.",
+      "acquisition_observation": "One new normal-original cartographic image completed direct HTTP200 image/png and was visually read. No retry.",
+      "independence_basis": "Independently maintained National Map multiscale reference cartography combining the stated National Map and public-domain datasets; not recovery of any stopped USGS report, Oregon study or earlier unconfirmed service view.",
+      "metadata_basis": "A retained successfully acquired service-metadata original was read. It describes the multiscale reference map and contributing datasets. Its stated refresh does not date every underlying feature.",
+      "source_scope": "Displayed geographic names and ordinary connected-corridor correspondence. Source originals and private orientation aids are not republished; no formal naming-registry or present-flow claim."
+    },
+    {
+      "source_key": "r233-coquille-association-river-facts",
+      "publisher": "Coquille Watershed Association",
+      "title": "River Facts: The Coquille River and Major Tributaries; Main Stem Coquille River and Estuary",
+      "official_url": "https://www.coquillewatershed.org/resources/river-facts",
+      "material_read": "Own HTML sections on the major tributaries and main stem/estuary, plus land-use context and copyright footer. Only the fork connections around Myrtle Point, lower estuary context and Pacific outlet at Bandon are used. Images and linked works were not requested.",
+      "acquisition_observation": "Normal HTML reader opening succeeded. No separately measured origin HTTP status or retry.",
+      "independence_basis": "Association-authored institutional educational account of its local watershed, separately published from USGS and Oregon report/station projects; no borrowed report figure or map used.",
+      "source_scope": "Bounded paraphrased geographic prose only; no contemporary population, acreage, ecological or operational claim adopted."
+    },
+    {
+      "source_key": "r233-geus-greenland-national-1995",
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": [
+        "Jan C. Escher",
+        "T. Christopher R. Pulvertaft"
+      ],
+      "year": 1995,
+      "publisher": "Geological Survey of Greenland; official digital original distributed by GEUS",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J",
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16855",
+      "scale": "1:2 500 000",
+      "material_type": "Original one-sheet geological map",
+      "acquired_scope": "Physically retained, previously completed official original reread locally; no new external acquisition in this batch.",
+      "actual_read_scope": "Actual original map pixels for the entire 39-part selected corridor, full inland opening, all intermediate joins, enlarged lower corridor and actual ending; wider southeast Greenland coastal context; Inland Ice legend, printed projection, 1995 imprint, copyright and recommended citation.",
+      "geographic_role": "Complete ordinary regional/corridor-scale ice, nunatak, exposed-bedrock and inner coastal terminal-setting correspondence.",
+      "limits": "Historical national-scale geological/topographic compilation. Surface contours, ice-thickness isopachs, sub-ice bedrock contours and aeromagnetic lineaments do not establish a river channel or hydraulic connection. Minor lakes, meltwater channels, precise shoreline/ice-front positions and current drainage are unresolved.",
+      "reuse_limit": "GEUS Custom Dataset Terms permit internal use, extraction and processing under their stated conditions; redistribution and production or transfer of new maps based fully or partly on processed Data are restricted. Originals, crops and cartographic comparison aids remain private. Only independently written factual observations and ordinary bibliography are public-ready."
+    },
+    {
+      "source_key": "r233-geus-greenland-national-catalogue-retained",
+      "title": "GEUS Dataverse catalogue and Custom Dataset Terms for Geological map of Greenland 1:2 500 000",
+      "publisher": "Geological Survey of Denmark and Greenland",
+      "official_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi:10.22008/FK2/SYAL4J",
+      "acquired_scope": "Physically retained successful official catalogue read locally.",
+      "actual_read_scope": "Publication title, authors, 1995 map date, scale, original-file identity, publication context and complete Custom Dataset Terms.",
+      "geographic_role": "Bibliography and source-use scope only, not selected-route evidence.",
+      "reuse_limit": "Existing custom terms retained exactly in private research material. Internal use and processing do not authorize original or derived-map redistribution.",
+      "used_as_substantive_evidence": false
+    },
+    {
+      "source_key": "r233-apitz-zulia59",
+      "bibliography": "Apitz de Parra, Alicia. Estado Zulia. GeoVenezuela, vol. 7, chapter 59, pp. 490–631. Fundación Empresas Polar. Standalone chapter extract; edition year not independently established from the extract.",
+      "official_url": "https://bibliofep.fundacionempresaspolar.org/media/1378337/gv_t7_c59_p490_631_zulia_lres_single_preview.pdf",
+      "source_kind": "Original regional geography chapter and attributed hydrographic figure",
+      "actual_material_read": "Retained successful original from r196, no reacquisition. Figure 13 Hidrografía at printed p.515/PDF p.26 visually read, including south-lake drainage and source credit; printed pp.516–517 hydrology and p.523 Escalante plain prose read.",
+      "publication_independence": "Already established separate FEP regional-geography editorial project and MARNR/SAGECAN1996 hydrographic figure. This is not the stopped Hackley national map, the held Commons Zulia category, or the unrequested Trujillo state-sheet replacement.",
+      "map_provenance": "Figure 13 credits Ministerio del Ambiente y de los Recursos Naturales Renovables and Servicio Autónomo de Geografía y Cartografía Nacional, 1996. Only this actual chapter figure is used; no underlying original is claimed read.",
+      "limits": "Generalized regional identity and lake receiver. It cannot resolve the selected southwestern feeder merely by locating it in the Escalante basin."
+    },
+    {
+      "source_key": "r233-kijewski1972-escalante",
+      "bibliography": "Kijewski, Jean. November1972. Resumen bibliográfico para los fines del estudio de la dinámica fluvial de los afluentes del río Escalante, zona sur del Lago de Maracaibo. Ministerio de Obras Públicas, Dirección General de Recursos Hidráulicos, Dirección de Información Básica, División de Edafología, Oficina Edafológica Zulia Andes, El Vigía. Includes Jean Tricart's June1972 Estudio Dinámico and Croquis1.",
+      "official_url": "https://aluvion.org/server/api/core/bitstreams/e6ad9082-4198-4f51-b85c-508090f0a45a/content",
+      "catalogue_url": "https://aluvion.org/items/63ff170d-e6e4-4cfb-84d1-83546fd15f7c/full",
+      "source_kind": "Original MOP/OEZA project compendium, field-study prose and original morphodynamic sketch",
+      "actual_material_read": "Successful183-page scan: cover/title, contents and introductory project identity; printed pp.15–19,76–83,87–89,91–102 and118–120 relevant extracts; Croquis1 Esquema Morfodinámico, inserted PDF p.83, visually read in overview and enlarged northern/western areas and legend. Final imprint at printed p.176 inspected. Other report pages and Croquis2–3 are not correspondence evidence.",
+      "original_acquisition": "Initial normal-original request completed directHTTP502. One identical-URL retry after actual termination completedHTTP200 application/pdf. Only the completed successful original was read; no continuing publication hold results.",
+      "publication_independence": "Repository bibliography identifies the OEZA Escalante tributary-dynamics compilation and author. Original front matter and printed pp.76–77 confirm the June1972 Tricart/Maire pilot field project, separate from the held geological maps, state/topographic sheets and biological studies. Independence rests on this actual project identity rather than a changed title or year alone.",
+      "map_provenance": "Croquis1 is the study's river-evolution interpretation, with methods identifying1952 Cartografía Nacional aerial photography,1966 Seravenca mission010255 and1968 Tranarg/IAN photography. These are identified aerial survey inputs, not recovery of the held DCN topographic sheets. The sketch also credits an unspecified soil map for approximate tatucal polygons; those borrowed polygons are excluded as selection-specific connection proof.",
+      "limits": "Historical preliminary morphodynamics and diffuse drainage context. No selected feeder name, exact point correspondence, continuous current flow or existing El Caimán reservoir is inferred. The ungridded sketch does not settle the selected opening.",
+      "public_copy_url": "https://aluvion.org/server/api/core/bitstreams/e6ad9082-4198-4f51-b85c-508090f0a45a/content",
+      "hosting_note": "Repository-hosted scan of the identified MOP/OEZA publication."
+    },
+    {
+      "source_key": "r233-gutierrez2009-escalante",
+      "bibliography": "Gutiérrez, Ana; Herrera, Robert; Parra, Yraniris; Martínez, Edison. November2009. Producción de un reportaje fotográfico sobre la sedimentación del río Escalante en el municipio Colón del estado Zulia. Universidad Dr. Rafael Belloso Chacín, Facultad de Humanidades, Escuela de Comunicación Social, Mención Producción Audiovisual. Degree project S-1354-04-09.",
+      "official_url": "https://virtual.urbe.edu/tesispub/0086709/intro.pdf",
+      "source_kind": "Original university field-report front matter and introduction",
+      "actual_material_read": "Original cover/project identity, abstract printed p.vii, contents and authorial introduction printed pp.1–3. The supplied intro file was read; no separate thesis chapter, field photograph or map is claimed inspected.",
+      "original_acquisition": "Normal-original request completedHTTP200 application/pdf.",
+      "publication_independence": "Its own original confirms an audiovisual degree project based on field reporting and three specialist interviews, with specific university file number and investigators. This is independent of the held regional map and unidentified Guanipa biological-publication contexts.",
+      "limits": "Supports Escalante naming at the twin towns and the historical sedimentation context only; no present condition, exact diversion layout or complete upper-river cartography."
+    },
+    {
+      "source_key": "r233-esri-escalante-upper",
+      "bibliography": "Esri, World Imagery. Bounded selected southern Escalante lowland opening and collector view, accessed13October2026.",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "source_kind": "Independently maintained photographic imagery service",
+      "actual_material_read": "One completed original upper-corridor image, full view and enlarged southwestern opening, with a private selected-path orientation aid.",
+      "original_acquisition": "HTTP200 image/jpeg; completed before reading and before next same-service request.",
+      "limits": "Terrain/drainage correspondence only. Several opening channels and drains remain ambiguous; imagery supplies no hydronyms or current hydraulic proof."
+    },
+    {
+      "source_key": "r233-esri-escalante-middle",
+      "bibliography": "Esri, World Imagery. Bounded middle Escalante and eastern town-approach view, accessed13October2026.",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "source_kind": "Independently maintained photographic imagery service",
+      "actual_material_read": "One completed original middle view and private selected-path orientation aid, including meander corridor, western channel/dike route and selected eastern approach.",
+      "original_acquisition": "HTTP200 image/jpeg; completed before reading and before next same-service request.",
+      "limits": "Patch cloud and mixed mosaic dates; ordinary river-corridor reading, no name, contemporary flow or diversion-operation inference."
+    },
+    {
+      "source_key": "r233-esri-escalante-lower",
+      "bibliography": "Esri, World Imagery. Bounded Santa Bárbara–San Carlos, lower Escalante and Lago de Maracaibo mouth view, accessed13October2026.",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "source_kind": "Independently maintained photographic imagery service",
+      "actual_material_read": "One completed original lower-corridor image and private orientation aid, including eastern town river, eastward bend, final wetland meanders and actual lake mouth.",
+      "original_acquisition": "HTTP200 image/jpeg; request terminal and service released after completion.",
+      "limits": "Image mosaic and cloud do not establish current flow, named tributaries, lake-level date or precise banks."
+    },
+    {
+      "source_key": "r233-inegi-sinaloa-state",
+      "title": "Condensado Estatal Sinaloa",
+      "publisher": "Instituto Nacional de Estadística y Geografía, Dirección General de Geografía y Medio Ambiente",
+      "edition": "First edition 2020; copyright 2021",
+      "scale": "1:700,000",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/sin/889463837077.pdf",
+      "actual_read_scope": "Lawfully retained single-sheet original reused locally. Technical and use-notice text, hydrographic legend, upper Évora/Palmarito/San Benito window, Mocorito–Eustaquio Buelna–Guamúchil corridor and overlapping lower Angostura/coastal window were inspected. No new acquisition of the state publication occurred.",
+      "supports": "Direct upper Río Évora label, named reservoir, locality orientation, connected regional river and managed/coastal setting.",
+      "limitations": "Generalized from 1:250,000 series III, with road information2017 and geographic framework2018. Prior written permission is required for full or partial reproduction; original pixels and all derivatives remain private. Historical cartography, not current-flow or exact-shore evidence."
+    },
+    {
+      "source_key": "r233-inegi-mocorito2010",
+      "title": "Compendio de información geográfica municipal 2010: Mocorito, Sinaloa",
+      "publisher": "INEGI",
+      "edition": "2010",
+      "publication_identifier": "Municipality25013",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/25/25013.pdf",
+      "actual_read_scope": "Complete ten-page PDF acquired successfully. Read cover and municipal identity/location pages1–2, hydrography on page3, contextual text on page4, locality map on page5 and original Relieve map and legend on page6. Other thematic map pages were not used.",
+      "supports": "Direct upper and westward Río Évora labels; distinctions among Arroyo Grande, El Potrero, Los Chinos and western Palmarito; municipal footprint and Mocorito orientation.",
+      "publication_identity": "An independently issued municipal geographic compendium whose original cover, geo-statistical code25013, Mocorito-only extent, municipal tables and editorial footer identify its actual product. It is not the held national2023 topographic-sheet publication or a replacement of another municipality's compendium.",
+      "limitations": "Relief compilation credits INEGI topographic seriesII/III, municipal framework2010 and INEGI–CONAGUA2007 hydrography. Municipal coverage and historical generalization are respected; no original or derivative redistribution."
+    },
+    {
+      "source_key": "r233-inegi-salvador-alvarado2010",
+      "title": "Compendio de información geográfica municipal 2010: Salvador Alvarado, Sinaloa",
+      "publisher": "INEGI",
+      "edition": "2010",
+      "publication_identifier": "Municipality25015",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/25/25015.pdf",
+      "actual_read_scope": "Complete ten-page PDF acquired successfully. Read cover, municipal identity/location pages1–2, hydrography on page3 and original Relieve map/legend on page6. Other thematic pages were not used.",
+      "supports": "P. Eustaquio Buelna identity, its eastern entry and southwestern outlet setting, direct outlet Río Évora inscription and distinction from nearby managed channels.",
+      "publication_identity": "Original cover, municipality25015, Salvador Alvarado-specific extent, tables and editorial footer establish a separately issued municipal product, distinct from the Mocorito and Angostura originals and the held national topographic publication.",
+      "limitations": "Generalized municipal relief/hydrography, using credited historical INEGI and INEGI–CONAGUA base material. It does not establish present reservoir operation or exact shoreline."
+    },
+    {
+      "source_key": "r233-inegi-angostura2010",
+      "title": "Compendio de información geográfica municipal 2010: Angostura, Sinaloa",
+      "publisher": "INEGI",
+      "edition": "2010",
+      "publication_identifier": "Municipality25002",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/25/25002.pdf",
+      "actual_read_scope": "Complete ten-page PDF acquired successfully. Read cover and municipal identity/location pages1–2, hydrography on page3 and original Relieve map/legend on page6. Remaining thematic pages were not used.",
+      "supports": "Direct lower Évora label, through-going river and canal distinctions, Santa María/El Calcetín coastal geography and selected terminal receiving setting.",
+      "publication_identity": "Original cover, municipality25002, Angostura-specific coastal extent, tables and editorial footer establish a separately issued municipal geographic product. Shared series and base epochs do not make it an equivalent of held compendia from other municipalities.",
+      "limitations": "Historical municipal relief/hydrography compilation. Embankment details are supplemented by the independent imagery; no current operation, individual pond-flow route or precise sea mouth is inferred."
+    },
+    {
+      "source_key": "r233-esri-upper",
+      "title": "World Imagery: bounded upper Évora corridor view",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "actual_read_scope": "One completed original image, covering the chosen opening and upper valley through the San Benito–La Huerta sector and westward bend, inspected both without and with a private orientation aid.",
+      "supports": "Continuous mountain-feeder and valley correspondence, upper joins and overlap with the western middle corridor.",
+      "limitations": "Photographic geography only. Mosaic dates are unverified; no hydronym, present perennial flow or exact-bank identity derives from imagery."
+    },
+    {
+      "source_key": "r233-esri-middle",
+      "title": "World Imagery: bounded Mocorito, Eustaquio Buelna and Guamúchil corridor view",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "actual_read_scope": "One completed original image covering the western middle river, selected reservoir entry and exit, Guamúchil and the southern agricultural-plain overlap; inspected without and with a private orientation aid.",
+      "supports": "River/reservoir through-corridor and ordinary distinction between river plain, storage and surrounding irrigation works.",
+      "limitations": "No operational, water-level, official naming or exact channel-thread inference."
+    },
+    {
+      "source_key": "r233-esri-lower",
+      "title": "World Imagery: bounded Angostura, lower Évora and Santa María terminal view",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "actual_read_scope": "One completed original image covering the agricultural lower river, managed crossings, modified wetland and actual terminal; raw original, private orientation aid and a local terminal enlargement were inspected.",
+      "supports": "Continuous lower corridor and coastal receiving setting, including conspicuous rectilinear embankments and pond blocks near the end.",
+      "limitations": "Does not identify the operating path through any control structure or individual pond; imagery names no waterway. Original imagery, crops and orientation aids remain private."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70483826",
+      "source_keys": [
+        "r233-usgstopo-overview",
+        "r233-usgstopo-head",
+        "r233-usgstopo-middle",
+        "r233-usgstopo-lower",
+        "r233-coquille-association-river-facts"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9738
+          ],
+          "component_scope": "Chosen opening and northern Camas Valley Middle Fork corridor",
+          "finding": "The chosen northeastern opening is on the mapped Middle Fork Coquille River above Camas Valley. The labelled channel continues south past the Estes and Lake Creek junction setting and the western connection of Kinnan Reservoir into the Camas Valley collecting river. Kinnan Reservoir is depicted as a connected side water body; the selected generalized river corridor does not require an unsupported traverse across it. Its lower continuation and tributary joins remain visibly connected.",
+          "sources": [
+            "r233-usgstopo-head",
+            "r233-usgstopo-overview"
+          ],
+          "correspondence": "completed_ordinary_corridor_join_and_receiving_setting_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_component_names": [
+            "Middle Fork Coquille River",
+            "Kinnan Reservoir"
+          ]
+        },
+        {
+          "fragments": [
+            9738
+          ],
+          "component_scope": "Southern Camas Valley and southwestern canyon transition",
+          "finding": "The named Middle Fork continues south through Camas Valley, receiving mapped side streams, then turns southwest along the confined highway-and-river valley toward the Rock Creek setting. The selected bends and joins stay in this continuous river corridor; no distinct headward feeder or interbasin transfer is imposed.",
+          "sources": [
+            "r233-usgstopo-head",
+            "r233-usgstopo-overview"
+          ],
+          "correspondence": "completed_ordinary_corridor_join_and_receiving_setting_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_component_names": [
+            "Middle Fork Coquille River"
+          ]
+        },
+        {
+          "fragments": [
+            9738
+          ],
+          "component_scope": "Western canyon, Rock Creek join and approach to Remote",
+          "finding": "The headward original continuously depicts the Middle Fork westward through the narrow valley, the Rock Creek joining setting and the northward turn toward Remote, where Sandy Creek joins. The strongly generalized east–west parts remain within that mapped collecting canyon rather than a separate drainage. The adjacent Camas Log Pond and small side ponds are not claimed as through-passages.",
+          "sources": [
+            "r233-usgstopo-head",
+            "r233-usgstopo-middle",
+            "r233-usgstopo-overview"
+          ],
+          "correspondence": "completed_ordinary_corridor_join_and_receiving_setting_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_component_names": [
+            "Middle Fork Coquille River"
+          ]
+        },
+        {
+          "fragments": [
+            9738
+          ],
+          "component_scope": "Remote–Bridge–lower Middle Fork corridor",
+          "finding": "The middle original follows the labelled Middle Fork from Remote through the successive valley bends, the Bridge settlement and lower canyon to the South Fork junction approach. Each selected part and connecting bend is covered by the continuous mapped river corridor. Named side creeks remain tributaries, not alternate names for the selected Middle Fork.",
+          "sources": [
+            "r233-usgstopo-middle",
+            "r233-usgstopo-head",
+            "r233-usgstopo-overview"
+          ],
+          "correspondence": "completed_ordinary_corridor_join_and_receiving_setting_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_component_names": [
+            "Middle Fork Coquille River"
+          ]
+        },
+        {
+          "fragments": [
+            9738
+          ],
+          "component_scope": "Middle Fork/South Fork join, Myrtle Point reach and North Fork confluence",
+          "finding": "The source depicts Middle Fork joining South Fork south of Myrtle Point, then South Fork continuing by Estabrook and the western side of Myrtle Point to the North Fork confluence. The receiving continuation is Coquille River. All selected joins are covered at corridor scale, without assigning an exact name-transition vertex to a generalized position. The association’s own prose independently places the major fork connections around Myrtle Point.",
+          "sources": [
+            "r233-usgstopo-middle",
+            "r233-usgstopo-overview",
+            "r233-coquille-association-river-facts"
+          ],
+          "correspondence": "completed_ordinary_corridor_join_and_receiving_setting_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_component_names": [
+            "Middle Fork Coquille River",
+            "South Fork Coquille River",
+            "Coquille River"
+          ]
+        },
+        {
+          "fragments": [
+            9738
+          ],
+          "component_scope": "Receiving Coquille River through Norway and Arago to the fragment join",
+          "finding": "The middle and lower originals depict the main Coquille River continuously through the Norway–Arago floodplain and into the next selected fragment. The nearby Myrtle Point Log Pond and Johnson Log Storage and Sorting Reservoir are distinguishable side-waterbody settings; no unsupported managed transfer is required. Generalized selected bends correspond to the named river and its connected floodplain corridor.",
+          "sources": [
+            "r233-usgstopo-middle",
+            "r233-usgstopo-lower",
+            "r233-usgstopo-overview"
+          ],
+          "correspondence": "completed_ordinary_corridor_join_and_receiving_setting_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_component_names": [
+            "Coquille River"
+          ]
+        },
+        {
+          "fragments": [
+            9739
+          ],
+          "component_scope": "Coquille town and broad northern lower-river bend",
+          "finding": "The lower original covers the preceding fragment join, the Coquille town reach, Cedar Point and the broad northwestern river bend. The main river is continuously depicted through the lowland and wetland setting; the selected straightened positions do not establish a separate cross-wetland diversion. Tributary creeks, floodplain sloughs and the side reservoir remain distinguishable from the receiving Coquille corridor.",
+          "sources": [
+            "r233-usgstopo-lower",
+            "r233-usgstopo-middle",
+            "r233-usgstopo-overview"
+          ],
+          "correspondence": "completed_ordinary_corridor_join_and_receiving_setting_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "bounded_component_names": [
+            "Coquille River"
+          ]
+        },
+        {
+          "fragments": [
+            9739
+          ],
+          "component_scope": "Riverton–Parkersburg–Randolph lower valley",
+          "finding": "The named lower Coquille continues south through Riverton, rounds the broad valley bend and turns back northwest through Parkersburg and Randolph. The selected sequence follows this connected river-and-estuary corridor. The mapped Randolph Island and slough setting is covered without assigning every generalized position to a particular bank or minor parallel channel.",
+          "sources": [
+            "r233-usgstopo-lower",
+            "r233-usgstopo-overview"
+          ],
+          "correspondence": "completed_ordinary_corridor_join_and_receiving_setting_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "bounded_component_names": [
+            "Coquille River"
+          ]
+        },
+        {
+          "fragments": [
+            9739
+          ],
+          "component_scope": "Prosper–Bullards and actual Bandon entrance-estuary ending",
+          "finding": "The lower original follows Coquille River past Prosper and Bullards into the widened Bandon estuarine water and its short Pacific entrance. The actual selected rendered ending lies within that connected entrance-estuary setting beside Bandon. The separately stored source endpoint and rendered endpoint are not treated as identical, and no extension of the selected line across the offshore ocean is asserted. The association’s own account independently identifies the river’s Pacific outlet at Bandon.",
+          "sources": [
+            "r233-usgstopo-lower",
+            "r233-usgstopo-overview",
+            "r233-coquille-association-river-facts"
+          ],
+          "correspondence": "completed_ordinary_corridor_join_and_receiving_setting_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "bounded_component_names": [
+            "Coquille River"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:90122703",
+      "source_keys": [
+        "r233-geus-greenland-national-1995"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8909
+          ],
+          "component_scope": "Chosen inland-ice opening and south-southeastward upper course",
+          "finding": "The complete chosen opening and both long upper stored parts lie in the national original’s continuous inland-ice terrain. The selection proceeds south-southeast across the mapped ice-cover and sub-ice topographic compilation toward the exposed-rock belt. The map covers the full opening and the join between the two long parts; its contour and lineament symbols are not natural-river evidence.",
+          "sources": [
+            "r233-geus-greenland-national-1995"
+          ],
+          "correspondence": "completed_geographic_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "natural_river_continuity_established": false
+        },
+        {
+          "fragments": [
+            8909
+          ],
+          "component_scope": "Southern ice turn",
+          "finding": "All five short parts carry the selected corridor farther south through the mapped ice-covered region to its southern turn. The continuous original accounts for each join and the turn beside the inland edge of the nunatak/bedrock belt. No glacier name or surface/subglacial water connection is inferred.",
+          "sources": [
+            "r233-geus-greenland-national-1995"
+          ],
+          "correspondence": "completed_geographic_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "natural_river_continuity_established": false
+        },
+        {
+          "fragments": [
+            8909
+          ],
+          "component_scope": "Eastward transition into the nunatak belt",
+          "finding": "The eastward bend and short rising turn enter the mapped ice/nunatak setting. The original shows the ice margin and successive exposed-rock projections around this whole interval. Every stored part and its connection with the upper southern turn is covered; the modeled line itself is not independent river evidence.",
+          "sources": [
+            "r233-geus-greenland-national-1995"
+          ],
+          "correspondence": "completed_geographic_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "natural_river_continuity_established": false
+        },
+        {
+          "fragments": [
+            8909
+          ],
+          "component_scope": "Middle ice and exposed-bedrock passage",
+          "finding": "The middle eastward passage crosses the original’s alternating ice-covered spaces and exposed geological bodies. The selected corridor, rather than a continuously drawn natural stream, corresponds to this terrain mosaic. The entire interval and all joins are in the inspected original; no lake or managed connector is positively identified.",
+          "sources": [
+            "r233-geus-greenland-national-1995"
+          ],
+          "correspondence": "completed_geographic_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "natural_river_continuity_established": false
+        },
+        {
+          "fragments": [
+            8909
+          ],
+          "component_scope": "Northeastward lower bend across the rock and ice mosaic",
+          "finding": "The lower northeastward bend, short eastward links and local back-and-forth turn are all accounted for in the same uninterrupted national map. They traverse the exposed-rock/ice-margin setting around elongated bedrock bodies. The geological colors and blue inland-ice symbols are not assigned lake, glacier or river identities.",
+          "sources": [
+            "r233-geus-greenland-national-1995"
+          ],
+          "correspondence": "completed_geographic_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "natural_river_continuity_established": false
+        },
+        {
+          "fragments": [
+            8909
+          ],
+          "component_scope": "Eastward approach and southeastward coastal turn",
+          "finding": "The final eastward links and ensuing southeastward turn approach the inner coastal bedrock and narrow ice passages. Each stored part and internal join is within the inspected map area, with the adjacent narrow marine-inlet setting visible beyond the coastal rock margin. No exact glacier or receiving-fjord name is established.",
+          "sources": [
+            "r233-geus-greenland-national-1995"
+          ],
+          "correspondence": "completed_geographic_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "natural_river_continuity_established": false
+        },
+        {
+          "fragments": [
+            8909
+          ],
+          "component_scope": "Actual final stored part and terminal setting",
+          "finding": "The whole final part, its bend and actual selected ending were inspected in the enlarged original locality. At ordinary map scale the ending lies in the inner coastal rock/ice-margin setting beside the head of a narrow marine inlet; the receiving coastal-water context is also covered. This does not place the endpoint precisely on the historical shoreline or ice front, establish a surveyed river mouth, or identify a particular glacier or fjord. The supplied sea-terminal class is retained as model metadata only.",
+          "sources": [
+            "r233-geus-greenland-national-1995"
+          ],
+          "correspondence": "completed_geographic_terrain_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "natural_river_continuity_established": false
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60015602",
+      "source_keys": [
+        "r233-apitz-zulia59",
+        "r233-kijewski1972-escalante",
+        "r233-gutierrez2009-escalante",
+        "r233-esri-escalante-upper",
+        "r233-esri-escalante-middle",
+        "r233-esri-escalante-lower"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10850
+          ],
+          "component_scope": "Chosen southwestern opening and northeastward lowland feeder",
+          "finding": "The opening lies in a cultivated and partly wooded lowland containing narrow drainage ribbons, field drains and several separate stream traces. Imagery establishes that setting and the northeastward approach, but not a sufficiently clear selection-specific through-connection to the named collector. Kijewski's independent field-study prose distinguishes the piedmont dispersal/tatucal setting from the lower river system; its ungridded Croquis 1 does not resolve this particular opening. No exact feeder name is assigned.",
+          "sources": [
+            "r233-esri-escalante-upper",
+            "r233-kijewski1972-escalante",
+            "r233-apitz-zulia59"
+          ],
+          "correspondence": "material_source_connection_pending",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            10850
+          ],
+          "component_scope": "First joined lowland collector and wetland-adjacent northward passage",
+          "finding": "The imagery shows the selected northward collector in one continuous lowland corridor with incoming channels, wet patches and abandoned meanders. The regional hydrography identifies the lower Escalante system in this position. Patch cloud and channel simplification limit local detail but do not introduce another missing regional interval. This downstream correspondence does not settle the preceding feeder connection.",
+          "sources": [
+            "r233-esri-escalante-upper",
+            "r233-esri-escalante-middle",
+            "r233-apitz-zulia59",
+            "r233-kijewski1972-escalante"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            10850
+          ],
+          "component_scope": "Winding middle plain and approach to the town-side branch",
+          "finding": "The overlapping upper and middle views show the north-trending meandering river belt, intervening bends and joined reaches across the agricultural plain. The selected generalized line remains in that continuous river corridor, including older meander traces beside the more conspicuous channel. Exact active-bank positions are outside the finding.",
+          "sources": [
+            "r233-esri-escalante-upper",
+            "r233-esri-escalante-middle",
+            "r233-apitz-zulia59"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            10850
+          ],
+          "component_scope": "Eastern town-side reach and Santa Bárbara–San Carlos passage",
+          "finding": "The selected reach turns northeast from the middle river toward the eastern town corridor, then passes through the Santa Bárbara–San Carlos setting. The imagery distinguishes this narrower river ribbon from the conspicuous western channel/dike route, which is not substituted for the selected path. The independently authored 2009 field-report introduction identifies the river connecting these twin towns as Escalante. Channel engineering is accounted for geographically; construction date and present diversion operation are not inferred.",
+          "sources": [
+            "r233-esri-escalante-middle",
+            "r233-esri-escalante-lower",
+            "r233-gutierrez2009-escalante",
+            "r233-apitz-zulia59"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            10850
+          ],
+          "component_scope": "Lower northward reach and eastward wetland approach",
+          "finding": "The lower image follows the selected river north of the towns and through its eastward turn, among cultivated parcels, riparian vegetation and wetland margins. The chosen river continues toward the northeastern mouth; separate southern and western waterways remain distinct and are not used to replace selected reaches.",
+          "sources": [
+            "r233-esri-escalante-lower",
+            "r233-apitz-zulia59",
+            "r233-gutierrez2009-escalante"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        },
+        {
+          "fragments": [
+            10850
+          ],
+          "component_scope": "Final meandering wetland reach and actual lake terminal",
+          "finding": "The final selected reach corresponds to the visibly continuous meandering channel through the lake-margin wetland and its northeastern mouth. It reaches Lago de Maracaibo. No additional open-sea reach is implied by the retained model's sea terminal class, and no neighboring river mouth is substituted.",
+          "sources": [
+            "r233-esri-escalante-lower",
+            "r233-apitz-zulia59"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70848278",
+      "source_keys": [
+        "r233-inegi-sinaloa-state",
+        "r233-inegi-mocorito2010",
+        "r233-inegi-salvador-alvarado2010",
+        "r233-inegi-angostura2010",
+        "r233-esri-upper",
+        "r233-esri-middle",
+        "r233-esri-lower"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10367
+          ],
+          "component_scope": "Chosen northeastern opening and southwestward headward approach",
+          "finding": "The chosen opening lies in the northeastern feeder valley of the upper Évora corridor. The municipal relief map and the state sheet depict its southwestward approach into the south-running valley above Palmarito de la Sierra. Original imagery exposes the same narrow mountain drainage and the widening downstream valley. The directly named upper Évora course continues from this setting; the separate eastern drainage toward Surutato is not substituted for the chosen approach.",
+          "sources": [
+            "r233-inegi-sinaloa-state",
+            "r233-inegi-mocorito2010",
+            "r233-esri-upper"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "component_name": "Río Évora",
+          "name_scope_limit": "Representative upper-corridor attribution, not a surveyed official source point or a claim that a name label is printed at the first selected vertex."
+        },
+        {
+          "fragments": [
+            10367
+          ],
+          "component_scope": "Palmarito de la Sierra, upper joins and San Benito descent",
+          "finding": "The selected course follows the continuous north–south valley past the Palmarito de la Sierra surroundings and descends toward San Benito and La Huerta. The state original directly prints Río Évora on this corridor. The municipal map distinguishes the eastern Arroyo Grande and El Potrero approaches, and the imagery shows their joining setting within the same valley. The selected route continues down the Évora rather than crossing the intervening upland to the eastern Surutato drainage.",
+          "sources": [
+            "r233-inegi-sinaloa-state",
+            "r233-inegi-mocorito2010",
+            "r233-esri-upper"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "component_name": "Río Évora",
+          "name_scope_limit": "Incoming named approaches are context only and are not assigned as names of the selected main course. Palmarito de la Sierra is a locality, distinct from the separately mapped Palmarito waterway farther west."
+        },
+        {
+          "fragments": [
+            10367
+          ],
+          "component_scope": "Westward turn, Mocorito and western lowland joining sector",
+          "finding": "Below the San Benito–La Huerta sector, the route turns west across the foothill plain toward Mocorito. The municipal relief original repeats Río Évora along the westward river; its linework separates the Los Chinos approach from the selected northern course. The state original and overlapping imagery expose the successive bends and the river plain at Mocorito, including the north-side joining channel and the westward continuation toward the reservoir. There is no unviewed transfer between the upper valley and this receiving river.",
+          "sources": [
+            "r233-inegi-sinaloa-state",
+            "r233-inegi-mocorito2010",
+            "r233-esri-upper",
+            "r233-esri-middle"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "component_name": "Río Évora",
+          "name_scope_limit": "Mocorito's locality label and the table's R. Mocorito basin designation are not, by themselves, evidence of a hydronym synonym."
+        },
+        {
+          "fragments": [
+            10367
+          ],
+          "component_scope": "Eastern reservoir approach and Presa Eustaquio Buelna passage",
+          "finding": "The Évora approach west of Mocorito leads into the eastern arm of the waterbody explicitly named Presa Eustaquio Buelna on the state sheet and P. Eustaquio Buelna in the municipal original. The selected westward and northwestward bends enter the connected storage setting and then approach its southwestern outlet beside Guamúchil. The map, waterbody symbol and original imagery agree on this passage. Northern reservoir arms and their tributaries remain separate from the selected eastern entry.",
+          "sources": [
+            "r233-inegi-sinaloa-state",
+            "r233-inegi-salvador-alvarado2010",
+            "r233-esri-middle"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "component_name": "Presa Eustaquio Buelna",
+          "name_scope_limit": "The reservoir proper name is distinct from Río Évora. No present water level, shoreline, dam operating rule, turbine route or precise selected structure is asserted."
+        },
+        {
+          "fragments": [
+            10367
+          ],
+          "component_scope": "Reservoir outlet, Guamúchil and southern lowland continuation",
+          "finding": "The Salvador Alvarado relief map directly labels Río Évora at the reservoir's southwestern outlet and continues it along the Guamúchil urban margin into the southern plain. The state original and imagery show the river corridor leaving the storage setting and proceeding southwest, with sinuous river reaches distinguishable from straighter irrigation works. This supplies ordinary reservoir-outlet and urban-passage correspondence without assuming that every selected point falls in the current wetted channel.",
+          "sources": [
+            "r233-inegi-sinaloa-state",
+            "r233-inegi-salvador-alvarado2010",
+            "r233-esri-middle"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "component_name": "Río Évora",
+          "name_scope_limit": "The principal irrigation system is not renamed Évora, and present distribution of water between river and managed channels is unverified."
+        },
+        {
+          "fragments": [
+            10367
+          ],
+          "component_scope": "Alhuey–Angostura agricultural plain and managed crossings",
+          "finding": "The same river corridor continues past the Alhuey–Angostura surroundings and south through the cultivated plain. The Angostura original traces the sinuous Évora separately from named canals including La Esperanza, Nacozari and Humaya. Its linework and the two overlapping images cover the selected turns and intermediate managed crossings. These are connected river-plain passages, not an assumed lateral jump from an isolated channel merely because both lie in the Mocorito basin.",
+          "sources": [
+            "r233-inegi-sinaloa-state",
+            "r233-inegi-angostura2010",
+            "r233-esri-middle",
+            "r233-esri-lower"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "component_name": "Río Évora",
+          "name_scope_limit": "Canal crossings establish geographic correspondence only. No gate state, ownership, water allocation or current hydraulic priority is determined."
+        },
+        {
+          "fragments": [
+            10367
+          ],
+          "component_scope": "Lower Évora, embanked coastal ground and actual terminal",
+          "finding": "The Angostura relief map directly labels the lower Évora and carries it to the northeastern margin of the connected Santa María coastal water, east of El Calcetín and northwest of Punta Santa María. The original imagery shows the selected southwestward approach entering a modified wetland margin with rectilinear embankments and pond blocks, then reaching the tidal-channel/open-water setting at the actual selected end. This terminal is inside the coastal receiving system; it is not an invented direct outlet across the outer Pacific barrier. The historically mapped river corridor and present photographic receiving setting are continuously covered.",
+          "sources": [
+            "r233-inegi-angostura2010",
+            "r233-inegi-sinaloa-state",
+            "r233-esri-lower"
+          ],
+          "correspondence": "supported_at_ordinary_corridor_and_receiving_setting_scale",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "component_name": "Río Évora",
+          "name_scope_limit": "The terminal corridor includes substantial artificial modification. Évora is not assigned to every embanked ditch, pond or tidal branch. No exact present river mouth, bank, flow through an individual pond cell or permanently open sea inlet is claimed."
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [],
+  "additional_source_use_notices": [
+    {
+      "publication": "USGSTopo, The National Map: selected southwestern Oregon views",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "kind": "bounded_cartographic_factual_use",
+      "observed_notice": "Retained successful service metadata identifies a multiscale National Map/public-domain reference map and credits contributing datasets.",
+      "use_scope": "Own factual observations and ordinary bibliography only. Original maps, reading crops, orientation derivatives and full selected coordinates are not republished.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70483826"
+    },
+    {
+      "publication": "River Facts, Coquille Watershed Association",
+      "official_url": "https://www.coquillewatershed.org/resources/river-facts",
+      "kind": "ordinary_copyright_notice",
+      "observed_notice": "The page footer states All rights reserved, copyright 2025.",
+      "use_scope": "Bounded own paraphrase of geographic facts; no images or substantial source text reproduced.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70483826"
+    },
+    {
+      "publication": "Geological map of Greenland 1:2 500 000",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J",
+      "limitation_kind": "existing_custom_dataset_terms_confirmed_locally",
+      "access_stop": false,
+      "aw_id": "hydro-system:90122703",
+      "acquisition_stop": false,
+      "restriction_scope": "Originals, processed data, crops and comparison/derived maps remain private; independently written factual observations and ordinary bibliography only. Full existing custom conditions preserved."
+    },
+    {
+      "publication": "Geological map of Greenland 1:2 500 000",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J",
+      "limitation_kind": "naming_scope_and_source_epoch",
+      "observed_outcome": "Complete selected terrain and historical inner coastal terminal-setting coverage without a representative natural-river name or surveyed river continuity.",
+      "material_gap": false,
+      "access_stop": false,
+      "aw_id": "hydro-system:90122703",
+      "acquisition_stop": false,
+      "restriction_scope": "Naming and feature-type scope hold, not missing map coverage. No exact mouth, modern ice-front or hydraulic-continuity claim."
+    },
+    {
+      "publication": "Kijewski1972 Escalante tributary-dynamics compendium",
+      "official_url": "https://aluvion.org/server/api/core/bitstreams/e6ad9082-4198-4f51-b85c-508090f0a45a/content",
+      "initial_outcome": "Completed directHTTP502; no body read.",
+      "identical_retry_outcome": "Completed directHTTP200 application/pdf; original then read.",
+      "continuing_access_stop": false,
+      "kind": "resolved_exact_url_transient_failure",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:60015602"
+    },
+    {
+      "source_key": "r233-kijewski1972-escalante",
+      "publication": "Kijewski1972 Escalante tributary-dynamics compendium, Croquis1",
+      "official_url": "https://aluvion.org/server/api/core/bitstreams/e6ad9082-4198-4f51-b85c-508090f0a45a/content",
+      "observation": "Croquis1 credits an unspecified soil map for approximately compiled tatucal polygons. The original's own field/morphodynamic prose and identified aerial-photograph interpretation are distinct.",
+      "restriction_scope": "Borrowed soil-map polygons are not used to resolve the selected opening while the underlying publication relationship is unestablished. This is a layer/provenance limitation, not a whole-report or ministry access stop.",
+      "aw_id": "hydro-system:60015602",
+      "acquisition_stop": false
+    },
+    {
+      "source_keys": [
+        "r233-apitz-zulia59",
+        "r233-kijewski1972-escalante",
+        "r233-gutierrez2009-escalante",
+        "r233-esri-escalante-upper",
+        "r233-esri-escalante-middle",
+        "r233-esri-escalante-lower"
+      ],
+      "kind": "bounded_factual_reading_and_private_originals",
+      "observation": "Own factual observations and ordinary bibliography only. Source originals, page/map crops, overlays, imagery, selected coordinate series, dynamic export parameters and acquisition receipts remain private. No limited-distribution or citation-clearance notice was found in the inspected original front matter or map margins.",
+      "aw_id": "hydro-system:60015602",
+      "acquisition_stop": false
+    },
+    {
+      "publication": "INEGI, Condensado Estatal Sinaloa, first edition2020/copyright2021",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/sin/889463837077.pdf",
+      "observed_notice": "Reobserved retained original notice requires prior written authorization for full or partial reproduction.",
+      "restriction_scope": "Original PDF, map pixels, enlargements and derivatives stay private. Bounded own factual observations and normal bibliography only.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70848278"
+    },
+    {
+      "publication": "INEGI municipal Compendios2010: Mocorito25013, Salvador Alvarado25015 and Angostura25002",
+      "kind": "municipal_extent_and_historical_compilation_scope",
+      "observation": "The three independently issued originals have distinct municipal extents and editorial identities. Each is used only for its actually inspected coverage, with credited historical base epochs preserved.",
+      "restriction_scope": "Own factual synthesis only; no public original maps or reading derivatives, current hydraulic claims or all-series equivalence inference.",
+      "acquisition_stop": false,
+      "source_keys": [
+        "r233-inegi-mocorito2010",
+        "r233-inegi-salvador-alvarado2010",
+        "r233-inegi-angostura2010"
+      ],
+      "normal_urls": [
+        "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/25/25013.pdf",
+        "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/25/25015.pdf",
+        "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/25/25002.pdf"
+      ],
+      "aw_id": "hydro-system:70848278"
+    },
+    {
+      "publication": "World Imagery: three bounded Sinaloa river-corridor views",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "kind": "photographic_geography_and_redistribution_boundary",
+      "observation": "All three completed images were read. They supply geographic corroboration without new names or current-operation proof.",
+      "restriction_scope": "Source images, crops, orientation aids, dynamic requests and full selected coordinates remain private.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70848278"
+    }
+  ]
+}

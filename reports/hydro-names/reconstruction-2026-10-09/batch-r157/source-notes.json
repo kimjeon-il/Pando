@@ -1,0 +1,640 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r157",
+  "sources": [
+    {
+      "title": "Cartas topográficas 1:250.000, historical cartas_mosaicos mosaic; selected plateau–Ministro Ramos Mexía–northern Bajo de Valcheta corridor",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms",
+      "edition": "Historical composite; individual constituent-sheet dates and editions unestablished from the bounded view.",
+      "material_read": "One newly acquired original bounded overview, completed HTTP200/image/png, visually read in full and through source-only full-resolution crops covering the opening, middle corridor, branches and actual terminal. Retained selected geometry used only for orientation.",
+      "supports": "Mapped plateau setting; Corral Chico and El Gateado depressions; unnamed middle/lower intermittent drainage, branch settings and north-side Laguna Tres Picos terminal.",
+      "limits": "Readable terrain covers the entire selected extent but does not establish the substantial upper drainage and its complete link to Corral Chico. No whole-route name or absence of a natural drainage is inferred.",
+      "use_notice": "No redistribution permission inferred from official hosting. Original map, source crops, orientation figures and dynamic bounded-view request remain private.",
+      "source_key": "r157-ign250k-corralchico-trespicos"
+    },
+    {
+      "title": "Plan de Manejo del Área Natural Protegida Meseta de Somuncurá, 19 October 2007; Decreto 465, 30 May 2008, in Boletín Oficial de Río Negro 4634 supplement, 3 July 2008",
+      "publisher": "Consejo de Ecología y Medio Ambiente, Gobierno de Río Negro",
+      "official_url": "https://rionegro.gov.ar/download/boletin/4634supl.pdf",
+      "material_read": "Previously acquired complete original reused locally without reacquisition. First-page decree/date and printed/PDF page36 hydrological sections read; neighboring station discussion on page37 read only for context. No new regional-map correspondence claim is made from this prose.",
+      "supports": "Bounded regional context: Yaminué, Treneta and Comicó are listed in the endorheic Laguna Indio Muerto basin, while other named Somuncurá systems are classified separately.",
+      "limits": "The selected unnamed northern route and its missing upper connector are not established by that basin list. Regional prose does not override the mapped Tres Picos endpoint; historical hydrometry is not used to infer current or uniform flow.",
+      "use_notice": "No explicit redistribution permission established. Retained PDF and local page renderings remain private.",
+      "source_key": "r157-codema2007-plan2008"
+    },
+    {
+      "title": "Land Use Information Series: Takijuq Lake, District of Mackenzie, Northwest Territories, sheet 86 I",
+      "publisher": "Lands Directorate, Environmental Management Service, Department of Fisheries and the Environment; Indian and Northern Affairs",
+      "year": 1978,
+      "scale": "1:250,000",
+      "edition_details": "Thematic cartography by Maritime Resource Management Service, Amherst, Nova Scotia, 1978. Army Survey Establishment base map: information current as of 1963, printed 1966. Introduction says resource information current as of November 1977.",
+      "catalogue_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html",
+      "acquisition": "Single original acquisition completed HTTP200, image/jpeg; original pixels and relevant imprint/prose read.",
+      "actual_use": "Opening lake and Inulik relationship, whole selected Inulik passage, Tree River outlet and southern sheet-edge continuation.",
+      "use_notice": "The introduction describes the series as interim: some information is incomplete or based on preliminary/reconnaissance surveys; mapped resource-unit boundaries are approximate. No limited-distribution or officials-only notice was observed. Source originals and derived working crops are not redistributed.",
+      "source_key": "nluis_takijuq_86i_1978",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_86i.jpg"
+    },
+    {
+      "title": "Land Use Information Series: Kikerk Lake, District of Mackenzie, Northwest Territories, sheet 86 P",
+      "publisher": "Lands Directorate, Environmental Management Service, Department of Fisheries and the Environment; Indian and Northern Affairs",
+      "year": 1978,
+      "scale": "1:250,000",
+      "edition_details": "Thematic cartography by Maritime Resource Management Service, Amherst, Nova Scotia, 1978. Army Survey Establishment base map: information current as of 1963, printed 1965.",
+      "catalogue_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html",
+      "acquisition": "Single original acquisition completed HTTP200, image/jpeg; original pixels and imprint read.",
+      "actual_use": "Inulik outlet continuation, eastward Tree River lake/short-channel sequence, northeast trunk and major lake expansions.",
+      "use_notice": "Historical interim land-use cartography. No limited-distribution or officials-only notice observed. Source originals and derived working crops remain private.",
+      "source_key": "nluis_kikerk_86p_1978",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_86p.jpg"
+    },
+    {
+      "title": "Land Use Information Series: Hepburn Island, District of Mackenzie, Northwest Territories, sheet 76 M",
+      "publisher": "Lands Directorate, Environmental Management Service, Department of Fisheries and the Environment; Indian and Northern Affairs",
+      "year": 1978,
+      "scale": "1:250,000",
+      "edition_details": "Thematic cartography by Maritime Resource Management Service, Amherst, Nova Scotia, 1978. Army Survey Establishment base map: information current as of 1963, printed 1966.",
+      "catalogue_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html",
+      "acquisition": "Single original acquisition completed HTTP200, image/jpeg; original pixels, imprint and relevant lower-Tree fish-resource commentary read.",
+      "actual_use": "Lower Tree River, its actual mouth at Port Epworth, and the connection of that inlet with Coronation Gulf.",
+      "use_notice": "Historical interim land-use cartography. No limited-distribution or officials-only notice observed. Original pixels, source crops and working figures are not public deliverables.",
+      "source_key": "nluis_hepburn_76m_1978",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_76m.jpg"
+    },
+    {
+      "title": "Surficial materials, central Baffin Island, Nunavut",
+      "authors": "L.A. Dredge",
+      "publisher": "Geological Survey of Canada, Natural Resources Canada",
+      "year": 2002,
+      "series": "Current Research2002-C20",
+      "bibliography": "Dredge, L.A.,2002. Surficial materials, central Baffin Island, Nunavut. Geological Survey of Canada, Current Research2002-C20,6 printed pages (8 PDF pages).",
+      "normal_urls": [
+        "https://publications.gc.ca/collections/collection_2013/rncan-nrcan/M44-2002-C20-eng.pdf",
+        "https://publications.gc.ca/pub?id=9.558055&sl=0"
+      ],
+      "source_type": "primary_field_research_report",
+      "actual_read_scope": "Original report prose and source-use notice; no original figures or maps observed.",
+      "cartographic_correspondence": false,
+      "use_notice": "Copyright2002, Her Majesty the Queen in Right of Canada. Report requests permission for reproduction for commercial use, resale or redistribution. Originals and derivatives remain private; no redistribution permission inferred.",
+      "source_key": "r157-dredge2002-c20",
+      "bounded_prose_observation": "The report describes field mapping between Foxe Basin and Barnes Ice Cap in NTS37A and37D. It discusses outwash in Drewry and MacDonald river valleys and around Gillian, Flint and Flyway lakes, including modern braided meltwater floodplains. This regional context does not identify the selected corridor or establish any selected connector.",
+      "official_url": "https://publications.gc.ca/collections/collection_2013/rncan-nrcan/M44-2002-C20-eng.pdf"
+    },
+    {
+      "title": "Lake Gillian, NTS037D, CanMatrix1:250,000",
+      "publisher": "Natural Resources Canada",
+      "edition": null,
+      "normal_urls": [
+        "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/037/d/",
+        "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/037/d/canmatrix_037d_tif.zip"
+      ],
+      "source_type": "official_topographic_sheet_directory_and_unacquired_map",
+      "actual_read_scope": "Successful directory metadata only; map original denied403 and unobserved.",
+      "cartographic_correspondence": false,
+      "source_key": "r157-canmatrix037d",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/037/d/"
+    },
+    {
+      "title": "Foley Island, NTS037A, CanMatrix1:250,000",
+      "publisher": "Natural Resources Canada",
+      "edition": null,
+      "normal_urls": [
+        "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/037/a/"
+      ],
+      "source_type": "unacquired_sheet_directory_and_map",
+      "actual_read_scope": "None; directory request blocked at tool level before HTTP outcome.",
+      "cartographic_correspondence": false,
+      "source_key": "r157-canmatrix037a",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/037/a/"
+    },
+    {
+      "title": "Northern Land Use Information Series, 1:250,000 land-use map index",
+      "publisher": "Agriculture and Agri-Food Canada, Canadian Soil Information Service",
+      "normal_urls": [
+        "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html"
+      ],
+      "source_type": "retained_official_index",
+      "actual_read_scope": "Retained original HTML lists37F Steensby Inlet and37G Icebound Lakes, but no37A or37D source map links. No new network request.",
+      "cartographic_correspondence": false,
+      "source_key": "r157-retained-nluis-index",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html"
+    },
+    {
+      "title": "Icebound Lakes,37G, Land Use Information Series,1:250,000",
+      "publisher": "Indian and Northern Affairs; Department of the Environment, with Agriculture Canada thematic cartography and Department of Energy, Mines and Resources base map",
+      "year": 1981,
+      "normal_urls": [
+        "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_37g.jpg"
+      ],
+      "source_type": "retained_primary_map_outside_selected_corridor",
+      "actual_read_scope": "Retained original-derived overview and imprint, and freshly read original top margin. The northern and western sheet bounds establish that this is outside the selected corridor; its route details are not evidence for this object. No new network acquisition.",
+      "cartographic_correspondence": false,
+      "use_notice": "Printed Crown copyright1981. Retained source image and local reading crop remain private.",
+      "source_key": "r157-retained-nluis37g-outside-target",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_37g.jpg"
+    },
+    {
+      "title": "Quttinirpaaq National Park: Visitor Information Package, 2019",
+      "institution": "Parks Canada",
+      "bibliography": "Parks Canada. 2019. Quttinirpaaq National Park: Visitor Information Package. Printed pages ii, 3 and 6; Topographic Maps index on printed page 6, map created by Nunavut Field Unit, February 2012.",
+      "evidence_type": "Complete original PDF, locally rendered original page-6 map pixels, and bounded front-matter/regional prose.",
+      "observed_outcome": "Completed HTTP 200, application/pdf.",
+      "actual_reading": "The printed-page-6 map shows Quttinirpaaq on northern Ellesmere Island, Lake Hazen, the southwestern/northeastern elongation of the lake, surrounding topographic-sheet divisions, and coarse inland-water lines toward the eastern fiord system. Its principal purpose is sheet coverage. It establishes broad Lake Hazen setting but does not resolve the selected western headward opening, upper connector or material branch identities.",
+      "map_coverage": "Regional index only, not complete selected-corridor cartography.",
+      "use_notice": "Printed page ii states that photos are copyright Parks Canada unless otherwise stated. Only own factual synthesis and ordinary bibliography are supplied; no source originals, crops, derivatives or extensive prose are for public redistribution. The guide is historical and not used as current travel/navigation advice.",
+      "source_key": "parks_quttinirpaaq_vip2019",
+      "official_url": "https://parks.canada.ca/pn-np/nu/quttinirpaaq/securite-safety/-/media/2bdca21eacc24fe9a67fbea74dca8d9b.ashx"
+    },
+    {
+      "title": "Quttinirpaaq National Park of Canada: Management Plan, 2009",
+      "institution": "Parks Canada, Nunavut Field Unit",
+      "bibliography": "Parks Canada. 2009. Quttinirpaaq National Park of Canada: Management Plan. Catalogue R63-341/2006E-PDF; ISBN 0-662-44206-7. Official HTML front matter, executive summary and regional setting, read before failed linked-PDF acquisition.",
+      "evidence_type": "Previously read primary HTML prose only; original map unavailable.",
+      "actual_reading": "The read regional prose places the park on northern Ellesmere Island and describes extensive glaciers, ice caps, mountains and polar-desert conditions. This is background context, not proof of any selected feeder, lake connection or outlet hydronym.",
+      "map_coverage": "None: listed figures were not seen.",
+      "use_notice": "The HTML front matter attributes the publication to Her Majesty the Queen in Right of Canada, represented by the Chief Executive Officer of Parks Canada, 2009. Own factual synthesis only.",
+      "source_key": "parks_quttinirpaaq_plan2009_prose",
+      "official_url": "https://www.parks.canada.ca/pn-np/nu/quttinirpaaq/info/plan/gestion-management-2009"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:61555573",
+      "source_keys": [
+        "r157-ign250k-corralchico-trespicos",
+        "r157-codema2007-plan2008"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14557
+          ],
+          "component_scope": "Southern opening and northward plateau corridor west of Yaminué",
+          "finding": "The source depicts plateau terrain east of the separately labeled Arroyo Comicó and west of the separately labeled Arroyo Seco Yaminué, near La Quebrada and Estancia Serra. The selected route follows this intervening plateau northward. The original does not establish a continuous mapped drainage along this substantial upper corridor or its complete northward connection to the Corral Chico lowland.",
+          "sources": [
+            "r157-ign250k-corralchico-trespicos"
+          ],
+          "correspondence": "Terrain setting established; material hydrographic correspondence remains unresolved.",
+          "lakes_wetlands_reservoirs": "Small isolated wet depressions occur nearby. Neither those depressions nor adjacent Comicó/Yaminué channels establish the selected upper connection. No reservoir is depicted in the selected opening.",
+          "mapped_component_names": [
+            null
+          ],
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            14557
+          ],
+          "component_scope": "Ministro Ramos Mexía transport crossing and Laguna Corral Chico transition",
+          "finding": "The selected corridor reaches the western side of Ministro Ramos Mexía, crosses the road/rail belt, and approaches the southern/eastern side of the mapped Laguna Corral Chico depression. The original depicts the lagoon and a northeastward intermittent drainage from that setting, but it does not establish the incoming connection from the southern plateau as a complete watercourse.",
+          "sources": [
+            "r157-ign250k-corralchico-trespicos"
+          ],
+          "correspondence": "Settlement, crossing, lagoon and outgoing northeast corridor established; the upper-to-lagoon drainage link remains a material gap.",
+          "lakes_wetlands_reservoirs": "Laguna Corral Chico is a material mapped depression on the selected corridor. Its name is not extended to the river group. Nearby lagunas Lauriente, Vicente, Comezana and Marín Camino are distinct features, not inferred selected lake passages.",
+          "mapped_component_names": [
+            "Laguna Corral Chico"
+          ],
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            14557
+          ],
+          "component_scope": "Northeast intermittent drainage by Laguna El Gateado and the S. Ruiz–Caita Toro setting",
+          "finding": "The original depicts the northeast-running intermittent channel from the Corral Chico area, its relation to the eastern side of Laguna El Gateado, and continuation past the S. Ruiz estancia toward Caita Toro. Multiple small lateral intermittent branches and wet hollows are drawn. The connected corridor can be followed without assigning those side branches a common hydronym.",
+          "sources": [
+            "r157-ign250k-corralchico-trespicos"
+          ],
+          "correspondence": "Established at generalized channel/depression and local junction scale.",
+          "lakes_wetlands_reservoirs": "El Gateado is a named lagoon setting adjoining the selected drainage. No present water level or permanent lagoon-to-channel flow is asserted; no reservoir is depicted.",
+          "mapped_component_names": [
+            null,
+            "Laguna El Gateado"
+          ],
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            14557
+          ],
+          "component_scope": "Santa Rosa lowland and unnamed eastward drainage north of Loma China Muerta",
+          "finding": "The mapped channel continues northeast and then east by Santa Rosa. An elongated intermittently wetted hollow and parallel/branching drainage traces occur immediately east of the estancia. The corridor continues along the northern side of Loma China Muerta, receiving small lateral branches before the major southward turn. The separately mapped Bajo Rico, Salitral Negro and northern branch network are contextual neighboring components; they are not assigned a selected trunk name.",
+          "sources": [
+            "r157-ign250k-corralchico-trespicos"
+          ],
+          "correspondence": "Established at ordinary lowland/channel and branch-junction scale, without exact selection of banks or parallel wetland strands.",
+          "lakes_wetlands_reservoirs": "Unnamed wet lowland at Santa Rosa is material. No dam or reservoir is depicted.",
+          "mapped_component_names": [
+            null
+          ],
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            14557
+          ],
+          "component_scope": "Southward lower channel into northern Bajo de Valcheta",
+          "finding": "The original shows the eastward drainage gathering with northern and eastern intermittent branches, then turning south through a narrow vegetated channel corridor east of Loma China Muerta. It bends east at the edge of the Tres Picos depression. This is the northern approach to Tres Picos, spatially separate from the Arroyo Nahuel Niyeu wetland belt approaching the saline-lagoon complex from the southwest.",
+          "sources": [
+            "r157-ign250k-corralchico-trespicos"
+          ],
+          "correspondence": "Established for the lower channel, material convergence and lagoon approach.",
+          "lakes_wetlands_reservoirs": "Natural channel and lowland approach, with no reservoir or dam depicted. Arroyo Nahuel Niyeu is a neighboring receiving-drainage label on a different route and is not a representative candidate for this selected northern approach.",
+          "mapped_component_names": [
+            null,
+            "Bajo de Valcheta"
+          ],
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            14557
+          ],
+          "component_scope": "Actual inland terminal in Laguna Tres Picos",
+          "finding": "The selected lower route enters the northwestern/northern part of the crosshatched saline depression labeled Laguna Tres Picos and ends within it. Laguna Indio Muerto is a separate mapped neighboring lagoon farther east/southeast. The endpoint is not moved to Indio Muerto merely because that name is used for a larger regional basin.",
+          "sources": [
+            "r157-ign250k-corralchico-trespicos"
+          ],
+          "correspondence": "Actual terminal setting established at saline-lagoon-complex scale.",
+          "lakes_wetlands_reservoirs": "Laguna Tres Picos is the selected natural saline-lagoon terminal. No sea outlet, reservoir, exact shoreline or present permanent inundation is asserted.",
+          "mapped_component_names": [
+            "Laguna Tres Picos"
+          ],
+          "component_correspondence_completed": true
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80068976",
+      "source_keys": [
+        "nluis_takijuq_86i_1978",
+        "nluis_kikerk_86p_1978",
+        "nluis_hepburn_76m_1978"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2520
+          ],
+          "component_scope": "Selected eastern headward lake and southern transfer toward Inulik Lake",
+          "finding": "The selected opening lies in the small elongated unnamed lake immediately east of Inulik Lake, printed with a 1504-foot elevation. The map distinguishes this lake from the lower-elevation, broadly lobed Inulik Lake. Its westward outlet and the intervening stream/pond setting can be seen. The selected route instead proceeds southwest from the lake's southern part into Inulik's southeastern waterbody; that selected transfer cannot be securely read as a continuous mapped connection at this source scale.",
+          "sources": [
+            "nluis_takijuq_86i_1978"
+          ],
+          "correspondence": "partially_observed_material_connector_unresolved",
+          "prose_scope": null,
+          "material_gap": true,
+          "mapped_component_name": null,
+          "component_correspondence_completed": false,
+          "limits": "This is a lake-to-lake route question, not a demand for exact bank or vertex agreement. The visible alternative westward drainage is not used to replace the selected southern transfer."
+        },
+        {
+          "fragments": [
+            2520
+          ],
+          "component_scope": "Inulik Lake traverse and northward Tree River outlet",
+          "finding": "The broad southern and northwestern parts of Inulik Lake account for the selected westward lake traverse and northward bend. Its outlet is directly labelled Tree River and passes through short lake expansions and a falls/rapids reach before continuing across the adjoining sheet boundary. The large Takijuq Lake to the south is a separate regional feature, not a selected passage.",
+          "sources": [
+            "nluis_takijuq_86i_1978",
+            "nluis_kikerk_86p_1978"
+          ],
+          "correspondence": "supported_at_generalized_component_scale",
+          "prose_scope": null,
+          "material_gap": false,
+          "mapped_component_name": "Inulik Lake",
+          "component_correspondence_completed": true,
+          "limits": null
+        },
+        {
+          "fragments": [
+            2520
+          ],
+          "component_scope": "Upper Tree River eastward lake and short-channel sequence",
+          "finding": "South of the separately labelled Kikerk Lake, the selected corridor follows the Tree River's chain of irregular lake expansions and short channels eastward. The original distinguishes the selected southern/eastward continuation from adjacent north-trending lake arms and feeder streams. Rapids and falls are shown along parts of this chain. The corridor turns northeast into the elongated lake-and-river valley farther east.",
+          "sources": [
+            "nluis_kikerk_86p_1978"
+          ],
+          "correspondence": "supported_at_generalized_component_scale",
+          "prose_scope": null,
+          "material_gap": false,
+          "mapped_component_name": "Tree River",
+          "component_correspondence_completed": true,
+          "limits": "No name is independently established for every selected lake expansion or tributary. Kikerk Lake is a sheet/adjacent-lake label, not a blanket selected-route name."
+        },
+        {
+          "fragments": [
+            2520
+          ],
+          "component_scope": "Northeast Tree River trunk and major lake passages",
+          "finding": "The northeast-trending selected line corresponds to the connected long lake expansions and Tree River reaches in the eastern part of 86P, including the large lake printed with a 718-foot elevation and its northeast outlet reach. The lower river continues across the sheet edge onto 76M, with several side streams and nearby parallel valleys distinguishable from the selected trunk.",
+          "sources": [
+            "nluis_kikerk_86p_1978",
+            "nluis_hepburn_76m_1978"
+          ],
+          "correspondence": "supported_at_generalized_component_scale",
+          "prose_scope": null,
+          "material_gap": false,
+          "mapped_component_name": "Tree River",
+          "component_correspondence_completed": true,
+          "limits": null
+        },
+        {
+          "fragments": [
+            2520
+          ],
+          "component_scope": "Lower Tree River and actual coastal terminal",
+          "finding": "The labelled lower Tree River continues northeast through the valley, turns toward the head of Port Epworth and reaches the inlet's southern end. Port Epworth opens northward into Coronation Gulf. The selected terminal is therefore supported at the river-to-inlet setting; neither a neighboring eastward river nor the more distant gulf shoreline is substituted for the actual terminal.",
+          "sources": [
+            "nluis_hepburn_76m_1978"
+          ],
+          "correspondence": "supported_at_generalized_component_scale",
+          "prose_scope": "The same sheet's fish-resource commentary independently discusses the lower Tree River, a falls approximately 9 km upstream of its mouth, and fishing at its mouth. This prose corroborates the named lower-river setting but does not resolve the initial lake transfer.",
+          "material_gap": false,
+          "mapped_component_name": "Tree River",
+          "component_correspondence_completed": true,
+          "limits": null
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80048308",
+      "source_keys": [
+        "r157-dredge2002-c20"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2489
+          ],
+          "component_scope": "Eastern headward opening and initial southwest descent",
+          "finding": "The model begins in the east and trends southwest to an initial westward corridor. Its actual source waterbody, terrain, significant tributary junctions and any lake or ice association are unestablished from allowed original cartography.",
+          "sources": [],
+          "correspondence": "material_original_map_gap",
+          "mapped_component_name": null,
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2489
+          ],
+          "component_scope": "Upper westward corridor and shallow northward return",
+          "finding": "The model continues broadly west with a shallow northward return before turning southwest again. This geometric orientation does not establish the actual channel, lake passages, branches or hydronym.",
+          "sources": [],
+          "correspondence": "material_original_map_gap",
+          "mapped_component_name": null,
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2489
+          ],
+          "component_scope": "Middle westward course and southwestern bend",
+          "finding": "The model follows a broad westward corridor, then bends southwest. No allowed original map establishes the middle course, its material junctions or any transfer through a lake.",
+          "sources": [],
+          "correspondence": "material_original_map_gap",
+          "mapped_component_name": null,
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2489
+          ],
+          "component_scope": "Lower southwestward descent",
+          "finding": "The model continues southwest toward the retained coastal terminal classification. Its actual lower river identity, branch configuration and lake links remain without map correspondence.",
+          "sources": [],
+          "correspondence": "material_original_map_gap",
+          "mapped_component_name": null,
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2489
+          ],
+          "component_scope": "Terminal approach and actual receiving water",
+          "finding": "The modeled ending turns west and then southwest into the retained sea-classified terminal. The actual receiving bay or sea, connection from the lower route and terminal setting have not been established from allowed primary map pixels. The retained sea classification is not independent evidence.",
+          "sources": [],
+          "correspondence": "material_original_map_gap",
+          "mapped_component_name": null,
+          "component_correspondence_completed": false
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80001778",
+      "source_keys": [
+        "parks_quttinirpaaq_vip2019",
+        "parks_quttinirpaaq_plan2009_prose"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2295
+          ],
+          "component_scope": "Headward opening and southward upper corridor",
+          "finding": "Selected geometry shows a southward opening west of Lake Hazen. The lawfully read park index supplies only broad regional terrain and ice context. No original source establishes the selected opening’s actual ice/rock setting, named glacier, surface stream or subglacial continuity.",
+          "sources": [
+            "parks_quttinirpaaq_vip2019",
+            "parks_quttinirpaaq_plan2009_prose"
+          ],
+          "correspondence": "material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2295
+          ],
+          "component_scope": "Western feeder, southern bend and eastward middle corridor",
+          "finding": "Selected geometry runs southeast and then east toward the Lake Hazen region. The park index does not resolve this complete western valley corridor or its material tributary/ice links. No nearby hydronym discovered in a snippet is accepted as this feeder’s name.",
+          "sources": [
+            "parks_quttinirpaaq_vip2019"
+          ],
+          "correspondence": "material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2295
+          ],
+          "component_scope": "Northeast turn and approach to the southwest lake sector",
+          "finding": "The selected turn approaches the southwest end of the Lake Hazen waterbody depicted on the park index. The actual feeder-to-lake connector and intervening major links remain unresolved in original cartography. General proximity to the lake does not establish this connection.",
+          "sources": [
+            "parks_quttinirpaaq_vip2019"
+          ],
+          "correspondence": "material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2295
+          ],
+          "component_scope": "Long central and eastern lake-oriented passage",
+          "finding": "The elongated southwest-to-northeast waterbody on the original park index is labelled Lake Hazen and corresponds broadly to the long modeled lake-oriented passage. This is a lake-context observation. The index does not establish precise passage boundaries, every island/branch, the inlet transfer or a whole-route river name.",
+          "sources": [
+            "parks_quttinirpaaq_vip2019"
+          ],
+          "correspondence": "broad_lake_context_only",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2295
+          ],
+          "component_scope": "Southeast terminal corridor and actual selected end",
+          "finding": "The selected geometry bends southeast from the eastern lake region toward the stored sea endpoint. The park index shows only coarse water lines toward the eastern fiord system. No inspected original establishes the whole selected outlet corridor, the actual terminal branch or its hydronym at adequate ordinary component scale. The stored sea class is retained model metadata, not proof of an observed river mouth.",
+          "sources": [
+            "parks_quttinirpaaq_vip2019"
+          ],
+          "correspondence": "material_pending",
+          "component_correspondence_completed": false
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "aw_id": "hydro-system:61555573",
+      "publication": "IGN historical Cartas topográficas 1:250.000, cartas_mosaicos; selected plateau–Ministro Ramos Mexía–northern Bajo de Valcheta corridor",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms",
+      "observed_outcome": "The sole bounded original view completed HTTP 200, image/png, and contains readable cartography throughout the selected extent. The upper plateau route and its connection into the Corral Chico drainage are not established as a watercourse by the inspected source.",
+      "outcome_layer": "Cartographic hydrographic-content/detail limit on a successful original, not an access denial or transport failure.",
+      "restriction_scope": "The source supports terrain, neighboring drainage, middle/lower channel and terminal-lagoon observations. It does not establish the missing substantial upper drainage connection; no publication-wide or service-wide access stop is inferred.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "generalized_source_hydrographic_correspondence_limit",
+      "material_gap": true,
+      "material_effect": "The actual upper drainage connection remains unresolved, so the primary outcome is source-material pending rather than a completed naming-scope hold. Absence of a printed channel or name does not prove that the modeled route is not a natural drainage."
+    },
+    {
+      "aw_id": "hydro-system:80068976",
+      "publication": "Land Use Information Series: Takijuq Lake, sheet 86I, 1978, 1:250,000",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_86i.jpg",
+      "observed_outcome": "Original acquired HTTP200 and visually read. The initial unnamed lake, Inulik Lake and a westward outlet are visible, but the selected southern transfer between the initial lake and southeastern Inulik Lake remains unestablished at the available scale.",
+      "outcome_layer": "Substantive selected-component correspondence limitation, not an HTTP, transport, image-acquisition or source-access failure.",
+      "restriction_scope": "The unresolved selected headward lake transfer only. No access stop on this successful NLUIS publication is inferred. Other actually read component observations remain usable.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "material_selected_headward_lake_transfer_gap",
+      "material_gap": true,
+      "material_effect": "Prevents completed representative-system identity and completed naming-scope hold."
+    },
+    {
+      "aw_id": "hydro-system:80068976",
+      "publication": "Proposed CanMatrix NTS086I/15, 1:50,000; printed title and edition uninspected",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/50k_300dpi/086/i/",
+      "observed_outcome": "Neither this directory nor this proposed detailed sheet was requested. Related new CanMatrix acquisition is paused after an unresolved same-publication restriction involving the NTS037D original and NTS037A directory. No HTTP response or map content is claimed for086I/15.",
+      "outcome_layer": "Unrequested related-source scope limitation; no new origin HTTP or transport outcome for this target.",
+      "restriction_scope": "No directory, catalogue, original, reader, cache, screenshot, mirror or equivalent acquisition of the proposed086I/15 source was attempted. Sheet-number differences were not used to continue through the unresolved CanMatrix restriction.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "unrequested_under_unresolved_related_publication_stop",
+      "material_gap": true,
+      "material_effect": "Potential more detailed evidence for the selected initial lake transfer is unavailable in this research pass.",
+      "related_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/037/a/"
+    },
+    {
+      "aw_id": "hydro-system:80068976",
+      "publication": "Land Use Information Series: Takijuq Lake86I, Kikerk Lake86P and Hepburn Island76M, 1978",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_86i.jpg",
+      "observed_outcome": "All three originals were successfully acquired and read. They are historical1:250,000 land-use sheets using1963 topographic information and1978 thematic cartography, with an explicit interim/incomplete-information caveat.",
+      "outcome_layer": "Source epoch, scale and thematic scope; no acquisition failure.",
+      "restriction_scope": "Supports ordinary generalized historical component and terminal-setting observations. Does not establish current channels, formal registry status, exact bank/mouth positions, surveyed river length or a uniform scalar name for every lake and river component.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "historical_scale_and_naming_scope",
+      "material_gap": false,
+      "related_urls": [
+        "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_86p.jpg",
+        "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_76m.jpg"
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80048308",
+      "publication": "Lake Gillian, NTS037D, CanMatrix 1:250,000 topographic sheet; printed title and edition uninspected",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/037/d/canmatrix_037d_tif.zip",
+      "observed_outcome": "The official sheet directory completed HTTP200 and provided the exact archive link. The sole linked original request completed HTTPError403 Forbidden. No map body or original pixels were acquired.",
+      "outcome_layer": "Completed original HTTP-client response.",
+      "restriction_scope": "Entire NTS037D sheet publication and all equivalent copies, formats, catalogue, original, reader, cache, mirror and other acquisition routes stopped. No retry or alternative route.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "http403_publication_stop",
+      "material_gap": true,
+      "material_effect": "The selected headward, upper, middle and most lower course lacks original-map correspondence."
+    },
+    {
+      "aw_id": "hydro-system:80048308",
+      "publication": "Foley Island, NTS037A, CanMatrix 1:250,000 topographic sheet directory and associated sheet; printed title and edition uninspected",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/037/a/",
+      "observed_outcome": "The planned sheet-directory acquisition was denied at the tool level before an HTTP response was obtained. No directory or map content was acquired. The refusal stated that037A belonged to the same publication as stopped037D. Its different sheet title did not resolve the denial.",
+      "outcome_layer": "Tool-level acquisition denial; origin HTTP outcome unobserved.",
+      "restriction_scope": "NTS037A directory and associated sheet, equivalent catalogue, map, original, reader, cache, mirror and other acquisition routes left stopped. No retry or workaround followed. Related new CanMatrix sheet acquisitions remain paused while this same-publication scope is unresolved; different sheet numbers alone do not establish permission to continue.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "tool_level_acquisition_denial",
+      "material_gap": true,
+      "material_effect": "The actual terminal waterbody and lower-to-terminal channel connection remain unmapped."
+    },
+    {
+      "aw_id": "hydro-system:80048308",
+      "publication": "Dredge, L.A. (2002), Surficial materials, central Baffin Island, Nunavut; Geological Survey of Canada, Current Research2002-C20; M44-2002/C20E-IN",
+      "official_url": "https://publications.gc.ca/collections/collection_2013/rncan-nrcan/M44-2002-C20-eng.pdf",
+      "observed_outcome": "PDF prose opened normally in the web reader. The first and sole screenshot request, Figure2 on PDF page4 (printed page3), returned Cache miss without an HTTP status or map pixels.",
+      "outcome_layer": "Web-reader screenshot availability response; origin HTTP outcome unknown.",
+      "restriction_scope": "Missing visual/map material and all equivalent publication figures, copies, formats, original-file, reader, screenshot, cache, mirror and visual acquisition routes paused. No alternate route or repeat screenshot followed.",
+      "earlier_lawful_prose_exception": "Actually read original report prose and bibliographic/reproduction notice remain usable only within their observed scope. Parsed labels and unobserved figures do not supply map correspondence.",
+      "limitation_kind": "visual_availability_stop",
+      "material_gap": true,
+      "material_effect": "The independent regional report supplies only contextual prose; its unobserved Figure2 cannot establish any selected-route connector."
+    },
+    {
+      "aw_id": "hydro-system:80001778",
+      "publication": "Canadian Data Report of Fisheries and Aquatic Sciences 1197 (Lake Hazen char report; exact printed title and edition not inspected)",
+      "official_url": "https://publications.gc.ca/collections/collection_2013/mpo-dfo/Fs97-13-1197-eng.pdf",
+      "observed_outcome": "The sole original request completed HTTP 200 but redirected to an archived-information HTML page, Content-Type text/html, rather than the requested PDF. No original report prose or map pixels were acquired.",
+      "outcome_layer": "Completed original HTTP-client response and body; not an HTTP access denial.",
+      "restriction_scope": "Missing report and equivalent copies, maps, figures, formats, originals, readers, caches, catalogues, mirrors and acquisition routes paused. No retry or alternate retrieval.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "html_instead_of_pdf_availability_stop",
+      "material_gap": true
+    },
+    {
+      "aw_id": "hydro-system:80001778",
+      "publication": "Contemporary limnology of the rapidly changing glacierized watershed of the world’s largest High Arctic lake (2019), PMC6418217",
+      "official_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6418217/",
+      "observed_outcome": "The sole web-reader open returned a page headed Checking your browser - reCAPTCHA, with a browser-check message and redirect link. No article body or original figure pixels were read.",
+      "outcome_layer": "Web-reader response displaying an access challenge; origin HTTP status not exposed.",
+      "restriction_scope": "Whole article and equivalent publisher/repository copies, figures, PDF/HTML formats, original, reader, cache, catalogue, mirror and all acquisition routes stopped. No challenge solving, retry or alternate publisher/figure retrieval.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "browser_challenge",
+      "material_gap": true
+    },
+    {
+      "aw_id": "hydro-system:80001778",
+      "publication": "Parks Canada, Quttinirpaaq National Park of Canada: Management Plan, 2009; catalogue R63-341/2006E-PDF, ISBN 0-662-44206-7",
+      "official_url": "https://pcweb2.azureedge.net/-/media/pn-np/nu/quttinirpaaq/archive/pdf/Quttinirpaaq-Management-Plan---October-2009---English.pdf",
+      "observed_outcome": "The official HTML plan opened normally. Its linked original PDF was requested once in the web reader and returned Cache miss. No PDF body or original plan-map pixels were acquired.",
+      "outcome_layer": "Web-reader availability failure; origin HTTP status unobserved.",
+      "restriction_scope": "Missing PDF/maps and equivalent visual content, copies, formats, originals, reader, cache, screenshots and mirrors paused. No alternate acquisition followed.",
+      "earlier_lawful_prose_exception": "Previously actually read HTML front matter, bibliography, executive summary and regional setting establish the plan identity and the northern Ellesmere park’s glacier/ice-cap and polar-desert setting only. Unseen maps, text labels and search excerpts are not geographic correspondence.",
+      "limitation_kind": "cache_miss_availability_stop",
+      "material_gap": true,
+      "related_urls": [
+        "https://www.parks.canada.ca/pn-np/nu/quttinirpaaq/info/plan/gestion-management-2009"
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80001778",
+      "publication": "CanMatrix 1:250,000 Tanquary Fiord, NTS 340D; exact printed edition uninspected",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/340/d/canmatrix_340d_tif.zip",
+      "observed_outcome": "The 340D directory completed HTTP200 and supplied the archive link. Its sole original request began and yielded before the related CanMatrix037A same-publication refusal was received. No terminal status or HTTP outcome, partial file or original map content was inspected; no source content was used.",
+      "outcome_layer": "Unobserved terminal outcome after the related CanMatrix acquisition-scope stop; the actual tool refusal occurred for037A, not340D.",
+      "restriction_scope": "The current related CanMatrix acquisitions remain paused while the same-publication scope is unresolved. No340D terminal polling, original/partial-file reading, retry, equivalent route, substitute edition or120C acquisition followed. Different sheet numbers alone do not resolve the restriction.",
+      "earlier_lawful_prose_exception": "The earlier completed 340D directory listing supplies only file identity; no geographic map evidence. Independently acquired Parks Canada VIP2019 is not a CanMatrix archive copy.",
+      "limitation_kind": "publication_stop_with_unobserved_running_acquisition",
+      "material_gap": true,
+      "related_urls": [
+        "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/340/d/"
+      ]
+    }
+  ],
+  "additional_source_use_notices": []
+}

@@ -1,0 +1,832 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r158",
+  "sources": [
+    {
+      "title": "Lajedão – BA, Mapa Municipal, 2918902",
+      "author": "Instituto Brasileiro de Geografia e Estatística (IBGE)",
+      "edition": "04/2021; 2020 municipal-map collection",
+      "source_type": "Primary original municipal cartography",
+      "reading": "Original single-sheet PDF pixels inspected, including river-course regions and legend/notice. Not inferred from text labels or search snippets.",
+      "acquisition_outcome": "Original acquisition completed HTTP 200 application/pdf.",
+      "source_key": "BR158-LAJ",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/BA/lajedao/2918902_MM.pdf",
+      "use_notice": "Printed intended-use notice says the map was developed for IBGE statistical collection/tabulation, disclaims other uses, and reserves reproduction rights. Used only for bounded factual source correspondence; no original map, crop, overlay or derivative map is published. This is not a hydrological survey or formal-name registry."
+    },
+    {
+      "title": "Ibirapuã – BA, Mapa Municipal, 2912806",
+      "author": "Instituto Brasileiro de Geografia e Estatística (IBGE)",
+      "edition": "04/2021; 2020 municipal-map collection",
+      "source_type": "Primary original municipal cartography",
+      "reading": "Original single-sheet PDF pixels inspected, including river-course regions and legend/notice. Not inferred from text labels or search snippets.",
+      "acquisition_outcome": "Original acquisition completed HTTP 200 application/pdf.",
+      "source_key": "BR158-IBI",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/BA/ibirapua/2912806_MM.pdf",
+      "use_notice": "Printed intended-use notice says the map was developed for IBGE statistical collection/tabulation, disclaims other uses, and reserves reproduction rights. Used only for bounded factual source correspondence; no original map, crop, overlay or derivative map is published. This is not a hydrological survey or formal-name registry."
+    },
+    {
+      "title": "Caravelas – BA, Mapa Municipal, 2906907",
+      "author": "Instituto Brasileiro de Geografia e Estatística (IBGE)",
+      "edition": "04/2021; 2020 municipal-map collection",
+      "source_type": "Primary original municipal cartography",
+      "reading": "Original single-sheet PDF pixels inspected, including river-course regions and legend/notice. Not inferred from text labels or search snippets.",
+      "acquisition_outcome": "Original acquisition completed HTTP 200 application/pdf.",
+      "source_key": "BR158-CAR",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/BA/caravelas/2906907_MM.pdf",
+      "use_notice": "Printed intended-use notice says the map was developed for IBGE statistical collection/tabulation, disclaims other uses, and reserves reproduction rights. Used only for bounded factual source correspondence; no original map, crop, overlay or derivative map is published. This is not a hydrological survey or formal-name registry."
+    },
+    {
+      "title": "Plano de Manejo da Reserva Extrativista de Cassurubá: Diagnóstico – Volume I",
+      "author": "Instituto Chico Mendes de Conservação da Biodiversidade (ICMBio)",
+      "edition": "Caravelas, Bahia, 2018",
+      "source_type": "Primary management-plan cartography and bounded institutional prose",
+      "reading": "Original PDF; figure 33 on page 54 and figure 40 on page 83 visually read; sections on pages 14–15, 92, 186 and 328 read for regional, tidal, terminal and channel context. Figure 33 credits ICMBio 2016 and RapidEye imagery.",
+      "acquisition_outcome": "Original acquisition completed HTTP 200 application/pdf.",
+      "source_key": "BR158-CAS",
+      "official_url": "https://www.gov.br/icmbio/pt-br/assuntos/biodiversidade/unidade-de-conservacao/unidades-de-biomas/marinho/lista-de-ucs/resex-de-cassuruba/arquivos/plano_de_manejo_resex_de_cassuruba_diagnostico_vol1.pdf",
+      "use_notice": "Figure 33 includes RapidEye 2013 imagery and an all-rights-reserved notice. Original imagery/maps/crops are not redistributed; own factual observations and ordinary citations only."
+    },
+    {
+      "title": "A fauna de peixes na bacia do Rio Peruípe, extremo Sul da Bahia",
+      "author": "Luisa Maria Sarmento-Soares; Rosana Mazzoni; Ronaldo Fernando Martins-Pinheiro",
+      "edition": "Biota Neotropica 7(3), 2007",
+      "doi": "10.1590/S1676-06032007000300031",
+      "source_type": "Original field-study article, bounded prose only",
+      "reading": "Publisher-hosted HTML article body read; Material e Métodos, section 2, Bacia do Rio Peruípe, and adjacent landscape text. Its figure pixels were not acquired or used.",
+      "acquisition_outcome": "Web-reader open completed successfully and exposed article body.",
+      "bounded_support": "Reports do Meio/do Pato and Queijada as upstream tributary/former names, separates Peruípe Sul and Norte, places the Peruípe naming transition at their junction above Helvécia, and describes Caravelas as local lower-course usage. These are scoped descriptions, not proof of one hydronym for every selected reach.",
+      "source_key": "BR158-PEI",
+      "official_url": "https://www.scielo.br/j/bn/a/Pp6hwfr8LvBhwp3DJnqrsNv/?lang=pt"
+    },
+    {
+      "title": "Map & Code of Ethics / Carte et code d’éthique",
+      "publisher": "Restigouche River Watershed Management Council Inc. / Conseil de Gestion du Bassin-Versant de la Rivière Restigouche Inc.",
+      "year": 2013,
+      "bibliography": "Restigouche River Watershed Management Council Inc., Map & Code of Ethics / Carte et code d’éthique,2013,2-page bilingual leaflet; route map on PDF page2.",
+      "normal_urls": [
+        "https://www.restigouche.org/sites/default/files/Flyer%20Layout%202013.pdf",
+        "https://www.restigouche.org/Maps"
+      ],
+      "source_type": "primary_publisher_route_map",
+      "actual_read_scope": "PDF cover prose and full original map pixels on page2, acquired normally HTTP200. Map title, publisher identification and printed2013 footer were read. No precise survey endpoints inferred.",
+      "cartographic_correspondence": true,
+      "edition_basis": "The official Maps catalogue labels this item Flyer Layout2013.pdf, dated August13,2013. The acquired two-page leaflet has a bilingual Map & Code of Ethics cover and a2013 map footer. The small cartographer-name credit was not securely transcribed.",
+      "distinction_from_failed_fishing_map": "The same successful official catalogue independently lists Flyer Layout2013.pdf under August13,2013 and Fishing_Stretches_NB_sections_pêche.pdf under September6,2013, with separate exact links. The acquired flyer is an identified two-page public code-of-ethics leaflet with a camping/landing/warden/fishing-camp route map; it is not represented as a format or mirror of the unseen fishing-stretches map. This distinction relies on actual catalogue and original-cover/map content, not solely a filename difference.",
+      "use_notice": "The map is for general navigation use and carries an RRWMC consent requirement for reproduction. No present navigation advice or redistribution permission is inferred. Source PDF, map image and local working images remain private.",
+      "source_key": "r158-rrwmc-map-code-ethics-2013",
+      "official_url": "https://www.restigouche.org/sites/default/files/Flyer%20Layout%202013.pdf"
+    },
+    {
+      "title": "Bassin versant de la rivière Restigouche / Restigouche River Basin",
+      "publisher": "Prepared by NB Aquatic Data Warehouse; hosted by Restigouche River Watershed Management Council",
+      "year": 2006,
+      "edition": "January2006",
+      "bibliography": "NB Aquatic Data Warehouse, January2006. Bassin versant de la rivière Restigouche / Restigouche River Basin. One-page elevation and hydrography map, hosted as Carte_elevation_map.pdf.",
+      "normal_urls": [
+        "https://www.restigouche.org/sites/default/files/Carte_elevation_map.pdf",
+        "https://www.restigouche.org/Maps"
+      ],
+      "source_type": "primary_basin_elevation_cartography",
+      "actual_read_scope": "Before the later possible-equivalent JPEG cache failure, actual full-map pixels and a western/southern reading view had been inspected, including the printed source credits. Only those earlier observations are used. No new reading or acquisition after that failure.",
+      "cartographic_correspondence": true,
+      "data_credits": "Printed credits attribute elevation and place names to Natural Resources Canada, New Brunswick hydrography to Service New Brunswick, Quebec hydrography to Natural Resources Canada, and New Brunswick watershed boundary to NB Aquatic Data Warehouse. Underlying dataset independence from other sources is not claimed.",
+      "use_notice": "Source originals and working images remain private; official or institutional hosting is not redistribution permission.",
+      "current_access_state": "Further acquisition and new reading paused with the possibly equivalent Bassin_Versant_elevations.jpg publication.",
+      "source_key": "r158-rrwmc-basin-elevation-2006",
+      "official_url": "https://www.restigouche.org/sites/default/files/Carte_elevation_map.pdf"
+    },
+    {
+      "title": "Our Territory",
+      "publisher": "Restigouche River Watershed Management Council",
+      "normal_urls": [
+        "https://www.restigouche.org/node/29"
+      ],
+      "source_type": "primary_publisher_context_prose",
+      "actual_read_scope": "Successful web-reader original HTML, paragraph beginning The territory of the Restigouche River Watershed.",
+      "cartographic_correspondence": false,
+      "use_notice": "Only own short factual synthesis is retained. Unseen embedded images do not supply cartographic evidence.",
+      "source_key": "r158-rrwmc-our-territory",
+      "bounded_prose_observation": "The council lists Matapédia, Patapédia, Kedgwick, Little Main and Upsalquitch as tributary subwatersheds of the Restigouche basin, and notes tributaries entering its estuary from both provinces. This establishes regional context, not the missing selected-component correspondence.",
+      "official_url": "https://www.restigouche.org/node/29"
+    },
+    {
+      "title": "Maps",
+      "publisher": "Restigouche River Watershed Management Council",
+      "normal_urls": [
+        "https://www.restigouche.org/Maps"
+      ],
+      "source_type": "primary_publisher_catalogue",
+      "actual_read_scope": "The successful original catalogue lists the2013 flyer, the elevation map and fishing-stretches map as separate linked entries. Catalogue dates are not automatically original publication dates.",
+      "cartographic_correspondence": false,
+      "source_key": "r158-rrwmc-maps-catalogue",
+      "official_url": "https://www.restigouche.org/Maps"
+    },
+    {
+      "title": "Geology of the northern margin of the Trans-Hudson Orogen (Foxe Fold Belt), central Baffin Island, Nunavut",
+      "authors": "D. Corrigan, D.J. Scott and M.R. St-Onge",
+      "publisher": "Geological Survey of Canada",
+      "year": 2001,
+      "series": "Current Research 2001-C23",
+      "bibliography": "Corrigan, D., Scott, D.J., and St-Onge, M.R., 2001. Geology of the northern margin of the Trans-Hudson Orogen (Foxe Fold Belt), central Baffin Island, Nunavut. Geological Survey of Canada, Current Research 2001-C23. Bibliographic identity from official discovery results; printed body uninspected.",
+      "normal_urls": [
+        "https://publications.gc.ca/Collection/M44-2001-C23E.pdf"
+      ],
+      "source_type": "unacquired_primary_field_research_report",
+      "actual_read_scope": "Bibliographic discovery metadata only. The sole normal acquisition returned archived-information HTML rather than the PDF. No report prose or figure is substantive evidence.",
+      "cartographic_correspondence": false,
+      "use_notice": "Official discovery distinguishes the freely available low-resolution Collection edition from high-resolution depository access. No restricted depository edition was requested; original publication notices were not inspected.",
+      "source_key": "r158-corrigan2001-c23-unavailable",
+      "official_url": "https://publications.gc.ca/Collection/M44-2001-C23E.pdf"
+    },
+    {
+      "title": "Satellite Image Atlas of Glaciers of the World—North America; Glaciers of Baffin Island section",
+      "editors": "Richard S. Williams, Jr., and Jane G. Ferrigno",
+      "publisher": "U.S. Geological Survey",
+      "year": 2002,
+      "series": "Professional Paper 1386-J",
+      "edition": "Version 1.0",
+      "bibliography": "Williams, R.S., Jr., and Ferrigno, J.G., editors, 2002. Satellite Image Atlas of Glaciers of the World—North America. U.S. Geological Survey Professional Paper 1386-J, Glaciers of Baffin Island section. Section authors and printed content uninspected.",
+      "normal_urls": [
+        "https://pubs.usgs.gov/pp/p1386j/baffinisland/baffin-lores.pdf",
+        "https://pubs.usgs.gov/pp/p1386j/"
+      ],
+      "source_type": "unacquired_primary_satellite_atlas_section",
+      "actual_read_scope": "Official bibliographic discovery metadata only. The original request returned 403. No prose or maps used; search-result image descriptions are not visual observations.",
+      "cartographic_correspondence": false,
+      "source_key": "r158-usgs1386j-baffin-unavailable",
+      "official_url": "https://pubs.usgs.gov/pp/p1386j/baffinisland/baffin-lores.pdf"
+    },
+    {
+      "title": "Surficial materials, central Baffin Island, Nunavut",
+      "authors": "L.A. Dredge",
+      "publisher": "Geological Survey of Canada, Natural Resources Canada",
+      "year": 2002,
+      "series": "Current Research 2002-C20",
+      "bibliography": "Dredge, L.A., 2002. Surficial materials, central Baffin Island, Nunavut. Geological Survey of Canada, Current Research 2002-C20, 6 printed pages. Retained earlier lawful prose observations only.",
+      "normal_urls": [
+        "https://publications.gc.ca/collections/collection_2013/rncan-nrcan/M44-2002-C20-eng.pdf"
+      ],
+      "source_type": "retained_primary_field_report_prose_only",
+      "actual_read_scope": "Only earlier actually read report-prose observations retained in the preceding finding. No new source acquisition, reader request, screenshot, figure or map reading.",
+      "cartographic_correspondence": false,
+      "use_notice": "Copyright 2002, Her Majesty the Queen in Right of Canada. The retained notice requests permission for reproduction for commercial use, resale or redistribution. Originals and derivatives remain private.",
+      "source_key": "r158-dredge2002-c20-retained-prose",
+      "bounded_prose_observation": [
+        {
+          "source_key": "r158-dredge2002-c20-retained-prose",
+          "evidence_type": "retained_earlier_lawful_primary_prose_only",
+          "observation": "The earlier report reading describes regional outwash in Drewry and MacDonald river valleys and around Gillian, Flint and Flyway lakes, including meltwater floodplains. It does not identify this selected corridor, establish any selected lake or ice connector, or locate the actual terminal.",
+          "source_location": "Earlier actually read abstract and printed pages 2, 4–5; figures remain unobserved."
+        }
+      ],
+      "official_url": "https://publications.gc.ca/collections/collection_2013/rncan-nrcan/M44-2002-C20-eng.pdf"
+    },
+    {
+      "title": "Mapa Vial de la Provincia de Lambayeque",
+      "publisher": "Ministerio de Transportes y Comunicaciones, Dirección General de Caminos y Ferrocarriles, Dirección de Caminos, E.T. Mapas Viales",
+      "edition": "Abril de 2017; SINAC, Clasificador de Rutas D.S. N° 011-2016-MTC",
+      "sheet_code": "LA-03",
+      "scale": "1:435,000",
+      "primary_original": true,
+      "original_map_read": true,
+      "pages_read": "Retained original single-sheet legend/title and new bounded reading of the Jaguay–Ñaupe opening, La Victoria–Escute/Hualtacal connector, receiving valley, Cascajal branches, lower desert and actual coast setting.",
+      "acquisition_outcome": "Reused the retained original acquired successfully in r152 before the later MTC stops. No new MTC network acquisition.",
+      "map_evidence": "Northern dashed drainage; receiving San Cristóbal-labelled corridor and named Río Cascajal west past Ancol, Ficuar, Alto de Roque and Las Pozas; southern Quebrada la Tranca turn is distinguished from the selected northern continuation.",
+      "limits": "Generalized road-map hydrography does not continuously depict the selected La Victoria–Escute/Hualtacal connection, the western desert connector or the selected sea outlet. The provincial original is retained prior lawful material, not a reacquisition or substituted route around the stopped Mapas Viales catalogue/Ayacucho publication. No new independent MTC sheet was requested. Originals and working figures remain private.",
+      "source_key": "r152-mtc-lambayeque-2017",
+      "official_url": "https://portal.mtc.gob.pe/transportes/caminos/normas_carreteras/Mapas%20Provinciales/Lambayeque/LA-03%20Lambayeque.pdf"
+    },
+    {
+      "title": "Mapa Vial de la Provincia de Sechura",
+      "publisher": "Ministerio de Transportes y Comunicaciones, Dirección General de Caminos y Ferrocarriles, Dirección de Caminos, E.T. Mapas Viales",
+      "edition": "Abril de 2017; SINAC, Clasificador de Rutas D.S. N° 011-2016-MTC",
+      "sheet_code": "PI-08",
+      "scale": "1:325,000",
+      "primary_original": true,
+      "original_map_read": true,
+      "pages_read": "Retained original title/legend and new enlarged reading of the lower El Cruce setting, Laguna La Niña passage and actual selected southwest coastal terminal.",
+      "acquisition_outcome": "Reused the retained original acquired successfully in r152 before the later MTC stops. No new MTC network acquisition.",
+      "map_evidence": "Broad La Niña waterbody/depression, desert roads and Pacific coast; no depicted river channel connects all selected lower parts or the final shore crossing.",
+      "limits": "Same cartographic family as Lambayeque, not a second independent hydrological investigation. The retained original is not a new acquisition of the stopped catalogue or Ayacucho map. Waterbody extent alone does not establish the modeled internal passage or a flowing coastal outlet. Originals and working figures remain private.",
+      "source_key": "r152-mtc-sechura-2017",
+      "official_url": "https://portal.mtc.gob.pe/transportes/caminos/normas_carreteras/Mapas%20Provinciales/Piura/PI-08%20Sechura.pdf"
+    },
+    {
+      "title": "Plan de Ordenamiento Territorial del Distrito de Olmos, Volumen III: Mapa Base Región Lambayeque (RG-01), Mapa Base Distrito de Olmos (DO-01), and Mapa Hidrográfico Distrito de Olmos (DO-04)",
+      "publisher": "Municipalidad Distrital de Olmos / Proyecto Especial Olmos Tinajones (PEOT), Gobierno Regional de Lambayeque",
+      "edition": "Setiembre 2010",
+      "scale": "RG-01 1:350,000; DO-01 and DO-04 1:200,000",
+      "primary_original": true,
+      "original_map_read": true,
+      "pages_read": "Retained original PDF pp. 2, 13 and 16; newly read district-map title/legend, northern Q. del Jaguay–Ñaupe sequence, Insculas receiving corridor, Cascajal junction and western branch setting.",
+      "acquisition_outcome": "Reused the retained completed HTTP 200 original from r143; no new network acquisition.",
+      "map_evidence": "The district originals distinguish Q. del Jaguay from Q. de vacas, the selected Ñaupe approach from the eastern San Cristóbal tributary, the receiving Insculas reach from the eastern Cascajal branch, and the westward Cascajal trunk from its southern La Tranca continuation.",
+      "limits": "Selected Ñaupe connection through the El Progreso I–Escute/Hualtacal setting is not continuously mapped. Western Piura desert and coastal terminal are outside effective district hydrographic coverage. This independent municipal/PEOT planning publication is not a copy of the stopped ANA Chancay plan/service. Originals and crops remain private.",
+      "source_key": "r143-peot-olmos-base-2010",
+      "official_url": "https://www.muniolmos.gob.pe/files/recursos_infor/POT_OLMOS_VOLUMEN_III.pdf"
+    },
+    {
+      "title": "Evaluación de zonas críticas por peligros geológicos ante el Fenómeno El Niño 2023-2024 en el departamento de Lambayeque",
+      "publisher": "Instituto Geológico, Minero y Metalúrgico (INGEMMET), Dirección de Geología Ambiental y Riesgo Geológico",
+      "authors": [
+        "Elvis Rubén Alcántara Quispe",
+        "Luis Miguel León Ordáz"
+      ],
+      "edition": "Informe Técnico N° A7456, Diciembre 2023; Annex Mapa 1 digital version Diciembre 2023",
+      "primary_original": true,
+      "original_map_read": true,
+      "prose_read": true,
+      "pages_read": "Cover and imprint; printed pp. 12, 14 and 37; photograph 1, Figure 14 and Annex Mapa 1 on printed p. 197 (PDF p. 198), including northern map enlargement.",
+      "acquisition_outcome": "Sole direct original acquisition completed HTTP 200, application/pdf.",
+      "map_evidence": "Own field photograph 1 identifies the Insculas–Naupe confluence at Hualtacal Santa Rosa. Figure 14 is an INGEMMET presentation of Landsat 8 imagery of La Niña on 28 March 2017, showing the flood-filled depression and intervening coastal barrier. The annex map shows generalized regional drainage but does not resolve all selected desert/lake connectors.",
+      "bounded_prose_observation": "Section 4.3.5 describes the La Niña setting as depressed relief that fills during intense rain. Section 1.4.5 distinguishes different regional river outcomes; it does not assign every river a permanent sea outlet.",
+      "limits": "Figure 5, credited to ANA, was not used as independent cartographic correspondence evidence. The independently dated field report, photograph and Landsat-based Figure 14 are distinct from the stopped ANA 2013 Chancay plan/service and INGEMMET Santa Ana L67. Annex regional scale is 1:500,000 and cannot establish the missing connector. No restrictive reading notice was observed in inspected pages; redistribution permission is not inferred.",
+      "source_key": "r158-ingemmet-a7456-2023",
+      "official_url": "https://sigrid.cenepred.gob.pe/sigridv3/storage/biblioteca/16825_informe-tecnico-n0-a7456-evaluacion-de-zonas-criticas-por-peligros-geologicos-ante-el-fenomeno-el-nino-2023-2024-en-el-departamento-de-lambayeque.pdf"
+    },
+    {
+      "title": "El reino del desierto y los humedales: Biodiversidad y conservación en Sechura, Piura",
+      "publisher": "Ministerio del Ambiente, Dirección General de Diversidad Biológica, Dirección de Conservación de Ecosistemas y Especies; content and technical assistance with Programa de las Naciones Unidas para el Desarrollo (PNUD)",
+      "authors": [
+        "Mónica Alzamora",
+        "Alexander More",
+        "Frank Suarez"
+      ],
+      "edition": "Primera edición, octubre de 2021; Depósito Legal N° 2021-11636; 200 pages",
+      "primary_original": true,
+      "original_map_read": true,
+      "prose_read": true,
+      "pages_read": "Cover and copyright/imprint (PDF p. 4); printed pp. 29 and 31 (PDF pp. 25 and 27), including Map 3.",
+      "acquisition_outcome": "Sole direct original acquisition completed HTTP 200, application/pdf.",
+      "map_evidence": "Map 3 is a small comparative imagery panel for 1984, 1998, 2002 and 2017, explicitly adapted from Google Earth and Lucio Villa 2017. It shows seasonal expansion of the Salinas/La Niña wetland setting, not a mapped continuous selected river or exact outlet. It is contextual adapted imagery, not independent original hydrological linework.",
+      "bounded_prose_observation": "Printed p. 29 says Cascajal ordinary-year flow reaches the Sechura desert near the Piura–Lambayeque limit and infiltrates/evaporates. Printed p. 31 explains exceptional ENSO expansion and linkage of regional wetlands. These statements are not substituted for the unobserved selected desert connection or sea terminal.",
+      "limits": "All authorship/editing rights are reserved; partial or total reproduction requires permission of authors and editors. This is a reproduction-use notice, not a factual-reading prohibition. No original, crop or adapted map is distributed.",
+      "source_key": "r158-minam-desierto-2021",
+      "official_url": "https://cdn.www.gob.pe/uploads/document/file/2363169/Publicaci%C3%B3n%20.pdf"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:61253589",
+      "source_keys": [
+        "BR158-LAJ",
+        "BR158-IBI",
+        "BR158-CAR",
+        "BR158-CAS",
+        "BR158-PEI"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13909
+          ],
+          "component_scope": "Western opening and Queijada connection",
+          "finding": "The western opening lies in the Próximo Itupeva setting of Lajedão. The original draws its small feeder into the east-going Córrego das Vacas corridor and onward into the mapped Queijada course. The latter bends through the Alto da Colina/Kaylua setting to the Rio do Meio corridor. The whole opening and connector are visible at ordinary corridor scale; the short initial feeder itself is not assigned a name.",
+          "sources": [
+            "BR158-LAJ"
+          ],
+          "correspondence": "Positive original-map correspondence at ordinary component/corridor scale; tidal channel correspondence does not imply uniform flow or naming.",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13909
+          ],
+          "component_scope": "Rio do Meio and Ibirapuã/Pato corridor",
+          "finding": "The mapped watercourse continues southeast past Vila Betinho and receives Córrego Jequitibá before the Ibirapuã area. The connected route then passes the Ibirapuã/Pato setting and continues southeast and east toward the lower Rio do Pato. The city-side Ribeirão do Pato labeling and downstream Rio do Pato labeling are retained as local map observations; neither is imposed on the initial feeder.",
+          "sources": [
+            "BR158-LAJ",
+            "BR158-IBI",
+            "BR158-CAR"
+          ],
+          "correspondence": "Positive original-map correspondence at ordinary component/corridor scale; tidal channel correspondence does not imply uniform flow or naming.",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13909
+          ],
+          "component_scope": "Peruípe Sul and Norte junctions",
+          "finding": "The selected Pato corridor joins the Peruípe do Sul system, then reaches the mapped confluence with Rio Peruípe Norte upstream from Helvécia. The separate northern arm is mapped through the Córrego do Vinho setting. The selected continuation is the downstream Peruípe corridor through Helvécia; the branch names remain distinct.",
+          "sources": [
+            "BR158-IBI",
+            "BR158-CAR",
+            "BR158-PEI"
+          ],
+          "correspondence": "Positive original-map correspondence at ordinary component/corridor scale; tidal channel correspondence does not imply uniform flow or naming.",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13909
+          ],
+          "component_scope": "Lower inland corridor and northward estuarine connection",
+          "finding": "The original follows the watercourse east through the Helvécia and São José do Peruípe area into the lowland bend by Juerana, Santa Luzia and Dendê. The selected northward continuation is geographically represented by the connected Rio Peixoto/estuarine channel corridor along the western edge of the Cassurubá mangroves, which reaches the Caravelas channel network near Ilha Coqueiro. The original also separately depicts the Peruípe route toward Nova Viçosa. This is geographic channel correspondence, not an assertion of uniform downstream flow in the tidal connections.",
+          "sources": [
+            "BR158-CAR"
+          ],
+          "correspondence": "Positive original-map correspondence at ordinary component/corridor scale; tidal channel correspondence does not imply uniform flow or naming.",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13909
+          ],
+          "component_scope": "Estuarine branches and actual sea terminal",
+          "finding": "The terminal setting is the Caravelas–Nova Viçosa tidal estuarine complex, including channels around Cassurubá and Coqueiro and the Rio do Macaco junction by Caravelas. The ICMBio original depicts the northern estuary and ocean connection, and its bounded annex prose expressly locates the Caravelas–Atlantic outlet at Canal do Tomba. The terminal is therefore treated as an Atlantic estuary outlet at ordinary geographic scale. The displayed model sea-extension is not treated as an independently sourced natural river course.",
+          "sources": [
+            "BR158-CAR",
+            "BR158-CAS"
+          ],
+          "correspondence": "Positive original-map correspondence at ordinary component/corridor scale; tidal channel correspondence does not imply uniform flow or naming.",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13909
+          ],
+          "component_scope": "Lakes and reservoirs",
+          "finding": "The sheets depict small ponds, lagoons and wet lowlands beside the corridor, including separate water bodies near the lower junction region. No lake or reservoir passage is depicted on the selected through-going corridor. This is bounded original-map evidence, not a basin-wide inventory or a claim that every impoundment is absent.",
+          "sources": [
+            "BR158-LAJ",
+            "BR158-IBI",
+            "BR158-CAR"
+          ],
+          "correspondence": "Positive original-map correspondence at ordinary component/corridor scale; tidal channel correspondence does not imply uniform flow or naming.",
+          "component_correspondence_completed": true
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70324446",
+      "source_keys": [
+        "r158-rrwmc-map-code-ethics-2013",
+        "r158-rrwmc-basin-elevation-2006",
+        "r158-rrwmc-our-territory",
+        "r158-rrwmc-maps-catalogue"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9440
+          ],
+          "component_scope": "Western opening, southeast headward descent and southern turn into the northeastward upper corridor",
+          "finding": "All selected headward line parts were read for orientation. The earlier basin-elevation pixels show a western upland network and connected valleys west of Saint-Quentin, but do not securely isolate this complete selected opening and southern turn. The2013 route-map extent omits that region.",
+          "sources": [
+            "r158-rrwmc-basin-elevation-2006"
+          ],
+          "correspondence": "material_headward_correspondence_gap",
+          "regional_connector_candidate": null,
+          "mapped_component_name": null,
+          "component_correspondence_completed": false,
+          "limits": null
+        },
+        {
+          "fragments": [
+            9440
+          ],
+          "component_scope": "Lower Little Main approach and Kedgwick junction, followed by the middle Restigouche to the eastern bend",
+          "finding": "The original route map labels Little Main Restigouche on the southern, upstream approach to the Kedgwick junction, separately labels the Kedgwick tributary and shows their junction at the Montgomery Bridge setting. Downstream Restigouche winds north past the mapped Larry’s Gulch, Red Bank and Whites Brook Island settings, receives the Patapédia from the northwest and turns east. The selected downstream portion of9440 corresponds at ordinary corridor scale.",
+          "sources": [
+            "r158-rrwmc-map-code-ethics-2013"
+          ],
+          "correspondence": "supported_downstream_portion_only",
+          "regional_connector_candidate": null,
+          "mapped_component_name": "Little Main Restigouche River / Restigouche River",
+          "component_correspondence_completed": false,
+          "limits": "The Little Main label is not projected backward over the unresolved western opening; Restigouche is not assigned as the uniform name of the entire9440 component."
+        },
+        {
+          "fragments": [
+            9441
+          ],
+          "component_scope": "Eastward lower Restigouche, Upsalquitch junction and northward return toward Matapédia",
+          "finding": "The selected corridor follows the mapped eastward Restigouche past the named camp/landing sequence, the broad southern bend at the Upsalquitch junction near Rafting Ground, and the northward return toward Matapédia. The Upsalquitch is a separate incoming river.",
+          "sources": [
+            "r158-rrwmc-map-code-ethics-2013"
+          ],
+          "correspondence": "supported_generalized_component",
+          "regional_connector_candidate": null,
+          "mapped_component_name": "Restigouche River",
+          "component_correspondence_completed": true,
+          "limits": null
+        },
+        {
+          "fragments": [
+            9442
+          ],
+          "component_scope": "Post-Matapédia eastern reach and actual selected terminal near Tide Head",
+          "finding": "The map continues the Restigouche east from Matapédia into the widening channel near Tide Head, with Campbellton farther downstream. That channel is the selected terminal setting; the model sea tag does not establish the river’s final open-sea mouth.",
+          "sources": [
+            "r158-rrwmc-map-code-ethics-2013"
+          ],
+          "correspondence": "supported_generalized_component_and_terminal_setting",
+          "regional_connector_candidate": null,
+          "mapped_component_name": "Restigouche River",
+          "component_correspondence_completed": true,
+          "limits": null
+        },
+        {
+          "fragments": [
+            9443
+          ],
+          "component_scope": "Selected northern tributary from the upper off-map opening to the Matapédia junction",
+          "finding": "The selected branch enters the main corridor at the Matapédia setting. Earlier basin pixels show the northern valley approaching that locality, and publisher prose identifies Matapédia among the basin tributaries. However, the full selected upper branch lies beyond the detailed2013 map and was not securely distinguished in the earlier overview. Its whole-component correspondence and name remain unestablished.",
+          "sources": [
+            "r158-rrwmc-basin-elevation-2006",
+            "r158-rrwmc-map-code-ethics-2013",
+            "r158-rrwmc-our-territory"
+          ],
+          "correspondence": "material_full_tributary_correspondence_gap",
+          "regional_connector_candidate": "Matapédia River",
+          "mapped_component_name": null,
+          "component_correspondence_completed": false,
+          "limits": null
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80051383",
+      "source_keys": [
+        "r158-dredge2002-c20-retained-prose"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2494
+          ],
+          "component_scope": "Eastern opening and initial westward reach",
+          "finding": "The selected model begins in the east, runs generally west with a short northward excursion, then bends south. Its actual source waterbody or terrain, natural channel, lake and ice associations are unestablished.",
+          "sources": [],
+          "correspondence": "material_original_map_gap",
+          "mapped_component_name": null,
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2494
+          ],
+          "component_scope": "Southward deflection and upper southwestward course",
+          "finding": "The model turns distinctly south, then resumes a broadly west-southwest course. No allowed original map establishes this transfer, any material tributary junction or a through-lake connection.",
+          "sources": [],
+          "correspondence": "material_original_map_gap",
+          "mapped_component_name": null,
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2494
+          ],
+          "component_scope": "Long middle west-southwest corridor",
+          "finding": "The model continues west and then southwest across the middle corridor. Actual channel continuity, significant branches and lake passages remain without primary-map correspondence.",
+          "sources": [],
+          "correspondence": "material_original_map_gap",
+          "mapped_component_name": null,
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2494
+          ],
+          "component_scope": "Lower westward corridor with a shallow northward return",
+          "finding": "The model bends generally west with a shallow northward return before resuming westward progress. No selected lower-course hydronym, lake connector or natural-river course is established from primary original cartography.",
+          "sources": [],
+          "correspondence": "material_original_map_gap",
+          "mapped_component_name": null,
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2494
+          ],
+          "component_scope": "Southward terminal approach and actual receiving water",
+          "finding": "The model turns south toward its retained sea-classified ending. The actual receiving waterbody and the connection from the lower course to that terminal are not established; the stored sea class is model metadata only.",
+          "sources": [],
+          "correspondence": "material_original_map_gap",
+          "mapped_component_name": null,
+          "component_correspondence_completed": false
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60804761",
+      "source_keys": [
+        "r152-mtc-lambayeque-2017",
+        "r152-mtc-sechura-2017",
+        "r143-peot-olmos-base-2010",
+        "r158-ingemmet-a7456-2023",
+        "r158-minam-desierto-2021"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13808
+          ],
+          "component_scope": "Northern Q. del Jaguay headward course into the upper Ñaupe setting",
+          "finding": "The PEOT original maps the selected northern approach along Q. del Jaguay, distinguishes the eastern Q. de vacas tributary and carries the drainage south toward Ñaupe. The selected opening is only a bounded part of this mapped drainage; it is not asserted to be the river source. MTC independently shows the corresponding dashed northern channel. No exact formal naming-transition point is claimed.",
+          "sources": [
+            "r143-peot-olmos-base-2010",
+            "r152-mtc-lambayeque-2017"
+          ],
+          "correspondence": "mapped_corridor_supported",
+          "mapped_component_name": "Q. del Jaguay",
+          "material_gap": null,
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13808
+          ],
+          "component_scope": "Ñaupe and Capilla de Naupe past El Progreso/El Badén, Querpón and La Victoria/Porvenir",
+          "finding": "The district original labels the selected northern river Ñaupe and maps its successive relationship with the highway, eastern tributary mouths and westward meanders by Querpón and La Victoria. The eastern San Cristóbal course approaching Insculas is a separate feeder, not the selected opening. Tributary labels are not transferred to the full object.",
+          "sources": [
+            "r143-peot-olmos-base-2010",
+            "r152-mtc-lambayeque-2017"
+          ],
+          "correspondence": "mapped_corridor_supported",
+          "mapped_component_name": "Río Ñaupe",
+          "material_gap": null,
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13808
+          ],
+          "component_scope": "Selected southern continuation from La Victoria/El Progreso I through the Escute setting to Hualtacal",
+          "finding": "The selected route continues south on the western side of the eastern Insculas/San Cristóbal course and turns toward Hualtacal. PEOT and MTC show portions of this northern drainage but do not depict a continuous connector through the intervening El Progreso I–Escute setting. INGEMMET photograph 1 independently identifies the Insculas–Naupe confluence at Hualtacal Santa Rosa. This supports the tributary relationship without establishing all of the selected connecting corridor.",
+          "sources": [
+            "r143-peot-olmos-base-2010",
+            "r152-mtc-lambayeque-2017",
+            "r158-ingemmet-a7456-2023"
+          ],
+          "correspondence": "source_material_pending",
+          "mapped_component_name": null,
+          "material_gap": "Continuous primary-map coverage of the selected La Victoria/El Progreso I–Escute/Hualtacal connector remains incomplete; the confluence photograph alone does not close the intervening route.",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            13808
+          ],
+          "component_scope": "Receiving Hualtacal–La Calera Santa Rosa–Oberasal/Pasaje Norte corridor",
+          "finding": "South of the Hualtacal junction, PEOT traces the selected receiving course through La Calera Santa Rosa toward Oberasal and prints Insculas on this receiving reach. MTC traces the same corridor and prints Río San Cristóbal. These are recorded as source-specific reach labels, without asserting a uniform registered equivalence or moving an official name boundary. Nearby Laguna Larga is a settlement label here and does not establish a selected lake passage.",
+          "sources": [
+            "r143-peot-olmos-base-2010",
+            "r152-mtc-lambayeque-2017",
+            "r158-ingemmet-a7456-2023"
+          ],
+          "correspondence": "mapped_corridor_supported",
+          "mapped_component_name": "Insculas; San Cristóbal (source-dependent mapped reach labels)",
+          "material_gap": null,
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13808
+          ],
+          "component_scope": "Pasaje Norte/Pasaje Sur junction with the eastern Cascajal approach and the westward Ancol–Ficuar reach",
+          "finding": "The originals distinguish the northern selected approach from the eastern Cascajal course through the Cruz del Puente/Laucha Chica setting. After their junction, the selected course follows the westward trunk through Pasaje Sur, Ancol Chico/Grande and Ficuar. MTC labels Río Cascajal; PEOT labels Cascajal and Q. Cascajal on parts of the westward course. The name is not extended up every selected feeder.",
+          "sources": [
+            "r143-peot-olmos-base-2010",
+            "r152-mtc-lambayeque-2017"
+          ],
+          "correspondence": "mapped_corridor_supported",
+          "mapped_component_name": "Río Cascajal",
+          "material_gap": null,
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13808
+          ],
+          "component_scope": "Cerro de Arena–Alto de Roque–Las Pozas and the selected northern continuation toward Sombrero Verde",
+          "finding": "Cascajal is supported west past Cerro de Arena and Alto de Roque to Las Pozas. Near the western split, the clearly drawn receiving channel turns south by La Tranca/Los Positos and then west as Quebrada la Tranca toward Minchales. The selected route instead continues farther north toward the Sombrero Verde setting before crossing PE-04A west of Minchales. Some northern dashed drainage is shown, but no continuous original hydrographic line establishes that selected continuation. The southern La Tranca name is not copied onto it.",
+          "sources": [
+            "r143-peot-olmos-base-2010",
+            "r152-mtc-lambayeque-2017"
+          ],
+          "correspondence": "partially_mapped_connector_pending",
+          "mapped_component_name": "Río Cascajal (mapped eastern portion only)",
+          "material_gap": "The selected northern branch/continuation beyond the Las Pozas vicinity and its westward PE-04A connector are not continuously established; the mapped southern La Tranca route is not substituted.",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            13808
+          ],
+          "component_scope": "Southwest desert continuation beyond PE-04A toward the PE-1N/El Cruce and La Niña entry setting",
+          "finding": "The MTC adjoining originals show the road sequence, desert and northern lagoon/depression margins, but no continuous hydrographic course follows the selected southwest connector. MINAM prose says ordinary Cascajal flow infiltrates/evaporates in the desert and does not establish this chosen continuation. No irrigation canal or reservoir is inferred from the model line.",
+          "sources": [
+            "r152-mtc-lambayeque-2017",
+            "r152-mtc-sechura-2017",
+            "r158-minam-desierto-2021"
+          ],
+          "correspondence": "source_material_pending",
+          "mapped_component_name": null,
+          "material_gap": "Continuous selected desert-to-depression hydrographic correspondence is missing.",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            13808
+          ],
+          "component_scope": "Selected southward transit within the Laguna La Niña depression and turn toward its coastal margin",
+          "finding": "The Sechura original explicitly labels Laguna La Niña over the broad waterbody crossed by the selected lower route. INGEMMET Figure 14 shows a flood-filled coastal depression in March 2017; MINAM Map 3 shows strongly variable historical extents. These sources establish the waterbody setting, but not all modeled internal passages as one river or the Cascajal name across the lagoon. No lake boundary or shoreline is matched vertex by vertex.",
+          "sources": [
+            "r152-mtc-sechura-2017",
+            "r152-mtc-lambayeque-2017",
+            "r158-ingemmet-a7456-2023",
+            "r158-minam-desierto-2021"
+          ],
+          "correspondence": "source_material_pending",
+          "mapped_component_name": null,
+          "material_gap": "Broad and event-dependent wetland coverage does not establish the selected internal transfer and exit connections.",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            13808
+          ],
+          "component_scope": "Actual selected southwest coastal termination",
+          "finding": "Both retained MTC originals place the final selected segment at the La Niña coastal-margin setting, but neither depicts a river or lagoon outlet crossing the coast there. The inspected INGEMMET flood image also does not resolve an outlet at the selected termination. Retained model terminal class sea is not independent proof. This does not assert that transient overflow can never occur.",
+          "sources": [
+            "r152-mtc-lambayeque-2017",
+            "r152-mtc-sechura-2017",
+            "r158-ingemmet-a7456-2023"
+          ],
+          "correspondence": "source_material_pending",
+          "mapped_component_name": null,
+          "material_gap": "The selected actual connection to the Pacific remains unestablished at ordinary corridor scale.",
+          "component_correspondence_completed": false
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "aw_id": "hydro-system:70324446",
+      "publication": "Government of New Brunswick, Candidate Conserved Area: Wilderness Corridors of the Restigouche, 1:350,000",
+      "official_url": "https://www2.gnb.ca/content/dam/gnb/Departments/nr-rn/promos/pathway/restigouche-e.pdf",
+      "observed_outcome": "The web-reader request completed an explicit size limitation: (400) Content length is too large+. The sole sequential normal request to that exact original completed HTTPError403 Forbidden. No original map pixels were acquired.",
+      "outcome_layer": "First a completed web-reader size limit, not an origin denial; subsequently a completed original HTTP-client403.",
+      "restriction_scope": "Entire publication and equivalent maps, copies, formats, catalogue, original, reader/cache, mirror and acquisition routes stopped. No retry or alternative recovery.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "http403_after_explicit_reader_size_limit",
+      "material_gap": true,
+      "material_effect": "This potential provincial source cannot close the selected headward gap. Search-discovery snippets are not map evidence."
+    },
+    {
+      "aw_id": "hydro-system:70324446",
+      "publication": "Juvenile Atlantic salmon (Salmo salar) monitoring activities in the Restigouche River (southern Gulf of St. Lawrence, Canada) 1972 to 2019",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/40931493.pdf",
+      "observed_outcome": "The sole web-reader open completed with Failed to fetch: (400) OK. No original body or map pixels were acquired.",
+      "outcome_layer": "Web-reader fetch response; independent origin HTTP status and the cause are unestablished.",
+      "restriction_scope": "Whole report and equivalent figures, maps, copies, formats, catalogue, original, reader/cache, mirror and all acquisition routes paused. No fallback or retry.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "unresolved_reader_availability_stop",
+      "material_gap": true,
+      "material_effect": "Unseen watershed and Little Main figures cannot fill the actual source-correspondence gaps. Search snippets are excluded."
+    },
+    {
+      "aw_id": "hydro-system:70324446",
+      "publication": "Government of New Brunswick, Restigouche Area Crown Reserves / Eaux de la Couronne region de la Restigouche",
+      "official_url": "https://www2.gnb.ca/content/dam/gnb/Departments/nr-rn/pdf/CrownFishing-CouronnePeche/Map-Routes/restigouche-area-crown-reserve.pdf",
+      "observed_outcome": "Web PDF open succeeded as a one-page PDF. Two sequential screenshot calls returned citation references but no actual image pixels were exposed in the tool result. The sole subsequent normal original-file acquisition completed HTTPError403 Forbidden. No map observations are asserted.",
+      "outcome_layer": "Completed original HTTP-client403 after successful web PDF metadata and screenshot-reference results; no HTTP failure is invented for the earlier screenshot calls.",
+      "restriction_scope": "Entire publication and equivalent maps, copies, formats, catalogue, original, reader/cache, screenshot, mirror and all acquisition routes stopped. No retry.",
+      "earlier_lawful_prose_exception": "Only one-page PDF metadata; no substantive source-map reading.",
+      "limitation_kind": "http403_publication_stop",
+      "material_gap": true,
+      "material_effect": "No allowed pixels from this provincial map close the headward or northern-branch gap."
+    },
+    {
+      "aw_id": "hydro-system:70324446",
+      "publication": "Restigouche River Watershed Management Council, Fishing_Stretches_NB_sections_pêche.pdf, linked on the Maps page September 6, 2013; printed title and edition uninspected",
+      "official_url": "https://www.restigouche.org/sites/default/files/Fishing_Stretches_NB_sections_p%C3%AAche.pdf",
+      "observed_outcome": "The sole official-catalogue link request returned Failed to fetch: Cache miss. No original map body or pixels were acquired.",
+      "outcome_layer": "Web-reader cache/fetch availability response; independent origin HTTP status unobserved.",
+      "restriction_scope": "This entire fishing-stretches publication, equivalent maps, copies, formats, catalogue, original, reader/cache, screenshot, mirror and all acquisition routes paused. No fallback or retry.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "cache_miss_availability_stop",
+      "material_gap": true,
+      "material_effect": "Unseen fishing-stretches mapping provides no geographic evidence. The separately issued Map & Code of Ethics is identified independently below."
+    },
+    {
+      "aw_id": "hydro-system:70324446",
+      "publication": "Restigouche River Watershed Management Council, Our Territory linked image Bassin_Versant_elevations.jpg; exact printed image identity uninspected",
+      "official_url": "https://www.restigouche.org/sites/default/files/Bassin_Versant_elevations.jpg",
+      "observed_outcome": "The sole linked-image request completed Failed to fetch: Cache miss. No JPEG body or pixels were acquired. It may be equivalent to the January2006 basin elevation PDF that had already been successfully acquired and visually read.",
+      "outcome_layer": "Web-reader cache/fetch availability response; independent origin HTTP status unobserved.",
+      "restriction_scope": "The linked JPEG and possible equivalent January2006 basin-elevation map, including further acquisition and new reading of retained imagery, are paused. No alternate route, retry or new reading followed. Exact equivalence remains unestablished.",
+      "earlier_lawful_prose_exception": "Before this image failure, actual pixels of the normally acquired Carte_elevation_map.pdf had already been read, including the full basin overview, western/southern network and printed NB Aquatic Data Warehouse January2006 credit. Only those previously made bounded observations are retained. The earlier Our Territory prose also remains usable within its read scope.",
+      "limitation_kind": "cache_miss_with_possible_equivalent_map_pause",
+      "material_gap": true,
+      "material_effect": "No additional elevation-map examination was used to resolve the remaining headward or northern tributary ambiguity.",
+      "related_urls": [
+        "https://www.restigouche.org/sites/default/files/Carte_elevation_map.pdf"
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70324446",
+      "publication": "Map & Code of Ethics / Carte et code d’éthique (2013), and previously read Bassin versant de la rivière Restigouche / Restigouche River Basin (January2006)",
+      "official_url": "https://www.restigouche.org/sites/default/files/Flyer%20Layout%202013.pdf",
+      "observed_outcome": "Actual original maps were successfully read. The detailed2013 map begins around the lower Little Main/Kedgwick junction region and does not cover the selected western opening and southern headward turn. The previously read2006 basin map shows broad western drainage but its limited resolution and sparse labels do not securely distinguish the selected opening and its complete continuation. The selected northern tributary extends beyond the2013 map; the earlier basin overview does not securely distinguish all of that short selected course.",
+      "outcome_layer": "Cartographic coverage, resolution and correspondence limitation; not an HTTP or transport failure.",
+      "restriction_scope": "Only these genuinely unresolved selected component intervals. The clearly read middle/lower course, major junctions and terminal setting remain usable.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "material_headward_and_tributary_correspondence_gap",
+      "material_gap": true,
+      "material_effect": "One primary source-material-pending status. This is not a request for exact bank or vertex matching and is not a completed naming-scope hold.",
+      "related_urls": [
+        "https://www.restigouche.org/sites/default/files/Carte_elevation_map.pdf"
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80051383",
+      "publication": "Corrigan, D., Scott, D.J., and St-Onge, M.R. (2001), Geology of the northern margin of the Trans-Hudson Orogen (Foxe Fold Belt), central Baffin Island, Nunavut; Geological Survey of Canada, Current Research 2001-C23; M44-2001/C23E-IN",
+      "official_url": "https://publications.gc.ca/Collection/M44-2001-C23E.pdf",
+      "observed_outcome": "The sole normal original-file request to the public low-resolution Collection edition completed HTTP 200, Content-Type text/html, after redirection to an archived-information page. No PDF body or original map pixels were acquired.",
+      "outcome_layer": "Completed original HTTP-client response; successful HTML transfer but unavailable requested PDF content. No HTTP access denial is claimed.",
+      "restriction_scope": "Missing publication body/maps and all equivalent catalogue, original, reader, cache, screenshot, mirror, alternate-file and figure acquisition routes remain paused for availability. The discovered Collection-R copy was not requested; no retry or fallback followed.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "original_returned_archived_html_instead_of_pdf",
+      "material_gap": true,
+      "material_effect": "No independent primary map from this field report establishes the selected opening, route, connectors or actual terminal.",
+      "related_url": "https://publications.gc.ca/collections/Collection-R/GSC-CGC/M44-2001/M44-2001-C23E.pdf"
+    },
+    {
+      "aw_id": "hydro-system:80051383",
+      "publication": "USGS Professional Paper 1386-J, Satellite Image Atlas of Glaciers of the World—North America (2002), Glaciers of Baffin Island section",
+      "official_url": "https://pubs.usgs.gov/pp/p1386j/baffinisland/baffin-lores.pdf",
+      "observed_outcome": "The sole normal original-file request completed HTTPError 403 Forbidden. No PDF body or original map pixels were acquired.",
+      "outcome_layer": "Completed original HTTP-client error response reporting status 403.",
+      "restriction_scope": "Entire PP1386-J publication and equivalent copies, figures, low/high-resolution formats, catalogue, original, reader, cache, screenshot, mirror and other acquisition routes stopped. No retry or alternative route followed.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "http403_publication_stop",
+      "material_gap": true,
+      "material_effect": "The potential independent Landsat-image context was not acquired; search-result image descriptions and labels are not selected-route correspondence evidence."
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "aw_id": "hydro-system:61253589",
+      "publication": "Lajedão – BA, Mapa Municipal, 2918902, edição 04/2021",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/BA/lajedao/2918902_MM.pdf",
+      "observed_outcome": "Printed intended-use notice says the map was developed for IBGE statistical collection/tabulation, disclaims other uses, and reserves reproduction rights. Used only for bounded factual source correspondence; no original map, crop, overlay or derivative map is published. This is not a hydrological survey or formal-name registry.",
+      "outcome_layer": "Printed source-use notice in acquired original; not an HTTP or transport failure",
+      "restriction_scope": "This map and equivalent reproductions. Factual reading retained; original/derivative map redistribution excluded. No acquisition stop inferred.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "publication_use_notice",
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:61253589",
+      "publication": "Ibirapuã – BA, Mapa Municipal, 2912806, edição 04/2021",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/BA/ibirapua/2912806_MM.pdf",
+      "observed_outcome": "Printed intended-use notice says the map was developed for IBGE statistical collection/tabulation, disclaims other uses, and reserves reproduction rights. Used only for bounded factual source correspondence; no original map, crop, overlay or derivative map is published. This is not a hydrological survey or formal-name registry.",
+      "outcome_layer": "Printed source-use notice in acquired original; not an HTTP or transport failure",
+      "restriction_scope": "This map and equivalent reproductions. Factual reading retained; original/derivative map redistribution excluded. No acquisition stop inferred.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "publication_use_notice",
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:61253589",
+      "publication": "Caravelas – BA, Mapa Municipal, 2906907, edição 04/2021",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/BA/caravelas/2906907_MM.pdf",
+      "observed_outcome": "Printed intended-use notice says the map was developed for IBGE statistical collection/tabulation, disclaims other uses, and reserves reproduction rights. Used only for bounded factual source correspondence; no original map, crop, overlay or derivative map is published. This is not a hydrological survey or formal-name registry.",
+      "outcome_layer": "Printed source-use notice in acquired original; not an HTTP or transport failure",
+      "restriction_scope": "This map and equivalent reproductions. Factual reading retained; original/derivative map redistribution excluded. No acquisition stop inferred.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "publication_use_notice",
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:61253589",
+      "publication": "Plano de Manejo da Reserva Extrativista de Cassurubá: Diagnóstico – Volume I, 2018, figure 33",
+      "official_url": "https://www.gov.br/icmbio/pt-br/assuntos/biodiversidade/unidade-de-conservacao/unidades-de-biomas/marinho/lista-de-ucs/resex-de-cassuruba/arquivos/plano_de_manejo_resex_de_cassuruba_diagnostico_vol1.pdf",
+      "observed_outcome": "Figure 33 includes RapidEye 2013 imagery and an all-rights-reserved notice. Original imagery/maps/crops are not redistributed; own factual observations and ordinary citations only.",
+      "outcome_layer": "Printed cartographic image-rights notice in acquired original; not an HTTP or transport failure",
+      "restriction_scope": "Original/derivative imagery and map reproduction excluded. Own factual observations retained; no acquisition stop inferred.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "publication_use_notice",
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:60804761",
+      "publication": "El reino del desierto y los humedales: Biodiversidad y conservación en Sechura, Piura",
+      "official_url": "https://cdn.www.gob.pe/uploads/document/file/2363169/Publicaci%C3%B3n%20.pdf",
+      "observed_outcome": "The original imprint reserves all authorship and editing rights and permits partial or total reproduction only with authors’ and editors’ authorization. The original acquisition itself completed HTTP 200 PDF.",
+      "outcome_layer": "Visible publication-use notice, not an HTTP or transport failure.",
+      "restriction_scope": "Reproduction of this edition and derivatives; original PDFs, maps, crops and overlays remain private. This notice does not prohibit factual reading or ordinary bibliographic citation.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "publication_use_notice",
+      "material_gap": false,
+      "material_effect": "The notice does not add a source-access-pending status. The separately identified geographic connector gaps determine the primary material-pending result."
+    }
+  ]
+}

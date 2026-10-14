@@ -1,0 +1,751 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r171",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r170",
+    "commit": "58825be1978ab2b0de352b85e4c159a11223baa4",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r170/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:80244024",
+    "hydro-system:70210252",
+    "hydro-system:70091013",
+    "hydro-system:70608350"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:80244024",
+      "category": "river_group",
+      "system_id": "80244024",
+      "original_queue_rank": 488,
+      "baseline_logical_fid": 973,
+      "geometry_fids": [
+        2700
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -96.885417,
+        60.497601,
+        -94.663099,
+        60.816667
+      ],
+      "rendered_mainstem_length_km": 168.967,
+      "rendered_network_length_km": 168.967,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -96.885417,
+          60.497601,
+          -94.663099,
+          60.816667
+        ]
+      },
+      "candidate_name": "Tha-anne River",
+      "candidate_names": [
+        "Tha-anne River"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "region": "Southern Kivalliq, Nunavut, Canada; western unnamed lake-chain approach to Thuchonilini Lake, Tha-anne River, Hyde Lake and the shared Tha-anne–Thlewiaza estuary on Hudson Bay.",
+      "candidate_name_role": "supported_representative_system_identity",
+      "source_keys": [
+        "r171-nluis-edehon65a-1979",
+        "r171-nluis-hyde55d-1979"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "The selected western feeder joins Thuchonilini Lake and continues down the named Tha-anne River, across the adjacent map sheets, through Hyde Lake and into the shared Tha-anne–Thlewiaza estuary of Hudson Bay. Thaolintoa Lake and the southwestern Thlewiaza River are separately depicted neighboring/upstream features and are not substituted for the selected opening. The estuary is explicitly identified in 55D primary prose; Thlewiaza is not treated as a Tha-anne alias.",
+      "completion_scope": "All selected parts of the sole stage 3 mainstem fragment, including the chosen western opening, intermediate lake/stream joins, Thuchonilini and Hyde lake passages, sheet seam, lower river and actual coastal receiving estuary, were read on the two original thematic maps at ordinary corridor/estuary scale. No material missing through-link remains at that scale. A representative identity does not impose one scalar name on every lake, feeder or shared estuary.",
+      "supported_name_scope": "Representative river-system identity from the mapped Tha-anne corridor, preserving the unnamed chosen western feeder, distinct Thuchonilini and Hyde lake names, and the shared estuary with the distinct Thlewiaza River.",
+      "naming_scope_details": {
+        "representative_system_identity": "Tha-anne River",
+        "initial_feeder_name": null,
+        "distinct_selected_lake_names": [
+          "Thuchonilini Lake",
+          "Hyde Lake"
+        ],
+        "distinct_river_at_terminal": "Thlewiaza River",
+        "actual_terminal_receiving_water": "Tha-anne–Thlewiaza estuary, Hudson Bay",
+        "unselected_nearby_lake": "Thaolintoa Lake",
+        "local_brown_place_labels_promoted_to_aliases": false,
+        "whole_feature_uniform_name_established": false
+      },
+      "bounded_name_observations": [
+        {
+          "name": "Tha-anne River",
+          "role": "Supported representative river identity, not a scalar name for all feeder lakes.",
+          "source_keys": [
+            "r171-nluis-edehon65a-1979",
+            "r171-nluis-hyde55d-1979"
+          ]
+        },
+        {
+          "name": "Thuchonilini Lake",
+          "role": "Distinct selected lake passage.",
+          "source_keys": [
+            "r171-nluis-edehon65a-1979",
+            "r171-nluis-hyde55d-1979"
+          ]
+        },
+        {
+          "name": "Hyde Lake",
+          "role": "Distinct selected lake passage before the lower Tha-anne.",
+          "source_keys": [
+            "r171-nluis-edehon65a-1979",
+            "r171-nluis-hyde55d-1979"
+          ]
+        },
+        {
+          "name": "Tha-anne–Thlewiaza estuary",
+          "role": "Shared receiving estuary; Thlewiaza is a distinct river, not an alias for the selected Tha-anne.",
+          "source_keys": [
+            "r171-nluis-edehon65a-1979",
+            "r171-nluis-hyde55d-1979"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70210252",
+      "category": "river_group",
+      "system_id": "70210252",
+      "original_queue_rank": 489,
+      "baseline_logical_fid": 2986,
+      "geometry_fids": [
+        9284
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -79.698346,
+        50.4,
+        -78.541667,
+        51.275431
+      ],
+      "rendered_mainstem_length_km": 168.912,
+      "rendered_network_length_km": 168.912,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -79.698346,
+          50.4,
+          -78.541667,
+          51.275431
+        ]
+      },
+      "candidate_name": "Rivière Missisicabi",
+      "candidate_names": [
+        "Rivière Missisicabi"
+      ],
+      "research_category": "river_group_source_material_pending",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "region": "Southern James Bay, Missisicabi corridor, Québec–Ontario border",
+      "candidate_name_role": "supported_natural_reach_candidate_not_whole_feature_assignment",
+      "source_keys": [
+        "R171_CEHQ08_2011",
+        "R171_MISSISICABI_CONSERVATION_2008",
+        "R171_ECCC_HANNAH_PROSE"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": "The final coastward branch choice and actual selected terminal connection are not established. The regional CEHQ map supplies the Missisicabi approach but its generalized coast and watercourses do not distinguish the selected final northward turn from nearby outlets. ECCC prose identifies the neighboring Little Missisicabi sanctuary boundary but supplies no route geometry; its linked map was unavailable.",
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "Supported natural middle/lower river corridor only; not a completed representative identity for the whole selected synthetic group.",
+      "completion_scope": "Bounded source correspondence considered all 31 selected parts. The chosen southern opening, connected headward bends, intervening junction settings and long northwestward Missisicabi approach are supported at ordinary regional scale. The actual coastal through-link remains a material gap, rather than a demand for exact bank or vertex matching. This is one source-material-pending record, not a completed naming-scope hold or an additional access-pending count.",
+      "supported_name_scope": "The continuous middle/lower corridor carrying the Rivière Missisicabi label on the CEHQ regional original. The initial southern feeder remains unnamed here, and the exact selected coastal through-link is excluded.",
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "whole_feature_uniform_name_established": false,
+        "scope_limits": [
+          "No one-name assignment for the complete modeled group.",
+          "The opening river has geographic correspondence but no independently established name in the read material.",
+          "The final coastal connection is materially unresolved; nearby labels and drainage membership are not substitutes.",
+          "The provincial map is generalized historical cartography; present hydraulic conditions and current shoreline position are unverified."
+        ]
+      },
+      "bounded_name_observations": [
+        {
+          "name": "Rivière Missisicabi",
+          "role": "Supported natural middle/lower river corridor; the exact selected final coastal branch remains unestablished.",
+          "source_keys": [
+            "R171_CEHQ08_2011",
+            "R171_MISSISICABI_CONSERVATION_2008",
+            "R171_ECCC_HANNAH_PROSE"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70091013",
+      "category": "river_group",
+      "system_id": "70091013",
+      "original_queue_rank": 490,
+      "baseline_logical_fid": 2946,
+      "geometry_fids": [
+        9151
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -78.729276,
+        54.660417,
+        -76.6125,
+        54.943302
+      ],
+      "rendered_mainstem_length_km": 168.871,
+      "rendered_network_length_km": 168.871,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -78.729276,
+          54.660417,
+          -76.6125,
+          54.943302
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_source_material_pending",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "region": "Northern Québec Hudson coast: eastern lake/stream opening, selected Lac Lomier passage and a lower northwestward coastal approach.",
+      "candidate_name_role": "No river-level candidate is adopted. The actually inspected primary map labels Lac Lomier on the selected lower lake passage but does not label the selected river. Vauquelin remains an unadopted discovery lead only.",
+      "source_keys": [
+        "r171-cehq2011-region09"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": "The generalized source omits part of the eastern feeder, its station-statistics panel masks middle selected links, and coastal linework does not distinguish the actual terminal branch. No readable additional original was obtained; one material-pending record is retained.",
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "No river-level candidate is adopted. The actually inspected primary map labels Lac Lomier on the selected lower lake passage but does not label the selected river. Vauquelin remains an unadopted discovery lead only.",
+      "completion_scope": "The actually read CEHQ original supplies regional western-corridor and Lac Lomier evidence. It does not establish the complete eastern opening, upper lake links, middle connections masked by the statistics panel or the selected coastal branch.",
+      "supported_name_scope": "No river-level candidate is adopted. The actually inspected primary map labels Lac Lomier on the selected lower lake passage but does not label the selected river. Vauquelin remains an unadopted discovery lead only.",
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "whole_feature_uniform_name_established": false,
+        "scope_limits": [
+          "A supported component lake name does not establish the representative identity of the whole selected river group.",
+          "The eastern opening, upper lake/stream passages and obscured central joins require further permitted primary route evidence.",
+          "The final coastal approach is regionally visible, but the particular selected terminal branch is unresolved.",
+          "No exact banks, name-transition vertices, present flow direction or tidal boundary is established.",
+          "Formal naming-registry status remains unverified."
+        ]
+      },
+      "bounded_name_observations": [
+        {
+          "name": "Lac Lomier",
+          "role": "Supported selected lake passage only; no river-level name adopted.",
+          "source_keys": [
+            "r171-cehq2011-region09"
+          ]
+        }
+      ],
+      "unverified_discovery_leads": [
+        {
+          "name": "Vauquelin",
+          "status": "unadopted_discovery_lead_only",
+          "scope": "No inspected primary river-name evidence establishes this assignment."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70608350",
+      "category": "river_group",
+      "system_id": "70608350",
+      "original_queue_rank": 491,
+      "baseline_logical_fid": 3092,
+      "geometry_fids": [
+        9824,
+        9825
+      ],
+      "minimum_stage": 2,
+      "bbox": [
+        -123.202083,
+        38.435417,
+        -122.785417,
+        39.247917
+      ],
+      "rendered_mainstem_length_km": 168.618,
+      "rendered_network_length_km": 168.618,
+      "geometry_summary": {
+        "fragment_count": 2,
+        "mainstem_fragment_count": 2,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -123.202083,
+          38.435417,
+          -122.785417,
+          39.247917
+        ]
+      },
+      "candidate_name": "Russian River",
+      "candidate_names": [
+        "Cold Creek",
+        "East Fork Russian River",
+        "Lake Mendocino",
+        "Russian River"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "region": "Northern California, Cold Creek–Lake Mendocino–Russian River–Jenner corridor",
+      "candidate_name_role": "representative_system_identity_only",
+      "source_keys": [
+        "USGSTOPO_R171_COLD_CREEK_MENDOCINO",
+        "USGSTOPO_R171_UKIAH_HOPLAND",
+        "USGSTOPO_R171_CLOVERDALE_HEALDSBURG",
+        "USGSTOPO_R171_LOWER_RUSSIAN_TERMINAL"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "Completed bounded representative Russian River system identity; distinct Cold Creek and East Fork Russian River natural reaches and the Lake Mendocino reservoir are preserved separately. This is not a single-name assignment to every segment or waterbody.",
+      "completion_scope": "Four completed original USGSTopo views and overlapping original-pixel crops establish ordinary corridor correspondence from the selected Cold Creek opening through the East Fork connection, Lake Mendocino, mapped dam/outlet, Russian River trunk, meaningful joins and both selected mainstem fragments to the actual Jenner/Goat Rock estuarine terminal. There is no material missing selected through-link at this bounded scale. Distinct natural reach and reservoir names remain separate.",
+      "supported_name_scope": "Cold Creek at the chosen opening and upstream corridor; East Fork Russian River at the downstream transition and reservoir inlet; Lake Mendocino as the reservoir; Russian River on the long downstream trunk and estuarine terminal.",
+      "naming_scope_details": {
+        "representative_system_identity": "Russian River",
+        "whole_feature_uniform_name_established": false,
+        "scope_limits": [
+          "Formal registry verification, official name-boundary vertices, Indigenous-name equivalence and Korean form were not investigated.",
+          "A representative Russian River identity must not overwrite Cold Creek, East Fork Russian River or Lake Mendocino component names.",
+          "The chosen start is not asserted to be an official source, and the modeled length is not an official river length.",
+          "Map generalization and selected-path simplification are compatible with ordinary corridor correspondence; exact bank, bend, dam or confluence vertex agreement is not asserted.",
+          "The source is cartographic evidence, not a current-flow, reservoir-operation, tidal or open-mouth observation.",
+          "Service metadata refresh is not a uniform survey date for all mapped features.",
+          "The final selected segment crosses the beach/spit south of the mapped river opening. This is retained as a terminal/generalization limitation; the representative finding concerns the connected estuary/coastal outlet setting, not a mapped water channel along that exact segment."
+        ]
+      },
+      "bounded_name_observations": [
+        {
+          "name": "Cold Creek",
+          "role": "Directly mapped chosen upper creek corridor.",
+          "source_keys": [
+            "USGSTOPO_R171_COLD_CREEK_MENDOCINO",
+            "USGSTOPO_R171_UKIAH_HOPLAND",
+            "USGSTOPO_R171_CLOVERDALE_HEALDSBURG",
+            "USGSTOPO_R171_LOWER_RUSSIAN_TERMINAL"
+          ]
+        },
+        {
+          "name": "East Fork Russian River",
+          "role": "Distinct receiving upper river into Lake Mendocino.",
+          "source_keys": [
+            "USGSTOPO_R171_COLD_CREEK_MENDOCINO",
+            "USGSTOPO_R171_UKIAH_HOPLAND",
+            "USGSTOPO_R171_CLOVERDALE_HEALDSBURG",
+            "USGSTOPO_R171_LOWER_RUSSIAN_TERMINAL"
+          ]
+        },
+        {
+          "name": "Lake Mendocino",
+          "role": "Selected reservoir passage with mapped dam/outlet transition, not a river-name alias.",
+          "source_keys": [
+            "USGSTOPO_R171_COLD_CREEK_MENDOCINO",
+            "USGSTOPO_R171_UKIAH_HOPLAND",
+            "USGSTOPO_R171_CLOVERDALE_HEALDSBURG",
+            "USGSTOPO_R171_LOWER_RUSSIAN_TERMINAL"
+          ]
+        },
+        {
+          "name": "Russian River",
+          "role": "Completed representative receiving-river identity through the Jenner estuary; final modeled spit crossing is not asserted to be a mapped channel or exact mouth.",
+          "source_keys": [
+            "USGSTOPO_R171_COLD_CREEK_MENDOCINO",
+            "USGSTOPO_R171_UKIAH_HOPLAND",
+            "USGSTOPO_R171_CLOVERDALE_HEALDSBURG",
+            "USGSTOPO_R171_LOWER_RUSSIAN_TERMINAL"
+          ]
+        }
+      ]
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [
+      "hydro-system:70210252",
+      "hydro-system:70091013"
+    ],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 2,
+    "supported_representative_system_identities": 2,
+    "scope_holds": 0,
+    "access_pending": 0,
+    "material_pending": 2
+  },
+  "totals_after": {
+    "recorded_targets": 627,
+    "non_pending_records": 478,
+    "source_access_pending": 3,
+    "source_material_pending": 146,
+    "source_any_pending": 149,
+    "scope_holds": 152,
+    "river_groups": 529,
+    "lakes": 98,
+    "unrecorded": 3438,
+    "unrecorded_river_groups": 2926,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573",
+    "hydro-system:80032711",
+    "hydro-system:60007816",
+    "hydro-system:80013873",
+    "hydro-system:61501314",
+    "hydro-system:60761631",
+    "hydro-system:70895720",
+    "hydro-system:61398344",
+    "hydro-system:61355098",
+    "hydro-system:70933800",
+    "hydro-system:60026849",
+    "hydro-system:70574060",
+    "hydro-system:70890643",
+    "hydro-system:80064967",
+    "hydro-system:70856797",
+    "hydro-system:60174418",
+    "hydro-system:61547907",
+    "hydro-system:70463083",
+    "hydro-system:61520061",
+    "hydro-system:70895492",
+    "hydro-system:70898394",
+    "hydro-system:70865140",
+    "hydro-system:80072439",
+    "hydro-system:70549678",
+    "hydro-system:70566840",
+    "hydro-system:80048422",
+    "hydro-system:60557376",
+    "hydro-system:61514286",
+    "hydro-system:61509423",
+    "hydro-system:80068731",
+    "hydro-system:80015064",
+    "hydro-system:61520170",
+    "hydro-system:70156165",
+    "hydro-system:70784507",
+    "hydro-system:80067417",
+    "hydro-system:80019756",
+    "hydro-system:70244256",
+    "hydro-system:80060230",
+    "hydro-system:61543259",
+    "hydro-system:60007312",
+    "hydro-system:60022881",
+    "hydro-system:61456098",
+    "hydro-system:70290797",
+    "hydro-system:60441146",
+    "hydro-system:61554706",
+    "hydro-system:70110341",
+    "hydro-system:80067260",
+    "hydro-system:70214162",
+    "hydro-system:80034507",
+    "hydro-system:61536265",
+    "hydro-system:61561008",
+    "hydro-system:80066184",
+    "hydro-system:70202296",
+    "hydro-system:61545841",
+    "hydro-system:61350841",
+    "hydro-system:80064018",
+    "hydro-system:70957614",
+    "hydro-system:70851521",
+    "hydro-system:70049998",
+    "hydro-system:61298121",
+    "hydro-system:80033385",
+    "hydro-system:61205785",
+    "hydro-system:80035867",
+    "hydro-system:70009700",
+    "hydro-system:60440371",
+    "hydro-system:80049373",
+    "hydro-system:70749063",
+    "hydro-system:70844211",
+    "hydro-system:60001814",
+    "hydro-system:61507976",
+    "hydro-system:70834534",
+    "hydro-system:80070226",
+    "hydro-system:61357020",
+    "hydro-system:70846952",
+    "hydro-system:70004800",
+    "hydro-system:80043969",
+    "hydro-system:80165177",
+    "hydro-system:70043276",
+    "hydro-system:60490135",
+    "hydro-system:60237339",
+    "hydro-system:70023641",
+    "hydro-system:70281204",
+    "hydro-system:61570080",
+    "hydro-system:70789628",
+    "hydro-system:80234498",
+    "hydro-system:60016868",
+    "hydro-system:70276504",
+    "hydro-system:70901807",
+    "hydro-system:80086174",
+    "hydro-system:60809372",
+    "hydro-system:60100857",
+    "hydro-system:70026619",
+    "hydro-system:70500400",
+    "hydro-system:60010615",
+    "hydro-system:70608588",
+    "hydro-system:70832638",
+    "hydro-system:61383955",
+    "hydro-system:61555573",
+    "hydro-system:80068976",
+    "hydro-system:80048308",
+    "hydro-system:80001778",
+    "hydro-system:70324446",
+    "hydro-system:80051383",
+    "hydro-system:60804761",
+    "hydro-system:70817056",
+    "hydro-system:80032843",
+    "hydro-system:70045452",
+    "hydro-system:70877500",
+    "hydro-system:80042519",
+    "hydro-system:70084321",
+    "hydro-system:61519454",
+    "hydro-system:61546367",
+    "hydro-system:60627295",
+    "hydro-system:61038090",
+    "hydro-system:60407824",
+    "hydro-system:80047056",
+    "hydro-system:70888155",
+    "hydro-system:61189702",
+    "hydro-system:70084119",
+    "hydro-system:70025722",
+    "hydro-system:70001071",
+    "hydro-system:70360842",
+    "hydro-system:70007286",
+    "hydro-system:60001879",
+    "hydro-system:70776067",
+    "hydro-system:61266023",
+    "hydro-system:70806740",
+    "hydro-system:60516711",
+    "hydro-system:80020100",
+    "hydro-system:70835654",
+    "hydro-system:80029665",
+    "hydro-system:61609128",
+    "hydro-system:70853324",
+    "hydro-system:70775288",
+    "hydro-system:70008834",
+    "hydro-system:61422869",
+    "hydro-system:80214289",
+    "hydro-system:70210252",
+    "hydro-system:70091013"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r171-nluis-edehon65a-1979",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_65a.jpg"
+    },
+    {
+      "source_key": "r171-nluis-hyde55d-1979",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_55d.jpg"
+    },
+    {
+      "source_key": "R171_CEHQ08_2011",
+      "official_url": "https://www.cehq.gouv.qc.ca/debit-etiage/cartes/debit_etiage_08_specifique_annuel.pdf"
+    },
+    {
+      "source_key": "R171_MISSISICABI_CONSERVATION_2008",
+      "official_url": "https://www.environnement.gouv.qc.ca/biodiversite/reserves-bio/missisicabi/PSC-missisicabi.pdf"
+    },
+    {
+      "source_key": "R171_ECCC_HANNAH_PROSE",
+      "official_url": "https://www.canada.ca/en/environment-climate-change/services/migratory-bird-sanctuaries/locations/hannah-bay.html"
+    },
+    {
+      "source_key": "r171-cehq2011-region09",
+      "official_url": "https://www.cehq.gouv.qc.ca/debit-etiage/cartes/debit_etiage_09_specifique_estival.pdf"
+    },
+    {
+      "source_key": "r171-hq-lagrande-study-map-unavailable",
+      "official_url": "https://pannes.hydroquebec.com/data/projets/puissance-la-grande/pdf/LaGrande_Etudes_affiche_FR_WEB.pdf"
+    },
+    {
+      "source_key": "r171-lga-technical-note07-unavailable",
+      "official_url": "https://www.lagrandealliance.quebec/wp-content/uploads/2024/10/Technical-Note-07-MARINE-ENVIRONMENT.pdf"
+    },
+    {
+      "source_key": "USGSTOPO_R171_COLD_CREEK_MENDOCINO",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "USGSTOPO_R171_UKIAH_HOPLAND",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "USGSTOPO_R171_CLOVERDALE_HEALDSBURG",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "USGSTOPO_R171_LOWER_RUSSIAN_TERMINAL",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "58825be1978ab2b0de352b85e4c159a11223baa4",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      488,
+      489,
+      490,
+      491
+    ],
+    "next_unrecorded_id": "hydro-system:61479579",
+    "progress_rule": "Follow the actual continental order: Americas, Asia, Africa, Europe, then other, with all rivers before lakes. Preserve original queue IDs and ranks for continuity; apply documented geographic deferrals without counting them as name research, and place deferred objects into their corrected later phase by length-descending, stable-ID order. Prior candidate and scope-held assessments remain unresolved where stated.",
+    "geographic_deferrals": [
+      {
+        "aw_id": "hydro-system:80061063",
+        "original_queue_rank": 186,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 66.56–68.17°N and 179.97–177.11°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory bounding box and selected-route geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80065687",
+        "original_queue_rank": 349,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at66.725–67.849775°N and178.2–175.960242°W place this object on Chukotka west of Alaska, adjoining the previously corrected Chukotka selection. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory bounding box and selected-route geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80100188",
+        "original_queue_rank": 387,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 64.939583–66.26978°N and 174.05625–173.320833°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory/order bounding box and geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80119243",
+        "original_queue_rank": 391,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 65.451531–66.491667°N and 176.777083–175.672917°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory/order bounding box and geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80083978",
+        "original_queue_rank": 470,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained original inventory/order bounds at66.522917–67.00625°N and177.333333–174.842957°W place this current object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Existing fixed-queue bounding box and geographic placement only; no naming source or selected geometry acquired for this correction."
+      }
+    ]
+  }
+}

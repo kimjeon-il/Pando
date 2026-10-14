@@ -1,0 +1,669 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r158",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r157",
+    "commit": "33158425185db5ef8724129728ee9dacecde484e",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r157/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:61253589",
+    "hydro-system:70324446",
+    "hydro-system:80051383",
+    "hydro-system:60804761"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:61253589",
+      "category": "river_group",
+      "system_id": "61253589",
+      "original_queue_rank": 435,
+      "baseline_logical_fid": 3501,
+      "geometry_fids": [
+        13909
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -40.466667,
+        -17.847917,
+        -39.231492,
+        -17.527083
+      ],
+      "rendered_mainstem_length_km": 181.886,
+      "rendered_network_length_km": 181.886,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -40.466667,
+          -17.847917,
+          -39.231492,
+          -17.527083
+        ]
+      },
+      "candidate_name": "Rio Peruípe",
+      "research_category": "supported_representative_system_identity",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "candidate_names": [
+        "Rio Peruípe"
+      ],
+      "region": "Southern Bahia, eastern Brazil.",
+      "candidate_name_role": "Representative connected system candidate for the Peruípe freshwater network and its connected Caravelas estuarine corridor; no uniform scalar hydronym claim.",
+      "source_keys": [
+        "BR158-LAJ",
+        "BR158-IBI",
+        "BR158-CAR",
+        "BR158-CAS",
+        "BR158-PEI"
+      ],
+      "bounded_name_observations": [
+        {
+          "name": "Córrego das Vacas",
+          "role": "Mapped headward corridor after the initial feeder",
+          "source_keys": [
+            "BR158-LAJ"
+          ]
+        },
+        {
+          "name": "Córrego da Queijada",
+          "role": "Mapped upper-corridor label; article uses Córrego do Queijada",
+          "source_keys": [
+            "BR158-LAJ",
+            "BR158-PEI"
+          ]
+        },
+        {
+          "name": "Rio do Meio / Rio do Pato",
+          "role": "Scoped upstream river usage; article explicitly reports the alternatives",
+          "source_keys": [
+            "BR158-LAJ",
+            "BR158-IBI",
+            "BR158-PEI"
+          ]
+        },
+        {
+          "name": "Rio Peruípe do Sul",
+          "role": "Distinct mapped southern branch, only its downstream portion selected",
+          "source_keys": [
+            "BR158-IBI"
+          ]
+        },
+        {
+          "name": "Rio Peruípe Norte",
+          "role": "Separate northern joining branch; not a name applied to the whole selected feature",
+          "source_keys": [
+            "BR158-IBI",
+            "BR158-CAR"
+          ]
+        },
+        {
+          "name": "Rio Peixoto",
+          "role": "Mapped northern lowland/estuarine connection",
+          "source_keys": [
+            "BR158-CAR"
+          ]
+        },
+        {
+          "name": "Rio Caravelas",
+          "role": "Local lower-system usage and named estuary/outlet; not a blanket alias for upper tributaries",
+          "source_keys": [
+            "BR158-CAS",
+            "BR158-PEI"
+          ]
+        }
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "Original maps support a connected Peruípe-system candidate across the Lajedão–Ibirapuã headwaters, the Meio/Pato and Peruípe junctions, and the northward Caravelas tidal-estuary connection to the Atlantic. The selected course has several branch and channel names, so no whole-feature name or Korean name is accepted and nothing is applied to the product.",
+      "completion_scope": "Original maps support a connected Peruípe-system candidate across the Lajedão–Ibirapuã headwaters, the Meio/Pato and Peruípe junctions, and the northward Caravelas tidal-estuary connection to the Atlantic. The selected course has several branch and channel names, so no whole-feature name or Korean name is accepted and nothing is applied to the product.",
+      "supported_name_scope": "Representative connected system candidate for the Peruípe freshwater network and its connected Caravelas estuarine corridor; no uniform scalar hydronym claim.",
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "component_scope_limits": [
+          "The selected feature combines an unnamed initial feeder, mapped Vacas/Queijada and Meio/Pato reaches, Peruípe Sul/Peruípe reaches, and a northward Peixoto–Caravelas tidal connection. Rio Peruípe is retained only as representative system identity. Local Caravelas usage and individual branch labels are not blanket aliases or names for every tributary. IBGE labels parts of the tidal network Rio Peruípe whereas the ICMBio plan separately names Caravelas and other channels; no scalar naming boundary is resolved from that variation."
+        ]
+      }
+    },
+    {
+      "aw_id": "hydro-system:70324446",
+      "category": "river_group",
+      "system_id": "70324446",
+      "original_queue_rank": 436,
+      "baseline_logical_fid": 3026,
+      "geometry_fids": [
+        9440,
+        9441,
+        9442,
+        9443
+      ],
+      "minimum_stage": 1,
+      "bbox": [
+        -68.01875,
+        47.402083,
+        -66.764792,
+        48.08125
+      ],
+      "rendered_mainstem_length_km": 181.67,
+      "rendered_network_length_km": 203.065,
+      "geometry_summary": {
+        "fragment_count": 4,
+        "mainstem_fragment_count": 3,
+        "tributary_fragment_count": 1,
+        "mainstem_bbox": [
+          -68.01875,
+          47.402083,
+          -66.764792,
+          48.002083
+        ]
+      },
+      "candidate_name": "Restigouche River",
+      "candidate_names": [
+        "Restigouche River"
+      ],
+      "research_category": "river_group_source_material_pending",
+      "supported_name_scope": "Restigouche River is supported for the mapped middle/lower corridor, including9441 and9442 and the downstream part of9440. Little Main Restigouche is separately mapped near the upstream junction. The western opening and whole northern tributary remain unnamed in the accepted record; no representative label is applied uniformly to all branches.",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "region": "Northern New Brunswick and adjoining Quebec, Canada.",
+      "candidate_name_role": "partial_downstream_representative_candidate_only; not completed whole-feature identity",
+      "source_keys": [
+        "r158-rrwmc-map-code-ethics-2013",
+        "r158-rrwmc-basin-elevation-2006",
+        "r158-rrwmc-our-territory",
+        "r158-rrwmc-maps-catalogue"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": "The selected western opening, southeast descent and southern turn within9440 lack secure original-map correspondence, and the complete northern tributary9443 is not securely distinguished. These are actual component-coverage gaps, not a demand for exact banks or vertices. Successfully mapped downstream reaches do not close them.",
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "The middle/lower route is supported as Restigouche River, with a separately named Little Main approach. The selected terminal lies in the widened Restigouche channel near Tide Head, upstream of Campbellton. Actual western-headward and northern-tributary coverage gaps leave one primary material-pending result.",
+      "completion_scope": "The middle/lower route is supported as Restigouche River, with a separately named Little Main approach. The selected terminal lies in the widened Restigouche channel near Tide Head, upstream of Campbellton. Actual western-headward and northern-tributary coverage gaps leave one primary material-pending result.",
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "component_scope_limits": [
+          "Restigouche River is supported for the mapped middle/lower corridor, including9441 and9442 and the downstream part of9440. Little Main Restigouche is separately mapped near the upstream junction. The western opening and whole northern tributary remain unnamed in the accepted record; no representative label is applied uniformly to all branches."
+        ]
+      }
+    },
+    {
+      "aw_id": "hydro-system:80051383",
+      "category": "river_group",
+      "system_id": "80051383",
+      "original_queue_rank": 437,
+      "baseline_logical_fid": 889,
+      "geometry_fids": [
+        2494
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -74.122917,
+        68.730725,
+        -71.545833,
+        69.410417
+      ],
+      "rendered_mainstem_length_km": 180.802,
+      "rendered_network_length_km": 180.802,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -74.122917,
+          68.730725,
+          -71.545833,
+          69.410417
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_source_material_pending",
+      "supported_name_scope": "No selected component name or representative whole-system candidate is established. Drewry River and MacDonald River are names in retained regional prose, not names assigned to this selected corridor. Unknown river, tributary, lake-passage and ice-related names remain null.",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "region": "Baffin Island, Canadian Arctic.",
+      "candidate_name_role": null,
+      "source_keys": [
+        "r158-dredge2002-c20-retained-prose"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": "Actual original-map correspondence remains missing for the eastern opening, southward transfer, full west-southwest course, important branch/lake/ice links and actual terminal. Two independently identified potential primary publications supplied no original map content. Regional retained prose and model orientation cannot close these material gaps.",
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "This single selected southern-central Baffin Island model corridor remains source-material pending. Its full natural course and actual terminal have not been established from permitted primary original cartography. It is a distinct queue object from the adjoining r157 corridor, and neither a representative identity nor a completed naming-scope hold is supported.",
+      "completion_scope": "This single selected southern-central Baffin Island model corridor remains source-material pending. Its full natural course and actual terminal have not been established from permitted primary original cartography. It is a distinct queue object from the adjoining r157 corridor, and neither a representative identity nor a completed naming-scope hold is supported.",
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "component_scope_limits": [
+          "No selected component name or representative whole-system candidate is established. Drewry River and MacDonald River are names in retained regional prose, not names assigned to this selected corridor. Unknown river, tributary, lake-passage and ice-related names remain null."
+        ]
+      }
+    },
+    {
+      "aw_id": "hydro-system:60804761",
+      "category": "river_group",
+      "system_id": "60804761",
+      "original_queue_rank": 438,
+      "baseline_logical_fid": 3449,
+      "geometry_fids": [
+        13808
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -80.773604,
+        -6.307703,
+        -79.86875,
+        -5.516667
+      ],
+      "rendered_mainstem_length_km": 180.511,
+      "rendered_network_length_km": 180.511,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -80.773604,
+          -6.307703,
+          -79.86875,
+          -5.516667
+        ]
+      },
+      "candidate_name": "Río Cascajal",
+      "research_category": "river_group_source_material_pending",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "completion_scope": "The bounded source-research pass is recorded. Geographic component/connector coverage remains incomplete, so only river_group_source_material_pending is counted. Optional stopped publications do not create an additional access-pending category, and incomplete correspondence is not a completed naming-scope hold.",
+      "candidate_names": [
+        "Río Cascajal"
+      ],
+      "region": "Northwestern coastal Peru.",
+      "candidate_name_role": "Provisional receiving-river/system candidate for the independently mapped middle Cascajal corridor. Whole-selected-object representative identity remains unestablished.",
+      "source_keys": [
+        "r152-mtc-lambayeque-2017",
+        "r152-mtc-sechura-2017",
+        "r143-peot-olmos-base-2010",
+        "r158-ingemmet-a7456-2023",
+        "r158-minam-desierto-2021"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": "The selected Ñaupe–Hualtacal connector, northern continuation beyond Las Pozas, lower desert-to-La Niña link, internal lagoon transfer and actual Pacific outlet remain unestablished. Confirmed upper and middle Cascajal-related components and a confluence photograph do not close those route gaps.",
+      "material_pending_components": [
+        "Continuous primary-map coverage of the selected La Victoria/El Progreso I–Escute/Hualtacal connector remains incomplete; the confluence photograph alone does not close the intervening route.",
+        "The selected northern branch/continuation beyond the Las Pozas vicinity and its westward PE-04A connector are not continuously established; the mapped southern La Tranca route is not substituted.",
+        "Continuous selected desert-to-depression hydrographic correspondence is missing.",
+        "Broad and event-dependent wetland coverage does not establish the selected internal transfer and exit connections.",
+        "The selected actual connection to the Pacific remains unestablished at ordinary corridor scale."
+      ],
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "Original maps support the selected Q. del Jaguay–Ñaupe opening, the receiving Insculas/San Cristóbal reach and a middle Río Cascajal corridor. The Ñaupe–Hualtacal connector is incompletely mapped despite a corroborating confluence photograph. Farther west, the selected route takes a northern continuation distinct from the clearly mapped southern La Tranca course, followed by unresolved desert, La Niña and coastal connections. Retain one material-pending result, not a completed representative identity or naming-scope hold.",
+      "supported_name_scope": "Provisional receiving-river/system candidate for the independently mapped middle Cascajal corridor. Whole-selected-object representative identity remains unestablished.",
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "component_scope_limits": [
+          "Q. del Jaguay and Ñaupe belong to mapped northern reaches; Insculas and San Cristóbal are source-specific receiving-reach labels. No uniform scalar or formal name-transition boundary is established.",
+          "The eastern Cascajal approach is distinct from the selected northern approach. Río Cascajal is supported on the selected receiving westward corridor only.",
+          "The clearly mapped southern La Tranca continuation is not substituted for the selected northern continuation beyond Las Pozas.",
+          "Laguna La Niña names the lower waterbody/depression setting and is not a whole-feature river name.",
+          "No selected reservoir passage or continuous artificial canal was established. Nearby settlement labels and modeled connectivity are not such evidence.",
+          "The actual sea outlet is unverified; neither ordinary-year desert dissipation nor event-dependent flooding justifies naming every selected lower component Cascajal."
+        ]
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [
+      "hydro-system:70324446",
+      "hydro-system:80051383",
+      "hydro-system:60804761"
+    ],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 1,
+    "supported_representative_system_identities": 1,
+    "scope_holds": 0,
+    "access_pending": 0,
+    "material_pending": 3
+  },
+  "totals_after": {
+    "recorded_targets": 575,
+    "non_pending_records": 461,
+    "source_access_pending": 3,
+    "source_material_pending": 111,
+    "source_any_pending": 114,
+    "scope_holds": 147,
+    "river_groups": 477,
+    "lakes": 98,
+    "unrecorded": 3490,
+    "unrecorded_river_groups": 2978,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573",
+    "hydro-system:80032711",
+    "hydro-system:60007816",
+    "hydro-system:80013873",
+    "hydro-system:61501314",
+    "hydro-system:60761631",
+    "hydro-system:70895720",
+    "hydro-system:61398344",
+    "hydro-system:61355098",
+    "hydro-system:70933800",
+    "hydro-system:60026849",
+    "hydro-system:70574060",
+    "hydro-system:70890643",
+    "hydro-system:80064967",
+    "hydro-system:70856797",
+    "hydro-system:60174418",
+    "hydro-system:61547907",
+    "hydro-system:70463083",
+    "hydro-system:61520061",
+    "hydro-system:70895492",
+    "hydro-system:70898394",
+    "hydro-system:70865140",
+    "hydro-system:80072439",
+    "hydro-system:70549678",
+    "hydro-system:70566840",
+    "hydro-system:80048422",
+    "hydro-system:60557376",
+    "hydro-system:61514286",
+    "hydro-system:61509423",
+    "hydro-system:80068731",
+    "hydro-system:80015064",
+    "hydro-system:61520170",
+    "hydro-system:70156165",
+    "hydro-system:70784507",
+    "hydro-system:80067417",
+    "hydro-system:80019756",
+    "hydro-system:70244256",
+    "hydro-system:80060230",
+    "hydro-system:61543259",
+    "hydro-system:60007312",
+    "hydro-system:60022881",
+    "hydro-system:61456098",
+    "hydro-system:70290797",
+    "hydro-system:60441146",
+    "hydro-system:61554706",
+    "hydro-system:70110341",
+    "hydro-system:80067260",
+    "hydro-system:70214162",
+    "hydro-system:80034507",
+    "hydro-system:61536265",
+    "hydro-system:61561008",
+    "hydro-system:80066184",
+    "hydro-system:70202296",
+    "hydro-system:61545841",
+    "hydro-system:61350841",
+    "hydro-system:80064018",
+    "hydro-system:70957614",
+    "hydro-system:70851521",
+    "hydro-system:70049998",
+    "hydro-system:61298121",
+    "hydro-system:80033385",
+    "hydro-system:61205785",
+    "hydro-system:80035867",
+    "hydro-system:70009700",
+    "hydro-system:60440371",
+    "hydro-system:80049373",
+    "hydro-system:70749063",
+    "hydro-system:70844211",
+    "hydro-system:60001814",
+    "hydro-system:61507976",
+    "hydro-system:70834534",
+    "hydro-system:80070226",
+    "hydro-system:61357020",
+    "hydro-system:70846952",
+    "hydro-system:70004800",
+    "hydro-system:80043969",
+    "hydro-system:80165177",
+    "hydro-system:70043276",
+    "hydro-system:60490135",
+    "hydro-system:60237339",
+    "hydro-system:70023641",
+    "hydro-system:70281204",
+    "hydro-system:61570080",
+    "hydro-system:70789628",
+    "hydro-system:80234498",
+    "hydro-system:60016868",
+    "hydro-system:70276504",
+    "hydro-system:70901807",
+    "hydro-system:80086174",
+    "hydro-system:60809372",
+    "hydro-system:60100857",
+    "hydro-system:70026619",
+    "hydro-system:70500400",
+    "hydro-system:60010615",
+    "hydro-system:70608588",
+    "hydro-system:70832638",
+    "hydro-system:61383955",
+    "hydro-system:61555573",
+    "hydro-system:80068976",
+    "hydro-system:80048308",
+    "hydro-system:80001778",
+    "hydro-system:70324446",
+    "hydro-system:80051383",
+    "hydro-system:60804761"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "BR158-LAJ",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/BA/lajedao/2918902_MM.pdf"
+    },
+    {
+      "source_key": "BR158-IBI",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/BA/ibirapua/2912806_MM.pdf"
+    },
+    {
+      "source_key": "BR158-CAR",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/BA/caravelas/2906907_MM.pdf"
+    },
+    {
+      "source_key": "BR158-CAS",
+      "official_url": "https://www.gov.br/icmbio/pt-br/assuntos/biodiversidade/unidade-de-conservacao/unidades-de-biomas/marinho/lista-de-ucs/resex-de-cassuruba/arquivos/plano_de_manejo_resex_de_cassuruba_diagnostico_vol1.pdf"
+    },
+    {
+      "source_key": "BR158-PEI",
+      "official_url": "https://www.scielo.br/j/bn/a/Pp6hwfr8LvBhwp3DJnqrsNv/?lang=pt"
+    },
+    {
+      "source_key": "r158-rrwmc-map-code-ethics-2013",
+      "official_url": "https://www.restigouche.org/sites/default/files/Flyer%20Layout%202013.pdf"
+    },
+    {
+      "source_key": "r158-rrwmc-basin-elevation-2006",
+      "official_url": "https://www.restigouche.org/sites/default/files/Carte_elevation_map.pdf"
+    },
+    {
+      "source_key": "r158-rrwmc-our-territory",
+      "official_url": "https://www.restigouche.org/node/29"
+    },
+    {
+      "source_key": "r158-rrwmc-maps-catalogue",
+      "official_url": "https://www.restigouche.org/Maps"
+    },
+    {
+      "source_key": "r158-corrigan2001-c23-unavailable",
+      "official_url": "https://publications.gc.ca/Collection/M44-2001-C23E.pdf"
+    },
+    {
+      "source_key": "r158-usgs1386j-baffin-unavailable",
+      "official_url": "https://pubs.usgs.gov/pp/p1386j/baffinisland/baffin-lores.pdf"
+    },
+    {
+      "source_key": "r158-dredge2002-c20-retained-prose",
+      "official_url": "https://publications.gc.ca/collections/collection_2013/rncan-nrcan/M44-2002-C20-eng.pdf"
+    },
+    {
+      "source_key": "r152-mtc-lambayeque-2017",
+      "official_url": "https://portal.mtc.gob.pe/transportes/caminos/normas_carreteras/Mapas%20Provinciales/Lambayeque/LA-03%20Lambayeque.pdf"
+    },
+    {
+      "source_key": "r152-mtc-sechura-2017",
+      "official_url": "https://portal.mtc.gob.pe/transportes/caminos/normas_carreteras/Mapas%20Provinciales/Piura/PI-08%20Sechura.pdf"
+    },
+    {
+      "source_key": "r143-peot-olmos-base-2010",
+      "official_url": "https://www.muniolmos.gob.pe/files/recursos_infor/POT_OLMOS_VOLUMEN_III.pdf"
+    },
+    {
+      "source_key": "r158-ingemmet-a7456-2023",
+      "official_url": "https://sigrid.cenepred.gob.pe/sigridv3/storage/biblioteca/16825_informe-tecnico-n0-a7456-evaluacion-de-zonas-criticas-por-peligros-geologicos-ante-el-fenomeno-el-nino-2023-2024-en-el-departamento-de-lambayeque.pdf"
+    },
+    {
+      "source_key": "r158-minam-desierto-2021",
+      "official_url": "https://cdn.www.gob.pe/uploads/document/file/2363169/Publicaci%C3%B3n%20.pdf"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "33158425185db5ef8724129728ee9dacecde484e",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      435,
+      436,
+      437,
+      438
+    ],
+    "next_unrecorded_id": "hydro-system:80040493",
+    "progress_rule": "Follow the actual continental order: Americas, Asia, Africa, Europe, then other, with all rivers before lakes. Preserve original queue IDs and ranks for continuity; apply documented geographic deferrals without counting them as name research, and place deferred objects into their corrected later phase by length-descending, stable-ID order. Prior candidate and scope-held assessments remain unresolved where stated.",
+    "geographic_deferrals": [
+      {
+        "aw_id": "hydro-system:80061063",
+        "original_queue_rank": 186,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 66.56–68.17°N and 179.97–177.11°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory bounding box and selected-route geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80065687",
+        "original_queue_rank": 349,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at66.725–67.849775°N and178.2–175.960242°W place this object on Chukotka west of Alaska, adjoining the previously corrected Chukotka selection. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory bounding box and selected-route geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80100188",
+        "original_queue_rank": 387,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 64.939583–66.26978°N and 174.05625–173.320833°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory/order bounding box and geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80119243",
+        "original_queue_rank": 391,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 65.451531–66.491667°N and 176.777083–175.672917°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory/order bounding box and geographic placement; geographic classification only, no naming source acquired."
+      }
+    ]
+  }
+}
