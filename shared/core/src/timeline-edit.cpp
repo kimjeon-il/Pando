@@ -19,7 +19,7 @@ std::string nextRecordId(const TimelineRecords& rows,const std::string& base) {
     for(unsigned suffix=1;ids.count(result);++suffix)result=base+":"+std::to_string(suffix);
     return result;
 }
-template<class Rows,class Change> TimelineRecords replace(const TimelineRecords& original,Rows TimelineRecords::* field,
+template<class Rows,class Change> TimelineEditResult replace(const TimelineRecords& original,Rows TimelineRecords::* field,
         const std::string& id,const std::string& cursor,Change change) {
     const auto month=parseTemporal(cursor);
     if(month.precision!="month")throw TimelineError("INVALID_TIMELINE_CURSOR","month precision required");
@@ -29,22 +29,22 @@ template<class Rows,class Change> TimelineRecords replace(const TimelineRecords&
     const auto it=std::find_if(rows.begin(),rows.end(),[&](const auto& row){return row.entityId==id&&active(row.validity,point);});
     if(it==rows.end())throw TimelineError("TIMELINE_INACTIVE","entity has no record at month end");
     auto changed=*it;
-    if(!change(changed))return original;
+    if(!change(changed))return {original,false};
     const bool split=!it->validity.from || parseTemporal(*it->validity.from).startKey<month.startKey;
-    if(!split){*it=std::move(changed);return result;}
+    if(!split){*it=std::move(changed);return {std::move(result),true};}
     const auto index=std::distance(rows.begin(),it);
     changed.id=nextRecordId(original,it->id+":"+month.canonical);
     changed.validity.from=month.canonical;
     rows[index].validity.to=shiftTemporalMonth(month.canonical,-1);
     rows.insert(rows.begin()+index+1,std::move(changed));
-    return result;
+    return {std::move(result),true};
 }
 }
 TimelineRecords replaceGeometryBindingAtMonth(const TimelineRecords& rows,const std::string& id,
                                                const std::string& month,GeometryRef next) {
     return replace(rows,&TimelineRecords::geometryBindings,id,month,[&](auto& row){
-        if(row.geometryRef==next)return false;row.geometryRef=std::move(next);return true;
-    });
+        if(row.geometryRef==next)return false;row.geometryRef=next;return true;
+    }).records;
 }
 TimelineRecords replaceParentRelationAtMonth(const TimelineRecords& rows,const std::string& id,
                                               const std::string& month,const std::string& parentId,
@@ -52,7 +52,27 @@ TimelineRecords replaceParentRelationAtMonth(const TimelineRecords& rows,const s
     return replace(rows,&TimelineRecords::parentRelations,id,month,[&](auto& row){
         if(row.parentId==parentId&&row.coverageMode==coverageMode)return false;
         row.parentId=parentId;row.coverageMode=coverageMode;return true;
-    });
+    }).records;
+}
+TimelineEditResult editTimelineRecordAtMonth(const TimelineRecords& original,const std::string& collection,
+    const std::string& id,const std::string& month,const TimelineEditPatch& patch) {
+    if(collection=="geometryBindings") {
+        if(patch.parentId||patch.coverageMode)throw TimelineError("TIMELINE_EDIT_PATCH","Unexpected parent patch field.");
+        return replace(original,&TimelineRecords::geometryBindings,id,month,[&](auto& row) {
+            if(!patch.geometryRef||row.geometryRef==*patch.geometryRef)return false;
+            row.geometryRef=*patch.geometryRef;return true;
+        });
+    }
+    if(collection=="parentRelations") {
+        if(patch.geometryRef)throw TimelineError("TIMELINE_EDIT_PATCH","Unexpected geometry patch field.");
+        return replace(original,&TimelineRecords::parentRelations,id,month,[&](auto& row) {
+            const auto nextParent=patch.parentId.value_or(row.parentId);
+            const auto nextCoverage=patch.coverageMode.value_or(row.coverageMode);
+            if(row.parentId==nextParent&&row.coverageMode==nextCoverage)return false;
+            row.parentId=nextParent;row.coverageMode=nextCoverage;return true;
+        });
+    }
+    throw TimelineError("TIMELINE_EDIT_COLLECTION","Unsupported timeline record collection.");
 }
 TimelineRecords truncateTimelineEntityAtMonth(const TimelineRecords& original,const std::string& id,
                                               const std::string& cursor) {
