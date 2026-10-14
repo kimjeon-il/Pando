@@ -12,7 +12,7 @@ ROOT=pathlib.Path(__file__).resolve().parents[1]
 SRC=ROOT/"tools/historical-library/sources/german-empire-1914/north-schleswig-001-026"
 OUT=ROOT/"tools/historical-library/land-borders"
 OUT.mkdir(parents=True,exist_ok=True)
-REPORT_DIR=report_path("reports/geography/germany/north-schleswig")
+REPORT_DIR=report_path("native/tools/historical-library/land-borders")
 REPORT_DIR.mkdir(parents=True,exist_ok=True)
 
 parishes=json.loads((SRC/"dagi-current-parishes-sector.geojson").read_text(encoding="utf-8"))
