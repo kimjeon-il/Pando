@@ -148,3 +148,24 @@ test('holes and dateline outlines follow fill while artificial polar edges remai
     }
   }
 });
+
+test('Argentina outlines follow the surviving fill after packed sliver removal', () => {
+  const countries = JSON.parse(fs.readFileSync(path.join(root,
+    'assets/data/territorial-entities/generated/current-world.geojson'), 'utf8'));
+  const feature = countries.features.find(row => row.id === 'ARG');
+  const before = structuredClone(feature.geometry);
+  const mesh = meshCore.buildGpuMeshFeatures([feature], earcut, { validate: true });
+  assert.ok(mesh.stats.removedDegenerateTriangleCount > 0, 'exercise packed triangle removal');
+  assertBoundaryEdgesBelongToFill(mesh);
+  const nearBorder = [];
+  for (let i = 0; i < mesh.lineIndices.length; i += 2) {
+    const a = mesh.lineIndices[i], b = mesh.lineIndices[i + 1];
+    const ax = mesh.positions[a * 2] * 1e-6, ay = mesh.positions[a * 2 + 1] * 1e-6;
+    const bx = mesh.positions[b * 2] * 1e-6, by = mesh.positions[b * 2 + 1] * 1e-6;
+    if (Math.abs(ay + 22) < 0.01 && Math.abs(by + 22) < 0.01
+      && Math.min(ax, bx) >= -63.64 && Math.max(ax, bx) <= -63.01) nearBorder.push(Math.abs(bx - ax));
+  }
+  assert.ok(nearBorder.reduce((sum, width) => sum + width, 0) > 0.62,
+    'the failed border must remain covered by the final outline');
+  assert.deepEqual(feature.geometry, before, 'packing must preserve canonical source geometry');
+});
