@@ -1,3 +1,6 @@
+> Report ID: `DEV-072` · Record status: `historical-record` · Map-data application: `not-applicable`
+> Original document: `design-qa.md` on Pando before the 2026-10-14 report-location consolidation. The original verification claims and limits below are unchanged.
+
 # Info tab v9 — implementation and visual verification
 
 검증일: 2026-10-06. 작업 브랜치: `codex/info-tab-v9`.
