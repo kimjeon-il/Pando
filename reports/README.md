@@ -37,6 +37,7 @@
 
 | ID | 보고서 | 원문 수정일 | 상태 | 지도 반영 |
 | --- | --- | --- | --- | --- |
+| `DEV-073` | [P2 — C++ 생성물 자동화 실행·검증](development/testing/p2-generated-artifact-automation-2026-10-14.md) | 2026-10-14 | `implemented` | `not-applicable` |
 | `DEV-072` | [Info tab v9 — implementation and visual verification](development/testing/info-tab-v9-visual-validation-2026-10-06.md) | 2026-10-06 | `historical-record` | `not-applicable` |
 | `DEV-071` | [P1 — 원격 개발환경 표준화·검증](development/testing/p1-remote-development-validation-2026-10-14.md) | 2026-10-14 | `implemented` | `not-applicable` |
 | `DEV-070` | [P0 — 원격 개발 체계·도구 의존성·성능 기준 조사](development/testing/remote-toolchain-p0-audit-2026-10-14.md) | 2026-10-14 | `investigating` | `not-applicable` |
