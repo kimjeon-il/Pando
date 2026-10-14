@@ -9,6 +9,9 @@ import {
   temporalContains,
   temporalIntervalsOverlap,
   temporalMonthEnd,
+  compareTemporalKeys,
+  temporalFollowingDay,
+  shiftTemporalMonth,
 } from '../../assets/js/modules/temporal.js';
 
 test('calendar validation handles leap years and rejects impossible dates', () => {
@@ -176,4 +179,16 @@ test('a month interval is not silently treated as a month-end snapshot', () => {
   assert.equal(temporalContains(endedMidMonth, '1914-07'), true);
   assert.equal(temporalContains(endedMidMonth, '1914-07-31'), false);
   assert.equal(temporalContains(normalizeTemporalInterval('1914-07-15', null), '1914-07-31'), true);
+});
+
+test('compiled C++ temporal key ordering, day succession and month movement are the only calendar owner', () => {
+  assert.equal(compareTemporalKeys([1914, 7, 31], [1914, 8, 1]), -1);
+  assert.equal(compareTemporalKeys([1000000, 1, 1], [999999, 12, 31]), 1);
+  assert.equal(compareTemporal({ startKey: [-1, 12, 31] }, { startKey: [1, 1, 1] }), -1);
+  assert.deepEqual(temporalFollowingDay([1916, 2, 28]), [1916, 2, 29]);
+  assert.deepEqual(temporalFollowingDay([1900, 2, 28]), [1900, 3, 1]);
+  assert.deepEqual(temporalFollowingDay([-1, 12, 31]), [1, 1, 1]);
+  assert.deepEqual(temporalFollowingDay([999999, 12, 31]), [1000000, 1, 1]);
+  assert.equal(shiftTemporalMonth('0001-01', -1), '-0001-12');
+  assert.equal(shiftTemporalMonth('-0001-12', 1), '0001-01');
 });

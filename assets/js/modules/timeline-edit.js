@@ -1,11 +1,7 @@
-import { compareTemporal, normalizeTemporalInterval, parseTemporal, temporalMonthEnd } from './temporal.js';
+import { compareTemporal, normalizeTemporalInterval, parseTemporal, temporalMonthEnd, shiftTemporalMonth } from './temporal.js';
 
 const collectionFields = Object.freeze({ geometryBindings: ['geometryRef'], parentRelations: ['parentId', 'coverageMode'] });
-function priorMonth(value) {
-  let year = value.year, month = value.month - 1;
-  if (!month) { month = 12; year = year === 1 ? -1 : year - 1; }
-  return `${year < 0 ? '-' : year > 9999 ? '+' : ''}${String(Math.abs(year)).padStart(4, '0')}-${String(month).padStart(2, '0')}`;
-}
+const priorMonth = value => shiftTemporalMonth(value.canonical, -1);
 function active(row, month) {
   const interval = normalizeTemporalInterval(row.validFrom, row.validTo);
   return (!interval.start || compareTemporal(interval.start, month, { rightBoundary: 'end' }) <= 0)
