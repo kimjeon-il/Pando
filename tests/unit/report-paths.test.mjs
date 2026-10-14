@@ -5,19 +5,14 @@ import { join } from 'node:path';
 import test from 'node:test';
 import { reportPath } from '../../tools/report-paths.mjs';
 
-test('report resolution uses the explicit current path even before an output exists', t => {
+test('report consumers select original inputs before relocation and canonical inputs afterwards', t => {
   const root = mkdtempSync(join(tmpdir(), 'pando-reports-'));
   t.after(() => rmSync(root, { recursive: true, force: true }));
-  const relative = 'reports/research/country-default-colors.json';
-  assert.equal(reportPath(relative, root), join(root, relative));
-  mkdirSync(join(root, 'docs/research'), { recursive: true });
-  writeFileSync(join(root, 'docs/research/country-default-colors.json'), '{}');
-  assert.equal(reportPath(relative, root), join(root, relative));
-});
-
-test('retired locations are rejected instead of translated or detected', () => {
-  for (const path of ['docs/research/country-default-colors.json', 'native/reports/places/source-manifest.json',
-    'assets/data/research/siachen', 'tools/historical-library/working', 'reports/../docs/report.json']) {
-    assert.throws(() => reportPath(path), TypeError);
-  }
+  assert.equal(reportPath('docs/research/country-default-colors.json', root), join(root, 'docs/research/country-default-colors.json'));
+  assert.equal(reportPath('native/reports/places/source-manifest.json', root), join(root, 'native/reports/places/source-manifest.json'));
+  mkdirSync(join(root, 'reports/places'), { recursive: true });
+  writeFileSync(join(root, 'reports/places/source-manifest.json'), '{}');
+  assert.equal(reportPath('docs/research/country-default-colors.json', root), join(root, 'reports/research/country-default-colors.json'));
+  assert.equal(reportPath('native/reports/places/source-manifest.json', root), join(root, 'reports/places/source-manifest.json'));
+  assert.equal(reportPath('tools/historical-library/land-borders/master.geojson', root), join(root, 'tools/historical-library/land-borders/master.geojson'));
 });
