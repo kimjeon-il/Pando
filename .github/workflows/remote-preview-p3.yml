@@ -118,6 +118,8 @@ jobs:
         run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Install Chromium and OS dependencies
         run: pnpm exec playwright install --with-deps chromium
+      - name: Verify the active built-in world mesh decoder contract
+        run: node --test tests/unit/country-mesh-codec-runtime.test.mjs
       - name: Run real desktop and emulated mobile screenshots plus startup observability
         shell: bash
         env:
@@ -187,7 +189,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y ninja-build zlib1g-dev libegl1-mesa-dev libxkbcommon-x11-0 libxcb-cursor0 xvfb xauth imagemagick fonts-noto-cjk
+          sudo apt-get install -y ninja-build zlib1g-dev libegl1-mesa-dev libxkbcommon-x11-0 libxcb-cursor0 xvfb xauth xdotool imagemagick fonts-noto-cjk
       - uses: jurplel/install-qt-action@v4
         with:
           version: '6.8.3'
@@ -232,22 +234,15 @@ jobs:
         run: |
           ctest --preset $env:PANDO_P3_QT_PRESET 2>&1 | Tee-Object p3-ctest.log
           exit $LASTEXITCODE
-      - name: Capture a native Qt Quick window under virtual Linux display
+      - name: Capture a real nonblank Qt Quick application window under Linux Xvfb
         if: runner.os == 'Linux'
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p test-results/p3-qt
           app="$PWD/build-native/p3/pando-native-qt-ci-linux/native/app/pandoeditor"
-          test -x "$app"
-          xvfb-run -a -s '-screen 0 1280x800x24' bash -c '
-            QT_QPA_PLATFORM=xcb QT_QUICK_BACKEND=software "$1" --smoke-check >"$2" 2>&1 &
-            p=$!
-            sleep 0.65
-            import -window root "$3" || true
-            wait "$p"
-          ' bash "$app" "$PWD/test-results/p3-qt/native-smoke.log" "$PWD/test-results/p3-qt/native-window.png"
-          test -s test-results/p3-qt/native-window.png
+          bash native/tools/p3-capture-smoke.sh \
+            "$app" "$PWD/test-results/p3-qt/native-smoke.log" \
+            "$PWD/test-results/p3-qt/native-window.png"
       - name: Record Qt binary identity for this platform
         shell: bash
         if: success()
