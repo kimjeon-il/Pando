@@ -3,7 +3,7 @@ import { buildCountrySharedBoundaryContact, hasOpposingBoundaryInteriors, create
   attachBoundarySegmentReferences, serializeCountrySharedBoundarySegments, topologyNodeKey } from './boundary-topology.js';
 import { createBoundarySpatialIndex, segmentBounds } from './boundary-spatial-index.js';
 import { connectBoundarySegments } from './boundary-lines.js';
-import { buildRenderableBoundarySegments, densifyBoundarySegmentsForProjection } from './geographic-boundary.js';
+import { buildRefinedBoundarySegments, MAX_BOUNDARY_EDGE_DEGREES } from './geographic-boundary.js';
 
 export function shouldShowSharedCountryBorders(settings) {
   return settings?.terrainVisible === true && settings?.terrainStyle === 'physical';
@@ -119,7 +119,7 @@ export function createCountrySharedBoundaryState() {
 
 // Keep each owner set contiguous so the GPU can apply the same per-country
 // visibility rule as Canvas without rebuilding geometry when visibility flips.
-export function prepareCountrySharedBoundaryPacket(segments = [], features = [], { preparedStore } = {}) {
+export function prepareCountrySharedBoundaryPacket(segments = [], features = [], { preparedStore, maxEdgeDegrees = MAX_BOUNDARY_EDGE_DEGREES } = {}) {
   const store = preparedStore || createPreparedBoundaryStore();
   if (!preparedStore) store.replace(features);
   segments = segments.map(segment => segment.refs || !features.length ? segment : attachBoundarySegmentReferences(segment, store));
@@ -178,12 +178,12 @@ export function prepareCountrySharedBoundaryPacket(segments = [], features = [],
       if (cursor < 1 - 1e-9) outlines.push({ start: point(cursor), end, ownerIds: [id] });
     }
   }
-  const packet = prepareStrokePacket(segments.filter(segment => !exteriorSegments.has(segment)));
+  const packet = prepareStrokePacket(segments.filter(segment => !exteriorSegments.has(segment)), maxEdgeDegrees);
   return { ...packet, ownerIds: [...new Set([...packet.ownerIds, ...byId.keys()])], internalOwners,
-    outlineOverrides: prepareStrokePacket(outlines), outlineOwnerIds: [...outlineIds].sort() };
+    outlineOverrides: prepareStrokePacket(outlines, maxEdgeDegrees), outlineOwnerIds: [...outlineIds].sort() };
 }
 
-function prepareStrokePacket(segments) {
+function prepareStrokePacket(segments, maxEdgeDegrees) {
   const sources = [...segments].sort((left, right) =>
     left.ownerIds.join('|').localeCompare(right.ownerIds.join('|')));
   const groups = new Map();
@@ -198,8 +198,8 @@ function prepareStrokePacket(segments) {
   for (const { ownerIds, edges } of groups.values()) {
     for (const line of connectBoundarySegments(edges)) {
       let phase = 0;
-      const renderable = buildRenderableBoundarySegments({ type: 'LineString', coordinates: line });
-      for (const [start, end] of densifyBoundarySegmentsForProjection(renderable)) {
+      const renderable = buildRefinedBoundarySegments({ type: 'LineString', coordinates: line }, maxEdgeDegrees);
+      for (const [start, end] of renderable) {
         ordered.push({ start, end, ownerIds });
         phases.push(phase);
         phase += Math.hypot(end[0] - start[0], end[1] - start[1]);

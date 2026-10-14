@@ -1,4 +1,4 @@
-import { buildRenderableBoundarySegments, normalizeLongitudeNear } from './geographic-boundary.js';
+import { buildRenderableBoundarySegments, buildRefinedBoundarySegments, normalizeLongitudeNear } from './geographic-boundary.js';
 import './polygon-geometry.js';
 import { createBoundarySpatialIndex, segmentBounds, padBoundaryBounds } from './boundary-spatial-index.js';
 import { countryGeometrySignature } from './country-shared-boundary-cache.js';
@@ -512,13 +512,14 @@ export function buildTerritorialInternalBoundarySegments(countries = [], units =
     const styleType = metadata.some(item => item.entityKind === 'regional')
       ? 'region'
       : sameRootChildren ? 'subunit-internal' : 'subunit';
-    output.push({
-      key: segment.key,
-      a: segment.a,
-      b: segment.b,
-      unitOwners: metadata.map(item => ({ id: item.id, entityKind: item.entityKind, rootId: item.rootId })),
-      styleType,
-    });
+    // Preserve editable source segments for classification. Only the
+    // accepted, visible edges become refined display geometry.
+    const pieces = buildRefinedBoundarySegments({ type: 'LineString', coordinates: [segment.a, segment.b] });
+    const displayOwners = metadata.map(item => ({ id: item.id, entityKind: item.entityKind, rootId: item.rootId }));
+    pieces.forEach(([a, b], index) => output.push({
+      key: `${segment.key}:${index}`,
+      a, b, unitOwners: displayOwners, styleType,
+    }));
   }
   return output;
 }

@@ -16,6 +16,16 @@ const coordinates = state => serializeCountrySharedBoundarySegments(state.segmen
 
 const packetLength = packet => packet.segments.reduce((sum, segment) => sum
   + Math.hypot(segment.end[0] - segment.start[0], segment.end[1] - segment.start[1]), 0);
+const sphericalEdgeDegrees = (a, b) => {
+  const radians = Math.PI / 180;
+  const direction = ([longitude, latitude]) => [
+    Math.cos(latitude * radians) * Math.cos(longitude * radians),
+    Math.cos(latitude * radians) * Math.sin(longitude * radians),
+    Math.sin(latitude * radians),
+  ];
+  const x = direction(a), y = direction(b);
+  return Math.acos(Math.max(-1, Math.min(1, x.reduce((sum, value, index) => sum + value * y[index], 0)))) / radians;
+};
 
 test('display subdivision updates owner ranges and keeps dash phases along reversed connected source edges', () => {
   const input = [
@@ -59,8 +69,7 @@ test('replacement outlines are subdivided only after the internal contact is rem
   assert.deepEqual(outlines.preparedGeometry.ownerRanges, outlines.ownerRanges);
   assert.equal(outlines.preparedGeometry.capCount, 2);
   for (const segment of outlines.segments) {
-    assert.ok(Math.max(Math.abs(segment.end[0] - segment.start[0]), Math.abs(segment.end[1] - segment.start[1]))
-      <= MAX_BOUNDARY_EDGE_DEGREES + 1e-6);
+    assert.ok(sphericalEdgeDegrees(segment.start, segment.end) <= MAX_BOUNDARY_EDGE_DEGREES + 1e-6);
     if (segment.start[0] === 2 && segment.end[0] === 2) {
       assert.ok(Math.max(segment.start[1], segment.end[1]) <= 1 || Math.min(segment.start[1], segment.end[1]) >= 5);
     }

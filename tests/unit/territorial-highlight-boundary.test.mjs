@@ -49,7 +49,10 @@ test('partial overlaps across the dateline leave only two short non-overlapping 
   const result = excludeAncestorHighlightBoundary(line, [ancestor]);
   assert.equal(length(result), 1);
   assert.equal(result.geometry.coordinates.length, 2);
-  assert.deepEqual(result.geometry.coordinates, [[[179, 0], [179.5, 0]], [[-179.5, 0], [-179, 0]]]);
+  assert.deepEqual(result.geometry.coordinates.map(line => [line[0], line.at(-1)]),
+    [[[179, 0], [179.5, 0]], [[-179.5, 0], [-179, 0]]]);
+  assert.ok(result.geometry.coordinates.every(line => line.length > 2),
+    'the selected coastline must use refined fill-compatible intervals');
 });
 
 test('polar and seam closure edges never become selection highlight strokes', () => {

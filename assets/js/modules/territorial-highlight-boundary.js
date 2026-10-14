@@ -1,6 +1,6 @@
 import { geometryRevision } from './geometry-versions.js';
 import { connectBoundarySegments } from './boundary-lines.js';
-import { buildRenderableBoundarySegments } from './geographic-boundary.js';
+import { buildRenderableBoundarySegments, buildRefinedBoundarySegments } from './geographic-boundary.js';
 
 const ancestorIndexes = new WeakMap();
 
@@ -60,5 +60,8 @@ export function excludeAncestorHighlightBoundary(feature, ancestors, epsilon = 1
     }
     if (cursor < 1 - 1e-9) output.push([point(cursor), b]);
   }
-  return { type: 'Feature', properties: {}, geometry: { type: 'MultiLineString', coordinates: connectBoundarySegments(output) } };
+  // Remove ancestor-owned intervals in source topology space, then refine
+  // only the visible display remainder without modifying either polygon.
+  const visible = buildRefinedBoundarySegments({ type: 'MultiLineString', coordinates: output });
+  return { type: 'Feature', properties: {}, geometry: { type: 'MultiLineString', coordinates: connectBoundarySegments(visible) } };
 }
