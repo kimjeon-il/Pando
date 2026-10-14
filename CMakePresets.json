@@ -1,0 +1,133 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 21,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "pando-base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build-native/p1/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "pando-core",
+      "inherits": "pando-base",
+      "cacheVariables": {
+        "PANDO_BUILD_VARIANT": "core",
+        "BUILD_TESTING": "ON"
+      }
+    },
+    {
+      "name": "pando-native-core",
+      "inherits": "pando-base",
+      "cacheVariables": {
+        "PANDO_BUILD_VARIANT": "native",
+        "PANDOEDITOR_BUILD_APP": "OFF",
+        "BUILD_TESTING": "OFF"
+      }
+    },
+    {
+      "name": "pando-native-qt",
+      "inherits": "pando-base",
+      "cacheVariables": {
+        "PANDO_BUILD_VARIANT": "native",
+        "PANDOEDITOR_BUILD_APP": "ON",
+        "BUILD_TESTING": "OFF"
+      }
+    },
+    {
+      "name": "pando-wasm",
+      "inherits": "pando-base",
+      "cacheVariables": {
+        "PANDO_BUILD_VARIANT": "wasm",
+        "BUILD_TESTING": "OFF"
+      }
+    },
+    {
+      "name": "pando-gis-tools",
+      "inherits": "pando-base",
+      "cacheVariables": {
+        "PANDO_BUILD_VARIANT": "gis-tools",
+        "PANDO_BUILD_COUNTRY_VALIDATOR": "OFF",
+        "PANDO_BUILD_TERRITORIAL_RECIPE": "OFF",
+        "BUILD_TESTING": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "pando-core",
+      "configurePreset": "pando-core",
+      "targets": [
+        "project_codec_tests",
+        "document_session_tests",
+        "geometry_draft_tests"
+      ],
+      "jobs": 2
+    },
+    {
+      "name": "pando-native-core",
+      "configurePreset": "pando-native-core",
+      "targets": [
+        "pandoeditor_map_engine"
+      ],
+      "jobs": 2
+    },
+    {
+      "name": "pando-native-qt",
+      "configurePreset": "pando-native-qt",
+      "targets": [
+        "pandoeditor"
+      ],
+      "jobs": 2
+    },
+    {
+      "name": "pando-wasm",
+      "configurePreset": "pando-wasm",
+      "targets": [
+        "pandoeditor_wasm"
+      ],
+      "jobs": 1
+    },
+    {
+      "name": "pando-gis-tools",
+      "configurePreset": "pando-gis-tools",
+      "targets": [
+        "pando-spherical-polygon-tests"
+      ],
+      "jobs": 2
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "pando-core",
+      "configurePreset": "pando-core",
+      "output": {
+        "outputOnFailure": true
+      },
+      "filter": {
+        "include": {
+          "name": "^(project_codec_tests|document_session_tests|geometry_draft_tests)$"
+        }
+      }
+    },
+    {
+      "name": "pando-gis-tools",
+      "configurePreset": "pando-gis-tools",
+      "output": {
+        "outputOnFailure": true
+      },
+      "filter": {
+        "include": {
+          "name": "^spherical-polygon-normalization$"
+        }
+      }
+    }
+  ]
+}
