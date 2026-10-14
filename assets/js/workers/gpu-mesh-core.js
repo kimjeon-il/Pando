@@ -392,6 +392,7 @@
 
   function removePackedDegenerateTriangles(points, triangles, parameterSpace) {
     const output = [];
+    const removedTriangles = [];
     let removed = 0;
     const triangleKeys = new Set();
     for (let index = 0; index < triangles.length; index += 3) {
@@ -404,6 +405,7 @@
       const packedKeys = packedInteger.map(point => `${point[0]},${point[1]}`);
       if (new Set(packedKeys).size < 3) {
         removed += 1;
+        removedTriangles.push(indices);
         continue;
       }
       const sourceArea = signedArea(sourceParameter[0], sourceParameter[1], sourceParameter[2]);
@@ -419,20 +421,22 @@
         : Math.abs(packedArea) <= AREA_EPSILON;
       if (packedAreaIsZero || sourceArea * packedArea <= 0) {
         removed += 1;
+        removedTriangles.push(indices);
         continue;
       }
       const triangleKey = indices.slice().sort((a, b) => a - b).join(':');
       if (triangleKeys.has(triangleKey)) {
         removed += 1;
+        removedTriangles.push(indices);
         continue;
       }
       triangleKeys.add(triangleKey);
       output.push(...indices);
     }
-    return { triangles: output, removed };
+    return { triangles: output, removed, removedTriangles };
   }
 
-  function finalTriangleBoundaryEdges(points, triangles, chains) {
+  function finalTriangleBoundaryEdges(points, triangles, chains, removedTriangles) {
     // Source rings decide which coast/seam edges exist. Final fill triangles
     // decide which vertices may actually represent those visible edges.
     const MICRO = 1e6, WORLD = 360 * MICRO, HALF = 180 * MICRO;
@@ -442,19 +446,34 @@
     const key = (a, b) => normalized[a] < normalized[b]
       ? `${normalized[a]}|${normalized[b]}` : `${normalized[b]}|${normalized[a]}`;
 
-    const sources = [];
+    const sources = new Map(), hidden = new Set();
     const candidates = new Map();
     for (const chain of chains) {
       for (let index = 0; index < chain.vertices.length; index += 1) {
-        if (!chain.visible[index]) continue;
         const a = chain.vertices[index], b = chain.vertices[(index + 1) % chain.vertices.length];
         if (packed[a][0] === packed[b][0] && packed[a][1] === packed[b][1]) continue;
         const pair = key(a, b);
-        sources.push({ a, b, pair });
+        if (!chain.visible[index]) { hidden.add(pair); continue; }
+        sources.set(pair, { a, b, pair });
         if (!candidates.has(pair)) candidates.set(pair, new Map());
       }
     }
-    if (!sources.length) return [];
+    if (!sources.size) return [];
+
+    // A packed sliver can flip or collapse and be discarded. Its source
+    // boundary must move to the exposed retained triangle edges, rather
+    // than drawing the old ring through a part of the fill that no longer
+    // exists. Use triangle connectivity, never a coordinate tolerance.
+    const discardedByEdge = new Map();
+    const triangleEdges = ([a, b, c]) => [[a, b], [b, c], [c, a]];
+    removedTriangles.forEach((triangle, index) => {
+      for (const [a, b] of triangleEdges(triangle)) {
+        const pair = key(a, b);
+        if (!discardedByEdge.has(pair)) discardedByEdge.set(pair, []);
+        discardedByEdge.get(pair).push(index);
+        if (!candidates.has(pair)) candidates.set(pair, new Map());
+      }
+    });
 
     for (let i = 0; i < triangles.length; i += 3) {
       const a = triangles[i], b = triangles[i + 1], c = triangles[i + 2];
@@ -469,7 +488,31 @@
       }
     }
 
-    return sources.map(({ a, b, pair }) => {
+    const isRetainedBoundary = pair => [...candidates.get(pair).values()].some(edge => edge.count === 1);
+    const visited = new Set();
+    for (const { pair } of [...sources.values()]) {
+      if (isRetainedBoundary(pair)) continue;
+      const queue = [...(discardedByEdge.get(pair) || [])];
+      const perimeter = new Map();
+      for (let index = 0; index < queue.length; index++) {
+        const triangleIndex = queue[index];
+        if (visited.has(triangleIndex)) continue;
+        visited.add(triangleIndex);
+        for (const [a, b] of triangleEdges(removedTriangles[triangleIndex])) {
+          const edge = key(a, b);
+          if (perimeter.has(edge)) perimeter.delete(edge);
+          else perimeter.set(edge, { a, b, pair: edge });
+          for (const neighbor of discardedByEdge.get(edge)) if (!visited.has(neighbor)) queue.push(neighbor);
+        }
+      }
+      for (const [edge, source] of perimeter) {
+        if (sources.has(edge)) sources.delete(edge);
+        else if (!hidden.has(edge) && !isArtificialPolarClosureEdge(points[source.a], points[source.b]))
+          sources.set(edge, source);
+      }
+    }
+
+    return [...sources.values()].map(({ a, b, pair }) => {
       const boundary = [...candidates.get(pair).values()].filter(edge => edge.count === 1);
       if (!boundary.length) {
         throw Object.assign(new Error(`GPU 외곽선과 채색 경계 불일치: ${points[a].join(',')} → ${points[b].join(',')}`),
@@ -587,7 +630,7 @@
         // without updating the original boundary chain. Reconcile display
         // strokes with the FINAL packed triangle boundary after those clones
         // and discarded degenerate triangles have been decided.
-        for (const [a, b] of finalTriangleBoundaryEdges(geoPoints, localTriangles, boundaryChains)) {
+        for (const [a, b] of finalTriangleBoundaryEdges(geoPoints, localTriangles, boundaryChains, packedTriangles.removedTriangles)) {
           const start = vertexOffset + a, end = vertexOffset + b;
           const ax = positions[start * 2], ay = positions[start * 2 + 1];
           const bx = positions[end * 2], by = positions[end * 2 + 1];
