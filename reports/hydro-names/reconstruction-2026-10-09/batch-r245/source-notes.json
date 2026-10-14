@@ -1,0 +1,809 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r245",
+  "sources": [
+    {
+      "source_key": "r245-ibge-calcoene2020",
+      "title": "Calçoene – AP, Mapa Municipal, 1600204",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística, Coordenação de Estruturas Territoriais",
+      "edition": "2020 municipal-map collection; printed territorial edition04/2021",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/AP/calcoene/1600204_MM.pdf",
+      "publication_identity": "Municipality-specific statistical/cartographic compilation for Calçoene, product1600204, with its own jurisdiction, producing unit and territorial imprint. Prior positively identified publication records and the newly inspected original distinguish it from the held political-map news article, other held municipal products/directories, Guyane2013 Map9 and OAS/JOG publications. Its identity is not inferred solely from absence of a restriction match.",
+      "access_status": "completed_direct200_application_pdf_exit0",
+      "actual_reading": "Entire one-sheet overview, title, coordinate graticule, hydrographic legend, edition and use notice; overlapping enlarged southwestern opening, northern headwater, eastward upper bend, Carnot, north/northeast middle course, Cunani village, both fragment joins, southeastern lower bends, widened lower river and both ending contexts. Original pixels and private selected-position orientation comparisons were read.",
+      "source_original_acquired": true,
+      "original_pixels_actually_read": true,
+      "limits": "Generalized multi-source municipal reference cartography; initial stored stub and final rendered extension are not exact matches to every drawn channel segment. No exact-bank, current-flow, legal-boundary or registry conclusion."
+    },
+    {
+      "source_key": "r245-icmbio-cabo-orange2010",
+      "title": "Plano de Manejo do Parque Nacional do Cabo Orange, Encarte 3 – Análise da Unidade de Conservação",
+      "publisher": "Instituto Chico Mendes de Conservação da Biodiversidade, Ministério do Meio Ambiente",
+      "year": 2010,
+      "official_url": "https://www.gov.br/icmbio/pt-br/assuntos/biodiversidade/unidade-de-conservacao/unidades-de-biomas/marinho/lista-de-ucs/parna-do-cabo-orange/arquivos/encarte-3-pnco.pdf",
+      "publication_identity": "Independently issued Cabo Orange protected-area management-plan project, affirmatively distinguished in retained publication/technical credits and confirmed by the new original cover and institutional imprint. Distinct from the municipal-statistical compilation, Guyane2013 Map9, Marajó HOLOS/NHM and the held Mamanguape plan.",
+      "access_status": "completed_direct200_application_pdf_exit0",
+      "actual_reading": "Original cover and institutional imprint, PDFpages1 and3; original hydrography page PDF27/printed66 visually read, especially the Rio Cunani subsection. Bounded regional navigation/tidal prose from PDFpages34–35 was read as text. No map figure or whole-report reading is claimed for this finding.",
+      "source_original_acquired": true,
+      "original_pixels_actually_read": true,
+      "observations": "Identifies Rio Cunani and its association with Carnot/BR-156, Cunani village and the mouth, together with historical lower-river tidal context.",
+      "limits": "Historical protected-area planning prose; reported length and tide/navigation details do not define the selected geometry, a present operating condition or exact name-transition positions."
+    },
+    {
+      "source_key": "r245-cprm-lourenco2015",
+      "title": "Lourenço, Folha NA.22-V-D, Estado do Amapá. Carta Geológica, escala1:250.000",
+      "authors": [
+        "Cristiane Silva de Sousa",
+        "Manoel Correa da Costa Neto"
+      ],
+      "publisher": "CPRM – Serviço Geológico do Brasil, Programa Geologia do Brasil",
+      "year": 2015,
+      "official_url": "https://rigeo.sgb.gov.br/bitstream/doc/20409/9/carta_geologica_lourenco.pdf",
+      "publication_identity": "The distinct Geologia da Folha Lourenço thematic field/editorial project is positively identified by authors, programme, technical credits, map imprint and retained prior original-reading record. The newly inspected original credits an IBGE2010 base edited and updated by CPRM against Geocover imagery, rather than a reproduction of a held political-news map, municipal product, Guiana Map9 or OAS/JOG chart. It is independent of the held SGB sub-bacia39 report. Shared base inputs with other Brazilian mapping are not treated as a third independent hydrographic survey.",
+      "access_status": "completed_direct200_application_pdf_exit0",
+      "actual_reading": "One-sheet original overview and title; enlarged selected southwestern headwater and northbound receiver, upper Cunani, Carnot, middle river, Mocambo/Rio Novo network and Cunani-village corridor within the eastern sheet edge; cartographic legend, scale/year, base-credit paragraph, author/project credits and bibliographic imprint. No separate report, GIS data or underlying base original acquired.",
+      "source_original_acquired": true,
+      "original_pixels_actually_read": true,
+      "limits": "Geological reference mapping with credited updated hydrographic base. Initial rendered-stub offset remains a generalization caveat; the sheet does not cover the final coastal mouth. Printed2015 edition retained; the bibliographic line also contains a2014 project reference."
+    },
+    {
+      "source_key": "r245-inegi-camargo2010-retained",
+      "title": "Compendio de información geográfica municipal 2010: Camargo, Chihuahua",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "municipal_code": "08011",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08011.pdf",
+      "actual_material_read": "Physically retained complete 11-page original. Cover and relevant geographic, physiographic and hydrography text on PDF pages 1–4 read. PDF page 7 Relieve was visually read as a full page, with its legend, source credits, selected-corridor enlargement and clean upper, middle and terminal detail views. These observations concern the full present selection, not another previously researched corridor.",
+      "actual_map_sources": "Marco Geoestadístico Municipal 2010 version 4.3; national physiographic compilation 1:1,000,000 series I; Información Topográfica Digital 1:250,000 series II and III; INEGI–CONAGUA 2007 Mapa de la Red Hidrográfica Digital de México 1:250,000.",
+      "publication_identity": "Exact Camargo municipal editorial compilation and its own inspected source credits identify older topographic and hydrographic inputs. These distinguish the retained volume from the held national 2023 topographic publication. Another municipality’s title or credits were not substituted.",
+      "observed_acquisition": "No new acquisition in this pass. Prior complete original acquisition and physically retained original were confirmed before the new local reading.",
+      "supports": "Entire selected ordinary geographic corridor, separately named lakes, Los Pilares tributary distinction and actual terminal receiving setting.",
+      "limitations": "Historical generalized municipal cartography; no current flow, exact shore or bank alignment, hydraulic operation, legal naming boundary or formal registry verification. The hydrography inventory supplies feature type, not a name for every depicted channel."
+    },
+    {
+      "source_key": "r245-canada787-world-imagery",
+      "title": "World Imagery",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "evidence_kind": "original_satellite_imagery",
+      "actual_material_read": "One normally completed original geographic view covering the southern opening, all nineteen selected parts, the adjacent main river valley, northern lakes and coastal terminal; full image and private clean/orientation enlargements visually inspected. The sequential same-view export metadata was read only to establish the actual returned extent; no returned dynamic-image URL was fetched.",
+      "source_independence": "Satellite-image service, positively distinct from the held Canadian gazetteer, federal topographic, geological-field-map and CHS chart publications. This separately authorized Canadian view is geographically unrelated to the stopped Mendoza view; that old view and its unread outputs remain excluded. No particular acquisition epoch is inferred.",
+      "observations": "Lake-rich opening terrain, west-leading middle river corridor, northwest valley, unresolved northeastward transfer into a separate lake trough, and separate coastal drainage east of Inman mouth context.",
+      "limits": "Does not name the selected river or waterbodies. The ordinary river-to-lake-trough connection is not established, and lake-chain continuity remains unresolved. No exact bank, current wet-thread, discharge or surveyed endpoint claim."
+    },
+    {
+      "source_key": "r245-canada787-arc403",
+      "title": "Canadian Sailing Directions, ARC403: Western Arctic",
+      "publisher": "Canadian Hydrographic Service, Fisheries and Oceans Canada",
+      "edition": "2024/03",
+      "catalogue_number": "Fs74-40E-PDF",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/chs-shc-ARC403-eng-202403-41232306.pdf",
+      "evidence_kind": "primary_coastal_prose",
+      "actual_material_read": "Physically retained complete normal original: cover and reproduction/imprint notice; Chapter5 printed pages5-2 through5-4, especially paragraphs20-21 and24-31. Printed5-3/physical79 was rendered and visually read. No chart original was acquired or used.",
+      "source_independence": "Separately edited Western Arctic coastal-description volume with established successful acquisition and no subsequent exact stop. Its own prose is independent of ARC401, CGN, CanMatrix/CBMT and held geological-field maps.",
+      "observations": "Dolphin and Union Strait south-coast context; Inman mouth between Clifton Point and Wise Point with low gravel/sand flats; separately described Hoppner and Harding mouths farther east.",
+      "limits": "Coastal prose supplies no inland route, lake-to-feeder transfer or selected representative name. Historical geography only, not present navigation advice.",
+      "use_notice": "Personal noncommercial reproduction is distinguished from commercial reproduction requiring prior permission. Only own factual synthesis and normal bibliography are deliverable."
+    },
+    {
+      "source_key": "r245-canada788-world-imagery",
+      "title": "World Imagery",
+      "publisher": "Esri and imagery contributors",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "evidence_kind": "original_satellite_imagery",
+      "actual_material_read": "One normally completed original image covering the southeastern headward terrain, all twenty-one selected parts, connected middle and lower valleys, Cunningham Inlet-head delta and both stored terminal settings. Full image and private clean/orientation enlargements of the opening, middle and lower corridor were visually inspected. Successful preceding same-view export metadata supplied the returned extent for orientation.",
+      "source_independence": "Satellite-image publication, positively distinct from the held Canadian naming, federal topographic and geological-field-map publications. This Somerset view is geographically separate from the exact held Mendoza view and other held views; no stopped output was recovered.",
+      "observations": "A connected dendritic tributary area leads northwest into a continuous incised river valley, which widens into the coastal delta named in the CHS account. No substantive missing valley join, lake-to-feeder or interbasin transfer remains.",
+      "limits": "Imagery supplies geography, not names or registry status. No acquisition epoch, exact bank alignment, present discharge or active delta-channel condition is asserted."
+    },
+    {
+      "source_key": "r245-canada788-arc402",
+      "title": "Canadian Sailing Directions, ARC402: Eastern Arctic",
+      "publisher": "Canadian Hydrographic Service, Fisheries and Oceans Canada",
+      "edition": "2025/01",
+      "catalogue_number": "Fs74-39E-PDF",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/chs-shc-ARC402-eng-202501-41273515.pdf",
+      "evidence_kind": "primary_coastal_prose",
+      "actual_material_read": "Physically retained complete normal original: cover, printed page ii imprint and reproduction notice; Chapter7 printed pages 7-2 and 7-3, especially paragraphs 24-35. Printed 7-3 / physical 93 was also rendered and visually read. No external chart original acquired.",
+      "source_independence": "Separately issued Eastern Arctic coastal-description editorial volume with established normal original acquisition and no later exact stop. Its own coastal prose is distinct from held ARC401, CGN, CanMatrix/CBMT and geological field-map material.",
+      "observations": "Paragraph33 names Cunningham River, its broad delta at Cunningham Inlet head and the wide valley feeding it. Adjacent prose distinguishes Garnier and Irvine bays, Cape Rennell and Cape Anne, situating this on the northern Somerset coast.",
+      "limits": "Coastal prose alone does not individually name each upper tributary or prove the inland connection; continuous original imagery supplies that connection. Historical geography only, not present navigation advice.",
+      "use_notice": "Personal noncommercial reproduction is distinguished from commercial reproduction requiring prior permission. Only own factual synthesis and normal bibliography are deliverable."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:60255845",
+      "source_keys": [
+        "r245-ibge-calcoene2020",
+        "r245-icmbio-cabo-orange2010",
+        "r245-cprm-lourenco2015"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            11595
+          ],
+          "component_scope": "Chosen southwestern opening and northward receiving headwater",
+          "finding": "The municipal and geological originals depict the headward north-running drainage that receives the selected opening, its small side branches and its continuous northward course toward the eastward Cunani bend. The short initial west-to-east stored stub lies slightly west of the drawn headwater line. The identification of this stub with the immediate headwater receiving corridor is an ordinary-scale geographic inference from the surrounding mapped drainage, not a claim that every initial segment is explicitly drawn or surveyed. No distinct-basin crossing, lake-to-feeder transfer or managed connector is indicated. A separate name for the chosen initial feeder is not established.",
+          "sources": [
+            "r245-ibge-calcoene2020",
+            "r245-cprm-lourenco2015"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "part_indices_zero_based": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ]
+        },
+        {
+          "fragments": [
+            11595
+          ],
+          "component_scope": "Eastward upper bend and northeast approach to Carnot",
+          "finding": "Both cartographic originals show the upper drainage turning east and then northeast into the reach directly labeled Rio Cunani. Its bends, several small lateral joins and continuous approach to the BR-156/Carnot corridor correspond to the selection. The name is attached to this receiving river; it is not assigned independently to each small joining stream.",
+          "sources": [
+            "r245-ibge-calcoene2020",
+            "r245-cprm-lourenco2015"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Rio Cunani"
+          ],
+          "part_indices_zero_based": [
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20
+          ]
+        },
+        {
+          "fragments": [
+            11595
+          ],
+          "component_scope": "Carnot road crossing and north/northeast middle river",
+          "finding": "The original maps follow the same river through the Carnot/Agrovila do PA Carnot road-crossing setting and north-northeast through the forested interior, with its intermediate tributary joins and turns. The park plan independently places Carnot beside Rio Cunani and BR-156. There is no necessary lake, reservoir or engineered passage along this selected interval.",
+          "sources": [
+            "r245-ibge-calcoene2020",
+            "r245-icmbio-cabo-orange2010",
+            "r245-cprm-lourenco2015"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Rio Cunani"
+          ],
+          "part_indices_zero_based": [
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33
+          ]
+        },
+        {
+          "fragments": [
+            11595
+          ],
+          "component_scope": "Eastward lower-middle bends, Cunani village and approach to the stage boundary",
+          "finding": "The river turns east through increasingly sinuous lower-middle bends to Vila Cunani and continues east beyond it. The municipal original covers all stored fragment-end parts, while the geological original corroborates the river/village relationship and the adjacent tributary network. Igarapé Mocambo and Rio Novo are separately labeled lateral waters, not aliases of the main river. The management plan independently associates Cunani village with Rio Cunani and describes historical tidal influence in this lower setting.",
+          "sources": [
+            "r245-ibge-calcoene2020",
+            "r245-icmbio-cabo-orange2010",
+            "r245-cprm-lourenco2015"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "bounded_names": [
+            "Rio Cunani"
+          ],
+          "part_indices_zero_based": [
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40
+          ]
+        },
+        {
+          "fragments": [
+            11596
+          ],
+          "component_scope": "Stage-3/stage-2 continuation and southeast-directed lower bends",
+          "finding": "The municipal original depicts a continuous river across the fragment join, from the Cunani/Vila União locality setting past the river-side settlements into the southeastward lower bends. The change of stored stage does not correspond to a change of receiving basin or a newly named main river. Several small mapped lateral drainage joins remain distinct from the selected mainstem.",
+          "sources": [
+            "r245-ibge-calcoene2020",
+            "r245-icmbio-cabo-orange2010"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "bounded_names": [
+            "Rio Cunani"
+          ],
+          "part_indices_zero_based": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "fragments": [
+            11596
+          ],
+          "component_scope": "Eastward widened lower river and coastal approach",
+          "finding": "The municipal original directly labels Rio Cunani on the eastward widened lower reach and shows its connected bends toward the Atlantic coast. The selected southern turn, eastward interval and final northeastward approach occupy this same fluvio-estuarine corridor. The historical park-plan prose corroborates the named river, village and mouth relationship. This does not establish present tides, discharge, navigation or exact banks.",
+          "sources": [
+            "r245-ibge-calcoene2020",
+            "r245-icmbio-cabo-orange2010"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "bounded_names": [
+            "Rio Cunani"
+          ],
+          "part_indices_zero_based": [
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "fragments": [
+            11596
+          ],
+          "component_scope": "Final Cunani-mouth reach and separate source/render ending contexts",
+          "finding": "The municipal original shows the final lower bend opening directly to the Atlantic coastal receiving water. The stored source ending falls in the generalized river-mouth/coastal-margin setting near the southern side of the opening. The render ending is displaced northeast toward the northern coastal side of that same mouth. These are separately retained ordinary receiving-geography descriptions, not claims that either coordinate is a surveyed bank or lies within the contemporary wetted channel. No farther downstream river, separate lagoon or tidal shortcut is appended.",
+          "sources": [
+            "r245-ibge-calcoene2020",
+            "r245-icmbio-cabo-orange2010"
+          ],
+          "correspondence": "complete_bounded_geographic_correspondence",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 2,
+          "bounded_names": [
+            "Rio Cunani",
+            "Oceano Atlântico"
+          ],
+          "part_indices_zero_based": [
+            6
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70825549",
+      "source_keys": [
+        "r245-inegi-camargo2010-retained"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10246
+          ],
+          "component_scope": "Chosen upper wash and western bend",
+          "finding": "The chosen opening is in the branching foothill drainage southeast of Laguna de Arriba and north of the principal Sierra Encinillas relief. The selected wash bends west and northwest, then southwest into the receiving bajada on the western side of the range. The lake labeled Laguna de Arriba is a separate nearby waterbody; its label is not evidence that the selection crosses that lake.",
+          "sources": [
+            "r245-inegi-camargo2010-retained"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "No selected upper-watercourse name established.",
+          "stored_parts_one_based": [
+            1,
+            2
+          ]
+        },
+        {
+          "fragments": [
+            10246
+          ],
+          "component_scope": "Southward western bajada",
+          "finding": "The route follows the southward mapped drainage and continuous sloping receiving floor west of Sierra Encinillas, with short side washes entering from the range and western terrain. This is a mapped ordinary corridor, without a required continuously wet channel.",
+          "sources": [
+            "r245-inegi-camargo2010-retained"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Unnamed selected reach.",
+          "stored_parts_one_based": [
+            3,
+            4,
+            5,
+            6,
+            7
+          ]
+        },
+        {
+          "fragments": [
+            10246
+          ],
+          "component_scope": "Eastward turn onto the southern plain",
+          "finding": "After the southern bend the selected drainage turns east across the foot of the range. Mapped watercourses and the common alluvial receiving floor establish the turn and the eastward connection; nearby southwest drainage toward Laguna El Gigante is kept separate.",
+          "sources": [
+            "r245-inegi-camargo2010-retained"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "No name transferred from the neighboring lake or other western reaches.",
+          "stored_parts_one_based": [
+            8,
+            9,
+            10,
+            11
+          ]
+        },
+        {
+          "fragments": [
+            10246
+          ],
+          "component_scope": "Laguna Texcoco passage",
+          "finding": "The selected central lowland corresponds to the waterbody and receiving floor directly labeled Laguna Texcoco. Its western approach and eastward continuation are both mapped in the same low-gradient plain, with several separate north-side mountain washes joining.",
+          "sources": [
+            "r245-inegi-camargo2010-retained"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Laguna Texcoco is a bounded lake/lowland name, not a whole-river candidate.",
+          "stored_parts_one_based": [
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "fragments": [
+            10246
+          ],
+          "component_scope": "Eastern receiving plain and tributary joins",
+          "finding": "The eastward route continues across the mapped plain below Sierra Encinillas, receiving multiple separately drawn northern washes and a southern branch in the Los Pilares vicinity. The name Los Pilares is printed along that southern feeder, not along the complete selected eastward route. The continuous mapped receiving corridor supports correspondence through the small stored parts and joins.",
+          "sources": [
+            "r245-inegi-camargo2010-retained"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Los Pilares remains a separate tributary name; no whole-composite alias relationship is supported.",
+          "stored_parts_one_based": [
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23
+          ]
+        },
+        {
+          "fragments": [
+            10246
+          ],
+          "component_scope": "Southeastern bend and return toward Laguna Jaco",
+          "finding": "The selected continuation bends southeast across the same lowland and then northeast into the broader Laguna Jaco receiving-floor setting south of Cerro Gordo. The mapped channels, plain and adjoining bajada support this broad direction change without a separate-basin or missing lake-to-feeder transfer.",
+          "sources": [
+            "r245-inegi-camargo2010-retained"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "No selected connecting-watercourse name established.",
+          "stored_parts_one_based": [
+            24,
+            25,
+            26,
+            27,
+            28
+          ]
+        },
+        {
+          "fragments": [
+            10246
+          ],
+          "component_scope": "Final Laguna Jaco lake/playa floor",
+          "finding": "The final southeastward and southward segments enter the lake/playa-floor setting directly labeled Laguna Jaco. The short final stored part ends within that terminal receiving setting. The generalized map supports the basin correspondence without deciding an exact historical shoreline side or present open-water position.",
+          "sources": [
+            "r245-inegi-camargo2010-retained"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "name_scope": "Laguna Jaco is the bounded terminal waterbody/basin name, not a river name.",
+          "stored_parts_one_based": [
+            29,
+            30,
+            31,
+            32
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80047494",
+      "source_keys": [
+        "r245-canada787-world-imagery",
+        "r245-canada787-arc403"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2488
+          ],
+          "component_scope": "southern opening and lake feeder",
+          "finding": "The selected southern opening is within elongated lake-rich terrain. Its northward then northwestern course encounters several small waterbodies and shallow connecting depressions. The original image establishes this setting but does not resolve every lake-to-feeder transfer.",
+          "sources": [
+            "r245-canada787-world-imagery"
+          ],
+          "correspondence": "material_receiving_connection_unestablished",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "uncertainty": "Names of the opening waterbodies and actual through-link remain unsupported; the selected model line is not evidence of flow between them."
+        },
+        {
+          "fragments": [
+            2488
+          ],
+          "component_scope": "west leading middle corridor",
+          "finding": "West-leading water and valley features provide ordinary geographic correspondence through the middle selection, including an elongated lake and a river corridor farther west.",
+          "sources": [
+            "r245-canada787-world-imagery"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ],
+          "uncertainty": "This generalized corridor observation does not establish a whole-composite natural-river name or the upstream lake transfers."
+        },
+        {
+          "fragments": [
+            2488
+          ],
+          "component_scope": "northwestern river valley",
+          "finding": "The selected route turns into and continues along a visibly incised, meandering northwestern river valley. The main valley itself continues northwest beyond the point where the selection later turns away.",
+          "sources": [
+            "r245-canada787-world-imagery"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            13,
+            14,
+            15
+          ],
+          "uncertainty": "Nearby Inman coastal prose is not sufficient by itself to assign a name to all inland segments."
+        },
+        {
+          "fragments": [
+            2488
+          ],
+          "component_scope": "river to separate lake trough transfer",
+          "finding": "The selection turns northeast out of the established river valley toward a separate north-leading lake trough. Readable imagery does not establish a receiving channel or continuous ordinary valley connecting these systems across the intervening terrain.",
+          "sources": [
+            "r245-canada787-world-imagery"
+          ],
+          "correspondence": "material_receiving_connection_unestablished",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            16
+          ],
+          "uncertainty": "This is the primary substantive material gap. No interbasin transfer, lake outlet reversal or current water movement is inferred."
+        },
+        {
+          "fragments": [
+            2488
+          ],
+          "component_scope": "northern lake trough",
+          "finding": "The subsequent selection follows the vicinity of elongated northern lakes and small interposed low areas. Their geographic placement is visible; the lake-to-feeder connections needed to join the previous river valley to the coastal stream remain unestablished.",
+          "sources": [
+            "r245-canada787-world-imagery"
+          ],
+          "correspondence": "material_receiving_connection_unestablished",
+          "component_correspondence_completed": false,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            17,
+            18
+          ],
+          "uncertainty": "Lake outlines alone do not establish through-flow or continuity across the previous transfer."
+        },
+        {
+          "fragments": [
+            2488
+          ],
+          "component_scope": "coastal approach and two endings",
+          "finding": "The final part approaches the south coast of Dolphin and Union Strait through a small coastal drainage setting east of the Inman River mouth described in the independently read sailing directions. The stored source endpoint is in the coastal outlet setting; the rendered endpoint is a separate, slightly landward position. Neither is replaced with the nearby named Inman mouth.",
+          "sources": [
+            "r245-canada787-world-imagery",
+            "r245-canada787-arc403"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            19
+          ],
+          "uncertainty": "A local mouth setting does not establish the missing inland through-link, a literal sea point for each stored endpoint, or a river name."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80013992",
+      "source_keys": [
+        "r245-canada788-world-imagery",
+        "r245-canada788-arc402"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2300
+          ],
+          "component_scope": "southeastern opening",
+          "finding": "The selection begins within a dissected southeastern headward tributary area. Convergent shallow rills and the adjoining tributary-valley floor provide ordinary receiving-corridor correspondence to the northwestern drainage. The initial turn is retained as stored rather than moved onto a particular visible rill.",
+          "sources": [
+            "r245-canada788-world-imagery"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            1,
+            2
+          ],
+          "uncertainty": "No separate upper-feeder name or exact active opening channel is established."
+        },
+        {
+          "fragments": [
+            2300
+          ],
+          "component_scope": "upper tributary to main corridor",
+          "finding": "The westward then northwestern upper selection lies within the connected tributary-valley approach to the larger incised receiving corridor. Tributaries from both sides visibly converge on that corridor.",
+          "sources": [
+            "r245-canada788-world-imagery"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            3,
+            4,
+            5,
+            6
+          ],
+          "uncertainty": "Generalized terrain and valley connection, without a claim that every modeled vertex lies on a present wet thread."
+        },
+        {
+          "fragments": [
+            2300
+          ],
+          "component_scope": "upper middle incised valley",
+          "finding": "The route continues northwest through the incised river corridor, with tributary ravines and successive bends visible in the original image. No intervening lake or separate basin transfer is required.",
+          "sources": [
+            "r245-canada788-world-imagery"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            7,
+            8,
+            9,
+            10
+          ],
+          "uncertainty": null
+        },
+        {
+          "fragments": [
+            2300
+          ],
+          "component_scope": "middle valley and westward bend",
+          "finding": "The same connected valley extends north then northwest through the middle selection. Multiple side ravines enter the corridor while its main receiving direction remains continuous.",
+          "sources": [
+            "r245-canada788-world-imagery"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            11,
+            12,
+            13
+          ],
+          "uncertainty": "Names of side tributaries remain null; no legal name boundary is inferred."
+        },
+        {
+          "fragments": [
+            2300
+          ],
+          "component_scope": "lower valley and joins",
+          "finding": "The main corridor continues toward the northwestern coast, receiving side valleys and widening downstream. The large visible western and eastern branches remain distinguishable from the selected through-corridor.",
+          "sources": [
+            "r245-canada788-world-imagery"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            14,
+            15,
+            16,
+            17,
+            18
+          ],
+          "uncertainty": "Ordinary drainage continuity is established without exact bank alignment or present discharge."
+        },
+        {
+          "fragments": [
+            2300
+          ],
+          "component_scope": "delta and two endings",
+          "finding": "The valley opens into a broad alluvial delta at the head of Cunningham Inlet, matching the independently read CHS description of Cunningham River. The stored source endpoint and the slightly farther north rendered endpoint occupy distinct positions in the same delta/inlet-edge receiving setting; neither is substituted with another distributary mouth.",
+          "sources": [
+            "r245-canada788-world-imagery",
+            "r245-canada788-arc402"
+          ],
+          "correspondence": "ordinary_geographic_correspondence_supported",
+          "component_correspondence_completed": true,
+          "role": "mainstem",
+          "stage": 3,
+          "stored_parts_one_based": [
+            19,
+            20,
+            21
+          ],
+          "uncertainty": "The precise tidal/freshwater boundary and currently active distributary at either endpoint are unestablished and are not needed for ordinary delta correspondence."
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [],
+  "additional_source_use_notices": [
+    {
+      "publication": "INEGI Camargo municipal geographic compilation 2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08011.pdf",
+      "observation": "The source attribution, legend and cartographic-input credits were read. Only independently written factual observations and ordinary bibliography are supplied; source originals and reading aids are not redistributed.",
+      "outcome_layer": "Source-use and map-scale limitation, not an acquisition denial.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:70825549"
+    },
+    {
+      "publication": "Surficial geology, Inman River, Nunavut; CGM185 preliminary second edition2014, conversion of Map1846A",
+      "official_url": "https://publications.aws.tpsgc-pwgsc.cloud-nuage.canada.ca/site/fra/9.858851/publication.html",
+      "kind": "unrequested_unresolved_publication_relationship",
+      "observation": "Search discovery identifies this map and conversion; its relation to the unidentified historical NRCan2014 publication and federal cartographic inputs was not affirmatively resolved. Neither catalogue nor map was opened. Discovery snippets are not geographic evidence.",
+      "acquisition_stop": false,
+      "new_access_failure": false,
+      "aw_id": "hydro-system:80047494"
+    },
+    {
+      "kind": "incidental_held_search_results",
+      "observation": "Incidental Canadian naming and Water Survey station-index hits were not opened or used.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:80047494"
+    },
+    {
+      "kind": "source_reproduction_and_public_boundary",
+      "observation": "Only independently written facts, normal bibliography, bounded IDs and uncertainties are public-ready. Originals, images, private enlargements, coordinates, dynamic URLs and receipts are not deliverable.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:80047494"
+    },
+    {
+      "kind": "representative_name_scope",
+      "observation": "Cunningham River identifies the named receiving system. It does not rename every initial tributary, side valley, distributary or marine extension.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:80013992"
+    },
+    {
+      "kind": "source_reproduction_and_public_boundary",
+      "observation": "Only independently written facts, normal bibliography, bounded IDs and uncertainty are public-ready. No source originals, images, private enlargements, full coordinates, dynamic URLs or receipts are deliverable.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:80013992"
+    },
+    {
+      "source_key": "r245-ibge-calcoene2020",
+      "publication": "Calçoene – AP, Mapa Municipal1600204,04/2021",
+      "observation": "The original states semi-automatic compilation from the IBGE Digital Municipal Mesh with multiple-source updates, exclusive intended use for statistical collection/tabulation, disclaimer for other purposes and reserved reproduction rights.",
+      "restriction_scope": "Bounded factual reference-cartography observations only; no original, crop or overlay redistribution. No current hydrological survey, legal boundary or registry claim.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:60255845"
+    },
+    {
+      "source_key": "r245-icmbio-cabo-orange2010",
+      "publication": "Cabo Orange management plan, Encarte3,2010",
+      "observation": "Historical protected-area planning and local observational context.",
+      "restriction_scope": "Independently written bounded facts and bibliography only; no reproduced pages, figures or present navigation advice.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:60255845"
+    },
+    {
+      "source_key": "r245-cprm-lourenco2015",
+      "publication": "CPRM Lourenço geological sheet,2015",
+      "observation": "Thematic cartography with IBGE2010/Geocover-updated base and CPRM project authorship. Shared base lineage and historical scale retained.",
+      "restriction_scope": "No original/crop/overlay redistribution and no formal-name-register or precise-channel-survey claim. Underlying originals and separate report not acquired.",
+      "acquisition_stop": false,
+      "aw_id": "hydro-system:60255845"
+    }
+  ]
+}
