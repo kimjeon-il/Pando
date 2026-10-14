@@ -9,11 +9,16 @@ test('publishes a bounded runtime performance report after the app becomes inter
   await expect.poll(() => page.evaluate(() => typeof window.__PANDOLAB_PERFORMANCE_REPORT__), {
     timeout: 10_000,
   }).toBe('function');
+  // Bootstrap overlay disappearance does not imply an interactive map.
+  await expect.poll(() => page.evaluate(() => {
+    const report = window.__PANDOLAB_PERFORMANCE_REPORT__?.();
+    return Number.isFinite(report?.startup?.interactiveMs) && report.startup.interactiveMs >= 0;
+  }), { timeout: 95_000, intervals: [250, 750, 1500] }).toBe(true);
 
   const report = await page.evaluate(() => window.__PANDOLAB_PERFORMANCE_REPORT__());
   expect(report.version).toBe(1);
   expect(report.startup).toBeTruthy();
-  expect(Number(report.startup.interactiveMs)).toBeGreaterThanOrEqual(0);
+  expect(report.startup.interactiveMs).toBeGreaterThanOrEqual(0);
   expect(report.longTasks.firstLoadWindowMs).toBe(5_000);
   expect(Array.isArray(report.longTasks.samples)).toBe(true);
   expect(report.longTasks.samples.length).toBeLessThanOrEqual(120);
