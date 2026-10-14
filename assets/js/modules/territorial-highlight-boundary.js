@@ -1,15 +1,6 @@
 import { geometryRevision } from './geometry-versions.js';
 import { connectBoundarySegments } from './boundary-lines.js';
-
-function lines(value) {
-  if (!value) return [];
-  if (value.type === 'Feature') return lines(value.geometry);
-  if (value.type === 'FeatureCollection') return value.features.flatMap(lines);
-  if (value.type === 'GeometryCollection') return value.geometries.flatMap(lines);
-  if (value.type === 'Polygon' || value.type === 'MultiLineString') return value.coordinates;
-  if (value.type === 'MultiPolygon') return value.coordinates.flat();
-  return value.type === 'LineString' ? [value.coordinates] : [];
-}
+import { buildRenderableBoundarySegments } from './geographic-boundary.js';
 
 const ancestorIndexes = new WeakMap();
 
@@ -30,7 +21,7 @@ export function excludeAncestorHighlightBoundary(feature, ancestors, epsilon = 1
     if (!record || record.revision !== geometryRevision(geometry)) { record = { revision: geometryRevision(geometry), versions: new Map() }; ancestorIndexes.set(geometry, record); }
     const versions = record.versions;
     if (versions.has(epsilon)) return versions.get(epsilon);
-    const edges = lines(geometry).flatMap(line => line.slice(1).map((b, index) => [line[index], b]));
+    const edges = buildRenderableBoundarySegments(geometry);
     const buckets = new Map(), broad = [];
     edges.forEach((edge, index) => {
       const cells = keys(...edge);
@@ -45,8 +36,9 @@ export function excludeAncestorHighlightBoundary(feature, ancestors, epsilon = 1
     return result;
   });
   const output = [];
-  for (const line of lines(feature)) for (let i = 1; i < line.length; i++) {
-    const a = line[i - 1], b = line[i], dx = b[0] - a[0], dy = b[1] - a[1];
+  // Match the renderer's short, seam-split edges on both sides of the overlap.
+  for (const [a, b] of buildRenderableBoundarySegments(feature)) {
+    const dx = b[0] - a[0], dy = b[1] - a[1];
     const length = Math.hypot(dx, dy);
     if (!length) continue;
     const cells = keys(a, b);
