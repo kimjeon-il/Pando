@@ -4,8 +4,8 @@
   "generatedFrom": "reports/places/tier1-major-cities-batch*.json",
   "approval": {
     "file": "reports/places/runtime-release-approvals-v1.json",
-    "sha256": "57c4b9e5454d7ea258e9c23ed594984850bd16a7fe064130e0357bc76ff8797a",
-    "approvedIds": 163
+    "sha256": "178f4166f2f897478b8d8a51ee0b4ca97c07de9285a5dff3a1a00093b1e95f69",
+    "approvedIds": 173
   },
   "status": "curated-verified-city-runtime-input",
   "reviewBatches": [
@@ -162,6 +162,13 @@
       "cityCount": 25,
       "publishedCount": 7,
       "sourceBlobSha": "a6b697cb17ecf24d84dbdb4feb79d23b0c185709"
+    },
+    {
+      "batch": "23-russia-regional-cities",
+      "file": "reports/places/tier1-major-cities-batch23-russia-regional-cities.json",
+      "cityCount": 25,
+      "publishedCount": 10,
+      "sourceBlobSha": "eae7231ffad59e4d23a91937738310d36d7528b3"
     }
   ],
   "records": [
@@ -955,6 +962,87 @@
     },
     {
       "source": "geonames",
+      "sourceId": "472757",
+      "name": "볼고그라드",
+      "nameEn": "Volgograd",
+      "nameNative": "Волгоград",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "차리친",
+          "en": "Tsaritsyn",
+          "native": "Царицын",
+          "nativeExtras": []
+        },
+        {
+          "fromYear": 1925,
+          "ko": "스탈린그라드",
+          "en": "Stalingrad",
+          "native": "Сталинград",
+          "nativeExtras": []
+        },
+        {
+          "fromYear": 1961,
+          "ko": "볼고그라드",
+          "en": "Volgograd",
+          "native": "Волгоград",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        44.4976,
+        48.71378
+      ],
+      "countryCode": "RU",
+      "featureCode": "PPLA",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch23-russia-regional-cities.json",
+      "historicalDisplayCoverage": "selected-historic-epochs-source-reviewed",
+      "reviewStatus": "selected-historic-epochs-source-reviewed"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "479123",
+      "name": "울리야놉스크",
+      "nameEn": "Ulyanovsk",
+      "nameNative": "Ульяновск",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "심비르스크",
+          "en": "Simbirsk",
+          "native": "Симбирск",
+          "nativeExtras": []
+        },
+        {
+          "fromYear": 1924,
+          "ko": "울리야놉스크",
+          "en": "Ulyanovsk",
+          "native": "Ульяновск",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        48.38657,
+        54.32824
+      ],
+      "countryCode": "RU",
+      "featureCode": "PPLA",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch23-russia-regional-cities.json",
+      "historicalDisplayCoverage": "selected-historic-epochs-source-reviewed",
+      "reviewStatus": "selected-historic-epochs-source-reviewed"
+    },
+    {
+      "source": "geonames",
       "sourceId": "498817",
       "name": "상트페테르부르크",
       "nameEn": "Saint Petersburg",
@@ -1006,6 +1094,225 @@
     },
     {
       "source": "geonames",
+      "sourceId": "499099",
+      "name": "사마라",
+      "nameEn": "Samara",
+      "nameNative": "Самара",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "사마라",
+          "en": "Samara",
+          "native": "Самара",
+          "nativeExtras": []
+        },
+        {
+          "fromYear": 1935,
+          "ko": "쿠이비셰프",
+          "en": "Kuybyshev",
+          "native": "Куйбышев",
+          "nativeExtras": []
+        },
+        {
+          "fromYear": 1991,
+          "ko": "사마라",
+          "en": "Samara",
+          "native": "Самара",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        50.13553,
+        53.20767
+      ],
+      "countryCode": "RU",
+      "featureCode": "PPLA",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch23-russia-regional-cities.json",
+      "historicalDisplayCoverage": "selected-historic-epochs-source-reviewed",
+      "reviewStatus": "selected-historic-epochs-source-reviewed"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "511196",
+      "name": "페름",
+      "nameEn": "Perm",
+      "nameNative": "Пермь",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "페름",
+          "en": "Perm",
+          "native": "Пермь",
+          "nativeExtras": []
+        },
+        {
+          "fromYear": 1940,
+          "ko": "몰로토프",
+          "en": "Molotov",
+          "native": "Молотов",
+          "nativeExtras": []
+        },
+        {
+          "fromYear": 1957,
+          "ko": "페름",
+          "en": "Perm",
+          "native": "Пермь",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        56.25017,
+        58.01046
+      ],
+      "countryCode": "RU",
+      "featureCode": "PPLA",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch23-russia-regional-cities.json",
+      "historicalDisplayCoverage": "selected-historic-epochs-source-reviewed",
+      "reviewStatus": "selected-historic-epochs-source-reviewed"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "515003",
+      "name": "오렌부르크",
+      "nameEn": "Orenburg",
+      "nameNative": "Оренбург",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "오렌부르크",
+          "en": "Orenburg",
+          "native": "Оренбург",
+          "nativeExtras": []
+        },
+        {
+          "fromYear": 1938,
+          "ko": "치칼로프",
+          "en": "Chkalov",
+          "native": "Чкалов",
+          "nativeExtras": []
+        },
+        {
+          "fromYear": 1957,
+          "ko": "오렌부르크",
+          "en": "Orenburg",
+          "native": "Оренбург",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        55.09883,
+        51.76712
+      ],
+      "countryCode": "RU",
+      "featureCode": "PPLA",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch23-russia-regional-cities.json",
+      "historicalDisplayCoverage": "selected-historic-epochs-source-reviewed",
+      "reviewStatus": "selected-historic-epochs-source-reviewed"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "520555",
+      "name": "니즈니노브고로드",
+      "nameEn": "Nizhny Novgorod",
+      "nameNative": "Нижний Новгород",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "니즈니노브고로드",
+          "en": "Nizhny Novgorod",
+          "native": "Нижний Новгород",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1932-10-07",
+          "ko": "고리키",
+          "en": "Gorky",
+          "native": "Горький",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1990-10-22",
+          "ko": "니즈니노브고로드",
+          "en": "Nizhny Novgorod",
+          "native": "Нижний Новгород",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        44.00205,
+        56.32867
+      ],
+      "countryCode": "RU",
+      "featureCode": "PPLA",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch23-russia-regional-cities.json",
+      "historicalDisplayCoverage": "selected-historic-epochs-source-reviewed",
+      "reviewStatus": "selected-historic-epochs-source-reviewed"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "524305",
+      "name": "무르만스크",
+      "nameEn": "Murmansk",
+      "nameNative": "Мурманск",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1916,
+          "ko": "로마노프나무르마네",
+          "en": "Romanov-on-Murman",
+          "native": "Романов-на-Мурмане",
+          "nativeExtras": []
+        },
+        {
+          "fromYear": 1917,
+          "ko": "무르만스크",
+          "en": "Murmansk",
+          "native": "Мурманск",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        33.09922,
+        68.96778
+      ],
+      "countryCode": "RU",
+      "featureCode": "PPLA",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch23-russia-regional-cities.json",
+      "historicalDisplayCoverage": "selected-historic-epochs-source-reviewed",
+      "reviewStatus": "selected-historic-epochs-source-reviewed",
+      "temporalEligibility": {
+        "cityEstablishedFromYear": 1916,
+        "beforeCityEstablished": "suppress-city-label",
+        "sourceUrl": "https://snl.no/Murmansk",
+        "note": "근대 시 지위 형성 전 명칭 표기를 억제"
+      }
+    },
+    {
+      "source": "geonames",
       "sourceId": "524901",
       "name": "모스크바",
       "nameEn": "Moscow",
@@ -1033,6 +1340,43 @@
       "reviewFile": "reports/places/tier1-major-cities-batch04-europe-west-asia.json",
       "historicalDisplayCoverage": "reviewed-since-1801",
       "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "542420",
+      "name": "크라스노다르",
+      "nameEn": "Krasnodar",
+      "nameNative": "Краснодар",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "예카테리노다르",
+          "en": "Yekaterinodar",
+          "native": "Екатеринодар",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1920-12-07",
+          "ko": "크라스노다르",
+          "en": "Krasnodar",
+          "native": "Краснодар",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        38.98178,
+        45.04534
+      ],
+      "countryCode": "RU",
+      "featureCode": "PPLA",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch23-russia-regional-cities.json",
+      "historicalDisplayCoverage": "selected-historic-epochs-source-reviewed",
+      "reviewStatus": "selected-historic-epochs-source-reviewed"
     },
     {
       "source": "geonames",
@@ -2730,6 +3074,93 @@
       "reviewFile": "reports/places/tier1-major-cities-batch03-india-southeast-asia.json",
       "historicalDisplayCoverage": "reviewed-since-1801",
       "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "1486209",
+      "name": "예카테린부르크",
+      "nameEn": "Yekaterinburg",
+      "nameNative": "Екатеринбург",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "예카테린부르크",
+          "en": "Yekaterinburg",
+          "native": "Екатеринбург",
+          "nativeExtras": []
+        },
+        {
+          "fromYear": 1924,
+          "ko": "스베르들롭스크",
+          "en": "Sverdlovsk",
+          "native": "Свердловск",
+          "nativeExtras": []
+        },
+        {
+          "fromYear": 1991,
+          "ko": "예카테린부르크",
+          "en": "Yekaterinburg",
+          "native": "Екатеринбург",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        60.61529,
+        56.85733
+      ],
+      "countryCode": "RU",
+      "featureCode": "PPLA",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch23-russia-regional-cities.json",
+      "historicalDisplayCoverage": "selected-historic-epochs-source-reviewed",
+      "reviewStatus": "selected-historic-epochs-source-reviewed"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "1503901",
+      "name": "케메로보",
+      "nameEn": "Kemerovo",
+      "nameNative": "Кемерово",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1918,
+          "ko": "셰글롭스크",
+          "en": "Shcheglovsk",
+          "native": "Щегловск",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1932-03-27",
+          "ko": "케메로보",
+          "en": "Kemerovo",
+          "native": "Кемерово",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        86.10435,
+        55.35417
+      ],
+      "countryCode": "RU",
+      "featureCode": "PPLA",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch23-russia-regional-cities.json",
+      "historicalDisplayCoverage": "selected-historic-epochs-source-reviewed",
+      "reviewStatus": "selected-historic-epochs-source-reviewed",
+      "temporalEligibility": {
+        "cityEstablishedFromYear": 1918,
+        "beforeCityEstablished": "suppress-city-label",
+        "sourceUrl": "https://dates.kemrsl.ru/item/1214/",
+        "note": "근대 시 지위 형성 전 명칭 표기를 억제"
+      }
     },
     {
       "source": "geonames",
@@ -6865,12 +7296,12 @@
     }
   ],
   "stats": {
-    "cityCount": 163,
-    "timelineEntries": 381,
-    "stagedCount": 264,
-    "withheldCount": 101,
-    "sourceBatchCount": 22,
-    "unrankedCount": 163,
+    "cityCount": 173,
+    "timelineEntries": 407,
+    "stagedCount": 289,
+    "withheldCount": 116,
+    "sourceBatchCount": 23,
+    "unrankedCount": 173,
     "urbanIdentityFlagged": 0
   }
 }
