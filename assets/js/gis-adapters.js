@@ -39,18 +39,10 @@
     return index;
   }
 
-  function territorialProperties(properties) {
-    const current = structuredClone(properties || {});
-    delete current.adminLevel;
-    delete current.isRemainder;
-    if (current.metadata) delete current.metadata.legacyTerritorialPartition;
-    return current;
-  }
-
   function territorialRows(state) {
     const rows = Object.fromEntries(Object.values(TERRITORIAL_TABLES).map(table => [table, []]));
     for (const item of state?.territorialEntities || []) {
-      const properties = territorialProperties(item?.properties);
+      const properties = clone(item?.properties || {});
       const entityKind = text(properties.entityKind);
       const table = TERRITORIAL_TABLES[entityKind];
       const geometry = polygonGeometry(item?.geometry);
@@ -118,9 +110,10 @@
     const entityKind = TERRITORIAL_TYPES_BY_TABLE[tableName];
     const geometry = polygonGeometry(feature?.geometry);
     if (!entityKind || !geometry) return null;
-    const currentProperties = territorialProperties(parseJson(properties.properties_json));
+    const currentProperties = clone(parseJson(properties.properties_json));
     const id = text(properties.id || feature.id);
     if (!id) throw new Error(`영역 원본 ID가 비어 있습니다: ${entityKind} ${index + 1}`);
+    const color = text(properties.color ?? currentProperties.style?.color);
     return {
       type: 'Feature',
       id,
@@ -133,14 +126,10 @@
         coverageMode: entityKind === 'regional' || !text(properties.parent_id ?? currentProperties.parentId) ? 'explicit' : text(currentProperties.coverageMode) || 'partition',
         validFrom: text(properties.valid_from ?? currentProperties.validFrom) || null,
         validTo: text(properties.valid_to ?? currentProperties.validTo) || null,
-        style: {
-          ...(currentProperties.style || {}),
-          color: text(properties.color ?? currentProperties.style?.color),
-          key: text(properties.style_key ?? currentProperties.style?.key),
-        },
+        style: color ? { color } : {},
         sourceEntityId: text(properties.source_entity_id ?? currentProperties.sourceEntityId),
         sourceGeometryVersion: text(properties.source_geometry_version ?? currentProperties.sourceGeometryVersion),
-        metadata: territorialProperties({ metadata: parseJson(properties.metadata_json, currentProperties.metadata || {}) }).metadata,
+        metadata: clone({ metadata: parseJson(properties.metadata_json, currentProperties.metadata || {}) }).metadata,
       },
       geometry,
     };

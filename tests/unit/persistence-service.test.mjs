@@ -333,6 +333,8 @@ test('retired project-only autosave result fails visibly before any device write
   const current = harness({ service: { buildAutosave: async () => ({ format: 'autosave' }) } });
   await assert.rejects(current.service.persist(), /snapshot receipt/i);
   assert.equal(current.storage.project, null);
+  assert.ok(current.events.some(row => row[0] === 'autosave' && row[1] === 'error'));
+  assert.ok(current.events.some(row => row[0] === 'failure'));
 });
 
 test('fallback uses the same body and checkpoint receipt after the IndexedDB write fails', async () => {

@@ -13,7 +13,7 @@ export function createProjectRestore() {
     dependencies = ports;
   }
 
-  async function applyAtlasState(project, manual = false, { projectGeneration = null,skipRenderReset = false,preserveCoreSession = false } = {}) {
+  async function applyAtlasState(project, manual = false, { projectGeneration = null,skipRenderReset = false,preserveCoreSession = false,catalogAlreadyAdmitted = false } = {}) {
     if(project!==dependencies.domains.projectDomain.snapshot())throw new TypeError('Project presentation requires the accepted C++ document projection.');
     (0, dependencies.countryRecords.resetCountryLabelAnchorRuntime)();
     const nextProjectGeneration = skipRenderReset && Number.isFinite(projectGeneration)
@@ -24,7 +24,7 @@ export function createProjectRestore() {
     dependencies.rendering.gpuMapRenderer.invalidateHydroVisibility();
     dependencies.projectState.state.layerSearch = '';
     dependencies.projectState.state.auditPreviewCountries = null;
-    await (0, dependencies.layerTree.pruneLayerItemVisibility)();
+    await (0, dependencies.layerTree.pruneLayerItemVisibility)({ catalogAlreadyAdmitted });
     (0, dependencies.countries.scheduleCountryLabelAnchors)(null, 10);
     (0, dependencies.layers.markLayerTreeDirty)();
     (0, dependencies.projectSnapshots.configureDatasetSession)(project);
@@ -162,7 +162,7 @@ export function createProjectRestore() {
     }
   }
 
-  async function resetProjectInPlace({ projectGeneration = null, skipRenderReset = false, prepared = null } = {}) {
+  async function resetProjectInPlace({ projectGeneration = null, skipRenderReset = false, prepared = null,catalogAlreadyAdmitted = false } = {}) {
     if (!prepared?.project) throw new Error('내장 기본 프로젝트 자료가 준비되지 않았습니다.');
     if(prepared.project!==dependencies.domains.projectDomain.snapshot())throw new TypeError('New project presentation requires the accepted C++ document projection.');
     closeConfirmModal();
@@ -205,7 +205,7 @@ export function createProjectRestore() {
     dependencies.projectState.state.countryIndex.clear();
     (0, dependencies.countryRecords.applyPristineLabelAnchors)(({ type: 'FeatureCollection', features: dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' }) }));
     dependencies.projectState.state.auditPreviewCountries = null;
-    await (0, dependencies.layerTree.pruneLayerItemVisibility)();
+    await (0, dependencies.layerTree.pruneLayerItemVisibility)({ catalogAlreadyAdmitted });
     (0, dependencies.layers.markLayerTreeDirty)();
     (0, dependencies.projectSnapshots.configureDatasetSession)(prepared.project);
     (0, dependencies.countryValidation.refreshCountryCentroids)();

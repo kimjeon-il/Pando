@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
+import '../helpers/spherical-core.mjs';
 import '../../assets/js/vendor/polygon-clipping.min.js';
 import '../../assets/js/modules/polygon-geometry.js';
 import { createTerritoryComponentPlan } from '../../assets/js/modules/territory-component-plan.js';

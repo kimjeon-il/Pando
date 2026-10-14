@@ -67,6 +67,56 @@ test('current shared headers and platform adapters have explicit feature ownersh
   }
 });
 
+test('current historical assets and production regressions select their feature owners', () => {
+  const owners = [
+    ...['coverage-report.json', 'expected-trace.json', 'manifest.json', 'world-project.json.gz']
+      .flatMap(name => [
+        [`assets/data/historical-world/generated/v1/${name}`, 'timeline'],
+        [`native/assets/world/historical-world/v1/${name}`, 'timeline'],
+      ]),
+    ['tests/browser/place-runtime.spec.mjs', 'place'],
+    ['tests/browser/renderer-migration-gaps.spec.mjs', 'render'],
+    ['tests/browser/terrain-lod-independence.spec.mjs', 'terrain'],
+    ['tests/unit/app-map-audit.test.mjs', 'geometry'],
+    ['tests/unit/country-lineage-preservation.test.mjs', 'library'],
+    ['tests/unit/interaction-roles.test.mjs', 'selection'],
+    ['tests/unit/label-metadata-edit.test.mjs', 'properties'],
+    ['tests/unit/place-publication.test.mjs', 'place'],
+    ['tests/unit/place-sync-contract.test.mjs', 'place'],
+    ['tests/unit/polygon-geometry.test.mjs', 'geometry'],
+    ['tests/unit/reference-image-architecture.test.mjs', 'reference'],
+    ['native/app/territorycutadapter.cpp', 'split'],
+    ['native/assets/world/manifest.json', 'loading'],
+    ['native/tests/geometry_presentation_device_tests.cpp', 'render'],
+    ['native/tests/hydro_river_source_tests.cpp', 'hydro'],
+    ['native/tests/m972_river_controller_probe.cpp', 'split'],
+    ['native/tests/m972_selection_probe.cpp', 'transfer'],
+    ...['m974_boundary_supplemental_tests.cpp', 'm974_snap_order_tests.cpp',
+      'm974_snap_ui_tests.cpp', 'm974_snap_workflow_tests.cpp']
+      .map(name => [`native/tests/${name}`, 'boundary']),
+    ['native/tests/m975_geometry_provenance_codec_tests.cpp', 'geometry'],
+    ['native/tests/m975_model_exchange_probe.cpp', 'exchange'],
+    ['native/tests/m977_pending_input_probe.cpp', 'async'],
+    ['native/tests/m977_pending_lifecycle_probe.cpp', 'async'],
+    ['native/tests/native_performance_structure_tests.cpp', 'render'],
+    ['native/tests/place_provenance_engine_tests.cpp', 'place'],
+    ['native/tests/river_selection_ui_tests.cpp', 'split'],
+    ['native/tests/split_selection_controller_tests.cpp', 'split'],
+    ['native/tests/territorial_geometry_preview_tests.cpp', 'geometry'],
+    ['native/tests/web_import_tests.cpp', 'exchange'],
+    ['shared/core/include/pandoeditor/sphericalpolygon.h', 'geometry'],
+    ['shared/core/src/sphericalpolygon.cpp', 'geometry'],
+  ];
+  for (const [path, feature] of owners) {
+    const impact = selectFeatures(registry, classifyChangedPaths([path]));
+    assert.ok(impact.selected.includes(feature), `${path} must select ${feature}`);
+    assert.deepEqual(impact.unclassifiedPaths, [], path);
+  }
+  const buildMeta = selectFeatures(registry, classifyChangedPaths(['assets/js/build-meta.js']));
+  assert.deepEqual(buildMeta.selected, registry.features.map(feature => feature.id));
+  assert.deepEqual(buildMeta.unclassifiedPaths, []);
+});
+
 test('unrelated documentation skips parity while unclassified source changes still run', () => {
   assert.equal(shouldRunParity(registry, classifyChangedPaths(['README.md'])), false);
   assert.equal(shouldRunParity(registry, classifyChangedPaths(['native/README.md'])), false);

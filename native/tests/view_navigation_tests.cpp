@@ -82,8 +82,8 @@ private slots:
     void missingCanonicalMeshRetainsReadyPreviewAndPreciseEditing() {
         QTemporaryDir directory;QVERIFY(directory.isValid());
         const QDir source(QDir(QFileInfo(QString::fromUtf8(__FILE__)).absolutePath()).filePath("../assets/world"));
-        for(const char* name:{"manifest.json","countries-canonical-v0.33.0.pcg.gz",
-                "world-mesh-preview-v0.33.0.bin.gz"})
+        for(const char* name:{"manifest.json","countries-canonical-v0.36.1.pcg.gz",
+                "world-mesh-preview-v0.36.1.bin.gz"})
             QVERIFY(QFile::copy(source.filePath(name),directory.filePath(name)));
         EditorControllerConfig config;config.bootstrapWorld=true;config.worldDataRoot=directory.path();
         EditorController editor(config);QVERIFY(editor.resizeMapCamera(800,600));

@@ -171,7 +171,8 @@ async function loadWeb(root) {
   const load = relative => import(pathToFileURL(path.join(root, 'source', relative)));
   const reader = await load('assets/js/modules/project-state.js');
   const serializer = await load('assets/js/modules/project-serializer.js');
-  const worker = await load('tests/helpers/production-geopackage.mjs');
+  // File bytes use the current spatial schema; pinned fixtures remain the model oracle.
+  const worker = await import('../../tests/helpers/production-geopackage.mjs');
   return { ...reader, ...serializer, ...worker };
 }
 

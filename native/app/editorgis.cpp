@@ -166,9 +166,8 @@ bool EditorController::prepareGisImport(int index,const QVariantMap& values) {
     watcher->setFuture(QtConcurrent::run([base,layer,source,target,planId,values]() ->Plan {
         const auto targetType=pandoeditor::normalizeExchangeTarget(target,std::nullopt);
         if(!targetType)throw std::invalid_argument("INVALID_GIS_TARGET");
-        if(*targetType==pandoeditor::GisExchangeTarget::Country||
-           *targetType==pandoeditor::GisExchangeTarget::Subunit||
-           *targetType==pandoeditor::GisExchangeTarget::Region) {
+        if(*targetType==pandoeditor::GisExchangeTarget::General||
+           *targetType==pandoeditor::GisExchangeTarget::Regional) {
             if(!layer.target.isEmpty()&&layer.target!=QString::fromStdString(target))
                 throw std::invalid_argument("GIS_LAYER_TARGET_MISMATCH");
             pandoeditor::GisTerritorialMapping mapping;mapping.target=*targetType;

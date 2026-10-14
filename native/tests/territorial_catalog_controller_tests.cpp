@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "editorcontroller.h"
 #include "projectcodec.h"
 #include "territorialcatalogadapter.h"
@@ -85,14 +86,13 @@ private slots:
         const auto box=[](double x,double y,double size) {
             return pandoeditor::MultiPolygon{{{{x,y},{x+size,y},{x+size,y+size},{x,y+size},{x,y}}}};
         };
-        pandoeditor::ProjectDocument document({
-            {"X","Nested",box(1,1,1),0x888888,""},
-            {"B",u8"나",box(5,5,1),0x888888,""},
-            {"C","Other country",box(20,20,10),0x888888,""},
-            {"Z",u8"가",box(.5,.5,3),0x888888,""},
-            {"A","Root",box(0,0,10),0x888888,""},
-            {"D",u8"가",box(7,7,1),0x888888,""},
-            {"R","Regional",box(40,40,1),0x888888,""}},{{"countries","Countries"}});
+        pandoeditor::ProjectDocument document = makeTerritorialDocument({{{"X","Nested","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},box(1,1,1)},{0x888888,1},"countries"},
+        {{"B",u8"나","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},box(5,5,1)},{0x888888,1},"countries"},
+        {{"C","Other country","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},box(20,20,10)},{0x888888,1},"countries"},
+        {{"Z",u8"가","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},box(.5,.5,3)},{0x888888,1},"countries"},
+        {{"A","Root","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},box(0,0,10)},{0x888888,1},"countries"},
+        {{"D",u8"가","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},box(7,7,1)},{0x888888,1},"countries"},
+        {{"R","Regional","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},box(40,40,1)},{0x888888,1},"countries"}},{{"countries","Countries"}});
         for(const auto& pair:std::vector<std::pair<std::string,std::string>>{{"X","Z"},{"Z","A"},{"B","A"},{"D","A"}})
             pandoeditor::staticParentRelation(document,pair.first).parentId=pair.second;
         document.units.back().kind=pandoeditor::UnitKind::Regional;
@@ -308,8 +308,7 @@ private slots:
         // RED-01 used the default sample, which contains DEU. Frozen Web
         // countryUpdates must apply there; this case explicitly needs no DEU.
         QTemporaryDir temporary;QVERIFY(temporary.isValid());
-        pandoeditor::Project empty;pandoeditor::ProjectDocument document(
-            std::vector<pandoeditor::Country>{},std::vector<pandoeditor::Layer>{{"countries","Countries"}});
+        pandoeditor::Project empty;pandoeditor::ProjectDocument document = makeTerritorialDocument({},std::vector<pandoeditor::Layer>{{"countries","Countries"}});
         empty.replace(std::move(document));const auto bytes=projectcodec::encode(empty);
         QFile file(temporary.filePath("empty.pando.json"));QVERIFY(file.open(QIODevice::WriteOnly));
         QCOMPARE(file.write(bytes),qint64(bytes.size()));file.close();
@@ -388,7 +387,7 @@ private slots:
         // exchange subset. Keep it out of this common-format metadata check;
         // separate native-field rejection gates stay intact.
         QTemporaryDir temporary;QVERIFY(temporary.isValid());pandoeditor::Project common;
-        common.replace(pandoeditor::ProjectDocument({},{}));
+        common.replace(makeTerritorialDocument({},{}));
         QFile input(temporary.filePath("common.json"));QVERIFY(input.open(QIODevice::WriteOnly));
         const auto commonBytes=projectcodec::encode(common);QCOMPARE(input.write(commonBytes),qint64(commonBytes.size()));input.close();
         QVERIFY(editor.openFile(QUrl::fromLocalFile(input.fileName())));

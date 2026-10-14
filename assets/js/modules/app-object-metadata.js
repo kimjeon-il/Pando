@@ -92,7 +92,8 @@ export function createObjectMetadata() {
     });
     if (!currentProject(generation)) return result;
     const primary = dependencies.projectState.state.selected;
-    if (primary?.domain === ref.domain && primary.type === ref.type && String(primary.id) === String(ref.id))
+    if (primary?.domain === ref.domain && primary.type === ref.type
+      && [ref.id, feature.properties.parentId, value].some(id => id && String(primary.id) === String(id)))
       dependencies.domains.selectionUiController.presentPrimary({ refreshOnly: true });
     if (!result.ok) {
       dependencies.feedback.setActionStatus(result.issues?.[0] || '상위 객체를 변경할 수 없습니다.', 'error', 4200);

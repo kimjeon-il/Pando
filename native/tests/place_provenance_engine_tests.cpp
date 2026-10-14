@@ -70,24 +70,24 @@ int main(int argc,char** argv) {
     const auto test=[&](const char* name,const std::function<void()>& body){try{body();++passed;std::cout<<"PASS "<<name<<'\n';}catch(const std::exception& error){++failed;std::cerr<<"FAIL "<<name<<": "<<error.what()<<'\n';}};
     // Fixed ebc copy/suppression/storage literals, independently read from Web:
     // app-generic-commands.js310; app-territorial-labels.js224; gis-io.js1015.
-    test("native model6 stores typed provenance and survives reopen",[]{Project project;project.replace(fixture());const auto encoded=projectcodec::encode(project);
+    test("native model6 stores typed provenance and survives reopen",[]{Project project;project.replace(fixture());const auto encoded=::projectcodec::encode(project);
         const auto native=losslessjson::parse(encoded);require(native.object.at("content").object.at("labels").array[0].object.at("sourcePlaceId").string==copied,"native explicit sourcePlaceId");
-        const auto restored=projectcodec::decode(encoded);require(Identity<PlaceLabel>::get(restored.labels[0])==copied,"native typed provenance restored");});
-    test("native reader accepts new optional provenance without schema migration",[]{Project project;project.replace(fixture(false));auto native=losslessjson::parse(projectcodec::encode(project));
+        const auto restored=::projectcodec::decode(encoded);require(Identity<PlaceLabel>::get(restored.labels[0])==copied,"native typed provenance restored");});
+    test("native reader accepts new optional provenance without schema migration",[]{Project project;project.replace(fixture(false));auto native=losslessjson::parse(::projectcodec::encode(project));
         native.object.at("content").object.at("labels").array[0].object["sourcePlaceId"]=V::str(copied);
-        require(Identity<PlaceLabel>::get(projectcodec::decode(native.encode()).labels[0])==copied,"model6 optional field decoded");});
-    test("older labels omit provenance and stay ordinary editable labels",[]{Project project;project.replace(fixture(false));auto native=losslessjson::parse(projectcodec::encode(project));
+        require(Identity<PlaceLabel>::get(::projectcodec::decode(native.encode()).labels[0])==copied,"model6 optional field decoded");});
+    test("older labels omit provenance and stay ordinary editable labels",[]{Project project;project.replace(fixture(false));auto native=losslessjson::parse(::projectcodec::encode(project));
         native.object.at("content").object.at("labels").array[0].object.erase("sourcePlaceId");
-        const auto restored=projectcodec::decode(native.encode());require(!Identity<PlaceLabel>::get(restored.labels[0]),"absence stays absent");});
-    test("Web10 output uses exact sourcePlaceId camelcase field",[]{Project project;project.replace(fixture());const auto bytes=projectcodec::encodeWeb(project.snapshot());
+        const auto restored=::projectcodec::decode(native.encode());require(!Identity<PlaceLabel>::get(restored.labels[0]),"absence stays absent");});
+    test("Web10 output uses exact sourcePlaceId camelcase field",[]{Project project;project.replace(fixture());const auto bytes=::projectcodec::encodeWeb(project.snapshot());
         const auto web=losslessjson::parse(bytes);require(web.object.at("labels").array[0].object.at("sourcePlaceId").string==copied,"Web sourcePlaceId retained");
-        require(Identity<PlaceLabel>::get(projectcodec::decodeWeb(bytes).labels[0])==copied,"Web typed roundtrip");});
-    test("fixed Web10 input copy provenance is supported rather than an unknown field",[]{Project project;project.replace(fixture(false));auto web=losslessjson::parse(projectcodec::encodeWeb(project.snapshot()));
+        require(Identity<PlaceLabel>::get(::projectcodec::decodeWeb(bytes).labels[0])==copied,"Web typed roundtrip");});
+    test("fixed Web10 input copy provenance is supported rather than an unknown field",[]{Project project;project.replace(fixture(false));auto web=losslessjson::parse(::projectcodec::encodeWeb(project.snapshot()));
         web.object.at("labels").array[0].object["sourcePlaceId"]=V::str(copied);
-        require(Identity<PlaceLabel>::get(projectcodec::decodeWeb(web.encode()).labels[0])==copied,"latest Web copy decodes");});
-    test("nonstring provenance cannot pass native or Web typed boundaries",[]{Project project;project.replace(fixture(false));auto native=losslessjson::parse(projectcodec::encode(project));
-        native.object.at("content").object.at("labels").array[0].object["sourcePlaceId"]=V::num(1);rejects([&]{projectcodec::decode(native.encode());});
-        auto web=losslessjson::parse(projectcodec::encodeWeb(project.snapshot()));web.object.at("labels").array[0].object["sourcePlaceId"]=V::boolean(true);rejects([&]{projectcodec::decodeWeb(web.encode());});});
+        require(Identity<PlaceLabel>::get(::projectcodec::decodeWeb(web.encode()).labels[0])==copied,"latest Web copy decodes");});
+    test("nonstring provenance cannot pass native or Web typed boundaries",[]{Project project;project.replace(fixture(false));auto native=losslessjson::parse(::projectcodec::encode(project));
+        native.object.at("content").object.at("labels").array[0].object["sourcePlaceId"]=V::num(1);rejects([&]{::projectcodec::decode(native.encode());});
+        auto web=losslessjson::parse(::projectcodec::encodeWeb(project.snapshot()));web.object.at("labels").array[0].object["sourcePlaceId"]=V::boolean(true);rejects([&]{::projectcodec::decodeWeb(web.encode());});});
     test("provenance-only mutation is content and Undo restores exact source identity",[]{Project project;project.replace(fixture(false));project.markSaved();const auto before=project.document();
         auto changed=project.document().labels[0];Identity<PlaceLabel>::set(changed,copied);
         auto after=before;after.labels[0]=changed;require(!semanticallyEqual(before,after),"source identity contributes semantic equality");
@@ -108,7 +108,7 @@ int main(int argc,char** argv) {
         require(archive.layers.size()==1,"one GIS places layer");require(losslessjson::parse(QByteArray::fromStdString(archive.layers[0].collection.features[0].propertiesJson)).object.at("source_place_id").string==copied,"GIS vector provenance retained");});
     test("native project GeoPackage validates and reopens copy provenance",[]{Project project;project.replace(fixture());QTemporaryDir temporary;require(temporary.isValid(),"temporary directory");
         const auto path=temporary.filePath("project.gpkg");write(path,exportProjectGeoPackage(project));
-        require(Identity<PlaceLabel>::get(projectcodec::decode(readProjectGeoPackage(path)).labels[0])==copied,"project authoritative and vectors preserve copy source");});
+        require(Identity<PlaceLabel>::get(::projectcodec::decode(readProjectGeoPackage(path)).labels[0])==copied,"project authoritative and vectors preserve copy source");});
     test("builtin viewport bucket never replaces or rebuilds document sources",[]{MapLabelEngine engine;engine.setSources({label("document",-30,10)},11);const auto rebuilds=engine.stats().sourceRebuilds;
         Buckets<MapLabelEngine>::set(engine,{label(copied,0,20,true)},1);
         require(engine.sources().size()==1&&engine.sources()[0].ref.id=="document"&&engine.stats().sourceRevision==11&&engine.stats().sourceRebuilds==rebuilds,"document source index untouched");

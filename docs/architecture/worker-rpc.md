@@ -6,6 +6,8 @@ CPU-heavy Worker calls use one RPC transport instead of defining a new `pending`
 
 The canonical client is `assets/js/modules/worker-rpc.js`. New Worker endpoints use `assets/js/workers/worker-rpc-host.js`.
 
+The architecture check rejects direct message dispatch in frontend modules regardless of their RPC imports. A module that owns a dedicated rendering, resource, or diagnostics channel declares `@worker-transport dedicated: <reason>` in one source comment. This declaration follows the owner when a file moves; it is an explicit architectural exception, not a second filename list in the checker. Such an owner may not import the canonical RPC client directly. Lifecycle, cancellation and mesh transfer behavior are verified by runtime tests rather than private source snippets.
+
 A request carries these concepts through one contract:
 
 ```text
@@ -41,23 +43,14 @@ Stateless CPU geometry work may use `worker-rpc-pool.js`. Pool sizing is conserv
 
 Stateful or data-owning Workers should remain dedicated when sharing would duplicate large state or break locality. Current examples include map-edit, data-loader, hydro-tile and Canvas rendering. Dedicated does not mean ad-hoc transport: stateful clients can still use Worker RPC for request lifecycle.
 
-## Transitional compatibility
+## Canonical operations
 
-The existing map-edit and GIS geometry Workers predate the RPC wire envelope. Their callers now use `createWorkerRpcClient()` with narrow compatibility codecs, so pending/cancel/timeout/stale/error logic is already centralized without a risky simultaneous rewrite of business logic.
+Map-edit, GIS validation, GPU mesh, map audit and river partition use the same RPC envelope on both sides. There are no compatibility codecs or old message entry points.
 
-GPU mesh, geometry validation, and river partition Workers expose canonical RPC operations while temporarily retaining their old message entry points for current renderer/controllers. These compatibility bridges are removal targets as their callers migrate.
+- `gis.validate`, `geometry.mesh`, `geometry.audit`, `river.partition`: geometry requests.
+- Map-edit calculation names remain semantic operations; `map-edit.*` events synchronize state and commit/discard prepared changes. `edit-sync` sends source patches.
 
-Do not add another compatibility codec for new functionality. New Worker work uses the canonical envelope directly.
-
-## Canonical operations introduced in phase 9
-
-```text
-geometry.mesh
-geometry.audit
-river.partition
-```
-
-Map-edit operations keep their existing business operation names behind the RPC client until the stateful Worker protocol is migrated fully.
+Do not add another compatibility codec. New Worker work uses the canonical envelope directly.
 
 ## Transferables
 

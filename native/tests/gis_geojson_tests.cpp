@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include <gisgeojson.h>
 #include <pandoeditor/project.h>
 #include <QCoreApplication>
@@ -35,7 +36,7 @@ int main(int argc,char** argv) {
     assert(rejected([]{parseGisGeoJson(R"({"type":"FeatureCollection","crs":{"type":"name","properties":{"name":"EPSG:3857"}},"features":[]})");}));
     assert(rejected([]{parseGisGeoJson(R"({"type":"FeatureCollection","features":[{"type":"Feature","id":"A","properties":{},"geometry":{"type":"Point","coordinates":[181,0]}}]})");}));
     assert(rejected([]{parseGisGeoJson(R"({"type":"FeatureCollection","features":[{"type":"Feature","id":"A","properties":{},"geometry":{"type":"Point","coordinates":[0,0]}},{"type":"Feature","id":"A","properties":{},"geometry":{"type":"Point","coordinates":[1,1]}}]})");}));
-    Project project;project.replace(ProjectDocument({{"A","Alpha",{{{{0,0},{4,0},{4,4},{0,4},{0,0}}}},0x123456}},{{"countries","Countries"}}));
+    Project project;project.replace(makeTerritorialDocument({{{"A","Alpha","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{4,0},{4,4},{0,4},{0,0}}}}},{0x123456,1},"countries"}},{{"countries","Countries"}}));
     const auto import=planGenericGeoJsonImport(project.snapshot(),valid,"plan:geojson","input.geojson");
     assert(import.features.size()==2 && import.features.front().id=="lake");
     assert(import.features.front().propertiesJson.find("900719925474099312345")!=std::string::npos);

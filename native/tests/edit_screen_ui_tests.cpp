@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "editorcontroller.h"
 #include "windowsframe.h"
 #include "ui_navigation.h"
@@ -20,8 +21,7 @@ namespace {
 // overlay, screen, or delta coordinates observable in the resulting draft.
 ProjectDocument fixture()
 {
-    ProjectDocument document({{"A","A",{{{{40,59},{44,59},{44,63},{40,63},{40,59}}}},0xabcdef}},
-                             {{"countries","Countries"}});
+    pandoeditor::ProjectDocument document = makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{40,59},{44,59},{44,63},{40,63},{40,59}}}}},{0xabcdef,1},"countries"}},{{"countries","Countries"}});
     Geometry line;line.type="LineString";line.lines={{{41,60},{43,60}}};
     const GeometryRef geometry{"river-geometry",1};
     document.geometries.insert(geometry,line);
@@ -54,7 +54,7 @@ struct Ui {
     {
         Project project;project.replace(document);
         QFile file(files.filePath("input.json"));
-        if(!file.open(QIODevice::WriteOnly)||file.write(projectcodec::encode(project))<=0)return false;
+        if(!file.open(QIODevice::WriteOnly)||file.write(::projectcodec::encode(project))<=0)return false;
         file.close();
         if(!editor.openFile(QUrl::fromLocalFile(file.fileName()))||!editor.setProjectionMode("flat"))return false;
         engine.rootContext()->setContextProperty("editor",&editor);

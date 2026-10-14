@@ -83,9 +83,9 @@ pandoeditor::Geometry prepareRenderGeometry(const pandoeditor::Geometry& source,
     const auto lod=resolveRenderLod(requested,policy,protectedGeometry);
     if(lod==RenderLod::High)return source;
     const double tolerance=lod==RenderLod::Coarse?.075:.018;
-    const double maxEdge=globeReady?(lod==RenderLod::Coarse?4.:2.5):0.;
     auto result=source;
     if(source.type=="LineString"||source.type=="MultiLineString") {
+        const double maxEdge=globeReady?(lod==RenderLod::Coarse?4.:2.5):0.;
         for(auto& line:result.lines)line=prepare(line,tolerance,maxEdge,false);
         result.lines.erase(std::remove_if(result.lines.begin(),result.lines.end(),
             [](const auto& line){return line.size()<2;}),result.lines.end());
@@ -93,7 +93,8 @@ pandoeditor::Geometry prepareRenderGeometry(const pandoeditor::Geometry& source,
         for(auto& polygon:result.polygons) {
             // Never drop the outer ring and reinterpret a hole as a fill.
             if(polygon.empty())continue;
-            for(auto& ring:polygon)ring=prepare(ring,tolerance,maxEdge,true);
+            // Polygon fill tessellation owns its final edge subdivisions.
+            for(auto& ring:polygon)ring=prepare(ring,tolerance,0.,true);
             if(polygon.front().size()<4){polygon.clear();continue;}
             polygon.erase(std::remove_if(polygon.begin()+1,polygon.end(),
                 [](const auto& ring){return ring.size()<4;}),polygon.end());

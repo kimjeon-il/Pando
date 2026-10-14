@@ -26,7 +26,7 @@ class HistoricalWorldUiTests final : public QObject {
     }
     static bool hasUkraine(EditorController& editor) {
         const auto scene=static_cast<MapSceneBridge*>(editor.mapSceneBridge())->sceneSnapshot();
-        return scene&&std::any_of(scene->polygons.begin(),scene->polygons.end(),[](const auto& row){return row.object.id=="state:ukraine";});
+        return scene&&std::any_of(scene->polygons.begin(),scene->polygons.end(),[](const auto& row){return row.object.id=="UKR";});
     }
 private slots:
     void currentMeshOnlyMatchesActiveShape() {
@@ -65,7 +65,7 @@ private slots:
         QTRY_COMPARE_WITH_TIMEOUT(editor.worldStatus(),QString("canonical"),120000);
         QCOMPARE(window->rendererInterface()->graphicsApi(),QSGRendererInterface::Direct3D11);
         QVERIFY(editor.setTimelineMonth("2012-10"));QVERIFY(hasUkraine(editor));QVERIFY(!hasModernPaint(editor));
-        editor.selectCountry("state:ukraine");QVERIFY(editor.focusObject());QTest::qWait(1000);
+        editor.selectCountry("UKR");QVERIFY(editor.focusObject());QTest::qWait(1000);
         const auto captureDir=qEnvironmentVariable("PANDOEDITOR_UI_CAPTURE_DIR");QVERIFY(!captureDir.isEmpty());
         QVERIFY(QDir().mkpath(captureDir));const auto image=window->grabWindow();QVERIFY(!image.isNull());
         QVERIFY(image.save(captureDir+"/native-crimea-2012.png"));
@@ -89,7 +89,7 @@ private slots:
         const auto view=pandoeditor::timelineDocumentView(document,"2012-10");
         MapProjection projection;projection.rebuild(view.document,view.inactiveIds);
         const auto point=projection.project({34.1,44.95});
-        QCOMPARE(editor.pickObject(point.x,point.y).value("id").toString(),QString("state:ukraine"));
+        QCOMPARE(editor.pickObject(point.x,point.y).value("id").toString(),QString("UKR"));
         QVERIFY(editor.setTimelineMonth("2026-10"));QVERIFY(hasModernPaint(editor));
         QVERIFY(editor.setTimelineMonth("2012-10"));QVERIFY(!hasModernPaint(editor));
         QCOMPARE(editor.documentBytes(),bytes);QCOMPARE(editor.dirty(),dirty);QCOMPARE(editor.canUndo(),undo);

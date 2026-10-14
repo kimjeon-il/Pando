@@ -209,7 +209,6 @@ export async function composeApplication({ revision }) {
   gpuScene.initializeGpuSceneResourceObjectKeys();
   mapHost.initializeValidationLayer();
   geometryPreview.initializeBoundarySelectionAnalysisCache();
-  interactionPackets.initializeTerritorialBoundaryGeometryTokens();
   mapHost.initializeMapResizeObserver();
   mapProjection.initializeMapLayoutMetricsSnapshot();
   mapHost.initializeResolutionQuery();

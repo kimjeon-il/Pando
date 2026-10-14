@@ -152,16 +152,6 @@ struct PreservedExtension {
     // Unknown envelope fields are retained by the codec too.
     std::string envelopeExtras="{}";
 };
-// Legacy input DTO only. Never stored alongside the canonical units.
-struct Country {
-    std::string id, name;
-    MultiPolygon polygons;
-    std::uint32_t color;
-    std::string memo;
-    double opacity=1;
-    std::string layerId="countries";
-    bool locked=false;
-};
 struct ProjectDocument {
     std::string documentId;
     // Supported file header, source and physical-view annotations. The codec
@@ -185,7 +175,6 @@ struct ProjectDocument {
     PresentationState presentation;
     std::vector<PreservedExtension> extensions;
     ProjectDocument()=default;
-    ProjectDocument(std::vector<Country> countries,std::vector<Layer> layers);
 };
 // References into the canonical document: no second editable copy, including geometry.
 struct CountryView {

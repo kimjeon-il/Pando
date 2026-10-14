@@ -10,6 +10,7 @@ import {
 import { resolveSnap, snapIndicator } from './geometry-snap.js';
 import { createEditingRenderPacket, EMPTY_EDITING_RENDER_PACKET } from './editing-render-packet.js';
 import { assertCurrentGisImportPlan } from './gis-import-plan.js';
+import { validateGeometry } from './geometry-validation.js';
 
 const cloneCoordinate = value => [Number(value[0]), Number(value[1])];
 const cloneCoordinates = values => (values || []).map(cloneCoordinate);
@@ -689,6 +690,11 @@ export function createEditingDomain({
     try {
       if (gesture.session?.kind === 'object') {
         const editDomain = gesture.targetRef?.domain === 'hydro' ? 'hydro' : 'generic';
+        if (editDomain === 'hydro' && gesture.session.changed
+          && ['Polygon', 'MultiPolygon'].includes(gesture.session.detached.geometry?.type)) {
+          const issue = validateGeometry(gesture.session.detached).find(row => row.severity !== 'warning');
+          if (issue) throw Object.assign(new Error(issue.message), { code: 'PL-HYDRO-GEOMETRY', issue });
+        }
         result = await applyGeometryPatch(editDomain, {
           commit: () => geometry.commitObjectGesture?.({
             source: gesture.session.source,

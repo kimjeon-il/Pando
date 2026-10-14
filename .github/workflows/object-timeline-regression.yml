@@ -3,6 +3,18 @@ name: Objects timeline regression
 on:
   push:
     branches: [work/objects]
+    paths:
+      - '.github/workflows/object-timeline-regression.yml'
+      - 'assets/js/modules/temporal.js'
+      - 'assets/js/modules/timeline*.js'
+      - 'assets/js/modules/project-state.js'
+      - 'assets/js/modules/project-serializer.js'
+      - 'shared/core/src/timeline*.cpp'
+      - 'shared/core/include/**/timeline*.h'
+      - 'tests/unit/temporal.test.mjs'
+      - 'tests/unit/timeline-*.test.mjs'
+      - 'tests/fixtures/timeline-*'
+      - 'tests/fixtures/portability/timeline-*'
   workflow_dispatch:
 
 permissions:

@@ -410,7 +410,8 @@ std::shared_ptr<const RenderScene> MapSceneBuilder::buildDocumentImpl(
             if(a.object!=b.object||!(a.geometry==b.geometry)||
                a.geometryPacket.positions!=b.geometryPacket.positions||
                a.geometryPacket.indices!=b.geometryPacket.indices||
-               a.geometryPacket.globeIndices!=b.geometryPacket.globeIndices)return false;
+               a.geometryPacket.globeIndices!=b.geometryPacket.globeIndices||
+               a.geometryPacket.boundaryStartsEnds!=b.geometryPacket.boundaryStartsEnds)return false;
         }
         return true;
     };
@@ -489,7 +490,13 @@ std::shared_ptr<const RenderScene> MapSceneBuilder::buildDocumentImpl(
                 stroke.drawOrder=mapRenderOrder(doc,object,RenderPrimitiveRole::Boundary);
                 stroke.order=orderValue(stroke.drawOrder);
                 if(const auto old=previous?retained(previous->strokes):nullptr)stroke.geometryPacket=old->geometryPacket;
-                else {markGeometryWork();stroke.geometryPacket=cache_.stroke(object,*ref,*shape,lod,preparation);}
+                else {
+                    // The accepted fill already owns exactly the boundary
+                    // required by this stroke, including after style edits.
+                    const auto& fill=scene->polygons.back().geometryPacket;
+                    stroke.geometryPacket={fill.boundaryStartsEnds,fill.unitSphereBoundaryStartsEnds,
+                                           fill.boundarySegmentCount};
+                }
                 const auto strokeIndex=scene->strokes.size();scene->strokes.push_back(std::move(stroke));
                 if(boundary)scene->drawSequence.push_back({PrimitiveKind::Stroke,strokeIndex,
                     scene->strokes.back().drawOrder,layerOrder,layerOpacity});

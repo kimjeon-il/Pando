@@ -95,7 +95,7 @@ test('selected metadata refreshes the common presenter; color and flags invalida
   assert.equal(effects.labels,1);assert.equal(effects.refresh,3);assert.equal(effects.history,3);
 });
 
-test('explicit relation target changes an unselected child through one command without changing selection', async () => {
+test('explicit relation target refreshes the selected parent without changing selection', async () => {
   const { owner, state, repository, effects } = await fixture();
   const selected = state.selected;
   const ref = { domain: 'territorial', type: 'entity', id: 'B' };
@@ -105,13 +105,15 @@ test('explicit relation target changes an unselected child through one command w
   assert.deepEqual(repository.get('B').geometry, before);
   assert.equal(state.selected, selected);
   assert.equal(effects.history, 1);
-  assert.equal(effects.refresh, 0, 'An explicit unselected relation target cannot refresh a different primary.');
+  assert.equal(effects.refresh, 1, 'The selected parent shows its newly linked child.');
   assert.equal((await owner.commitTerritorialRelation(ref, 'parentId', 'A')).changed, false);
   assert.equal(effects.history, 1);
+  assert.equal(effects.refresh, 2, 'The existing relation remains visible after a no-op.');
   assert.equal((await owner.commitTerritorialRelation(ref, 'parentId', '')).changed, true);
   assert.equal(repository.get('B').properties.parentId, '');
   assert.equal(state.selected, selected);
   assert.equal(effects.history, 2);
+  assert.equal(effects.refresh, 3, 'The selected parent removes its detached child.');
 });
 
 for (const parentId of ['B', 'missing']) test(`explicit relation target rejects ${parentId} without model/history/selection changes`, async () => {

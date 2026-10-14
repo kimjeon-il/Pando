@@ -54,6 +54,7 @@ add_library(pandoeditor_core STATIC
     src/content.cpp
     src/objectproperties.cpp
     src/geometrypredicates.cpp
+    src/sphericalpolygon.cpp
     src/territorialmutation.cpp
     src/commands.cpp
   src/commandbatch.cpp

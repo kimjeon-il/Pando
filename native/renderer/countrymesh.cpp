@@ -18,7 +18,7 @@ std::uint16_t u16(const QByteArray& data,std::size_t at) {
 }
 std::shared_ptr<const CountryBaseMesh> decodeCountryBaseMesh(const QByteArray& bytes,bool preview) {
     require(bytes.size()>=48&&u32(bytes,0)==0x434d4731&&u32(bytes,4)==2&&
-            u32(bytes,8)==258&&u32(bytes,28)==3,"Invalid CMG2 header");
+            u32(bytes,8)==258&&u32(bytes,28)==4,"Invalid CMG2 header");
     const auto vertices=u32(bytes,12),triangles=u32(bytes,16),lines=u32(bytes,20);
     const auto coordinates=u32(bytes,24);
     require(coordinates==(preview?105884U:548454U)&&vertices>0&&triangles%3==0&&lines%2==0&&

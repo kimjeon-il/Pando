@@ -124,7 +124,12 @@ export function createPersistenceService({
         onWarning('Autosave checkpoint acknowledgement failed', error);
         onAutosaveState(AUTOSAVE_STATES.ERROR);
         onFailure(error);
-      } else detail.outcome = 'build-failed';
+      } else {
+        detail.outcome = 'build-failed';
+        onWarning('Autosave snapshot build failed', error);
+        onAutosaveState(AUTOSAVE_STATES.ERROR);
+        onFailure(error);
+      }
       detail.buildError = String(error?.name || error?.code || 'error');
       throw error;
     } finally {
@@ -137,7 +142,7 @@ export function createPersistenceService({
     if (markDirty) onDirty(scope);
     if (recovery || restoring) return;
     onAutosaveState(AUTOSAVE_STATES.QUEUED);
-    scheduler.scheduleIdle('autosave', () => persist(), delay);
+    scheduler.scheduleIdle('autosave', () => persist().catch(error => onWarning('Autosave operation failed', error)), delay);
   }
 
   function queuePresentation(delay = 650) {

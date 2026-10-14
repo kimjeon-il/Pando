@@ -1,7 +1,7 @@
 import {testCoreProject,snapshotTestTerritorialState,initializeTestTerritorialState,executeTestCommand,executeTerritorialTestCommand,staticAutosaveProject} from '../helpers/timeline-project.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { subunitSelectionPolicy, territorialDeletionAllowed, boundaryTouchesGeometry } from '../../assets/js/modules/territorial-interaction-policy.js';
+import { subunitSelectionPolicy, boundaryTouchesGeometry } from '../../assets/js/modules/territorial-interaction-policy.js';
 import * as interactionPolicy from '../../assets/js/modules/territorial-interaction-policy.js';
 import {readFileSync} from 'node:fs';
 import {normalizeLayerPresentation} from '../../assets/js/modules/layer-presentation.js';
@@ -50,7 +50,6 @@ test('single and batch deletion never expands into descendants and rechecks chan
     distributionEntries:[{...seed.distributionEntries[0],territorialUnitId:'a'}],itemVisibility:{subunits:{a:false}},labelSettings:{'territorial:a':{}}};
   await initializeInteractionState(state);
   await executeTerritorialTestCommand(state,'territorial.create',{feature:unit('child','a')});
-  assert.equal(territorialDeletionAllowed([a, b], state.territorialEntities), false);
   const before = snapshotTestTerritorialState(state);
   await assert.rejects(()=>executeRemoval(state,['a','b']));
   assert.deepEqual(snapshotTestTerritorialState(state), before);

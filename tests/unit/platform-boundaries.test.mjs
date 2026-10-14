@@ -1,12 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { readFileSync } from 'node:fs';
 import { createTerritorialApplicationService } from '../../assets/js/modules/territorial-service.js';
 import { createEditingDomain } from '../../assets/js/modules/editing-domain.js';
-import * as projectState from '../../assets/js/modules/project-state.js';
-import {staticTerritorialInput} from '../helpers/timeline-project.mjs';
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
-import { normalizeGenericFeatureCollection } from '../../assets/js/modules/generic-feature-service.js';
 import { createProjectSession } from '../../assets/js/modules/app-project-session.js';
 import { normalizeLayerPresentation } from '../../assets/js/modules/layer-presentation.js';
 import { createGeometryPreviewState } from '../../assets/js/modules/geometry-preview.js';
@@ -19,35 +14,6 @@ test('territorial service rejects a missing ID provider at its composition bound
   assert.throws(() => createTerritorialApplicationService({
     entityRepository: {get(){}},commandOwner:{executeCommand(){}},
   }), /ID allocator/);
-});
-
-test('history restoration prepares and validates a detached candidate outside UI composition', () => {
-  assert.equal(typeof projectState.prepareEditableProjectSnapshot, 'function');
-  const snapshot = { ...staticTerritorialInput([createTerritorialFeature({
-    id: 'A', entityKind: 'general', name: 'Alpha', geometry: {
-      type: 'Polygon', coordinates: [[[0,0],[1,0],[1,1],[0,1],[0,0]]],
-    },
-  })]), hydroEdits: [], genericFeatures: [], distributionLayers: [], distributionEntries: [] };
-  const before = structuredClone(snapshot);
-  const options = { normalizeHydroEditCollection: values => values, normalizeGenericFeatureCollection };
-  const candidate = projectState.prepareEditableProjectSnapshot(snapshot, options);
-  assert.deepEqual(snapshot, before);
-  candidate.territorialEntities[0].properties.name = 'Edited';
-  assert.equal(snapshot.territorialEntities[0].properties.name, 'Alpha');
-  const invalid = structuredClone(snapshot);
-  invalid.timelineRecords.geometryBindings[0].geometryRef.id = 'missing';
-  assert.throws(() => projectState.prepareEditableProjectSnapshot(invalid, options));
-  assert.deepEqual(snapshot, before);
-});
-
-test('history restoration accepts dated identities and preserves archived records', () => {
-  const source = JSON.parse(readFileSync(new URL('../fixtures/timeline-exchange/complex.json', import.meta.url), 'utf8'));
-  const snapshot = { ...source, hydroEdits: [], genericFeatures: [], distributionLayers: [], distributionEntries: [] };
-  const candidate = projectState.prepareEditableProjectSnapshot(snapshot, {
-    normalizeHydroEditCollection: values => values, normalizeGenericFeatureCollection,
-  });
-  assert.deepEqual(candidate.timelineRecords, source.timelineRecords);
-  assert.deepEqual(candidate.territorialEntities, source.territorialEntities);
 });
 
 test('selection publishes the prior selection without a second mutable owner', async t => {

@@ -1,4 +1,5 @@
 #include "splitgeometrynormalizer.h"
+#include <pandoeditor/sphericalpolygon.h>
 #include "geometryruntime_p.h"
 #include "geometryprovenance.h"
 #include <QCryptographicHash>
@@ -8,6 +9,7 @@
 #include <cmath>
 #include <limits>
 #include <stdexcept>
+#include <utility>
 
 static void initializeSplitNormalizerResources() {
     static const bool initialized=[] {Q_INIT_RESOURCE(current_geometry);return true;}();
@@ -91,6 +93,28 @@ SplitGeometryNormalizationResult run(const Geometry& geometry,const char* operat
     }catch(const Cancelled&){return stopped();}
     catch(const std::exception& error){if(cancelled&&cancelled())return stopped();SplitGeometryNormalizationResult output;output.detail=error.what();return output;}
 }
+
+SplitGeometryNormalizationResult nativeNormalize(const Geometry& source,bool clipped,const GeometryCancellation& cancelled) {
+    try {
+        check(cancelled);
+        // This path no longer instantiates QJSEngine. It uses the same core as
+        // native commands and WebAssembly, preserving the source geometry.
+        auto normalized=clipped?normalizeClippedSphericalPolygonGeometry(source)
+                               :normalizeSphericalPolygonGeometry(source);
+        check(cancelled);
+        SplitGeometryNormalizationResult output;
+        output.status=normalized.polygons.empty()?GeometryOperationStatus::Empty
+                                                 :GeometryOperationStatus::Completed;
+        output.geometry=std::move(normalized);
+        output.inputUnchanged=true;
+        return output;
+    }catch(const Cancelled&){return stopped();}
+    catch(const std::exception& error){
+        if(cancelled&&cancelled())return stopped();
+        SplitGeometryNormalizationResult output;output.detail=error.what();return output;
+    }
+}
+
 }
 void loadCanonicalPolygonGeometry(QJSEngine& engine) {
     initializeSplitNormalizerResources();
@@ -105,9 +129,9 @@ SplitGeometryNormalizationResult wrapSplitGeometry(const Geometry& geometry,cons
     return run(geometry,"wrapPolygonGeometry",cancelled);
 }
 SplitGeometryNormalizationResult normalizeSplitRawGeometry(const Geometry& geometry,const GeometryCancellation& cancelled) {
-    return run(geometry,"normalizePolygonGeometry",cancelled);
+    return nativeNormalize(geometry,false,cancelled);
 }
 SplitGeometryNormalizationResult normalizeSplitClippedGeometry(const Geometry& geometry,const GeometryCancellation& cancelled) {
-    return run(geometry,"normalizeClippedPolygonGeometry",cancelled);
+    return nativeNormalize(geometry,true,cancelled);
 }
 }

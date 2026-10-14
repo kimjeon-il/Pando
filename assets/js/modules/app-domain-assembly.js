@@ -44,6 +44,7 @@ export function createDomainAssembly() {
     if(!impact || !Array.isArray(impact.geometryDomains) || !Array.isArray(impact.identityDomains)
       || typeof impact.timelineChanged!=='boolean')throw new TypeError('Canonical C++ command render impact is required.');
     const domains=new Set(impact.geometryDomains);
+    const identities=new Set(impact.identityDomains);
     if(domains.has('territorial') || impact.timelineChanged) {
       renderingDomain.invalidateCountryPatch(reason);
       renderingDomain.invalidateTerritorialPatch(reason);
@@ -51,9 +52,9 @@ export function createDomainAssembly() {
     if(domains.has('hydro'))renderingDomain.invalidateHydroPatch(reason);
     if(domains.has('generic'))renderingDomain.invalidateGenericPatch(reason);
     if(domains.has('label'))renderingDomain.invalidateLabels(reason);
-    if(domains.has('distributionEntry') || domains.has('distributionLayer'))renderingDomain.invalidateOverlayGeometry('distribution',reason);
+    if(domains.has('distributionEntry') || domains.has('distributionLayer')
+      || identities.has('distributionEntry') || identities.has('distributionLayer'))renderingDomain.invalidateOverlayGeometry('distribution',reason);
     if(history) {
-      const identities=new Set(impact.identityDomains);
       if(identities.has('territorial')) {
         dependencies.rendering.gpuMapRenderer.invalidateCountryPalette({ base: true,emphasis: true },reason);
         renderingDomain.invalidateBaseScene(reason);
@@ -61,8 +62,6 @@ export function createDomainAssembly() {
       if(identities.has('territorial') || identities.has('label'))renderingDomain.invalidateLabels(reason);
       if(identities.has('hydro') && !domains.has('hydro'))renderingDomain.invalidateHydroPatch(reason);
       if(identities.has('generic') && !domains.has('generic'))renderingDomain.invalidateGenericPatch(reason);
-      if((identities.has('distributionEntry') || identities.has('distributionLayer'))
-        && !domains.has('distributionEntry') && !domains.has('distributionLayer'))renderingDomain.invalidateOverlayGeometry('distribution',reason);
     }
   }
   async function initializeAcceptedDomains() {
@@ -123,6 +122,7 @@ export function createDomainAssembly() {
         { domain: 'placeBuiltin',refs: dependencies.countryLabelModel.builtinPlaceSelectionReferences() },
         { domain: 'hydroBuiltin',refs: dependencies.physicalResources.builtinHydroSelectionReferences() },
       ],
+      readPresentationCatalog: () => dependencies.layerTree.presentationCatalog(),
       publishCommand: async (outcome,{ reason } = {}) => {
         if(outcome.ok && outcome.changed && (reason==='project-undo' || reason==='project-redo')) await dependencies.projectSnapshots.finishHistoryTravel();
         if(reason==='command-rollback') {
@@ -136,6 +136,7 @@ export function createDomainAssembly() {
           skipRenderReset: options?.skipRenderReset === true,
           prepared: options?.prepared,
           preserveBuiltinMesh: options?.preserveBuiltinMesh === true,
+          catalogAlreadyAdmitted: true,
         };
         if (project) return (0, dependencies.projectRestore.applyAtlasState)(project, options?.reason === 'load', resetOptions);
         return (0, dependencies.projectRestore.resetProjectInPlace)(resetOptions);
@@ -158,7 +159,7 @@ export function createDomainAssembly() {
       },
       restoreReplacement: async (project, generation) => {
         await (0, dependencies.projectRestore.applyAtlasState)(project, false, { projectGeneration: generation,skipRenderReset: true,
-          preserveCoreSession: true });
+          preserveCoreSession: true,catalogAlreadyAdmitted: true });
         dependencies.lifecycleUi.projectUi.syncHistory();
         renderingDomain?.invalidateProject?.('project-rollback');
       },
@@ -168,6 +169,7 @@ export function createDomainAssembly() {
       reportDiagnostic: entry => dependencies.readiness.reliabilityDiagnostic.push({ category: 'project', ...entry }),
       onProjectChanged: event => {
         window.dispatchEvent(new CustomEvent('pandolab:project-changed', { detail: event }));
+        dependencies.lifecycleUi.projectUi.syncHistory();
       },
       onReplacementState: async (replacing, reason) => {
         dependencies.projectState.state.projectReplacing = replacing;
@@ -185,7 +187,7 @@ export function createDomainAssembly() {
       },
       onProjectReset: async event => {
         await selectionDomain.resetProject(event.generation);
-        selectionUiController?.resetProject?.();
+        selectionUiController.resetProject();
         await editingDomain.resetProject(event.generation);
         renderingDomain?.resetProjectGeneration(event.generation, { preserveBuiltinMesh: event.preserveBuiltinMesh === true });
       },
@@ -254,11 +256,9 @@ export function createDomainAssembly() {
       distributionEntriesForLayer: dependencies.distributionServices.distributionEntriesForLayer,
       genericFeatureById: id => dependencies.projectState.state.genericFeatures.find(feature => String(feature.id) === String(id)),
       genericFeatureGeometryKind: dependencies.objectPresentation.genericFeatureGeometryKind,
-      genericFeatureRole: dependencies.applicationServicesA.genericFeatureRole,
       genericFeatureRoleLabel: dependencies.objectPresentation.genericFeatureRoleLabel,
       genericFeatureRoleHelp: dependencies.objectModelA.genericFeatureRoleHelp,
       genericFeatureName: dependencies.objectPresentation.genericFeatureName,
-      genericFeatureRoleLabels: dependencies.applicationConstantsA.GENERIC_FEATURE_ROLE_LABELS,
       defaultGenericFeatureColorFor: dependencies.objectModelA.defaultGenericFeatureColor,
       labelById: dependencies.countryLabelModel.labelById,
       labelKey: dependencies.labelPresentation.labelKey,

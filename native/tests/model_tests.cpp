@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "territorial_fixture.h"
 #include <pandoeditor/project.h>
 #include <iostream>
@@ -10,7 +11,7 @@ void rejects(const std::function<void()>& f,const char* message) {
     throw std::runtime_error(message);
 }
 ProjectDocument fixture() {
-    ProjectDocument d({{"A","Country",{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}},0x123456}},{{"countries","국가"},{"other","기타"}});
+    pandoeditor::ProjectDocument d = makeTerritorialDocument({{{"A","Country","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}}},{0x123456,1},"countries"}},{{"countries","국가"},{"other","기타"}});
     auto add=[&](std::string id,UnitKind kind) {
         appendTerritory(d,{id,id,"note",kind,false},staticGeometryBinding(d,d.units.front().id).geometryRef);
         d.presentation.membership[territorialRef(id)]="other";
@@ -50,7 +51,7 @@ void calendarTransitionsAreContinuous() {
             {"2000-02-28","2000-02-29"},{"2000-02-29","2000-03-01"},
             {"2024-04-30","2024-05-01"},{"-0001-12-31","0001-01-01"},
             {"-0004-02-29","-0004-03-01"}}) {
-        ProjectDocument d({{"A","Old country",{{{{0,0},{10,0},{10,10},{0,0}}}},0x123456}},{{"countries","Countries"}});
+        pandoeditor::ProjectDocument d = makeTerritorialDocument({{{"A","Old country","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{10,0},{10,10},{0,0}}}}},{0x123456,1},"countries"}},{{"countries","Countries"}});
         staticLifetime(d,d.units[0].id).validity.to=transition.first;
         appendTerritory(d,{"B","New country","",UnitKind::General},staticGeometryBinding(d,d.units[0].id).geometryRef);
         staticLifetime(d,"B").validity.from=transition.second;

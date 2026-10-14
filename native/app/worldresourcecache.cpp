@@ -62,7 +62,6 @@ void WorldResourceCache::protect(WorldDetail detail,pandoeditor::ResourceProtect
     protections_[i][r]=on;policy_.setProtection(detail,reason,on);trim();
 }
 void WorldResourceCache::setBudget(std::size_t bytes){override_=bytes;policy_.setBudget(bytes);trim();}
-void WorldResourceCache::useCompatibilityBudget(){override_.reset();updateBudget();trim();}
 void WorldResourceCache::updateBudget(){std::size_t n=workingSetBytes_[0];addBytes(n,workingSetBytes_[1]);policy_.setBudget(override_.value_or(n));}
 void WorldResourceCache::trim(){for(auto detail:policy_.trim())frames_[index(detail)].reset();}
 void WorldResourceCache::reset(){policy_.resetScope();frames_={};workingSetBytes_={};protections_={};requests_={};updateBudget();}

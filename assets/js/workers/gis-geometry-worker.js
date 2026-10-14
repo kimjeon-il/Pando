@@ -1,14 +1,12 @@
 'use strict';
-
-importScripts('../vendor/polygon-clipping.min.js');
-
-self.onmessage = async event => {
-  const { id, action, collection, affectedIds } = event.data || {};
-  try {
+const rpcHostUrl = new URL('./worker-rpc-host.js', self.location.href);
+const revision = new URL(self.location.href).searchParams.get('v');
+if (revision) rpcHostUrl.searchParams.set('v', revision);
+importScripts('../vendor/polygon-clipping.min.js', rpcHostUrl.href);
+self.PandoLabWorkerRpc.install({ handlers: {
+  'gis.validate': async (payload, context) => {
     const { validateCollection } = await import('../modules/gis-geometry-validation.js');
-    if (action !== 'validate') throw new Error('알 수 없는 GIS 지오메트리 작업입니다.');
-    self.postMessage({ id, ok: true, ...validateCollection(collection, affectedIds, self.polygonClipping) });
-  } catch (error) {
-    self.postMessage({ id, ok: false, error: error?.message || String(error) });
-  }
-};
+    context.throwIfCancelled();
+    return validateCollection(payload.collection, payload.affectedIds, self.polygonClipping);
+  },
+} });

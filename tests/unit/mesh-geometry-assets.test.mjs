@@ -1,3 +1,4 @@
+import '../../assets/js/workers/gpu-mesh-core.js';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -16,7 +17,7 @@ function decodeMesh(relativePath) {
   assert.equal(magic, 0x434d4731);
   assert.equal(version, 2);
   assert.equal(countries, 258);
-  assert.equal(revision, 3);
+  assert.equal(revision, globalThis.PandoLabGpuMeshCore.MESH_ALGORITHM_REVISION);
   assert.ok(sourceCoordinates > 0);
   assert.deepEqual(Array.from(header.subarray(8)), [countries * 2, countries * 2, countries * 4, countries]);
   let offset = headerWords * Uint32Array.BYTES_PER_ELEMENT;
@@ -150,7 +151,7 @@ function assertMeshGeometry(relativePath) {
   assert.equal(boundaryCursor, lineIndices.length);
 }
 
-test('canonical and preview GPU mesh assets have no invalid indices or degenerate primitives', () => {
-  assertMeshGeometry('assets/data/world-mesh-v0.12.6.bin.gz');
-  assertMeshGeometry('assets/data/world-mesh-preview-v0.36.0.bin.gz');
+test('active canonical and preview GPU mesh assets have valid indices and owner ranges', () => {
+  const bundle = JSON.parse(fs.readFileSync(path.join(projectRoot, 'assets/data/world/current.json'), 'utf8'));
+  for (const role of ['canonicalMesh', 'previewMesh']) assertMeshGeometry(`assets/data/${bundle.assets[role].url}`);
 });

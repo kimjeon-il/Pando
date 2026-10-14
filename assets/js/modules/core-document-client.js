@@ -15,6 +15,7 @@ export function createCoreDocumentClient({
     onCrash: () => { currentState = null; } });
   function ordered(operation, payload, options = {}, requiresDocument = true, atomic = false, injectEpoch = requiresDocument) {
     const result = queue.then(async () => {
+      if (options.isCurrent && !options.isCurrent()) fail('PL-CORE-STALE', 'The request belongs to another project generation.');
       if (requiresDocument && !currentState) fail('PL-CORE-NOT-LOADED', 'The complete C++ document has not been loaded.');
       if (atomic && options.signal?.aborted) throw Object.assign(new Error('Document operation was cancelled before dispatch.'),
         { code: 'PL-CORE-CANCELLED', name: 'AbortError', cancelled: true });

@@ -838,7 +838,7 @@ export function createRenderingDomain({
   let territorialBoundaryEpoch = 0;
   const pendingHighlights = new Map();
   let territorialBoundaryCache = { countries: null, units: null, revision: -1, inputSignature: '', segments: [], rebuildCount: 0 };
-  let territorialBoundaryBatchCache = { signature: '', revision: '', groups: [] };
+  let territorialBoundaryBatchCache = { signature: '', revision: '', groups: [], data: [] };
   const renderTerritorialInternalBoundaries = (visibleFeatures = []) => {
     active();
     const t = territorialBoundary;
@@ -851,7 +851,7 @@ export function createRenderingDomain({
       pendingTerritorialBoundary = null;
       const hadBoundaries = territorialBoundaryCache.segments.length || territorialBoundaryBatchCache.groups.length;
       territorialBoundaryCache = { countries: null, units: null, revision: -1, inputSignature: '', segments: [], rebuildCount: territorialBoundaryCache.rebuildCount };
-      territorialBoundaryBatchCache = { signature: '', revision: '', groups: [] };
+      territorialBoundaryBatchCache = { signature: '', revision: '', groups: [], data: [] };
       t.territorialBoundaryLayer?.selectAll('path.territorial-internal-boundary').remove();
       if (hadBoundaries) t.replaceGpuSceneDomain?.('territorial-boundaries', { strokes: [] });
       return true;
@@ -933,15 +933,17 @@ export function createRenderingDomain({
         if (!style.boundaryVisible || !(style.opacity > 0)) continue;
         group.segments.push({ a: segment.a, b: segment.b, color: boundaryColor, opacity: style.opacity });
       }
-      territorialBoundaryBatchCache = { signature, revision: `${territorialBoundaryCache.rebuildCount}:${signature}`, groups: [...groups.values()].filter(group => group.segments.length) };
+      const preparedGroups = [...groups.values()].filter(group => group.segments.length);
+      const fallbackGroups = new Map();
+      for (const group of preparedGroups) for (const segment of group.segments) {
+        const key = `${group.styleType}:${segment.color}:${segment.opacity}`;
+        if (!fallbackGroups.has(key)) fallbackGroups.set(key, { key, styleType: group.styleType, color: segment.color, opacity: segment.opacity, coordinates: [] });
+        fallbackGroups.get(key).coordinates.push([segment.a, segment.b]);
+      }
+      const data = [...fallbackGroups.values()].map(group => ({ ...group, geometry: { type: 'MultiLineString', coordinates: connectBoundarySegments(group.coordinates) } }));
+      territorialBoundaryBatchCache = { signature, revision: `${territorialBoundaryCache.rebuildCount}:${signature}`, groups: preparedGroups, data };
     }
-    const fallbackGroups = new Map();
-    for (const group of territorialBoundaryBatchCache.groups) for (const segment of group.segments) {
-      const key = `${group.styleType}:${segment.color}:${segment.opacity}`;
-      if (!fallbackGroups.has(key)) fallbackGroups.set(key, { key, styleType: group.styleType, color: segment.color, opacity: segment.opacity, coordinates: [] });
-      fallbackGroups.get(key).coordinates.push([segment.a, segment.b]);
-    }
-    const data = [...fallbackGroups.values()].map(group => ({ ...group, geometry: { type: 'MultiLineString', coordinates: connectBoundarySegments(group.coordinates) } }));
+    const data = territorialBoundaryBatchCache.data;
     // These are scene strokes. A projected SVG copy caused a second visual
     // owner with different cache and transition timing.
     t.territorialBoundaryLayer?.selectAll('path.territorial-internal-boundary').remove();
@@ -1224,7 +1226,7 @@ export function createRenderingDomain({
     reason || 'render-quality',
   );
   const invalidateBaseScene = reason => invalidate(
-    MAP_RENDER_DIRTY.GPU_FRAME | MAP_RENDER_DIRTY.OVERLAY_STYLE | MAP_RENDER_DIRTY.LAYER_TREE,
+    MAP_RENDER_DIRTY.BASE | MAP_RENDER_DIRTY.GPU_FRAME | MAP_RENDER_DIRTY.OVERLAY_STYLE | MAP_RENDER_DIRTY.LAYER_TREE,
     reason || 'base-scene',
   );
   const invalidatePatch = (bit, reason, extra = 0) => invalidate(
@@ -2110,7 +2112,7 @@ export function createRenderingDomain({
       segments: [],
       rebuildCount: 0,
     };
-    territorialBoundaryBatchCache = { signature: '', revision: '', groups: [] };
+    territorialBoundaryBatchCache = { signature: '', revision: '', groups: [], data: [] };
   };
   const getTerritorialBoundaryStats = () => Object.freeze({
     rebuildCount: territorialBoundaryCache.rebuildCount,

@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "editorcontroller.h"
 #include "windowsframe.h"
 #include "ui_navigation.h"
@@ -23,7 +24,7 @@ private slots:
     }
     void actualPointerTypeControlsSnapRadius(){
         QFETCH(bool,mobile);QFETCH(bool,touch);QFETCH(double,latitude);QTemporaryDir files;EditorControllerConfig config;config.mobileMode=mobile;config.bootstrapWorld=false;config.autosaveEnabled=false;config.privateProjectPath=files.filePath("private.json");EditorController editor(config);
-        Project project;project.replace(std::vector<Country>{{"A","A",{{{{0,latitude},{2,latitude},{2,latitude+2},{0,latitude+2},{0,latitude}}}},0xabcdef}});QFile file(files.filePath("project.json"));QVERIFY(file.open(QIODevice::WriteOnly));file.write(projectcodec::encode(project));file.close();QVERIFY(editor.openFile(QUrl::fromLocalFile(file.fileName())));editor.selectCountry("A");QCOMPARE(editor.selectedId(),QString("A"));QVERIFY(editor.setProjectionMode("flat"));
+        Project project;project.replace(makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,latitude},{2,latitude},{2,latitude+2},{0,latitude+2},{0,latitude}}}}},{0xabcdef,1},"countries"}}));QFile file(files.filePath("project.json"));QVERIFY(file.open(QIODevice::WriteOnly));file.write(::projectcodec::encode(project));file.close();QVERIFY(editor.openFile(QUrl::fromLocalFile(file.fileName())));editor.selectCountry("A");QCOMPARE(editor.selectedId(),QString("A"));QVERIFY(editor.setProjectionMode("flat"));
         QQmlApplicationEngine engine;QStringList warnings;connect(&engine,&QQmlEngine::warnings,&engine,[&](const auto& errors){for(const auto& error:errors)warnings.append(error.toString());});engine.rootContext()->setContextProperty("editor",&editor);const auto root=qEnvironmentVariable("M974_TEST_UI_ROOT");engine.load(root.isEmpty()?QUrl("qrc:/common/Main.qml"):QUrl::fromLocalFile(root+"/common/Main.qml"));QVERIFY2(!engine.rootObjects().isEmpty(),qPrintable(warnings.join('\n')));auto window=qobject_cast<QQuickWindow*>(engine.rootObjects().front());QVERIFY(window);window->resize(mobile?360:1100,760);window->show();QTest::qWait(150);
         auto map=navigationItem(window->contentItem(),"mapView");QVERIFY(map);QVERIFY(editor.beginGeometryDraw());QTest::qWait(50);
         const auto first=editor.mapViewState();QVERIFY(editor.zoomMapCameraAt(100/first["mapScale"].toDouble(),map->width()/2,map->height()/2));

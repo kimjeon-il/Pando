@@ -26,10 +26,8 @@ export function createProjectSession() {
   function normalizeLayerVisibility(value = {}, current = DEFAULT_LAYER_VISIBILITY) {
     const source = value && typeof value === 'object' ? value : {};
     const fallback = current && typeof current === 'object' ? current : DEFAULT_LAYER_VISIBILITY;
-    const legacyHydroVisible = source.hydro !== false;
     return Object.fromEntries(Object.keys(DEFAULT_LAYER_VISIBILITY).map(key => {
       if (Object.hasOwn(source, key)) return [key, source[key] !== false];
-      if ((key === 'rivers' || key === 'lakes') && Object.hasOwn(source, 'hydro')) return [key, legacyHydroVisible];
       return [key, fallback[key] !== false];
     }));
   }

@@ -12,7 +12,7 @@ function setup(method, barrier) {
   const layer = { id: 'D', name: 'Layer', locked: false };
   const state = { selected: { domain: 'distribution', type: 'distribution', id: 'D' },
     distributionLayers: [layer], distributionEntries: [{ id: 'E', layerId: 'D', mode: 'territorial', territorialUnitId: 'A' }],
-    distributionSettings: { activeLayerId: 'D' }, selectedDistributionLayerId: 'D' };
+    distributionSettings: Object.freeze({ activeLayerId: 'D' }), selectedDistributionLayerId: 'D' };
   const events = [], calls = [];
   const service = { getLayer: id => id === 'D' ? layer : null,
     [method]: (...args) => { calls.push(args); return barrier.promise; } };
@@ -56,8 +56,8 @@ test('distribution delete waits for the device-owned command and does not clear 
   barrier.resolve({ ok: true });
   assert.equal(await pending, true);
   assert.equal(fixture.events.includes('clear'), false);
-  assert.equal(fixture.state.distributionSettings.activeLayerId, '');
-  assert.equal(fixture.state.selectedDistributionLayerId, '');
+  assert.equal(fixture.state.distributionSettings.activeLayerId, 'D');
+  assert.equal(fixture.events.includes('autosave'), false);
 });
 
 test('distribution command acknowledgement from a replaced project produces no new-project UI effects', async () => {

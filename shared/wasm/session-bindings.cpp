@@ -1,4 +1,6 @@
 #include <pandoeditor/document-session.h>
+#include <pandoeditor/projectcodec.h>
+#include <pandoeditor/sphericalpolygon.h>
 #include <pandoeditor/webcommands.h>
 #include <pandoeditor/webcontentcommands.h>
 #include <pandoeditor/webpresentationcommands.h>
@@ -64,6 +66,32 @@ template<class Function> auto boundary(Function function)->decltype(function()) 
         value.set("code",code);value.throw_();
     }
     std::terminate();
+}
+val polygonGeometry(const val& input,bool clipped) {
+    return boundary([&] {
+        const auto encoded=val::global("JSON").call<val>("stringify",input).as<std::string>();
+        const auto source=projectcodec::readWebGeometry(codecjson::parse(encoded));
+        const auto result=clipped?normalizeClippedSphericalPolygonGeometry(source)
+                                 :normalizeSphericalPolygonGeometry(source);
+        return val::global("JSON").call<val>("parse",projectcodec::webGeometryValue(result).encode());
+    });
+}
+val polygonRing(const val& input,bool shell) {
+    return boundary([&] {
+        auto source=val::object();source.set("type",std::string("Polygon"));
+        auto coordinates=val::array();coordinates.set(0,input);source.set("coordinates",coordinates);
+        const auto encoded=val::global("JSON").call<val>("stringify",source).as<std::string>();
+        const auto parsed=projectcodec::readWebGeometry(codecjson::parse(encoded));
+        Geometry output;output.type="Polygon";
+        output.polygons.push_back({normalizeSphericalRing(parsed.polygons.at(0).at(0),shell)});
+        return val::global("JSON").call<val>("parse",projectcodec::webGeometryValue(output).encode())["coordinates"][0];
+    });
+}
+bool canonicalPolygonGeometry(const val& input) {
+    try {
+        const auto encoded=val::global("JSON").call<val>("stringify",input).as<std::string>();
+        return hasCanonicalSphericalWinding(projectcodec::readWebGeometry(codecjson::parse(encoded)));
+    }catch(...) {return false;}
 }
 val documentState(const DocumentSessionState& state) {
     auto value=val::object();value.set("epoch",state.epoch);value.set("stateRevision",state.stateRevision);
@@ -557,6 +585,9 @@ EMSCRIPTEN_BINDINGS(pandoeditor_document_session) {
     emscripten::constant("coreAbiVersion",1);
     emscripten::constant("coreSourceSha256",std::string(PANDOEDITOR_CORE_SOURCE_SHA256));
     emscripten::constant("coreCompilerVersion",compilerVersion);
+    emscripten::function("normalizePolygonGeometry",&polygonGeometry);
+    emscripten::function("normalizePolygonRing",&polygonRing);
+    emscripten::function("hasCanonicalPolygonWinding",&canonicalPolygonGeometry);
     emscripten::class_<WasmDocumentSession>("DocumentSession").constructor<val>()
         .function("documentLoad",&WasmDocumentSession::documentLoad).function("storageSnapshot",&WasmDocumentSession::storageSnapshot)
         .function("storageBaselineLoad",&WasmDocumentSession::storageBaselineLoad).function("validateImport",&WasmDocumentSession::validateImport)

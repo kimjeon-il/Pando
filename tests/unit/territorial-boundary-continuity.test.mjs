@@ -24,10 +24,13 @@ async function harness(t) {
   await initializeTestTerritorialState(state);
   const store = createTerritorialEntityStore({ documentModel:testCoreProject(state).documentModel,commandOwner:testCoreProject(state).client });
   const repo = createTerritorialEntityRepository({ entityStore: store });
-  const requests = [], replacements = [], diagnostics = [], scheduled = [];
+  const requests = [], replacements = [], rawReplacements = [], diagnostics = [], scheduled = [];
   let revision = 1, generation = 0, readyCount = 0;
   const replaceGpuSceneDomain = (domain, data) => {
-    if (domain === 'territorial-boundaries') replacements.push(structuredClone(data.strokes));
+    if (domain === 'territorial-boundaries') {
+      rawReplacements.push(data.strokes);
+      replacements.push(structuredClone(data.strokes));
+    }
   };
   const rendering = createRenderingDomain({
     prepareView: ({ frameId }) => createMapVisualFrame({ frameId, projectGeneration: generation,
@@ -74,7 +77,7 @@ async function harness(t) {
   };
   const reset = () => { generation++; rendering.resetProjectGeneration(generation); };
   return { state, store, rendering, requests, replacements, diagnostics, render, resolve, change, reset,
-    last: () => replacements.at(-1), readyCount: () => readyCount };
+    last: () => replacements.at(-1), rawLast: () => rawReplacements.at(-1), readyCount: () => readyCount };
 }
 
 async function present(h) {
@@ -82,6 +85,22 @@ async function present(h) {
   assert.ok(h.last().length > 0, 'baseline must contain real topology strokes');
   return structuredClone(h.last());
 }
+
+test('unchanged territorial frames reuse connected boundary geometry and style changes stay current', async t => {
+  const h = await harness(t); await present(h);
+  const before = new Map(h.rawLast().map(stroke => [stroke.key, stroke.geometry]));
+  h.render();
+  assert.equal(h.requests.length, 1, 'a view-only frame must not request topology again');
+  assert.ok(h.rawLast().length > 0);
+  for (const stroke of h.rawLast()) assert.strictEqual(stroke.geometry, before.get(stroke.key));
+  const styled = await testCoreProject(h.state).project.executeCommand({ commandId: 'presentation.apply', targets: [],
+    payload: { action: 'groupStyle', group: 'subunits', patch: { opacity: 0.5 } } });
+  assert.equal(styled.ok, true, styled.error?.message);
+  h.render();
+  assert.equal(h.requests.length, 1, 'style changes must not request topology again');
+  assert.ok(h.rawLast().length > 0);
+  assert.ok(h.rawLast().every(stroke => stroke.style.alpha === 0.5));
+});
 
 test('old boundary stays published while the next topology is pending and promotes only in a render', async t => {
   const h = await harness(t), old = await present(h);

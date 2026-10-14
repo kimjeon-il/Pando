@@ -43,13 +43,13 @@ int main(int argc,char** argv) {
     assert(!gis.projectPackage);
     assert(gis.layers.size()==10);
     const auto& country=layer(gis,"countries");
-    assert(country.targetType=="country");
+    assert(country.targetType=="general");
     assert(country.collection.features.size()==1);
     assert(country.collection.features[0].id=="AAA");
     assert(country.collection.features[0].geometry.type=="MultiPolygon");
     assert(country.collection.features[0].geometry.polygons.front().front().size()==5);
     const auto& subunit=layer(gis,"subunits");
-    assert(subunit.targetType=="subunit");
+    assert(subunit.targetType=="general");
     assert(subunit.collection.features[0].propertiesJson.find("history:1")!=std::string::npos);
     const auto& distribution=layer(gis,"language_distribution");
     assert(distribution.targetType=="distribution");

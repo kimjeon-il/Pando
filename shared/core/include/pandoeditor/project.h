@@ -70,9 +70,7 @@ public:
     Project& operator=(Project&&) noexcept = default;
     static std::string normalizeName(const std::string& name);
     static void validate(const ProjectDocument& document);
-    static void validate(const std::vector<Country>& countries);
     void replace(ProjectDocument document);
-    void replace(std::vector<Country> countries);
     const ProjectDocument& document() const noexcept;
     const ProjectDocument& viewDocument() const noexcept;
     const std::set<std::string>& inactiveEntityIds() const noexcept;

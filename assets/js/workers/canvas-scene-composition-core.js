@@ -1,6 +1,7 @@
 // Shared by the classic Canvas worker and the main-thread fallback.
 (function installCanvasSceneComposition(scope) {
   const geometries = new WeakMap();
+  const strokeGeometries = new WeakMap();
   function geometryFor(packet) {
     if (geometries.has(packet.ringCoordinates)) return geometries.get(packet.ringCoordinates);
     const coordinates = [];
@@ -166,15 +167,37 @@
       const ranges = packet.ownerIds && packet.ownerRanges
         ? packet.ownerIds.map(id => packet.ownerRanges[id]).filter(Boolean)
         : [{ first: 0, count: packet.startsEnds.length / 4 }];
-      const coordinates = [];
-      for (const range of ranges) for (let index = range.first; index < range.first + range.count; index++) {
-        const offset = index * 4;
-        const start = [packet.startsEnds[offset], packet.startsEnds[offset + 1]];
-        const end = [packet.startsEnds[offset + 2], packet.startsEnds[offset + 3]];
-        const previous = coordinates[coordinates.length - 1];
-        const last = previous?.[previous.length - 1];
-        if (last && last[0] === start[0] && last[1] === start[1]) previous.push(end);
-        else coordinates.push([start, end]);
+      const revision = packet.geometryRevision ?? packet.revision ?? 0;
+      let cache = strokeGeometries.get(packet.startsEnds);
+      if (!cache || cache.revision !== revision) {
+        cache = { revision, selections: new Map(), segmentCount: 0 };
+        strokeGeometries.set(packet.startsEnds, cache);
+      }
+      const key = ranges.map(range => `${range.first}:${range.count}`).join('|');
+      let cached = cache.selections.get(key);
+      if (!cached) {
+        const coordinates = [];
+        const segmentCount = ranges.reduce((count, range) => count + range.count, 0);
+        for (const range of ranges) for (let index = range.first; index < range.first + range.count; index++) {
+          const offset = index * 4;
+          const start = [packet.startsEnds[offset], packet.startsEnds[offset + 1]];
+          const end = [packet.startsEnds[offset + 2], packet.startsEnds[offset + 3]];
+          const previous = coordinates[coordinates.length - 1];
+          const last = previous?.[previous.length - 1];
+          if (last && last[0] === start[0] && last[1] === start[1]) previous.push(end);
+          else coordinates.push([start, end]);
+        }
+        // Bound view/style selections to at most two full-buffer expansions.
+        // Projection is still evaluated on every paint from these coordinates.
+        const budget = packet.startsEnds.length / 2;
+        while (cache.selections.size && cache.segmentCount + segmentCount > budget) {
+          const oldest = cache.selections.keys().next().value;
+          cache.segmentCount -= cache.selections.get(oldest).segmentCount;
+          cache.selections.delete(oldest);
+        }
+        cached = { geometry: { type: 'MultiLineString', coordinates }, segmentCount };
+        cache.selections.set(key, cached);
+        cache.segmentCount += segmentCount;
       }
       context.save();
       context.globalAlpha = packet.style.alpha;
@@ -184,7 +207,7 @@
       context.lineJoin = packet.style.join || 'round';
       context.lineCap = packet.style.cap || 'butt';
       context.setLineDash(packet.style.dash || []);
-      context.beginPath(); path({ type: 'MultiLineString', coordinates }); context.stroke();
+      context.beginPath(); path(cached.geometry); context.stroke();
       context.restore();
     }
   }

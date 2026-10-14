@@ -8,6 +8,33 @@ const runtimePath=resolve(process.env.PANDOEDITOR_WASM_MODULE ?? 'build-native/w
 const { default:createCore }=await import(pathToFileURL(runtimePath));
 const core=await createCore({wasmBinary:await readFile(runtimePath.replace(/\.js$/,'.wasm'))});
 const seed=JSON.parse(await readFile(new URL('../../tests/fixtures/portability/web-document-seed.json',import.meta.url)));
+const historicalManifest=JSON.parse(await readFile(new URL('../../assets/data/historical-world/generated/v1/manifest.json',import.meta.url)));
+
+test('the complete historical world exports a full autosave after an identity edit', { timeout: 60_000 }, async () => {
+  const sourceBytes=new Uint8Array(await readFile(new URL('../../assets/data/historical-world/generated/v1/world-project.json.gz',import.meta.url)));
+  const session=new core.DocumentSession({validateFlagDataUrl:()=>{}});
+  try {
+    session.documentLoad(JSON.stringify(seed),historicalManifest.sourceMonth);
+    const admitted=session.storageBaselineLoad({kind:'stored-asset',sourceBytes,encoding:'gzip',
+      compressedBytes:sourceBytes.byteLength,decodedBytes:historicalManifest.project.decodedBytes,
+      sourceMonth:historicalManifest.sourceMonth,
+      baseDataset:'Natural Earth 5.1.1 · Admin 0 Countries · 1:10m · de facto',
+      fingerprint:historicalManifest.project.sha256},session.projectState().epoch);
+    session.documentLoadBaseline(admitted.storageBaselineId,historicalManifest.sourceMonth);
+    const before=session.projectState();
+    const edited=session.executeCommand({commandId:'territorial.field',expectedEpoch:before.epoch,
+      targets:[{domain:'territorial',id:'IRL'}],payload:{id:'IRL',field:'name',value:'Stored Ireland'}});
+    assert.equal(edited.ok,true);
+    assert.equal(edited.changed,true);
+    const exported=session.exportSnapshot({expectedEpoch:edited.state.epoch,version:'0.99.0',
+      savedAt:'2026-10-14T00:00:00.000Z',format:'pandolab-autosave'});
+    const project=JSON.parse(exported.storageJson);
+    assert.equal(project.format,'pandolab-autosave-full');
+    assert.equal(project.territorialEntities.find(row=>row.id==='IRL').properties.name,'Stored Ireland');
+    assert.equal(project.territorialEntities.length,historicalManifest.sourceIdentities.length);
+    assert.ok(project.geometries.length>=274);
+  }finally{session.delete();}
+});
 
 test('WASM owns the current full document, atomic commands and whole-project history',()=>{
   assert.equal(typeof core.DocumentSession,'function');
