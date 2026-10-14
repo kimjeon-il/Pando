@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { excludeAncestorHighlightBoundary } from '../../assets/js/modules/territorial-highlight-boundary.js';
+import { createEditDisplayPreparation } from '../../assets/js/modules/edit-display-preparation.js';
 
 const polygon = coordinates => ({ type: 'Polygon', coordinates: [coordinates] });
 const length = feature => feature.geometry.coordinates.reduce((total, line) => total + line.slice(1).reduce((sum, point, index) => sum + Math.hypot(point[0] - line[index][0], point[1] - line[index][1]), 0), 0);
@@ -24,4 +25,37 @@ test('near-coincident shared lines are suppressed but nearby distinct boundaries
   const line = { type: 'LineString', coordinates: [[0, 0], [2, 0]] };
   assert.equal(length(excludeAncestorHighlightBoundary(line, [{ type: 'LineString', coordinates: [[0, 0.00001], [2, 0.00001]] }])), 0);
   assert.equal(length(excludeAncestorHighlightBoundary(line, [{ type: 'LineString', coordinates: [[0, 0.01], [2, 0.01]] }])), 2);
+});
+
+test('highlight preparation removes the same parent perimeter for wrapped and continuous dateline coordinates', async () => {
+  const child = polygon([[179, 0], [179, 1], [179.5, 1], [179.5, 0], [179, 0]]);
+  for (const east of [-179, 181]) {
+    const parent = { type: 'Feature', properties: {}, geometry: polygon([[179, 0], [179, 1], [east, 1], [east, 0], [179, 0]]) };
+    const before = structuredClone([child, parent]);
+    const { feature: result } = await createEditDisplayPreparation().prepare({
+      kind: 'highlight', feature: child, occluderFeatures: [parent],
+    }, [], []);
+    assert.equal(length(result), 1, `parent east ${east}`);
+    assert.ok(result.geometry.coordinates.every(line => line.every(point => point[0] === 179.5)));
+    assert.deepEqual([child, parent], before);
+  }
+});
+
+test('partial overlaps across the dateline leave only two short non-overlapping segments', () => {
+  const line = { type: 'LineString', coordinates: [[179, 0], [-179, 0]] };
+  const ancestor = { type: 'MultiLineString', coordinates: [
+    [[-179.5, 0], [-180, 0]], [[180, 0], [179.5, 0]],
+  ] };
+  const result = excludeAncestorHighlightBoundary(line, [ancestor]);
+  assert.equal(length(result), 1);
+  assert.equal(result.geometry.coordinates.length, 2);
+  assert.deepEqual(result.geometry.coordinates, [[[179, 0], [179.5, 0]], [[-179.5, 0], [-179, 0]]]);
+});
+
+test('polar and seam closure edges never become selection highlight strokes', () => {
+  const cap = polygon([[-180, 80], [-90, 80], [0, 80], [90, 80], [180, 80], [180, 90], [-180, 90], [-180, 80]]);
+  const result = excludeAncestorHighlightBoundary(cap, []);
+  assert.equal(length(result), 360);
+  assert.ok(result.geometry.coordinates.every(line => line.every(point => point[1] === 80)));
+  assert.equal(length(excludeAncestorHighlightBoundary(cap, [cap])), 0);
 });
