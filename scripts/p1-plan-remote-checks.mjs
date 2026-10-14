@@ -82,6 +82,7 @@ export function classifyPaths(paths, capability = {}, manual = 'auto') {
         mark('native');
         if (/^native\/(app|ui|renderer|resources)\//.test(path)) mark('qt');
       }
+      if (path==='cmake/P2NativeBuildReceipt.cmake') mark('native');
       if (/^tools\/cpp\//.test(path)) {mark('gis');mark('gisTools');}
       if (/^(assets\/css\/|index\.html$|assets\/js\/|playwright\.|tests\/browser\/)/.test(path)) mark('ui');
       if (/^(assets\/js\/modules\/(project|object|timeline|temporal|territorial|editing|distribution|generic)|contracts\/objects\/|tests\/unit\/(project|object|timeline|temporal|territorial))/.test(path)) mark('objects');
