@@ -137,7 +137,10 @@ jobs:
           node tools/package-shared-core-assets.mjs --build-dir build-native/p1/pando-wasm/shared/wasm --check
       - name: Test the compiled runtime ABI and bounded document session
         if: needs.plan.outputs.wasm == 'true'
-        run: node --test tests/unit/shared-core-assets.test.mjs tests/unit/core-wasm-loader.test.mjs shared/tests/wasm-document-session.test.mjs
+        shell: bash
+        run: |
+          node --test tests/unit/shared-core-assets.test.mjs tests/unit/core-wasm-loader.test.mjs
+          PANDOEDITOR_WASM_MODULE="$PWD/build-native/p1/pando-wasm/shared/wasm/pandoeditor-core.js" node --test shared/tests/wasm-document-session.test.mjs
 
       - name: Validate all generated source fingerprints and output hashes
         run: |
