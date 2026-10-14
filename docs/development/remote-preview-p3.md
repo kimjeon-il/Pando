@@ -13,6 +13,19 @@ GitHub 저장소 **Actions → P3 Remote preview and Qt verification → 해당 
 
 **이것은 다운로드 가능한 브랜치별 미리보기이지 자동 공개 URL이 아니다.** GitHub Pages의 사이트는 배포 대상 1개이므로 브랜치별 `deploy-pages`를 병렬 실행하면 운영 사이트를 덮어쓸 수 있다. 독립 도메인/별도 정적 호스팅을 연결하지 않는 한, P3에서 공개 웹 미리보기 URL이 생겼다고 주장하지 않는다.
 
+## 브랜치별 원격 브라우저 직접 미리보기 (Codespaces, 선택)
+
+정적 ZIP을 내려받지 않고 원격 브라우저에서 직접 확인하려면 각 작업 브랜치의 Codespace를 연다. GitHub 계정의 Codespaces 이용 가능 여부와 실행 요금·한도는 사용자 계정 정책에 따른다. **Codespace 인스턴스는 요청한 사용자만 생성할 수 있으며 이 커밋만으로 자동 실행되지는 않는다.**
+
+- [객체 브랜치 원격 미리보기](https://codespaces.new/kimjeon-il/Pando/tree/work/objects?quickstart=1)
+- [UI 브랜치 원격 미리보기](https://codespaces.new/kimjeon-il/Pando/tree/work/ui?quickstart=1)
+- [GIS 브랜치 원격 미리보기](https://codespaces.new/kimjeon-il/Pando/tree/work/gis?quickstart=1)
+- [지명 브랜치 원격 미리보기](https://codespaces.new/kimjeon-il/Pando/tree/work/places?quickstart=1)
+
+해당 브랜치의 `.devcontainer/devcontainer.json`은 Node 24 컨테이너를 사용하고, `.devcontainer/start-preview.sh`가 프로젝트 빌드나 의존성 설치 없이 `scripts/p3-preview-server.mjs`을 실행한다. Codespaces의 **PORTS** 탭에서 4173 포트를 확인하고 미리보기 링크를 연다. 이 링크는 Codespace가 가동 중일 때만 접속 가능한 **개인용 포트 URL**이며, 별도 영구 공개 호스팅이 아니다. 포트는 기본 비공개 상태로 유지하고, 필요한 경우에만 사용자 본인이 공개 범위를 변경한다.
+
+웹 미리보기 서버는 `index.html`과 `assets/**`만 서비스하고 `.git`, `native`, `reports`, `config` 등 개발·비공개 파일은 제공하지 않는다. Node 내장 HTTP 서버만 사용하므로 Python·Qt·Emscripten이 필요 없다. 워크스페이스의 소스를 수정한 뒤 브라우저를 새로고침해 변경을 확인할 수 있으며, GPU 실기기 동등성 검증을 의미하지 않는다.
+
 ## Qt 앱 원격 빌드·CTest
 
 실제 `native/`가 있는 브랜치에서 앱·공통 코어·Qt 리소스·CMake 계약이 바뀐 경우에만 Windows 2022와 Ubuntu 24.04 작업을 각각 실행한다. `native/`가 없는 과거 웹 전용 브랜치는 **앱 빌드를 성공했다고 기록하지 않고 skip**한다.
