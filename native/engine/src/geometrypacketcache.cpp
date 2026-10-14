@@ -10,7 +10,9 @@ template<class T> std::size_t bytes(const std::shared_ptr<const std::vector<T>>&
 }
 std::size_t packetBytes(const PolygonGeometryPacket& packet) {
     return bytes(packet.positions)+bytes(packet.unitSpherePositions)+bytes(packet.indices)+
-        bytes(packet.globeIndices)+bytes(packet.ringOffsets)+bytes(packet.polygonOffsets);
+        bytes(packet.globeIndices)+bytes(packet.boundaryStartsEnds)+
+        bytes(packet.unitSphereBoundaryStartsEnds)+bytes(packet.ringCoordinates)+
+        bytes(packet.ringOffsets)+bytes(packet.polygonOffsets);
 }
 std::size_t packetBytes(const StrokeGeometryPacket& packet) {
     return bytes(packet.startsEnds)+bytes(packet.unitSphereStartsEnds);
@@ -82,6 +84,12 @@ StrokeGeometryPacket GeometryPacketCache::stroke(const pandoeditor::ObjectRef& o
     const pandoeditor::GeometryRef& ref,const pandoeditor::Geometry& geometry,int lod,
     ProjectionPreparationPolicy policy) {
     requireLod(lod);
+    if(geometry.type=="Polygon"||geometry.type=="MultiPolygon") {
+        // The polygon packet is the single owner of fill and outline buffers.
+        // Do not build or account for the same geometry in a second cache entry.
+        const auto fill=polygon(object,ref,geometry,lod,policy);
+        return {fill.boundaryStartsEnds,fill.unitSphereBoundaryStartsEnds,fill.boundarySegmentCount};
+    }
     GeometryPacketCacheKey key{object,ref,PrimitiveKind::Stroke,lod,policy};
     if(const auto it=packets_.find(key);it!=packets_.end()) {
         ++stats_.hits;policy_.touch(key);return std::get<StrokeGeometryPacket>(it->second.packet);
