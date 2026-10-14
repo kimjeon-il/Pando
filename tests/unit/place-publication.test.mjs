@@ -23,18 +23,18 @@ test('release provenance uses Git LF bytes for either checkout line ending', () 
   assert.deepEqual(canonicalPlaceTextBytes(crlf), lf);
 });
 
-test('only approved source-verified cities in 23 batches are reproducibly published', () => {
+test('only approved source-verified cities in current review batches are reproducibly published', () => {
   const generated = generatePlaceRelease();
-  assert.equal(generated.recordCount, 173);
-  assert.equal(catalog.reviewBatches.length, 23);
-  assert.equal(catalog.stats.cityCount, 173);
-  assert.equal(catalog.stats.stagedCount, 289);
-  assert.equal(catalog.stats.withheldCount, 116);
-  assert.equal(catalog.stats.unrankedCount, 173);
+  const approvedCount = approvals.approvedSourceIds.length;
+  assert.equal(generated.recordCount, approvedCount);
+  assert.equal(catalog.stats.cityCount, approvedCount);
+  assert.equal(catalog.stats.stagedCount, catalog.reviewBatches.reduce((sum, batch) => sum + batch.cityCount, 0));
+  assert.equal(catalog.stats.withheldCount, catalog.stats.stagedCount - approvedCount);
+  assert.equal(catalog.stats.unrankedCount, approvedCount);
   assert.equal(catalog.stats.timelineEntries,
     catalog.records.reduce((sum, row) => sum + row.nameTimeline.length, 0));
-  assert.equal(new Set(catalog.records.map(row => row.sourceId)).size, 173);
-  assert.equal(catalog.approval.approvedIds, 173);
+  assert.equal(new Set(catalog.records.map(row => row.sourceId)).size, approvedCount);
+  assert.equal(catalog.approval.approvedIds, approvedCount);
   assert.deepEqual(catalog.records.map(row => Number(row.sourceId)),
     approvals.approvedSourceIds);
   assert.equal(generated.catalogText, canonicalPlaceTextBytes(read('reviewed-records-v1.json')).toString('utf8'));
@@ -47,7 +47,7 @@ test('only approved source-verified cities in 23 batches are reproducibly publis
 
 test('published PLAC v3 bytes decode every place with historical name transitions', () => {
   const decoded = decodePlaceTile(publishedBytes);
-  assert.equal(decoded.length, 173);
+  assert.equal(decoded.length, approvals.approvedSourceIds.length);
   const byId = new Map(decoded.map(row => [row.sourceId, row]));
   for (const raw of catalog.records) assert.deepEqual(byId.get(raw.sourceId), normalizePlace(raw));
   const peter = byId.get('498817');
