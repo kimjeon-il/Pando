@@ -32,6 +32,8 @@ struct TemporalInterval {
 // the end boundary when it needs a month-end reference point.
 TemporalValue parseTemporal(const std::string&);
 TemporalValue temporalMonthEnd(const std::string&);
+// Navigate calendar months across BCE/CE without a year zero. Offsets are signed months.
+std::string shiftTemporalMonth(const std::string& month, int offset);
 std::optional<std::string> normalizeTemporal(const std::optional<std::string>&);
 int compareTemporal(const TemporalValue&,const TemporalValue&,
                     TemporalBoundary left=TemporalBoundary::Start,
