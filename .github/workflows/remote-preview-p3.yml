@@ -200,9 +200,6 @@ jobs:
             echo "### Qt generated inputs repaired for this CI build" >> "$GITHUB_STEP_SUMMARY"
             echo "The branch still contains outdated generated assets. Review the p3-qt-regenerated-geometry.patch artifact before merging." >> "$GITHUB_STEP_SUMMARY"
           fi
-      - uses: actions/setup-python@v5
-        with:
-          python-version-file: .python-version
       - uses: jwlawson/actions-setup-cmake@v2
         with:
           cmake-version: '3.31.6'

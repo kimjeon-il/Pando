@@ -26,9 +26,11 @@ micromamba run -n pando-territorial-recipe cmake --build build-native/territoria
 PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe" micromamba run -n pando-territorial-recipe node tools/build-territorial-geometry.mjs --check
 ```
 
-CI builds the C++ recipe engine in the `historical-geometry` job. The
-`data-contracts` job depends on that check and retains preview regeneration,
-catalog chunk regeneration and catalog validation. The stored geometry check
+The optional `.github/workflows/gis-python-p4.yml` `historical-geometry`
+job builds the C++ recipe engine only when explicitly selected through the
+GIS-only workflow. The ordinary `application-architecture.yml` `data-contracts`
+job independently checks preview assets, catalog chunks and version contracts
+without importing Python or running raw GIS reconstruction. The stored geometry check
 requires identical component, ring and vertex structure, with at most
 `2e-12` degrees coordinate drift for cross-platform projection rounding.
 
