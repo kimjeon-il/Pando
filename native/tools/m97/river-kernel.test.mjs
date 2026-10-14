@@ -44,7 +44,10 @@ test('river original sources, exact defaults and 18 real-algorithm synthetic cas
   assert.deepEqual(oracle.module.RIVER_TERRITORY_PARTITION_CONFIG,{minRiverEdgeM:10,riverEndpointSnapM:50,nodeMergeToleranceM:.5,boundaryCoincidenceToleranceM:5,spatialGridCellM:25000,minCandidateAreaM2:1000,coverageToleranceM2:1000});
   assertBehavior(cases.map(oracle.observe),cases);
 });
-test('six-expression syntax bridge and immutable resources regenerate exactly',()=>{
+test('six-expression syntax bridge and immutable resources regenerate exactly',{
+  skip: process.env.PANDOEDITOR_ENABLE_PYTHON_ORACLES !== '1'
+    ? 'Python syntax bridge belongs to the optional GIS/legacy oracle lane' : false,
+},()=>{
   const run=spawnSync(process.env.PANDOEDITOR_PYTHON_EXECUTABLE||'python3',[path.join(root,'tools/m97/river/test-adapters.py')],{encoding:'utf8'});
   assert.ifError(run.error);
   assert.equal(run.status,0,run.stdout+run.stderr);

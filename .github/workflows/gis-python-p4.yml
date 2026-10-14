@@ -1,0 +1,127 @@
+name: P4 Isolated GIS Python source checks
+on:
+  push:
+    branches: [work/gis, work/objects]
+    paths:
+      - '.github/workflows/gis-python-p4.yml'
+      - 'scripts/gis/**/*.py'
+      - 'scripts/research/**/*.py'
+      - 'tools/*.py'
+      - 'tools/**/*.py'
+      - 'tools/requirements-*.txt'
+      - 'tests/*.py'
+      - 'tests/**/*.py'
+      - 'native/tests/*.py'
+      - 'native/tools/**/*.py'
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/gis-python-p4.yml'
+      - 'scripts/gis/**/*.py'
+      - 'scripts/research/**/*.py'
+      - 'tools/*.py'
+      - 'tools/**/*.py'
+      - 'tools/requirements-*.txt'
+      - 'tests/*.py'
+      - 'tests/**/*.py'
+      - 'native/tests/*.py'
+      - 'native/tools/**/*.py'
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: 'Python-only syntax checks, legacy/GIS contracts, or C++ historical recipe verification'
+        type: choice
+        required: false
+        default: syntax
+        options: [syntax, contracts, historical, all]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: p4-gis-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python-syntax:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: '.python-version'
+      - name: Compile Python source without GIS dependencies or raw GIS input
+        run: python -m compileall -q tools scripts/research scripts/gis tests native/tests native/tools/m97/river/test-adapters.py
+      - name: Verify manual-only GIS generator dispatch does not run on import
+        run: python -m unittest discover -s tests -p 'test_p4_gis_runner.py' -v
+
+  python-contracts:
+    needs: python-syntax
+    if: github.event_name == 'workflow_dispatch' && (inputs.scope == 'contracts' || inputs.scope == 'all')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: '.python-version'
+      - name: Install GIS analysis dependencies in this job only
+        run: |
+          python -m pip install -r tools/requirements-hydro-tiles.txt \
+            -r tools/requirements-historical-library.txt "numpy>=2,<3" "rasterio>=1.4,<2"
+      - name: Check legacy policy, terrain, historical and hydro Python contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build-native/p4
+          python -m unittest discover -s tests -p 'test_*.py' 2>&1 | tee build-native/p4/python-root.log
+          python -m unittest discover -s tests/python -p 'test_*.py' 2>&1 | tee build-native/p4/python-gis.log
+      - name: Preserve Python contract evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p4-python-contracts-${{ github.sha }}
+          path: build-native/p4/*.log
+          if-no-files-found: warn
+          retention-days: 10
+
+  historical-geometry:
+    if: github.event_name == 'workflow_dispatch' && (inputs.scope == 'historical' || inputs.scope == 'all')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    defaults:
+      run:
+        shell: bash -el {0}
+    env:
+      PANDO_TERRITORIAL_RECIPE_BINARY: ${{ github.workspace }}/build-native/territorial-recipe/pando-territorial-recipe
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: mamba-org/setup-micromamba@v3
+        with:
+          environment-file: tools/cpp/territorial-recipe-environment.yml
+          init-shell: bash
+      - name: Build the existing native C++ historical geometry recipe
+        run: |
+          cmake -S tools/cpp -B build-native/territorial-recipe -G Ninja \
+            -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF \
+            -DPANDO_BUILD_TERRITORIAL_RECIPE=ON
+          cmake --build build-native/territorial-recipe --target pando-territorial-recipe
+      - name: Cross-check persisted geometry against the pinned C++ recipe
+        run: |
+          node --test tests/unit/territorial-recipe-cli.test.mjs tests/unit/territorial-recipe-cpp.test.mjs
+          node tools/build-territorial-geometry.mjs --check
+      - name: Preserve historical recipe proof, not reprocessed data
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p4-historical-cpp-${{ github.sha }}
+          path: build-native/territorial-recipe/CMakeCache.txt
+          if-no-files-found: warn
+          retention-days: 10
