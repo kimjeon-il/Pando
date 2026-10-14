@@ -129,6 +129,14 @@ std::uint64_t interactionSignature(const InteractionRenderPacket& interaction) {
 }
 }
 
+void MapSceneBuilder::adoptPreparation(const ProjectSnapshot& snapshot,const MapViewState& view,
+                                     const std::shared_ptr<const RenderScene>& scene) {
+    if(!scene||!scene->preparationIdentity||!validMapViewState(view)||
+       scene->revisions.document!=snapshot.revision())
+        throw std::invalid_argument("invalid prepared scene");
+    worldBase_=scene->worldBase;
+    remember(snapshot,view,scene);
+}
 void MapSceneBuilder::remember(const ProjectSnapshot& snapshot,const MapViewState& view,
                               const std::shared_ptr<const RenderScene>& scene) {
     cache_.setActiveScene(scene);
@@ -140,7 +148,8 @@ bool MapSceneBuilder::canReusePreparation(const ProjectSnapshot& snapshot,const 
     return preparationMatchesView(view,previous)&&preparedSnapshot_&&
         &preparedSnapshot_->document()==&snapshot.document()&&
         preparedSnapshot_->instanceId()==snapshot.instanceId()&&
-        preparedSnapshot_->revision()==snapshot.revision();
+        preparedSnapshot_->revision()==snapshot.revision()&&
+        preparedSnapshot_->timelineMonth()==snapshot.timelineMonth();
 }
 bool MapSceneBuilder::preparationMatchesView(const MapViewState& view,
                                            const std::shared_ptr<const RenderScene>& previous) const {
@@ -401,7 +410,8 @@ std::shared_ptr<const RenderScene> MapSceneBuilder::buildDocumentImpl(
             if(a.object!=b.object||!(a.geometry==b.geometry)||
                a.geometryPacket.positions!=b.geometryPacket.positions||
                a.geometryPacket.indices!=b.geometryPacket.indices||
-               a.geometryPacket.globeIndices!=b.geometryPacket.globeIndices)return false;
+               a.geometryPacket.globeIndices!=b.geometryPacket.globeIndices||
+               a.geometryPacket.boundaryStartsEnds!=b.geometryPacket.boundaryStartsEnds)return false;
         }
         return true;
     };
@@ -480,7 +490,13 @@ std::shared_ptr<const RenderScene> MapSceneBuilder::buildDocumentImpl(
                 stroke.drawOrder=mapRenderOrder(doc,object,RenderPrimitiveRole::Boundary);
                 stroke.order=orderValue(stroke.drawOrder);
                 if(const auto old=previous?retained(previous->strokes):nullptr)stroke.geometryPacket=old->geometryPacket;
-                else {markGeometryWork();stroke.geometryPacket=cache_.stroke(object,*ref,*shape,lod,preparation);}
+                else {
+                    // The accepted fill already owns exactly the boundary
+                    // required by this stroke, including after style edits.
+                    const auto& fill=scene->polygons.back().geometryPacket;
+                    stroke.geometryPacket={fill.boundaryStartsEnds,fill.unitSphereBoundaryStartsEnds,
+                                           fill.boundarySegmentCount};
+                }
                 const auto strokeIndex=scene->strokes.size();scene->strokes.push_back(std::move(stroke));
                 if(boundary)scene->drawSequence.push_back({PrimitiveKind::Stroke,strokeIndex,
                     scene->strokes.back().drawOrder,layerOrder,layerOpacity});

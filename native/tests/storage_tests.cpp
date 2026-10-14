@@ -98,7 +98,7 @@ private slots:
             EditorController editor(EditorControllerConfig{mobile,dir.filePath("private.json")});
             editor.selectCountry("DEU"); editor.setColor("#112233"); editor.setMemoDraft("keep draft");
             const auto colors=editor.colors(); const auto selection=editor.selectedId();
-            const auto paths=editor.paths(); const auto layers=editor.layers();
+            const auto paths=editor.objectBounds(); const auto layers=editor.layers();
             const auto root=QJsonDocument::fromJson(normalizedSampleProject()).object();
             QList<QJsonObject> invalid;
             auto bad=root; bad["version"]=99; invalid.append(bad);
@@ -113,7 +113,7 @@ private slots:
                 QFile file(url.toLocalFile()); QVERIFY(file.open(QIODevice::WriteOnly)); file.write(QJsonDocument(candidate).toJson()); file.close();
                 QVERIFY(!(mobile?editor.importProject(url):editor.openFile(url)));
                 QCOMPARE(editor.colors(),colors); QCOMPARE(editor.selectedId(),selection);
-                QCOMPARE(editor.paths(),paths); QCOMPARE(editor.layers(),layers);
+                QCOMPARE(editor.objectBounds(),paths); QCOMPARE(editor.layers(),layers);
                 QCOMPARE(editor.memoDraft(),QString("keep draft")); QVERIFY(editor.dirty()); QVERIFY(editor.canUndo()); QVERIFY(!editor.canRedo());
             }
             editor.setMemoDraft(""); editor.undo();

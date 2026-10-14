@@ -1,5 +1,5 @@
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
-import { initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
+import { testCoreProject, initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 /* global Event, EventTarget */
@@ -60,7 +60,7 @@ function createFakeDocument() {
   };
 }
 
-function fixture(t, stateOverrides = {}, portOverrides = {}) {
+async function fixture(t, stateOverrides = {}, portOverrides = {}) {
   const priorFrame = Object.getOwnPropertyDescriptor(globalThis, 'requestAnimationFrame');
   globalThis.requestAnimationFrame = () => 0;
   t.after(() => {
@@ -112,8 +112,8 @@ function fixture(t, stateOverrides = {}, portOverrides = {}) {
   const presentation = createTaskPresentation();
   state.territorialEntities = [...state.territorialEntities, ...[countrySourceFeature('COUNTRY')].filter(Boolean).map(feature => ({ ...feature, properties: { ...feature.properties, entityKind: 'general' } }))];
   state.territorialEntities = state.territorialEntities.map(feature => createTerritorialFeature({ id: feature.id, entityKind: feature.properties.entityKind, name: feature.properties.name, parentId: feature.properties.parentId, geometry: feature.geometry.coordinates.length ? feature.geometry : countrySourceFeature('COUNTRY').geometry }));
-  initializeTestTerritorialState(state);
-const entityStore = createTerritorialEntityStore({ getState: () => state });
+  await initializeTestTerritorialState(state);
+const entityStore = createTerritorialEntityStore({ documentModel:testCoreProject(state).documentModel,commandOwner:testCoreProject(state).client });
   presentation.connect(capabilityPortsForFixture(MAP_INTERACTION_OWNER_PORTS.taskPresentation, {
     state,
     $: id => elements[id] || null,
@@ -146,8 +146,8 @@ const entityStore = createTerritorialEntityStore({ getState: () => state });
   return { presentation, elements, state, focusCalls };
 }
 
-test('operation errors use the common feedback slot and clear on a new normal banner', t => {
-  const f = fixture(t, { tool: 'merge-territorial-unit', territorialUnitMergeSourceId: 'SUB', territorialUnitMergeTargetIds: ['OTHER'] });
+test('operation errors use the common feedback slot and clear on a new normal banner', async t => {
+  const f = await fixture(t, { tool: 'merge-territorial-unit', territorialUnitMergeSourceId: 'SUB', territorialUnitMergeTargetIds: ['OTHER'] });
   f.presentation.setModeBanner('선택한 하위단위들이 서로 연결되어야 합니다.', { feedback: true });
   f.presentation.updateModeButtons();
   assert.equal(f.elements.modeTaskDisabledReason.textContent, '선택한 하위단위들이 서로 연결되어야 합니다.');
@@ -158,9 +158,9 @@ test('operation errors use the common feedback slot and clear on a new normal ba
   assert.equal(f.elements.modeTaskDisabledReason.classList.contains('hidden'), true);
 });
 
-test('existing redraw preview keeps its real metrics and survives closing and reopening', t => {
+test('existing redraw preview keeps its real metrics and survives closing and reopening', async t => {
   const preview = { validation: { blocking: false }, metrics: { finalAreaKm2: 123 } };
-  const f = fixture(t, { tool: 'redraw-territorial-unit', geometryPreview: { session: preview } });
+  const f = await fixture(t, { tool: 'redraw-territorial-unit', geometryPreview: { session: preview } });
   f.presentation.updateModeButtons();
   const summary = f.elements.geometryPreviewSummary;
   assert.equal(summary.classList.contains('hidden'), false);
@@ -173,11 +173,11 @@ test('existing redraw preview keeps its real metrics and survives closing and re
   assert.equal(summary.children[0].children[1].textContent, '123 km²');
 });
 
-test('territory list uses the authoritative union, pending state and stable part IDs', t => {
+test('territory list uses the authoritative union, pending state and stable part IDs', async t => {
   const current = { kind: 'annex', taskLabel: '영토 편입', tool: 'annex-territory', stage: 'selection', activePhase: 'drawing', activeMethod: 'polygon',
     sourceCountryIds: [], parts: [{ id: 'first', geometry: { area: 10 } }, { id: 'middle', geometry: { area: 10 } }], archivedGeometry: { area: 15 } };
   const model = { current, step: 2, stageLabel: '영토 선택', selection: true, showMethods: true, primaryDisabled: false };
-  const f = fixture(t, { tool: current.tool, territorySelectionSession: current }, {
+  const f = await fixture(t, { tool: current.tool, territorySelectionSession: current }, {
     territorySelectionPresentation: () => model, sphericalGeometryAreaKm2: geometry => geometry?.area || 0,
   });
   f.presentation.updateModeButtons();
@@ -198,8 +198,8 @@ test('territory list uses the authoritative union, pending state and stable part
   assert.equal(list.children[0].children[2].dataset.itemId, 'middle');
 });
 
-test('task sync derives role cards without duplicate type labels or focusing the map', t => {
-  const f = fixture(t, {
+test('task sync derives role cards without duplicate type labels or focusing the map', async t => {
+  const f = await fixture(t, {
     boundaryEditEntityIds: ['SUB', 'COUNTRY', 'SUB'],
     territorialEntities: [{ type: 'Feature', id: 'SUB', properties: { name: 'Subunit', entityKind: 'general', parentId: 'COUNTRY' }, geometry: { type: 'Polygon', coordinates: [] } }],
   });
@@ -212,9 +212,9 @@ test('task sync derives role cards without duplicate type labels or focusing the
   assert.deepEqual(f.focusCalls, []);
 });
 
-test('task target labels refresh from the repository while object refs stay stable', t => {
+test('task target labels refresh from the repository while object refs stay stable', async t => {
   let name = 'Before';
-  const f = fixture(t, { boundaryEditEntityIds: ['COUNTRY'] }, {
+  const f = await fixture(t, { boundaryEditEntityIds: ['COUNTRY'] }, {
     objectDisplayInfo: ref => ({ name, type: ref.type }),
   });
   f.presentation.updateModeButtons();
@@ -226,14 +226,14 @@ test('task target labels refresh from the repository while object refs stay stab
   assert.equal(f.elements.modeTaskObjects.children[0].children[1].children[0].textContent, 'After');
 });
 
-test('new territory workflows never expose source or parent countries as a focus target', t => {
+test('new territory workflows never expose source or parent countries as a focus target', async t => {
   for (const [entityKind, parentId] of [['general', ''], ['general', 'COUNTRY'], ['regional', '']]) {
     const kind = 'entity';
     const current = { kind, entityKind, taskLabel: '객체 추가', tool: 'draw-territorial-unit', stage: 'setup',
       sourceCountryIds: ['COUNTRY'], parentId,
       candidates: [], parts: [] };
     const model = { current, step: 1, stageLabel: '기본 정보', setup: true };
-    const f = fixture(t, { tool: current.tool, territorySelectionSession: current }, {
+    const f = await fixture(t, { tool: current.tool, territorySelectionSession: current }, {
       territorySelectionPresentation: () => model,
       sphericalGeometryAreaKm2: () => 0,
     });
@@ -250,7 +250,7 @@ test('new territory workflows never expose source or parent countries as a focus
 });
 
 test('task status explains pending and missing-target decisions without changing retry eligibility', async t => {
-  const pending = fixture(t, {
+  const pending = await fixture(t, {
     boundaryEditEntityIds: ['COUNTRY'],
     boundaryPreparation: { status: 'pending' },
   });
@@ -262,7 +262,7 @@ test('task status explains pending and missing-target decisions without changing
   assert.equal(pending.elements.modeTaskDisabledReason.classList.contains('hidden'), false);
   assert.equal(pending.elements.modePrimaryBtn.attributes.get('aria-describedby'), 'modeTaskDisabledReason');
 
-  const failed = fixture(t, {
+  const failed = await fixture(t, {
     boundaryEditEntityIds: ['COUNTRY'],
     boundaryPreparation: { status: 'error', message: '경계 계산에 실패했습니다.', retry() {} },
   });
@@ -274,7 +274,7 @@ test('task status explains pending and missing-target decisions without changing
   assert.equal(failed.elements.modeTaskDisabledReason.classList.contains('hidden'), false);
   assert.equal(failed.elements.modeTaskDisabledReason.textContent, '경계 계산에 실패했습니다.');
 
-  const needsTarget = fixture(t, {
+  const needsTarget = await fixture(t, {
     tool: 'merge-country',
     mergeSourceCountryId: 'COUNTRY',
     mergeTargetCountryIds: [],
@@ -293,9 +293,9 @@ test('task status explains pending and missing-target decisions without changing
   assert.equal(needsTarget.elements.modePrimaryBtn.attributes.get('aria-describedby'), 'modeTaskDisabledReason');
 });
 
-test('a disabled draft completion shows its authoritative validation reason in the shared task area', t => {
+test('a disabled draft completion shows its authoritative validation reason in the shared task area', async t => {
   const issue = { severity: 'error', message: '경로가 자기 자신과 교차합니다.' };
-  const f = fixture(t, {
+  const f = await fixture(t, {
     tool: 'river',
     boundaryEditPhase: '',
     boundaryPreparation: null,
@@ -320,8 +320,8 @@ test('a disabled draft completion shows its authoritative validation reason in t
   assert.equal(f.elements.modeDraftDoneBtn.attributes.get('aria-describedby'), 'modeTaskDisabledReason');
 });
 
-test('editable redraw with fewer than three vertices uses the precise redraw reason', t => {
-  const f = fixture(t, {
+test('editable redraw with fewer than three vertices uses the precise redraw reason', async t => {
+  const f = await fixture(t, {
     tool: 'redraw-territorial-unit',
     boundaryEditPhase: '',
     boundaryPreparation: null,

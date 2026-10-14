@@ -1,4 +1,4 @@
-import { initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
+import { executeTerritorialTestCommand, testCoreProject, initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createSpatialIndex } from '../../assets/js/modules/app-spatial-index.js';
@@ -10,14 +10,14 @@ import { createTerritorialScopeResolver } from '../../assets/js/modules/territor
 
 const square = x => ({ type: 'Polygon', coordinates: [[[x, 0], [x, 10], [x + 10, 10], [x + 10, 0], [x, 0]]] });
 
-test('territorial spatial candidates follow canonical store hydration while preview remains displayed', () => {
+test('territorial spatial candidates follow canonical store hydration while preview remains displayed', async () => {
   const preview = createTerritorialFeature({ id: 'A', entityKind: 'general', geometry: square(20) });
   const canonical = createTerritorialFeature({ id: 'A', entityKind: 'general', geometry: square(0) });
   const state = { territorialEntities: [preview], countryVisualPhase: 'preview',
     auditPreviewCountries: { features: [preview] }, auditPreviewTerritorialUnits: [],
     labels: [], genericFeatures: [], hydroEdits: [] };
-  initializeTestTerritorialState(state);
-const entityStore = createTerritorialEntityStore({ getState: () => state });
+  await initializeTestTerritorialState(state);
+const entityStore = createTerritorialEntityStore({ documentModel:testCoreProject(state).documentModel,commandOwner:testCoreProject(state).client });
   const entityRepository = createTerritorialEntityRepository({ entityStore });
   const territorialScope = createTerritorialScopeResolver({ entityRepository, getState: () => state, clipper: () => null });
   const spatial = createSpatialIndex();
@@ -36,7 +36,7 @@ const entityStore = createTerritorialEntityStore({ getState: () => state });
   assert.deepEqual(candidates(20), ['A']);
   assert.deepEqual(candidates(0), []);
 
-  entityStore.replaceEntities([canonical]);
+  await testCoreProject(state).project.admit(testCoreProject(state).project.snapshot(),{ features:[canonical],preserveCursor:true });
   spatial.rebuildMapObjectSpatialIndex();
   assert.deepEqual(territorialScope.displayFeature('A').geometry, preview.geometry);
   assert.deepEqual(candidates(0), ['A']);

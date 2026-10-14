@@ -24,8 +24,29 @@ test('portable place contract exposes the exact binary and language policy', () 
 for (const fixture of contract.fixtures) {
   test('native-compatible PLAC v3 and reviewed multilingual results: ' + fixture.id, () => {
     const normalized = normalizePlace(fixture.input);
-    assert.equal(fixture.sourceReview.geonameId, Number(fixture.input.sourceId));
-    assert.match(fixture.sourceReview.reviewFile, /^reports\/places\/tier1-major-cities-batch/u);
+    const { geonameId, reviewFile } = fixture.sourceReview;
+    assert.equal(geonameId, Number(fixture.input.sourceId));
+    assert.match(reviewFile, /^reports\/places\/tier1-major-cities-batch[\w.-]+\.json$/u);
+    const review = JSON.parse(readFileSync(new URL('../../' + reviewFile, import.meta.url), 'utf8'));
+    const matching = review.records.filter(row => row.geonameId === geonameId);
+    assert.equal(matching.length, 1, 'One reviewed source for ' + fixture.id);
+    const source = matching[0];
+    assert.equal(fixture.input.name, source.defaultDisplayNameKo);
+    assert.equal(fixture.input.nameEn, source.defaultDisplayNameEn);
+    assert.deepEqual([fixture.input.nameNative, ...(fixture.input.nameNativeExtras || [])],
+      source.defaultNativeNames.map(row => row.text));
+    assert.deepEqual(fixture.input.coordinates, [source.longitude, source.latitude]);
+    for (const transition of fixture.input.nameTimeline || []) {
+      const reviewed = source.displayTimeline.filter(row =>
+        (transition.fromDate ? row.fromDate === transition.fromDate : row.fromYear === transition.fromYear));
+      assert.equal(reviewed.length, 1, 'One reviewed transition for ' + fixture.id);
+      if (transition.ko !== undefined) assert.equal(transition.ko, reviewed[0].nameKo);
+      if (transition.en !== undefined) assert.equal(transition.en, reviewed[0].nameEn);
+      if (transition.native !== undefined) {
+        assert.equal(transition.native, reviewed[0].nameNative);
+        assert.deepEqual(transition.nativeExtras || [], reviewed[0].nativeNames.slice(1).map(row => row.text));
+      }
+    }
     assert.deepEqual(decodePlaceTile(Buffer.from(fixture.tileHex, 'hex')), [normalized]);
     assert.equal(Buffer.from(encodePlaceTile([fixture.input])).toString('hex'), fixture.tileHex);
     for (const scenario of fixture.scenarios) {
@@ -85,7 +106,7 @@ test('batch 01: Busan, Osaka and Beijing select one historically aligned native,
     [1801, '1868-06-21']);
   assert.deepEqual(at(osaka, '1868-06-20'), ['大坂', '오사카', 'Osaka', 'ja']);
   assert.deepEqual(at(osaka, '1868-06-21'), ['大阪', '오사카', 'Osaka', 'ja']);
-  assert.ok(osaka.displayTimeline[1].researchNote.includes('편집상'));
+  assert.equal(osaka.displayTimeline[1].kind, 'historicalOrthographyEditorialTransition');
 
   const beijing = record(1816670);
   assert.deepEqual(beijing.displayTimeline.map(row => row.fromDate ?? row.fromYear),

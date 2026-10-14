@@ -1,0 +1,2519 @@
+{
+  "schema": "current-web-flag-contract-v1",
+  "baseline": "930060923889d17134e36e152c29f4adbb2e60a9",
+  "contract": "Current Web edits reject empty/nonstring override values, trim nonempty strings, accept arbitrary nonempty URLs without media decoding, preserve loaded arbitrary metadata including numbers; no stack comparison.",
+  "expected": [
+    {
+      "id": "initial",
+      "result": null,
+      "stateRevision": 0,
+      "undo": false,
+      "redo": false,
+      "dirty": false,
+      "storedMetadata": {},
+      "flagUrl": null,
+      "snapshot": {
+        "territorialEntities": [
+          {
+            "type": "Feature",
+            "id": "A",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "Alpha",
+              "style": {},
+              "locked": false,
+              "notes": "",
+              "metadata": {},
+              "sourceFolderId": "",
+              "sourceEntityId": "",
+              "sourceGeometryVersion": ""
+            }
+          }
+        ],
+        "timelineRecords": {
+          "schemaVersion": 1,
+          "lifetimes": [
+            {
+              "id": "lifetime:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null
+            }
+          ],
+          "geometryBindings": [
+            {
+              "id": "geometry:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null,
+              "geometryRef": {
+                "id": "territorial-geometry:A",
+                "version": 1
+              }
+            }
+          ],
+          "parentRelations": [
+            {
+              "id": "parent:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null,
+              "parentId": "",
+              "coverageMode": "explicit"
+            }
+          ]
+        },
+        "geometries": [
+          {
+            "id": "territorial-geometry:A",
+            "version": 1,
+            "geojson": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    8,
+                    0
+                  ],
+                  [
+                    8,
+                    8
+                  ],
+                  [
+                    0,
+                    8
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ]
+              ]
+            }
+          }
+        ],
+        "historyContentToken": "content:0"
+      }
+    },
+    {
+      "id": "garbage-string",
+      "result": {
+        "ok": true,
+        "changed": true,
+        "unit": {
+          "type": "Feature",
+          "id": "A",
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  0,
+                  0
+                ],
+                [
+                  8,
+                  0
+                ],
+                [
+                  8,
+                  8
+                ],
+                [
+                  0,
+                  8
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            ]
+          },
+          "properties": {
+            "schemaVersion": 6,
+            "entityKind": "general",
+            "name": "Alpha",
+            "style": {},
+            "locked": false,
+            "notes": "",
+            "metadata": {
+              "flagDataUrl": "not an image"
+            },
+            "sourceFolderId": "",
+            "sourceEntityId": "",
+            "sourceGeometryVersion": "",
+            "parentId": "",
+            "coverageMode": "explicit",
+            "validFrom": null,
+            "validTo": null
+          }
+        }
+      },
+      "stateRevision": 1,
+      "undo": true,
+      "redo": false,
+      "dirty": true,
+      "storedMetadata": {
+        "flagDataUrl": "not an image"
+      },
+      "flagUrl": "not an image",
+      "snapshot": {
+        "territorialEntities": [
+          {
+            "type": "Feature",
+            "id": "A",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "Alpha",
+              "style": {},
+              "locked": false,
+              "notes": "",
+              "metadata": {
+                "flagDataUrl": "not an image"
+              },
+              "sourceFolderId": "",
+              "sourceEntityId": "",
+              "sourceGeometryVersion": ""
+            }
+          }
+        ],
+        "timelineRecords": {
+          "schemaVersion": 1,
+          "lifetimes": [
+            {
+              "id": "lifetime:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null
+            }
+          ],
+          "geometryBindings": [
+            {
+              "id": "geometry:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null,
+              "geometryRef": {
+                "id": "territorial-geometry:A",
+                "version": 1
+              }
+            }
+          ],
+          "parentRelations": [
+            {
+              "id": "parent:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null,
+              "parentId": "",
+              "coverageMode": "explicit"
+            }
+          ]
+        },
+        "geometries": [
+          {
+            "id": "territorial-geometry:A",
+            "version": 1,
+            "geojson": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    8,
+                    0
+                  ],
+                  [
+                    8,
+                    8
+                  ],
+                  [
+                    0,
+                    8
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ]
+              ]
+            }
+          }
+        ],
+        "historyContentToken": "content:1"
+      }
+    },
+    {
+      "id": "trim-noop",
+      "result": {
+        "ok": true,
+        "changed": false,
+        "unit": {
+          "type": "Feature",
+          "id": "A",
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  0,
+                  0
+                ],
+                [
+                  8,
+                  0
+                ],
+                [
+                  8,
+                  8
+                ],
+                [
+                  0,
+                  8
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            ]
+          },
+          "properties": {
+            "schemaVersion": 6,
+            "entityKind": "general",
+            "name": "Alpha",
+            "style": {},
+            "locked": false,
+            "notes": "",
+            "metadata": {
+              "flagDataUrl": "not an image"
+            },
+            "sourceFolderId": "",
+            "sourceEntityId": "",
+            "sourceGeometryVersion": "",
+            "parentId": "",
+            "coverageMode": "explicit",
+            "validFrom": null,
+            "validTo": null
+          }
+        }
+      },
+      "stateRevision": 1,
+      "undo": true,
+      "redo": false,
+      "dirty": true,
+      "storedMetadata": {
+        "flagDataUrl": "not an image"
+      },
+      "flagUrl": "not an image",
+      "snapshot": {
+        "territorialEntities": [
+          {
+            "type": "Feature",
+            "id": "A",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "Alpha",
+              "style": {},
+              "locked": false,
+              "notes": "",
+              "metadata": {
+                "flagDataUrl": "not an image"
+              },
+              "sourceFolderId": "",
+              "sourceEntityId": "",
+              "sourceGeometryVersion": ""
+            }
+          }
+        ],
+        "timelineRecords": {
+          "schemaVersion": 1,
+          "lifetimes": [
+            {
+              "id": "lifetime:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null
+            }
+          ],
+          "geometryBindings": [
+            {
+              "id": "geometry:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null,
+              "geometryRef": {
+                "id": "territorial-geometry:A",
+                "version": 1
+              }
+            }
+          ],
+          "parentRelations": [
+            {
+              "id": "parent:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null,
+              "parentId": "",
+              "coverageMode": "explicit"
+            }
+          ]
+        },
+        "geometries": [
+          {
+            "id": "territorial-geometry:A",
+            "version": 1,
+            "geojson": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    8,
+                    0
+                  ],
+                  [
+                    8,
+                    8
+                  ],
+                  [
+                    0,
+                    8
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ]
+              ]
+            }
+          }
+        ],
+        "historyContentToken": "content:1"
+      }
+    },
+    {
+      "id": "empty-error",
+      "result": {
+        "ok": false,
+        "code": "invalid-flag",
+        "unit": {
+          "type": "Feature",
+          "id": "A",
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  0,
+                  0
+                ],
+                [
+                  8,
+                  0
+                ],
+                [
+                  8,
+                  8
+                ],
+                [
+                  0,
+                  8
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            ]
+          },
+          "properties": {
+            "schemaVersion": 6,
+            "entityKind": "general",
+            "name": "Alpha",
+            "style": {},
+            "locked": false,
+            "notes": "",
+            "metadata": {
+              "flagDataUrl": "not an image"
+            },
+            "sourceFolderId": "",
+            "sourceEntityId": "",
+            "sourceGeometryVersion": "",
+            "parentId": "",
+            "coverageMode": "explicit",
+            "validFrom": null,
+            "validTo": null
+          }
+        }
+      },
+      "stateRevision": 1,
+      "undo": true,
+      "redo": false,
+      "dirty": true,
+      "storedMetadata": {
+        "flagDataUrl": "not an image"
+      },
+      "flagUrl": "not an image",
+      "snapshot": {
+        "territorialEntities": [
+          {
+            "type": "Feature",
+            "id": "A",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "Alpha",
+              "style": {},
+              "locked": false,
+              "notes": "",
+              "metadata": {
+                "flagDataUrl": "not an image"
+              },
+              "sourceFolderId": "",
+              "sourceEntityId": "",
+              "sourceGeometryVersion": ""
+            }
+          }
+        ],
+        "timelineRecords": {
+          "schemaVersion": 1,
+          "lifetimes": [
+            {
+              "id": "lifetime:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null
+            }
+          ],
+          "geometryBindings": [
+            {
+              "id": "geometry:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null,
+              "geometryRef": {
+                "id": "territorial-geometry:A",
+                "version": 1
+              }
+            }
+          ],
+          "parentRelations": [
+            {
+              "id": "parent:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null,
+              "parentId": "",
+              "coverageMode": "explicit"
+            }
+          ]
+        },
+        "geometries": [
+          {
+            "id": "territorial-geometry:A",
+            "version": 1,
+            "geojson": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    8,
+                    0
+                  ],
+                  [
+                    8,
+                    8
+                  ],
+                  [
+                    0,
+                    8
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ]
+              ]
+            }
+          }
+        ],
+        "historyContentToken": "content:1"
+      }
+    },
+    {
+      "id": "number-error",
+      "result": {
+        "ok": false,
+        "code": "invalid-flag",
+        "unit": {
+          "type": "Feature",
+          "id": "A",
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  0,
+                  0
+                ],
+                [
+                  8,
+                  0
+                ],
+                [
+                  8,
+                  8
+                ],
+                [
+                  0,
+                  8
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            ]
+          },
+          "properties": {
+            "schemaVersion": 6,
+            "entityKind": "general",
+            "name": "Alpha",
+            "style": {},
+            "locked": false,
+            "notes": "",
+            "metadata": {
+              "flagDataUrl": "not an image"
+            },
+            "sourceFolderId": "",
+            "sourceEntityId": "",
+            "sourceGeometryVersion": "",
+            "parentId": "",
+            "coverageMode": "explicit",
+            "validFrom": null,
+            "validTo": null
+          }
+        }
+      },
+      "stateRevision": 1,
+      "undo": true,
+      "redo": false,
+      "dirty": true,
+      "storedMetadata": {
+        "flagDataUrl": "not an image"
+      },
+      "flagUrl": "not an image",
+      "snapshot": {
+        "territorialEntities": [
+          {
+            "type": "Feature",
+            "id": "A",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "Alpha",
+              "style": {},
+              "locked": false,
+              "notes": "",
+              "metadata": {
+                "flagDataUrl": "not an image"
+              },
+              "sourceFolderId": "",
+              "sourceEntityId": "",
+              "sourceGeometryVersion": ""
+            }
+          }
+        ],
+        "timelineRecords": {
+          "schemaVersion": 1,
+          "lifetimes": [
+            {
+              "id": "lifetime:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null
+            }
+          ],
+          "geometryBindings": [
+            {
+              "id": "geometry:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null,
+              "geometryRef": {
+                "id": "territorial-geometry:A",
+                "version": 1
+              }
+            }
+          ],
+          "parentRelations": [
+            {
+              "id": "parent:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null,
+              "parentId": "",
+              "coverageMode": "explicit"
+            }
+          ]
+        },
+        "geometries": [
+          {
+            "id": "territorial-geometry:A",
+            "version": 1,
+            "geojson": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    8,
+                    0
+                  ],
+                  [
+                    8,
+                    8
+                  ],
+                  [
+                    0,
+                    8
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ]
+              ]
+            }
+          }
+        ],
+        "historyContentToken": "content:1"
+      }
+    },
+    {
+      "id": "none",
+      "result": {
+        "ok": true,
+        "changed": true,
+        "unit": {
+          "type": "Feature",
+          "id": "A",
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  0,
+                  0
+                ],
+                [
+                  8,
+                  0
+                ],
+                [
+                  8,
+                  8
+                ],
+                [
+                  0,
+                  8
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            ]
+          },
+          "properties": {
+            "schemaVersion": 6,
+            "entityKind": "general",
+            "name": "Alpha",
+            "style": {},
+            "locked": false,
+            "notes": "",
+            "metadata": {
+              "flagDataUrl": null
+            },
+            "sourceFolderId": "",
+            "sourceEntityId": "",
+            "sourceGeometryVersion": "",
+            "parentId": "",
+            "coverageMode": "explicit",
+            "validFrom": null,
+            "validTo": null
+          }
+        }
+      },
+      "stateRevision": 2,
+      "undo": true,
+      "redo": false,
+      "dirty": true,
+      "storedMetadata": {
+        "flagDataUrl": null
+      },
+      "flagUrl": null,
+      "snapshot": {
+        "territorialEntities": [
+          {
+            "type": "Feature",
+            "id": "A",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "Alpha",
+              "style": {},
+              "locked": false,
+              "notes": "",
+              "metadata": {
+                "flagDataUrl": null
+              },
+              "sourceFolderId": "",
+              "sourceEntityId": "",
+              "sourceGeometryVersion": ""
+            }
+          }
+        ],
+        "timelineRecords": {
+          "schemaVersion": 1,
+          "lifetimes": [
+            {
+              "id": "lifetime:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null
+            }
+          ],
+          "geometryBindings": [
+            {
+              "id": "geometry:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null,
+              "geometryRef": {
+                "id": "territorial-geometry:A",
+                "version": 1
+              }
+            }
+          ],
+          "parentRelations": [
+            {
+              "id": "parent:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null,
+              "parentId": "",
+              "coverageMode": "explicit"
+            }
+          ]
+        },
+        "geometries": [
+          {
+            "id": "territorial-geometry:A",
+            "version": 1,
+            "geojson": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    8,
+                    0
+                  ],
+                  [
+                    8,
+                    8
+                  ],
+                  [
+                    0,
+                    8
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ]
+              ]
+            }
+          }
+        ],
+        "historyContentToken": "content:2"
+      }
+    },
+    {
+      "id": "delete",
+      "result": {
+        "ok": true,
+        "changed": true,
+        "unit": {
+          "type": "Feature",
+          "id": "A",
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  0,
+                  0
+                ],
+                [
+                  8,
+                  0
+                ],
+                [
+                  8,
+                  8
+                ],
+                [
+                  0,
+                  8
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            ]
+          },
+          "properties": {
+            "schemaVersion": 6,
+            "entityKind": "general",
+            "name": "Alpha",
+            "style": {},
+            "locked": false,
+            "notes": "",
+            "metadata": {},
+            "sourceFolderId": "",
+            "sourceEntityId": "",
+            "sourceGeometryVersion": "",
+            "parentId": "",
+            "coverageMode": "explicit",
+            "validFrom": null,
+            "validTo": null
+          }
+        }
+      },
+      "stateRevision": 3,
+      "undo": true,
+      "redo": false,
+      "dirty": true,
+      "storedMetadata": {},
+      "flagUrl": null,
+      "snapshot": {
+        "territorialEntities": [
+          {
+            "type": "Feature",
+            "id": "A",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "Alpha",
+              "style": {},
+              "locked": false,
+              "notes": "",
+              "metadata": {},
+              "sourceFolderId": "",
+              "sourceEntityId": "",
+              "sourceGeometryVersion": ""
+            }
+          }
+        ],
+        "timelineRecords": {
+          "schemaVersion": 1,
+          "lifetimes": [
+            {
+              "id": "lifetime:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null
+            }
+          ],
+          "geometryBindings": [
+            {
+              "id": "geometry:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null,
+              "geometryRef": {
+                "id": "territorial-geometry:A",
+                "version": 1
+              }
+            }
+          ],
+          "parentRelations": [
+            {
+              "id": "parent:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null,
+              "parentId": "",
+              "coverageMode": "explicit"
+            }
+          ]
+        },
+        "geometries": [
+          {
+            "id": "territorial-geometry:A",
+            "version": 1,
+            "geojson": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    8,
+                    0
+                  ],
+                  [
+                    8,
+                    8
+                  ],
+                  [
+                    0,
+                    8
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ]
+              ]
+            }
+          }
+        ],
+        "historyContentToken": "content:3"
+      }
+    },
+    {
+      "id": "delete-noop",
+      "result": {
+        "ok": true,
+        "changed": false,
+        "unit": {
+          "type": "Feature",
+          "id": "A",
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  0,
+                  0
+                ],
+                [
+                  8,
+                  0
+                ],
+                [
+                  8,
+                  8
+                ],
+                [
+                  0,
+                  8
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            ]
+          },
+          "properties": {
+            "schemaVersion": 6,
+            "entityKind": "general",
+            "name": "Alpha",
+            "style": {},
+            "locked": false,
+            "notes": "",
+            "metadata": {},
+            "sourceFolderId": "",
+            "sourceEntityId": "",
+            "sourceGeometryVersion": "",
+            "parentId": "",
+            "coverageMode": "explicit",
+            "validFrom": null,
+            "validTo": null
+          }
+        }
+      },
+      "stateRevision": 3,
+      "undo": true,
+      "redo": false,
+      "dirty": true,
+      "storedMetadata": {},
+      "flagUrl": null,
+      "snapshot": {
+        "territorialEntities": [
+          {
+            "type": "Feature",
+            "id": "A",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "Alpha",
+              "style": {},
+              "locked": false,
+              "notes": "",
+              "metadata": {},
+              "sourceFolderId": "",
+              "sourceEntityId": "",
+              "sourceGeometryVersion": ""
+            }
+          }
+        ],
+        "timelineRecords": {
+          "schemaVersion": 1,
+          "lifetimes": [
+            {
+              "id": "lifetime:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null
+            }
+          ],
+          "geometryBindings": [
+            {
+              "id": "geometry:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null,
+              "geometryRef": {
+                "id": "territorial-geometry:A",
+                "version": 1
+              }
+            }
+          ],
+          "parentRelations": [
+            {
+              "id": "parent:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null,
+              "parentId": "",
+              "coverageMode": "explicit"
+            }
+          ]
+        },
+        "geometries": [
+          {
+            "id": "territorial-geometry:A",
+            "version": 1,
+            "geojson": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    8,
+                    0
+                  ],
+                  [
+                    8,
+                    8
+                  ],
+                  [
+                    0,
+                    8
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ]
+              ]
+            }
+          }
+        ],
+        "historyContentToken": "content:3"
+      }
+    },
+    {
+      "id": "cancel",
+      "result": {
+        "ok": false,
+        "cancelled": true,
+        "error": {
+          "name": "AbortError",
+          "code": "PL-FIXTURE-CANCELLED",
+          "message": "User cancelled"
+        },
+        "stage": "apply-canonical",
+        "externalCommitted": false,
+        "historyCommitted": false
+      },
+      "stateRevision": 3,
+      "undo": true,
+      "redo": false,
+      "dirty": true,
+      "storedMetadata": {},
+      "flagUrl": null,
+      "snapshot": {
+        "territorialEntities": [
+          {
+            "type": "Feature",
+            "id": "A",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "Alpha",
+              "style": {},
+              "locked": false,
+              "notes": "",
+              "metadata": {},
+              "sourceFolderId": "",
+              "sourceEntityId": "",
+              "sourceGeometryVersion": ""
+            }
+          }
+        ],
+        "timelineRecords": {
+          "schemaVersion": 1,
+          "lifetimes": [
+            {
+              "id": "lifetime:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null
+            }
+          ],
+          "geometryBindings": [
+            {
+              "id": "geometry:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null,
+              "geometryRef": {
+                "id": "territorial-geometry:A",
+                "version": 1
+              }
+            }
+          ],
+          "parentRelations": [
+            {
+              "id": "parent:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null,
+              "parentId": "",
+              "coverageMode": "explicit"
+            }
+          ]
+        },
+        "geometries": [
+          {
+            "id": "territorial-geometry:A",
+            "version": 1,
+            "geojson": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    8,
+                    0
+                  ],
+                  [
+                    8,
+                    8
+                  ],
+                  [
+                    0,
+                    8
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ]
+              ]
+            }
+          }
+        ],
+        "historyContentToken": "content:3"
+      }
+    },
+    {
+      "id": "loaded-string",
+      "result": {
+        "ok": true
+      },
+      "stateRevision": 3,
+      "undo": true,
+      "redo": false,
+      "dirty": true,
+      "storedMetadata": {
+        "capital": "서울",
+        "source": {
+          "provider": "T2-2 exchange corpus",
+          "sourceId": "A"
+        },
+        "originalName": "A Territory",
+        "flagDataUrl": " arbitrary stored value "
+      },
+      "flagUrl": " arbitrary stored value ",
+      "snapshot": {
+        "territorialEntities": [
+          {
+            "type": "Feature",
+            "id": "A",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "A 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "A"
+                },
+                "originalName": "A Territory",
+                "flagDataUrl": " arbitrary stored value "
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          {
+            "type": "Feature",
+            "id": "B",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "B 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "B"
+                },
+                "originalName": "B Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          {
+            "type": "Feature",
+            "id": "C",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "C 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "C"
+                },
+                "originalName": "C Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          {
+            "type": "Feature",
+            "id": "R",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "regional",
+              "name": "R 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "R"
+                },
+                "originalName": "R Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          }
+        ],
+        "timelineRecords": {
+          "schemaVersion": 1,
+          "lifetimes": [
+            {
+              "id": "life:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null
+            },
+            {
+              "id": "life:B",
+              "entityId": "B",
+              "validFrom": null,
+              "validTo": null
+            },
+            {
+              "id": "life:C",
+              "entityId": "C",
+              "validFrom": null,
+              "validTo": null
+            },
+            {
+              "id": "life:R",
+              "entityId": "R",
+              "validFrom": null,
+              "validTo": null
+            }
+          ],
+          "geometryBindings": [
+            {
+              "id": "shape:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null,
+              "geometryRef": {
+                "id": "shape",
+                "version": 1
+              }
+            },
+            {
+              "id": "shape:B",
+              "entityId": "B",
+              "validFrom": null,
+              "validTo": null,
+              "geometryRef": {
+                "id": "shape",
+                "version": 1
+              }
+            },
+            {
+              "id": "shape:C",
+              "entityId": "C",
+              "validFrom": null,
+              "validTo": null,
+              "geometryRef": {
+                "id": "shape",
+                "version": 1
+              }
+            },
+            {
+              "id": "shape:R",
+              "entityId": "R",
+              "validFrom": null,
+              "validTo": null,
+              "geometryRef": {
+                "id": "shape",
+                "version": 1
+              }
+            }
+          ],
+          "parentRelations": [
+            {
+              "id": "parent:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null,
+              "parentId": "",
+              "coverageMode": "explicit"
+            },
+            {
+              "id": "parent:B",
+              "entityId": "B",
+              "validFrom": null,
+              "validTo": null,
+              "parentId": "A",
+              "coverageMode": "partition"
+            },
+            {
+              "id": "parent:C",
+              "entityId": "C",
+              "validFrom": null,
+              "validTo": null,
+              "parentId": "",
+              "coverageMode": "explicit"
+            },
+            {
+              "id": "parent:R",
+              "entityId": "R",
+              "validFrom": null,
+              "validTo": null,
+              "parentId": "",
+              "coverageMode": "explicit"
+            }
+          ]
+        },
+        "geometries": [
+          {
+            "id": "label",
+            "version": 1,
+            "geojson": {
+              "type": "Point",
+              "coordinates": [
+                5,
+                6
+              ]
+            }
+          },
+          {
+            "id": "river",
+            "version": 1,
+            "geojson": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  179,
+                  2
+                ],
+                [
+                  -179,
+                  3
+                ]
+              ]
+            }
+          },
+          {
+            "id": "shape",
+            "version": 1,
+            "geojson": {
+              "type": "MultiPolygon",
+              "coordinates": [
+                [
+                  [
+                    [
+                      0,
+                      0
+                    ],
+                    [
+                      10,
+                      0
+                    ],
+                    [
+                      10,
+                      10
+                    ],
+                    [
+                      0,
+                      10
+                    ],
+                    [
+                      0,
+                      0
+                    ]
+                  ],
+                  [
+                    [
+                      2,
+                      2
+                    ],
+                    [
+                      2,
+                      3
+                    ],
+                    [
+                      3,
+                      3
+                    ],
+                    [
+                      3,
+                      2
+                    ],
+                    [
+                      2,
+                      2
+                    ]
+                  ]
+                ],
+                [
+                  [
+                    [
+                      12,
+                      0
+                    ],
+                    [
+                      13,
+                      0
+                    ],
+                    [
+                      13,
+                      1
+                    ],
+                    [
+                      12,
+                      0
+                    ]
+                  ]
+                ],
+                [
+                  [
+                    [
+                      179,
+                      0
+                    ],
+                    [
+                      -179,
+                      0
+                    ],
+                    [
+                      -179,
+                      1
+                    ],
+                    [
+                      179,
+                      0
+                    ]
+                  ]
+                ]
+              ]
+            }
+          },
+          {
+            "id": "shape",
+            "version": 2,
+            "geojson": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1.2345678901234567,
+                    2
+                  ],
+                  [
+                    2,
+                    0
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ]
+              ]
+            }
+          },
+          {
+            "id": "web-genericFeatures:22000000-0000-4000-8000-000000000002",
+            "version": 1,
+            "geojson": {
+              "type": "Point",
+              "coordinates": [
+                128,
+                38
+              ]
+            }
+          },
+          {
+            "id": "web-label:22000000-0000-4000-8000-000000000001",
+            "version": 1,
+            "geojson": {
+              "type": "Point",
+              "coordinates": [
+                127,
+                37
+              ]
+            }
+          }
+        ],
+        "historyContentToken": "content:3"
+      }
+    },
+    {
+      "id": "loaded-number",
+      "result": {
+        "ok": true
+      },
+      "stateRevision": 3,
+      "undo": true,
+      "redo": false,
+      "dirty": true,
+      "storedMetadata": {
+        "capital": "서울",
+        "source": {
+          "provider": "T2-2 exchange corpus",
+          "sourceId": "A"
+        },
+        "originalName": "A Territory",
+        "flagDataUrl": 42
+      },
+      "flagUrl": null,
+      "snapshot": {
+        "territorialEntities": [
+          {
+            "type": "Feature",
+            "id": "A",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "A 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "A"
+                },
+                "originalName": "A Territory",
+                "flagDataUrl": 42
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          {
+            "type": "Feature",
+            "id": "B",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "B 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "B"
+                },
+                "originalName": "B Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          {
+            "type": "Feature",
+            "id": "C",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "C 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "C"
+                },
+                "originalName": "C Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          {
+            "type": "Feature",
+            "id": "R",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "regional",
+              "name": "R 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "R"
+                },
+                "originalName": "R Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          }
+        ],
+        "timelineRecords": {
+          "schemaVersion": 1,
+          "lifetimes": [
+            {
+              "id": "life:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null
+            },
+            {
+              "id": "life:B",
+              "entityId": "B",
+              "validFrom": null,
+              "validTo": null
+            },
+            {
+              "id": "life:C",
+              "entityId": "C",
+              "validFrom": null,
+              "validTo": null
+            },
+            {
+              "id": "life:R",
+              "entityId": "R",
+              "validFrom": null,
+              "validTo": null
+            }
+          ],
+          "geometryBindings": [
+            {
+              "id": "shape:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null,
+              "geometryRef": {
+                "id": "shape",
+                "version": 1
+              }
+            },
+            {
+              "id": "shape:B",
+              "entityId": "B",
+              "validFrom": null,
+              "validTo": null,
+              "geometryRef": {
+                "id": "shape",
+                "version": 1
+              }
+            },
+            {
+              "id": "shape:C",
+              "entityId": "C",
+              "validFrom": null,
+              "validTo": null,
+              "geometryRef": {
+                "id": "shape",
+                "version": 1
+              }
+            },
+            {
+              "id": "shape:R",
+              "entityId": "R",
+              "validFrom": null,
+              "validTo": null,
+              "geometryRef": {
+                "id": "shape",
+                "version": 1
+              }
+            }
+          ],
+          "parentRelations": [
+            {
+              "id": "parent:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null,
+              "parentId": "",
+              "coverageMode": "explicit"
+            },
+            {
+              "id": "parent:B",
+              "entityId": "B",
+              "validFrom": null,
+              "validTo": null,
+              "parentId": "A",
+              "coverageMode": "partition"
+            },
+            {
+              "id": "parent:C",
+              "entityId": "C",
+              "validFrom": null,
+              "validTo": null,
+              "parentId": "",
+              "coverageMode": "explicit"
+            },
+            {
+              "id": "parent:R",
+              "entityId": "R",
+              "validFrom": null,
+              "validTo": null,
+              "parentId": "",
+              "coverageMode": "explicit"
+            }
+          ]
+        },
+        "geometries": [
+          {
+            "id": "label",
+            "version": 1,
+            "geojson": {
+              "type": "Point",
+              "coordinates": [
+                5,
+                6
+              ]
+            }
+          },
+          {
+            "id": "river",
+            "version": 1,
+            "geojson": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  179,
+                  2
+                ],
+                [
+                  -179,
+                  3
+                ]
+              ]
+            }
+          },
+          {
+            "id": "shape",
+            "version": 1,
+            "geojson": {
+              "type": "MultiPolygon",
+              "coordinates": [
+                [
+                  [
+                    [
+                      0,
+                      0
+                    ],
+                    [
+                      10,
+                      0
+                    ],
+                    [
+                      10,
+                      10
+                    ],
+                    [
+                      0,
+                      10
+                    ],
+                    [
+                      0,
+                      0
+                    ]
+                  ],
+                  [
+                    [
+                      2,
+                      2
+                    ],
+                    [
+                      2,
+                      3
+                    ],
+                    [
+                      3,
+                      3
+                    ],
+                    [
+                      3,
+                      2
+                    ],
+                    [
+                      2,
+                      2
+                    ]
+                  ]
+                ],
+                [
+                  [
+                    [
+                      12,
+                      0
+                    ],
+                    [
+                      13,
+                      0
+                    ],
+                    [
+                      13,
+                      1
+                    ],
+                    [
+                      12,
+                      0
+                    ]
+                  ]
+                ],
+                [
+                  [
+                    [
+                      179,
+                      0
+                    ],
+                    [
+                      -179,
+                      0
+                    ],
+                    [
+                      -179,
+                      1
+                    ],
+                    [
+                      179,
+                      0
+                    ]
+                  ]
+                ]
+              ]
+            }
+          },
+          {
+            "id": "shape",
+            "version": 2,
+            "geojson": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1.2345678901234567,
+                    2
+                  ],
+                  [
+                    2,
+                    0
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ]
+              ]
+            }
+          },
+          {
+            "id": "web-genericFeatures:22000000-0000-4000-8000-000000000002",
+            "version": 1,
+            "geojson": {
+              "type": "Point",
+              "coordinates": [
+                128,
+                38
+              ]
+            }
+          },
+          {
+            "id": "web-label:22000000-0000-4000-8000-000000000001",
+            "version": 1,
+            "geojson": {
+              "type": "Point",
+              "coordinates": [
+                127,
+                37
+              ]
+            }
+          }
+        ],
+        "historyContentToken": "content:3"
+      }
+    },
+    {
+      "id": "loaded-null",
+      "result": {
+        "ok": true
+      },
+      "stateRevision": 3,
+      "undo": true,
+      "redo": false,
+      "dirty": true,
+      "storedMetadata": {
+        "capital": "서울",
+        "source": {
+          "provider": "T2-2 exchange corpus",
+          "sourceId": "A"
+        },
+        "originalName": "A Territory",
+        "flagDataUrl": null
+      },
+      "flagUrl": null,
+      "snapshot": {
+        "territorialEntities": [
+          {
+            "type": "Feature",
+            "id": "A",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "A 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "A"
+                },
+                "originalName": "A Territory",
+                "flagDataUrl": null
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          {
+            "type": "Feature",
+            "id": "B",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "B 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "B"
+                },
+                "originalName": "B Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          {
+            "type": "Feature",
+            "id": "C",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "C 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "C"
+                },
+                "originalName": "C Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          {
+            "type": "Feature",
+            "id": "R",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "regional",
+              "name": "R 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "R"
+                },
+                "originalName": "R Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          }
+        ],
+        "timelineRecords": {
+          "schemaVersion": 1,
+          "lifetimes": [
+            {
+              "id": "life:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null
+            },
+            {
+              "id": "life:B",
+              "entityId": "B",
+              "validFrom": null,
+              "validTo": null
+            },
+            {
+              "id": "life:C",
+              "entityId": "C",
+              "validFrom": null,
+              "validTo": null
+            },
+            {
+              "id": "life:R",
+              "entityId": "R",
+              "validFrom": null,
+              "validTo": null
+            }
+          ],
+          "geometryBindings": [
+            {
+              "id": "shape:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null,
+              "geometryRef": {
+                "id": "shape",
+                "version": 1
+              }
+            },
+            {
+              "id": "shape:B",
+              "entityId": "B",
+              "validFrom": null,
+              "validTo": null,
+              "geometryRef": {
+                "id": "shape",
+                "version": 1
+              }
+            },
+            {
+              "id": "shape:C",
+              "entityId": "C",
+              "validFrom": null,
+              "validTo": null,
+              "geometryRef": {
+                "id": "shape",
+                "version": 1
+              }
+            },
+            {
+              "id": "shape:R",
+              "entityId": "R",
+              "validFrom": null,
+              "validTo": null,
+              "geometryRef": {
+                "id": "shape",
+                "version": 1
+              }
+            }
+          ],
+          "parentRelations": [
+            {
+              "id": "parent:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null,
+              "parentId": "",
+              "coverageMode": "explicit"
+            },
+            {
+              "id": "parent:B",
+              "entityId": "B",
+              "validFrom": null,
+              "validTo": null,
+              "parentId": "A",
+              "coverageMode": "partition"
+            },
+            {
+              "id": "parent:C",
+              "entityId": "C",
+              "validFrom": null,
+              "validTo": null,
+              "parentId": "",
+              "coverageMode": "explicit"
+            },
+            {
+              "id": "parent:R",
+              "entityId": "R",
+              "validFrom": null,
+              "validTo": null,
+              "parentId": "",
+              "coverageMode": "explicit"
+            }
+          ]
+        },
+        "geometries": [
+          {
+            "id": "label",
+            "version": 1,
+            "geojson": {
+              "type": "Point",
+              "coordinates": [
+                5,
+                6
+              ]
+            }
+          },
+          {
+            "id": "river",
+            "version": 1,
+            "geojson": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  179,
+                  2
+                ],
+                [
+                  -179,
+                  3
+                ]
+              ]
+            }
+          },
+          {
+            "id": "shape",
+            "version": 1,
+            "geojson": {
+              "type": "MultiPolygon",
+              "coordinates": [
+                [
+                  [
+                    [
+                      0,
+                      0
+                    ],
+                    [
+                      10,
+                      0
+                    ],
+                    [
+                      10,
+                      10
+                    ],
+                    [
+                      0,
+                      10
+                    ],
+                    [
+                      0,
+                      0
+                    ]
+                  ],
+                  [
+                    [
+                      2,
+                      2
+                    ],
+                    [
+                      2,
+                      3
+                    ],
+                    [
+                      3,
+                      3
+                    ],
+                    [
+                      3,
+                      2
+                    ],
+                    [
+                      2,
+                      2
+                    ]
+                  ]
+                ],
+                [
+                  [
+                    [
+                      12,
+                      0
+                    ],
+                    [
+                      13,
+                      0
+                    ],
+                    [
+                      13,
+                      1
+                    ],
+                    [
+                      12,
+                      0
+                    ]
+                  ]
+                ],
+                [
+                  [
+                    [
+                      179,
+                      0
+                    ],
+                    [
+                      -179,
+                      0
+                    ],
+                    [
+                      -179,
+                      1
+                    ],
+                    [
+                      179,
+                      0
+                    ]
+                  ]
+                ]
+              ]
+            }
+          },
+          {
+            "id": "shape",
+            "version": 2,
+            "geojson": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    1.2345678901234567,
+                    2
+                  ],
+                  [
+                    2,
+                    0
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ]
+              ]
+            }
+          },
+          {
+            "id": "web-genericFeatures:22000000-0000-4000-8000-000000000002",
+            "version": 1,
+            "geojson": {
+              "type": "Point",
+              "coordinates": [
+                128,
+                38
+              ]
+            }
+          },
+          {
+            "id": "web-label:22000000-0000-4000-8000-000000000001",
+            "version": 1,
+            "geojson": {
+              "type": "Point",
+              "coordinates": [
+                127,
+                37
+              ]
+            }
+          }
+        ],
+        "historyContentToken": "content:3"
+      }
+    }
+  ]
+}

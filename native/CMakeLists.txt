@@ -14,8 +14,12 @@ if(ANDROID AND BUILD_TESTING)
     set(BUILD_TESTING OFF CACHE BOOL "Build tests" FORCE)
 endif()
 
-add_subdirectory(core)
+add_subdirectory(../shared/core shared-core)
 add_subdirectory(engine)
+
+if(BUILD_TESTING)
+    add_subdirectory(tests/core)
+endif()
 
 if(PANDOEDITOR_BUILD_APP)
     find_package(Qt6 6.5 REQUIRED COMPONENTS Quick QuickControls2)
@@ -47,7 +51,7 @@ endif()
 # those checks active in Release as well as Debug; the application build keeps
 # its normal production flags.
 if(BUILD_TESTING)
-    foreach(validation_directory . core engine app)
+    foreach(validation_directory . tests/core engine app)
         if(validation_directory STREQUAL "app" AND NOT PANDOEDITOR_BUILD_APP)
             continue()
         endif()

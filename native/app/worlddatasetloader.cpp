@@ -71,32 +71,33 @@ WorldPreviewResult WorldDatasetLoader::preview(const QString& root) {
     require(parseError.error==QJsonParseError::NoError&&parsed.isObject(),"Invalid country preview JSON");
     const auto features=parsed.object().value("features").toArray();
     require(features.size()==258,"Preview must contain 258 countries");
-    std::vector<pandoeditor::Country> countries;countries.reserve(258);
+    pandoeditor::ProjectDocument preview;preview.documentId="world-preview";
+    preview.presentation.userLayers={{"countries","Countries"}};
     std::set<std::string> unique;
     auto frame=std::make_shared<WorldBaseFrame>();frame->mesh=std::move(mesh);frame->documentReady=false;
     for(const auto& value:features) {
         const auto object=value.toObject();
-        pandoeditor::Country country;
+        pandoeditor::TerritorialUnit country;
         country.id=object.value("id").toString().toStdString();
         require(!country.id.empty()&&unique.insert(country.id).second,"Duplicate preview country ID");
         country.name=object.value("properties").toObject().value("name").toString().toStdString();
-        country.color=0xa8c7db;
-        country.polygons=previewGeometry(object.value("geometry").toObject());
-        countries.push_back(std::move(country));
+        pandoeditor::GeometryRef ref{"preview:"+country.id,1};
+        preview.geometries.insert(ref,{"MultiPolygon",{},{},previewGeometry(object.value("geometry").toObject())});
+        pandoeditor::addStaticTerritorialRecords(preview,country.id,ref);
+        preview.presentation.membership.emplace(pandoeditor::territorialRef(country.id),"countries");
+        preview.presentation.objectStyles.emplace(pandoeditor::territorialRef(country.id),pandoeditor::ObjectStyle{0xa8c7db,1});
+        preview.units.push_back(std::move(country));
     }
     CanonicalCountryStore packet(source.decompress("countryCanonical",12*1024*1024));
     const auto classified=materializeBuiltinWorld(packet);
     frame->ranges=renderRanges(classified);
-    for(std::size_t i=0;i<countries.size();++i)
-        require(countries[i].id==frame->ranges[i].sourceId,
+    for(std::size_t i=0;i<preview.units.size();++i)
+        require(preview.units[i].id==frame->ranges[i].sourceId,
                 "Preview and canonical country order differ");
-    std::vector<pandoeditor::CountryView> views;views.reserve(258);
-    for(const auto& country:countries)views.push_back({country.id,country.name,country.polygons,
-        country.color,country.memo,country.opacity,country.layerId,country.locked});
-    auto projection=std::make_shared<MapProjection>();projection->rebuild(views);
+    auto projection=std::make_shared<MapProjection>();projection->rebuild(preview);
     return {std::move(frame),std::move(projection)};
 }
-WorldCanonicalResult WorldDatasetLoader::canonical(const QString& root) {
+WorldCanonicalResult WorldDatasetLoader::canonical(const QString& root,const std::string& requestedMonth) {
     WorldDataset source(root);
     CanonicalCountryStore packet(source.decompress("countryCanonical",12*1024*1024));
     auto classified=materializeBuiltinWorld(packet);
@@ -140,10 +141,14 @@ WorldCanonicalResult WorldDatasetLoader::canonical(const QString& root) {
             }
         }
     }
-    const auto month=pandoeditor::initialTimelineMonth(document->timelineRecords,QDate::currentDate().toString("yyyy-MM").toStdString());
-    const auto view=pandoeditor::timelineDocumentView(*document,month);
-    auto projection=std::make_shared<MapProjection>();projection->rebuild(view.document,view.inactiveIds);
-    return {std::move(document),std::move(projection),renderRanges(classified),hydroAvailability};
+    auto project=std::make_shared<pandoeditor::Project>();
+    project->replace(std::move(*document));
+    const auto month=requestedMonth.empty()?pandoeditor::initialTimelineMonth(
+        project->document().timelineRecords,QDate::currentDate().toString("yyyy-MM").toStdString()):requestedMonth;
+    project->setTimelineCursor(month);
+    auto projection=std::make_shared<MapProjection>();
+    projection->rebuild(project->viewDocument(),project->inactiveEntityIds());
+    return {std::move(project),std::move(projection),renderRanges(classified),hydroAvailability};
 }
 std::shared_ptr<const CountryBaseMesh> WorldDatasetLoader::canonicalMesh(const QString& root) {
     WorldDataset source(root);

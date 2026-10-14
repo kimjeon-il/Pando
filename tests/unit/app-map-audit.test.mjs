@@ -5,8 +5,9 @@ import { connectMapInteraction } from '../../assets/js/modules/app-connect-map-i
 import { MAP_INTERACTION_OWNER_PORTS } from '../../assets/js/modules/app-capability-ports-map-interaction.js';
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
 import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
+import { WORKER_RPC_PROTOCOL, WORKER_RPC_PROTOCOL_VERSION } from '../../assets/js/modules/worker-rpc.js';
 
-test('the application connector sends current repository entities to the audit Worker and accepts its result', t => {
+test('the application connector sends current repository entities to the audit Worker and accepts its result', async t => {
   const previousWorker = globalThis.Worker;
   t.after(() => {
     if (previousWorker === undefined) delete globalThis.Worker;
@@ -37,23 +38,30 @@ test('the application connector sends current repository entities to the audit W
     },
   });
   mapAudit.initializeGeometryValidationWorker();
-  mapAudit.runFullMapAudit();
+  const first=mapAudit.runFullMapAudit();
   assert.equal(state.audit.status, 'running');
-  assert.equal(requests.length, 1);
-  assert.equal(requests[0].revision, 7);
-  assert.deepEqual(requests[0].payload.countries.map(feature => feature.id), ['A']);
-  assert.deepEqual(requests[0].payload.units.map(feature => feature.id), ['S', 'R']);
-  assert.deepEqual(requests[0].payload.preciseAffectedIds, ['S']);
+  const auditRequests=()=>requests.filter(message=>message.type==='request');
+  assert.equal(auditRequests().length, 1);
+  assert.equal(auditRequests()[0].projectRevision, 7);
+  assert.equal(auditRequests()[0].operation, 'geometry.audit');
+  assert.deepEqual(auditRequests()[0].payload.countries.map(feature => feature.id), ['A']);
+  assert.deepEqual(auditRequests()[0].payload.units.map(feature => feature.id), ['S', 'R']);
+  assert.deepEqual(auditRequests()[0].payload.preciseAffectedIds, ['S']);
 
   entities = [...entities, entity('B', 'general')];
   state.stateRevision = 8;
-  mapAudit.runFullMapAudit();
-  assert.equal(requests[1].revision, 8);
-  assert.deepEqual(requests[1].payload.countries.map(feature => feature.id), ['A', 'B']);
-  workers[0].onmessage({ data: { type: 'result', requestId: requests[0].requestId, ok: true, report: { issues: [] } } });
+  const second=mapAudit.runFullMapAudit();
+  assert.equal(auditRequests()[1].projectRevision, 8);
+  assert.deepEqual(auditRequests()[1].payload.countries.map(feature => feature.id), ['A', 'B']);
+  const response=(request,report)=>({ rpc:WORKER_RPC_PROTOCOL,protocolVersion:WORKER_RPC_PROTOCOL_VERSION,
+    type:'result',requestId:request.requestId,operation:request.operation,projectRevision:request.projectRevision,
+    ok:true,result:report,timing:{durationMs:1} });
+  workers[0].onmessage({ data: response(auditRequests()[0], { issues: [] }) });
+  await first;
   assert.equal(state.audit.status, 'running');
   const report = { issues: [] };
-  workers[0].onmessage({ data: { type: 'result', requestId: requests[1].requestId, ok: true, report } });
+  workers[0].onmessage({ data: response(auditRequests()[1], report) });
+  await second;
   assert.equal(state.audit.status, 'ready');
   assert.strictEqual(state.audit.report, report);
 });

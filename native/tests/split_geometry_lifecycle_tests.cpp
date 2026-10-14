@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "territorialpreviewruntime.h"
 #include "territorial_fixture.h"
 #include "territorialgeometry.h"
@@ -27,7 +28,7 @@ void append(ProjectDocument& document,const std::string& id,const Geometry& geom
     document.presentation.objectStyles[territorialRef(id)]={};
 }
 ProjectDocument nested() {
-    ProjectDocument document({{"root","Root",box(0,0,10,10).polygons,0x123456}},{{"countries","Countries"}});
+    pandoeditor::ProjectDocument document = makeTerritorialDocument({{{"root","Root","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},box(0,0,10,10).polygons},{0x123456,1},"countries"}},{{"countries","Countries"}});
     append(document,"source",box(1,1,8,8),"root");append(document,"child",box(2,2,4,4),"source");
     append(document,"grandchild",box(2.5,2.5,1,1),"child");return document;
 }
@@ -129,14 +130,14 @@ private slots:
     }
     void pinnedWebSelectedUnionsReplayMutationLifecycle() {
         QFETCH(QJsonObject,observation);const auto stages=observation["stages"].toObject();const auto beforeStage=stages["before"].toObject();
-        Project project;project.replace(observedFixture(beforeStage));const auto before=projectcodec::encode(project);const auto selected=stages["selected"].toObject()["selection"].toObject();
+        Project project;project.replace(observedFixture(beforeStage));const auto before=::projectcodec::encode(project);const auto selected=stages["selected"].toObject()["selection"].toObject();
         const auto createdIds=observation["referenceEffects"].toObject()["createdIds"].toArray();
         // The mutation port accepts the observed generated ID as explicit input;
         // neither source observations nor expected entity IDs are rewritten.
         const auto created=createdIds.isEmpty()?std::string("uncommitted-created"):createdIds[0].toString().toStdString();
         SplitTerritorialIntent intent{territorialRef("source"),observedGeometry(selected["combinedGeometry"].toObject()),created,"새 객체"};
         JobScheduler jobs;auto ticket=jobs.enqueue(project.snapshot(),"observed-split");jobs.takeNext();
-        const auto receipt=calculateSplitGeometryPreview(project.snapshot(),intent,territorialPreviewCalculators(),ticket.token());QCOMPARE(projectcodec::encode(project),before);
+        const auto receipt=calculateSplitGeometryPreview(project.snapshot(),intent,territorialPreviewCalculators(),ticket.token());QCOMPARE(::projectcodec::encode(project),before);
         const auto webPreview=stages["review"].toObject()["document"].toObject()["preview"];
         QVERIFY(!webPreview.isUndefined());
         if(webPreview.isObject()) {
@@ -153,7 +154,7 @@ private slots:
                 const auto& row=*shown[std::size_t(index)];QCOMPARE(row.owner,territorialRef(ownerId(feature["id"].toString())));
                 const auto parent=receipt.parentIds.find(row.owner);QVERIFY2(parent!=receipt.parentIds.end(),row.owner.id.c_str());QCOMPARE(parent->second,ownerId(properties["parentId"].toString()));
             }
-            QCOMPARE(projectcodec::encode(project),before);
+            QCOMPARE(::projectcodec::encode(project),before);
         }
         if(!stages.contains("confirm")) {
             QCOMPARE(receipt.ok(),selected["previewReady"].toBool());
@@ -162,8 +163,8 @@ private slots:
         }
         QVERIFY2(receipt.ok(),receipt.detail.c_str());auto command=prepareSplitGeometryCommit(project.snapshot(),receipt,ticket.token());
         const auto confirm=stages["confirm"].toObject();
-        if(!confirm["outcome"].toBool()) {QVERIFY(!command.ok());QCOMPARE(projectcodec::encode(project),before);QVERIFY(!project.undo());return;}
-        QVERIFY2(command.ok(),command.detail.c_str());QCOMPARE(projectcodec::encode(project),before);QVERIFY(CommandProcessor::confirm(project,*command.preview).ok());
+        if(!confirm["outcome"].toBool()) {QVERIFY(!command.ok());QCOMPARE(::projectcodec::encode(project),before);QVERIFY(!project.undo());return;}
+        QVERIFY2(command.ok(),command.detail.c_str());QCOMPARE(::projectcodec::encode(project),before);QVERIFY(CommandProcessor::confirm(project,*command.preview).ok());
         const auto expected=observedDocument(confirm)["entities"].toArray();QCOMPARE(project.document().units.size(),std::size_t(expected.size()));
         for(const auto& value:expected) {const auto row=value.toObject(),properties=row["properties"].toObject();const auto id=row["id"].toString().toStdString();
             QVERIFY2(project.index().objects.count(territorialRef(id)),id.c_str());const auto& actual=project.document().units.at(project.index().objects.at(territorialRef(id)));
@@ -180,8 +181,8 @@ private slots:
         for(int index=0;index<entries.size();++index) {const auto row=entries[index].toObject();const auto& actual=project.document().distributionEntries[index];QCOMPARE(actual.id,row["id"].toString().toStdString());QCOMPARE(actual.territory,std::optional<ObjectRef>{territorialRef(row["territorialUnitId"].toString().toStdString())});}
         QCOMPARE(project.document().labels.size(),std::size_t(confirm["document"].toObject()["labels"].toArray().size()));
         for(const auto& label:project.document().labels)QCOMPARE(label.territory,std::optional<ObjectRef>{territorialRef("source")});
-        const auto after=projectcodec::encode(project);QVERIFY(!CommandProcessor::confirm(project,*command.preview).ok());QVERIFY(project.undo());QCOMPARE(projectcodec::encode(project),before);QVERIFY(!project.undo());
-        QVERIFY(project.redo());QCOMPARE(projectcodec::encode(project),after);QVERIFY(!project.redo());Project reopened;reopened.replace(projectcodec::decode(after));QCOMPARE(projectcodec::encode(reopened),after);
+        const auto after=::projectcodec::encode(project);QVERIFY(!CommandProcessor::confirm(project,*command.preview).ok());QVERIFY(project.undo());QCOMPARE(::projectcodec::encode(project),before);QVERIFY(!project.undo());
+        QVERIFY(project.redo());QCOMPARE(::projectcodec::encode(project),after);QVERIFY(!project.redo());Project reopened;reopened.replace(::projectcodec::decode(after));QCOMPARE(::projectcodec::encode(reopened),after);
     }
     void rawEntityNormalizationDoesNotWrapOrSegmentGeographicEdges() {
         Geometry input;input.type="Polygon";input.polygons={{{{179,-2},{179,2},{-179,2},{-179,-2},{179,-2}}}};
@@ -191,32 +192,32 @@ private slots:
         QCOMPARE(wrapped.geometry.polygons.size(),std::size_t(2));QVERIFY(clipped.geometry.polygons[0][0].size()>raw.geometry.polygons[0][0].size());
     }
     void childSourceMovesContainedChildAndPreservesGrandchildRelation() {
-        Project project;project.replace(nested());const auto before=projectcodec::encode(project);
+        Project project;project.replace(nested());const auto before=::projectcodec::encode(project);
         const auto receipt=preview(project,"source",box(1,1,5,8));QVERIFY2(receipt.ok(),receipt.detail.c_str());
         QCOMPARE(receipt.parentIds.at(territorialRef("created")),std::string("root"));
         QCOMPARE(receipt.parentIds.at(territorialRef("source")),std::string("root"));
         QCOMPARE(receipt.parentIds.at(territorialRef("child")),std::string("created"));
         QCOMPARE(receipt.parentIds.at(territorialRef("grandchild")),std::string("child"));
         QCOMPARE(receipt.rows.size(),std::size_t(3));QCOMPARE(receipt.rows[0].owner,territorialRef("created"));QCOMPARE(receipt.rows[1].owner,territorialRef("source"));QCOMPARE(receipt.rows[2].owner,territorialRef("child"));
-        QCOMPARE(projectcodec::encode(project),before);auto command=prepare(project,receipt);QVERIFY2(command.ok(),command.detail.c_str());
+        QCOMPARE(::projectcodec::encode(project),before);auto command=prepare(project,receipt);QVERIFY2(command.ok(),command.detail.c_str());
         QVERIFY(CommandProcessor::confirm(project,*command.preview).ok());
         QCOMPARE(staticParentRelation(project.document(),"created").parentId,std::string("root"));
         QCOMPARE(staticParentRelation(project.document(),"child").parentId,std::string("created"));
         QCOMPARE(staticParentRelation(project.document(),"grandchild").parentId,std::string("child"));
         QCOMPARE(area(project,"child"),16.);QCOMPARE(area(project,"grandchild"),1.);
-        const auto after=projectcodec::encode(project);QVERIFY(project.undo());QCOMPARE(projectcodec::encode(project),before);
-        QVERIFY(project.redo());QCOMPARE(projectcodec::encode(project),after);Project reopened;reopened.replace(projectcodec::decode(after));QCOMPARE(projectcodec::encode(reopened),after);
+        const auto after=::projectcodec::encode(project);QVERIFY(project.undo());QCOMPARE(::projectcodec::encode(project),before);
+        QVERIFY(project.redo());QCOMPARE(::projectcodec::encode(project),after);Project reopened;reopened.replace(::projectcodec::decode(after));QCOMPARE(::projectcodec::encode(reopened),after);
     }
     void lockedGrandchildOfWhollyMovedChildRemainsUntouched() {
         auto document=nested();document.units.at(validateDocument(document).objects.at(territorialRef("grandchild"))).locked=true;
-        Project project;project.replace(document);const auto before=projectcodec::encode(project);const auto binding=staticGeometryBinding(project.document(),"grandchild").geometryRef;
+        Project project;project.replace(document);const auto before=::projectcodec::encode(project);const auto binding=staticGeometryBinding(project.document(),"grandchild").geometryRef;
         const auto receipt=preview(project,"source",box(1,1,5,8));QVERIFY2(receipt.ok(),receipt.detail.c_str());
         auto command=prepare(project,receipt);QVERIFY2(command.ok(),command.detail.c_str());QVERIFY(CommandProcessor::confirm(project,*command.preview).ok());
         QCOMPARE(staticParentRelation(project.document(),"child").parentId,std::string("created"));
         QCOMPARE(staticParentRelation(project.document(),"grandchild").parentId,std::string("child"));
         QCOMPARE(staticGeometryBinding(project.document(),"grandchild").geometryRef,binding);
         QVERIFY(project.document().units.at(project.index().objects.at(territorialRef("grandchild"))).locked);
-        QVERIFY(project.undo());QCOMPARE(projectcodec::encode(project),before);
+        QVERIFY(project.undo());QCOMPARE(::projectcodec::encode(project),before);
     }
     void childSourceClipsParentAndMovesContainedGrandchild() {
         Project project;project.replace(nested());const auto receipt=preview(project,"source",box(1,1,3,8));
@@ -229,7 +230,7 @@ private slots:
         QCOMPARE(area(project,"child"),8.);QCOMPARE(area(project,"grandchild"),1.);
     }
     void rootSourceClipsAndRemovesChildrenWithoutReparenting() {
-        Project project;project.replace(nested());const auto before=projectcodec::encode(project);
+        Project project;project.replace(nested());const auto before=::projectcodec::encode(project);
         const auto receipt=preview(project,"root",box(0,0,4,10));QVERIFY2(receipt.ok(),receipt.detail.c_str());
         auto command=prepare(project,receipt);QVERIFY2(command.ok(),command.detail.c_str());
         QVERIFY(CommandProcessor::confirm(project,*command.preview).ok());
@@ -238,7 +239,7 @@ private slots:
         QCOMPARE(staticParentRelation(project.document(),"child").parentId,std::string("source"));
         QVERIFY(!project.index().objects.count(territorialRef("grandchild")));
         QCOMPARE(area(project,"source"),40.);QCOMPARE(area(project,"child"),8.);
-        QVERIFY(project.undo());QCOMPARE(projectcodec::encode(project),before);
+        QVERIFY(project.undo());QCOMPARE(::projectcodec::encode(project),before);
     }
     void rootRemovedChildReferencesBlockCommit_data() {
         QTest::addColumn<bool>("distribution");QTest::newRow("distribution")<<true;QTest::newRow("label-settings")<<false;
@@ -248,16 +249,16 @@ private slots:
         if(distribution) {DistributionLayer layer;layer.id="statistics";layer.name="Statistics";document.distributionLayers.push_back(layer);
             DistributionEntry entry;entry.id="entry";entry.layerId=layer.id;entry.territory=territorialRef("grandchild");entry.value=1;document.distributionEntries.push_back(entry);}
         else document.presentation.webPresentation.labelSettings[territorialRef("grandchild")]={};
-        Project project;project.replace(document);const auto before=projectcodec::encode(project);
+        Project project;project.replace(document);const auto before=::projectcodec::encode(project);
         const auto receipt=preview(project,"root",box(0,0,4,10));QVERIFY2(receipt.ok(),receipt.detail.c_str());
         const auto command=prepare(project,receipt);QVERIFY(!command.ok());QVERIFY(command.detail.find("DANGLING_REF")!=std::string::npos);
-        QCOMPARE(projectcodec::encode(project),before);QVERIFY(!project.undo());
+        QCOMPARE(::projectcodec::encode(project),before);QVERIFY(!project.undo());
     }
     void referencesRemainOnSurvivingSourceAndReparentedChild() {
         auto document=nested();DistributionLayer layer;layer.id="statistics";layer.name="Statistics";document.distributionLayers.push_back(layer);
         for(const auto id:{"source","child"}) {DistributionEntry entry;entry.id=std::string("entry-")+id;entry.layerId=layer.id;entry.territory=territorialRef(id);entry.value=1;document.distributionEntries.push_back(entry);
             document.presentation.webPresentation.labelSettings[territorialRef(id)]={};}
-        Project project;project.replace(document);const auto before=projectcodec::encode(project);
+        Project project;project.replace(document);const auto before=::projectcodec::encode(project);
         const auto receipt=preview(project,"source",box(1,1,5,8));QVERIFY(receipt.ok());auto command=prepare(project,receipt);QVERIFY2(command.ok(),command.detail.c_str());
         QVERIFY(CommandProcessor::confirm(project,*command.preview).ok());
         QCOMPARE(project.document().distributionEntries.size(),std::size_t(2));
@@ -266,60 +267,60 @@ private slots:
         QVERIFY(project.document().presentation.webPresentation.labelSettings.count(territorialRef("source")));
         QVERIFY(project.document().presentation.webPresentation.labelSettings.count(territorialRef("child")));
         QVERIFY(!project.document().presentation.webPresentation.labelSettings.count(territorialRef("created")));
-        QVERIFY(project.undo());QCOMPARE(projectcodec::encode(project),before);
+        QVERIFY(project.undo());QCOMPARE(::projectcodec::encode(project),before);
     }
     void untouchedLockedChildDoesNotBlockSelectionButChangedChildDoes() {
         auto document=nested();document.units.at(validateDocument(document).objects.at(territorialRef("child"))).locked=true;
-        Project project;project.replace(document);const auto before=projectcodec::encode(project);
+        Project project;project.replace(document);const auto before=::projectcodec::encode(project);
         const auto untouched=preview(project,"source",box(7,1,2,8));QVERIFY2(untouched.ok(),untouched.detail.c_str());
         const auto command=prepare(project,untouched);QVERIFY2(command.ok(),command.detail.c_str());
-        QVERIFY(!preview(project,"source",box(1,1,5,8)).ok());QCOMPARE(projectcodec::encode(project),before);
+        QVERIFY(!preview(project,"source",box(1,1,5,8)).ok());QCOMPARE(::projectcodec::encode(project),before);
     }
     void datelineSplitCommitsWithoutRewritingUntouchedParent_data() {
         QTest::addColumn<bool>("childScope");QTest::newRow("root")<<false;QTest::newRow("child")<<true;
     }
     void datelineSplitCommitsWithoutRewritingUntouchedParent() {
         QFETCH(bool,childScope);Geometry raw;raw.type="Polygon";raw.polygons={{{{179,-2},{179,2},{-179,2},{-179,-2},{179,-2}}}};
-        ProjectDocument document({{"source","Source",raw.polygons,0x123456}},{{"countries","Countries"}});
+        pandoeditor::ProjectDocument document = makeTerritorialDocument({{{"source","Source","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},raw.polygons},{0x123456,1},"countries"}},{{"countries","Countries"}});
         if(childScope) {Geometry parent;parent.polygons={{{{178,-4},{178,4},{-178,4},{-178,-4},{178,-4}}}};const GeometryRef ref{"parent",1};document.geometries.insert(ref,parent);appendTerritory(document,{"parent","Parent","",UnitKind::General,false},ref,"","explicit");document.presentation.objectStyles[territorialRef("parent")]={};setFixtureParent(document,territorialRef("source"),territorialRef("parent"));}
         Geometry selected=box(179,0,1,2);selected.polygons.push_back(box(-180,0,1,2).polygons.front());
-        Project project;project.replace(document);const auto before=projectcodec::encode(project);
-        const auto receipt=preview(project,"source",selected);QVERIFY2(receipt.ok(),receipt.detail.c_str());QCOMPARE(projectcodec::encode(project),before);
+        Project project;project.replace(document);const auto before=::projectcodec::encode(project);
+        const auto receipt=preview(project,"source",selected);QVERIFY2(receipt.ok(),receipt.detail.c_str());QCOMPARE(::projectcodec::encode(project),before);
         auto command=prepare(project,receipt);QVERIFY2(command.ok(),command.detail.c_str());QVERIFY(CommandProcessor::confirm(project,*command.preview).ok());
         QCOMPARE(area(project,"source"),4.);QCOMPARE(area(project,"created"),4.);
         QCOMPARE(staticParentRelation(project.document(),"created").parentId,childScope?std::string("parent"):std::string());
         if(childScope) {QCOMPARE(staticGeometryBinding(project.document(),"parent").geometryRef,(GeometryRef{"parent",1}));QCOMPARE(project.document().geometries.get({"parent",1})->polygons[0][0][2].x,-178.);}
-        const auto after=projectcodec::encode(project);Project reopened;reopened.replace(projectcodec::decode(after));QCOMPARE(projectcodec::encode(reopened),after);
-        QVERIFY(project.undo());QCOMPARE(projectcodec::encode(project),before);QVERIFY(project.redo());QCOMPARE(projectcodec::encode(project),after);
+        const auto after=::projectcodec::encode(project);Project reopened;reopened.replace(::projectcodec::decode(after));QCOMPARE(::projectcodec::encode(reopened),after);
+        QVERIFY(project.undo());QCOMPARE(::projectcodec::encode(project),before);QVERIFY(project.redo());QCOMPARE(::projectcodec::encode(project),after);
     }
     void rootExhaustionHasInertPreviewButCannotCommit() {
-        Project project;project.replace(nested());const auto before=projectcodec::encode(project);
+        Project project;project.replace(nested());const auto before=::projectcodec::encode(project);
         const auto receipt=preview(project,"root",box(0,0,10,10));QVERIFY2(receipt.ok(),receipt.detail.c_str());
         QVERIFY(receipt.remainingGeometry.polygons.empty());QCOMPARE(receipt.rows.size(),std::size_t(2));
         QCOMPARE(receipt.rows[0].owner,territorialRef("root"));QVERIFY(!receipt.rows[0].after);QVERIFY(receipt.rows[1].after);
         QVERIFY(!receipt.parentIds.count(territorialRef("root")));QCOMPARE(receipt.parentIds.at(territorialRef("created")),std::string());
         const auto rejected=prepare(project,receipt);QVERIFY(!rejected.ok());QCOMPARE(rejected.detail,std::string("SPLIT_SOURCE_EXHAUSTED"));
-        QCOMPARE(projectcodec::encode(project),before);QVERIFY(!project.undo());
+        QCOMPARE(::projectcodec::encode(project),before);QVERIFY(!project.undo());
     }
     void rootCreationDoesNotIntroduceOverlapWithAnotherCountry() {
         auto document=nested();const GeometryRef geometry{"neighbor",1};document.geometries.insert(geometry,box(5,0,10,10));
         appendTerritory(document,{"neighbor","Neighbor","",UnitKind::General,false},geometry,"","explicit");document.presentation.objectStyles[territorialRef("neighbor")]={};
-        Project project;project.replace(document);const auto before=projectcodec::encode(project);
-        QVERIFY(!preview(project,"root",box(6,0,4,10)).ok());QCOMPARE(projectcodec::encode(project),before);
+        Project project;project.replace(document);const auto before=::projectcodec::encode(project);
+        QVERIFY(!preview(project,"root",box(6,0,4,10)).ok());QCOMPARE(::projectcodec::encode(project),before);
     }
     void rootDeletionCleansDisplaySettingsAndUndoRestoresThem() {
         auto document=nested();auto& web=document.presentation.webPresentation;
-        web.hiddenItems["subunits"]={"grandchild","child"};web.objectStyles[territorialPresentationKey("grandchild")].opacity=.4;web.objectStyles[territorialPresentationKey("child")].opacity=.7;
-        Project project;project.replace(document);const auto before=projectcodec::encode(project);
+        web.itemVisibility["subunits"]={{"grandchild",false},{"child",false}};web.objectStyles[territorialPresentationKey("grandchild")].opacity=.4;web.objectStyles[territorialPresentationKey("child")].opacity=.7;
+        Project project;project.replace(document);const auto before=::projectcodec::encode(project);
         const auto receipt=preview(project,"root",box(0,0,4,10));QVERIFY(receipt.ok());auto command=prepare(project,receipt);QVERIFY(command.ok());QVERIFY(CommandProcessor::confirm(project,*command.preview).ok());
         const auto& next=project.document().presentation.webPresentation;
-        QVERIFY(!next.hiddenItems.at("subunits").count("grandchild"));QVERIFY(next.hiddenItems.at("subunits").count("child"));
+        QVERIFY(!next.itemVisibility.at("subunits").count("grandchild"));QVERIFY(next.itemVisibility.at("subunits").count("child"));
         QVERIFY(!next.objectStyles.count(territorialPresentationKey("grandchild")));QCOMPARE(next.objectStyles.at(territorialPresentationKey("child")).opacity,std::optional<double>{.7});
-        const auto after=projectcodec::encode(project);QVERIFY(project.undo());QCOMPARE(projectcodec::encode(project),before);QVERIFY(project.redo());QCOMPARE(projectcodec::encode(project),after);
+        const auto after=::projectcodec::encode(project);QVERIFY(project.undo());QCOMPARE(::projectcodec::encode(project),before);QVERIFY(project.redo());QCOMPARE(::projectcodec::encode(project),after);
     }
     void survivorDisplayEditsRemainAcrossSplitUndoRedo() {
         auto document=nested();auto& web=document.presentation.webPresentation;
-        web.hiddenItems["subunits"]={"grandchild","child"};web.objectStyles[territorialPresentationKey("grandchild")].opacity=.4;web.objectStyles[territorialPresentationKey("child")].opacity=.7;
+        web.itemVisibility["subunits"]={{"grandchild",false},{"child",false}};web.objectStyles[territorialPresentationKey("grandchild")].opacity=.4;web.objectStyles[territorialPresentationKey("child")].opacity=.7;
         Project project;project.replace(document);const auto receipt=preview(project,"root",box(0,0,4,10));QVERIFY(receipt.ok());auto command=prepare(project,receipt);QVERIFY(command.ok());QVERIFY(CommandProcessor::confirm(project,*command.preview).ok());
         QCOMPARE(PresentationCommandProcessor::apply(project,SetScopedVisibility{"subunits",{territorialRef("child")},true}),PresentationResult::Applied);
         PresentationStyle changed;changed.opacity=.2;QCOMPARE(PresentationCommandProcessor::apply(project,PatchGroupPresentation{"subunits",changed}),PresentationResult::Applied);
@@ -334,10 +335,10 @@ private slots:
     void rootDeletionPreservesDescriptiveGenericCompatibilityMetadata() {
         auto document=nested();const GeometryRef geometry{"generic",1};document.geometries.insert(geometry,box(2.5,2.5,.5,.5));
         GenericFeature feature;feature.id="generic";feature.name="Compatibility";feature.geometry=geometry;feature.source.details="{\"legacyGenericSemantics\":{\"ownerId\":\"grandchild\"}}";document.genericFeatures.push_back(feature);
-        Project project;project.replace(document);const auto before=projectcodec::encode(project);
+        Project project;project.replace(document);const auto before=::projectcodec::encode(project);
         const auto receipt=preview(project,"root",box(0,0,4,10));QVERIFY(receipt.ok());auto command=prepare(project,receipt);QVERIFY(command.ok());QVERIFY(CommandProcessor::confirm(project,*command.preview).ok());
         QCOMPARE(project.document().genericFeatures.size(),std::size_t(1));QCOMPARE(project.document().genericFeatures.front().source.details,feature.source.details);
-        const auto after=projectcodec::encode(project);QVERIFY(project.undo());QCOMPARE(projectcodec::encode(project),before);QVERIFY(project.redo());QCOMPARE(projectcodec::encode(project),after);
+        const auto after=::projectcodec::encode(project);QVERIFY(project.undo());QCOMPARE(::projectcodec::encode(project),before);QVERIFY(project.redo());QCOMPARE(::projectcodec::encode(project),after);
     }
     void rootAndChildUseTheirProductionContainmentPolicies() {
         Project project;project.replace(nested());
@@ -357,17 +358,17 @@ private slots:
     void independentRegionAndLockedParentAreNotSplitSources() {
         auto document=nested();const GeometryRef geometry{"region",1};document.geometries.insert(geometry,box(20,0,10,10));
         appendTerritory(document,{"region","Region","",UnitKind::Regional,false},geometry,"","explicit");document.presentation.objectStyles[territorialRef("region")]={};
-        Project project;project.replace(document);const auto before=projectcodec::encode(project);
-        QVERIFY(!preview(project,"region",box(20,0,5,10)).ok());QCOMPARE(projectcodec::encode(project),before);
+        Project project;project.replace(document);const auto before=::projectcodec::encode(project);
+        QVERIFY(!preview(project,"region",box(20,0,5,10)).ok());QCOMPARE(::projectcodec::encode(project),before);
         document.units.at(validateDocument(document).objects.at(territorialRef("root"))).locked=true;project.replace(document);
         QVERIFY(!preview(project,"source",box(7,1,2,8)).ok());
     }
     void receiptRejectsOutsideSelectionAndExhaustedChildSource() {
-        Project project;project.replace(nested());const auto before=projectcodec::encode(project);
+        Project project;project.replace(nested());const auto before=::projectcodec::encode(project);
         QVERIFY(!preview(project,"source",box(0,0,3,3)).ok());
         QVERIFY(!preview(project,"source",box(1,1,8,8)).ok());
         const auto exhaustedRoot=preview(project,"root",box(0,0,10,10));QVERIFY(exhaustedRoot.ok());QVERIFY(!prepare(project,exhaustedRoot).ok());
-        QCOMPARE(projectcodec::encode(project),before);
+        QCOMPARE(::projectcodec::encode(project),before);
     }
     void receiptRejectsStaleProjectAndCancelledCalculation() {
         Project project;project.replace(nested());const auto receipt=preview(project,"source",box(7,1,2,8));QVERIFY(receipt.ok());

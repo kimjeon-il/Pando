@@ -1,7 +1,6 @@
-import { initializeTestTerritorialState, staticSerializerSnapshot } from '../helpers/timeline-project.mjs';
-import { createTerritorialFeature, normalizeTerritorialEntities } from '../../assets/js/modules/territorial-units.js';
+import {createGisCoreFixture} from '../helpers/gis-core-fixture.mjs';
+import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
 import { normalizeCountryCollection } from '../../assets/js/modules/country-feature.js';
-import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -12,12 +11,6 @@ import {
   createGisGeometryValidator,
   createImportService,
 } from '../../assets/js/modules/import-service.js';
-import { createGisImportTransactionCommitter } from '../../assets/js/modules/gis-import-transaction.js';
-import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
-import { createProjectSerializer } from '../../assets/js/modules/project-serializer.js';
-import { createProjectDomain } from '../../assets/js/modules/project-domain.js';
-import { assertCurrentProjectSchema, applyProjectFields, prepareProjectForActivation } from '../../assets/js/modules/project-state.js';
-import { normalizeLayerPresentation } from '../../assets/js/modules/layer-presentation.js';
 
 const country = (id, name = id) => ({
   type: 'Feature',
@@ -26,38 +19,21 @@ const country = (id, name = id) => ({
   geometry: { type: 'Polygon', coordinates: [[[0, 0], [1, 0], [1, 1], [0, 0]]] },
 });
 
-test('project replacement rejects unmarked vectors and preserves current common fields', async () => {
-  const state = { territorialEntities: [], historyDirtyEntityIds: new Set() };
-  initializeTestTerritorialState(state);
-const entityStore = createTerritorialEntityStore({ getState: () => state });
-  const projectFields = applyProjectFields({}, { timelineRecords: state.timelineRecords, geometries: state.geometries.snapshot() }, {
-    normalizers: { layerPresentation: normalizeLayerPresentation },
-  });
-  const serializer = createProjectSerializer({ appVersion: '0.34.0', baseDataset: 'builtin',
-    distributionModes: ['territorial', 'geometry'], readSnapshot: () => ({
-      territorialEntities: entityStore.identities(), projectFields,
-    }) });
+test('project replacement rejects unmarked vectors and preserves current common fields from the Core file receipt', async t => {
   let loaded;
-  const projectDomain = createProjectDomain({ serializer, prepareRestore: prepareProjectForActivation, replaceSnapshot: project => {
-    assertCurrentProjectSchema(project);
-    entityStore.restoreProject(project);
-    loaded = project;
-    return true;
-  } });
-  const committer = createGisImportTransactionCommitter({ state, entityStore,
-    territorialEntityRepository: createTerritorialEntityRepository({ entityStore }),
-    projectDomain, normalizeTerritorialEntities, applyImportedPackageAssets, setActionStatus() {},
-  });
+  const target=await createGisCoreFixture([],{platformPorts:{replaceSnapshot:project=>{loaded=project;return true;}}});
+  t.after(()=>target.dispose());
+  const {state,store:entityStore,committer}=target;
   await assert.rejects(committer.applyImportedReplacement({ countriesData: { features: [country('A')] } }), /저장 정보/);
   assert.equal(state.territorialEntities.length, 0);
-  const packageState = serializer.buildProject(staticSerializerSnapshot({ fullAutosave: true, projectFields,
-    territorialEntities: [createTerritorialFeature({ id: 'A', entityKind: 'general',
+  const source=await createGisCoreFixture([createTerritorialFeature({ id: 'A', entityKind: 'general',
       name: '', color: '#123456', geometry: country('A').geometry }),
     createTerritorialFeature({ id: 'S', entityKind: 'general', parentId: 'A',
       geometry: country('A').geometry }),
     createTerritorialFeature({ id: 'R', entityKind: 'regional',
-      geometry: country('A').geometry })],
-  }));
+      geometry: country('A').geometry })]);
+  t.after(()=>source.dispose());
+  const {project:packageState}=await source.project.buildFileSnapshot();
   await committer.applyImportedReplacement({ atlasMetadata: { projectState: packageState } });
   assert.equal(state.territorialEntities[0].properties.name, '');
   assert.equal(state.territorialEntities[0].properties.style.color, '#123456');
@@ -73,14 +49,14 @@ test('GIS geometry validator scopes IDs and resolves worker responses', async ()
     onerror: null,
     postMessage(message) {
       messages.push(message);
-      Promise.resolve().then(() => this.onmessage({ data: { id: message.id, ok: true, overlapAreaKm2: 0 } }));
+      Promise.resolve().then(() => this.onmessage({ data: { ...message, type: 'result', ok: true, result: { overlapAreaKm2: 0 } } }));
     },
     terminate() {},
   };
   const validator = createGisGeometryValidator({ createWorker: () => worker, timeoutMs: 100 });
   const result = await validator.validate({ type: 'FeatureCollection', features: [] }, ['AAA', 'AAA', '']);
   assert.equal(result.overlapAreaKm2, 0);
-  assert.deepEqual(messages[0].affectedIds, ['AAA']);
+  assert.deepEqual(messages[0].payload.affectedIds, ['AAA']);
   validator.dispose();
 });
 
@@ -218,64 +194,21 @@ test('territory replacement preserves the remainders of several partially covere
   assert.deepEqual(plan.countriesData.features[1].geometry.coordinates, remainder);
 });
 
-test('historical replacement commits full country deletion and transfers dependent territories atomically', async () => {
-  const existing = country('KAZ');
-  const replacement = country('state:soviet-union');
-  const state = {
-    territorialEntities: [normalizeCountryCollection({ features: [existing] }).features[0],
-      createTerritorialFeature({ id: 'KAB', entityKind: 'general', parentId: 'KAZ', geometry: existing.geometry })],
-    distributionLayers: [], distributionEntries: [], labels: [], genericFeatures: [],
-    itemVisibility: {}, labelSettings: {}, sourceInfo: null,
-  };
-  let transferred = null;
-  let committedSnapshot = null;
-  initializeTestTerritorialState(state);
-const fixtureEntityStore1 = createTerritorialEntityStore({ getState: () => state });
-  const committer = createGisImportTransactionCommitter({
-    state,
-    entityStore: fixtureEntityStore1, territorialEntityRepository: createTerritorialEntityRepository({ entityStore: fixtureEntityStore1 }),
-    deepClone: value => JSON.parse(JSON.stringify(value)),
-    normalizeCountryCollection,
-    applyImportedPackageAssets,
-    validateGisCountryCollection: async () => ({ overlapAreaKm2: 0 }),
-    transferLandDependents: (geometry, donorIds, targetId) => {
-      transferred = { geometry, donorIds, targetId };
-      const child = fixtureEntityStore1.snapshot().find(entity => entity.id === 'KAB');
-      fixtureEntityStore1.applyChanges({ features: [{ ...child, properties: { ...child.properties, parentId: targetId } }] });
-    },
-    pruneLayerItemVisibility() {},
-    assertProjectReferenceIntegrity(input) {
-      assert.deepEqual(input.territorialEntities.filter(entity => entity.properties.entityKind === 'general' && !entity.properties.parentId).map(feature => feature.id), ['state:soviet-union']);
-      assert.equal(input.territorialEntities.find(entity => entity.id === 'KAB').properties.parentId, replacement.id);
-    },
-    snapshotEditable: () => ({ marker: 'before' }),
-    restoreEditTransactionSnapshot() { throw new Error('unexpected rollback'); },
-    appendImportedSourceInfo: (_previous, next) => next,
-    scheduleCountryLabelAnchors() {},
-    markCountryGeometriesChanged() {},
-    commitHistorySnapshot(snapshot) { committedSnapshot = snapshot; },
-    selectionUiController: { clear() {} },
-    renderingDomain: { invalidateCountryPatch() {} },
-    queueAutosave() {},
-    setActionStatus() {},
-  });
-  const result = await committer.commitGisMerge({
-    countriesData: { type: 'FeatureCollection', features: [replacement] },
-    landDependentsTargetId: replacement.id,
-    sourceInfo: { title: 'Historical library' },
-  }, {
-    countriesData: { type: 'FeatureCollection', features: [replacement] },
-    counts: { added: 1, subtracted: 1, deleted: 1 },
-    affectedIds: ['KAZ', replacement.id], donorIds: ['KAZ'], transferredGeometry: replacement.geometry,
-  });
-  assert.deepEqual(result, {
-    added: 1, subtracted: 1, deleted: 1, affectedIds: ['KAZ', 'state:soviet-union'],
-  });
-  assert.equal(transferred.targetId, replacement.id);
-  assert.deepEqual(transferred.donorIds, ['KAZ']);
-  assert.deepEqual(state.territorialEntities.map(feature => feature.id), ['KAB', replacement.id]);
-  assert.equal(state.territorialEntities.find(entity => entity.id === 'KAB').properties.parentId, replacement.id);
-  assert.deepEqual(committedSnapshot, { marker: 'before' });
+test('historical replacement clips fully transferred dependents in one actual Core commit and Undo unit',async()=>{
+  const existing=normalizeCountryCollection({features:[country('KAZ')]}).features[0],replacement=normalizeCountryCollection({features:[country('state:soviet-union')]}).features[0];
+  const f=await createGisCoreFixture([existing,createTerritorialFeature({id:'KAB',entityKind:'general',parentId:'KAZ',geometry:existing.geometry})]);
+  const before=f.project.snapshot();
+  const result=await f.committer.commitGisMerge({countriesData:{type:'FeatureCollection',features:[replacement]},
+    landDependentsTargetId:replacement.id,sourceInfo:{title:'Historical library'}},
+    {countriesData:{type:'FeatureCollection',features:[replacement]},counts:{added:1,subtracted:1,deleted:1},
+      affectedIds:['KAZ',replacement.id],donorIds:['KAZ'],transferredGeometry:replacement.geometry});
+  assert.deepEqual(result,{added:1,subtracted:1,deleted:1,affectedIds:['KAZ','state:soviet-union']});
+  assert.deepEqual(f.entityRepository.list().map(row=>row.id),[replacement.id]);
+  assert.equal(f.entityRepository.get('KAB'),null,'the original difference algorithm removes a fully transferred child');
+  assert.equal(f.project.snapshot().sourceInfo.imports[0].title,'Historical library');
+  assert.equal(f.client.state().stateRevision,1);assert.deepEqual(f.events,['history','save']);
+  const after=f.project.snapshot();assert.equal(await f.project.undo(),true);assert.equal(f.client.state().canUndo,false);
+  assert.deepEqual(f.project.snapshot(),before);assert.equal(await f.project.redo(),true);assert.deepEqual(f.project.snapshot(),after);
 });
 
 test('import service returns a current immutable entity plan without a retired country merge', async () => {

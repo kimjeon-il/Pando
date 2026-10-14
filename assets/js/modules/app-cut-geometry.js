@@ -371,34 +371,10 @@ export function createCutGeometry() {
     return { line: prepared.line, candidates };
   }
 
-  function applyWorkerCountryPatches(result, options = {}) {
-    const updates = new Map((result.features || []).map(feature => {
-      const next = (0, dependencies.platform.deepClone)(feature);
-      const normalizedGeometry = (0, dependencies.geometryModel.normalizePolygonGeometry)(next.geometry);
-      if (!normalizedGeometry) throw new Error(`${(0, dependencies.objectPresentation.territorialEntityName)(next)}의 편집 결과가 유효하지 않습니다.`);
-      next.geometry = normalizedGeometry;
-      return [String(next.id || ''), next];
-    }));
-    const removed = new Set((result.removedIds || []).map(String));
-    dependencies.territorialModel.entityStore.applyChanges({
-      features: [...updates.values()], removedIds: [...removed],
-    });
-    dependencies.geometryMutation.setApplyingWorkerResult(true);
-    try {
-      (0, dependencies.spatialQuery.markCountryGeometriesChanged)(
-        new Set(result.affectedIds || [...updates.keys(), ...removed]),
-        options,
-      );
-    } finally {
-      dependencies.geometryMutation.setApplyingWorkerResult(false);
-    }
-  }
-
   return Object.freeze({
     connect,
 
     get activeCutDraftSourceGeometry() { return activeCutDraftSourceGeometry; },
-    get applyWorkerCountryPatches() { return applyWorkerCountryPatches; },
     get assessCutDraft() { return assessCutDraft; },
     get boundsOverlap() { return boundsOverlap; },
     get buildCutSplitCandidates() { return buildCutSplitCandidates; },

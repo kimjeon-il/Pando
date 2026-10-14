@@ -44,6 +44,7 @@ export function createTerritorialPropertyController({
   isMutationBlocked = ref => !!getTerritorialView(ref)?.feature?.properties.locked,
   getProjectGeneration = () => 0,
   reportFlagError = () => {},
+  reportEditError,
   metrics = {},
 } = {}) {
   const $ = getElement;
@@ -52,6 +53,10 @@ export function createTerritorialPropertyController({
     element.addEventListener(type, handler);
     listeners.push(() => element.removeEventListener(type, handler));
   };
+  const listenEdit = (element, type, operation, handler) => listen(element, type, async event => {
+    try { await handler(event); }
+    catch (error) { reportEditError(error, operation); }
+  });
   const clearPeriodError = () => {
     $('entityPeriodInput').setCustomValidity('');
     $('entityPeriodInput').removeAttribute('aria-invalid');
@@ -279,24 +284,25 @@ export function createTerritorialPropertyController({
   const beginFlagChange = () => ({ ref: activeRef, generation: getProjectGeneration(), revision: ++flagReadRevision });
   const validFlagTarget = target => !disposed && target?.ref && target.revision === flagReadRevision
     && target.generation === getProjectGeneration() && getPrimaryRef()?.key === target.ref.key && !isMutationBlocked(target.ref);
-  const commitFlagTarget = (target, value) => {
+  const commitFlagTarget = async (target, value) => {
     if (!validFlagTarget(target)) return;
-    try { commitFlag(target.ref, value); } catch (error) { reportFlagError(error); }
+    try { await commitFlag(target.ref, value); } catch (error) { reportFlagError(error); }
   };
   const clear = () => { flagReadRevision += 1; pendingUpload = null; closeTransient(); activeRef = null; wasMutationBlocked = false; };
 
   const bind = () => {
     if (bound || disposed) return api;
+    if (typeof reportEditError !== 'function') throw new TypeError('The territorial edit error boundary is required.');
     bound = true;
-    const bindField = (element, field) => listen(element, 'change', event => {
+    const bindField = (element, field) => listenEdit(element, 'change', `field:${field}`, async event => {
       const ref = getPrimaryRef();
       if (ref?.domain !== 'territorial' || isMutationBlocked(ref)) return;
       const value = field === 'name' ? event.target.value.trim() : event.target.value;
-      commitField(ref, field, value);
+      await commitField(ref, field, value);
     });
     bindField(elements.name, 'name'); bindField(elements.notes, 'notes');
     listen($('entityPeriodInput'), 'input', clearPeriodError);
-    listen($('entityPeriodInput'), 'change', event => {
+    listenEdit($('entityPeriodInput'), 'change', 'field:validity', async event => {
       const ref = getPrimaryRef();
       if (ref?.domain !== 'territorial' || isMutationBlocked(ref)) return;
       const input = event.target;
@@ -309,7 +315,9 @@ export function createTerritorialPropertyController({
       try { interval = parseTerritorialPeriodInput(input.value); }
       catch (error) { showError(error.message); return; }
       clearPeriodError();
-      const result = commitField(ref, 'validity', interval);
+      const generation = getProjectGeneration();
+      const result = await commitField(ref, 'validity', interval);
+      if (disposed || generation !== getProjectGeneration() || getPrimaryRef()?.key !== ref.key) return;
       if (!result.ok) showError(result.issues?.[0] || '존속기간을 변경할 수 없습니다.');
       else input.value = formatTerritorialPeriodInput(interval);
     });
@@ -318,28 +326,34 @@ export function createTerritorialPropertyController({
       relationPicker = relationPicker === kind ? null : kind;
       syncRelationPicker();
     });
-    listen($('entityParentInput'), 'change', event => {
+    listenEdit($('entityParentInput'), 'change', 'relation:parent', async event => {
       const ref = getPrimaryRef();
       if (ref?.domain !== 'territorial' || isMutationBlocked(ref)) return;
-      if (commitRelation(ref, 'parentId', event.target.value).ok) closeRelationPicker({ restoreFocus: true });
+      const generation = getProjectGeneration();
+      const result = await commitRelation(ref, 'parentId', event.target.value);
+      if (result.ok && !disposed && generation === getProjectGeneration() && getPrimaryRef()?.key === ref.key)
+        closeRelationPicker({ restoreFocus: true });
     });
-    listen($('entityChildInput'), 'change', () => {
+    listenEdit($('entityChildInput'), 'change', 'relation:child', async () => {
       const ref = getPrimaryRef(), childId = $('entityChildInput').value;
       if (ref?.domain !== 'territorial' || !childId || isMutationBlocked(ref)) return;
-      if (commitRelation(entityRef(childId), 'parentId', ref.id).ok) closeRelationPicker({ restoreFocus: true });
+      const generation = getProjectGeneration();
+      const result = await commitRelation(entityRef(childId), 'parentId', ref.id);
+      if (result.ok && !disposed && generation === getProjectGeneration() && getPrimaryRef()?.key === ref.key)
+        closeRelationPicker({ restoreFocus: true });
     });
     listen($('entityRelations'), 'keydown', event => {
       if (event.key === 'Escape' && relationPicker) {
         event.preventDefault(); event.stopPropagation(); closeRelationPicker({ restoreFocus: true });
       }
     });
-    listen($('entityRelations'), 'click', event => {
+    listenEdit($('entityRelations'), 'click', 'relation:remove', async event => {
       const focus = event.target.closest('[data-relation-focus]');
       if (focus) { focusObject(entityRef(focus.dataset.relationFocus)); return; }
       const remove = event.target.closest('[data-relation-remove]');
       const ref = getPrimaryRef();
       if (remove && ref?.domain === 'territorial' && !isMutationBlocked(ref)) {
-        commitRelation(entityRef(remove.dataset.relationRemove), 'parentId', '');
+        await commitRelation(entityRef(remove.dataset.relationRemove), 'parentId', '');
       }
     });
     listen($('flagMenuBtn'), 'click', () => {
@@ -370,19 +384,19 @@ export function createTerritorialPropertyController({
     listen($('flagLibraryBtn'), 'click', async () => {
       const target = beginFlagChange(); closeFlag();
       if (!validFlagTarget(target)) return;
-      try { await openFlagLibrary({ onPickFlag: value => { commitFlagTarget(target, value); }, restoreFocus: $('flagMenuBtn') }); }
+      try { await openFlagLibrary({ onPickFlag: value => commitFlagTarget(target, value), restoreFocus: $('flagMenuBtn') }); }
       catch (error) { reportFlagError(error); }
     });
-    for (const [id, value] of [['flagDefaultBtn', undefined], ['flagRemoveBtn', null]]) listen($(id), 'click', () => {
+    for (const [id, value] of [['flagDefaultBtn', undefined], ['flagRemoveBtn', null]]) listen($(id), 'click', async () => {
       const target = beginFlagChange(); closeFlag({ restoreFocus: true });
-      commitFlagTarget(target, value);
+      await commitFlagTarget(target, value);
     });
     listen($('flagFileInput'), 'change', event => {
       const file = event.target.files?.[0], target = pendingUpload;
       pendingUpload = null; event.target.value = '';
       if (!file || !validFlagTarget(target)) return;
       const reader = new window.FileReader();
-      reader.addEventListener('load', () => { commitFlagTarget(target, reader.result); }, { once: true });
+      reader.addEventListener('load', () => commitFlagTarget(target, reader.result), { once: true });
       reader.addEventListener('error', () => { if (validFlagTarget(target)) reportFlagError(reader.error); }, { once: true });
       try { reader.readAsDataURL(file); } catch (error) { reportFlagError(error); }
     });

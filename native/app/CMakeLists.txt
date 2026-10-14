@@ -22,6 +22,25 @@ if(BUILD_TESTING)
     target_link_libraries(place_parity_probe PRIVATE Pandoeditor::MapEngine Pandoeditor::Core Qt6::Gui Qt6::Concurrent)
 endif()
 qt_add_executable(pandoeditor main.cpp)
+get_filename_component(PANDO_PROVENANCE_ROOT "${PROJECT_SOURCE_DIR}/.." ABSOLUTE)
+set(PANDO_PROVENANCE_OUTPUT "${PROJECT_BINARY_DIR}")
+include("${PROJECT_SOURCE_DIR}/cmake/BuildProvenance.cmake")
+add_custom_target(pandoeditor_build_provenance
+    COMMAND "${CMAKE_COMMAND}" "-DPANDO_PROVENANCE_ROOT=${PANDO_PROVENANCE_ROOT}"
+        "-DPANDO_PROVENANCE_OUTPUT=${PANDO_PROVENANCE_OUTPUT}"
+        -P "${PROJECT_SOURCE_DIR}/cmake/BuildProvenance.cmake"
+    BYPRODUCTS "${PANDO_PROVENANCE_OUTPUT}/buildprovenance.h"
+        "${PANDO_PROVENANCE_OUTPUT}/build-provenance.pending.json"
+    VERBATIM)
+add_dependencies(pandoeditor pandoeditor_build_provenance)
+target_include_directories(pandoeditor PRIVATE "${PANDO_PROVENANCE_OUTPUT}")
+add_custom_command(TARGET pandoeditor POST_BUILD
+    COMMAND "${CMAKE_COMMAND}" "-DPANDO_PROVENANCE_ROOT=${PANDO_PROVENANCE_ROOT}"
+        "-DPANDO_PROVENANCE_OUTPUT=${PANDO_PROVENANCE_OUTPUT}"
+        "-DPANDO_PROVENANCE_EXECUTABLE=$<TARGET_FILE:pandoeditor>"
+        -DPANDO_PROVENANCE_FINALIZE=ON -P "${PROJECT_SOURCE_DIR}/cmake/BuildProvenance.cmake"
+    BYPRODUCTS "${PANDO_PROVENANCE_OUTPUT}/build-provenance.json"
+    VERBATIM)
 
 add_library(pandoeditor_editor STATIC
     referencewarp.cpp referencewarp.h
@@ -130,27 +149,18 @@ qt_add_resources(pandoeditor_editor terrain_dem_metadata
 qt_add_resources(pandoeditor_editor place_runtime PREFIX "/place" BASE "${PROJECT_SOURCE_DIR}/assets/place"
     FILES "${PROJECT_SOURCE_DIR}/assets/place/manifest.json"
           "${PROJECT_SOURCE_DIR}/assets/place/places-v1.bin")
-qt_add_resources(pandoeditor_editor m4_geometry
-    PREFIX "/geometry" BASE "${PROJECT_SOURCE_DIR}/assets/geometry"
-    FILES "${PROJECT_SOURCE_DIR}/assets/geometry/polygon-clipping-0.15.7.js"
-          "${PROJECT_SOURCE_DIR}/assets/geometry/LICENSE.polygon-clipping.txt")
-qt_add_resources(pandoeditor_editor m972_river
-    PREFIX "/river" BASE "${PROJECT_SOURCE_DIR}/assets/geometry/river"
-    FILES
-        "${PROJECT_SOURCE_DIR}/assets/geometry/river/original/river-territory-partition.js"
-        "${PROJECT_SOURCE_DIR}/assets/geometry/river/original/planar-graph-faces.js"
-        "${PROJECT_SOURCE_DIR}/assets/geometry/river/adapted/river-territory-partition.js"
-        "${PROJECT_SOURCE_DIR}/assets/geometry/river/adapted/planar-graph-faces.js"
-        "${PROJECT_SOURCE_DIR}/assets/geometry/river/platform.js"
-        "${PROJECT_SOURCE_DIR}/assets/geometry/river/bridge.js"
-        "${PROJECT_SOURCE_DIR}/assets/geometry/river/presentation.js"
-        "${PROJECT_SOURCE_DIR}/assets/geometry/river/workspace-observation.js"
-        "${PROJECT_SOURCE_DIR}/assets/geometry/river/original/polygon-geometry.js"
-        "${PROJECT_SOURCE_DIR}/assets/geometry/river/provenance.json"
-        "${PROJECT_SOURCE_DIR}/assets/geometry/river/original/d3.min.js"
-        "${PROJECT_SOURCE_DIR}/assets/geometry/river/adapted/d3.min.js"
-        "${PROJECT_SOURCE_DIR}/assets/geometry/river/LICENSE.d3.txt"
-        "${PROJECT_SOURCE_DIR}/assets/geometry/river/d3-provenance.json")
+find_program(PANDO_GEOMETRY_NODE_EXECUTABLE NAMES node REQUIRED)
+add_custom_target(pandoeditor_geometry_sources
+    COMMAND "${PANDO_GEOMETRY_NODE_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/tools/m97/cut-kernel-generate.mjs" --check
+    VERBATIM)
+add_dependencies(pandoeditor_editor pandoeditor_geometry_sources)
+add_dependencies(pandoeditor_build_provenance pandoeditor_geometry_sources)
+qt_add_resources(PANDO_CURRENT_GEOMETRY_RESOURCES "${PROJECT_SOURCE_DIR}/resources/current_geometry.qrc")
+target_sources(pandoeditor_editor PRIVATE ${PANDO_CURRENT_GEOMETRY_RESOURCES})
+target_include_directories(pandoeditor_editor PRIVATE "${PROJECT_SOURCE_DIR}/assets/geometry/current")
+if(BUILD_TESTING)
+    add_subdirectory(../tests/current-geometry current-geometry-tests)
+endif()
 if(WIN32)
     target_link_libraries(pandoeditor_editor PRIVATE dwmapi user32)
     if(MSVC)
@@ -625,9 +635,6 @@ if(BUILD_TESTING)
     add_test(NAME m72_cpu_scene_adapter_tests COMMAND m72_cpu_scene_adapter_tests)
     set_tests_properties(m72_cpu_scene_adapter_tests PROPERTIES
         ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
-    add_executable(m72_mapprojection_lifetime_tests ../tests/m72_mapprojection_lifetime_tests.cpp)
-    target_link_libraries(m72_mapprojection_lifetime_tests PRIVATE pandoeditor_editor)
-    add_test(NAME m72_mapprojection_lifetime_tests COMMAND m72_mapprojection_lifetime_tests)
     find_program(PANDOEDITOR_M72_NODE_EXECUTABLE NAMES node)
     if(PANDOEDITOR_M72_NODE_EXECUTABLE)
         add_test(NAME terrain_dem_source_contract COMMAND "${PANDOEDITOR_M72_NODE_EXECUTABLE}"
@@ -936,10 +943,8 @@ if(BUILD_TESTING)
     set_tests_properties(split_selection_controller_tests PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
 endif()
 
-# M9.7.3 uses the pinned web cut worker through a bounded Qt adapter.
+# The current canonical Web cut worker uses the existing bounded Qt adapter.
 target_sources(pandoeditor_editor PRIVATE cutgeometrycalculator.cpp cutgeometrycalculator.h)
-qt_add_resources(M973_CUT_RESOURCES "${PROJECT_SOURCE_DIR}/resources/m973_cut.qrc")
-target_sources(pandoeditor_editor PRIVATE ${M973_CUT_RESOURCES})
 if(BUILD_TESTING)
     add_executable(territory_cut_adapter_tests ../tests/territory_cut_adapter_tests.cpp
         territorycutadapter.cpp commandjobrunner.cpp commandjobrunner.h)
@@ -969,10 +974,8 @@ if(BUILD_TESTING)
     qt_add_resources(m973_split_controller_probe sample PREFIX "/assets" BASE "${PROJECT_SOURCE_DIR}/assets" FILES "${PROJECT_SOURCE_DIR}/assets/sample.pando.json")
 endif()
 
-# Explicitly approved geographic seam correction, isolated from historical pins.
+# Canonical polygon normalization; historical approval files remain test oracles.
 target_sources(pandoeditor_editor PRIVATE splitgeometrynormalizer.cpp splitgeometrynormalizer.h)
-qt_add_resources(M973_SPLIT_NORMALIZER_RESOURCES "${PROJECT_SOURCE_DIR}/resources/m973_split_normalizer.qrc")
-target_sources(pandoeditor_editor PRIVATE ${M973_SPLIT_NORMALIZER_RESOURCES})
 if(BUILD_TESTING)
     add_executable(split_geometry_normalizer_tests ../tests/split_geometry_normalizer_tests.cpp)
     target_link_libraries(split_geometry_normalizer_tests PRIVATE pandoeditor_editor Qt6::Test)
@@ -1239,6 +1242,9 @@ if(BUILD_TESTING)
 endif()
 
 set(REFERENCE_WEB_FILES reference-web/runtime.js)
+get_filename_component(PANDO_REFERENCE_SOURCE_ROOT "${PROJECT_SOURCE_DIR}/.." ABSOLUTE)
+include("${PROJECT_SOURCE_DIR}/cmake/ReferenceRuntime.cmake")
+add_dependencies(pandoeditor_editor pandoeditor_reference_runtime_check)
 qt_add_resources(pandoeditor_editor reference_web PREFIX "/reference-web" BASE "${CMAKE_CURRENT_SOURCE_DIR}/reference-web" FILES ${REFERENCE_WEB_FILES})
 if(BUILD_TESTING)
     qt_add_resources(reference_image_tests reference_web_test PREFIX "/reference-web" BASE "${CMAKE_CURRENT_SOURCE_DIR}/reference-web" FILES ${REFERENCE_WEB_FILES})

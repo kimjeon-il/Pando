@@ -1,4 +1,5 @@
 import '../assets/js/vendor/polygon-clipping.min.js';
+import './load-spherical-core.mjs';
 import '../assets/js/modules/polygon-geometry.js';
 import '../assets/js/modules/territorial-edit-plan.js';
 import { normalizeTemporalInterval, compareTemporal } from '../assets/js/modules/temporal.js';
@@ -20,14 +21,45 @@ export function adjustHistoricalTerritories(input, policy, clipper = historicalW
     const value = wrapped.get(geometry);
     return value.type === 'Polygon' ? [value.coordinates] : value.coordinates;
   };
-  const shape = value => value.length ? globalThis.PandoLabPolygonGeometry.normalizeClippedPolygonGeometry(value) : null;
-  const intersection = (a, b) => shape(clipper.intersection(coordinates(a), coordinates(b)));
-  const difference = (a, b) => shape(clipper.difference(coordinates(a), coordinates(b)));
+  const owners = new WeakMap(input.filter(row => row.geometry).map(row => [row.geometry, row.entityId]));
+  const owner = geometry => owners.get(geometry) || 'intermediate';
+  let discardedPrecisionAreaM2 = 0, discardedPrecisionComponents = 0;
+  const shape = (value, operation) => {
+    if (!value.length) return null;
+    try {
+      return globalThis.PandoLabPolygonGeometry.normalizeClippedPolygonGeometry(value, {
+        onPrecisionDiscard({ polygonIndex, areaM2 }) {
+          discardedPrecisionAreaM2 += areaM2;
+          discardedPrecisionComponents += 1;
+          if (discardedPrecisionComponents > 10 || discardedPrecisionAreaM2 > 0.5) {
+            throw new Error('HISTORICAL_CLIP_PRECISION_BUDGET_EXCEEDED');
+          }
+          const relation = operation.startsWith('difference ') || operation.startsWith('intersection ')
+            ? operation.slice(operation.indexOf(' ') + 1).split(' / ') : [];
+          adjustments.push({
+            entityId: relation[0] || 'numeric-clipping',
+            kind: 'certified-clipping-precision-artifact',
+            relatedIds: relation[1] ? [relation[1]] : [],
+            polygonIndex, areaM2, operation,
+          });
+        },
+      });
+    }
+    catch (error) {
+      const failing = value.flatMap((polygon, pi) => polygon.map((ring, ri) => ({
+        polygon: pi, ring: ri, vertices: ring.length,
+      }))).filter(part => part.vertices < 4);
+      throw new Error(`HISTORICAL_CLIP_INVALID: ${operation}, components=${value.length}, shortRings=${JSON.stringify(failing.slice(0, 8))}: ${error.message}`, { cause: error });
+    }
+  };
+  const intersection = (a, b) => shape(clipper.intersection(coordinates(a), coordinates(b)), `intersection ${owner(a)} / ${owner(b)}`);
+  const difference = (a, b) => shape(clipper.difference(coordinates(a), coordinates(b)), `difference ${owner(a)} / ${owner(b)}`);
   const significant = (geometry, reference) => geometry && kernel.area(geometry) > Math.max(1e-10, kernel.area(reference) * 1e-9);
   const candidates = input.map(row => ({ ...row })).sort((a, b) => a.entityId.localeCompare(b.entityId, 'en'));
   const byId = new Map(candidates.map(row => [row.entityId, row])), changed = new Set(), adjustments = [];
   const replace = (row, geometry, kind, relatedIds) => {
     changed.add(row.entityId); row.geometry = geometry;
+    if (geometry) owners.set(geometry, row.entityId);
     adjustments.push({ entityId: row.entityId, kind: geometry ? kind : 'empty-after-adjustment', relatedIds });
   };
   for (const rule of [...policy.replacements].sort((a, b) => `${a.targetEntityId}:${a.priorityEntityId}`.localeCompare(`${b.targetEntityId}:${b.priorityEntityId}`, 'en'))) {
@@ -51,7 +83,11 @@ export function adjustHistoricalTerritories(input, policy, clipper = historicalW
       if (!row.geometry || row.currentSnapshot) continue;
       const parent = byId.get(row.parentId);
       if (!parent?.geometry) replace(row, null, 'parent-gap', [row.parentId]);
-      else if (changed.has(parent.entityId) && !kernel.contains(parent.geometry, row.geometry)) replace(row, intersection(row.geometry, parent.geometry), 'parent-clipping', [parent.entityId]);
+      // Match the kernel's containment test using this pipeline's audited
+      // difference normalizer. The kernel's private difference would otherwise
+      // reject even a certified sub-millimetre Boolean sliver before reporting it.
+      else if (changed.has(parent.entityId) && significant(difference(row.geometry, parent.geometry), row.geometry))
+        replace(row, intersection(row.geometry, parent.geometry), 'parent-clipping', [parent.entityId]);
     }
   };
   clipChildren();
@@ -69,7 +105,7 @@ export function adjustHistoricalTerritories(input, policy, clipper = historicalW
   }
   for (const row of candidates) if (overlaps.has(row.entityId)) {
     const parts = overlaps.get(row.entityId);
-    const union = shape(clipper.union(...parts.map(part => coordinates(part.geometry))));
+    const union = shape(clipper.union(...parts.map(part => coordinates(part.geometry))), `overlap-union ${row.entityId}`);
     replace(row, difference(row.geometry, union), 'unknown-peer-overlap', parts.map(part => part.entityId).sort());
   }
   clipChildren();

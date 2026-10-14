@@ -63,7 +63,7 @@ bool EditorController::loadGisSource(const QUrl& url) {
         const auto kind=sourceKind(name);
         const auto bytes=storage_.read(url);
         const auto base=project_.snapshot();
-        gisImport_.emplace(GisImportSession{base,name,kind});
+        gisImport_.emplace(GisImportSession{base,name,kind});gisImport_->epoch=coreEpoch();
         const auto token=gisImportToken_;
         emit gisImportChanged();
         auto* watcher=new QFutureWatcher<std::vector<GisLoadedLayer>>(this);
@@ -107,7 +107,7 @@ bool EditorController::loadGisSource(const QUrl& url) {
         }));
         return true;
     }catch(const std::exception& error) {
-        gisImport_.emplace(GisImportSession{project_.snapshot()});
+        gisImport_.emplace(GisImportSession{project_.snapshot()});gisImport_->epoch=coreEpoch();
         gisImport_->stage=QStringLiteral("error");gisImport_->error=QString::fromUtf8(error.what());
         emit gisImportChanged();return false;
     }
@@ -166,9 +166,8 @@ bool EditorController::prepareGisImport(int index,const QVariantMap& values) {
     watcher->setFuture(QtConcurrent::run([base,layer,source,target,planId,values]() ->Plan {
         const auto targetType=pandoeditor::normalizeExchangeTarget(target,std::nullopt);
         if(!targetType)throw std::invalid_argument("INVALID_GIS_TARGET");
-        if(*targetType==pandoeditor::GisExchangeTarget::Country||
-           *targetType==pandoeditor::GisExchangeTarget::Subunit||
-           *targetType==pandoeditor::GisExchangeTarget::Region) {
+        if(*targetType==pandoeditor::GisExchangeTarget::General||
+           *targetType==pandoeditor::GisExchangeTarget::Regional) {
             if(!layer.target.isEmpty()&&layer.target!=QString::fromStdString(target))
                 throw std::invalid_argument("GIS_LAYER_TARGET_MISMATCH");
             pandoeditor::GisTerritorialMapping mapping;mapping.target=*targetType;
@@ -202,7 +201,7 @@ bool EditorController::confirmGisImport(qulonglong token) {
     const auto baseline=project_.snapshot();
     const auto& before=baseline.document();
     const auto oldCount=before.units.size();
-    auto result=pandoeditor::CommandProcessor::confirm(project_,*gisImport_->preview);
+    auto result=confirmCorePreview(*gisImport_->preview,gisImport_->epoch);
     gisImport_->preview.reset();++gisImportToken_;
     if(!result.changed()) {
         gisImport_->stage=QStringLiteral("mapping");

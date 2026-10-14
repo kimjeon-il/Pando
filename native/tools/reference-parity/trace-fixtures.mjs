@@ -1,6 +1,6 @@
 import {readFileSync,writeFileSync} from 'node:fs';
 import assert from 'node:assert/strict';
-const load=async name=>import('data:text/javascript;base64,'+readFileSync(new URL('../../app/reference-web/'+name,import.meta.url)).toString('base64'));
+const load=async name=>import('data:text/javascript;base64,'+readFileSync(new URL('../../../assets/js/modules/'+name,import.meta.url)).toString('base64'));
 const web=await load('reference-image-live-wire.js');
 const georef=await load('reference-image-georef.js');
 const cases=[{id:'vertical',anchors:[[.5,.15],[.5,.85]],edge:'vertical'}, {id:'turn',anchors:[[.5,.15],[.5,.85],[.8,.85]],edge:'turn'}, {id:'weak',anchors:[[.5,.15],[.5,.85]],edge:'weak'}];

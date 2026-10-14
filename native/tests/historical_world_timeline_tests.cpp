@@ -16,7 +16,7 @@ private slots:
     void inactiveCanonicalCoordinatesAreCheckedBeforeMeshReuse() {
         using namespace pandoeditor;
         const auto root=QStringLiteral(PANDOEDITOR_WORLD_ASSET_DIR);
-        auto document=*WorldDatasetLoader::canonical(root).document;
+        auto document=WorldDatasetLoader::canonical(root).project->document();
         QVERIFY(WorldDatasetLoader::matchingBaseFrame(document,root,"2026-10"));
         const auto ref=timelineDocumentView(document,"2026-10").world.find("DEU")->geometryRef;
         auto defer=[](auto& rows) {for(auto& row:rows)if(row.entityId=="DEU")row.validity={"2026-11-01","2026-11-30"};};
@@ -34,8 +34,8 @@ private slots:
     void historicalEditsAndFullSaveRetainAllMonths() {
         using namespace pandoeditor;
         const auto loaded=WorldDatasetLoader::canonical(QStringLiteral(PANDOEDITOR_WORLD_ASSET_DIR));
-        Project project;project.replace(*loaded.document);project.setTimelineCursor("2012-10");
-        const std::string id="state:ukraine";
+        Project project;project.replace(loaded.project->document());project.setTimelineCursor("2012-10");
+        const std::string id="UKR";
         const auto symbol=project.document().symbols.find(territorialRef(id));
         QVERIFY(symbol!=project.document().symbols.end());QCOMPARE(symbol->second.policy,FlagPolicy::Embedded);
         QVERIFY(symbol->second.embeddedDataUrl.rfind("data:image/",0)==0);
@@ -73,10 +73,10 @@ private slots:
         QVERIFY(project.resolveWorld("2012-09").find(id)->parentId.empty());
         QCOMPARE(project.resolveWorld("2012-10").find(id)->parentId,parentId);
         QVERIFY(project.undo());QVERIFY(project.resolveWorld("2012-10").find(id)->parentId.empty());QVERIFY(project.redo());
-        const auto bytes=projectcodec::encode(project);
-        Project restored;restored.replace(projectcodec::decode(bytes));restored.setTimelineCursor("2012-10");
-        QCOMPARE(projectcodec::encode(restored),bytes);
-        for(const auto& month:{"1900-01","1941-04","1945-11","1991-08","1991-12","2012-09","2012-10","2014-02","2014-03","2015-10","2020-10","2020-11","2026-10"}) {
+        const auto bytes=::projectcodec::encode(project);
+        Project restored;restored.replace(::projectcodec::decode(bytes));restored.setTimelineCursor("2012-10");
+        QCOMPARE(::projectcodec::encode(restored),bytes);
+        for(const auto& month:{"1900-01","1941-04","1945-11","1991-08","1991-12","2011-06","2011-07","2012-09","2012-10","2014-02","2014-03","2015-10","2020-10","2020-11","2026-10"}) {
             const auto a=project.resolveWorld(month),b=restored.resolveWorld(month);QCOMPARE(a.entities.size(),b.entities.size());
             for(std::size_t i=0;i<a.entities.size();++i) {
                 QCOMPARE(a.entities[i].id,b.entities[i].id);QVERIFY(a.entities[i].geometryRef==b.entities[i].geometryRef);
@@ -87,22 +87,24 @@ private slots:
     }
     void nativeWorldContainsHistoricalRecords() {
         const auto loaded=WorldDatasetLoader::canonical(QStringLiteral(PANDOEDITOR_WORLD_ASSET_DIR));
-        const auto view=pandoeditor::timelineDocumentView(*loaded.document,"2012-10");
-        QVERIFY(view.world.find("state:ukraine"));
+        const auto view=pandoeditor::timelineDocumentView(loaded.project->document(),"2012-10");
+        QVERIFY(view.world.find("UKR"));
         QVERIFY(!view.world.find("RUS"));
-        QCOMPARE(view.world.entities.size(),std::size_t(2));
-        QVERIFY(!pandoeditor::isStaticTimeline(*loaded.document));
+        QVERIFY(view.world.find("SDN"));QVERIFY(view.world.find("SDS"));
+        QVERIFY(view.world.find("IDN"));QVERIFY(view.world.find("TLS"));
+        QCOMPARE(view.world.entities.size(),std::size_t(6));
+        QVERIFY(!pandoeditor::isStaticTimeline(loaded.project->document()));
     }
     void currentGeometryAliasesMatchCanonicalPacket() {
         WorldDataset source(QStringLiteral(PANDOEDITOR_WORLD_ASSET_DIR));
         const auto loaded=WorldDatasetLoader::canonical(QStringLiteral(PANDOEDITOR_WORLD_ASSET_DIR));
         const auto canonical=materializeBuiltinWorld(CanonicalCountryStore(source.decompress("countryCanonical",12*1024*1024)));
-        const auto view=pandoeditor::timelineDocumentView(*loaded.document,"2026-10");
+        const auto view=pandoeditor::timelineDocumentView(loaded.project->document(),"2026-10");
         QCOMPARE(view.world.entities.size(),std::size_t(254));
         for(const auto& range:canonical.ranges) {
             const auto active=view.world.find(range.ownerId); QVERIFY(active);
             QCOMPARE(active->geometryRef.id,range.geometryId);
-            const auto actual=loaded.document->geometries.get(active->geometryRef),expected=canonical.document.geometries.get(active->geometryRef);
+            const auto actual=loaded.project->document().geometries.get(active->geometryRef),expected=canonical.document.geometries.get(active->geometryRef);
             QVERIFY(actual&&expected); QCOMPARE(actual->polygons.size(),expected->polygons.size());
             for(std::size_t p=0;p<actual->polygons.size();++p)for(std::size_t r=0;r<actual->polygons[p].size();++r) {
                 const auto& a=actual->polygons[p][r]; const auto& b=expected->polygons[p][r];

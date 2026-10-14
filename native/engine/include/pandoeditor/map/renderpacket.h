@@ -30,10 +30,16 @@ struct PolygonGeometryPacket {
     std::shared_ptr<const std::vector<float>> unitSpherePositions;
     std::shared_ptr<const std::vector<std::uint32_t>> indices;
     std::shared_ptr<const std::vector<std::uint32_t>> globeIndices;
-    // Offsets into derived vertices/rings retain polygon and hole ancestry.
+    // Refined fill edges are the only source of polygon outlines. These
+    // immutable buffers are shared directly by matching stroke packets.
+    std::shared_ptr<const std::vector<float>> boundaryStartsEnds;
+    std::shared_ptr<const std::vector<float>> unitSphereBoundaryStartsEnds;
+    // Original display rings, separate from tessellated triangle vertices.
+    std::shared_ptr<const std::vector<float>> ringCoordinates;
+    // Offsets index ringCoordinates, not the refined fill vertex buffer.
     std::shared_ptr<const std::vector<std::uint32_t>> ringOffsets;
     std::shared_ptr<const std::vector<std::uint32_t>> polygonOffsets;
-    std::size_t vertexCount=0,triangleCount=0,globeTriangleCount=0;
+    std::size_t vertexCount=0,triangleCount=0,globeTriangleCount=0,boundarySegmentCount=0;
 };
 
 struct StrokeGeometryPacket {

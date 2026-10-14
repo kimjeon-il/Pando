@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "editorcontroller.h"
 #include "projectcodec.h"
 #include <QtTest>
@@ -10,8 +11,8 @@ class M974SnapWorkflowTests : public QObject {
 private slots:
     void coldCandidateCachePreservesFirstPoint() {
         QTemporaryDir directory;
-        Project p; p.replace(std::vector<Country>{{"A","A",{{{{0,0},{2,0},{2,2},{0,2},{0,0}}}},0xabcdef}});
-        QFile file(directory.filePath("input.json"));QVERIFY(file.open(QIODevice::WriteOnly));file.write(projectcodec::encode(p));file.close();
+        Project p; p.replace(makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{2,0},{2,2},{0,2},{0,0}}}}},{0xabcdef,1},"countries"}}));
+        QFile file(directory.filePath("input.json"));QVERIFY(file.open(QIODevice::WriteOnly));file.write(::projectcodec::encode(p));file.close();
         EditorController controller({false,directory.filePath("private.json")});QVERIFY(controller.openFile(QUrl::fromLocalFile(file.fileName())));
         QVERIFY(controller.selectObject({{"domain","territorial"},{"id","A"}},"replace"));
         controller.setProjectionMode("flat");controller.resizeMapCamera(800,600);

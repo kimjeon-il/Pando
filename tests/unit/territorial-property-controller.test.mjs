@@ -50,6 +50,7 @@ function setup(overrides = {}) {
       return Math.abs(ring.slice(1).reduce((sum, point, index) => sum + ring[index][0] * point[1] - point[0] * ring[index][1], 0)) / 2;
     },
     formatArea: value => `${value} km²`,
+    reportEditError: error => { throw error; },
     ...overrides,
   });
   return { a, views, callbacks, calculations, area, selectionStatus, controller, fields, forms, relations, focused, setPrimary: ref => { primary = ref; } };
@@ -160,16 +161,40 @@ test('relation buttons toggle one picker at a time without changing the model', 
   assert.deepEqual(state.relations, []);
 });
 
-test('successful relation selection closes the picker; rejected selection stays open', () => {
+test('successful relation selection closes the picker; rejected selection stays open', async () => {
   let ok = false;
   const state = setup({ commitRelation: () => ({ ok }) });
   state.controller.present(state.a); state.controller.bind();
   const change = state.fields.get('entityChangeParentBtn'), panel = state.fields.get('entityParentRow');
   const input = state.fields.get('entityParentInput');
-  change.click(); input.value = 'B'; input.dispatch('change');
+  change.click(); input.value = 'B'; await input.dispatch('change');
   assert.equal(panel.hidden, false);
-  ok = true; input.dispatch('change');
+  ok = true; await input.dispatch('change');
   assert.equal(panel.hidden, true);
+});
+
+test('relation selection awaits the current document acknowledgement before closing the picker', async () => {
+  let resolve;
+  const completion = new Promise(done => { resolve = done; });
+  const state = setup({ commitRelation: () => completion });
+  state.controller.present(state.a); state.controller.bind();
+  const change = state.fields.get('entityChangeParentBtn'), panel = state.fields.get('entityParentRow');
+  change.click();
+  const event = state.fields.get('entityParentInput').dispatch('change');
+  assert.equal(panel.hidden, false);
+  resolve({ ok: true, changed: true }); await event;
+  assert.equal(panel.hidden, true);
+});
+
+test('async field and relation failures retain technical errors at the operation boundary', async () => {
+  const errors = [], failure = Object.assign(new Error('Worker command failed'), { code: 'CORE_COMMAND_STALE' });
+  const state = setup({ commitField: async () => { throw failure; }, commitRelation: async () => { throw failure; },
+    reportEditError: (error, operation) => errors.push({ error, operation }) });
+  state.controller.present(state.a); state.controller.bind();
+  await state.fields.get('entityNameInput').dispatch('change');
+  await state.fields.get('entityParentInput').dispatch('change');
+  assert.deepEqual(errors.map(row => row.error), [failure, failure]);
+  assert.deepEqual(errors.map(row => row.operation), ['field:name', 'relation:parent']);
 });
 
 test('relation picker closes on Escape, clear, selection change and locking', () => {

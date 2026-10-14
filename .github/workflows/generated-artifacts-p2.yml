@@ -1,0 +1,191 @@
+name: P2 Source-matched generated runtimes
+on:
+  push:
+    branches: [work/objects]
+    paths:
+      - 'shared/**'
+      - 'assets/wasm/**'
+      - 'assets/js/modules/**'
+      - 'assets/js/vendor/**'
+      - 'native/tools/m97/cut-kernel-generate.mjs'
+      - 'native/tools/m97/river/generate-d3-adapter.mjs'
+      - 'native/assets/geometry/current/**'
+      - 'native/resources/current_geometry.qrc'
+      - 'native/tools/reference-parity/**'
+      - 'native/app/reference-web/**'
+      - 'tools/package-shared-core-assets.mjs'
+      - 'scripts/p2-artifact-plan.mjs'
+      - 'tests/unit/p2-artifact-plan.test.mjs'
+      - 'cmake/P2NativeBuildReceipt.cmake'
+      - 'CMakeLists.txt'
+      - 'CMakePresets.json'
+      - 'config/toolchain-versions.json'
+      - '.github/workflows/generated-artifacts-p2.yml'
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: Which generator to run; auto only builds stale outputs
+        type: choice
+        options: [auto, wasm, geometry, reference, all, verify]
+        required: false
+        default: auto
+permissions:
+  contents: read
+concurrency:
+  group: pando-generated-runtime-work-objects
+  cancel-in-progress: true
+
+jobs:
+  plan:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 7
+    outputs:
+      wasm: ${{ steps.scopes.outputs.wasm }}
+      geometry: ${{ steps.scopes.outputs.geometry }}
+      reference: ${{ steps.scopes.outputs.reference }}
+      cmake_version: ${{ steps.scopes.outputs.cmake_version }}
+      emscripten_version: ${{ steps.scopes.outputs.emscripten_version }}
+      emsdk_ref: ${{ steps.scopes.outputs.emsdk_ref }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+      - name: Test source fingerprint, rebuild selection, publication guard
+        run: node --test tests/unit/p2-artifact-plan.test.mjs tests/unit/shared-core-assets.test.mjs
+      - name: Select only stale source-derived assets
+        id: scopes
+        env:
+          PANDO_P2_BASE_SHA: ${{ github.event.before || '' }}
+          PANDO_P2_SCOPE: ${{ inputs.scope || 'auto' }}
+        run: node scripts/p2-artifact-plan.mjs --github-output
+
+  generate:
+    needs: plan
+    if: needs.plan.outputs.wasm == 'true' || needs.plan.outputs.geometry == 'true' || needs.plan.outputs.reference == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      contents: write
+    env:
+      EMCC_CORES: '1'
+      BINARYEN_CORES: '1'
+      PANDO_P2_WASM: ${{ needs.plan.outputs.wasm }}
+      PANDO_P2_GEOMETRY: ${{ needs.plan.outputs.geometry }}
+      PANDO_P2_REFERENCE: ${{ needs.plan.outputs.reference }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+      - uses: pnpm/action-setup@v4
+        if: needs.plan.outputs.geometry == 'true' || needs.plan.outputs.reference == 'true'
+      - name: Install the existing JS adapters only when needed
+        if: needs.plan.outputs.geometry == 'true' || needs.plan.outputs.reference == 'true'
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Regenerate Qt geometry from current Web calculation sources
+        if: needs.plan.outputs.geometry == 'true'
+        run: |
+          node native/tools/m97/cut-kernel-generate.mjs
+          node native/tools/m97/cut-kernel-generate.mjs --check
+          node --test native/tools/m97/current-geometry-source.test.mjs
+      - name: Regenerate the existing Qt reference calculation bundle
+        if: needs.plan.outputs.reference == 'true'
+        run: |
+          node native/tools/reference-parity/build-runtime.mjs
+          node native/tools/reference-parity/build-runtime.mjs --check
+          node native/tools/reference-parity/verify-source.mjs
+          node --test tests/unit/reference-shared-runtime.test.mjs
+
+      - uses: jwlawson/actions-setup-cmake@v2
+        if: needs.plan.outputs.wasm == 'true'
+        with:
+          cmake-version: ${{ needs.plan.outputs.cmake_version }}
+      - name: Install compiler prerequisites only for WASM
+        if: needs.plan.outputs.wasm == 'true'
+        run: sudo apt-get update && sudo apt-get install -y ninja-build
+      - uses: actions/checkout@v4
+        if: needs.plan.outputs.wasm == 'true'
+        with:
+          repository: emscripten-core/emsdk
+          ref: ${{ needs.plan.outputs.emsdk_ref }}
+          path: build-native/emsdk
+          persist-credentials: false
+      - name: Build the pinned C++ WASM and verify its actual source identity
+        if: needs.plan.outputs.wasm == 'true'
+        shell: bash
+        env:
+          EMSDK_VERSION: ${{ needs.plan.outputs.emscripten_version }}
+        run: |
+          set -euo pipefail
+          # emsdk_env.sh may clear EMSDK_VERSION; preserve the pinned value.
+          required_version="$EMSDK_VERSION"
+          build-native/emsdk/emsdk install "$required_version"
+          build-native/emsdk/emsdk activate "$required_version"
+          source build-native/emsdk/emsdk_env.sh
+          emcc --version | sed -n '1p' | grep -F "$required_version"
+          emcmake cmake --preset pando-wasm
+          cmake --build --preset pando-wasm
+          node tools/package-shared-core-assets.mjs --build-dir build-native/p1/pando-wasm/shared/wasm
+          node tools/package-shared-core-assets.mjs --build-dir build-native/p1/pando-wasm/shared/wasm --check
+      - name: Test the compiled runtime ABI and bounded document session
+        if: needs.plan.outputs.wasm == 'true'
+        shell: bash
+        run: |
+          node --test tests/unit/shared-core-assets.test.mjs tests/unit/core-wasm-loader.test.mjs
+          PANDOEDITOR_WASM_MODULE="$PWD/build-native/p1/pando-wasm/shared/wasm/pandoeditor-core.js" node --test shared/tests/wasm-document-session.test.mjs
+
+      - name: Validate all generated source fingerprints and output hashes
+        run: |
+          mkdir -p build-native/p2
+          node scripts/p2-artifact-plan.mjs --check > build-native/p2/artifact-evidence.json
+      - name: Stage only the owned immutable output families
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -A -- \
+            assets/wasm/pandoeditor-core.js \
+            assets/wasm/pandoeditor-core.wasm \
+            assets/wasm/pandoeditor-core.manifest.json \
+            native/assets/geometry/current \
+            native/resources/current_geometry.qrc \
+            native/app/reference-web/runtime.js \
+            native/app/reference-web/manifest.json
+          git diff --cached --check
+          node scripts/p2-artifact-plan.mjs --validate-staged
+      - name: Push only verified artifacts to work/objects
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --cached --quiet; then
+            echo 'Source-matched generated artifacts already current.'
+            exit 0
+          fi
+          remote_sha="$(git ls-remote origin refs/heads/work/objects | cut -f1)"
+          if [ "$remote_sha" != "$GITHUB_SHA" ]; then
+            echo "::error::Branch advanced during generation; refusing stale publication"
+            exit 1
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'build(p2): publish source-matched WASM and Qt adapters'
+          git push origin HEAD:refs/heads/work/objects
+          echo "P2 generated asset commit: $(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: p2-generated-${{ github.sha }}
+          path: |
+            build-native/p2/artifact-evidence.json
+            assets/wasm/pandoeditor-core.manifest.json
+            native/assets/geometry/current/manifest.json
+            native/app/reference-web/manifest.json
+          if-no-files-found: error
+          retention-days: 14
