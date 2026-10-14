@@ -1,0 +1,2982 @@
+{
+  "dataset": "Copernicus DEM GLO-30 Public, UTM43N 30m",
+  "dem_source": {
+    "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N35_00_E076_00_DEM/Copernicus_DSM_COG_10_N35_00_E076_00_DEM.tif",
+    "bytes": 40237865,
+    "sha256": "362c08afd374afb88ac380a34b3ac3536e750f2d339d259075f01e659073473f",
+    "content_type": "image/tiff",
+    "dataset": "Copernicus DEM GLO-30 Public, AWS 2021 COG",
+    "source_observation": "TanDEM-X 2011–2015, with some void-filling of different dates",
+    "pixel_resolution_m_approx": 30,
+    "data_type": "DSM (surface elevation), not military ground control",
+    "licence_link": "https://dataspace.copernicus.eu/explore-data/data-collections/copernicus-contributing-missions/collections-description/COP-DEM",
+    "attribution": "Copernicus Digital Elevation Model was accessed from https://registry.opendata.aws/copernicus-dem/"
+  },
+  "dem_metadata": {
+    "source_crs": "EPSG:4326",
+    "tile_size": [
+      3600,
+      3600
+    ],
+    "clip_shape_source": [
+      958,
+      1102
+    ],
+    "warped_grid_shape": [
+      1001,
+      944
+    ],
+    "warped_valid_fraction": 0.964287,
+    "warped_min_m": 3789.8,
+    "warped_max_m": 7731.11,
+    "warped_resolution_m": 30.0
+  },
+  "agpl": "OSM approximation (2026-10-04), NOT a surveyed military border",
+  "analysis": "Cross-section maximum sensitivity (±300–1800m) and local radial terrain saddle test",
+  "limitation": "A local elevation maximum is not automatically a watershed and does not imply a military boundary. Glacier surfaces and valley slopes can distort heights.",
+  "transect_interval_m": 125,
+  "studies": {
+    "bilafond_north": {
+      "stations": 25,
+      "extent_km": [
+        61.0,
+        64.0
+      ],
+      "counts": {
+        "300": {
+          "median_abs_offset_m": 270.0,
+          "search_edge_samples": 13,
+          "search_edge_pct": 52.0,
+          "high_point_gain_ge100m": 2,
+          "pct_positive_east_offset": 56.0
+        },
+        "600": {
+          "median_abs_offset_m": 600.0,
+          "search_edge_samples": 15,
+          "search_edge_pct": 60.0,
+          "high_point_gain_ge100m": 9,
+          "pct_positive_east_offset": 80.0
+        },
+        "900": {
+          "median_abs_offset_m": 780.0,
+          "search_edge_samples": 8,
+          "search_edge_pct": 32.0,
+          "high_point_gain_ge100m": 14,
+          "pct_positive_east_offset": 76.0
+        },
+        "1200": {
+          "median_abs_offset_m": 780.0,
+          "search_edge_samples": 2,
+          "search_edge_pct": 8.0,
+          "high_point_gain_ge100m": 16,
+          "pct_positive_east_offset": 80.0
+        },
+        "1500": {
+          "median_abs_offset_m": 780.0,
+          "search_edge_samples": 1,
+          "search_edge_pct": 4.0,
+          "high_point_gain_ge100m": 16,
+          "pct_positive_east_offset": 80.0
+        },
+        "1800": {
+          "median_abs_offset_m": 810.0,
+          "search_edge_samples": 4,
+          "search_edge_pct": 16.0,
+          "high_point_gain_ge100m": 16,
+          "pct_positive_east_offset": 80.0
+        }
+      },
+      "samples": [
+        {
+          "station_km": 61.0,
+          "origin_utm_xy_m": [
+            676395.13,
+            3918642.48
+          ],
+          "origin_lonlat": [
+            76.9423328,
+            35.3955571
+          ],
+          "center_dem_m": 5477.6,
+          "max_offset_300": 300,
+          "max_gain_300": 13.5,
+          "search_edge_300": true,
+          "max_offset_600": 600,
+          "max_gain_600": 26.3,
+          "search_edge_600": true,
+          "max_offset_900": 750,
+          "max_gain_900": 62.2,
+          "search_edge_900": false,
+          "max_offset_1200": 750,
+          "max_gain_1200": 62.2,
+          "search_edge_1200": false,
+          "max_offset_1500": 750,
+          "max_gain_1500": 62.2,
+          "search_edge_1500": false,
+          "max_offset_1800": 750,
+          "max_gain_1800": 62.2,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": 750,
+              "elevation_m": 5539.8
+            }
+          ]
+        },
+        {
+          "station_km": 61.125,
+          "origin_utm_xy_m": [
+            676287.73,
+            3918706.44
+          ],
+          "origin_lonlat": [
+            76.9411647,
+            35.3961525
+          ],
+          "center_dem_m": 5490.5,
+          "max_offset_300": 300,
+          "max_gain_300": 5.4,
+          "search_edge_300": true,
+          "max_offset_600": 600,
+          "max_gain_600": 24.0,
+          "search_edge_600": true,
+          "max_offset_900": 810,
+          "max_gain_900": 74.6,
+          "search_edge_900": false,
+          "max_offset_1200": 810,
+          "max_gain_1200": 74.6,
+          "search_edge_1200": false,
+          "max_offset_1500": 810,
+          "max_gain_1500": 74.6,
+          "search_edge_1500": false,
+          "max_offset_1800": 810,
+          "max_gain_1800": 74.6,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": 810,
+              "elevation_m": 5565.1
+            }
+          ]
+        },
+        {
+          "station_km": 61.25,
+          "origin_utm_xy_m": [
+            676180.34,
+            3918770.4
+          ],
+          "origin_lonlat": [
+            76.9399965,
+            35.3967479
+          ],
+          "center_dem_m": 5506.2,
+          "max_offset_300": 30,
+          "max_gain_300": 0.4,
+          "search_edge_300": false,
+          "max_offset_600": 600,
+          "max_gain_600": 36.5,
+          "search_edge_600": true,
+          "max_offset_900": 900,
+          "max_gain_900": 100.6,
+          "search_edge_900": true,
+          "max_offset_1200": 900,
+          "max_gain_1200": 100.6,
+          "search_edge_1200": false,
+          "max_offset_1500": 900,
+          "max_gain_1500": 100.6,
+          "search_edge_1500": false,
+          "max_offset_1800": 900,
+          "max_gain_1800": 100.6,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": 900,
+              "elevation_m": 5606.8
+            }
+          ]
+        },
+        {
+          "station_km": 61.375,
+          "origin_utm_xy_m": [
+            676061.26,
+            3918805.86
+          ],
+          "origin_lonlat": [
+            76.9386936,
+            35.3970885
+          ],
+          "center_dem_m": 5517.1,
+          "max_offset_300": 60,
+          "max_gain_300": 0.9,
+          "search_edge_300": false,
+          "max_offset_600": 600,
+          "max_gain_600": 37.9,
+          "search_edge_600": true,
+          "max_offset_900": 900,
+          "max_gain_900": 121.1,
+          "search_edge_900": true,
+          "max_offset_1200": 960,
+          "max_gain_1200": 137.4,
+          "search_edge_1200": false,
+          "max_offset_1500": 960,
+          "max_gain_1500": 137.4,
+          "search_edge_1500": false,
+          "max_offset_1800": 960,
+          "max_gain_1800": 137.4,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": 960,
+              "elevation_m": 5654.5
+            }
+          ]
+        },
+        {
+          "station_km": 61.5,
+          "origin_utm_xy_m": [
+            675939.87,
+            3918835.67
+          ],
+          "origin_lonlat": [
+            76.937364,
+            35.3973786
+          ],
+          "center_dem_m": 5524.0,
+          "max_offset_300": -60,
+          "max_gain_300": 0.4,
+          "search_edge_300": false,
+          "max_offset_600": 600,
+          "max_gain_600": 46.1,
+          "search_edge_600": true,
+          "max_offset_900": 900,
+          "max_gain_900": 108.4,
+          "search_edge_900": true,
+          "max_offset_1200": 990,
+          "max_gain_1200": 130.2,
+          "search_edge_1200": false,
+          "max_offset_1500": 990,
+          "max_gain_1500": 130.2,
+          "search_edge_1500": false,
+          "max_offset_1800": 1800,
+          "max_gain_1800": 146.6,
+          "search_edge_1800": true,
+          "local_peak_candidates": [
+            {
+              "offset_m": 990,
+              "elevation_m": 5654.2
+            }
+          ]
+        },
+        {
+          "station_km": 61.625,
+          "origin_utm_xy_m": [
+            675818.47,
+            3918865.47
+          ],
+          "origin_lonlat": [
+            76.9360344,
+            35.3976686
+          ],
+          "center_dem_m": 5532.4,
+          "max_offset_300": -210,
+          "max_gain_300": 12.3,
+          "search_edge_300": false,
+          "max_offset_600": 600,
+          "max_gain_600": 57.6,
+          "search_edge_600": true,
+          "max_offset_900": 900,
+          "max_gain_900": 101.4,
+          "search_edge_900": true,
+          "max_offset_1200": 1050,
+          "max_gain_1200": 117.4,
+          "search_edge_1200": false,
+          "max_offset_1500": 1050,
+          "max_gain_1500": 117.4,
+          "search_edge_1500": false,
+          "max_offset_1800": 1800,
+          "max_gain_1800": 166.4,
+          "search_edge_1800": true,
+          "local_peak_candidates": [
+            {
+              "offset_m": 1050,
+              "elevation_m": 5649.9
+            },
+            {
+              "offset_m": -210,
+              "elevation_m": 5544.8
+            }
+          ]
+        },
+        {
+          "station_km": 61.75,
+          "origin_utm_xy_m": [
+            675697.08,
+            3918895.27
+          ],
+          "origin_lonlat": [
+            76.9347047,
+            35.3979586
+          ],
+          "center_dem_m": 5544.9,
+          "max_offset_300": -240,
+          "max_gain_300": 30.2,
+          "search_edge_300": false,
+          "max_offset_600": 600,
+          "max_gain_600": 71.1,
+          "search_edge_600": true,
+          "max_offset_900": 900,
+          "max_gain_900": 98.8,
+          "search_edge_900": true,
+          "max_offset_1200": 1110,
+          "max_gain_1200": 128.5,
+          "search_edge_1200": false,
+          "max_offset_1500": 1110,
+          "max_gain_1500": 128.5,
+          "search_edge_1500": false,
+          "max_offset_1800": 1800,
+          "max_gain_1800": 167.4,
+          "search_edge_1800": true,
+          "local_peak_candidates": [
+            {
+              "offset_m": 1110,
+              "elevation_m": 5673.4
+            },
+            {
+              "offset_m": -240,
+              "elevation_m": 5575.1
+            },
+            {
+              "offset_m": -1320,
+              "elevation_m": 5470.4
+            }
+          ]
+        },
+        {
+          "station_km": 61.875,
+          "origin_utm_xy_m": [
+            675575.68,
+            3918925.07
+          ],
+          "origin_lonlat": [
+            76.9333751,
+            35.3982485
+          ],
+          "center_dem_m": 5569.0,
+          "max_offset_300": -270,
+          "max_gain_300": 31.2,
+          "search_edge_300": true,
+          "max_offset_600": 600,
+          "max_gain_600": 68.2,
+          "search_edge_600": true,
+          "max_offset_900": 900,
+          "max_gain_900": 99.6,
+          "search_edge_900": true,
+          "max_offset_1200": 1200,
+          "max_gain_1200": 148.1,
+          "search_edge_1200": true,
+          "max_offset_1500": 1200,
+          "max_gain_1500": 148.1,
+          "search_edge_1500": false,
+          "max_offset_1800": 1200,
+          "max_gain_1800": 148.1,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": 1200,
+              "elevation_m": 5717.1
+            },
+            {
+              "offset_m": -810,
+              "elevation_m": 5618.0
+            },
+            {
+              "offset_m": -270,
+              "elevation_m": 5600.2
+            }
+          ]
+        },
+        {
+          "station_km": 62.0,
+          "origin_utm_xy_m": [
+            675454.29,
+            3918954.88
+          ],
+          "origin_lonlat": [
+            76.9320454,
+            35.3985385
+          ],
+          "center_dem_m": 5601.1,
+          "max_offset_300": 300,
+          "max_gain_300": 20.5,
+          "search_edge_300": true,
+          "max_offset_600": 540,
+          "max_gain_600": 77.5,
+          "search_edge_600": false,
+          "max_offset_900": -780,
+          "max_gain_900": 108.7,
+          "search_edge_900": false,
+          "max_offset_1200": 1200,
+          "max_gain_1200": 164.4,
+          "search_edge_1200": true,
+          "max_offset_1500": 1290,
+          "max_gain_1500": 179.4,
+          "search_edge_1500": false,
+          "max_offset_1800": 1290,
+          "max_gain_1800": 179.4,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": 1290,
+              "elevation_m": 5780.5
+            },
+            {
+              "offset_m": -780,
+              "elevation_m": 5709.9
+            }
+          ]
+        },
+        {
+          "station_km": 62.125,
+          "origin_utm_xy_m": [
+            675332.89,
+            3918984.68
+          ],
+          "origin_lonlat": [
+            76.9307157,
+            35.3988284
+          ],
+          "center_dem_m": 5635.6,
+          "max_offset_300": 300,
+          "max_gain_300": 99.1,
+          "search_edge_300": true,
+          "max_offset_600": 510,
+          "max_gain_600": 183.8,
+          "search_edge_600": false,
+          "max_offset_900": 510,
+          "max_gain_900": 183.8,
+          "search_edge_900": false,
+          "max_offset_1200": 510,
+          "max_gain_1200": 183.8,
+          "search_edge_1200": false,
+          "max_offset_1500": 1470,
+          "max_gain_1500": 183.9,
+          "search_edge_1500": true,
+          "max_offset_1800": 1470,
+          "max_gain_1800": 183.9,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": 1470,
+              "elevation_m": 5819.5
+            },
+            {
+              "offset_m": 510,
+              "elevation_m": 5819.4
+            },
+            {
+              "offset_m": -720,
+              "elevation_m": 5724.8
+            }
+          ]
+        },
+        {
+          "station_km": 62.25,
+          "origin_utm_xy_m": [
+            675211.5,
+            3919014.48
+          ],
+          "origin_lonlat": [
+            76.929386,
+            35.3991184
+          ],
+          "center_dem_m": 5655.1,
+          "max_offset_300": 300,
+          "max_gain_300": 114.7,
+          "search_edge_300": true,
+          "max_offset_600": 540,
+          "max_gain_600": 234.9,
+          "search_edge_600": false,
+          "max_offset_900": 540,
+          "max_gain_900": 234.9,
+          "search_edge_900": false,
+          "max_offset_1200": 540,
+          "max_gain_1200": 234.9,
+          "search_edge_1200": false,
+          "max_offset_1500": 540,
+          "max_gain_1500": 234.9,
+          "search_edge_1500": false,
+          "max_offset_1800": 540,
+          "max_gain_1800": 234.9,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": 540,
+              "elevation_m": 5890.0
+            },
+            {
+              "offset_m": 1590,
+              "elevation_m": 5885.0
+            },
+            {
+              "offset_m": -690,
+              "elevation_m": 5715.7
+            }
+          ]
+        },
+        {
+          "station_km": 62.375,
+          "origin_utm_xy_m": [
+            675090.1,
+            3919044.29
+          ],
+          "origin_lonlat": [
+            76.9280563,
+            35.3994083
+          ],
+          "center_dem_m": 5670.3,
+          "max_offset_300": 300,
+          "max_gain_300": 57.4,
+          "search_edge_300": true,
+          "max_offset_600": 600,
+          "max_gain_600": 187.7,
+          "search_edge_600": true,
+          "max_offset_900": 780,
+          "max_gain_900": 205.2,
+          "search_edge_900": false,
+          "max_offset_1200": 780,
+          "max_gain_1200": 205.2,
+          "search_edge_1200": false,
+          "max_offset_1500": 780,
+          "max_gain_1500": 205.2,
+          "search_edge_1500": false,
+          "max_offset_1800": 1710,
+          "max_gain_1800": 251.2,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": 780,
+              "elevation_m": 5875.6
+            },
+            {
+              "offset_m": -630,
+              "elevation_m": 5687.2
+            }
+          ]
+        },
+        {
+          "station_km": 62.5,
+          "origin_utm_xy_m": [
+            674968.71,
+            3919074.09
+          ],
+          "origin_lonlat": [
+            76.9267266,
+            35.3996982
+          ],
+          "center_dem_m": 5673.4,
+          "max_offset_300": 300,
+          "max_gain_300": 53.7,
+          "search_edge_300": true,
+          "max_offset_600": 600,
+          "max_gain_600": 119.8,
+          "search_edge_600": true,
+          "max_offset_900": 840,
+          "max_gain_900": 208.5,
+          "search_edge_900": false,
+          "max_offset_1200": 840,
+          "max_gain_1200": 208.5,
+          "search_edge_1200": false,
+          "max_offset_1500": 840,
+          "max_gain_1500": 208.5,
+          "search_edge_1500": false,
+          "max_offset_1800": 1800,
+          "max_gain_1800": 323.3,
+          "search_edge_1800": true,
+          "local_peak_candidates": [
+            {
+              "offset_m": 840,
+              "elevation_m": 5881.9
+            }
+          ]
+        },
+        {
+          "station_km": 62.625,
+          "origin_utm_xy_m": [
+            674847.31,
+            3919103.89
+          ],
+          "origin_lonlat": [
+            76.9253969,
+            35.3999881
+          ],
+          "center_dem_m": 5675.7,
+          "max_offset_300": 300,
+          "max_gain_300": 53.4,
+          "search_edge_300": true,
+          "max_offset_600": 600,
+          "max_gain_600": 110.8,
+          "search_edge_600": true,
+          "max_offset_900": 900,
+          "max_gain_900": 220.3,
+          "search_edge_900": true,
+          "max_offset_1200": 990,
+          "max_gain_1200": 230.4,
+          "search_edge_1200": false,
+          "max_offset_1500": 990,
+          "max_gain_1500": 230.4,
+          "search_edge_1500": false,
+          "max_offset_1800": 990,
+          "max_gain_1800": 230.4,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": 990,
+              "elevation_m": 5906.2
+            }
+          ]
+        },
+        {
+          "station_km": 62.75,
+          "origin_utm_xy_m": [
+            674725.91,
+            3919133.7
+          ],
+          "origin_lonlat": [
+            76.9240671,
+            35.400278
+          ],
+          "center_dem_m": 5689.6,
+          "max_offset_300": 300,
+          "max_gain_300": 45.5,
+          "search_edge_300": true,
+          "max_offset_600": 600,
+          "max_gain_600": 122.4,
+          "search_edge_600": true,
+          "max_offset_900": 900,
+          "max_gain_900": 184.2,
+          "search_edge_900": true,
+          "max_offset_1200": 1020,
+          "max_gain_1200": 209.3,
+          "search_edge_1200": false,
+          "max_offset_1500": 1020,
+          "max_gain_1500": 209.3,
+          "search_edge_1500": false,
+          "max_offset_1800": 1020,
+          "max_gain_1800": 209.3,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": 1020,
+              "elevation_m": 5898.9
+            },
+            {
+              "offset_m": -450,
+              "elevation_m": 5706.4
+            }
+          ]
+        },
+        {
+          "station_km": 62.875,
+          "origin_utm_xy_m": [
+            674604.52,
+            3919163.5
+          ],
+          "origin_lonlat": [
+            76.9227374,
+            35.4005678
+          ],
+          "center_dem_m": 5708.6,
+          "max_offset_300": 300,
+          "max_gain_300": 40.8,
+          "search_edge_300": true,
+          "max_offset_600": 600,
+          "max_gain_600": 134.3,
+          "search_edge_600": true,
+          "max_offset_900": 780,
+          "max_gain_900": 176.9,
+          "search_edge_900": false,
+          "max_offset_1200": 780,
+          "max_gain_1200": 176.9,
+          "search_edge_1200": false,
+          "max_offset_1500": 780,
+          "max_gain_1500": 176.9,
+          "search_edge_1500": false,
+          "max_offset_1800": 780,
+          "max_gain_1800": 176.9,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": 780,
+              "elevation_m": 5885.4
+            },
+            {
+              "offset_m": -420,
+              "elevation_m": 5742.2
+            }
+          ]
+        },
+        {
+          "station_km": 63.0,
+          "origin_utm_xy_m": [
+            674483.12,
+            3919193.3
+          ],
+          "origin_lonlat": [
+            76.9214077,
+            35.4008577
+          ],
+          "center_dem_m": 5723.6,
+          "max_offset_300": -300,
+          "max_gain_300": 47.0,
+          "search_edge_300": true,
+          "max_offset_600": 600,
+          "max_gain_600": 210.4,
+          "search_edge_600": true,
+          "max_offset_900": 720,
+          "max_gain_900": 231.6,
+          "search_edge_900": false,
+          "max_offset_1200": 720,
+          "max_gain_1200": 231.6,
+          "search_edge_1200": false,
+          "max_offset_1500": 720,
+          "max_gain_1500": 231.6,
+          "search_edge_1500": false,
+          "max_offset_1800": 720,
+          "max_gain_1800": 231.6,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": 720,
+              "elevation_m": 5955.2
+            },
+            {
+              "offset_m": -420,
+              "elevation_m": 5817.4
+            }
+          ]
+        },
+        {
+          "station_km": 63.125,
+          "origin_utm_xy_m": [
+            674361.73,
+            3919223.11
+          ],
+          "origin_lonlat": [
+            76.9200779,
+            35.4011475
+          ],
+          "center_dem_m": 5737.3,
+          "max_offset_300": -300,
+          "max_gain_300": 111.4,
+          "search_edge_300": true,
+          "max_offset_600": 600,
+          "max_gain_600": 166.6,
+          "search_edge_600": true,
+          "max_offset_900": 630,
+          "max_gain_900": 167.3,
+          "search_edge_900": false,
+          "max_offset_1200": 630,
+          "max_gain_1200": 167.3,
+          "search_edge_1200": false,
+          "max_offset_1500": 630,
+          "max_gain_1500": 167.3,
+          "search_edge_1500": false,
+          "max_offset_1800": 630,
+          "max_gain_1800": 167.3,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": 630,
+              "elevation_m": 5904.6
+            },
+            {
+              "offset_m": -390,
+              "elevation_m": 5887.7
+            },
+            {
+              "offset_m": -1500,
+              "elevation_m": 5496.7
+            }
+          ]
+        },
+        {
+          "station_km": 63.25,
+          "origin_utm_xy_m": [
+            674245.18,
+            3919235.39
+          ],
+          "origin_lonlat": [
+            76.9187977,
+            35.4012786
+          ],
+          "center_dem_m": 5780.6,
+          "max_offset_300": 180,
+          "max_gain_300": 21.4,
+          "search_edge_300": false,
+          "max_offset_600": 180,
+          "max_gain_600": 21.4,
+          "search_edge_600": false,
+          "max_offset_900": 180,
+          "max_gain_900": 21.4,
+          "search_edge_900": false,
+          "max_offset_1200": 180,
+          "max_gain_1200": 21.4,
+          "search_edge_1200": false,
+          "max_offset_1500": 180,
+          "max_gain_1500": 21.4,
+          "search_edge_1500": false,
+          "max_offset_1800": 180,
+          "max_gain_1800": 21.4,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": 180,
+              "elevation_m": 5802.0
+            },
+            {
+              "offset_m": -450,
+              "elevation_m": 5792.6
+            }
+          ]
+        },
+        {
+          "station_km": 63.375,
+          "origin_utm_xy_m": [
+            674156.39,
+            3919147.41
+          ],
+          "origin_lonlat": [
+            76.9178016,
+            35.4005013
+          ],
+          "center_dem_m": 5835.5,
+          "max_offset_300": 90,
+          "max_gain_300": 17.6,
+          "search_edge_300": false,
+          "max_offset_600": 90,
+          "max_gain_600": 17.6,
+          "search_edge_600": false,
+          "max_offset_900": 90,
+          "max_gain_900": 17.6,
+          "search_edge_900": false,
+          "max_offset_1200": 90,
+          "max_gain_1200": 17.6,
+          "search_edge_1200": false,
+          "max_offset_1500": 90,
+          "max_gain_1500": 17.6,
+          "search_edge_1500": false,
+          "max_offset_1800": 90,
+          "max_gain_1800": 17.6,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": 90,
+              "elevation_m": 5853.2
+            },
+            {
+              "offset_m": -1200,
+              "elevation_m": 5690.4
+            }
+          ]
+        },
+        {
+          "station_km": 63.5,
+          "origin_utm_xy_m": [
+            674067.59,
+            3919059.43
+          ],
+          "origin_lonlat": [
+            76.9168056,
+            35.3997239
+          ],
+          "center_dem_m": 5943.7,
+          "max_offset_300": -90,
+          "max_gain_300": 12.8,
+          "search_edge_300": false,
+          "max_offset_600": -90,
+          "max_gain_600": 12.8,
+          "search_edge_600": false,
+          "max_offset_900": -90,
+          "max_gain_900": 12.8,
+          "search_edge_900": false,
+          "max_offset_1200": -90,
+          "max_gain_1200": 12.8,
+          "search_edge_1200": false,
+          "max_offset_1500": -90,
+          "max_gain_1500": 12.8,
+          "search_edge_1500": false,
+          "max_offset_1800": -90,
+          "max_gain_1800": 12.8,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": -90,
+              "elevation_m": 5956.4
+            },
+            {
+              "offset_m": -1230,
+              "elevation_m": 5591.5
+            }
+          ]
+        },
+        {
+          "station_km": 63.625,
+          "origin_utm_xy_m": [
+            673978.8,
+            3918971.45
+          ],
+          "origin_lonlat": [
+            76.9158095,
+            35.3989466
+          ],
+          "center_dem_m": 6021.9,
+          "max_offset_300": -90,
+          "max_gain_300": 44.0,
+          "search_edge_300": false,
+          "max_offset_600": -90,
+          "max_gain_600": 44.0,
+          "search_edge_600": false,
+          "max_offset_900": -90,
+          "max_gain_900": 44.0,
+          "search_edge_900": false,
+          "max_offset_1200": -90,
+          "max_gain_1200": 44.0,
+          "search_edge_1200": false,
+          "max_offset_1500": -90,
+          "max_gain_1500": 44.0,
+          "search_edge_1500": false,
+          "max_offset_1800": -90,
+          "max_gain_1800": 44.0,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": -90,
+              "elevation_m": 6065.9
+            },
+            {
+              "offset_m": -1290,
+              "elevation_m": 5559.1
+            }
+          ]
+        },
+        {
+          "station_km": 63.75,
+          "origin_utm_xy_m": [
+            673890.01,
+            3918883.47
+          ],
+          "origin_lonlat": [
+            76.9148134,
+            35.3981692
+          ],
+          "center_dem_m": 6046.4,
+          "max_offset_300": -30,
+          "max_gain_300": 8.7,
+          "search_edge_300": false,
+          "max_offset_600": -30,
+          "max_gain_600": 8.7,
+          "search_edge_600": false,
+          "max_offset_900": -30,
+          "max_gain_900": 8.7,
+          "search_edge_900": false,
+          "max_offset_1200": -30,
+          "max_gain_1200": 8.7,
+          "search_edge_1200": false,
+          "max_offset_1500": -30,
+          "max_gain_1500": 8.7,
+          "search_edge_1500": false,
+          "max_offset_1800": -30,
+          "max_gain_1800": 8.7,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": -30,
+              "elevation_m": 6055.1
+            },
+            {
+              "offset_m": -1380,
+              "elevation_m": 5463.2
+            }
+          ]
+        },
+        {
+          "station_km": 63.875,
+          "origin_utm_xy_m": [
+            673801.21,
+            3918795.49
+          ],
+          "origin_lonlat": [
+            76.9138174,
+            35.3973918
+          ],
+          "center_dem_m": 6009.8,
+          "max_offset_300": 0,
+          "max_gain_300": 0.0,
+          "search_edge_300": false,
+          "max_offset_600": 0,
+          "max_gain_600": 0.0,
+          "search_edge_600": false,
+          "max_offset_900": 0,
+          "max_gain_900": 0.0,
+          "search_edge_900": false,
+          "max_offset_1200": 0,
+          "max_gain_1200": 0.0,
+          "search_edge_1200": false,
+          "max_offset_1500": 0,
+          "max_gain_1500": 0.0,
+          "search_edge_1500": false,
+          "max_offset_1800": 0,
+          "max_gain_1800": 0.0,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": 0,
+              "elevation_m": 6009.8
+            },
+            {
+              "offset_m": -1590,
+              "elevation_m": 5344.4
+            }
+          ]
+        },
+        {
+          "station_km": 64.0,
+          "origin_utm_xy_m": [
+            673721.11,
+            3918701.1
+          ],
+          "origin_lonlat": [
+            76.9129157,
+            35.3965552
+          ],
+          "center_dem_m": 6006.7,
+          "max_offset_300": 0,
+          "max_gain_300": 0.0,
+          "search_edge_300": false,
+          "max_offset_600": 0,
+          "max_gain_600": 0.0,
+          "search_edge_600": false,
+          "max_offset_900": 0,
+          "max_gain_900": 0.0,
+          "search_edge_900": false,
+          "max_offset_1200": 0,
+          "max_gain_1200": 0.0,
+          "search_edge_1200": false,
+          "max_offset_1500": 0,
+          "max_gain_1500": 0.0,
+          "search_edge_1500": false,
+          "max_offset_1800": 0,
+          "max_gain_1800": 0.0,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": 0,
+              "elevation_m": 6006.7
+            },
+            {
+              "offset_m": -1410,
+              "elevation_m": 5518.3
+            }
+          ]
+        }
+      ]
+    },
+    "mid_ridge_90km": {
+      "stations": 23,
+      "extent_km": [
+        89.4,
+        92.2
+      ],
+      "counts": {
+        "300": {
+          "median_abs_offset_m": 60.0,
+          "search_edge_samples": 2,
+          "search_edge_pct": 8.7,
+          "high_point_gain_ge100m": 0,
+          "pct_positive_east_offset": 39.1
+        },
+        "600": {
+          "median_abs_offset_m": 60.0,
+          "search_edge_samples": 8,
+          "search_edge_pct": 34.8,
+          "high_point_gain_ge100m": 0,
+          "pct_positive_east_offset": 34.8
+        },
+        "900": {
+          "median_abs_offset_m": 60.0,
+          "search_edge_samples": 5,
+          "search_edge_pct": 21.7,
+          "high_point_gain_ge100m": 3,
+          "pct_positive_east_offset": 34.8
+        },
+        "1200": {
+          "median_abs_offset_m": 60.0,
+          "search_edge_samples": 0,
+          "search_edge_pct": 0.0,
+          "high_point_gain_ge100m": 3,
+          "pct_positive_east_offset": 34.8
+        },
+        "1500": {
+          "median_abs_offset_m": 60.0,
+          "search_edge_samples": 0,
+          "search_edge_pct": 0.0,
+          "high_point_gain_ge100m": 3,
+          "pct_positive_east_offset": 34.8
+        },
+        "1800": {
+          "median_abs_offset_m": 60.0,
+          "search_edge_samples": 0,
+          "search_edge_pct": 0.0,
+          "high_point_gain_ge100m": 3,
+          "pct_positive_east_offset": 34.8
+        }
+      },
+      "samples": [
+        {
+          "station_km": 89.4,
+          "origin_utm_xy_m": [
+            660371.32,
+            3931721.87
+          ],
+          "origin_lonlat": [
+            76.7685476,
+            35.5161425
+          ],
+          "center_dem_m": 6512.8,
+          "max_offset_300": 0,
+          "max_gain_300": 0.0,
+          "search_edge_300": false,
+          "max_offset_600": 0,
+          "max_gain_600": 0.0,
+          "search_edge_600": false,
+          "max_offset_900": 0,
+          "max_gain_900": 0.0,
+          "search_edge_900": false,
+          "max_offset_1200": 0,
+          "max_gain_1200": 0.0,
+          "search_edge_1200": false,
+          "max_offset_1500": 0,
+          "max_gain_1500": 0.0,
+          "search_edge_1500": false,
+          "max_offset_1800": 0,
+          "max_gain_1800": 0.0,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": 0,
+              "elevation_m": 6512.8
+            }
+          ]
+        },
+        {
+          "station_km": 89.525,
+          "origin_utm_xy_m": [
+            660246.52,
+            3931729.09
+          ],
+          "origin_lonlat": [
+            76.7671734,
+            35.5162277
+          ],
+          "center_dem_m": 6405.0,
+          "max_offset_300": -60,
+          "max_gain_300": 15.1,
+          "search_edge_300": false,
+          "max_offset_600": -60,
+          "max_gain_600": 15.1,
+          "search_edge_600": false,
+          "max_offset_900": -60,
+          "max_gain_900": 15.1,
+          "search_edge_900": false,
+          "max_offset_1200": -60,
+          "max_gain_1200": 15.1,
+          "search_edge_1200": false,
+          "max_offset_1500": -60,
+          "max_gain_1500": 15.1,
+          "search_edge_1500": false,
+          "max_offset_1800": -60,
+          "max_gain_1800": 15.1,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": -60,
+              "elevation_m": 6420.1
+            }
+          ]
+        },
+        {
+          "station_km": 89.65,
+          "origin_utm_xy_m": [
+            660122.58,
+            3931740.71
+          ],
+          "origin_lonlat": [
+            76.7658094,
+            35.5163524
+          ],
+          "center_dem_m": 6345.5,
+          "max_offset_300": -30,
+          "max_gain_300": 3.2,
+          "search_edge_300": false,
+          "max_offset_600": -30,
+          "max_gain_600": 3.2,
+          "search_edge_600": false,
+          "max_offset_900": -30,
+          "max_gain_900": 3.2,
+          "search_edge_900": false,
+          "max_offset_1200": -30,
+          "max_gain_1200": 3.2,
+          "search_edge_1200": false,
+          "max_offset_1500": -30,
+          "max_gain_1500": 3.2,
+          "search_edge_1500": false,
+          "max_offset_1800": -30,
+          "max_gain_1800": 3.2,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": -30,
+              "elevation_m": 6348.8
+            }
+          ]
+        },
+        {
+          "station_km": 89.775,
+          "origin_utm_xy_m": [
+            660003.94,
+            3931780.1
+          ],
+          "origin_lonlat": [
+            76.7645095,
+            35.5167266
+          ],
+          "center_dem_m": 6339.4,
+          "max_offset_300": -30,
+          "max_gain_300": 3.6,
+          "search_edge_300": false,
+          "max_offset_600": -30,
+          "max_gain_600": 3.6,
+          "search_edge_600": false,
+          "max_offset_900": -30,
+          "max_gain_900": 3.6,
+          "search_edge_900": false,
+          "max_offset_1200": -30,
+          "max_gain_1200": 3.6,
+          "search_edge_1200": false,
+          "max_offset_1500": -30,
+          "max_gain_1500": 3.6,
+          "search_edge_1500": false,
+          "max_offset_1800": -30,
+          "max_gain_1800": 3.6,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": -30,
+              "elevation_m": 6343.0
+            }
+          ]
+        },
+        {
+          "station_km": 89.9,
+          "origin_utm_xy_m": [
+            659885.31,
+            3931819.49
+          ],
+          "origin_lonlat": [
+            76.7632095,
+            35.5171007
+          ],
+          "center_dem_m": 6302.5,
+          "max_offset_300": -30,
+          "max_gain_300": 4.6,
+          "search_edge_300": false,
+          "max_offset_600": -30,
+          "max_gain_600": 4.6,
+          "search_edge_600": false,
+          "max_offset_900": -30,
+          "max_gain_900": 4.6,
+          "search_edge_900": false,
+          "max_offset_1200": -30,
+          "max_gain_1200": 4.6,
+          "search_edge_1200": false,
+          "max_offset_1500": -30,
+          "max_gain_1500": 4.6,
+          "search_edge_1500": false,
+          "max_offset_1800": -30,
+          "max_gain_1800": 4.6,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": -30,
+              "elevation_m": 6307.1
+            }
+          ]
+        },
+        {
+          "station_km": 90.025,
+          "origin_utm_xy_m": [
+            659766.68,
+            3931858.88
+          ],
+          "origin_lonlat": [
+            76.7619096,
+            35.5174748
+          ],
+          "center_dem_m": 6290.4,
+          "max_offset_300": -30,
+          "max_gain_300": 2.1,
+          "search_edge_300": false,
+          "max_offset_600": -30,
+          "max_gain_600": 2.1,
+          "search_edge_600": false,
+          "max_offset_900": -30,
+          "max_gain_900": 2.1,
+          "search_edge_900": false,
+          "max_offset_1200": -30,
+          "max_gain_1200": 2.1,
+          "search_edge_1200": false,
+          "max_offset_1500": -30,
+          "max_gain_1500": 2.1,
+          "search_edge_1500": false,
+          "max_offset_1800": -30,
+          "max_gain_1800": 2.1,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": -30,
+              "elevation_m": 6292.6
+            }
+          ]
+        },
+        {
+          "station_km": 90.15,
+          "origin_utm_xy_m": [
+            659648.05,
+            3931898.27
+          ],
+          "origin_lonlat": [
+            76.7606096,
+            35.5178489
+          ],
+          "center_dem_m": 6299.2,
+          "max_offset_300": -60,
+          "max_gain_300": 8.8,
+          "search_edge_300": false,
+          "max_offset_600": -60,
+          "max_gain_600": 8.8,
+          "search_edge_600": false,
+          "max_offset_900": -60,
+          "max_gain_900": 8.8,
+          "search_edge_900": false,
+          "max_offset_1200": -60,
+          "max_gain_1200": 8.8,
+          "search_edge_1200": false,
+          "max_offset_1500": -60,
+          "max_gain_1500": 8.8,
+          "search_edge_1500": false,
+          "max_offset_1800": -60,
+          "max_gain_1800": 8.8,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": -60,
+              "elevation_m": 6308.0
+            }
+          ]
+        },
+        {
+          "station_km": 90.275,
+          "origin_utm_xy_m": [
+            659529.42,
+            3931937.66
+          ],
+          "origin_lonlat": [
+            76.7593097,
+            35.518223
+          ],
+          "center_dem_m": 6307.8,
+          "max_offset_300": -60,
+          "max_gain_300": 14.6,
+          "search_edge_300": false,
+          "max_offset_600": -60,
+          "max_gain_600": 14.6,
+          "search_edge_600": false,
+          "max_offset_900": -60,
+          "max_gain_900": 14.6,
+          "search_edge_900": false,
+          "max_offset_1200": -60,
+          "max_gain_1200": 14.6,
+          "search_edge_1200": false,
+          "max_offset_1500": -60,
+          "max_gain_1500": 14.6,
+          "search_edge_1500": false,
+          "max_offset_1800": -60,
+          "max_gain_1800": 14.6,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": -60,
+              "elevation_m": 6322.4
+            }
+          ]
+        },
+        {
+          "station_km": 90.4,
+          "origin_utm_xy_m": [
+            659474.45,
+            3932027.33
+          ],
+          "origin_lonlat": [
+            76.7587213,
+            35.51904
+          ],
+          "center_dem_m": 6257.8,
+          "max_offset_300": 0,
+          "max_gain_300": 0.0,
+          "search_edge_300": false,
+          "max_offset_600": 600,
+          "max_gain_600": 8.9,
+          "search_edge_600": true,
+          "max_offset_900": 840,
+          "max_gain_900": 34.5,
+          "search_edge_900": false,
+          "max_offset_1200": 840,
+          "max_gain_1200": 34.5,
+          "search_edge_1200": false,
+          "max_offset_1500": 840,
+          "max_gain_1500": 34.5,
+          "search_edge_1500": false,
+          "max_offset_1800": 840,
+          "max_gain_1800": 34.5,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": 840,
+              "elevation_m": 6292.4
+            },
+            {
+              "offset_m": 0,
+              "elevation_m": 6257.8
+            }
+          ]
+        },
+        {
+          "station_km": 90.525,
+          "origin_utm_xy_m": [
+            659463.62,
+            3932151.86
+          ],
+          "origin_lonlat": [
+            76.7586265,
+            35.520164
+          ],
+          "center_dem_m": 6177.4,
+          "max_offset_300": 300,
+          "max_gain_300": 11.1,
+          "search_edge_300": true,
+          "max_offset_600": 600,
+          "max_gain_600": 68.8,
+          "search_edge_600": true,
+          "max_offset_900": 900,
+          "max_gain_900": 104.7,
+          "search_edge_900": true,
+          "max_offset_1200": 930,
+          "max_gain_1200": 104.7,
+          "search_edge_1200": false,
+          "max_offset_1500": 930,
+          "max_gain_1500": 104.7,
+          "search_edge_1500": false,
+          "max_offset_1800": 930,
+          "max_gain_1800": 104.7,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": 930,
+              "elevation_m": 6282.0
+            },
+            {
+              "offset_m": -1560,
+              "elevation_m": 5916.2
+            }
+          ]
+        },
+        {
+          "station_km": 90.65,
+          "origin_utm_xy_m": [
+            659452.8,
+            3932276.39
+          ],
+          "origin_lonlat": [
+            76.7585316,
+            35.5212881
+          ],
+          "center_dem_m": 6131.8,
+          "max_offset_300": 300,
+          "max_gain_300": 22.5,
+          "search_edge_300": true,
+          "max_offset_600": 600,
+          "max_gain_600": 80.0,
+          "search_edge_600": true,
+          "max_offset_900": 900,
+          "max_gain_900": 131.3,
+          "search_edge_900": true,
+          "max_offset_1200": 960,
+          "max_gain_1200": 137.4,
+          "search_edge_1200": false,
+          "max_offset_1500": 960,
+          "max_gain_1500": 137.4,
+          "search_edge_1500": false,
+          "max_offset_1800": 960,
+          "max_gain_1800": 137.4,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": 960,
+              "elevation_m": 6269.3
+            },
+            {
+              "offset_m": -480,
+              "elevation_m": 6124.7
+            },
+            {
+              "offset_m": -1380,
+              "elevation_m": 5818.8
+            }
+          ]
+        },
+        {
+          "station_km": 90.775,
+          "origin_utm_xy_m": [
+            659441.98,
+            3932400.92
+          ],
+          "origin_lonlat": [
+            76.7584368,
+            35.5224121
+          ],
+          "center_dem_m": 6115.1,
+          "max_offset_300": 120,
+          "max_gain_300": 5.9,
+          "search_edge_300": false,
+          "max_offset_600": 600,
+          "max_gain_600": 44.7,
+          "search_edge_600": true,
+          "max_offset_900": 900,
+          "max_gain_900": 110.0,
+          "search_edge_900": true,
+          "max_offset_1200": 960,
+          "max_gain_1200": 117.7,
+          "search_edge_1200": false,
+          "max_offset_1500": 960,
+          "max_gain_1500": 117.7,
+          "search_edge_1500": false,
+          "max_offset_1800": 960,
+          "max_gain_1800": 117.7,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": 960,
+              "elevation_m": 6232.8
+            },
+            {
+              "offset_m": -510,
+              "elevation_m": 6131.2
+            }
+          ]
+        },
+        {
+          "station_km": 90.9,
+          "origin_utm_xy_m": [
+            659431.15,
+            3932525.45
+          ],
+          "origin_lonlat": [
+            76.758342,
+            35.5235362
+          ],
+          "center_dem_m": 6103.5,
+          "max_offset_300": 150,
+          "max_gain_300": 5.1,
+          "search_edge_300": false,
+          "max_offset_600": 600,
+          "max_gain_600": 24.3,
+          "search_edge_600": true,
+          "max_offset_900": 900,
+          "max_gain_900": 83.0,
+          "search_edge_900": true,
+          "max_offset_1200": 1020,
+          "max_gain_1200": 95.1,
+          "search_edge_1200": false,
+          "max_offset_1500": 1020,
+          "max_gain_1500": 95.1,
+          "search_edge_1500": false,
+          "max_offset_1800": 1020,
+          "max_gain_1800": 95.1,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": 1020,
+              "elevation_m": 6198.6
+            }
+          ]
+        },
+        {
+          "station_km": 91.025,
+          "origin_utm_xy_m": [
+            659420.33,
+            3932649.98
+          ],
+          "origin_lonlat": [
+            76.7582471,
+            35.5246602
+          ],
+          "center_dem_m": 6100.9,
+          "max_offset_300": 180,
+          "max_gain_300": 2.2,
+          "search_edge_300": false,
+          "max_offset_600": 600,
+          "max_gain_600": 4.1,
+          "search_edge_600": true,
+          "max_offset_900": 900,
+          "max_gain_900": 50.1,
+          "search_edge_900": true,
+          "max_offset_1200": 1080,
+          "max_gain_1200": 76.7,
+          "search_edge_1200": false,
+          "max_offset_1500": 1080,
+          "max_gain_1500": 76.7,
+          "search_edge_1500": false,
+          "max_offset_1800": 1080,
+          "max_gain_1800": 76.7,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": 1080,
+              "elevation_m": 6177.5
+            }
+          ]
+        },
+        {
+          "station_km": 91.15,
+          "origin_utm_xy_m": [
+            659379.9,
+            3932758.88
+          ],
+          "origin_lonlat": [
+            76.7578228,
+            35.5256482
+          ],
+          "center_dem_m": 6103.2,
+          "max_offset_300": 120,
+          "max_gain_300": 1.2,
+          "search_edge_300": false,
+          "max_offset_600": -600,
+          "max_gain_600": 21.5,
+          "search_edge_600": true,
+          "max_offset_900": -630,
+          "max_gain_900": 23.4,
+          "search_edge_900": false,
+          "max_offset_1200": -630,
+          "max_gain_1200": 23.4,
+          "search_edge_1200": false,
+          "max_offset_1500": -630,
+          "max_gain_1500": 23.4,
+          "search_edge_1500": false,
+          "max_offset_1800": -630,
+          "max_gain_1800": 23.4,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": -630,
+              "elevation_m": 6126.7
+            }
+          ]
+        },
+        {
+          "station_km": 91.275,
+          "origin_utm_xy_m": [
+            659283.18,
+            3932838.08
+          ],
+          "origin_lonlat": [
+            76.7567722,
+            35.5263775
+          ],
+          "center_dem_m": 6105.3,
+          "max_offset_300": 150,
+          "max_gain_300": 2.3,
+          "search_edge_300": false,
+          "max_offset_600": -600,
+          "max_gain_600": 10.5,
+          "search_edge_600": true,
+          "max_offset_900": -630,
+          "max_gain_900": 11.5,
+          "search_edge_900": false,
+          "max_offset_1200": -630,
+          "max_gain_1200": 11.5,
+          "search_edge_1200": false,
+          "max_offset_1500": -630,
+          "max_gain_1500": 11.5,
+          "search_edge_1500": false,
+          "max_offset_1800": -630,
+          "max_gain_1800": 11.5,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": -630,
+              "elevation_m": 6116.8
+            },
+            {
+              "offset_m": 150,
+              "elevation_m": 6107.6
+            }
+          ]
+        },
+        {
+          "station_km": 91.4,
+          "origin_utm_xy_m": [
+            659186.47,
+            3932917.27
+          ],
+          "origin_lonlat": [
+            76.7557215,
+            35.5271067
+          ],
+          "center_dem_m": 6106.7,
+          "max_offset_300": 90,
+          "max_gain_300": 1.8,
+          "search_edge_300": false,
+          "max_offset_600": 90,
+          "max_gain_600": 1.8,
+          "search_edge_600": false,
+          "max_offset_900": 90,
+          "max_gain_900": 1.8,
+          "search_edge_900": false,
+          "max_offset_1200": 90,
+          "max_gain_1200": 1.8,
+          "search_edge_1200": false,
+          "max_offset_1500": 90,
+          "max_gain_1500": 1.8,
+          "search_edge_1500": false,
+          "max_offset_1800": 90,
+          "max_gain_1800": 1.8,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": 90,
+              "elevation_m": 6108.5
+            }
+          ]
+        },
+        {
+          "station_km": 91.525,
+          "origin_utm_xy_m": [
+            659089.76,
+            3932996.47
+          ],
+          "origin_lonlat": [
+            76.7546708,
+            35.527836
+          ],
+          "center_dem_m": 6108.9,
+          "max_offset_300": 30,
+          "max_gain_300": 0.3,
+          "search_edge_300": false,
+          "max_offset_600": 30,
+          "max_gain_600": 0.3,
+          "search_edge_600": false,
+          "max_offset_900": 30,
+          "max_gain_900": 0.3,
+          "search_edge_900": false,
+          "max_offset_1200": 30,
+          "max_gain_1200": 0.3,
+          "search_edge_1200": false,
+          "max_offset_1500": 30,
+          "max_gain_1500": 0.3,
+          "search_edge_1500": false,
+          "max_offset_1800": 30,
+          "max_gain_1800": 0.3,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": 30,
+              "elevation_m": 6109.2
+            },
+            {
+              "offset_m": -990,
+              "elevation_m": 5822.0
+            }
+          ]
+        },
+        {
+          "station_km": 91.65,
+          "origin_utm_xy_m": [
+            658993.05,
+            3933075.66
+          ],
+          "origin_lonlat": [
+            76.7536201,
+            35.5285652
+          ],
+          "center_dem_m": 6119.7,
+          "max_offset_300": -90,
+          "max_gain_300": 1.3,
+          "search_edge_300": false,
+          "max_offset_600": -90,
+          "max_gain_600": 1.3,
+          "search_edge_600": false,
+          "max_offset_900": -90,
+          "max_gain_900": 1.3,
+          "search_edge_900": false,
+          "max_offset_1200": -90,
+          "max_gain_1200": 1.3,
+          "search_edge_1200": false,
+          "max_offset_1500": -90,
+          "max_gain_1500": 1.3,
+          "search_edge_1500": false,
+          "max_offset_1800": -90,
+          "max_gain_1800": 1.3,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": -90,
+              "elevation_m": 6121.0
+            },
+            {
+              "offset_m": -1350,
+              "elevation_m": 5819.7
+            }
+          ]
+        },
+        {
+          "station_km": 91.775,
+          "origin_utm_xy_m": [
+            658935.58,
+            3933173.33
+          ],
+          "origin_lonlat": [
+            76.7530057,
+            35.5294546
+          ],
+          "center_dem_m": 6124.6,
+          "max_offset_300": -60,
+          "max_gain_300": 2.6,
+          "search_edge_300": false,
+          "max_offset_600": -60,
+          "max_gain_600": 2.6,
+          "search_edge_600": false,
+          "max_offset_900": -60,
+          "max_gain_900": 2.6,
+          "search_edge_900": false,
+          "max_offset_1200": -60,
+          "max_gain_1200": 2.6,
+          "search_edge_1200": false,
+          "max_offset_1500": -60,
+          "max_gain_1500": 2.6,
+          "search_edge_1500": false,
+          "max_offset_1800": -60,
+          "max_gain_1800": 2.6,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": -60,
+              "elevation_m": 6127.2
+            }
+          ]
+        },
+        {
+          "station_km": 91.9,
+          "origin_utm_xy_m": [
+            658936.2,
+            3933298.32
+          ],
+          "origin_lonlat": [
+            76.7530371,
+            35.5305811
+          ],
+          "center_dem_m": 6125.9,
+          "max_offset_300": -60,
+          "max_gain_300": 2.2,
+          "search_edge_300": false,
+          "max_offset_600": -60,
+          "max_gain_600": 2.2,
+          "search_edge_600": false,
+          "max_offset_900": -60,
+          "max_gain_900": 2.2,
+          "search_edge_900": false,
+          "max_offset_1200": -60,
+          "max_gain_1200": 2.2,
+          "search_edge_1200": false,
+          "max_offset_1500": -60,
+          "max_gain_1500": 2.2,
+          "search_edge_1500": false,
+          "max_offset_1800": -60,
+          "max_gain_1800": 2.2,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": -60,
+              "elevation_m": 6128.1
+            }
+          ]
+        },
+        {
+          "station_km": 92.025,
+          "origin_utm_xy_m": [
+            658936.82,
+            3933423.32
+          ],
+          "origin_lonlat": [
+            76.7530684,
+            35.5317075
+          ],
+          "center_dem_m": 6130.1,
+          "max_offset_300": -30,
+          "max_gain_300": 4.7,
+          "search_edge_300": false,
+          "max_offset_600": -30,
+          "max_gain_600": 4.7,
+          "search_edge_600": false,
+          "max_offset_900": -30,
+          "max_gain_900": 4.7,
+          "search_edge_900": false,
+          "max_offset_1200": -30,
+          "max_gain_1200": 4.7,
+          "search_edge_1200": false,
+          "max_offset_1500": -30,
+          "max_gain_1500": 4.7,
+          "search_edge_1500": false,
+          "max_offset_1800": -30,
+          "max_gain_1800": 4.7,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": -30,
+              "elevation_m": 6134.8
+            }
+          ]
+        },
+        {
+          "station_km": 92.15,
+          "origin_utm_xy_m": [
+            658941.42,
+            3933548.14
+          ],
+          "origin_lonlat": [
+            76.7531436,
+            35.5328317
+          ],
+          "center_dem_m": 6130.5,
+          "max_offset_300": -30,
+          "max_gain_300": 0.7,
+          "search_edge_300": false,
+          "max_offset_600": -30,
+          "max_gain_600": 0.7,
+          "search_edge_600": false,
+          "max_offset_900": -30,
+          "max_gain_900": 0.7,
+          "search_edge_900": false,
+          "max_offset_1200": -30,
+          "max_gain_1200": 0.7,
+          "search_edge_1200": false,
+          "max_offset_1500": -30,
+          "max_gain_1500": 0.7,
+          "search_edge_1500": false,
+          "max_offset_1800": -30,
+          "max_gain_1800": 0.7,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": -30,
+              "elevation_m": 6131.2
+            },
+            {
+              "offset_m": -1200,
+              "elevation_m": 5780.3
+            }
+          ]
+        }
+      ]
+    },
+    "sia_la": {
+      "stations": 20,
+      "extent_km": [
+        99.0,
+        101.4
+      ],
+      "counts": {
+        "300": {
+          "median_abs_offset_m": 255.0,
+          "search_edge_samples": 10,
+          "search_edge_pct": 50.0,
+          "high_point_gain_ge100m": 0,
+          "pct_positive_east_offset": 45.0
+        },
+        "600": {
+          "median_abs_offset_m": 255.0,
+          "search_edge_samples": 3,
+          "search_edge_pct": 15.0,
+          "high_point_gain_ge100m": 0,
+          "pct_positive_east_offset": 45.0
+        },
+        "900": {
+          "median_abs_offset_m": 270.0,
+          "search_edge_samples": 5,
+          "search_edge_pct": 25.0,
+          "high_point_gain_ge100m": 1,
+          "pct_positive_east_offset": 50.0
+        },
+        "1200": {
+          "median_abs_offset_m": 270.0,
+          "search_edge_samples": 5,
+          "search_edge_pct": 25.0,
+          "high_point_gain_ge100m": 2,
+          "pct_positive_east_offset": 50.0
+        },
+        "1500": {
+          "median_abs_offset_m": 270.0,
+          "search_edge_samples": 9,
+          "search_edge_pct": 45.0,
+          "high_point_gain_ge100m": 7,
+          "pct_positive_east_offset": 35.0
+        },
+        "1800": {
+          "median_abs_offset_m": 1800.0,
+          "search_edge_samples": 13,
+          "search_edge_pct": 65.0,
+          "high_point_gain_ge100m": 10,
+          "pct_positive_east_offset": 25.0
+        }
+      },
+      "samples": [
+        {
+          "station_km": 99.0,
+          "origin_utm_xy_m": [
+            661243.21,
+            3938639.75
+          ],
+          "origin_lonlat": [
+            76.7795359,
+            35.5783469
+          ],
+          "center_dem_m": 5849.0,
+          "max_offset_300": -30,
+          "max_gain_300": 2.0,
+          "search_edge_300": false,
+          "max_offset_600": -30,
+          "max_gain_600": 2.0,
+          "search_edge_600": false,
+          "max_offset_900": -30,
+          "max_gain_900": 2.0,
+          "search_edge_900": false,
+          "max_offset_1200": -30,
+          "max_gain_1200": 2.0,
+          "search_edge_1200": false,
+          "max_offset_1500": -30,
+          "max_gain_1500": 2.0,
+          "search_edge_1500": false,
+          "max_offset_1800": -1800,
+          "max_gain_1800": 47.9,
+          "search_edge_1800": true,
+          "local_peak_candidates": [
+            {
+              "offset_m": -30,
+              "elevation_m": 5851.0
+            }
+          ]
+        },
+        {
+          "station_km": 99.125,
+          "origin_utm_xy_m": [
+            661365.32,
+            3938613.02
+          ],
+          "origin_lonlat": [
+            76.7808776,
+            35.5780861
+          ],
+          "center_dem_m": 5760.2,
+          "max_offset_300": 0,
+          "max_gain_300": 0.0,
+          "search_edge_300": false,
+          "max_offset_600": 0,
+          "max_gain_600": 0.0,
+          "search_edge_600": false,
+          "max_offset_900": 900,
+          "max_gain_900": 0.8,
+          "search_edge_900": true,
+          "max_offset_1200": 1200,
+          "max_gain_1200": 15.4,
+          "search_edge_1200": true,
+          "max_offset_1500": 1500,
+          "max_gain_1500": 59.1,
+          "search_edge_1500": true,
+          "max_offset_1800": -1800,
+          "max_gain_1800": 216.7,
+          "search_edge_1800": true,
+          "local_peak_candidates": [
+            {
+              "offset_m": 0,
+              "elevation_m": 5760.2
+            }
+          ]
+        },
+        {
+          "station_km": 99.25,
+          "origin_utm_xy_m": [
+            661484.49,
+            3938575.53
+          ],
+          "origin_lonlat": [
+            76.7821849,
+            35.5777288
+          ],
+          "center_dem_m": 5685.5,
+          "max_offset_300": 300,
+          "max_gain_300": 15.5,
+          "search_edge_300": true,
+          "max_offset_600": 600,
+          "max_gain_600": 59.7,
+          "search_edge_600": true,
+          "max_offset_900": 900,
+          "max_gain_900": 73.5,
+          "search_edge_900": true,
+          "max_offset_1200": 1200,
+          "max_gain_1200": 92.5,
+          "search_edge_1200": true,
+          "max_offset_1500": -1500,
+          "max_gain_1500": 172.7,
+          "search_edge_1500": true,
+          "max_offset_1800": -1800,
+          "max_gain_1800": 422.5,
+          "search_edge_1800": true,
+          "local_peak_candidates": []
+        },
+        {
+          "station_km": 99.375,
+          "origin_utm_xy_m": [
+            661603.28,
+            3938536.62
+          ],
+          "origin_lonlat": [
+            76.7834875,
+            35.5773587
+          ],
+          "center_dem_m": 5658.8,
+          "max_offset_300": 300,
+          "max_gain_300": 40.1,
+          "search_edge_300": true,
+          "max_offset_600": 600,
+          "max_gain_600": 81.1,
+          "search_edge_600": true,
+          "max_offset_900": 900,
+          "max_gain_900": 96.8,
+          "search_edge_900": true,
+          "max_offset_1200": 1200,
+          "max_gain_1200": 132.7,
+          "search_edge_1200": true,
+          "max_offset_1500": -1500,
+          "max_gain_1500": 251.1,
+          "search_edge_1500": true,
+          "max_offset_1800": -1800,
+          "max_gain_1800": 422.1,
+          "search_edge_1800": true,
+          "local_peak_candidates": []
+        },
+        {
+          "station_km": 99.5,
+          "origin_utm_xy_m": [
+            661722.07,
+            3938497.71
+          ],
+          "origin_lonlat": [
+            76.7847902,
+            35.5769887
+          ],
+          "center_dem_m": 5656.3,
+          "max_offset_300": 300,
+          "max_gain_300": 40.0,
+          "search_edge_300": true,
+          "max_offset_600": 600,
+          "max_gain_600": 70.7,
+          "search_edge_600": true,
+          "max_offset_900": 900,
+          "max_gain_900": 102.3,
+          "search_edge_900": true,
+          "max_offset_1200": 1200,
+          "max_gain_1200": 137.6,
+          "search_edge_1200": true,
+          "max_offset_1500": -1500,
+          "max_gain_1500": 264.1,
+          "search_edge_1500": true,
+          "max_offset_1800": -1800,
+          "max_gain_1800": 373.2,
+          "search_edge_1800": true,
+          "local_peak_candidates": []
+        },
+        {
+          "station_km": 99.625,
+          "origin_utm_xy_m": [
+            661839.33,
+            3938485.99
+          ],
+          "origin_lonlat": [
+            76.7860813,
+            35.5768639
+          ],
+          "center_dem_m": 5646.0,
+          "max_offset_300": 300,
+          "max_gain_300": 22.9,
+          "search_edge_300": true,
+          "max_offset_600": 450,
+          "max_gain_600": 24.7,
+          "search_edge_600": false,
+          "max_offset_900": 900,
+          "max_gain_900": 27.9,
+          "search_edge_900": true,
+          "max_offset_1200": 1200,
+          "max_gain_1200": 57.4,
+          "search_edge_1200": true,
+          "max_offset_1500": 1500,
+          "max_gain_1500": 164.4,
+          "search_edge_1500": true,
+          "max_offset_1800": 1800,
+          "max_gain_1800": 319.6,
+          "search_edge_1800": true,
+          "local_peak_candidates": []
+        },
+        {
+          "station_km": 99.75,
+          "origin_utm_xy_m": [
+            661953.0,
+            3938538.0
+          ],
+          "origin_lonlat": [
+            76.7873457,
+            35.577314
+          ],
+          "center_dem_m": 5627.9,
+          "max_offset_300": 300,
+          "max_gain_300": 20.6,
+          "search_edge_300": true,
+          "max_offset_600": 360,
+          "max_gain_600": 21.0,
+          "search_edge_600": false,
+          "max_offset_900": 360,
+          "max_gain_900": 21.0,
+          "search_edge_900": false,
+          "max_offset_1200": 360,
+          "max_gain_1200": 21.0,
+          "search_edge_1200": false,
+          "max_offset_1500": 1500,
+          "max_gain_1500": 166.8,
+          "search_edge_1500": true,
+          "max_offset_1800": 1800,
+          "max_gain_1800": 379.4,
+          "search_edge_1800": true,
+          "local_peak_candidates": []
+        },
+        {
+          "station_km": 99.875,
+          "origin_utm_xy_m": [
+            662066.67,
+            3938590.01
+          ],
+          "origin_lonlat": [
+            76.78861,
+            35.5777641
+          ],
+          "center_dem_m": 5611.9,
+          "max_offset_300": 300,
+          "max_gain_300": 23.5,
+          "search_edge_300": true,
+          "max_offset_600": 390,
+          "max_gain_600": 25.1,
+          "search_edge_600": false,
+          "max_offset_900": 390,
+          "max_gain_900": 25.1,
+          "search_edge_900": false,
+          "max_offset_1200": 390,
+          "max_gain_1200": 25.1,
+          "search_edge_1200": false,
+          "max_offset_1500": 1500,
+          "max_gain_1500": 158.7,
+          "search_edge_1500": true,
+          "max_offset_1800": 1800,
+          "max_gain_1800": 345.8,
+          "search_edge_1800": true,
+          "local_peak_candidates": []
+        },
+        {
+          "station_km": 100.0,
+          "origin_utm_xy_m": [
+            662180.34,
+            3938642.01
+          ],
+          "origin_lonlat": [
+            76.7898743,
+            35.5782142
+          ],
+          "center_dem_m": 5602.4,
+          "max_offset_300": 300,
+          "max_gain_300": 22.9,
+          "search_edge_300": true,
+          "max_offset_600": 420,
+          "max_gain_600": 24.9,
+          "search_edge_600": false,
+          "max_offset_900": 420,
+          "max_gain_900": 24.9,
+          "search_edge_900": false,
+          "max_offset_1200": 420,
+          "max_gain_1200": 24.9,
+          "search_edge_1200": false,
+          "max_offset_1500": 1500,
+          "max_gain_1500": 126.5,
+          "search_edge_1500": true,
+          "max_offset_1800": 1800,
+          "max_gain_1800": 259.6,
+          "search_edge_1800": true,
+          "local_peak_candidates": [
+            {
+              "offset_m": 420,
+              "elevation_m": 5627.3
+            }
+          ]
+        },
+        {
+          "station_km": 100.125,
+          "origin_utm_xy_m": [
+            662294.0,
+            3938694.02
+          ],
+          "origin_lonlat": [
+            76.7911387,
+            35.5786642
+          ],
+          "center_dem_m": 5597.4,
+          "max_offset_300": 300,
+          "max_gain_300": 20.6,
+          "search_edge_300": true,
+          "max_offset_600": 420,
+          "max_gain_600": 23.6,
+          "search_edge_600": false,
+          "max_offset_900": 420,
+          "max_gain_900": 23.6,
+          "search_edge_900": false,
+          "max_offset_1200": 420,
+          "max_gain_1200": 23.6,
+          "search_edge_1200": false,
+          "max_offset_1500": 1500,
+          "max_gain_1500": 71.0,
+          "search_edge_1500": true,
+          "max_offset_1800": -1800,
+          "max_gain_1800": 193.9,
+          "search_edge_1800": true,
+          "local_peak_candidates": [
+            {
+              "offset_m": 420,
+              "elevation_m": 5621.0
+            }
+          ]
+        },
+        {
+          "station_km": 100.25,
+          "origin_utm_xy_m": [
+            662395.39,
+            3938757.64
+          ],
+          "origin_lonlat": [
+            76.7922699,
+            35.579221
+          ],
+          "center_dem_m": 5593.4,
+          "max_offset_300": 210,
+          "max_gain_300": 5.4,
+          "search_edge_300": false,
+          "max_offset_600": 210,
+          "max_gain_600": 5.4,
+          "search_edge_600": false,
+          "max_offset_900": 210,
+          "max_gain_900": 5.4,
+          "search_edge_900": false,
+          "max_offset_1200": 210,
+          "max_gain_1200": 5.4,
+          "search_edge_1200": false,
+          "max_offset_1500": 210,
+          "max_gain_1500": 5.4,
+          "search_edge_1500": false,
+          "max_offset_1800": 1800,
+          "max_gain_1800": 10.4,
+          "search_edge_1800": true,
+          "local_peak_candidates": [
+            {
+              "offset_m": 210,
+              "elevation_m": 5598.8
+            }
+          ]
+        },
+        {
+          "station_km": 100.375,
+          "origin_utm_xy_m": [
+            662441.02,
+            3938874.02
+          ],
+          "origin_lonlat": [
+            76.7927967,
+            35.5802623
+          ],
+          "center_dem_m": 5588.4,
+          "max_offset_300": -210,
+          "max_gain_300": 2.9,
+          "search_edge_300": false,
+          "max_offset_600": -210,
+          "max_gain_600": 2.9,
+          "search_edge_600": false,
+          "max_offset_900": -210,
+          "max_gain_900": 2.9,
+          "search_edge_900": false,
+          "max_offset_1200": -210,
+          "max_gain_1200": 2.9,
+          "search_edge_1200": false,
+          "max_offset_1500": -210,
+          "max_gain_1500": 2.9,
+          "search_edge_1500": false,
+          "max_offset_1800": -210,
+          "max_gain_1800": 2.9,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": -210,
+              "elevation_m": 5591.3
+            }
+          ]
+        },
+        {
+          "station_km": 100.5,
+          "origin_utm_xy_m": [
+            662486.65,
+            3938990.39
+          ],
+          "origin_lonlat": [
+            76.7933235,
+            35.5813036
+          ],
+          "center_dem_m": 5586.3,
+          "max_offset_300": -240,
+          "max_gain_300": 5.9,
+          "search_edge_300": false,
+          "max_offset_600": -240,
+          "max_gain_600": 5.9,
+          "search_edge_600": false,
+          "max_offset_900": -240,
+          "max_gain_900": 5.9,
+          "search_edge_900": false,
+          "max_offset_1200": -240,
+          "max_gain_1200": 5.9,
+          "search_edge_1200": false,
+          "max_offset_1500": -240,
+          "max_gain_1500": 5.9,
+          "search_edge_1500": false,
+          "max_offset_1800": -240,
+          "max_gain_1800": 5.9,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": -240,
+              "elevation_m": 5592.2
+            }
+          ]
+        },
+        {
+          "station_km": 100.625,
+          "origin_utm_xy_m": [
+            662532.28,
+            3939106.76
+          ],
+          "origin_lonlat": [
+            76.7938503,
+            35.5823449
+          ],
+          "center_dem_m": 5587.6,
+          "max_offset_300": -240,
+          "max_gain_300": 9.3,
+          "search_edge_300": false,
+          "max_offset_600": -240,
+          "max_gain_600": 9.3,
+          "search_edge_600": false,
+          "max_offset_900": -240,
+          "max_gain_900": 9.3,
+          "search_edge_900": false,
+          "max_offset_1200": -240,
+          "max_gain_1200": 9.3,
+          "search_edge_1200": false,
+          "max_offset_1500": -240,
+          "max_gain_1500": 9.3,
+          "search_edge_1500": false,
+          "max_offset_1800": -240,
+          "max_gain_1800": 9.3,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": -240,
+              "elevation_m": 5596.9
+            }
+          ]
+        },
+        {
+          "station_km": 100.75,
+          "origin_utm_xy_m": [
+            662553.26,
+            3939226.65
+          ],
+          "origin_lonlat": [
+            76.7941058,
+            35.5834219
+          ],
+          "center_dem_m": 5587.7,
+          "max_offset_300": -240,
+          "max_gain_300": 10.3,
+          "search_edge_300": false,
+          "max_offset_600": -240,
+          "max_gain_600": 10.3,
+          "search_edge_600": false,
+          "max_offset_900": -240,
+          "max_gain_900": 10.3,
+          "search_edge_900": false,
+          "max_offset_1200": -240,
+          "max_gain_1200": 10.3,
+          "search_edge_1200": false,
+          "max_offset_1500": -240,
+          "max_gain_1500": 10.3,
+          "search_edge_1500": false,
+          "max_offset_1800": -1800,
+          "max_gain_1800": 11.0,
+          "search_edge_1800": true,
+          "local_peak_candidates": [
+            {
+              "offset_m": -240,
+              "elevation_m": 5598.1
+            }
+          ]
+        },
+        {
+          "station_km": 100.875,
+          "origin_utm_xy_m": [
+            662541.97,
+            3939351.14
+          ],
+          "origin_lonlat": [
+            76.7940063,
+            35.5845456
+          ],
+          "center_dem_m": 5592.2,
+          "max_offset_300": -240,
+          "max_gain_300": 12.5,
+          "search_edge_300": false,
+          "max_offset_600": -240,
+          "max_gain_600": 12.5,
+          "search_edge_600": false,
+          "max_offset_900": -240,
+          "max_gain_900": 12.5,
+          "search_edge_900": false,
+          "max_offset_1200": -240,
+          "max_gain_1200": 12.5,
+          "search_edge_1200": false,
+          "max_offset_1500": -240,
+          "max_gain_1500": 12.5,
+          "search_edge_1500": false,
+          "max_offset_1800": -1800,
+          "max_gain_1800": 14.2,
+          "search_edge_1800": true,
+          "local_peak_candidates": [
+            {
+              "offset_m": -240,
+              "elevation_m": 5604.8
+            }
+          ]
+        },
+        {
+          "station_km": 101.0,
+          "origin_utm_xy_m": [
+            662530.68,
+            3939475.63
+          ],
+          "origin_lonlat": [
+            76.7939068,
+            35.5856694
+          ],
+          "center_dem_m": 5614.8,
+          "max_offset_300": -270,
+          "max_gain_300": 16.9,
+          "search_edge_300": true,
+          "max_offset_600": -270,
+          "max_gain_600": 16.9,
+          "search_edge_600": false,
+          "max_offset_900": -270,
+          "max_gain_900": 16.9,
+          "search_edge_900": false,
+          "max_offset_1200": -270,
+          "max_gain_1200": 16.9,
+          "search_edge_1200": false,
+          "max_offset_1500": -270,
+          "max_gain_1500": 16.9,
+          "search_edge_1500": false,
+          "max_offset_1800": -270,
+          "max_gain_1800": 16.9,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": -270,
+              "elevation_m": 5631.7
+            }
+          ]
+        },
+        {
+          "station_km": 101.125,
+          "origin_utm_xy_m": [
+            662519.4,
+            3939600.12
+          ],
+          "origin_lonlat": [
+            76.7938073,
+            35.5867932
+          ],
+          "center_dem_m": 5652.5,
+          "max_offset_300": -270,
+          "max_gain_300": 46.1,
+          "search_edge_300": true,
+          "max_offset_600": -270,
+          "max_gain_600": 46.1,
+          "search_edge_600": false,
+          "max_offset_900": -270,
+          "max_gain_900": 46.1,
+          "search_edge_900": false,
+          "max_offset_1200": -270,
+          "max_gain_1200": 46.1,
+          "search_edge_1200": false,
+          "max_offset_1500": -270,
+          "max_gain_1500": 46.1,
+          "search_edge_1500": false,
+          "max_offset_1800": -270,
+          "max_gain_1800": 46.1,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": -270,
+              "elevation_m": 5698.6
+            }
+          ]
+        },
+        {
+          "station_km": 101.25,
+          "origin_utm_xy_m": [
+            662508.11,
+            3939724.61
+          ],
+          "origin_lonlat": [
+            76.7937078,
+            35.5879169
+          ],
+          "center_dem_m": 5712.4,
+          "max_offset_300": -210,
+          "max_gain_300": 27.4,
+          "search_edge_300": false,
+          "max_offset_600": -210,
+          "max_gain_600": 27.4,
+          "search_edge_600": false,
+          "max_offset_900": -210,
+          "max_gain_900": 27.4,
+          "search_edge_900": false,
+          "max_offset_1200": -210,
+          "max_gain_1200": 27.4,
+          "search_edge_1200": false,
+          "max_offset_1500": -210,
+          "max_gain_1500": 27.4,
+          "search_edge_1500": false,
+          "max_offset_1800": -210,
+          "max_gain_1800": 27.4,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": -210,
+              "elevation_m": 5739.8
+            }
+          ]
+        },
+        {
+          "station_km": 101.375,
+          "origin_utm_xy_m": [
+            662439.41,
+            3939826.05
+          ],
+          "origin_lonlat": [
+            76.7929702,
+            35.5888424
+          ],
+          "center_dem_m": 5786.3,
+          "max_offset_300": -60,
+          "max_gain_300": 0.8,
+          "search_edge_300": false,
+          "max_offset_600": -60,
+          "max_gain_600": 0.8,
+          "search_edge_600": false,
+          "max_offset_900": -60,
+          "max_gain_900": 0.8,
+          "search_edge_900": false,
+          "max_offset_1200": -60,
+          "max_gain_1200": 0.8,
+          "search_edge_1200": false,
+          "max_offset_1500": -60,
+          "max_gain_1500": 0.8,
+          "search_edge_1500": false,
+          "max_offset_1800": -1740,
+          "max_gain_1800": 137.0,
+          "search_edge_1800": false,
+          "local_peak_candidates": [
+            {
+              "offset_m": -60,
+              "elevation_m": 5787.1
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "saddle_site_points": [
+    {
+      "id": "sia_wikipedia",
+      "name": "Sia La - Wikipedia",
+      "lonlat": [
+        76.7925,
+        35.58194
+      ],
+      "dem_elevation_m": 5590.1,
+      "reported_elevation_m": 5589,
+      "dem_minus_published_m": 1.1,
+      "radius_saddle_diagnostic": {
+        "120": {
+          "saddle_score_min_quadrant_m": -2.1,
+          "optimal_axis_degrees_utm": 90,
+          "radial_height_differences_m": [
+            5.2,
+            -1.8,
+            2.1,
+            -4.0
+          ],
+          "saddle_shape_supported": false
+        },
+        "240": {
+          "saddle_score_min_quadrant_m": 0.2,
+          "optimal_axis_degrees_utm": 90,
+          "radial_height_differences_m": [
+            8.2,
+            0.2,
+            -1.0,
+            -9.0
+          ],
+          "saddle_shape_supported": false
+        },
+        "420": {
+          "saddle_score_min_quadrant_m": 11.7,
+          "optimal_axis_degrees_utm": 80,
+          "radial_height_differences_m": [
+            31.4,
+            11.7,
+            -14.1,
+            -18.0
+          ],
+          "saddle_shape_supported": false
+        }
+      },
+      "caveat": "Saddle score is local DSM shape only, not a survey or a political border."
+    },
+    {
+      "id": "sia_osm",
+      "name": "Sia La - OSM / Mapcarta",
+      "lonlat": [
+        76.79081,
+        35.58123
+      ],
+      "dem_elevation_m": 5591.5,
+      "reported_elevation_m": 5803,
+      "dem_minus_published_m": -211.5,
+      "radius_saddle_diagnostic": {
+        "120": {
+          "saddle_score_min_quadrant_m": 1.2,
+          "optimal_axis_degrees_utm": 80,
+          "radial_height_differences_m": [
+            1.2,
+            1.8,
+            -3.5,
+            -2.2
+          ],
+          "saddle_shape_supported": false
+        },
+        "240": {
+          "saddle_score_min_quadrant_m": 3.4,
+          "optimal_axis_degrees_utm": 60,
+          "radial_height_differences_m": [
+            5.0,
+            3.4,
+            -9.6,
+            -3.5
+          ],
+          "saddle_shape_supported": false
+        },
+        "420": {
+          "saddle_score_min_quadrant_m": 13.7,
+          "optimal_axis_degrees_utm": 90,
+          "radial_height_differences_m": [
+            27.3,
+            19.9,
+            -18.8,
+            -13.7
+          ],
+          "saddle_shape_supported": false
+        }
+      },
+      "caveat": "Saddle score is local DSM shape only, not a survey or a political border."
+    },
+    {
+      "id": "sia_nga",
+      "name": "Sia La - Getty/NGA",
+      "lonlat": [
+        76.7876,
+        35.5904
+      ],
+      "dem_elevation_m": 5847.0,
+      "reported_elevation_m": null,
+      "dem_minus_published_m": null,
+      "radius_saddle_diagnostic": {
+        "120": {
+          "saddle_score_min_quadrant_m": -73.2,
+          "optimal_axis_degrees_utm": 100,
+          "radial_height_differences_m": [
+            94.6,
+            -66.2,
+            -67.1,
+            73.2
+          ],
+          "saddle_shape_supported": false
+        },
+        "240": {
+          "saddle_score_min_quadrant_m": -135.6,
+          "optimal_axis_degrees_utm": 100,
+          "radial_height_differences_m": [
+            173.3,
+            -135.6,
+            -221.8,
+            134.5
+          ],
+          "saddle_shape_supported": false
+        },
+        "420": {
+          "saddle_score_min_quadrant_m": -164.6,
+          "optimal_axis_degrees_utm": 120,
+          "radial_height_differences_m": [
+            99.0,
+            -133.5,
+            -395.1,
+            164.6
+          ],
+          "saddle_shape_supported": false
+        }
+      },
+      "caveat": "Saddle score is local DSM shape only, not a survey or a political border."
+    },
+    {
+      "id": "bilafond_osm",
+      "name": "Bilafond La - OSM",
+      "lonlat": [
+        76.94873,
+        35.39186
+      ],
+      "dem_elevation_m": 5457.1,
+      "reported_elevation_m": 5450,
+      "dem_minus_published_m": 7.1,
+      "radius_saddle_diagnostic": {
+        "120": {
+          "saddle_score_min_quadrant_m": 2.2,
+          "optimal_axis_degrees_utm": 110,
+          "radial_height_differences_m": [
+            2.2,
+            6.8,
+            -8.7,
+            -5.6
+          ],
+          "saddle_shape_supported": false
+        },
+        "240": {
+          "saddle_score_min_quadrant_m": 0.6,
+          "optimal_axis_degrees_utm": 110,
+          "radial_height_differences_m": [
+            0.6,
+            35.2,
+            -32.2,
+            -16.0
+          ],
+          "saddle_shape_supported": false
+        },
+        "420": {
+          "saddle_score_min_quadrant_m": 10.4,
+          "optimal_axis_degrees_utm": 120,
+          "radial_height_differences_m": [
+            10.4,
+            136.1,
+            -86.6,
+            -21.8
+          ],
+          "saddle_shape_supported": false
+        }
+      },
+      "caveat": "Saddle score is local DSM shape only, not a survey or a political border."
+    },
+    {
+      "id": "bilafond_nga",
+      "name": "Bilafond La - Getty/NGA",
+      "lonlat": [
+        76.9486,
+        35.3922
+      ],
+      "dem_elevation_m": 5457.2,
+      "reported_elevation_m": null,
+      "dem_minus_published_m": null,
+      "radius_saddle_diagnostic": {
+        "120": {
+          "saddle_score_min_quadrant_m": 2.5,
+          "optimal_axis_degrees_utm": 120,
+          "radial_height_differences_m": [
+            2.5,
+            3.0,
+            -7.3,
+            -4.1
+          ],
+          "saddle_shape_supported": false
+        },
+        "240": {
+          "saddle_score_min_quadrant_m": 1.0,
+          "optimal_axis_degrees_utm": 130,
+          "radial_height_differences_m": [
+            1.0,
+            12.2,
+            -35.8,
+            -12.2
+          ],
+          "saddle_shape_supported": false
+        },
+        "420": {
+          "saddle_score_min_quadrant_m": 13.2,
+          "optimal_axis_degrees_utm": 120,
+          "radial_height_differences_m": [
+            13.2,
+            104.6,
+            -77.8,
+            -22.5
+          ],
+          "saddle_shape_supported": false
+        }
+      },
+      "caveat": "Saddle score is local DSM shape only, not a survey or a political border."
+    }
+  ]
+}

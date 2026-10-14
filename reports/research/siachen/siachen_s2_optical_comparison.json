@@ -1,0 +1,213 @@
+{
+  "source": "Copernicus Sentinel-2 L2A; Earth Search v1 hosted by Element84",
+  "stac_search": "https://earth-search.aws.element84.com/v1/search",
+  "generated_utc": "2026-10-13T06:22:05.759975+00:00",
+  "pinned_item_ids": {
+    "2025": "S2B_43SFV_20250923_0_L2A",
+    "2026": "S2B_43SFV_20260829_0_L2A"
+  },
+  "selection_policy": "Frozen scene IDs after clear-scene rank and visual review; reruns must not silently swap acquisitions.",
+  "study_area": {
+    "sia_la": {
+      "bbox": [
+        76.758,
+        35.556,
+        76.828,
+        35.61
+      ],
+      "points": [
+        [
+          "Sia La - OSM",
+          76.79081,
+          35.58123
+        ],
+        [
+          "Sia La - Wikipedia",
+          76.7925,
+          35.58194
+        ],
+        [
+          "Sia La - NGA",
+          76.7876,
+          35.5904
+        ]
+      ]
+    },
+    "bilafond_north": {
+      "bbox": [
+        76.893,
+        35.374,
+        76.978,
+        35.432
+      ],
+      "points": [
+        [
+          "Bilafond La - OSM",
+          76.94873,
+          35.39186
+        ],
+        [
+          "Bilafond La - NGA",
+          76.9486,
+          35.3922
+        ]
+      ]
+    }
+  },
+  "classification": "SCL 0,1,3,8,9,10 excluded; snow/ice class 11 retained. Seasonal snow is not permanent glacier.",
+  "interpretation_warning": "Imagery is neither surveyed AGPL nor evidence of military outpost locations; no country geometry changed.",
+  "scenes": {
+    "2025": {
+      "item_id": "S2B_43SFV_20250923_0_L2A",
+      "datetime": "2025-09-23T05:49:05.650000Z",
+      "platform": "sentinel-2b",
+      "metadata_cloud_pct": 0.1341,
+      "assets": {
+        "red": "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/43/S/FV/2025/9/S2B_43SFV_20250923_0_L2A/B04.tif",
+        "green": "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/43/S/FV/2025/9/S2B_43SFV_20250923_0_L2A/B03.tif",
+        "blue": "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/43/S/FV/2025/9/S2B_43SFV_20250923_0_L2A/B02.tif",
+        "scl": "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/43/S/FV/2025/9/S2B_43SFV_20250923_0_L2A/SCL.tif"
+      },
+      "local_scl_60m": {
+        "sia_la": {
+          "valid": 1.0,
+          "usable": 1.0,
+          "cloud": 0.0,
+          "snow": 0.9439
+        },
+        "bilafond_north": {
+          "valid": 1.0,
+          "usable": 0.9996,
+          "cloud": 0.0004,
+          "snow": 0.9247
+        }
+      },
+      "ranked_candidates": [
+        {
+          "item_id": "S2B_43SFV_20250923_0_L2A",
+          "datetime": "2025-09-23T05:49:05.650000Z",
+          "score": 2.69896,
+          "local_quality": {
+            "sia_la": {
+              "valid": 1.0,
+              "usable": 1.0,
+              "cloud": 0.0,
+              "snow": 0.9439
+            },
+            "bilafond_north": {
+              "valid": 1.0,
+              "usable": 0.9996,
+              "cloud": 0.0004,
+              "snow": 0.9247
+            }
+          },
+          "provenance": "Pinned after initial candidate ranking and visual review on 2026-10-08"
+        }
+      ],
+      "images": {
+        "sia_la": {
+          "path": "siachen_s2_2025_sia_la_optical.png",
+          "quality": {
+            "shape": [
+              611,
+              646
+            ],
+            "clear_fraction": 1.0,
+            "cloud_fraction": 0.0,
+            "snow_ice_class_fraction": 0.9444,
+            "display_stretch_hi": 11540.0
+          }
+        },
+        "bilafond_north": {
+          "path": "siachen_s2_2025_bilafond_north_optical.png",
+          "quality": {
+            "shape": [
+              659,
+              785
+            ],
+            "clear_fraction": 0.9997,
+            "cloud_fraction": 0.0003,
+            "snow_ice_class_fraction": 0.9244,
+            "display_stretch_hi": 11675.0
+          }
+        }
+      }
+    },
+    "2026": {
+      "item_id": "S2B_43SFV_20260829_0_L2A",
+      "datetime": "2026-08-29T05:49:03.488000Z",
+      "platform": "sentinel-2b",
+      "metadata_cloud_pct": 1.962824,
+      "assets": {
+        "red": "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/43/S/FV/2026/8/S2B_43SFV_20260829_0_L2A/B04.tif",
+        "green": "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/43/S/FV/2026/8/S2B_43SFV_20260829_0_L2A/B03.tif",
+        "blue": "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/43/S/FV/2026/8/S2B_43SFV_20260829_0_L2A/B02.tif",
+        "scl": "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/43/S/FV/2026/8/S2B_43SFV_20260829_0_L2A/SCL.tif"
+      },
+      "local_scl_60m": {
+        "sia_la": {
+          "valid": 1.0,
+          "usable": 0.9979,
+          "cloud": 0.0021,
+          "snow": 0.9694
+        },
+        "bilafond_north": {
+          "valid": 1.0,
+          "usable": 1.0,
+          "cloud": 0.0,
+          "snow": 0.9334
+        }
+      },
+      "ranked_candidates": [
+        {
+          "item_id": "S2B_43SFV_20260829_0_L2A",
+          "datetime": "2026-08-29T05:49:03.488000Z",
+          "score": 2.69302,
+          "local_quality": {
+            "sia_la": {
+              "valid": 1.0,
+              "usable": 0.9979,
+              "cloud": 0.0021,
+              "snow": 0.9694
+            },
+            "bilafond_north": {
+              "valid": 1.0,
+              "usable": 1.0,
+              "cloud": 0.0,
+              "snow": 0.9334
+            }
+          },
+          "provenance": "Pinned after initial candidate ranking and visual review on 2026-10-08"
+        }
+      ],
+      "images": {
+        "sia_la": {
+          "path": "siachen_s2_2026_sia_la_optical.png",
+          "quality": {
+            "shape": [
+              611,
+              646
+            ],
+            "clear_fraction": 0.998,
+            "cloud_fraction": 0.002,
+            "snow_ice_class_fraction": 0.9695,
+            "display_stretch_hi": 10755.0
+          }
+        },
+        "bilafond_north": {
+          "path": "siachen_s2_2026_bilafond_north_optical.png",
+          "quality": {
+            "shape": [
+              659,
+              785
+            ],
+            "clear_fraction": 1.0,
+            "cloud_fraction": 0.0,
+            "snow_ice_class_fraction": 0.9338,
+            "display_stretch_hi": 10597.0
+          }
+        }
+      }
+    }
+  }
+}

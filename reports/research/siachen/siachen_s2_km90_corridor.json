@@ -1,0 +1,152 @@
+{
+  "analysis": "Existing AGPL km90 sector; 2025 and 2026 Sentinel-2 optical crosscheck",
+  "status": "research_only_candidate_not_legally_verified",
+  "source_line": "OSM relation 13559521 pinned 2026-10-04; ODbL 1.0",
+  "inputs": {
+    "stac_metadata": "siachen_s2_optical_comparison.json",
+    "dem_samples": "sia_bilafond_dem_comparison.json",
+    "DEM_Copernicus": "GLO-30 2011-2015 observation (30m resample)",
+    "optical": "Copernicus Sentinel-2 L2A 10m"
+  },
+  "area_bbox_wgs84": [
+    76.725,
+    35.501,
+    76.796,
+    35.548
+  ],
+  "anomaly": {
+    "stations": [
+      {
+        "station_km": 90.038,
+        "lon": 76.7617744,
+        "lat": 35.5175137,
+        "dem_elevation_at_osm_m": 6291.5,
+        "cross_section_local_max_m": 6291.5,
+        "local_max_offset_right_east_m": -10,
+        "local_max_advantage_m": 0.0,
+        "offset_abs_m": 10,
+        "local_max_lon": 76.7617378,
+        "local_max_lat": 35.5174287,
+        "west_600m_elev_m": 5736.1,
+        "east_600m_elev_m": 6146.7
+      },
+      {
+        "station_km": 90.288,
+        "lon": 76.7591745,
+        "lat": 35.5182619,
+        "dem_elevation_at_osm_m": 6308.5,
+        "cross_section_local_max_m": 6315.9,
+        "local_max_offset_right_east_m": -70,
+        "local_max_advantage_m": 7.4,
+        "offset_abs_m": 70,
+        "local_max_lon": 76.7587086,
+        "local_max_lat": 35.5177589,
+        "west_600m_elev_m": 5660.1,
+        "east_600m_elev_m": 6136.8
+      },
+      {
+        "station_km": 90.538,
+        "lon": 76.7586166,
+        "lat": 35.5202809,
+        "dem_elevation_at_osm_m": 6168.8,
+        "cross_section_local_max_m": 6280.2,
+        "local_max_offset_right_east_m": 890,
+        "local_max_advantage_m": 111.4,
+        "offset_abs_m": 890,
+        "local_max_lon": 76.7684061,
+        "local_max_lat": 35.5208325,
+        "west_600m_elev_m": 5858.2,
+        "east_600m_elev_m": 6239.4
+      },
+      {
+        "station_km": 90.788,
+        "lon": 76.758427,
+        "lat": 35.522529,
+        "dem_elevation_at_osm_m": 6112.7,
+        "cross_section_local_max_m": 6219.0,
+        "local_max_offset_right_east_m": 890,
+        "local_max_advantage_m": 106.3,
+        "offset_abs_m": 890,
+        "local_max_lon": 76.7682167,
+        "local_max_lat": 35.5230806,
+        "west_600m_elev_m": 6073.2,
+        "east_600m_elev_m": 6152.8
+      },
+      {
+        "station_km": 91.038,
+        "lon": 76.7582373,
+        "lat": 35.5247771,
+        "dem_elevation_at_osm_m": 6100.9,
+        "cross_section_local_max_m": 6123.8,
+        "local_max_offset_right_east_m": 890,
+        "local_max_advantage_m": 22.8,
+        "offset_abs_m": 890,
+        "local_max_lon": 76.7679321,
+        "local_max_lat": 35.5260201,
+        "west_600m_elev_m": 5990.9,
+        "east_600m_elev_m": 6099.5
+      },
+      {
+        "station_km": 91.288,
+        "lon": 76.7566629,
+        "lat": 35.5264533,
+        "dem_elevation_at_osm_m": 6105.0,
+        "cross_section_local_max_m": 6107.8,
+        "local_max_offset_right_east_m": 140,
+        "local_max_advantage_m": 2.8,
+        "offset_abs_m": 140,
+        "local_max_lon": 76.757662,
+        "local_max_lat": 35.5274153,
+        "west_600m_elev_m": 6106.8,
+        "east_600m_elev_m": 6094.9
+      }
+    ],
+    "maximum_search_boundary_note": "The +890m local maximum is at the original ±900m peak-search limit, not a measured crest position; revisit with a wider cross-section."
+  },
+  "years": {
+    "2025": {
+      "item_id": "S2B_43SFV_20250923_0_L2A",
+      "datetime": "2025-09-23T05:49:05.650000Z",
+      "manifest_source_scene": "S2B_43SFV_20250923_0_L2A",
+      "asset_urls": {
+        "red": "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/43/S/FV/2025/9/S2B_43SFV_20250923_0_L2A/B04.tif",
+        "green": "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/43/S/FV/2025/9/S2B_43SFV_20250923_0_L2A/B03.tif",
+        "blue": "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/43/S/FV/2025/9/S2B_43SFV_20250923_0_L2A/B02.tif",
+        "scl": "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/43/S/FV/2025/9/S2B_43SFV_20250923_0_L2A/SCL.tif"
+      },
+      "local_optical_quality": {
+        "shape": [
+          533,
+          654
+        ],
+        "clear_fraction": 0.9416,
+        "cloud_fraction": 0.0584,
+        "snow_ice_class_fraction": 0.7088,
+        "display_stretch_hi": 12246.9
+      },
+      "overlay_image": "siachen_s2_2025_km90_corridor.png"
+    },
+    "2026": {
+      "item_id": "S2B_43SFV_20260829_0_L2A",
+      "datetime": "2026-08-29T05:49:03.488000Z",
+      "manifest_source_scene": "S2B_43SFV_20260829_0_L2A",
+      "asset_urls": {
+        "red": "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/43/S/FV/2026/8/S2B_43SFV_20260829_0_L2A/B04.tif",
+        "green": "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/43/S/FV/2026/8/S2B_43SFV_20260829_0_L2A/B03.tif",
+        "blue": "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/43/S/FV/2026/8/S2B_43SFV_20260829_0_L2A/B02.tif",
+        "scl": "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/43/S/FV/2026/8/S2B_43SFV_20260829_0_L2A/SCL.tif"
+      },
+      "local_optical_quality": {
+        "shape": [
+          533,
+          654
+        ],
+        "clear_fraction": 0.9467,
+        "cloud_fraction": 0.0533,
+        "snow_ice_class_fraction": 0.7468,
+        "display_stretch_hi": 11711.0
+      },
+      "overlay_image": "siachen_s2_2026_km90_corridor.png"
+    }
+  }
+}
