@@ -48,6 +48,12 @@ private slots:
         QVERIFY(std::abs(batch.property(1).toNumber()+expected)<1e-12);
         const auto invalid=engine.evaluate(QStringLiteral("PandoLabPolygonGeometry.sphericalSignedArea([[0,0],[1,0],[1,1]])"));
         QVERIFY(invalid.isError());
+        // A polar cap must use the same spherical integral in Qt and WASM.
+        const Ring cap{{170,80},{-170,80},{-90,85},{0,89},{90,85},{170,80}};
+        const auto polar=engine.evaluate(QStringLiteral(
+            "PandoLabPolygonGeometry.sphericalSignedArea([[170,80],[-170,80],[-90,85],[0,89],[90,85],[170,80]])"));
+        QVERIFY2(!polar.isError(),qPrintable(polar.toString()));
+        QVERIFY(std::abs(polar.toNumber()-sphericalRingSignedArea(cap))<1e-12);
     }
     void exactApprovedSourceObservations_data() {
         QTest::addColumn<QJsonObject>("row");
