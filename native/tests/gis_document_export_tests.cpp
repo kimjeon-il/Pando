@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include <gisdocumentexport.h>
 #include <gisgeojson.h>
 #include <QCoreApplication>
@@ -6,7 +7,7 @@
 using namespace pandoeditor;
 int main(int argc,char** argv) {
     QCoreApplication app(argc,argv);
-    ProjectDocument doc({{"A","Alpha",{{{{0,0},{4,0},{4,4},{0,4},{0,0}}}},0x123456}},{{"countries","Countries"}});
+    pandoeditor::ProjectDocument doc = makeTerritorialDocument({{{"A","Alpha","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{4,0},{4,4},{0,4},{0,0}}}}},{0x123456,1},"countries"}},{{"countries","Countries"}});
     doc.units.front().sourceEntityId="state:A";
     doc.units.front().sourceGeometryVersion="v-1945";
     assert(!doc.units.front().libraryOrigin);

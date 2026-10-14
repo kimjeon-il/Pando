@@ -211,8 +211,8 @@ export function createGenericCommands() {
     const source = dependencies.projectState.state.genericFeatures.find(item => String(item.id) === String(dependencies.projectState.state.genericFeatureMergeSourceId));
     const target = dependencies.projectState.state.genericFeatures.find(item => String(item.id) === String(id));
     if (!source || !target || String(source.id) === String(target.id)) return;
-    if ((0, dependencies.applicationServicesA.genericFeatureRole)(source) !== (0, dependencies.applicationServicesA.genericFeatureRole)(target) || (0, dependencies.objectPresentation.genericFeatureGeometryKind)(target) !== 'polygon') {
-      (0, dependencies.feedback.setActionStatus)('같은 역할의 면 영역만 합칠 수 있습니다.', 'error', 3200);
+    if ((0, dependencies.objectPresentation.genericFeatureGeometryKind)(target) !== 'polygon') {
+      (0, dependencies.feedback.setActionStatus)('면 영역만 합칠 수 있습니다.', 'error', 3200);
       return;
     }
     const targets = new Set(dependencies.projectState.state.genericFeatureMergeTargetIds.map(String));

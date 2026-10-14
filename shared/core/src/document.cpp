@@ -2,7 +2,6 @@
 #include "documentstate.h"
 #include <algorithm>
 #include <cmath>
-#include <random>
 #include <set>
 #include <stdexcept>
 
@@ -50,23 +49,6 @@ void GeometryStore::retainFrom(const GeometryStore& source,const GeometryRef& so
 }
 std::shared_ptr<const Geometry> GeometryStore::get(const GeometryRef& ref) const {
     auto it=versions_.find(ref); return it==versions_.end()?nullptr:it->second;
-}
-ProjectDocument::ProjectDocument(std::vector<Country> countries,std::vector<Layer> layers) {
-    std::random_device random;
-    static const char hex[]="0123456789abcdef";
-    for(int i=0;i<32;++i) documentId+=hex[random()%16];
-    presentation.userLayers=std::move(layers);
-    for(auto& c:countries) {
-        GeometryRef geometry{"legacy-geometry-"+c.id,1};
-        geometries.insert(geometry,Geometry{"MultiPolygon",{},{},std::move(c.polygons)});
-        const auto baseName=c.name;
-        units.push_back({c.id,std::move(c.name),std::move(c.memo),UnitKind::General});
-        units.back().locked=c.locked;
-        addStaticTerritorialRecords(*this,c.id,geometry);
-        units.back().baseName=baseName;
-        presentation.membership.emplace(territorialRef(c.id),std::move(c.layerId));
-        presentation.objectStyles.emplace(territorialRef(c.id),ObjectStyle{c.color,c.opacity});
-    }
 }
 std::vector<TimelineEntityIdentity> timelineEntityCatalog(const ProjectDocument& d) {
     std::vector<TimelineEntityIdentity> result;

@@ -233,17 +233,6 @@
       "reason": "Reads detached source metadata for existing dataset and preview decisions; source document admission and hash checks are owned by C++."
     },
     {
-      "file": "assets/js/modules/project-state.js",
-      "functions": [
-        "prepareEditableProjectSnapshot"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "Detached current-format validation",
-      "reason": "Validates detached data at the offline current-format boundary; live history is owned by C++ DocumentSession."
-    },
-    {
       "file": "assets/js/modules/project-preview-policy.js",
       "functions": [
         "previewEntities"

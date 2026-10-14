@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { gzipSync, gunzipSync } from 'node:zlib';
 import { fileURLToPath } from 'node:url';
-import { buildCountrySharedBoundarySegments } from '../assets/js/modules/boundary-topology.js';
+import { buildCountrySharedBoundarySegments, serializeCountrySharedBoundarySegments } from '../assets/js/modules/boundary-topology.js';
 import { countryGeometrySignature } from '../assets/js/modules/country-shared-boundary-cache.js';
 import { classifyBuiltinCountries } from '../assets/js/modules/builtin-subunits.js';
 
@@ -23,7 +23,7 @@ for (const [quality, input, output] of inputs) {
     geometry: unit.geometry,
   }))];
   const signatures = Object.fromEntries(countries.map(feature => [String(feature.id), countryGeometrySignature(feature)]));
-  const segments = buildCountrySharedBoundarySegments(countries);
+  const segments = serializeCountrySharedBoundarySegments(buildCountrySharedBoundarySegments(countries));
   const content = Buffer.from(JSON.stringify({ version: 1, quality, signatures, segments }));
   const payload = gzipSync(content, { level: 9, mtime: 0 });
   const destination = path.join(data, output);

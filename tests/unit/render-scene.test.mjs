@@ -78,7 +78,7 @@ test('polygon and stroke packet builders reject degenerate coordinates and prese
     type: 'Polygon',
     coordinates: [[[0, 0], [1, 0], [1, 1], [0, 0]]],
   });
-  assert.equal(polygonPacket.triangleCount, 1);
+  assert.ok(polygonPacket.triangleCount > 1, 'interior edges use the common spherical refinement');
   const strokePacket = buildStrokeGeometryPacket({
     type: 'LineString',
     coordinates: [[179, 0], [-179, 1], [-179, 1], [Number.NaN, 2]],
@@ -167,4 +167,19 @@ test('RenderScene uses display LOD only for independent unprotected chunks', () 
   assert.equal(protectedScene.polygons[0].protected, true);
   assert.ok(protectedScene.polygons[0].vertexCount >= coarse.polygons[0].vertexCount);
   assert.ok(builder.stats().cacheBytes <= builder.stats().cacheBudgetBytes);
+});
+
+test('polygon fill and outline share the refined boundary across styles and outline-only paths', () => {
+  const geometry = { type: 'Polygon',
+    coordinates: [[[0, 0], [8, 0], [8, 5], [0, 5], [0, 0]]] };
+  const fill = { key: 'region:fill', geometryRevision: 1, geometry };
+  const outline = { key: 'region:outline', geometryRevision: 1, geometry };
+  const builder = createRenderSceneBuilder();
+  const first = builder.build({ polygons: [fill], strokes: [outline] });
+  assert.ok(first.strokes[0].segmentCount > 4);
+  assert.strictEqual(first.strokes[0].startsEnds, first.polygons[0].startsEnds);
+  const recolored = builder.patch(first, { strokes: [{ ...outline, style: { color: '#ff0000' } }] });
+  assert.strictEqual(recolored.strokes[0].startsEnds, first.strokes[0].startsEnds);
+  const onlyOutline = createRenderSceneBuilder().build({ strokes: [outline] });
+  assert.deepEqual(onlyOutline.strokes[0].startsEnds, first.strokes[0].startsEnds);
 });

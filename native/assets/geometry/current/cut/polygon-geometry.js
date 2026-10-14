@@ -2,7 +2,6 @@
   'use strict';
 
   const COORDINATE_TOLERANCE = 1e-10;
-  const MIN_RING_AREA = 1e-14;
 
   function coordinatesNear(left, right, tolerance = COORDINATE_TOLERANCE) {
     return Array.isArray(left) && Array.isArray(right)
@@ -43,9 +42,15 @@
   }
 
   function ensureClosedRing(rawRing) {
-    const coordinates = (rawRing || [])
-      .filter(coord => Array.isArray(coord) && Number.isFinite(Number(coord[0])) && Number.isFinite(Number(coord[1])))
-      .map(coord => [Number(coord[0]), Number(coord[1])]);
+    if (!Array.isArray(rawRing)) throw new Error('INVALID_POLYGON_RING: coordinates must be an array');
+    const coordinates = rawRing.map((coord, index) => {
+      if (!Array.isArray(coord) || coord.length !== 2
+        || !coord.every(value => typeof value === 'number' && Number.isFinite(value))
+        || Math.abs(coord[1]) > 90) {
+        throw new Error(`INVALID_POLYGON_COORDINATE: vertex ${index}`);
+      }
+      return coord.slice();
+    });
     const ring = [];
     for (const coordinate of coordinates) {
       if (!ring.length || !coordinatesNear(ring[ring.length - 1], coordinate)) ring.push(coordinate);
@@ -81,10 +86,74 @@
     return keys.size;
   }
 
+  // D3 chooses the complement of a negatively oriented spherical ring.
+  // A planar shoelace test is not equivalent at the antimeridian or poles.
+  function sphericalSignedArea(rawRing) {
+    const radians = Math.PI / 180;
+    const quarterPi = Math.PI / 4;
+    let area = 0;
+    let previousLongitude = rawRing[0][0] * radians;
+    let previousPhi = rawRing[0][1] * radians / 2 + quarterPi;
+    let previousCos = Math.cos(previousPhi), previousSin = Math.sin(previousPhi);
+    for (let index = 1; index < rawRing.length; index += 1) {
+      const longitude = rawRing[index][0] * radians;
+      const phi = rawRing[index][1] * radians / 2 + quarterPi;
+      const delta = longitude - previousLongitude;
+      const sin = Math.sin(phi), cos = Math.cos(phi);
+      const k = previousSin * sin;
+      area += Math.atan2(k * Math.sin(delta), previousCos * cos + k * Math.cos(delta));
+      previousLongitude = longitude;
+      previousSin = sin;
+      previousCos = cos;
+    }
+    return area * 2;
+  }
+
+  function isGlobalSeamRing(ring) {
+    if (ring.length !== 5) return false;
+    const vertices = new Set(ring.slice(0, -1).map(([x, y]) => `${x}:${y}`));
+    return vertices.size === 4 && [-180, 180].every(x => [-90, 90].every(y => vertices.has(`${x}:${y}`)));
+  }
+
+  function sphericalInteriorArea(ring) {
+    const signed = sphericalSignedArea(ring);
+    const sphere = Math.PI * 4;
+    if (!Number.isFinite(signed)) throw new Error('AMBIGUOUS_SPHERICAL_RING: nonfinite spherical area');
+    // D3's spherical accumulator can cancel tiny, otherwise valid islands.
+    // Only use a local planar fallback when the entire ring is away from seams/poles.
+    if (Math.abs(signed) <= 1e-15) {
+      const discontinuity = ring.some((point, index) => Math.abs(point[1]) === 90
+        || (index && Math.abs(point[0] - ring[index - 1][0]) >= 180));
+      if (discontinuity) throw new Error('AMBIGUOUS_SPHERICAL_RING: spherical interior cannot be determined');
+      const [ox, oy] = ring[0];
+      let planar = 0;
+      for (let index = 1; index < ring.length; index += 1) {
+        const previous = ring[index - 1], current = ring[index];
+        planar += (previous[0] - ox) * (current[1] - oy) - (current[0] - ox) * (previous[1] - oy);
+      }
+      if (planar === 0) throw new Error('INVALID_POLYGON_RING: zero-area ring');
+      const tiny = Math.max(Math.abs(planar) * Math.PI * Math.PI / (180 * 180) / 2, Number.MIN_VALUE);
+      return planar < 0 ? tiny : sphere - tiny;
+    }
+    const area = signed < 0 ? sphere + signed : signed;
+    if (!(area > 0 && area < sphere)) {
+      throw new Error('AMBIGUOUS_SPHERICAL_RING: hemisphere or pole topology requires an explicit source');
+    }
+    return area;
+  }
+
   function orientRing(rawRing, wantClockwise) {
     let ring = normalizeRing(rawRing);
-    const clockwise = ringSignedArea(ring) < 0;
-    if (clockwise !== wantClockwise) ring = normalizeRing(ring.slice(0, -1).reverse());
+    if (ring.length < 4 || ringDistinctCoordinateCount(ring) < 3) {
+      throw new Error('INVALID_POLYGON_RING: fewer than three distinct vertices');
+    }
+    if (isGlobalSeamRing(ring)) {
+      if (!wantClockwise) throw new Error('INVALID_POLYGON_HOLE: global seam shell cannot be a hole');
+      return ring;
+    }
+    const area = sphericalInteriorArea(ring);
+    const canonical = wantClockwise ? area < 2 * Math.PI : area > 2 * Math.PI;
+    if (!canonical) ring = normalizeRing(ring.slice(0, -1).reverse());
     return ring;
   }
 
@@ -96,15 +165,19 @@
   }
 
   function normalizePolygonGeometry(value) {
-    const polygons = multiPolygonCoordinates(value).map(polygon => {
-      const outer = orientRing(polygon?.[0], true);
-      if (outer.length < 4 || ringDistinctCoordinateCount(outer) < 3 || Math.abs(ringSignedArea(outer)) <= MIN_RING_AREA) return null;
-      const holes = (polygon || []).slice(1)
-        .map(ring => orientRing(ring, false))
-        .filter(ring => ring.length >= 4 && ringDistinctCoordinateCount(ring) >= 3 && Math.abs(ringSignedArea(ring)) > MIN_RING_AREA);
+    const source = multiPolygonCoordinates(value);
+    if (!source.length) return null;
+    const polygons = source.map((polygon, polygonIndex) => {
+      if (!Array.isArray(polygon) || !polygon.length) {
+        throw new Error(`INVALID_POLYGON: missing shell at polygon ${polygonIndex}`);
+      }
+      const outer = orientRing(polygon[0], true);
+      const holes = polygon.slice(1).map((ring, holeIndex) => {
+        try { return orientRing(ring, false); }
+        catch (error) { throw new Error(`INVALID_POLYGON_HOLE: polygon ${polygonIndex} hole ${holeIndex}: ${error.message}`); }
+      });
       return [outer, ...holes];
-    }).filter(Boolean);
-    if (!polygons.length) return null;
+    });
     return polygons.length === 1
       ? { type: 'Polygon', coordinates: polygons[0] }
       : { type: 'MultiPolygon', coordinates: polygons };
@@ -113,8 +186,49 @@
   // Clipping may remove collinear vertices and leave a >180-degree planar
   // edge. Retain its path with intermediate vertices so subsequent geographic
   // wrapping cannot reinterpret that edge as the shorter route across the seam.
-  function normalizeClippedPolygonGeometry(value) {
-    const normalized = normalizePolygonGeometry(value);
+  // Some Boolean intersections emit a 3-point sliver at their numerical
+  // precision boundary. Only a caller that explicitly records the discarded
+  // area may omit a certified sub-decimetre-square clipping artifact. Ordinary
+  // shells, holes, islands and all malformed source geometry still fail.
+  function certifiedClipArtifact(polygon) {
+    if (!Array.isArray(polygon) || polygon.length !== 1) return null;
+    const ring = polygon[0];
+    if (!Array.isArray(ring) || ring.length !== 4 || ring.some(point =>
+      !Array.isArray(point) || point.length !== 2 || point.some(n => typeof n !== 'number' || !Number.isFinite(n))
+        || Math.abs(point[0]) > 180 || Math.abs(point[1]) > 90)) return null;
+    if (ring[0][0] !== ring[3][0] || ring[0][1] !== ring[3][1]) return null;
+    const [a, b, c] = ring;
+    const xs = [a[0], b[0], c[0]], ys = [a[1], b[1], c[1]];
+    if (Math.max(...xs) - Math.min(...xs) > 1 || Math.max(...ys) - Math.min(...ys) > 1
+      || Math.max(...ys.map(Math.abs)) >= 85) return null;
+    const smallestEdge = Math.min(Math.hypot(a[0] - b[0], a[1] - b[1]),
+      Math.hypot(b[0] - c[0], b[1] - c[1]), Math.hypot(c[0] - a[0], c[1] - a[1]));
+    if (smallestEdge > 1e-9) return null;
+    const areaDegrees = Math.abs((b[0] - a[0]) * (c[1] - a[1]) - (c[0] - a[0]) * (b[1] - a[1])) / 2;
+    const latitude = (a[1] + b[1] + c[1]) / 3;
+    const areaM2 = areaDegrees * (111195 ** 2) * Math.cos(latitude * Math.PI / 180);
+    return Number.isFinite(areaM2) && areaM2 <= 0.1 ? areaM2 : null;
+  }
+
+  function normalizeClippedPolygonGeometry(value, { onPrecisionDiscard } = {}) {
+    let normalized;
+    try { normalized = normalizePolygonGeometry(value); }
+    catch (error) {
+      if (typeof onPrecisionDiscard !== 'function') throw error;
+      const kept = [], discarded = [];
+      for (const [index, polygon] of multiPolygonCoordinates(value).entries()) {
+        try {
+          normalizePolygonGeometry([polygon]);
+          kept.push(polygon);
+        } catch (error) {
+          const areaM2 = certifiedClipArtifact(polygon);
+          if (areaM2 === null) throw error;
+          discarded.push({ polygonIndex: index, areaM2, ringCount: 1, vertexCount: 4 });
+        }
+      }
+      normalized = normalizePolygonGeometry(kept);
+      for (const item of discarded) onPrecisionDiscard(item);
+    }
     if (!normalized) return null;
     const polygons = multiPolygonCoordinates(normalized).map(polygon => polygon.map(ring => {
       const segmented = [ring[0]];
@@ -199,13 +313,16 @@
   function hasCanonicalPolygonWinding(value) {
     const polygons = multiPolygonCoordinates(value);
     if (!polygons.length) return false;
-    return polygons.every(polygon => Array.isArray(polygon) && polygon.length
-      && polygon.every((rawRing, index) => {
-        const ring = ensureClosedRing(rawRing);
-        if (ring.length !== rawRing?.length || ring.length < 4 || ringDistinctCoordinateCount(ring) < 3) return false;
-        const area = ringSignedArea(ring);
-        return index === 0 ? area < -MIN_RING_AREA : area > MIN_RING_AREA;
-      }));
+    try {
+      return polygons.every(polygon => Array.isArray(polygon) && polygon.length
+        && polygon.every((rawRing, index) => {
+          const ring = ensureClosedRing(rawRing);
+          if (ring.length !== rawRing?.length || ring.length < 4 || ringDistinctCoordinateCount(ring) < 3) return false;
+          if (isGlobalSeamRing(ring)) return index === 0;
+          const area = sphericalInteriorArea(ring);
+          return index === 0 ? area < 2 * Math.PI : area > 2 * Math.PI;
+        }));
+    } catch (error) { return false; }
   }
 
   root.PandoLabPolygonGeometry = Object.freeze({
@@ -217,5 +334,6 @@
     orientRing,
     ringDistinctCoordinateCount,
     ringSignedArea,
+    sphericalSignedArea,
   });
 })(globalThis);

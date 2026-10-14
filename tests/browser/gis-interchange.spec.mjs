@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
 import { expect, test } from '@playwright/test';
 import { selectUiOption } from './helpers/ui-select.mjs';
+import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
 import '../../assets/js/gis-adapters.js';
 
@@ -22,6 +23,12 @@ const eastPrussiaExpected = {
 
 test('GeoPackage export contains QGIS-ready territorial and distribution tables', async ({ page }) => {
   test.setTimeout(300_000);
+  const countries = JSON.parse(readFileSync(new URL('../../assets/data/countries-ne-5.1.1.geojson', import.meta.url), 'utf8')).features;
+  const saved = staticAutosaveProject({}, ['DEU', 'POL'].map(id => {
+    const country = countries.find(feature => feature.id === id);
+    return createTerritorialFeature({ id, entityKind: 'general', name: country.properties.name, geometry: country.geometry });
+  }));
+  await page.addInitScript(value => localStorage.setItem('pandolab-editor-project', JSON.stringify(value)), saved);
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => {
@@ -33,7 +40,7 @@ test('GeoPackage export contains QGIS-ready territorial and distribution tables'
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/?demTerrain=raster');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
-  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 30_000 });
+  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
 
   // The production GeoPackage writer omits empty spatial layers. Add an
   // actual regional object so the regional-table guarantee is exercised.
@@ -72,11 +79,13 @@ test('GeoPackage export contains QGIS-ready territorial and distribution tables'
   if (!await page.locator('#layerSearchInput').isVisible()) await page.locator('#objectSearchBtn').click();
   await page.locator('#layerSearchInput').fill('폴란드');
   await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '폴란드' }).first().click();
+  await expect(page.locator('#objectSearchSurface')).toBeHidden();
+  await expect(page.locator('#flagPreview img')).toHaveAttribute('alt', '폴란드 깃발', { timeout: 30_000 });
   const assetRevision = await page.evaluate(() => window.PANDOLAB_BUILD_META.assetRevision);
   await expect.poll(() => page.locator('#flagPreview img').evaluate(img => {
     const url = new URL(img.src);
     return { pathname: url.pathname, revision: url.searchParams.get('v') };
-  })).toEqual({ pathname: '/assets/vendor/country-flags/c09927e63705529bbf59ca6684cd9b23225dddad/svg/pl.svg', revision: assetRevision });
+  }), { timeout: 30_000 }).toEqual({ pathname: '/assets/vendor/country-flags/c09927e63705529bbf59ca6684cd9b23225dddad/svg/pl.svg', revision: assetRevision });
   await page.locator('#flagMenuBtn').click();
   await page.locator('#flagRemoveBtn').click();
   await expect(page.locator('#flagPreview img')).toHaveCount(0);
@@ -86,6 +95,8 @@ test('GeoPackage export contains QGIS-ready territorial and distribution tables'
   if (!await page.locator('#layerSearchInput').isVisible()) await page.locator('#objectSearchBtn').click();
   await page.locator('#layerSearchInput').fill('독일');
   await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '독일' }).first().click();
+  await expect(page.locator('#objectSearchSurface')).toBeHidden();
+  await expect(page.locator('#flagPreview img')).toHaveAttribute('alt', '독일 깃발', { timeout: 30_000 });
   await page.locator('#flagMenuBtn').click();
   const [germanFlagChooser] = await Promise.all([page.waitForEvent('filechooser'), page.locator('#flagUploadBtn').click()]);
   await germanFlagChooser.setFiles({
@@ -93,19 +104,24 @@ test('GeoPackage export contains QGIS-ready territorial and distribution tables'
     mimeType: 'image/svg+xml',
     buffer: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="60" height="40"><path fill="#111" d="M0 0h60v40H0z"/></svg>'),
   });
+  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('DEU')?.properties.metadata.flagDataUrl),
+    { timeout: 30_000 }).toMatch(/^data:image\/svg\+xml;base64,/);
   await expect(page.locator('#flagPreview img')).toHaveAttribute('src', /^data:image\/svg\+xml;base64,/);
 
   await page.locator('#createMenuBtn').click();
   page.once('dialog', dialog => dialog.accept('스모크 값'));
   await page.locator('#addDistributionBtn').click();
+  await expect(page.locator('#distributionNameInput')).toBeVisible({ timeout: 30_000 });
+  await expect(page.locator('#distributionNameInput')).toHaveValue('스모크 값', { timeout: 30_000 });
   await page.locator('#actionsTabBtn').click();
   const territorialUnitId = 'DEU';
   await selectUiOption(page, '#distributionTerritorialUnitInput', territorialUnitId);
   await page.locator('#distributionValueInput').fill('73');
   await page.locator('#addTerritorialDistributionBtn').click();
-  expect(await page.evaluate(() => window.PANDOLAB_DISTRIBUTIONS.listLayers()
-    .flatMap(layer => window.PANDOLAB_DISTRIBUTIONS.listEntries(layer.id))))
-    .toContainEqual(expect.objectContaining({ mode: 'territorial', territorialUnitId, value: 73 }));
+  await expect.poll(() => page.evaluate(() => window.PANDOLAB_DISTRIBUTIONS.listLayers()
+    .flatMap(layer => window.PANDOLAB_DISTRIBUTIONS.listEntries(layer.id))
+    .find(entry => entry.mode === 'territorial' && entry.territorialUnitId === 'DEU')?.value),
+  { timeout: 30_000 }).toBe(73);
 
   await page.locator('#mobileFileBtn').click();
   await expect(page.locator('#saveProjectBtn')).toBeVisible();
@@ -204,6 +220,11 @@ test('GeoPackage export contains QGIS-ready territorial and distribution tables'
 
 test('GIS data export writes only selected layers and omits project-only metadata', async ({ page }) => {
   test.setTimeout(300_000);
+  const countries = JSON.parse(readFileSync(new URL('../../assets/data/countries-ne-5.1.1.geojson', import.meta.url), 'utf8')).features;
+  const germany = countries.find(feature => feature.id === 'DEU');
+  const saved = staticAutosaveProject({}, [createTerritorialFeature({ id: 'DEU', entityKind: 'general',
+    name: germany.properties.name, geometry: germany.geometry })]);
+  await page.addInitScript(value => localStorage.setItem('pandolab-editor-project', JSON.stringify(value)), saved);
   await page.addInitScript(() => {
     Object.defineProperty(window, 'showSaveFilePicker', { configurable: true, value: undefined });
   });
@@ -310,13 +331,19 @@ test('mobile vector import advances by stage and preserves detected choices when
 
 test('current general GIS import preserves explicit source geometry and existing roots through undo and redo', async ({ page }) => {
   test.setTimeout(180_000);
+  const roots = ['DEU', 'POL', 'RUS'];
+  const countries = JSON.parse(readFileSync(new URL('../../assets/data/countries-ne-5.1.1.geojson', import.meta.url), 'utf8')).features;
+  const saved = staticAutosaveProject({}, roots.map(id => {
+    const country = countries.find(feature => feature.id === id);
+    return createTerritorialFeature({ id, entityKind: 'general', name: country.properties.name, geometry: country.geometry });
+  }));
+  await page.addInitScript(value => localStorage.setItem('pandolab-editor-project', JSON.stringify(value)), saved);
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/?demTerrain=raster');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
-  const roots = ['DEU', 'POL', 'RUS'];
   const readRoots = () => page.evaluate(ids => ids.map(id => window.PANDOLAB_TERRITORIAL.get(id).geometry), roots);
   const before = await readRoots();
   await page.locator('#mobileFileBtn').click();
@@ -338,6 +365,7 @@ test('current general GIS import preserves explicit source geometry and existing
   }
   await page.locator('#gisImportConfirmBtn').click();
   await expect(page.locator('#gisImportModal')).toBeHidden({ timeout: 90_000 });
+  await expect(page.locator('#actionStatus')).toContainText('객체 1개를 가져왔습니다.', { timeout: 90_000 });
   const readImported = () => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ kind: 'general' })
     .find(entity => entity.properties.name === '동프로이센주') || null);
   await expect.poll(readImported).not.toBeNull();
@@ -353,10 +381,12 @@ test('current general GIS import preserves explicit source geometry and existing
   expect(planarArea({ type: 'MultiPolygon', coordinates: difference })).toBeLessThan(1e-8);
   expect(await readRoots()).toEqual(before);
   await page.locator('#undoBtn').click();
-  await expect.poll(readImported).toBeNull();
+  await expect(page.locator('#redoBtn')).toBeEnabled({ timeout: 90_000 });
+  await expect.poll(readImported, { timeout: 90_000 }).toBeNull();
   expect(await readRoots()).toEqual(before);
   await page.locator('#redoBtn').click();
-  await expect.poll(readImported).toEqual(imported);
+  await expect(page.locator('#undoBtn')).toBeEnabled({ timeout: 90_000 });
+  await expect.poll(readImported, { timeout: 90_000 }).toEqual(imported);
   expect(await readRoots()).toEqual(before);
   expect(errors).toEqual([]);
 });

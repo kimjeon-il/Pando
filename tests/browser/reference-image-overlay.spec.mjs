@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
 
 const PNG_1X1 = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9WlWsAAAAASUVORK5CYII=',
@@ -120,6 +121,7 @@ async function openApp(page) {
     if (message.type() === 'error' || message.text().includes('[reference-image-restore]')) errors.push(message.text());
   });
   await page.setViewportSize({ width: 1440, height: 900 });
+  await page.addInitScript(value => localStorage.setItem('pandolab-editor-project', JSON.stringify(value)), staticAutosaveProject());
   await page.goto('/');
   await expect(page.locator('#referenceImageBtn')).toBeVisible();
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
@@ -244,8 +246,7 @@ test('reference images support placement, ordering, georeferencing and persisten
   await page.locator('.reference-image-launcher').click();
   await addImage(page, 'base.png');
   await expect(page.locator('.reference-image-list-row')).toHaveCount(1);
-  await page.locator('[data-ref-field="name"]').focus();
-  await page.keyboard.press('Escape');
+  await page.locator('[data-ref-field="name"]').press('Escape');
   await expect(page.locator('.reference-image-panel')).toBeVisible();
   await expect(page.locator('.reference-image-list-row .reference-image-visibility use')).toHaveAttribute('href', '#icon-eye');
 

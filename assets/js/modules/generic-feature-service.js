@@ -5,25 +5,12 @@ import {
 import { GENERIC_FEATURE_SCHEMA_VERSION } from './version-contract.js';
 
 export { GENERIC_FEATURE_SCHEMA_VERSION };
-const LEGACY_GENERIC_FEATURE_SCHEMA_VERSION = 1;
-
-// Deprecated compatibility metadata. Generic Feature v2 has no territorial role semantics;
-// these values only expose preserved v1 data to legacy callers until their UI paths are removed.
-export const GENERIC_FEATURE_ROLE_RULES = Object.freeze({
-  generic: Object.freeze({ role: 'generic', geometry: 'any', binding: 'none', label: '기타 객체' }),
-  territory: Object.freeze({ role: 'territory', geometry: 'polygon', binding: 'none', label: '권역 객체' }),
-  administrative: Object.freeze({ role: 'administrative', geometry: 'polygon', binding: 'none', label: '행정구역 객체' }),
-});
-export const GENERIC_FEATURE_ROLE_LABELS = Object.freeze({ generic: '기타 객체', territory: '권역 객체', administrative: '행정구역 객체' });
 export const GENERIC_FEATURE_CANONICAL_PROPERTY_KEYS = Object.freeze([
   'schemaVersion', 'name', 'notes', 'color', 'locked', 'source',
 ]);
 
 const CANONICAL_PROPERTY_KEYS = new Set(GENERIC_FEATURE_CANONICAL_PROPERTY_KEYS);
-const LEGACY_SEMANTIC_KEYS = Object.freeze(['role', 'ownerId', 'parentId', 'landBinding', 'topologyGroup']);
-const LEGACY_SEMANTIC_KEY_SET = new Set(LEGACY_SEMANTIC_KEYS);
 const text = value => String(value ?? '').trim();
-const plainObject = value => !!value && typeof value === 'object' && !Array.isArray(value);
 const clone = value => value == null ? value : structuredClone(value);
 
 export function genericFeatureGeometryKind(feature) {
@@ -34,71 +21,18 @@ export function genericFeatureGeometryKind(feature) {
   return 'unknown';
 }
 
-function legacyDetails(feature) {
-  const details = feature?.properties?.source?.details;
-  return plainObject(details?.legacyGenericSemantics) ? details.legacyGenericSemantics : {};
-}
-
-export function genericFeatureRole(feature) {
-  const role = text(legacyDetails(feature).role);
-  return GENERIC_FEATURE_ROLE_RULES[role] ? role : 'generic';
-}
-
-function legacySemanticsFrom(properties = {}) {
-  const output = {};
-  for (const key of LEGACY_SEMANTIC_KEYS) {
-    if (properties[key] == null || properties[key] === '') continue;
-    output[key] = clone(properties[key]);
-  }
-  return output;
-}
-
-function unmappedLegacyProperties(properties = {}) {
-  const output = {};
-  for (const [key, value] of Object.entries(properties || {})) {
-    if (CANONICAL_PROPERTY_KEYS.has(key) || LEGACY_SEMANTIC_KEY_SET.has(key) || value === undefined) continue;
-    output[key] = clone(value);
-  }
-  return output;
-}
-
-function normalizeGenericSource(properties = {}) {
-  const inputVersion = Number(properties.schemaVersion || LEGACY_GENERIC_FEATURE_SCHEMA_VERSION);
-  const legacySemantics = legacySemanticsFrom(properties);
-  const legacyProperties = unmappedLegacyProperties(properties);
-  const hasLegacyPayload = Object.keys(legacySemantics).length > 0 || Object.keys(legacyProperties).length > 0;
-  const legacyInput = inputVersion <= LEGACY_GENERIC_FEATURE_SCHEMA_VERSION || hasLegacyPayload;
-  const defaultKind = legacyInput ? SOURCE_KINDS.LEGACY : SOURCE_KINDS.UNSUPPORTED;
-  const normalized = normalizeSourceProvenance(properties.source, {
-    kind: defaultKind,
-    sourceFormat: inputVersion <= LEGACY_GENERIC_FEATURE_SCHEMA_VERSION
-      ? 'pandolab-generic-v1'
-      : hasLegacyPayload ? 'pandolab-generic-compat' : '',
-  });
-  const details = { ...(normalized.details || {}) };
-  if (Object.keys(legacySemantics).length) {
-    details.legacyGenericSemantics = {
-      ...(plainObject(details.legacyGenericSemantics) ? details.legacyGenericSemantics : {}),
-      ...legacySemantics,
-    };
-  }
-  if (Object.keys(legacyProperties).length) {
-    details.legacyProperties = {
-      ...(plainObject(details.legacyProperties) ? details.legacyProperties : {}),
-      ...legacyProperties,
-    };
-  }
-  return normalizeSourceProvenance({ ...normalized, details });
-}
-
 function canonicalProperties(properties = {}) {
+  if (properties.schemaVersion !== GENERIC_FEATURE_SCHEMA_VERSION
+    || Object.keys(properties).some(key => !CANONICAL_PROPERTY_KEYS.has(key))) {
+    throw Object.assign(new Error('기타 객체는 현재 v2 필드만 지원합니다.'), { code: 'PL-GENERIC-SCHEMA' });
+  }
   return {
     schemaVersion: GENERIC_FEATURE_SCHEMA_VERSION,
     name: text(properties.name),
     notes: text(properties.notes),
     color: text(properties.color) || '#8c68d8',
     locked: properties.locked === true,
-    source: normalizeGenericSource(properties),
+    source: normalizeSourceProvenance(properties.source, { kind: SOURCE_KINDS.UNSUPPORTED }),
   };
 }
 

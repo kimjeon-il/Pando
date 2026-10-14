@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include <algorithm>
 #include "territorial_fixture.h"
 #include <pandoeditor/map/mappicker.h>
@@ -12,9 +13,7 @@ namespace {
 void require(bool ok,const char* message){if(!ok)throw std::runtime_error(message);}
 
 ProjectDocument fixture() {
-    ProjectDocument d({
-        {"A","알파",{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}},0x123456}
-    },{{"countries","국가"},{"other","영역"},{"hidden","숨김",false,false,1}});
+    pandoeditor::ProjectDocument d = makeTerritorialDocument({{{"A","알파","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}}},{0x123456,1},"countries"}},{{"countries","국가"},{"other","영역"},{"hidden","숨김",false,false,1}});
     d.documentId="picker";
     auto add=[&](std::string id,std::string name,UnitKind kind,const std::string& layer,
                  double left,double right) {

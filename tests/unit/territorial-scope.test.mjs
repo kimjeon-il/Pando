@@ -7,6 +7,8 @@ import { createTerritorialEntityRepository } from '../../assets/js/modules/terri
 import { createTerritorialScopeResolver } from '../../assets/js/modules/territorial-scope.js';
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
 import { hasCanonicalPolygonWinding, area } from '../../assets/js/modules/map-edit-geometry.js';
+import { touchGeometry } from '../../assets/js/modules/geometry-versions.js';
+import '../../tools/load-spherical-core.mjs';
 const square = (x0, x1) => ({ type: 'Polygon', coordinates: [[[x0,0],[x0,2],[x1,2],[x1,0],[x0,0]]] });
 
 test('every general hierarchy level has an immutable canonical display extent; independent regions retain their own shape', async () => {
@@ -35,4 +37,26 @@ const store = createTerritorialEntityStore({ documentModel:testCoreProject(state
   assert.equal(repo.root('C').id, 'D');
   assert.equal(area(scope.scope('D').extent.geometry), 10);
   assert.deepEqual(scope.scope('R').extent.geometry, region.extent.geometry);
+});
+
+test('month and style metadata reuse prepared extent; geometry edits invalidate it', () => {
+  let rows = [createTerritorialFeature({ id: 'A', entityKind: 'general', geometry: square(0, 2) }),
+    createTerritorialFeature({ id: 'B', entityKind: 'general', parentId: 'A', geometry: square(1, 3) })];
+  const repository = { list: () => rows, get: id => rows.find(row => row.id === id), descendants: id => rows.filter(row => row.properties.parentId === id) };
+  let unions = 0;
+  const scope = createTerritorialScopeResolver({ entityRepository: repository, clipper: () => ({
+    union: (...args) => { unions++; return globalThis.polygonClipping.union(...args); },
+    difference: globalThis.polygonClipping.difference,
+  }) });
+  const first = scope.scope('A');
+  rows = rows.map(row => ({ ...row, properties: { ...row.properties, color: '#ff0000', name: 'new month' } }));
+  const next = scope.scope('A');
+  assert.strictEqual(next.extent.geometry, first.extent.geometry);
+  assert.strictEqual(next.extra.geometry, first.extra.geometry);
+  assert.strictEqual(next.entity, rows[0]);
+  assert.equal(unions, 1);
+  rows[1].geometry.coordinates[0][2][0] = 4;
+  touchGeometry(rows[1].geometry);
+  assert.notStrictEqual(scope.scope('A').extent.geometry, first.extent.geometry);
+  assert.equal(unions, 2);
 });

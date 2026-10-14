@@ -18,10 +18,8 @@ std::optional<GisExchangeTarget> normalizeExchangeTarget(const std::string& sour
     std::optional<GisExchangeTarget> fallback) {
     const auto name=trim(source);
     if(name=="project")return GisExchangeTarget::Project;
-    if(name=="country")return GisExchangeTarget::Country;
-    if(name=="subunit"||name=="admin"||name=="administrative"||name=="territory")
-        return GisExchangeTarget::Subunit;
-    if(name=="region")return GisExchangeTarget::Region;
+    if(name=="general")return GisExchangeTarget::General;
+    if(name=="regional")return GisExchangeTarget::Regional;
     if(name=="distribution")return GisExchangeTarget::Distribution;
     if(name=="generic")return GisExchangeTarget::Generic;
     return fallback;
@@ -29,9 +27,8 @@ std::optional<GisExchangeTarget> normalizeExchangeTarget(const std::string& sour
 GisTargetDescriptor exchangeTargetDescriptor(GisExchangeTarget target) {
     switch(target) {
     case GisExchangeTarget::Project:return {target,"project",true,false};
-    case GisExchangeTarget::Country:
-    case GisExchangeTarget::Subunit:
-    case GisExchangeTarget::Region:return {target,"territorial",false,false};
+    case GisExchangeTarget::General:
+    case GisExchangeTarget::Regional:return {target,"territorial",false,false};
     case GisExchangeTarget::Distribution:return {target,"distribution",false,false};
     case GisExchangeTarget::Generic:return {target,"generic",false,true};
     }
@@ -65,14 +62,13 @@ void assertCurrentGisImportPlan(const ProjectSnapshot& project,const GisImportPl
 GisTerritorialImportPlan planTerritorialGisImport(const ProjectSnapshot& project,
     std::string planId,GisSource source,GisExchangeTarget target,
     std::vector<GisTerritorialInput> units,std::vector<GeometryReplacement> replacements) {
-    if(target!=GisExchangeTarget::Country&&target!=GisExchangeTarget::Subunit&&
-       target!=GisExchangeTarget::Region)
+    if(target!=GisExchangeTarget::General&&
+       target!=GisExchangeTarget::Regional)
         throw std::invalid_argument("INVALID_GIS_PLAN: territorial target");
     if(units.empty())throw std::invalid_argument("INVALID_GIS_PLAN: empty territorial import");
     std::vector<std::string> ids;
     std::set<std::string> unique;
-    const auto kind=target==GisExchangeTarget::Country?UnitKind::General:
-        target==GisExchangeTarget::Subunit?UnitKind::General:UnitKind::Regional;
+    const auto kind=target==GisExchangeTarget::General?UnitKind::General:UnitKind::Regional;
     for(const auto& row:units) {
         if(row.id.empty()||row.name.empty()||row.kind!=kind||!unique.insert(row.id).second||
            (row.color&&*row.color>0xffffff))
@@ -92,7 +88,7 @@ GisTerritorialImportPlan planTerritorialGisImport(const ProjectSnapshot& project
             throw std::invalid_argument("INVALID_GIS_PLAN: country patch owner");
     }
     GisTerritorialImportPlan plan{createGisImportPlan(project,std::move(planId),
-        target==GisExchangeTarget::Country?GisImportKind::CountryMerge:GisImportKind::Territorial,
+        GisImportKind::Territorial,
         std::move(source),target,std::move(ids)),std::move(units),std::move(replacements)};
     auto candidate=project.document();
     applyTerritorialGisImport(candidate,plan);
@@ -109,10 +105,9 @@ GisTerritorialImportPlan planTerritorialGisImport(const ProjectSnapshot& project
 }
 void applyTerritorialGisImport(ProjectDocument& document,const GisTerritorialImportPlan& plan) {
     if(plan.units.empty()||plan.info.affectedIds.size()!=plan.units.size()||
-       (plan.info.target!=GisExchangeTarget::Country&&plan.info.target!=GisExchangeTarget::Subunit&&
-        plan.info.target!=GisExchangeTarget::Region)||
-       plan.info.kind!=(plan.info.target==GisExchangeTarget::Country?
-           GisImportKind::CountryMerge:GisImportKind::Territorial))
+       (plan.info.target!=GisExchangeTarget::General&&
+        plan.info.target!=GisExchangeTarget::Regional)||
+       plan.info.kind!=GisImportKind::Territorial)
         throw std::invalid_argument("INVALID_GIS_PLAN: territorial payload");
     std::set<std::string> seen;
     std::set<ObjectRef> patched;
@@ -138,8 +133,7 @@ void applyTerritorialGisImport(ProjectDocument& document,const GisTerritorialImp
         const auto& input=plan.units[i];
         if(input.sovereign)throw std::invalid_argument("UNSUPPORTED_POLITICAL_RELATION");
         if(input.validity.from||input.validity.to)throw std::invalid_argument("TIMELINE_ACTIVATION: dated import requires T4");
-        const auto kind=plan.info.target==GisExchangeTarget::Country?UnitKind::General:
-            plan.info.target==GisExchangeTarget::Subunit?UnitKind::General:UnitKind::Regional;
+        const auto kind=plan.info.target==GisExchangeTarget::General?UnitKind::General:UnitKind::Regional;
         if(input.id.empty()||input.name.empty()||plan.info.affectedIds[i]!=input.id||
            input.kind!=kind||!seen.insert(input.id).second||
            (input.color&&*input.color>0xffffff))

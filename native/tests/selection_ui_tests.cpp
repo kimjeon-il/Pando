@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "territorial_fixture.h"
 #include "editorcontroller.h"
 #include "ui_navigation.h"
@@ -26,10 +27,8 @@ QQuickItem* item(QQuickItem* root,const QString& name) {
 }
 void modes() {QTest::addColumn<bool>("mobile");QTest::newRow("desktop-1100")<<false;QTest::newRow("mobile-360")<<true;}
 ProjectDocument fixture() {
-    ProjectDocument d({
-        {"A","Alpha",{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}},0x123456},
-        {"B","Beta",{{{{20,0},{30,0},{30,10},{20,10},{20,0}}}},0xabcdef}
-    },{{"countries","Countries"},{"other","Units"},{"hidden","Hidden",false,false,1}});
+    pandoeditor::ProjectDocument d = makeTerritorialDocument({{{"A","Alpha","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}}},{0x123456,1},"countries"},
+        {{"B","Beta","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{20,0},{30,0},{30,10},{20,10},{20,0}}}}},{0xabcdef,1},"countries"}},{{"countries","Countries"},{"other","Units"},{"hidden","Hidden",false,false,1}});
     d.documentId="selection-ui-v1";
     auto add=[&](std::string id,UnitKind kind,std::string layer,double left,double right,bool locked) {
         Geometry g;g.type="Polygon";g.polygons={{{{left,2},{right,2},{right,4},{left,4},{left,2}}}};
@@ -53,7 +52,7 @@ struct Harness {
     Harness(bool mobile):editor(EditorControllerConfig{mobile,dir.filePath("private.json")}) {
         Project p;p.replace(fixture());path=QUrl::fromLocalFile(dir.filePath("fixture.json"));
         QFile f(path.toLocalFile());if(!f.open(QIODevice::WriteOnly))throw std::runtime_error("fixture write");
-        f.write(projectcodec::encode(p));f.close();
+        f.write(::projectcodec::encode(p));f.close();
         if(!editor.openFile(path))throw std::runtime_error("fixture open");
         if(!editor.setProjectionMode("flat"))throw std::runtime_error("flat fixture view");
         QObject::connect(&engine,&QQmlEngine::warnings,&engine,[this](const QList<QQmlError>& errors){
@@ -156,7 +155,7 @@ private slots:
     void territorialGeometryPreview(){
         QFETCH(bool,mobile);Harness h(mobile);QVERIFY(h.window);
         auto document=fixture();document.units[2].locked=false;
-        Project p;p.replace(document);QFile f(h.path.toLocalFile());QVERIFY(f.open(QIODevice::WriteOnly));f.write(projectcodec::encode(p));f.close();
+        Project p;p.replace(document);QFile f(h.path.toLocalFile());QVERIFY(f.open(QIODevice::WriteOnly));f.write(::projectcodec::encode(p));f.close();
         QVERIFY(h.editor.openFile(h.path));QVERIFY(h.editor.selectObject(ref("S","general"),"replace","test"));
         const auto before=h.editor.documentBytes();QVERIFY(h.editor.transferSelectedSubunit("B"));
         QTRY_VERIFY_WITH_TIMEOUT(!h.editor.structureState()["calculating"].toBool(),10000);

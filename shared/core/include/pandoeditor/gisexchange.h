@@ -8,7 +8,7 @@
 
 namespace pandoeditor {
 class ProjectSnapshot;
-enum class GisExchangeTarget { Project, Country, Subunit, Region, Distribution, Generic };
+enum class GisExchangeTarget { Project, General, Regional, Distribution, Generic };
 struct GisTargetDescriptor {
     GisExchangeTarget target;
     std::string domain;

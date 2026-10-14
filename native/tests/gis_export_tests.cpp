@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include <gisdocumentexport.h>
 #include <gisgeopackage.h>
 #include <giszip.h>
@@ -13,9 +14,8 @@
 using namespace pandoeditor;
 namespace {
 ProjectDocument document() {
-    ProjectDocument doc({{"A","Alpha",{{{{0,0},{4,0},{4,4},{0,4},{0,0}},
-        {{1,1},{1,2},{2,2},{2,1},{1,1}}}},0x123456}},
-        {{"countries","Countries"}});
+    pandoeditor::ProjectDocument doc = makeTerritorialDocument({{{"A","Alpha","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{4,0},{4,4},{0,4},{0,0}},
+        {{1,1},{1,2},{2,2},{2,1},{1,1}}}}},{0x123456,1},"countries"}},{{"countries","Countries"}});
     doc.units.front().sourceEntityId="state:A";
     doc.units.front().sourceGeometryVersion="v1";
     assert(!doc.units.front().libraryOrigin);
@@ -54,7 +54,7 @@ int main(int argc,char** argv) {
     const auto snapshot=doc.units.size();
     const auto layers=buildGisExportLayers(doc,{"countries","distributions","genericFeatures","labels"});
     assert(layers.size()==4);
-    assert(layers[0].file=="countries.geojson"&&layers[0].targetType=="country");
+    assert(layers[0].file=="countries.geojson"&&layers[0].targetType=="general");
     assert(layers[1].file=="generic_features.geojson");
     assert(layers[2].file=="distributions.geojson");
     assert(layers[2].collection.features.front().propertiesJson.find("territorial_unit_id")!=std::string::npos);

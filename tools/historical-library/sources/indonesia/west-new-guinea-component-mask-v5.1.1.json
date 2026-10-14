@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "title": "Natural Earth 5.1.1 Admin-1 States and Provinces",
+    "url": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.1/geojson/ne_10m_admin_1_states_provinces.geojson",
+    "license": "Public domain",
+    "selectedProvinces": [
+      {
+        "name": "Papua",
+        "iso_3166_2": "ID-PA"
+      },
+      {
+        "name": "West Papua",
+        "iso_3166_2": "ID-PB"
+      }
+    ]
+  },
+  "canonical": {
+    "lineageId": "indonesia",
+    "entityId": "state:IDN",
+    "geometryVersionId": "state:IDN:natural-earth-5.1.1",
+    "sourceGeometrySha256": "003396bbc0865e9414592eece15f68fef1453d26426766f37bb575bf8257b4bd",
+    "totalPolygonComponents": 264,
+    "referenceDate": "2026-10-06"
+  },
+  "method": "Each existing canonical IDN Polygon component was intersected with Papua and West Papua Admin-1 union using Shapely 2.1.2. Selected components all have 100% overlap and a representative point contained in the union. Original coordinates and ring ordering are preserved; no clipping or geometries are invented.",
+  "excludedModernPolygonIndices": [
+    3,
+    17,
+    32,
+    130,
+    137,
+    154,
+    169,
+    171,
+    172,
+    177,
+    178,
+    180,
+    182,
+    186,
+    187,
+    188,
+    189,
+    190,
+    192,
+    202,
+    244,
+    245,
+    246,
+    255,
+    258
+  ],
+  "notes": [
+    "The mask removes western New Guinea and islands of its two Natural Earth v5.1.1 provinces before 1963-05-01; it does not remove the geographically nearby Aru, Tanimbar or Maluku islands.",
+    "An administrative reference mask is not a historical cadastral boundary: the result is an explicitly approximate political-territory visualization.",
+    "See 1962 New York Agreement and UNTEA transfer account for timing."
+  ]
+}

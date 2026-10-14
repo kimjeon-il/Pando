@@ -67,3 +67,4 @@ export function createBuiltinMeshResourceLoader({ runtimeAssetUrl, WorkerClass =
     cancelPending?.(); cancelPending = null; pending = null;
   } });
 }
+// @worker-transport dedicated: builtin mesh cache delivery owns its streaming resource protocol

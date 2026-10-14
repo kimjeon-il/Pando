@@ -9,6 +9,11 @@ test('current JSON/Worker exchange retains independently specified timeline cont
   const trace = await exchangeTrace(fixture('static.json'), 'json', () => {});
   assert.deepEqual(trace, { stages: [expected, expected, expected], activation: 'OK' });
 });
+test('current JSON/Worker exchange reports a timeline activation boundary', async () => {
+  const expected = exchangeContent(fixture('complex.expected.json'));
+  const trace = await exchangeTrace(fixture('complex.json'), 'json', () => {});
+  assert.deepEqual(trace, { stages: [expected, expected, expected], activation: 'TIMELINE_ACTIVATION' });
+});
 test('reserved object keys remain observable IDs with duplicate detection',()=>{
   for(const id of ['__proto__','constructor','toString']) {
     const expected=fixture('static.expected.json');expected.territorialEntities[0].id=id;
