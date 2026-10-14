@@ -30,12 +30,27 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git fetch origin refs/heads/work/gis:refs/remotes/origin/work/gis refs/heads/work/objects:refs/remotes/origin/work/objects
           git switch -C sync/gis-resolved-20261014 origin/work/gis
-          if ! git merge --no-commit --no-ff -X ours origin/work/objects; then
-            echo 'Merge requires explicit conflict resolution.'
-            git status --short
-            git ls-files -u
-            exit 1
-          fi
+          git merge --no-commit --no-ff -X ours origin/work/objects || {
+            echo "Resolving explicitly allowed duplicate report relocation conflicts using the GIS versions."
+            mapfile -d '' unresolved < <(git diff --name-only --diff-filter=U -z)
+            if (( ${#unresolved[@]} == 0 )); then
+              echo "Merge failed without identifiable unresolved paths."
+              exit 1
+            fi
+            for path in "${unresolved[@]}"; do
+              case "$path" in
+                reports/geography/germany/north-schleswig/german-denmark-1914-north-schleswig-001-026.*|reports/research/siachen/siachen_s2_*.png)
+                  git checkout --ours -- "$path"
+                  git add -- "$path"
+                  echo "Resolved GIS report version: $path"
+                  ;;
+                *)
+                  echo "Unexpected unresolved conflict: $path"
+                  exit 1
+                  ;;
+              esac
+            done
+          }
           if [[ -n "$(git ls-files -u)" ]]; then
             echo 'Unmerged paths remain.'
             git ls-files -u
