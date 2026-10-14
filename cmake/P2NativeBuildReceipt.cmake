@@ -1,0 +1,102 @@
+# CMake-only provenance receipt for the real built native C++ archives.
+# No Node/Python/Qt installation is needed by the core or engine receipt.
+cmake_minimum_required(VERSION 3.21)
+if(NOT DEFINED PANDO_P2_BUILD_DIR OR NOT DEFINED PANDO_P2_OUTPUT)
+    message(FATAL_ERROR "P2 receipt requires -DPANDO_P2_BUILD_DIR and -DPANDO_P2_OUTPUT")
+endif()
+get_filename_component(_repo "${CMAKE_CURRENT_LIST_DIR}/.." ABSOLUTE)
+get_filename_component(_build "${PANDO_P2_BUILD_DIR}" ABSOLUTE)
+get_filename_component(_out "${PANDO_P2_OUTPUT}" ABSOLUTE)
+if(NOT EXISTS "${_build}/CMakeCache.txt")
+    message(FATAL_ERROR "P2 receipt: no completed CMake configure found in ${_build}")
+endif()
+execute_process(COMMAND git rev-parse HEAD WORKING_DIRECTORY "${_repo}"
+    RESULT_VARIABLE _git_result OUTPUT_VARIABLE _git_head ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
+string(LENGTH "${_git_head}" _git_length)
+if(NOT _git_result EQUAL 0 OR NOT _git_length EQUAL 40 OR NOT _git_head MATCHES "^[0-9a-f]+$")
+    message(FATAL_ERROR "P2 receipt requires an exact Git commit")
+endif()
+
+# Do not reinterpret a source tree as a binary: every declared output must exist.
+file(GLOB_RECURSE _libraries LIST_DIRECTORIES FALSE
+    "${_build}/*.a" "${_build}/*.lib")
+set(_output_lines "")
+foreach(_target IN ITEMS pandoeditor_core pandoeditor_map_engine)
+    set(_matches "")
+    foreach(_lib IN LISTS _libraries)
+        get_filename_component(_filename "${_lib}" NAME)
+        if(_filename STREQUAL "lib${_target}.a" OR _filename STREQUAL "${_target}.lib")
+            list(APPEND _matches "${_lib}")
+        endif()
+    endforeach()
+    list(LENGTH _matches _number)
+    if(NOT _number EQUAL 1)
+        message(FATAL_ERROR "P2 receipt expected exactly one ${_target} archive; got ${_number}")
+    endif()
+    list(GET _matches 0 _file)
+    file(SIZE "${_file}" _size)
+    file(SHA256 "${_file}" _digest)
+    if(_size LESS 1)
+        message(FATAL_ERROR "P2 receipt rejects empty native archive ${_file}")
+    endif()
+    file(RELATIVE_PATH _rel "${_build}" "${_file}")
+    string(REPLACE "\\" "/" _rel "${_rel}")
+    if(NOT _output_lines STREQUAL "")
+        string(APPEND _output_lines ",\n")
+    endif()
+    if(_target STREQUAL "pandoeditor_map_engine")
+        set(_dependencies "[\"pandoeditor_core\"]")
+    else()
+        set(_dependencies "[]")
+    endif()
+    string(APPEND _output_lines
+        "    {\"target\":\"${_target}\",\"path\":\"${_rel}\",\"bytes\":${_size},\"sha256\":\"${_digest}\",\"dependsOn\":${_dependencies}}")
+endforeach()
+
+# File hashes are a build input record, not an assertion that the archives
+# are reproducible byte-for-byte across operating systems/compilers.
+file(GLOB_RECURSE _source_inputs LIST_DIRECTORIES FALSE
+    "${_repo}/shared/core/*.cpp" "${_repo}/shared/core/*.h"
+    "${_repo}/shared/core/*.cpp.in" "${_repo}/shared/core/*.h.in"
+    "${_repo}/shared/core/CMakeLists.txt"
+    "${_repo}/native/engine/*.cpp" "${_repo}/native/engine/*.h"
+    "${_repo}/native/engine/CMakeLists.txt")
+list(APPEND _source_inputs
+    "${_repo}/shared/CMakeLists.txt" "${_repo}/native/CMakeLists.txt"
+    "${_repo}/CMakeLists.txt" "${_repo}/CMakePresets.json")
+list(REMOVE_DUPLICATES _source_inputs)
+list(SORT _source_inputs)
+set(_source_lines "")
+set(_source_digest_input "")
+foreach(_source IN LISTS _source_inputs)
+    if(NOT EXISTS "${_source}")
+        message(FATAL_ERROR "P2 receipt input missing: ${_source}")
+    endif()
+    file(READ "${_source}" _content)
+    string(REPLACE "\r\n" "\n" _content "${_content}")
+    string(SHA256 _digest "${_content}")
+    file(RELATIVE_PATH _rel "${_repo}" "${_source}")
+    string(REPLACE "\\" "/" _rel "${_rel}")
+    string(APPEND _source_digest_input "${_rel}\n${_digest}\n")
+    if(NOT _source_lines STREQUAL "")
+        string(APPEND _source_lines ",\n")
+    endif()
+    string(APPEND _source_lines
+        "    {\"path\":\"${_rel}\",\"sha256\":\"${_digest}\"}")
+endforeach()
+string(SHA256 _source_sha "${_source_digest_input}")
+set(_receipt "{\n")
+string(APPEND _receipt "  \"schema\":\"pando-native-archive-build-v1\",\n")
+string(APPEND _receipt "  \"commit\":\"${_git_head}\",\n")
+string(APPEND _receipt "  \"cmakeVersion\":\"${CMAKE_VERSION}\",\n")
+string(APPEND _receipt "  \"source\":{\"sha256\":\"${_source_sha}\",\"files\":[\n${_source_lines}\n  ]},\n")
+string(APPEND _receipt "  \"artifacts\":[\n${_output_lines}\n  ]\n}\n")
+# Parse with the project's CMake toolchain before saving.
+string(JSON _schema ERROR_VARIABLE _json_error GET "${_receipt}" schema)
+if(NOT _json_error STREQUAL "NOTFOUND" OR NOT _schema STREQUAL "pando-native-archive-build-v1")
+    message(FATAL_ERROR "P2 receipt JSON invalid: ${_json_error}")
+endif()
+get_filename_component(_output_folder "${_out}" DIRECTORY)
+file(MAKE_DIRECTORY "${_output_folder}")
+file(WRITE "${_out}" "${_receipt}")
+message(STATUS "P2 native C++ evidence: ${_out} (source ${_source_sha})")

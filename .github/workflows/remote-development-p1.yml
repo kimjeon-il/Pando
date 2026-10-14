@@ -7,6 +7,7 @@ on:
       - '.github/workflows/remote-development-p1.yml'
       - 'CMakeLists.txt'
       - 'CMakePresets.json'
+      - 'cmake/P2NativeBuildReceipt.cmake'
       - '.nvmrc'
       - '.python-version'
       - 'config/toolchain-versions.json'
@@ -153,6 +154,15 @@ jobs:
         run: |
           cmake --preset pando-native-core
           cmake --build --preset pando-native-core
+      - name: Record exact source and compiled C++ archives
+        run: |
+          cmake "-DPANDO_P2_BUILD_DIR=$PWD/build-native/p1/pando-native-core" "-DPANDO_P2_OUTPUT=$PWD/build-native/p1/native-archive-receipt.json" -P cmake/P2NativeBuildReceipt.cmake
+      - uses: actions/upload-artifact@v4
+        with:
+          name: p2-native-cpp-${{ github.sha }}
+          path: build-native/p1/native-archive-receipt.json
+          if-no-files-found: error
+          retention-days: 7
 
   gis-cpp-tools:
     needs: plan
@@ -190,7 +200,9 @@ jobs:
 
   wasm-compile:
     needs: plan
-    if: needs.plan.outputs.wasm == 'true'
+    # On work/objects P2 owns source-matched WASM generation and publication.
+    # Other work branches retain the P1 standalone compiler smoke.
+    if: needs.plan.outputs.wasm == 'true' && github.ref != 'refs/heads/work/objects'
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     env:
