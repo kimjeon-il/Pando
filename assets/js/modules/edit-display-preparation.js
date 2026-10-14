@@ -1,17 +1,11 @@
 import { territorialRootId } from './territorial-units.js';
 import { buildTerritorialInternalBoundarySegments } from './boundary-topology.js';
 import { excludeAncestorHighlightBoundary } from './territorial-highlight-boundary.js';
+import { geometryRevisionKey } from './geometry-versions.js';
 
 export function createEditDisplayPreparation() {
   const groups = new Map();
-  const tokens = new WeakMap();
-  let sequence = 0;
-  const token = geometry => {
-    if (!geometry) return 0;
-    if (!tokens.has(geometry)) tokens.set(geometry, ++sequence);
-    return tokens.get(geometry);
-  };
-  const signature = features => features.map(feature => [feature.id, token(feature.geometry), feature.properties?.entityKind,
+  const signature = features => features.map(feature => [feature.id, geometryRevisionKey(feature.geometry), feature.properties?.entityKind,
     feature.properties?.parentId, undefined].join(':')).sort().join('|');
   return {
     async prepare(request, countries, units, checkpoint = async () => {}, sourceByKey = () => null) {

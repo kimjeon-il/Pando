@@ -1,0 +1,64 @@
+# These are pinned byte-for-byte copies of the web application's source.
+# Their parity tests validate Git blob identities, so Windows checkout
+# conversion must never alter their line endings.
+tests/reference/*.mjs text eol=lf
+tests/fixtures/web-properties/source/** text eol=lf
+tests/fixtures/web-structure/source/** text eol=lf
+tests/fixtures/web-presentation/source/** text eol=lf
+assets/geometry/*.js text eol=lf
+tests/fixtures/web-m4/source/** text eol=lf
+tests/fixtures/web-content/source/** text eol=lf
+tests/fixtures/web-m6/source/** text eol=lf whitespace=-blank-at-eol
+tests/fixtures/web-m6/*.mjs text eol=lf whitespace=-blank-at-eol
+tests/fixtures/web-m6/*.geojson text eol=lf whitespace=-blank-at-eol
+assets/world/**/*.json text eol=lf
+tests/fixtures/world-rendering/*.json text eol=lf
+tests/fixtures/world-rendering/*.geojson text eol=lf
+tests/fixtures/timeline-temporal-reference.mjs text eol=lf
+tests/fixtures/web-timeline/*.mjs text eol=lf
+# M9.7.2 originals, generated compatibility resources, and
+# compact fixtures are SHA-256 verified. Preserve their bytes on Windows too.
+assets/geometry/river/** text eol=lf
+assets/geometry/split-corrections/** text eol=lf
+assets/geometry/cut/** text eol=lf
+tests/fixtures/web-m972-river/** text eol=lf
+# Existing source files reused by the new river provenance manifest.
+tests/fixtures/web-hydro/source/earcut.min.js text eol=lf
+tests/fixtures/web-hydro/source/geographic-boundary-core.js text eol=lf
+tests/fixtures/web-hydro/source/hydro-tile-worker.js text eol=lf
+tests/fixtures/web-m97/source/assets/js/modules/polygon-geometry.js text eol=lf
+tests/fixtures/web-m97/source/assets/js/modules/map-edit-geometry.js text eol=lf
+tests/fixtures/web-m97/source/assets/js/modules/coordinate-bounds.js text eol=lf
+tests/fixtures/web-m97/source/assets/js/modules/polygon-clipping-calculation.js text eol=lf
+tests/fixtures/web-m97/source/assets/js/modules/map-edit-country-commands.js text eol=lf
+
+# Approved 6c3f930 river-removal source overlay remains byte-identical.
+tests/fixtures/web-m97/selection-removal-correction-source/** text eol=lf
+
+# Manifested text fixtures and verifier source fingerprints use Git LF bytes.
+tests/fixtures/**/*.json text eol=lf
+tests/fixtures/**/*.ndjson text eol=lf
+tests/fixtures/**/*.mjs text eol=lf
+tests/fixtures/**/*.js text eol=lf
+tools/**/*.mjs text eol=lf
+tools/m977-pending-lifecycle/*.json text eol=lf
+tests/m977-pending-lifecycle-integration.test.mjs text eol=lf
+
+# Current Web10 fixture/source snapshots carry exact Git-byte manifests.
+tests/fixtures/web-v10-exchange/** -text
+tests/fixtures/lineage-v10-content/** -text
+assets/world/terrain/v0.13.3/** -text
+assets/world/physical-inventory-terrain-dem-c3c18d1.json -text
+assets/world/terrain-dem-provenance-c3c18d1.json -text
+tests/fixtures/web-p2-p3-terrain-source/** -text
+tests/fixtures/web-p2-p3-current-source/** -text
+tests/fixtures/web-place-runtime-source/** -text
+tests/fixtures/web-territorial-library-v2/** -text whitespace=-blank-at-eof
+assets/place/** -text
+assets/territorial-library-v2/** -text
+
+# Reviewed city source hashes refer to Git LF bytes on every platform.
+reports/places/*.json text eol=lf
+
+# Production reference calibration modules are pinned Git blob bytes.
+app/reference-web/** text eol=lf

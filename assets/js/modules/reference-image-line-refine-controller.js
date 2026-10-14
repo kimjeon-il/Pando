@@ -273,6 +273,7 @@ export function installReferenceImageLineRefiner() {
       || mapElement.classList.contains('is-reference-free-transform-mode')
       || mapElement.classList.contains('is-reference-live-wire-mode');
     apply.hidden = !active || state.phase !== 'preview';
+    apply.disabled = !!state?.applying;
     redraw.hidden = !active || state.phase !== 'preview';
     cancel.hidden = !active;
     const gcpButton = editor.querySelector('[data-ref-action="gcp"]');
@@ -467,22 +468,36 @@ export function installReferenceImageLineRefiner() {
     return true;
   }
 
-  function applyPreview() {
-    if (!state || state.phase !== 'preview' || state.previewCoordinates.length < 2) return false;
+  async function applyPreview() {
+    if (!state || state.applying || state.phase !== 'preview' || state.previewCoordinates.length < 2) return false;
     const bridge = globalThis.__PANDOLAB_REFERENCE_IMAGE_EDITING__;
     if (!bridge?.isDraftActive?.()) {
       setMessage('먼저 지도 편집 도구를 켠 뒤 적용하세요. 보강 결과는 그대로 유지됩니다.', 'error');
       return false;
     }
-    const applied = bridge.applyDraftCoordinates?.(state.previewCoordinates, {
-      source: 'reference-image-line-refined',
-    }) === true;
-    if (!applied) {
-      setMessage('현재 편집선에 보강 결과를 적용하지 못했습니다. 편집 상태를 확인하세요.', 'error');
+    const applyingState = state;
+    const coordinates = state.previewCoordinates;
+    applyingState.applying = true;
+    scheduleSync();
+    try {
+      const applied = await bridge.applyDraftCoordinates(coordinates, { source: 'reference-image-line-refined' });
+      if (disposed || state !== applyingState || state.previewCoordinates !== coordinates) return false;
+      if (!applied) {
+        setMessage('현재 편집선에 보강 결과를 적용하지 못했습니다. 편집 상태를 확인하세요.', 'error');
+        return false;
+      }
+      cancelRefine({ message: '보강선을 현재 편집 draft에 적용했습니다.', tone: 'success' });
+      return true;
+    } catch (error) {
+      console.error('[PL-REFERENCE-DRAFT-001]', error);
+      if (!disposed && state === applyingState && state.previewCoordinates === coordinates) {
+        setMessage(error?.message || '보강선을 편집 초안에 적용하지 못했습니다.', 'error');
+      }
       return false;
+    } finally {
+      applyingState.applying = false;
+      if (!disposed && state === applyingState) scheduleSync();
     }
-    cancelRefine({ message: '보강선을 현재 편집 draft에 적용했습니다.', tone: 'success' });
-    return true;
   }
 
 
@@ -539,7 +554,7 @@ export function installReferenceImageLineRefiner() {
     event.stopImmediatePropagation();
     const recordId = selectedRecordId(panel);
     if (action === 'start' && recordId) void startRefine(recordId);
-    if (action === 'apply') applyPreview();
+    if (action === 'apply') void applyPreview();
     if (action === 'redraw') redraw();
     if (action === 'cancel') cancelRefine({ message: '선 보강을 취소했습니다.' });
   }

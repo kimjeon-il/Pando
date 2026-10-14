@@ -36,6 +36,8 @@ export function installTimelineControls({ document, window, getMonth, setMonth }
 
   let editing = false;
   let composing = false;
+  let changeRequest = 0;
+  let requestedMonth = null;
   const showError = message => {
     error.textContent = message;
     error.hidden = !message;
@@ -71,23 +73,29 @@ export function installTimelineControls({ document, window, getMonth, setMonth }
     input.focus({ preventScroll: true });
     input.select();
   };
-  const change = requested => {
+  const change = async requested => {
+    const request = ++changeRequest;
     try {
       const point = parseTemporal(requested, { nullable: false });
       if (point.precision !== 'month') throw new TypeError('YYYY-MM 형식으로 입력하세요.');
-      setMonth(point.canonical);
+      requestedMonth = point.canonical;
+      await setMonth(point.canonical);
+      if (request !== changeRequest) return false;
+      requestedMonth = null;
       showError('');
       sync();
       return true;
     } catch (reason) {
+      if (request !== changeRequest) return false;
+      requestedMonth = null;
       showError(String(reason?.message || reason));
       sync();
       return false;
     }
   };
-  const acceptEdit = () => {
+  const acceptEdit = async () => {
     if (!editing || composing) return;
-    if (change(input.value.trim())) {
+    if (await change(input.value.trim())) {
       exitEdit(true);
       sync();
     }
@@ -98,14 +106,14 @@ export function installTimelineControls({ document, window, getMonth, setMonth }
       exitEdit(true);
     } else if (event.key === 'Enter' && !event.isComposing && !composing && event.keyCode !== 229) {
       event.preventDefault();
-      acceptEdit();
+      acceptEdit().catch(reason => showError(String(reason?.message || reason)));
     }
   };
   // Some mobile input methods send an insertLineBreak action instead of a keydown.
   const onBeforeInput = event => {
     if (event.inputType !== 'insertLineBreak' || composing || !editing) return;
     if (event.cancelable) event.preventDefault();
-    acceptEdit();
+    acceptEdit().catch(reason => showError(String(reason?.message || reason)));
   };
   const onBlur = () => exitEdit(false);
   const onInput = () => showError('');
@@ -114,7 +122,8 @@ export function installTimelineControls({ document, window, getMonth, setMonth }
   const onButtonClick = () => beginEdit();
   const onStep = delta => () => {
     exitEdit(false);
-    if (getMonth()) change(shiftTimelineMonth(getMonth(), delta));
+    if (getMonth()) change(shiftTimelineMonth(requestedMonth || getMonth(), delta))
+      .catch(reason => showError(String(reason?.message || reason)));
   };
   const stepHandlers = steps.map(([node, delta]) => {
     const handler = onStep(delta);
@@ -131,6 +140,7 @@ export function installTimelineControls({ document, window, getMonth, setMonth }
   window.addEventListener('pandolab:project-changed', sync);
   sync();
   return () => {
+    changeRequest += 1;
     exitEdit(false);
     button.removeEventListener('click', onButtonClick);
     input.removeEventListener('keydown', onKeydown);

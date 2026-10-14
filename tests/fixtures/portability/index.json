@@ -12,7 +12,55 @@
       "assets/js/modules/project-state.js",
       "assets/js/modules/project-serializer.js",
       ".github/workflows/web-app-parity.yml",
-      "tests/unit/web-app-parity-*.test.mjs"
+      "tests/unit/web-app-parity-*.test.mjs",
+      "assets/wasm/**",
+      ".github/workflows/shared-core.yml",
+      "tools/package-shared-core-assets.mjs",
+      "tests/unit/shared-core-assets.test.mjs",
+      "assets/js/modules/core-document-client.js",
+      "assets/js/modules/core-document-read-model.js",
+      "assets/js/modules/core-document-runtime.js",
+      "assets/js/modules/core-worker-runtime.js",
+      "assets/js/modules/core-object-ref.js",
+      "assets/js/modules/core-wasm-loader.js",
+      "assets/js/modules/app-domain-assembly.js",
+      "assets/js/modules/app-lifecycle-assembly.js",
+      "assets/js/modules/project-domain.js",
+      "assets/js/modules/project-ui-bridge.js",
+      "tests/unit/core-*.test.mjs",
+      "tests/unit/web-*-contract.test.mjs",
+      "tests/unit/web-document-seed.test.mjs",
+      "tests/unit/native-*-boundary.test.mjs",
+      "tests/unit/native-build-provenance.test.mjs",
+      "tests/unit/app-ui-boundaries.test.mjs",
+      "tests/unit/helpers/editor-dom-fixture.mjs",
+      "tests/unit/monorepo-pages-staging.test.mjs",
+      "tests/unit/runtime-performance-metrics.test.mjs",
+      "tests/helpers/core-*.mjs",
+      "tests/helpers/web-*-contract.mjs",
+      "tests/helpers/web-oracle.mjs",
+      "assets/js/modules/app-capability-ports-lifecycle-ui.js",
+      "assets/js/modules/app-global-input-bindings.js",
+      "assets/js/modules/app-navigation-bindings.js",
+      "assets/js/modules/app-object-commands.js",
+      "assets/js/modules/app-project-restore.js",
+      "assets/js/modules/app-tool-bindings.js",
+      "assets/js/modules/confirm-modal-controller.js",
+      "tests/unit/domain-split-contract.test.mjs",
+      "tests/unit/project-lifecycle.test.mjs",
+      "tests/unit/ui-controllers.test.mjs",
+      "tests/helpers/web-full-document-fixture.mjs",
+      "tests/unit/web-oracle-admission.test.mjs",
+      "tests/unit/platform-boundaries.test.mjs",
+      "assets/js/modules/app-capability-ports-project-io.js",
+      "assets/js/modules/app-capability-ports-foundation.js",
+      "assets/js/modules/app-capability-ports-map-interaction.js",
+      "assets/js/modules/app-capability-ports.js",
+      "assets/js/modules/app-project-session.js",
+      "assets/js/modules/app-composition.js",
+      "assets/js/modules/app-runtime-dependencies.js",
+      "tests/helpers/timeline-project.mjs",
+      "assets/js/build-meta.js"
     ],
     "app": [
       "tools/parity/**",
@@ -22,7 +70,30 @@
       ".github/workflows/web-app-parity.yml",
       "app/selection.cmake",
       "tools/evaluate-release-gate.mjs",
-      "ui/**"
+      "ui/**",
+      "../shared/core/CMakeLists.txt",
+      "../shared/CMakeLists.txt",
+      "../shared/wasm/**",
+      "../shared/tests/**",
+      "../shared/core/include/pandoeditor/document-session.h",
+      "../shared/core/src/document-session.cpp",
+      "cmake/BuildProvenance.cmake",
+      "assets/geometry/current/**",
+      "resources/current_geometry.qrc",
+      "tools/m97/current-geometry-source.test.mjs",
+      "tools/m97/cut-kernel-generate.mjs",
+      "app/CMakeLists.txt",
+      "app/editorcontroller.cpp",
+      "app/editorcontroller.h",
+      "app/main.cpp",
+      "engine/CMakeLists.txt",
+      "tests/core/CMakeLists.txt",
+      "tests/ui_tests.cpp",
+      "../shared/README.md",
+      "../shared/core/include/pandoeditor/document.h",
+      "../shared/core/src/documentstate.h",
+      "../shared/core/include/pandoeditor/version.h",
+      "../shared/core/src/version.cpp.in"
     ]
   },
   "relevantRoots": {
@@ -33,10 +104,12 @@
       "tools/parity/",
       "tests/fixtures/",
       "assets/data/",
-      "assets/flags/"
+      "assets/flags/",
+      "assets/wasm/",
+      "tests/helpers/"
     ],
     "app": [
-      "core/",
+      "../shared/",
       "engine/",
       "app/",
       "ui/",
@@ -51,20 +124,48 @@
       "id": "selection",
       "title": "선택·primary·범위 선택",
       "owners": {
-        "web": "SelectionDomain / object-selection-controller",
+        "web": "Shared C++ SelectionState / immutable SelectionDomain projection",
         "app": "SelectionState / editorselection"
       },
       "paths": {
         "web": [
           "assets/js/modules/*selection*.js",
           "tests/unit/platform-portability.test.mjs",
-          "tests/browser/selection-domain-smoke.spec.mjs"
+          "tests/browser/selection-domain-smoke.spec.mjs",
+          "tests/unit/selection-ui-focus.test.mjs",
+          "assets/js/modules/app-object-picking.js",
+          "tests/unit/map-click-async-command.test.mjs",
+          "tests/unit/property-selection-async-command.test.mjs",
+          "tests/unit/selection-domain-core.test.mjs",
+          "tests/unit/selection-domain-wasm.test.mjs",
+          "tests/unit/selection-ui-ack.test.mjs",
+          "tests/unit/selection-ui-reset-regression.test.mjs",
+          "tests/unit/territorial-display-identity.test.mjs",
+          "tests/unit/ui-state-controllers.test.mjs",
+          "tests/unit/layer-list-model.test.mjs",
+          "assets/js/modules/app-spatial-index.js",
+          "tests/unit/app-spatial-canonical-picking.test.mjs",
+          "tests/unit/territorial-display-picking.test.mjs",
+          "tests/browser/country-hover-entry.spec.mjs",
+          "tests/browser/interaction-unification.spec.mjs",
+          "tests/unit/view-focus-contract.test.mjs",
+          "assets/js/modules/app-pointer-targets.js",
+          "tests/unit/map-hover-async-boundary.test.mjs",
+          "tests/unit/interaction-roles.test.mjs"
         ],
         "app": [
-          "core/include/pandoeditor/selection.h",
+          "../shared/core/include/pandoeditor/selection.h",
           "app/editorselection.cpp",
           "tests/selection_ui_tests.cpp",
-          "tests/selection_probe.cpp"
+          "tests/selection_probe.cpp",
+          "../shared/core/include/pandoeditor/selectionref.h",
+          "../shared/core/include/pandoeditor/picking.h",
+          "../shared/core/include/pandoeditor/spatialindex.h",
+          "../shared/core/src/spatialindex.cpp",
+          "app/editorpicking.cpp",
+          "tests/selection_editor_tests.cpp",
+          "tools/m3-selection-oracle.mjs",
+          "tests/m72_spatial_index_tests.cpp"
         ]
       },
       "dependsOn": [],
@@ -163,29 +264,48 @@
       "id": "commands",
       "title": "명령·잠금·검증·부분 적용 방지",
       "owners": {
-        "web": "ProjectCommandPipeline / domain services",
-        "app": "CommandProcessor / ChangeSet"
+        "web": "ProjectDomain / ordered C++ DocumentSession commands",
+        "app": "DocumentSession / CommandProcessor / ChangeSet"
       },
       "paths": {
         "web": [
           "assets/js/modules/project-command-pipeline.js",
           "assets/js/modules/document-mutation-runner.js",
           "tests/unit/project-command-pipeline.test.mjs",
-          "tests/unit/service-command-pipeline.test.mjs"
+          "tests/unit/service-core-command-owner.test.mjs",
+          "assets/js/modules/app-object-deletion.js",
+          "tests/unit/object-deletion-async-command.test.mjs",
+          "tests/unit/project-domain-core-command.test.mjs",
+          "tests/unit/service-command-pipeline.test.mjs",
+          "tests/unit/core-direct-object-writers-wasm.test.mjs",
+          "tests/unit/core-delete-selection-wasm.test.mjs",
+          "tests/unit/core-distribution-array-metadata-wasm.test.mjs",
+          "tests/unit/core-project-admission-wasm.test.mjs",
+          "tests/unit/territorial-units.test.mjs"
         ],
         "app": [
-          "core/src/commands.cpp",
-          "core/include/pandoeditor/commands.h",
+          "../shared/core/src/commands.cpp",
+          "../shared/core/include/pandoeditor/commands.h",
           "app/editorcommands.cpp",
           "tests/command_tests.cpp",
-          "tests/command_editor_tests.cpp"
+          "tests/command_editor_tests.cpp",
+          "../shared/core/include/pandoeditor/webcommands.h",
+          "../shared/core/src/webcommands.cpp",
+          "../shared/core/src/commandbatch.cpp",
+          "../shared/core/include/pandoeditor/webcontentcommands.h",
+          "../shared/core/src/webcontentcommands.cpp",
+          "../shared/core/include/pandoeditor/webterritorialcommands.h",
+          "../shared/core/src/webterritorialcommands.cpp",
+          "../shared/core/src/webterritorialedit.cpp",
+          "../shared/core/include/pandoeditor/webobjectcommands.h",
+          "../shared/core/src/webobjectcommands.cpp"
         ]
       },
       "dependsOn": [],
       "contract": {
         "input": "Existing platform command arguments against a document revision.",
         "identity": "Explicit domain/type/id or ObjectRef conversion; source IDs and feature IDs are not substituted.",
-        "entrypoints": "ProjectCommandPipeline and runProjectTransaction; CommandProcessor prepare/confirm.",
+        "entrypoints": "Core Worker ProjectDomain prepare/execute/confirm; native DocumentSession and CommandProcessor",
         "preconditions": "Validate locks, references, candidate state and revision before committing.",
         "commit": "A successful command owns one existing history boundary; no-op does not create history.",
         "failure": "Failed validation and stale previews do not partially apply; preserve platform error category."
@@ -207,8 +327,9 @@
             "state"
           ],
           "webTests": [
-            "tests/unit/project-command-pipeline.test.mjs",
-            "tests/unit/service-command-pipeline.test.mjs"
+            "tests/unit/project-domain-core-command.test.mjs",
+            "tests/unit/service-core-command-owner.test.mjs",
+            "tests/unit/core-territorial-service-wasm.test.mjs"
           ],
           "nativeTests": [
             "command_tests",
@@ -235,14 +356,28 @@
           "assets/js/modules/*property*.js",
           "tests/unit/territorial-service.test.mjs",
           "tests/unit/territorial-metadata-command.test.mjs",
-          "tests/browser/territorial-common-commands.spec.mjs"
+          "tests/browser/territorial-common-commands.spec.mjs",
+          "tests/unit/territorial-info-period.test.mjs",
+          "tests/unit/territorial-property-controller.test.mjs",
+          "tests/unit/property-editor-async-boundary.test.mjs",
+          "assets/js/modules/app-capability-ports-object-editing.js",
+          "assets/js/modules/app-color-picker.js",
+          "assets/js/modules/app-object-metadata.js",
+          "tests/unit/color-picker-async-command.test.mjs",
+          "assets/js/modules/app-object-presentation.js",
+          "tests/unit/object-property-controller.test.mjs",
+          "tests/unit/object-visibility-command.test.mjs",
+          "tests/browser/info-tab-v9.spec.mjs",
+          "tests/unit/label-metadata-edit.test.mjs"
         ],
         "app": [
-          "core/src/objectproperties.cpp",
+          "../shared/core/src/objectproperties.cpp",
           "app/editorproperties.cpp",
           "app/editorfields.cpp",
           "tests/property_tests.cpp",
-          "tests/property_ui_tests.cpp"
+          "tests/property_ui_tests.cpp",
+          "../shared/core/include/pandoeditor/objectproperties.h",
+          "tests/territorial_info_controller_tests.cpp"
         ]
       },
       "dependsOn": [
@@ -354,17 +489,24 @@
           "assets/js/modules/territorial-hierarchy*.js",
           "assets/js/modules/territorial-units.js",
           "tests/unit/territorial-entity-store.test.mjs",
+          "tests/unit/territorial-create-period.test.mjs",
           "tests/unit/territorial-service.test.mjs",
           "tests/unit/territorial-hierarchy-model.test.mjs",
-          "tests/browser/territorial-hierarchy.spec.mjs"
+          "tests/browser/territorial-hierarchy.spec.mjs",
+          "assets/js/modules/territorial-interaction-policy.js",
+          "tests/unit/general-regional-contract.test.mjs",
+          "tests/unit/territorial-entity-repository.test.mjs",
+          "tests/unit/territorial-interaction-policy.test.mjs"
         ],
         "app": [
-          "core/src/document.cpp",
-          "core/src/territorialmutation.cpp",
+          "../shared/core/src/document.cpp",
+          "../shared/core/src/territorialmutation.cpp",
           "app/editorstructure.cpp",
           "tests/model_tests.cpp",
           "tests/territorial_structure_tests.cpp",
-          "tests/territorial_info_ui_tests.cpp"
+          "tests/territorial_info_ui_tests.cpp",
+          "../shared/core/include/pandoeditor/territorialmutation.h",
+          "app/editorhistorical.cpp"
         ]
       },
       "dependsOn": [
@@ -475,8 +617,8 @@
       "id": "history",
       "title": "프로젝트 이력·저장 체크포인트",
       "owners": {
-        "web": "history-service / save-state-controller",
-        "app": "Project"
+        "web": "C++ DocumentSession / read-only SaveStateController",
+        "app": "DocumentSession / Project history checkpoints"
       },
       "paths": {
         "web": [
@@ -485,14 +627,19 @@
           "assets/js/modules/app-history*.js",
           "tests/unit/history-service.test.mjs",
           "tests/unit/project-state.test.mjs",
-          "tests/browser/storage-protection.spec.mjs"
+          "tests/browser/storage-protection.spec.mjs",
+          "tests/unit/project-ui-async-history.test.mjs",
+          "tests/helpers/editable-history-fixture.mjs",
+          "tests/unit/project-domain-async-history.test.mjs"
         ],
         "app": [
-          "core/src/project.cpp",
-          "core/include/pandoeditor/project.h",
+          "../shared/core/src/project.cpp",
+          "../shared/core/include/pandoeditor/project.h",
           "tests/command_tests.cpp",
           "tests/timeline_project_tests.cpp",
-          "tests/portability_command_probe.cpp"
+          "tests/portability_command_probe.cpp",
+          "../shared/core/src/snapshot.cpp",
+          "../shared/core/src/commandbatch.cpp"
         ]
       },
       "dependsOn": [
@@ -501,7 +648,7 @@
       "contract": {
         "input": "Observe, edit, mark saved, Undo and Redo on a fixed project.",
         "identity": "Explicit domain/type/id or ObjectRef conversion; source IDs and feature IDs are not substituted.",
-        "entrypoints": "HistoryService/ProjectDomain/SaveStateController; Project command cursor and checkpoint.",
+        "entrypoints": "One C++ Project history cursor/checkpoint, ordered ProjectDomain and read-only SaveStateController",
         "preconditions": "Project and draft history remain separate; no-op/rejection cannot consume a history unit.",
         "commit": "Observe state after every operation, including both returns to the save point.",
         "failure": "The two registered Web dirty-token differences remain exact known cases; no broad dirty exclusion."
@@ -545,8 +692,9 @@
             "state"
           ],
           "webTests": [
-            "tests/unit/history-service.test.mjs",
-            "tests/unit/project-state.test.mjs"
+            "tests/unit/project-domain-async-history.test.mjs",
+            "tests/unit/core-save-state-projection.test.mjs",
+            "tests/unit/place-label-workflow.test.mjs"
           ],
           "nativeTests": [
             "command_tests",
@@ -582,7 +730,19 @@
           "assets/js/modules/app-geometry*.js",
           "tests/unit/editing-vertex-transaction.test.mjs",
           "tests/unit/editing-render-packet.test.mjs",
-          "tests/browser/edit-preview-handoff.spec.mjs"
+          "tests/browser/edit-preview-handoff.spec.mjs",
+          "tests/unit/territorial-editor-lifecycle.test.mjs",
+          "tests/unit/reference-image-draft-ack.test.mjs",
+          "tests/unit/reference-image-editing-bridge.test.mjs",
+          "assets/js/modules/app-country-modes.js",
+          "assets/js/modules/draft-editor.js",
+          "tests/unit/draft-editor.test.mjs",
+          "tests/helpers/editing-domain.mjs",
+          "tests/unit/edit-preview-handoff.test.mjs",
+          "tests/unit/editing-interaction-events.test.mjs",
+          "assets/js/modules/app-territorial-drafts.js",
+          "tests/unit/task-stage-presentation.test.mjs",
+          "tests/unit/editing-cancellation-boundaries.test.mjs"
         ],
         "app": [
           "engine/src/editgeometry.cpp",
@@ -590,7 +750,9 @@
           "app/editorgeometry.cpp",
           "tests/edit_geometry_tests.cpp",
           "tests/edit_screen_controller_tests.cpp",
-          "tests/edit_screen_ui_tests.cpp"
+          "tests/edit_screen_ui_tests.cpp",
+          "../shared/core/include/pandoeditor/geometrydraft.h",
+          "../shared/core/src/geometrydraft.cpp"
         ]
       },
       "dependsOn": [
@@ -663,14 +825,20 @@
           "assets/js/modules/*annex*.js",
           "tests/unit/territorial-edit-plan.test.mjs",
           "tests/unit/annex-drawn-selection.test.mjs",
-          "tests/browser/annex-drawn-selection.spec.mjs"
+          "tests/browser/annex-drawn-selection.spec.mjs",
+          "assets/js/modules/app-country-commits.js",
+          "tests/unit/helpers/territory-selection-runtime.mjs",
+          "tests/unit/territory-river-removal.test.mjs",
+          "tests/unit/territory-selection-ports.test.mjs",
+          "tests/unit/territory-selection-workflow.test.mjs"
         ],
         "app": [
-          "core/src/territorialmutation.cpp",
+          "../shared/core/src/territorialmutation.cpp",
           "app/geometrycalculator.cpp",
           "app/editorterritoryselection.cpp",
           "tests/territorial_geometry_tests.cpp",
-          "tests/territory_selection_tests.cpp"
+          "tests/territory_selection_tests.cpp",
+          "tests/m972_selection_probe.cpp"
         ]
       },
       "dependsOn": [
@@ -750,7 +918,19 @@
           "app/editorriverselection.cpp",
           "tests/cut_geometry_calculator_tests.cpp",
           "tests/split_geometry_lifecycle_tests.cpp",
-          "tests/split_geometry_normalizer_tests.cpp"
+          "tests/split_geometry_normalizer_tests.cpp",
+          "app/riverpartitioncalculator.cpp",
+          "app/splitgeometrynormalizer.cpp",
+          "app/splitgeometrynormalizer.h",
+          "tests/river_selection_controller_tests.cpp",
+          "tools/m97/cut-kernel-adapter.test.mjs",
+          "tests/m973_split_controller_probe.cpp",
+          "app/territorycutadapter.cpp",
+          "tests/m972_river_controller_probe.cpp",
+          "tests/river_selection_ui_tests.cpp",
+          "tests/split_selection_controller_tests.cpp",
+          "../shared/core/include/pandoeditor/sphericalpolygon.h",
+          "../shared/core/src/sphericalpolygon.cpp"
         ]
       },
       "dependsOn": [
@@ -784,7 +964,8 @@
           ],
           "webTests": [
             "tests/unit/territorial-edit-plan.test.mjs",
-            "tests/unit/map-edit-transaction.test.mjs"
+            "tests/unit/app-geometry-preview.test.mjs",
+            "tests/unit/core-candidate-projection-wasm.test.mjs"
           ],
           "nativeTests": [
             "cut_geometry_calculator_tests",
@@ -821,7 +1002,9 @@
           "assets/js/modules/map-edit*.js",
           "tests/unit/territorial-boundary-continuity.test.mjs",
           "tests/unit/territorial-geometry.test.mjs",
-          "tests/browser/territorial-boundary-continuity.spec.mjs"
+          "tests/browser/territorial-boundary-continuity.spec.mjs",
+          "tests/unit/country-shared-boundary.test.mjs",
+          "tests/unit/land-relations-presentation.test.mjs"
         ],
         "app": [
           "engine/src/sharedboundary.cpp",
@@ -830,7 +1013,14 @@
           "tests/m976_shared_boundary_engine_tests.cpp",
           "tests/m974_snap_tests.cpp",
           "tests/m974_boundary_session_tests.cpp",
-          "tests/m974_boundary_ui_tests.cpp"
+          "tests/m974_boundary_ui_tests.cpp",
+          "app/sharedboundarycontroller.cpp",
+          "tests/m974_boundary_hierarchy_tests.cpp",
+          "tests/m974_boundary_probe.cpp",
+          "tests/m974_boundary_supplemental_tests.cpp",
+          "tests/m974_snap_order_tests.cpp",
+          "tests/m974_snap_ui_tests.cpp",
+          "tests/m974_snap_workflow_tests.cpp"
         ]
       },
       "dependsOn": [
@@ -903,17 +1093,35 @@
           "assets/js/workers/map-edit-worker.js",
           "assets/js/workers/geometry-validation-worker.js",
           "tests/unit/territorial-geometry.test.mjs",
-          "tests/unit/territorial-source-provenance.test.mjs"
+          "tests/unit/territorial-source-provenance.test.mjs",
+          "assets/js/modules/app-land-relations.js",
+          "tests/unit/app-map-audit.test.mjs",
+          "tests/unit/polygon-geometry.test.mjs"
         ],
         "app": [
-          "core/src/geometrypredicates.cpp",
-          "core/src/geobounds.cpp",
-          "core/src/geometryprovenance.cpp",
+          "../shared/core/src/geometrypredicates.cpp",
+          "../shared/core/src/geobounds.cpp",
+          "../shared/core/src/geometryprovenance.cpp",
           "app/geometrycalculator.cpp",
           "tests/geometry_predicate_tests.cpp",
           "tests/geometry_provenance_tests.cpp",
           "tests/geometry_calculator_tests.cpp",
-          "tests/portability_geometry_probe.cpp"
+          "tests/portability_geometry_probe.cpp",
+          "tests/current-geometry/**",
+          "tests/current_geometry_tests.cpp",
+          "../shared/core/include/pandoeditor/geobounds.h",
+          "../shared/core/include/pandoeditor/geometry-types.h",
+          "../shared/core/include/pandoeditor/geometryoperations.h",
+          "../shared/core/include/pandoeditor/geometrypredicates.h",
+          "../shared/core/include/pandoeditor/geometryprovenance.h",
+          "app/riverareacalculator.cpp",
+          "tests/river_area_tests.cpp",
+          "assets/geometry/README.md",
+          "../shared/core/src/webterritorialedit.cpp",
+          "tests/m975_geometry_provenance_codec_tests.cpp",
+          "tests/territorial_geometry_preview_tests.cpp",
+          "../shared/core/include/pandoeditor/sphericalpolygon.h",
+          "../shared/core/src/sphericalpolygon.cpp"
         ]
       },
       "dependsOn": [],
@@ -1044,16 +1252,21 @@
           "tests/unit/project-transaction.test.mjs",
           "tests/unit/worker-job-scheduler.test.mjs",
           "tests/unit/map-edit-transaction-reliability.test.mjs",
-          "tests/browser/edit-preview-handoff.spec.mjs"
+          "tests/browser/edit-preview-handoff.spec.mjs",
+          "tests/unit/runtime-performance-contract.test.mjs",
+          "tests/unit/app-geometry-preview.test.mjs"
         ],
         "app": [
-          "core/src/jobs.cpp",
+          "../shared/core/src/jobs.cpp",
           "app/commandjobrunner.cpp",
           "app/editorjobs.cpp",
           "tests/job_tests.cpp",
           "tests/job_runner_tests.cpp",
           "tests/job_editor_tests.cpp",
-          "tests/portability_async_probe.cpp"
+          "tests/portability_async_probe.cpp",
+          "tests/m977_pending_input_probe.cpp",
+          "tests/m977_pending_lifecycle_probe.cpp",
+          "../shared/core/include/pandoeditor/jobs.h"
         ]
       },
       "dependsOn": [
@@ -1101,9 +1314,9 @@
             "state"
           ],
           "webTests": [
-            "tests/unit/project-transaction.test.mjs",
+            "tests/unit/project-domain-core-command.test.mjs",
             "tests/unit/worker-job-scheduler.test.mjs",
-            "tests/unit/map-edit-transaction-reliability.test.mjs"
+            "tests/unit/core-candidate-projection-wasm.test.mjs"
           ],
           "nativeTests": [
             "job_tests",
@@ -1144,7 +1357,24 @@
           "tests/unit/persistence-service.test.mjs",
           "tests/unit/reference-image-store.test.mjs",
           "tests/browser/storage-protection.spec.mjs",
-          "tests/browser/timeline-persistence.spec.mjs"
+          "tests/browser/timeline-persistence.spec.mjs",
+          "tests/unit/autosave-recovery-ui.test.mjs",
+          "assets/js/modules/project-preview-cache.js",
+          "tests/unit/project-preview-cache.test.mjs",
+          "tests/unit/project-autosave-receipt.test.mjs",
+          "assets/js/modules/app-builtin-session.js",
+          "assets/js/modules/app-file-bindings.js",
+          "assets/js/modules/app-project-snapshots.js",
+          "tests/unit/app-builtin-session.test.mjs",
+          "tests/unit/import-service.test.mjs",
+          "tests/unit/territorial-command-storage.test.mjs",
+          "tests/unit/territorial-store-boundary.test.mjs",
+          "tests/unit/territorial-timeline-storage.test.mjs",
+          "tests/helpers/web-removal-oracle.mjs",
+          "tests/unit/web-object-removal-original.test.mjs",
+          "assets/js/modules/project-preview-policy.js",
+          "assets/js/workers/project-preview-worker.js",
+          "tests/unit/project-preview-policy.test.mjs"
         ],
         "app": [
           "app/projectcodec.cpp",
@@ -1153,7 +1383,19 @@
           "tests/storage_tests.cpp",
           "tests/autosave_tests.cpp",
           "tests/timeline_editor_persistence_tests.cpp",
-          "tests/web_import_ui_tests.cpp"
+          "tests/web_import_ui_tests.cpp",
+          "../shared/core/include/pandoeditor/projectcodec.h",
+          "../shared/core/src/projectcodec.cpp",
+          "../shared/core/src/losslessjson.cpp",
+          "../shared/core/include/pandoeditor/losslessjson.h",
+          "tests/json-text-policy/**",
+          "tests/json_text_policy_tests.cpp",
+          "app/losslessjson.h",
+          "tests/migration_tests.cpp",
+          "../shared/core/include/pandoeditor/webstorage.h",
+          "../shared/core/src/webstorage.cpp",
+          "tests/m975_geometry_provenance_codec_tests.cpp",
+          "tests/web_import_tests.cpp"
         ]
       },
       "dependsOn": [
@@ -1233,17 +1475,43 @@
           "tests/unit/timeline-storage.test.mjs",
           "tests/unit/timeline-resolver.test.mjs",
           "tests/unit/timeline-project-activation.test.mjs",
-          "tests/browser/timeline-persistence.spec.mjs"
+          "tests/browser/timeline-persistence.spec.mjs",
+          "assets/js/modules/core-session-*.js",
+          "assets/js/workers/core-session-worker.js",
+          "tests/fixtures/historical-world-cases.mjs",
+          "tests/unit/historical-world-reset.test.mjs",
+          "tests/unit/historical-world-timeline.test.mjs",
+          "tests/unit/project-timeline-domain.test.mjs",
+          "tests/unit/timeline-controls.test.mjs",
+          "tests/unit/timeline-live-view.test.mjs",
+          "assets/js/modules/historical-world-loader.js",
+          "tests/unit/historical-world-loader.test.mjs",
+          "tests/unit/timeline-entity-store.test.mjs",
+          "assets/data/historical-world/generated/v1/**"
         ],
         "app": [
-          "core/src/temporal.cpp",
-          "core/src/timeline-records.cpp",
-          "core/src/timeline-storage.cpp",
-          "core/src/timeline-resolver.cpp",
+          "../shared/core/src/temporal.cpp",
+          "../shared/core/src/timeline-records.cpp",
+          "../shared/core/src/timeline-storage.cpp",
+          "../shared/core/src/timeline-resolver.cpp",
           "tests/timeline_resolver_tests.cpp",
           "tests/timeline_records_tests.cpp",
           "tests/timeline_storage_tests.cpp",
-          "tests/temporal_tests.cpp"
+          "tests/temporal_tests.cpp",
+          "../shared/core/src/core-session.cpp",
+          "../shared/core/include/pandoeditor/core-session.h",
+          "../shared/core/include/pandoeditor/temporal.h",
+          "../shared/core/include/pandoeditor/timeline-edit.h",
+          "../shared/core/include/pandoeditor/timeline-records.h",
+          "../shared/core/include/pandoeditor/timeline-resolver.h",
+          "../shared/core/include/pandoeditor/timeline-storage.h",
+          "../shared/core/include/pandoeditor/timeline-view.h",
+          "../shared/core/src/timeline-edit.cpp",
+          "../shared/core/src/timeline-view.cpp",
+          "tests/historical_world_resolution_probe.cpp",
+          "tests/historical_world_timeline_tests.cpp",
+          "tests/historical_world_ui_tests.cpp",
+          "assets/world/historical-world/v1/**"
         ]
       },
       "dependsOn": [],
@@ -1392,11 +1660,20 @@
             "data"
           ],
           "observationIds": [
+            "-0001-01",
+            "-0001-12",
+            "0001-01",
+            "0001-12",
+            "0002-01",
             "1909-12",
+            "1910-01",
             "1914-06",
             "1914-07",
+            "1915-12",
             "1916-01",
-            "1920-04"
+            "1920-03",
+            "1920-04",
+            "2000-02"
           ]
         },
         {
@@ -1461,24 +1738,41 @@
       "paths": {
         "web": [
           "assets/js/modules/gis*.js",
+          "assets/js/gis-adapters.js",
           "assets/js/modules/import*.js",
           "assets/js/modules/*exchange*.js",
           "assets/js/modules/source-provenance.js",
           "tests/unit/territorial-gis-export.test.mjs",
           "tests/unit/territorial-gis-current.test.mjs",
           "tests/unit/generic-provenance.test.mjs",
-          "tests/browser/gis-interchange.spec.mjs"
+          "tests/browser/gis-interchange.spec.mjs",
+          "tests/unit/gis-geometry-worker.test.mjs",
+          "tests/unit/gis-adapters.test.mjs",
+          "assets/js/gis-io.js",
+          "assets/js/modules/app-gis-assembly.js",
+          "assets/js/workers/gis-gpkg-worker.js",
+          "tests/fixtures/generate-timeline-exchange.mjs",
+          "tests/helpers/production-geopackage.mjs",
+          "tests/helpers/gis-core-fixture.mjs",
+          "tests/unit/gis-export-controller.test.mjs"
         ],
         "app": [
-          "core/src/gisexchange.cpp",
-          "core/src/giszip.cpp",
+          "../shared/core/src/gisexchange.cpp",
+          "../shared/core/src/giszip.cpp",
           "app/editorgis*.cpp",
           "app/editorwebimport.cpp",
           "app/projectcodec.cpp",
           "tests/gis_exchange_tests.cpp",
           "tests/gis_failure_matrix_tests.cpp",
           "tests/project_geopackage_tests.cpp",
-          "tests/web_import_ui_tests.cpp"
+          "tests/web_import_ui_tests.cpp",
+          "../shared/core/include/pandoeditor/geopackagegeometry.h",
+          "../shared/core/include/pandoeditor/gisexchange.h",
+          "../shared/core/include/pandoeditor/giszip.h",
+          "../shared/core/src/geopackagegeometry.cpp",
+          "tests/web_import_editor_tests.cpp",
+          "tests/m975_model_exchange_probe.cpp",
+          "tests/web_import_tests.cpp"
         ]
       },
       "dependsOn": [
@@ -1622,10 +1916,14 @@
           "tests/unit/territorial-source-files.test.mjs",
           "tests/unit/territorial-source-parity.test.mjs",
           "tests/unit/territorial-chunks.test.mjs",
-          "tests/browser/historical-library.spec.mjs"
+          "tests/browser/historical-library.spec.mjs",
+          "tests/unit/builtin-subunits.test.mjs",
+          "tests/unit/library-import-atomic.test.mjs",
+          "tests/unit/layer-tree-controller.test.mjs",
+          "tests/unit/country-lineage-preservation.test.mjs"
         ],
         "app": [
-          "core/src/historicallibrary.cpp",
+          "../shared/core/src/historicallibrary.cpp",
           "app/territoriallibrary*.cpp",
           "app/historicallibrary*.cpp",
           "assets/flags/**",
@@ -1633,7 +1931,10 @@
           "tests/territorial_library_catalog_tests.cpp",
           "tests/historical_library_loader_tests.cpp",
           "tests/portability_library_probe.cpp",
-          "assets/territorial-library-v2/**"
+          "assets/territorial-library-v2/**",
+          "../shared/core/include/pandoeditor/historicalinstantiation.h",
+          "../shared/core/include/pandoeditor/historicallibrary.h",
+          "../shared/core/src/historicalinstantiation.cpp"
         ]
       },
       "dependsOn": [
@@ -1740,10 +2041,11 @@
           "assets/js/modules/distribution*.js",
           "tests/unit/distribution-service.test.mjs",
           "tests/unit/distribution-numeric-model.test.mjs",
-          "tests/unit/distribution-selection.test.mjs"
+          "tests/unit/distribution-selection.test.mjs",
+          "tests/browser/distribution.spec.mjs"
         ],
         "app": [
-          "core/src/content.cpp",
+          "../shared/core/src/content.cpp",
           "app/editorcontent.cpp",
           "tests/command_tests.cpp"
         ]
@@ -1819,10 +2121,12 @@
           "assets/js/modules/generic-feature*.js",
           "tests/unit/generic-feature-service.test.mjs",
           "tests/unit/generic-provenance.test.mjs",
-          "tests/browser/generic-feature-independent-geometry.spec.mjs"
+          "tests/browser/generic-feature-independent-geometry.spec.mjs",
+          "assets/js/modules/app-generic-commands.js",
+          "assets/js/modules/app-territorial-conversion.js"
         ],
         "app": [
-          "core/src/content.cpp",
+          "../shared/core/src/content.cpp",
           "app/editorcontent.cpp",
           "tests/retained_reference_tests.cpp"
         ]
@@ -1908,13 +2212,21 @@
           "tests/unit/reference-image-source-mapping.test.mjs",
           "tests/unit/reference-image-edit-session.test.mjs",
           "tests/unit/reference-image-store.test.mjs",
-          "tests/browser/reference-image-overlay.spec.mjs"
+          "tests/browser/reference-image-overlay.spec.mjs",
+          "tests/unit/reference-shared-runtime.test.mjs",
+          "tests/unit/reference-image-draft-ack.test.mjs",
+          "tests/unit/reference-image-editing-bridge.test.mjs",
+          "tests/unit/reference-image-architecture.test.mjs"
         ],
         "app": [
           "app/*reference*.cpp",
           "app/*reference*.h",
           "tests/reference*",
-          "tests/reference_image_tests.cpp"
+          "tests/reference_image_tests.cpp",
+          "tools/reference-parity/**",
+          "cmake/ReferenceRuntime.cmake",
+          "app/reference-web/**",
+          "tests/reference-runtime/**"
         ]
       },
       "dependsOn": [],
@@ -1983,7 +2295,14 @@
           "tests/unit/place-runtime.test.mjs",
           "tests/unit/place-worker-store.test.mjs",
           "tests/unit/place-codec.test.mjs",
-          "assets/data/places/**"
+          "assets/data/places/**",
+          "tests/unit/place-label-workflow.test.mjs",
+          "assets/js/modules/app-territorial-labels.js",
+          "tests/browser/country-label-flags.spec.mjs",
+          "tests/unit/country-display.test.mjs",
+          "tests/browser/place-runtime.spec.mjs",
+          "tests/unit/place-publication.test.mjs",
+          "tests/unit/place-sync-contract.test.mjs"
         ],
         "app": [
           "app/place*.cpp",
@@ -1992,7 +2311,8 @@
           "tests/place_runtime_store_tests.cpp",
           "tests/place_runtime_provider_tests.cpp",
           "tests/place_controller_tests.cpp",
-          "assets/world/places/**"
+          "assets/world/places/**",
+          "tests/place_provenance_engine_tests.cpp"
         ]
       },
       "dependsOn": [
@@ -2052,16 +2372,27 @@
           "tests/unit/hydro-recovery.test.mjs",
           "tests/unit/hydro-metadata-edit.test.mjs",
           "tests/browser/hydro-metadata-edit.spec.mjs",
-          "assets/data/hydro/**"
+          "assets/data/hydro/**",
+          "assets/js/modules/app-physical-resources.js",
+          "tests/unit/builtin-resource-admission.test.mjs",
+          "tests/unit/builtin-resource-core-wasm.test.mjs",
+          "tests/helpers/web-hydro-create-oracle.mjs",
+          "tests/helpers/web-hydro-hidden-oracle.mjs"
         ],
         "app": [
           "app/hydro*.cpp",
-          "core/src/hydro*.cpp",
+          "../shared/core/src/hydro*.cpp",
           "engine/src/builtinhydrochannel.cpp",
           "tests/hydro_runtime_tests.cpp",
           "tests/hydro_scheduler_resource_tests.cpp",
           "tests/hydro_cache_tests.cpp",
-          "assets/world/hydro/**"
+          "tests/hydro_river_source_tests.cpp",
+          "assets/world/hydro/**",
+          "app/hydroassetreader.h",
+          "app/hydroruntimeprovider.h",
+          "app/hydroshardreader.h",
+          "../shared/core/include/pandoeditor/hydroformat.h",
+          "../shared/core/include/pandoeditor/hydroviewport.h"
         ]
       },
       "dependsOn": [
@@ -2194,7 +2525,8 @@
           "tests/unit/terrain-manifest.test.mjs",
           "tests/unit/gpu-terrain-preparation.test.mjs",
           "tests/browser/terrain-progressive.spec.mjs",
-          "assets/data/terrain/**"
+          "assets/data/terrain/**",
+          "tests/browser/terrain-lod-independence.spec.mjs"
         ],
         "app": [
           "app/terrain*.cpp",
@@ -2203,7 +2535,8 @@
           "tests/terrain_dem_provider_tests.cpp",
           "tests/terrain_display_state_tests.cpp",
           "tests/terrain_render_owner_tests.cpp",
-          "assets/world/terrain/**"
+          "assets/world/terrain/**",
+          "tests/terrain_land_mask_tests.cpp"
         ]
       },
       "dependsOn": [
@@ -2281,7 +2614,22 @@
           "tests/unit/gpu-renderer-lifecycle.test.mjs",
           "tests/unit/selection-overlay-plan.test.mjs",
           "tests/browser/selection-interaction-style.spec.mjs",
-          "tests/browser/visual-frame-sync.spec.mjs"
+          "tests/browser/visual-frame-sync.spec.mjs",
+          "assets/js/modules/map-input-presentation.js",
+          "tests/unit/map-hover-topology.test.mjs",
+          "assets/js/modules/app-map-settings.js",
+          "assets/js/modules/app-layer-list.js",
+          "tests/unit/map-settings-core-ack.test.mjs",
+          "tests/unit/map-label-visibility.test.mjs",
+          "tests/unit/core-map-presentation-wasm.test.mjs",
+          "tests/unit/gpu-base-scene-order.test.mjs",
+          "tests/unit/territorial-display-projection.test.mjs",
+          "tests/unit/territorial-fill-style.test.mjs",
+          "tests/unit/territorial-scope.test.mjs",
+          "tests/browser/ui-components.spec.mjs",
+          "assets/js/modules/app-gpu-scene.js",
+          "tests/browser/renderer-migration-gaps.spec.mjs",
+          "tests/unit/interaction-roles.test.mjs"
         ],
         "app": [
           "engine/src/renderscene.cpp",
@@ -2292,7 +2640,26 @@
           "tests/map_stroke_handoff_tests.cpp",
           "tests/m72_scene_bridge_tests.cpp",
           "tests/edit_display_ui_tests.cpp",
-          "renderer/**"
+          "renderer/**",
+          "../shared/core/include/pandoeditor/maprenderorder.h",
+          "../shared/core/src/maprenderorder.cpp",
+          "../shared/core/include/pandoeditor/presentation.h",
+          "../shared/core/include/pandoeditor/presentationcommands.h",
+          "../shared/core/src/presentation.cpp",
+          "../shared/core/src/presentationcommands.cpp",
+          "engine/include/pandoeditor/map/mapscenebuilder.h",
+          "engine/src/mapscenebuilder.cpp",
+          "app/editorpresentation.cpp",
+          "tests/prepared_scene_tests.cpp",
+          "tests/m72_mapprojection_lifetime_tests.cpp",
+          "tests/presentation_editor_tests.cpp",
+          "tests/world_render_baseline.cpp",
+          "../shared/core/include/pandoeditor/webpresentationcommands.h",
+          "../shared/core/src/webpresentationcommands.cpp",
+          "tests/m72_scene_builder_tests.cpp",
+          "tests/presentation_tests.cpp",
+          "tests/geometry_presentation_device_tests.cpp",
+          "tests/native_performance_structure_tests.cpp"
         ]
       },
       "dependsOn": [
@@ -2505,7 +2872,11 @@
           "assets/js/modules/physical*.js",
           "assets/js/modules/resource*.js",
           "tests/unit/hydro-recovery.test.mjs",
-          "tests/unit/place-worker-store.test.mjs"
+          "tests/unit/place-worker-store.test.mjs",
+          "assets/js/modules/app-progressive-startup.js",
+          "tests/unit/progressive-startup-runtime-contract.test.mjs",
+          "tests/unit/progressive-startup-runtime.test.mjs",
+          "assets/js/modules/stored-asset-loader.js"
         ],
         "app": [
           "app/physicaldatastore.cpp",
@@ -2513,7 +2884,18 @@
           "engine/src/resourcecachepolicy.cpp",
           "tests/physical_data_store_tests.cpp",
           "tests/resource_cache_policy_tests.cpp",
-          "tests/viewport_resource_scheduler_tests.cpp"
+          "tests/viewport_resource_scheduler_tests.cpp",
+          "app/physicaldatastore.h",
+          "app/verifiedfile.h",
+          "app/worldbootstrap.cpp",
+          "app/worlddatasetloader.cpp",
+          "app/worlddatasetloader.h",
+          "tests/startup_source_tests.cpp",
+          "tests/builtin_world_policy_tests.cpp",
+          "tests/world_diagnostic_helper.h",
+          "tests/verified-file/**",
+          "tests/verified_file_tests.cpp",
+          "assets/world/manifest.json"
         ]
       },
       "dependsOn": [],

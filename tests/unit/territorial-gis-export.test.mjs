@@ -1,6 +1,7 @@
 import { createProjectSerializer } from '../../assets/js/modules/project-serializer.js';
 import { staticSerializerSnapshot } from '../helpers/timeline-project.mjs';
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
+import {coreFileProjection} from '../helpers/production-geopackage.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -35,7 +36,8 @@ test('child-only GeoJSON export writes one layer and omits administrative fields
       createTerritorialFeature({ id: 'C', entityKind: 'general', geometry }),
       createTerritorialFeature({ id: 's', entityKind: 'general', parentId: 'C', name: '자치령', geometry }),
     ] }) }).buildProject();
-  const result = await context.PandoLabGIS.exportGeoJsonBundle(project, ['subunits']);
+  const receipt=await coreFileProjection(project);
+  const result = await context.PandoLabGIS.exportGeoJsonBundle(receipt.project,['subunits'],()=>{},{spatialState:receipt.spatialState});
   assert.equal(result.manifest.layers.length, 1);
   assert.equal(result.manifest.layers[0].category, 'entities');
   assert.equal(result.manifest.layers[0].targetType, 'general');
@@ -45,7 +47,7 @@ test('child-only GeoJSON export writes one layer and omits administrative fields
   assert.equal('is_remainder' in feature.properties, false);
   assert.equal(feature.properties.parent_id, 'C');
   assert.deepEqual(feature.geometry, geometry);
-  await assert.rejects(context.PandoLabGIS.exportGeoJsonBundle(project, ['regions']), /내보낼 데이터가 없습니다/);
+  await assert.rejects(context.PandoLabGIS.exportGeoJsonBundle(receipt.project,['regions'],()=>{},{spatialState:receipt.spatialState}), /내보낼 데이터가 없습니다/);
 });
 
 test('project GeoPackage routes the complete snapshot directly to the production Worker', async () => {
@@ -67,9 +69,11 @@ test('project GeoPackage routes the complete snapshot directly to the production
     async getFileBytes() { return new Uint8Array([1]); },
     async close() {},
   }, async (_action, buffer, extra) => { payload = extra; return { buffer }; });
-  await context.PandoLabGIS.exportGeoPackage({ territorialEntities });
+  const spatialState={territorialEntities};
+  await context.PandoLabGIS.exportGeoPackage({territorialEntities},()=>{},{spatialState});
   assert.equal(argumentsUsed, undefined);
   assert.equal(seed, undefined);
   assert.equal(payload.exportMode, 'project');
+  assert.equal(payload.spatialState,spatialState);
   assert.deepEqual(payload.projectState.territorialEntities, territorialEntities);
 });

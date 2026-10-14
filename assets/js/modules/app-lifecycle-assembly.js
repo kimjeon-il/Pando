@@ -91,6 +91,11 @@ export function createLifecycleAssembly() {
             enterTerritorialBorderEditFromSelection: dependencies.countryEditingA.enterTerritorialBorderEditFromSelection,
             undo: () => projectUi.undo(),
             redo: () => projectUi.redo(),
+            reportOperationError: (error, context) => {
+              dependencies.readiness.reliabilityDiagnostic.push({ category: 'editor-property', code: error?.code || 'PL-EDITOR-PROPERTY', ...context,
+                message: String(error?.message || error), stack: String(error?.stack || '') });
+              dependencies.feedback.setActionStatus('객체 편집을 완료하지 못했습니다.', 'error', 4200);
+            },
           });
           dependencies.gisRuntimeCommands.installWorkflow((0, dependencies.uiFactoriesA.createGisWorkflowController)({
             loadRuntime: async () => { await Promise.all([(0, dependencies.gisServicesA.ensureGisRuntime)(), (0, dependencies.gisServicesA.ensureGisIoRuntime)(), (0, dependencies.applicationServicesA.ensureModalRuntime)()]); return { importServiceModule: dependencies.applicationServicesA.importServiceModule, createGisImportWizardController: dependencies.uiFactoriesA.createGisImportWizardController, buildTerritorialImportTransactionPlan: dependencies.gisServicesA.buildTerritorialImportTransactionPlan, resolveCountryIdentities: dependencies.countryServices.resolveCountryIdentities, identityResolutionSummary: dependencies.applicationServicesA.identityResolutionSummary, materializeResolvedCountries: dependencies.applicationServicesB.materializeResolvedCountries }; },
@@ -189,6 +194,7 @@ export function createLifecycleAssembly() {
             screenToGeo: dependencies.mapView.screenToGeo,
             queueCountryHoverPick: dependencies.pointerInteractionA.queueCountryHoverPick,
             getTerritorialLabelRef: dependencies.objectPicking.getTerritorialLabelRef,
+            reportOperationError: (error,code) => dependencies.feedback.reportOperationError(error,'지도 편집 입력을 적용하지 못했습니다.',code,4200),
           });
             mapDebug.installRenderFacade();
         },
@@ -196,7 +202,7 @@ export function createLifecycleAssembly() {
       startup: dependencies.startup.init,
       onReady: () => { dependencies.startupCommands.markRuntimeReady(); },
       onError: dependencies.readinessUi.showFatalError,
-      getDisposables: () => [dependencies.workspaceUiB.editorWorkspacePresentation, mapInputPresentation, propertyEditorUi, dependencies.domainControllers.territorialPropertyController, dependencies.domains.selectionUiController, dependencies.domains.renderingDomain, dependencies.domains.editingDomain, dependencies.domains.selectionDomain, dependencies.gisRuntime.gisWorkflow, dependencies.domainControllers.gisDomain, dependencies.domains.projectDomain],
+      getDisposables: () => [dependencies.workspaceUiB.editorWorkspacePresentation, mapInputPresentation, propertyEditorUi, dependencies.domainControllers.territorialPropertyController, dependencies.domains.selectionUiController, dependencies.domains.renderingDomain, dependencies.domains.editingDomain, dependencies.domains.selectionDomain, dependencies.gisRuntime.gisWorkflow, dependencies.domainControllers.gisDomain, dependencies.domains.projectDomain,dependencies.domains.commandOwner],
       reportDisposeError: error => dependencies.readiness.reliabilityDiagnostic.push({ category: 'dispose', message: String(error?.message || error) }),
     }));
   }

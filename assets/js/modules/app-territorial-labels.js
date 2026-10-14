@@ -313,6 +313,7 @@ export function createTerritorialLabels() {
   function initializeLabelLayoutMetrics() {
     (labelLayoutMetrics = {});
     builtinPlaces = createPlaceRuntime({
+      admitReferences:refs=>dependencies.domains.projectDomain.admitSelectionCatalog('placeBuiltin',refs),
       manifestUrl: dependencies.platform.runtimeAssetUrl('../data/places/manifest.json').href,
       createWorker: () => new Worker(dependencies.platform.runtimeAssetUrl('workers/place-worker.js'), { type: 'module', name: 'pandolab-places' }),
       getProtectedIds: () => {
@@ -336,6 +337,7 @@ export function createTerritorialLabels() {
     preparePlaces,
     labelById,
     get builtinPlaces() { return builtinPlaces; },
+    builtinPlaceSelectionReferences:()=>builtinPlaces.selectionReferences(),
     initializeCountryOutlineCache,
     initializeLabelLayoutMetrics,
     initializeTerritorialLabelScreenAreas,

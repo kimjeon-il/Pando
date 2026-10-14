@@ -1,8 +1,27 @@
 import {TERRITORIAL_SCHEMA_VERSION} from '../../assets/js/modules/territorial-units.js';
 import { timelineStorageCases } from '../fixtures/timeline-storage-cases.mjs';
-import { createEmptyTerritorialState, createTerritorialEntityStore, createStaticTerritorialSnapshot } from '../../assets/js/modules/territorial-entity-store.js';
-import { createProjectSerializer } from '../../assets/js/modules/project-serializer.js';
+import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
+import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
+import { createNodeCoreProject } from './core-project.mjs';
+import { loadWebOracle } from './web-oracle.mjs';
 import { DISTRIBUTION_MODES } from '../../assets/js/modules/distribution-model.js';
+import { afterEach } from 'node:test';
+
+// These original factories only construct detached scenario inputs. Current
+// behavior, mutation, validation and history are always exercised in C++.
+const { createStaticTerritorialSnapshot }=await loadWebOracle('assets/js/modules/territorial-entity-store.js');
+const { createProjectSerializer }=await loadWebOracle('assets/js/modules/project-serializer.js');
+const fixtures=new WeakMap();
+const liveFixtures=new Set();
+
+/** Detached input construction only; never a current model or command owner. */
+export function staticTerritorialInput(features) {
+  return structuredClone(createStaticTerritorialSnapshot(features));
+}
+afterEach(() => {
+  for(const fixture of liveFixtures)fixture.dispose();
+  liveFixtures.clear();
+});
 
 export function projectForStorage(row = timelineStorageCases()[0]) {
   return {
@@ -18,12 +37,50 @@ export function projectForStorage(row = timelineStorageCases()[0]) {
   };
 }
 
-export function initializeTestTerritorialState(state) {
-  const features = state.territorialEntities;
-  Object.assign(state, createEmptyTerritorialState());
-  createTerritorialEntityStore({ getState: () => state }).replaceEntities(features);
-  state.historyDirtyEntityIds = new Set();
+export async function initializeTestTerritorialState(state,t=null,{project,platformPorts={}}={}) {
+  if(fixtures.has(state))throw new Error('The current Core fixture is already initialized.');
+  const fields=Object.fromEntries(Object.keys(projectForStorage().projectFields)
+    .filter(key => Object.hasOwn(state,key) && !['timelineRecords','geometries'].includes(key)).map(key => [key,state[key]]));
+  const owner=await createNodeCoreProject(project || staticAutosaveProject(fields,state.territorialEntities || []),platformPorts);
+  const entityStore=createTerritorialEntityStore({ documentModel:owner.documentModel,commandOwner:owner.client });
+  const entityRepository=createTerritorialEntityRepository({ entityStore });
+  const fixture={ ...owner,entityStore,entityRepository,dispose() { liveFixtures.delete(fixture);entityStore.dispose();owner.dispose(); } };
+  fixtures.set(state,fixture);
+  liveFixtures.add(fixture);
+  const keys=Object.keys(projectForStorage().projectFields).filter(key => !['geometries'].includes(key));
+  const properties=Object.fromEntries(keys.map(key => [key,{ configurable:true,enumerable:true,
+    get:() => owner.documentModel.snapshot()[key] }]));
+  properties.territorialEntities={ configurable:true,enumerable:true,get:entityStore.snapshot };
+  const geometries=Object.freeze({ get:owner.documentModel.geometry,snapshot:() => owner.documentModel.snapshot().geometries });
+  properties.geometries={ configurable:true,enumerable:true,get:() => geometries };
+  properties.stateRevision={ configurable:true,enumerable:true,get:() => owner.client.state().stateRevision };
+  properties.timelineCursor={ configurable:true,enumerable:true,get:() => owner.client.state().timelineCursor };
+  Object.defineProperties(state,properties);
+  Object.defineProperty(state,'historyDirtyEntityIds',{configurable:true,enumerable:true,
+    get:()=>new Set(owner.client.state().dirtyTerritorialIds || [])});
+  if(t)t.after(fixture.dispose);
   return state;
+}
+
+export function testCoreProject(state) {
+  const owner=fixtures.get(state);if(!owner)throw new Error('An accepted current Core fixture is required.');return owner;
+}
+
+/** Transport/status adaptation only; command rules remain in the actual Core. */
+export async function executeTestCommand(state,envelope) {
+  const outcome=await testCoreProject(state).project.executeCommand(envelope);
+  if(!outcome.ok)throw Object.assign(new Error(outcome.error.message),outcome.error);
+  return outcome;
+}
+
+/** Explicit test-only ID-domain transport, without validation or mutation. */
+export function executeTerritorialTestCommand(state,commandId,payload) {
+  const ids=commandId==='territorial.patch'||commandId==='territorial.replace'
+    ? [...payload.features.map(row => row.id),...(payload.removedIds || [])]
+    : ['territorial.remove','territorial.lock','territorial.color'].includes(commandId) ? payload.ids
+    : commandId==='territorial.create' ? [payload.feature.id] : commandId==='territorial.copy-region'
+    ? [payload.sourceId,payload.id] : [payload.id];
+  return executeTestCommand(state,{ commandId,targets:ids.map(id => ({ domain:'territorial',id })),payload });
 }
 
 export function staticSerializerSnapshot(snapshot) {
@@ -43,13 +100,9 @@ export function staticAutosaveProject(projectFields = {}, territorialEntities = 
 }
 
 export function snapshotTestTerritorialState(state) {
-  const { territorialEntities, geometries, ...fields } = state;
-  const store = createTerritorialEntityStore({ getState: () => state });
-  return { ...structuredClone(fields), territorialEntities: store.identities(), geometries: geometries.snapshot() };
+  return structuredClone(testCoreProject(state).documentModel.snapshot());
 }
 
-export function restoreTestTerritorialState(state, snapshot) {
-  createTerritorialEntityStore({ getState: () => state }).restoreProject(snapshot);
-  const { territorialEntities, geometries, timelineRecords, ...fields } = snapshot;
-  Object.assign(state, structuredClone(fields));
+export async function restoreTestTerritorialState(state, snapshot) {
+  await testCoreProject(state).project.admit(snapshot);
 }

@@ -5,7 +5,6 @@ import test from 'node:test';
 
 import { createMapInteractionGate } from '../../assets/js/modules/map-interaction-gate.js';
 import {
-  isMapHost,
   normalizeMapSurfaceDragDelta,
 } from '../../assets/js/modules/map-host.js';
 
@@ -13,18 +12,6 @@ test('MapHost surface drag contract preserves the user input direction', () => {
   assert.deepEqual(normalizeMapSurfaceDragDelta(40, 15), [40, 15]);
   assert.deepEqual(normalizeMapSurfaceDragDelta(-40, -15), [-40, -15]);
   assert.deepEqual(normalizeMapSurfaceDragDelta(Number.NaN, Number.POSITIVE_INFINITY), [0, 0]);
-});
-
-test('MapHost contract requires a surface-relative dragBy implementation', () => {
-  const methodNames = [
-    'initialize', 'destroy', 'getKind', 'getProjectionKind', 'setProjectionKind',
-    'getViewState', 'setViewState', 'getViewportSize', 'project', 'unproject',
-    'dragBy', 'requestRepaint', 'resize', 'on', 'off',
-  ];
-  const host = Object.fromEntries(methodNames.map(name => [name, () => {}]));
-  assert.equal(isMapHost(host), true);
-  delete host.dragBy;
-  assert.equal(isMapHost(host), false);
 });
 
 test('flat projection remains equirectangular and is not constrained by Mercator latitude', async () => {

@@ -7,9 +7,9 @@ import {
   validateSourceProvenance,
 } from '../../assets/js/modules/source-provenance.js';
 
-test('source provenance canonicalizes aliases and preserves unmapped source metadata', () => {
+test('source provenance uses canonical fields and preserves external source metadata', () => {
   const source = normalizeSourceProvenance({
-    kind: 'gis', dataset: 'roads', id: 'R1', format: 'geojson', type: 'road', provider: 'external',
+    kind: 'gis', dataset: 'roads', sourceId: 'R1', sourceFormat: 'geojson', sourceType: 'road', provider: 'external',
   });
   assert.equal(source.schemaVersion, SOURCE_PROVENANCE_SCHEMA_VERSION);
   assert.equal(source.kind, SOURCE_KINDS.GIS);
@@ -31,4 +31,9 @@ test('canonical provenance validation rejects ad-hoc top-level fields', () => {
   const result = validateSourceProvenance(source);
   assert.equal(result.ok, false);
   assert.ok(result.issues.some(issue => issue.includes('unsupported source provenance field')));
+});
+
+test('retired provenance aliases and string input are rejected', () => {
+  for (const input of ['old-dataset', { id: 'old' }, { format: 'geojson' }, { type: 'road' }])
+    assert.throws(() => normalizeSourceProvenance(input));
 });

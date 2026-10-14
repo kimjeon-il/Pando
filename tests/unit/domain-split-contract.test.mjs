@@ -6,7 +6,8 @@ import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { createProjectDomain } from '../../assets/js/modules/project-domain.js';
-import { createSelectionDomain } from '../../assets/js/modules/selection-domain.js';
+import { createNodeSelection } from '../helpers/core-selection.mjs';
+import { createNodeCoreProject } from '../helpers/core-project.mjs';
 import { createRenderingDomain } from '../../assets/js/modules/rendering-domain.js';
 import { createGisDomain } from '../../assets/js/modules/gis-domain.js';
 import { createTestEditingDomain as createEditingDomain } from '../helpers/editing-domain.mjs';
@@ -47,15 +48,16 @@ test('ordinary pointer hover does not starve real GPU uploads while dragging ret
   assert.equal(calls, 2);
 });
 
-test('domain factories expose isolated public contracts', () => {
-  const projectState = { entityDelta: { changed: [{ id: 'DEU' }], removedIds: [] } };
-  const project = createProjectDomain({ getSnapshot: () => projectState });
-  const selection = createSelectionDomain();
+test('domain factories expose isolated public contracts', async t => {
+  const owner=await createNodeSelection();t.after(() => owner.dispose());
+  const project = owner.project;
+  const selection = owner.domain;
   const rendering = createRenderingDomain();
   const gis = createGisDomain();
   const editing = createEditingDomain();
+  t.after(() => { rendering.dispose();gis.dispose();editing.dispose(); });
   for (const [domain, methods] of [
-    [project, ['snapshot', 'buildProject', 'buildAutosave', 'entitiesFromAutosaveDelta', 'dispatch', 'load', 'dispose']],
+    [project, ['snapshot', 'buildFileSnapshot', 'buildAutosave', 'prepareImport', 'executeCommand', 'admit', 'load', 'dispose']],
     [selection, ['snapshot', 'replace', 'toggle', 'selectRange', 'setMany', 'remove', 'prune', 'clear', 'resetProject', 'setHover', 'has', 'primary', 'size', 'createPacket', 'dispose']],
     [rendering, ['requestRender', 'invalidateView', 'invalidateViewport', 'invalidateProjection', 'invalidateProject', 'invalidateSelection', 'invalidateSelectionStyle', 'invalidateGpuFrame', 'invalidateGpuInteraction', 'invalidateEditingOverlays', 'invalidateGpuContext', 'invalidateQuality', 'invalidateBaseScene', 'beginInteraction', 'endInteraction', 'invalidateSelectionOverlay', 'syncSelectionEmphasis', 'getSelectionRenderStats', 'recordSelectionRenderError', 'invalidateEditedGeometryPatch', 'getDistributionRenderRows', 'getTerritorialBoundaryStats', 'dispose']],
     [gis, ['planImport', 'loadRiverPartitionFeatures', 'computeRiverPartition', 'dispose']],
@@ -111,8 +113,9 @@ test('domain factories expose isolated public contracts', () => {
     'finishDraftStroke', 'cancelDraftStroke', 'syncDraftAfterMutation', 'reconcileCoast',
   ]) assert.equal(editing[method], undefined);
   const snapshot = project.snapshot();
-  snapshot.entityDelta.changed[0].id = 'FRA';
-  assert.equal(project.snapshot().entityDelta.changed[0].id, 'DEU', 'project snapshot is detached');
+  assert.throws(() => { snapshot.territorialEntities[0].id = 'FRA'; },TypeError);
+  assert.equal(project.snapshot().territorialEntities[0].id, 'A', 'the accepted projection is immutable');
+  for(const retired of ['dispatch','entitiesFromAutosaveDelta','recordHistory','commitHistorySnapshot'])assert.equal(project[retired],undefined);
 });
 
 test('rendering domain commits label positions synchronously in the coordinator frame', () => {
@@ -142,20 +145,20 @@ test('non-rendering domains have no direct platform ownership', () => {
   }
 });
 
-test('editing domain owns draft coordinate history operations', () => {
+test('editing domain owns draft coordinate history operations', async () => {
   const editing = createEditingDomain({
     draftServices: {
       getToolConfig: () => ({ profile: 'freehand', shape: 'line', minimumPoints: 2 }),
       screenToCoordinate: value => value,
     },
   });
-  assert.equal(editing.appendDraftScreenPoint([1, 2]), true);
+  assert.equal(await editing.appendDraftScreenPoint([1, 2]), true);
   assert.deepEqual(editing.snapshot().draft.coords, [[1, 2]]);
-  assert.equal(editing.appendDraftScreenPoint([1, 2], 'mouse', { dedupe: true }), false);
+  assert.equal(await editing.appendDraftScreenPoint([1, 2], 'mouse', { dedupe: true }), false);
   assert.equal(editing.snapshot().draft.historyCount, 1);
 });
 
-test('editing domain owns draft stroke lifecycle and delegates only platform adapters', () => {
+test('editing domain publishes Core draft coordinates while its platform adapter owns stroke samples', async () => {
   const events = [];
   const editing = createEditingDomain({
     draftServices: {
@@ -167,18 +170,18 @@ test('editing domain owns draft stroke lifecycle and delegates only platform ada
     },
     onEditingStateChanged: snapshot => events.push(snapshot.reason),
   });
-  const interact = (type, detail) => {
+  const interact = async (type, detail) => {
     const packet = editing.createRenderPacket();
-    return editing.handleInteraction({
+    return await editing.handleInteraction({
       type,
       projectGeneration: packet.projectGeneration,
       packetRevision: packet.revision,
       ...detail,
     });
   };
-  assert.equal(interact('draft-stroke-start', { screenPoint: [1, 2], pointerId: 1 }), true);
-  assert.equal(interact('draft-stroke-move', { screenPoints: [[30, 30]] }), true);
-  assert.equal(interact('draft-stroke-end', { screenPoint: [60, 60] }), true);
+  assert.equal(await interact('draft-stroke-start', { screenPoint: [1, 2], pointerId: 1 }), true);
+  assert.equal(await interact('draft-stroke-move', { screenPoints: [[30, 30]] }), true);
+  assert.equal(await interact('draft-stroke-end', { screenPoint: [60, 60] }), true);
   assert.deepEqual(events, ['draft-stroke-begin', 'draft-stroke-update', 'draft-stroke-update', 'draft-stroke-finish']);
 });
 
@@ -212,29 +215,30 @@ test('app delegates interaction rendering to rendering domain', () => {
   assert.match(renderingSource, /gpuInteraction:\s*renderGpuInteraction/);
 });
 
-test('selection domain owns selection and hover revisions without serialized change detection', () => {
+test('selection domain projects Core selection and hover revisions without serialized change detection', async t => {
   let renderRequests = 0;
   const changes = [];
   const country = id => ({ domain: 'territorial', type: 'entity', id });
-  const selection = createSelectionDomain({
+  const owner = await createNodeSelection({ territorialIds: ['DEU','FRA'],genericIds: [],labelIds: [],distributionIds: [],
     onSelectionChanged: (snapshot, reason) => changes.push(['selection', snapshot.revision, reason]),
     onHoverChanged: snapshot => changes.push(['hover', snapshot.hoverRevision]),
     requestRender: () => { renderRequests += 1; },
   });
+  t.after(() => owner.dispose());const selection=owner.domain;
   const initial = selection.snapshot();
-  assert.strictEqual(selection.clear(), initial);
+  assert.strictEqual(await selection.clear(), initial);
   assert.equal(renderRequests, 0);
-  const selected = selection.replace(country('DEU'));
+  const selected = await selection.replace(country('DEU'));
   assert.equal(selected.revision, initial.revision + 1);
   assert.equal(renderRequests, 1);
-  assert.strictEqual(selection.replace(country('DEU')), selected);
+  assert.strictEqual(await selection.replace(country('DEU')), selected);
   assert.equal(renderRequests, 1);
-  const hovered = selection.setHover(country('FRA'));
+  const hovered = await selection.setHover(country('FRA'));
   assert.equal(hovered.revision, selected.revision);
   assert.equal(hovered.hoverRevision, initial.hoverRevision + 1);
   assert.equal(renderRequests, 2);
-  assert.strictEqual(selection.setHover({ ...country('FRA') }), hovered);
-  assert.strictEqual(selection.setHover({ domain: 'invalid', type: 'country', id: 'FRA' }), hovered);
+  assert.strictEqual(await selection.setHover({ ...country('FRA') }), hovered);
+  assert.strictEqual(await selection.setHover({ domain: 'invalid', type: 'country', id: 'FRA' }), hovered);
   assert.equal(renderRequests, 2);
   assert.deepEqual(changes.map(change => change[0]), ['selection', 'hover']);
   assert.deepEqual(selection.stats(), {
@@ -330,103 +334,90 @@ test('view-only selection rendering is a no-op when no SVG fallback exists', () 
   assert.equal(gpuInteractionRenders, 0);
 });
 
-test('project domain owns serializer snapshots and autosave data', () => {
-  const project = createProjectDomain({
-    serializer: {
-      buildProject: () => ({ territorialEntities: [{ id: 'DEU' }] }),
-      buildAutosave: () => ({ format: 'pandolab-autosave-delta', entityDelta: { changed: [{ id: 'DEU' }], removedIds: [] } }),
-    },
-  });
-  assert.deepEqual(project.buildProject(), { territorialEntities: [{ id: 'DEU' }] });
-  assert.deepEqual(project.snapshot(), project.buildProject());
-  assert.deepEqual(project.buildAutosave(), { format: 'pandolab-autosave-delta', entityDelta: { changed: [{ id: 'DEU' }], removedIds: [] } });
+test('project domain uses the Core codec for detached file output and asynchronous autosave receipts', async t => {
+  const seed=JSON.parse(fs.readFileSync(path.join(root,'tests/fixtures/portability/web-document-seed.json'),'utf8'));
+  const owner=await createNodeCoreProject(seed,{ appVersion: 'fixture' });t.after(() => owner.dispose());
+  const project=owner.project,before=project.snapshot(),state=owner.client.state();
+  const body=(await project.buildFileSnapshot()).project,receipt=await project.buildAutosave();
+  assert.equal(body.format,'pandolab-project-state');assert.equal(body.version,'fixture');
+  assert.equal(receipt.project.format,'pandolab-autosave-full');assert.equal(receipt.checkpoint.projectGeneration,0);
+  assert.equal(receipt.checkpoint.epoch,state.epoch);assert.equal(Object.hasOwn(receipt.project,'checkpoint'),false);
+  body.territorialEntities[0].properties.name='Detached file mutation';
+  assert.equal(project.snapshot(),before);assert.deepEqual(owner.client.state(),state);
 });
 
-test('project replacement advances generation once before the canonical swap', async () => {
+test('project replacement advances generation once before the canonical swap', async t => {
   const resets = [];
   let replaceOptions = null;
-  const project = createProjectDomain({
-    prepareRestore: value => value,
+  const seed=JSON.parse(fs.readFileSync(path.join(root,'tests/fixtures/portability/web-document-seed.json'),'utf8'));
+  const owner=await createNodeCoreProject(seed,{
     replaceSnapshot: async (_value, options) => { replaceOptions = options; return true; },
     onProjectReset: event => resets.push(event),
   });
-  await project.load({ territorialEntities: [] });
+  t.after(() => owner.dispose());const project=owner.project;
+  await project.load(seed);
   assert.equal(project.getGeneration(), 1);
   assert.deepEqual(replaceOptions, { reason: 'load', generation: 1, skipRenderReset: true });
   assert.equal(resets.length, 1);
 });
 
-test('project domain dispatch delegates to execute and emits only successful changes', async () => {
-  const calls = [];
+test('project domain executes typed Core commands and emits only accepted changes', async t => {
   const changed = [];
-  const results = [
-    { ok: true, changed: true, value: 1 },
-    { ok: true, changed: false, value: 1 },
-    { ok: false, changed: false, error: new Error('rejected') },
-  ];
-  const project = createProjectDomain({
-    commandPipeline: {
-      execute(id, context, payload) {
-        calls.push({ id, context, payload });
-        return results.shift();
-      },
-    },
+  const seed=JSON.parse(fs.readFileSync(path.join(root,'tests/fixtures/portability/web-document-seed.json'),'utf8'));
+  const owner=await createNodeCoreProject(seed,{
     onProjectChanged: event => changed.push(event),
   });
-  const first = await project.dispatch({ id: 'generic.update', context: { source: 'test' }, payload: { id: 'g-1' } });
+  t.after(() => owner.dispose());const project=owner.project;
+  const command={ commandId: 'territorial.metadata',targets: [{ domain: 'territorial',id: 'A' }],payload: { id: 'A',field: 'name',valuePresent: true,value: 'Updated name' } };
+  const first = await project.executeCommand(command);
   assert.equal(first.ok, true);
-  await project.dispatch({ id: 'generic.noop' });
-  await project.dispatch({ id: 'generic.reject' });
-  assert.deepEqual(calls, [
-    { id: 'generic.update', context: { source: 'test' }, payload: { id: 'g-1' } },
-    { id: 'generic.noop', context: {}, payload: undefined },
-    { id: 'generic.reject', context: {}, payload: undefined },
-  ]);
+  assert.equal((await project.executeCommand(command)).changed,false);
+  const rejected=await project.executeCommand({ ...command,targets: [{ domain: 'territorial',id: 'missing' }],payload: { ...command.payload,id: 'missing' } });
+  assert.equal(rejected.ok,false);assert.equal(rejected.changed,false);
   assert.equal(changed.length, 1);
-  assert.equal(changed[0].reason, 'generic.update');
+  assert.equal(changed[0].reason, 'territorial.metadata');
 });
 
-test('project domain dispatch rejects missing ids and missing pipelines explicitly', async () => {
-  const withoutPipeline = createProjectDomain();
-  await assert.rejects(withoutPipeline.dispatch({ id: 'generic.update' }), /commandPipeline with execute/);
-  const withPipeline = createProjectDomain({ commandPipeline: { execute: () => ({ ok: true, changed: true }) } });
-  await assert.rejects(withPipeline.dispatch({ type: 'legacy-command' }), /requires a command id/);
+test('project command boundary rejects a missing Core owner and malformed command identifiers explicitly', async t => {
+  const withoutOwner = createProjectDomain();
+  await assert.rejects(withoutOwner.executeCommand({ commandId: 'generic.create' }),TypeError);
+  const seed=JSON.parse(fs.readFileSync(path.join(root,'tests/fixtures/portability/web-document-seed.json'),'utf8'));
+  const owner=await createNodeCoreProject(seed);t.after(() => owner.dispose());
+  await assert.rejects(owner.project.executeCommand({ type: 'legacy-command',targets: [],payload: {} }),{ code: 'CORE_COMMAND_ID' });
 });
 
-test('selection controller storage and packet revisions are owned by the selection domain', () => {
-  const packets = [];
-  const selection = createSelectionDomain({
-    refExists: value => value?.id === 'DEU',
-    selectionPacketFactory: value => { packets.push(value); return value; },
-  });
-  selection.replace({ domain: 'territorial', type: 'entity', id: 'DEU' });
-  selection.setHover({ domain: 'territorial', type: 'entity', id: 'DEU' });
+test('Core selection admission owns existence while packet revisions reflect accepted immutable projections', async t => {
+  const owner=await createNodeSelection({ territorialIds: ['DEU'],genericIds: [],labelIds: [],distributionIds: [] });
+  t.after(() => owner.dispose());const selection=owner.domain;
+  await selection.replace({ domain: 'territorial', type: 'entity', id: 'DEU' });
+  await selection.setHover({ domain: 'territorial', type: 'entity', id: 'DEU' });
   const packet = selection.createPacket({ geometryRevision: 'geometry-1' });
   assert.equal(packet.revision, selection.snapshot().revision);
   assert.equal(packet.hoverRevision, selection.snapshot().hoverRevision);
   assert.equal(packet.geometryRevision, 'geometry-1');
-  assert.equal(packets.length, 1);
   const before = selection.snapshot();
-  selection.replace({ domain: 'territorial', type: 'entity', id: 'FRA' });
+  await selection.replace({ domain: 'territorial', type: 'entity', id: 'FRA' });
   assert.strictEqual(selection.snapshot(), before, 'invalid refs are no-ops');
 });
 
-test('selection domain keeps large multi-selection snapshots cached and resets atomically', () => {
+test('selection domain keeps large multi-selection snapshots cached and resets atomically', async t => {
   let renderRequests = 0;
-  const selection = createSelectionDomain({ requestRender: () => { renderRequests += 1; } });
   const refs = Array.from({ length: 1000 }, (_, index) => ({
-    domain: 'generic', type: 'feature', id: `feature-${index}`,
+    domain: 'territorial', type: 'entity', id: `feature-${index}`,
   }));
-  const selected = selection.setMany(refs, { primary: refs.at(-1), scope: 'map' });
+  const owner=await createNodeSelection({ territorialIds: refs.map(ref => ref.id),genericIds: [],labelIds: [],distributionIds: [],requestRender: () => { renderRequests += 1; } });
+  t.after(() => owner.dispose());const selection=owner.domain;
+  const selected = await selection.setMany(refs, { primary: refs.at(-1), scope: 'map' });
   assert.equal(selected.selection.items.length, 1000);
   assert.strictEqual(selection.snapshot(), selected);
   assert.equal(renderRequests, 1);
-  const same = selection.setMany(refs.map(ref => ({ ...ref })), { primary: { ...refs.at(-1) }, scope: 'map' });
+  const same = await selection.setMany(refs.map(ref => ({ ...ref })), { primary: { ...refs.at(-1) }, scope: 'map' });
   assert.strictEqual(same, selected);
   assert.equal(renderRequests, 1);
-  selection.setHover(refs[0]);
+  await selection.setHover(refs[0]);
   const beforeReset = selection.snapshot();
-  const reset = selection.resetProject(9);
+  owner.setGeneration(9);
+  const reset = await selection.resetProject(9);
   assert.equal(reset.projectGeneration, 9);
   assert.equal(reset.selection.items.length, 0);
   assert.equal(reset.hover, null);

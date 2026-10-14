@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { writeFile } from 'node:fs/promises';
 import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
-import { createStaticTerritorialSnapshot } from '../../assets/js/modules/territorial-entity-store.js';
+import {staticTerritorialInput} from '../helpers/timeline-project.mjs';
 import { assertCurrentProjectSchema } from '../../assets/js/modules/project-state.js';
 
 // Tracing stalls focused software WebGL even with screencast frames disabled.
@@ -21,7 +21,7 @@ test('country flags zoom with labels and preserve selection and missing-flag fal
   page.on('pageerror', error => errors.push(error.message));
   const id = 'DEU';
   const saved = staticAutosaveProject();
-  Object.assign(saved, createStaticTerritorialSnapshot([createTerritorialFeature({ id,
+  Object.assign(saved, staticTerritorialInput([createTerritorialFeature({ id,
     entityKind: 'general', name: '독일',
     geometry: { type: 'Polygon', coordinates: [[[8, 49], [8, 53], [12, 53], [12, 49], [8, 49]]] },
   })]));
@@ -75,6 +75,7 @@ test('country flags zoom with labels and preserve selection and missing-flag fal
   await expect(page.locator('#entityProperties')).toBeVisible();
   await page.locator('#flagMenuBtn').click();
   await page.locator('#flagRemoveBtn').click();
+  await expect(flag).toHaveCount(0);
   const removal = await page.evaluate(id => ({
     id, feature: { id: window.PANDOLAB_TERRITORIAL.get(id).id,
       metadata: window.PANDOLAB_TERRITORIAL.get(id).properties.metadata },
@@ -89,7 +90,6 @@ test('country flags zoom with labels and preserve selection and missing-flag fal
   expect(removal.feature.id).toBe(id);
   expect(removal.selection).toBe(selectedKey);
   expect(removal.feature.metadata.flagDataUrl).toBeNull();
-  await expect(flag).toHaveCount(0);
   await expect(label.locator('text')).toHaveText('독일');
   await expect(page.locator('#entityNameInput')).toHaveValue('독일');
   expect(errors).toEqual([]);

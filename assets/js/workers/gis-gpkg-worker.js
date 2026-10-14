@@ -206,15 +206,14 @@ function writeAtlasTables(db, payload) {
     country_id: label.countryId || label.country_id || '',
     notes: label.notes || '',
   }));
-  const genericFeatureRow = item => ({ geometry: item.geometry, id: item.id || '', name: item.properties?.name || '', role: item.properties?.role || 'generic', owner_id: item.properties?.ownerId || '', parent_id: item.properties?.parentId || '', topology_group: item.properties?.topologyGroup || '', land_binding: item.properties?.landBinding || 'none', color: item.properties?.color || '', notes: item.properties?.notes || '', locked: item.properties?.locked === true ? 1 : 0, properties_json: JSON.stringify(item.properties || {}) });
+  const genericFeatureRow = item => ({ geometry: item.geometry, id: item.id || '', name: item.properties?.name || '', color: item.properties?.color || '', notes: item.properties?.notes || '', locked: item.properties?.locked === true ? 1 : 0, properties_json: JSON.stringify(item.properties || {}) });
   const points = genericFeatures.filter(item => ['Point', 'MultiPoint'].includes(item.geometry?.type)).map(genericFeatureRow);
   const lines = genericFeatures.filter(item => ['LineString', 'MultiLineString'].includes(item.geometry?.type)).map(genericFeatureRow);
   const polygons = genericFeatures.filter(item => ['Polygon', 'MultiPolygon'].includes(item.geometry?.type)).map(genericFeatureRow);
   const territorialRows = self.PandoLabGisAdapters.territorialRows(spatial);
   const distributionRows = self.PandoLabGisAdapters.distributionRows(spatial);
   const genericFeatureColumns = [
-    { name: 'id' }, { name: 'name' }, { name: 'role' }, { name: 'owner_id' }, { name: 'parent_id' },
-    { name: 'topology_group' }, { name: 'land_binding' }, { name: 'color' }, { name: 'notes' }, { name: 'locked', type: 'INTEGER' }, { name: 'properties_json' },
+    { name: 'id' }, { name: 'name' }, { name: 'color' }, { name: 'notes' }, { name: 'locked', type: 'INTEGER' }, { name: 'properties_json' },
   ];
   if (includes('labels')) createFeatureTable(db, { tableName: 'places', geometryType: 'POINT', rows: places, columns: [{ name: 'pandolab_id', source: 'id' }, { name: 'name' }, { name: 'kind' }, { name: 'country_id' }, { name: 'notes' }], description: 'PandoLab places' });
   if (includes('genericFeatures')) {
@@ -267,18 +266,8 @@ function writeAtlasTables(db, payload) {
 
 async function writeGeoPackage(buffer, projectState, options = {}) {
   if (options.exportMode !== 'gis') {
-    const { countryAssets = [], ...content } = projectState;
-    const { prepareProjectForStorage } = await import('../modules/project-state.js');
-    const { staticTimelineViews } = await import('../modules/timeline-static-view.js');
-    const { createGeometryVersionStore } = await import('../modules/geometry-version-store.js');
-    const candidate = prepareProjectForStorage(content);
-    let spatialState = null;
-    try {
-      spatialState = { ...candidate, territorialEntities: staticTimelineViews(candidate.territorialEntities,
-        candidate.timelineRecords, createGeometryVersionStore(candidate.geometries)) };
-    } catch (error) { if (error.code !== 'TIMELINE_ACTIVATION') throw error; }
-    projectState = { ...candidate, countryAssets };
-    options = { ...options, spatialState };
+    if(!Object.hasOwn(options,'spatialState') || options.spatialState!==null && typeof options.spatialState!=='object')
+      throw Object.assign(new TypeError('The canonical Core file spatial projection is required.'),{code:'PL-GPKG-SPATIAL-PROJECTION'});
   }
   const SQL = await getSql();
   const db = new SQL.Database(new Uint8Array(buffer));
@@ -324,8 +313,7 @@ async function readAtlasTables(buffer) {
     if (tableExists(db, 'pandolab_project_settings')) {
       const rows = db.exec("SELECT json_value FROM pandolab_project_settings WHERE setting_key='project_state' LIMIT 1");
       if (rows[0]?.values?.[0]?.[0]) {
-        const { prepareProjectForStorage } = await import('../modules/project-state.js');
-        result.projectState = prepareProjectForStorage(JSON.parse(rows[0].values[0][0]));
+        result.projectState = JSON.parse(rows[0].values[0][0]);
       }
     }
     if (tableExists(db, 'pandolab_country_assets')) {
@@ -347,10 +335,10 @@ async function readAtlasTables(buffer) {
 }
 
 self.onmessage = async event => {
-  const { id, action, buffer, projectState, exportMode, selectedLayers } = event.data || {};
+  const { id, action, buffer, projectState, exportMode, selectedLayers,spatialState } = event.data || {};
   try {
     if (action === 'write') {
-      const output = await writeGeoPackage(buffer, projectState, { exportMode, selectedLayers });
+      const output = await writeGeoPackage(buffer, projectState, { exportMode, selectedLayers,spatialState });
       self.postMessage({ id, ok: true, buffer: output.buffer }, [output.buffer]);
       return;
     }

@@ -14,8 +14,13 @@ export function createGlobalInputBindings() {
   }
 
   function bindGlobalInputUI() {
-    installReferenceImageEditingBridge(() => dependencies.domains.editingDomain);
-    document.addEventListener('keydown', e => {
+    const cancelDraftGesture = async reason => {
+      try { await dependencies.domains.editingDomain.cancelActiveGesture(reason); }
+      catch (error) { dependencies.feedback.reportOperationError(error,'작성 중인 편집 동작을 취소하지 못했습니다.','PL-DRAFT-CANCEL-001',4200); }
+    };
+    installReferenceImageEditingBridge(() => dependencies.domains.editingDomain, error => dependencies.feedback.reportOperationError(error,
+      '참조 이미지 추적선을 편집 초안에 적용하지 못했습니다.', 'PL-REFERENCE-DRAFT-001', 4200));
+    document.addEventListener('keydown', async e => {
       if (dependencies.projectState.state.projectReplacing) {
         e.preventDefault();
         return;
@@ -51,7 +56,8 @@ export function createGlobalInputBindings() {
         dependencies.lifecycleUi.mapInteractionGate.setForcedPan(true);
         dependencies.mapView.mapHost?.setForcedPan?.(true);
         (0, dependencies.platform.$)('map')?.classList.add('space-pan-active');
-        dependencies.domains.editingDomain?.clearDraftHover?.('space-pan');
+        try { await dependencies.domains.editingDomain.clearDraftHover('space-pan'); }
+        catch (error) { dependencies.feedback.reportOperationError(error,'작성 중인 경로의 표시를 지우지 못했습니다.','PL-DRAFT-HOVER-001',4200); }
         e.preventDefault();
         return;
       }
@@ -68,19 +74,39 @@ export function createGlobalInputBindings() {
         if (document.body.classList.contains('file-menu-open')) { (0, dependencies.workspaceUiA.closeFileMenu)({ restoreFocus: true }); return; }
         if (dependencies.workspaceUiB.surfaceController.isOpen('create')) { (0, dependencies.workspaceUiA.closeSurface)('create', { restoreFocus: true }); return; }
         if (dependencies.workspaceUiB.surfaceController.isOpen('search')) { e.preventDefault(); (0, dependencies.workspaceUiA.closeSurface)('search', { restoreFocus: true }); return; }
-        if (dependencies.draftPresentation.editingDraftSnapshot().vertexInsertMode) { dependencies.domains.editingDomain.setDraftVertexInsertMode(false); return; }
+        if (dependencies.draftPresentation.editingDraftSnapshot().vertexInsertMode) {
+          try { await dependencies.domains.editingDomain.setDraftVertexInsertMode(false); }
+          catch (error) { dependencies.feedback.reportOperationError(error,'꼭짓점 삽입 모드를 종료하지 못했습니다.','PL-DRAFT-INSERT-001',4200); }
+          return;
+        }
         if (dependencies.projectState.state.territorySelectionSession) { (0, dependencies.platform.$)('modeCancelBtn')?.click(); return; }
-        if (dependencies.projectState.state.geometryPreview.session) { (0, dependencies.geometryOperations.discardActiveGeometryPreview)(); return; }
-        if (dependencies.projectState.state.labelPlacementMode) (0, dependencies.countryEditingB.exitLabelMode)();
-        else if (dependencies.domains.editingDomain?.draftInputActive?.()) (0, dependencies.genericEditingB.requestDraftDiscard)(() => (0, dependencies.surfaces.isGenericFeatureDraftTool)(dependencies.projectState.state.tool) ? (0, dependencies.genericEditingA.cancelDraft)(true) : (0, dependencies.countryEditingA.cancelActiveMode)());
-        else if (['new-country', 'annex-territory', 'draw-territorial-unit', 'merge-country', 'merge-generic-feature', 'territorial-border', 'country-coast'].includes(dependencies.projectState.state.tool)) (0, dependencies.countryEditingA.cancelActiveMode)();
-        else if ((0, dependencies.countryEditingA.editingDraftCoordinates)().length) (0, dependencies.genericEditingA.cancelDraft)(true);
-        else if ((0, dependencies.platform.$)('editorSurface')?.classList.contains('mobile-open')) {
+        if (dependencies.projectState.state.geometryPreview.session) {
+          try {await dependencies.geometryOperations.discardActiveGeometryPreview();}
+          catch(error){dependencies.feedback.reportOperationError(error,'미리보기를 취소하지 못했습니다.','PL-PREVIEW-CANCEL',4200);}
+          return;
+        }
+        const cancellingMode = ['new-country', 'annex-territory', 'draw-territorial-unit', 'merge-country', 'merge-generic-feature', 'territorial-border', 'country-coast'].includes(dependencies.projectState.state.tool);
+        if (dependencies.projectState.state.labelPlacementMode || dependencies.domains.editingDomain.draftInputActive()
+          || cancellingMode || dependencies.countryEditingA.editingDraftCoordinates().length) {
+          try {
+            if (dependencies.projectState.state.labelPlacementMode) await dependencies.countryEditingB.exitLabelMode();
+            else if (dependencies.domains.editingDomain.draftInputActive()) await dependencies.genericEditingB.requestDraftDiscard(async () =>
+              dependencies.surfaces.isGenericFeatureDraftTool(dependencies.projectState.state.tool)
+                ? await dependencies.genericEditingA.cancelDraft(true) : await dependencies.countryEditingA.cancelActiveMode());
+            else if (cancellingMode) await dependencies.countryEditingA.cancelActiveMode();
+            else await dependencies.genericEditingA.cancelDraft(true);
+          } catch (error) { dependencies.feedback.reportOperationError(error,'작성 중인 작업을 취소하지 못했습니다.','PL-EDIT-CANCEL-001',4200); }
+          return;
+        }
+        if ((0, dependencies.platform.$)('editorSurface')?.classList.contains('mobile-open')) {
           (0, dependencies.workspaceUiA.closeSurface)('editor', { manual: dependencies.surfaces.layoutMode === 'wide', restoreFocus: true });
         }
         else if ((0, dependencies.platform.$)('mapDisplaySurface')?.classList.contains('surface-open')) (0, dependencies.workspaceUiA.closeSurface)('display', { restoreFocus: true });
         else if (!(0, dependencies.platform.$)('actionStatus')?.classList.contains('hidden')) (0, dependencies.readinessUi.clearNotification)();
-        else dependencies.domains.selectionUiController.clear({ reason: 'escape-selection-clear' });
+        else {
+          try { await dependencies.domains.selectionUiController.clear({ reason: 'escape-selection-clear' }); }
+          catch (error) { dependencies.feedback.reportOperationError(error,'선택을 해제하지 못했습니다.','PL-SELECTION-CLEAR-001',4200); }
+        }
       }
       if (e.key === 'Enter' && !editingText) {
         const drawing = dependencies.domains.editingDomain?.draftInputActive?.() && !dependencies.projectState.state.geometryPreview.session;
@@ -100,12 +126,14 @@ export function createGlobalInputBindings() {
           ArrowDown: [0, distance],
         };
         e.preventDefault();
-        dependencies.domains.editingDomain?.moveSelectedDraftPointByPixels(...offsets[e.key]);
+        try { await dependencies.domains.editingDomain?.moveSelectedDraftPointByPixels(...offsets[e.key]); }
+        catch (error) { dependencies.feedback.reportOperationError(error, '작성 중인 꼭짓점을 이동하지 못했습니다.', 'PL-DRAFT-MOVE-001', 4200); }
         return;
       }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
         e.preventDefault();
-        void (0, dependencies.gisRuntime.getGisFileController)().then(controller => controller.saveProject());
+        try { await (await (0, dependencies.gisRuntime.getGisFileController)()).saveProject(); }
+        catch (error) { dependencies.feedback.reportOperationError(error, '프로젝트를 저장하지 못했습니다.', 'PL-PROJECT-SAVE-001', 4200); }
       }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !e.shiftKey && !editingText) {
         e.preventDefault(); dependencies.lifecycleUi.projectUi.undo();
@@ -116,13 +144,17 @@ export function createGlobalInputBindings() {
       if ((e.key === 'Delete' || e.key === 'Backspace') && !editingText) {
         if (dependencies.domains.editingDomain?.draftInputActive?.()) {
           e.preventDefault();
-          dependencies.domains.editingDomain?.deleteSelectedDraftPoint();
+          try { await dependencies.domains.editingDomain?.deleteSelectedDraftPoint(); }
+          catch (error) { dependencies.feedback.reportOperationError(error, '작성 중인 꼭짓점을 삭제하지 못했습니다.', 'PL-DRAFT-DELETE-001', 4200); }
           return;
         }
         if (dependencies.projectState.state.selected) {
           e.preventDefault();
           if (dependencies.domains.selectionDomain.size() > 1) (0, dependencies.objectOperationsA.requestObjectDeletion)();
-          else (0, dependencies.objectDeletion.deleteSelected)();
+          else {
+            try { await (0, dependencies.objectDeletion.deleteSelected)(); }
+            catch (error) { dependencies.feedback.reportOperationError(error, '객체를 삭제하지 못했습니다.', 'PL-OBJECT-DELETE-001', 4200); }
+          }
         }
       }
     });
@@ -137,7 +169,7 @@ export function createGlobalInputBindings() {
     window.addEventListener('blur', () => {
       cancelReferenceImageInput();
       dependencies.lifecycleUi.mapInputController?.cancel?.();
-      dependencies.domains.editingDomain?.cancelActiveGesture?.('window-blur');
+      cancelDraftGesture('window-blur');
       dependencies.projectState.state.spacePanActive = false;
       dependencies.lifecycleUi.mapInteractionGate.setForcedPan(false);
       dependencies.mapView.mapHost?.setForcedPan?.(false);
@@ -149,9 +181,9 @@ export function createGlobalInputBindings() {
       dependencies.mapView.mapHost?.setForcedPan?.(false);
       (0, dependencies.platform.$)('map')?.classList.remove('space-pan-active');
     };
-    (0, dependencies.platform.$)('map')?.addEventListener('pointercancel', () => { clearAssistedPan(); dependencies.domains.editingDomain?.cancelActiveGesture?.('pointercancel'); });
-    document.addEventListener('visibilitychange', () => { if (document.hidden) { clearAssistedPan(); dependencies.lifecycleUi.mapInputController?.cancel?.(); dependencies.domains.editingDomain?.cancelActiveGesture?.('document-hidden'); } });
-    (0, dependencies.platform.$)('map')?.addEventListener('touchcancel', () => dependencies.domains.editingDomain?.cancelActiveGesture?.('touchcancel'), { passive: true });
+    (0, dependencies.platform.$)('map')?.addEventListener('pointercancel', () => { clearAssistedPan(); cancelDraftGesture('pointercancel'); });
+    document.addEventListener('visibilitychange', () => { if (document.hidden) { clearAssistedPan(); dependencies.lifecycleUi.mapInputController?.cancel?.(); cancelDraftGesture('document-hidden'); } });
+    (0, dependencies.platform.$)('map')?.addEventListener('touchcancel', () => cancelDraftGesture('touchcancel'), { passive: true });
 
     window.addEventListener('resize', () => {
       (0, dependencies.objectOperationsA.closeObjectActionsMenu)();
@@ -172,7 +204,7 @@ export function createGlobalInputBindings() {
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'hidden') {
         dependencies.lifecycleUi.mapInputController?.cancel?.();
-        dependencies.domains.editingDomain?.cancelActiveGesture?.('document-hidden');
+        cancelDraftGesture('document-hidden');
         dependencies.projectState.mapWorkScheduler.cancel('autosave');
         dependencies.projectState.mapWorkScheduler.cancel('view-autosave');
         dependencies.domains.projectDomain.persistAutosave().catch(error => console.warn('Immediate autosave failed', error));

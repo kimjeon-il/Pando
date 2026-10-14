@@ -78,3 +78,4 @@ export function createGpuCanvasWorker({ worker, generation, acceptFrame, onStale
     },
   });
 }
+// @worker-transport dedicated: Canvas rendering owns frame dispatch and persistent picking requests

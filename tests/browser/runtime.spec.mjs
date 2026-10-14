@@ -418,7 +418,7 @@ test('country edit worker executes annex, new-country, merge, commit, discard, a
     const feature = (id, left, right) => ({
       type: 'Feature',
       id,
-      properties: { name: id },
+      properties: { name: id, entityKind: 'general', parentId: '' },
       geometry: { type: 'Polygon', coordinates: [ring(left, right)] },
     });
     const base = [feature('A', 0, 2), feature('B', 2, 4)];
@@ -436,22 +436,22 @@ test('country edit worker executes annex, new-country, merge, commit, discard, a
     });
     let dataRevision = 0;
     const rebase = async revision => {
-      const result = await send({ type: 'rebase', features: base, dataRevision: revision }, 'ready');
+      const result = await send({ rpc: 'pandolab-worker-rpc', protocolVersion: 1, type: 'event', operation: 'map-edit.rebase', payload: { dataRevision: revision, editSources: { sourceRevision: revision, patches: base.map(feature => ({ key: 'territorial:' + feature.id, kind: 'territorial', metadata: { ...feature, geometry: undefined }, geometry: feature.geometry })) } } }, 'event');
       dataRevision = revision;
       return result;
     };
     const execute = (requestId, operation, payload) => send({
-      type: 'execute', requestId, jobKey: `test:${operation}`, dataRevision,
-      geometryRevision: dataRevision, targetRevision: dataRevision, operation, ...payload,
+      rpc: 'pandolab-worker-rpc', protocolVersion: 1, type: 'request', requestId, operation, payload, projectRevision: dataRevision,
+      metadata: { jobKey: `test:${operation}`, dataRevision, geometryRevision: dataRevision },
     }, 'result');
     const commit = requestId => {
-      worker.postMessage({ type: 'commit', requestId, dataRevision, nextDataRevision: dataRevision + 1 });
+      worker.postMessage({ rpc: 'pandolab-worker-rpc', protocolVersion: 1, type: 'event', operation: 'map-edit.commit', payload: { requestId, dataRevision, nextDataRevision: dataRevision + 1 } });
       dataRevision += 1;
     };
     try {
       await rebase(1);
       const mergeDiscarded = await execute(1, 'merge', { sourceId: 'A', targetIds: ['B'] });
-      worker.postMessage({ type: 'discard', requestId: 1 });
+      worker.postMessage({ rpc: 'pandolab-worker-rpc', protocolVersion: 1, type: 'event', operation: 'map-edit.discard', payload: { requestId: 1 } });
       const annexAfterDiscard = await execute(2, 'annex', {
         targetId: 'B', donorIds: ['A'], transferredGeometry: { type: 'Polygon', coordinates: [ring(1, 2)] },
       });
@@ -462,7 +462,7 @@ test('country edit worker executes annex, new-country, merge, commit, discard, a
         sourceIds: ['A'], transferredGeometry: { type: 'Polygon', coordinates: [ring(0, 1)] },
         newFeature: feature('N', 0, 1),
       });
-      worker.postMessage({ type: 'discard', requestId: 3 });
+      worker.postMessage({ rpc: 'pandolab-worker-rpc', protocolVersion: 1, type: 'event', operation: 'map-edit.discard', payload: { requestId: 3 } });
 
       await rebase(4);
       const mergeCommitted = await execute(4, 'merge', { sourceId: 'A', targetIds: ['B'] });
@@ -520,7 +520,7 @@ test('river territory partition Worker returns disjoint donor cells', async ({ p
         if (event.data?.type === 'error') reject(new Error(event.data.message));
         else resolve(event.data?.result || null);
       }, { once: true });
-      worker.postMessage({ type: 'compute', requestId: 1, payload: { donors: [donor], riverFeatures: rivers, hydroRevision: 'browser' } });
+      worker.postMessage({ rpc: 'pandolab-worker-rpc', protocolVersion: 1, type: 'request', operation: 'river.partition', requestId: 1, payload: { donors: [donor], riverFeatures: rivers, hydroRevision: 'browser' } });
     });
   });
   expect(result.candidates).toHaveLength(4);

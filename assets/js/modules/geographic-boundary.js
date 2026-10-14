@@ -118,18 +118,42 @@ export function buildRenderableStrokeFeature(value) {
   };
 }
 
+// The final display stage bisects geographic edges to the same angular
+// threshold and microdegree precision as the refined country fill mesh.
+// Topology and owner classification always operate on unmodified source edges.
 export function densifyBoundarySegmentsForProjection(segments, maxEdgeDegrees = MAX_BOUNDARY_EDGE_DEGREES) {
   const limit = Math.max(0.01, Number(maxEdgeDegrees) || MAX_BOUNDARY_EDGE_DEGREES);
-  return (segments || []).flatMap(([a, b]) => {
-    const distance = Math.max(Math.abs(Number(b[0]) - Number(a[0])), Math.abs(Number(b[1]) - Number(a[1])));
-    const count = Math.max(1, Math.ceil(distance / limit));
-    if (count === 1) return [[a, b]];
-    const pieces = [];
-    for (let index = 0; index < count; index += 1) {
-      const t0 = index / count;
-      const t1 = (index + 1) / count;
-      pieces.push([[a[0] + (b[0] - a[0]) * t0, a[1] + (b[1] - a[1]) * t0], [a[0] + (b[0] - a[0]) * t1, a[1] + (b[1] - a[1]) * t1]]);
+  const radians = Math.PI / 180;
+  const minimumDot = Math.cos(Math.max(0.01, limit - 0.000002) * radians);
+  const packed = point => [Math.round(point[0] * 1e6) * 1e-6, Math.round(point[1] * 1e6) * 1e-6];
+  const vector = point => {
+    const longitude = point[0] * radians, latitude = point[1] * radians;
+    const cos = Math.cos(latitude);
+    return [cos * Math.cos(longitude), cos * Math.sin(longitude), Math.sin(latitude)];
+  };
+  const result = [];
+  for (const [a, b] of segments || []) {
+    if (!validPoint(a) || !validPoint(b)) continue;
+    const stack = [[[Number(a[0]), Number(a[1])], [Number(b[0]), Number(b[1])], 0]];
+    while (stack.length) {
+      const [left, right, depth] = stack.pop();
+      const x = vector(left), y = vector(right);
+      const dot = x[0] * y[0] + x[1] * y[1] + x[2] * y[2];
+      if (dot < minimumDot - 1e-14) {
+        if (depth >= 40) throw new Error('Display boundary refinement did not converge');
+        const mid = [(left[0] + right[0]) / 2, (left[1] + right[1]) / 2];
+        stack.push([mid, right, depth + 1], [left, mid, depth + 1]);
+        continue;
+      }
+      const first = packed(left), last = packed(right);
+      if (first[0] !== last[0] || first[1] !== last[1]) result.push([first, last]);
     }
-    return pieces;
-  });
+  }
+  return result;
+}
+
+// All display consumers apply seam splitting and refinement only after
+// source-level ownership, clipping, and shared/coast classification.
+export function buildRefinedBoundarySegments(value, maxEdgeDegrees = MAX_BOUNDARY_EDGE_DEGREES) {
+  return densifyBoundarySegmentsForProjection(buildRenderableBoundarySegments(value), maxEdgeDegrees);
 }

@@ -20,6 +20,11 @@ const hash = (name, bytes) => createHash(name).update(bytes).digest('hex');
 const sortedJson = value => JSON.stringify(value, null, 2) + '\n';
 const title = record => record.defaultDisplayNameKo || '(unnamed)';
 
+/** Git stores these text files with LF even when a Windows checkout has CRLF. */
+export function canonicalPlaceTextBytes(bytes) {
+  return Buffer.from(bytes.toString('utf8').replace(/\r\n/gu, '\n'), 'utf8');
+}
+
 export function projectReviewedPlace(record, reviewFile, batchStatus) {
   const id = record?.geonameId;
   if (!Number.isInteger(id) || id < 1 || typeof record.defaultDisplayNameKo !== 'string'
@@ -113,7 +118,7 @@ export function validateRuntimeApproval(record, batchNumber) {
 export function deriveReleaseCatalog(directory = REVIEW_DIR, approvalsPath = RELEASE_APPROVALS) {
   const files = readdirSync(directory).filter(name => REVIEW_FILE.test(name)).sort();
   if (!files.length) throw new Error('No reviewed place batches');
-  const approvalBytes = readFileSync(approvalsPath);
+  const approvalBytes = canonicalPlaceTextBytes(readFileSync(approvalsPath));
   const approvals = JSON.parse(approvalBytes.toString('utf8'));
   const approvedIds = approvals?.approvedSourceIds;
   if (approvals?.schema !== 'pando-place-runtime-approval-v1'
@@ -132,7 +137,7 @@ export function deriveReleaseCatalog(directory = REVIEW_DIR, approvalsPath = REL
   const seen = new Set();
   for (const name of files) {
     const reviewFile = 'reports/places/' + name;
-    const content = readFileSync(join(directory, name));
+    const content = canonicalPlaceTextBytes(readFileSync(join(directory, name)));
     const data = JSON.parse(content.toString('utf8'));
     if (data.schema !== 'pando-places-tier1-review-v6' || !Array.isArray(data.records))
       throw new Error('Unexpected review format: ' + reviewFile);
@@ -215,7 +220,8 @@ export function publishPlaceRelease({ check = false } = {}) {
       let existing;
       try { existing = readFileSync(filename); }
       catch { throw new Error('Missing published asset ' + filename); }
-      if (!existing.equals(bytes)) throw new Error('Place release asset drift: ' + filename);
+      const checked = name.endsWith('.json') ? canonicalPlaceTextBytes(existing) : existing;
+      if (!checked.equals(bytes)) throw new Error('Place release asset drift: ' + filename);
     } else writeFileSync(filename, bytes);
   }
   return { records: generated.recordCount, bytes: generated.bytes.length,

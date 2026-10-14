@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { buildRenderableStrokeFeature, hasAreaGeometry } from '../../assets/js/modules/geometry-preview.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const countries = JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(root, 'assets/data/countries-preview-v0.30.0.geojson.gz'))));
+const countries = JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(root, 'assets/data/countries-preview-v0.36.0.geojson.gz'))));
 
 function featureById(id) {
   return countries.features.find(feature => [

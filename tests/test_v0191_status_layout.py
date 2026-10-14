@@ -36,7 +36,7 @@ class StatusLayoutV0191Tests(unittest.TestCase):
         self.assertNotRegex(CSS, r"\.status-primary\s*\{[^}]*border-inline")
 
     def test_separators_and_status_visibility_follow_preferences(self):
-        self.assertIn(".status-group:not(.hidden) ~ .status-group:not(.hidden)::before", CSS)
+        self.assertIn(".status-group:not(.hidden) ~ .status-group:not(.hidden):not(.timeline-status)::before", CSS)
         self.assertNotIn("#zoomStatus", INDEX + APP + CSS)
         self.assertNotIn('coordStatus', INDEX + APP)
         self.assertNotIn('statusPrimary', INDEX)

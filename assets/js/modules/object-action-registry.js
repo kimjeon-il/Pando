@@ -134,19 +134,3 @@ export function resolveObjectAction(id, context = {}) {
     applies: objectActionApplies(action, context),
   });
 }
-
-/**
- * Command bridge used by the application-command layer. The registry owns
- * action identity/presentation/applicability; mutation semantics remain in
- * the injected command executor.
- */
-export function createObjectActionExecutor({ execute }) {
-  if (typeof execute !== 'function') throw new TypeError('object action executor requires execute(command, context, payload)');
-  return Object.freeze({
-    execute(id, context = {}, payload = undefined) {
-      const action = resolveObjectAction(id, context);
-      if (!action?.applies) return false;
-      return execute(action.command, context, payload);
-    },
-  });
-}

@@ -60,28 +60,22 @@ export function createGenericCommands() {
     }
     if (!(0, dependencies.objectOperationsB.requireObjectsUnlocked)(sourceIds.map(id => ({ domain: 'territorial', type: 'entity', id: String(id) })), '국가로 전환')) return;
     const name = String(feature.properties?.name || '').trim() || '이름 없음';
-    const snapshot = (0, dependencies.snapshots.snapshotEditable)();
     const country = (0, dependencies.objectPicking.createCountryFeature)(name, [], (0, dependencies.countryValidation.snapGeometryToGrid)(transferredGeometry, 7));
     country.properties.metadata = legacyGenericMetadata(feature);
+    if(feature.properties?.color)country.properties.style={...country.properties.style,color:feature.properties.color};
     (0, dependencies.feedback.setActionStatus)('영역을 국가로 전환하는 중입니다.', 'working', 0);
     await (0, dependencies.geometryOperations.transactMapEdit)({
       operation: 'new-country',
       payload: { sourceIds, transferredGeometry, newFeature: country },
-      snapshot,
-      applyResult: result => {
-        dependencies.territorialModel.entityStore.transaction(() => {
-        (0, dependencies.cutOperations.applyWorkerCountryPatches)(result, { presentation: 'preserve-existing-scene' });
-        if (feature.properties?.color) {
-          dependencies.territorialModel.entityStore.setField(country.id, 'color', feature.properties.color);
-        }
-        (0, dependencies.landRelations.transferLandDependents)(transferredGeometry, sourceIds, country.id, [feature.id]);
-        });
-        dependencies.projectState.state.genericFeatures = dependencies.projectState.state.genericFeatures.filter(item => String(item.id) !== String(feature.id));
-        dependencies.spatialQuery.mapObjectGeometryRevisions.generic += 1;
-        (0, dependencies.countryValidation.refreshCountryCentroids)(new Set(result.affectedIds));
-        (0, dependencies.layers.markLayerTreeDirty)();
-        dependencies.domains.selectionUiController.applyIntent({ domain: 'territorial', type: 'entity', id: String(country.id) }, { refreshOnly: false, openEditor: false });
-        dependencies.domains.renderingDomain?.invalidateCountryPatch?.('generic-promoted-country');
+      prepareResult:(result,{expectedEpoch})=>dependencies.countryCommitFlow.prepareTerritorialGeometryPlan(result,{commandId:'territorial.from-generic',expectedEpoch,
+        dependentPlan:territorialViews=>dependencies.landRelations.planTransferLandDependents({territorialViews,transferredGeometry,sourceOwnerIds:sourceIds,targetOwnerId:country.id}),
+        extraOperations:[{commandId:'content.edit',targets:[{domain:'generic',id:feature.id}],payload:{domain:'generic',id:feature.id,value:null,create:false}}]}),
+      applyAccepted:async(_outcome,result)=>{
+        dependencies.spatialQuery.mapObjectGeometryRevisions.generic+=1;
+        dependencies.spatialQuery.markCountryGeometriesChanged(new Set(result.affectedIds),{presentation:'preserve-existing-scene'});
+        dependencies.countryValidation.refreshCountryCentroids(new Set(result.affectedIds));dependencies.layers.markLayerTreeDirty();
+        await dependencies.domains.selectionUiController.applyIntent({domain:'territorial',type:'entity',id:String(country.id)},{refreshOnly:false,openEditor:false});
+        dependencies.domains.renderingDomain.invalidateCountryPatch('generic-promoted-country');
       },
       onSuccess: () => (0, dependencies.feedback.setActionStatus)(`${name} 영역을 독립 국가로 전환했습니다.`, 'success', 3600),
       onError: error => (0, dependencies.feedback.reportOperationError)(error, '영역을 국가로 전환하지 못했습니다. 다른 국가와의 중첩과 형상을 확인하세요.', 'PL-LAND-002', 4600),
@@ -98,12 +92,6 @@ export function createGenericCommands() {
     if (!dependentCount) return true;
     (0, dependencies.feedback.setActionStatus)(`이 객체를 상위로 참조하는 기타 객체 ${dependentCount}개가 있습니다. 먼저 그 객체를 전환하거나 관계를 정리하세요.`, 'error', 4200);
     return false;
-  }
-
-  function removeGenericFeatureAfterConversion(feature) {
-    dependencies.projectState.state.genericFeatures = dependencies.projectState.state.genericFeatures.filter(item => String(item.id) !== String(feature.id));
-    dependencies.spatialQuery.mapObjectGeometryRevisions.generic += 1;
-    dependencies.domains.renderingDomain?.invalidateGenericPatch?.('generic-feature-converted');
   }
 
   function genericCoordinates(feature) {
@@ -124,6 +112,18 @@ export function createGenericCommands() {
     if (!canConvertGenericFeature(feature)) return false;
     const name = String(feature.properties?.name || '').trim() || '이름 없음';
     const color = feature.properties?.color || feature.properties?.editorColor || '';
+    const generation=dependencies.domains.projectDomain.getGeneration(),expectedEpoch=dependencies.domains.projectDomain.state().epoch;
+    const remove={ commandId: 'content.edit',targets: [{ domain: 'generic',id: feature.id }],
+      payload: { domain: 'generic',id: feature.id,value: null,create: false } };
+    const convert=async operations => {
+      const result=await dependencies.domains.projectDomain.executeCommand({ commandId: 'document.batch',targets: [],expectedEpoch,
+        payload: { operations: [...operations,remove] } });
+      if(!result.ok)throw Object.assign(new Error(result.error.message),{ code: result.error.code });
+      if(generation!==dependencies.domains.projectDomain.getGeneration() || dependencies.projectState.state.projectReplacing)return false;
+      dependencies.spatialQuery.mapObjectGeometryRevisions.generic+=1;
+      dependencies.domains.renderingDomain.invalidateGenericPatch('generic-feature-converted');
+      dependencies.layers.markLayerTreeDirty();return true;
+    };
     try {
       if (target === 'general' && !parentId) return await promoteSelectedGenericFeatureToCountry();
       if (target === 'river' || target === 'lake') {
@@ -133,13 +133,9 @@ export function createGenericCommands() {
           type: 'Feature', id: (0, dependencies.surfaces.uid)(target), geometry: (0, dependencies.platform.deepClone)(feature.geometry),
           properties: { name, editorColor: color, category: target, notes: String(feature.properties?.notes || ''), metadata: legacyGenericMetadata(feature) },
         };
-        dependencies.domains.projectDomain.recordHistory({ type: 'generic-convert-hydro', affectedIds: [String(feature.id), String(hydro.id)] });
-        (0, dependencies.hydroModel.normalizeHydroEdit)(hydro);
-        dependencies.projectState.state.hydroEdits.push(hydro);
-        removeGenericFeatureAfterConversion(feature);
-        (0, dependencies.layers.markLayerTreeDirty)();
-        dependencies.domains.projectDomain.queueAutosave();
-        (0, dependencies.propertyEditingA.applyHydroSelectionIntent)(String(hydro.id));
+        if(!await convert([{ commandId: 'hydro.edit',targets: [{ domain: 'hydro',id: hydro.id }],
+          payload: { domain: 'hydro',id: hydro.id,value: hydro,create: true } }]))return false;
+        await (0, dependencies.propertyEditingA.applyHydroSelectionIntent)(String(hydro.id));
         dependencies.domains.renderingDomain?.invalidateGpuInteraction?.('generic-converted-hydro');
         (0, dependencies.feedback.setActionStatus)(`${name}을(를) ${target === 'river' ? '강' : '호수'}로 전환했습니다.`, 'success');
         return true;
@@ -147,21 +143,17 @@ export function createGenericCommands() {
       if (target === 'label') {
         const points = genericCoordinates(feature);
         if (!points.length) throw new Error('지명으로 전환할 수 없는 형상입니다.');
-        dependencies.domains.projectDomain.recordHistory({ type: 'generic-convert-label', affectedIds: [String(feature.id)] });
         const labels = points.map((coordinates, index) => {
           const id = (0, dependencies.surfaces.uid)('label');
           const label = {
             id, name: points.length > 1 ? `${name} ${index + 1}` : name, kind: 'custom', coordinates: coordinates.slice(),
             notes: String(feature.properties?.notes || ''), metadata: legacyGenericMetadata(feature),
           };
-          dependencies.projectState.state.labelSettings[(0, dependencies.labelPresentation.labelKey)('label', id)] = (0, dependencies.labelPresentation.automaticLabelSettings)(label.kind, { pinned: false });
           return label;
         });
-        dependencies.projectState.state.labels.push(...labels);
-        removeGenericFeatureAfterConversion(feature);
-        (0, dependencies.layers.markLayerTreeDirty)();
-        dependencies.domains.projectDomain.queueAutosave();
-        (0, dependencies.propertyEditingA.applyLabelSelectionIntent)(labels[0].id);
+        if(!await convert(labels.map(label => ({ commandId: 'label.edit',targets: [{ domain: 'label',id: label.id }],
+          payload: { domain: 'label',id: label.id,value: label,create: true,labelSettings: { pinned: false } } }))))return false;
+        await (0, dependencies.propertyEditingA.applyLabelSelectionIntent)(labels[0].id);
         dependencies.domains.renderingDomain?.invalidateLabels?.('generic-converted-label');
         (0, dependencies.feedback.setActionStatus)(`${name}을(를) 지명으로 전환했습니다.`, 'success');
         return true;
@@ -178,31 +170,20 @@ export function createGenericCommands() {
           validFrom: feature.properties?.validFrom ?? null, validTo: feature.properties?.validTo ?? null,
           notes: String(feature.properties?.notes || ''), metadata: legacyGenericMetadata(feature),
         });
-        dependencies.domains.projectDomain.recordHistory({ type: 'generic-convert-territorial', affectedIds: [String(feature.id), String(unit.id)] });
-        dependencies.territorialModel.entityStore.applyChanges({ features: (0, dependencies.territorialModel.normalizeTerritorialEntities)(
-            [...dependencies.territorialModel.entityRepository.list({  }).filter(entity => entity.properties.entityKind === 'regional' || !!entity.properties.parentId), unit],
-            {
-              getEntity: id => dependencies.territorialModel.entityRepository.get(id),
-            },
-          ) });
-        removeGenericFeatureAfterConversion(feature);
-        (0, dependencies.layers.markLayerTreeDirty)();
-        dependencies.domains.projectDomain.queueAutosave();
-        dependencies.domains.selectionUiController.applyIntent({ domain: 'territorial', type: 'entity', id: String(unit.id) }, { refreshOnly: true, openEditor: false });
+        if(!await convert([{ commandId: 'territorial.create',targets: [{ domain: 'territorial',id: unit.id }],payload: { feature: unit } }]))return false;
+        await dependencies.domains.selectionUiController.applyIntent({ domain: 'territorial',type: 'entity',id: String(unit.id) },{ refreshOnly: true,openEditor: false });
         dependencies.domains.renderingDomain?.invalidateTerritorialPatch?.('generic-converted-territorial');
         (0, dependencies.feedback.setActionStatus)(`${name}을(를) 객체로 전환했습니다.`, 'success');
         return true;
       }
       if (target === 'distribution') {
         if (kind !== 'polygon') throw new Error('영역 형상만 분포로 전환할 수 있습니다.');
-        const result = dependencies.objectModelA.distributionService.addEntry({
+        const options={
           id: (0, dependencies.surfaces.uid)('distribution_entry'), layerId: String(distributionLayerId), mode: dependencies.territorialModel.DISTRIBUTION_MODES.GEOMETRY,
           geometry: (0, dependencies.platform.deepClone)(feature.geometry), value: distributionValue,
-        });
-        if (!result.ok) throw result.error || new Error('분포 레이어를 선택하세요.');
-        removeGenericFeatureAfterConversion(feature);
-        (0, dependencies.layers.markLayerTreeDirty)();
-        (0, dependencies.propertyEditingA.applyDistributionSelectionIntent)(result.layer.id);
+        };
+        if(!await convert([{ commandId: 'distribution.entry.create',targets: [{ domain: 'distributionEntry',id: options.id }],payload: { options } }]))return false;
+        await (0, dependencies.propertyEditingA.applyDistributionSelectionIntent)(String(distributionLayerId));
         (0, dependencies.feedback.setActionStatus)(`${name}을(를) 분포로 전환했습니다.`, 'success');
         return true;
       }
@@ -230,8 +211,8 @@ export function createGenericCommands() {
     const source = dependencies.projectState.state.genericFeatures.find(item => String(item.id) === String(dependencies.projectState.state.genericFeatureMergeSourceId));
     const target = dependencies.projectState.state.genericFeatures.find(item => String(item.id) === String(id));
     if (!source || !target || String(source.id) === String(target.id)) return;
-    if ((0, dependencies.applicationServicesA.genericFeatureRole)(source) !== (0, dependencies.applicationServicesA.genericFeatureRole)(target) || (0, dependencies.objectPresentation.genericFeatureGeometryKind)(target) !== 'polygon') {
-      (0, dependencies.feedback.setActionStatus)('같은 역할의 면 영역만 합칠 수 있습니다.', 'error', 3200);
+    if ((0, dependencies.objectPresentation.genericFeatureGeometryKind)(target) !== 'polygon') {
+      (0, dependencies.feedback.setActionStatus)('면 영역만 합칠 수 있습니다.', 'error', 3200);
       return;
     }
     const targets = new Set(dependencies.projectState.state.genericFeatureMergeTargetIds.map(String));
@@ -246,11 +227,15 @@ export function createGenericCommands() {
     return false;
   }
 
-  function requestDraftDiscard(action) {
+  async function requestDraftDiscard(action) {
+    if (typeof action !== 'function') throw new TypeError('Draft discard requires its next action.');
+    const generation = dependencies.domains.projectDomain.getGeneration();
+    const current = () => generation === dependencies.domains.projectDomain.getGeneration() && !dependencies.projectState.state.projectReplacing;
+    if (!current()) return false;
     const draftCount = (0, dependencies.countryEditingA.editingDraftCoordinates)().length;
-    if (!dependencies.domains.editingDomain?.draftInputActive?.() || draftCount < 3) {
-      action?.();
-      return true;
+    if (!dependencies.domains.editingDomain.draftInputActive() || draftCount < 3) {
+      await action();
+      return current();
     }
     (0, dependencies.projectRestore.openConfirmModal)({
       title: '그리기 취소',
@@ -258,18 +243,20 @@ export function createGenericCommands() {
       confirmText: '그리기 취소',
       cancelText: '계속 그리기',
       danger: true,
-      onConfirm: () => action?.(),
+      onConfirm: async () => current() ? await action() : false,
     });
     return false;
   }
 
-  function discardActiveDraftSilently() {
-    if (!dependencies.domains.editingDomain?.draftInputActive?.()) return;
-    if ((0, dependencies.surfaces.isGenericFeatureDraftTool)(dependencies.projectState.state.tool)) cancelDraft(false);
-    else (0, dependencies.countryEditingA.cancelActiveMode)(false);
+  async function discardActiveDraftSilently() {
+    if (!dependencies.domains.editingDomain.draftInputActive()) return;
+    if ((0, dependencies.surfaces.isGenericFeatureDraftTool)(dependencies.projectState.state.tool)) return await cancelDraft(false);
+    return await dependencies.countryEditingA.cancelActiveMode(false);
   }
 
-  function cancelDraft(showMessage = true) {
+  async function cancelDraft(showMessage = true) {
+    const generation = dependencies.domains.projectDomain.getGeneration();
+    const current = () => generation === dependencies.domains.projectDomain.getGeneration() && !dependencies.projectState.state.projectReplacing;
     const terrain = (0, dependencies.draftPresentation.hydroToolConfig)(dependencies.projectState.state.tool);
     const splitSourceId = dependencies.projectState.state.tool === 'split-generic-feature' ? dependencies.projectState.state.genericFeatureSplitSourceId : null;
     const territorialSplitSourceId = dependencies.projectState.state.tool === 'split-territorial-unit' ? dependencies.projectState.state.territorialUnitSplitSourceId : null;
@@ -277,77 +264,81 @@ export function createGenericCommands() {
     const directTerritorialUnit = dependencies.projectState.state.tool === 'draw-territorial-unit';
     const distributionDraft = dependencies.projectState.state.distributionDraft;
     dependencies.projectState.state.distributionDraft = null;
-    dependencies.domains.editingDomain?.clearDraft?.(true);
-    dependencies.domains.editingDomain?.setTool('select', { announce: false });
-    if (splitSourceId && dependencies.projectState.state.genericFeatures.some(item => String(item.id) === String(splitSourceId))) (0, dependencies.propertyEditingA.applyGenericSelectionIntent)(String(splitSourceId), true);
-    else if (territorialSplitSourceId && dependencies.territorialModel.entityRepository.get(territorialSplitSourceId)) dependencies.domains.selectionUiController.applyIntent({ domain: 'territorial', type: 'entity', id: String(territorialSplitSourceId) }, { refreshOnly: true, openEditor: false });
-    else if (territorialRedrawSourceId && dependencies.territorialModel.entityRepository.get(territorialRedrawSourceId)) dependencies.domains.selectionUiController.applyIntent({ domain: 'territorial', type: 'entity', id: String(territorialRedrawSourceId) }, { refreshOnly: true, openEditor: false });
-    dependencies.domains.renderingDomain?.invalidateGpuInteraction?.('draft-cancel');
-    if (distributionDraft?.layerId && (0, dependencies.propertyEditingA.distributionLayerById)(distributionDraft.layerId)) (0, dependencies.propertyEditingA.applyDistributionSelectionIntent)(distributionDraft.layerId, true);
+    await dependencies.domains.editingDomain.clearDraft({ render: true });
+    if (!current()) return false;
+    if (!await dependencies.domains.editingDomain.setTool('select', { announce: false }) || !current()) return false;
+    if (splitSourceId && dependencies.projectState.state.genericFeatures.some(item => String(item.id) === String(splitSourceId))) await dependencies.propertyEditingA.applyGenericSelectionIntent(String(splitSourceId), true);
+    else if (territorialSplitSourceId && dependencies.territorialModel.entityRepository.get(territorialSplitSourceId)) await dependencies.domains.selectionUiController.applyIntent({ domain: 'territorial', type: 'entity', id: String(territorialSplitSourceId) }, { refreshOnly: true, openEditor: false });
+    else if (territorialRedrawSourceId && dependencies.territorialModel.entityRepository.get(territorialRedrawSourceId)) await dependencies.domains.selectionUiController.applyIntent({ domain: 'territorial', type: 'entity', id: String(territorialRedrawSourceId) }, { refreshOnly: true, openEditor: false });
+    if (!current()) return false;
+    dependencies.domains.renderingDomain.invalidateGpuInteraction('draft-cancel');
+    if (distributionDraft?.layerId && (0, dependencies.propertyEditingA.distributionLayerById)(distributionDraft.layerId)) await dependencies.propertyEditingA.applyDistributionSelectionIntent(distributionDraft.layerId, true);
+    if (!current()) return false;
     if (showMessage) (0, dependencies.feedback.setActionStatus)(distributionDraft ? '자유 분포 그리기를 취소했습니다.' : splitSourceId || territorialSplitSourceId || territorialRedrawSourceId || directTerritorialUnit ? '영역 작업을 취소했습니다.' : `${terrain?.label || '기타 객체'} 추가를 취소했습니다.`, 'success');
+    return true;
   }
 
-  function addLabelAt(coord) {
+  async function addLabelAt(coord) {
     const name = prompt('지명 또는 도시명을 입력하세요.', '새 지명');
     if (name === null) return;
-    dependencies.domains.projectDomain.recordHistory();
+    const generation=dependencies.domains.projectDomain.getGeneration();
     const label = { id: (0, dependencies.surfaces.uid)('label'), name: name.trim() || '새 지명', kind: 'city', coordinates: coord.slice(), notes: '' };
-    dependencies.projectState.state.labels.push(label);
-    dependencies.projectState.state.labelSettings[(0, dependencies.labelPresentation.labelKey)('label', label.id)] = (0, dependencies.labelPresentation.automaticLabelSettings)(label.kind, { pinned: false });
-    (0, dependencies.countryEditingB.exitLabelMode)(false);
-    (0, dependencies.propertyEditingA.applyLabelSelectionIntent)(label.id);
+    const result=await dependencies.domains.projectDomain.executeCommand({ commandId: 'label.edit',targets: [{ domain: 'label',id: label.id }],
+      payload: { domain: 'label',id: label.id,value: label,create: true } });
+    if (!result.ok) throw Object.assign(new Error(result.error.message),{ code: result.error.code });
+    if (dependencies.projectState.state.projectReplacing || generation!==dependencies.domains.projectDomain.getGeneration()) return;
+    await (0, dependencies.countryEditingB.exitLabelMode)(false);
+    await (0, dependencies.propertyEditingA.applyLabelSelectionIntent)(label.id);
     dependencies.domains.renderingDomain?.invalidateLabels?.('label-created');
-    dependencies.domains.projectDomain.queueAutosave();
     (0, dependencies.feedback.setActionStatus)(`${label.name} 지명을 추가했습니다.`, 'success');
   }
 
-  function copySelectedPlaceForEditing() {
+  async function copySelectedPlaceForEditing() {
     const selected = dependencies.projectState.state.selected;
     if (selected?.domain !== 'label' || !isBuiltinPlaceId(selected.id)) return false;
     const source = dependencies.labelPresentation.labelById(selected.id);
     if (!source) return false;
     const label = { id: dependencies.surfaces.uid('label'), name: source.name, kind: source.kind,
       coordinates: source.coordinates.slice(), notes: '', sourcePlaceId: source.id };
-    dependencies.domains.projectDomain.recordHistory({ type: 'builtin-place-copy', affectedIds: [label.id] });
-    dependencies.projectState.state.labels.push(label);
-    dependencies.projectState.state.labelSettings[dependencies.labelPresentation.labelKey('label', label.id)] = dependencies.labelPresentation.automaticLabelSettings(label.kind, { manualPosition: label.coordinates, pinned: true });
+    const generation=dependencies.domains.projectDomain.getGeneration();
+    const result=await dependencies.domains.projectDomain.executeCommand({ commandId: 'label.edit',targets: [{ domain: 'label',id: label.id }],
+      payload: { domain: 'label',id: label.id,value: label,create: true,labelSettings: { manualPosition: label.coordinates,pinned: true } } });
+    if (!result.ok) throw Object.assign(new Error(result.error.message),{ code: result.error.code });
+    if (dependencies.projectState.state.projectReplacing || generation!==dependencies.domains.projectDomain.getGeneration()) return false;
     dependencies.layers.markLayerTreeDirty();
-    dependencies.propertyEditingA.applyLabelSelectionIntent(label.id);
+    await dependencies.propertyEditingA.applyLabelSelectionIntent(label.id);
     dependencies.domains.renderingDomain.invalidateLabels('builtin-place-copied');
-    dependencies.domains.projectDomain.queueAutosave();
     dependencies.feedback.setActionStatus(`${label.name} 편집용 복사본을 만들었습니다.`, 'success');
-    return label;
+    return result.after.labels.find(row => row.id===label.id);
   }
 
   function labelDragBehavior() {
+    let gesture=null;
+    const apply=(action,context,coordinate)=>{
+      const payload={action,id:context.id,...(coordinate ? {coordinate}: {})};
+      return dependencies.domains.projectDomain.labelGestureApply(payload).then(result=>{
+        if(!result.ok)throw Object.assign(new Error(result.error.message),{code:result.error.code});
+        if(context.generation!==dependencies.domains.projectDomain.getGeneration() || dependencies.projectState.state.projectReplacing)return false;
+        const accepted=result.after.labels.find(row=>row.id===context.id);
+        if(action==='move'&&accepted){const p=dependencies.mapView.activeProjection()(accepted.coordinates);dependencies.platform.d3.select(context.element).attr('transform','translate('+p[0]+','+p[1]+')');}
+        if(action==='finish'&&accepted){dependencies.spatialQuery.mapObjectGeometryRevisions.label+=1;dependencies.domains.renderingDomain.invalidateLabels('label-moved');dependencies.feedback.setActionStatus(accepted.name+' 지명을 이동했습니다.','success');}
+        return true;
+      }).catch(error=>{if(gesture===context)gesture=null;dependencies.feedback.reportOperationError(error,'지명을 이동하지 못했습니다.','PL-LABEL-GESTURE-001',4200);return false;});
+    };
     return dependencies.platform.d3.behavior.drag()
-      .on('dragstart', function(label) {
-        if (isBuiltinPlaceId(label.id)) return;
-        if (dependencies.projectState.state.tool !== 'select') return;
-        dependencies.domains.projectDomain.recordHistory();
-        dependencies.platform.d3.event.sourceEvent?.stopPropagation?.();
+      .on('dragstart',function(label){
+        if(isBuiltinPlaceId(label.id)||dependencies.projectState.state.tool!=='select')return;
+        gesture={id:String(label.id),generation:dependencies.domains.projectDomain.getGeneration(),element:this};
+        apply('begin',gesture);dependencies.platform.d3.event.sourceEvent?.stopPropagation?.();
       })
-      .on('drag', function(label) {
-        if (isBuiltinPlaceId(label.id)) return;
-        if (dependencies.projectState.state.tool !== 'select') return;
-        const coord = (0, dependencies.mapView.screenToGeo)(dependencies.platform.d3.mouse(dependencies.mapLayers.svg.node()));
-        if (!coord) return;
-        label.coordinates = coord;
-        const p = (0, dependencies.mapView.activeProjection)()(coord);
-        dependencies.platform.d3.select(this).attr('transform', `translate(${p[0]},${p[1]})`);
+      .on('drag',function(label){
+        if(!gesture||gesture.id!==String(label.id)||dependencies.projectState.state.tool!=='select')return;
+        const coordinate=dependencies.mapView.screenToGeo(dependencies.platform.d3.mouse(dependencies.mapLayers.svg.node()));
+        if(coordinate)apply('move',gesture,coordinate);
       })
-      .on('dragend', function(label) {
-        if (isBuiltinPlaceId(label.id)) return;
-        if (dependencies.projectState.state.tool !== 'select') return;
-        dependencies.projectState.state.labelSettings[(0, dependencies.labelPresentation.labelKey)('label', label.id)] = (0, dependencies.labelServices.normalizeLabelSettings)({
-          ...(dependencies.projectState.state.labelSettings[(0, dependencies.labelPresentation.labelKey)('label', label.id)] || {}),
-          manualPosition: label.coordinates,
-          pinned: true,
-        });
-        dependencies.spatialQuery.mapObjectGeometryRevisions.label += 1;
-        dependencies.domains.renderingDomain?.invalidateLabels?.('label-moved');
-        dependencies.domains.projectDomain.queueAutosave();
-        (0, dependencies.feedback.setActionStatus)(`${label.name} 지명을 이동했습니다.`, 'success');
+      .on('dragend',function(label){
+        if(!gesture||gesture.id!==String(label.id)||dependencies.projectState.state.tool!=='select')return;
+        const context=gesture;gesture=null;apply('finish',context);
       });
   }
 

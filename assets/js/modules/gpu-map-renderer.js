@@ -12,7 +12,7 @@ import { createRenderDevice } from './render-device.js';
 import { createSceneColorCache } from './scene-color-cache.js';
 import { createGpuPolygonOverlayPass } from './gpu-polygon-overlay-pass.js';
 import { resetGpuNormalBlend } from './gpu-blend-utils.js';
-import { linkGpuProgram } from './gpu-shader-utils.js';
+import { linkGpuProgram, GPU_SPHERICAL_POSITION_GLSL } from './gpu-shader-utils.js';
 import { GPU_VIEW_UNIFORM_NAMES, setGpuViewUniforms } from './gpu-view-uniforms.js';
 import { createGpuHydroPreparation } from './gpu-hydro-preparation.js';
 import { createBuiltinMeshResourceLoader } from './builtin-mesh-resource.js';
@@ -22,7 +22,7 @@ import { createGpuMeshWorkerJobs } from './gpu-mesh-worker-jobs.js';
 import { decideCountryPatchPresentation } from './country-mesh-quality-gate.js';
 import { resolveCountryMeshQuality } from './country-mesh-zoom-policy.js';
 import { shouldShowSharedCountryBorders, excludeCountryBoundaryOwners } from './country-shared-boundary-packet.js';
-import { geometryRevision } from './geometry-versions.js';
+import { geometryRevisionKey } from './geometry-versions.js';
 
 const rendererAssetRevision = new URL(import.meta.url).searchParams.get('v') || globalThis.PANDOLAB_BUILD_META?.assetRevision || '';
 const [{ drawGpuBaseScene }, { prepareGpuBaseScene, prepareGpuInteraction, prepareGpuInteractionPlan, sceneStrokeResourcePacket, commitGpuStrokeDomains }, { createGpuStrokeRenderer }, { createGpuTerrainPreparation },
@@ -505,7 +505,7 @@ export function createGpuMapRenderer(deps) {
     function prepareCountrySharedBoundary({ features = null, removedIds = [], replace = false, baselineCache = null } = {}) {
       const boundaryFeatures = renderCountryBoundaryFeatures();
       countryBoundarySource = boundaryFeatures;
-      countryBoundarySourceRevision = boundaryFeatures.map(feature => geometryRevision(feature.geometry)).join(',');
+      countryBoundarySourceRevision = boundaryFeatures.map(feature => geometryRevisionKey(feature.geometry)).join(',');
       const boundaryById = new Map(boundaryFeatures.map(feature => [String(feature.id), feature]));
       let source = features && !replace ? features.map(feature => ({ ...feature,
         properties: boundaryById.get(String(feature.id))?.properties || feature.properties,
@@ -557,11 +557,11 @@ export function createGpuMapRenderer(deps) {
         cacheUrl: replace && sharedBoundaryCacheUrls?.[activeMeshQuality]
           ? new URL(sharedBoundaryCacheUrls[activeMeshQuality], PHYSICAL_DATA_BASE_URL).href : null,
         skipCacheReconcile: baselineCache,
-        features: source, removedIds });
+        features: source.map(feature => ({ ...feature, boundaryGeometryRevision: geometryRevisionKey(feature.geometry) })), removedIds });
     }
     function syncCountryBoundaryScene() {
       const features = renderCountryBoundaryFeatures();
-      if (countryBoundarySourceRevision === features.map(feature => geometryRevision(feature.geometry)).join(',')
+      if (countryBoundarySourceRevision === features.map(feature => geometryRevisionKey(feature.geometry)).join(',')
         && countryBoundarySource?.length === features.length && features.every((feature, index) => {
         const previous = countryBoundarySource[index];
         return previous.id === feature.id && previous.geometry === feature.geometry && previous.boundaryRootId === feature.boundaryRootId;
@@ -741,6 +741,7 @@ export function createGpuMapRenderer(deps) {
 
     const vertexShaderSourceWebGl2 = `#version 300 es
       precision highp float;
+      ${GPU_SPHERICAL_POSITION_GLSL}
       precision highp int;
       layout(location=0) in ivec2 aCoord;
       layout(location=1) in uint aCountry;
@@ -760,7 +761,7 @@ export function createGpuMapRenderer(deps) {
         float lat = float(aCoord.y) * 0.000001 * ${Math.PI / 180};
         vec2 screenPoint;
         if (uMode == 0) {
-          vec3 point = vec3(cos(lat) * cos(lon), cos(lat) * sin(lon), sin(lat));
+          vec3 point = gpuUnitSphere(lon, lat);
           screenPoint = uTranslate + uScale * vec2(dot(uRowX, point), dot(uRowY, point));
           vDepth = dot(uRowZ, point);
         } else {
@@ -847,6 +848,7 @@ export function createGpuMapRenderer(deps) {
       }`;
     const vertexShaderSourceWebGl1 = `
       precision highp float;
+      ${GPU_SPHERICAL_POSITION_GLSL}
       precision mediump int;
       attribute vec2 aCoord;
       attribute float aCountry;
@@ -866,7 +868,7 @@ export function createGpuMapRenderer(deps) {
         float lat = aCoord.y * 0.000001 * ${Math.PI / 180};
         vec2 screenPoint;
         if (uMode == 0) {
-          vec3 point = vec3(cos(lat) * cos(lon), cos(lat) * sin(lon), sin(lat));
+          vec3 point = gpuUnitSphere(lon, lat);
           screenPoint = uTranslate + uScale * vec2(dot(uRowX, point), dot(uRowY, point));
           vDepth = dot(uRowZ, point);
         } else {
@@ -879,6 +881,7 @@ export function createGpuMapRenderer(deps) {
       }`;
     const hydroRibbonVertexSourceWebGl2 = `#version 300 es
       precision highp float;
+      ${GPU_SPHERICAL_POSITION_GLSL}
       precision highp int;
       layout(location=0) in vec2 aCorner;
       layout(location=1) in ivec2 aStart;
@@ -903,7 +906,7 @@ export function createGpuMapRenderer(deps) {
         float lon = float(coord.x) * 0.000001 * ${Math.PI / 180};
         float lat = float(coord.y) * 0.000001 * ${Math.PI / 180};
         if (uMode == 0) {
-          vec3 point = vec3(cos(lat) * cos(lon), cos(lat) * sin(lon), sin(lat));
+          vec3 point = gpuUnitSphere(lon, lat);
           screenPoint = uTranslate + uScale * vec2(dot(uRowX, point), dot(uRowY, point));
           depth = dot(uRowZ, point);
         } else {
@@ -931,6 +934,7 @@ export function createGpuMapRenderer(deps) {
       }`;
     const hydroRibbonVertexSourceWebGl1 = `
       precision highp float;
+      ${GPU_SPHERICAL_POSITION_GLSL}
       precision mediump int;
       attribute vec2 aCorner;
       attribute vec2 aStart;
@@ -955,7 +959,7 @@ export function createGpuMapRenderer(deps) {
         float lon = coord.x * 0.000001 * ${Math.PI / 180};
         float lat = coord.y * 0.000001 * ${Math.PI / 180};
         if (uMode == 0) {
-          vec3 point = vec3(cos(lat) * cos(lon), cos(lat) * sin(lon), sin(lat));
+          vec3 point = gpuUnitSphere(lon, lat);
           screenPoint = uTranslate + uScale * vec2(dot(uRowX, point), dot(uRowY, point));
           depth = dot(uRowZ, point);
         } else {
@@ -1061,6 +1065,7 @@ export function createGpuMapRenderer(deps) {
       }`;
     const terrainVertexSourceWebGl2 = `#version 300 es
       precision highp float;
+      ${GPU_SPHERICAL_POSITION_GLSL}
       layout(location=0) in vec2 aGrid;
       uniform vec4 uGeoBounds;
       uniform vec4 uUvBounds;
@@ -1082,7 +1087,7 @@ export function createGpuMapRenderer(deps) {
         float lat = mix(uGeoBounds.y, uGeoBounds.w, aGrid.y) * ${Math.PI / 180};
         vec2 screenPoint;
         if (uMode == 0) {
-          vec3 point = vec3(cos(lat) * cos(lon), cos(lat) * sin(lon), sin(lat));
+          vec3 point = gpuUnitSphere(lon, lat);
           screenPoint = uTranslate + uScale * vec2(dot(uRowX, point), dot(uRowY, point));
           vDepth = dot(uRowZ, point);
         } else {
@@ -1113,6 +1118,7 @@ export function createGpuMapRenderer(deps) {
       }`;
     const terrainVertexSourceWebGl1 = `
       precision highp float;
+      ${GPU_SPHERICAL_POSITION_GLSL}
       precision mediump int;
       attribute vec2 aGrid;
       uniform vec4 uGeoBounds;
@@ -1135,7 +1141,7 @@ export function createGpuMapRenderer(deps) {
         float lat = mix(uGeoBounds.y, uGeoBounds.w, aGrid.y) * ${Math.PI / 180};
         vec2 screenPoint;
         if (uMode == 0) {
-          vec3 point = vec3(cos(lat) * cos(lon), cos(lat) * sin(lon), sin(lat));
+          vec3 point = gpuUnitSphere(lon, lat);
           screenPoint = uTranslate + uScale * vec2(dot(uRowX, point), dot(uRowY, point));
           vDepth = dot(uRowZ, point);
         } else {
@@ -2039,6 +2045,7 @@ export function createGpuMapRenderer(deps) {
         postCanvasWorkerMessage({
           type: 'patch',
           features,
+          fills: canvasCountryFills(features),
           removedIds,
           ids,
           projectGeneration,
@@ -3061,11 +3068,6 @@ export function createGpuMapRenderer(deps) {
       prepareHydroFeature(aggregate);
       state.hydroFeatureCache.set(logicalId, aggregate);
       for (const fragment of ordered) state.hydroFeatureByFid.set(Number(fragment.properties?.__fid), aggregate);
-      const sourceIds = new Set(String(aggregate.properties?.source_id || '').split(',').filter(Boolean));
-      const legacyHidden = Object.keys(state.physicalSettings.hiddenHydroIds || {}).find(id => (
-        state.physicalSettings.hiddenHydroIds[id] === true && id !== logicalId && sourceIds.has(String(id).split(':').pop())
-      ));
-      if (legacyHidden) state.physicalSettings.hiddenHydroIds[logicalId] = true;
       return aggregate;
     }
 
@@ -3757,12 +3759,17 @@ export function createGpuMapRenderer(deps) {
       return result;
     }
 
-    function canvasWorkerStyleMessage() {
+    function canvasCountryFills(features) {
       const fills = {};
       const resolveFill = createCountryFillResolver();
-      for (const feature of (renderCountryFeatures?.() || (state.territorialEntities || []).filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId)))) {
+      for (const feature of features) {
         fills[String(feature?.id || '')] = resolveFill(feature);
       }
+      return fills;
+    }
+
+    function canvasWorkerStyleMessage() {
+      const fills = canvasCountryFills(renderCountryFeatures?.() || (state.territorialEntities || []).filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId)));
       return {
         type: 'style',
         styleRevision: ++canvasStyleRevision,
@@ -3815,7 +3822,7 @@ export function createGpuMapRenderer(deps) {
       return {
         type: 'view', width: frame.cssViewport[0], height: frame.cssViewport[1], dpr: frame.dpr,
         terrainDpr: Math.min(isMobile() ? 2 : 3, Math.max(1, Number(view.sourceDpr || frame.dpr))),
-        meshQuality: activeMeshQuality, projection: frame.projection,
+        projection: frame.projection,
         view: { flatCenter: view.projectionCenter || view.flatCenter, globeRotation: view.rotation,
           flatZoom: view.flatZoom, globeZoom: view.globeZoom },
         renderProjection: { translate: frame.cssTranslate, scale: frame.cssScale,
@@ -3856,16 +3863,22 @@ export function createGpuMapRenderer(deps) {
       else performanceMetrics.canvasWorkerStateMessageCount += 1;
     }
 
-    function postCanvasWorkerMessage(message) { return canvasWorker?.postMessage(message) || false; }
+    function postCanvasWorkerMessage(message) {
+      if (['init', 'replace-data', 'patch-countries'].includes(message.type) && message.features)
+        message = { ...message, features: message.features.map(feature => ({ ...feature,
+          boundaryGeometryRevision: geometryRevisionKey(feature.geometry) })) };
+      return canvasWorker?.postMessage(message) || false;
+    }
 
     function syncCanvasWorkerState() {
       if (!canvasWorker || !canvasWorker.ready) return;
       const features = renderCountryFeatures?.() || [];
       if (canvasLastCountryFeatures !== features) {
         canvasLastCountryFeatures = features;
-        postCanvasWorkerMessage({ type: 'replace-data', features, projectGeneration,
+        postCanvasWorkerMessage({ type: 'replace-data', features, fills: canvasCountryFills(features), projectGeneration,
           revision: currentRenderRevision, geometryRevision: geometryRevisionTracker.committedRevision() });
         prepareCountrySharedBoundary({ features, replace: true, baselineCache: false });
+        canvasLastStyleSignature = '';
       }
       const styleSignature = [countryPaletteRevision, countryEmphasisRevision, state.layerVisibility.countries, getSystemTheme(),
         renderScene?.revisions?.geometry, renderScene?.revisions?.style, renderScene?.revisions?.overlayOrder].join(':');
@@ -4310,12 +4323,14 @@ export function createGpuMapRenderer(deps) {
             resolve();
           };
           canvasDataReplacementResolver = complete;
+          const updatedFeatures = renderCountryFeatures?.() || features || [];
           postCanvasWorkerMessage({
             type: 'replace-data',
             projectGeneration,
             revision: Number(currentRenderRevision || 0),
             geometryRevision: geometryRevisionTracker.committedRevision(),
-            features: renderCountryFeatures?.() || features || [],
+            features: updatedFeatures,
+            fills: canvasCountryFills(updatedFeatures),
           });
         });
       } else {
@@ -4881,3 +4896,4 @@ export function createGpuMapRenderer(deps) {
     };
   })();
 }
+// @worker-transport dedicated: main renderer owns Canvas frame and country boundary channels while RPC jobs own mesh requests
