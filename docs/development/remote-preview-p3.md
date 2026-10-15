@@ -55,3 +55,13 @@ CMake 3.31.6과 Qt 6.8.3을 고정한다. SDK 설치 준비 이후 제품 config
 P2가 입력 그래프에서 오래된 생성물을 찾으면 원본 push의 P3 무거운 작업을 보류한다. P2 게시가 끝나면 `source_sha`(실제 결과), `original_source_sha`(원본), `base_sha`(변경 기준)를 전달한다. P3는 지정 SHA를 체크아웃하고 원본의 후손인지 확인한다. UI/객체/GIS/지명 경량 계약, 브라우저, Qt를 실제 변경 범위로 선택한다. 수계 네이티브 검사는 별도 앱 빌드 대신 같은 Qt 빌드 디렉터리를 재사용한다. 문서 변경은 무거운 작업을 선택하지 않는다.
 
 수동 진단으로 `qt`/`browser` 등을 선택할 수 있다. 구현 중 중간 반복 회귀는 하지 않고 최종 기능·성능 검증은 P9에서 모아 실행한다. 이미 생성한 로그는 재사용하며 실패한 직접 항목만 다시 확인한다.
+
+## P9 final candidate and focused resume
+
+Run scope=acceptance against the committed P2 result SHA, with base_sha set to the fixed pre-P6 source and original_source_sha identifying the generating source commit. This records Web user flows, real software-rendered browser output, both Qt product builds/CTest and matched-run calculation performance. It does not deploy Pages.
+
+Set retry_failed=true only when the preceding acceptance evidence is retained: the workflow reuses completed UI/temporal/place, mesh/boundary, Web snapshot and hydro checks; it checks changed geometry/reference/river contracts and the remaining user flows. Qt retry CTest selects the eight affected calculation/lifecycle targets plus the native user-flow and codec checks. Calculation remeasurement selects river/reference only.
+
+The P9 browser performance case checks out baseline 8e22982616e3c9ba43eeb84baec17cd886267cfa. It runs one app page at a time with one warmup per side and five alternating rounds; uncertain metrics receive at most one additional five-round group. HTTP cache is disabled identically. It records startup paint/edit readiness, RUS focus frame p95 and main-page JS heap, preserving distributions and unverified scopes. Physical GPU, Qt performance, Android touch, large-edit frame comparison and total Worker/WASM/GPU memory remain distinct requirements.
+
+For a calculation-only local diagnosis against an existing fixed baseline checkout, use tools/p6-calculation-performance.mjs --baseline <baseline-directory> --candidate . --operations river,reference --output <raw-result.json>. Do not run other CPU checks during timing. The required WASM build uses native WebAssembly exception handling; browser execution and operation error contracts must be checked after changing that compiler mode.

@@ -1,0 +1,139 @@
+import { expect, test } from '@playwright/test';
+import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+import { resolve } from 'node:path';
+import os from 'node:os';
+import { createP3PreviewServer } from '../../scripts/p3-preview-server.mjs';
+
+const baselineSha = '8e22982616e3c9ba43eeb84baec17cd886267cfa';
+const candidateRoot = fileURLToPath(new URL('../../', import.meta.url));
+const viewport = { width: 1440, height: 900 };
+const gpuArgs = ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'];
+const median = values => {
+  const sorted = [...values].sort((a,b)=>a-b), index = Math.floor(sorted.length/2);
+  return sorted.length%2 ? sorted[index] : (sorted[index-1]+sorted[index])/2;
+};
+const percentile = (values, fraction) => [...values].sort((a,b)=>a-b)[Math.ceil(values.length*fraction)-1];
+const gitHead = root => execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
+const summarize = rounds => Object.fromEntries(['interactivePaintMs','editableMs','frameP95Ms','jsHeapUsedBytes'].map(key=>{
+  const baseline = rounds.map(row=>row.baseline[key]), candidate = rounds.map(row=>row.candidate[key]);
+  return [key, {
+    baseline, candidate, baselineMedian: median(baseline), candidateMedian: median(candidate),
+    baselineRange: [Math.min(...baseline),Math.max(...baseline)], candidateRange: [Math.min(...candidate),Math.max(...candidate)],
+    // Same deliberately simple rule as p6-calculation-performance.mjs; this is
+    // a distribution comparison, not a statistical significance claim.
+    status: Math.min(...candidate)>Math.max(...baseline) ? 'regression'
+      : median(candidate)>median(baseline) ? 'uncertain' : 'no-regression',
+  }];
+}));
+
+test.use({ trace: 'off', screenshot: 'off' });
+
+test('P9 alternates fixed baseline and candidate browser startup, focus frames and main-page heap', async ({ playwright, baseURL }, testInfo) => {
+  test.setTimeout(20*60_000);
+  const report = {
+    schema: 'pando-p9-browser-performance-v1', baselineSha, candidateSha: gitHead(candidateRoot),
+    status: 'unverified', rounds: [], warmups: {}, metrics: {},
+    scope: 'Chromium software WebGL startup and RUS selection/focus; main-page JS heap only.',
+    notVerified: ['physical GPU', 'Qt startup/frames/memory', 'Android touch', 'large geometry edit frames', 'Worker/WASM/GPU/process memory'],
+    conditions: { viewport, deviceScaleFactor: 1, softwareGpuArguments: gpuArgs,
+      httpCache: 'disabled by CDP on both pages', serviceWorkers: 'blocked',
+      storage: 'separate fresh contexts, retained per side after one warmup; Cache Storage may be warm',
+      concurrency: 'one application page at a time; previous page and CDP session closed before every sample',
+      frames: '120 consecutive requestAnimationFrame intervals starting immediately before RUS focus button click',
+      warmupsPerContext: 1, initialAlternatingRounds: 5, maximumExtraRoundsIfUncertain: 5,
+      memory: 'CDP Performance.getMetrics JSHeapUsedSize after focus frames, no forced GC',
+      node: process.version, cpu: os.cpus()[0]?.model, platform: process.platform },
+  };
+  let server, browser;
+  try {
+    const baselineRoot = process.env.PANDO_P9_BASELINE_ROOT;
+    expect(baselineRoot, 'PANDO_P9_BASELINE_ROOT must name the fixed baseline checkout').toBeTruthy();
+    expect(gitHead(resolve(baselineRoot)), 'baseline HEAD must match the pre-P6 revision').toBe(baselineSha);
+    expect(baseURL, 'candidate baseURL is required').toBeTruthy();
+    server = createP3PreviewServer(baselineRoot);
+    await new Promise((done,reject)=>{server.once('error',reject);server.listen(0,'127.0.0.1',done);});
+    const baselineUrl = `http://127.0.0.1:${server.address().port}/?debug=1&renderer=webgl2`;
+    const candidateUrl = new URL('/?debug=1&renderer=webgl2',baseURL).href;
+    const launch = testInfo.project.use.launchOptions || {};
+    browser = await playwright.chromium.launch({ ...launch, channel: testInfo.project.use.channel,
+      headless: true, args: [...(launch.args||[]),...gpuArgs] });
+    report.conditions.browserVersion = browser.version();
+    const sides = {};
+    let activePage = null, activeCdp = null;
+    for(const [side,url] of Object.entries({baseline:baselineUrl,candidate:candidateUrl})) {
+      const context = await browser.newContext({ viewport, deviceScaleFactor: 1, serviceWorkers: 'block',
+        locale: 'ko-KR', timezoneId: 'UTC', colorScheme: 'light' });
+      sides[side] = {context,url};
+    }
+    async function sample(side) {
+      if(activeCdp) { await activeCdp.detach(); activeCdp = null; }
+      if(activePage) { await activePage.close(); activePage = null; }
+      const {context,url} = sides[side];
+      const page = await context.newPage(); activePage = page;
+      const cdp = await context.newCDPSession(page); activeCdp = cdp;
+      await cdp.send('Network.enable');
+      await cdp.send('Network.setCacheDisabled',{cacheDisabled:true});
+      await cdp.send('Performance.enable');
+      await page.bringToFront();
+      await page.goto(url,{waitUntil:'domcontentloaded'});
+      await expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{timeout:120_000});
+      const startup = await page.evaluate(()=>({
+        interactivePaintMs: globalThis.__PANDOLAB_STARTUP_METRICS__?.interactivePaintMs,
+        editableMs: globalThis.__PANDOLAB_STARTUP_METRICS__?.editableMs,
+      }));
+      for(const [key,value] of Object.entries(startup))expect(typeof value==='number'&&Number.isFinite(value)&&value>=0,`${side} missing startup ${key}`).toBe(true);
+      await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.select('RUS'));
+      await expect(page.locator('#propertyTitle')).toHaveText('러시아');
+      const focus = page.locator('#focusSelectedObjectBtn');
+      await expect(focus).toBeVisible();await expect(focus).toBeEnabled();
+      await page.evaluate(()=>{
+        const state = {intervals:[],done:false};globalThis.__p9FocusFrames=state;
+        let previous=null;
+        const frame=time=>{if(previous!==null)state.intervals.push(time-previous);previous=time;
+          if(state.intervals.length===120)state.done=true;else requestAnimationFrame(frame);};
+        requestAnimationFrame(frame);
+      });
+      await focus.click();
+      await page.waitForFunction(()=>globalThis.__p9FocusFrames.done,undefined,{timeout:30_000});
+      const frames = await page.evaluate(()=>globalThis.__p9FocusFrames.intervals);
+      expect(frames).toHaveLength(120);
+      expect(frames.every(value=>Number.isFinite(value)&&value>0)).toBe(true);
+      const {metrics} = await cdp.send('Performance.getMetrics');
+      const heap = metrics.find(item=>item.name==='JSHeapUsedSize')?.value;
+      expect(Number.isFinite(heap)&&heap>0,`${side} CDP heap metric unavailable`).toBe(true);
+      return {...startup,frameP95Ms:percentile(frames,.95),frameIntervalsMs:frames,jsHeapUsedBytes:heap};
+    }
+    for(const side of ['baseline','candidate']) {
+      report.warmups[side] = await sample(side);
+      const renderer = await activePage.evaluate(()=>{
+        const canvas=document.createElement('canvas'),gl=canvas.getContext('webgl2');
+        if(!gl)return null;const info=gl.getExtension('WEBGL_debug_renderer_info');
+        const name=info?gl.getParameter(info.UNMASKED_RENDERER_WEBGL):gl.getParameter(gl.RENDERER);
+        gl.getExtension('WEBGL_lose_context')?.loseContext();return name;
+      });
+      report.conditions[side+'Renderer'] = renderer;
+      expect(renderer,`${side} must use software SwiftShader`).toMatch(/SwiftShader/i);
+    }
+    async function measureFive() {
+      for(let count=0;count<5;count++) {
+        const round={index:report.rounds.length};
+        round.order=round.index%2?['candidate','baseline']:['baseline','candidate'];
+        for(const side of round.order)round[side]=await sample(side);
+        report.rounds.push(round);
+      }
+      report.metrics=summarize(report.rounds);
+    }
+    await measureFive();
+    if(Object.values(report.metrics).some(metric=>metric.status==='uncertain'))await measureFive();
+    report.status=Object.values(report.metrics).some(metric=>metric.status==='regression')?'regression'
+      :Object.values(report.metrics).some(metric=>metric.status==='uncertain')?'uncertain':'no-regression';
+    expect(report.status,'See attached distributions; uncertain results do not satisfy P9').toBe('no-regression');
+  } catch(error) {
+    report.error={name:error.name,message:error.message};throw error;
+  } finally {
+    await testInfo.attach('p9-browser-performance.json',{body:Buffer.from(JSON.stringify(report,null,2)),contentType:'application/json'});
+    if(browser)await browser.close();
+    if(server)await new Promise((done,reject)=>{server.close(error=>error?reject(error):done());server.closeIdleConnections();});
+  }
+});
