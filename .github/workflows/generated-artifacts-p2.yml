@@ -11,8 +11,6 @@ on:
       - 'native/tools/m97/river/generate-d3-adapter.mjs'
       - 'native/assets/geometry/current/**'
       - 'native/resources/current_geometry.qrc'
-      - 'native/tools/reference-parity/**'
-      - 'native/app/reference-web/**'
       - 'tools/package-shared-core-assets.mjs'
       - 'scripts/p2-artifact-plan.mjs'
       - 'tests/unit/p2-artifact-plan.test.mjs'
@@ -26,7 +24,7 @@ on:
       scope:
         description: Which generator to run; auto only builds stale outputs
         type: choice
-        options: [auto, wasm, geometry, reference, all, verify]
+        options: [auto, wasm, geometry, all, verify]
         required: false
         default: auto
 permissions:
@@ -42,7 +40,6 @@ jobs:
     outputs:
       wasm: ${{ steps.scopes.outputs.wasm }}
       geometry: ${{ steps.scopes.outputs.geometry }}
-      reference: ${{ steps.scopes.outputs.reference }}
       cmake_version: ${{ steps.scopes.outputs.cmake_version }}
       emscripten_version: ${{ steps.scopes.outputs.emscripten_version }}
       emsdk_ref: ${{ steps.scopes.outputs.emsdk_ref }}
@@ -65,7 +62,7 @@ jobs:
 
   generate:
     needs: plan
-    if: needs.plan.outputs.wasm == 'true' || needs.plan.outputs.geometry == 'true' || needs.plan.outputs.reference == 'true'
+    if: needs.plan.outputs.wasm == 'true' || needs.plan.outputs.geometry == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     permissions:
@@ -75,7 +72,6 @@ jobs:
       BINARYEN_CORES: '1'
       PANDO_P2_WASM: ${{ needs.plan.outputs.wasm }}
       PANDO_P2_GEOMETRY: ${{ needs.plan.outputs.geometry }}
-      PANDO_P2_REFERENCE: ${{ needs.plan.outputs.reference }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -85,9 +81,9 @@ jobs:
         with:
           node-version-file: '.nvmrc'
       - uses: pnpm/action-setup@v4
-        if: needs.plan.outputs.geometry == 'true' || needs.plan.outputs.reference == 'true'
+        if: needs.plan.outputs.geometry == 'true'
       - name: Install the existing JS adapters only when needed
-        if: needs.plan.outputs.geometry == 'true' || needs.plan.outputs.reference == 'true'
+        if: needs.plan.outputs.geometry == 'true'
         run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Regenerate Qt geometry from current Web calculation sources
@@ -96,14 +92,6 @@ jobs:
           node native/tools/m97/cut-kernel-generate.mjs
           node native/tools/m97/cut-kernel-generate.mjs --check
           node --test native/tools/m97/current-geometry-source.test.mjs
-      - name: Regenerate the existing Qt reference calculation bundle
-        if: needs.plan.outputs.reference == 'true'
-        run: |
-          node native/tools/reference-parity/build-runtime.mjs
-          node native/tools/reference-parity/build-runtime.mjs --check
-          node native/tools/reference-parity/verify-source.mjs
-          node --test tests/unit/reference-shared-runtime.test.mjs
-
       - uses: jwlawson/actions-setup-cmake@v2
         if: needs.plan.outputs.wasm == 'true'
         with:
@@ -188,9 +176,7 @@ jobs:
             assets/wasm/pandoeditor-core.wasm \
             assets/wasm/pandoeditor-core.manifest.json \
             native/assets/geometry/current \
-            native/resources/current_geometry.qrc \
-            native/app/reference-web/runtime.js \
-            native/app/reference-web/manifest.json
+            native/resources/current_geometry.qrc
           git diff --cached --check
           node scripts/p2-artifact-plan.mjs --validate-staged
       - name: Push only verified artifacts to work/objects
@@ -219,6 +205,5 @@ jobs:
             build-native/p2/artifact-evidence.json
             assets/wasm/pandoeditor-core.manifest.json
             native/assets/geometry/current/manifest.json
-            native/app/reference-web/manifest.json
           if-no-files-found: error
           retention-days: 14

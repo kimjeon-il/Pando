@@ -186,6 +186,7 @@ template<class T,int(*Compare)(T,T)> class Splay {
     struct Node {T key{};Node* left=nullptr;Node* right=nullptr;};
     Node* root=nullptr;
     std::vector<std::unique_ptr<Node>> nodes;
+    std::vector<Node*> unused;
     Node* splay(T key,Node* t) {
         if(!t)return nullptr;
         Node head;Node *l=&head,*r=&head;
@@ -204,7 +205,10 @@ public:
     std::size_t size=0;
     void add(T key){
         if(root){root=splay(key,root);if(Compare(key,root->key)==0)return;}
-        auto owned=std::make_unique<Node>();auto* n=owned.get();n->key=key;nodes.push_back(std::move(owned));
+        Node* n;
+        if(unused.empty()){auto owned=std::make_unique<Node>();n=owned.get();nodes.push_back(std::move(owned));}
+        else{n=unused.back();unused.pop_back();}
+        n->key=key;n->left=n->right=nullptr;
         if(root){if(Compare(key,root->key)<0){n->left=root->left;n->right=root;root->left=nullptr;}
             else{n->right=root->right;n->left=root;root->right=nullptr;}}
         root=n;++size;
@@ -212,9 +216,10 @@ public:
     bool find(T key)const{auto* t=root;while(t){const int cmp=Compare(key,t->key);if(!cmp)return true;t=cmp<0?t->left:t->right;}return false;}
     void remove(T key){
         if(!root)return;root=splay(key,root);if(Compare(key,root->key)!=0)return;
+        auto* removed=root;
         if(!root->left)root=root->right;
         else{auto* right=root->right;root=splay(key,root->left);root->right=right;}
-        --size;
+        unused.push_back(removed);--size;
     }
     T pop(){if(!root)return nullptr;auto* t=root;while(t->left)t=t->left;T key=t->key;remove(key);return key;}
     T previous(T key)const{auto* t=root;T result=nullptr;while(t){const int c=Compare(key,t->key);if(c>0){result=t->key;t=t->right;}else t=t->left;}return result;}

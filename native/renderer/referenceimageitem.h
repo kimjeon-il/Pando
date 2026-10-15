@@ -1,6 +1,6 @@
 #pragma once
 
-#include "referencewarp.h"
+#include <pandoeditor/referenceimage.h>
 #include <QImage>
 #include <QQuickPaintedItem>
 #include <QUrl>
@@ -23,6 +23,8 @@ public:
     void setSource(const QUrl&);void setBlendMode(QString);void setWarpMode(QString);void setControlPoints(QVariantList);void setImageRect(QRectF);void setFlipX(bool);void setFlipY(bool);
 signals:void changed();
 private:
-    void refresh();ReferenceWarpResult resolvedWarp()const;
+    void refresh();const pandoeditor::codecjson::Value& resolvedWarp()const;
+    mutable pandoeditor::codecjson::Value resolvedWarp_;
+    mutable bool warpDirty_=true;
     QUrl source_;QImage image_;QString blend_="normal",warp_="auto";QVariantList points_;QRectF rect_;bool flipX_=false,flipY_=false;
 };

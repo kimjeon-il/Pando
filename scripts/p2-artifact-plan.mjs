@@ -1,5 +1,5 @@
 // P2: trace committed build inputs and generated artifacts before scheduling expensive compilers.
-// Only the existing owners (shared-core packaging, current Qt JS adapters, reference bundler)
+// Only the existing owners (shared-core packaging and remaining Qt JS adapters)
 // may write their declared outputs; this planner never repairs a mismatch by changing a contract.
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
@@ -18,8 +18,7 @@ const sourceEncoding=bytes=>Buffer.from(new TextDecoder('utf-8',{fatal:true})
 export const OUTPUTS=Object.freeze({
   wasm:Object.freeze(['assets/wasm/pandoeditor-core.js','assets/wasm/pandoeditor-core.wasm',
     'assets/wasm/pandoeditor-core.manifest.json']),
-  geometry:Object.freeze(['native/assets/geometry/current/','native/resources/current_geometry.qrc']),
-  reference:Object.freeze(['native/app/reference-web/runtime.js','native/app/reference-web/manifest.json'])
+  geometry:Object.freeze(['native/assets/geometry/current/','native/resources/current_geometry.qrc'])
 });
 
 function absolute(rootDir,p) {
@@ -65,8 +64,6 @@ export function generatedStatus(rootDir,kind,manifestPath) {
   const reasons=[];
   if(kind==='geometry'&&(manifest?.schemaVersion!==2 || manifest?.sourceEncoding!=='UTF-8 LF'))
     reasons.push('invalid geometry manifest');
-  if(kind==='reference'&&(manifest?.schemaVersion!==2 || manifest?.sourceEncoding!=='UTF-8 LF'))
-    reasons.push('invalid reference manifest');
   if(!Array.isArray(manifest?.files)||manifest.files.length===0)
     reasons.push('missing input dependency list');
   for(const entry of manifest?.files||[]) {
@@ -84,17 +81,12 @@ export function generatedStatus(rootDir,kind,manifestPath) {
     // content deterministically remains the generator's --check responsibility.
     if(!attempt(()=>read(rootDir,'native/resources/current_geometry.qrc')))
       reasons.push('Qt resources missing');
-  } else {
-    const entry=manifest?.runtime;
-    if(entry?.path!=='native/app/reference-web/runtime.js'||
-       !matches(rootDir,entry.path,entry.sha256))
-      reasons.push('reference bundle');
   }
   return {needed:reasons.length>0,reasons,inputs:manifest?.files?.length||0};
 }
 
-export function selectJobs({wasm,geometry,reference},changed=[],manual='auto') {
-  if(!['auto','all','wasm','geometry','reference','verify'].includes(manual))
+export function selectJobs({wasm,geometry},changed=[],manual='auto') {
+  if(!['auto','all','wasm','geometry','verify'].includes(manual))
     throw Error('P2_INVALID_SCOPE: '+manual);
   // On the first installation or a change to this controller, force compilation
   // and generator checks once to prove the pipeline is executable. The committed
@@ -110,14 +102,9 @@ export function selectJobs({wasm,geometry,reference},changed=[],manual='auto') {
     p==='native/resources/current_geometry.qrc'||
     p==='native/tools/m97/cut-kernel-generate.mjs'||
     p.startsWith('native/assets/geometry/current/'));
-  const referenceDefinitionChanged=changed.some(p=>
-    p==='native/tools/reference-parity/build-runtime.mjs'||
-    p==='native/tools/reference-parity/source-manifest.mjs'||
-    p.startsWith('native/app/reference-web/'));
   return {
     wasm:forced||manual==='wasm'||(manual==='auto'&&(wasm.needed||wasmDefinitionChanged)),
     geometry:forced||manual==='geometry'||(manual==='auto'&&(geometry.needed||geometryDefinitionChanged)),
-    reference:forced||manual==='reference'||(manual==='auto'&&(reference.needed||referenceDefinitionChanged)),
     bootstrap,
     verifyOnly:manual==='verify'
   };
@@ -137,8 +124,7 @@ export function assertSafeGeneratedPaths(changed, enabled) {
 export function plan(rootDir=root,{changes=[],manual='auto'}={}) {
   const statuses={
     wasm:wasmStatus(rootDir),
-    geometry:generatedStatus(rootDir,'geometry','native/assets/geometry/current/manifest.json'),
-    reference:generatedStatus(rootDir,'reference','native/app/reference-web/manifest.json')
+    geometry:generatedStatus(rootDir,'geometry','native/assets/geometry/current/manifest.json')
   };
   return {statuses,...selectJobs(statuses,changes,manual)};
 }
@@ -147,15 +133,14 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
   const difference=changedPaths({base:process.env.PANDO_P2_BASE_SHA||''});
   const result=plan(root,{changes:difference.paths,manual:process.env.PANDO_P2_SCOPE||'auto'});
   if(process.argv.includes('--check')&&(result.statuses.wasm.needed||
-     result.statuses.geometry.needed||result.statuses.reference.needed))
+     result.statuses.geometry.needed))
     throw Error('P2_GENERATED_ARTIFACT_STALE: '+JSON.stringify(result.statuses));
   if(process.argv.includes('--validate-staged')) {
     const staged=execFileSync('git',['diff','--cached','--name-only','-z'],{cwd:root})
       .toString('utf8').split('\0').filter(Boolean);
     assertSafeGeneratedPaths(staged, {
       wasm:process.env.PANDO_P2_WASM==='true',
-      geometry:process.env.PANDO_P2_GEOMETRY==='true',
-      reference:process.env.PANDO_P2_REFERENCE==='true'
+      geometry:process.env.PANDO_P2_GEOMETRY==='true'
     });
     console.log('P2 validated generated output scope: '+JSON.stringify(staged));
   }
@@ -163,7 +148,7 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
     assert.ok(process.env.GITHUB_OUTPUT,'GITHUB_OUTPUT required');
     const pins=json(root,'config/toolchain-versions.json');
     appendFileSync(process.env.GITHUB_OUTPUT,[
-      ...['wasm','geometry','reference'].map(k=>k+'='+String(result[k])),
+      ...['wasm','geometry'].map(k=>k+'='+String(result[k])),
       'cmake_version='+pins.cmake,
       'emscripten_version='+pins.emscripten,
       'emsdk_ref='+pins.emsdkCommit
@@ -171,6 +156,6 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
   }
   console.log(JSON.stringify({scope:process.env.PANDO_P2_SCOPE||'auto',
     status:result.statuses,selected:{wasm:result.wasm,geometry:result.geometry,
-      reference:result.reference,bootstrap:result.bootstrap},
+      bootstrap:result.bootstrap},
     changedPaths:difference.paths,diffFallback:difference.fallback},null,2));
 }

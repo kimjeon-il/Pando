@@ -6,7 +6,7 @@ file(TO_CMAKE_PATH "${PANDO_PROVENANCE_OUTPUT}" PANDO_PROVENANCE_OUTPUT)
 set(provenance_sources native shared)
 # Native runtimes depend on canonical Web modules outside native/. A source
 # edit must invalidate the executable even before regenerating the artifacts.
-foreach(source_manifest IN ITEMS native/app/reference-web/manifest.json native/assets/geometry/current/manifest.json)
+foreach(source_manifest IN ITEMS native/assets/geometry/current/manifest.json)
     file(READ "${PANDO_PROVENANCE_ROOT}/${source_manifest}" runtime_manifest)
     string(JSON runtime_schema GET "${runtime_manifest}" schemaVersion)
     string(JSON runtime_count LENGTH "${runtime_manifest}" files)
