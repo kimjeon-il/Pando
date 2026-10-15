@@ -1,7 +1,7 @@
 {
   "schema": "pandoeditor-core-wasm",
   "abiVersion": 1,
-  "sourceSha256": "7e3202606c127c29e0d23a3ce4deb22543785f80489dacd687ef43df9cd41f42",
+  "sourceSha256": "7b1fe9c9f715460939bb5336d953c18a09fc7a1c098292f8621b6569331f7ee6",
   "compiler": {
     "name": "emscripten",
     "version": "4.0.20"
@@ -13,7 +13,7 @@
     },
     {
       "path": "shared/core/CMakeLists.txt",
-      "sha256": "01cf33a80060ce8d4cda1018fa37fb401048f91e93cae01d2a427dfbf639444a"
+      "sha256": "3e9f0e3bb90c3b4972a2ed24e0798ee58ff5ec0b9fa38843e04782b5c0acaed2"
     },
     {
       "path": "shared/core/include/pandoeditor/boundarychain.h",
@@ -46,6 +46,10 @@
     {
       "path": "shared/core/include/pandoeditor/countrycontact.h",
       "sha256": "32e70e8985ae12b63357e8485885584319041668b11755cb6f849e234f8734ca"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/cutgeometry.h",
+      "sha256": "31678a8a1165ac3e58d7209c8eb7473f90b3d1aa4e2c01a48e41c564879f3844"
     },
     {
       "path": "shared/core/include/pandoeditor/document-session.h",
@@ -128,6 +132,18 @@
       "sha256": "1383e42c00e3b96a8289395b90d7476175ce306fd9df5a6ed352f5f00d644c7d"
     },
     {
+      "path": "shared/core/include/pandoeditor/planargraph.h",
+      "sha256": "c3aac495a68c9fc9927f3596616229eab016074820d2220adcb38caa481c733d"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/polygonclipping.h",
+      "sha256": "c901fd80b5c8e67a3e6b43b117a2aa60058fcc5bc624428c18ac5eea989f3adb"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/polygonwrapping.h",
+      "sha256": "3c509f6e0d0fe92696e72d7d9fd859b90421eccbfb3a7087168685a10b8b2a68"
+    },
+    {
       "path": "shared/core/include/pandoeditor/presentation.h",
       "sha256": "d79f996f998a2128b345187b19f3f63b196e5bc5cd8288f0abc8a2e381701b99"
     },
@@ -144,6 +160,18 @@
       "sha256": "b9f1f344b33530fdef622c5527785d27ce22d720f7229810dd43222036d06871"
     },
     {
+      "path": "shared/core/include/pandoeditor/referenceimage.h",
+      "sha256": "f1a3e30de0dcf3de3389bbbb12c5082451962ed197159d6a86e9ef3a2657f98d"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/referencetracing.h",
+      "sha256": "436b543c95a49d5428c04d12547852a938da57de2f0f80fc380059c2231d4057"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/riverpartition.h",
+      "sha256": "a3a41d4d0b0a6ff40e92a9d2b3af39512a604abd6b3e8152bac51f25b40b157e"
+    },
+    {
       "path": "shared/core/include/pandoeditor/selection.h",
       "sha256": "f409773cfbb7dbdfb6db8f5d965e184cb78c9c02ec70468e7245d56b678cd6c0"
     },
@@ -157,7 +185,7 @@
     },
     {
       "path": "shared/core/include/pandoeditor/sphericalpolygon.h",
-      "sha256": "bb13e39271a1062bb029b899899d22df87d2d85516814c5ed34cda2ca52b8251"
+      "sha256": "18421fcb650773a22ad783caa1fa4899c20f3844235862e036af61849652ce44"
     },
     {
       "path": "shared/core/include/pandoeditor/temporal.h",
@@ -256,6 +284,10 @@
       "sha256": "adb11d6fe69d08ce99a8727eb5ee0c0701a9722d81065a0666985ff9eaedad2f"
     },
     {
+      "path": "shared/core/src/cutgeometry.cpp",
+      "sha256": "ad48300f06b7da124be2cc308e9fa9d58cffaa41d4be243d87d83f7337b26324"
+    },
+    {
       "path": "shared/core/src/document-session.cpp",
       "sha256": "c7616da76b526ba6fcf1c8316e878024a12e18f991de7b133da68f5b98eab3c7"
     },
@@ -328,6 +360,18 @@
       "sha256": "f5be329fccff7c59de16192083ba047af8cb93e3aa8d5707643e8266d1ba69ee"
     },
     {
+      "path": "shared/core/src/planargraph.cpp",
+      "sha256": "dcd8abee662d39ddf51d82cfb93dd3fb73284e31c57c7e375247ca5e8c182a74"
+    },
+    {
+      "path": "shared/core/src/polygonclipping.cpp",
+      "sha256": "d55dee6406c730bbce58b15694ae27e1ca5e8dc3978f07498561dbd1a41ec850"
+    },
+    {
+      "path": "shared/core/src/polygonwrapping.cpp",
+      "sha256": "291a44e5ebe087bf2e87ca4b4624b1378581c5a2991f0da9aa7f7d9ccd3008dd"
+    },
+    {
       "path": "shared/core/src/presentation.cpp",
       "sha256": "4a7c0fe679c049410b1c68c8184096c17baeaa3c772affbb2e267e2f45f80326"
     },
@@ -344,6 +388,18 @@
       "sha256": "1630976e52597de51f699c4b8123b600e23849596b83ba0d18e4d5474d0b9b19"
     },
     {
+      "path": "shared/core/src/referenceimage.cpp",
+      "sha256": "02af4119cdde91584f99864c001f1d9b6de5723b885cfbf1e962932ff31eeb2d"
+    },
+    {
+      "path": "shared/core/src/referencetracing.cpp",
+      "sha256": "727140a6a0e7f362d43176679b5f44ac7b7950572e601a873546255124efdecb"
+    },
+    {
+      "path": "shared/core/src/riverpartition.cpp",
+      "sha256": "cb6a4e2565656cd0f5f7b44238c4c5423481c919b807c7c8fe33138b4009d493"
+    },
+    {
       "path": "shared/core/src/snapshot.cpp",
       "sha256": "657b498ff4195977e6d02230504aab12a60ac4729fefb6037c46363320e8272e"
     },
@@ -353,7 +409,7 @@
     },
     {
       "path": "shared/core/src/sphericalpolygon.cpp",
-      "sha256": "004f4280511f54a372a4804507fd1170063d89adc9ac1d2bbb71c977b67f549f"
+      "sha256": "b401344461591d4f6adb703b7e02995c7d2e0908c6b4505486880ae447e2062e"
     },
     {
       "path": "shared/core/src/temporal.cpp",
@@ -417,7 +473,7 @@
     },
     {
       "path": "shared/tests/CMakeLists.txt",
-      "sha256": "3679d49c03b017ab3412cc7162674d2c764023fa683659da0f327c3752bb7521"
+      "sha256": "c250c1a3b7608a2e5a0cc2e22bf7dd6892bf062b08f8475cb50fc40f16838ab8"
     },
     {
       "path": "shared/tests/boundary-chain-tests.cpp",
@@ -448,6 +504,10 @@
       "sha256": "2eec79d2c662a57a10f114ba5c41b0abd9a791a33ef19d3f9e99157c413cafaf"
     },
     {
+      "path": "shared/tests/cut-geometry-probe.cpp",
+      "sha256": "02a2d456c5f3739b71a158a4bb41d225c06e205368e3c602f9f6ad27e94cadac"
+    },
+    {
       "path": "shared/tests/document-session-tests.cpp",
       "sha256": "a253f11f42252f273b20c3c1756a1cd162fa4cbb28ead766c22ce60c35caa8a6"
     },
@@ -456,8 +516,20 @@
       "sha256": "08e73d24edc54cb3529764c7b416ecaedc90a4886deaca76cd33e95d33f7d13d"
     },
     {
+      "path": "shared/tests/polygon-clipping-probe.cpp",
+      "sha256": "c860a9929e4d82e5f5fa59ac0900c6fd980a72a9e66ddcdf3811411a88869a09"
+    },
+    {
       "path": "shared/tests/project-codec-tests.cpp",
       "sha256": "9b0aa8dd0ec4894c55a9bbfb5cfe516c648649e1b3036be0a5dd08682138649a"
+    },
+    {
+      "path": "shared/tests/reference-image-tests.cpp",
+      "sha256": "b9b6e06fc08a7b023c8c478276425b84cab14ae2d4572445d1d0a8323bb29310"
+    },
+    {
+      "path": "shared/tests/river-partition-probe.cpp",
+      "sha256": "74ce06068e38d1edec6a5ee842a8b59f89d6acede7fdcdddf2ffdd94380e5ab8"
     },
     {
       "path": "shared/tests/source-admission-tests.cpp",
@@ -489,11 +561,27 @@
     },
     {
       "path": "shared/wasm/CMakeLists.txt",
-      "sha256": "d39058872375ae4c60ec7c361c70c4597dafdef33c5a273e0b20ddb7efbc9c98"
+      "sha256": "850bb76d1f1abcafdf20210ba4531ef0fdd68ea83008d56098713c109588697a"
     },
     {
       "path": "shared/wasm/boundary-bindings.cpp",
       "sha256": "61df609a16ab39a18ab850faf471b674b9578919f8b77d00546143f40ab64556"
+    },
+    {
+      "path": "shared/wasm/cut-bindings.cpp",
+      "sha256": "ac7f707b5246f37ae4faedb930310119df129c51178a14604f1a2eaa10a972b0"
+    },
+    {
+      "path": "shared/wasm/polygon-bindings.cpp",
+      "sha256": "f045982bbe2df3ae9948bd1bdb64e6b3ca1475d9457f11c881dc45ae45fc42d2"
+    },
+    {
+      "path": "shared/wasm/reference-bindings.cpp",
+      "sha256": "2c5e8c7bc07b559399f1ae0e89bb3d698bcee28b3f3aadc5117c7c27ffdb5e58"
+    },
+    {
+      "path": "shared/wasm/river-bindings.cpp",
+      "sha256": "03119017cb4ee7945cddb9a88cf97445b09706a023ddddeff4d680b6203f3cd0"
     },
     {
       "path": "shared/wasm/session-bindings.cpp",
@@ -507,11 +595,11 @@
   "assets": {
     "js": {
       "file": "pandoeditor-core.js",
-      "sha256": "1dfccac51b2eb3e314988eb05a9574bef6723a82901ee996dc8059318d827e87"
+      "sha256": "0918cf3ee00bf132bdaa11898cfaf9125bf788a0d34f6a41f82355d02777079d"
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "1f9db55d7f81c9a97497284bd9e13eee3d13e296fe2572b8ec236abd027c7572"
+      "sha256": "0976b2f5ba75e41f5ad0bf272035b51a36c7b9d34cac0275d199e695c7883136"
     }
   }
 }
