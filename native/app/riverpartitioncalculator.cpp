@@ -1,5 +1,8 @@
 #include "riverpartitioncalculator.h"
-#include "geometryruntime_p.h"
+#include <pandoeditor/riverpartition.h>
+#include <pandoeditor/polygonclipping.h>
+#include <pandoeditor/projectcodec.h>
+#include <pandoeditor/sphericalpolygon.h>
 #include "splitgeometrynormalizer.h"
 #include "geometryprovenance.h"
 #include <QCryptographicHash>
@@ -12,26 +15,10 @@
 #include <cmath>
 #include <stdexcept>
 
-static void initializeRiverResources() {
-    static const bool initialized=[] { Q_INIT_RESOURCE(current_geometry); return true; }();
-    (void)initialized;
-}
 namespace pandoeditor {
 namespace {
 struct Cancelled {};
 void check(const GeometryCancellation& cancelled) { if(cancelled && cancelled()) throw Cancelled{}; }
-QByteArray read(const QString& path) {
-    QFile file(path);if(!file.open(QIODevice::ReadOnly))throw std::runtime_error(("RIVER_RESOURCE_UNAVAILABLE: "+path).toStdString());return file.readAll();
-}
-QByteArray verified(const QString& path,const QByteArray& hash) {
-    auto bytes=read(path);
-    if(QCryptographicHash::hash(bytes,QCryptographicHash::Sha256).toHex()!=hash)
-        throw std::runtime_error(("RIVER_RESOURCE_HASH_MISMATCH: "+path).toStdString());
-    return bytes;
-}
-void jsCheck(const QJSValue& value) {
-    if(value.isError())throw std::runtime_error((value.toString()+"\n"+value.property("stack").toString()).toStdString());
-}
 QJsonArray points(const Ring& ring) {
     QJsonArray array;for(const auto& p:ring) {
         if(!std::isfinite(p.x)||!std::isfinite(p.y))throw std::invalid_argument("RIVER_NONFINITE_COORDINATE");
@@ -148,33 +135,18 @@ QJsonObject baseComponentJson(const RiverBaseComponent& value) {
     if(!value.componentKey.isEmpty())row["componentKey"]=value.componentKey;
     row["geometry"]=geometryJson(value.geometry);return row;
 }
-QJSValue parse(QJSEngine& engine,const QJsonDocument& input) {
-    auto value=engine.globalObject().property("JSON").property("parse").call({QString::fromUtf8(input.toJson(QJsonDocument::Compact))});
-    jsCheck(value);return value;
-}
-QByteArray stringify(QJSEngine& engine,const QJSValue& value) {
-    const auto result=engine.globalObject().property("JSON").property("stringify").call({value});jsCheck(result);
-    return result.toString().toUtf8();
-}
 QJsonDocument jsonDocument(const QByteArray& bytes) {
     QJsonParseError error;const auto document=QJsonDocument::fromJson(bytes,&error);
     if(error.error!=QJsonParseError::NoError)throw std::runtime_error("RIVER_PRESENTATION_JSON_INVALID");
     return document;
 }
-QJSValue loadNormalizer(QJSEngine& engine) {
-    initializeRiverResources();engine.globalObject().setProperty("globalThis",engine.globalObject());
-    loadCanonicalPolygonGeometry(engine);
-    const auto normalize=engine.globalObject().property("PandoLabPolygonGeometry").property("normalizePolygonGeometry");
-    if(!normalize.isCallable())throw std::runtime_error("RIVER_NORMALIZER_UNAVAILABLE");
-    return normalize;
+QByteArray sharedCalculation(const char* operation,const QJsonDocument& input,const GeometryCancellation& cancelled){
+    check(cancelled);auto value=codecjson::parse(input.toJson(QJsonDocument::Compact).toStdString());
+    auto result=riverPartitionOperation(operation,value,cancelled);check(cancelled);return QByteArray::fromStdString(result.encode());
 }
-std::optional<Geometry> normalizeGeometry(QJSEngine& engine,const QJSValue& normalize,
-    const Geometry& input,const GeometryCancellation& cancelled) {
-    check(cancelled);const auto result=normalize.call({parse(engine,QJsonDocument(geometryJson(input)))});
-    check(cancelled);jsCheck(result);if(result.isNull())return {};
-    const auto document=jsonDocument(stringify(engine,result));
-    check(cancelled);if(!document.isObject())throw std::runtime_error("RIVER_NORMALIZED_GEOMETRY_INVALID");
-    return geometry(document.object());
+std::optional<Geometry> normalizeGeometry(const Geometry& input,const GeometryCancellation& cancelled){
+    check(cancelled);geometryJson(input);auto result=normalizeSphericalPolygonGeometry(input);check(cancelled);
+    if(result.polygons.empty())return {};return result;
 }
 template<class Result> Result presentationFailure(const GeometryCancellation& cancelled,const std::exception* error=nullptr) {
     Result result;
@@ -189,8 +161,8 @@ RiverPartitionResult failed(const std::exception& error,const GeometryCancellati
 }
 RiverGeometryNormalizationResult normalizeRiverGeometry(const Geometry& input,const GeometryCancellation& cancelled) {
     try {
-        check(cancelled);QJSEngine engine;const auto normalize=loadNormalizer(engine);check(cancelled);
-        RiverGeometryNormalizationResult output;output.geometry=normalizeGeometry(engine,normalize,input,cancelled);
+        check(cancelled);
+        RiverGeometryNormalizationResult output;output.geometry=normalizeGeometry(input,cancelled);
         check(cancelled);output.status=RiverPartitionStatus::Completed;return output;
     }catch(const Cancelled&){return presentationFailure<RiverGeometryNormalizationResult>(cancelled);}
     catch(const std::exception& error){return presentationFailure<RiverGeometryNormalizationResult>(cancelled,&error);}
@@ -198,10 +170,10 @@ RiverGeometryNormalizationResult normalizeRiverGeometry(const Geometry& input,co
 RiverPartitionNormalizationResult normalizeRiverPartitionCandidates(const std::vector<RiverPartitionCell>& cells,
     const GeometryCancellation& cancelled) {
     try {
-        check(cancelled);QJSEngine engine;const auto normalize=loadNormalizer(engine);check(cancelled);
+        check(cancelled);
         RiverPartitionNormalizationResult output;QJsonArray rows;
         for(const auto& input:cells) {
-            check(cancelled);auto value=normalizeGeometry(engine,normalize,input.geometry,cancelled);
+            check(cancelled);auto value=normalizeGeometry(input.geometry,cancelled);
             if(!value||input.donorCountryId.isEmpty())continue;
             auto candidate=input;candidate.geometry=std::move(*value);
             candidate.attributes=cellJson(candidate);rows.append(candidate.attributes);output.candidates.push_back(std::move(candidate));
@@ -215,21 +187,14 @@ RiverPartitionCompositionResult composeRiverPartitionComponents(const std::vecto
     const std::vector<RiverPartitionCell>& normalizedCells,const std::vector<RiverPartitionDonorResult>& donors,
     const GeometryCancellation& cancelled) {
     try {
-        check(cancelled);initializeRiverResources();
-        verified(":/river/current/river-territory-partition.js",PANDO_CURRENT_GEOMETRY_RIVER_SHA256);
-        verified(":/river/current/planar-graph-faces.js",PANDO_CURRENT_GEOMETRY_PLANAR_SHA256);
-        QJSEngine engine;engine.globalObject().setProperty("globalThis",engine.globalObject());
-        jsCheck(engine.evaluate(QString::fromUtf8(read(":/river/platform.js")),":/river/platform.js"));
-        const auto module=engine.importModule(":/river/current/river-territory-partition.js");check(cancelled);jsCheck(module);
+        check(cancelled);
         QJsonArray base,candidates,results;
         for(const auto& value:components){check(cancelled);base.append(baseComponentJson(value));}
         for(const auto& value:normalizedCells){check(cancelled);candidates.append(cellJson(value));}
         for(const auto& value:donors){check(cancelled);results.append(QJsonObject{{"donorCountryId",value.donorCountryId},
             {"reason",value.reason},{"candidateCount",value.candidateCount},
             {"status",value.status==RiverDonorStatus::Invalid?"invalid":value.status==RiverDonorStatus::Ready?"ready":"empty"}});}
-        const auto input=parse(engine,QJsonDocument(QJsonObject{{"components",base},{"candidates",candidates},{"donorResults",results}}));
-        check(cancelled);const auto result=module.property("composeRiverBoundaryTerritoryComponents").call({input});
-        check(cancelled);jsCheck(result);auto bytes=stringify(engine,result);check(cancelled);
+        auto bytes=sharedCalculation("compose",QJsonDocument(QJsonObject{{"components",base},{"candidates",candidates},{"donorResults",results}}),cancelled);
         const auto document=jsonDocument(bytes);if(!document.isObject())throw std::runtime_error("RIVER_COMPOSITION_SHAPE_INVALID");
         const auto row=document.object();
         if(!row["items"].isArray()||!row["invalidDonorIds"].isArray()||!row["splitComponentCount"].isDouble()||!row["riverCandidateCount"].isDouble())
@@ -244,61 +209,26 @@ RiverPartitionCompositionResult composeRiverPartitionComponents(const std::vecto
 }
 RiverPartitionResult calculateRiverPartitionsJson(const QByteArray& json,const GeometryCancellation& cancelled) {
     try {
-        check(cancelled);initializeRiverResources();
-        verified(":/river/current/river-territory-partition.js",PANDO_CURRENT_GEOMETRY_RIVER_SHA256);
-        verified(":/river/current/planar-graph-faces.js",PANDO_CURRENT_GEOMETRY_PLANAR_SHA256);
-        check(cancelled);
-        // The captured official Chromium corpus matches stock Qt math. No
-        // numerical override is installed; other runtime profiles need evidence.
-        QJSEngine engine;
-        engine.globalObject().setProperty("globalThis",engine.globalObject());
-        jsCheck(engine.evaluate(QString::fromUtf8(read(":/river/platform.js")),":/river/platform.js"));
-        loadPinnedPolygonClipping(engine);
-        loadCanonicalPolygonGeometry(engine);
-        const auto module=engine.importModule(":/river/current/river-territory-partition.js");jsCheck(module);
-        check(cancelled);
-        auto input=engine.globalObject().property("JSON").property("parse").call({QString::fromUtf8(json)});jsCheck(input);
-        if(!input.isObject()||input.isArray())throw std::invalid_argument("RIVER_REQUEST_OBJECT_REQUIRED");
-        if(!input.property("liveHydroRevisionPrefix").isUndefined()) {
-            if(!input.property("liveHydroRevisionPrefix").isString())
-                throw std::invalid_argument("RIVER_LIVE_HYDRO_REVISION_PREFIX_STRING_REQUIRED");
-            // Application metadata only. Preserve the pinned bridge and kernel;
-            // clone first so their nonfinite/non-JSON rejection remains intact.
-            const auto prepare=engine.evaluate(QStringLiteral(R"JS((function(row) {
-                row=structuredClone(row);
-                row.request=row.request||{};
-                row.request.hydroRevision=row.liveHydroRevisionPrefix+(row.signatureEdits||[])
-                    .map(f=>String(f.id)+':'+JSON.stringify(f.geometry.coordinates||[])).sort().join('|');
-                return row;
-            }))JS"));jsCheck(prepare);
-            check(cancelled);input=prepare.call({input});check(cancelled);jsCheck(input);
-        }
-        const auto bridge=engine.evaluate(QString::fromUtf8(read(":/river/bridge.js")),":/river/bridge.js");jsCheck(bridge);
-        check(cancelled);
-        const auto result=bridge.call({input,module,engine.globalObject().property("polygonClipping")});
-        check(cancelled);jsCheck(result); // Cancellation wins even when JS threw.
-        const auto text=engine.globalObject().property("JSON").property("stringify").call({result});
-        check(cancelled);jsCheck(text);
-        auto output=decode(text.toString().toUtf8(),cancelled);
-        const auto present=engine.evaluate(QString::fromUtf8(read(":/river/presentation.js")),":/river/presentation.js");jsCheck(present);
-        check(cancelled);const auto shown=present.call({input,result,module,engine.globalObject().property("PandoLabPolygonGeometry").property("normalizePolygonGeometry")});
-        check(cancelled);jsCheck(shown);
-        const auto shownText=engine.globalObject().property("JSON").property("stringify").call({shown});jsCheck(shownText);
-        QJsonParseError presentationError;const auto document=QJsonDocument::fromJson(shownText.toString().toUtf8(),&presentationError);
-        check(cancelled);
-        if(presentationError.error!=QJsonParseError::NoError || !document.isObject())throw std::runtime_error("RIVER_PRESENTATION_JSON_INVALID");
-        const auto presentation=document.object();
-        if(!presentation["candidates"].isArray() || !presentation["composed"].isObject() || !presentation["composed"].toObject()["items"].isArray())throw std::runtime_error("RIVER_PRESENTATION_SHAPE_INVALID");
-        for(const auto& value:presentation["candidates"].toArray()){check(cancelled);output.presentationCandidates.push_back(cell(value.toObject()));}
-        for(const auto& value:presentation["composed"].toObject()["items"].toArray()){check(cancelled);output.presentationComponents.push_back(component(value.toObject()));}
-        output.presentationJson=shownText.toString().toUtf8();
-        const auto trace=engine.evaluate(QString::fromUtf8(read(":/river/workspace-observation.js")),":/river/workspace-observation.js");jsCheck(trace);
-        const auto traced=trace.call({module,input.property("request")});check(cancelled);jsCheck(traced);
-        const auto traceText=engine.globalObject().property("JSON").property("stringify").call({traced});jsCheck(traceText);
-        QJsonParseError traceError;const auto traceDocument=QJsonDocument::fromJson(traceText.toString().toUtf8(),&traceError);check(cancelled);
-        if(traceError.error!=QJsonParseError::NoError || !traceDocument.isArray())throw std::runtime_error("RIVER_WORKSPACE_JSON_INVALID");
-        output.workspaceJson=traceText.toString().toUtf8();check(cancelled);return output;
-    }catch(const Cancelled&) {return stopped();}catch(const std::exception& error){return failed(error,cancelled);}
+        check(cancelled);const auto input=jsonDocument(json);
+        if(!input.isObject())throw std::invalid_argument("RIVER_REQUEST_OBJECT_REQUIRED");
+        auto output=decode(sharedCalculation("envelope",input,cancelled),cancelled);
+        auto normalized=normalizeRiverPartitionCandidates(output.candidates,cancelled);
+        if(normalized.status==RiverPartitionStatus::Cancelled)return stopped();
+        if(!normalized.succeeded())throw std::runtime_error(normalized.detail.toStdString());
+        const auto raw=jsonDocument(output.json).object();
+        const auto shown=QJsonObject{{"candidates",jsonDocument(normalized.json).array()},
+            {"composed",jsonDocument(sharedCalculation("compose",QJsonDocument(QJsonObject{
+                {"components",input.object()["components"]},{"candidates",jsonDocument(normalized.json).array()},
+                {"donorResults",raw["result"].toObject()["donorResults"]}}),cancelled)).object()}};
+        output.presentationCandidates=std::move(normalized.candidates);
+        for(const auto& value:shown["composed"].toObject()["items"].toArray()){
+            check(cancelled);output.presentationComponents.push_back(component(value.toObject()));}
+        output.presentationJson=QJsonDocument(shown).toJson(QJsonDocument::Compact);
+        output.workspaceJson=sharedCalculation("observe",QJsonDocument(input.object()["request"].toObject()),cancelled);
+        check(cancelled);return output;
+    }catch(const Cancelled&) {return stopped();}
+    catch(const PolygonCalculationCancelled&){return stopped();}
+    catch(const std::exception& error){return failed(error,cancelled);}
 }
 RiverPartitionResult calculateRiverPartitions(const RiverPartitionRequest& request,const GeometryCancellation& cancelled) {
     try {

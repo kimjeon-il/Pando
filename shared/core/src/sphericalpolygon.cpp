@@ -1,4 +1,5 @@
 #include <pandoeditor/sphericalpolygon.h>
+#include <pandoeditor/polygonclipping.h>
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -147,6 +148,30 @@ double sphericalRingSignedArea(const Ring& ring) {
         prevLon=lon;prevCos=cos;prevSin=sin;
     }
     return area*2;
+}
+double sphericalPolygonArea(const Geometry& geometry,const GeometryCancellation& cancelled) {
+    typeCheck(geometry);
+    const auto check=[&]{if(cancelled&&cancelled())throw PolygonCalculationCancelled{};};
+    // D3 adder: preserve both rounding residuals, including exact cancellation.
+    struct Sum {double s=0,t=0;
+        static Sum pair(double a,double b){const double s=a+b,v=s-a,u=s-v;return {s,a-u+(b-v)};}
+        void add(double value){const auto low=pair(value,t);const auto high=pair(low.s,s);s=high.s;t=high.t;if(s)t+=low.t;else s=low.t;}
+    };
+    double result=0;
+    for(const auto& polygon:geometry.polygons){check();Sum sum;
+        for(const auto& ring:polygon){check();if(ring.empty())continue;
+            double previousLongitude=ring.front().x*rad,phi=ring.front().y*rad/2+pi/4;
+            double previousCos=std::cos(phi),previousSin=std::sin(phi);
+            for(std::size_t i=1;i<ring.size();++i){check();const auto p=ring[i];const double longitude=p.x*rad;
+                phi=p.y*rad/2+pi/4;const double delta=longitude-previousLongitude,sign=delta>=0?1:-1,absolute=sign*delta;
+                const double cosine=std::cos(phi),sine=std::sin(phi),k=previousSin*sine;
+                const double x=previousCos*cosine+k*std::cos(absolute),y=k*sign*std::sin(absolute);
+                sum.add(std::atan2(y,x));previousLongitude=longitude;previousCos=cosine;previousSin=sine;
+            }
+        }
+        const double area=2*sum.s;result+=area<0?4*pi+area:area;
+    }
+    check();return result;
 }
 Ring normalizeSphericalRing(const Ring& ring,bool shell) {
     return oriented(ring,shell);

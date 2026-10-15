@@ -20,17 +20,14 @@ function fixture() {
   mkdirSync(`${root}/native`, { recursive: true });
   mkdirSync(output);
   writeFileSync(`${root}/native/payload.txt`, 'executable fixture A');
+  mkdirSync(`${root}/shared/core/src`, { recursive: true });
+  writeFileSync(`${root}/shared/core/src/polygonclipping.cpp`, 'int precision = 9;\n');
   for (const sourcePath of referencePaths) {
     mkdirSync(path.dirname(`${root}/${sourcePath}`), { recursive: true });
     writeFileSync(`${root}/${sourcePath}`, 'export const fixture = 1;\n');
   }
-  mkdirSync(`${root}/native/assets/geometry/current`, { recursive: true });
-  writeFileSync(`${root}/assets/js/modules/polygon-clipping-calculation.js`, 'export const precision = 9;\n');
-  writeFileSync(`${root}/native/assets/geometry/current/manifest.json`, JSON.stringify({
-    schemaVersion: 2, files: [{ path: 'assets/js/modules/polygon-clipping-calculation.js' }],
-  }));
   okay(run('git', ['-C', root, 'init', '-q']));
-  okay(run('git', ['-C', root, 'add', 'native', 'shared', 'assets']));
+  okay(run('git', ['-C', root, 'add', 'native', 'shared']));
   okay(run('git', ['-C', root, '-c', 'user.name=Provenance Test', '-c', 'user.email=provenance@example.invalid', 'commit', '-qm', 'fixture']));
   const executable = `${output}/pandoeditor.exe`;
   const invoke = mode => run(cmake, [
@@ -66,7 +63,7 @@ test('a canonical geometry source edit invalidates the executable without artifa
   writeFileSync(executable, 'linked executable fixture');
   okay(invoke('finalize'));
   okay(invoke('check'));
-  writeFileSync(`${root}/assets/js/modules/polygon-clipping-calculation.js`, 'export const precision = 8;\n');
+  writeFileSync(`${root}/shared/core/src/polygonclipping.cpp`, 'export const precision = 8;\n');
   const rejected = invoke('check');
   assert.notEqual(rejected.status, 0);
   assert.match(rejected.stderr, /different source/);

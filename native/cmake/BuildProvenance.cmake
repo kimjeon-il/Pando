@@ -4,25 +4,7 @@ endif()
 file(TO_CMAKE_PATH "${PANDO_PROVENANCE_ROOT}" PANDO_PROVENANCE_ROOT)
 file(TO_CMAKE_PATH "${PANDO_PROVENANCE_OUTPUT}" PANDO_PROVENANCE_OUTPUT)
 set(provenance_sources native shared)
-# Native runtimes depend on canonical Web modules outside native/. A source
-# edit must invalidate the executable even before regenerating the artifacts.
-foreach(source_manifest IN ITEMS native/assets/geometry/current/manifest.json)
-    file(READ "${PANDO_PROVENANCE_ROOT}/${source_manifest}" runtime_manifest)
-    string(JSON runtime_schema GET "${runtime_manifest}" schemaVersion)
-    string(JSON runtime_count LENGTH "${runtime_manifest}" files)
-    if(NOT runtime_schema EQUAL 2 OR runtime_count LESS 1)
-        message(FATAL_ERROR "Cannot establish native runtime source ownership: ${source_manifest}")
-    endif()
-    math(EXPR runtime_last "${runtime_count}-1")
-    foreach(index RANGE ${runtime_last})
-        string(JSON runtime_path GET "${runtime_manifest}" files ${index} path)
-        if(runtime_path STREQUAL "" OR IS_ABSOLUTE "${runtime_path}" OR
-           runtime_path MATCHES "(^|/)\\.\\.(/|$)" OR runtime_path MATCHES "[\\\\;]")
-            message(FATAL_ERROR "Runtime provenance source must stay inside the repository")
-        endif()
-        list(APPEND provenance_sources ":(literal)${runtime_path}")
-    endforeach()
-endforeach()
+# All product calculations are owned by native/ and shared/.
 find_program(PANDO_PROVENANCE_GIT git REQUIRED)
 execute_process(COMMAND "${PANDO_PROVENANCE_GIT}" -C "${PANDO_PROVENANCE_ROOT}" rev-parse HEAD
     OUTPUT_VARIABLE PANDO_BUILD_COMMIT OUTPUT_STRIP_TRAILING_WHITESPACE RESULT_VARIABLE result)

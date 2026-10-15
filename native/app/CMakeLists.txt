@@ -159,15 +159,6 @@ endif()
 qt_add_resources(pandoeditor_editor place_runtime PREFIX "/place" BASE "${PROJECT_SOURCE_DIR}/assets/place"
     FILES "${PROJECT_SOURCE_DIR}/assets/place/manifest.json"
           "${PROJECT_SOURCE_DIR}/assets/place/places-v1.bin")
-find_program(PANDO_GEOMETRY_NODE_EXECUTABLE NAMES node REQUIRED)
-add_custom_target(pandoeditor_geometry_sources
-    COMMAND "${PANDO_GEOMETRY_NODE_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/tools/m97/cut-kernel-generate.mjs" --check
-    VERBATIM)
-add_dependencies(pandoeditor_editor pandoeditor_geometry_sources)
-add_dependencies(pandoeditor_build_provenance pandoeditor_geometry_sources)
-qt_add_resources(PANDO_CURRENT_GEOMETRY_RESOURCES "${PROJECT_SOURCE_DIR}/resources/current_geometry.qrc")
-target_sources(pandoeditor_editor PRIVATE ${PANDO_CURRENT_GEOMETRY_RESOURCES})
-target_include_directories(pandoeditor_editor PRIVATE "${PROJECT_SOURCE_DIR}/assets/geometry/current")
 if(BUILD_TESTING)
     add_subdirectory(../tests/current-geometry current-geometry-tests)
 endif()
@@ -468,20 +459,7 @@ if(BUILD_TESTING)
         M972_RIVER_ASSETS="${PROJECT_SOURCE_DIR}/assets/geometry/river")
     add_executable(m972_river_probe ../tests/m972_river_probe.cpp)
     target_link_libraries(m972_river_probe PRIVATE pandoeditor_editor)
-    find_program(M972_NODE_EXECUTABLE NAMES node)
-    if(M972_NODE_EXECUTABLE)
-        add_test(NAME m972_river_oracle_contract COMMAND "${M972_NODE_EXECUTABLE}" --test
-            "${PROJECT_SOURCE_DIR}/tools/m97/river-kernel.test.mjs")
-        if(PANDOEDITOR_ENABLE_PYTHON_ORACLES)
-            set_tests_properties(m972_river_oracle_contract PROPERTIES
-                ENVIRONMENT "PANDOEDITOR_ENABLE_PYTHON_ORACLES=1;PANDOEDITOR_PYTHON_EXECUTABLE=${Python3_EXECUTABLE}")
-        endif()
-        add_test(NAME m972_river_synthetic_browser_baseline COMMAND "${M972_NODE_EXECUTABLE}"
-            "${PROJECT_SOURCE_DIR}/tools/m97/river/differential.mjs" --native "$<TARGET_FILE:m972_river_probe>" --synthetic)
-        add_test(NAME m972_river_full_source_browser_baseline COMMAND "${M972_NODE_EXECUTABLE}" --max-old-space-size=256
-            "${PROJECT_SOURCE_DIR}/tools/m97/river/differential.mjs" --native "$<TARGET_FILE:m972_river_probe>" --full)
-        set_tests_properties(m972_river_full_source_browser_baseline PROPERTIES TIMEOUT 240 LABELS "full-data;river-parity")
-    endif()
+
 
     add_executable(hydro_full_dataset_tests ../tests/hydro_full_dataset_tests.cpp)
     target_link_libraries(hydro_full_dataset_tests PRIVATE pandoeditor_editor Qt6::Test)
@@ -650,21 +628,7 @@ if(BUILD_TESTING)
     add_test(NAME m72_cpu_scene_adapter_tests COMMAND m72_cpu_scene_adapter_tests)
     set_tests_properties(m72_cpu_scene_adapter_tests PROPERTIES
         ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
-    find_program(PANDOEDITOR_M72_NODE_EXECUTABLE NAMES node)
-    if(PANDOEDITOR_M72_NODE_EXECUTABLE)
-        add_test(NAME terrain_dem_source_contract COMMAND "${PANDOEDITOR_M72_NODE_EXECUTABLE}"
-            --test "${PROJECT_SOURCE_DIR}/tools/terrain-dem-contract.test.mjs")
-        add_test(NAME m72_packet_corpus
-            COMMAND "${CMAKE_COMMAND}" -E env
-                "M72_PACKET_PROBE=$<TARGET_FILE:m72_packet_corpus_probe>"
-                "${PANDOEDITOR_M72_NODE_EXECUTABLE}" --test
-                "${PROJECT_SOURCE_DIR}/tools/m72-packet-corpus.test.mjs")
-        add_test(NAME m72_projection_web_oracle
-            COMMAND "${CMAKE_COMMAND}" -E env
-                "M72_PROJECTION_PROBE=$<TARGET_FILE:m72_projection_tests>"
-                "${PANDOEDITOR_M72_NODE_EXECUTABLE}" --test
-                "${PROJECT_SOURCE_DIR}/tools/m72-projection-oracle.test.mjs")
-    endif()
+
     target_link_libraries(world_corpus_tests PRIVATE pandoeditor_editor Qt6::Test)
     target_compile_definitions(world_corpus_tests PRIVATE M71_WORLD_FIXTURE="${PROJECT_SOURCE_DIR}/tests/fixtures/world-rendering")
     add_test(NAME world_corpus_tests COMMAND world_corpus_tests -o -,txt)
@@ -700,16 +664,7 @@ if(BUILD_TESTING)
     target_link_libraries(m972_selection_probe PRIVATE pandoeditor_editor)
     qt_add_resources(m972_selection_probe sample PREFIX "/assets" BASE "${PROJECT_SOURCE_DIR}/assets"
         FILES "${PROJECT_SOURCE_DIR}/assets/sample.pando.json")
-    find_program(PANDOEDITOR_M972_NODE_EXECUTABLE NAMES node)
-    if(PANDOEDITOR_M972_NODE_EXECUTABLE)
-        add_test(NAME m972_controller_web_differential
-            COMMAND "${CMAKE_COMMAND}" -E env
-                "PANDO_M972_SELECTION_PROBE=$<TARGET_FILE:m972_selection_probe>"
-                "${PANDOEDITOR_M972_NODE_EXECUTABLE}" --test
-                "${PROJECT_SOURCE_DIR}/tools/m97/native-selection.test.mjs")
-        set_tests_properties(m972_controller_web_differential PROPERTIES
-            TIMEOUT 180 ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
-    endif()
+
     add_executable(territorial_geometry_preview_tests ../tests/territorial_geometry_preview_tests.cpp)
     target_link_libraries(territorial_geometry_preview_tests PRIVATE pandoeditor_editor Qt6::Test)
     add_test(NAME territorial_geometry_preview_tests COMMAND territorial_geometry_preview_tests -o -,txt)
@@ -757,16 +712,6 @@ if(BUILD_TESTING)
         FILES "${PROJECT_SOURCE_DIR}/assets/sample.pando.json")
     add_test(NAME timeline_controller_tests COMMAND timeline_controller_tests -o -,txt)
     set_tests_properties(timeline_controller_tests PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
-    if(PANDOEDITOR_M72_NODE_EXECUTABLE)
-        add_test(NAME web_v10_exchange_source_contract
-            COMMAND "${PANDOEDITOR_M72_NODE_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/tools/web-v10-exchange-oracle.mjs" --verify-only)
-        add_test(NAME web_v10_exchange_oracle_unit
-            COMMAND "${PANDOEDITOR_M72_NODE_EXECUTABLE}" --test "${PROJECT_SOURCE_DIR}/tests/fixtures/web-v10-exchange/oracle.test.mjs")
-        add_test(NAME web_v10_production_codec_cross_exchange
-            COMMAND "${PANDOEDITOR_M72_NODE_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/tools/web-v10-exchange-oracle.mjs"
-                --native "$<TARGET_FILE:timeline_project_tests>" "${PROJECT_BINARY_DIR}/test-results/web-v10-exchange")
-        set_tests_properties(web_v10_production_codec_cross_exchange PROPERTIES TIMEOUT 180)
-    endif()
     add_executable(timeline_editor_persistence_tests ../tests/timeline_editor_persistence_tests.cpp)
     target_link_libraries(timeline_editor_persistence_tests PRIVATE pandoeditor_editor Qt6::Test)
     target_compile_definitions(timeline_editor_persistence_tests PRIVATE
@@ -996,22 +941,12 @@ if(BUILD_TESTING)
     target_compile_definitions(split_geometry_normalizer_tests PRIVATE M973_SPLIT_NORMALIZER_FIXTURE="${PROJECT_SOURCE_DIR}/assets/geometry/split-corrections/normalizer-cases.json")
     add_test(NAME split_geometry_normalizer_tests COMMAND split_geometry_normalizer_tests -o -,txt)
     set_tests_properties(split_geometry_normalizer_tests PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
-    # P5-2: prove the Qt QJSEngine adapter calls shared/core, independent of
+    # P6: prove the Qt adapter calls shared/core, independent of
     # unrelated historical clipping oracle cases.
     add_test(NAME p5_spherical_area_qt_bridge
-        COMMAND split_geometry_normalizer_tests sharedSphericalAreaIsIdenticalToQtAdapter -o -,txt)
+        COMMAND split_geometry_normalizer_tests sharedNormalizationIsIdenticalToQtAdapter -o -,txt)
     set_tests_properties(p5_spherical_area_qt_bridge PROPERTIES
         ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
-endif()
-if(BUILD_TESTING)
-    find_program(M973_NODE_EXECUTABLE node)
-    if(M973_NODE_EXECUTABLE)
-        add_test(NAME m973_split_controller_contract
-            COMMAND "${CMAKE_COMMAND}" -E env "PANDO_M973_SPLIT_PROBE=$<TARGET_FILE:m973_split_controller_probe>"
-                "${M973_NODE_EXECUTABLE}" --test "${PROJECT_SOURCE_DIR}/tools/m97/split-differential-native.test.mjs")
-        set_tests_properties(m973_split_controller_contract PROPERTIES TIMEOUT 180
-            ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
-    endif()
 endif()
 
 if(BUILD_TESTING)
@@ -1125,16 +1060,7 @@ if(BUILD_TESTING AND PANDOEDITOR_ENABLE_PYTHON_ORACLES)
         ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
 endif()
 
-if(BUILD_TESTING)
-    find_program(M974_NODE_EXECUTABLE node REQUIRED)
-    add_test(NAME m974_native_boundary_contract COMMAND "${M974_NODE_EXECUTABLE}" --test "${PROJECT_SOURCE_DIR}/tools/m974-native-boundary.test.mjs")
-    set_tests_properties(m974_native_boundary_contract PROPERTIES TIMEOUT 120)
-endif()
 
-if(BUILD_TESTING)
-    add_test(NAME m974_native_snap_contract COMMAND "${M974_NODE_EXECUTABLE}" --test "${PROJECT_SOURCE_DIR}/tools/m974-native-snap.test.mjs")
-    set_tests_properties(m974_native_snap_contract PROPERTIES TIMEOUT 120)
-endif()
 
 if(BUILD_TESTING)
     add_executable(m974_boundary_supplemental_tests ../tests/m974_boundary_supplemental_tests.cpp)
@@ -1153,24 +1079,7 @@ if(BUILD_TESTING)
         ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
 endif()
 
-if(BUILD_TESTING)
-    add_test(NAME m974_native_supplemental_contract COMMAND "${M974_NODE_EXECUTABLE}" --test "${PROJECT_SOURCE_DIR}/tools/m974-native-supplemental.test.mjs")
-    set_tests_properties(m974_native_supplemental_contract PROPERTIES TIMEOUT 120)
-endif()
 
-if(BUILD_TESTING)
-    add_test(NAME m974_source_order_contract COMMAND "${M974_NODE_EXECUTABLE}" --test
-        "${PROJECT_SOURCE_DIR}/tools/m974-native-source-order.test.mjs"
-        "${PROJECT_SOURCE_DIR}/tools/m974-snap-boundary/source-order-v2.test.mjs")
-    set_tests_properties(m974_source_order_contract PROPERTIES TIMEOUT 120)
-    add_test(NAME m974_source_history_contract COMMAND "${M974_NODE_EXECUTABLE}" --test
-        "${PROJECT_SOURCE_DIR}/tools/m974-native-source-history.test.mjs"
-        "${PROJECT_SOURCE_DIR}/tools/m974-snap-boundary/source-history-runtime.test.mjs"
-        "${PROJECT_SOURCE_DIR}/tools/m974-snap-boundary/source-history-selection.test.mjs"
-        "${PROJECT_SOURCE_DIR}/tools/m974-snap-boundary/source-history-sources.test.mjs"
-        "${PROJECT_SOURCE_DIR}/tools/m974-snap-boundary/source-history-suite.test.mjs")
-    set_tests_properties(m974_source_history_contract PROPERTIES TIMEOUT 120)
-endif()
 
 if(BUILD_TESTING)
     add_executable(m975_model_exchange_probe ../tests/m975_model_exchange_probe.cpp)
@@ -1200,28 +1109,15 @@ if(BUILD_TESTING)
     target_link_libraries(m977_pending_lifecycle_probe PRIVATE pandoeditor_editor)
     qt_add_resources(m977_pending_lifecycle_probe sample PREFIX "/assets" BASE "${PROJECT_SOURCE_DIR}/assets"
         FILES "${PROJECT_SOURCE_DIR}/assets/sample.pando.json")
-    add_test(NAME m977_pending_lifecycle_contract COMMAND "${M974_NODE_EXECUTABLE}" --test
-        "${PROJECT_SOURCE_DIR}/tools/m977-pending-lifecycle/runtime.test.mjs"
-        "${PROJECT_SOURCE_DIR}/tools/m977-pending-lifecycle/contract.test.mjs"
-        "${PROJECT_SOURCE_DIR}/tools/m977-pending-lifecycle/native.test.mjs"
-        "${PROJECT_SOURCE_DIR}/tools/m977-pending-lifecycle/suite.test.mjs"
-        "${PROJECT_SOURCE_DIR}/tests/m977-pending-lifecycle-integration.test.mjs")
-    set_tests_properties(m977_pending_lifecycle_contract PROPERTIES TIMEOUT 180
-        ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software;M977_PENDING_LIFECYCLE_PROBE=$<TARGET_FILE:m977_pending_lifecycle_probe>")
+
+
 
     add_executable(m977_pending_input_probe ../tests/m977_pending_input_probe.cpp)
     target_link_libraries(m977_pending_input_probe PRIVATE pandoeditor_editor)
     qt_add_resources(m977_pending_input_probe sample PREFIX "/assets" BASE "${PROJECT_SOURCE_DIR}/assets"
         FILES "${PROJECT_SOURCE_DIR}/assets/sample.pando.json")
-    add_test(NAME m977_pending_input_contract COMMAND "${M974_NODE_EXECUTABLE}" --test
-        "${PROJECT_SOURCE_DIR}/tools/m977-pending-input/sources.test.mjs"
-        "${PROJECT_SOURCE_DIR}/tools/m977-pending-input/runtime.test.mjs"
-        "${PROJECT_SOURCE_DIR}/tools/m977-pending-input/suite.test.mjs"
-        "${PROJECT_SOURCE_DIR}/tools/m977-pending-input/browser-runner.test.mjs"
-        "${PROJECT_SOURCE_DIR}/tools/m977-pending-input/native.test.mjs"
-        "${PROJECT_SOURCE_DIR}/tools/m977-pending-input/compare.test.mjs")
-    set_tests_properties(m977_pending_input_contract PROPERTIES TIMEOUT 180
-        ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software;PANDO_M977_NATIVE_PROBE=$<TARGET_FILE:m977_pending_input_probe>")
+
+
 endif()
 
 # Observation-only boundary timing route; known divergences remain explicit.
@@ -1231,15 +1127,8 @@ if(BUILD_TESTING)
     target_link_libraries(m977_boundary_timing_probe PRIVATE pandoeditor_editor)
     qt_add_resources(m977_boundary_timing_probe sample PREFIX "/assets" BASE "${PROJECT_SOURCE_DIR}/assets"
         FILES "${PROJECT_SOURCE_DIR}/assets/sample.pando.json")
-    add_test(NAME m977_boundary_timing_contract COMMAND "${M974_NODE_EXECUTABLE}" --test
-        "${PROJECT_SOURCE_DIR}/tools/m977-boundary-adoption/runtime.test.mjs"
-        "${PROJECT_SOURCE_DIR}/tools/m977-boundary-adoption/suite.test.mjs"
-        "${PROJECT_SOURCE_DIR}/tools/m977-boundary-adoption/browser-runner.test.mjs"
-        "${PROJECT_SOURCE_DIR}/tools/m977-boundary-adoption/native.test.mjs"
-        "${PROJECT_SOURCE_DIR}/tools/m977-boundary-integration.test.mjs")
-    set_tests_properties(m977_boundary_timing_contract PROPERTIES TIMEOUT 180
-        WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-        ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software;M977_BOUNDARY_PROBE=$<TARGET_FILE:m977_boundary_timing_probe>")
+
+
 endif()
 
 # Two matched public session-replacement cases. Recorded legacy limits remain explicit.
@@ -1248,19 +1137,16 @@ if(BUILD_TESTING)
     target_link_libraries(m977_boundary_session_replacement_probe PRIVATE pandoeditor_editor)
     qt_add_resources(m977_boundary_session_replacement_probe sample PREFIX "/assets" BASE "${PROJECT_SOURCE_DIR}/assets"
         FILES "${PROJECT_SOURCE_DIR}/assets/sample.pando.json")
-    add_test(NAME m977_boundary_session_replacement_contract COMMAND "${M974_NODE_EXECUTABLE}" --test
-        "${PROJECT_SOURCE_DIR}/tools/m977-boundary-session-replacement/runtime.test.mjs"
-        "${PROJECT_SOURCE_DIR}/tools/m977-boundary-session-replacement/suite.test.mjs"
-        "${PROJECT_SOURCE_DIR}/tools/m977-boundary-session-replacement/browser-runner.test.mjs"
-        "${PROJECT_SOURCE_DIR}/tools/m977-boundary-session-replacement/native.test.mjs"
-        "${PROJECT_SOURCE_DIR}/tools/m977-boundary-session-replacement/gate.test.mjs"
-        "${PROJECT_SOURCE_DIR}/tools/m977-boundary-session-integration.test.mjs")
-    set_tests_properties(m977_boundary_session_replacement_contract PROPERTIES TIMEOUT 180
-        WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-        ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software;M977_SESSION_REPLACEMENT_PROBE=$<TARGET_FILE:m977_boundary_session_replacement_probe>")
+
+
 endif()
 
 
 if(BUILD_TESTING)
     qt_add_resources(edit_display_ui_tests reference_ui_flags PREFIX "/defaults/flags" BASE "${PROJECT_SOURCE_DIR}/assets/defaults/flags" FILES ${DEFAULT_FLAG_FILES})
+endif()
+
+option(PANDOEDITOR_ENABLE_REMOTE_WEB_PARITY "Register remote Web/native differential checks (requires Node)" OFF)
+if(BUILD_TESTING AND PANDOEDITOR_ENABLE_REMOTE_WEB_PARITY)
+    include("${PROJECT_SOURCE_DIR}/cmake/RemoteWebParity.cmake")
 endif()

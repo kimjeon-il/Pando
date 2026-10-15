@@ -181,29 +181,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-      - uses: pnpm/action-setup@v4
-      - name: Install existing native JS geometry adapters
-        run: pnpm install --frozen-lockfile --ignore-scripts
-      - name: Check or regenerate branch-local Qt geometry for the test build
-        shell: bash
-        run: |
-          set -euo pipefail
-          if ! node native/tools/m97/cut-kernel-generate.mjs --check; then
-            echo "::warning::Stale tracked Qt adapters; regenerate from this branch's own JS sources in the isolated CI checkout"
-            node native/tools/m97/cut-kernel-generate.mjs
-            node native/tools/m97/cut-kernel-generate.mjs --check
-            git diff --binary -- native/assets/geometry/current native/resources/current_geometry.qrc > p3-qt-regenerated-geometry.patch
-            git status --short -- native/assets/geometry/current native/resources/current_geometry.qrc
-            test -s p3-qt-regenerated-geometry.patch || {
-              echo "::error::Qt generator changed untracked outputs only; cannot capture full patch"
-              exit 1
-            }
-            echo "### Qt generated inputs repaired for this CI build" >> "$GITHUB_STEP_SUMMARY"
-            echo "The branch still contains outdated generated assets. Review the p3-qt-regenerated-geometry.patch artifact before merging." >> "$GITHUB_STEP_SUMMARY"
-          fi
       - uses: jwlawson/actions-setup-cmake@v2
         with:
           cmake-version: '3.31.6'
@@ -222,6 +199,29 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: vcpkg install zlib:x64-windows
+      - name: Prepare executable tool guard after SDK installation
+        shell: pwsh
+        run: |
+          cmake -S tools/native-build-guard -B build-native/p6-tool-guard
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cmake --build build-native/p6-tool-guard --config Release --parallel 2
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $guard = (Resolve-Path build-native/p6-tool-guard/bin).Path
+          $guard | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          "PANDO_DENIED_TOOL_LOG=$env:RUNNER_TEMP/pando-forbidden-native-tools.log" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+      - name: Confirm product build cannot invoke Node, pnpm or Python
+        shell: pwsh
+        run: |
+          $guard = (Resolve-Path build-native/p6-tool-guard/bin).Path
+          foreach ($tool in @('node', 'pnpm', 'python', 'python3')) {
+            $resolved = (Get-Command $tool -CommandType Application).Source
+            if (-not $resolved.StartsWith($guard)) { throw "Tool guard did not own $tool" }
+            & $resolved --version
+            if ($LASTEXITCODE -ne 97) { throw "Tool guard failed for $tool" }
+          }
+          # These four deliberate probes are not product-build invocations.
+          [System.IO.File]::WriteAllText($env:PANDO_DENIED_TOOL_LOG, '')
+          exit 0
       - name: Configure pinned Linux Qt app and selected CTests
         if: runner.os == 'Linux'
         shell: bash
@@ -276,12 +276,20 @@ jobs:
             }
           }
           exit $ctestExit
-      - name: Build and CTest the shared C++ spherical area in Qt's JS bridge
+      - name: Build and CTest the shared C++ normalization through Qt
         shell: bash
         run: |
           set -euo pipefail
           cmake --build --preset "$PANDO_P3_QT_PRESET" --target split_geometry_normalizer_tests 2>&1 | tee p3-p5-qt-area-build.log
           ctest --test-dir "build-native/p3/$PANDO_P3_QT_PRESET" -C Release -R p5_spherical_area_qt_bridge --output-on-failure 2>&1 | tee p3-p5-qt-area-ctest.log
+      - name: Reject any hidden product interpreter invocation
+        if: always()
+        shell: pwsh
+        run: |
+          if (Test-Path $env:PANDO_DENIED_TOOL_LOG) {
+            $attempts = Get-Content -Raw $env:PANDO_DENIED_TOOL_LOG
+            if ($attempts) { throw "Native product build invoked forbidden tools: $attempts" }
+          }
       - name: Capture a real nonblank Qt Quick application window under Linux Xvfb
         if: runner.os == 'Linux'
         shell: bash
@@ -320,7 +328,6 @@ jobs:
             p3-native-performance-structure-console.log
             p3-p5-qt-area-build.log
             p3-p5-qt-area-ctest.log
-            p3-qt-regenerated-geometry.patch
             test-results/p3-qt
             build-native/p3/${{ matrix.preset }}/native/build-provenance.json
             build-native/p3/${{ matrix.preset }}/Testing/Temporary/LastTest.log

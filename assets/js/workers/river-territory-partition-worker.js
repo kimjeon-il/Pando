@@ -26,9 +26,9 @@ const dependencies = Promise.all([
 }));
 
 async function compute(payload, context = null) {
-  const { partitionModule, clipper } = await dependencies;
+  const { partitionModule } = await dependencies;
   context?.throwIfCancelled?.();
-  const result = partitionModule.buildRiverTerritoryPartitions({ ...(payload || {}), clipper });
+  const result = partitionModule.buildRiverTerritoryPartitions(payload || {});
   context?.throwIfCancelled?.();
   return result;
 }

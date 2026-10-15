@@ -184,7 +184,7 @@ V PreparedCutGeometry::prepare(const V& request,const GeometryCancellation& canc
     try{
         for(std::size_t i=1;i<line.size();++i)if(near(line[i-1],line[i],1e-9)){auto value=issue("duplicate-vertex",line[i]);value.object["vertexIndex"]=V::num(double(i));value.object["segmentIndex"]=V::num(double(i-1));throw Failure("서로 다른 위치를 연결하세요.",value);}
         for(std::size_t a=0;a+1<line.size();++a)for(std::size_t b=a+2;b+1<line.size();++b){const auto hit=intersection(line[a],line[a+1],line[b],line[b+1],1e-10);if(hit){auto value=issue(hit->overlap?"segment-overlap":"self-intersection",hit->p);value.object["segmentIndex"]=V::num(double(a));throw Failure("새 국경선이 자기 자신과 교차하거나 겹칩니다.",value);}}
-        struct Partition{std::size_t index;std::vector<Face> faces;};std::vector<Partition> partitions;
+        struct Partition{std::size_t index;std::vector<PlanarGraphFace> faces;};std::vector<Partition> partitions;
         for(std::size_t p=0;p<impl_->components.size();++p){check();const auto& component=impl_->components[p];const auto local=unwrapRing(line,component[0][0].x);if(!bounds(component).overlaps(bounds(local)))continue;
             for(std::size_t i:{std::size_t(0),line.size()-1})if(interior(local[i],component)){auto value=issue("endpoint-inside",line[i]);value.object["vertexIndex"]=V::num(double(i));throw Failure("시작점과 끝점을 영역 밖이나 경계에 놓으세요.",value);}
             std::vector<BoundaryEvent> hits;
