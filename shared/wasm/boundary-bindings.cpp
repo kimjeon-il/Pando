@@ -2,6 +2,7 @@
 #include <pandoeditor/boundarycontact.h>
 #include <pandoeditor/boundaryoverlap.h>
 #include <pandoeditor/boundaryrefinement.h>
+#include <pandoeditor/boundarysplit.h>
 #include <emscripten/bind.h>
 #include <emscripten/val.h>
 #include <cmath>
@@ -193,11 +194,45 @@ val boundaryRefineForWeb(val input,double maximumDegrees) {
     }
     std::terminate();
 }
+
+val boundarySplitCandidatesForWeb(val sourceEdges,val nodeCoordinates,double epsilon) {
+    try {
+        requireArray(sourceEdges,"INVALID_BOUNDARY_SPLIT");
+        requireArray(nodeCoordinates,"INVALID_BOUNDARY_SPLIT");
+        const unsigned edgeCount=sourceEdges["length"].as<unsigned>();
+        const unsigned nodeCount=nodeCoordinates["length"].as<unsigned>();
+        if(edgeCount>1'000'000||nodeCount>2'000'000)
+            throw std::invalid_argument("INVALID_BOUNDARY_SPLIT: too many edges or nodes");
+        std::vector<BoundaryEdge> edges;edges.reserve(edgeCount);
+        for(unsigned i=0;i<edgeCount;++i)edges.push_back(overlapEdge(sourceEdges[i]));
+        std::vector<Point> nodes;nodes.reserve(nodeCount);
+        for(unsigned i=0;i<nodeCount;++i)nodes.push_back(readPoint(nodeCoordinates[i]));
+        const auto matches=boundarySplitCandidates(edges,nodes,epsilon);
+        auto result=val::array();unsigned i=0;
+        for(const auto& candidates:matches) {
+            auto matchesForEdge=val::array();unsigned j=0;
+            for(const auto& match:candidates) {
+                auto pair=val::array();
+                pair.set(0,static_cast<unsigned>(match.nodeIndex));
+                pair.set(1,match.t);
+                matchesForEdge.set(j++,pair);
+            }
+            result.set(i++,matchesForEdge);
+        }
+        return result;
+    } catch(const std::exception& error) {
+        auto js=val::global("Error").new_(std::string(error.what()));
+        js.set("code",std::string("PL-BOUNDARY-SPLIT"));
+        js.throw_();
+    }
+    std::terminate();
+}
 EMSCRIPTEN_BINDINGS(pandoeditor_boundary_chains) {
     emscripten::function("boundaryConnectChains",&boundaryConnectForWeb);
     emscripten::function("boundaryOpposingInteriors",&boundaryOpposingForWeb);
     emscripten::function("boundaryOpposingInteriorsBatch",&boundaryOpposingBatchForWeb);
     emscripten::function("boundarySubtractOverlapsBatch",&boundaryOverlapBatchForWeb);
     emscripten::function("boundaryRefineSegments",&boundaryRefineForWeb);
+    emscripten::function("boundarySplitCandidatesBatch",&boundarySplitCandidatesForWeb);
     emscripten::constant("boundaryDefaultMaxEdgeDegrees",pandoeditor::kDefaultBoundaryEdgeDegrees);
 }
