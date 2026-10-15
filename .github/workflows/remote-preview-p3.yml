@@ -63,7 +63,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: p3-preview-${{ github.event.pull_request.number || github.ref }}
+  group: p3-preview-${{ github.event.pull_request.number || github.ref }}${{ inputs.native_tests && '-focused-native' || '' }}
   cancel-in-progress: true
 
 jobs:
