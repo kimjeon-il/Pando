@@ -9,6 +9,8 @@
 namespace pandoeditor {
 Geometry wrapPolygonGeometry(const Geometry& source,const GeometryCancellation& cancelled){
     const auto check=[&]{if(cancelled&&cancelled())throw PolygonCalculationCancelled{};};check();
+    if((source.type!="Polygon"&&source.type!="MultiPolygon")||!source.points.empty()||!source.lines.empty()||(source.type=="Polygon"&&source.polygons.size()!=1))
+        throw std::invalid_argument("SPLIT_NORMALIZER_INVALID_INPUT: polygon dimensions");
     bool crosses=false;
     for(const auto& polygon:source.polygons)for(const auto& ring:polygon)for(std::size_t i=0;i<ring.size();++i){
         const auto p=ring[i];if(!std::isfinite(p.x)||!std::isfinite(p.y))throw std::invalid_argument("Invalid polygon coordinate");
