@@ -58,6 +58,7 @@ add_library(pandoeditor_core STATIC
     src/boundarychain.cpp
     src/boundarycontact.cpp
     src/boundaryoverlap.cpp
+    src/boundaryrefinement.cpp
     src/territorialmutation.cpp
     src/commands.cpp
   src/commandbatch.cpp
@@ -100,4 +101,9 @@ set_source_files_properties(src/boundarycontact.cpp PROPERTIES COMPILE_OPTIONS
 
 # Source segment projections and gap coordinates match unfused JS double operations.
 set_source_files_properties(src/boundaryoverlap.cpp PROPERTIES COMPILE_OPTIONS
+    "$<$<CXX_COMPILER_ID:MSVC>:/fp:strict>;$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-ffp-contract=off>")
+
+# The projected stroke vertices must use the same intermediate rounding in
+# all native compilers and the WASM target (no fused multiply-add).
+set_source_files_properties(src/boundaryrefinement.cpp PROPERTIES COMPILE_OPTIONS
     "$<$<CXX_COMPILER_ID:MSVC>:/fp:strict>;$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-ffp-contract=off>")
