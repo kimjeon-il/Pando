@@ -23,14 +23,14 @@ template<class T>bool retryAsset(T&,const QString&,long){return false;}
 int main(int argc,char** argv) {
     QCoreApplication app(argc,argv);
     try {
-        require(argc==2,"fixed raster manifest required");
+        require(argc==3,"fixed preview and DEM manifests required");
         QFile manifest(QString::fromLocal8Bit(argv[1]));require(manifest.open(QIODevice::ReadOnly),"read fixed manifest");
         QTemporaryDir root;require(root.isValid(),"isolated lossless source fixtures");
-        require(QDir(root.path()).mkpath("terrain/v0.12.6/0"),"create tile directory");
+        require(QDir(root.path()).mkpath("terrain-preview/v0.13.3-p1/0"),"create tile directory");
         for(int column=0;column<2;++column) {
-            QImage image(32,32,QImage::Format_RGBA8888);image.fill(QColor(140+column,80,30,255));
+            QImage image(column==0?1026:328,677,QImage::Format_RGBA8888);image.fill(QColor(140+column,80,30,255));
             image.setPixelColor(31,31,QColor(43,91,182,255));
-            QImageWriter writer(root.path()+QString("/terrain/v0.12.6/0/%1-0.webp").arg(column),"webp");
+            QImageWriter writer(root.path()+QString("/terrain-preview/v0.13.3-p1/0/%1-0.webp").arg(column),"webp");
             writer.setQuality(100);require(writer.write(image),"write lossless fixture");
         }
         const auto manifestBytes=manifest.readAll();
@@ -91,7 +91,7 @@ int main(int argc,char** argv) {
         require(isolated.loadTile(cold).isNull()&&verifiedReads==2,"cold verified refusal must not fall through to readable corrupt bytes");
         std::cout<<"planning/read split: planningVerifiedReads=0 coldVerifiedReads=1 cacheVerifiedReads=0 corruptRefused=1\n";
         // Actual WebP decode of a bounded synthetic tint, not source pixel parity.
-        QFile demManifest(QFileInfo(manifest.fileName()).dir().filePath("../v0.13.3/manifest.json"));
+        QFile demManifest(QString::fromLocal8Bit(argv[2]));
         require(demManifest.open(QIODevice::ReadOnly),"read fixed DEM manifest for decoder concurrency");
         require(QDir(root.path()).mkpath("terrain/v0.13.3"),"create synthetic tint directory");
         QImage tint(4096,2048,QImage::Format_RGBA8888);quint32 random=0x71d392a5;
@@ -126,7 +126,7 @@ int main(int argc,char** argv) {
         const auto relative=isolated.relativeTilePath(cold);
         require(decodeFailure(isolated,relative,0),"failed cold read is identifiable by exact logical asset");
         const auto readsBeforeRetry=verifiedReads;const auto failureBefore=isolated.decodeError();
-        require(!retryAsset(isolated,"terrain/v0.12.6/0/1-0.webp",0)&&isolated.decodeError()==failureBefore,
+        require(!retryAsset(isolated,"terrain-preview/v0.13.3-p1/0/1-0.webp",0)&&isolated.decodeError()==failureBefore,
                 "unrelated verified asset must not clear the failed source");
         require(retryAsset(isolated,relative,0)&&!decodeFailure(isolated,relative,0)&&isolated.decodeError().isEmpty(),
                 "newly verified matching asset allows a fresh decode attempt");
@@ -138,7 +138,7 @@ int main(int argc,char** argv) {
         require(repaired.write(approvedOriginalBytes)==approvedOriginalBytes.size(),"write complete replacement");repaired.close();
         require(!isolated.loadTile(cold).isNull()&&verifiedReads==readsBeforeRetry+2&&isolated.decodeError().isEmpty(),
                 "same provider retries newly approved bytes through actual cold verifier and decoder");
-        require(!retryAsset(isolated,"../terrain/v0.12.6/0/0-0.webp",0)&&isolated.error().isEmpty(),
+        require(!retryAsset(isolated,"../terrain-preview/v0.13.3-p1/0/0-0.webp",0)&&isolated.error().isEmpty(),
                 "retry cannot alter immutable manifest diagnostics or accept path aliases");
         std::cout<<"matching retry: unrelatedRefused=1 noRead=1 badReplacementRefused=1 verifiedReplacementDecoded=1\n";
         std::cout<<"render protection total: processed=4 passed=4 failed=0 skip=0\n";
