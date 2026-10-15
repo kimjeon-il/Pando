@@ -1,7 +1,7 @@
 import {readFileSync,writeFileSync} from 'node:fs';
 import assert from 'node:assert/strict';
 const url=new URL('../../../assets/js/modules/reference-image-georef.js',import.meta.url);
-const web=await import('data:text/javascript;base64,'+readFileSync(url).toString('base64'));
+const web=await import(url.href);
 const point=(id,u,v,x,y)=>({id,image:[u,v],coordinate:[x,y]});
 const cases=[
  {id:'similarity',warpMode:'similarity',controlPoints:[point('a',0,0,10,40),point('b',1,0,20,40)]},

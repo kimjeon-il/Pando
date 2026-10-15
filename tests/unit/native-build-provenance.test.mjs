@@ -12,14 +12,7 @@ const script = `${repository}/native/cmake/BuildProvenance.cmake`;
 const cmake = process.env.PANDOEDITOR_CMAKE_EXE || 'cmake';
 const run = (command, args) => spawnSync(command, args, { encoding: 'utf8', timeout: 15000 });
 const okay = result => assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}\n${result.error || ''}`);
-const referencePaths = [
-  'assets/js/modules/reference-image-georef.js',
-  'assets/js/modules/reference-image-line-refiner.js',
-  'assets/js/modules/reference-image-live-wire.js',
-  'assets/js/modules/reference-image-source-mapping.js',
-  'assets/js/modules/reference-image-transform.js',
-  'native/app/reference-web/adapter.js',
-];
+const referencePaths = ['shared/core/src/referenceimage.cpp','shared/core/src/referencetracing.cpp'];
 
 function fixture() {
   const directory = mkdtempSync(path.join(tmpdir(), 'pando-provenance-check-')).replace(/\\/g, '/');
@@ -31,16 +24,13 @@ function fixture() {
     mkdirSync(path.dirname(`${root}/${sourcePath}`), { recursive: true });
     writeFileSync(`${root}/${sourcePath}`, 'export const fixture = 1;\n');
   }
-  writeFileSync(`${root}/native/app/reference-web/manifest.json`, JSON.stringify({
-    schemaVersion: 2, files: referencePaths.map(sourcePath => ({ path: sourcePath })),
-  }));
   mkdirSync(`${root}/native/assets/geometry/current`, { recursive: true });
   writeFileSync(`${root}/assets/js/modules/polygon-clipping-calculation.js`, 'export const precision = 9;\n');
   writeFileSync(`${root}/native/assets/geometry/current/manifest.json`, JSON.stringify({
     schemaVersion: 2, files: [{ path: 'assets/js/modules/polygon-clipping-calculation.js' }],
   }));
   okay(run('git', ['-C', root, 'init', '-q']));
-  okay(run('git', ['-C', root, 'add', 'native', 'assets']));
+  okay(run('git', ['-C', root, 'add', 'native', 'shared', 'assets']));
   okay(run('git', ['-C', root, '-c', 'user.name=Provenance Test', '-c', 'user.email=provenance@example.invalid', 'commit', '-qm', 'fixture']));
   const executable = `${output}/pandoeditor.exe`;
   const invoke = mode => run(cmake, [

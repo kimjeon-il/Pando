@@ -38,7 +38,6 @@ on:
       - 'tools/package-shared-core-assets.mjs'
       - 'tools/stage-monorepo-pages.mjs'
       - 'native/tools/reference-parity/**'
-      - 'native/app/reference-web/**'
       - 'native/app/**'
       - 'native/engine/**'
       - 'native/renderer/**'
@@ -50,8 +49,6 @@ on:
       - 'native/tools/m97/current-geometry-source.test.mjs'
       - 'native/tests/json-text-policy/**'
       - 'native/tests/json_text_policy_tests.cpp'
-      - 'native/tests/reference-runtime/**'
-      - 'native/tests/reference_runtime_headless.cpp'
       - 'native/tests/current-geometry/**'
       - 'native/tests/current_geometry_tests.cpp'
       - 'native/tests/verified-file/**'
@@ -99,7 +96,6 @@ on:
       - 'tools/package-shared-core-assets.mjs'
       - 'tools/stage-monorepo-pages.mjs'
       - 'native/tools/reference-parity/**'
-      - 'native/app/reference-web/**'
       - 'native/app/**'
       - 'native/engine/**'
       - 'native/renderer/**'
@@ -111,8 +107,6 @@ on:
       - 'native/tools/m97/current-geometry-source.test.mjs'
       - 'native/tests/json-text-policy/**'
       - 'native/tests/json_text_policy_tests.cpp'
-      - 'native/tests/reference-runtime/**'
-      - 'native/tests/reference_runtime_headless.cpp'
       - 'native/tests/current-geometry/**'
       - 'native/tests/current_geometry_tests.cpp'
       - 'native/tests/verified-file/**'
@@ -127,7 +121,7 @@ on:
       scope:
         description: Focused shared calculation verification
         type: choice
-        options: [all, p6-polygon]
+        options: [all, p6-polygon, p6-calculations]
         default: all
 
 permissions:
@@ -135,7 +129,7 @@ permissions:
 
 jobs:
   p6-polygon:
-    if: github.event_name == 'workflow_dispatch' && inputs.scope == 'p6-polygon'
+    if: github.event_name == 'workflow_dispatch' && (inputs.scope == 'p6-polygon' || inputs.scope == 'p6-calculations')
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -146,11 +140,246 @@ jobs:
       - name: Compile native polygon kernel and current contract probe
         run: |
           cmake -S shared -B build-native/p6-core -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
-          cmake --build build-native/p6-core --target polygon_clipping_probe --parallel 2
+          cmake --build build-native/p6-core --target polygon_clipping_probe cut_geometry_probe reference_image_core_tests --parallel 2
       - name: Compare pinned polygon behavior
-        run: node tools/p6-polygon-parity.mjs build-native/p6-core/tests/polygon_clipping_probe
+        run: |
+          node tools/p6-polygon-parity.mjs build-native/p6-core/tests/polygon_clipping_probe
+          node tools/p6-cut-parity.mjs build-native/p6-core/tests/cut_geometry_probe
+          ctest --test-dir build-native/p6-core -R '^reference_image_core_tests$' --output-on-failure
   contracts:
-    if: github.event_name != 'workflow_dispatch' || inputs.scope != 'p6-polygon'
+    if: github.event_name != 'workflow_dispatch' || (inputs.scope != 'p6-polygon' && inputs.scope != 'p6-calculations')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      EMCC_CORES: '1'
+      BINARYEN_CORES: '1'
+      NODE_OPTIONS: '--max-old-space-size=512'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Install only the standalone native build dependencies
+        run: sudo apt-get update && sudo apt-get install -y ninja-build zlib1g-dev
+      - name: Build only the small native core, codec and document tests
+        run: |
+          cmake -S shared -B build-native/core-session -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+          cmake --build build-native/core-session --target project_codec_tests document_session_tests geometry_draft_tests web_content_codec_tests web_content_command_tests web_territorial_command_tests source_admission_tests web_storage_tests web_object_command_tests --parallel 1
+          ctest --test-dir build-native/core-session -R '^(project_codec_tests|document_session_tests|geometry_draft_tests|web_content_codec_tests|web_content_command_tests|web_territorial_command_tests|source_admission_tests|web_storage_tests|web_object_command_tests)$' --output-on-failure --timeout 10
+      - name: Get the pinned official Emscripten SDK
+        uses: actions/checkout@v4
+        with:
+          repository: emscripten-core/emsdk
+          ref: e4fe26ef59168ff44f4c23c466e497bf60b3411e
+          path: build-native/emsdk
+          persist-credentials: false
+      - name: Build the same C++ sources for WASM
+        shell: bash
+        run: |
+          build-native/emsdk/emsdk install 4.0.20
+          build-native/emsdk/emsdk activate 4.0.20
+          source build-native/emsdk/emsdk_env.sh
+          emcc --version | head -1 | grep -F '4.0.20'
+          emcmake cmake -S shared -B build-native/wasm -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF
+          cmake --build build-native/wasm --target pandoeditor_wasm --parallel 1
+      - name: Verify the compiled source and committed runtime pair
+        run: node tools/package-shared-core-assets.mjs --build-dir build-native/wasm/wasm --check
+      - name: Actual native/WASM month contracts and required Worker lifecycle
+        run: >-
+          node --test --test-concurrency=1 --test-timeout=15000 shared/tests/wasm-document-session.test.mjs
+          tests/unit/core-wasm-loader.test.mjs tests/unit/web-core-contract.test.mjs
+          tests/unit/core-document-client.test.mjs tests/unit/core-document-runtime.test.mjs
+          tests/unit/core-document-read-model.test.mjs tests/unit/core-document-wasm.test.mjs
+          tests/unit/core-document-selection-wasm.test.mjs
+          tests/unit/core-document-field-wasm.test.mjs tests/unit/core-document-view-selection-wasm.test.mjs
+          tests/unit/core-document-world-wasm.test.mjs tests/unit/core-document-draft-wasm.test.mjs
+          tests/unit/core-document-batch-wasm.test.mjs tests/unit/core-codec-unicode-wasm.test.mjs
+          tests/unit/core-codec-unicode-ids-wasm.test.mjs
+          tests/unit/core-document-content-wasm.test.mjs tests/unit/core-project-command-wasm.test.mjs
+          tests/unit/core-map-presentation-wasm.test.mjs tests/unit/core-layer-catalog-wasm.test.mjs
+          tests/unit/core-delete-selection-wasm.test.mjs
+          tests/unit/core-distribution-array-metadata-wasm.test.mjs
+          tests/unit/core-direct-object-writers-wasm.test.mjs
+          tests/unit/core-hydro-create-wasm.test.mjs tests/unit/core-web-history-limit-wasm.test.mjs
+          tests/unit/core-hydro-hidden-source-wasm.test.mjs tests/unit/core-label-gesture-wasm.test.mjs
+          tests/unit/core-hydro-copy-history-wasm.test.mjs
+          tests/unit/core-gpkg-file-boundary.test.mjs
+          tests/unit/core-project-admission-wasm.test.mjs
+          tests/unit/core-project-replacement-wasm.test.mjs tests/unit/core-project-file-save-wasm.test.mjs
+          tests/unit/core-territorial-service-wasm.test.mjs
+          tests/unit/core-territorial-store-wasm.test.mjs tests/unit/core-empty-document-wasm.test.mjs
+          tests/unit/progressive-startup-runtime.test.mjs tests/unit/progressive-startup-runtime-contract.test.mjs
+          tests/unit/core-save-state-projection.test.mjs
+          tests/unit/core-draft-primitives.test.mjs
+          tests/unit/timeline-controls.test.mjs tests/unit/shared-core-assets.test.mjs
+          tests/unit/web-document-seed.test.mjs tests/unit/web-flag-contract.test.mjs
+          tests/unit/web-selection-contract.test.mjs tests/unit/web-history-selection-contract.test.mjs
+          tests/unit/web-draft-contract.test.mjs tests/unit/core-worker-ownership.test.mjs
+          tests/unit/web-opaque-flag-contract.test.mjs
+          tests/unit/web-oracle-admission.test.mjs tests/unit/web-content-dirty-contract.test.mjs
+          tests/unit/web-writer-clock-contract.test.mjs
+          tests/unit/web-map-presentation-contract.test.mjs
+          tests/unit/web-object-removal-original.test.mjs
+      - name: Ordered storage snapshot and project replacement boundaries
+        run: >-
+          node --test --test-concurrency=1 --test-timeout=15000
+          tests/unit/persistence-service.test.mjs tests/unit/autosave-recovery-ui.test.mjs
+          tests/unit/runtime-performance-metrics.test.mjs tests/unit/project-preview-cache.test.mjs
+          tests/unit/project-preview-policy.test.mjs
+      - name: Async reference-image draft acknowledgement boundaries
+        run: >-
+          node --test --test-concurrency=1 --test-timeout=15000
+          tests/unit/reference-image-editing-bridge.test.mjs tests/unit/reference-image-draft-ack.test.mjs
+      - name: Core-owned generic and distribution service contracts
+        run: >-
+          node --test --test-concurrency=1 --test-timeout=15000
+          tests/unit/generic-feature-service.test.mjs tests/unit/distribution-service.test.mjs
+          tests/unit/service-core-command-owner.test.mjs
+          tests/unit/core-service-writer-clock-wasm.test.mjs
+      - name: Accepted selection and input presentation boundaries
+        run: >-
+          node --test --test-concurrency=1 --test-timeout=15000
+          tests/unit/selection-domain-core.test.mjs tests/unit/selection-domain-wasm.test.mjs
+          tests/unit/selection-ui-ack.test.mjs tests/unit/selection-ui-focus.test.mjs
+          tests/unit/selection-ui-reset-regression.test.mjs tests/unit/territorial-display-identity.test.mjs
+          tests/unit/map-settings-core-ack.test.mjs tests/unit/map-label-visibility.test.mjs
+          tests/unit/builtin-resource-admission.test.mjs tests/unit/builtin-resource-core-wasm.test.mjs tests/unit/place-runtime.test.mjs
+          tests/unit/map-hover-async-boundary.test.mjs tests/unit/map-hover-topology.test.mjs
+          tests/unit/editing-cancellation-boundaries.test.mjs
+      - name: Static native startup, source receipt and selection boundaries
+        run: >-
+          node --test --test-concurrency=1 --test-timeout=15000
+          tests/unit/native-startup-boundary.test.mjs tests/unit/native-build-provenance.test.mjs
+          tests/unit/native-selection-boundary.test.mjs tests/unit/native-draft-boundary.test.mjs
+          tests/unit/native-session-boundary.test.mjs
+      - name: Shared reference calculation frozen fixtures
+        run: |
+          node native/tools/reference-parity/calibration-fixtures.mjs
+          node native/tools/reference-parity/trace-fixtures.mjs
+          node native/tools/reference-parity/refine-fixtures.mjs
+          node --test tests/unit/reference-shared-runtime.test.mjs
+      - name: Canonical Web geometry calculation resources
+        run: |
+          node native/tools/m97/cut-kernel-generate.mjs --check
+          node --test native/tools/m97/current-geometry-source.test.mjs
+      - name: Pages source exclusion and complete required runtime
+        run: node --test tests/unit/monorepo-pages-staging.test.mjs tools/parity/ci-changes.test.mjs
+      - name: Record the bounded native and WASM source evidence
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
+          import { resolve } from 'node:path';
+          import { sourceIdentity, sha256 } from './native/tools/parity/provenance.mjs';
+          import { sharedSourceManifest } from './tools/package-shared-core-assets.mjs';
+          const source = sourceIdentity(process.cwd());
+          if (!source.clean) throw Error('Official shared-core evidence requires a clean checkout');
+          const manifest = JSON.parse(readFileSync('assets/wasm/pandoeditor-core.manifest.json'));
+          const shared = sharedSourceManifest(process.cwd());
+          if (shared.sourceSha256 !== manifest.sourceSha256) throw Error('Compiled shared source mismatch');
+          const hashFile = path => ({ path, sha256: sha256(readFileSync(resolve(path))) });
+          const artifacts = [
+            'build-native/core-session/tests/project_codec_tests',
+            'build-native/core-session/tests/document_session_tests',
+            'build-native/core-session/tests/geometry_draft_tests',
+            'build-native/core-session/tests/web_content_codec_tests',
+            'build-native/core-session/tests/web_content_command_tests',
+            'build-native/core-session/tests/web_territorial_command_tests',
+            'build-native/core-session/tests/source_admission_tests',
+            'build-native/core-session/tests/web_storage_tests',
+            'build-native/core-session/tests/web_object_command_tests',
+            'build-native/wasm/wasm/pandoeditor-core.js',
+            'build-native/wasm/wasm/pandoeditor-core.wasm',
+          ].map(hashFile);
+          const fixtures = readdirSync('tests/fixtures/portability')
+            .filter(name => /^web-.*\.json$/.test(name)).sort()
+            .map(name => hashFile('tests/fixtures/portability/' + name));
+          if (!fixtures.length) throw Error('Shared-core fixture evidence is missing');
+          writeFileSync('build-native/shared-core-evidence.json', JSON.stringify({
+            schema: 'pandoeditor-bounded-shared-core-evidence', commit: source.head,
+            source, shared, fixtures, artifacts, environment: {
+              os: process.platform, arch: process.arch, node: process.version,
+              compiler: manifest.compiler,
+            }, scope: 'bounded non-GUI contracts; not entire behavioral parity',
+            applicationExecuted: false,
+            notRun: ['app responsiveness', 'full-world performance', 'browser UI', 'native UI', 'entire parity'],
+          }, null, 2) + '\n');
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bounded-shared-core-${{ github.sha }}
+          path: |
+            build-native/shared-core-evidence.json
+            build-native/core-session/Testing/Temporary/
+            build-native/wasm/wasm/pandoeditor-core.js
+            build-native/wasm/wasm/pandoeditor-core.wasm
+          if-no-files-found: error
+  qt-core-adapters:
+    if: github.event_name != 'workflow_dispatch' || (inputs.scope != 'p6-polygon' && inputs.scope != 'p6-calculations')
+    runs-on: windows-2022
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.3'
+          arch: win64_msvc2022_64
+          cache: true
+      - name: Build the common native library without the application
+        shell: pwsh
+        run: |
+          vcpkg install zlib:x64-windows
+          cmake -S shared -B build-native/core-adapters -A x64 -DBUILD_TESTING=OFF "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cmake --build build-native/core-adapters --config Release --parallel 1
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Check only QtCore and QJSEngine codec and calculation boundaries
+        shell: pwsh
+        run: |
+          $taskLibraries = @(Get-ChildItem -LiteralPath build-native/core-adapters -Recurse -Filter pandoeditor_core.lib)
+          if ($taskLibraries.Count -ne 1) { throw 'A single source-matched core library is required' }
+          $taskCoreLibrary = $taskLibraries[0].FullName
+          foreach ($taskAdapter in @('json-text-policy', 'current-geometry', 'verified-file')) {
+            $taskBuild = "build-native/qt-$taskAdapter"
+            cmake -S "native/tests/$taskAdapter" -B $taskBuild -A x64 "-DPANDO_CORE_LIBRARY=$taskCoreLibrary"
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            cmake --build $taskBuild --config Release --parallel 1
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            ctest --test-dir $taskBuild -C Release --output-on-failure --timeout 15
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+      - name: Record native adapter artifacts
+        shell: pwsh
+        run: |
+          $taskArtifacts = Get-ChildItem -LiteralPath build-native -Recurse -File |
+            Where-Object { $_.Name -in @('json_text_policy_tests.exe', 'current_geometry_tests.exe', 'verified_file_tests.exe', 'pandoeditor_core.lib') }
+          if (@($taskArtifacts).Count -ne 4) { throw 'Bounded adapter evidence is incomplete' }
+          $taskHashes = @($taskArtifacts | ForEach-Object { @{ path = $_.FullName; sha256 = (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant() } })
+          @{ commit = (git rev-parse HEAD); qt = '6.8.3'; applicationExecuted = $false; artifacts = $taskHashes } |
+            ConvertTo-Json -Depth 4 | Set-Content -LiteralPath build-native/qt-adapter-evidence.json -Encoding utf8
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bounded-qt-core-adapters-${{ github.sha }}
+          path: |
+            build-native/qt-adapter-evidence.json
+            build-native/qt-*/Testing/Temporary/
+          if-no-files-found: error
+ --output-on-failure
+  contracts:
+    if: github.event_name != 'workflow_dispatch' || (inputs.scope != 'p6-polygon' && inputs.scope != 'p6-calculations')
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
@@ -261,8 +490,6 @@ jobs:
           tests/unit/native-session-boundary.test.mjs
       - name: Shared JS calculation source and deterministic artifact
         run: |
-          node native/tools/reference-parity/build-runtime.mjs --check
-          node native/tools/reference-parity/verify-source.mjs
           node native/tools/reference-parity/calibration-fixtures.mjs
           node native/tools/reference-parity/trace-fixtures.mjs
           node native/tools/reference-parity/refine-fixtures.mjs
@@ -325,7 +552,7 @@ jobs:
             build-native/wasm/wasm/pandoeditor-core.wasm
           if-no-files-found: error
   qt-core-adapters:
-    if: github.event_name != 'workflow_dispatch' || inputs.scope != 'p6-polygon'
+    if: github.event_name != 'workflow_dispatch' || (inputs.scope != 'p6-polygon' && inputs.scope != 'p6-calculations')
     runs-on: windows-2022
     timeout-minutes: 20
     steps:

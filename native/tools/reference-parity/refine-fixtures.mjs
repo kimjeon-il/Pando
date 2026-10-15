@@ -1,6 +1,6 @@
 import {readFileSync,writeFileSync} from 'node:fs';
 import assert from 'node:assert/strict';
-const load=async name=>import('data:text/javascript;base64,'+readFileSync(new URL('../../../assets/js/modules/'+name,import.meta.url)).toString('base64'));
+const load=async name=>import(new URL('../../../assets/js/modules/'+name,import.meta.url).href);
 const web=await load('reference-image-line-refiner.js'),georef=await load('reference-image-georef.js');
 const cases=[{id:'offset-line',edge:'vertical',uv:[[.45,.15],[.45,.85]]},{id:'turn',edge:'turn',uv:[[.45,.15],[.45,.8],[.85,.8]]},{id:'weak',edge:'weak',uv:[[.5,.15],[.5,.85]]}];
 const fixtures=cases.map(input=>{

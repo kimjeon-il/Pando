@@ -49,10 +49,8 @@ add_custom_command(TARGET pandoeditor POST_BUILD
     VERBATIM)
 
 add_library(pandoeditor_editor STATIC
-    referencewarp.cpp referencewarp.h
     referenceautogeoref.cpp referenceautogeoref.h
     referenceocr.cpp referenceocr.h
-    referencetracing.cpp referencetracing.h
     referenceimagelibrary.cpp referenceimagelibrary.h referenceimagemodel.h
     defaultflagresolver.cpp defaultflagresolver.h
     hydrodataprovider.cpp hydrodataprovider.h
@@ -679,9 +677,9 @@ if(BUILD_TESTING)
     add_executable(world_render_baseline ../tests/world_render_baseline.cpp)
     target_link_libraries(world_render_baseline PRIVATE pandoeditor_editor)
     add_executable(reference_image_tests ../tests/reference_image_tests.cpp)
-    target_sources(reference_image_tests PRIVATE referenceimagelibrary.cpp referencewarp.cpp referenceautogeoref.cpp referenceocr.cpp referencetracing.cpp referenceimagemodel.h)
+    target_sources(reference_image_tests PRIVATE referenceimagelibrary.cpp referenceautogeoref.cpp referenceocr.cpp referenceimagemodel.h)
     target_include_directories(reference_image_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-    target_link_libraries(reference_image_tests PRIVATE Qt6::Gui Qt6::Qml Qt6::Test Qt6::Concurrent)
+    target_link_libraries(reference_image_tests PRIVATE Pandoeditor::Core Qt6::Gui Qt6::Test Qt6::Concurrent)
     if(WIN32 AND MSVC)
         target_link_libraries(reference_image_tests PRIVATE windowsapp)
     endif()
@@ -689,10 +687,9 @@ if(BUILD_TESTING)
     set_tests_properties(reference_image_tests PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
     add_executable(reference_auto_georef_tests
         ../tests/reference_auto_georef_tests.cpp
-        referenceautogeoref.cpp referenceautogeoref.h
-        referencewarp.cpp referencewarp.h)
+        referenceautogeoref.cpp referenceautogeoref.h)
     target_include_directories(reference_auto_georef_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-    target_link_libraries(reference_auto_georef_tests PRIVATE Qt6::Gui Qt6::Test)
+    target_link_libraries(reference_auto_georef_tests PRIVATE Pandoeditor::Core Qt6::Gui Qt6::Test)
     add_test(NAME reference_auto_georef_tests COMMAND reference_auto_georef_tests -o -,txt)
     set_tests_properties(reference_auto_georef_tests PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
     add_executable(territory_selection_tests ../tests/territory_selection_tests.cpp)
@@ -1263,14 +1260,6 @@ if(BUILD_TESTING)
         ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software;M977_SESSION_REPLACEMENT_PROBE=$<TARGET_FILE:m977_boundary_session_replacement_probe>")
 endif()
 
-set(REFERENCE_WEB_FILES reference-web/runtime.js)
-get_filename_component(PANDO_REFERENCE_SOURCE_ROOT "${PROJECT_SOURCE_DIR}/.." ABSOLUTE)
-include("${PROJECT_SOURCE_DIR}/cmake/ReferenceRuntime.cmake")
-add_dependencies(pandoeditor_editor pandoeditor_reference_runtime_check)
-qt_add_resources(pandoeditor_editor reference_web PREFIX "/reference-web" BASE "${CMAKE_CURRENT_SOURCE_DIR}/reference-web" FILES ${REFERENCE_WEB_FILES})
-if(BUILD_TESTING)
-    qt_add_resources(reference_image_tests reference_web_test PREFIX "/reference-web" BASE "${CMAKE_CURRENT_SOURCE_DIR}/reference-web" FILES ${REFERENCE_WEB_FILES})
-endif()
 
 if(BUILD_TESTING)
     qt_add_resources(edit_display_ui_tests reference_ui_flags PREFIX "/defaults/flags" BASE "${PROJECT_SOURCE_DIR}/assets/defaults/flags" FILES ${DEFAULT_FLAG_FILES})
