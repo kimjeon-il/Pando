@@ -1,4 +1,5 @@
 #include <pandoeditor/countrycontact.h>
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <vector>
@@ -41,7 +42,9 @@ int main() {
     for(const auto& segment:seamContact.segments) {
         assert(std::abs(segment.edge.first.x)>=179&&std::abs(segment.edge.second.x)>=179);
         assert(std::abs(segment.edge.first.x-segment.edge.second.x)<=1);
-        assert(segment.refs.size()==2&&segment.refs[0].row==2&&segment.refs[1].row==0);
+        assert(segment.refs.size()==2);
+        assert(std::any_of(segment.refs.begin(),segment.refs.end(),[](const auto& ref){return ref.owner==0&&ref.row==2;}));
+        assert(std::any_of(segment.refs.begin(),segment.refs.end(),[](const auto& ref){return ref.owner==1&&ref.row==0;}));
     }
     return 0;
 }
