@@ -25,6 +25,17 @@ class PreparedReferenceImageWarp {
 public:
     explicit PreparedReferenceImageWarp(const std::string& descriptor)
         : warp_(prepareReferenceImageWarp(codecjson::parse(descriptor))) {}
+    PreparedReferenceImageWarp(const std::string& operation,const std::string& input) {
+        try {
+            const auto descriptor=referenceImageOperation(operation,codecjson::parse(input));
+            warp_=prepareReferenceImageWarp(descriptor);
+            descriptor_=descriptor.encode();
+        } catch(const std::exception& error) {
+            auto failure=val::global("Error").new_(std::string(error.what()));
+            failure.set("code",std::string("PL-REFERENCE-CALCULATION"));failure.throw_();
+        }
+    }
+    std::string takeDescriptor() {std::string result;result.swap(descriptor_);return result;}
     val project(const std::string& input) const {
         const auto p=projectReferenceImagePoint(warp_,codecjson::parse(input));
         if(!p)return val::null();auto out=val::array();out.set(0,(*p)[0]);out.set(1,(*p)[1]);return out;
@@ -37,6 +48,7 @@ public:
     }
 private:
     PreparedReferenceWarp warp_;
+    std::string descriptor_;
 };
 double option(const val& value,const char* key,double fallback) {
     const auto entry=value[key];return entry.isUndefined()?fallback:val::global("Number")(entry).as<double>();
@@ -105,6 +117,8 @@ val calculatePlacement(const std::string& operation,const val& input,const val& 
 EMSCRIPTEN_BINDINGS(pando_reference_image) {
     emscripten::class_<PreparedReferenceImageWarp>("PreparedReferenceImageWarp")
         .constructor<std::string>()
+        .constructor<std::string,std::string>()
+        .function("takeDescriptor",&PreparedReferenceImageWarp::takeDescriptor)
         .function("project",&PreparedReferenceImageWarp::project)
         .function("mesh",&PreparedReferenceImageWarp::mesh);
     emscripten::function("referenceImageCalculate",&calculate);

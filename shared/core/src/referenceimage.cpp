@@ -26,7 +26,7 @@ V obj(std::initializer_list<std::pair<const std::string,V>> fields) {
     auto out=V::obj();out.object=fields;return out;
 }
 double number(const V& value,double fallback=0) {
-    if(value.kind==V::Number) {const auto n=std::stod(value.raw);return std::isfinite(n)?n:fallback;}
+    if(value.kind==V::Number)return codecjson::finiteNumber(value);
     if(value.kind==V::Bool)return value.raw=="true"?1:0;
     if(value.kind==V::Null)return 0;
     if(value.kind==V::String) {try {std::size_t used=0;const auto n=std::stod(value.string,&used);return used==value.string.size()&&std::isfinite(n)?n:fallback;}catch(...) {return fallback;}}
@@ -92,8 +92,8 @@ std::optional<Row> constrained(const Matrix& rows,const Row& values,const Matrix
     auto result=solve(std::move(matrix),std::move(target));if(result)result->resize(width);return result;
 }
 double radial(double r) {return !std::isfinite(r)||r<=epsilon?0:r*std::log(r);}
-Row basis(P image,const V& points) {
-    Row row;for(const auto& p:points.array){const auto uv=*point(get(p,"image"));const auto dx=image[0]-uv[0],dy=image[1]-uv[1];row.push_back(radial(dx*dx+dy*dy));}
+Row basis(P image,const std::vector<P>& points) {
+    Row row;row.reserve(points.size()+3);for(const auto uv:points){const auto dx=image[0]-uv[0],dy=image[1]-uv[1];row.push_back(radial(dx*dx+dy*dy));}
     row.insert(row.end(),{1,image[0],image[1]});return row;
 }
 V array(const Row& row) {auto out=V::arr();for(auto x:row)out.array.push_back(V::num(x));return out;}
@@ -102,11 +102,10 @@ std::optional<P> project(const V& warp,P uv,bool geographic=true) {
     return projectReferenceImageWarp(prepareReferenceImageWarp(warp),uv,geographic);
 }
 
-V diagnostics(const V& points,const V& warp) {
-    const auto prepared=prepareReferenceImageWarp(warp);
+V diagnostics(const V& points,const std::vector<P>& images,const std::vector<P>& coordinates,const PreparedReferenceWarp& prepared) {
     auto residuals=V::arr(),warnings=V::arr();Row soft,hard;double minx=INFINITY,miny=INFINITY,maxx=-INFINITY,maxy=-INFINITY;
-    for(const auto& p:points.array) {
-        const auto uv=*point(get(p,"image"));const auto projected=projectReferenceImageWarp(prepared,uv);const auto meters=projected?distance(*point(get(p,"coordinate")),*projected):INFINITY;
+    for(std::size_t index=0;index<points.array.size();++index) {
+        const auto& p=points.array[index];const auto uv=images[index];const auto projected=projectReferenceImageWarp(prepared,uv);const auto meters=projected?distance(coordinates[index],*projected):INFINITY;
         const bool pinned=yes(get(p,"pinned"));residuals.array.push_back(obj({{"id",get(p,"id")},{"pinned",V::boolean(pinned)},{"meters",std::isfinite(meters)?V::num(meters):V{}}}));
         if(std::isfinite(meters))(pinned?hard:soft).push_back(meters);
         minx=std::min(minx,uv[0]);maxx=std::max(maxx,uv[0]);miny=std::min(miny,uv[1]);maxy=std::max(maxy,uv[1]);
@@ -115,35 +114,46 @@ V diagnostics(const V& points,const V& warp) {
     const auto max=source.empty()?INFINITY:*std::max_element(source.begin(),source.end());const auto hardMax=hard.empty()?0:*std::max_element(hard.begin(),hard.end());
     const auto coverage=points.array.empty()?0:std::max(0.,(maxx-minx)*(maxy-miny));
     if(coverage<.08)warnings.array.push_back(V::str("control-points-concentrated"));
-    if(text(get(warp,"mode"))=="tps"&&points.array.size()<5)warnings.array.push_back(V::str("tps-underconstrained"));
+    if(prepared.mode==PreparedReferenceWarp::ThinPlateSpline&&points.array.size()<5)warnings.array.push_back(V::str("tps-underconstrained"));
     if(std::isfinite(rms)&&rms>50000)warnings.array.push_back(V::str("high-residual"));
     if(hardMax>.01)warnings.array.push_back(V::str("hard-constraint-residual"));
-    return obj({{"rmsMeters",std::isfinite(rms)?V::num(rms):V{}},{"maxMeters",std::isfinite(max)?V::num(max):V{}},{"hardMaxMeters",V::num(hardMax)},
-        {"hardPointCount",V::num(hard.size())},{"softPointCount",V::num(soft.size())},{"imageCoverage",V::num(coverage)},{"residuals",residuals},{"warnings",warnings}});
+    auto result=obj({{"rmsMeters",std::isfinite(rms)?V::num(rms):V{}},{"maxMeters",std::isfinite(max)?V::num(max):V{}},{"hardMaxMeters",V::num(hardMax)},
+        {"hardPointCount",V::num(hard.size())},{"softPointCount",V::num(soft.size())},{"imageCoverage",V::num(coverage)}});
+    result.object["residuals"]=std::move(residuals);result.object["warnings"]=std::move(warnings);return result;
 }
 V fit(const V& raw,const std::string& requested,bool geographic=true) {
-    const auto points=normalize(raw,geographic);const auto count=points.array.size();auto mode=requested;
+    auto points=normalize(raw,geographic);const auto count=points.array.size();auto mode=requested;
     if(mode!="similarity"&&mode!="affine"&&mode!="projective"&&mode!="tps")mode=geographic&&count>=6?"tps":count>=4?"projective":count>=3?"affine":"similarity";
     const int minimum=mode=="similarity"?2:mode=="projective"?4:3;
     auto result=obj({{"ok",V::boolean(false)},{"mode",V::str(mode)},{"minimumPoints",V::num(minimum)},{"pointCount",V::num(count)}});
     if(count<std::size_t(minimum)){result.object["reason"]=V::str("insufficient-control-points");return result;}
-    Matrix rows,hard;Row x,y,hx,hy;bool pinnedAny=false;const auto reference=(*point(get(points.array[0],"coordinate")))[0];
-    for(const auto& p:points.array) {
-        const auto uv=*point(get(p,"image")),coordinate=*point(get(p,"coordinate"));const auto u=uv[0],v=uv[1],lon=geographic?unwrap(coordinate[0],reference):coordinate[0],lat=coordinate[1];
+    std::vector<P> images,coordinates;images.reserve(count);coordinates.reserve(count);
+    for(const auto& p:points.array){images.push_back(*point(get(p,"image")));coordinates.push_back(*point(get(p,"coordinate")));}
+    Matrix rows,hard;Row x,y,hx,hy;bool pinnedAny=false;const auto reference=coordinates[0][0];
+    for(std::size_t index=0;index<count;++index) {
+        const auto& p=points.array[index];const auto uv=images[index],coordinate=coordinates[index];const auto u=uv[0],v=uv[1],lon=geographic?unwrap(coordinate[0],reference):coordinate[0],lat=coordinate[1];
         const bool pinned=yes(get(p,"pinned"));pinnedAny|=pinned;auto& r=pinned?hard:rows;auto& vx=pinned?hx:x;auto& vy=pinned?hy:y;
         if(mode=="similarity") {r.push_back({u,-v,1,0});vx.push_back(lon);r.push_back({v,u,0,1});vx.push_back(lat);}
         else if(mode=="projective") {r.push_back({u,v,1,0,0,0,-lon*u,-lon*v});vx.push_back(lon);r.push_back({0,0,0,u,v,1,-lat*u,-lat*v});vx.push_back(lat);}
-        else {r.push_back(mode=="tps"?basis(uv,points):Row{u,v,1});vx.push_back(lon);vy.push_back(lat);}
+        else {r.push_back(mode=="tps"?basis(uv,images):Row{u,v,1});vx.push_back(lon);vy.push_back(lat);}
     }
     double regularization=mode=="projective"?1e-14:0;
     if(mode=="tps") {
-        for(int dimension=-1;dimension<2;++dimension) {Row condition(count+3);for(std::size_t i=0;i<count;++i)condition[i]=dimension<0?1:(*point(get(points.array[i],"image")))[dimension];hard.push_back(condition);hx.push_back(0);hy.push_back(0);}
+        for(int dimension=-1;dimension<2;++dimension) {Row condition(count+3);for(std::size_t i=0;i<count;++i)condition[i]=dimension<0?1:images[i][dimension];hard.push_back(condition);hx.push_back(0);hy.push_back(0);}
         regularization=pinnedAny?1e-8:1e-12;
     }
     const auto a=constrained(rows,x,hard,hx,regularization);const auto b=(mode=="affine"||mode=="tps")?constrained(rows,y,hard,hy,regularization):std::optional<Row>(Row{});
     if(!a||!b){result.object["reason"]=V::str("singular-control-points");return result;}
-    result.object["ok"]=V::boolean(true);result.object["schemaVersion"]=V::num(2);result.object["controlPoints"]=points;
-    result.object["xCoefficients"]=array(*a);result.object["yCoefficients"]=array(*b);result.object["diagnostics"]=diagnostics(points,result);return result;
+    PreparedReferenceWarp prepared;prepared.xCoefficients=*a;prepared.yCoefficients=*b;
+    // Match the descriptor number boundary, which canonicalizes negative zero.
+    for(auto& value:prepared.xCoefficients)if(value==0)value=0;
+    for(auto& value:prepared.yCoefficients)if(value==0)value=0;
+    prepared.mode=mode=="similarity"?PreparedReferenceWarp::Similarity:mode=="affine"?PreparedReferenceWarp::Affine:mode=="projective"?PreparedReferenceWarp::Projective:PreparedReferenceWarp::ThinPlateSpline;
+    if(mode=="tps")prepared.controlPoints=images;
+    result.object["ok"]=V::boolean(true);result.object["schemaVersion"]=V::num(2);
+    result.object["xCoefficients"]=array(*a);result.object["yCoefficients"]=array(*b);
+    result.object["diagnostics"]=diagnostics(points,images,coordinates,prepared);
+    result.object["controlPoints"]=std::move(points);return result;
 }
 V projective(const V& quad) {
     if(quad.kind!=V::Array||quad.array.size()!=4)return obj({{"ok",V::boolean(false)},{"mode",V::str("projective")},{"minimumPoints",V::num(4)},{"pointCount",V::num(0)},{"reason",V::str("invalid-map-quad")}});
@@ -166,12 +176,12 @@ P interpolate(const std::vector<P>& points,const Row& cumulative,double fraction
     return {points[i-1][0]+(points[i][0]-points[i-1][0])*ratio,points[i-1][1]+(points[i][1]-points[i-1][1])*ratio};
 }
 V linearPoints(const V& constraints,const V& base,double samples=4,double maximum=24) {
-    auto result=V::arr();const auto limit=std::size_t(std::clamp(std::floor((maximum?maximum:24)+.5),1.,96.));
+    auto result=V::arr();const auto prepared=prepareReferenceImageWarp(base);const auto limit=std::size_t(std::clamp(std::floor((maximum?maximum:24)+.5),1.,96.));
     for(const auto& raw:constraints.array) {
         if((get(raw,"enabled").kind==V::Bool&&!yes(get(raw,"enabled")))||result.array.size()>=limit)continue;
         const auto id=text(get(raw,"id"));if(id.empty())continue;
         const auto image=polyline(get(raw,"image"),false);auto coordinates=polyline(get(raw,"coordinates"),true);if(image.size()<2||coordinates.size()<2)continue;
-        const auto first=project(base,image.front()),last=project(base,image.back());
+        const auto first=projectReferenceImageWarp(prepared,image.front()),last=projectReferenceImageWarp(prepared,image.back());
         if(first&&last&&distance(*first,coordinates.back())+distance(*last,coordinates.front())+1<distance(*first,coordinates.front())+distance(*last,coordinates.back()))std::reverse(coordinates.begin(),coordinates.end());
         const auto imageLengths=lengths(image,false),coordinateLengths=lengths(coordinates,true);const auto count=int(std::clamp(std::floor(samples*std::sqrt(std::clamp(field(raw,"weight",1),.25,3.))+.5),2.,6.));
         for(int i=1;i<=count&&result.array.size()<limit;++i){const auto fraction=double(i)/(count+1);result.array.push_back(obj({{"id",V::str("linear:"+id+":"+std::to_string(i))},{"image",pair(interpolate(image,imageLengths,fraction))},{"coordinate",pair(interpolate(coordinates,coordinateLengths,fraction))},{"pinned",V::boolean(false)},{"linearConstraintId",V::str(id)},{"kind",V::str(text(get(raw,"kind"),"other"))},{"fraction",V::num(fraction)}}));}
