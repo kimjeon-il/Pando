@@ -61,8 +61,8 @@ int main(int argc,char** argv) {
                 test(projection+" desktop scale177.45 DPR"+std::to_string(row.first),[&] {
                     requireLevel(dem,viewFor(mode,177.45,row.first),row.second);
                 });
-            test(projection+" raster saturates at actual L4",[&] {
-                requireLevel(raster,viewFor(mode,1000000),4);
+            test(projection+" preview saturates at L1",[&] {
+                requireLevel(raster,viewFor(mode,1000000),1);
             });
             test(projection+" window-layout sourceDPR cap changes L2 to L1",[&] {
                 const auto view=viewFor(mode,177.45,3);
