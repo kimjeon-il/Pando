@@ -995,8 +995,8 @@
       "sourceSha": "835e4584e2656d4fdfbd24f7077c3f464275871b"
     },
     "world-preview": {
-      "inputFingerprint": "b77f429425d209f54a92f3babe25c2ad1e6034e90e1c0c551536fe71b6204a36",
-      "outputFingerprint": "43a65afc873802d7b013ce0722aba41a1c1f6c6822ddf09a70b30d87f1a8bd9d",
+      "inputFingerprint": "26e9da085dd0a8a0af16f8326c0569b207075d26b9bdde7a1995e0a53d4d6755",
+      "outputFingerprint": "44558970796b290dbb8e233dc13bdfbe7af241cd8eca1e4eea7cc8e7ae172af4",
       "inputs": {
         "assets/data/country-label-anchors-v0.10.1.json": "caeee3f0d05265cc564f68ef092b25ea8c5c4d6f1c36e2beb35a239551751512",
         "assets/data/world/build-input.json": "a47c5f6db7e1ee62ca1162f0fbe9e2e8ba937bb41d79ebeebd3deaf89bd71fd3",
@@ -1013,7 +1013,7 @@
         "assets/js/modules/geometry-validation.js": "581ed80c865457921c37591892bc942f655d99886e9e6322708393d76ae5ec92",
         "assets/js/modules/polygon-geometry.js": "e616c354e4ed58d3559564d3c39434d0ca701d9c2d6e88d28d57e1f159fa0f3e",
         "assets/js/modules/project-preview-policy.js": "33a74c3dda83b5f82b98ab1e1b2abfea1b4234c2def2922cfbc27bd91ce0e28b",
-        "assets/js/modules/project-preview-topology.js": "bbff58eae3548a7c1c0e90d0036da1bb327908574fbe7579d92b6087fe20ee5a",
+        "assets/js/modules/project-preview-topology.js": "d58420258f3c28cadf2a4ed719222c299e29a814dabfe9387d2253d2d689316b",
         "assets/js/modules/temporal.js": "ca5a04a919bc511de7f4ca10f5b2bee6c9b93eafd904cfa18e03a0c456ab1e33",
         "assets/js/modules/territorial-edit-plan.js": "290c3b01d3c4318c560706d49e58a88157339b4060ef145a8758fd2bef2f5f47",
         "assets/js/modules/territorial-units.js": "ee032b194c7d79c17f12815b647dda98c25fc699f48b64405fd457dbd714b561",
@@ -1038,9 +1038,9 @@
       },
       "outputs": {
         "assets/data/countries-canonical-v0.36.1.pcg.gz": "638c6f4868b9d270a62cd66ca13a18dc8a4215fa7c48ff9280a089e433f81dd1",
-        "assets/data/countries-preview-v0.36.1.geojson.gz": "4a607622d4bc26870276b134c533de10af89018b34494b32773ea2a49e9cd166",
-        "assets/data/world-mesh-preview-v0.36.1.bin.gz": "fc00477f2cd4ff25920cbf90d65ea715a4ad41a21b3ba5d5bbc825c169cd841e",
-        "assets/data/world-preview-v0.36.1.json": "88592d4cf409f11133d05a66a8cbce9298fc47c0bc771ecd54bb6cb5681a45f3"
+        "assets/data/countries-preview-v0.36.1.geojson.gz": "b8877a6f3f3bbe9ff78c8007ce163e1adde2e80c1d0daa3b920423070b412252",
+        "assets/data/world-mesh-preview-v0.36.1.bin.gz": "c7805b96bc94b7553453d0616641c4c0da10514b02b4af5f4dfecd7470e3852b",
+        "assets/data/world-preview-v0.36.1.json": "a21b2f9f5d1c65179e0293daf5a58bcf442d49d3a0b4c78a8904aa64cac043e6"
       },
       "consumers": [
         "assets/data/world/current.json"
@@ -1053,11 +1053,11 @@
           "--check"
         ]
       ],
-      "sourceSha": "835e4584e2656d4fdfbd24f7077c3f464275871b"
+      "sourceSha": "03016232f4620c5cd804cc29f4beb00a42c41e8d"
     },
     "world-bundle": {
-      "inputFingerprint": "67eb13f7f01c5e664dd785f3bcca9bd1431c58791c0ad0d738326bb617b4f1bc",
-      "outputFingerprint": "cadf86b08c84e259211a4435024953ba413650bc63ab47ceb8efb7273dd5c1fb",
+      "inputFingerprint": "a0123641f4d687e72006baefd74cb208b191ae055d2655f15f6b0892efeb5c7f",
+      "outputFingerprint": "32e4d92f942f2dceb6d3f5a4938719d52691465397f3509e3a3674df54bf6305",
       "inputs": {
         "assets/data/world/build-input.json": "a47c5f6db7e1ee62ca1162f0fbe9e2e8ba937bb41d79ebeebd3deaf89bd71fd3"
       },
@@ -1068,18 +1068,20 @@
         "node": "24"
       },
       "dependencies": {
-        "world-preview": "43a65afc873802d7b013ce0722aba41a1c1f6c6822ddf09a70b30d87f1a8bd9d"
+        "world-preview": "44558970796b290dbb8e233dc13bdfbe7af241cd8eca1e4eea7cc8e7ae172af4"
       },
       "outputs": {
-        "assets/data/world/current.json": "040919db66007fd239dc7fbb4b1743881be640fcae28f3a4dacbbbb423927d0b",
+        "assets/data/world/current.json": "6fa855e4163c0e82f7a320151e2a13dbab54e61ce59b8454e02593ad4583cf0e",
         "assets/data/world/objects/countries-canonical-sha256-638c6f4868b9d270a62cd66ca13a18dc8a4215fa7c48ff9280a089e433f81dd1.pcg.gz": "638c6f4868b9d270a62cd66ca13a18dc8a4215fa7c48ff9280a089e433f81dd1",
         "assets/data/world/objects/countries-canonical-sha256-753e21400c5a9123169379ba023ccce00d604ae15faf4963cf40ab6cc1652845.pcg.gz": "753e21400c5a9123169379ba023ccce00d604ae15faf4963cf40ab6cc1652845",
         "assets/data/world/objects/countries-preview-sha256-079587b1e4154d6d7cebaf843841a8852bcb888bcb43633c418301d7946c93a5.geojson.gz": "079587b1e4154d6d7cebaf843841a8852bcb888bcb43633c418301d7946c93a5",
         "assets/data/world/objects/countries-preview-sha256-25b8ad594f7a64e6b8089f7b7e8b0dbc187f8432816b81012b00b3dd4b6dcd38.geojson.gz": "25b8ad594f7a64e6b8089f7b7e8b0dbc187f8432816b81012b00b3dd4b6dcd38",
         "assets/data/world/objects/countries-preview-sha256-4a607622d4bc26870276b134c533de10af89018b34494b32773ea2a49e9cd166.geojson.gz": "4a607622d4bc26870276b134c533de10af89018b34494b32773ea2a49e9cd166",
+        "assets/data/world/objects/countries-preview-sha256-b8877a6f3f3bbe9ff78c8007ce163e1adde2e80c1d0daa3b920423070b412252.geojson.gz": "b8877a6f3f3bbe9ff78c8007ce163e1adde2e80c1d0daa3b920423070b412252",
         "assets/data/world/objects/country-label-anchors-sha256-caeee3f0d05265cc564f68ef092b25ea8c5c4d6f1c36e2beb35a239551751512.json": "caeee3f0d05265cc564f68ef092b25ea8c5c4d6f1c36e2beb35a239551751512",
         "assets/data/world/objects/world-mesh-preview-sha256-64881cfbf1b42b125b8ff23524a59497f52d76ca2bef77afc6381d74a3b21129.bin.gz": "64881cfbf1b42b125b8ff23524a59497f52d76ca2bef77afc6381d74a3b21129",
         "assets/data/world/objects/world-mesh-preview-sha256-a90951c3171706bab9af4ff9e94fbc50d1ebc66f0cd53f67a4481ccd6d9e9f48.bin.gz": "a90951c3171706bab9af4ff9e94fbc50d1ebc66f0cd53f67a4481ccd6d9e9f48",
+        "assets/data/world/objects/world-mesh-preview-sha256-c7805b96bc94b7553453d0616641c4c0da10514b02b4af5f4dfecd7470e3852b.bin.gz": "c7805b96bc94b7553453d0616641c4c0da10514b02b4af5f4dfecd7470e3852b",
         "assets/data/world/objects/world-mesh-preview-sha256-fc00477f2cd4ff25920cbf90d65ea715a4ad41a21b3ba5d5bbc825c169cd841e.bin.gz": "fc00477f2cd4ff25920cbf90d65ea715a4ad41a21b3ba5d5bbc825c169cd841e",
         "assets/data/world/objects/world-mesh-sha256-9fe1f686728e83d4615998a7b023db680b3b561b0a26e7f2f4357b7fe8bcfb86.bin.gz": "9fe1f686728e83d4615998a7b023db680b3b561b0a26e7f2f4357b7fe8bcfb86",
         "assets/data/world/objects/world-mesh-sha256-c7f687e9d14325ae9c8334cb4fabc3afd016e1a1231cf16b1c0729499a713ec8.bin.gz": "c7f687e9d14325ae9c8334cb4fabc3afd016e1a1231cf16b1c0729499a713ec8"
@@ -1096,11 +1098,11 @@
           "--check"
         ]
       ],
-      "sourceSha": "835e4584e2656d4fdfbd24f7077c3f464275871b"
+      "sourceSha": "03016232f4620c5cd804cc29f4beb00a42c41e8d"
     },
     "shared-boundaries": {
-      "inputFingerprint": "bc7d75c2efc60d09ab448dbb15f7a0022c55f218f345da5a8af65c96182ca452",
-      "outputFingerprint": "7d88eb11037013eae960ce8cbf39e53e7570a329072ed65e0c5a0eb068c5abf6",
+      "inputFingerprint": "5de5d454a1fc03a2eb9bd4249d3f27154d0cfc101e81cd46bd772a819f7aed25",
+      "outputFingerprint": "2cae0566d314fece8cc0fd01115db6e27cb8b17e9acabb2bfa9e8895b059a9da",
       "inputs": {},
       "generatorHashes": {
         "assets/js/modules/boundary-spatial-index.js": "2efc716326c74a8e98e8de0408b94ff746868dbe9a9a53e4f491114153803a71",
@@ -1124,12 +1126,12 @@
         "node": "24"
       },
       "dependencies": {
-        "world-bundle": "cadf86b08c84e259211a4435024953ba413650bc63ab47ceb8efb7273dd5c1fb",
+        "world-bundle": "32e4d92f942f2dceb6d3f5a4938719d52691465397f3509e3a3674df54bf6305",
         "wasm": "43f9ac165ebdcba10a27475484e03c979c26137319afd66834f3e2d001826328"
       },
       "outputs": {
         "assets/data/countries-canonical-shared-v0.36.1.json.gz": "20a0f3bc89ffe1b370e3513a57b329bf84d4c9460571f5545da7c6809531fba0",
-        "assets/data/countries-preview-shared-v0.36.1.json.gz": "b39734d66ef6d06387638f2def405d6a9e86728d941d6499a1488ed3163ab6be"
+        "assets/data/countries-preview-shared-v0.36.1.json.gz": "890c8b8eb028e48e2c8ce45dcb6b2615d1e0095b2aa4c726903a32bb1eba85e4"
       },
       "consumers": [
         "assets/js/modules/country-shared-boundary-cache.js"
@@ -1142,7 +1144,7 @@
           "--check"
         ]
       ],
-      "sourceSha": "835e4584e2656d4fdfbd24f7077c3f464275871b"
+      "sourceSha": "03016232f4620c5cd804cc29f4beb00a42c41e8d"
     },
     "prepared-mesh": {
       "inputFingerprint": "3ca1425e32b90fd63a701ad563afd7c3d4356b498c9ffbbd9bd89ac1ff336abe",
