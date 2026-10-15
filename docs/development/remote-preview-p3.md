@@ -35,7 +35,7 @@ GitHub 저장소 **Actions → P3 Remote preview and Qt verification → 해당 
 - Linux: `cmake --preset pando-native-qt-ci-linux`, `cmake --build --preset pando-native-qt-ci-linux`, `ctest --preset pando-native-qt-ci-linux`
 - Windows: `cmake --preset pando-native-qt-ci-windows` (vcpkg zlib toolchain 추가), `cmake --build --preset pando-native-qt-ci-windows`, `ctest --preset pando-native-qt-ci-windows`
 
-CMake 3.31.6, Qt 6.8.3, Node 24, pnpm 11.19.0은 앱과 선택 CTest에 맞춰 설치한다. P4 이후 기본 Qt CMake 설정은 Python을 탐색하지 않는다. 이전 Python GIS·레거시 오라클은 별도 실행 경로에서만 등록하며, Qt의 JS geometry source admission 때문에 Node/pnpm 의존성은 P5/P6 전까지 유지한다. 기존 P2 WASM/Qt 생성물은 이번 Qt 빌드에서 **검사**하지만 별도의 무단 갱신을 하지 않는다.
+CMake 3.31.6과 Qt 6.8.3을 고정한다. SDK 설치 준비 이후 제품 configure/build/CTest 단계에서는 Node·pnpm·Python 호출을 거부하는 실행 파일을 PATH 앞에 둔다. GitHub Actions 자체 런타임과 제품 도구 호출은 구분한다. Qt는 공유 C++를 직접 호출하고 QML UI를 유지한다. 선택적인 웹 동등성 오라클은 기본 네이티브 검사 목록과 분리되어 있다.
 
 앱 전체 `pandoeditor`와 선택된 `temporal_tests`, `m72_mapprojection_lifetime_tests`, `interaction_style_policy_tests` CTest를 빌드한다. Linux에서는 Xvfb 가상 디스플레이에서 `pandoeditor --smoke-check`을 실행해 실제 Qt Quick 창 캡처를 시도하며, 결과를 브라우저 캡처와 **분리**한다. 이 캡처는 실제 GPU/모바일 화면 검증이 아니다.
 
@@ -48,3 +48,10 @@ CMake 3.31.6, Qt 6.8.3, Node 24, pnpm 11.19.0은 앱과 선택 CTest에 맞춰 �
 수동 실행은 `auto`, `preview`, `browser`, `qt`, `all` 중 선택한다. 메인에 통합되지 않은 브랜치 전용 워크플로의 수동 실행 노출은 GitHub 제한을 따르며, 브랜치의 소스 push가 기본 실행 경로다.
 
 남은 별도 항목은 실장치 GPU/드라이버, Android 휴대폰 터치·성능, Windows 실제 그래픽 화면, 전체 브라우저 회귀와 대규모 GIS 데이터 교차 검증이다. 경량 브라우저/Qt의 선별 결과만 성공으로 기록해야 하며, 제품 배포·정식 성능 수용은 P9 단계가 담당한다.
+
+
+## P7/P8 실행 순서
+
+P2가 입력 그래프에서 오래된 생성물을 찾으면 원본 push의 P3 무거운 작업을 보류한다. P2 게시가 끝나면 `source_sha`(실제 결과), `original_source_sha`(원본), `base_sha`(변경 기준)를 전달한다. P3는 지정 SHA를 체크아웃하고 원본의 후손인지 확인한다. UI/객체/GIS/지명 경량 계약, 브라우저, Qt를 실제 변경 범위로 선택한다. 수계 네이티브 검사는 별도 앱 빌드 대신 같은 Qt 빌드 디렉터리를 재사용한다. 문서 변경은 무거운 작업을 선택하지 않는다.
+
+수동 진단으로 `qt`/`browser` 등을 선택할 수 있다. 구현 중 중간 반복 회귀는 하지 않고 최종 기능·성능 검증은 P9에서 모아 실행한다. 이미 생성한 로그는 재사용하며 실패한 직접 항목만 다시 확인한다.

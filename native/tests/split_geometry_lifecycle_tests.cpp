@@ -16,6 +16,7 @@
 #include <pandoeditor/project.h>
 #include <pandoeditor/presentationcommands.h>
 #include <pandoeditor/geometrypredicates.h>
+#include <pandoeditor/sphericalpolygon.h>
 #include <QtTest>
 using namespace pandoeditor;
 namespace {
@@ -174,7 +175,11 @@ private slots:
             QCOMPARE(staticParentRelation(project.document(),id).parentId,row["parentId"].toString().toStdString());QCOMPARE(staticParentRelation(project.document(),id).coverageMode,row["coverageMode"].toString().toStdString());
             const auto& nativeGeometry=*project.document().geometries.get(staticGeometryBinding(project.document(),id).geometryRef);
             QVERIFY2(sameObservedCoverage(nativeGeometry,observedGeometry(row["geometry"].toObject())),id.c_str());
-            QCOMPARE(observedGeometryJson(nativeGeometry),row["geometry"].toObject());
+            // These archived lifecycle observations predate P5 spherical winding.
+            // Compare their current canonical representation; the dedicated normalizer
+            // corpus separately pins exact 8e229826 coordinates and winding.
+            QCOMPARE(observedGeometryJson(normalizeSphericalPolygonGeometry(nativeGeometry)),
+                observedGeometryJson(normalizeSphericalPolygonGeometry(observedGeometry(row["geometry"].toObject()))));
             QCOMPARE(project.document().presentation.objectStyles.at(territorialRef(id)).explicitColor,properties["style"].toObject().contains("color"));
         }
         const auto entries=observedDocument(confirm)["distributionEntries"].toArray();QCOMPARE(project.document().distributionEntries.size(),std::size_t(entries.size()));
@@ -188,7 +193,7 @@ private slots:
         Geometry input;input.type="Polygon";input.polygons={{{{179,-2},{179,2},{-179,2},{-179,-2},{179,-2}}}};
         const auto before=observedGeometryJson(input);const auto raw=normalizeSplitRawGeometry(input),wrapped=wrapSplitGeometry(input),clipped=normalizeSplitClippedGeometry(input);
         QVERIFY(raw.succeeded());QVERIFY(raw.inputUnchanged);QVERIFY(wrapped.succeeded());QVERIFY(clipped.succeeded());QCOMPARE(observedGeometryJson(input),before);
-        QCOMPARE(raw.geometry.type,std::string("Polygon"));QCOMPARE(raw.geometry.polygons[0][0].size(),std::size_t(5));QCOMPARE(raw.geometry.polygons[0][0][0].x,-179.);
+        QCOMPARE(raw.geometry.type,std::string("Polygon"));QCOMPARE(raw.geometry.polygons[0][0].size(),std::size_t(5));QCOMPARE(observedGeometryJson(raw.geometry),before);
         QCOMPARE(wrapped.geometry.polygons.size(),std::size_t(2));QVERIFY(clipped.geometry.polygons[0][0].size()>raw.geometry.polygons[0][0].size());
     }
     void childSourceMovesContainedChildAndPreservesGrandchildRelation() {

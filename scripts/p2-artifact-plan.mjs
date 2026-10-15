@@ -9,6 +9,7 @@ import { isAbsolute, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { changedPaths } from './p1-plan-remote-checks.mjs';
 import { sharedSourceManifest } from '../tools/package-shared-core-assets.mjs';
+import { graphStatus, artifactGraph, ownsPath, RECEIPT_PATH, stageArtifacts, publishArtifacts, artifactEvidence } from './lib/p2-artifact-graph.mjs';
 
 export const root=fileURLToPath(new URL('../',import.meta.url));
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -61,14 +62,13 @@ export function wasmStatus(rootDir=root,pin=null) {
 export function selectJobs({wasm},changed=[],manual='auto') {
   if(!['auto','all','wasm','verify'].includes(manual))
     throw Error('P2_INVALID_SCOPE: '+manual);
-  // On the first installation or a change to this controller, force compilation
-  // and generator checks once to prove the pipeline is executable. The committed
-  // outputs are changed only if their *bytes* differ.
+  // Controller changes are covered by orchestration tests. They do not alter
+  // compiled input identity and must not force an otherwise unchanged compiler.
   const bootstrap=changed.some(p=>[
     '.github/workflows/generated-artifacts-p2.yml',
     'scripts/p2-artifact-plan.mjs','tests/unit/p2-artifact-plan.test.mjs',
     'cmake/P2NativeBuildReceipt.cmake'].includes(p));
-  const forced=(bootstrap&&manual==='auto')||manual==='all';
+  const forced=manual==='all';
   const wasmDefinitionChanged=changed.some(p=>[
     'tools/package-shared-core-assets.mjs','CMakeLists.txt','CMakePresets.json'].includes(p));
   return {
@@ -80,11 +80,12 @@ export function selectJobs({wasm},changed=[],manual='auto') {
 
 // Fail closed on unexpected generator output, even when no Python, C++ or JS
 // application files were edited by the workflow.
-export function assertSafeGeneratedPaths(changed, enabled) {
+export function assertSafeGeneratedPaths(changed, enabled, rootDir=null) {
+  const families=rootDir?artifactGraph(rootDir).filter(f=>enabled[f.id]):[];
   for(const path of changed) {
     const allowed=Object.entries(OUTPUTS).some(([kind,patterns])=>
       enabled[kind]&&patterns.some(p=>p.endsWith('/')?path.startsWith(p):path===p));
-    if(!allowed)throw Error('P2_UNEXPECTED_GENERATED_FILE: '+path);
+    if(!allowed&&!families.some(f=>ownsPath(f,path))&&!(path===RECEIPT_PATH&&families.length))throw Error('P2_UNEXPECTED_GENERATED_FILE: '+path);
   }
   return true;
 }
@@ -96,41 +97,61 @@ export function assertArtifactsCurrent(statuses,selected=Object.keys(statuses)) 
   }
 }
 
-export function plan(rootDir=root,{changes=[],manual='auto'}={}) {
+export function plan(rootDir=root,{changes=[],manual='auto',families=[]}={}) {
   const statuses={
     wasm:wasmStatus(rootDir)
   };
-  return {statuses,...selectJobs(statuses,changes,manual)};
+  const jobs=selectJobs(statuses,changes,manual);
+  const graph=graphStatus(rootDir,{wasm:statuses.wasm,requested:families,force:manual==='all'});
+  return {statuses:{...statuses,...graph.statuses},...jobs,
+    selectedFamilies:manual==='wasm'||manual==='verify'?[]:graph.selectedFamilies,
+    deferredFamilies:manual==='wasm'||manual==='verify'?[]:graph.deferredFamilies,
+    blockedFamilies:manual==='wasm'?[]:graph.blockedFamilies};
 }
 
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
-  const difference=changedPaths({base:process.env.PANDO_P2_BASE_SHA||''});
-  const result=plan(root,{changes:difference.paths,manual:process.env.PANDO_P2_SCOPE||'auto'});
-  if(process.argv.includes('--check')) {
-    const scope=process.env.PANDO_P2_SCOPE||'all';
-    const selected=['wasm'].includes(scope)?[scope]:Object.keys(result.statuses);
-    assertArtifactsCurrent(result.statuses,selected);
+  const args=process.argv.slice(2);
+  const value=name=>{const index=args.indexOf(name);if(index<0)return undefined;assert.ok(args[index+1]&&!args[index+1].startsWith('--'),'Missing '+name);return args[index+1];};
+  const families=(value('--families')||process.env.PANDO_P2_FAMILIES||'').split(',').filter(Boolean);
+  const options={families,expectedSourceSha:value('--expected-source-sha'),stageDir:value('--stage-dir'),
+    expectedRemoteSha:value('--expected-remote-sha'),branch:value('--branch')};
+  if(args.includes('--stage'))console.log(JSON.stringify(await stageArtifacts(root,options),null,2));
+  else if(args.includes('--publish')) {
+    assert.ok(options.expectedRemoteSha&&options.branch,'Publish requires remote SHA and branch');
+    console.log(JSON.stringify(publishArtifacts(root,options),null,2));
+  } else if(args.includes('--evidence'))console.log(JSON.stringify(artifactEvidence(root,{
+    resultSha:value('--result-sha'),expectedSourceSha:options.expectedSourceSha,evidenceFile:value('--evidence-file')}),null,2));
+  else {
+    const difference=changedPaths({base:process.env.PANDO_P2_BASE_SHA||''});
+    const result=plan(root,{changes:difference.paths,manual:process.env.PANDO_P2_SCOPE||'auto',families});
+    if(args.includes('--check')) {
+      const scope=process.env.PANDO_P2_SCOPE||'all';
+      const selected=families.length?families:scope==='wasm'?['wasm']:['wasm',...artifactGraph(root).filter(f=>!f.manual).map(f=>f.id)];
+      assertArtifactsCurrent(result.statuses,selected);
+    }
+    if(args.includes('--validate-staged')) {
+      const staged=execFileSync('git',['diff','--cached','--name-only','-z'],{cwd:root})
+        .toString('utf8').split('\0').filter(Boolean);
+      assertSafeGeneratedPaths(staged,{wasm:process.env.PANDO_P2_WASM==='true',...Object.fromEntries(families.map(id=>[id,true]))},root);
+      console.log('P2 validated generated output scope: '+JSON.stringify(staged));
+    }
+    if(args.includes('--github-output')) {
+      assert.ok(process.env.GITHUB_OUTPUT,'GITHUB_OUTPUT required');
+      const pins=json(root,'config/toolchain-versions.json');
+      appendFileSync(process.env.GITHUB_OUTPUT,[
+        'wasm='+String(result.wasm),
+        'selected_families='+JSON.stringify(result.selectedFamilies),
+        'deferred_families='+JSON.stringify(result.deferredFamilies),
+        'blocked_families='+JSON.stringify(result.blockedFamilies),
+        'pnpm_version='+pins.pnpm,
+        'cmake_version='+pins.cmake,
+        'emscripten_version='+pins.emscripten,
+        'emsdk_ref='+pins.emsdkCommit
+      ].join('\n')+'\n');
+    }
+    console.log(JSON.stringify({scope:process.env.PANDO_P2_SCOPE||'auto',
+      status:result.statuses,selected:{wasm:result.wasm,families:result.selectedFamilies,
+        bootstrap:result.bootstrap},deferred:result.deferredFamilies,blocked:result.blockedFamilies,
+      changedPaths:difference.paths,diffFallback:difference.fallback},null,2));
   }
-  if(process.argv.includes('--validate-staged')) {
-    const staged=execFileSync('git',['diff','--cached','--name-only','-z'],{cwd:root})
-      .toString('utf8').split('\0').filter(Boolean);
-    assertSafeGeneratedPaths(staged, {
-      wasm:process.env.PANDO_P2_WASM==='true'
-    });
-    console.log('P2 validated generated output scope: '+JSON.stringify(staged));
-  }
-  if(process.argv.includes('--github-output')) {
-    assert.ok(process.env.GITHUB_OUTPUT,'GITHUB_OUTPUT required');
-    const pins=json(root,'config/toolchain-versions.json');
-    appendFileSync(process.env.GITHUB_OUTPUT,[
-      ...['wasm'].map(k=>k+'='+String(result[k])),
-      'cmake_version='+pins.cmake,
-      'emscripten_version='+pins.emscripten,
-      'emsdk_ref='+pins.emsdkCommit
-    ].join('\n')+'\n');
-  }
-  console.log(JSON.stringify({scope:process.env.PANDO_P2_SCOPE||'auto',
-    status:result.statuses,selected:{wasm:result.wasm,
-      bootstrap:result.bootstrap},
-    changedPaths:difference.paths,diffFallback:difference.fallback},null,2));
 }

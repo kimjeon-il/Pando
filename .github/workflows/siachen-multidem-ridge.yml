@@ -1,9 +1,6 @@
+# Explicit GIS/source-data reproduction; lightweight source checks remain in gis-python-p4.yml.
 name: Siachen Saltoro cross-source DEM study
 on:
-  push:
-    branches: [work/gis]
-    paths:
-      - scripts/research/siachen/compare_independent_dem_saltoro.py
   workflow_dispatch:
 permissions:
   contents: write

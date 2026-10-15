@@ -1,0 +1,381 @@
+{
+  "schema": "pandolab-generated-artifact-graph",
+  "schemaVersion": 1,
+  "families": [
+    {
+      "id": "territorial",
+      "dependencies": [
+        "wasm"
+      ],
+      "inputs": [
+        "assets/data/territorial-entities/source/"
+      ],
+      "outputs": [
+        "assets/data/territorial-entities/generated/v2/"
+      ],
+      "generate": [
+        [
+          "node",
+          "tools/build-territorial-entity-chunks.mjs"
+        ]
+      ],
+      "validate": [
+        [
+          "node",
+          "tools/build-territorial-entity-chunks.mjs",
+          "--check"
+        ]
+      ],
+      "consumers": [
+        "assets/js/modules/territorial-entity-repository.js",
+        "native/assets/world/"
+      ],
+      "tools": [
+        "node"
+      ]
+    },
+    {
+      "id": "current-world",
+      "dependencies": [
+        "wasm"
+      ],
+      "inputs": [
+        "assets/data/territorial-entities/source/"
+      ],
+      "outputs": [
+        "assets/data/territorial-entities/generated/current-world.geojson"
+      ],
+      "generate": [
+        [
+          "node",
+          "tools/build-territorial-current-world.mjs"
+        ]
+      ],
+      "validate": [
+        [
+          "node",
+          "tools/build-territorial-current-world.mjs",
+          "--check"
+        ]
+      ],
+      "consumers": [
+        "assets/data/world/build-input.json"
+      ],
+      "tools": [
+        "node"
+      ]
+    },
+    {
+      "id": "historical-world",
+      "dependencies": [
+        "territorial",
+        "current-world",
+        "wasm"
+      ],
+      "inputs": [
+        "assets/data/historical-world/policy.json"
+      ],
+      "outputs": [
+        "assets/data/historical-world/generated/v1/"
+      ],
+      "generate": [
+        [
+          "node",
+          "tools/build-historical-world-timeline.mjs"
+        ]
+      ],
+      "validate": [
+        [
+          "node",
+          "tools/build-historical-world-timeline.mjs",
+          "--check"
+        ]
+      ],
+      "consumers": [
+        "assets/js/modules/historical-world-loader.js",
+        "native/assets/world/historical-world/"
+      ],
+      "tools": [
+        "node"
+      ]
+    },
+    {
+      "id": "world-mesh",
+      "dependencies": [
+        "current-world"
+      ],
+      "inputs": [
+        "assets/data/world/build-input.json",
+        "assets/js/vendor/earcut.min.js",
+        "assets/js/workers/gpu-mesh-core.js"
+      ],
+      "outputs": [],
+      "generate": [
+        [
+          "node",
+          "tools/build-world-mesh.mjs"
+        ]
+      ],
+      "validate": [
+        [
+          "node",
+          "scripts/p2-validate-artifacts.mjs",
+          "world-mesh"
+        ]
+      ],
+      "consumers": [
+        "assets/data/world/current.json"
+      ],
+      "tools": [
+        "node"
+      ],
+      "resolve": "world-mesh"
+    },
+    {
+      "id": "world-preview",
+      "dependencies": [
+        "world-mesh",
+        "current-world",
+        "wasm"
+      ],
+      "inputs": [
+        "assets/data/world/build-input.json",
+        "assets/js/vendor/d3.min.js",
+        "assets/js/vendor/earcut.min.js",
+        "assets/js/workers/gpu-mesh-core.js"
+      ],
+      "outputs": [],
+      "generate": [
+        [
+          "node",
+          "tools/build-world-preview.mjs"
+        ]
+      ],
+      "validate": [
+        [
+          "node",
+          "tools/build-world-preview.mjs",
+          "--check"
+        ]
+      ],
+      "consumers": [
+        "assets/data/world/current.json"
+      ],
+      "tools": [
+        "node"
+      ],
+      "resolve": "world-preview"
+    },
+    {
+      "id": "world-bundle",
+      "dependencies": [
+        "world-preview"
+      ],
+      "inputs": [
+        "assets/data/world/build-input.json"
+      ],
+      "outputs": [
+        "assets/data/world/current.json",
+        "assets/data/world/objects/"
+      ],
+      "generate": [
+        [
+          "node",
+          "tools/build-world-bundle.mjs"
+        ]
+      ],
+      "validate": [
+        [
+          "node",
+          "tools/build-world-bundle.mjs",
+          "--check"
+        ]
+      ],
+      "consumers": [
+        "assets/js/workers/data-loader-worker.js",
+        "native/assets/world/manifest.json"
+      ],
+      "tools": [
+        "node"
+      ]
+    },
+    {
+      "id": "shared-boundaries",
+      "dependencies": [
+        "world-bundle",
+        "wasm"
+      ],
+      "inputs": [],
+      "outputs": [],
+      "generate": [
+        [
+          "node",
+          "tools/build-country-shared-boundaries.mjs"
+        ]
+      ],
+      "validate": [
+        [
+          "node",
+          "tools/build-country-shared-boundaries.mjs",
+          "--check"
+        ]
+      ],
+      "consumers": [
+        "assets/js/modules/country-shared-boundary-cache.js"
+      ],
+      "tools": [
+        "node"
+      ],
+      "resolve": "shared-boundaries"
+    },
+    {
+      "id": "prepared-mesh",
+      "dependencies": [
+        "historical-world",
+        "territorial",
+        "current-world",
+        "wasm"
+      ],
+      "inputs": [
+        "assets/js/workers/gpu-mesh-core.js",
+        "assets/js/vendor/earcut.min.js"
+      ],
+      "outputs": [
+        "assets/data/prepared-polygons/generated/v2/"
+      ],
+      "generate": [
+        [
+          "node",
+          "tools/build-prepared-polygon-mesh.mjs"
+        ]
+      ],
+      "validate": [
+        [
+          "node",
+          "scripts/p2-validate-artifacts.mjs",
+          "prepared-mesh"
+        ]
+      ],
+      "consumers": [
+        "assets/js/modules/prepared-polygon-mesh.js"
+      ],
+      "tools": [
+        "node"
+      ]
+    },
+    {
+      "id": "places",
+      "dependencies": [
+        "wasm"
+      ],
+      "inputs": [
+        {
+          "prefix": "reports/places/",
+          "pattern": "(?:^|/)(?:tier1-major-cities-batch\\d{2}[-a-z0-9]*|runtime-release-approvals-v1)\\.json$"
+        }
+      ],
+      "outputs": [
+        "assets/data/places/reviewed-records-v1.json",
+        "assets/data/places/places-v1.bin",
+        "assets/data/places/manifest.json"
+      ],
+      "generate": [
+        [
+          "node",
+          "tools/build-place-runtime.mjs"
+        ]
+      ],
+      "validate": [
+        [
+          "node",
+          "tools/build-place-runtime.mjs",
+          "--check"
+        ]
+      ],
+      "consumers": [
+        "assets/js/modules/place-runtime.js",
+        "native/assets/place/"
+      ],
+      "tools": [
+        "node"
+      ]
+    },
+    {
+      "id": "hydro",
+      "dependencies": [],
+      "inputs": [],
+      "outputs": [],
+      "generate": [],
+      "validate": [],
+      "consumers": [
+        "assets/js/workers/data-loader-worker.js",
+        "native/assets/world/hydro/"
+      ],
+      "tools": [
+        "python"
+      ],
+      "resolve": "hydro",
+      "manual": true,
+      "blockedReason": "Raw hydro source paths and command arguments must be explicitly pinned for this GIS run; automatic downloads are forbidden."
+    },
+    {
+      "id": "terrain",
+      "dependencies": [],
+      "inputs": [],
+      "outputs": [],
+      "generate": [],
+      "validate": [],
+      "consumers": [
+        "assets/js/workers/data-loader-worker.js",
+        "native/assets/world/terrain-preview/"
+      ],
+      "tools": [
+        "python"
+      ],
+      "resolve": "terrain",
+      "manual": true,
+      "blockedReason": "Raw DEM, tint and glaciated-area source paths must be explicitly pinned for this GIS run; automatic downloads are forbidden."
+    },
+    {
+      "id": "native-assets",
+      "dependencies": [
+        "world-bundle",
+        "historical-world",
+        "places",
+        "hydro",
+        "terrain"
+      ],
+      "inputs": [],
+      "outputs": [
+        "native/assets/world/manifest.json",
+        "native/assets/world/historical-world/v1/",
+        "native/assets/place/"
+      ],
+      "generate": [
+        [
+          "node",
+          "scripts/p2-sync-native-artifacts.mjs"
+        ]
+      ],
+      "validate": [
+        [
+          "node",
+          "native/tools/verify-world-assets.mjs"
+        ],
+        [
+          "node",
+          "scripts/p2-validate-artifacts.mjs",
+          "native-assets"
+        ]
+      ],
+      "consumers": [
+        "native/app/worlddataset.cpp",
+        "native/app/placeruntimestore.cpp"
+      ],
+      "tools": [
+        "node"
+      ],
+      "afterWebCommit": true
+    }
+  ]
+}

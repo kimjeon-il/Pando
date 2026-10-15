@@ -10,7 +10,7 @@ on:
       - 'scripts/p3-stage-preview.mjs'
       - 'scripts/p3-preview-server.mjs'
       - '.devcontainer/**'
-      - 'tests/unit/p3-preview-server.test.mjs'
+      - 'tests/unit/**'
       - 'tests/unit/p3-remote-plan.test.mjs'
       - 'tests/browser/p3-remote-preview.spec.mjs'
       - 'tests/browser/performance-observability.spec.mjs'
@@ -33,6 +33,18 @@ on:
     branches: [main]
   workflow_dispatch:
     inputs:
+      source_sha:
+        description: Verified artifact result SHA (empty uses selected branch)
+        type: string
+        required: false
+      original_source_sha:
+        description: Source SHA that produced the verified artifact result
+        type: string
+        required: false
+      base_sha:
+        description: Source change base before artifact publication
+        type: string
+        required: false
       scope:
         description: Run changed scopes only (auto), or select a diagnostic
         type: choice
@@ -53,24 +65,75 @@ jobs:
       preview: ${{ steps.scope.outputs.preview }}
       browser: ${{ steps.scope.outputs.browser }}
       qt: ${{ steps.scope.outputs.qt }}
+      hydro: ${{ steps.scope.outputs.hydro }}
+      contracts: ${{ steps.scope.outputs.contracts }}
+      ui: ${{ steps.scope.outputs.ui }}
+      objects: ${{ steps.scope.outputs.objects }}
+      gis: ${{ steps.scope.outputs.gis }}
+      places: ${{ steps.scope.outputs.places }}
       slug: ${{ steps.scope.outputs.slug }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 2
+          ref: ${{ inputs.source_sha || github.sha }}
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
       - name: Check preview and build plan without installing SDKs
         run: node --test tests/unit/p3-remote-plan.test.mjs tests/unit/p3-preview-server.test.mjs
+      - name: Fetch source-change base for artifact result verification
+        shell: bash
+        env:
+          BASE_SHA: ${{ inputs.base_sha || github.event.pull_request.base.sha || github.event.before || '' }}
+          SOURCE_SHA: ${{ inputs.source_sha || github.sha }}
+          ORIGINAL_SOURCE_SHA: ${{ inputs.original_source_sha || '' }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          if [ -n "$ORIGINAL_SOURCE_SHA" ]; then
+            [[ "$ORIGINAL_SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]
+            git fetch --no-tags --deepen=10 origin "$GITHUB_REF_NAME"
+            git merge-base --is-ancestor "$ORIGINAL_SOURCE_SHA" HEAD
+          fi
+          if [[ "$BASE_SHA" =~ ^[0-9a-f]{40}$ ]] && [[ ! "$BASE_SHA" =~ ^0{40}$ ]]; then
+            git cat-file -e "$BASE_SHA^{commit}" 2>/dev/null || git fetch --no-tags --depth=1 origin "$BASE_SHA"
+          fi
       - name: Resolve changed scopes using the actual Git history
         id: scope
         env:
-          PANDO_P3_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || '' }}
+          PANDO_P3_BASE_SHA: ${{ inputs.base_sha || github.event.pull_request.base.sha || github.event.before || '' }}
           PANDO_P3_BRANCH: ${{ github.head_ref || github.ref_name }}
           PANDO_P3_SCOPE: ${{ inputs.scope || 'auto' }}
         run: node scripts/p3-plan-remote.mjs --github-output
+
+  web-contracts:
+    needs: plan
+    if: needs.plan.outputs.contracts == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Run affected contracts against the verified generated runtime
+        shell: bash
+        env:
+          UI: ${{ needs.plan.outputs.ui }}
+          OBJECTS: ${{ needs.plan.outputs.objects }}
+          GIS: ${{ needs.plan.outputs.gis }}
+          PLACES: ${{ needs.plan.outputs.places }}
+        run: |
+          set -euo pipefail
+          if [ "$UI" = true ]; then node --test tests/unit/surface-controller.test.mjs; fi
+          if [ "$OBJECTS" = true ]; then node --test tests/unit/temporal.test.mjs; fi
+          if [ "$GIS" = true ]; then node --test tests/unit/polygon-geometry.test.mjs; fi
+          if [ "$PLACES" = true ]; then node --test tests/unit/place-codec.test.mjs; fi
 
   web-snapshot:
     needs: plan
@@ -80,6 +143,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ inputs.source_sha || github.sha }}
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
@@ -93,7 +157,7 @@ jobs:
       - name: Upload runnable static Web preview for this branch
         uses: actions/upload-artifact@v4
         with:
-          name: p3-web-${{ needs.plan.outputs.slug }}-${{ github.sha }}
+          name: p3-web-${{ needs.plan.outputs.slug }}-${{ inputs.source_sha || github.sha }}
           path: ${{ runner.temp }}/p3-preview/${{ needs.plan.outputs.slug }}
           retention-days: 5
           compression-level: 0
@@ -115,6 +179,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ inputs.source_sha || github.sha }}
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
@@ -145,7 +210,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: p3-browser-${{ needs.plan.outputs.slug }}-${{ github.sha }}
+          name: p3-browser-${{ needs.plan.outputs.slug }}-${{ inputs.source_sha || github.sha }}
           path: |
             test-results/p3-browser
             test-results/p3-browser.log
@@ -180,6 +245,7 @@ jobs:
         run: git config --global core.autocrlf false
       - uses: actions/checkout@v4
         with:
+          ref: ${{ inputs.source_sha || github.sha }}
           persist-credentials: false
       - uses: jwlawson/actions-setup-cmake@v2
         with:
@@ -256,26 +322,22 @@ jobs:
         run: |
           ctest --preset $env:PANDO_P3_QT_PRESET 2>&1 | Tee-Object p3-ctest.log
           $ctestExit = $LASTEXITCODE
-          if ($ctestExit -ne 0) {
-            # QtTest may exit without writing to the CTest console on Windows.
-            # Capture its own text output and NTSTATUS without masking the failure.
-            $target = "build-native/p3/$env:PANDO_P3_QT_PRESET/native/Release/native_performance_structure_tests.exe"
-            $log = Join-Path (Get-Location).Path 'p3-native-performance-structure-diagnostic.log'
-            $ErrorActionPreference = 'Continue'
-            if (Test-Path $target) {
-              & $target -o "$log,txt" 2>&1 | Tee-Object p3-native-performance-structure-console.log
-              $directExit = $LASTEXITCODE
-              Write-Host ("Native performance structure exit: decimal={0}, hex=0x{1}" -f $directExit, [Convert]::ToString([int]$directExit,16))
-              if (Test-Path $log) {
-                Get-Content $log | Select-Object -Last 250
-              } else {
-                Write-Host 'No QtTest diagnostic file was written; process may have failed during startup.'
-              }
-            } else {
-              Write-Host "Native test executable was not found: $target"
-            }
+          # QtTest writes persistent logs on both platforms, including Windows
+          # executables whose stdout is unavailable to CTest. Never rerun an unrelated test.
+          Get-ChildItem "build-native/p3/$env:PANDO_P3_QT_PRESET/*_tests.txt" | ForEach-Object {
+            Get-Content $_.FullName | Select-String -Pattern "FAIL!|QFATAL|Totals:" -Context 0,2
           }
           exit $ctestExit
+      - name: Verify affected native hydro consumers in the existing Qt build
+        if: needs.plan.outputs.hydro == 'true'
+        shell: pwsh
+        run: |
+          $manifest = Get-Content native/assets/world/manifest.json -Raw | ConvertFrom-Json
+          $env:PANDOEDITOR_HYDRO_FULL_MANIFEST = (Resolve-Path (Join-Path native/assets/world $manifest.hydro.path)).Path
+          cmake --build --preset $env:PANDO_P3_QT_PRESET --target hydro_manifest_tests hydro_runtime_tests hydro_full_dataset_tests river_selection_controller_tests physical_data_store_tests
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          ctest --test-dir "build-native/p3/$env:PANDO_P3_QT_PRESET" -C Release -R '^(hydro_manifest_tests|hydro_runtime_tests|hydro_full_dataset_tests|river_selection_controller_tests|physical_data_store_tests)$' --output-on-failure
+          exit $LASTEXITCODE
       - name: Build and CTest the shared C++ normalization through Qt
         shell: bash
         run: |
@@ -320,12 +382,11 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: p3-qt-${{ matrix.os_id }}-${{ github.sha }}
+          name: p3-qt-${{ matrix.os_id }}-${{ inputs.source_sha || github.sha }}
           path: |
             p3-qt-build.log
             p3-ctest.log
-            p3-native-performance-structure-diagnostic.log
-            p3-native-performance-structure-console.log
+            build-native/p3/${{ matrix.preset }}/*_tests.txt
             p3-p5-qt-area-build.log
             p3-p5-qt-area-ctest.log
             test-results/p3-qt

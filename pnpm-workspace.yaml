@@ -1,5 +1,4 @@
 packages:
   - '.'
-  - 'native/tools/m97/river/d3-adapter'
 allowBuilds:
   esbuild@0.25.10: true
