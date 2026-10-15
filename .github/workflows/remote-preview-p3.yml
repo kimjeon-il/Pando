@@ -214,7 +214,7 @@ jobs:
         run: |
           $guard = (Resolve-Path build-native/p6-tool-guard/bin).Path
           foreach ($tool in @('node', 'pnpm', 'python', 'python3')) {
-            $resolved = (Get-Command $tool -CommandType Application).Source
+            $resolved = (Get-Command $tool -CommandType Application | Select-Object -First 1).Source
             if (-not $resolved.StartsWith($guard)) { throw "Tool guard did not own $tool" }
             & $resolved --version
             if ($LASTEXITCODE -ne 97) { throw "Tool guard failed for $tool" }
