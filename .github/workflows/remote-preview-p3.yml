@@ -335,6 +335,9 @@ jobs:
           $guard = (Resolve-Path build-native/p6-tool-guard/bin).Path
           $guard | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
           "PANDO_DENIED_TOOL_LOG=$env:RUNNER_TEMP/pando-forbidden-native-tools.log" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          $world = Get-Content native/assets/world/manifest.json -Raw | ConvertFrom-Json
+          $fullHydro = (Resolve-Path (Join-Path native/assets/world $world.hydro.path)).Path
+          "PANDOEDITOR_HYDRO_FULL_MANIFEST=$fullHydro" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
       - name: Confirm product build cannot invoke Node, pnpm or Python
         shell: pwsh
         run: |

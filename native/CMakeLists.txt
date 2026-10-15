@@ -20,7 +20,7 @@ add_subdirectory(engine)
 if(BUILD_TESTING)
     # Share the core test targets without rebuilding or duplicating the core.
     # Explicit native CI target selection controls which executables are built.
-    add_subdirectory(../shared/tests shared-tests EXCLUDE_FROM_ALL)
+    add_subdirectory(../shared/tests shared-tests)
     add_subdirectory(tests/core)
 endif()
 
