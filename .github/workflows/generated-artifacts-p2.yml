@@ -140,7 +140,7 @@ jobs:
         shell: bash
         run: |
           node --test tests/unit/shared-core-assets.test.mjs tests/unit/core-wasm-loader.test.mjs
-          PANDOEDITOR_WASM_MODULE="$PWD/build-native/p1/pando-wasm/shared/wasm/pandoeditor-core.js" node --test shared/tests/wasm-document-session.test.mjs shared/tests/p5-spherical-area-wasm.test.mjs shared/tests/p5-temporal-wasm.test.mjs shared/tests/p5-timeline-wasm.test.mjs shared/tests/p5-boundary-chains-wasm.test.mjs shared/tests/p5-boundary-interiors-wasm.test.mjs tests/unit/boundary-lines.test.mjs
+          PANDOEDITOR_WASM_MODULE="$PWD/build-native/p1/pando-wasm/shared/wasm/pandoeditor-core.js" node --test shared/tests/wasm-document-session.test.mjs shared/tests/p5-spherical-area-wasm.test.mjs shared/tests/p5-temporal-wasm.test.mjs shared/tests/p5-timeline-wasm.test.mjs shared/tests/p5-boundary-chains-wasm.test.mjs shared/tests/p5-boundary-interiors-wasm.test.mjs shared/tests/p5-boundary-overlap-wasm.test.mjs tests/unit/boundary-lines.test.mjs
 
       - name: Verify regenerated geometry against source-matched C++ calculations
         if: needs.plan.outputs.geometry == 'true'
