@@ -1,4 +1,4 @@
-import { calculateReferenceImage, createReferenceWarp, referenceWarpDescriptor, freezeReferenceResult } from './reference-image-core.js';
+import { calculateReferenceImage, calculateReferenceMesh, createReferenceWarp, referenceWarpDescriptor, freezeReferenceResult } from './reference-image-core.js';
 
 export const REFERENCE_IMAGE_GEOREF_SCHEMA_VERSION = 2;
 
@@ -129,7 +129,5 @@ export function buildReferenceImageProjectiveWarpFromQuad(mapQuad) {
 
 export function buildReferenceImageMesh(warp, { columns = 24, rows = 16 } = {}) {
   if (!warp?.ok || typeof warp.project !== 'function') return null;
-  const descriptor = referenceWarpDescriptor(warp);
-  if (!descriptor) throw new TypeError('A shared reference warp is required.');
-  return freezeReferenceResult(calculateReferenceImage('mesh', { warp: descriptor, columns, rows }));
+  return calculateReferenceMesh(warp, columns, rows);
 }

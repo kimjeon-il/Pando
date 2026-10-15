@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { calculateReferenceImage } from '../../assets/js/modules/reference-image-core.js';
-import { buildReferenceImageCalibrationWarp, buildReferenceImageMesh } from '../../assets/js/modules/reference-image-georef.js';
+import { buildReferenceImageCalibrationWarp, buildReferenceImageProjectiveWarpFromQuad, buildReferenceImageMesh } from '../../assets/js/modules/reference-image-georef.js';
 
 function close(actual, expected, path = '') {
   if (typeof expected === 'number') { assert.ok(Math.abs(actual - expected) < 1e-10, path); return; }
@@ -36,4 +36,19 @@ test('nonfinite image coordinates stay invalid across the WASM transport', () =>
     { id: 'infinite', image: [0, Infinity], coordinate: [10, 20] },
   ]);
   assert.deepEqual(result, []);
+});
+
+test('prepared projection retains invalid-point behavior and immutable mesh results', () => {
+  const warp = buildReferenceImageProjectiveWarpFromQuad([[10, 40], [20, 40], [20, 30], [10, 30]]);
+  assert.equal(warp.ok, true);
+  assert.equal(warp.project([NaN, 0]), null);
+  assert.equal(warp.project([0, Infinity]), null);
+  assert.equal(warp.project(null), null);
+  const first = buildReferenceImageMesh(warp, { columns: 3, rows: 2 });
+  const again = buildReferenceImageMesh(warp, { columns: 3, rows: 2 });
+  assert.deepEqual(first, again);
+  assert.equal(first.vertices.length, 12);
+  assert.ok(Object.isFrozen(first.vertices[0].coordinate));
+  assert.throws(() => { first.vertices[0].coordinate[0] = 999; }, TypeError);
+  assert.deepEqual(warp.project([0, 0]), first.vertices[0].coordinate);
 });

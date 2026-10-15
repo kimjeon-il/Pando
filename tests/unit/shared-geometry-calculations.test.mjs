@@ -1,3 +1,4 @@
+import '../helpers/spherical-core.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -5,7 +6,6 @@ import { createCutGeometry } from '../../assets/js/modules/app-cut-geometry.js';
 import { geometryBounds } from '../../assets/js/modules/map-edit-geometry.js';
 import {
   clippingOperationWithPrecisionRetry,
-  quantizePolygonCoordinates,
 } from '../../assets/js/modules/polygon-clipping-calculation.js';
 
 const EMPTY_BOUNDS = [Infinity, Infinity, -Infinity, -Infinity];
@@ -51,43 +51,19 @@ test('main cut geometry and map-edit bounds share exact normal, empty, malformed
   }
 });
 
-test('shared clipping retries only known sweep failures with quantized, non-mutating inputs', () => {
-  const input = [[[[0.1234567896, 1.9876543214], [2, 1], [0.1234567896, 1.9876543214]]]];
-  const snapshot = structuredClone(input);
-  const calls = [];
-  const originalError = new Error('Unable to find segment #1 in SweepLine tree.');
-  const clipper = {
-    intersection(value) {
-      calls.push(structuredClone(value));
-      if (calls.length < 3) throw calls.length === 1 ? originalError : new Error('SweepLine tree invariant');
-      return value;
-    },
-  };
-
-  const result = clippingOperationWithPrecisionRetry(clipper, 'intersection', input);
-  assert.deepEqual(result, quantizePolygonCoordinates(input, 8));
-  assert.deepEqual(calls, [input, quantizePolygonCoordinates(input, 9), quantizePolygonCoordinates(input, 8)]);
-  assert.deepEqual(input, snapshot);
+test('shared clipping retry entry preserves precision, input and empty results', () => {
+  const input = [[[[0.1234567896, 1.9876543214], [2, 1], [3, 4], [0.1234567896, 1.9876543214]]]];
+  const before = structuredClone(input);
+  const actual = clippingOperationWithPrecisionRetry('intersection', input, input);
+  assert.equal(actual.length, 1);
+  assert.ok(actual[0][0].some(point => point[0] === input[0][0][0][0] && point[1] === input[0][0][0][1]));
+  assert.deepEqual(clippingOperationWithPrecisionRetry('intersection', input, []), []);
+  assert.deepEqual(input, before);
 });
 
-test('shared clipping immediately rethrows unrelated errors and preserves the original error after retry exhaustion', () => {
-  const unrelated = new Error('bad method input');
-  let unrelatedCalls = 0;
-  assert.throws(() => clippingOperationWithPrecisionRetry({
-    union() {
-      unrelatedCalls += 1;
-      throw unrelated;
-    },
-  }, 'union', []), error => error === unrelated);
-  assert.equal(unrelatedCalls, 1);
-
-  const original = new Error('Unable to find segment in SweepLine tree');
-  let retryCalls = 0;
-  assert.throws(() => clippingOperationWithPrecisionRetry({
-    difference() {
-      retryCalls += 1;
-      throw retryCalls === 1 ? original : new Error('SweepLine tree still invalid');
-    },
-  }, 'difference', [], []), error => error === original);
-  assert.equal(retryCalls, 5);
+test('shared clipping retry entry propagates technical input errors', () => {
+  assert.throws(() => clippingOperationWithPrecisionRetry('invalid', []), error =>
+    error instanceof Error && error.code === 'PL-GEOMETRY-CALCULATION' && /Invalid polygon operation/.test(error.message));
+  assert.throws(() => clippingOperationWithPrecisionRetry('union', [[[[NaN, 0], [1, 1], [0, 1]]]]), error =>
+    error instanceof Error && /coordinate/i.test(error.message));
 });

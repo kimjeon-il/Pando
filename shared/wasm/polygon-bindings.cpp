@@ -3,30 +3,54 @@
 #include <pandoeditor/projectcodec.h>
 #include <emscripten/bind.h>
 #include <emscripten/val.h>
+#include <emscripten.h>
 #include <cmath>
 #include <stdexcept>
 
 namespace {
 using emscripten::val;
 using namespace pandoeditor;
-unsigned arrayLength(val input){
-    if(!val::global("Array").call<bool>("isArray",input))throw std::invalid_argument("Input geometry is not a valid Polygon or MultiPolygon");
-    return input["length"].as<unsigned>();
-}
-MultiPolygon readMulti(val input){
-    const auto length=arrayLength(input);if(!length)return {};
-    const bool polygon=arrayLength(input[0])&&arrayLength(input[0][0])&&input[0][0][0].typeOf().as<std::string>()=="number";
-    MultiPolygon result;
-    for(unsigned i=0;i<(polygon?1:length);++i){
-        const val item=polygon?input:input[i];const auto rings=arrayLength(item);Polygon poly;
-        if(!rings)throw std::invalid_argument("Input geometry is not a valid Polygon or MultiPolygon");
-        for(unsigned j=0;j<rings;++j){Ring ring;const val points=item[j];const auto count=arrayLength(points);
-            for(unsigned k=0;k<count;++k){const auto p=points[k];if(arrayLength(p)<2||p[0].typeOf().as<std::string>()!="number"||p[1].typeOf().as<std::string>()!="number")throw std::invalid_argument("Invalid polygon coordinate");
-                ring.push_back({p[0].as<double>(),p[1].as<double>()});}
-            poly.push_back(std::move(ring));}
-        result.push_back(std::move(poly));
+// Transfer coordinates in bulk. Per-coordinate emval access dominates large
+// polygons even when the sweep itself is fast; these helpers only marshal data.
+EM_JS(EM_VAL, packPolygonOperands, (EM_VAL handle), {
+    const inputs=Emval.toValue(handle),shape=[],points=[];
+    const fail=message=>{const error=new Error(message);error.code='PL-GEOMETRY-CALCULATION';throw error;};
+    const array=value=>{if(!Array.isArray(value))fail('Input geometry is not a valid Polygon or MultiPolygon');return value;};
+    shape.push(array(inputs).length);
+    for(const input of inputs){
+        array(input);
+        const isPolygon=input.length&&array(input[0]).length&&array(input[0][0]).length&&typeof input[0][0][0]==='number';
+        const polygons=isPolygon?[input]:input;shape.push(polygons.length);
+        for(const polygon of polygons){array(polygon);if(!polygon.length)fail('Input geometry is not a valid Polygon or MultiPolygon');shape.push(polygon.length);
+            for(const ring of polygon){array(ring);shape.push(ring.length);
+                for(const point of ring){if(!Array.isArray(point)||point.length<2||typeof point[0]!=='number'||typeof point[1]!=='number'||!Number.isFinite(point[0])||!Number.isFinite(point[1]))fail('Invalid polygon coordinate');points.push(point[0],point[1]);}
+            }
+        }
     }
-    return result;
+    return Emval.toHandle([shape,points]);
+});
+EM_JS(EM_VAL, unpackPolygonResult, (EM_VAL shapeHandle,EM_VAL pointsHandle), {
+    const shape=Emval.toValue(shapeHandle),points=Emval.toValue(pointsHandle),result=[];let at=0,point=0;
+    const polygons=shape[at++];for(let p=0;p<polygons;p++){const polygon=[],rings=shape[at++];
+        for(let r=0;r<rings;r++){const ring=[],count=shape[at++];for(let i=0;i<count;i++)ring.push([points[point++],points[point++]]);polygon.push(ring);}result.push(polygon);}
+    return Emval.toHandle(result);
+});
+std::vector<MultiPolygon> readOperands(val inputs){
+    const auto packed=val::take_ownership(packPolygonOperands(inputs.as_handle()));
+    const auto shapeValue=packed[0],pointsValue=packed[1];
+    std::vector<unsigned> shape(shapeValue["length"].as<unsigned>());
+    std::vector<double> points(pointsValue["length"].as<unsigned>());
+    if(!shape.empty())val(emscripten::typed_memory_view(shape.size(),shape.data())).call<void>("set",shapeValue);
+    if(!points.empty())val(emscripten::typed_memory_view(points.size(),points.data())).call<void>("set",pointsValue);
+    std::size_t at=0,point=0;std::vector<MultiPolygon> operands(shape.at(at++));
+    for(auto& operand:operands){operand.resize(shape.at(at++));for(auto& polygon:operand){polygon.resize(shape.at(at++));for(auto& ring:polygon){ring.resize(shape.at(at++));for(auto& coordinate:ring){coordinate={points.at(point),points.at(point+1)};point+=2;}}}
+    return operands;
+}
+val writeResult(const MultiPolygon& result){
+    std::vector<unsigned> shape{static_cast<unsigned>(result.size())};std::vector<double> points;
+    for(const auto& polygon:result){shape.push_back(polygon.size());for(const auto& ring:polygon){shape.push_back(ring.size());for(const auto& p:ring){points.push_back(p.x);points.push_back(p.y);}}}
+    const val shapeView(emscripten::typed_memory_view(shape.size(),shape.data())),pointsView(emscripten::typed_memory_view(points.size(),points.data()));
+    return val::take_ownership(unpackPolygonResult(shapeView.as_handle(),pointsView.as_handle()));
 }
 val polygonOperation(const std::string& name,val inputs,bool precisionRetry){
     try{
@@ -36,15 +60,7 @@ val polygonOperation(const std::string& name,val inputs,bool precisionRetry){
         else if(name=="intersection")operation=PolygonOperation::Intersection;
         else if(name=="xor")operation=PolygonOperation::Xor;
         else throw std::invalid_argument("Invalid polygon operation");
-        const auto count=arrayLength(inputs);std::vector<MultiPolygon> operands;
-        for(unsigned i=0;i<count;++i)operands.push_back(readMulti(inputs[i]));
-        const auto result=clipPolygons(operation,operands,{},precisionRetry);auto output=val::array();unsigned p=0;
-        for(const auto& polygon:result){auto rings=val::array();unsigned r=0;
-            for(const auto& ring:polygon){auto points=val::array();unsigned i=0;
-                for(const auto& point:ring){auto pair=val::array();pair.set(0,point.x);pair.set(1,point.y);points.set(i++,pair);}
-                rings.set(r++,points);}
-            output.set(p++,rings);}
-        return output;
+        return writeResult(clipPolygons(operation,readOperands(inputs),{},precisionRetry));
     }catch(const std::exception& error){auto js=val::global("Error").new_(std::string(error.what()));js.set("code",std::string("PL-GEOMETRY-CALCULATION"));js.throw_();}
     std::terminate();
 }

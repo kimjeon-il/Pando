@@ -19,7 +19,7 @@ void ReferenceImageItem::setImageRect(QRectF value){if(rect_==value)return;rect_
 void ReferenceImageItem::setFlipX(bool value){if(flipX_==value)return;flipX_=value;emit changed();}
 void ReferenceImageItem::setFlipY(bool value){if(flipY_==value)return;flipY_=value;emit changed();}
 void ReferenceImageItem::refresh(){QImageReader reader(source_.toLocalFile());reader.setAutoTransform(true);image_=reader.read();}
-const pandoeditor::codecjson::Value& ReferenceImageItem::resolvedWarp()const
+const pandoeditor::PreparedReferenceWarp& ReferenceImageItem::resolvedWarp()const
 {
     if(!warpDirty_)return resolvedWarp_;
     QVariantList controls;
@@ -27,14 +27,14 @@ const pandoeditor::codecjson::Value& ReferenceImageItem::resolvedWarp()const
         {"image",QVariantList{p.value("sourceX"),p.value("sourceY")}},
         {"coordinate",QVariantList{p.value("destinationX"),p.value("destinationY")}}});}
     const QVariantMap input{{"points",controls},{"mode",warp_}};
-    resolvedWarp_=pandoeditor::referenceImageOperation("warpRaw",pandoeditor::codecjson::parse(
-        QJsonDocument::fromVariant(input).toJson(QJsonDocument::Compact).toStdString()));
+    resolvedWarp_=pandoeditor::prepareReferenceImageWarp(pandoeditor::referenceImageOperation("warpRaw",pandoeditor::codecjson::parse(
+        QJsonDocument::fromVariant(input).toJson(QJsonDocument::Compact).toStdString())));
     warpDirty_=false;return resolvedWarp_;
 }
 void ReferenceImageItem::paint(QPainter* painter)
 {
     if(image_.isNull()||rect_.isEmpty())return;painter->setRenderHint(QPainter::SmoothPixmapTransform);painter->setCompositionMode(composition(blend_));
-    const auto& warp=resolvedWarp();if(warp.object.at("ok").raw!="true"){painter->save();QTransform transform;if(flipX_||flipY_){transform.translate(rect_.center().x(),rect_.center().y());transform.scale(flipX_?-1:1,flipY_?-1:1);transform.translate(-rect_.center().x(),-rect_.center().y());painter->setTransform(transform,true);}painter->drawImage(rect_,image_);painter->restore();return;}
+    const auto& warp=resolvedWarp();if(warp.mode==pandoeditor::PreparedReferenceWarp::Invalid){painter->save();QTransform transform;if(flipX_||flipY_){transform.translate(rect_.center().x(),rect_.center().y());transform.scale(flipX_?-1:1,flipY_?-1:1);transform.translate(-rect_.center().x(),-rect_.center().y());painter->setTransform(transform,true);}painter->drawImage(rect_,image_);painter->restore();return;}
     const QRectF sourceRect(0,0,image_.width(),image_.height());
     for(int row=0;row<16;++row)for(int column=0;column<24;++column){
         const QPointF source[4]={gridPoint(sourceRect,column,row),gridPoint(sourceRect,column+1,row),gridPoint(sourceRect,column+1,row+1),gridPoint(sourceRect,column,row+1)};

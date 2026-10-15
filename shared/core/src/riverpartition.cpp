@@ -14,6 +14,7 @@
 #include <set>
 #include <sstream>
 #include <stdexcept>
+#include <unordered_map>
 namespace pandoeditor {
 namespace {
 using V=codecjson::Value;
@@ -56,11 +57,18 @@ double segmentDistance(Point p,const Segment& s){return distance(p,interpolate(s
 bool inRing(Point p,const Ring& r){bool inside=false;if(r.empty())return false;for(std::size_t i=0,j=r.size()-1;i<r.size();j=i++) {const auto a=r[i],b=r[j];Segment s{a,b};const double t=parameter(p,s);if(t>=-1e-9&&t<=1+1e-9&&segmentDistance(p,s)<=1e-5)return true;if(((a.y>p.y)!=(b.y>p.y))&&p.x<(b.x-a.x)*(p.y-a.y)/((b.y-a.y)==0?1e-20:(b.y-a.y))+a.x)inside=!inside;}return inside;}
 bool inComponent(Point p,const Polygon& rings){if(rings.empty()||!inRing(p,rings[0]))return false;for(std::size_t i=1;i<rings.size();++i)if(inRing(p,rings[i]))return false;return true;}
 using Cell=std::pair<long long,long long>;
+struct CellHash {std::size_t operator()(const Cell& p)const noexcept {const auto x=std::hash<long long>{}(p.first),y=std::hash<long long>{}(p.second);return x^(y+0x9e3779b9+(x<<6)+(x>>2));}};
+using CellBuckets=std::unordered_map<Cell,std::vector<std::size_t>,CellHash>;
 struct Grid {
- const std::vector<Segment>& segments;double cell;std::map<Cell,std::vector<std::size_t>> cells;
- explicit Grid(const std::vector<Segment>& s,double c):segments(s),cell(c){if(!(c>0)||!std::isfinite(c))throw std::invalid_argument("RIVER_INVALID_GRID_CELL_SIZE");for(std::size_t i=0;i<s.size();++i)each(s[i].box(),[&](Cell key){cells[key].push_back(i);});}
+ const std::vector<Segment>& segments;double cell;CellBuckets cells;
+ mutable std::vector<std::uint32_t> visited;mutable std::uint32_t queryStamp=0;
+ explicit Grid(const std::vector<Segment>& s,double c):segments(s),cell(c),visited(s.size(),0){cells.reserve(s.size()*2);if(!(c>0)||!std::isfinite(c))throw std::invalid_argument("RIVER_INVALID_GRID_CELL_SIZE");for(std::size_t i=0;i<s.size();++i)each(s[i].box(),[&](Cell key){cells[key].push_back(i);});}
  template<class F>void each(Bounds b,F f)const{for(auto x=static_cast<long long>(std::floor(b.x0/cell));x<=static_cast<long long>(std::floor(b.x1/cell));++x)for(auto y=static_cast<long long>(std::floor(b.y0/cell));y<=static_cast<long long>(std::floor(b.y1/cell));++y)f({x,y});}
- std::vector<std::size_t> query(Bounds b)const{std::vector<std::size_t> out;std::set<std::size_t> seen;each(b,[&](Cell key){auto it=cells.find(key);if(it!=cells.end())for(auto i:it->second)if(seen.insert(i).second&&segments[i].box().overlaps(b))out.push_back(i);});return out;}
+ std::vector<std::size_t> query(Bounds b)const{
+  if(++queryStamp==0){std::fill(visited.begin(),visited.end(),0);++queryStamp;}
+  std::vector<std::size_t> out;each(b,[&](Cell key){const auto it=cells.find(key);if(it==cells.end())return;
+   for(auto i:it->second){if(visited[i]==queryStamp)continue;visited[i]=queryStamp;if(segments[i].box().overlaps(b))out.push_back(i);}});return out;
+ }
 };
 struct Hit{double t,u;Point point;};
 double cross(Point a,Point b){return a.x*b.y-a.y*b.x;}
@@ -71,13 +79,13 @@ std::vector<Segment> split(const Segment& s){auto values=s.split;for(auto& x:val
 struct Config{double minEdge=10,snap=50,merge=.5,coincidence=5,cell=25000,minArea=1000,coverage=1000;explicit Config(const V& v){minEdge=number(field(v,"minRiverEdgeM"),minEdge);snap=number(field(v,"riverEndpointSnapM"),snap);merge=number(field(v,"nodeMergeToleranceM"),merge);coincidence=number(field(v,"boundaryCoincidenceToleranceM"),coincidence);cell=number(field(v,"spatialGridCellM"),cell);minArea=number(field(v,"minCandidateAreaM2"),minArea);coverage=number(field(v,"coverageToleranceM2"),coverage);}};
 void count(V& d,const std::string& key,std::size_t n=1){d.object[key]=V::num(number(field(d,key))+double(n));}
 struct Part{std::string source;Ring points;};
-void snapEndpoints(std::vector<Part>& parts,double tolerance){if(!(tolerance>0))return;struct Endpoint{std::size_t part,point;Point p;};std::vector<Endpoint> ends;for(std::size_t i=0;i<parts.size();++i){ends.push_back({i,0,parts[i].points[0]});ends.push_back({i,parts[i].points.size()-1,parts[i].points.back()});}std::vector<std::size_t> parent(ends.size());std::iota(parent.begin(),parent.end(),0);auto find=[&](std::size_t i){while(parent[i]!=i){parent[i]=parent[parent[i]];i=parent[i];}return i;};std::map<Cell,std::vector<std::size_t>> cells;
+void snapEndpoints(std::vector<Part>& parts,double tolerance){if(!(tolerance>0))return;struct Endpoint{std::size_t part,point;Point p;};std::vector<Endpoint> ends;for(std::size_t i=0;i<parts.size();++i){ends.push_back({i,0,parts[i].points[0]});ends.push_back({i,parts[i].points.size()-1,parts[i].points.back()});}std::vector<std::size_t> parent(ends.size());std::iota(parent.begin(),parent.end(),0);auto find=[&](std::size_t i){while(parent[i]!=i){parent[i]=parent[parent[i]];i=parent[i];}return i;};CellBuckets cells;
  for(std::size_t i=0;i<ends.size();++i){auto p=ends[i].p;auto x=static_cast<long long>(std::floor(p.x/tolerance)),y=static_cast<long long>(std::floor(p.y/tolerance));for(int dx=-1;dx<=1;++dx)for(int dy=-1;dy<=1;++dy){auto found=cells.find({x+dx,y+dy});if(found!=cells.end())for(auto j:found->second)if(distance(p,ends[j].p)<=tolerance){auto a=find(i),b=find(j);parent[std::max(a,b)]=std::min(a,b);}}cells[{x,y}].push_back(i);}
  std::map<std::size_t,std::vector<std::size_t>> groups;for(std::size_t i=0;i<ends.size();++i)groups[find(i)].push_back(i);for(const auto& [key,ids]:groups){if(ids.size()<2)continue;Point p{0,0};for(auto i:ids){p.x+=ends[i].p.x;p.y+=ends[i].p.y;}p.x/=double(ids.size());p.y/=double(ids.size());for(auto i:ids)parts[ends[i].part].points[ends[i].point]=p;}}
 struct Node{Point point;bool boundary=false;std::vector<std::size_t> edges;};
 struct Edge{std::size_t a,b;bool boundary=false,river=false;std::set<std::string> sources;};
 struct Graph{std::vector<Node> nodes;std::vector<Edge> edges;};
-Graph graphFor(const std::vector<Segment>& boundary,const std::vector<Segment>& rivers,const Config& c){Graph g;std::map<Cell,std::vector<std::size_t>> cells;const double tolerance=std::max(1e-5,c.merge);auto node=[&](Point p,bool boundary){auto x=static_cast<long long>(std::floor(p.x/tolerance)),y=static_cast<long long>(std::floor(p.y/tolerance));for(int dx=-1;dx<=1;++dx)for(int dy=-1;dy<=1;++dy){auto found=cells.find({x+dx,y+dy});if(found!=cells.end())for(auto i:found->second)if(distance(p,g.nodes[i].point)<=tolerance){if(boundary)g.nodes[i].boundary=true;return i;}}const auto i=g.nodes.size();g.nodes.push_back({p,boundary,{}});cells[{x,y}].push_back(i);return i;};std::map<std::pair<std::size_t,std::size_t>,std::size_t> keys;
+Graph graphFor(const std::vector<Segment>& boundary,const std::vector<Segment>& rivers,const Config& c){Graph g;CellBuckets cells;const double tolerance=std::max(1e-5,c.merge);auto node=[&](Point p,bool boundary){auto x=static_cast<long long>(std::floor(p.x/tolerance)),y=static_cast<long long>(std::floor(p.y/tolerance));for(int dx=-1;dx<=1;++dx)for(int dy=-1;dy<=1;++dy){auto found=cells.find({x+dx,y+dy});if(found!=cells.end())for(auto i:found->second)if(distance(p,g.nodes[i].point)<=tolerance){if(boundary)g.nodes[i].boundary=true;return i;}}const auto i=g.nodes.size();g.nodes.push_back({p,boundary,{}});cells[{x,y}].push_back(i);return i;};std::map<std::pair<std::size_t,std::size_t>,std::size_t> keys;
  auto edge=[&](const Segment& s,bool boundary){const auto a=node(s.a,boundary),b=node(s.b,boundary);if(a==b)return;auto key=std::minmax(a,b);auto it=keys.find(key);std::size_t i;if(it==keys.end()){i=g.edges.size();g.edges.push_back({a,b});keys[key]=i;g.nodes[a].edges.push_back(i);g.nodes[b].edges.push_back(i);}else i=it->second;if(boundary)g.edges[i].boundary=true;else g.edges[i].sources.insert(s.sources.begin(),s.sources.end());};for(const auto& s:boundary)edge(s,true);for(const auto& s:rivers)edge(s,false);for(auto& e:g.edges)e.river=!e.boundary&&!e.sources.empty();return g;}
 struct Component{std::set<std::size_t> edges,nodes;};
 std::vector<Component> components(const Graph& g,const std::set<std::size_t>& active){auto remaining=active;std::vector<Component> out;while(!remaining.empty()){auto first=*remaining.begin();Component c;std::vector<std::size_t> queue{g.edges[first].a,g.edges[first].b};while(!queue.empty()){auto id=queue.back();queue.pop_back();if(!c.nodes.insert(id).second)continue;for(auto e:g.nodes[id].edges){if(!active.count(e))continue;c.edges.insert(e);remaining.erase(e);queue.push_back(g.edges[e].a==id?g.edges[e].b:g.edges[e].a);}}out.push_back(std::move(c));}return out;}

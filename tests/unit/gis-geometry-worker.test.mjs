@@ -26,18 +26,13 @@ test('scoped GIS validation trusts unchanged canonical geometry and validates af
   assert.equal((await worker.validate(collection)).ok, false);
 });
 
-test('scoped GIS overlap checks only compare pairs that contain an affected country', () => {
-  const collection = {
-    type: 'FeatureCollection',
-    features: [feature('affected', square), feature('trusted-a', square), feature('trusted-b', square)],
-  };
-  let intersectionCalls = 0;
-  const clipper = { intersection() { intersectionCalls += 1; return []; } };
-  validateCollection(collection, ['affected'], clipper);
-  assert.equal(intersectionCalls, 2);
-  intersectionCalls = 0;
-  validateCollection(collection, null, clipper);
-  assert.equal(intersectionCalls, 3);
+test('scoped GIS overlap ignores unrelated pairs and full validation finds them', () => {
+  const far = square.map(ring => ring.map(([x,y]) => [x+10,y]));
+  const collection = { type: 'FeatureCollection', features: [feature('affected', far), feature('trusted-a', square), feature('trusted-b', square)] };
+  assert.equal(validateCollection(collection, ['affected']).overlapAreaKm2, 0);
+  const full = validateCollection(collection);
+  assert.ok(full.overlapAreaKm2 > 0);
+  assert.deepEqual(full.firstOverlap, ['trusted-a','trusted-b']);
 });
 
 test('an empty scope falls back to full validation instead of silently trusting every country', async t => {
@@ -46,15 +41,16 @@ test('an empty scope falls back to full validation instead of silently trusting 
   assert.equal((await worker.validate(collection, [])).ok, false);
 });
 
-test('actual GIS Worker isolates component pairs and retries polygon-clipping sweep failures', async t => {
+test('actual GIS Worker detects overlap through the shared calculation kernel', async t => {
   const secondSquare = [[[10, 10], [10, 12], [12, 12], [12, 10], [10, 10]]];
   const left = feature('left', square);
   left.geometry.coordinates.push(secondSquare);
   const right = feature('right', square);
-  const worker = createGisWorkerHarness(t, { failFirstIntersection: true });
+  const worker = createGisWorkerHarness(t);
   const result = await worker.validate({ type: 'FeatureCollection', features: [left, right] }, ['left']);
   assert.equal(result.ok, true);
-  assert.ok(result.intersectionAttempts >= 2);
+  assert.ok(result.overlapAreaKm2 > 0);
+  assert.deepEqual(result.firstOverlap, ['left', 'right']);
 });
 
 test('GIS validator sends unique affected IDs and treats an empty scope as full validation', async t => {
@@ -62,7 +58,7 @@ test('GIS validator sends unique affected IDs and treats an empty scope as full 
   const worker = {
     postMessage(message) {
       messages.push(message);
-      if (message.action === 'validate') globalThis.queueMicrotask(() => this.onmessage({ data: { id: message.id, ok: true, overlapAreaKm2: 0 } }));
+      if (message.type === 'request' && message.operation === 'gis.validate') globalThis.queueMicrotask(() => this.onmessage({ data: { ...message, type: 'result', ok: true, result: { overlapAreaKm2: 0 } } }));
     },
     terminate() {},
   };
@@ -70,10 +66,10 @@ test('GIS validator sends unique affected IDs and treats an empty scope as full 
   t.after(() => validator.dispose());
   const collection = { type: 'FeatureCollection', features: [feature('A', square)] };
   assert.equal((await validator.validate(collection, ['A', 'A', '', 0])).overlapAreaKm2, 0);
-  assert.deepEqual(messages[0].affectedIds, ['A', '0']);
-  assert.deepEqual(messages[0].collection, collection);
+  assert.deepEqual(messages[0].payload.affectedIds, ['A', '0']);
+  assert.deepEqual(messages[0].payload.collection, collection);
   await validator.validate(collection, []);
-  assert.equal(messages[1].affectedIds, null);
+  assert.equal(messages[1].payload.affectedIds, null);
 });
 
 test('GIS validator rejects timed out work, disposes its worker and permits a fresh request', async t => {
@@ -83,7 +79,7 @@ test('GIS validator rejects timed out work, disposes its worker and permits a fr
     const responds = ++builds > 1;
     return {
       postMessage(message) {
-        if (responds && message.action === 'validate') globalThis.queueMicrotask(() => this.onmessage({ data: { id: message.id, ok: true, overlapAreaKm2: 0 } }));
+        if (responds && message.type === 'request' && message.operation === 'gis.validate') globalThis.queueMicrotask(() => this.onmessage({ data: { ...message, type: 'result', ok: true, result: { overlapAreaKm2: 0 } } }));
       },
       terminate() { terminations++; },
     };

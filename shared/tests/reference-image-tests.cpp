@@ -34,5 +34,16 @@ int main(){try{
     auto input=codecjson::parse(R"({"points":[{"id":"a","image":[0,0],"coordinate":[10,40],"pinned":true},{"id":"b","image":[1,0],"coordinate":[20,40]},{"id":"c","image":[0,1],"coordinate":[10,30]},{"id":"d","image":[1,1],"coordinate":[21,31]}],"mode":"tps"})");
     const auto warp=referenceImageOperation("warp",input);require(yes(get(warp,"ok")),"Pinned TPS fit");require(codecjson::finiteNumber(get(get(warp,"diagnostics"),"hardMaxMeters"))<=.01,"Pinned constraint residual");
     const auto at=projectReferenceImageWarp(warp,{0,0});require(at&&std::abs((*at)[0]-10)<1e-8&&std::abs((*at)[1]-40)<1e-8,"Pinned coordinate");
+    const auto prepared=prepareReferenceImageWarp(warp);const auto grid=buildReferenceImageMesh(prepared);
+    auto meshInput=V::obj();meshInput.object["warp"]=warp;
+    const auto encodedGrid=referenceImageOperation("mesh",meshInput);
+    const auto& vertices=get(encodedGrid,"vertices").array;const auto& triangles=get(encodedGrid,"triangles").array;
+    require(vertices.size()*4==grid.vertices.size()&&triangles.size()*3==grid.triangles.size(),"Prepared mesh layout");
+    for(std::size_t i=0;i<vertices.size();++i)for(int axis=0;axis<2;++axis){
+        require(codecjson::finiteNumber(get(vertices[i],"uv").array[axis])==grid.vertices[i*4+axis],"Prepared mesh UV");
+        require(codecjson::finiteNumber(get(vertices[i],"coordinate").array[axis])==grid.vertices[i*4+axis+2],"Prepared mesh coordinate");
+    }
+    for(std::size_t i=0;i<triangles.size();++i)for(int axis=0;axis<3;++axis)
+        require(codecjson::finiteNumber(triangles[i].array[axis])==grid.triangles[i*3+axis],"Prepared mesh triangle");
     std::cout<<"reference image cases: "<<cases+1<<" passed\n";return 0;
 }catch(const std::exception& error){std::cerr<<error.what()<<'\n';return 1;}}

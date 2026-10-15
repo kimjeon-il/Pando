@@ -4,16 +4,14 @@ const revision = new URL(self.location.href).searchParams.get('v');
 if (revision) rpcHostUrl.searchParams.set('v', revision);
 importScripts('../modules/polygon-clipping-core.js', rpcHostUrl.href);
 let dependencies;
-const ready = () => dependencies ||= Promise.all([
-  import('../modules/gis-geometry-validation.js'),
-  import('../modules/core-wasm-loader.js').then(({ loadVerifiedCore }) => loadVerifiedCore({
-    baseUrl: new URL('../../wasm/', self.location.href),
-  })).then(core => { self.PandoLabSphericalCore = core; }),
-]);
+const ready = () => dependencies ||= import('../modules/temporal.js').then(async ({ sharedCalculationCore }) => {
+  self.PandoLabSphericalCore = sharedCalculationCore;
+  return import('../modules/gis-geometry-validation.js');
+});
 self.PandoLabWorkerRpc.install({ handlers: {
   'gis.validate': async (payload, context) => {
-    const [{ validateCollection }] = await ready();
+    const { validateCollection } = await ready();
     context.throwIfCancelled();
-    return validateCollection(payload.collection, payload.affectedIds, self.polygonClipping);
+    return validateCollection(payload.collection, payload.affectedIds);
   },
 } });
