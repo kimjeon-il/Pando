@@ -249,7 +249,7 @@ test('active worker import failures remain visible and reject the pending operat
     && error.message === 'NetworkError: importScripts failed');
   worker.onerror({ message: 'NetworkError: importScripts failed', preventDefault: () => { prevented = true; } });
   await rejected;
-  assert.equal(prevented, false);
+  assert.equal(prevented, true, 'the operation boundary reports the crash once');
   assert.equal(worker.terminated, true);
   assert.equal(crashes[0].message, 'NetworkError: importScripts failed');
 });
@@ -275,7 +275,23 @@ for (const retirement of ['crash', 'stop']) {
     if (retirement === 'crash') worker.onerror({ message: 'current crash' });
     else client.stop();
     await rejected;
-    assert.deepEqual(handlersAtTermination, [null, null]);
+    assert.equal(handlersAtTermination[0], null);
+    let contained = false;
+    handlersAtTermination[1]({ preventDefault() { contained = true; } });
+    assert.equal(contained, true);
     assert.equal(events.length, 0, 'captured callbacks also lose ownership before termination');
   });
 }
+
+test('retiring RPC workers contains import errors while genuine crashes still reject', async () => {
+  const worker = fakeWorker();
+  let suppressed = 0;
+  worker.terminate = () => worker.onerror?.({ preventDefault() { suppressed++; } });
+  const client = createWorkerRpcClient({ createWorker: () => worker });
+  const pending = client.request('geometry.prepare', {});
+  const rejected = assert.rejects(pending, { code: 'PL-WORKER-RPC-CRASH' });
+  worker.onerror({ message: 'genuine import failure', preventDefault() { suppressed++; } });
+  await rejected;
+  assert.equal(suppressed, 2, 'handled crash and termination event must not reach the global handler');
+  client.stop();
+});
