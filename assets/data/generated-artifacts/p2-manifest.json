@@ -1571,8 +1571,8 @@
       "sourceSha": "835e4584e2656d4fdfbd24f7077c3f464275871b"
     },
     "native-assets": {
-      "inputFingerprint": "e62587972db65c0e85e1cd82eed1e9a292233d4be9a7f339b93c69d6d6c85f8a",
-      "outputFingerprint": "519620e334b9f3fd7de67e8bc997ca02f18c9944b4f8ace6ab1b9df2c8ce68e6",
+      "inputFingerprint": "f5518899775b69b8aec8b5eee68dfd2224f3cc2b2b3b2bcc23ecff7d33f57c50",
+      "outputFingerprint": "c92fd52666234f04be4503845b6a82d1261bb671ef686e7954eb6888655b4abe",
       "inputs": {},
       "generatorHashes": {
         "assets/js/modules/country-mesh-codec.js": "3871e8e118e35bdbee07a1b2c376f3b6ea1f4ee008c05bbe9b75bee459000c01",
@@ -1588,7 +1588,7 @@
         "node": "24"
       },
       "dependencies": {
-        "world-bundle": "cadf86b08c84e259211a4435024953ba413650bc63ab47ceb8efb7273dd5c1fb",
+        "world-bundle": "32e4d92f942f2dceb6d3f5a4938719d52691465397f3509e3a3674df54bf6305",
         "historical-world": "284ecee86f5b745171159983416dcd1fcd4f6c49886d52c7b1cb4e5afa60d33f",
         "places": "7469eca633fbb3669dd2ea9bd25066f06f82828b22320169f82dd181663c80d7",
         "hydro": "0bbe01264b4fd53dc8b2bd15f562255eee54f27fbdaf69e3b01237b00d237afe",
@@ -1603,7 +1603,7 @@
         "native/assets/world/historical-world/v1/world-project.json.gz": "9b32768028fe90a5aea82d1ba6b08a9446e7d91895e7590f9e7af6b09911985e",
         "native/assets/world/hydro/v0.13.2/hydro.bin": "91c2268c6dbfdfa7fc6103d8ad0b4eeca71f6c522df5c0118db69a3654ff532a",
         "native/assets/world/hydro/v0.13.2/manifest.json": "2bde5c10bdf4d26fd29d2b983b70029022cfaa9fda816a105e6f4338b85f0d24",
-        "native/assets/world/manifest.json": "a302675a255e8d61a88b43637c2b5d07d16c62f1df5004de5ffca965a9af8f32",
+        "native/assets/world/manifest.json": "1ca9b85359a968577dd567cbf87e0decca2993690764cbb7a203185c3f66f075",
         "native/assets/world/terrain-preview/v0.13.3-p1/0/0-0.webp": "0e1622d6429a56f382493dad4ee5a903b7d209237dedd3a5dc8d09a72379fd89",
         "native/assets/world/terrain-preview/v0.13.3-p1/0/1-0.webp": "5f99f8bcbd21ff722f908348ba26b96d21ffc826293430df607636431b54adc6",
         "native/assets/world/terrain-preview/v0.13.3-p1/1/0-0.webp": "608c8bf9a156324189b0980831ce4a2193631d0f2b12d21ede90e18ebcbb46cd",
@@ -1614,9 +1614,9 @@
         "native/assets/world/terrain-preview/v0.13.3-p1/1/2-1.webp": "c44de7f316321266eed62dc54bf5d3504f900378f5274d2b5c50b45a80162502",
         "native/assets/world/terrain-preview/v0.13.3-p1/manifest.json": "05e3a657287151c29c338caaec9c5d7cd22d4144d7e2db8ecad536742fe6fee8",
         "native/assets/world/world/objects/countries-canonical-sha256-638c6f4868b9d270a62cd66ca13a18dc8a4215fa7c48ff9280a089e433f81dd1.pcg.gz": "638c6f4868b9d270a62cd66ca13a18dc8a4215fa7c48ff9280a089e433f81dd1",
-        "native/assets/world/world/objects/countries-preview-sha256-4a607622d4bc26870276b134c533de10af89018b34494b32773ea2a49e9cd166.geojson.gz": "4a607622d4bc26870276b134c533de10af89018b34494b32773ea2a49e9cd166",
+        "native/assets/world/world/objects/countries-preview-sha256-b8877a6f3f3bbe9ff78c8007ce163e1adde2e80c1d0daa3b920423070b412252.geojson.gz": "b8877a6f3f3bbe9ff78c8007ce163e1adde2e80c1d0daa3b920423070b412252",
         "native/assets/world/world/objects/country-label-anchors-sha256-caeee3f0d05265cc564f68ef092b25ea8c5c4d6f1c36e2beb35a239551751512.json": "caeee3f0d05265cc564f68ef092b25ea8c5c4d6f1c36e2beb35a239551751512",
-        "native/assets/world/world/objects/world-mesh-preview-sha256-fc00477f2cd4ff25920cbf90d65ea715a4ad41a21b3ba5d5bbc825c169cd841e.bin.gz": "fc00477f2cd4ff25920cbf90d65ea715a4ad41a21b3ba5d5bbc825c169cd841e",
+        "native/assets/world/world/objects/world-mesh-preview-sha256-c7805b96bc94b7553453d0616641c4c0da10514b02b4af5f4dfecd7470e3852b.bin.gz": "c7805b96bc94b7553453d0616641c4c0da10514b02b4af5f4dfecd7470e3852b",
         "native/assets/world/world/objects/world-mesh-sha256-c7f687e9d14325ae9c8334cb4fabc3afd016e1a1231cf16b1c0729499a713ec8.bin.gz": "c7f687e9d14325ae9c8334cb4fabc3afd016e1a1231cf16b1c0729499a713ec8"
       },
       "consumers": [
@@ -1635,7 +1635,7 @@
           "native-assets"
         ]
       ],
-      "sourceSha": "57820b04434d81e05d2159da1c0292af6f08752b"
+      "sourceSha": "7db07b630573c0e557a35b64f1abf4b753667501"
     }
   }
 }
