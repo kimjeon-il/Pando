@@ -46,5 +46,7 @@ std::string encode(const Project&,const PlatformPorts&);
 std::string encode(const ProjectSnapshot&,const PlatformPorts&);
 void validateNativeLabelReferences(const ProjectDocument&);
 std::string encodeWeb(const ProjectSnapshot&,const PlatformPorts&,const WebStorageContext& context={});
+// The validated canonical export tree is shared by file and autosave writers.
+codecjson::Value encodeWebValue(const ProjectSnapshot&,const PlatformPorts&,const WebStorageContext& context={});
 std::string encodeWebDelta(const ProjectDocument& before,const ProjectDocument& after,const ChangeImpact&);
 }

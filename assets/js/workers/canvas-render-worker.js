@@ -672,7 +672,17 @@ function canvasFallbackWorkerMain() {
         if (!hydroFeatureVisible(feature, message)) continue;
         const properties = feature.properties || {};
         if (properties.category === 'lake') {
-          if (self.d3.geo.contains(feature, coordinate)) return Number(properties.__fid);
+          // Pick the exact projected path used by Canvas drawing, including
+          // holes, the date-line clip, and the visible globe hemisphere.
+          context.save();
+          let hit;
+          try {
+            context.setTransform(1, 0, 0, 1, 0, 0);
+            context.beginPath();
+            self.d3.geo.path().projection(projection).context(context)(feature);
+            hit = context.isPointInPath(point[0], point[1]);
+          } finally { context.restore(); }
+          if (hit) return Number(properties.__fid);
           continue;
         }
         for (const part of lineParts(feature.geometry)) {
@@ -903,7 +913,12 @@ function canvasFallbackWorkerMain() {
           scheduleHydroRender();
         }
       } else if (message.type === 'hydro-pick') {
-        self.postMessage({ type: 'hydro-pick', requestId: message.requestId, fid: pickHydroFeature(message.point) });
+        try {
+          self.postMessage({ type: 'hydro-pick', requestId: message.requestId, fid: pickHydroFeature(message.point) });
+        } catch (error) {
+          self.postMessage({ type: 'hydro-pick', requestId: message.requestId,
+            error: { code: 'PL-CANVAS-HYDRO-PICK', message: error.message, stack: error.stack } });
+        }
       } else if (message.type === 'data' || message.type === 'replace-data') {
         const incomingGeometryRevision = Number(message.geometryRevision || 0);
         if (incomingGeometryRevision < geometryRevision) {
