@@ -1,3 +1,4 @@
+import '../helpers/spherical-core.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createEditPreviewController } from '../../assets/js/modules/edit-preview-controller.js';

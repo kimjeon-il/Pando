@@ -35,7 +35,7 @@ GitHub 저장소 **Actions → P3 Remote preview and Qt verification → 해당 
 - Linux: `cmake --preset pando-native-qt-ci-linux`, `cmake --build --preset pando-native-qt-ci-linux`, `ctest --preset pando-native-qt-ci-linux`
 - Windows: `cmake --preset pando-native-qt-ci-windows` (vcpkg zlib toolchain 추가), `cmake --build --preset pando-native-qt-ci-windows`, `ctest --preset pando-native-qt-ci-windows`
 
-CMake 3.31.6, Qt 6.8.3, Node 24, pnpm 11.19.0, Python 3.12는 사용 범위에 따라 설치한다. 현재 Qt 앱 빌드의 JS geometry source admission과 선택한 CTest 때문에 Node/Python이 아직 필요하다. 기존 P2 WASM/Qt 생성물은 이번 Qt 빌드에서 **검사**하지만 별도의 무단 갱신을 하지 않는다.
+CMake 3.31.6, Qt 6.8.3, Node 24, pnpm 11.19.0은 앱과 선택 CTest에 맞춰 설치한다. P4 이후 기본 Qt CMake 설정은 Python을 탐색하지 않는다. 이전 Python GIS·레거시 오라클은 별도 실행 경로에서만 등록하며, Qt의 JS geometry source admission 때문에 Node/pnpm 의존성은 P5/P6 전까지 유지한다. 기존 P2 WASM/Qt 생성물은 이번 Qt 빌드에서 **검사**하지만 별도의 무단 갱신을 하지 않는다.
 
 앱 전체 `pandoeditor`와 선택된 `temporal_tests`, `m72_mapprojection_lifetime_tests`, `interaction_style_policy_tests` CTest를 빌드한다. Linux에서는 Xvfb 가상 디스플레이에서 `pandoeditor --smoke-check`을 실행해 실제 Qt Quick 창 캡처를 시도하며, 결과를 브라우저 캡처와 **분리**한다. 이 캡처는 실제 GPU/모바일 화면 검증이 아니다.
 

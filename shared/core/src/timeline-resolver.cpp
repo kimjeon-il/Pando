@@ -3,11 +3,31 @@
 #include <algorithm>
 
 namespace pandoeditor {
+bool validityContainsAtEnd(const Validity& validity,const TemporalValue& point) {
+    const auto interval=normalizeTemporalInterval(validity.from,validity.to);
+    return (!interval.start||compareTemporal(*interval.start,point,TemporalBoundary::Start,TemporalBoundary::End)<=0)
+        &&(!interval.end||compareTemporal(*interval.end,point,TemporalBoundary::End,TemporalBoundary::End)>=0);
+}
+std::optional<std::size_t> selectTimelineVersion(const Validity& lifetime,
+    const std::vector<Validity>& versions,const std::optional<std::string>& referenceDate) {
+    if(!referenceDate||referenceDate->empty()) {
+        if(versions.size()==1&&!lifetime.from&&!lifetime.to
+            &&!versions.front().from&&!versions.front().to)return std::size_t{0};
+        throw std::invalid_argument("A reference date is required for dated territorial geometry");
+    }
+    const auto point=parseTemporal(*referenceDate);
+    if(!validityContainsAtEnd(lifetime,point))return std::nullopt;
+    std::optional<std::size_t> selected;
+    for(std::size_t i=0;i<versions.size();++i) {
+        if(!validityContainsAtEnd(versions[i],point))continue;
+        if(selected)throw TimelineError("PL-LIB-GEOMETRY","Ambiguous territorial geometry selection");
+        selected=i;
+    }
+    return selected;
+}
 namespace {
 bool active(const Validity& validity,const TemporalValue& point) {
-    const auto interval=normalizeTemporalInterval(validity.from,validity.to);
-    return (!interval.start || !(point.endKey<interval.start->startKey))
-        && (!interval.end || !(interval.end->endKey<point.endKey));
+    return validityContainsAtEnd(validity,point);
 }
 template<class Rows> const typename Rows::value_type* selected(const Rows& rows,const std::string& id,
                                                                   const TemporalValue& point) {

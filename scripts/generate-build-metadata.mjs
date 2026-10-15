@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -37,6 +37,20 @@ const rawBuildId = suppliedBuildId || gitRevision();
 const safeBuildId = rawBuildId.replace(/[^A-Za-z0-9._-]/g, '-');
 const buildId = `${appVersion}-build-${safeBuildId || 'local'}`;
 const assetRevision = buildId;
+
+// A query on the entry module is not inherited by relative ESM imports.
+// Pin the complete browser module graph before bootstrap starts resolving it.
+const moduleImports = {};
+function collectModuleImports(directory, prefix) {
+  for (const entry of readdirSync(directory, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+    const path = `${prefix}/${entry.name}`;
+    if (entry.isDirectory()) collectModuleImports(resolve(directory, entry.name), path);
+    else if (entry.isFile() && entry.name.endsWith('.js')) {
+      moduleImports[path] = `${path}?v=${encodeURIComponent(assetRevision)}`;
+    }
+  }
+}
+collectModuleImports(resolve(projectRoot, 'assets/js'), './assets/js');
 
 function stableJson(value) {
   if (Array.isArray(value)) return `[${value.map(stableJson).join(',')}]`;
@@ -86,6 +100,11 @@ writeFileSync(buildMetaPath, metaSource, 'utf8');
 let index = readFileSync(indexPath, 'utf8');
 index = index.replace(/(\bdata-app-version=")[^"]+(")/, `$1${appVersion}$2`);
 index = index.replace(/(\b(?:href|src)="[^"]*assets\/[^"?]*\?v=)[^"]+/g, `$1${assetRevision}`);
+const moduleImportMap = `<script id="pandolab-module-import-map" type="importmap">\n${JSON.stringify({ imports: moduleImports }, null, 2)}\n  </script>`;
+const moduleImportMapPattern = /<script\b[^>]*id="pandolab-module-import-map"[^>]*>[\s\S]*?<\/script>/;
+index = moduleImportMapPattern.test(index)
+  ? index.replace(moduleImportMapPattern, () => moduleImportMap)
+  : index.replace(/(?=<script\b)/, `${moduleImportMap}\n  `);
 if (!index.includes(`assets/js/build-meta.js?v=${assetRevision}`)) {
   index = index.replace(/(\s*<script src="assets\/js\/vendor\/d3\.min\.js"[^>]*><\/script>)/, `\n  <script src="assets/js/build-meta.js?v=${assetRevision}" defer></script>$1`);
 }

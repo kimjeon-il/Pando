@@ -22,18 +22,6 @@ TemporalInterval interval(const Validity& value) {
         std::throw_with_nested(TimelineError("TIMELINE_INTERVAL",error.what()));
     }
 }
-TemporalKey followingDay(TemporalKey key) {
-    auto magnitude=std::to_string(std::abs(key.year));
-    if(magnitude.size()<4) magnitude.insert(0,4-magnitude.size(),'0');
-    const auto year=(key.year<0?"-":key.year>9999?"+":"")+magnitude;
-    const auto month=(key.month<10?"0":"")+std::to_string(key.month);
-    // Reuse the temporal owner's month length and BCE leap semantics.
-    const auto last=parseTemporal(year+"-"+month).endKey.day;
-    if(key.day<last) return {key.year,key.month,key.day+1};
-    if(key.month<12) return {key.year,key.month+1,1};
-    // After the largest stored date this is an internal sentinel, not wire data.
-    return {key.year==-1?1:key.year+1,1,1};
-}
 struct Change {
     std::size_t slot;
     std::string id,entityId,parentId;
@@ -96,7 +84,7 @@ TimelineRecords normalizeTimelineRecords(const TimelineRecords& input,const Time
         row.validity={dates.validFrom,dates.validTo};
         const auto start=dates.start?std::optional<TemporalKey>{dates.start->startKey}:std::nullopt;
         events[start].push_back({slot,row.id,row.entityId,parentId,true});
-        if(dates.end) events[followingDay(dates.end->endKey)].push_back({slot,row.id,row.entityId,parentId,false});
+        if(dates.end) events[temporalFollowingDay(dates.end->endKey)].push_back({slot,row.id,row.entityId,parentId,false});
     };
     for(auto& row:result.lifetimes) {
         common(row,0,{});

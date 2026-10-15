@@ -1,12 +1,18 @@
 import './worker-rpc-host.js';
-import { createPlaceWorkerStore, readPlaceResponse } from '../modules/place-worker-store.js';
+const storeModuleUrl=new URL('../modules/place-worker-store.js',import.meta.url);
+const revision=new URL(import.meta.url).searchParams.get('v');
+if (!revision) throw new TypeError('Place Worker requires its deployment revision');
+storeModuleUrl.searchParams.set('v',revision);
 let store=null, manifestUrl=null, loading=null;
 async function getStore(url,context) {
   if (store && manifestUrl === url) return store;
   if (!loading || manifestUrl !== url) {
     manifestUrl=url;
     loading=(async () => {
-      const response=await fetch(url, {signal:context.signal});
+      const { createPlaceWorkerStore, readPlaceResponse }=await import(storeModuleUrl.href);
+      const requestUrl=new URL(url);
+      requestUrl.searchParams.set('v',revision);
+      const response=await fetch(requestUrl, {signal:context.signal});
       if (!response.ok) throw new Error(`Place manifest HTTP ${response.status}`);
       const bytes=await readPlaceResponse(response,8*1024*1024);
       return createPlaceWorkerStore({ manifest: JSON.parse(new TextDecoder().decode(bytes)), baseUrl: url });
