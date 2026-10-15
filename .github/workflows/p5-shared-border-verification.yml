@@ -114,7 +114,7 @@ jobs:
           test "$(git hash-object assets/js/modules/.p5-legacy-country-shared-boundary-packet.js)" = be3a2ebde3820e25a6ac231565e7b406eac21f89
       - name: Measure real-world preview, canonical, and stress packet paths
         run: |
-          node --expose-gc --max-old-space-size=3072 tools/benchmark-shared-border-p5.mjs --output build-native/p5-performance.json
+          node --expose-gc --max-old-space-size=3072 tools/benchmark-shared-border-p5.mjs --output build-native/p5-performance.json --check-regressions
       - name: Publish comparable elapsed times and footprint evidence
         if: always()
         uses: actions/upload-artifact@v4

@@ -73,24 +73,37 @@ function comparePackets(reference,actual,quality) {
       assert.equal(after.preparedGeometry[metric],before.preparedGeometry[metric],quality+': '+key+' '+metric);
   }
 }
-function sample(fn,segments,limit,count) {
-  const samples=[],heapDeltas=[],rssDeltas=[];
-  for(let i=0;i<count;++i) {
+function samplePair(oldFn,newFn,segments,limit,count) {
+  const results={legacy:{ms:[],heap:[],rss:[]},compiled:{ms:[],heap:[],rss:[]}};
+  function measure(key,fn) {
     global.gc?.();
     const before=process.memoryUsage();
-    const start=performance.now();
-    let packet=fn(segments,[],{maxEdgeDegrees:limit});
-    samples.push(performance.now()-start);
+    const started=performance.now();
+    const packet=fn(segments,[],{maxEdgeDegrees:limit});
+    const elapsed=performance.now()-started;
     const after=process.memoryUsage();
-    heapDeltas.push(after.heapUsed-before.heapUsed);
-    rssDeltas.push(after.rss-before.rss);
-    // Do not retain a previous packet when comparing the next run.
-    packet=null;
+    assert.ok(packet.startsEnds.length>=0);
+    const row=results[key];
+    row.ms.push(elapsed);
+    row.heap.push(after.heapUsed-before.heapUsed);
+    row.rss.push(after.rss-before.rss);
   }
-  return {medianMs:round(median(samples)),
-    minMs:round(Math.min(...samples)),maxMs:round(Math.max(...samples)),
-    medianHeapDeltaMb:round(median(heapDeltas)/1048576),
-    medianRssDeltaMb:round(median(rssDeltas)/1048576)};
+  // Interleave both directions: same runner and data, alternating first call.
+  for(let i=0;i<count;++i) {
+    if(i%2===0) {
+      measure('legacy',oldFn);
+      measure('compiled',newFn);
+    } else {
+      measure('compiled',newFn);
+      measure('legacy',oldFn);
+    }
+  }
+  const summary=rows=>({medianMs:round(median(rows.ms)),
+    minMs:round(Math.min(...rows.ms)),maxMs:round(Math.max(...rows.ms)),
+    // Allocator/GC-sensitive diagnostics, not a peak-resident-memory claim.
+    medianHeapDeltaMb:round(median(rows.heap)/1048576),
+    medianRssDeltaMb:round(median(rows.rss)/1048576)});
+  return {legacy:summary(results.legacy),compiled:summary(results.compiled)};
 }
 
 const cases=[
@@ -100,18 +113,19 @@ const cases=[
 ];
 const results=[];
 for(const {quality,limit,name,sourceHash,segments} of cases) {
-  const baseline=old.prepareCountrySharedBoundaryPacket(segments,[],{maxEdgeDegrees:limit});
-  const current=modern.prepareCountrySharedBoundaryPacket(segments,[],{maxEdgeDegrees:limit});
-  comparePackets(baseline,current,quality);
-  const outputSegments=current.segments.length;
+  let outputSegments=0;
+  {
+    const baseline=old.prepareCountrySharedBoundaryPacket(segments,[],{maxEdgeDegrees:limit});
+    const current=modern.prepareCountrySharedBoundaryPacket(segments,[],{maxEdgeDegrees:limit});
+    comparePackets(baseline,current,quality);
+    outputSegments=current.segments.length;
+  }
   // Both variants warm the C++ primitive kernels before timed trials.
   old.prepareCountrySharedBoundaryPacket(segments,[],{maxEdgeDegrees:limit});
   modern.prepareCountrySharedBoundaryPacket(segments,[],{maxEdgeDegrees:limit});
   const count=quality==='canonical'?3:5;
-  // Symmetric mixed-order sampling avoids assigning the cold-cache runner to
-  // one implementation; report medians, never compare a single elapsed call.
-  const legacy=sample(old.prepareCountrySharedBoundaryPacket,segments,limit,count);
-  const compiled=sample(modern.prepareCountrySharedBoundaryPacket,segments,limit,count);
+  const {legacy,compiled}=samplePair(old.prepareCountrySharedBoundaryPacket,
+    modern.prepareCountrySharedBoundaryPacket,segments,limit,count);
   const ratio=compiled.medianMs/Math.max(legacy.medianMs,.001);
   results.push({quality,input:name,sourceHash,sourceSegments:segments.length,
     displaySegments:outputSegments,match:true,legacy,compiled,
@@ -127,4 +141,14 @@ if(outputAt>=0) {
   if(!destination)throw new Error('Missing --output filename');
   fs.mkdirSync(path.dirname(destination),{recursive:true});
   fs.writeFileSync(destination,JSON.stringify(report,null,2)+'\n');
+}
+
+// A ratio compares the old and new paths within the same runner, and is more
+// stable than CI absolute wall time. A 15% slowdown relative to the pinned
+// pre-C++ adapter is actionable for real world data; synthetic allows 25%.
+if(process.argv.includes('--check-regressions')) {
+  const regressions=results.filter(row=>row.compiledToLegacyRatio>
+    (row.quality==='stress'?1.25:1.15));
+  if(regressions.length)throw new Error('Shared border packet performance regression: '+
+    regressions.map(row=>row.quality+': '+row.compiledToLegacyRatio+'x old adapter').join('; '));
 }
