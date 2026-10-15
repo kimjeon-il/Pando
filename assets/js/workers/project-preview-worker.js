@@ -5,7 +5,6 @@ importScripts(
   '../vendor/topojson-server.min.js',
   '../vendor/topojson-simplify.min.js',
   '../modules/polygon-clipping-core.js',
-  '../vendor/earcut.min.js',
   '../modules/polygon-geometry.js',
   './gpu-mesh-core.js',
 );
@@ -14,7 +13,7 @@ const geometryCoreReady = import('../modules/core-wasm-loader.js')
   .then(({ loadVerifiedCore }) => loadVerifiedCore({
     baseUrl: new URL('../../wasm/', self.location.href),
   }))
-  .then(core => { self.PandoLabSphericalCore = core; });
+  .then(core => { self.PandoLabSphericalCore = core; self.PandoLabGpuMeshCore.setSharedCore(core); });
 
 const modules = geometryCoreReady.then(() => Promise.all([
   import('../modules/project-preview-topology.js'),
@@ -138,7 +137,7 @@ async function buildCache(source, baseline, entities) {
   const countries = { type: 'FeatureCollection', features: current.map(feature => byId.get(String(feature.id))) };
   const previewUnits = territorialUnits.map(unit => ({ id: unit.id, geometry: byId.get(`unit:${unit.id}`)?.geometry }));
   if (countries.features.some(feature => !feature) || previewUnits.some(unit => !unit.geometry)) throw new Error('미리보기 객체가 누락됐습니다.');
-  const mesh = self.PandoLabGpuMeshCore.buildGpuMeshFeatures(countries.features, self.earcut,
+  const mesh = self.PandoLabGpuMeshCore.buildGpuMeshFeatures(countries.features,
     { validate: false, maxEdgeDegrees: 2 });
   const countryIds = countries.features.map(feature => String(feature.id));
   mesh.preparedStroke = stroke.prepareCountryStroke(mesh, countryIds);

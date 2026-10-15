@@ -2,6 +2,7 @@
 #include "gpumapitem.h"
 #include "maprenderitem.h"
 #include "terrainimageprovider.h"
+#include "worlddatasetloader.h"
 #include "native_performance_input_state.h"
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -56,11 +57,18 @@ static void prepareNativePerformanceFixtures()
     const auto world=nativePerfWorldRoot();
     const auto worldManifest=nativePerfJsonFile(QDir(world).filePath("manifest.json"));
     QVERIFY(!worldManifest.isEmpty());
+    // Exercise the actual pinned loader directly before its asynchronous
+    // controller boundary; failures retain the original decoder diagnostic.
+    const auto loadedPreview=WorldDatasetLoader::preview(world);
+    QVERIFY(loadedPreview.frame&&loadedPreview.frame->mesh&&loadedPreview.frame->mesh->sourceCoordinateCount>0);
     QTemporaryDir privateData;QVERIFY(privateData.isValid());
     EditorControllerConfig config;config.bootstrapWorld=true;config.worldDataRoot=world;
     config.appearancePath=privateData.filePath("appearance.json");
     EditorController editor(config);
-    QTRY_VERIFY_WITH_TIMEOUT(!editor.startupBusy()&&editor.worldStatus()=="canonical",90000);
+    QSignalSpy startupErrors(&editor,&EditorController::errorOccurred);
+    QTRY_VERIFY_WITH_TIMEOUT((!editor.startupBusy()&&editor.worldStatus()=="canonical")||!startupErrors.isEmpty(),90000);
+    QVERIFY2(!editor.startupBusy()&&editor.worldStatus()=="canonical",
+        qPrintable(startupErrors.isEmpty()?QString("World startup: ")+editor.worldStatus():startupErrors.first().first().toString()));
     const auto project=QJsonDocument::fromJson(editor.documentBytes()).object();
     const auto unitCount=project.value("units").toArray().size();
     QVERIFY(unitCount>=worldManifest.value("countryCount").toInt());
@@ -185,7 +193,10 @@ static void runNativePerformanceProbe()
         const auto copy=privateData.filePath(it.key()+".json");QVERIFY(QFile::copy(original,copy));fixtureProjects.insert(it.key(),copy);
     }
     EditorControllerConfig config;
-    config.bootstrapWorld=true;config.autosaveEnabled=true;config.projectPreviewEnabled=true;
+    // P9 compares opening the same full-world saved project in both products.
+    // Disable the static base in both: a pre-P6 decoder cannot consume a new
+    // algorithm's fixed meshes, and patching that baseline would invalidate it.
+    config.bootstrapWorld=!relative;config.autosaveEnabled=true;config.projectPreviewEnabled=true;
     config.worldDataRoot=nativePerfWorldRoot();
     config.privateProjectPath=privateData.filePath("private.json");
     config.autosaveProjectPath=privateData.filePath("autosave-project.json");
