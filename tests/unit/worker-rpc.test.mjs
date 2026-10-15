@@ -238,6 +238,19 @@ test('closed RPC ignores captured callbacks without creating another worker', as
   assert.equal(creations, 1);
 });
 
+test('idle active worker crashes retain the native diagnostic when no operation can report them', () => {
+  const worker = fakeWorker(), crashes = [];
+  const client = createWorkerRpcClient({ createWorker: () => worker, onCrash: error => crashes.push(error) });
+  client.notify('map-edit.rebase');
+  let prevented = false;
+  worker.onerror({ message: 'idle import failure', preventDefault() { prevented = true; } });
+  assert.equal(prevented, false);
+  assert.equal(crashes.length, 1);
+  assert.equal(crashes[0].message, 'idle import failure');
+  assert.equal(worker.terminated, true);
+  client.stop();
+});
+
 test('active worker import failures remain visible and reject the pending operation', async () => {
   const worker = fakeWorker();
   const crashes = [];
