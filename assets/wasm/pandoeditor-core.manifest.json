@@ -1,7 +1,7 @@
 {
   "schema": "pandoeditor-core-wasm",
   "abiVersion": 1,
-  "sourceSha256": "084705f90da97d29a05072f97a01cdfbed8f3f3fae8bc224f99c02e664ea412e",
+  "sourceSha256": "7e3202606c127c29e0d23a3ce4deb22543785f80489dacd687ef43df9cd41f42",
   "compiler": {
     "name": "emscripten",
     "version": "4.0.20"
@@ -53,7 +53,7 @@
     },
     {
       "path": "shared/core/include/pandoeditor/document.h",
-      "sha256": "904fc7c0d65a8b5e9c0c49f86a053d8a03a5fd0912759c3494a3bcf870255ca9"
+      "sha256": "fe4bfa33e8ca80fd6f54a8c6fcd2b1ccf7923bc606e24a2ed1ae28874863f8b1"
     },
     {
       "path": "shared/core/include/pandoeditor/geobounds.h",
@@ -141,7 +141,7 @@
     },
     {
       "path": "shared/core/include/pandoeditor/projectcodec.h",
-      "sha256": "170b66061734c20ab6788b2676218b422efeef2ab38546de5ecf73cd73082902"
+      "sha256": "b9f1f344b33530fdef622c5527785d27ce22d720f7229810dd43222036d06871"
     },
     {
       "path": "shared/core/include/pandoeditor/selection.h",
@@ -261,7 +261,7 @@
     },
     {
       "path": "shared/core/src/document.cpp",
-      "sha256": "f84ee257ca99afd69cbc6371f202a5ecc2819ca9970337530c7eed8b50f60b0a"
+      "sha256": "4c114badebcd44740b95babb1071694472f8704c984c41d66483372dbf2dd38c"
     },
     {
       "path": "shared/core/src/documentstate.h",
@@ -341,7 +341,7 @@
     },
     {
       "path": "shared/core/src/projectcodec.cpp",
-      "sha256": "c0b38054abe9ebe82696c146b7df3c2329d808d6909d8b55465a56ec28e9af5f"
+      "sha256": "1630976e52597de51f699c4b8123b600e23849596b83ba0d18e4d5474d0b9b19"
     },
     {
       "path": "shared/core/src/snapshot.cpp",
@@ -405,7 +405,7 @@
     },
     {
       "path": "shared/core/src/webstorage.cpp",
-      "sha256": "9579d0c05a4a77a4aa1325c977ffa788cb2cc059ef4bcc22b5ba5dcceaf17b9f"
+      "sha256": "c90bd6896b094a8518ad08eca51aa506d1f5959929b58022730460a5cc555091"
     },
     {
       "path": "shared/core/src/webterritorialcommands.cpp",
@@ -481,7 +481,7 @@
     },
     {
       "path": "shared/tests/web-storage-tests.cpp",
-      "sha256": "6e5def41289d6bd4561e6366438a9e42ef60b6d0f6a2d1b1d473ab3304e92d55"
+      "sha256": "ab982987bbd49b6ab4c464881c1b66d2c2c08715d42670f40284750f9432a7b8"
     },
     {
       "path": "shared/tests/web-territorial-command-tests.cpp",
@@ -511,7 +511,7 @@
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "bc88ec3ae1732597a1f2da3b768340e48d207a528085f0b15c84c3c4f0db0317"
+      "sha256": "1f9db55d7f81c9a97497284bd9e13eee3d13e296fe2572b8ec236abd027c7572"
     }
   }
 }

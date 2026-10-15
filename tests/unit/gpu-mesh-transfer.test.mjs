@@ -27,8 +27,8 @@ test('actual mesh Worker transfers every output buffer and detaches its original
     let response;
     worker.on('error', reject);
     worker.on('message', value => {
-      if (value.data) response = value;
-      if (Object.hasOwn(value, 'detached')) resolve({ ...response, detached: value.detached });
+      if (value.data?.type === 'result') response = value;
+      if (response && Object.hasOwn(value, 'detached')) resolve({ ...response, detached: value.detached });
     });
   });
   worker.postMessage({ rpc: WORKER_RPC_PROTOCOL, protocolVersion: WORKER_RPC_PROTOCOL_VERSION,
