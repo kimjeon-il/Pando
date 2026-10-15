@@ -189,3 +189,12 @@ test('application capability ports are frozen, shared and bounded to twelve memb
     for (const name of names) assert.strictEqual(ports[name], ports[name], `${name} must be shared`);
   }
 });
+
+test('P5-6 interaction preparation failure retains the explicit user-visible reporting port',async()=>{
+  const module=await import('../../assets/js/modules/app-capability-ports.js');
+  assert.ok(module.MAP_RESOURCE_OWNER_PORTS.interactionPackets.includes('feedback'));
+  const source=read('assets/js/modules/app-interaction-packets.js');
+  assert.match(source,/dependencies\.feedback\.reportOperationError\(/);
+  const ports=read('assets/js/modules/app-capability-ports.js');
+  assert.match(ports,/get reportOperationError\(\) \{ return providers\.readinessNotifications\.reportOperationError; \}/);
+});
