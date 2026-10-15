@@ -1,4 +1,4 @@
-add_executable(pandoeditor_wasm session-bindings.cpp timeline-bindings.cpp boundary-bindings.cpp)
+add_executable(pandoeditor_wasm session-bindings.cpp timeline-bindings.cpp boundary-bindings.cpp polygon-bindings.cpp cut-bindings.cpp reference-bindings.cpp)
 target_link_libraries(pandoeditor_wasm PRIVATE Pandoeditor::Core)
 target_compile_options(pandoeditor_wasm PRIVATE -fexceptions)
 target_compile_definitions(pandoeditor_wasm PRIVATE

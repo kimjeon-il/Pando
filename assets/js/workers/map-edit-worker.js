@@ -11,7 +11,7 @@ importScripts(
   versionedWorkerAssetUrl('./worker-rpc-host.js'),
   versionedWorkerAssetUrl('../modules/polygon-geometry.js'),
   versionedWorkerAssetUrl('../modules/territorial-edit-plan.js'),
-  versionedWorkerAssetUrl('../vendor/polygon-clipping.min.js'),
+  versionedWorkerAssetUrl('../modules/polygon-clipping-core.js'),
 );
 
 const geometryCoreReady = import(versionedWorkerAssetUrl('../modules/core-wasm-loader.js'))

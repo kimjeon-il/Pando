@@ -4,7 +4,7 @@ importScripts(
   '../vendor/topojson-client.min.js',
   '../vendor/topojson-server.min.js',
   '../vendor/topojson-simplify.min.js',
-  '../vendor/polygon-clipping.min.js',
+  '../modules/polygon-clipping-core.js',
   '../vendor/earcut.min.js',
   '../modules/polygon-geometry.js',
   './gpu-mesh-core.js',

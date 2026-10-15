@@ -55,6 +55,9 @@ add_library(pandoeditor_core STATIC
     src/objectproperties.cpp
     src/geometrypredicates.cpp
     src/polygonclipping.cpp
+    src/cutgeometry.cpp
+    src/referenceimage.cpp
+    src/referencetracing.cpp
     src/sphericalpolygon.cpp
     src/boundarychain.cpp
     src/boundarypacket.cpp
@@ -101,6 +104,8 @@ endif()
 
 # Match historical JS multiplication order for near-collinear source edges.
 set_source_files_properties(src/polygonclipping.cpp PROPERTIES COMPILE_OPTIONS
+    "$<$<CXX_COMPILER_ID:MSVC>:/fp:strict>;$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-ffp-contract=off>")
+set_source_files_properties(src/cutgeometry.cpp src/referenceimage.cpp src/referencetracing.cpp PROPERTIES COMPILE_OPTIONS
     "$<$<CXX_COMPILER_ID:MSVC>:/fp:strict>;$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-ffp-contract=off>")
 set_source_files_properties(src/boundarycontact.cpp PROPERTIES COMPILE_OPTIONS
     "$<$<CXX_COMPILER_ID:MSVC>:/fp:strict>;$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-ffp-contract=off>")
