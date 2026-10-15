@@ -1,10 +1,19 @@
-import { buildRenderableBoundarySegments, buildRefinedBoundarySegments, normalizeLongitudeNear } from './geographic-boundary.js';
+import { buildRenderableBoundarySegments, buildRefinedBoundarySegments } from './geographic-boundary.js';
 import './polygon-geometry.js';
 import { createBoundarySpatialIndex, segmentBounds, padBoundaryBounds } from './boundary-spatial-index.js';
 import { countryGeometrySignature } from './country-shared-boundary-cache.js';
 import { territorialRootId } from './territorial-units.js';
+import { sharedCalculationCore } from './temporal.js';
+import { computeCountrySharedContacts } from './country-contact-core.js';
 
-const { sphericalSignedArea } = globalThis.PandoLabPolygonGeometry;
+for (const capability of ['boundaryOpposingInteriors', 'boundaryOpposingInteriorsBatch']) {
+  if (typeof sharedCalculationCore?.[capability] !== 'function') {
+    throw Object.assign(new Error('Shared C++ boundary contact capability unavailable: ' + capability),
+      { code: 'PL-CORE-WASM-CAPABILITY' });
+  }
+}
+
+const { sphericalSignedAreas } = globalThis.PandoLabPolygonGeometry;
 const cloneCoordinate = coordinate => [Number(coordinate[0]), Number(coordinate[1])];
 
 function quantized(value, precision) {
@@ -49,10 +58,16 @@ export function boundarySourceSegments(feature, fallbackId = 0) {
   const rows = [];
   const id = featureId(feature, fallbackId);
   for (const polygon of polygonRings(feature)) {
-    (polygon.rings || []).forEach((ring, ringIndex) => {
+    const rings = polygon.rings || [];
+    // Preserve the historical skip for empty/one-point rings, while using
+    // one crossing into the shared C++ integral for all remaining rings.
+    const calculable = rings.filter(ring => ring.length > 1);
+    const areas = calculable.length ? sphericalSignedAreas(calculable) : [];
+    let areaIndex = 0;
+    rings.forEach((ring, ringIndex) => {
       const limit = Math.max(0, ring.length - 1);
       if (!limit) return;
-      let area = sphericalSignedArea(ring);
+      let area = areas[areaIndex++];
       // The common spherical integral may include a full turn around a pole.
       // Use its signed smaller region, without offsetting ordinary tiny areas.
       if (area > 2 * Math.PI) area -= 4 * Math.PI;
@@ -130,27 +145,25 @@ export function buildBoundaryTopology(features = [], options = {}) {
   return buildBoundaryTopologyFromSegments(features.flatMap(boundarySourceSegments), options);
 }
 
-// Display-only geometry. The edit topology remains the single authority for
-// shared/coast classification; geographic boundary handling drops pole and
-// artificial antimeridian closing edges before either renderer sees them.
+// The existing source-ref objects and Worker cache remain JS-owned.
+// C++ now produces source-contact candidates, shared segments and seam pieces.
 export function buildCountrySharedBoundaryContact(left, right) {
-  const overlap = [Math.max(left.bounds[0], right.bounds[0]), Math.max(left.bounds[1], right.bounds[1]),
-    Math.min(left.bounds[2], right.bounds[2]), Math.min(left.bounds[3], right.bounds[3])];
-  if (overlap[0] > overlap[2] + 1e-7 || overlap[1] > overlap[3] + 1e-7) return [];
-  const candidates = new Set();
-  const rows = left.spatialIndex.query(padBoundaryBounds(overlap)).sort((a, b) =>
-    a.polygonIndex - b.polygonIndex || a.ringIndex - b.ringIndex || a.segmentIndex - b.segmentIndex);
-  for (const row of rows) {
-    const nearby = right.spatialIndex.query(padBoundaryBounds(segmentBounds(row)));
-    if (!nearby.length) continue;
-    candidates.add(row);
-    for (const other of nearby) candidates.add(other);
+  return computeCountrySharedContacts([[left, right]])[0];
+}
+
+// Worker source identities remain JS-owned after C++ contact discovery.
+// Both static cache assembly and incremental patches must merge the same refs
+// without duplicating owner/reference union logic or mutating input rows.
+export function mergeSharedBoundaryContributions(segments) {
+  if (!segments.length) return null;
+  if (segments.length === 1) return segments[0];
+  const refs = [];
+  for (const segment of segments) for (const ref of segment.refs) {
+    if (!refs.some(other => other.featureId === ref.featureId
+      && other.polygonIndex === ref.polygonIndex
+      && other.ringIndex === ref.ringIndex && other.segmentIndex === ref.segmentIndex)) refs.push(ref);
   }
-  if (!candidates.size) return [];
-  const topology = buildBoundaryTopologyFromSegments([...candidates]);
-  return [...topology.segments.values()].filter(segment => segment.kind === 'shared').flatMap(segment =>
-    buildRenderableBoundarySegments({ type: 'LineString', coordinates: [segment.a, segment.b] })
-      .map(([start, end]) => ({ start, end, ownerIds: [...segment.ownerIds].sort(), refs: segment.refs })));
+  return { ...segments[0], ownerIds: [...new Set(segments.flatMap(segment => segment.ownerIds))].sort(), refs };
 }
 
 export function buildCountrySharedBoundarySegments(features = [], { preparedStore } = {}) {
@@ -158,23 +171,21 @@ export function buildCountrySharedBoundarySegments(features = [], { preparedStor
   if (!preparedStore) store.replace(features);
   const rows = features.map(feature => store.get(feature.id));
   const order = new Map(rows.map((row, index) => [row.id, index]));
-  const shared = new Map();
+  const pairs = [];
   for (let leftIndex = 0; leftIndex < rows.length; leftIndex++) {
     const left = rows[leftIndex];
     if (!left.segments.length) continue;
     const nearby = store.nearby(left.bounds).filter(right => order.get(right.id) > leftIndex)
       .sort((a, b) => order.get(a.id) - order.get(b.id));
-    for (const right of nearby) for (const segment of buildCountrySharedBoundaryContact(left, right)) {
+    for (const right of nearby) pairs.push([left, right]);
+  }
+  const shared = new Map();
+  for (const segments of computeCountrySharedContacts(pairs))
+    for (const segment of segments) {
       const key = segmentKey(segment.start, segment.end, 7);
       const previous = shared.get(key);
-      if (previous) {
-        previous.ownerIds = [...new Set([...previous.ownerIds, ...segment.ownerIds])].sort();
-        for (const ref of segment.refs) if (!previous.refs.some(other => other.featureId === ref.featureId
-          && other.polygonIndex === ref.polygonIndex && other.ringIndex === ref.ringIndex
-          && other.segmentIndex === ref.segmentIndex)) previous.refs.push(ref);
-      } else shared.set(key, segment);
+      shared.set(key, previous ? mergeSharedBoundaryContributions([previous, segment]) : segment);
     }
-  }
   return [...shared.values()];
 }
 
@@ -219,43 +230,20 @@ export function buildBoundaryTopologyFromSegments(rawSegments, { precision = 7, 
   }
 
   const nodeValues = [...nodes.values()];
-  // A shared-border vertex may lie inside the opposite owner's longer segment.
-  // Looking at every node for every segment turns detailed country geometry into
-  // O(n²) work, so query only coarse geographic buckets crossed by the segment.
-  const bucketSize = 0.25;
-  const bucketKey = (x, y) => `${x}:${y}`;
-  const nodeBuckets = new Map();
-  for (const node of nodeValues) {
-    const key = bucketKey(Math.floor(node.coordinate[0] / bucketSize), Math.floor(node.coordinate[1] / bucketSize));
-    if (!nodeBuckets.has(key)) nodeBuckets.set(key, []);
-    nodeBuckets.get(key).push(node);
+  // One compiled C++ crossing owns geographic node buckets, epsilon
+  // projections and stable split ordering. JS retains edit references and
+  // object-key Map identities, not a second arithmetic implementation.
+  const splitRows = rawSegments.length
+    ? sharedCalculationCore.boundarySplitCandidatesBatch(
+      rawSegments.map(({ a, b }) => [a, b]), nodeValues.map(node => node.coordinate), epsilon) : [];
+  if (!Array.isArray(splitRows) || splitRows.length !== rawSegments.length
+    || splitRows.some(row => !Array.isArray(row))) {
+    throw Object.assign(new Error('Incomplete compiled boundary topology split result.'),
+      { code: 'PL-BOUNDARY-SPLIT' });
   }
-  const nodesNearSegment = raw => {
-    const minX = Math.floor((Math.min(raw.a[0], raw.b[0]) - epsilon) / bucketSize);
-    const maxX = Math.floor((Math.max(raw.a[0], raw.b[0]) + epsilon) / bucketSize);
-    const minY = Math.floor((Math.min(raw.a[1], raw.b[1]) - epsilon) / bucketSize);
-    const maxY = Math.floor((Math.max(raw.a[1], raw.b[1]) + epsilon) / bucketSize);
-    const cellCount = (maxX - minX + 1) * (maxY - minY + 1);
-    if (cellCount > 4096) return nodeValues;
-    const output = [];
-    const seen = new Set();
-    for (let x = minX; x <= maxX; x += 1) {
-      for (let y = minY; y <= maxY; y += 1) {
-        for (const node of nodeBuckets.get(bucketKey(x, y)) || []) {
-          if (seen.has(node.key)) continue;
-          seen.add(node.key);
-          output.push(node);
-        }
-      }
-    }
-    return output;
-  };
   const segments = new Map();
-  for (const raw of rawSegments) {
-    const split = nodesNearSegment(raw)
-      .map(node => ({ node, t: pointOnSegment(node.coordinate, raw.a, raw.b, epsilon) }))
-      .filter(item => item.t !== null)
-      .sort((left, right) => left.t - right.t);
+  for (const [rawIndex, raw] of rawSegments.entries()) {
+    const split = splitRows[rawIndex].map(([nodeIndex, t]) => ({ node: nodeValues[nodeIndex], t }));
     for (const item of split) {
       item.node.ownerIds.add(raw.featureId);
       if (item.t > epsilon && item.t < 1 - epsilon && !item.node.virtualRefs.some(ref => ref.featureId === raw.featureId
@@ -427,19 +415,20 @@ function pointSegmentDistance(point, a, b) {
   return Math.hypot(Number(point[0]) - (Number(a[0]) + dx * t), Number(point[1]) - (Number(a[1]) + dy * t));
 }
 
-// Coincident edges on the same filled side are an exterior shared by an
-// overlapping parent/child, rather than a boundary separating their land.
-export function hasOpposingBoundaryInteriors(segment, ownerIds = segment.ownerIds) {
-  const dx = normalizeLongitudeNear(segment.end[0], segment.start[0]) - segment.start[0];
-  const dy = segment.end[1] - segment.start[1];
-  const sides = ownerIds.map(id => {
+// Keep source-reference selection in JavaScript; shared C++ alone owns the
+// signed interior/direction calculation. Inputs are untouched source edges,
+// not seam-split or refined display strokes.
+export function boundaryInteriorComparison(segment, ownerIds = segment.ownerIds) {
+  const refs = ownerIds.map(id => {
     const edge = segment.refs?.find(ref => String(ref.featureId) === String(id));
-    if (!edge) throw new Error(`공유 경계의 원본 구간이 없습니다: ${id}`);
-    const edgeDx = normalizeLongitudeNear(edge.b[0], edge.a[0]) - edge.a[0];
-    const direction = Math.sign(edgeDx * dx + (edge.b[1] - edge.a[1]) * dy);
-    return direction * edge.interiorSide;
+    if (!edge) throw new Error('공유 경계의 원본 구간이 없습니다: ' + id);
+    return [edge.a, edge.b, edge.interiorSide];
   });
-  return new Set(sides).size > 1;
+  return [[segment.start, segment.end], refs];
+}
+
+export function hasOpposingBoundaryInteriors(segment, ownerIds = segment.ownerIds) {
+  return sharedCalculationCore.boundaryOpposingInteriors(...boundaryInteriorComparison(segment, ownerIds));
 }
 
 export function buildTerritorialInternalBoundarySegments(countries = [], units = [], { precision = 7, epsilon = 1e-7 } = {}) {

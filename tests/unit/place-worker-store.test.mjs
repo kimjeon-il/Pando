@@ -13,6 +13,35 @@ function fixture() {
   const manifest = { version: 1, revision: 'test', stages: [{ id: 0, minZoom: 0, columns: 1, rows: 1 }], tiles: { '0/0-0': row }, shards: { s: { url: 's.bin', bytes: bytes.length } }, search: { '서울': [{ ...row, first: '서울', last: '서울\uffff' }] } };
   return { bytes, manifest };
 }
+
+test('place data revisions isolate stale responses and full shards do not request ranges', async t => {
+  for (const offset of [0, 24]) {
+    const { bytes, manifest } = fixture();
+    const row = manifest.tiles['0/0-0'];
+    row.offset = offset;
+    const shard = new Uint8Array(bytes.length + offset);
+    shard.set(bytes, offset);
+    manifest.shards.s.bytes = shard.length;
+    const requests = [];
+    t.mock.method(globalThis, 'fetch', async (url, options) => {
+      requests.push({ url: new URL(url), range: options.headers?.Range });
+      if (new URL(url).searchParams.get('v') !== manifest.revision) {
+        return new Response(bytes, { status: 206,
+          headers: { 'Content-Range': `bytes 0-${bytes.length - 1}/${bytes.length + 1}` } });
+      }
+      return offset
+        ? new Response(bytes, { status: 206,
+          headers: { 'Content-Range': `bytes ${offset}-${shard.length - 1}/${shard.length}` } })
+        : new Response(shard);
+    });
+    const store = createPlaceWorkerStore({ manifest });
+    const result = await store.queryViewport(placeView({ flatCenter: [127, 37], threshold: 10 }));
+    assert.equal(result.records.length, records.length);
+    assert.equal(requests.length, 1);
+    assert.equal(requests[0].url.searchParams.get('v'), manifest.revision);
+    assert.equal(requests[0].range, offset ? `bytes=${offset}-${shard.length - 1}` : undefined);
+  }
+});
 test('Worker queries wrapped tile window and returns bounded canonical records', async () => {
   const { bytes, manifest } = fixture(); let requests = 0;
   const store = createPlaceWorkerStore({ manifest, fetchBytes: async () => { requests++; return bytes; } });

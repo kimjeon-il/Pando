@@ -271,7 +271,7 @@ async function buildCache(source, baseline, entities) {
   const inspectCandidate = candidate => {
     const candidateFeatures = self.topojson.feature(candidate, candidate.objects.countries).features;
     const invalid = candidateFeatures.flatMap(feature => geometryValidation.validateGeometry(feature).map(issue => ({
-      ids: [String(feature.id)], point: issue.point || null, reason: issue.kind || 'invalid',
+      ids: [String(feature.id)], point: issue.coordinate || null, reason: issue.kind || 'invalid',
     })));
     return invalid.length ? invalid : [
       ...intersectionIssues(candidateFeatures, unitParents),

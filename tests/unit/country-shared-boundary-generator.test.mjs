@@ -62,3 +62,28 @@ test('shared boundary generator rejects corrupted gzip checksum', async t => {
 test('shared boundary generator rejects missing archives', async t => {
   await assert.rejects(checkArchive(t, archive, { missing: true }), /is stale/);
 });
+
+test('offline source and browser packet share compiled grouping, phase and seam rules', async () => {
+  const {prepareCountrySharedBoundaryPacket}=await import(
+    '../../assets/js/modules/country-shared-boundary-packet.js');
+  const sources=[
+    {start:[179.8,30],end:[-179.8,30],ownerIds:['E','W']},
+    {start:[0,0],end:[0,.25],ownerIds:['A','B']},
+    {start:[0,.25],end:[0,.5],ownerIds:['A','B']},
+    {start:[180,10],end:[180,20],ownerIds:['C','D']},
+  ];
+  const original=structuredClone(sources);
+  const packet=prepareCountrySharedBoundaryPacket(sources,[],{maxEdgeDegrees:2});
+  assert.deepEqual(packet.ownerIds,['A','B','E','W']);
+  assert.deepEqual(packet.ownerRanges,{
+    'A|B':{first:0,count:2},'E|W':{first:2,count:2},
+  });
+  assert.equal(packet.segments.length,4);
+  assert.ok(packet.startsEnds instanceof Float32Array);
+  assert.ok(packet.chainPhase instanceof Float32Array);
+  assert.deepEqual([...packet.chainPhase].slice(0,3),[0,.25,0]);
+  assert.ok(packet.chainPhase[3]>0);
+  assert.equal(packet.segments[2].end[0],180);
+  assert.equal(packet.segments[3].start[0],-180);
+  assert.deepEqual(sources,original,'render packet assembly must not edit source data');
+});
