@@ -21,6 +21,8 @@ on:
       - 'assets/wasm/pandoeditor-core.manifest.json'
       - 'assets/js/modules/boundary-lines.js'
       - 'assets/js/modules/geographic-boundary.js'
+      - 'native/engine/src/renderpacket.cpp'
+      - 'tests/unit/boundary-display-refinement.test.mjs'
       - 'assets/js/modules/boundary-topology.js'
       - 'assets/js/modules/country-shared-boundary-packet.js'
       - 'tools/build-country-shared-boundaries.mjs'

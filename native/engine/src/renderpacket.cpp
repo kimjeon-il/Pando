@@ -1,4 +1,5 @@
 #include <pandoeditor/map/renderpacket.h>
+#include <pandoeditor/boundaryrefinement.h>
 #include <earcut.hpp>
 #include <algorithm>
 #include <array>
@@ -51,7 +52,7 @@ void appendPositions(std::vector<float>& buffer,const std::vector<Position>& poi
     }
 }
 
-constexpr double MAX_RENDER_EDGE_DEGREES=0.499;
+constexpr double MAX_RENDER_EDGE_DEGREES=pandoeditor::kDefaultBoundaryEdgeDegrees;
 constexpr double AREA_EPSILON=1e-20;
 using Triangle=std::array<std::uint32_t,3>;
 std::uint64_t edgeKey(std::uint32_t a,std::uint32_t b) {
@@ -132,7 +133,7 @@ std::vector<Triangle> refinePolygon(
     std::vector<std::array<double,3>> vectors;
     vectors.reserve(geo.size()*2);
     for(const auto& p:geo)vectors.push_back(unitVector(p));
-    const auto minimumDot=std::cos((MAX_RENDER_EDGE_DEGREES-0.000002)*radians);
+    const auto minimumDot=pandoeditor::boundaryMinimumDot(MAX_RENDER_EDGE_DEGREES);
     const auto needsSplit=[&](std::uint32_t a,std::uint32_t b) {
         return dot(vectors[a],vectors[b])<minimumDot-1e-14;
     };
