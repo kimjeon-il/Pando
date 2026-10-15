@@ -91,8 +91,10 @@ function rememberCutSource(payload) {
 
 function assertRequestCurrent(message, epoch, serviceCurrent = () => true) {
   if (epoch !== projectEpoch || !serviceCurrent() || message.signal?.aborted
-    || Number(message.dataRevision || 0) !== currentDataRevision
     || (message.sourceRevision != null && message.sourceRevision !== sourceRevision)) throw Object.assign(new Error('작업을 취소했습니다.'), { cancelled: true, code: 'PL-MAP-EDIT-CANCELLED' });
+  if (Number(message.dataRevision || 0) !== currentDataRevision) throw Object.assign(
+    new Error(`Map-edit data revision mismatch: requested ${Number(message.dataRevision || 0)}, worker ${currentDataRevision}.`),
+    { code: 'PL-MAP-EDIT-REVISION' });
 }
 
 function requestCheckpoint(message, epoch, sourceSensitive = false, serviceCurrent = () => true) {
