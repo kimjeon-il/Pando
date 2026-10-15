@@ -59,6 +59,10 @@ on:
         type: boolean
         required: false
         default: true
+      native_tests_windows:
+        description: Optional Windows override for native_tests when completed OS evidence differs
+        type: string
+        required: false
       browser_tests:
         description: Optional Playwright grep for remaining browser acceptance cases
         type: string
@@ -309,7 +313,7 @@ jobs:
     env:
       PANDO_P3_QT_PRESET: ${{ matrix.preset }}
       PANDO_P9_RETRY: ${{ inputs.retry_failed }}
-      PANDO_NATIVE_TESTS: ${{ inputs.native_tests }}
+      PANDO_NATIVE_TESTS: ${{ matrix.os_id == 'windows' && inputs.native_tests_windows || inputs.native_tests }}
       PANDO_NATIVE_APP: ${{ github.event_name != 'workflow_dispatch' || inputs.native_app }}
       QT_QPA_PLATFORM: offscreen
       QT_QUICK_BACKEND: software
@@ -431,7 +435,7 @@ jobs:
           }
           exit $ctestExit
       - name: Verify affected native hydro consumers in the existing Qt build
-        if: ${{ !cancelled() && (steps.build_linux.outcome == 'success' || steps.build_windows.outcome == 'success') && needs.plan.outputs.hydro == 'true' && (!inputs.retry_failed || runner.os == 'Windows') }}
+        if: ${{ !cancelled() && (steps.build_linux.outcome == 'success' || steps.build_windows.outcome == 'success') && needs.plan.outputs.hydro == 'true' && env.PANDO_NATIVE_TESTS == '' && (!inputs.retry_failed || runner.os == 'Windows') }}
         shell: pwsh
         run: |
           $manifest = Get-Content native/assets/world/manifest.json -Raw | ConvertFrom-Json
