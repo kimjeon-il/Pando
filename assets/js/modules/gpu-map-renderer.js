@@ -1948,7 +1948,7 @@ export function createGpuMapRenderer(deps) {
       return remapped;
     }
 
-    const stopPatchWorkerJobs = reason => patchJobScheduler.cancelAll(reason);
+    const stopPatchWorkerJobs = reason => patchJobScheduler.cancelAll(reason, { preserveIdleRebuild: true });
 
     function completeGeometryDisplay(ids, geometryRevision, { renderFrame = true } = {}) {
       const cleared = geometryRevisionTracker.markDisplayed(ids, geometryRevision);
@@ -2091,6 +2091,7 @@ export function createGpuMapRenderer(deps) {
             if (countryPatchPresentation?.token === token) countryPatchPresentation = null;
             return false;
           }
+          performanceMetrics.lastMeshPreparation = next.preparation;
           const remapped = remapOverrideMesh(next, next.countryIds || []);
           const stagedResources = await stageMeshResources(remapped);
           if (!geometryRevisionTracker.isCurrent(token, commit.revision)) { disposeMeshResources(stagedResources); return false; }
@@ -2310,6 +2311,7 @@ export function createGpuMapRenderer(deps) {
       return patchJobScheduler.rebuild({ token, projectGeneration: taskProjectGeneration, geometryRevision: task.revision, features },
         () => taskProjectGeneration === projectGeneration && geometryRevisionTracker.isCurrent(token, task.revision)).then(async next => {
           if (!next) return false;
+          performanceMetrics.lastMeshPreparation = next.preparation;
           let stagedResources, nextMesh;
           try {
             assertPreparedStroke(next, next.countryIds || []);
@@ -4722,6 +4724,7 @@ export function createGpuMapRenderer(deps) {
       target.terrainShadeBlend = demShadeBlend;
       target.requestedRevision = currentRenderRevision;
       target.displayedRevision = displayedRenderRevision;
+      target.lastMeshPreparation = performanceMetrics.lastMeshPreparation || null;
       target.p95CpuSubmitMs = cachedDetailedStats.p95CpuSubmitMs;
       target.p99CpuSubmitMs = cachedDetailedStats.p99CpuSubmitMs;
       target.paletteRebuildCount = performanceMetrics.paletteRebuildCount;
@@ -4896,6 +4899,7 @@ export function createGpuMapRenderer(deps) {
         geometryRenderTaskToken: geometryRevisionTracker.taskToken(),
         patchWorkerJobs: patchJobScheduler.stats(),
         patchWorkerOutputBytes: patchJobScheduler.outputBytes(),
+        lastMeshPreparation: performanceMetrics.lastMeshPreparation || null,
         lastGeometryCommitTimings: lastGeometryCommitTimings ? { ...lastGeometryCommitTimings } : null,
         canvasWorkerBusy: !!canvasWorker?.busy,
         canvasStyleRevision, canvasDisplayedStyleRevision,

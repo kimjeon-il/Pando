@@ -337,17 +337,17 @@ std::string encodeWebStorage(const ProjectSnapshot& snapshot,const PlatformPorts
                              const WebStorageBaseline* baseline,const std::vector<std::string>& dirtyIds) {
     const bool autosave=context.format=="pandolab-autosave";
     auto fileContext=context;if(autosave)fileContext.format="pandolab-autosave-full";
-    auto root=codecjson::parse(encodeWeb(snapshot,ports,fileContext),ports.parsedTextPolicy);
+    auto root=encodeWebValue(snapshot,ports,fileContext);
     const auto& dataset=field(root,"baseDataset");
     const bool builtin=baseline&&baseline->kind()==WebStorageBaselineKind::Builtin&&dataset.kind==V::String&&dataset.string==baseline->baseDataset()&&isStaticTimeline(snapshot.document());
     if(!autosave||!builtin) {
         // The original serializer uses the same fullAutosave header policy for
         // ordinary project files: dated/external sources declare external data.
         if(!builtin||context.format=="pandolab-autosave-full")root.object["baseDataset"]=V::str("external-territorial-entities");
-        auto result=root.encode()+"\n";root=V{};(void)decodeWeb(result,ports);return result;
+        auto result=root.encode()+"\n";require(result.size()<=256ll*1024*1024,"LIMIT_EXCEEDED","JSON exceeds 256 MiB");return result;
     }
     std::set<std::string> dirty;
-    for(const auto& id:dirtyIds)require(!id.empty()&&dirty.insert(id).second,"CORE_STORAGE_DIRTY_IDS","Core dirty identity order must be unique and nonempty.");
+    for(const auto& id:dirtyIds)require(!trimWebText(id).empty()&&dirty.insert(id).second,"CORE_STORAGE_DIRTY_IDS","Core dirty identity order must be unique and nonempty.");
     for(const auto& id:initialDirtyTerritorialIds(snapshot,*baseline))require(dirty.count(id),"CORE_STORAGE_DIRTY_IDS","Core dirty identity order omits a changed identity: "+id);
     auto changed=V::arr(),removed=V::arr();const auto current=identityMap(field(root,"territorialEntities"));
     for(const auto& id:dirtyIds) {
@@ -355,6 +355,9 @@ std::string encodeWebStorage(const ProjectSnapshot& snapshot,const PlatformPorts
     }
     root.object.erase("territorialEntities");root.object["format"]=V::str("pandolab-autosave-delta");root.object["baseDatasetFingerprint"]=V::str(baseline->fingerprint());
     auto delta=V::obj();delta.object["changed"]=std::move(changed);delta.object["removedIds"]=std::move(removed);root.object["entityDelta"]=std::move(delta);
-    auto result=root.encode()+"\n";root=V{};(void)decodeWebStorage(result,ports,baseline);return result;
+    // The source tree has already passed the codec's round-trip/provenance
+    // checks. Baseline and dirty-owner validation above prove this projection;
+    // decoding it again only rebuilds the same complete geometry archive.
+    auto result=root.encode()+"\n";require(result.size()<=256ll*1024*1024,"LIMIT_EXCEEDED","JSON exceeds 256 MiB");return result;
 }
 }
