@@ -6,31 +6,31 @@
   "origin": {
     "repository": "kimjeon-il/Pando",
     "mode": "web-bundle",
-    "webCommit": "57820b04434d81e05d2159da1c0292af6f08752b",
-    "worldBundleSha256": "040919db66007fd239dc7fbb4b1743881be640fcae28f3a4dacbbbb423927d0b"
+    "webCommit": "7db07b630573c0e557a35b64f1abf4b753667501",
+    "worldBundleSha256": "6fa855e4163c0e82f7a320151e2a13dbab54e61ce59b8454e02593ad4583cf0e"
   },
   "countryPreview": {
-    "path": "world/objects/countries-preview-sha256-4a607622d4bc26870276b134c533de10af89018b34494b32773ea2a49e9cd166.geojson.gz",
+    "path": "world/objects/countries-preview-sha256-b8877a6f3f3bbe9ff78c8007ce163e1adde2e80c1d0daa3b920423070b412252.geojson.gz",
     "version": "0.36.1",
-    "gitBlobSha": "888285cdb59ae26740a353bbd595828baba57156",
-    "sha256": "4a607622d4bc26870276b134c533de10af89018b34494b32773ea2a49e9cd166",
+    "gitBlobSha": "fafc6ca4bbd9493932f0080ccf38e9b9c5a4bb09",
+    "sha256": "b8877a6f3f3bbe9ff78c8007ce163e1adde2e80c1d0daa3b920423070b412252",
     "required": false,
-    "bytes": 913515,
+    "bytes": 917486,
     "source": {
-      "ref": "57820b04434d81e05d2159da1c0292af6f08752b",
-      "path": "assets/data/world/objects/countries-preview-sha256-4a607622d4bc26870276b134c533de10af89018b34494b32773ea2a49e9cd166.geojson.gz"
+      "ref": "7db07b630573c0e557a35b64f1abf4b753667501",
+      "path": "assets/data/world/objects/countries-preview-sha256-b8877a6f3f3bbe9ff78c8007ce163e1adde2e80c1d0daa3b920423070b412252.geojson.gz"
     }
   },
   "previewMesh": {
-    "path": "world/objects/world-mesh-preview-sha256-fc00477f2cd4ff25920cbf90d65ea715a4ad41a21b3ba5d5bbc825c169cd841e.bin.gz",
+    "path": "world/objects/world-mesh-preview-sha256-c7805b96bc94b7553453d0616641c4c0da10514b02b4af5f4dfecd7470e3852b.bin.gz",
     "version": "0.36.1",
-    "gitBlobSha": "11bd59b52052a0bb289b556bbfd0415b198bab7f",
-    "sha256": "fc00477f2cd4ff25920cbf90d65ea715a4ad41a21b3ba5d5bbc825c169cd841e",
+    "gitBlobSha": "c7e412656d97f9b6c8fec392690b9eb2151c79e2",
+    "sha256": "c7805b96bc94b7553453d0616641c4c0da10514b02b4af5f4dfecd7470e3852b",
     "required": true,
-    "bytes": 1725040,
+    "bytes": 1734093,
     "source": {
-      "ref": "57820b04434d81e05d2159da1c0292af6f08752b",
-      "path": "assets/data/world/objects/world-mesh-preview-sha256-fc00477f2cd4ff25920cbf90d65ea715a4ad41a21b3ba5d5bbc825c169cd841e.bin.gz"
+      "ref": "7db07b630573c0e557a35b64f1abf4b753667501",
+      "path": "assets/data/world/objects/world-mesh-preview-sha256-c7805b96bc94b7553453d0616641c4c0da10514b02b4af5f4dfecd7470e3852b.bin.gz"
     }
   },
   "countryCanonical": {
@@ -41,7 +41,7 @@
     "required": true,
     "bytes": 5122041,
     "source": {
-      "ref": "57820b04434d81e05d2159da1c0292af6f08752b",
+      "ref": "7db07b630573c0e557a35b64f1abf4b753667501",
       "path": "assets/data/world/objects/countries-canonical-sha256-638c6f4868b9d270a62cd66ca13a18dc8a4215fa7c48ff9280a089e433f81dd1.pcg.gz"
     }
   },
@@ -53,7 +53,7 @@
     "required": true,
     "bytes": 14619919,
     "source": {
-      "ref": "57820b04434d81e05d2159da1c0292af6f08752b",
+      "ref": "7db07b630573c0e557a35b64f1abf4b753667501",
       "path": "assets/data/world/objects/world-mesh-sha256-c7f687e9d14325ae9c8334cb4fabc3afd016e1a1231cf16b1c0729499a713ec8.bin.gz"
     }
   },
@@ -89,7 +89,7 @@
     "bytes": 13826,
     "required": true,
     "source": {
-      "ref": "57820b04434d81e05d2159da1c0292af6f08752b",
+      "ref": "7db07b630573c0e557a35b64f1abf4b753667501",
       "path": "assets/data/world/objects/country-label-anchors-sha256-caeee3f0d05265cc564f68ef092b25ea8c5c4d6f1c36e2beb35a239551751512.json"
     }
   },
