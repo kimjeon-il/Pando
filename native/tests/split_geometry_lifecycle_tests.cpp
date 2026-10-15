@@ -139,7 +139,9 @@ private slots:
         SplitTerritorialIntent intent{territorialRef("source"),observedGeometry(selected["combinedGeometry"].toObject()),created,"새 객체"};
         JobScheduler jobs;auto ticket=jobs.enqueue(project.snapshot(),"observed-split");jobs.takeNext();
         const auto receipt=calculateSplitGeometryPreview(project.snapshot(),intent,territorialPreviewCalculators(),ticket.token());QCOMPARE(::projectcodec::encode(project),before);
-        const auto webPreview=stages["review"].toObject()["document"].toObject()["preview"];
+        // Own the value: auto plus operator[] would retain a QJsonValueRef
+        // into the temporary document object and leave a dangling fixture view.
+        const QJsonValue webPreview=stages["review"].toObject()["document"].toObject().value("preview");
         QVERIFY(!webPreview.isUndefined());
         if(webPreview.isObject()) {
             QVERIFY(webPreview.toObject()["afterFeatures"].isArray());const auto expected=webPreview.toObject()["afterFeatures"].toArray();

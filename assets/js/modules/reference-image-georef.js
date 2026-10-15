@@ -1,4 +1,4 @@
-import { calculateReferenceImage, calculateReferenceMesh, createReferenceWarp, referenceWarpDescriptor, freezeReferenceResult } from './reference-image-core.js';
+import { calculateReferenceImage, calculateReferenceMesh, createReferenceWarp, createCalculatedReferenceWarp, referenceWarpDescriptor, freezeReferenceResult } from './reference-image-core.js';
 
 export const REFERENCE_IMAGE_GEOREF_SCHEMA_VERSION = 2;
 
@@ -15,7 +15,7 @@ export function normalizeReferenceControlPoints(values = []) {
 }
 
 export function buildReferenceImageWarp(values = [], { mode = REFERENCE_IMAGE_WARP_MODES.AUTO } = {}) {
-  return createReferenceWarp(calculateReferenceImage('warp', { points: values, mode }));
+  return createCalculatedReferenceWarp('warp', { points: values, mode });
 }
 
 export function buildReferenceImageAutoGeoref(values = [], options = {}) {
@@ -120,11 +120,11 @@ export function referenceImageWarpQuad(warp) {
 }
 
 export function buildReferenceImageCalibrationWarp(record = {}) {
-  return createReferenceWarp(calculateReferenceImage('calibrationWarp', record));
+  return createCalculatedReferenceWarp('calibrationWarp', record);
 }
 
 export function buildReferenceImageProjectiveWarpFromQuad(mapQuad) {
-  return createReferenceWarp(calculateReferenceImage('projective', mapQuad));
+  return createCalculatedReferenceWarp('projective', mapQuad);
 }
 
 export function buildReferenceImageMesh(warp, { columns = 24, rows = 16 } = {}) {

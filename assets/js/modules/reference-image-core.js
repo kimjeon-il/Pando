@@ -35,11 +35,10 @@ export function referenceWarpDescriptor(warp) {
   return descriptors.get(warp?.project) ?? null;
 }
 
-export function createReferenceWarp(descriptor) {
+function exposeReferenceWarp(descriptor, prepared) {
   freezeReferenceResult(descriptor);
-  if (!descriptor.ok) return descriptor;
+  if (!descriptor.ok) { prepared.delete(); return descriptor; }
   const { xCoefficients, yCoefficients, ...publicFields } = descriptor;
-  const prepared = new sharedCalculationCore.PreparedReferenceImageWarp(encodeInput(descriptor));
   const project = point => {
     const result = prepared.project(encodeInput(point ?? null));
     return result ? Object.freeze(result) : null;
@@ -48,6 +47,24 @@ export function createReferenceWarp(descriptor) {
   preparedWarps.set(project, prepared);
   releaseWarps.register(project, prepared);
   return Object.freeze({ ...publicFields, project });
+}
+
+export function createReferenceWarp(descriptor) {
+  if (!descriptor.ok) return freezeReferenceResult(descriptor);
+  return exposeReferenceWarp(descriptor,
+    new sharedCalculationCore.PreparedReferenceImageWarp(encodeInput(descriptor)));
+}
+
+export function createCalculatedReferenceWarp(operation, input) {
+  // Calculate and prepare in the same C++ call. Do not serialize the complete
+  // result back into WASM just to recover coefficients it already owns.
+  const prepared = new sharedCalculationCore.PreparedReferenceImageWarp(operation, encodeInput(input));
+  try {
+    return exposeReferenceWarp(JSON.parse(prepared.takeDescriptor()), prepared);
+  } catch (error) {
+    prepared.delete();
+    throw error;
+  }
 }
 
 // UVs and connectivity depend only on the dimensions returned by the engine.

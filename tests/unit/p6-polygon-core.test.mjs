@@ -16,12 +16,13 @@ test('shared polygon operation owns multi-operand union, holes and empty interse
 });
 
 
-test('WASM wrapping preserves every pre-P6 case, including empty geometry', async () => {
+test('WASM wrapping preserves the current baseline and explicit winding corrections', async () => {
   const { readFileSync } = await import('node:fs');
   const core = await loadVerifiedCore();
   const fixture = JSON.parse(readFileSync(new URL('../fixtures/p6/wrapping-baseline.json', import.meta.url)));
+  const corrections = new Map(JSON.parse(readFileSync(new URL('../fixtures/p6/wrapping-corrections.json', import.meta.url))).cases.map(row => [row.id, row.expected]));
   for (const row of fixture.cases.filter(row => row.operation === 'wrap')) {
-    assert.deepEqual(JSON.parse(core.wrapPolygonGeometry(JSON.stringify(row.input))), row.expected, row.id);
+    assert.deepEqual(JSON.parse(core.wrapPolygonGeometry(JSON.stringify(row.input))), corrections.get(row.id) ?? row.expected, row.id);
   }
 });
 
@@ -31,17 +32,22 @@ test('cut and wrapping failures retain technical JavaScript errors', async () =>
   assert.throws(() => new core.PreparedCutGeometry('{'), error => error instanceof Error && error.code === 'PL-CUT-CALCULATION');
 });
 
-test('clipped wide shells and holes remain canonical after planar edge subdivision', async () => {
+test('subdivided wide shells and holes have canonical winding and preserve planar area', async () => {
   const { readFileSync } = await import('node:fs');
   const core = await loadVerifiedCore();
   const baseline = JSON.parse(readFileSync(new URL('../fixtures/p6/wrapping-baseline.json', import.meta.url))).cases;
   const corrections = JSON.parse(readFileSync(new URL('../fixtures/p6/wrapping-corrections.json', import.meta.url))).cases;
+  const area = geometry => (geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates)
+    .reduce((sum, polygon) => sum + polygon.reduce((part, ring, index) => part + (index ? -1 : 1)
+      * Math.abs(ring.slice(1).reduce((value, point, i) => value + ring[i][0] * point[1] - point[0] * ring[i][1], 0) / 2), 0), 0);
   for (const row of corrections) {
-    const input = baseline.find(old => old.id === row.id).input;
+    const old = baseline.find(old => old.id === row.id), input = old.input;
     const before = structuredClone(input);
-    const result = core.normalizePolygonGeometry(input, true);
+    const result = row.operation === 'wrap' ? JSON.parse(core.wrapPolygonGeometry(JSON.stringify(input))) : core.normalizePolygonGeometry(input, true);
     assert.deepEqual(result, row.expected, row.id);
     assert.equal(core.hasCanonicalPolygonWinding(result), true, row.id);
+    assert.equal(core.hasCanonicalPolygonWinding(old.expected), false, row.id + ' corrects a formerly invalid result');
+    assert.equal(area(result), area(old.expected), row.id + ' preserves area');
     assert.deepEqual(input, before);
   }
 });

@@ -32,3 +32,11 @@ Constraints: no main integration/deployment without a new instruction; no other 
 
 - P7 first real generation/publication38758885726 passed: Web57820b04 -> native989a249f, one guarded push; local fast-forward complete. The earlier run stopped on an obsolete Shapely call, now removed from ordinary preview generation. No new intermediate suites were run.
 - P8 implementation wired current manifest/Worker hydro contracts, retained research jobs as explicit dispatch, and removed automatic duplicate publishers. P9 acceptance scope reuses existing affected user-flow tests and matched-run calculation measurement.
+
+## P9 acceptance progress
+
+- P7 selective publication 38760364502 produced 5298b062. P6–P8 implementation is present; acceptance remains open.
+- P9 38761625563: Web snapshot passed. Linux app and selected 13 CTests passed; Windows app passed with 12/13 CTests, exposing a dangling QJsonValueRef in the lifecycle fixture reader. The fixture reader now owns the QJsonValue without changing expectations. Linux additional hydro tests exposed a prefix-mapped fixture path, corrected to the existing CMake-provided path.
+- Web current Worker checks passed 66 cases with one real wide-source new-country normalization defect. Source 63657333 segments planar longitude spans before deciding spherical winding; the two affected historic baseline observations are retained with explicit current correction fixtures.
+- Performance acceptance improved cut, polygon and memory, while river remained uncertain and reference regressed. 63657333 removes repeated calibration fitting, mesh layout reconstruction and JSON temporary conversion costs. P9 resume reuses completed evidence and measures only river/reference.
+- Main branch protection API returned Branch not protected (404); no required status contexts were retired or protection settings changed.

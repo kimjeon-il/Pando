@@ -172,6 +172,14 @@ std::string Value::encode(int depth) const {
 Value parse(const std::string& bytes,ParsedTextPolicy policy){return Parser(bytes,policy).parse();}
 double finiteNumber(const Value& value) {
     require(value.kind==Value::Number,"INVALID_JSON: expected numeric value");double number=0;
+    if(value.raw.find_first_of(".eE")==std::string::npos) {
+        std::int64_t integer=0;
+        const auto parsed=std::from_chars(value.raw.data(),value.raw.data()+value.raw.size(),integer);
+        if(parsed.ec==std::errc{}&&parsed.ptr==value.raw.data()+value.raw.size()) {
+            if(integer==0&&!value.raw.empty()&&value.raw.front()=='-')return -0.0;
+            return static_cast<double>(integer);
+        }
+    }
     const auto result=std::from_chars(value.raw.data(),value.raw.data()+value.raw.size(),number,std::chars_format::general);
     require(result.ec==std::errc{}&&result.ptr==value.raw.data()+value.raw.size()&&std::isfinite(number),"INVALID_JSON: nonfinite typed number");return number;
 }

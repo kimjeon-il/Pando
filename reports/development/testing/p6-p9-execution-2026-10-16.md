@@ -49,3 +49,11 @@
 - Web 계약 두 실패는 WASM 결과의 객체 참조 동일성을 요구한 과거 기대값이었다. 값의 동일성·입력 보존을 검사하도록 변경했다. Worker 계약 66개 성공, 넓은 원본에서 새 국가를 만든 사례 1개 실패. 긴 평면 경도를 나누기 전에 구면 방향을 정하던 공통 정규화 순서를 수정했다. 과거 baseline 파일을 보존하고 넓은 외곽/구멍 두 사례의 현행 기대값을 별도로 명시했다.
 - 같은 runner의 교대 성능 비교: cut 중앙값 13.1923→6.5372ms, polygon 166.715→137.355ms, max RSS 359420→265228KB. river 8.6504→16.8101ms는 범위 중첩으로 미확정, reference 19.162→46.107ms는 회귀. 참조이미지 중복 보정 계산·메시 배열 재생성과 JSON 임시 문자열/정수 변환 비용을 줄였다. 수정 후 성능 통과는 아직 주장하지 않는다.
 - 후속 실행은 완료된 Web 계약·GPU/경계 검사·자산 snapshot·hydro 네 검사를 재실행하지 않는다. 변경된 공통 계산과 실패한 사례, 아직 실행되지 않은 사용자 흐름, river/reference 성능만 확인한다. 공통 C++가 바뀌므로 두 OS의 최종 앱 빌드와 관련 CTest는 필요하다.
+
+### P9 수정 후 중간 결과 f1db6cf5
+
+- WASM 및 자산 갱신 38763979326 성공: WASM 7be5ce1d, 생성물 영수증 f1db6cf5. 고정 자산의 바이트는 바뀌지 않았고 새 WASM 및 해당 의존 지문을 반영했다.
+- 실제 wide-source new-country Worker 회귀 사례 통과. polygon-geometry 16개와 reference-shared-runtime 6개 통과. 새 winding 계약을 적용하자 baseline의 wrap long-edge 사례도 같은 잘못된 방향을 가지고 있음을 확인했다. 세 변경 모두 이전 출력의 canonical 실패→현재 성공, 평면 면적 동일을 확인하여 별도 현행 correction fixture로 기록했다. 과거 baseline은 변경하지 않았다.
+- 동일 Windows/Node 환경의 river/reference 한정 교대 비교: river 중앙 8.63085→15.10245ms, reference 13.9045→22.5133ms. 한 차례 추가 측정 후에도 각각 미확정·회귀다. 범위 및 반복 데이터는 build-native/p9/calculation-performance-f1db6cf5-windows.json에 남겼다. 통과로 처리하지 않았다.
+- 후속 최소 수정: 수계 원본 수치/ID 요청당 준비, 소유권이 끝난 후보 이동; 정확한 정수 토큰의 빠른 수치 파싱; 참조 좌표·계수 재사용 및 WASM 보정/준비 통합. 원본 수치 알고리즘·오차·메시 불변성은 유지한다. 후속 WASM은 먼저 이 두 성능 항목만 확인하며, 불필요한 고정 자산 재생성은 최종 계산 후보 확정 뒤에 시행한다.
+- Windows 기본 실패의 원인은 fixture reader의 임시 QJsonObject에 대한 QJsonValueRef 수명 오류였다. 값을 소유하도록 고쳤으며 expected geometry는 그대로다.
