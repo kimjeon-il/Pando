@@ -1,3 +1,4 @@
+import '../helpers/spherical-core.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createBoundaryPreparation } from '../../assets/js/modules/boundary-preparation.js';

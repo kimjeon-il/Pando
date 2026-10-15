@@ -30,13 +30,29 @@ int main() {
     const auto changed=replaceGeometryBindingAtMonth(records,"A","1914-06",{"shape",3});
     const auto reparented=replaceParentRelationAtMonth(records,"B","1914-07","","explicit");
     const auto ended=truncateTimelineEntityAtMonth(records,"A","1914-07");
+    const auto partial=editTimelineRecordAtMonth(records,"parentRelations","B","1914-07",
+        TimelineEditPatch{std::nullopt,std::nullopt,std::string("explicit")});
+    const auto noop=editTimelineRecordAtMonth(records,"parentRelations","B","1914-07",TimelineEditPatch{});
+
+    const std::vector<Validity> catalogVersions={
+        {{"1914-07"},{"1914-07-15"}},{{"1914-07-16"},{"1915-12"}}
+    };
+    const auto versionAtJuly=selectTimelineVersion({{"1914"},{"1915"}},catalogVersions,
+        std::optional<std::string>{"1914-07"});
+    const auto versionBefore=selectTimelineVersion({{"1914"},{"1915"}},catalogVersions,
+        std::optional<std::string>{"1914-07-15"});
+    const auto versionOutside=selectTimelineVersion({{"1914"},{"1915"}},catalogVersions,
+        std::optional<std::string>{"1916-01"});
+    const auto timelessVersion=selectTimelineVersion({},std::vector<Validity>{{}},std::nullopt);
     const auto initial=initialTimelineMonth(records,"2026-10");
     Project project;
     const auto emptyProjectWorld=project.resolveWorld("1914-07");
     const auto originalRevision=project.revision();
     const bool cursorMoved=project.setTimelineCursor("1914-07");
     const bool cursorNoOp=!project.setTimelineCursor("1914-07");
-    const bool good=july.month=="1914-07"&&june.entities.size()==2&&june.entities.at(0).geometryRef.version==1
+    const bool good=versionAtJuly&&*versionAtJuly==1&&versionBefore&&*versionBefore==0
+        &&!versionOutside&&timelessVersion&&*timelessVersion==0
+        &&july.month=="1914-07"&&june.entities.size()==2&&june.entities.at(0).geometryRef.version==1
         &&july.entities.at(0).geometryRef.version==2&&july.entities.at(1).parentId=="A"
         &&july.entities.at(1).rootId=="A"&&july.entities.at(1).ancestors==std::vector<std::string>{"A"}
         &&before.entities.size()==1&&januaryStart.entities.size()==2&&januaryAfterEnd.entities.size()==1
@@ -49,6 +65,11 @@ int main() {
         &&records.geometryBindings.front().geometryRef.version==1&&initial=="1914-07"
         &&reparented.parentRelations.size()==3&&reparented.parentRelations.at(1).validity.to=="1914-06"
         &&reparented.parentRelations.at(2).parentId.empty()
+        &&partial.changed&&partial.records.parentRelations.size()==3
+        &&partial.records.parentRelations.at(1).validity.to=="1914-06"
+        &&partial.records.parentRelations.at(2).coverageMode=="explicit"
+        &&partial.records.parentRelations.at(2).parentId=="A"
+        &&!noop.changed&&noop.records.parentRelations.size()==2
         &&ended.lifetimes.front().validity.to=="1914-06"
         &&ended.geometryBindings.size()==2
         &&ended.geometryBindings.front().validity.to=="1914-06"

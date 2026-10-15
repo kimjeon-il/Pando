@@ -58,6 +58,11 @@ jobs:
           version: '6.8.3'
           modules: 'qtshadertools qtimageformats'
           cache: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+      - name: Install the pinned Acorn grammar needed by native Qt geometry admission
+        run: npm ci --prefix tools/m97/river/d3-adapter --ignore-scripts --no-audit --no-fund
       - name: Compile Hydro runtime, manifest and full real dataset tests
         run: |
           cmake -S . -B build-hydro-packfile -G Ninja -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON

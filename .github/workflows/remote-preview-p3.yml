@@ -1,4 +1,5 @@
 name: P3 Remote preview and Qt verification
+# P5-4 verification receipt: force both native Qt CI presets on this push; application sources remain unchanged.
 on:
   push:
     branches: [work/ui, work/objects, work/gis, work/places]
@@ -6,6 +7,9 @@ on:
       - '.github/workflows/remote-preview-p3.yml'
       - 'scripts/p3-plan-remote.mjs'
       - 'scripts/p3-stage-preview.mjs'
+      - 'scripts/p3-preview-server.mjs'
+      - '.devcontainer/**'
+      - 'tests/unit/p3-preview-server.test.mjs'
       - 'tests/unit/p3-remote-plan.test.mjs'
       - 'tests/browser/p3-remote-preview.spec.mjs'
       - 'tests/browser/performance-observability.spec.mjs'
@@ -58,7 +62,7 @@ jobs:
         with:
           node-version-file: .nvmrc
       - name: Check preview and build plan without installing SDKs
-        run: node --test tests/unit/p3-remote-plan.test.mjs
+        run: node --test tests/unit/p3-remote-plan.test.mjs tests/unit/p3-preview-server.test.mjs
       - name: Resolve changed scopes using the actual Git history
         id: scope
         env:
@@ -121,6 +125,8 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
       - name: Verify the active built-in world mesh decoder and GPU capability wiring
         run: node --test tests/unit/country-mesh-codec-runtime.test.mjs tests/unit/gpu-scene-platform-port.test.mjs
+      - name: Verify C++ area, shared-border packet, and boundary-edit handoff
+        run: node --test tests/unit/p5-spherical-area-delegation.test.mjs tests/unit/edit-preview-handoff.test.mjs tests/unit/country-shared-boundary-state.test.mjs tests/unit/country-shared-boundary-generator.test.mjs
       - name: Run real desktop and emulated mobile screenshots plus startup observability
         shell: bash
         env:
@@ -197,9 +203,6 @@ jobs:
             echo "### Qt generated inputs repaired for this CI build" >> "$GITHUB_STEP_SUMMARY"
             echo "The branch still contains outdated generated assets. Review the p3-qt-regenerated-geometry.patch artifact before merging." >> "$GITHUB_STEP_SUMMARY"
           fi
-      - uses: actions/setup-python@v5
-        with:
-          python-version-file: .python-version
       - uses: jwlawson/actions-setup-cmake@v2
         with:
           cmake-version: '3.31.6'
@@ -246,12 +249,38 @@ jobs:
         run: |
           set -o pipefail
           ctest --preset "$PANDO_P3_QT_PRESET" 2>&1 | tee p3-ctest.log
-      - name: Run focused Qt CTest and core state checks (Windows)
+      - name: Run focused Qt CTest and preserve Windows failure diagnostics
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
           ctest --preset $env:PANDO_P3_QT_PRESET 2>&1 | Tee-Object p3-ctest.log
-          exit $LASTEXITCODE
+          $ctestExit = $LASTEXITCODE
+          if ($ctestExit -ne 0) {
+            # QtTest may exit without writing to the CTest console on Windows.
+            # Capture its own text output and NTSTATUS without masking the failure.
+            $target = "build-native/p3/$env:PANDO_P3_QT_PRESET/native/Release/native_performance_structure_tests.exe"
+            $log = Join-Path (Get-Location).Path 'p3-native-performance-structure-diagnostic.log'
+            $ErrorActionPreference = 'Continue'
+            if (Test-Path $target) {
+              & $target -o "$log,txt" 2>&1 | Tee-Object p3-native-performance-structure-console.log
+              $directExit = $LASTEXITCODE
+              Write-Host ("Native performance structure exit: decimal={0}, hex=0x{1}" -f $directExit, [Convert]::ToString([int]$directExit,16))
+              if (Test-Path $log) {
+                Get-Content $log | Select-Object -Last 250
+              } else {
+                Write-Host 'No QtTest diagnostic file was written; process may have failed during startup.'
+              }
+            } else {
+              Write-Host "Native test executable was not found: $target"
+            }
+          }
+          exit $ctestExit
+      - name: Build and CTest the shared C++ spherical area in Qt's JS bridge
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmake --build --preset "$PANDO_P3_QT_PRESET" --target split_geometry_normalizer_tests 2>&1 | tee p3-p5-qt-area-build.log
+          ctest --test-dir "build-native/p3/$PANDO_P3_QT_PRESET" -C Release -R p5_spherical_area_qt_bridge --output-on-failure 2>&1 | tee p3-p5-qt-area-ctest.log
       - name: Capture a real nonblank Qt Quick application window under Linux Xvfb
         if: runner.os == 'Linux'
         shell: bash
@@ -286,6 +315,10 @@ jobs:
           path: |
             p3-qt-build.log
             p3-ctest.log
+            p3-native-performance-structure-diagnostic.log
+            p3-native-performance-structure-console.log
+            p3-p5-qt-area-build.log
+            p3-p5-qt-area-ctest.log
             p3-qt-regenerated-geometry.patch
             test-results/p3-qt
             build-native/p3/${{ matrix.preset }}/native/build-provenance.json
