@@ -23,6 +23,7 @@ import { decideCountryPatchPresentation } from './country-mesh-quality-gate.js';
 import { resolveCountryMeshQuality } from './country-mesh-zoom-policy.js';
 import { shouldShowSharedCountryBorders, excludeCountryBoundaryOwners } from './country-shared-boundary-packet.js';
 import { geometryRevisionKey } from './geometry-versions.js';
+import '../workers/canvas-terrain-dem-core.js';
 
 const rendererAssetRevision = new URL(import.meta.url).searchParams.get('v') || globalThis.PANDOLAB_BUILD_META?.assetRevision || '';
 const [{ drawGpuBaseScene }, { prepareGpuBaseScene, prepareGpuInteraction, prepareGpuInteractionPlan, sceneStrokeResourcePacket, commitGpuStrokeDomains }, { createGpuStrokeRenderer }, { createGpuTerrainPreparation },
@@ -153,6 +154,7 @@ export function createGpuMapRenderer(deps) {
     sharedBoundaryCacheUrls,
     PHYSICAL_DATA_BASE_URL,
     TERRAIN_RASTER_MANIFEST_URL,
+    TERRAIN_PRIMARY_MANIFEST_URL,
     onTerrainSourceChanged,
     createCountryFillResolver,
     baseSceneFeatureById,
@@ -402,6 +404,7 @@ export function createGpuMapRenderer(deps) {
     let terrainSource = 'raster';
     let terrainFallbackReason = null;
     let terrainFallbackPending = false;
+    let canvasTerrainStats = {};
     let demShadeBlend = 0;
     let demSettleStartedAt = 0;
     let demShadeTimer = null;
@@ -3626,6 +3629,100 @@ export function createGpuMapRenderer(deps) {
         reserve ? batches.map(packet => ({ ...packet, style: { ...packet.style, alpha: 1 } })) : batches);
       target.restore();
     }
+    let canvasPreviewAtlas = null;
+    let canvasPreviewLoad = null;
+    async function loadCanvasPreview() {
+      if (canvasPreviewLoad) return canvasPreviewLoad;
+      canvasPreviewLoad = (async () => {
+        const response = await fetch(TERRAIN_RASTER_MANIFEST_URL);
+        if (!response.ok) throw new Error(`지형 미리보기 HTTP ${response.status}`);
+        const manifest = validateTerrainManifest(await response.json());
+        if (manifest.representation !== TERRAIN_RASTER_FORMAT) throw new Error('지형 미리보기 형식이 올바르지 않습니다.');
+        for (const level of manifest.levels) {
+          const physical = document.createElement('canvas'), political = document.createElement('canvas');
+          physical.width = political.width = level.width;
+          physical.height = political.height = level.height;
+          for (let row = 0; row < level.rows; row += 1) for (let column = 0; column < level.columns; column += 1) {
+            const path = manifest.urlTemplate.replace('{level}', level.id).replace('{column}', column).replace('{row}', row);
+            const tileUrl = terrainAssetUrl(path, { manifestUrl: TERRAIN_RASTER_MANIFEST_URL });
+            const tileResponse = await fetch(tileUrl);
+            if (!tileResponse.ok) throw new Error(`지형 미리보기 타일 HTTP ${tileResponse.status}`);
+            const bitmap = await createImageBitmap(await tileResponse.blob());
+            const read = document.createElement('canvas');
+            read.width = bitmap.width; read.height = bitmap.height;
+            const readContext = read.getContext('2d', { willReadFrequently: true });
+            readContext.drawImage(bitmap, 0, 0); bitmap.close?.();
+            const source = readContext.getImageData(0, 0, read.width, read.height);
+            const rgb = new Uint8ClampedArray(source.data.length), gray = new Uint8ClampedArray(source.data.length);
+            for (let index = 0; index < source.data.length; index += 4) {
+              for (let channel = 0; channel < 3; channel += 1) {
+                rgb[index + channel] = source.data[index + channel];
+                gray[index + channel] = source.data[index + 3];
+              }
+              rgb[index + 3] = gray[index + 3] = 255;
+            }
+            const draw = (target, data) => {
+              const tile = document.createElement('canvas'); tile.width = read.width; tile.height = read.height;
+              tile.getContext('2d').putImageData(new ImageData(data, read.width, read.height), 0, 0);
+              target.getContext('2d').drawImage(tile, 1, 1,
+                Math.min(level.tileSize, level.width - column * level.tileSize),
+                Math.min(level.tileSize, level.height - row * level.tileSize),
+                column * level.tileSize, row * level.tileSize,
+                Math.min(level.tileSize, level.width - column * level.tileSize),
+                Math.min(level.tileSize, level.height - row * level.tileSize));
+            };
+            draw(physical, rgb); draw(political, gray);
+          }
+          canvasPreviewAtlas = { physical, political };
+          canvasTerrainStats = { terrainSource: 'dem-preview', terrainDatasetVersion: manifest.version,
+            terrainRepresentation: TERRAIN_RASTER_FORMAT, terrainRenderedLevel: level.id,
+            terrainCacheBytes: level.width * level.height * 8 };
+          invalidateGpuFrame('canvas-preview-ready');
+        }
+      })().catch(error => { reportOperationError(error, '지형 미리보기를 불러오지 못했습니다.', 'PL-TERRAIN-001', 0); });
+      return canvasPreviewLoad;
+    }
+    function drawCanvasPreview(frame, style, canvasPath, countryFeatures) {
+      if (!state.physicalSettings.terrainVisible) return;
+      if (!canvasPreviewAtlas) { void loadCanvasPreview(); return; }
+      const image = canvasPreviewAtlas[style];
+      const dpr = pixelWidth / cssWidth;
+      ctx2d.save();
+      ctx2d.filter = state.darkTheme ? 'brightness(0.84)' : 'none';
+      if (style === 'political') {
+        ctx2d.beginPath();
+        canvasPath({ type: 'FeatureCollection', features: countryFeatures });
+        ctx2d.clip();
+      }
+      if (frame.projection === 'flat') {
+        const top = frame.cssTranslate[1] - frame.cssScale * (Math.PI / 2 - frame.flatCenter[1]);
+        for (const offset of frame.worldOffsets) {
+          const left = frame.cssTranslate[0] + frame.cssScale * (-Math.PI + offset - frame.flatCenter[0]);
+          ctx2d.drawImage(image, left, top, frame.cssScale * 2 * Math.PI, frame.cssScale * Math.PI);
+        }
+      } else {
+        const drawTriangle = (source, destination) => {
+          if (destination.some(point => !point)) return;
+          const [d0, d1, d2] = globalThis.PandoLabCanvasTerrainDem.triangleClip(destination, 0.75 / dpr);
+          const transform = globalThis.PandoLabCanvasTerrainDem.affineTransform(source, destination);
+          if (!transform) return;
+          ctx2d.save();
+          ctx2d.beginPath(); ctx2d.moveTo(...d0); ctx2d.lineTo(...d1); ctx2d.lineTo(...d2); ctx2d.closePath(); ctx2d.clip();
+          ctx2d.setTransform(...transform.map(value => value * dpr));
+          ctx2d.drawImage(image, 0, 0); ctx2d.restore();
+        };
+        ctx2d.beginPath(); ctx2d.arc(frame.cssTranslate[0], frame.cssTranslate[1], frame.cssScale, 0, Math.PI * 2); ctx2d.clip();
+        for (let row = 0; row < 45; row += 1) for (let column = 0; column < 90; column += 1) {
+          const west = -180 + column * 4, east = west + 4, north = 90 - row * 4, south = north - 4;
+          const corners = [[west, north], [east, north], [west, south], [east, south]];
+          const projected = corners.map(point => frame.projectVisibleCoordinate(point));
+          const source = corners.map(([lon, lat]) => [(lon + 180) / 360 * image.width, (90 - lat) / 180 * image.height]);
+          drawTriangle([source[0], source[1], source[2]], [projected[0], projected[1], projected[2]]);
+          drawTriangle([source[1], source[3], source[2]], [projected[1], projected[3], projected[2]]);
+        }
+      }
+      ctx2d.restore();
+    }
     function renderCanvasFallback(frame = lastVisualFrame) {
       if (!ctx2d || !canvas) return;
       if (!frame) return;
@@ -3650,6 +3747,7 @@ export function createGpuMapRenderer(deps) {
       ctx2d.globalAlpha = 1;
         },
         terrain: () => {
+      drawCanvasPreview(frame, state.physicalSettings.terrainStyle === 'physical' ? 'physical' : 'political', canvasPath, countryFeatures);
       if (substrate.width !== pixelWidth || substrate.height !== pixelHeight) {
         substrate.width = pixelWidth;
         substrate.height = pixelHeight;
@@ -3844,6 +3942,7 @@ export function createGpuMapRenderer(deps) {
         terrainManifestUrl: (() => {
           return String(TERRAIN_RASTER_MANIFEST_URL);
         })(),
+        terrainDemManifestUrl: String(TERRAIN_PRIMARY_MANIFEST_URL),
       };
       message.type = 'init';
       return message;
@@ -4012,6 +4111,8 @@ export function createGpuMapRenderer(deps) {
           message.bitmap.close?.();
         }
         canvasDisplayedStyleRevision = Number(message.styleRevision || 0);
+        canvasTerrainStats = message.terrainStats || {};
+        Object.assign(window.__PANDOLAB_GPU_METRICS__ ||= {}, canvasTerrainStats);
         displayedRenderRevision = revision;
         markPreviewFramePresented();
         framePresentationListener?.({
@@ -4596,7 +4697,8 @@ export function createGpuMapRenderer(deps) {
 
     function activeTerrainSourceInfo() {
       if (rendererMode === 'canvas-worker' || rendererMode === 'canvas2d') {
-        return { dataset: TERRAIN_RASTER_DATASET, version: TERRAIN_RASTER_VERSION };
+        return { dataset: canvasTerrainStats.terrainSource === 'dem-derived-canvas' ? 'ETOPO 2022 DEM' : TERRAIN_RASTER_DATASET,
+          version: canvasTerrainStats.terrainDatasetVersion || TERRAIN_RASTER_VERSION };
       }
       return { dataset: terrainManifest?.dataset || TERRAIN_RASTER_DATASET,
         version: terrainManifest?.version || TERRAIN_RASTER_VERSION };
@@ -4646,6 +4748,7 @@ export function createGpuMapRenderer(deps) {
       target.projectGeneration = projectGeneration;
       target.projectRenderBlocked = projectRenderBlocked;
       target.mapHost = 'legacy';
+      if (rendererMode === 'canvas-worker' || rendererMode === 'canvas2d') Object.assign(target, canvasTerrainStats);
     }
 
     function getRuntimeState() {
@@ -4671,6 +4774,7 @@ export function createGpuMapRenderer(deps) {
         terrainShadeBlend: demShadeBlend,
         projectRenderBlocked,
         sceneCacheValid: sceneColorCache.isValid(),
+        ...(rendererMode === 'canvas-worker' || rendererMode === 'canvas2d' ? canvasTerrainStats : {}),
       };
     }
 
@@ -4810,6 +4914,7 @@ export function createGpuMapRenderer(deps) {
         ...performanceMetrics,
         ...hydroPreparation.stats(),
         canvasWorkerMessagesByType: { ...performanceMetrics.canvasWorkerMessagesByType },
+        ...(rendererMode === 'canvas-worker' || rendererMode === 'canvas2d' ? canvasTerrainStats : {}),
       };
     }
 

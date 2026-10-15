@@ -244,18 +244,18 @@ private slots:
     }
     void rasterOriginalChannelsReachActualPixels() {
         QTest::failOnWarning(QRegularExpression(".*"));
-        // This is the exact fixed Web raster manifest, not a DEM-manifest rewrite.
-        const auto rasterPath=QDir::cleanPath(QFileInfo(manifestPath_).absolutePath()+"/../v0.12.6/manifest.json");
+        // This is the byte-identical Web DEM preview manifest.
+        const auto rasterPath=QDir::cleanPath(QFileInfo(manifestPath_).absolutePath()+"/../../terrain-preview/v0.13.3-p1/manifest.json");
         QFile manifestFile(rasterPath);
         QVERIFY2(manifestFile.open(QIODevice::ReadOnly),qPrintable(manifestFile.errorString()));
         const auto manifest=manifestFile.readAll();
-        QCOMPARE(manifest.size(),qsizetype(2024));
+        QCOMPARE(manifest.size(),qsizetype(2273));
         QCOMPARE(QCryptographicHash::hash(manifest,QCryptographicHash::Sha256).toHex(),
-                 QByteArray("093ae0f088622e2867cad5f318749c47e28776a870e6467d00c31ef810d8690f"));
+                 QByteArray("05e3a657287151c29c338caaec9c5d7cd22d4144d7e2db8ecad536742fe6fee8"));
         QTemporaryDir data;QVERIFY(data.isValid());
         const auto raw=QColor(255,0,0,64); // RGB and data-A are intentionally unrelated.
-        QVERIFY(writeLossless(data.path()+"/terrain/v0.12.6/0/0-0.webp",{1026,677},raw));
-        QVERIFY(writeLossless(data.path()+"/terrain/v0.12.6/0/1-0.webp",{328,677},raw));
+        QVERIFY(writeLossless(data.path()+"/terrain-preview/v0.13.3-p1/0/0-0.webp",{1026,677},raw));
+        QVERIFY(writeLossless(data.path()+"/terrain-preview/v0.13.3-p1/0/1-0.webp",{328,677},raw));
         auto source=std::make_shared<TerrainTileProvider>(manifest,data.path());
         QVERIFY2(source->available(),qPrintable(source->error()));QVERIFY(!source->isDem());
         QCOMPARE(source->levelSize(0),QSize(1350,675));

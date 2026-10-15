@@ -1,0 +1,62 @@
+name: DEM Terrain Preview Gate
+
+on:
+  push:
+    branches: [main, work/gis]
+    paths:
+      - 'assets/data/terrain-preview/**'
+      - 'assets/js/**terrain**'
+      - 'assets/js/modules/gpu-map-renderer.js'
+      - 'native/**terrain**'
+      - 'native/assets/world/manifest.json'
+      - 'native/assets/world/physical-inventory-c0bd31d1.json'
+      - 'tools/*terrain-preview*'
+      - 'tests/**/terrain-preview*'
+      - '.github/workflows/terrain-preview-gate.yml'
+  pull_request:
+    paths:
+      - 'assets/data/terrain-preview/**'
+      - 'assets/js/**terrain**'
+      - 'native/**terrain**'
+      - 'tools/*terrain-preview*'
+      - 'tests/**/terrain-preview*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  preview:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '11.19.0'
+      - name: Rebuild the fixed DEM preview and verify retirement and native hashes
+        run: |
+          python -m pip install Pillow==12.3.0 numpy==2.3.5
+          python tools/build-terrain-preview.py --rebuild-check
+          node tools/sync-native-terrain-preview.mjs --check
+          node tools/check-terrain-preview.mjs --out terrain-preview-evidence.json
+          python -m unittest tests.python.test_build_terrain_preview
+          node --test tests/unit/terrain-preview-audit.test.mjs tests/unit/terrain-manifest.test.mjs tests/unit/canvas-terrain-dem-core.test.mjs tests/unit/physical-layer-service.test.mjs
+      - name: Check actual WebGL and Canvas display paths with fixed terrain responses
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps chromium
+          pnpm exec playwright test tests/browser/terrain-preview.spec.mjs --output=terrain-preview-browser
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: terrain-preview-evidence
+          path: |
+            terrain-preview-evidence.json
+            terrain-preview-browser

@@ -298,7 +298,7 @@ def verify(output: Path) -> dict:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=Path, default=ROOT / f"assets/data/terrain-preview/v{VERSION}")
-    parser.add_argument("--cache", type=Path, default=ROOT / "test-results/terrain-preview-source")
+    parser.add_argument("--cache", type=Path, default=ROOT / ".terrain-preview-cache/source")
     parser.add_argument("--check", action="store_true")
     parser.add_argument("--rebuild-check", action="store_true")
     options = parser.parse_args()
