@@ -1,6 +1,6 @@
 'use strict';
 const assetRevision = new URL(self.location.href).searchParams.get('v') || '';
-importScripts(...['../vendor/d3.min.js', './geographic-boundary-core.js', './canvas-scene-composition-core.js']
+importScripts(...['../vendor/d3.min.js', './geographic-boundary-core.js', './canvas-scene-composition-core.js', './canvas-terrain-dem-core.js']
   .map(path => { const url = new URL(path, self.location.href); url.searchParams.set('v', assetRevision); return url.href; }));
 
 function canvasFallbackWorkerMain() {
@@ -13,6 +13,21 @@ function canvasFallbackWorkerMain() {
     let countrySharedBoundary = null;
     let terrainManifest = null;
     let terrainManifestUrl = '';
+    let terrainDemManifest = null;
+    let terrainDemManifestUrl = '';
+    let terrainTint = null;
+    const demTiles = new Map();
+    const demRequests = new Map();
+    const demQueue = [];
+    const demQueuedKeys = new Set();
+    const demFailures = new Map();
+    let demActiveFetches = 0;
+    let demCacheBytes = 0;
+    const demCacheLimit = 96 * 1024 * 1024;
+    let demManifestLoading = false;
+    let demManifestAttempts = 0;
+    let terrainFrameStats = {};
+    let wantedDemKeys = new Set();
     const terrainTiles = new Map();
     const terrainRequests = new Map();
     const terrainFetchQueue = [];
@@ -82,12 +97,12 @@ function canvasFallbackWorkerMain() {
       return output;
     }
 
-    function terrainTileUrl(spec) {
-      const relative = terrainManifest.urlTemplate
+    function terrainTileUrl(spec, manifest = terrainManifest, manifestUrl = terrainManifestUrl) {
+      const relative = manifest.urlTemplate
         .replace('{level}', String(spec.level))
         .replace('{column}', String(spec.column))
         .replace('{row}', String(spec.row));
-      return new URL(relative, new URL('../../', terrainManifestUrl)).href;
+      return new URL(relative, new URL('../../', manifestUrl)).href;
     }
 
     async function prepareTerrainBitmap(blob) {
@@ -117,6 +132,114 @@ function canvasFallbackWorkerMain() {
       physical.getContext('2d').putImageData(new ImageData(physicalPixels, source.width, source.height), 0, 0);
       political.getContext('2d').putImageData(new ImageData(politicalPixels, source.width, source.height), 0, 0);
       return { physical, political };
+    }
+
+    async function readRgba(blob) {
+      let bitmap;
+      try { bitmap = await createImageBitmap(blob, { premultiplyAlpha: 'none', colorSpaceConversion: 'none' }); }
+      catch (_) { bitmap = await createImageBitmap(blob); }
+      const source = new OffscreenCanvas(bitmap.width, bitmap.height);
+      const read = source.getContext('2d', { willReadFrequently: true });
+      read.drawImage(bitmap, 0, 0);
+      bitmap.close?.();
+      return read.getImageData(0, 0, source.width, source.height);
+    }
+
+    async function prepareDemBitmap(blob, spec) {
+      const pixels = await readRgba(blob);
+      if (!terrainTint || pixels.width !== spec.pixelWidth + 2 || pixels.height !== spec.pixelHeight + 2)
+        throw new Error(`DEM 타일 크기 또는 tint가 올바르지 않습니다: ${spec.key}`);
+      const level = terrainDemManifest.levels[spec.level];
+      const converted = self.PandoLabCanvasTerrainDem.convertTile({ dem: pixels.data, width: pixels.width, height: pixels.height,
+        tint: terrainTint.data, tintWidth: terrainTint.width, tintHeight: terrainTint.height,
+        bounds: spec.bounds, pixelWidth: spec.pixelWidth, pixelHeight: spec.pixelHeight,
+        levelWidth: level.width, levelHeight: level.height });
+      const layers = [converted.land, converted.ocean, converted.political];
+      const result = layers.map(data => {
+        const canvas = new OffscreenCanvas(pixels.width, pixels.height);
+        canvas.getContext('2d').putImageData(new ImageData(data, pixels.width, pixels.height), 0, 0);
+        return canvas;
+      });
+      return { land: result[0], ocean: result[1], political: result[2], bytes: pixels.width * pixels.height * 12 };
+    }
+
+    function requestDemTile(spec, priority = 0) {
+      if (!terrainDemManifest || !terrainTint || !wantedDemKeys.has(spec.key) || demTiles.has(spec.key) || demRequests.has(spec.key) || demQueuedKeys.has(spec.key)) return;
+      const previous = demFailures.get(spec.key);
+      if (previous?.retryAt > performance.now()) return;
+      demQueuedKeys.add(spec.key);
+      demQueue.push({ spec, priority });
+      demQueue.sort((left, right) => right.priority - left.priority || left.spec.key.localeCompare(right.spec.key));
+      pumpDemQueue();
+    }
+
+    function pumpDemQueue() {
+      while (demActiveFetches < 2 && demQueue.length) {
+        const { spec, priority } = demQueue.shift();
+        demQueuedKeys.delete(spec.key);
+        demActiveFetches += 1;
+        const previous = demFailures.get(spec.key);
+        const controller = new AbortController();
+        const request = fetch(terrainTileUrl(spec, terrainDemManifest, terrainDemManifestUrl), { signal: controller.signal })
+          .then(response => { if (!response.ok) throw new Error(`DEM 타일 HTTP ${response.status}`); return response.blob(); })
+          .then(blob => prepareDemBitmap(blob, spec))
+          .then(tile => {
+            if (controller.signal.aborted) return;
+            demFailures.delete(spec.key);
+            demTiles.set(spec.key, { ...tile, lastUsed: performance.now() });
+            demCacheBytes += tile.bytes;
+            while (demCacheBytes > demCacheLimit) {
+              const oldest = [...demTiles.entries()].filter(([key]) => key !== spec.key && !terrainProtectedKeys.has(`dem:${key}`))
+                .sort((a, b) => a[1].lastUsed - b[1].lastUsed)[0];
+              if (!oldest) break;
+              demCacheBytes -= oldest[1].bytes;
+              demTiles.delete(oldest[0]);
+            }
+            self.postMessage({ type: 'terrain-ready', count: demTiles.size, key: `dem:${spec.key}` });
+          })
+          .catch(error => {
+            if (controller.signal.aborted || error?.name === 'AbortError') return;
+            const attempts = Number(previous?.attempts || 0) + 1;
+            const retryDelay = attempts <= 3 ? Math.min(4000, 400 * 2 ** (attempts - 1)) : 30000;
+            demFailures.set(spec.key, { attempts, retryAt: performance.now() + retryDelay });
+            if (attempts <= 3) setTimeout(() => requestDemTile(spec, priority), retryDelay);
+            self.postMessage({ type: 'terrain-warning', message: error?.message || String(error) });
+          })
+          .finally(() => {
+            demRequests.delete(spec.key);
+            demActiveFetches = Math.max(0, demActiveFetches - 1);
+            pumpDemQueue();
+          });
+        demRequests.set(spec.key, { request, controller });
+      }
+    }
+
+    async function loadDemManifest(url) {
+      if (!url || terrainDemManifest || demManifestLoading) return;
+      demManifestLoading = true;
+      terrainDemManifestUrl = url;
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`DEM 매니페스트 HTTP ${response.status}`);
+        const validationUrl = new URL('../modules/terrain-manifest.js', self.location.href);
+        validationUrl.searchParams.set('v', assetRevision);
+        const { validateTerrainManifest } = await import(validationUrl.href);
+        const manifest = validateTerrainManifest(await response.json());
+        if (manifest.representation !== 'dem-relief-v1' || !manifest.tint?.url || manifest.levels?.length !== 6)
+          return;
+        const tintUrl = new URL(manifest.tint.url, new URL('../../', url));
+        const tintResponse = await fetch(tintUrl);
+        if (!tintResponse.ok) throw new Error(`DEM tint HTTP ${tintResponse.status}`);
+        const tint = await readRgba(await tintResponse.blob());
+        if (tint.width !== manifest.tint.width || tint.height !== manifest.tint.height) throw new Error('DEM tint 크기가 올바르지 않습니다.');
+        terrainTint = tint;
+        terrainDemManifest = manifest;
+        self.postMessage({ type: 'terrain-ready', count: 0, key: 'dem-manifest' });
+      } catch (error) {
+        demManifestAttempts += 1;
+        if (demManifestAttempts <= 3) setTimeout(() => loadDemManifest(url), Math.min(4000, 400 * 2 ** (demManifestAttempts - 1)));
+        self.postMessage({ type: 'terrain-warning', message: error?.message || String(error) });
+      } finally { demManifestLoading = false; }
     }
 
     function requestTerrainTile(spec, priority = 0) {
@@ -188,11 +311,11 @@ function canvasFallbackWorkerMain() {
       }
     }
 
-    function terrainLevelForView(projection, terrainDpr) {
-      if (!terrainManifest?.levels?.length) return null;
+    function terrainLevelForView(projection, terrainDpr, manifest = terrainManifest) {
+      if (!manifest?.levels?.length) return null;
       const desiredWidth = Math.max(1, 2 * Math.PI * projection.scale() * Math.max(1, Number(terrainDpr || 1)));
-      return terrainManifest.levels.find(level => level.width >= desiredWidth * 1.12)
-        || terrainManifest.levels[terrainManifest.levels.length - 1];
+      return manifest.levels.find(level => level.width >= desiredWidth * 1.12)
+        || manifest.levels[manifest.levels.length - 1];
     }
 
     function visibleTerrainTileSpecs(level, message, projection, width, height, includeAll = false) {
@@ -227,30 +350,16 @@ function canvasFallbackWorkerMain() {
       return specs;
     }
 
-    function affineTransform(sourcePoints, destinationPoints) {
-      const [s0, s1, s2] = sourcePoints;
-      const [d0, d1, d2] = destinationPoints;
-      const denominator = s0[0] * (s1[1] - s2[1]) + s1[0] * (s2[1] - s0[1]) + s2[0] * (s0[1] - s1[1]);
-      if (Math.abs(denominator) < 1e-7) return null;
-      const coefficients = values => [
-        (values[0] * (s1[1] - s2[1]) + values[1] * (s2[1] - s0[1]) + values[2] * (s0[1] - s1[1])) / denominator,
-        (values[0] * (s2[0] - s1[0]) + values[1] * (s0[0] - s2[0]) + values[2] * (s1[0] - s0[0])) / denominator,
-        (values[0] * (s1[0] * s2[1] - s2[0] * s1[1]) + values[1] * (s2[0] * s0[1] - s0[0] * s2[1]) + values[2] * (s0[0] * s1[1] - s1[0] * s0[1])) / denominator,
-      ];
-      const x = coefficients([d0[0], d1[0], d2[0]]);
-      const y = coefficients([d0[1], d1[1], d2[1]]);
-      return [x[0], y[0], x[1], y[1], x[2], y[2]];
-    }
-
     function drawTexturedTriangle(image, sourcePoints, destinationPoints, dpr) {
-      const transform = affineTransform(sourcePoints, destinationPoints);
+      const transform = self.PandoLabCanvasTerrainDem.affineTransform(sourcePoints, destinationPoints);
       if (!transform || destinationPoints.some(point => !point || !point.every(Number.isFinite))) return;
       context.save();
       context.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const clip = self.PandoLabCanvasTerrainDem.triangleClip(destinationPoints, 0.75 / dpr);
       context.beginPath();
-      context.moveTo(destinationPoints[0][0], destinationPoints[0][1]);
-      context.lineTo(destinationPoints[1][0], destinationPoints[1][1]);
-      context.lineTo(destinationPoints[2][0], destinationPoints[2][1]);
+      context.moveTo(...clip[0]);
+      context.lineTo(...clip[1]);
+      context.lineTo(...clip[2]);
       context.closePath();
       context.clip();
       context.setTransform(dpr * transform[0], dpr * transform[1], dpr * transform[2], dpr * transform[3], dpr * transform[4], dpr * transform[5]);
@@ -259,22 +368,21 @@ function canvasFallbackWorkerMain() {
     }
 
     function drawFlatTerrainTile(spec, image, projection, dpr) {
+      context.setTransform(1, 0, 0, 1, 0, 0);
       const gutter = Number(terrainManifest.gutter || 0);
       const [west, north, east, south] = spec.bounds;
       for (const offset of [-360, 0, 360]) {
-        const topLeft = projection([west + offset, north]);
-        const bottomRight = projection([east + offset, south]);
-        if (!topLeft || !bottomRight) continue;
+        // D3 wraps point longitudes; applying it to a tile's opposite corners
+        // can mirror a whole tile when the camera crosses the antimeridian.
+        const rectangle = self.PandoLabCanvasTerrainDem.flatTileRectangle([west, north, east, south],
+          projection.scale(), projection.translate(), projection.center(), offset);
         context.drawImage(
           image,
           gutter,
           gutter,
           spec.pixelWidth,
           spec.pixelHeight,
-          topLeft[0] * dpr,
-          topLeft[1] * dpr,
-          (bottomRight[0] - topLeft[0]) * dpr,
-          (bottomRight[1] - topLeft[1]) * dpr,
+          ...rectangle.map(value => value * dpr),
         );
       }
     }
@@ -337,6 +445,20 @@ function canvasFallbackWorkerMain() {
         : [];
       terrainProtectedKeys.clear();
       for (const spec of [...baseSpecs, ...targetSpecs, ...neighbours, ...fallbackSpecs]) terrainProtectedKeys.add(spec.key);
+      // Canvas country geometry quality does not own DEM source resolution.
+      let demLevel = terrainDemManifest
+        ? terrainLevelForView(projection, message.terrainDpr || dpr, terrainDemManifest) : null;
+      let demSpecs = demLevel ? visibleTerrainTileSpecs(demLevel, message, projection, width, height, false) : [];
+      const decodedBytes = specs => specs.reduce((sum, spec) => sum + (spec.pixelWidth + 2) * (spec.pixelHeight + 2) * 12, 0);
+      while (demLevel?.id > 0 && decodedBytes(demSpecs) > demCacheLimit) {
+        demLevel = terrainDemManifest.levels[demLevel.id - 1];
+        demSpecs = visibleTerrainTileSpecs(demLevel, message, projection, width, height, false);
+      }
+      const demNeighbours = demLevel ? terrainNeighbourSpecs(demLevel, demSpecs) : [];
+      for (const spec of demSpecs) terrainProtectedKeys.add(`dem:${spec.key}`);
+      const wantedDem = new Set([...demSpecs, ...demNeighbours].map(spec => spec.key));
+      wantedDemKeys = wantedDem;
+      for (const [key, request] of demRequests) if (!wantedDem.has(key)) request.controller.abort();
       for (let index = terrainFetchQueue.length - 1; index >= 0; index -= 1) {
         const key = terrainFetchQueue[index].spec.key;
         if (terrainProtectedKeys.has(key)) continue;
@@ -351,6 +473,13 @@ function canvasFallbackWorkerMain() {
       const drawSpecs = baseReady
         ? [...baseSpecs, ...fallbackSpecs, ...(targetLevel.id === baseLevel.id ? [] : targetSpecs)]
         : [];
+      for (let index = demQueue.length - 1; index >= 0; index -= 1) {
+        if (wantedDem.has(demQueue[index].spec.key)) continue;
+        demQueuedKeys.delete(demQueue[index].spec.key);
+        demQueue.splice(index, 1);
+      }
+      for (const spec of demSpecs) requestDemTile(spec, 10_000);
+      for (const spec of demNeighbours) requestDemTile(spec, 120);
       const style = message.physicalSettings.terrainStyle === 'physical' ? 'physical' : 'political';
       context.save();
       context.globalAlpha = 1;
@@ -382,8 +511,42 @@ function canvasFallbackWorkerMain() {
         if (message.projection === 'flat') drawFlatTerrainTile(spec, image, projection, dpr);
         else drawGlobeTerrainTile(spec, image, projection, message, dpr, spec.level === baseLevel.id);
       }
+      if (demLevel) {
+        const drawDem = channel => {
+          for (const spec of demSpecs) {
+            const tile = demTiles.get(spec.key);
+            if (!tile) continue; // The preview remains visible until this detailed tile is ready.
+            tile.lastUsed = performance.now();
+            if (message.projection === 'flat') drawFlatTerrainTile(spec, tile[channel], projection, dpr);
+            else drawGlobeTerrainTile(spec, tile[channel], projection, message, dpr, demLevel.id === 0);
+          }
+        };
+        if (style === 'political') drawDem('political');
+        else {
+          drawDem('ocean');
+          context.save();
+          context.setTransform(dpr, 0, 0, dpr, 0, 0);
+          context.beginPath();
+          self.d3.geo.path().projection(projection).context(context)({ type: 'FeatureCollection', features: visibleLand });
+          for (const packet of message.scenePolygons || []) {
+            if (packet.role === 'territorial-fill') self.d3.geo.path().projection(projection).context(context)(self.PandoLabCanvasSceneComposition.geometryFor(packet));
+          }
+          context.clip();
+          drawDem('land');
+          context.restore();
+        }
+      }
       context.restore();
-      return terrainComplete;
+      terrainFrameStats = {
+        terrainRepresentation: demSpecs.some(spec => demTiles.has(spec.key)) ? 'dem-relief-v1' : 'raster-rgba-v1',
+        terrainDatasetVersion: demSpecs.some(spec => demTiles.has(spec.key)) ? terrainDemManifest.version : terrainManifest.version,
+        terrainSource: demSpecs.some(spec => demTiles.has(spec.key)) ? 'dem-derived-canvas' : 'dem-preview',
+        terrainTargetLevel: demLevel?.id ?? targetLevel.id,
+        terrainDetailTileCount: demSpecs.filter(spec => demTiles.has(spec.key)).length,
+        terrainCacheBytes: demCacheBytes + [...terrainTiles.values()].reduce((sum, tile) => sum + tile.physical.width * tile.physical.height * 8, 0),
+        terrainDemCacheBytes: demCacheBytes,
+      };
+      return terrainComplete && demSpecs.every(spec => demTiles.has(spec.key));
     }
 
     function createProjection(message, width, height) {
@@ -509,7 +672,17 @@ function canvasFallbackWorkerMain() {
         if (!hydroFeatureVisible(feature, message)) continue;
         const properties = feature.properties || {};
         if (properties.category === 'lake') {
-          if (self.d3.geo.contains(feature, coordinate)) return Number(properties.__fid);
+          // Pick the exact projected path used by Canvas drawing, including
+          // holes, the date-line clip, and the visible globe hemisphere.
+          context.save();
+          let hit;
+          try {
+            context.setTransform(1, 0, 0, 1, 0, 0);
+            context.beginPath();
+            self.d3.geo.path().projection(projection).context(context)(feature);
+            hit = context.isPointInPath(point[0], point[1]);
+          } finally { context.restore(); }
+          if (hit) return Number(properties.__fid);
           continue;
         }
         for (const part of lineParts(feature.geometry)) {
@@ -712,6 +885,7 @@ function canvasFallbackWorkerMain() {
         width: pixelWidth,
         height: pixelHeight,
         terrainComplete,
+        terrainStats: terrainFrameStats,
       }, [bitmap]);
     }
     self.onmessage = event => {
@@ -727,6 +901,7 @@ function canvasFallbackWorkerMain() {
         mergeRenderState(message);
         terrainFetchConcurrency = Math.max(1, Math.min(4, Number(message.terrainFetchConcurrency || 2)));
         loadTerrainManifest(message.terrainManifestUrl);
+        loadDemManifest(message.terrainDemManifestUrl);
         self.postMessage({ type: 'ready' });
       } else if (message.type === 'hydro-port') {
         connectHydroPort(message.port);
@@ -738,7 +913,12 @@ function canvasFallbackWorkerMain() {
           scheduleHydroRender();
         }
       } else if (message.type === 'hydro-pick') {
-        self.postMessage({ type: 'hydro-pick', requestId: message.requestId, fid: pickHydroFeature(message.point) });
+        try {
+          self.postMessage({ type: 'hydro-pick', requestId: message.requestId, fid: pickHydroFeature(message.point) });
+        } catch (error) {
+          self.postMessage({ type: 'hydro-pick', requestId: message.requestId,
+            error: { code: 'PL-CANVAS-HYDRO-PICK', message: error.message, stack: error.stack } });
+        }
       } else if (message.type === 'data' || message.type === 'replace-data') {
         const incomingGeometryRevision = Number(message.geometryRevision || 0);
         if (incomingGeometryRevision < geometryRevision) {
