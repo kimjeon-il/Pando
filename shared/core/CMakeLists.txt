@@ -55,6 +55,13 @@ add_library(pandoeditor_core STATIC
     src/objectproperties.cpp
     src/geometrypredicates.cpp
     src/sphericalpolygon.cpp
+    src/boundarychain.cpp
+    src/boundarypacket.cpp
+    src/boundarycontact.cpp
+    src/boundaryoverlap.cpp
+    src/boundaryrefinement.cpp
+    src/boundarysplit.cpp
+    src/countrycontact.cpp
     src/territorialmutation.cpp
     src/commands.cpp
   src/commandbatch.cpp
@@ -90,3 +97,29 @@ if(EMSCRIPTEN OR CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
         "-fdebug-prefix-map=${PANDOEDITOR_REPOSITORY_ROOT}=/pando")
 endif()
 
+
+# Match historical JS multiplication order for near-collinear source edges.
+set_source_files_properties(src/boundarycontact.cpp PROPERTIES COMPILE_OPTIONS
+    "$<$<CXX_COMPILER_ID:MSVC>:/fp:strict>;$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-ffp-contract=off>")
+
+# Source segment projections and gap coordinates match unfused JS double operations.
+set_source_files_properties(src/boundaryoverlap.cpp PROPERTIES COMPILE_OPTIONS
+    "$<$<CXX_COMPILER_ID:MSVC>:/fp:strict>;$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-ffp-contract=off>")
+
+# The projected stroke vertices must use the same intermediate rounding in
+# all native compilers and the WASM target (no fused multiply-add).
+set_source_files_properties(src/boundaryrefinement.cpp PROPERTIES COMPILE_OPTIONS
+    "$<$<CXX_COMPILER_ID:MSVC>:/fp:strict>;$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-ffp-contract=off>")
+
+# Preserve JS intermediate floating point steps for contact split ordering.
+set_source_files_properties(src/boundarysplit.cpp PROPERTIES COMPILE_OPTIONS
+    "$<$<CXX_COMPILER_ID:MSVC>:/fp:strict>;$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-ffp-contract=off>")
+
+# Match V8's source-edge projections across native and WASM targets.
+set_source_files_properties(src/countrycontact.cpp PROPERTIES COMPILE_OPTIONS
+    "$<$<CXX_COMPILER_ID:MSVC>:/fp:strict>;$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-ffp-contract=off>")
+
+# Owner-group chains, seam division, refinement and dash phase use the same
+# strict intermediate double operations in Qt, GCC/Clang and Emscripten.
+set_source_files_properties(src/boundarypacket.cpp PROPERTIES COMPILE_OPTIONS
+    "$<$<CXX_COMPILER_ID:MSVC>:/fp:strict>;$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-ffp-contract=off>")

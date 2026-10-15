@@ -58,27 +58,26 @@
     return keys.size;
   }
 
-  // D3 chooses the complement of a negatively oriented spherical ring.
-  // A planar shoelace test is not equivalent at the antimeridian or poles.
-  function sphericalSignedArea(rawRing) {
-    const radians = Math.PI / 180;
-    const quarterPi = Math.PI / 4;
-    let area = 0;
-    let previousLongitude = rawRing[0][0] * radians;
-    let previousPhi = rawRing[0][1] * radians / 2 + quarterPi;
-    let previousCos = Math.cos(previousPhi), previousSin = Math.sin(previousPhi);
-    for (let index = 1; index < rawRing.length; index += 1) {
-      const longitude = rawRing[index][0] * radians;
-      const phi = rawRing[index][1] * radians / 2 + quarterPi;
-      const delta = longitude - previousLongitude;
-      const sin = Math.sin(phi), cos = Math.cos(phi);
-      const k = previousSin * sin;
-      area += Math.atan2(k * Math.sin(delta), previousCos * cos + k * Math.cos(delta));
-      previousLongitude = longitude;
-      previousSin = sin;
-      previousCos = cos;
+  // The signed spherical integral has a single owner: shared/core.
+  // In Web workers it is exposed by verified WASM, and in Qt's QJSEngine
+  // by a narrow QObject bridge. Keep UI-specific planar utilities below.
+  function areaCore() {
+    const owner = root.PandoLabSphericalAreaCore || root.PandoLabSphericalCore;
+    if (typeof owner?.sphericalRingSignedArea !== 'function'
+      || typeof owner?.sphericalRingSignedAreas !== 'function') {
+      throw Object.assign(new Error('공통 C++ 구면 면적 계산기를 불러오지 못했습니다.'),
+        { code: 'PL-GEOMETRY-WASM-001' });
     }
-    return area * 2;
+    return owner;
+  }
+
+  function sphericalSignedArea(rawRing) {
+    return areaCore().sphericalRingSignedArea(rawRing);
+  }
+
+  function sphericalSignedAreas(rings) {
+    if (!Array.isArray(rings)) throw new TypeError('INVALID_POLYGON_RING: rings array required');
+    return areaCore().sphericalRingSignedAreas(rings);
   }
 
   function orientRing(rawRing, wantClockwise) {
@@ -232,5 +231,6 @@
     ringDistinctCoordinateCount,
     ringSignedArea,
     sphericalSignedArea,
+    sphericalSignedAreas,
   });
 })(globalThis);

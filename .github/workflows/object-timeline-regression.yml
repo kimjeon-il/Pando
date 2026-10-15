@@ -5,7 +5,9 @@ on:
     branches: [work/objects]
     paths:
       - '.github/workflows/object-timeline-regression.yml'
+      - 'assets/wasm/pandoeditor-core.manifest.json'
       - 'assets/js/modules/temporal.js'
+      - 'assets/js/modules/territorial-library.js'
       - 'assets/js/modules/timeline*.js'
       - 'assets/js/modules/project-state.js'
       - 'assets/js/modules/project-serializer.js'
@@ -28,10 +30,34 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Gate tests on the exact shared C++ source fingerprint
+        id: core
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync, appendFileSync } from 'node:fs';
+          import { sharedSourceManifest } from './tools/package-shared-core-assets.mjs';
+          const source=sharedSourceManifest(process.cwd()).sourceSha256;
+          const manifest=JSON.parse(readFileSync('assets/wasm/pandoeditor-core.manifest.json','utf8'));
+          const ready=source===manifest.sourceSha256;
+          appendFileSync(process.env.GITHUB_OUTPUT,'ready='+ready+'\n');
+          if (!ready) {
+            console.log('Generated WASM is source-stale; P2 will publish the matching pair.');
+            appendFileSync(process.env.GITHUB_STEP_SUMMARY,
+              'Timeline JS tests deferred on this source-only commit; the P2-generated manifest push retriggers them.\n');
+          }
+          NODE
       - name: Check month-end, resolution and timeline edits
+        if: steps.core.outputs.ready == 'true'
         run: |
           node --test \
             tests/unit/temporal.test.mjs \
+            tests/unit/timeline-records.test.mjs \
+            tests/unit/timeline-storage.test.mjs \
+            tests/unit/project-timeline-domain.test.mjs \
             tests/unit/timeline-edit.test.mjs \
             tests/unit/timeline-resolver.test.mjs \
-            tests/unit/timeline-objects-parity.test.mjs
+            tests/unit/timeline-objects-parity.test.mjs \
+            tests/unit/territorial-library.test.mjs \
+            tests/unit/territorial-library-service.test.mjs \
+            tests/unit/territorial-timeline-storage.test.mjs

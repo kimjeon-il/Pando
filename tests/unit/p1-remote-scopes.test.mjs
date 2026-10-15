@@ -32,7 +32,8 @@ test('Qt front-end change triggers Qt build, separate from pure native engine', 
 });
 test('GIS Python and city records stay in their own scopes', () => {
   const gis=classifyPaths(['tools/build-terrain-dem.py'],all);
-  assert.equal(gis.python,true);assert.equal(gis.gis,true);assert.equal(gis.qt,false);
+  assert.equal(gis.python,true);assert.equal(gis.gis,false);assert.equal(gis.qt,false);
+  assert.equal(gis.web,false, 'GIS Python-only change belongs to the independent Python workflow');
   const cities=classifyPaths(['assets/data/places/manifest.json'],all);
   assert.equal(cities.places,true);assert.equal(cities.python,false);assert.equal(cities.core,false);
 });
