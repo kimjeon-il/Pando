@@ -1,6 +1,6 @@
 import { buildGpuStrokeInstances } from './gpu-stroke-geometry.js';
 import { boundaryInteriorComparison, createPreparedBoundaryStore,
-  attachBoundarySegmentReferences, topologyNodeKey } from './boundary-topology.js';
+  attachBoundarySegmentReferences, topologyNodeKey, mergeSharedBoundaryContributions } from './boundary-topology.js';
 import { createBoundarySpatialIndex, segmentBounds } from './boundary-spatial-index.js';
 import { MAX_BOUNDARY_EDGE_DEGREES } from './geographic-boundary.js';
 import { sharedCalculationCore } from './temporal.js';
@@ -25,14 +25,7 @@ export function createCountrySharedBoundaryState() {
   function updateEdge(key) {
     const record = edges.get(key);
     if (!record.contributions.size) { edges.delete(key); return; }
-    const segments = [...record.contributions.values()];
-    if (segments.length === 1) { record.value = segments[0]; return; }
-    const refs = [];
-    for (const segment of segments) for (const ref of segment.refs) {
-      if (!refs.some(previous => previous.featureId === ref.featureId && previous.polygonIndex === ref.polygonIndex
-        && previous.ringIndex === ref.ringIndex && previous.segmentIndex === ref.segmentIndex)) refs.push(ref);
-    }
-    record.value = { ...segments[0], ownerIds: [...new Set(segments.flatMap(segment => segment.ownerIds))].sort(), refs };
+    record.value = mergeSharedBoundaryContributions([...record.contributions.values()]);
   }
   function removeContact(key) {
     const contact = contacts.get(key);
