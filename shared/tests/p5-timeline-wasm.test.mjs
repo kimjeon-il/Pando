@@ -62,3 +62,26 @@ test('P5-4 C++ record edits split, preserve future dates and preserve no-op iden
     assert.deepEqual(source,golden.records,'Immutable inputs: '+entry.name);
   }
 });
+
+test('P5-4 library geometry selection uses shared C++ end-of-precision rules',()=>{
+  const life={validFrom:'1914',validTo:'1915'};
+  const versions=[
+    {validFrom:'1914-07',validTo:'1914-07-15'},
+    {validFrom:'1914-07-16',validTo:'1915-12'},
+  ];
+  for(const name of ['timelineVersionExistsAt','timelineSelectGeometryVersion'])
+    assert.equal(typeof core[name],'function',name);
+  assert.equal(core.timelineVersionExistsAt(life,'1914-07'),true);
+  assert.equal(core.timelineVersionExistsAt(life,'1916-01'),false);
+  assert.equal(core.timelineSelectGeometryVersion(life,versions,'1914-07'),1);
+  assert.equal(core.timelineSelectGeometryVersion(life,versions,'1914-07-15'),0);
+  assert.equal(core.timelineSelectGeometryVersion(life,versions,'1916-01'),-1);
+  assert.equal(core.timelineSelectGeometryVersion(
+    {validFrom:null,validTo:null},[{validFrom:null,validTo:null}],null),0);
+  assert.throws(()=>core.timelineSelectGeometryVersion(life,versions,null),/reference date/i);
+  assert.throws(()=>core.timelineSelectGeometryVersion(life,
+    [{validFrom:null,validTo:null},{validFrom:null,validTo:null}],'1914-07'),
+  error=>error?.code==='PL-LIB-GEOMETRY');
+  assert.equal(core.timelineSelectGeometryVersion({validFrom:'-0001',validTo:'0001'},
+    [{validFrom:'-0001',validTo:'-0001'},{validFrom:'0001',validTo:'0001'}],'-0001'),0);
+});
