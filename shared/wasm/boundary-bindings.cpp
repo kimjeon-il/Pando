@@ -1,5 +1,6 @@
 #include <pandoeditor/boundarychain.h>
 #include <pandoeditor/boundarycontact.h>
+#include <pandoeditor/boundaryoverlap.h>
 #include <emscripten/bind.h>
 #include <emscripten/val.h>
 #include <cmath>
@@ -113,8 +114,63 @@ val boundaryOpposingBatchForWeb(val input) {
     }
     std::terminate();
 }
+
+BoundaryEdge overlapEdge(val input) {
+    requireArray(input,"INVALID_BOUNDARY_OVERLAP");
+    if(input["length"].as<unsigned>()!=2)
+        throw std::invalid_argument("INVALID_BOUNDARY_OVERLAP: expected edge endpoints");
+    return {readPoint(input[0]),readPoint(input[1])};
+}
+val boundaryOverlapBatchForWeb(val input) {
+    try {
+        requireArray(input,"INVALID_BOUNDARY_OVERLAP");
+        const unsigned count=input["length"].as<unsigned>();
+        if(count>1'000'000)
+            throw std::invalid_argument("INVALID_BOUNDARY_OVERLAP: too many source edges");
+        std::vector<BoundaryOverlapRequest> requests;requests.reserve(count);
+        std::size_t total=0;
+        for(unsigned i=0;i<count;++i) {
+            const val entry=input[i];
+            requireArray(entry,"INVALID_BOUNDARY_OVERLAP");
+            if(entry["length"].as<unsigned>()!=2)
+                throw std::invalid_argument("INVALID_BOUNDARY_OVERLAP: expected edge and overlaps");
+            const auto source=overlapEdge(entry[0]);
+            const val candidates=entry[1];
+            requireArray(candidates,"INVALID_BOUNDARY_OVERLAP");
+            const unsigned n=candidates["length"].as<unsigned>();
+            if(total+n>2'000'000)
+                throw std::invalid_argument("INVALID_BOUNDARY_OVERLAP: too many candidate edges");
+            total+=n;
+            BoundaryOverlapRequest request;request.source=source;
+            request.candidates.reserve(n);
+            for(unsigned j=0;j<n;++j)request.candidates.push_back(overlapEdge(candidates[j]));
+            requests.push_back(std::move(request));
+        }
+        const auto result=subtractBoundaryOverlaps(requests);
+        auto output=val::array();
+        unsigned row=0;
+        for(const auto& edges:result) {
+            auto segments=val::array();
+            unsigned index=0;
+            for(const auto& edge:edges) {
+                auto points=val::array();
+                points.set(0,webPoint(edge.first));
+                points.set(1,webPoint(edge.second));
+                segments.set(index++,points);
+            }
+            output.set(row++,segments);
+        }
+        return output;
+    }catch(const std::exception& error) {
+        auto js=val::global("Error").new_(std::string(error.what()));
+        js.set("code",std::string("PL-BOUNDARY-OVERLAP"));
+        js.throw_();
+    }
+    std::terminate();
+}
 EMSCRIPTEN_BINDINGS(pandoeditor_boundary_chains) {
     emscripten::function("boundaryConnectChains",&boundaryConnectForWeb);
     emscripten::function("boundaryOpposingInteriors",&boundaryOpposingForWeb);
     emscripten::function("boundaryOpposingInteriorsBatch",&boundaryOpposingBatchForWeb);
+    emscripten::function("boundarySubtractOverlapsBatch",&boundaryOverlapBatchForWeb);
 }
