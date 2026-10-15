@@ -4,6 +4,7 @@ import { createBoundarySpatialIndex, segmentBounds, padBoundaryBounds } from './
 import { countryGeometrySignature } from './country-shared-boundary-cache.js';
 import { territorialRootId } from './territorial-units.js';
 import { sharedCalculationCore } from './temporal.js';
+import { computeCountrySharedContacts } from './country-contact-core.js';
 
 for (const capability of ['boundaryOpposingInteriors', 'boundaryOpposingInteriorsBatch']) {
   if (typeof sharedCalculationCore?.[capability] !== 'function') {
@@ -144,27 +145,10 @@ export function buildBoundaryTopology(features = [], options = {}) {
   return buildBoundaryTopologyFromSegments(features.flatMap(boundarySourceSegments), options);
 }
 
-// Display-only geometry. The edit topology remains the single authority for
-// shared/coast classification; geographic boundary handling drops pole and
-// artificial antimeridian closing edges before either renderer sees them.
+// The existing source-ref objects and Worker cache remain JS-owned.
+// C++ now produces source-contact candidates, shared segments and seam pieces.
 export function buildCountrySharedBoundaryContact(left, right) {
-  const overlap = [Math.max(left.bounds[0], right.bounds[0]), Math.max(left.bounds[1], right.bounds[1]),
-    Math.min(left.bounds[2], right.bounds[2]), Math.min(left.bounds[3], right.bounds[3])];
-  if (overlap[0] > overlap[2] + 1e-7 || overlap[1] > overlap[3] + 1e-7) return [];
-  const candidates = new Set();
-  const rows = left.spatialIndex.query(padBoundaryBounds(overlap)).sort((a, b) =>
-    a.polygonIndex - b.polygonIndex || a.ringIndex - b.ringIndex || a.segmentIndex - b.segmentIndex);
-  for (const row of rows) {
-    const nearby = right.spatialIndex.query(padBoundaryBounds(segmentBounds(row)));
-    if (!nearby.length) continue;
-    candidates.add(row);
-    for (const other of nearby) candidates.add(other);
-  }
-  if (!candidates.size) return [];
-  const topology = buildBoundaryTopologyFromSegments([...candidates]);
-  return [...topology.segments.values()].filter(segment => segment.kind === 'shared').flatMap(segment =>
-    buildRenderableBoundarySegments({ type: 'LineString', coordinates: [segment.a, segment.b] })
-      .map(([start, end]) => ({ start, end, ownerIds: [...segment.ownerIds].sort(), refs: segment.refs })));
+  return computeCountrySharedContacts([[left, right]])[0];
 }
 
 export function buildCountrySharedBoundarySegments(features = [], { preparedStore } = {}) {
@@ -172,13 +156,17 @@ export function buildCountrySharedBoundarySegments(features = [], { preparedStor
   if (!preparedStore) store.replace(features);
   const rows = features.map(feature => store.get(feature.id));
   const order = new Map(rows.map((row, index) => [row.id, index]));
-  const shared = new Map();
+  const pairs = [];
   for (let leftIndex = 0; leftIndex < rows.length; leftIndex++) {
     const left = rows[leftIndex];
     if (!left.segments.length) continue;
     const nearby = store.nearby(left.bounds).filter(right => order.get(right.id) > leftIndex)
       .sort((a, b) => order.get(a.id) - order.get(b.id));
-    for (const right of nearby) for (const segment of buildCountrySharedBoundaryContact(left, right)) {
+    for (const right of nearby) pairs.push([left, right]);
+  }
+  const shared = new Map();
+  for (const segments of computeCountrySharedContacts(pairs))
+    for (const segment of segments) {
       const key = segmentKey(segment.start, segment.end, 7);
       const previous = shared.get(key);
       if (previous) {
