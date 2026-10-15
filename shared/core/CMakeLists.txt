@@ -56,6 +56,7 @@ add_library(pandoeditor_core STATIC
     src/geometrypredicates.cpp
     src/sphericalpolygon.cpp
     src/boundarychain.cpp
+    src/boundarypacket.cpp
     src/boundarycontact.cpp
     src/boundaryoverlap.cpp
     src/boundaryrefinement.cpp
@@ -116,4 +117,9 @@ set_source_files_properties(src/boundarysplit.cpp PROPERTIES COMPILE_OPTIONS
 
 # Match V8's source-edge projections across native and WASM targets.
 set_source_files_properties(src/countrycontact.cpp PROPERTIES COMPILE_OPTIONS
+    "$<$<CXX_COMPILER_ID:MSVC>:/fp:strict>;$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-ffp-contract=off>")
+
+# Owner-group chains, seam division, refinement and dash phase use the same
+# strict intermediate double operations in Qt, GCC/Clang and Emscripten.
+set_source_files_properties(src/boundarypacket.cpp PROPERTIES COMPILE_OPTIONS
     "$<$<CXX_COMPILER_ID:MSVC>:/fp:strict>;$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-ffp-contract=off>")
