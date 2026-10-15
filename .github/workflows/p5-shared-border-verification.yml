@@ -44,6 +44,9 @@ on:
       - 'tools/p5-6-core-ownership.mjs'
       - 'tools/p5-6-review-performance.mjs'
       - 'tests/browser/russia-edit-preparation.spec.mjs'
+      - 'assets/js/build-meta.js'
+      - 'assets/data/prepared-polygons/generated/v2/manifest.json'
+      - 'scripts/check-version.mjs'
       - 'tools/build-country-shared-boundaries.mjs'
       - 'tools/benchmark-shared-border-p5.mjs'
       - 'tests/unit/boundary-lines.test.mjs'
@@ -79,6 +82,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
+      - name: Verify generated Web metadata matches current prepared mesh manifest
+        run: node scripts/check-version.mjs
       - name: Assert shared C++ ownership of migrated Web rules
         run: |
           node --test tests/unit/p5-6-core-ownership.test.mjs tests/unit/p5-6-contribution-merge.test.mjs tests/unit/p5-6-performance-review.test.mjs
