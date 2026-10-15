@@ -25,8 +25,8 @@ int main() {
     const auto split=buildCountryContactPairs({a,triple},{{0,1}})[0];
     assert(split.segments.size()==2);
     assert(split.segments[0].refs.size()==2&&split.segments[1].refs.size()==2);
-    const auto north=feature({row(p(-179,80),p(179,80))});
-    const auto south=feature({row(p(-179,80),p(179,80))});
+    const auto north=feature({row(p(-179,90),p(179,90))});
+    const auto south=feature({row(p(-179,90),p(179,90))});
     assert(buildCountryContactPairs({north,south},{{0,1}})[0].segments.empty());
     return 0;
 }
