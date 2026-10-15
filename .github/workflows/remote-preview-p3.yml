@@ -59,6 +59,11 @@ on:
         type: boolean
         required: false
         default: true
+      native_p9:
+        description: Build only the fixed Windows Qt performance pair for actual-device measurement
+        type: boolean
+        required: false
+        default: false
       native_tests_windows:
         description: Optional Windows override for native_tests when completed OS evidence differs
         type: string
@@ -302,7 +307,7 @@ jobs:
 
   qt-build-and-ctest:
     needs: plan
-    if: needs.plan.outputs.qt == 'true'
+    if: needs.plan.outputs.qt == 'true' && !inputs.native_p9
     strategy:
       fail-fast: false
       matrix:
@@ -518,6 +523,57 @@ jobs:
             build-native/p3/${{ matrix.preset }}/native/build-provenance.json
             build-native/p3/${{ matrix.preset }}/Testing/Temporary/LastTest.log
           if-no-files-found: warn
+          retention-days: 10
+
+  qt-p9-pair:
+    needs: plan
+    if: inputs.native_p9 && inputs.scope == 'qt'
+    runs-on: windows-2022
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 8e22982616e3c9ba43eeb84baec17cd886267cfa
+          path: build-native/p9/baseline
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - name: Prepare only the baseline's retired JS build dependency
+        shell: pwsh
+        run: |
+          pnpm --dir build-native/p9/baseline install --frozen-lockfile --ignore-scripts
+          exit $LASTEXITCODE
+      - uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: '3.31.6'
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.3'
+          arch: win64_msvc2022_64
+          modules: qtshadertools qtimageformats
+          cache: true
+      - name: Install matching Windows zlib
+        shell: pwsh
+        run: vcpkg install zlib:x64-windows
+      - name: Build the same measurement overlay on baseline and candidate
+        shell: pwsh
+        run: ./scripts/p9-build-native-pair.ps1 -BaselineRoot build-native/p9/baseline -OutputDirectory build-native/p9/qt-runtime
+      - name: Archive the test executables, matching runtime and source identities
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p9-windows-qt-pair-${{ inputs.source_sha || github.sha }}
+          path: |
+            build-native/p9/qt-runtime
+            build-native/p9/qt-pair-*.log
+          if-no-files-found: error
+          compression-level: 0
           retention-days: 10
 
   calculation-performance:

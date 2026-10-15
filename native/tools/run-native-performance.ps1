@@ -6,6 +6,9 @@ param(
  [Parameter(Mandatory=$true)][string]$FixtureManifest,
  [ValidateSet('acceptance','diagnostic')][string]$Mode='acceptance',
  [string]$DiagnosticReason,
+ [ValidateSet('m98-stress','p9-relative')][string]$Profile='m98-stress',
+ [string]$BaselineProbeExecutable,
+ [string]$BaselineSourceCommit,
  [ValidateRange(1,20)][int]$Runs=3,
  [ValidateRange(60000,3600000)][int]$WarmupMs=60000,
  [ValidateRange(720000,7200000)][int]$RepeatMs=720000,
@@ -19,6 +22,13 @@ param(
 # identical production manifest used by the measured application.
 $ErrorActionPreference='Stop'
 $probePath=(Resolve-Path -LiteralPath $ProbeExecutable).Path
+$baselinePath=$null
+if($Profile -eq 'p9-relative'){
+ if($Mode -ne 'diagnostic' -or !$DiagnosticReason){throw 'P9 relative comparison requires explicit diagnostic scope; it does not establish M98 acceptance'}
+ if($Runs -ne 5){throw 'P9 relative comparison requires exactly five alternating measured pairs'}
+ if($BaselineSourceCommit -notmatch '^[a-f0-9]{40}$'){throw 'P9 baseline source commit is required'}
+ $baselinePath=(Resolve-Path -LiteralPath $BaselineProbeExecutable).Path
+}
 $qtPath=(Resolve-Path -LiteralPath $QtBin).Path
 $manifestPath=(Resolve-Path -LiteralPath $FixtureManifest).Path
 if(Test-Path -LiteralPath $OutputDirectory){throw 'Use a new evidence output directory'}
@@ -63,10 +73,12 @@ function Test-ProductionPlaceInput($contract,$productionPath){
  return $receipt
 }
 if($manifest.schema -ne 'pandoeditor-native-performance-fixtures' -or $manifest.version -ne 2){$missing.Add('Immutable fixture schema/version mismatch')}
+if($Profile -eq 'p9-relative' -and $manifest.measurementScope -ne 'p9-relative'){$missing.Add('P9 production input scope missing')}
 foreach($id in @('world-standard','dense-view','editing-heavy','large-project')){
  $fixture=@($manifest.fixtures | Where-Object id -eq $id)
  if($fixture.Count -ne 1){$missing.Add("Missing/duplicate fixture: $id");continue}
  $fixture=$fixture[0]
+ if($Profile -eq 'p9-relative' -and ($fixture.datasetClass -ne 'production-full-world' -or $fixture.unitCount -lt 258)){$missing.Add("P9 requires the entire published production world: $id")}
  Test-ImmutableInput $fixture.projectPath $fixture.projectSha256
  if($fixture.projectPath){
   $projectInput=[IO.Path]::GetFullPath((Join-Path $fixtureRoot $fixture.projectPath))
@@ -90,36 +102,66 @@ $productionPlaceRevision=$productionPlaceReceipt.revision;$productionPlaceSha=$p
 $preflight=[ordered]@{status=if($missing.Count){'BLOCKED'}else{'PASS'};missing=@($missing);placeDatasetVersion=$productionPlaceRevision;productionPlaceManifestSha256=$productionPlaceSha;fixtureManifestSha256=(Get-FileHash -LiteralPath $manifestPath).Hash}
 $preflight | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath "$reportRoot/preflight.json" -Encoding utf8
 if($invalidProjects.Count){throw ($invalidProjects -join '; ')}
-if($Mode -eq 'acceptance' -and $missing.Count){throw "Acceptance preflight BLOCKED; see $reportRoot/preflight.json"}
+if(($Mode -eq 'acceptance' -or $Profile -eq 'p9-relative') -and $missing.Count){throw "Measurement preflight BLOCKED; see $reportRoot/preflight.json"}
 if($Mode -eq 'diagnostic' -and !$DiagnosticReason){throw 'Diagnostic mode requires an explicit reduction/synthetic reason'}
-if($TimeoutSeconds*1000 -lt $WarmupMs+$RepeatMs+180000){throw 'Timeout cannot cover warm-up, long run and scenario sequence'}
+if($Profile -eq 'm98-stress' -and $TimeoutSeconds*1000 -lt $WarmupMs+$RepeatMs+180000){throw 'Timeout cannot cover warm-up, long run and scenario sequence'}
 if(!(Test-Path -LiteralPath "$qtPath/Qt6Test.dll")){throw 'Installed Qt6Test.dll missing'}
+$qtPluginPath=Join-Path (Split-Path $qtPath -Parent) 'plugins'
+$qtQmlPath=Join-Path (Split-Path $qtPath -Parent) 'qml'
+# windeployqt test artifacts keep plugins beside the DLLs; installed Qt keeps
+# them beside bin/. Resolve and validate the actual runtime layout once.
+if(Test-Path -LiteralPath "$qtPath/platforms/qwindows.dll"){$qtPluginPath=$qtPath}
+if(Test-Path -LiteralPath "$qtPath/qml/QtQuick"){$qtQmlPath=Join-Path $qtPath 'qml'}
+if(!(Test-Path -LiteralPath "$qtPluginPath/platforms/qwindows.dll")){throw 'Windows Qt platform plugin missing'}
+if(!(Test-Path -LiteralPath "$qtQmlPath/QtQuick")){throw 'QtQuick QML runtime missing'}
+foreach($runtimeFile in @("$qtPath/Qt6Core.dll","$qtPath/Qt6Gui.dll","$qtPath/Qt6Quick.dll","$qtPath/Qt6Qml.dll","$qtPath/Qt6Test.dll","$qtPluginPath/platforms/qwindows.dll")){
+ $hashes[$runtimeFile]=(Get-FileHash -LiteralPath $runtimeFile).Hash
+}
 $metadata=[ordered]@{sourceCommit=(git rev-parse HEAD);sourceDirty=[bool](git status --porcelain --untracked-files=no);binarySha256=(Get-FileHash -LiteralPath $probePath).Hash;fixtureManifestSha256=$preflight.fixtureManifestSha256;buildType='Release';qtBin=$qtPath;os=[Environment]::OSVersion.VersionString;adapters=@(Get-CimInstance Win32_VideoController | Select-Object Name,DriverVersion);cpu=@(Get-CimInstance Win32_Processor | Select-Object Name,NumberOfLogicalProcessors);inputHashes=$hashes;measurementMode=$Mode;diagnosticReason=$DiagnosticReason;runs=$Runs;warmupMs=$WarmupMs;repeatMs=$RepeatMs;qtFunctionTimeoutMs=$TimeoutSeconds*1000;acceptedBy=$null}
+$metadata.measurementProfile=$Profile
+$metadata.qtPluginPath=$qtPluginPath;$metadata.qtQmlPath=$qtQmlPath
+if($baselinePath){
+ $metadata.baselineSourceCommit=$BaselineSourceCommit;$metadata.baselineBinarySha256=(Get-FileHash -LiteralPath $baselinePath).Hash
+ $metadata.warmupMs=0;$metadata.repeatMs=0
+ $metadata.cacheCondition='One discarded full workload per version warms OS inputs and the shared installed physical-data disk cache; each measured run starts a fresh process with isolated project persistence and fresh in-memory caches. Existing physical-data cache is preserved.'
+ $metadata.scope='P9 same-input production-world relative startup/pan-swap/edit-preview-cancel/save/process-memory comparison. No M98 full-stack, 12-minute plateau, GPU completion, or Android evidence.'
+}
 $metadata | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath "$reportRoot/environment.json" -Encoding utf8
 if($Mode -eq 'acceptance' -and $metadata.sourceDirty){throw 'Acceptance requires the final fixed source commit; working tree is dirty'}
-$envNames=@('PATH','QTEST_FUNCTION_TIMEOUT','QT_QPA_PLATFORM','QT_PLUGIN_PATH','QML_IMPORT_PATH','QML2_IMPORT_PATH','QT_QUICK_BACKEND','QSG_RHI_BACKEND','PANDOEDITOR_MAP_RENDERER','QSG_RENDER_TIMING','QSG_RENDERER_DEBUG','PANDOEDITOR_NATIVE_PERF_REPORT','PANDOEDITOR_NATIVE_PERF_FIXTURES','PANDOEDITOR_NATIVE_PERF_MODE','PANDOEDITOR_NATIVE_PERF_REASON','PANDOEDITOR_NATIVE_PERF_PROVENANCE','PANDOEDITOR_NATIVE_PERF_PREFLIGHT','PANDOEDITOR_NATIVE_PERF_WARMUP_MS','PANDOEDITOR_NATIVE_PERF_REPEAT_MS','PANDOEDITOR_NATIVE_PERF_RUN_ID','PANDOEDITOR_NATIVE_PERF_BRIEF','PANDOEDITOR_NATIVE_PERF_ABLATION','PANDOEDITOR_NATIVE_PERF_RECOVERY','PANDOEDITOR_NATIVE_PERF_VIEW')
+$envNames=@('PATH','QTEST_FUNCTION_TIMEOUT','QT_QPA_PLATFORM','QT_PLUGIN_PATH','QML_IMPORT_PATH','QML2_IMPORT_PATH','QT_QUICK_BACKEND','QSG_RHI_BACKEND','PANDOEDITOR_MAP_RENDERER','QSG_RENDER_TIMING','QSG_RENDERER_DEBUG','PANDOEDITOR_NATIVE_PERF_REPORT','PANDOEDITOR_NATIVE_PERF_FIXTURES','PANDOEDITOR_NATIVE_PERF_MODE','PANDOEDITOR_NATIVE_PERF_REASON','PANDOEDITOR_NATIVE_PERF_PROVENANCE','PANDOEDITOR_NATIVE_PERF_PREFLIGHT','PANDOEDITOR_NATIVE_PERF_WARMUP_MS','PANDOEDITOR_NATIVE_PERF_REPEAT_MS','PANDOEDITOR_NATIVE_PERF_RUN_ID','PANDOEDITOR_NATIVE_PERF_BRIEF','PANDOEDITOR_NATIVE_PERF_ABLATION','PANDOEDITOR_NATIVE_PERF_RECOVERY','PANDOEDITOR_NATIVE_PERF_VIEW','PANDOEDITOR_NATIVE_PERF_PROFILE','PANDOEDITOR_NATIVE_PERF_WORLD_ROOT','PANDOEDITOR_WORLD_DATA_ROOT','PANDOEDITOR_TERRAIN_DEM_DATA_ROOT')
 $saved=@{};foreach($name in $envNames){$saved[$name]=[Environment]::GetEnvironmentVariable($name,'Process')}
 try{
  $env:PATH="$qtPath;$env:PATH";$env:QT_QPA_PLATFORM='windows'
- $env:QT_PLUGIN_PATH=Join-Path (Split-Path $qtPath -Parent) 'plugins'
+ $env:QT_PLUGIN_PATH=$qtPluginPath
  if($AdditionalQtPluginDirectory){$env:QT_PLUGIN_PATH=$AdditionalQtPluginDirectory+';'+$env:QT_PLUGIN_PATH}
- $env:QML_IMPORT_PATH=Join-Path (Split-Path $qtPath -Parent) 'qml';$env:QML2_IMPORT_PATH=$env:QML_IMPORT_PATH
+ $env:QML_IMPORT_PATH=$qtQmlPath;$env:QML2_IMPORT_PATH=$env:QML_IMPORT_PATH
  $env:QT_QUICK_BACKEND=$null;$env:QSG_RHI_BACKEND=$null;$env:PANDOEDITOR_MAP_RENDERER=$null
+ if($baselinePath){$env:QSG_RHI_BACKEND='d3d11'}
  $env:QSG_RENDER_TIMING=$null;$env:QSG_RENDERER_DEBUG=$null
  $env:PANDOEDITOR_NATIVE_PERF_BRIEF=$null;$env:PANDOEDITOR_NATIVE_PERF_ABLATION=$null;$env:PANDOEDITOR_NATIVE_PERF_RECOVERY=$null;$env:PANDOEDITOR_NATIVE_PERF_VIEW=$null
  $env:PANDOEDITOR_NATIVE_PERF_FIXTURES=$manifestPath;$env:PANDOEDITOR_NATIVE_PERF_MODE=$Mode;$env:PANDOEDITOR_NATIVE_PERF_REASON=$DiagnosticReason
+ $env:PANDOEDITOR_NATIVE_PERF_PROFILE=$Profile
+ $env:PANDOEDITOR_NATIVE_PERF_WORLD_ROOT=Join-Path (Split-Path $PSScriptRoot -Parent) 'assets/world'
+ $env:PANDOEDITOR_WORLD_DATA_ROOT=$env:PANDOEDITOR_NATIVE_PERF_WORLD_ROOT
+ $env:PANDOEDITOR_TERRAIN_DEM_DATA_ROOT=$env:PANDOEDITOR_NATIVE_PERF_WORLD_ROOT
  $env:PANDOEDITOR_NATIVE_PERF_PROVENANCE="$reportRoot/environment.json";$env:PANDOEDITOR_NATIVE_PERF_PREFLIGHT="$reportRoot/preflight.json"
  $env:PANDOEDITOR_NATIVE_PERF_WARMUP_MS="$WarmupMs";$env:PANDOEDITOR_NATIVE_PERF_REPEAT_MS="$RepeatMs"
  # Qt's five-minute per-function default cannot contain the required twelve-minute
  # repetition. Keep its watchdog finite and equal to the recorded process deadline.
  $env:QTEST_FUNCTION_TIMEOUT="$($metadata.qtFunctionTimeoutMs)"
  $failures=[Collections.Generic.List[object]]::new()
- for($run=1;$run -le $Runs;$run++){
-  $runRoot=Join-Path $reportRoot "run-$run";New-Item -ItemType Directory -Path $runRoot | Out-Null
-  $env:PANDOEDITOR_NATIVE_PERF_REPORT="$runRoot/measurement.json";$env:PANDOEDITOR_NATIVE_PERF_RUN_ID="run-$run"
+ $runPlan=@()
+ if($baselinePath){
+  foreach($version in @('baseline','candidate')){$runPlan+=@{id="warmup-$version";version=$version;warmup=$true}}
+  for($run=1;$run -le $Runs;$run++){foreach($version in @('baseline','candidate')){$runPlan+=@{id="run-$run-$version";version=$version;warmup=$false}}}
+ }else{for($run=1;$run -le $Runs;$run++){$runPlan+=@{id="run-$run";version='candidate';warmup=$false}}}
+ foreach($planned in $runPlan){
+  $currentProbe=if($planned.version -eq 'baseline'){$baselinePath}else{$probePath}
+  $runRoot=Join-Path $reportRoot $planned.id;New-Item -ItemType Directory -Path $runRoot | Out-Null
+  $env:PANDOEDITOR_NATIVE_PERF_REPORT="$runRoot/measurement.json";$env:PANDOEDITOR_NATIVE_PERF_RUN_ID=$planned.id
   $arguments=@('nativePerformanceProbe','-o',('"'+$runRoot+'/qt-test.txt,txt"'))
   # The requested device measurement needs an exposed Windows map window.
-  $probe=Start-Process -FilePath $probePath -ArgumentList $arguments -WorkingDirectory (Split-Path $probePath -Parent) -WindowStyle Normal -PassThru -RedirectStandardOutput "$runRoot/stdout.txt" -RedirectStandardError "$runRoot/stderr.txt"
+  $probe=Start-Process -FilePath $currentProbe -ArgumentList $arguments -WorkingDirectory (Split-Path $currentProbe -Parent) -WindowStyle Normal -PassThru -RedirectStandardOutput "$runRoot/stdout.txt" -RedirectStandardError "$runRoot/stderr.txt"
   $nativeHandle=$probe.Handle
   $deadline=[DateTime]::UtcNow.AddSeconds($TimeoutSeconds);$processSamples=[Collections.Generic.List[object]]::new();$timedOut=$false
   while(!$probe.WaitForExit(1000)){
@@ -128,11 +170,13 @@ try{
   }
   $processSamples | ConvertTo-Json | Set-Content -LiteralPath "$runRoot/process.json" -Encoding utf8
   $probe.Refresh();$nativeExit=if($timedOut){$null}else{$probe.ExitCode}
-  $failures.Add([ordered]@{run=$run;nativePid=$probe.Id;timedOut=$timedOut;exitCode=$nativeExit;exitCodeObserved=($null -ne $nativeExit);rawReportExists=(Test-Path -LiteralPath "$runRoot/measurement.json")})
+  $failures.Add([ordered]@{run=$planned.id;version=$planned.version;warmup=$planned.warmup;nativePid=$probe.Id;binarySha256=(Get-FileHash -LiteralPath $currentProbe).Hash;timedOut=$timedOut;exitCode=$nativeExit;exitCodeObserved=($null -ne $nativeExit);rawReportExists=(Test-Path -LiteralPath "$runRoot/measurement.json")})
   $failures | ConvertTo-Json | Set-Content -LiteralPath "$reportRoot/run-results.json" -Encoding utf8
   if(!$timedOut -and $null -eq $nativeExit){throw 'Native process exit code unavailable; raw failure preserved'}
   foreach($path in $hashes.Keys){if((Get-FileHash -LiteralPath $path).Hash -ne $hashes[$path]){throw "Immutable fixture changed: $path"}}
   if((Get-FileHash -LiteralPath $probePath).Hash -ne $metadata.binarySha256 -or (git rev-parse HEAD) -ne $metadata.sourceCommit){throw 'Binary/source changed during the fixed repeated run'}
+  if($baselinePath -and (Get-FileHash -LiteralPath $baselinePath).Hash -ne $metadata.baselineBinarySha256){throw 'Baseline binary changed during the fixed repeated run'}
+  if($baselinePath -and ($timedOut -or $nativeExit -ne 0 -or !(Test-Path -LiteralPath "$runRoot/measurement.json"))){throw 'P9 workload failed; stop comparison and preserve raw evidence'}
   $failures | ConvertTo-Json | Set-Content -LiteralPath "$reportRoot/run-results.json" -Encoding utf8
  }
  if(@($failures | Where-Object {$_.timedOut -or $_.exitCode -ne 0}).Count){throw 'One or more native runs failed; all raw logs were preserved'}

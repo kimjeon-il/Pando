@@ -1,6 +1,36 @@
 import { expect, test } from '@playwright/test';
+import { writeFile } from 'node:fs/promises';
 
 test.use({ channel: 'chromium', viewport: { width: 1440, height: 900 } });
+
+// Opt-in device evidence accompanies the existing model/geometry/Undo checks.
+// Read the application's contexts so a separate probe canvas cannot stand in
+// for the GPU that actually rendered this workflow.
+test.afterEach(async ({ page }, testInfo) => {
+  if (process.env.PANDO_P9_DEVICE_EVIDENCE !== 'true' || page.isClosed()) return;
+  const device = await page.evaluate(() => ({
+    userAgent: navigator.userAgent,
+    viewport: [innerWidth, innerHeight, devicePixelRatio],
+    canvases: [...document.querySelectorAll('#map canvas')].map(canvas => {
+      const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+      if (!gl) return null;
+      const extension = gl.getExtension('WEBGL_debug_renderer_info');
+      return {
+        width: canvas.width, height: canvas.height,
+        renderer: extension ? gl.getParameter(extension.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER),
+        vendor: extension ? gl.getParameter(extension.UNMASKED_VENDOR_WEBGL) : gl.getParameter(gl.VENDOR),
+      };
+    }).filter(Boolean),
+  }));
+  const devicePath = testInfo.outputPath('actual-render-device.json');
+  const screenshotPath = testInfo.outputPath('actual-device-window.png');
+  await writeFile(devicePath, JSON.stringify(device, null, 2));
+  await page.screenshot({ path: screenshotPath });
+  await testInfo.attach('actual-render-device', { path: devicePath, contentType: 'application/json' });
+  await testInfo.attach('actual-device-window', { path: screenshotPath, contentType: 'image/png' });
+  expect(device.canvases.length).toBeGreaterThan(0);
+  for (const { renderer } of device.canvases) expect(renderer).not.toMatch(/swiftshader|llvmpipe|software/i);
+});
 
 async function openAnnex(page, center, { renderer = 'webgl2', targetId = 'GRC' } = {}) {
   await page.addInitScript(() => {
