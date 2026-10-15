@@ -1,7 +1,8 @@
 import '../helpers/spherical-core.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createPreparedBoundaryStore, buildCountrySharedBoundaryContact } from '../../assets/js/modules/boundary-topology.js';
+import { createPreparedBoundaryStore, buildCountrySharedBoundaryContact, buildCountrySharedBoundarySegments,
+  attachBoundarySegmentReferences } from '../../assets/js/modules/boundary-topology.js';
 import { computeCountrySharedContacts } from '../../assets/js/modules/country-contact-core.js';
 const feature=(id,w,s,e,n)=>({id,geometry:{type:'Polygon',coordinates:[[
   [w,s],[e,s],[e,n],[w,n],[w,s],
@@ -34,4 +35,21 @@ test('the C++ batch retains split contacts and empty batch semantics',()=>{
   assert.equal(contacts[0].length,1);
   assert.deepEqual(contacts[0][0].ownerIds,['CHILD','ROOT']);
   assert.deepEqual(computeCountrySharedContacts([]),[]);
+});
+test('prepared geographic lookup excludes Greenwich false contacts and finds shifted dateline contacts',()=>{
+  const dateline=feature('DATE',179,0,-179,1),greenwich=feature('ZERO',0,1,1,2);
+  const prepared=createPreparedBoundaryStore();prepared.replace([dateline,greenwich]);
+  assert.deepEqual(buildCountrySharedBoundarySegments([dateline,greenwich],{preparedStore:prepared}),[]);
+  const shifted=feature('SHIFT',539,1,541,2);
+  prepared.replace([dateline,shifted]);
+  const before=prepared.stats().preparationCount;
+  const contacts=buildCountrySharedBoundarySegments([dateline,shifted],{preparedStore:prepared});
+  assert.equal(contacts.length,2);
+  for(const contact of contacts){
+    assert.ok(Math.abs(contact.start[0])>=179&&Math.abs(contact.end[0])>=179);
+    const restored=attachBoundarySegmentReferences({...contact,refs:undefined},prepared);
+    assert.equal(restored.refs.length,2);
+    assert.deepEqual(restored.refs.map(ref=>ref.featureId),['DATE','SHIFT']);
+  }
+  assert.equal(prepared.stats().preparationCount,before);
 });

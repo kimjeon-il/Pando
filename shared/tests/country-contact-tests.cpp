@@ -28,5 +28,20 @@ int main() {
     const auto north=feature({row(p(-179,90),p(179,90))});
     const auto south=feature({row(p(-179,90),p(179,90))});
     assert(buildCountryContactPairs({north,south},{{0,1}})[0].segments.empty());
+    const auto date=feature({row(p(179,0),p(-179,0)),row(p(-179,0),p(-179,1),1),
+        row(p(-179,1),p(179,1),2),row(p(179,1),p(179,0),3)});
+    const auto greenwich=feature({row(p(0,1),p(1,1)),row(p(1,1),p(1,2),1),
+        row(p(1,2),p(0,2),2),row(p(0,2),p(0,1),3)});
+    assert(buildCountryContactPairs({date,greenwich},{{0,1}})[0].segments.empty());
+    assert(buildCountryContactPairs({date,greenwich},{{1,0}})[0].segments.empty());
+    const auto adjacent=feature({row(p(179,1),p(-179,1)),row(p(-179,1),p(-179,2),1),
+        row(p(-179,2),p(179,2),2),row(p(179,2),p(179,1),3)});
+    const auto seamContact=buildCountryContactPairs({date,adjacent},{{0,1}})[0];
+    assert(seamContact.segments.size()==2);
+    for(const auto& segment:seamContact.segments) {
+        assert(std::abs(segment.edge.first.x)>=179&&std::abs(segment.edge.second.x)>=179);
+        assert(std::abs(segment.edge.first.x-segment.edge.second.x)<=1);
+        assert(segment.refs.size()==2&&segment.refs[0].row==2&&segment.refs[1].row==0);
+    }
     return 0;
 }

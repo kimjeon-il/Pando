@@ -24,7 +24,7 @@ test('canonical and preview subdivision reproduces the country mesh boundary ver
   const source = structuredClone(geometry);
   for (const maxEdgeDegrees of [MAX_BOUNDARY_EDGE_DEGREES, 2]) {
     const mesh = globalThis.PandoLabGpuMeshCore.buildGpuMeshFeatures(
-      [{ id: 'RECT', geometry }], globalThis.earcut, { validate: true, maxEdgeDegrees });
+      [{ id: 'RECT', geometry }], { validate: true, maxEdgeDegrees });
     const fillBoundary = [];
     for (let index = 0; index < mesh.lineIndices.length; index += 2) {
       const pair = [mesh.lineIndices[index], mesh.lineIndices[index + 1]];

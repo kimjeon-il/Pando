@@ -102,11 +102,11 @@
     {
       "id": "world-mesh",
       "dependencies": [
-        "current-world"
+        "current-world",
+        "wasm"
       ],
       "inputs": [
         "assets/data/world/build-input.json",
-        "assets/js/vendor/earcut.min.js",
         "assets/js/workers/gpu-mesh-core.js"
       ],
       "outputs": [],
@@ -141,7 +141,6 @@
       "inputs": [
         "assets/data/world/build-input.json",
         "assets/js/vendor/d3.min.js",
-        "assets/js/vendor/earcut.min.js",
         "assets/js/workers/gpu-mesh-core.js"
       ],
       "outputs": [],
@@ -237,8 +236,7 @@
         "wasm"
       ],
       "inputs": [
-        "assets/js/workers/gpu-mesh-core.js",
-        "assets/js/vendor/earcut.min.js"
+        "assets/js/workers/gpu-mesh-core.js"
       ],
       "outputs": [
         "assets/data/prepared-polygons/generated/v2/"
