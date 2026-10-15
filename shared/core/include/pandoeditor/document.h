@@ -180,7 +180,8 @@ struct ProjectDocument {
 struct CountryView {
     const std::string &id, &name;
     const MultiPolygon& polygons;
-    const std::uint32_t& color;
+    // Resolved explicit/default display color: a snapshot value, not a borrowed conditional.
+    std::uint32_t color;
     const std::string& memo;
     const double& opacity;
     const std::string& layerId;
