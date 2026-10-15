@@ -237,8 +237,11 @@ private slots:
                 QCOMPARE(adaptedArea.status,GeometryOperationStatus::Cancelled);
             }
         }
-        const auto dropped=runtime.normalizeRiver(microscopic,{});
-        QCOMPARE(dropped.status,GeometryOperationStatus::Completed);QVERIFY(!dropped.geometry);
+        // The pinned P5 common normalizer already rejects this source ring;
+        // silently returning an empty success would discard positive geometry.
+        const auto rejected=runtime.normalizeRiver(microscopic,{});
+        QCOMPARE(rejected.status,GeometryOperationStatus::Failed);QVERIFY(!rejected.geometry);
+        QCOMPARE(rejected.detail,std::string("INVALID_POLYGON: component 0 ring 0: INVALID_POLYGON_RING: degenerate shell or hole"));
     }
     void rawRiverIntermediateRetainsMicroscopicPositiveRemnant() {
         const auto donor=rectangle(20,45,.01,.01);auto selected=donor;
@@ -441,7 +444,7 @@ private slots:
         Project project;project.replace(sliverFixture(donor));const auto before=::projectcodec::encode(project);
         AnnexGeometryPreviewRequest request{territorialRef("T"),{territorialRef("D")},selected,{{"D",0,{remainder.geometry}}}};
         const auto blocked=preview(project,request);QVERIFY(!blocked.ok());QVERIFY(blocked.blocking());
-        QCOMPARE(blocked.detail,std::string("RIVER_REMAINDER_NOT_REPRESENTABLE"));QVERIFY(!prepare(project,blocked).ok());QCOMPARE(::projectcodec::encode(project),before);
+        QCOMPARE(blocked.detail,std::string("RIVER_REMAINDER_NOT_REPRESENTABLE: INVALID_GEOMETRY: degenerate ring"));QVERIFY(!prepare(project,blocked).ok());QCOMPARE(::projectcodec::encode(project),before);
         request.riverSliverContext[0].unselectedGeometries.clear();const auto admitted=preview(project,request);
         QVERIFY2(admitted.ok(),admitted.detail.c_str());QCOMPARE(admitted.autoIncludedSliverCount,std::size_t(1));QVERIFY(prepare(project,admitted).ok());
     }
