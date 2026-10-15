@@ -56,6 +56,7 @@ add_library(pandoeditor_core STATIC
     src/geometrypredicates.cpp
     src/sphericalpolygon.cpp
     src/boundarychain.cpp
+    src/boundarycontact.cpp
     src/territorialmutation.cpp
     src/commands.cpp
   src/commandbatch.cpp
@@ -91,3 +92,7 @@ if(EMSCRIPTEN OR CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
         "-fdebug-prefix-map=${PANDOEDITOR_REPOSITORY_ROOT}=/pando")
 endif()
 
+
+# Match historical JS multiplication order for near-collinear source edges.
+set_source_files_properties(src/boundarycontact.cpp PROPERTIES COMPILE_OPTIONS
+    "$<$<CXX_COMPILER_ID:MSVC>:/fp:strict>;$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-ffp-contract=off>")
