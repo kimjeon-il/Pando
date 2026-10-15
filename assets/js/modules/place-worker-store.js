@@ -41,7 +41,7 @@ export async function readPlaceResponse(response, limit) {
   return result;
 }
 export function validatePlaceManifest(raw) {
-  if (raw?.version !== 1 || !Array.isArray(raw.stages) || raw.stages.length > 8 || !raw.tiles || !raw.shards || !raw.search) throw new TypeError('Invalid place manifest');
+  if (raw?.version !== 1 || typeof raw.revision !== 'string' || !raw.revision.trim() || !Array.isArray(raw.stages) || raw.stages.length > 8 || !raw.tiles || !raw.shards || !raw.search) throw new TypeError('Invalid place manifest');
   const stageIds = new Set();
   for (const stage of raw.stages) {
     if (!Number.isInteger(stage.id) || stageIds.has(stage.id) || !Number.isFinite(stage.minZoom) || stage.minZoom < 0 || !Number.isInteger(stage.columns) || stage.columns < 1 || stage.columns > 512 || !Number.isInteger(stage.rows) || stage.rows < 1 || stage.rows > 256) throw new TypeError('Invalid place stage');
@@ -95,11 +95,18 @@ export function createPlaceWorkerStore({ manifest: raw, baseUrl = 'http://localh
         metrics.networkCount++;
         if (fetchBytes) { full=await fetchBytes(spec); if (full.byteLength !== spec.bytes || full.byteLength > PLACE_LIMITS.shardBytes) throw new RangeError('Invalid place shard length/budget'); }
         else {
-          const url=new URL(spec.url,baseUrl); const response=await fetch(url, { headers: { Range: `bytes=${row.offset}-${row.offset+row.length-1}` }, signal: context.signal });
+          const url=new URL(spec.url,baseUrl);
+          url.searchParams.set('v',manifest.revision);
+          const wholeShard=row.offset===0 && row.length===spec.bytes;
+          const headers=wholeShard ? {} : { Range: `bytes=${row.offset}-${row.offset+row.length-1}` };
+          const response=await fetch(url, { headers, signal: context.signal });
           if (!response.ok) throw new Error(`Place HTTP ${response.status}: ${row.shard}`);
           const payload=await readPlaceResponse(response, spec.bytes);
           if (response.status === 206) {
-            if (response.headers.get('Content-Range') !== `bytes ${row.offset}-${row.offset+row.length-1}/${spec.bytes}` || payload.length !== row.length) throw new RangeError('Invalid place range response');
+            const expected=`bytes ${row.offset}-${row.offset+row.length-1}/${spec.bytes}`;
+            const actual=response.headers.get('Content-Range');
+            if (actual !== expected || payload.length !== row.length) throw new RangeError(
+              `Invalid place range response: expected ${expected} (${row.length} bytes), received ${actual} (${payload.length} bytes)`);
             bytes=payload;
           } else if (response.status === 200 && payload.length === spec.bytes) full=payload;
           else throw new RangeError('Invalid place shard response');
