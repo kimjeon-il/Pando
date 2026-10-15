@@ -1,7 +1,7 @@
 {
   "schema": "pandoeditor-core-wasm",
   "abiVersion": 1,
-  "sourceSha256": "47d81b68cea63135ec2cb3aeb76649c55839992b75cb7d461f24eacee05a0026",
+  "sourceSha256": "03b97a3e4d436db12fb3f2e6ba1765e0ee3490e9218334e22c94af4d9900ac17",
   "compiler": {
     "name": "emscripten",
     "version": "4.0.20"
@@ -13,11 +13,15 @@
     },
     {
       "path": "shared/core/CMakeLists.txt",
-      "sha256": "4ee60a048245bc20fa6564262f8c7fb6a85e67a9cc1f450cd430ec193b46f591"
+      "sha256": "cbc7524f5c90e2c031ff53e12e4a7ed9de068019865cd6038433add54dcd0465"
     },
     {
       "path": "shared/core/include/pandoeditor/boundarychain.h",
       "sha256": "ae5c0a9c7602850ffafeeed543e2e899d49c481774f6fc70b773d4d614a42822"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/boundarycontact.h",
+      "sha256": "6a5d439981cedd34e103e43913c89554fd88343fec2253c0af65ce23c7126f94"
     },
     {
       "path": "shared/core/include/pandoeditor/commands.h",
@@ -196,6 +200,10 @@
       "sha256": "870a3019db3ec6a45245cb550f884f9daf63fd80830639c2936656392e35f0e1"
     },
     {
+      "path": "shared/core/src/boundarycontact.cpp",
+      "sha256": "5f7a8c04a813bbbd2647c0c9a788f3f269704e82d217d5d1be0a5fd461ff9dd1"
+    },
+    {
       "path": "shared/core/src/commandbatch.cpp",
       "sha256": "657f0aed1e4e5d13c39bff83108c0885068bb34898a4f00b1d83ea963bd32c34"
     },
@@ -369,11 +377,15 @@
     },
     {
       "path": "shared/tests/CMakeLists.txt",
-      "sha256": "6dd558652a351d146b2e2c9c0c9d71460cd555fe19aa51bd30f323f403f6499c"
+      "sha256": "b5a988b4d4bee692d6af4f676397227ae0a867a9359b4569e35a2565884861f2"
     },
     {
       "path": "shared/tests/boundary-chain-tests.cpp",
       "sha256": "5a0626e933eda5b1786d14e9d0e2d8a94f7039532beb9a91ad419a4a16ed3c43"
+    },
+    {
+      "path": "shared/tests/boundary-interior-tests.cpp",
+      "sha256": "978c4eab7c26ba030d97909ffac4ee3ca3e6bc9b152964e5f8b56f1c0e34e43c"
     },
     {
       "path": "shared/tests/document-session-tests.cpp",
@@ -421,7 +433,7 @@
     },
     {
       "path": "shared/wasm/boundary-bindings.cpp",
-      "sha256": "29e6633a01b5e74f2cc9c715ec976d14dc2ca0d4083213a63a1078cffd17f176"
+      "sha256": "b460af074a379cb38a0ee7c4ba974da37b66ee3212666808e0bc01b3b1df5803"
     },
     {
       "path": "shared/wasm/session-bindings.cpp",
@@ -435,11 +447,11 @@
   "assets": {
     "js": {
       "file": "pandoeditor-core.js",
-      "sha256": "e346345c5207f908bcf652c7d2ba6770af93320146f29fe78234e0734c306d43"
+      "sha256": "4a9a7f00c0cc6bedf4f48ccf6c3124fdd4b407f07cc76a4aa8873626ef4af709"
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "594cec6117a14870df9a6c622e6033b3938b25b617a08ef1bcec2ad3bd7b0d65"
+      "sha256": "ac3a84db1638875da0758e75e695d9feffea37cd8f8b15842e1bed6d27400509"
     }
   }
 }
