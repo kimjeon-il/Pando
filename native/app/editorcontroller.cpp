@@ -377,7 +377,14 @@ void EditorController::initializePhysicalData() {
         const auto found=physicalAssets_.constFind(relative);if(found==physicalAssets_.cend())return;
         QFile file(resource);if(file.open(QIODevice::ReadOnly))physicalStore_->installVerified(*found,file.readAll());
     };
-    seed("terrain/v0.12.6/manifest.json",QDir(worldDataRoot_).filePath("terrain/v0.12.6/manifest.json"));
+    seed("terrain-preview/v0.13.3-p1/manifest.json",QDir(worldDataRoot_).filePath("terrain-preview/v0.13.3-p1/manifest.json"));
+    for(int level=0;level<=1;++level) {
+        const int columns=level==0?2:3,rows=level==0?1:2;
+        for(int column=0;column<columns;++column)for(int row=0;row<rows;++row) {
+            const auto relative=QString("terrain-preview/v0.13.3-p1/%1/%2-%3.webp").arg(level).arg(column).arg(row);
+            seed(relative,QStringLiteral(":/world/")+relative);
+        }
+    }
     seed("hydro/v0.13.2/manifest.json",QDir(worldDataRoot_).filePath("hydro/v0.13.2/manifest.json"));
     seed("terrain/v0.13.3/manifest.json",":/world/terrain/v0.13.3/manifest.json");
     connect(physicalStore_.get(),&PhysicalDataStore::activityChanged,this,[this](int active,int queued) {
@@ -389,7 +396,7 @@ void EditorController::initializePhysicalData() {
     connect(physicalStore_.get(),&PhysicalDataStore::assetReady,this,
         [this](const QString& path,const QString&,bool reused) {
             riverAssetFinished(path,true);physicalError_.clear();
-            if(path.startsWith("terrain/")) {
+            if(path.startsWith("terrain/")||path.startsWith("terrain-preview/")) {
                 // A verified replacement may retry the exact failed source.
                 // Reusing the same bytes cannot turn a decoder error into a
                 // successful retry, and must not create a request/decode loop.
@@ -431,7 +438,7 @@ bool EditorController::physicalAssetReady(const QString& relativePath) const {
     if(!physicalStore_)return false;
     const auto found=physicalAssets_.constFind(relativePath);
     if(found==physicalAssets_.cend())return false;
-    if(relativePath.startsWith("terrain/")) {
+    if(relativePath.startsWith("terrain/")||relativePath.startsWith("terrain-preview/")) {
         // This is admission to a worker, never an integrity receipt. The cold
         // decoder's verifier checks original bytes before publishing pixels.
         return !physicalStore_->candidatePath(*found).isEmpty();

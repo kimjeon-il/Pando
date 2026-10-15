@@ -18,7 +18,7 @@ const CURRENT_PREFIXES=[
   'assets/data/hydro/v0.13.0/',
   'assets/data/hydro/v0.13.1/',
   'assets/data/hydro/v0.13.2/',
-  'assets/data/terrain/v0.12.6/',
+  'assets/data/terrain-preview/v0.13.3-p1/',
   'assets/data/territorial-entities/generated/',
   'assets/data/places/',
   'assets/data/world/'
@@ -85,7 +85,7 @@ function staticCategory(p){
 }
 function generatedCategory(p){
   if(p.startsWith('assets/data/territorial-entities/generated/'))return 'historical-catalog-and-source';
-  if(p.startsWith('assets/data/terrain/v0.12.6/'))return 'current-terrain';
+  if(p.startsWith('assets/data/terrain-preview/v0.13.3-p1/'))return 'current-terrain-preview';
   if(/^assets\/data\/hydro\/v0\.13\.[012]\//.test(p))return 'current-hydro';
   if(p.startsWith('assets/data/world/'))return 'content-hash-world-bridge';
   if(p.startsWith('assets/data/places/'))return 'places';
@@ -111,7 +111,7 @@ export function buildPublicationProfile(tree,lock,required,{profile='main-legacy
   for(const path of ['assets/js/gis-io.js',GDAL_WASM,GDAL_DATA,
       'assets/data/hydro/v0.13.2/manifest.json',
       'assets/data/hydro/v0.13.2/hydro.bin',
-      'assets/data/terrain/v0.12.6/manifest.json',
+      'assets/data/terrain-preview/v0.13.3-p1/manifest.json',
       'assets/data/territorial-entities/generated/v2/index.json']){
     fail(chosen.has(path),'Mandatory Web/native runtime asset missing: '+path);
   }

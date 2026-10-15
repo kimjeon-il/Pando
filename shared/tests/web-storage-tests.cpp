@@ -175,4 +175,21 @@ void storedGzipPinAndFullInactiveCatalog() {
     assert(p.revision()==revision&&p.historyCheckpoint()==checkpoint&&!p.canUndo());
 }
 }
-int main(){originalFingerprintGoldens();immutableBaselineAdmission();deltaOrderHistoryAndExpansion();autosaveSelectionDoesNotInferMonthMode();geometryOnlyChangesStillCarryIdentityAndArchive();storedGzipPinAndFullInactiveCatalog();std::cout<<"Web storage tests passed\n";}
+void storageValidatesTheCanonicalExportOnce() {
+    auto row=feature("A");row.object["properties"].object["metadata"].object["flagDataUrl"]=V::str("data:image/png;base64,AA==");
+    row.object["geometry"].object["coordinates"]=json("[[[0,0],[2,0],[2,2],[0,2],[0,0]],[[0.5,0.5],[0.5,1],[1,1],[1,0.5],[0.5,0.5]]]");
+    const auto base=rows({row});Project p;p.replace(document(base));auto admitted=baseline(p,base);
+    unsigned calls=0;auto counted=ports;counted.validateFlagDataUrl=[&](const std::string&){++calls;};
+    (void)encodeWeb(p.snapshot(),counted);const auto exportCalls=calls;assert(exportCalls>0);
+    for(const auto* format:{"pandolab-project-state","pandolab-autosave-full","pandolab-autosave"}) {
+        WebStorageContext context;context.format=format;calls=0;
+        const auto bytes=encodeWebStorage(p.snapshot(),counted,context,&admitted,{});
+        assert(calls==exportCalls);
+        const auto restored=decodeWebStorage(bytes,ports,&admitted);
+        assert(restored.units.size()==1&&restored.units[0].id=="A");
+        assert(restored.symbols.at(territorialRef("A")).embeddedDataUrl=="data:image/png;base64,AA==");
+        assert(sameGeometryValue(*restored.geometries.get(staticGeometryBinding(restored,"A").geometryRef),
+            *p.document().geometries.get(staticGeometryBinding(p.document(),"A").geometryRef)));
+    }
+}
+int main(){originalFingerprintGoldens();immutableBaselineAdmission();deltaOrderHistoryAndExpansion();autosaveSelectionDoesNotInferMonthMode();geometryOnlyChangesStillCarryIdentityAndArchive();storedGzipPinAndFullInactiveCatalog();storageValidatesTheCanonicalExportOnce();std::cout<<"Web storage tests passed\n";}

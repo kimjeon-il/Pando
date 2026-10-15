@@ -6,6 +6,8 @@ node_modules/
 /build-native/
 playwright-report/
 test-results/
+.terrain-preview-cache/
+aqtinstall.log
 
 # Restricted/local historical GIS working sources and generated bases
 tools/historical-library/sources/german-empire-1914/*.geojson
