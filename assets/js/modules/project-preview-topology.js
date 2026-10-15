@@ -255,14 +255,14 @@ function intersectionIssues(features, unitParents, clipper) {
   return issues;
 }
 
-function ringRelation(point, ring) {
+function ringRelation(point, ring, tolerance = 1e-12) {
   let inside = false;
   for (let index = 1; index < ring.length; index += 1) {
     const a = ring[index - 1], b = ring[index];
     const cross = (point[0] - a[0]) * (b[1] - a[1]) - (point[1] - a[1]) * (b[0] - a[0]);
-    if (Math.abs(cross) <= 1e-12 * Math.max(1, Math.hypot(b[0] - a[0], b[1] - a[1]))
-      && point[0] >= Math.min(a[0], b[0]) - 1e-12 && point[0] <= Math.max(a[0], b[0]) + 1e-12
-      && point[1] >= Math.min(a[1], b[1]) - 1e-12 && point[1] <= Math.max(a[1], b[1]) + 1e-12) return 0;
+    if (Math.abs(cross) <= tolerance * Math.max(1, Math.hypot(b[0] - a[0], b[1] - a[1]))
+      && point[0] >= Math.min(a[0], b[0]) - tolerance && point[0] <= Math.max(a[0], b[0]) + tolerance
+      && point[1] >= Math.min(a[1], b[1]) - tolerance && point[1] <= Math.max(a[1], b[1]) + tolerance) return 0;
     if ((a[1] > point[1]) !== (b[1] > point[1])
       && point[0] < (b[0] - a[0]) * (point[1] - a[1]) / (b[1] - a[1]) + a[0]) inside = !inside;
   }
@@ -338,12 +338,118 @@ function containmentIssues(features, requiredPairs) {
   return issues;
 }
 
+// Ring validity alone does not guarantee valid Polygon/MultiPolygon topology.
+// Keep this check shared by the preview Worker and build-time generator.
+function boundaryContacts(left, right) {
+  if (left.box[0] > right.box[2] || right.box[0] > left.box[2]
+    || left.box[1] > right.box[3] || right.box[1] > left.box[3]) return { points: [] };
+  const touches = new Map();
+  const orient = (a, b, p) => (b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0]);
+  const on = (p, edge) => orient(edge.a, edge.b, p) === 0
+    && p[0] >= edge.box[0] && p[0] <= edge.box[2] && p[1] >= edge.box[1] && p[1] <= edge.box[3];
+  const span = Math.max(1e-9, right.box[2] - right.box[0]);
+  const bin = x => Math.max(0, Math.min(63, Math.floor((x - right.box[0]) / span * 64)));
+  const buckets = Array.from({ length: 64 }, () => []);
+  for (const edge of right.edges) for (let i = bin(edge.box[0]); i <= bin(edge.box[2]); i++) buckets[i].push(edge);
+  for (const edge of left.edges) {
+    const seen = new Set();
+    for (let i = bin(edge.box[0]); i <= bin(edge.box[2]); i++) for (const other of buckets[i]) {
+      if (seen.has(other) || edge.box[0] > other.box[2] || other.box[0] > edge.box[2]
+        || edge.box[1] > other.box[3] || other.box[1] > edge.box[3]) continue;
+      seen.add(other);
+      const a = orient(edge.a, edge.b, other.a), b = orient(edge.a, edge.b, other.b);
+      const c = orient(other.a, other.b, edge.a), d = orient(other.a, other.b, edge.b);
+      if (((a < 0 && b > 0) || (a > 0 && b < 0)) && ((c < 0 && d > 0) || (c > 0 && d < 0))) {
+        const t = c / (c - d);
+        return { invalid: 'ring-crossing', point: [edge.a[0] + t * (edge.b[0] - edge.a[0]), edge.a[1] + t * (edge.b[1] - edge.a[1])] };
+      }
+      if (a === 0 && b === 0 && c === 0 && d === 0) {
+        const axis = Math.abs(edge.b[0] - edge.a[0]) >= Math.abs(edge.b[1] - edge.a[1]) ? 0 : 1;
+        const lo = Math.max(Math.min(edge.a[axis], edge.b[axis]), Math.min(other.a[axis], other.b[axis]));
+        const hi = Math.min(Math.max(edge.a[axis], edge.b[axis]), Math.max(other.a[axis], other.b[axis]));
+        if (hi > lo) {
+          const t = ((lo + hi) / 2 - edge.a[axis]) / (edge.b[axis] - edge.a[axis]);
+          return { invalid: 'shared-ring-segment', point: [edge.a[0] + t * (edge.b[0] - edge.a[0]), edge.a[1] + t * (edge.b[1] - edge.a[1])] };
+        }
+      }
+      for (const [point, target] of [[edge.a, other], [edge.b, other], [other.a, edge], [other.b, edge]]) {
+        if (on(point, target)) touches.set(JSON.stringify(point), point);
+      }
+    }
+  }
+  return { points: [...touches.values()] };
+}
+
+function strictFeatureIssue(feature, clipper) {
+  const parts = components(feature.geometry).map(part => ({ ...part, rings: part.polygon.map(ring => {
+    const prepared = components({ type: 'Polygon', coordinates: [ring] });
+    return { ring, box: prepared[0].box, edges: segments(prepared) };
+  }) }));
+  const issue = (reason, point) => ({ ids: [String(feature.id)], point, reason });
+  if (!parts.length) return issue('empty-geometry', null);
+  const positiveIntersection = (left, right) => {
+    for (const polygon of clipper.intersection([left], [right]) || []) {
+      // Intra-feature validity is strict; the inter-feature overlap threshold
+      // remains separately fixed at 1e-14 above.
+      if (area(polygon[0]) - polygon.slice(1).reduce((sum, hole) => sum + area(hole), 0) > 0) return polygon[0][0];
+    }
+    return null;
+  };
+  for (const part of parts) {
+    // A bipartite ring/contact graph detects disconnected polygon interiors.
+    // Several rings touching at the same single point remain a valid tree.
+    const roots = new Map(), links = new Set();
+    const root = id => { if (!roots.has(id)) roots.set(id, id); let key = id; while (roots.get(key) !== key) key = roots.get(key); return key; };
+    for (let left = 0; left < part.rings.length; left++) for (let right = left + 1; right < part.rings.length; right++) {
+      const contacts = boundaryContacts(part.rings[left], part.rings[right]);
+      if (contacts.invalid) return issue(contacts.invalid, contacts.point);
+      if (left === 0) {
+        // Without a boundary contact or crossing, one point determines which
+        // side of the shell the entire simple hole occupies. Touching rings
+        // also need edge interiors checked at their contact-separated runs.
+        const points = contacts.points.length ? part.rings[right].edges.map(edge =>
+          [(edge.a[0] + edge.b[0]) / 2, (edge.a[1] + edge.b[1]) / 2]) : [part.rings[right].ring[0]];
+        for (const point of points) if (ringRelation(point, part.rings[0].ring, 0) < 0) return issue('hole-outside-shell', point);
+      }
+      if (left > 0 && boxesOverlap(part.rings[left].box, part.rings[right].box)) {
+        const overlap = positiveIntersection([part.rings[left].ring], [part.rings[right].ring]);
+        if (overlap) return issue('overlapping-holes', overlap);
+      }
+      for (const point of contacts.points) for (const index of [left, right]) {
+        const contact = 'point:' + JSON.stringify(point), ring = 'ring:' + index, link = ring + '/' + contact;
+        if (links.has(link)) continue;
+        links.add(link);
+        const a = root(ring), b = root(contact);
+        if (a === b) return issue('disconnected-interior', point);
+        roots.set(a, b);
+      }
+    }
+  }
+  const ordered = [...parts].sort((a, b) => a.box[0] - b.box[0]);
+  for (let left = 0; left < ordered.length; left++) for (let right = left + 1; right < ordered.length; right++) {
+    const a = ordered[left], b = ordered[right];
+    if (b.box[0] > a.box[2]) break;
+    if (b.box[1] > a.box[3] || b.box[3] < a.box[1]) continue;
+    for (const first of a.rings) for (const second of b.rings) {
+      const contact = boundaryContacts(first, second);
+      if (contact.invalid) return issue(contact.invalid, contact.point);
+    }
+    if (boxesOverlap(a.box, b.box)) {
+      const overlap = positiveIntersection(a.polygon, b.polygon);
+      if (overlap) return issue('overlapping-polygon-parts', overlap);
+    }
+  }
+  return null;
+}
+
 export function inspectTopologyPreviewFeatures(features, {
   validateGeometry, clipper, unitParents = new Map(), requiredContainment = [],
 }) {
   const invalid=features.flatMap(feature=>validateGeometry(feature).map(issue=>({
     ids:[String(feature.id)],point:issue.coordinate||null,reason:issue.kind||'invalid',
   })));
-  return invalid.length?invalid:[...intersectionIssues(features,unitParents,clipper),
+  if (invalid.length) return invalid;
+  const topologyInvalid = features.map(feature => strictFeatureIssue(feature, clipper)).filter(Boolean);
+  return topologyInvalid.length ? topologyInvalid : [...intersectionIssues(features,unitParents,clipper),
     ...containmentIssues(features,requiredContainment)];
 }

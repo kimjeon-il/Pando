@@ -32,6 +32,8 @@ test('infrastructure first install schedules all available checks, reports-only 
 });
 test('manual modes and branch slugs reject unexpected strings',()=>{
   assert.equal(classifyP3([],full,'all').qt,true);
+  const acceptance=classifyP3([],full,'acceptance');
+  for(const key of ['preview','browser','qt','contracts'])assert.equal(acceptance[key],true,key);
   assert.equal(classifyP3([],full,'qt').preview,false);
   assert.equal(classifyP3([],full,'off').qt,false);
   assert.equal(classifyP3([],webOnly,'qt').qt,false);
