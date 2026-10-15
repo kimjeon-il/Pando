@@ -56,8 +56,8 @@ private slots:
         QFile mf(manifest);QVERIFY(mf.open(QIODevice::ReadOnly));
         auto source=std::make_shared<TerrainTileProvider>(mf.readAll(),data);
         QVERIFY2(source->available(),qPrintable(source->error()));QCOMPARE(source->isDem(),dem);
-        const auto version=dem?"v0.13.0":"v0.12.6";
-        QImage raw[2]{QImage(data+"/terrain/"+version+"/0/0-0.webp"),QImage(data+"/terrain/"+version+"/0/1-0.webp")};
+        const auto prefix=dem?"/terrain/v0.13.0/":"/terrain-preview/v0.13.3-p1/";
+        QImage raw[2]{QImage(data+prefix+"0/0-0.webp"),QImage(data+prefix+"0/1-0.webp")};
         QVERIFY(!raw[0].isNull()&&!raw[1].isNull());
         QCOMPARE(raw[0].size(),QSize(1026,677));QCOMPARE(raw[1].size(),QSize(328,677));
         QImage tint;if(dem){tint.load(data+"/terrain/v0.13.3/tint.webp");QVERIFY(!tint.isNull());}
