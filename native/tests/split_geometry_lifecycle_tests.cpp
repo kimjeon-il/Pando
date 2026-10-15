@@ -67,7 +67,7 @@ QByteArray readSplitObservations(const QString& name,const QByteArray& expectedS
 }
 Geometry observedGeometry(const QJsonObject& value) {
     Geometry geometry;geometry.type=value["type"].toString().toStdString();QJsonArray polygons=value["coordinates"].toArray();
-    if(geometry.type=="Polygon")polygons=QJsonArray{polygons};
+    if(geometry.type=="Polygon")polygons=QJsonArray{QJsonValue(polygons)};
     for(const auto& p:polygons) {Polygon polygon;for(const auto& r:p.toArray()) {Ring ring;for(const auto& v:r.toArray()) {const auto point=v.toArray();ring.push_back({point[0].toDouble(),point[1].toDouble()});}polygon.push_back(std::move(ring));}geometry.polygons.push_back(std::move(polygon));}
     return geometry;
 }
