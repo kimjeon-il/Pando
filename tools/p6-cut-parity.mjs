@@ -9,5 +9,7 @@ console.log(`${cases.length} shared C++ cut results match the frozen browser cor
 const wrapping=JSON.parse(readFileSync(new URL('../tests/fixtures/p6/wrapping-baseline.json',import.meta.url),'utf8')).cases;
 const wrapped=execFileSync(process.argv[2],[],{input:wrapping.map(c=>JSON.stringify(c)).join('\n')+'\n',encoding:'utf8',maxBuffer:16*1024*1024,timeout:15000}).trim().split('\n').map(JSON.parse);
 assert.equal(wrapped.length,wrapping.length);
-for(let i=0;i<wrapping.length;i++)assert.deepEqual(wrapped[i],wrapping[i].expected,wrapping[i].id);
-console.log(`${wrapping.length} shared wrapping/normalization results match the pre-P6 source baseline.`);
+const corrections=JSON.parse(readFileSync(new URL('../tests/fixtures/p6/wrapping-corrections.json',import.meta.url),'utf8')).cases;
+const corrected=new Map(corrections.map(row=>[row.id,row.expected]));
+for(let i=0;i<wrapping.length;i++)assert.deepEqual(wrapped[i],corrected.get(wrapping[i].id)??wrapping[i].expected,wrapping[i].id);
+console.log(`${wrapping.length} shared wrapping/normalization cases checked; ${corrections.length} explicit P9 winding corrections, remaining pre-P6 results unchanged.`);

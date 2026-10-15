@@ -64,9 +64,17 @@ void checkCore() {
         {{-170,-2},{-170,2},{170,2},{170,-2},{-170,-2}}
     });
     const auto sliced=normalizeClippedSphericalPolygonGeometry(longEdge);
+    assert(hasCanonicalSphericalWinding(sliced));
     assert(sliced.polygons[0][0].size()>longEdge.polygons[0][0].size());
     for(std::size_t i=1;i<sliced.polygons[0][0].size();++i)
         assert(std::abs(sliced.polygons[0][0][i].x-sliced.polygons[0][0][i-1].x)<=180);
+    const auto slicedHole=normalizeClippedSphericalPolygonGeometry(polygon({
+        {{-175,-10},{-175,10},{175,10},{175,-10},{-175,-10}},
+        {{-165,-5},{165,-5},{165,5},{-165,5},{-165,-5}}
+    }));
+    assert(slicedHole.polygons[0].size()==2);
+    assert(hasCanonicalSphericalWinding(slicedHole));
+    assert(hasCanonicalSphericalWinding(normalizeClippedSphericalPolygonGeometry(world)));
 
     // Invalid ring structure is observable instead of being silently dropped.
     rejected(polygon({{{0,0},{1,1},{0,0}}}));

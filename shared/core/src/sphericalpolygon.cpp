@@ -115,8 +115,27 @@ bool canonical(const Ring& ring,bool shell) {
     const auto area=interiorArea(ring);
     return shell?area<hemisphere:area>hemisphere;
 }
-Ring oriented(const Ring& original,bool shell) {
+Ring oriented(const Ring& original,bool shell,bool clipped=false) {
     auto ring=cleanRing(original);
+    // Clipping uses planar longitude edges. Split those edges before deciding
+    // the spherical interior: inserting a midpoint can change that interior.
+    // The explicit world seam is already a canonical full-sphere shell.
+    if(clipped&&!worldSeam(ring)) {
+        Ring segmented;
+        segmented.reserve(ring.size());
+        segmented.push_back(ring.front());
+        for(std::size_t i=1;i<ring.size();++i) {
+            const auto a=ring[i-1],b=ring[i];
+            const auto count=std::max(1.,std::ceil(std::abs(b.x-a.x)/180.));
+            if(count>1000000)throw std::invalid_argument("INVALID_POLYGON: longitude span too large");
+            for(int part=1;part<int(count);++part) {
+                const auto step=double(part)/count;
+                segmented.push_back({a.x+(b.x-a.x)*step,a.y+(b.y-a.y)*step});
+            }
+            segmented.push_back(b);
+        }
+        ring=std::move(segmented);
+    }
     if(!canonical(ring,shell)) {
         std::reverse(ring.begin(),ring.end()-1);
         ring.back()=ring.front();
@@ -200,7 +219,8 @@ bool hasCanonicalSphericalWinding(const Geometry& geometry) noexcept {
     try {requireCanonicalSphericalWinding(geometry);return true;}
     catch(...) {return false;}
 }
-Geometry normalizeSphericalPolygonGeometry(const Geometry& source) {
+namespace {
+Geometry normalizeGeometry(const Geometry& source,bool clipped) {
     typeCheck(source);
     if(source.polygons.empty())return source; // An intentional empty clipping result.
     Geometry result;
@@ -212,7 +232,7 @@ Geometry normalizeSphericalPolygonGeometry(const Geometry& source) {
         Polygon output;
         output.reserve(polygon.size());
         for(std::size_t r=0;r<polygon.size();++r) {
-            try { output.push_back(oriented(polygon[r],r==0)); }
+            try { output.push_back(oriented(polygon[r],r==0,clipped)); }
             catch(const std::exception& error) {
                 throw std::invalid_argument("INVALID_POLYGON: component "+std::to_string(p)+
                                             " ring "+std::to_string(r)+": "+error.what());
@@ -223,24 +243,11 @@ Geometry normalizeSphericalPolygonGeometry(const Geometry& source) {
     requireCanonicalSphericalWinding(result);
     return result;
 }
+}
+Geometry normalizeSphericalPolygonGeometry(const Geometry& source) {
+    return normalizeGeometry(source,false);
+}
 Geometry normalizeClippedSphericalPolygonGeometry(const Geometry& source) {
-    auto result=normalizeSphericalPolygonGeometry(source);
-    for(auto& polygon:result.polygons)for(auto& ring:polygon) {
-        Ring segmented;
-        segmented.reserve(ring.size());
-        segmented.push_back(ring.front());
-        for(std::size_t i=1;i<ring.size();++i) {
-            const auto a=ring[i-1],b=ring[i];
-            const auto count=std::max(1.,std::ceil(std::abs(b.x-a.x)/180.));
-            if(count>1000000)throw std::invalid_argument("INVALID_POLYGON: longitude span too large");
-            for(int part=1;part<int(count);++part) {
-                const auto step=double(part)/count;
-                segmented.push_back({a.x+(b.x-a.x)*step,a.y+(b.y-a.y)*step});
-            }
-            segmented.push_back(b);
-        }
-        ring=std::move(segmented);
-    }
-    return result;
+    return normalizeGeometry(source,true);
 }
 } // namespace pandoeditor

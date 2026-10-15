@@ -50,21 +50,36 @@ export function createReferenceWarp(descriptor) {
   return Object.freeze({ ...publicFields, project });
 }
 
+// UVs and connectivity depend only on the dimensions returned by the engine.
+// Retain a small set of immutable C++-generated layouts; coordinates remain
+// unique to each warp. No JS triangulation or coordinate calculation is added.
+const meshLayouts = new Map();
+function meshLayout(packet) {
+  const key = packet.columns + ':' + packet.rows;
+  let layout = meshLayouts.get(key);
+  if (layout) return layout;
+  const uv = new Array(packet.vertices.length / 4), triangles = new Array(packet.triangles.length / 3);
+  for (let i = 0; i < uv.length; i++) uv[i] = Object.freeze([packet.vertices[i * 4], packet.vertices[i * 4 + 1]]);
+  for (let i = 0; i < triangles.length; i++) triangles[i] = Object.freeze([
+    packet.triangles[i * 3], packet.triangles[i * 3 + 1], packet.triangles[i * 3 + 2]]);
+  layout = { uv: Object.freeze(uv), triangles: Object.freeze(triangles) };
+  if (meshLayouts.size >= 8) meshLayouts.delete(meshLayouts.keys().next().value);
+  meshLayouts.set(key, layout);
+  return layout;
+}
+
 export function calculateReferenceMesh(warp, columns, rows) {
   const prepared = preparedWarps.get(warp.project);
   if (!prepared) throw new TypeError('A shared reference warp is required.');
   const packet = prepared.mesh(Number(columns), Number(rows));
   if (!packet) return null;
-  // Only transport/layout happens in JS. The shared engine supplies every
-  // coordinate, grid dimension and triangle index in one bounded call.
-  const vertices = [], triangles = [];
-  for (let i = 0; i < packet.vertices.length; i += 4) {
-    vertices.push(Object.freeze({ uv: Object.freeze([packet.vertices[i], packet.vertices[i + 1]]),
-      coordinate: Number.isFinite(packet.vertices[i + 2])
-        ? Object.freeze([packet.vertices[i + 2], packet.vertices[i + 3]]) : null }));
+  const layout = meshLayout(packet), values = packet.vertices;
+  const vertices = new Array(layout.uv.length);
+  for (let i = 0; i < vertices.length; i++) {
+    const offset = i * 4;
+    vertices[i] = Object.freeze({ uv: layout.uv[i], coordinate: Number.isFinite(values[offset + 2])
+      ? Object.freeze([values[offset + 2], values[offset + 3]]) : null });
   }
-  for (let i = 0; i < packet.triangles.length; i += 3)
-    triangles.push(Object.freeze([packet.triangles[i], packet.triangles[i + 1], packet.triangles[i + 2]]));
   return Object.freeze({ columns: packet.columns, rows: packet.rows,
-    vertices: Object.freeze(vertices), triangles: Object.freeze(triangles) });
+    vertices: Object.freeze(vertices), triangles: layout.triangles });
 }
