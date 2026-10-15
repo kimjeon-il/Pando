@@ -9,6 +9,7 @@
 
 namespace {
 using emscripten::val;
+using emscripten::EM_VAL;
 using namespace pandoeditor;
 // Transfer coordinates in bulk. Per-coordinate emval access dominates large
 // polygons even when the sweep itself is fast; these helpers only marshal data.
@@ -43,7 +44,19 @@ std::vector<MultiPolygon> readOperands(val inputs){
     if(!shape.empty())val(emscripten::typed_memory_view(shape.size(),shape.data())).call<void>("set",shapeValue);
     if(!points.empty())val(emscripten::typed_memory_view(points.size(),points.data())).call<void>("set",pointsValue);
     std::size_t at=0,point=0;std::vector<MultiPolygon> operands(shape.at(at++));
-    for(auto& operand:operands){operand.resize(shape.at(at++));for(auto& polygon:operand){polygon.resize(shape.at(at++));for(auto& ring:polygon){ring.resize(shape.at(at++));for(auto& coordinate:ring){coordinate={points.at(point),points.at(point+1)};point+=2;}}}
+    for(auto& operand:operands) {
+        operand.resize(shape.at(at++));
+        for(auto& polygon:operand) {
+            polygon.resize(shape.at(at++));
+            for(auto& ring:polygon) {
+                ring.resize(shape.at(at++));
+                for(auto& coordinate:ring) {
+                    coordinate={points.at(point),points.at(point+1)};
+                    point+=2;
+                }
+            }
+        }
+    }
     return operands;
 }
 val writeResult(const MultiPolygon& result){
