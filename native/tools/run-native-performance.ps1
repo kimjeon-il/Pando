@@ -35,8 +35,20 @@ if($Profile -eq 'p9-relative'){
  if($buildIdentity.baselineSourceSha -ne $BaselineSourceCommit -or $buildIdentity.candidateSourceSha -notmatch '^[a-f0-9]{40}$'){throw 'CI source identity does not match the requested pair'}
  if($buildIdentity.binaries.baseline.sha256 -ne (Get-FileHash -LiteralPath $baselinePath).Hash -or $buildIdentity.binaries.candidate.sha256 -ne (Get-FileHash -LiteralPath $probePath).Hash){throw 'CI test binary identity mismatch'}
  foreach($overlay in $buildIdentity.measurementOverlaySha256.PSObject.Properties){
-  $localOverlay=Join-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) $overlay.Name
-  if((Get-FileHash -LiteralPath $localOverlay).Hash -ne $overlay.Value){throw "Measurement overlay differs from compiled CI source: $($overlay.Name)"}
+  $sourceRoot=Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
+  $localOverlay=Join-Path $sourceRoot $overlay.Name
+  # Compare canonical Git blobs: Windows working-tree CRLF is not a code change.
+  # Also authenticate the CI's exact LF bytes against that committed blob.
+  $expectedBlob=git -C $sourceRoot rev-parse "$($buildIdentity.candidateSourceSha):$($overlay.Name)"
+  $localBlob=git -C $sourceRoot hash-object "--path=$($overlay.Name)" -- $localOverlay
+  if($expectedBlob -notmatch '^[a-f0-9]{40}$' -or $localBlob -ne $expectedBlob){throw "Measurement overlay differs from compiled CI source: $($overlay.Name)"}
+  $sourceProcess=[Diagnostics.ProcessStartInfo]::new('git',"cat-file blob $expectedBlob")
+  $sourceProcess.WorkingDirectory=$sourceRoot;$sourceProcess.UseShellExecute=$false
+  $sourceProcess.RedirectStandardOutput=$true;$sourceProcess.CreateNoWindow=$true
+  $reader=[Diagnostics.Process]::Start($sourceProcess);$hasher=[Security.Cryptography.SHA256]::Create()
+  try{$sourceHash=[BitConverter]::ToString($hasher.ComputeHash($reader.StandardOutput.BaseStream)).Replace('-','');$reader.WaitForExit()
+   if($reader.ExitCode -ne 0 -or $sourceHash -ne $overlay.Value){throw "CI measurement bytes do not match their Git source: $($overlay.Name)"}
+  }finally{$hasher.Dispose();$reader.Dispose()}
  }
  if($AdditionalRoundFrom){
   $AdditionalRoundFrom=(Resolve-Path -LiteralPath $AdditionalRoundFrom).Path
