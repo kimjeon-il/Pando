@@ -78,7 +78,7 @@ void appendDisplayEdge(std::vector<BoundaryEdge>& output,Point a,Point b) {
         const double ratio=(seam-start.x)/delta;
         const double latitude=a.y+(b.y-a.y)*ratio;
         output.push_back({start,{seam,latitude}});
-        output.push_back({{delta>0?-180:180,latitude},
+        output.push_back({{delta>0?-180.0:180.0,latitude},
             {normalizedLongitude(finishLongitude),b.y}});
     } else output.push_back({start,{finishLongitude,b.y}});
 }
@@ -122,3 +122,4 @@ SharedStrokePacket assembleSharedStrokePacket(
     }
     return packet;
 }
+} // namespace pandoeditor
