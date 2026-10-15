@@ -5,30 +5,31 @@ import { createWorkerRpcClient } from './worker-rpc.js';
 export function createGpuMeshWorkerJobs({ createWorker, createRebuildWorker = createWorker, isCurrent, onMesh = () => {}, onError = () => {} }) {
   let rpc = null;
   let rebuildRpc = null;
+  let rebuildBusy = false;
   let outputBytes = 0;
   function cancelRebuild() {
     rebuildRpc?.stop('superseded');
-    rebuildRpc = null;
+    rebuildRpc = null; rebuildBusy = false;
   }
   async function rebuild(payload, accepts = () => true) {
-    cancelRebuild();
-    const current = createWorkerRpcClient({
+    if (rebuildBusy) cancelRebuild();
+    const current = rebuildRpc ||= createWorkerRpcClient({
       createWorker: createRebuildWorker,
-      getProjectRevision: () => Number(payload.projectGeneration || 0),
-      isCurrent: ({ message }) => accepts() && Number(message.projectRevision) === Number(payload.projectGeneration || 0),
+      isCurrent: ({ entry, message }) => Number(message.projectRevision) === entry.projectRevision,
     });
-    rebuildRpc = current;
+    rebuildBusy = true;
     try {
       const response = await current.request('geometry.mesh', { features: payload.features || [] }, {
         projectRevision: payload.projectGeneration, metadata: { geometryRevision: payload.geometryRevision },
+        progress: { operation: 'geometry.mesh-progress', total: (payload.features || []).length + 3 },
       });
-      return response.result;
+      return accepts() ? response.result : null;
     } catch (error) {
+      if (error.code === 'PL-WORKER-RPC-TIMEOUT' && rebuildRpc === current) cancelRebuild();
       if (error.cancelled || !accepts()) return null;
       throw error;
     } finally {
-      current.stop('completed');
-      if (rebuildRpc === current) rebuildRpc = null;
+      if (rebuildRpc === current) rebuildBusy = false;
     }
   }
   function ensureRpc() {
@@ -46,7 +47,9 @@ export function createGpuMeshWorkerJobs({ createWorker, createRebuildWorker = cr
       const operation = entry.payload?.polygonPreparation ? 'geometry.prepare' : 'geometry.mesh';
       const requestPayload = entry.payload?.polygonPreparation || { features: entry.payload?.features || [] };
       const response = await ensureRpc().request(operation, requestPayload, {
-        requestId: entry.requestId, projectRevision: entry.targetRevision, metadata: { geometryRevision: entry.geometryRevision, targetRevision: entry.targetRevision, jobKey: entry.jobKey, payload: { token: entry.payload?.token } },
+        requestId: entry.requestId, projectRevision: entry.targetRevision,
+        ...(operation === 'geometry.mesh' ? { progress: { operation: 'geometry.mesh-progress', total: (requestPayload.features || []).length + 3 } } : {}),
+        metadata: { geometryRevision: entry.geometryRevision, targetRevision: entry.targetRevision, jobKey: entry.jobKey, payload: { token: entry.payload?.token } },
       });
       const mesh = response.result;
       outputBytes += ['positions', 'countryIndices', 'triangleIndices', 'lineIndices', 'strokeStartsEnds']
@@ -60,8 +63,8 @@ export function createGpuMeshWorkerJobs({ createWorker, createRebuildWorker = cr
     enqueue: entry => scheduler.enqueue(entry),
     preparePolygons: (items, revision) => scheduler.enqueue({ jobKey: 'overlay-preparation', geometryRevision: revision,
       targetRevision: revision, payload: { polygonPreparation: { items } } }).promise,
-    cancelAll(reason = 'cancelled') {
-      cancelRebuild();
+    cancelAll(reason = 'cancelled', { preserveIdleRebuild = false } = {}) {
+      if (!preserveIdleRebuild || rebuildBusy) cancelRebuild();
       scheduler.cancelAll(reason);
       rpc?.stop(reason);
       rpc = null;

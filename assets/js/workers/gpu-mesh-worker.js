@@ -42,16 +42,28 @@ const polygonPreparation = Promise.all([
   });
 });
 polygonPreparation.catch(() => {}); // The operation awaits and propagates its own initialization error.
-async function buildMesh(features) {
-  const mesh = self.PandoLabGpuMeshCore.buildGpuMeshFeatures(
-    features || [],
-    self.earcut,
-    { validate: false },
-  );
+const countryPreparation = import(`../modules/country-mesh-preparation.js?v=${encodeURIComponent(assetRevision)}`)
+  .then(({ createCountryMeshPreparation }) => createCountryMeshPreparation({ engine: self.PandoLabGpuMeshCore, triangulate: self.earcut }));
+countryPreparation.catch(() => {}); // The mesh operation propagates initialization failures.
+async function buildMesh(features, context) {
+  const started = performance.now();
+  const total = features.length + 3;
+  const progress = (completed, phase) => context.emitEvent('geometry.mesh-progress',
+    { requestId: context.requestId, completed, total, phase }, { projectRevision: context.projectRevision });
+  const mesh = await (await countryPreparation).build(features, context, progress);
   const { prepareCountryStroke } = await strokePreparation;
   const { prepareMeshSpatialBlocks } = await blockPreparation;
-  mesh.preparedStroke = prepareCountryStroke(mesh, (features || []).map((feature, index) => String(feature.id || index)));
+  context.throwIfCancelled();
+  let stage = performance.now();
+  mesh.preparedStroke = prepareCountryStroke(mesh, features.map((feature, index) => String(feature.id || index)));
+  mesh.preparation.strokeMs = performance.now() - stage;
+  progress(features.length + 2, 'stroke');
+  await new Promise(resolve => setTimeout(resolve, 0)); context.throwIfCancelled();
+  stage = performance.now();
   prepareMeshSpatialBlocks(mesh);
+  mesh.preparation.spatialMs = performance.now() - stage;
+  progress(features.length + 3, 'spatial-blocks');
+  mesh.preparation.totalMs = performance.now() - started;
   return mesh;
 }
 
@@ -86,7 +98,7 @@ self.PandoLabWorkerRpc.install({
     },
     'geometry.mesh': async (payload, context) => {
       context.throwIfCancelled();
-      const mesh = await buildMesh(payload?.features || []);
+      const mesh = await buildMesh(payload?.features || [], context);
       context.throwIfCancelled();
       return self.PandoLabWorkerRpc.transferResult(mesh, meshTransferables(mesh));
     },
