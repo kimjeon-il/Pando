@@ -16,4 +16,7 @@ Constraints: no main integration/deployment without a new instruction; no other 
 - Start: worktree clean; local and remote objects at baseline. No uncommitted work to move.
 - P6 reference subtask delegated to one agent; polygon/cut/river and central build wiring owned by primary agent.
 - Ruling: keep existing Qt QML engine dependencies for UI; remove only product calculation script evaluation. Otherwise QML UI would be broken by an unrelated dependency deletion.
-- Verification not yet executed; no P6–P9 completion claimed.
+- P6 source ports implemented: polygon/cut/river/reference shared C++, native direct adapters, web WASM adapters, mandatory native JS generators removed. P6 exit validation remains open.
+- Remote run 38750407788: polygon 241, cut 6, river 18 and reference frozen fixtures passed. Wrapping compared against obsolete pre-P5 observations; captured actual 8e229826 baseline separately, preserving historical fixtures.
+- Remote WASM generation/adapters run 38750414154 passed; verified outputs committed by bot as 9c73c2f3. Latest river workspace/signature and empty-wrapping corrections require the next build.
+- P7 graph extension in progress. P8/P9 not complete; no performance or physical-device pass claimed.

@@ -3,15 +3,9 @@
 #include <pandoeditor/polygonclipping.h>
 #include <pandoeditor/projectcodec.h>
 #include <pandoeditor/sphericalpolygon.h>
-#include "splitgeometrynormalizer.h"
-#include "geometryprovenance.h"
-#include <QCryptographicHash>
-#include <QFile>
-#include <QJSEngine>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonParseError>
-#include <QResource>
 #include <cmath>
 #include <stdexcept>
 
@@ -145,7 +139,7 @@ QByteArray sharedCalculation(const char* operation,const QJsonDocument& input,co
     auto result=riverPartitionOperation(operation,value,cancelled);check(cancelled);return QByteArray::fromStdString(result.encode());
 }
 std::optional<Geometry> normalizeGeometry(const Geometry& input,const GeometryCancellation& cancelled){
-    check(cancelled);geometryJson(input);auto result=normalizeSphericalPolygonGeometry(input);check(cancelled);
+    check(cancelled);geometryJson(input);if(input.polygons.empty())return {};auto result=normalizeSphericalPolygonGeometry(input);check(cancelled);
     if(result.polygons.empty())return {};return result;
 }
 template<class Result> Result presentationFailure(const GeometryCancellation& cancelled,const std::exception* error=nullptr) {
@@ -205,6 +199,7 @@ RiverPartitionCompositionResult composeRiverPartitionComponents(const std::vecto
         output.riverCandidateCount=row["riverCandidateCount"].toInt();output.json=std::move(bytes);
         check(cancelled);output.status=RiverPartitionStatus::Completed;return output;
     }catch(const Cancelled&){return presentationFailure<RiverPartitionCompositionResult>(cancelled);}
+    catch(const PolygonCalculationCancelled&){return presentationFailure<RiverPartitionCompositionResult>(cancelled);}
     catch(const std::exception& error){return presentationFailure<RiverPartitionCompositionResult>(cancelled,&error);}
 }
 RiverPartitionResult calculateRiverPartitionsJson(const QByteArray& json,const GeometryCancellation& cancelled) {
