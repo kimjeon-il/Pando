@@ -11,10 +11,13 @@ function round(values=[10,10,10,10,10],number=1) {
  const add=(id,version,warmup,value)=>{
   const provenance={...structuredClone(environment),sourceCommit:version==='baseline'?environment.baselineSourceCommit:environment.sourceCommit,binarySha256:version==='baseline'?environment.baselineBinarySha256:environment.binarySha256,runId:id,qtVersion:'6.8.3',buildType:'Release',graphicsApi:'Direct3D11'};
   runs.push({receipt:{run:id,version,warmup,binarySha256:provenance.binarySha256,exitCode:0,exitCodeObserved:true,timedOut:false,rawReportExists:true},
-   report:{schema:'pandoeditor-native-performance',version:2,measurementProfile:'p9-relative',completed:true,measurementMode:'diagnostic',diagnosticReason:'Synthetic parser test only',startupToProjectViewMs:value,provenance,
+   report:{schema:'pandoeditor-native-performance',version:2,measurementProfile:'p9-relative',completed:true,measurementMode:'diagnostic',diagnosticReason:'Synthetic parser test only',startupMeasurement:'existing-world-project-open',startupToProjectViewMs:value,provenance,
     preflight:{status:'PASS'},logicalProcessors:6,fixtures:roles.map(id=>({id,manifestSha256:environment.fixtureManifestSha256,fullStack:false})),
     inputs:Array.from({length:480},()=>({matched:true,delivered:true,renderSnapshotMatched:true,renderUploadsPending:false,stateChanged:true})),
-    relativeMeasurements:roles.map(fixtureId=>({fixtureId,loadAndFirstReadyFrameMs:value,panMs:value,saveMs:value,previewAndCancelMs:fixtureId==='editing-heavy'?value:null,swapIntervalsMs:Array(120).fill(value)}))},
+    relativeMeasurements:roles.map(fixtureId=>({fixtureId,loadAndFirstReadyFrameMs:value,panMs:value,saveMs:value,
+     previewAndCancelMs:['editing-heavy','large-project'].includes(fixtureId)?value:null,
+     previewEntityId:fixtureId==='editing-heavy'?'DEU':fixtureId==='large-project'?'RUS':'',
+     previewGesture:fixtureId==='editing-heavy'?'pointer-drag':fixtureId==='large-project'?'keyboard-nudge':'',swapIntervalsMs:Array(120).fill(value)}))},
    processSamples:[{workingSetBytes:value*100,privateBytes:value*50,responding:true}],rendererLog:hardware});
  };
  if(number===1)for(const version of ['baseline','candidate'])add(`warmup-${version}`,version,true,10000);
@@ -27,6 +30,9 @@ test('P9 excludes two warmups and compares five fixed alternating pairs',()=>{
  assert.equal(result.metrics.startupToProjectViewMs.baseline.count,5);
  assert.equal(result.metrics.startupToProjectViewMs.candidate.median,8);
  assert.equal(result.metrics['dense-view.frameP95Ms'].candidate.median,8);
+ assert.equal(result.metrics['editing-heavy.previewAndCancelMs'].candidate.count,5);
+ assert.equal(result.metrics['large-project.previewAndCancelMs'].candidate.median,8);
+ assert.equal(result.startupMeasurement,'existing-world-project-open');
  assert.equal(result.metrics.peakWorkingSetBytes.candidate.median,800);
 });
 test('selected adapter is authenticated and software enumeration alone is harmless',()=>{
@@ -52,6 +58,25 @@ test('failed runs and incomplete frame/input evidence are retained as blockers',
  for(const mutation of [r=>r.runs[3].receipt.exitCode=1,r=>r.runs[3].report.relativeMeasurements[0].swapIntervalsMs=[],r=>r.runs[3].report.inputs[0].matched=false]) {
   const r=round();mutation(r);assert.equal(summarizeRelativeRounds([r]).status,'BLOCKED');
  }
+});
+test('both real entity previews and the saved-project startup label are required',()=>{
+ for(const mutation of [
+  r=>r.runs[3].report.relativeMeasurements[2].previewEntityId='RUS',
+  r=>r.runs[3].report.relativeMeasurements[3].previewEntityId='DEU',
+  r=>r.runs[3].report.relativeMeasurements[3].previewGesture='pointer-drag',
+  r=>r.runs[3].report.relativeMeasurements[3].previewAndCancelMs=null,
+  r=>delete r.runs[3].report.startupMeasurement,
+  r=>r.runs[3].report.startupMeasurement='cold-world-bootstrap',
+ ]) {const r=round();mutation(r);assert.equal(summarizeRelativeRounds([r]).status,'BLOCKED');}
+});
+test('a slower RUS preview distribution independently fails P9 comparison',()=>{
+ const r=round();
+ for(const run of r.runs)if(run.receipt.version==='candidate')run.report.relativeMeasurements[3].previewAndCancelMs=20;
+ const result=summarizeRelativeRounds([r]);
+ assert.equal(result.status,'regression');
+ assert.equal(result.metrics['large-project.previewAndCancelMs'].status,'regression');
+ assert.equal(result.metrics['large-project.previewAndCancelMs'].candidate.count,5);
+ assert.equal(result.metrics.startupToProjectViewMs.status,'no-regression');
 });
 test('one additional five-pair round is available only after uncertainty',()=>{
  const first=round([9,11,11,11,9]);const result=summarizeRelativeRounds([first]);

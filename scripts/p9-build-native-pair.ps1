@@ -37,6 +37,14 @@ foreach ($side in @('baseline','candidate')) {
   if ($LASTEXITCODE -ne 0) { throw "$side configure failed" }
   cmake --build --preset $preset --target ui_tests 2>&1 | Tee-Object (Join-Path $sourceRoot "build-native/p9/qt-pair-$side-build.log")
   if ($LASTEXITCODE -ne 0) { throw "$side test executable build failed" }
+  if ($side -eq 'candidate') {
+   $engineTests=@('polygon_boundary_contract_tests','m976_shared_boundary_engine_tests')
+   cmake --build --preset $preset --target @engineTests 2>&1 | Tee-Object (Join-Path $sourceRoot 'build-native/p9/qt-pair-engine-build.log')
+   if ($LASTEXITCODE -ne 0) { throw 'Changed mesh/contact engine test build failed' }
+   ctest --test-dir (Join-Path $root "build-native/p3/$preset") --build-config Release -R '^(polygon_boundary_contract_tests|m976_shared_boundary_engine_tests)$' --output-on-failure --no-tests=error 2>&1 | Tee-Object (Join-Path $sourceRoot 'build-native/p9/qt-pair-engine-tests.log')
+   if ($LASTEXITCODE -ne 0) { throw 'Changed mesh/contact engine tests failed' }
+   $receipt.candidateEngineTests=$engineTests
+  }
   $built=@(Get-ChildItem -LiteralPath (Join-Path $root "build-native/p3/$preset") -Recurse -File -Filter ui_tests.exe)
   if ($built.Count -ne 1) { throw "Expected one built ui_tests executable for $side, found $($built.Count)" }
   $binary=$built[0].FullName
