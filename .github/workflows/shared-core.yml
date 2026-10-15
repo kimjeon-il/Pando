@@ -144,8 +144,11 @@ jobs:
       - name: Compare pinned polygon behavior
         run: |
           node tools/p6-polygon-parity.mjs build-native/p6-core/tests/polygon_clipping_probe
-          node tools/p6-cut-parity.mjs build-native/p6-core/tests/cut_geometry_probe
-          ctest --test-dir build-native/p6-core -R '^reference_image_core_tests$' --output-on-failure
+      - name: Compare frozen cut behavior
+        run: node tools/p6-cut-parity.mjs build-native/p6-core/tests/cut_geometry_probe
+      - name: Compare frozen reference behavior
+        if: success() || failure()
+        run: ctest --test-dir build-native/p6-core -R '^reference_image_core_tests$' --output-on-failure
   contracts:
     if: github.event_name != 'workflow_dispatch' || (inputs.scope != 'p6-polygon' && inputs.scope != 'p6-calculations')
     runs-on: ubuntu-24.04
