@@ -1,4 +1,5 @@
 name: P3 Remote preview and Qt verification
+# P5-4 verification receipt: force both native Qt CI presets on this push; application sources remain unchanged.
 on:
   push:
     branches: [work/ui, work/objects, work/gis, work/places]
