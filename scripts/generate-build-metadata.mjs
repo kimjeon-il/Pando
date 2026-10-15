@@ -16,7 +16,7 @@ const appVersion = String(packageJson.version || '').trim();
 if (!/^\d+\.\d+\.\d+$/.test(appVersion)) throw new Error(`package.json version이 유효한 semver가 아닙니다: ${appVersion}`);
 const DATA_MANIFEST_PATHS = Object.freeze([
   'assets/data/world/current.json',
-  'assets/data/terrain/v0.12.6/manifest.json',
+  'assets/data/terrain-preview/v0.13.3-p1/manifest.json',
   'assets/data/hydro/v0.13.2/manifest.json',
   'assets/data/places/manifest.json',
   'assets/data/territorial-entities/generated/v2/index.json',

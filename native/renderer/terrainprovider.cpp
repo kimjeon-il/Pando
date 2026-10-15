@@ -45,12 +45,15 @@ TerrainTileProvider::TerrainTileProvider(const QByteArray& pinned,const QString&
     const auto object=QJsonDocument::fromJson(pinned).object();
     version_=object.value("version").toString();
     dem_=version_==QStringLiteral("0.13.3")&&object.value("representation")==QStringLiteral("dem-relief-v1");
-    const auto manifestPath=QString("terrain/v%1/manifest.json").arg(version_);
+    const bool preview=version_==QStringLiteral("0.13.3-p1")&&
+        object.value("representation")==QStringLiteral("raster-rgba-v1");
+    const auto manifestPath=preview?QStringLiteral("terrain-preview/v0.13.3-p1/manifest.json"):
+        QString("terrain/v%1/manifest.json").arg(version_);
     const auto resolved=assetResolver_?assetResolver_(manifestPath):QString{};
     QFile installed(resolved.isEmpty()?QDir(root_).filePath(manifestPath):resolved);
     if(installed.exists()&&(!installed.open(QIODevice::ReadOnly)||installed.readAll()!=pinned))
         {error_=QStringLiteral("Terrain manifest identity mismatch");return;}
-    if((!dem_&&version_!=QStringLiteral("0.12.6"))||
+    if((!dem_&&!preview)||
        object.value("crs").toString()!=QStringLiteral("EPSG:4326")||
        object.value("tileFormat").toString()!=QStringLiteral("lossless WebP RGBA")||
        object.value("gutter").toInt()!=1){
@@ -78,9 +81,13 @@ TerrainTileProvider::TerrainTileProvider(const QByteArray& pinned,const QString&
             result.columns!=(result.width+1023)/1024||result.rows!=(result.height+1023)/1024)) {
             error_=QStringLiteral("Invalid DEM level grid");return;
         }
+        if(preview&&(result.id>=2||result.width!=(1350<<result.id)||result.height!=(675<<result.id)||
+            result.columns!=(result.width+1023)/1024||result.rows!=(result.height+1023)/1024)) {
+            error_=QStringLiteral("Invalid terrain preview grid");return;
+        }
         levels_.push_back(result);
     }
-    if(levels_.size()!=std::size_t(dem_?6:5)){error_=QStringLiteral("Incomplete terrain pyramid");return;}
+    if(levels_.size()!=std::size_t(dem_?6:2)){error_=QStringLiteral("Incomplete terrain pyramid");return;}
     available_=true;
 }
 
@@ -118,7 +125,7 @@ void TerrainTileProvider::clearDecodeFailure(const QString& relative) const {
 }
 
 QString TerrainTileProvider::relativeTilePath(const TerrainTileSpec& spec) const {
-    return QString("terrain/v%1/%2/%3-%4.webp").arg(dem_?"0.13.0":"0.12.6")
+    return QString("%1/%2/%3-%4.webp").arg(dem_?"terrain/v0.13.0":"terrain-preview/v0.13.3-p1")
         .arg(spec.level).arg(spec.column).arg(spec.row);
 }
 QSize TerrainTileProvider::levelSize(int level) const {
@@ -284,11 +291,13 @@ QImage TerrainTileProvider::loadTile(const TerrainTileSpec& spec,bool grayMode) 
     if(beforeDecode_)beforeDecode_();
     auto image=reader.read();
     if(image.isNull())return fail(reader.errorString());
-    if(dem_) {
+    {
         const auto& grid=levels_[spec.level];
         const QSize size(std::min(grid.tileSize,grid.width-spec.column*grid.tileSize)+2,
                          std::min(grid.tileSize,grid.height-spec.row*grid.tileSize)+2);
-        if(image.size()!=size)return fail("DEM dimensions/gutter mismatch");
+        if(image.size()!=size)return fail("Terrain dimensions/gutter mismatch");
+    }
+    if(dem_) {
         image=image.convertToFormat(QImage::Format_RGBA8888);
         for(int y=0;y<image.height();++y){const auto* row=image.constScanLine(y);
             for(int x=0;x<image.width();++x)if(row[x*4+3]!=255)return fail("DEM A channel must be 255");}

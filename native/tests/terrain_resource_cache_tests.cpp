@@ -12,18 +12,18 @@ class TerrainResourceCacheTests:public QObject {
  Q_OBJECT
 private slots:
  void replacedSourceReleasesOldProtectionAndPending(){
-  QTemporaryDir dir;QVERIFY(dir.isValid());QDir(dir.path()).mkpath("terrain/v0.12.6/0");
-  QImage tile(16,16,QImage::Format_ARGB32);tile.fill(QColor(240,60,20));
-  QVERIFY(tile.save(dir.path()+"/terrain/v0.12.6/0/0-0.webp","webp"));
-  QJsonArray levels;for(int i=0;i<5;++i)levels.append(QJsonObject{{"id",i},{"width",1024},{"height",1024},{"columns",1},{"rows",1},{"tileSize",1024}});
-  const auto manifest=QJsonDocument(QJsonObject{{"version","0.12.6"},{"crs","EPSG:4326"},{"tileFormat","lossless WebP RGBA"},{"gutter",1},{"levels",levels}}).toJson();
+  QTemporaryDir dir;QVERIFY(dir.isValid());QDir(dir.path()).mkpath("terrain-preview/v0.13.3-p1/0");
+  QImage tile(1026,677,QImage::Format_ARGB32);tile.fill(QColor(240,60,20));
+  QVERIFY(tile.save(dir.path()+"/terrain-preview/v0.13.3-p1/0/0-0.webp","webp"));
+  QJsonArray levels;for(int i=0;i<2;++i)levels.append(QJsonObject{{"id",i},{"width",1350<<i},{"height",675<<i},{"columns",i==0?2:3},{"rows",i==0?1:2},{"tileSize",1024}});
+  const auto manifest=QJsonDocument(QJsonObject{{"version","0.13.3-p1"},{"representation","raster-rgba-v1"},{"crs","EPSG:4326"},{"tileFormat","lossless WebP RGBA"},{"gutter",1},{"levels",levels}}).toJson();
   auto old=std::make_shared<TerrainTileProvider>(manifest,dir.path());
   auto next=std::make_shared<TerrainTileProvider>(manifest,dir.path());
   TerrainImageBridge bridge;bridge.setSource(old);
-  TerrainTileSpec resident;resident.path=dir.path()+"/terrain/v0.12.6/0/0-0.webp";
+  TerrainTileSpec resident;resident.path=dir.path()+"/terrain-preview/v0.13.3-p1/0/0-0.webp";
   old->protectVisible({resident});QVERIFY(!old->loadTile(resident).isNull());
   old->setCacheBudget(0);QVERIFY(old->resourceCacheSnapshot().protectedBytes>0);
-  TerrainTileSpec pending;pending.level=1;pending.path=dir.path()+"/terrain/v0.12.6/1/0-0.webp";
+  TerrainTileSpec pending;pending.level=1;pending.path=dir.path()+"/terrain-preview/v0.13.3-p1/1/0-0.webp";
   old->protectVisible({pending});QCOMPARE(old->resourceCacheSnapshot().pendingCount,std::size_t(1));
   const auto epoch=bridge.sourceEpoch();bridge.setSource(next);
   QCOMPARE(bridge.sourceEpoch(),epoch+1);
@@ -34,11 +34,11 @@ private slots:
  }
 
  void sharedVariantsAndSoftProtection(){
-  QTemporaryDir dir;QVERIFY(dir.isValid());QDir(dir.path()).mkpath("terrain/v0.12.6/0");
-  QImage tile(16,16,QImage::Format_ARGB32);tile.fill(QColor(240,60,20));
-  QVERIFY(tile.save(dir.path()+"/terrain/v0.12.6/0/0-0.webp","webp"));
-  QJsonArray levels;for(int i=0;i<5;++i)levels.append(QJsonObject{{"id",i},{"width",1024},{"height",1024},{"columns",1},{"rows",1},{"tileSize",1024}});
-  QJsonObject manifest{{"version","0.12.6"},{"crs","EPSG:4326"},{"tileFormat","lossless WebP RGBA"},{"gutter",1},{"levels",levels}};
+  QTemporaryDir dir;QVERIFY(dir.isValid());QDir(dir.path()).mkpath("terrain-preview/v0.13.3-p1/0");
+  QImage tile(1026,677,QImage::Format_ARGB32);tile.fill(QColor(240,60,20));
+  QVERIFY(tile.save(dir.path()+"/terrain-preview/v0.13.3-p1/0/0-0.webp","webp"));
+  QJsonArray levels;for(int i=0;i<2;++i)levels.append(QJsonObject{{"id",i},{"width",1350<<i},{"height",675<<i},{"columns",i==0?2:3},{"rows",i==0?1:2},{"tileSize",1024}});
+  QJsonObject manifest{{"version","0.13.3-p1"},{"representation","raster-rgba-v1"},{"crs","EPSG:4326"},{"tileFormat","lossless WebP RGBA"},{"gutter",1},{"levels",levels}};
   auto owned=std::make_shared<TerrainTileProvider>(QJsonDocument(manifest).toJson(),dir.path());auto& provider=*owned;QVERIFY(provider.available());
   auto color=provider.loadTile(0,0,0,false);auto again=provider.loadTile(0,0,0,false);QVERIFY(!color.isNull());QCOMPARE(color.constBits(),again.constBits());
   auto gray=provider.loadTile(0,0,0,true);auto same=provider.loadTile(0,0,0,true);QCOMPARE(gray.constBits(),same.constBits());QVERIFY(gray.constBits()!=color.constBits());
@@ -53,7 +53,7 @@ private slots:
   wrapped.setTerrainTile({{"level",0},{"column",0},{"row",0}});wrapped.setWest(180);
   QVERIFY(provider.resourceCacheSnapshot().hitCount>=hits+2);
 
-  TerrainTileSpec spec;spec.path=dir.path()+"/terrain/v0.12.6/0/0-0.webp";
+  TerrainTileSpec spec;spec.path=dir.path()+"/terrain-preview/v0.13.3-p1/0/0-0.webp";
   provider.protectVisible({spec},true);provider.setCacheBudget(0);
   QCOMPARE(provider.resourceCacheSnapshot().residentCount,std::size_t(1));QVERIFY(provider.cachedBytes()>0);
   first.setColorMode("gray");wrapped.setColorMode("gray");
@@ -62,7 +62,7 @@ private slots:
   first.setColorMode("color");wrapped.setColorMode("color");
   QCOMPARE(provider.resourceCacheSnapshot().residentCount,std::size_t(1));
   QVERIFY(provider.resourceCacheSnapshot().hitCount>hitsBeforeSwitch);
-  TerrainTileSpec missing;missing.level=1;missing.path=dir.path()+"/terrain/v0.12.6/1/0-0.webp";
+  TerrainTileSpec missing;missing.level=1;missing.path=dir.path()+"/terrain-preview/v0.13.3-p1/1/0-0.webp";
   provider.protectVisible({missing},false);
   QCOMPARE(provider.resourceCacheSnapshot().pendingCount,std::size_t(1));
   QCOMPARE(provider.resourceCacheSnapshot().residentCount,std::size_t(1));
