@@ -52,3 +52,25 @@ test('prepared projection retains invalid-point behavior and immutable mesh resu
   assert.throws(() => { first.vertices[0].coordinate[0] = 999; }, TypeError);
   assert.deepEqual(warp.project([0, 0]), first.vertices[0].coordinate);
 });
+
+test('immutable mesh layout reuse never reuses coordinates from another warp', () => {
+  const a = buildReferenceImageProjectiveWarpFromQuad([[10,40],[20,40],[20,30],[10,30]]);
+  const b = buildReferenceImageProjectiveWarpFromQuad([[30,40],[40,40],[40,30],[30,30]]);
+  const options = { columns: 3, rows: 2 };
+  const first = buildReferenceImageMesh(a, options), second = buildReferenceImageMesh(b, options);
+  assert.deepEqual(first.triangles, second.triangles);
+  assert.deepEqual(first.vertices.map(v=>v.uv), second.vertices.map(v=>v.uv));
+  assert.notDeepEqual(first.vertices.map(v=>v.coordinate), second.vertices.map(v=>v.coordinate));
+  assert.throws(()=>{second.triangles[0][0]=999;},TypeError);
+  assert.throws(()=>{second.vertices[0].uv[0]=999;},TypeError);
+  assert.deepEqual(first, buildReferenceImageMesh(a, options));
+});
+
+test('disabled linear constraints do not change the calibration result', () => {
+  const cases = JSON.parse(readFileSync(new URL('../../native/tests/fixtures/reference-calibration.json', import.meta.url)));
+  for(const {input} of cases) {
+    const plain = {...input,linearConstraints:[]};
+    const disabled = {...plain,linearConstraints:[{id:'ignored',enabled:false,image:[[0,0],[1,1]],coordinates:[[0,0],[5,5]]}]};
+    assert.deepEqual(calculateReferenceImage('calibrationWarp', plain), calculateReferenceImage('calibrationWarp', disabled));
+  }
+});

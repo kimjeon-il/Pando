@@ -8,6 +8,8 @@ import os from 'node:os';
 import { createHash } from 'node:crypto';
 import vm from 'node:vm';
 const arg = name => { const i=process.argv.indexOf(name);return i<0?undefined:process.argv[i+1]; };
+const selected=(arg('--operations')||'cut,polygon,river,reference').split(',');
+assert.ok(selected.length&&selected.every(name=>['cut','polygon','river','reference'].includes(name)),'Unknown performance operation');
 const baselineSha = '8e22982616e3c9ba43eeb84baec17cd886267cfa';
 const git = (root,...args) => execFileSync('git',args,{cwd:root,encoding:'utf8'}).trim();
 if(process.argv.includes('--sample-root')) {
@@ -38,14 +40,13 @@ if(process.argv.includes('--sample-root')) {
     reference(){for(let n=0;n<10;n++)for(const row of refCases){const warp=reference.buildReferenceImageCalibrationWarp(row.input);if(warp.ok){assert.ok(warp.project([.5,.5]));reference.buildReferenceImageMesh(warp);}}}
   };
   const sample={};
-  for(const [name,run] of Object.entries(operations)){run();const start=performance.now();run();sample[name]=performance.now()-start;}
-  sample.maxRssKb=process.resourceUsage().maxRSS;
-  sample.heapUsedBytes=process.memoryUsage().heapUsed;
+  for(const name of selected){const run=operations[name];run();const start=performance.now();run();sample[name]=performance.now()-start;}
+  if(selected.length===4){sample.maxRssKb=process.resourceUsage().maxRSS;sample.heapUsedBytes=process.memoryUsage().heapUsed;}
   console.log(JSON.stringify(sample));
 } else {
   const baseline=resolve(arg('--baseline')),candidate=resolve(arg('--candidate')||'.');
   assert.equal(git(baseline,'rev-parse','HEAD'),baselineSha,'Expected fixed pre-P6 baseline');
-  const sample=(root,mode)=>JSON.parse(execFileSync(process.execPath,[import.meta.filename,'--sample-root',root,'--mode',mode,'--input-root',candidate],{encoding:'utf8',timeout:180000,maxBuffer:1024*1024}).trim());
+  const sample=(root,mode)=>JSON.parse(execFileSync(process.execPath,[import.meta.filename,'--sample-root',root,'--mode',mode,'--input-root',candidate,'--operations',selected.join(',')],{encoding:'utf8',timeout:180000,maxBuffer:1024*1024}).trim());
   sample(baseline,'baseline');sample(candidate,'candidate');
   const rounds=[];
   const measure=()=>{for(let i=0;i<5;i++){const row={};for(const mode of i%2?['candidate','baseline']:['baseline','candidate'])row[mode]=sample(mode==='baseline'?baseline:candidate,mode);rounds.push(row);}};
@@ -53,7 +54,7 @@ if(process.argv.includes('--sample-root')) {
   const summarize=()=>Object.fromEntries(Object.keys(rounds[0].baseline).map(name=>{const b=rounds.map(r=>r.baseline[name]),c=rounds.map(r=>r.candidate[name]);const status=Math.min(...c)>Math.max(...b)?'regression':median(c)>median(b)?'uncertain':'no-regression';return[name,{baselineMedian:median(b),candidateMedian:median(c),baselineRange:[Math.min(...b),Math.max(...b)],candidateRange:[Math.min(...c),Math.max(...c)],status}];}));
   measure();let metrics=summarize();
   if(Object.values(metrics).some(m=>m.status==='uncertain')){measure();metrics=summarize();}
-  const report={schema:'pando-p6-calculation-performance-v1',baselineSha,candidateSha:git(candidate,'rev-parse','HEAD'),candidateDirtyDiffSha256:createHash('sha256').update(git(candidate,'diff','--binary','HEAD','--','assets/js','shared','native')).digest('hex'),node:process.version,cpu:os.cpus()[0]?.model,platform:process.platform,scope:'Node calculation adapters, same inputs and warm cache; no browser, Qt, frame or device claim',inputSha:git(candidate,'rev-parse','HEAD:assets/data/countries-ne-5.1.1.geojson'),rounds,metrics};
+  const report={operations:selected,schema:'pando-p6-calculation-performance-v1',baselineSha,candidateSha:git(candidate,'rev-parse','HEAD'),candidateDirtyDiffSha256:createHash('sha256').update(git(candidate,'diff','--binary','HEAD','--','assets/js','shared','native')).digest('hex'),node:process.version,cpu:os.cpus()[0]?.model,platform:process.platform,scope:'Node calculation adapters, same inputs and warm cache; no browser, Qt, frame or device claim',inputSha:git(candidate,'rev-parse','HEAD:assets/data/countries-ne-5.1.1.geojson'),rounds,metrics};
   const output=arg('--output');if(output)writeFileSync(output,JSON.stringify(report,null,2)+'\n');
   console.log(JSON.stringify(metrics,null,2));
   if(Object.values(metrics).some(m=>m.status!=='no-regression'))process.exitCode=1;

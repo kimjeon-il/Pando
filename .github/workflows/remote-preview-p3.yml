@@ -45,6 +45,11 @@ on:
         description: Source change base before artifact publication
         type: string
         required: false
+      retry_failed:
+        description: Resume P9 using completed evidence; remeasure river/reference only
+        type: boolean
+        required: false
+        default: false
       scope:
         description: Run changed scopes only (auto), or select a diagnostic
         type: choice
@@ -128,16 +133,17 @@ jobs:
           OBJECTS: ${{ needs.plan.outputs.objects }}
           GIS: ${{ needs.plan.outputs.gis }}
           PLACES: ${{ needs.plan.outputs.places }}
+          RETRY_FAILED: ${{ inputs.retry_failed }}
         run: |
           set -euo pipefail
-          if [ "$UI" = true ]; then node --test tests/unit/surface-controller.test.mjs; fi
-          if [ "$OBJECTS" = true ]; then node --test tests/unit/temporal.test.mjs; fi
+          if [ "$RETRY_FAILED" != true ] && [ "$UI" = true ]; then node --test tests/unit/surface-controller.test.mjs; fi
+          if [ "$RETRY_FAILED" != true ] && [ "$OBJECTS" = true ]; then node --test tests/unit/temporal.test.mjs; fi
           if [ "$GIS" = true ]; then node --test tests/unit/polygon-geometry.test.mjs; fi
-          if [ "$PLACES" = true ]; then node --test tests/unit/place-codec.test.mjs; fi
+          if [ "$RETRY_FAILED" != true ] && [ "$PLACES" = true ]; then node --test tests/unit/place-codec.test.mjs; fi
 
   web-snapshot:
     needs: plan
-    if: needs.plan.outputs.preview == 'true'
+    if: needs.plan.outputs.preview == 'true' && !inputs.retry_failed
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
@@ -190,12 +196,22 @@ jobs:
       - name: Install Chromium and OS dependencies
         run: pnpm exec playwright install --with-deps chromium
       - name: Verify the active built-in world mesh decoder and GPU capability wiring
+        if: ${{ !inputs.retry_failed }}
         run: node --test tests/unit/country-mesh-codec-runtime.test.mjs tests/unit/gpu-scene-platform-port.test.mjs
       - name: Verify C++ area, shared-border packet, and boundary-edit handoff
+        if: ${{ !inputs.retry_failed }}
         run: node --test tests/unit/p5-spherical-area-delegation.test.mjs tests/unit/edit-preview-handoff.test.mjs tests/unit/country-shared-boundary-state.test.mjs tests/unit/country-shared-boundary-generator.test.mjs
       - name: Verify consecutive country merges and current Worker contracts
         if: inputs.scope == 'acceptance'
-        run: node --test tests/unit/map-edit-preparation-worker.test.mjs tests/unit/map-edit-worker-client.test.mjs tests/unit/project-preview-worker.test.mjs tests/unit/project-preview-topology.test.mjs tests/unit/gis-geometry-worker.test.mjs tests/unit/shared-geometry-calculations.test.mjs tests/unit/current-hydro-layout.test.mjs tests/unit/hydro-packfile.test.mjs
+        env:
+          RETRY_FAILED: ${{ inputs.retry_failed }}
+        run: |
+          if [ "$RETRY_FAILED" = true ]; then
+            node --test --test-name-pattern='wide source' tests/unit/map-edit-preparation-worker.test.mjs
+            node --test tests/unit/p6-polygon-core.test.mjs tests/unit/reference-shared-runtime.test.mjs
+          else
+            node --test tests/unit/map-edit-preparation-worker.test.mjs tests/unit/map-edit-worker-client.test.mjs tests/unit/project-preview-worker.test.mjs tests/unit/project-preview-topology.test.mjs tests/unit/gis-geometry-worker.test.mjs tests/unit/shared-geometry-calculations.test.mjs tests/unit/current-hydro-layout.test.mjs tests/unit/hydro-packfile.test.mjs
+          fi
       - name: Record final committed artifact identity and current hydro consumption
         if: inputs.scope == 'acceptance'
         run: |
@@ -350,7 +366,7 @@ jobs:
           }
           exit $ctestExit
       - name: Verify affected native hydro consumers in the existing Qt build
-        if: needs.plan.outputs.hydro == 'true'
+        if: needs.plan.outputs.hydro == 'true' && !inputs.retry_failed
         shell: pwsh
         run: |
           $manifest = Get-Content native/assets/world/manifest.json -Raw | ConvertFrom-Json
@@ -363,9 +379,9 @@ jobs:
         if: inputs.scope == 'acceptance'
         shell: pwsh
         run: |
-          cmake --build --preset $env:PANDO_P3_QT_PRESET --target territorial_geometry_tests territorial_geometry_preview_tests split_selection_controller_tests river_selection_controller_tests timeline_editor_persistence_tests
+          cmake --build --preset $env:PANDO_P3_QT_PRESET --target project_codec_tests territorial_geometry_tests territorial_geometry_preview_tests split_selection_controller_tests river_selection_controller_tests timeline_editor_persistence_tests
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          ctest --test-dir "build-native/p3/$env:PANDO_P3_QT_PRESET" -C Release -R '^(territorial_geometry_tests|territorial_geometry_preview_tests|split_selection_controller_tests|river_selection_controller_tests|timeline_editor_persistence_tests)$' --output-on-failure
+          ctest --test-dir "build-native/p3/$env:PANDO_P3_QT_PRESET" -C Release -R '^(project_codec_tests|territorial_geometry_tests|territorial_geometry_preview_tests|split_selection_controller_tests|river_selection_controller_tests|timeline_editor_persistence_tests)$' --output-on-failure
           exit $LASTEXITCODE
       - name: Build and CTest the shared C++ normalization through Qt
         shell: bash
@@ -442,7 +458,14 @@ jobs:
         with:
           node-version-file: .nvmrc
       - name: Compare changed calculations on the same runner with alternating samples
-        run: node tools/p6-calculation-performance.mjs --baseline build-native/p9/baseline --candidate . --output build-native/p9/calculation-performance.json
+        env:
+          RETRY_FAILED: ${{ inputs.retry_failed }}
+        run: |
+          if [ "$RETRY_FAILED" = true ]; then
+            node tools/p6-calculation-performance.mjs --baseline build-native/p9/baseline --candidate . --operations river,reference --output build-native/p9/calculation-performance.json
+          else
+            node tools/p6-calculation-performance.mjs --baseline build-native/p9/baseline --candidate . --output build-native/p9/calculation-performance.json
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:

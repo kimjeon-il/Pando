@@ -30,3 +30,18 @@ test('cut and wrapping failures retain technical JavaScript errors', async () =>
   assert.throws(() => core.wrapPolygonGeometry('{'), error => error instanceof Error && error.code === 'PL-GEOMETRY-CALCULATION');
   assert.throws(() => new core.PreparedCutGeometry('{'), error => error instanceof Error && error.code === 'PL-CUT-CALCULATION');
 });
+
+test('clipped wide shells and holes remain canonical after planar edge subdivision', async () => {
+  const { readFileSync } = await import('node:fs');
+  const core = await loadVerifiedCore();
+  const baseline = JSON.parse(readFileSync(new URL('../fixtures/p6/wrapping-baseline.json', import.meta.url))).cases;
+  const corrections = JSON.parse(readFileSync(new URL('../fixtures/p6/wrapping-corrections.json', import.meta.url))).cases;
+  for (const row of corrections) {
+    const input = baseline.find(old => old.id === row.id).input;
+    const before = structuredClone(input);
+    const result = core.normalizePolygonGeometry(input, true);
+    assert.deepEqual(result, row.expected, row.id);
+    assert.equal(core.hasCanonicalPolygonWinding(result), true, row.id);
+    assert.deepEqual(input, before);
+  }
+});
