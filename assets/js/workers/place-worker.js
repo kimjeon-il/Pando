@@ -10,7 +10,9 @@ async function getStore(url,context) {
     manifestUrl=url;
     loading=(async () => {
       const { createPlaceWorkerStore, readPlaceResponse }=await import(storeModuleUrl.href);
-      const response=await fetch(url, {signal:context.signal});
+      const requestUrl=new URL(url);
+      requestUrl.searchParams.set('v',revision);
+      const response=await fetch(requestUrl, {signal:context.signal});
       if (!response.ok) throw new Error(`Place manifest HTTP ${response.status}`);
       const bytes=await readPlaceResponse(response,8*1024*1024);
       return createPlaceWorkerStore({ manifest: JSON.parse(new TextDecoder().decode(bytes)), baseUrl: url });
