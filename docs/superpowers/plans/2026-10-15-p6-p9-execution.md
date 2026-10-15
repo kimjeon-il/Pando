@@ -71,3 +71,11 @@ Constraints: no main integration/deployment without a new instruction; no other 
 - 38786479504 succeeded on 4e53feee0a69d0e44c19b92f0e14f4a3a297093f: Linux persistence 1/1 CTest; Windows persistence/preview 2/2, with 109/35 Qt cases passed. Retain earlier passing app builds and unchanged functional/calculation evidence. P6 exit checks are satisfied within that recorded scope.
 - P6–P8 implementation is complete and pushed on work/objects. P9 is deliberately unchecked: remote annex polygon/multiple-crossing timing, paired browser startup/frame/heap distributions, missing external Qt performance fixtures and physical-device validation remain open. No main integration, deployment or category transfer.
 - Future frame collection deadline is explicitly 120 seconds (same 120 samples and unchanged comparison rule); syntax checked only. No further browser rerun was made under the user's minimal-check instruction.
+
+## P9 resume after explicit completion request
+
+- Reuse completed evidence; run only outstanding browser distributions and physical-device/Qt measurements. Candidate product is unchanged from deployed `8aaee62c`; baseline remains fixed at `8e229826`.
+- Actual headed Windows Chromium/GTX 1650/Direct3D11 annex polygon and multiple-crossing flows passed with unchanged final-model, conservation and Undo checks. Persisted device/context JSON and screenshots accompany 31.7/30.8-second results.
+- Browser paired comparison resumed as 38810034862 using the already documented 120-second collection budget. Result pending.
+- Extend the existing native probe with an opt-in P9 relative profile and production-full-world inputs; identical measurement overlay on baseline/candidate, remote builds only. This does not certify the historical M98 full-stack/stress gate.
+- Android physical touch remains pending a connected device. P9 remains unchecked until actual outstanding results exist.
