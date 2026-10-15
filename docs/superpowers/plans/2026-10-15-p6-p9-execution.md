@@ -5,8 +5,8 @@ Baseline: `8e22982616e3c9ba43eeb84baec17cd886267cfa`, permanent `work/objects`.
 The approved conversation plan is the specification. Implement in this order:
 
 - [ ] P6: port polygon-clipping 0.15.7 behavior to shared C++; wire native and WASM; port cut/river calculations; port reference image calculations; retire product QJSEngine scripts and required Node build/test dependencies. Preserve current formats, cancellation, atomicity and Undo/Redo.
-- [ ] P7: extend the existing P2 artifact planner with input/output dependencies for territorial, mesh, place, hydro, terrain and native assets. Stage, validate and publish only affected outputs against the originating branch SHA.
-- [ ] P8: consolidate affected CI classification and execution; remove proven-unused tools and dependencies; preserve GIS evidence and manual research workflows.
+- [x] P7: extend the existing P2 artifact planner with input/output dependencies for territorial, mesh, place, hydro, terrain and native assets. Stage, validate and publish only affected outputs against the originating branch SHA.
+- [x] P8: consolidate affected CI classification and execution; remove proven-unused tools and dependencies; preserve GIS evidence and manual research workflows.
 - [ ] P9: verify one final SHA across Web/Qt workflows and reproducible artifacts; compare performance against baseline; record physical-device gaps explicitly.
 
 Constraints: no main integration/deployment without a new instruction; no other worktree changes; no unrelated full test runs; Emscripten and Windows/Linux Qt builds remote only. One subagent maximum. Current formats and behavior remain unchanged. Performance: one warmup, five alternating baseline/candidate runs, one extra round only if ambiguous; repeated regression blocks progression.
@@ -40,3 +40,11 @@ Constraints: no main integration/deployment without a new instruction; no other 
 - Web current Worker checks passed 66 cases with one real wide-source new-country normalization defect. Source 63657333 segments planar longitude spans before deciding spherical winding; the two affected historic baseline observations are retained with explicit current correction fixtures.
 - Performance acceptance improved cut, polygon and memory, while river remained uncertain and reference regressed. 63657333 removes repeated calibration fitting, mesh layout reconstruction and JSON temporary conversion costs. P9 resume reuses completed evidence and measures only river/reference.
 - Main branch protection API returned Branch not protected (404); no required status contexts were retired or protection settings changed.
+
+## Final acceptance continuation
+
+- P7 final selective generation/publication 38770678701 succeeded, receipt 3ff8598d. Fixed data bytes remained identical; no redundant asset rewrite.
+- P9 38771905633 validates product candidate 98c24a6d. Web contracts and Linux river/reference performance passed. Final Windows cut/polygon paired measurements also passed; distributions are retained in DEV-076.
+- Linux product build passed; seven calculation/lifecycle CTests passed. The normalizer test still read the old three winding observations and one inline expectation. It now consumes the same explicit correction fixture as Web, retaining the original baseline and checking canonical winding, planar area and immutable input.
+- Follow-up 38773827318 selects only the corrected normalizer and six not-yet-executed command/persistence tests, plus the Windows hydro tests not previously reached. Product calculation, app, WASM and asset sources are identical to 98c24a6d; earlier passing evidence is retained.
+- Native performance preflight now checks the fixture-declared production place path/hash/revision instead of a retired literal SHA. Ten direct contract cases passed. Missing external v2 performance fixtures still prevent Qt performance acceptance; actual GPU, Windows screen and Android touch remain unverified. P9 is not complete.
