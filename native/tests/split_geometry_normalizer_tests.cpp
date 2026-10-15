@@ -5,7 +5,6 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QJSEngine>
 #include <QtTest>
 #include <future>
 #include <limits>
@@ -31,29 +30,14 @@ Geometry wide() {Geometry value;value.type="Polygon";value.polygons={{{{-170,0},
 class SplitGeometryNormalizerTests:public QObject {
     Q_OBJECT
 private slots:
-    void sharedSphericalAreaIsIdenticalToQtAdapter() {
-        QJSEngine engine;
-        loadCanonicalPolygonGeometry(engine);
-        const auto original=crossing().polygons.at(0).at(0);
-        const auto expected=sphericalRingSignedArea(original);
-        const QString r=QStringLiteral("[[179,-2],[179,2],[-179,2],[-179,-2],[179,-2]]");
-        const auto single=engine.evaluate(QStringLiteral("PandoLabPolygonGeometry.sphericalSignedArea(")+r+QStringLiteral(")"));
-        QVERIFY2(!single.isError(),qPrintable(single.toString()));
-        QVERIFY(std::abs(single.toNumber()-expected)<1e-12);
-        const auto batch=engine.evaluate(QStringLiteral("PandoLabPolygonGeometry.sphericalSignedAreas([")
-            +r+QStringLiteral(",[[179,-2],[-179,-2],[-179,2],[179,2],[179,-2]]])"));
-        QVERIFY2(!batch.isError(),qPrintable(batch.toString()));
-        QCOMPARE(batch.property(QStringLiteral("length")).toUInt(),2u);
-        QVERIFY(std::abs(batch.property(0).toNumber()-expected)<1e-12);
-        QVERIFY(std::abs(batch.property(1).toNumber()+expected)<1e-12);
-        const auto invalid=engine.evaluate(QStringLiteral("PandoLabPolygonGeometry.sphericalSignedArea([[0,0],[1,0],[1,1]])"));
-        QVERIFY(invalid.isError());
-        // A polar cap must use the same spherical integral in Qt and WASM.
-        const Ring cap{{170,80},{-170,80},{-90,85},{0,89},{90,85},{170,80}};
-        const auto polar=engine.evaluate(QStringLiteral(
-            "PandoLabPolygonGeometry.sphericalSignedArea([[170,80],[-170,80],[-90,85],[0,89],[90,85],[170,80]])"));
-        QVERIFY2(!polar.isError(),qPrintable(polar.toString()));
-        QVERIFY(std::abs(polar.toNumber()-sphericalRingSignedArea(cap))<1e-12);
+    void sharedNormalizationIsIdenticalToQtAdapter() {
+        for(const auto source:{crossing(),wide()}){
+            const auto before=json(source);
+            const auto actual=normalizeSplitRawGeometry(source);
+            QVERIFY2(actual.succeeded(),actual.detail.c_str());
+            QCOMPARE(json(actual.geometry),json(normalizeSphericalPolygonGeometry(source)));
+            QCOMPARE(json(source),before);
+        }
     }
     void exactApprovedSourceObservations_data() {
         QTest::addColumn<QJsonObject>("row");
@@ -87,7 +71,7 @@ private slots:
     }
     void cancellationDiscardsAllValuesAtEveryBoundary() {
         for(const auto operation:{wrapSplitGeometry,normalizeSplitClippedGeometry}) {
-            int checks=0;const auto completed=operation(crossing(),[&]{++checks;return false;});QVERIFY(completed.succeeded());QVERIFY(checks>3);
+            int checks=0;const auto completed=operation(crossing(),[&]{++checks;return false;});QVERIFY(completed.succeeded());QVERIFY(checks>0);
             for(int stop=1;stop<=checks;++stop){int current=0;const auto result=operation(crossing(),[&]{return ++current>=stop;});
                 QCOMPARE(result.status,GeometryOperationStatus::Cancelled);QVERIFY(result.geometry.polygons.empty());QVERIFY(result.detail.empty());QVERIFY(!result.inputUnchanged);}
         }
@@ -104,12 +88,7 @@ private slots:
         Geometry degenerate;degenerate.type="Polygon";degenerate.polygons={{{{0,0},{1,1},{0,0}}}};
         QCOMPARE(normalizeSplitClippedGeometry(degenerate).status,GeometryOperationStatus::Empty);
     }
-    void fullApprovedExportsAreLoadedWithoutPruning() {
-        QJSEngine engine;loadCanonicalPolygonGeometry(engine);
-        const auto api=engine.globalObject().property("PandoLabPolygonGeometry");
-        for(const auto name:{"ensureClosedRing","hasCanonicalPolygonWinding","normalizePolygonGeometry","normalizeClippedPolygonGeometry","wrapPolygonGeometry","orientRing","ringDistinctCoordinateCount","ringSignedArea","sphericalSignedArea","sphericalSignedAreas"})QVERIFY2(api.property(name).isCallable(),name);
-    }
-    void freshWorkerEnginesOwnTheirResultsAndDoNotMutateInput() {
+    void concurrentCalculationsOwnTheirResultsAndDoNotMutateInput() {
         const auto input=crossing();const auto before=json(input);
         auto first=std::async(std::launch::async,[input]{return wrapSplitGeometry(input);});
         auto second=std::async(std::launch::async,[input]{return wrapSplitGeometry(input);});

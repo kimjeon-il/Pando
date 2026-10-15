@@ -171,3 +171,6 @@ target_link_libraries(reference_image_core_tests PRIVATE Pandoeditor::Core)
 target_compile_definitions(reference_image_core_tests PRIVATE PANDO_REFERENCE_FIXTURE_ROOT="${CMAKE_CURRENT_SOURCE_DIR}/../../native/tests/fixtures")
 add_test(NAME reference_image_core_tests COMMAND reference_image_core_tests)
 set_tests_properties(reference_image_core_tests PROPERTIES TIMEOUT 20)
+
+add_executable(river_partition_probe river-partition-probe.cpp)
+target_link_libraries(river_partition_probe PRIVATE Pandoeditor::Core)
