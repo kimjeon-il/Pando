@@ -72,7 +72,7 @@ pandoeditor::CommandRequest EditorController::coreTerritorialRequest(const pando
     };
     if(const auto create=std::get_if<CreateTerritorialIntent>(&intent)) {
         WebTerritorialEdit edit;edit.operation=WebTerritorialOperation::Create;edit.features.push_back(createRow(*create,create->geometry));
-        CommandArguments args;args.action=std::move(edit);auto request=CommandProcessor::makeRequest(project_,"territorial.create",std::move(args));request.targets={territorialRef(create->id)};return request;
+        CommandArguments args;args.action=std::move(edit);return CommandProcessor::makeRequest(project_,"territorial.create",std::move(args));
     }
     if(!patch)throw TimelineError("invalid","A platform geometry receipt is required.");
     if(patch->sourceRevision!=project_.revision())throw TimelineError("STALE_REVISION","Geometry receipt source changed.");
@@ -102,8 +102,7 @@ pandoeditor::CommandRequest EditorController::coreTerritorialRequest(const pando
     };
     if(const auto transfer=std::get_if<TransferSubunitIntent>(&intent))relation(transfer->target,transfer->destinationCountry.id);
     if(const auto conversion=std::get_if<ConvertTerritorialTypeIntent>(&intent))relation(conversion->source,conversion->parent?conversion->parent->id:std::string{});
-    CommandArguments args;args.action=std::move(edit);auto request=CommandProcessor::makeRequest(project_,"territorial.patch",std::move(args));
-    const auto& action=std::get<WebTerritorialEdit>(request.args.action);for(const auto& row:action.features)request.targets.push_back(territorialRef(row.identity.id));for(const auto& id:action.removedIds)request.targets.push_back(territorialRef(id));return request;
+    CommandArguments args;args.action=std::move(edit);return CommandProcessor::makeRequest(project_,"territorial.patch",std::move(args));
 }
 pandoeditor::PrepareResult EditorController::prepareCoreTerritorialReceipt(pandoeditor::PrepareResult&& prepared) const
 {
@@ -138,7 +137,7 @@ pandoeditor::CommandRequest EditorController::coreContentRequest(const pandoedit
         auto normalized=pandoeditor::projectcodec::readNativeContentEdit(snapshot,edit.target,row,edit.create);
         if(edit.initialLabelSettings)normalized.initialLabelSettings=edit.initialLabelSettings;
         CommandArguments args;args.action=std::move(normalized);
-        auto request=CommandProcessor::makeRequest(project_,edit.target.domain+".edit",std::move(args));request.targets={edit.target};return request;
+        return CommandProcessor::makeRequest(project_,edit.target.domain+".edit",std::move(args));
     }
     std::string operation;
     if(edit.target.domain=="generic")operation=edit.create?"generic.create":remove?"generic.remove":"";
@@ -150,7 +149,7 @@ pandoeditor::CommandRequest EditorController::coreContentRequest(const pandoedit
         return readWebContentCommand(snapshot,operation,payload,ContentIdentityPolicy::NativeExact);
     }
     auto normalized=pandoeditor::projectcodec::readNativeContentEdit(snapshot,edit.target,row,false);
-    CommandArguments args;args.action=std::move(normalized);auto request=CommandProcessor::makeRequest(project_,"content.edit",std::move(args));request.targets={edit.target};return request;
+    CommandArguments args;args.action=std::move(normalized);return CommandProcessor::makeRequest(project_,"content.edit",std::move(args));
 }
 pandoeditor::CommandResult EditorController::confirmCorePreview(pandoeditor::CommandPreview& preview,std::uint32_t expectedEpoch)
 {

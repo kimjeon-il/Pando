@@ -11,6 +11,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
+#include <QDate>
 #include <QTemporaryDir>
 #include <QTest>
 #include <QSignalSpy>
@@ -142,7 +143,11 @@ private slots:
     QTemporaryDir dir;QVERIFY(dir.isValid());auto input=QJsonDocument::fromJson(read(QStringLiteral(PANDOEDITOR_EXCHANGE_FIXTURES)+"/static.json")).object();
     QJsonObject visibility;for(const auto* group:{"countries","subunits","regions","distributions","hydro","genericFeatures","labels","countryLabels"})visibility[group]=QJsonObject{};
     input["itemVisibility"]=visibility;const auto webPath=dir.filePath("input.web.json"),nativePath=dir.filePath("saved.pando.json");write(webPath,QJsonDocument(input).toJson());
-    EditorController editor({false,dir.filePath("private.json")});QVERIFY(editor.prepareWebImport(QUrl::fromLocalFile(webPath)));QTRY_VERIFY(editor.hasWebImportPreview());QVERIFY(editor.confirmWebImport(editor.webImportHash(),"discard"));
+    EditorController editor({false,dir.filePath("private.json")});
+    const auto importMonth=QDate::currentDate().toString(QStringLiteral("yyyy-MM"));
+    QSignalSpy importErrors(&editor,&EditorController::errorOccurred);
+    QVERIFY(editor.prepareWebImport(QUrl::fromLocalFile(webPath)));QTRY_VERIFY(editor.hasWebImportPreview());QVERIFY(editor.confirmWebImport(editor.webImportHash(),"discard"));
+    QCOMPARE(editor.timelineMonth(),importMonth);QVERIFY(importErrors.isEmpty());
     const auto baseline=editor.documentBytes();editor.selectCountry("A");editor.setColor("#123456");editor.undo();QCOMPARE(editor.documentBytes(),baseline);editor.redo();
     QVERIFY(editor.saveFile(QUrl::fromLocalFile(nativePath)));EditorController reopened({false,dir.filePath("private-reopened.json")});QVERIFY(reopened.openFile(QUrl::fromLocalFile(nativePath)));QCOMPARE(reopened.documentBytes(),editor.documentBytes());
     Project project;project.replace(::projectcodec::decode(reopened.documentBytes()));QCOMPARE(QJsonDocument::fromJson(::projectcodec::encodeWeb(project.snapshot())).object()["itemVisibility"].toObject(),visibility);
