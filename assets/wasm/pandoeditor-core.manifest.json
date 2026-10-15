@@ -1,7 +1,7 @@
 {
   "schema": "pandoeditor-core-wasm",
   "abiVersion": 1,
-  "sourceSha256": "7b1fe9c9f715460939bb5336d953c18a09fc7a1c098292f8621b6569331f7ee6",
+  "sourceSha256": "0753e77d36a5b0d607cf0df2d5c60e93cb86d46c87879cee77630f1748ff1a34",
   "compiler": {
     "name": "emscripten",
     "version": "4.0.20"
@@ -397,7 +397,7 @@
     },
     {
       "path": "shared/core/src/riverpartition.cpp",
-      "sha256": "cb6a4e2565656cd0f5f7b44238c4c5423481c919b807c7c8fe33138b4009d493"
+      "sha256": "3b6db9abb0f1661266da20092d6dc6551ec4e4cdd9f7cd5d96cc2ba038b1bc53"
     },
     {
       "path": "shared/core/src/snapshot.cpp",
@@ -505,7 +505,7 @@
     },
     {
       "path": "shared/tests/cut-geometry-probe.cpp",
-      "sha256": "02a2d456c5f3739b71a158a4bb41d225c06e205368e3c602f9f6ad27e94cadac"
+      "sha256": "2222e9a20b9ac77a8ceb9aff93debe050f9315a5c69cf3ae53c4cf1c0e8638f8"
     },
     {
       "path": "shared/tests/document-session-tests.cpp",
@@ -569,11 +569,11 @@
     },
     {
       "path": "shared/wasm/cut-bindings.cpp",
-      "sha256": "ac7f707b5246f37ae4faedb930310119df129c51178a14604f1a2eaa10a972b0"
+      "sha256": "84d1a2852b791e159b41851a3ee65b749acbec5076c17ef52407f587cc5ad258"
     },
     {
       "path": "shared/wasm/polygon-bindings.cpp",
-      "sha256": "f045982bbe2df3ae9948bd1bdb64e6b3ca1475d9457f11c881dc45ae45fc42d2"
+      "sha256": "5e5f0c4167047a50d1407036ba23e67a856c00b873f6bbd9eca130371d9d1947"
     },
     {
       "path": "shared/wasm/reference-bindings.cpp",
@@ -599,7 +599,7 @@
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "0976b2f5ba75e41f5ad0bf272035b51a36c7b9d34cac0275d199e695c7883136"
+      "sha256": "dfb0c42d8118df3f8bad2c4456379bc698de10ada1099fdd018c56f99560b33e"
     }
   }
 }
