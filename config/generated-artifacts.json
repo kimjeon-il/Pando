@@ -337,6 +337,19 @@
       "blockedReason": "Raw DEM, tint and glaciated-area source paths must be explicitly pinned for this GIS run; automatic downloads are forbidden."
     },
     {
+      "id": "build-metadata",
+      "dependencies": ["wasm", "territorial", "historical-world", "world-bundle", "prepared-mesh", "shared-boundaries", "places", "hydro", "terrain"],
+      "inputs": [
+        "package.json",
+        {"prefix": "assets/js/", "pattern": "^(?!assets/js/build-meta\\.js$).*\\.js$"}
+      ],
+      "outputs": ["assets/js/build-meta.js", "index.html", "README.md"],
+      "generate": [["node", "scripts/generate-build-metadata.mjs"]],
+      "validate": [["node", "scripts/generate-build-metadata.mjs", "--check"]],
+      "consumers": ["assets/js/bootstrap.js", "assets/js/modules/app-builtin-session.js", "assets/js/workers/gpu-mesh-worker.js"],
+      "tools": ["node"]
+    },
+    {
       "id": "native-assets",
       "dependencies": [
         "world-bundle",

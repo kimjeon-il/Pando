@@ -46,7 +46,7 @@ on:
         type: string
         required: false
       retry_failed:
-        description: Resume P9 using completed evidence; remeasure river/reference only
+        description: Resume P9 using completed evidence; select browser or Qt scope for remaining work
         type: boolean
         required: false
         default: false
@@ -185,7 +185,7 @@ jobs:
     needs: plan
     if: needs.plan.outputs.browser == 'true'
     runs-on: ubuntu-24.04
-    timeout-minutes: ${{ inputs.scope == 'acceptance' && 40 || 18 }}
+    timeout-minutes: ${{ (inputs.scope == 'acceptance' || (inputs.scope == 'browser' && inputs.retry_failed)) && 40 || 18 }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -217,42 +217,46 @@ jobs:
             node --test tests/unit/map-edit-preparation-worker.test.mjs tests/unit/map-edit-worker-client.test.mjs tests/unit/project-preview-worker.test.mjs tests/unit/project-preview-topology.test.mjs tests/unit/gis-geometry-worker.test.mjs tests/unit/shared-geometry-calculations.test.mjs tests/unit/current-hydro-layout.test.mjs tests/unit/hydro-packfile.test.mjs
           fi
       - name: Record final committed artifact identity and current hydro consumption
-        if: inputs.scope == 'acceptance'
+        if: inputs.scope == 'acceptance' || (inputs.scope == 'browser' && inputs.retry_failed)
         run: |
           mkdir -p test-results/p9-artifacts
           source_sha="$(git rev-parse HEAD)"
           node scripts/p2-artifact-plan.mjs --evidence --result-sha "$source_sha" --expected-source-sha "$source_sha" --evidence-file test-results/p9-artifacts/generated.json
-          node tools/check-current-hydro-layout.mjs --root . --allow-retired false --out test-results/p9-artifacts/hydro.json
+          if [ '${{ inputs.scope }}' = acceptance ]; then node tools/check-current-hydro-layout.mjs --root . --allow-retired false --out test-results/p9-artifacts/hydro.json; fi
       - uses: actions/checkout@v4
-        if: inputs.scope == 'acceptance'
+        if: inputs.scope == 'acceptance' || (inputs.scope == 'browser' && inputs.retry_failed)
         with:
           ref: 8e22982616e3c9ba43eeb84baec17cd886267cfa
           path: build-native/p9/baseline
           persist-credentials: false
-      - name: Verify affected Web editing, persistence and reference workflows
-        if: inputs.scope == 'acceptance'
-        shell: bash
-        env:
-          PANDOLAB_BROWSER_CHANNEL: chromium
-          PANDOLAB_TEST_PROFILING: 'off'
-        run: |
-          mkdir -p test-results/p9-browser
-          pnpm exec playwright test tests/browser/annex-e2e.spec.mjs tests/browser/boundary-cut-snapping.spec.mjs tests/browser/reference-image-live-wire.spec.mjs tests/browser/reference-image-line-refine.spec.mjs tests/browser/timeline-persistence.spec.mjs tests/browser/russia-edit-preparation.spec.mjs --grep 'annex - (polygon|components|line multiple crossings)|a child cut|live-wire accepts|line refinement accepts|static v10 UI file|complex timeline|Russia detailed line preparation|Russia detailed polygon creation.*\(webgl2\)'  --workers=1 --retries=0 --output=test-results/p9-browser
       - name: Run real desktop and emulated mobile screenshots plus startup observability
         shell: bash
         env:
           PANDO_P3_BRANCH: ${{ github.head_ref || github.ref_name }}
           PANDOLAB_BROWSER_CHANNEL: chromium
+          PANDO_P9_ACCEPTANCE: ${{ inputs.scope == 'acceptance' || (inputs.scope == 'browser' && inputs.retry_failed) }}
         run: |
           set -euo pipefail
           mkdir -p test-results/p3-browser
           pnpm exec playwright test \
             tests/browser/p3-remote-preview.spec.mjs \
             tests/browser/performance-observability.spec.mjs \
-            --workers=1 --retries=0 --output=test-results/p3-browser \
+            --workers=1 --retries=0 --max-failures=1 --output=test-results/p3-browser \
             2>&1 | tee test-results/p3-browser.log
+      - name: Verify affected Web editing, persistence and reference workflows
+        if: inputs.scope == 'acceptance' || (inputs.scope == 'browser' && inputs.retry_failed)
+        shell: bash
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+          PANDOLAB_TEST_PROFILING: 'off'
+          RETRY_FAILED: ${{ inputs.retry_failed }}
+        run: |
+          mkdir -p test-results/p9-browser
+          reuse=()
+          if [ "$RETRY_FAILED" = true ]; then reuse=(--grep-invert 'a child cut'); fi
+          pnpm exec playwright test tests/browser/annex-e2e.spec.mjs tests/browser/boundary-cut-snapping.spec.mjs tests/browser/reference-image-live-wire.spec.mjs tests/browser/reference-image-line-refine.spec.mjs tests/browser/timeline-persistence.spec.mjs tests/browser/russia-edit-preparation.spec.mjs --grep 'annex - (polygon|components|line multiple crossings)|a child cut|live-wire accepts|line refinement accepts|static v10 UI file|complex timeline|Russia detailed line preparation|Russia detailed polygon creation.*\(webgl2\)' "${reuse[@]}" --workers=1 --retries=0 --output=test-results/p9-browser
       - name: Compare initial display, edit readiness, frames and JS heap against the fixed baseline
-        if: inputs.scope == 'acceptance'
+        if: inputs.scope == 'acceptance' || (inputs.scope == 'browser' && inputs.retry_failed)
         env:
           PANDOLAB_BROWSER_CHANNEL: chromium
           PANDO_P9_BASELINE_ROOT: build-native/p9/baseline
