@@ -10,7 +10,7 @@
 |---|---|---|
 | Node.js | 24 버전대 (`.nvmrc`) | 변경 분류·웹 테스트·남아 있는 Qt JS geometry generator |
 | pnpm | 정확히 11.19.0 | JS 패키지/Qt의 현행 Acorn 준비가 필요한 작업 |
-| Python | 3.12 버전대 (`.python-version`) | GIS·연구 Python 정적 검사 등. 일반 core/native-engine/WASM 빌드에는 불필요 |
+| Python | 3.12 버전대 (`.python-version`) | **P4 독립 GIS/레거시 전용** `.github/workflows/gis-python-p4.yml`에서만 설치. 일반 웹·Qt·C++ core·WASM 작업에는 불필요 |
 | CMake | 3.31.6 | 공통 CMake preset 진입점 (소스 최소 요구 버전은 3.21) |
 | Qt | 6.8.3 | Qt Quick 앱을 빌드하는 job에만 설치 |
 | Emscripten | 4.0.20 | 동일 `shared/core`의 WASM 변환 job에만 설치 |

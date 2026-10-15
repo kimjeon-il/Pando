@@ -1,21 +1,61 @@
-const TEMPORAL_PATTERN = /^([+-]?)(\d{4,6})(?:-(\d{2})(?:-(\d{2}))?)?$/;
-const text = value => String(value ?? '').trim();
+// P5-3: adapter only. The shared C++ core owns calendars, signed years,
+// month boundaries, comparisons and validity. No JavaScript calendar fallback.
+const required = [
+  'temporalParse', 'temporalMonthEnd', 'temporalCompare', 'temporalCompareKeys',
+  'temporalNormalizeInterval', 'temporalContains', 'temporalIntervalsOverlap',
+  'temporalShiftMonth', 'temporalFollowingDay',
+];
+const core = await (async () => {
+  if (globalThis.PandoLabSphericalCore) return globalThis.PandoLabSphericalCore;
+  if (globalThis.process?.versions?.node) {
+    const { loadNodeCore } = await import('../../../tools/load-node-core.mjs');
+    return loadNodeCore();
+  }
+  const { loadVerifiedCore } = await import('./core-wasm-loader.js');
+  return loadVerifiedCore({ baseUrl: new URL('../../wasm/', import.meta.url) });
+})();
+for (const name of required) {
+  if (typeof core?.[name] !== 'function') {
+    throw Object.assign(new Error('Required compiled temporal capability is unavailable: ' + name),
+      { code: 'PL-CORE-WASM-CAPABILITY' });
+  }
+}
 
+// The verified compiled module is shared by temporal and timeline adapters.
+export const sharedCalculationCore = core;
+
+const text = value => String(value ?? '').trim();
+const messages = Object.freeze({
+  format: 'YYYY, YYYY-MM 또는 YYYY-MM-DD 형식을 사용하세요.',
+  'extended year needs sign': '확장 연도는 + 또는 - 부호가 필요합니다.',
+  'year zero': '연도 0은 사용할 수 없습니다. -0001 다음은 0001입니다.',
+  month: '월은 01~12여야 합니다.',
+  day: '해당 월에 존재하지 않는 날짜입니다.',
+  'month precision required': '월 단위 값이 필요합니다.',
+  'year out of range': '지원하지 않는 연도 범위입니다.',
+});
 function temporalError(value, message) {
-  const error = new Error(`날짜 ${text(value) || '(없음)'}이(가) 올바르지 않습니다. ${message}`);
+  const error = new Error('날짜 ' + (text(value) || '(없음)') + '이(가) 올바르지 않습니다. ' + message);
   error.code = 'PL-TEMPORAL-001';
   return error;
 }
-
-function isLeapYear(year) {
-  const absoluteYear = Math.abs(Number(year));
-  return absoluteYear % 4 === 0 && (absoluteYear % 100 !== 0 || absoluteYear % 400 === 0);
+function rethrowCalendarError(error, input) {
+  if (error?.code !== 'PL-TEMPORAL-001') throw error;
+  const detail = String(error.message ?? '');
+  const prefix = 'INVALID_DATE: ';
+  const reason = detail.startsWith(prefix) ? detail.slice(prefix.length) : 'format';
+  throw temporalError(input, messages[reason] || messages.format);
 }
-
-function daysInMonth(year, month) {
-  if (month === 2) return isLeapYear(year) ? 29 : 28;
-  return [4, 6, 9, 11].includes(month) ? 30 : 31;
+function frozenPoint(value) {
+  return Object.freeze({
+    source: value.source, canonical: value.canonical, precision: value.precision,
+    year: value.year, month: value.month, day: value.day,
+    startKey: Object.freeze([...value.startKey]),
+    endKey: Object.freeze([...value.endKey]),
+  });
 }
+const point = value => typeof value === 'object' && value?.startKey
+  ? value : parseTemporal(value, { nullable: false });
 
 export function parseTemporal(value, { nullable = true } = {}) {
   const source = text(value);
@@ -23,84 +63,69 @@ export function parseTemporal(value, { nullable = true } = {}) {
     if (nullable) return null;
     throw temporalError(value, '값이 필요합니다.');
   }
-  const match = TEMPORAL_PATTERN.exec(source);
-  if (!match) throw temporalError(value, 'YYYY, YYYY-MM 또는 YYYY-MM-DD 형식을 사용하세요.');
-  const sign = match[1];
-  const digits = match[2];
-  if (!sign && digits.length !== 4) throw temporalError(value, '확장 연도는 + 또는 - 부호가 필요합니다.');
-  const magnitude = Number(digits);
-  const year = sign === '-' ? -magnitude : magnitude;
-  if (year === 0) throw temporalError(value, '연도 0은 사용할 수 없습니다. -0001 다음은 0001입니다.');
-  const hasMonth = match[3] != null;
-  const hasDate = match[4] != null;
-  const month = hasMonth ? Number(match[3]) : null;
-  const day = hasDate ? Number(match[4]) : null;
-  if (hasMonth && (month < 1 || month > 12)) throw temporalError(value, '월은 01~12여야 합니다.');
-  if (hasDate && (day < 1 || day > daysInMonth(year, month))) throw temporalError(value, '해당 월에 존재하지 않는 날짜입니다.');
-  const canonicalYear = `${year < 0 ? '-' : sign === '+' ? '+' : ''}${digits}`;
-  return Object.freeze({
-    source,
-    canonical: canonicalYear + (hasMonth ? `-${match[3]}` : '') + (hasDate ? `-${match[4]}` : ''),
-    precision: hasDate ? 'date' : hasMonth ? 'month' : 'year',
-    year,
-    month,
-    day,
-    startKey: Object.freeze([year, hasMonth ? month : 1, hasDate ? day : 1]),
-    endKey: Object.freeze([year, hasMonth ? month : 12, hasDate ? day : hasMonth ? daysInMonth(year, month) : 31]),
-  });
+  try { return frozenPoint(core.temporalParse(source)); }
+  catch (error) { rethrowCalendarError(error, value); }
 }
 
 export function normalizeTemporal(value, options) {
   return parseTemporal(value, options)?.canonical ?? null;
 }
 
-/** Resolve a month-only timeline cursor to the exact last calendar day. */
+/** A timeline cursor is always resolved to the last day of its calendar month. */
 export function temporalMonthEnd(value) {
-  const month = typeof value === 'object' && value?.startKey
-    ? value
-    : parseTemporal(value, { nullable: false });
-  if (month.precision !== 'month') throw temporalError(value, '월 단위 값이 필요합니다.');
-  return parseTemporal(`${month.canonical}-${String(month.endKey[2]).padStart(2, '0')}`, { nullable: false });
+  const month = point(value);
+  if (month.precision !== 'month') throw temporalError(value, messages['month precision required']);
+  try { return frozenPoint(core.temporalMonthEnd(month.canonical)); }
+  catch (error) { rethrowCalendarError(error, value); }
 }
 
-function compareKeys(left, right) {
-  for (let index = 0; index < 3; index += 1) {
-    if (left[index] !== right[index]) return left[index] < right[index] ? -1 : 1;
-  }
-  return 0;
+export function compareTemporalKeys(left, right) {
+  return core.temporalCompareKeys(left, right);
 }
 
 export function compareTemporal(left, right, { leftBoundary = 'start', rightBoundary = 'start' } = {}) {
-  const leftValue = typeof left === 'object' && left?.startKey ? left : parseTemporal(left, { nullable: false });
-  const rightValue = typeof right === 'object' && right?.startKey ? right : parseTemporal(right, { nullable: false });
-  return compareKeys(leftValue[leftBoundary === 'end' ? 'endKey' : 'startKey'], rightValue[rightBoundary === 'end' ? 'endKey' : 'startKey']);
+  const a = point(left), b = point(right);
+  const leftEnd = leftBoundary === 'end', rightEnd = rightBoundary === 'end';
+  // The older event-sort interface can supply bare keys without canonical text.
+  // Comparison still executes in C++, including out-of-range end sentinels.
+  if (!a.canonical || !b.canonical) {
+    return compareTemporalKeys(a[leftEnd ? 'endKey' : 'startKey'], b[rightEnd ? 'endKey' : 'startKey']);
+  }
+  return core.temporalCompare(a.canonical, b.canonical, leftEnd, rightEnd);
 }
 
 export function normalizeTemporalInterval(validFrom, validTo) {
-  const start = parseTemporal(validFrom);
-  const end = parseTemporal(validTo);
-  if (start && end && compareKeys(start.startKey, end.endKey) > 0) {
-    const error = new Error('유효기간 시작은 종료보다 늦을 수 없습니다.');
-    error.code = 'PL-TEMPORAL-INTERVAL';
-    throw error;
-  }
-  return Object.freeze({ validFrom: start?.canonical ?? null, validTo: end?.canonical ?? null, start, end });
+  const start = parseTemporal(validFrom), end = parseTemporal(validTo);
+  const interval = core.temporalNormalizeInterval(start?.canonical ?? null, end?.canonical ?? null);
+  return Object.freeze({ validFrom: interval.validFrom, validTo: interval.validTo, start, end });
 }
 
 export function temporalContains(interval, value) {
-  const point = typeof value === 'object' && value?.startKey ? value : parseTemporal(value, { nullable: false });
+  const when = point(value);
   const start = interval?.start || parseTemporal(interval?.validFrom);
   const end = interval?.end || parseTemporal(interval?.validTo);
-  return (!start || compareKeys(start.startKey, point.endKey) <= 0)
-    && (!end || compareKeys(end.endKey, point.startKey) >= 0);
+  return core.temporalContains(start?.canonical ?? null, end?.canonical ?? null, when.canonical);
 }
 
 export function temporalIntervalsOverlap(left, right) {
-  const leftStart = left?.start || parseTemporal(left?.validFrom);
-  const leftEnd = left?.end || parseTemporal(left?.validTo);
-  const rightStart = right?.start || parseTemporal(right?.validFrom);
-  const rightEnd = right?.end || parseTemporal(right?.validTo);
-  if (leftEnd && rightStart && compareKeys(leftEnd.endKey, rightStart.startKey) < 0) return false;
-  if (rightEnd && leftStart && compareKeys(rightEnd.endKey, leftStart.startKey) < 0) return false;
-  return true;
+  const startA = left?.start || parseTemporal(left?.validFrom);
+  const endA = left?.end || parseTemporal(left?.validTo);
+  const startB = right?.start || parseTemporal(right?.validFrom);
+  const endB = right?.end || parseTemporal(right?.validTo);
+  return core.temporalIntervalsOverlap(
+    startA?.canonical ?? null, endA?.canonical ?? null,
+    startB?.canonical ?? null, endB?.canonical ?? null);
+}
+
+export function shiftTemporalMonth(value, delta) {
+  const month = point(value);
+  if (month.precision !== 'month' || !Number.isInteger(delta)
+    || delta < -2147483648 || delta > 2147483647)
+    throw new TypeError('A month and integer offset are required.');
+  try { return core.temporalShiftMonth(month.canonical, delta); }
+  catch (error) { rethrowCalendarError(error, value); }
+}
+
+export function temporalFollowingDay(key) {
+  return Object.freeze([...core.temporalFollowingDay(key)]);
 }

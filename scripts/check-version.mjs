@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -27,6 +28,24 @@ expect(index.includes(`assets/js/build-meta.js?v=${buildMeta?.assetRevision || '
 const indexRevisions = [...index.matchAll(/\?v=([^"&]+)/g)].map(match => match[1]);
 for (const revision of indexRevisions) expect(revision === buildMeta?.assetRevision, `index.html에 다른 asset revision이 있습니다: ${revision}`);
 
+// Transitive browser imports must use the same deployment as the entry module.
+const moduleImportMap = index.match(/<script\b[^>]*id="pandolab-module-import-map"[^>]*>([\s\S]*?)<\/script>/);
+try {
+  const imports = JSON.parse(moduleImportMap?.[1] || 'null')?.imports;
+  expect(imports && Object.keys(imports).length > 0, '브라우저 모듈 import map이 없습니다.');
+  for (const [specifier, target] of Object.entries(imports || {})) {
+    const source = new URL(specifier, 'https://build.invalid/');
+    const destination = new URL(target, 'https://build.invalid/');
+    expect(specifier.startsWith('./assets/js/') && specifier.endsWith('.js')
+      && existsSync(resolve(projectRoot, specifier)), `현재 모듈 파일이 없습니다: ${specifier}`);
+    expect(source.origin === destination.origin && source.pathname === destination.pathname
+      && destination.searchParams.get('v') === buildMeta?.assetRevision,
+      `브라우저 모듈 버전이 일치하지 않습니다: ${specifier}`);
+  }
+} catch (error) {
+  failures.push(`브라우저 모듈 import map 검증에 실패했습니다: ${error.message}`);
+}
+
 // Dataset identity is content-addressed and independent from package.json.version.
 const bundlePath = 'assets/data/world/current.json';
 expect(existsSync(resolve(projectRoot, bundlePath)), `${bundlePath} 데이터 매니페스트가 없습니다.`);
@@ -40,6 +59,31 @@ if (existsSync(resolve(projectRoot, bundlePath))) {
     }
   } catch (error) {
     failures.push(`세계지도 데이터 매니페스트 검증에 실패했습니다: ${error.message}`);
+  }
+}
+
+// Generated preparation metadata is an integrity contract, not merely a version label.
+// A stale size or checksum disables fixed-mesh loading and large polygon editing.
+const preparedPath = 'assets/data/prepared-polygons/generated/v2/manifest.json';
+expect(existsSync(resolve(projectRoot, preparedPath)), `Prepared polygon manifest is missing: ${preparedPath}`);
+if (existsSync(resolve(projectRoot, preparedPath))) {
+  try {
+    const bytes = readFileSync(resolve(projectRoot, preparedPath));
+    const manifest = JSON.parse(bytes.toString('utf8'));
+    const expected = {
+      url: preparedPath,
+      encoding: 'identity',
+      compressedBytes: bytes.length,
+      decodedBytes: bytes.length,
+      sha256: createHash('sha256').update(bytes).digest('hex'),
+      algorithmSourceSha256: manifest.algorithmSourceSha256,
+    };
+    for (const [key, value] of Object.entries(expected)) {
+      expect(buildMeta?.preparedPolygonMeshes?.[key] === value,
+        `build-meta.js의 preparedPolygonMeshes.${key}가 현재 매니페스트와 다릅니다.`);
+    }
+  } catch (error) {
+    failures.push(`Prepared polygon metadata validation failed: ${error.message}`);
   }
 }
 

@@ -199,7 +199,7 @@ export const MAP_RESOURCE_OWNER_PORTS = Object.freeze({
   layerList: Object.freeze(["colorModel","countries","distributionPresentation","domains","hydroPresentation","labelPresentation","layerPresentation","objectCatalog","objectPresentation","platform","projectState","rendering","territorialModel"]),
   territorialLabels: Object.freeze(["objectModelB","colorModel","countries","domains","feedback","labelPresentation","layerPresentation","mapLayers","mapLayout","mapView","mapHostViewB","objectCatalog","objectPresentation","platform","preferences","projectState","renderScene","rendering","spatialQuery","surfaces","territorialModel"]),
   physicalResources: Object.freeze(["cutGeometry","domains","feedback","hydroPresentation","labelPresentation","layerPresentation","mapView","operationFeedback","physicalConfig","physicalServices","platform","projectState","rendering"]),
-  interactionPackets: Object.freeze(["distributionPresentation","domains","draftPresentation","mapLayers","objectCatalog","platform","preferences","projectState","renderScene","surfaces"]),
+  interactionPackets: Object.freeze(["distributionPresentation","domains","draftPresentation","feedback","mapLayers","objectCatalog","platform","preferences","projectState","renderScene","surfaces"]),
 });
 
 function createMapResourcePorts(providers) {

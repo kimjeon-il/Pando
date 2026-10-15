@@ -23,19 +23,6 @@ const smokeSpecs = ['boundary-cut-snapping', 'country-label-flags', 'generic-fea
 // Current job inputs come from YAML, and their imports are followed below so
 // renamed modules or changed job inputs do not need a copied file-list update.
 const scopePatterns = {
-  "python_contracts": [
-    "assets/js/*",
-    "assets/css/*",
-    "assets/data/*",
-    "index.html",
-    "README.md",
-    "tools/*",
-    "tests/*.py",
-    "tests/fixtures/*",
-    "scripts/*",
-    "package.json",
-    ".github/workflows/application-architecture.yml"
-  ],
   "data_contracts": [
     "assets/js/*",
     "assets/data/*",

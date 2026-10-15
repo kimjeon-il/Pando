@@ -86,12 +86,13 @@ export function classifyPaths(paths, capability = {}, manual = 'auto') {
       if (/^tools\/cpp\//.test(path)) {mark('gis');mark('gisTools');}
       if (/^(assets\/css\/|index\.html$|assets\/js\/|playwright\.|tests\/browser\/)/.test(path)) mark('ui');
       if (/^(assets\/js\/modules\/(project|object|timeline|temporal|territorial|editing|distribution|generic)|contracts\/objects\/|tests\/unit\/(project|object|timeline|temporal|territorial))/.test(path)) mark('objects');
-      if (/^(assets\/data\/(territorial|hydro|terrain|historical|world)|tools\/(build-(world|terrain|country|territorial|historical|hydro)|.*(gis|hydro|terrain))|tests\/python\/)/.test(path)) mark('gis');
+      // Python research edits are handled by the independent GIS Python CI.
+      if (!path.endsWith('.py') && /^(assets\/data\/(territorial|hydro|terrain|historical|world)|tools\/(build-(world|terrain|country|territorial|historical|hydro)|.*(gis|hydro|terrain))|tests\/python\/)/.test(path)) mark('gis');
       if (/^(assets\/data\/places\/|contracts\/places\/|reports\/places\/|tools\/(build-place|place-)|tests\/unit\/place-)/.test(path)) mark('places');
       if (/^(tests\/unit\/|tests\/helpers\/|scripts\/check-|package\.json$|pnpm-lock\.yaml$|pnpm-workspace\.yaml$)/.test(path)) {
         if (!/(p1-remote-scopes)/.test(path)) mark('ui');
       }
-      if (/\.py$/.test(path) && /^(tools\/|scripts\/|tests\/)/.test(path)) { mark('python');mark('gis'); }
+      if (/\.py$/.test(path) && /^(tools\/|scripts\/|tests\/)/.test(path)) mark('python');
     }
   }
   out.core &&= available.core;

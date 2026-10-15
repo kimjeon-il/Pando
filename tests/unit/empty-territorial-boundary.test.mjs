@@ -1,3 +1,4 @@
+import '../helpers/spherical-core.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { buildTerritorialInternalBoundarySegments } from '../../assets/js/modules/boundary-topology.js';

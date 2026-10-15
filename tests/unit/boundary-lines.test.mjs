@@ -11,6 +11,16 @@ test('junctions and disconnected boundaries stay separate', () => {
   assert.equal(lines.length, 4);
   assert.equal(lines.reduce((sum, line) => sum + line.length - 1, 0), 4);
 });
+test('binary half-grid and signed-zero junctions match the shared C++ rule', () => {
+  const lines = connectBoundarySegments([
+    [[0.00390625, 0], [1, 0]],
+    [[0.0039063, 0], [2, 0]],
+  ]);
+  assert.equal(lines.length, 1);
+  assert.equal(lines[0].length, 3);
+  assert.deepEqual(connectBoundarySegments([]), []);
+});
+
 test('closed boundaries preserve every segment', () => {
   const lines = connectBoundarySegments([[[0, 0], [1, 0]], [[1, 0], [1, 1]], [[1, 1], [0, 0]]]);
   assert.equal(lines.length, 1);

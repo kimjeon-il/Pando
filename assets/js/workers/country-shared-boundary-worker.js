@@ -1,10 +1,26 @@
 'use strict';
 
 const revision = new URL(self.location.href).searchParams.get('v') || '';
-const modules = Promise.all([
-  import(`../modules/country-shared-boundary-packet.js?v=${encodeURIComponent(revision)}`),
-  import(`../modules/country-shared-boundary-cache.js?v=${encodeURIComponent(revision)}`),
-]);
+// This worker used to rely on a pure-JS spherical area integral. The verified
+// compiled C++ Core must be ready *before* boundary modules are evaluated.
+// Node's file:// test harness can inject the separately verified C++ module;
+// browser workers always verify their own pinned JS/WASM pair.
+const sourceIsTestFile = new URL(self.location.href).protocol === 'file:';
+const coreReady = sourceIsTestFile && globalThis.PandoLabSphericalCore
+  ? Promise.resolve(globalThis.PandoLabSphericalCore)
+  : import('../modules/core-wasm-loader.js').then(({ loadVerifiedCore }) => loadVerifiedCore({
+    baseUrl: new URL('../../wasm/', self.location.href),
+  }));
+const modules = coreReady.then(core => {
+  if (core?.coreAbiVersion !== 1 || typeof core.sphericalRingSignedAreas !== 'function')
+    throw Object.assign(new Error('Verified C++ spherical area capability is unavailable.'),
+      { code: 'PL-CORE-WASM-CAPABILITY' });
+  globalThis.PandoLabSphericalCore = core;
+  return Promise.all([
+    import(`../modules/country-shared-boundary-packet.js?v=${encodeURIComponent(revision)}`),
+    import(`../modules/country-shared-boundary-cache.js?v=${encodeURIComponent(revision)}`),
+  ]);
+});
 let boundaryState = null;
 let loadedCacheUrl = null;
 let loadedCacheQuality = null;
