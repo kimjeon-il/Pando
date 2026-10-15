@@ -61,4 +61,4 @@ jobs:
       - name: Run Web chain and immutable shared-cache generator regression
         if: steps.core.outputs.ready == 'true'
         run: |
-          node --test tests/unit/boundary-lines.test.mjs tests/unit/country-shared-boundary-generator.test.mjs
+          node --test tests/unit/boundary-lines.test.mjs tests/unit/country-shared-boundary-generator.test.mjs tests/unit/country-shared-boundary-state.test.mjs tests/unit/boundary-display-refinement.test.mjs

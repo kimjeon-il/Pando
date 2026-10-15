@@ -1,8 +1,16 @@
-import { buildRenderableBoundarySegments, buildRefinedBoundarySegments, normalizeLongitudeNear } from './geographic-boundary.js';
+import { buildRenderableBoundarySegments, buildRefinedBoundarySegments } from './geographic-boundary.js';
 import './polygon-geometry.js';
 import { createBoundarySpatialIndex, segmentBounds, padBoundaryBounds } from './boundary-spatial-index.js';
 import { countryGeometrySignature } from './country-shared-boundary-cache.js';
 import { territorialRootId } from './territorial-units.js';
+import { sharedCalculationCore } from './temporal.js';
+
+for (const capability of ['boundaryOpposingInteriors', 'boundaryOpposingInteriorsBatch']) {
+  if (typeof sharedCalculationCore?.[capability] !== 'function') {
+    throw Object.assign(new Error('Shared C++ boundary contact capability unavailable: ' + capability),
+      { code: 'PL-CORE-WASM-CAPABILITY' });
+  }
+}
 
 const { sphericalSignedAreas } = globalThis.PandoLabPolygonGeometry;
 const cloneCoordinate = coordinate => [Number(coordinate[0]), Number(coordinate[1])];
@@ -433,19 +441,20 @@ function pointSegmentDistance(point, a, b) {
   return Math.hypot(Number(point[0]) - (Number(a[0]) + dx * t), Number(point[1]) - (Number(a[1]) + dy * t));
 }
 
-// Coincident edges on the same filled side are an exterior shared by an
-// overlapping parent/child, rather than a boundary separating their land.
-export function hasOpposingBoundaryInteriors(segment, ownerIds = segment.ownerIds) {
-  const dx = normalizeLongitudeNear(segment.end[0], segment.start[0]) - segment.start[0];
-  const dy = segment.end[1] - segment.start[1];
-  const sides = ownerIds.map(id => {
+// Keep source-reference selection in JavaScript; shared C++ alone owns the
+// signed interior/direction calculation. Inputs are untouched source edges,
+// not seam-split or refined display strokes.
+export function boundaryInteriorComparison(segment, ownerIds = segment.ownerIds) {
+  const refs = ownerIds.map(id => {
     const edge = segment.refs?.find(ref => String(ref.featureId) === String(id));
-    if (!edge) throw new Error(`공유 경계의 원본 구간이 없습니다: ${id}`);
-    const edgeDx = normalizeLongitudeNear(edge.b[0], edge.a[0]) - edge.a[0];
-    const direction = Math.sign(edgeDx * dx + (edge.b[1] - edge.a[1]) * dy);
-    return direction * edge.interiorSide;
+    if (!edge) throw new Error('공유 경계의 원본 구간이 없습니다: ' + id);
+    return [edge.a, edge.b, edge.interiorSide];
   });
-  return new Set(sides).size > 1;
+  return [[segment.start, segment.end], refs];
+}
+
+export function hasOpposingBoundaryInteriors(segment, ownerIds = segment.ownerIds) {
+  return sharedCalculationCore.boundaryOpposingInteriors(...boundaryInteriorComparison(segment, ownerIds));
 }
 
 export function buildTerritorialInternalBoundarySegments(countries = [], units = [], { precision = 7, epsilon = 1e-7 } = {}) {

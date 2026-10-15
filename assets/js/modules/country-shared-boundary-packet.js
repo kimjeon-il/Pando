@@ -1,9 +1,10 @@
 import { buildGpuStrokeInstances } from './gpu-stroke-geometry.js';
-import { buildCountrySharedBoundaryContact, hasOpposingBoundaryInteriors, createPreparedBoundaryStore,
+import { buildCountrySharedBoundaryContact, boundaryInteriorComparison, createPreparedBoundaryStore,
   attachBoundarySegmentReferences, serializeCountrySharedBoundarySegments, topologyNodeKey } from './boundary-topology.js';
 import { createBoundarySpatialIndex, segmentBounds } from './boundary-spatial-index.js';
 import { connectBoundarySegments } from './boundary-lines.js';
 import { buildRefinedBoundarySegments, MAX_BOUNDARY_EDGE_DEGREES } from './geographic-boundary.js';
+import { sharedCalculationCore } from './temporal.js';
 
 export function shouldShowSharedCountryBorders(settings) {
   return settings?.terrainVisible === true && settings?.terrainStyle === 'physical';
@@ -131,6 +132,20 @@ export function prepareCountrySharedBoundaryPacket(segments = [], features = [],
   const outlineIds = new Set(features.filter(feature => feature.boundaryRootId && String(feature.id) !== feature.boundaryRootId)
     .map(feature => String(feature.id)));
   const exteriorSegments = new Set();
+  // Classify mixed parent/child contacts in one WASM crossing. Cached
+  // source references remain Worker-owned; source geometry is not revisited.
+  const mixedContacts = [];
+  segments.forEach((segment, index) => {
+    const owners = segment.ownerIds.map(id => byId.get(id));
+    if (!owners.length || owners.some(owner => !owner?.boundaryRootId)
+      || new Set(owners.map(owner => owner.boundaryRootId)).size !== 1) return;
+    const children = owners.filter(owner => owner.id !== owner.boundaryRootId);
+    if (children.length && children.length !== owners.length)
+      mixedContacts.push({ index, comparison: boundaryInteriorComparison(segment, segment.ownerIds) });
+  });
+  const flags = mixedContacts.length
+    ? sharedCalculationCore.boundaryOpposingInteriorsBatch(mixedContacts.map(item => item.comparison)) : [];
+  const opposingSegments = new Set(mixedContacts.filter((_, i) => flags[i]).map(item => item.index));
   segments.forEach((segment, index) => {
     const owners = segment.ownerIds.map(id => byId.get(id));
     if (!owners.length || owners.some(owner => !owner?.boundaryRootId)
@@ -141,7 +156,7 @@ export function prepareCountrySharedBoundaryPacket(segments = [], features = [],
       exteriorSegments.add(segment); // The territorial stroke already owns sibling contacts.
       return;
     }
-    if (!hasOpposingBoundaryInteriors(segment, owners.map(owner => String(owner.id)))) {
+    if (!opposingSegments.has(index)) {
       exteriorSegments.add(segment);
       children.forEach(id => outlineIds.add(id));
       const row = { a: segment.start, b: segment.end, ownerIds: children };
