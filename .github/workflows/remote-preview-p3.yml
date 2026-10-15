@@ -1,4 +1,5 @@
 name: P3 Remote preview and Qt verification
+# P5-6 verification receipt: rerun scoped Web + native CI against the integrated main source tree 691ec5d; comment-only change.
 # P5-4 verification receipt: force both native Qt CI presets on this push; application sources remain unchanged.
 on:
   push:
