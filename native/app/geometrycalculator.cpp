@@ -1,22 +1,11 @@
 #include "geometrycalculator.h"
 #include "geometryruntime_p.h"
-#include "geometryprovenance.h"
 #include <pandoeditor/geometrypredicates.h>
 #include <pandoeditor/polygonclipping.h>
-#include <QFile>
-#include <QCryptographicHash>
-#include <QJSEngine>
-#include <QJSValue>
-#include <QResource>
 #include <cmath>
 #include <stdexcept>
 #include <QThread>
 
-
-static void initializeGeometryResource() {
-    static const bool initialized=[] { Q_INIT_RESOURCE(current_geometry);return true; }();
-    (void)initialized;
-}
 
 namespace pandoeditor {
 namespace {
@@ -25,23 +14,6 @@ void validatePolygon(const Geometry& geometry) {
         throw std::invalid_argument("INVALID_GEOMETRY: polygon required");
     GeometryStore validator;validator.insert({"calculation",1},geometry);
 }
-}
-void loadPinnedPolygonClipping(QJSEngine& engine) {
-    initializeGeometryResource();
-    QFile source(":/geometry/polygon-clipping-0.15.7.js");
-    if(!source.open(QIODevice::ReadOnly))throw std::runtime_error("GEOMETRY_KERNEL_UNAVAILABLE");
-    const auto original=source.readAll();
-    if(QCryptographicHash::hash(original,QCryptographicHash::Sha256).toHex()!=
-       PANDO_CURRENT_GEOMETRY_POLYGON_CLIPPING_SHA256)
-        throw std::runtime_error("GEOMETRY_KERNEL_HASH_MISMATCH");
-    auto script=QString::fromUtf8(original);
-    // Qt 6.8.3 loses the _root assignment in this comma-return expression.
-    // Preserve the pinned upstream resource and expand only this statement.
-    const QString compressed=QStringLiteral("return this._size++,this._root=i(t,e,this._root,this._comparator)");
-    if(script.count(compressed)!=1)throw std::runtime_error("GEOMETRY_KERNEL_COMPAT_MISMATCH");
-    script.replace(compressed,QStringLiteral("this._size++;var inserted=i(t,e,this._root,this._comparator);this._root=inserted;return inserted"));
-    const auto loaded=engine.evaluate(script,source.fileName());
-    if(loaded.isError())throw std::runtime_error(loaded.toString().toStdString());
 }
 namespace {
 void validateRiverIntermediate(const Geometry& geometry) {

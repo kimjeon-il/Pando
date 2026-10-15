@@ -57,6 +57,7 @@ add_library(pandoeditor_core STATIC
     src/polygonwrapping.cpp
     src/polygonclipping.cpp
     src/planargraph.cpp
+    src/riverpartition.cpp
     src/cutgeometry.cpp
     src/referenceimage.cpp
     src/referencetracing.cpp
@@ -105,7 +106,7 @@ endif()
 
 
 # Match historical JS multiplication order for near-collinear source edges.
-set_source_files_properties(src/polygonwrapping.cpp src/polygonclipping.cpp PROPERTIES COMPILE_OPTIONS
+set_source_files_properties(src/riverpartition.cpp src/planargraph.cpp src/polygonwrapping.cpp src/polygonclipping.cpp PROPERTIES COMPILE_OPTIONS
     "$<$<CXX_COMPILER_ID:MSVC>:/fp:strict>;$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-ffp-contract=off>")
 set_source_files_properties(src/cutgeometry.cpp src/referenceimage.cpp src/referencetracing.cpp PROPERTIES COMPILE_OPTIONS
     "$<$<CXX_COMPILER_ID:MSVC>:/fp:strict>;$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-ffp-contract=off>")

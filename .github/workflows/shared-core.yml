@@ -42,11 +42,7 @@ on:
       - 'native/engine/**'
       - 'native/renderer/**'
       - 'native/ui/**'
-      - 'native/assets/geometry/current/**'
-      - 'native/resources/current_geometry.qrc'
       - 'native/cmake/**'
-      - 'native/tools/m97/cut-kernel-generate.mjs'
-      - 'native/tools/m97/current-geometry-source.test.mjs'
       - 'native/tests/json-text-policy/**'
       - 'native/tests/json_text_policy_tests.cpp'
       - 'native/tests/current-geometry/**'
@@ -100,11 +96,7 @@ on:
       - 'native/engine/**'
       - 'native/renderer/**'
       - 'native/ui/**'
-      - 'native/assets/geometry/current/**'
-      - 'native/resources/current_geometry.qrc'
       - 'native/cmake/**'
-      - 'native/tools/m97/cut-kernel-generate.mjs'
-      - 'native/tools/m97/current-geometry-source.test.mjs'
       - 'native/tests/json-text-policy/**'
       - 'native/tests/json_text_policy_tests.cpp'
       - 'native/tests/current-geometry/**'
@@ -140,12 +132,15 @@ jobs:
       - name: Compile native polygon kernel and current contract probe
         run: |
           cmake -S shared -B build-native/p6-core -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
-          cmake --build build-native/p6-core --target polygon_clipping_probe cut_geometry_probe reference_image_core_tests --parallel 2
+          cmake --build build-native/p6-core --target polygon_clipping_probe cut_geometry_probe reference_image_core_tests river_partition_probe --parallel 2
       - name: Compare pinned polygon behavior
         run: |
           node tools/p6-polygon-parity.mjs build-native/p6-core/tests/polygon_clipping_probe
       - name: Compare frozen cut behavior
         run: node tools/p6-cut-parity.mjs build-native/p6-core/tests/cut_geometry_probe
+      - name: Compare frozen river behavior
+        if: success() || failure()
+        run: node shared/tests/river-partition-parity.mjs build-native/p6-core/tests/river_partition_probe
       - name: Compare frozen reference behavior
         if: success() || failure()
         run: ctest --test-dir build-native/p6-core -R '^reference_image_core_tests$' --output-on-failure
@@ -265,10 +260,6 @@ jobs:
           node native/tools/reference-parity/trace-fixtures.mjs
           node native/tools/reference-parity/refine-fixtures.mjs
           node --test tests/unit/reference-shared-runtime.test.mjs
-      - name: Canonical Web geometry calculation resources
-        run: |
-          node native/tools/m97/cut-kernel-generate.mjs --check
-          node --test native/tools/m97/current-geometry-source.test.mjs
       - name: Pages source exclusion and complete required runtime
         run: node --test tests/unit/monorepo-pages-staging.test.mjs tools/parity/ci-changes.test.mjs
       - name: Record the bounded native and WASM source evidence

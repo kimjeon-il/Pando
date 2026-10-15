@@ -60,8 +60,7 @@
     "check:reference-runtime": "node --test tests/unit/reference-shared-runtime.test.mjs",
     "package:shared-core": "node tools/package-shared-core-assets.mjs --build-dir build-native/wasm/wasm",
     "check:shared-core-assets": "node tools/package-shared-core-assets.mjs --build-dir build-native/wasm/wasm --check",
-    "build:geometry-runtime": "node native/tools/m97/cut-kernel-generate.mjs",
-    "check:geometry-runtime": "node native/tools/m97/cut-kernel-generate.mjs --check && node --test native/tools/m97/current-geometry-source.test.mjs",
+    "check:geometry-runtime": "node --test tests/unit/p6-polygon-core.test.mjs tests/unit/edit-preparation.test.mjs",
     "test:gis-python": "python -m unittest discover -s tests -p \"test_*.py\" && python -m unittest discover -s tests/python -p \"test_*.py\""
   },
   "devDependencies": {
