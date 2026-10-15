@@ -175,31 +175,30 @@ export function prepareCountrySharedBoundaryPacket(segments = [], features = [],
     const row = { a: segment.start, b: segment.end, ownerIds: segment.ownerIds };
     excluded.insert(index, row, segmentBounds(row));
   });
-  const outlines = [];
+  // Indexing/owner selection stays Worker-local; a single C++ call owns
+  // all collinearity projections, interval union and remaining source edges.
+  const pendingOutlines = [];
   for (const id of [...outlineIds].sort()) {
     if (byId.get(id).boundaryRootId !== id) continue;
     for (const [start, end] of store.get(id).renderableSegments) {
       const row = { a: start, b: end };
       const bounds = segmentBounds(row).map((value, index) => value + (index < 2 ? -1e-7 : 1e-7));
-      const dx = end[0] - start[0], dy = end[1] - start[1];
-      const length2 = dx * dx + dy * dy;
-      const intervals = excluded.query(bounds).filter(edge => edge.ownerIds.includes(id)).flatMap(edge => {
-        const project = point => ((point[0] - start[0]) * dx + (point[1] - start[1]) * dy) / length2;
-        const aligned = point => Math.abs((point[0] - start[0]) * dy - (point[1] - start[1]) * dx) <= 1e-7 * Math.sqrt(length2);
-        if (!aligned(edge.a) || !aligned(edge.b)) return [];
-        const a = project(edge.a), b = project(edge.b);
-        const first = Math.max(0, Math.min(a, b)), last = Math.min(1, Math.max(a, b));
-        return last > first ? [[first, last]] : [];
-      }).sort((a, b) => a[0] - b[0]);
-      const point = t => [start[0] + dx * t, start[1] + dy * t];
-      let cursor = 0;
-      for (const [first, last] of intervals) {
-        if (first > cursor + 1e-9) outlines.push({ start: point(cursor), end: point(first), ownerIds: [id] });
-        cursor = Math.max(cursor, last);
-      }
-      if (cursor < 1 - 1e-9) outlines.push({ start: point(cursor), end, ownerIds: [id] });
+      const blocked = excluded.query(bounds).filter(edge => edge.ownerIds.includes(id))
+        .map(edge => [edge.a, edge.b]);
+      pendingOutlines.push({ id, start, end, blocked });
     }
   }
+  const clipped = pendingOutlines.length
+    ? sharedCalculationCore.boundarySubtractOverlapsBatch(
+      pendingOutlines.map(({ start, end, blocked }) => [[start, end], blocked])) : [];
+  if (!Array.isArray(clipped) || clipped.length !== pendingOutlines.length
+    || clipped.some(pieces => !Array.isArray(pieces))) {
+    throw Object.assign(new Error('Incomplete compiled outline overlap subtraction.'),
+      { code: 'PL-BOUNDARY-OVERLAP' });
+  }
+  const outlines = pendingOutlines.flatMap(({ id }, index) => clipped[index]
+    .map(([start, end]) => ({ start, end, ownerIds: [id] })));
+
   const packet = prepareStrokePacket(segments.filter(segment => !exteriorSegments.has(segment)), maxEdgeDegrees);
   return { ...packet, ownerIds: [...new Set([...packet.ownerIds, ...byId.keys()])], internalOwners,
     outlineOverrides: prepareStrokePacket(outlines, maxEdgeDegrees), outlineOwnerIds: [...outlineIds].sort() };
