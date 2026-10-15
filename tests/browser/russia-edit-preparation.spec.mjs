@@ -68,7 +68,8 @@ test('Russia static library replacement reuses the confirmed batch and undoes at
     window.__libraryBatchRequests = 0;
     window.Worker = class extends NativeWorker {
       postMessage(message, ...rest) {
-        if (message.type === 'execute' && message.operation === 'territorial-library-batch') window.__libraryBatchRequests++;
+        if (message?.rpc === 'pandolab-worker-rpc' && message?.protocolVersion === 1
+          && message?.type === 'request' && message.operation === 'territorial-library-batch') window.__libraryBatchRequests++;
         return super.postMessage(message, ...rest);
       }
     };
@@ -134,7 +135,8 @@ for (const renderer of ['webgl2', 'webgl1', 'canvas']) {
       const NativeWorker = window.Worker;
       window.Worker = class extends NativeWorker {
         postMessage(message, ...rest) {
-          if (message.type === 'execute') window.__russiaEdit.jobs.push(message.operation);
+          if (message?.rpc === 'pandolab-worker-rpc' && message?.protocolVersion === 1
+            && message?.type === 'request') window.__russiaEdit.jobs.push(message.operation);
           return super.postMessage(message, ...rest);
         }
       };
@@ -190,6 +192,7 @@ for (const renderer of ['webgl2', 'webgl1', 'canvas']) {
     await expect(page.locator('g.boundary-vertex')).toHaveCount(0);
     const metrics = await page.evaluate(() => window.__russiaEdit);
     const tasks = metrics.tasks.filter(task => task.start >= metrics.start);
+    expect(metrics.jobs).toEqual(expect.arrayContaining(['territorial-drawn', 'territorial-edit']));
     const summary = { renderer, ...baseline, requests: metrics.jobs.length, longTasks: tasks.length, longestTaskMs: Math.round(Math.max(0, ...tasks.map(task => task.duration))), ticks: metrics.ticks };
     await writeFile(testInfo.outputPath('russia-edit-metrics.json'), JSON.stringify(summary, null, 2));
     console.log('Russia edit metrics', JSON.stringify(summary));
