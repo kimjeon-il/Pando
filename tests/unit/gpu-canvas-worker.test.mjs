@@ -312,10 +312,27 @@ test('the Worker reports direct and spontaneous render failures through its exis
   const { replies, send, runTimer } = canvasRuntime({ renderError: new Error('bitmap transfer failed') });
   send({ type: 'view', renderRequestId: 7, frameId: 10, revision: 2, viewRevision: 2, projectGeneration: 2 });
   assert.equal(replies.at(-1).message.type, 'error');
-  assert.equal(replies.at(-1).message.message, 'bitmap transfer failed');
+  assert.equal(replies.at(-1).message.message.split('\n')[0], 'Error: bitmap transfer failed');
   send({ type: 'hydro-edits', revision: 1, features: [] });
   runTimer();
   assert.equal(replies.at(-1).message.type, 'error');
   assert.equal(replies.at(-1).message.message, 'bitmap transfer failed');
   assert.equal(replies.filter(({ message }) => message.type === 'frame').length, 0);
+});
+
+test('pick failures reject their own request and keep the Canvas worker alive', async () => {
+  const sent = [], native = { postMessage: value => sent.push(value), terminate() {} };
+  const channel = createGpuCanvasWorker({ worker: native, generation: 1, acceptFrame: () => true });
+  native.onmessage({ data: { type: 'ready' } });
+  const first = channel.pick([1, 2]);
+  native.onmessage({ data: { type: 'hydro-pick', requestId: sent.at(-1).requestId,
+    error: { code: 'PL-CANVAS-HYDRO-PICK', message: 'pick failed', stack: 'original stack' } } });
+  await assert.rejects(first, error => error.code === 'PL-CANVAS-HYDRO-PICK' && error.stack === 'original stack');
+  const second = channel.pick([3, 4]);
+  native.onmessage({ data: { type: 'hydro-pick', requestId: sent.at(-1).requestId, fid: 7 } });
+  assert.equal(await second, 7);
+  let prevented = false; channel.onerror = () => {};
+  native.onerror({ preventDefault() { prevented = true; } });
+  assert.equal(prevented, true);
+  channel.terminate();
 });

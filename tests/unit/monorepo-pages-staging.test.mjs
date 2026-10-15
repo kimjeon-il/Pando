@@ -23,7 +23,7 @@ function fixture() {
   assert.equal(run('git', ['config', 'user.email', 'test@example.invalid'], root).status, 0);
   put(root, 'index.html', '<h1>Web</h1>');
   put(root, '.nojekyll', '');
-  put(root, 'assets/data/terrain/v0.12.6/manifest.json', '{}');
+  put(root, 'assets/data/terrain-preview/v0.13.3-p1/manifest.json', '{}');
   put(root, 'assets/data/hydro/v0.13.2/manifest.json', '{}');
   put(root, 'reports/a.md', 'report');
   put(root, 'native/CMakeLists.txt', 'project(native)');

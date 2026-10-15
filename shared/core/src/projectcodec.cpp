@@ -1230,7 +1230,7 @@ ProjectDocument replaceWebTerritorialSource(const ProjectDocument& content,const
     validateProvenanceDigests(next,false);GeometryProvenanceCodecAccess::sealVerifiedOpaqueBaseline(next);validateDocument(next);return next;
 }
 std::string webSnapshot(const ProjectSnapshot& snapshot) {validateDocument(snapshot.document());return webSnapshotValue(snapshot.document(),{}).encode();}
-std::string encodeWeb(const ProjectSnapshot& snapshot,const PlatformPorts& ports,const WebStorageContext& context) {
+codecjson::Value encodeWebValue(const ProjectSnapshot& snapshot,const PlatformPorts& ports,const WebStorageContext& context) {
     require(bool(ports.validateFlagDataUrl),"CODEC_PLATFORM_REQUIRED: flag validator");
     const auto& d=snapshot.document();validateDocument(d);validateWebObjectIds(d);validateProvenanceDigests(d);
     require(!d.geometryProvenance.opaqueUncertain||!hasUnpromotedInlineAllocations(d.geometryProvenance),
@@ -1245,10 +1245,9 @@ std::string encodeWeb(const ProjectSnapshot& snapshot,const PlatformPorts& ports
     const auto archiveCount=semanticArchive(d).size();
     auto root=webSnapshotValue(d,context);
     requireWebNumbers(root);
-    const auto bytes=root.encode()+"\n";require(bytes.size()<=256ll*1024*1024,"LIMIT_EXCEEDED");
-    // The validation import owns its parsed tree. Release the export tree before
-    // that import so the full archive is never retained twice as JSON Values.
-    root=V{};const auto restored=decodeWeb(bytes,ports);
+    // Validate the DTO directly: storage changes its envelope before encoding,
+    // and must not serialize/parse the entire archive just to obtain this tree.
+    const auto restored=decodeWebValue(root,ports);
     // Web has no version carrier for a private inline shape. Only its exact
     // single owner may reload an omitted allocation at a new private version;
     // explicit archive references and shared/promoted references stay exact.
@@ -1289,7 +1288,11 @@ std::string encodeWeb(const ProjectSnapshot& snapshot,const PlatformPorts& ports
     }
     require(restored.geometryProvenance.originalArchive.size()==archiveCount,
             "UNSUPPORTED_WEB_EXPORT: semantic geometry archive loss");
-    return bytes;
+    return root;
+}
+std::string encodeWeb(const ProjectSnapshot& snapshot,const PlatformPorts& ports,const WebStorageContext& context) {
+    const auto bytes=encodeWebValue(snapshot,ports,context).encode()+"\n";
+    require(bytes.size()<=256ll*1024*1024,"LIMIT_EXCEEDED");return bytes;
 }
 
 std::string encodeWebDelta(const ProjectDocument& before,const ProjectDocument& after,const ChangeImpact& impact) {
