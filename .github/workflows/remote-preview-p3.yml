@@ -125,8 +125,8 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
       - name: Verify the active built-in world mesh decoder and GPU capability wiring
         run: node --test tests/unit/country-mesh-codec-runtime.test.mjs tests/unit/gpu-scene-platform-port.test.mjs
-      - name: Verify the C++ area delegation and boundary-edit handoff
-        run: node --test tests/unit/p5-spherical-area-delegation.test.mjs tests/unit/edit-preview-handoff.test.mjs tests/unit/country-shared-boundary-state.test.mjs
+      - name: Verify C++ area, shared-border packet, and boundary-edit handoff
+        run: node --test tests/unit/p5-spherical-area-delegation.test.mjs tests/unit/edit-preview-handoff.test.mjs tests/unit/country-shared-boundary-state.test.mjs tests/unit/country-shared-boundary-generator.test.mjs
       - name: Run real desktop and emulated mobile screenshots plus startup observability
         shell: bash
         env:
