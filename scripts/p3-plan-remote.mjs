@@ -9,8 +9,9 @@ export const root=fileURLToPath(new URL('../',import.meta.url));
 const present=(dir,path)=>existsSync(resolve(dir,path));
 
 export function classifyP3(paths,{native,web}={},scope='auto') {
-  if(!['auto','all','preview','browser','qt','off'].includes(scope))
+  if(!['auto','all','acceptance','preview','browser','qt','off'].includes(scope))
     throw Error('P3_INVALID_SCOPE: '+scope);
+  if(scope==='acceptance')return {...classifyP3(paths,{native,web},'all'),scope,acceptance:true};
   paths=paths.filter(path=>!path.endsWith('.md'));
   const availableWeb=web ?? present(root,'index.html');
   const availableNative=native ?? (present(root,'native/CMakeLists.txt')

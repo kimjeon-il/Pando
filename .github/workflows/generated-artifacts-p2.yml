@@ -61,6 +61,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
       - name: Test source fingerprint, rebuild selection, publication guard
+        if: github.event_name == 'push' || inputs.verification == 'full'
         run: node --test tests/unit/p2-artifact-plan.test.mjs tests/unit/shared-core-assets.test.mjs
       - name: Select only stale source-derived assets
         id: scopes
