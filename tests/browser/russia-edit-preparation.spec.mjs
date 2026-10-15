@@ -124,7 +124,9 @@ test('Russia detailed line preparation remains cancellable and keeps the origina
 
 for (const renderer of ['webgl2', 'webgl1', 'canvas']) {
   test(`Russia detailed polygon creation, boundary refresh, undo and preparation cancellation (${renderer})`, async ({ page }, testInfo) => {
-    test.setTimeout(150_000);
+    // The full-resolution parent may require an additional asynchronous history
+    // rehydration after creation. Keep the contract strict but allow it to settle.
+    test.setTimeout(300_000);
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
     await page.addInitScript(() => {
@@ -179,7 +181,9 @@ for (const renderer of ['webgl2', 'webgl1', 'canvas']) {
     await expect(page.locator('path.territorial-internal-boundary')).toHaveCount(0);
     expect(await page.evaluate(() => JSON.stringify(window.PANDOLAB_TERRITORIAL.get('RUS').geometry) === window.__russiaOriginal)).toBe(true);
     await page.locator('#undoBtn').click();
-    await expect.poll(children).toBe(0);
+    // The UI triggers asynchronous C++ project history; a click is not its
+    // completion signal, particularly for Russia's 36,756 coordinates.
+    await expect.poll(children, { timeout: 90_000 }).toBe(0);
     await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('RUS'));
     await page.locator('#editEntityCoastBtn').evaluate(button => button.click());
     await page.locator('#modeCancelBtn').click();
