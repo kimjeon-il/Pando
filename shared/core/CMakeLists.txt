@@ -60,6 +60,7 @@ add_library(pandoeditor_core STATIC
     src/boundaryoverlap.cpp
     src/boundaryrefinement.cpp
     src/boundarysplit.cpp
+    src/countrycontact.cpp
     src/territorialmutation.cpp
     src/commands.cpp
   src/commandbatch.cpp
@@ -111,4 +112,8 @@ set_source_files_properties(src/boundaryrefinement.cpp PROPERTIES COMPILE_OPTION
 
 # Preserve JS intermediate floating point steps for contact split ordering.
 set_source_files_properties(src/boundarysplit.cpp PROPERTIES COMPILE_OPTIONS
+    "$<$<CXX_COMPILER_ID:MSVC>:/fp:strict>;$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-ffp-contract=off>")
+
+# Match V8's source-edge projections across native and WASM targets.
+set_source_files_properties(src/countrycontact.cpp PROPERTIES COMPILE_OPTIONS
     "$<$<CXX_COMPILER_ID:MSVC>:/fp:strict>;$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-ffp-contract=off>")

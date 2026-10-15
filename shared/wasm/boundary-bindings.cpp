@@ -3,6 +3,7 @@
 #include <pandoeditor/boundaryoverlap.h>
 #include <pandoeditor/boundaryrefinement.h>
 #include <pandoeditor/boundarysplit.h>
+#include <pandoeditor/countrycontact.h>
 #include <emscripten/bind.h>
 #include <emscripten/val.h>
 #include <cmath>
@@ -227,6 +228,97 @@ val boundarySplitCandidatesForWeb(val sourceEdges,val nodeCoordinates,double eps
     }
     std::terminate();
 }
+
+val countryContactsForWeb(val features,val pairs) {
+    try {
+        requireArray(features,"INVALID_COUNTRY_CONTACT");
+        requireArray(pairs,"INVALID_COUNTRY_CONTACT");
+        const unsigned featureCount=features["length"].as<unsigned>();
+        const unsigned pairCount=pairs["length"].as<unsigned>();
+        if(featureCount>200'000||pairCount>300'000)
+            throw std::invalid_argument("INVALID_COUNTRY_CONTACT: oversized feature or pair set");
+        std::vector<CountryContactFeature> inputs;inputs.reserve(featureCount);
+        std::size_t totalRows=0;
+        for(unsigned i=0;i<featureCount;++i) {
+            const val entries=features[i];
+            requireArray(entries,"INVALID_COUNTRY_CONTACT");
+            const unsigned count=entries["length"].as<unsigned>();
+            if(totalRows+count>2'000'000)
+                throw std::invalid_argument("INVALID_COUNTRY_CONTACT: excessive source rows");
+            totalRows+=count;
+            CountryContactFeature feature;feature.rows.reserve(count);
+            for(unsigned n=0;n<count;++n) {
+                const val row=entries[n];
+                requireArray(row,"INVALID_COUNTRY_CONTACT");
+                if(row["length"].as<unsigned>()!=5)
+                    throw std::invalid_argument("INVALID_COUNTRY_CONTACT: row requires edge and three source indices");
+                const auto integer=[](val value)->unsigned {
+                    if(value.typeOf().as<std::string>()!="number")
+                        throw std::invalid_argument("INVALID_COUNTRY_CONTACT: index must be a number");
+                    const double number=value.as<double>();
+                    if(!std::isfinite(number)||number<0||number>2'000'000||std::floor(number)!=number)
+                        throw std::invalid_argument("INVALID_COUNTRY_CONTACT: invalid source index");
+                    return unsigned(number);
+                };
+                feature.rows.push_back({{readPoint(row[0]),readPoint(row[1])},
+                    integer(row[2]),integer(row[3]),integer(row[4])});
+            }
+            inputs.push_back(std::move(feature));
+        }
+        std::vector<std::pair<std::size_t,std::size_t>> pairIndices;
+        pairIndices.reserve(pairCount);
+        for(unsigned i=0;i<pairCount;++i) {
+            const val pair=pairs[i];
+            requireArray(pair,"INVALID_COUNTRY_CONTACT");
+            if(pair["length"].as<unsigned>()!=2)
+                throw std::invalid_argument("INVALID_COUNTRY_CONTACT: pair requires two feature indices");
+            for(unsigned axis=0;axis<2;++axis) {
+                if(pair[axis].typeOf().as<std::string>()!="number")
+                    throw std::invalid_argument("INVALID_COUNTRY_CONTACT: invalid pair index");
+            }
+            const double a=pair[0].as<double>(),b=pair[1].as<double>();
+            if(!std::isfinite(a)||!std::isfinite(b)||a<0||b<0||
+               a>=featureCount||b>=featureCount||std::floor(a)!=a||std::floor(b)!=b||a==b)
+                throw std::invalid_argument("INVALID_COUNTRY_CONTACT: pair index out of range");
+            pairIndices.emplace_back(std::size_t(a),std::size_t(b));
+        }
+        const auto results=buildCountryContactPairs(inputs,pairIndices);
+        auto output=val::array();
+        unsigned n=0;
+        for(const auto& result:results) {
+            auto item=val::array(),candidateRows=val::array(),shared=val::array();
+            unsigned j=0;
+            for(const auto& candidate:result.candidates) {
+                auto pair=val::array();
+                pair.set(0,candidate.first);pair.set(1,candidate.second);
+                candidateRows.set(j++,pair);
+            }
+            j=0;
+            for(const auto& segment:result.segments) {
+                auto row=val::array(),refs=val::array();
+                row.set(0,webPoint(segment.edge.first));
+                row.set(1,webPoint(segment.edge.second));
+                unsigned k=0;
+                for(const auto& ref:segment.refs) {
+                    auto tuple=val::array();
+                    tuple.set(0,ref.owner);tuple.set(1,ref.row);
+                    tuple.set(2,ref.startT);tuple.set(3,ref.endT);
+                    refs.set(k++,tuple);
+                }
+                row.set(2,refs);
+                shared.set(j++,row);
+            }
+            item.set(0,candidateRows);item.set(1,shared);
+            output.set(n++,item);
+        }
+        return output;
+    }catch(const std::exception& error) {
+        auto js=val::global("Error").new_(std::string(error.what()));
+        js.set("code",std::string("PL-COUNTRY-CONTACT"));
+        js.throw_();
+    }
+    std::terminate();
+}
 EMSCRIPTEN_BINDINGS(pandoeditor_boundary_chains) {
     emscripten::function("boundaryConnectChains",&boundaryConnectForWeb);
     emscripten::function("boundaryOpposingInteriors",&boundaryOpposingForWeb);
@@ -234,5 +326,6 @@ EMSCRIPTEN_BINDINGS(pandoeditor_boundary_chains) {
     emscripten::function("boundarySubtractOverlapsBatch",&boundaryOverlapBatchForWeb);
     emscripten::function("boundaryRefineSegments",&boundaryRefineForWeb);
     emscripten::function("boundarySplitCandidatesBatch",&boundarySplitCandidatesForWeb);
+    emscripten::function("countryContactPairsBatch",&countryContactsForWeb);
     emscripten::constant("boundaryDefaultMaxEdgeDegrees",pandoeditor::kDefaultBoundaryEdgeDegrees);
 }
