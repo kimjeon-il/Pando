@@ -52,6 +52,13 @@ void appendPositions(std::vector<float>& buffer,const std::vector<Position>& poi
 
 constexpr double AREA_EPSILON=1e-20;
 using Triangle=std::array<std::uint32_t,3>;
+using RenderedPositionKey=std::array<std::int64_t,2>;
+RenderedPositionKey renderedPositionKey(float longitude,float latitude) {
+    constexpr std::int64_t half=180'000'000,world=360'000'000;
+    const auto lon=std::int64_t(std::llround(double(longitude)*1'000'000.));
+    return {((lon+half)%world+world)%world-half,
+        std::int64_t(std::llround(double(latitude)*1'000'000.))};
+}
 std::uint64_t edgeKey(std::uint32_t a,std::uint32_t b) {
     if(a>b)std::swap(a,b);
     return (std::uint64_t(a)<<32)|b;
@@ -157,9 +164,26 @@ PolygonGeometryPacket makePolygonGeometryPacket(const pandoeditor::Geometry& geo
             for(const auto index:triangle)indices->push_back(static_cast<std::uint32_t>(base)+index);
         for(const auto& triangle:retained)
             for(const auto index:triangle)globeIndices->push_back(static_cast<std::uint32_t>(base)+index);
+        // Polar projection and packing can give distinct mesh vertex IDs the
+        // same rendered position. Count physical face incidence after packing,
+        // including +/-360 aliases, so their internal seams never gain strokes.
+        // Resolve aliases once per vertex, keeping compact edge keys in the
+        // existing incidence map rather than re-quantizing every face edge.
+        std::vector<std::uint32_t> renderedVertices(geographic.size());
+        {
+            std::map<RenderedPositionKey,std::uint32_t> representatives;
+            for(std::size_t i=0;i<geographic.size();++i) {
+                const auto offset=(base+i)*2;
+                const auto key=renderedPositionKey((*positions)[offset],(*positions)[offset+1]);
+                renderedVertices[i]=representatives.emplace(key,static_cast<std::uint32_t>(i)).first->second;
+            }
+        }
+        const auto renderedEdge=[&](std::uint32_t a,std::uint32_t b) {
+            return edgeKey(renderedVertices[a],renderedVertices[b]);
+        };
         std::map<std::uint64_t,std::pair<std::pair<std::uint32_t,std::uint32_t>,unsigned>> edges;
         const auto record=[&](std::uint32_t a,std::uint32_t b) {
-            const auto key=edgeKey(a,b);
+            const auto key=renderedEdge(a,b);
             auto& entry=edges[key];
             if(!entry.second)entry.first={a,b};
             ++entry.second;
@@ -169,12 +193,13 @@ PolygonGeometryPacket makePolygonGeometryPacket(const pandoeditor::Geometry& geo
         }
         std::set<std::uint64_t> rendered;
         const auto emit=[&](std::uint32_t a,std::uint32_t b) {
-            const auto key=edgeKey(a,b);
+            const auto key=renderedEdge(a,b);
             const auto it=edges.find(key);
             if(it==edges.end()||it->second.second!=1||!rendered.insert(key).second||
                artificialClosure(geographic[a],geographic[b]))return;
-            const auto start=packed(geographic[a]),end=packed(geographic[b]);
-            if(start==end)return;
+            if(renderedVertices[a]==renderedVertices[b])return;
+            const Position start{(*positions)[(base+a)*2],(*positions)[(base+a)*2+1]};
+            const Position end{(*positions)[(base+b)*2],(*positions)[(base+b)*2+1]};
             appendPositions(*boundary,{start,end});
         };
         // Source rings preserve dash/chain ordering. Any retained boundary
