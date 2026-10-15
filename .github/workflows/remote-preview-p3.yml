@@ -67,6 +67,11 @@ on:
         description: Optional Playwright grep for remaining browser acceptance cases
         type: string
         required: false
+      browser_flows:
+        description: Run editing flows; disable only to measure performance after reusing flow evidence
+        type: boolean
+        required: false
+        default: true
       scope:
         description: Run changed scopes only (auto), or select a diagnostic
         type: choice
@@ -260,7 +265,7 @@ jobs:
             --workers=1 --retries=0 --max-failures=1 --output=test-results/p3-browser \
             2>&1 | tee test-results/p3-browser.log
       - name: Verify affected Web editing, persistence and reference workflows
-        if: inputs.scope == 'acceptance' || (inputs.scope == 'browser' && inputs.retry_failed)
+        if: inputs.browser_flows != false && (inputs.scope == 'acceptance' || (inputs.scope == 'browser' && inputs.retry_failed))
         shell: bash
         env:
           PANDOLAB_BROWSER_CHANNEL: chromium

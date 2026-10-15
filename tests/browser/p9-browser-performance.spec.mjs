@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
+import { writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import { createP3PreviewServer } from '../../scripts/p3-preview-server.mjs';
 
@@ -40,7 +41,7 @@ test('P9 alternates fixed baseline and candidate browser startup, focus frames a
       httpCache: 'disabled by CDP on both pages', serviceWorkers: 'blocked',
       storage: 'separate fresh contexts, retained per side after one warmup; Cache Storage may be warm',
       concurrency: 'one application page at a time; previous page and CDP session closed before every sample',
-      frames: '120 consecutive requestAnimationFrame intervals starting immediately before RUS focus button click',
+      frames: '120 consecutive requestAnimationFrame intervals starting immediately before invoking the existing RUS focus button command; excludes pointer and panel animation timing',
       warmupsPerContext: 1, initialAlternatingRounds: 5, maximumExtraRoundsIfUncertain: 5,
       memory: 'CDP Performance.getMetrics JSHeapUsedSize after focus frames, no forced GC',
       node: process.version, cpu: os.cpus()[0]?.model, platform: process.platform },
@@ -86,7 +87,8 @@ test('P9 alternates fixed baseline and candidate browser startup, focus frames a
       await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.select('RUS'));
       await expect(page.locator('#propertyTitle')).toHaveText('러시아');
       const focus = page.locator('#focusSelectedObjectBtn');
-      await expect(focus).toBeVisible();await expect(focus).toBeEnabled();
+      await expect(focus).toHaveCount(1);await expect(focus).toBeEnabled();
+      const beforeView = await page.evaluate(()=>JSON.stringify(window.__PANDOLAB_VIEW_DEBUG__.snapshot()));
       await page.evaluate(()=>{
         const state = {intervals:[],done:false};globalThis.__p9FocusFrames=state;
         let previous=null;
@@ -94,7 +96,8 @@ test('P9 alternates fixed baseline and candidate browser startup, focus frames a
           if(state.intervals.length===120)state.done=true;else requestAnimationFrame(frame);};
         requestAnimationFrame(frame);
       });
-      await focus.click();
+      await focus.evaluate(button=>button.click());
+      expect(await page.evaluate(()=>JSON.stringify(window.__PANDOLAB_VIEW_DEBUG__.snapshot()))).not.toBe(beforeView);
       await page.waitForFunction(()=>globalThis.__p9FocusFrames.done,undefined,{timeout:30_000});
       const frames = await page.evaluate(()=>globalThis.__p9FocusFrames.intervals);
       expect(frames).toHaveLength(120);
@@ -132,7 +135,9 @@ test('P9 alternates fixed baseline and candidate browser startup, focus frames a
   } catch(error) {
     report.error={name:error.name,message:error.message};throw error;
   } finally {
-    await testInfo.attach('p9-browser-performance.json',{body:Buffer.from(JSON.stringify(report,null,2)),contentType:'application/json'});
+    const reportPath=testInfo.outputPath('p9-browser-performance.json');
+    await writeFile(reportPath,JSON.stringify(report,null,2)+'\n');
+    await testInfo.attach('p9-browser-performance.json',{path:reportPath,contentType:'application/json'});
     if(browser)await browser.close();
     if(server)await new Promise((done,reject)=>{server.close(error=>error?reject(error):done());server.closeIdleConnections();});
   }

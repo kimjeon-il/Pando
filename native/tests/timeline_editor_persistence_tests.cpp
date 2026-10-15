@@ -455,7 +455,12 @@ private slots:
     document.geometryProvenance.originalArchive.insert(geometry);
     addInlineContent(document,"hydroEdits",geometry);document.hydro.back().kind=kind.toStdString();
     document.presentation.webPresentation.itemVisibility["hydro"][contentId]=false;
-    Project original;original.replace(document);const auto before=::projectcodec::encode(original);
+    // Web imports derive documentId from the complete project. Admit the finished
+    // fixture before taking its native byte baseline, rather than retaining the
+    // static fixture's identity after adding hydro content and visibility.
+    Project prepared;prepared.replace(document);
+    Project original;original.replace(::projectcodec::decodeWeb(::projectcodec::encodeWeb(prepared.snapshot())));
+    const auto before=::projectcodec::encode(original);
     const auto nativeGroup=kind=="river"?QString("rivers"):QString("lakes");
     const auto hidden=QJsonDocument::fromJson(before).object()["presentation"].toObject()["webPresentation"].toObject()["hiddenItems"].toObject();
     QCOMPARE(hidden[nativeGroup].toArray(),QJsonArray{QString::fromStdString(contentId)});QVERIFY(!hidden.contains("hydro"));
