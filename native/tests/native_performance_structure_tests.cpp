@@ -321,7 +321,7 @@ private slots:
     }
     void staleWorkerIsMeasuredAndNeverPublishesPreparedPayload() {
         auto project=sample();CommandJobRunner runner([&]()->const Project&{return project;});QSignalSpy measured(&runner,&CommandJobRunner::operationMeasured);
-        const auto original=project.snapshot(),ref=territorialRef("A");
+        const auto original=project.snapshot();const auto ref=territorialRef("A");
         QCOMPARE(project.country("A")->color,std::uint32_t(0x123456));
         QCOMPARE(original.country("A")->color,std::uint32_t(0x123456));
         auto gate=std::make_shared<Gate>();Release release{gate};bool completed=false;
