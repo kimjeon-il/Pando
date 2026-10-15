@@ -106,8 +106,8 @@ function canOverlap(a, b) {
   return a.some(first => b.some(second => boundsOverlap(first, second)));
 }
 
-const robustPolygonIntersection = (clipper, left, right) => (
-  clippingOperationWithPrecisionRetry(clipper, 'intersection', left, right)
+const robustPolygonIntersection = (left, right) => (
+  clippingOperationWithPrecisionRetry('intersection', left, right)
 );
 
 function planarArea(multiPolygon) {
@@ -129,7 +129,7 @@ function featureId(feature, index) {
   return String(properties.pandolab_id || properties.ADM0_A3 || properties.ISO_A3 || properties.GID_0 || feature?.id || index + 1);
 }
 
-export function validateCollection(collection, affectedIds = null, clipper = globalThis.polygonClipping) {
+export function validateCollection(collection, affectedIds = null) {
   const features = collection?.features || [];
   const ids = features.map(featureId);
   if (ids.some(id => !id) || new Set(ids).size !== ids.length) throw new Error('국가 ID가 비어 있거나 중복되었습니다.');
@@ -153,7 +153,6 @@ export function validateCollection(collection, affectedIds = null, clipper = glo
         for (let rightIndex = 0; rightIndex < rightPolygons.length; rightIndex += 1) {
           if (!boundsOverlap(componentBounds[i][leftIndex], componentBounds[j][rightIndex])) continue;
           const componentOverlap = robustPolygonIntersection(
-            clipper,
             [leftPolygons[leftIndex]],
             [rightPolygons[rightIndex]],
           );

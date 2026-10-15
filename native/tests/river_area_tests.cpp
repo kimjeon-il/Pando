@@ -162,7 +162,9 @@ private slots:
         for(const auto& text:{QString("12,364.03 km²"),QString("12364 km²"),QString("12.364 km²"),QString("12,364 m²"),QString("12,364"),QString("12,364.00 km²"),QString("0 km²")}) {
             auto diagnostic=fixture.diagnostic;auto raw=diagnostic["raw"].toObject();raw["formatted"]=text;diagnostic["raw"]=raw;
             const auto rejected=m972test::validateMetricDisplayContract(diagnostic,fixture.geometry,fixture.nativeArea,fixture.browserArea,metricSourcePins(),source);
-            QVERIFY(!rejected.accepted);QVERIFY(rejected.rawScalarEqual);QCOMPARE(rejected.ulpDistance,QString("0"));
+            QVERIFY(!rejected.accepted);QCOMPARE(rejected.rawScalarEqual,fixture.nativeArea==fixture.browserArea);
+            const auto nativeBits=metricBits(fixture.nativeArea).toULongLong(nullptr,16),browserBits=metricBits(fixture.browserArea).toULongLong(nullptr,16);
+            QCOMPARE(rejected.ulpDistance,QString::number(nativeBits>=browserBits?nativeBits-browserBits:browserBits-nativeBits));
         }
         std::vector<QByteArray> mutants{QByteArray{},QByteArray("not QML")};
         auto changed=source;changed.replace("areaKm2<10 ? 2 : areaKm2<100 ? 1 : 0","2");mutants.push_back(changed);

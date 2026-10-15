@@ -3,7 +3,7 @@ import { ringSignedArea, hasCanonicalPolygonWinding } from './map-edit-geometry.
 import { clippingOperationWithPrecisionRetry } from './polygon-clipping-calculation.js';
 
 /** Calculation kernel; every command owns a private working map. */
-export function createCountryCommandCalculator(clipper) {
+export function createCountryCommandCalculator() {
   const geometryBoundsCache = new WeakMap();
   const boundsFor = geometry => {
     if (!geometry || typeof geometry !== 'object') return geometryBounds(geometry);
@@ -14,7 +14,7 @@ export function createCountryCommandCalculator(clipper) {
     }
     return bounds;
   };
-  const clippingOperation = (method, ...inputs) => clippingOperationWithPrecisionRetry(clipper, method, ...inputs);
+  const clippingOperation = (method, ...inputs) => clippingOperationWithPrecisionRetry(method, ...inputs);
 
   function areaPolygonsNearFeatures(features, areaCoordinates) {
     const areaBounds = boundsFor({ type: 'MultiPolygon', coordinates: areaCoordinates });
@@ -328,7 +328,7 @@ export function createCountryCommandCalculator(clipper) {
     // land, but not the same planar polygon. Keep this private geometric view
     // separate from the originals so untouched features keep their identity.
     const geographic = new Map([...working].map(([id, feature]) => {
-      const geometry = wrapPolygonGeometry(feature.geometry, clipper);
+      const geometry = wrapPolygonGeometry(feature.geometry);
       return [id, geometry === feature.geometry ? feature : { ...feature, geometry }];
     }));
     const sourceIds = [...new Set((message.sourceIds || []).map(String))].filter(Boolean);
@@ -336,7 +336,7 @@ export function createCountryCommandCalculator(clipper) {
     const newFeature = clone(message.newFeature);
     const newId = featureId(newFeature);
     if (!sources.length || sources.length !== sourceIds.length || !newFeature?.geometry || !newId) throw new Error('새 국가의 원본 국가 데이터를 찾을 수 없습니다.');
-    let transferred = multiCoordinates(wrapPolygonGeometry(message.transferredGeometry, clipper));
+    let transferred = multiCoordinates(wrapPolygonGeometry(message.transferredGeometry));
     const sourceInputs = areaPolygonsNearFeatures(sources, transferred);
     const sourceUnion = sourceInputs.length ? clippingOperation('union', ...sourceInputs) : [];
     transferred = transferWithinSourceUnion(transferred, sourceUnion,

@@ -47,7 +47,7 @@ double area(const Project& project,const std::string& id) {
 }
 namespace {
 QByteArray readSplitObservations(const QString& name,const QByteArray& expectedSha,const QByteArray& compressedSha={}) {
-    const auto path=QFileInfo(QString::fromUtf8(__FILE__)).dir().filePath("fixtures/web-m973-split/"+name);
+    const auto path=QDir(QString::fromUtf8(SPLIT_LIFECYCLE_FIXTURES)).filePath(name);
     QFile file(path);
     if(!file.open(QIODevice::ReadOnly))throw std::runtime_error("SPLIT_OBSERVATION_INPUT_UNAVAILABLE");
     const auto input=file.readAll();QByteArray bytes;
@@ -110,7 +110,7 @@ private slots:
         // separately approved 07d3e20 observations own current expectations.
         const auto original=QJsonDocument::fromJson(readSplitObservations("lifecycle-observations.json.gz","b29f65be6069b98925d4c9a32c11794c723517ad52bd3dc842f6dff1fa2b7f5d")).object();
         bool oldDatelineRejected=false;for(const auto& value:original["cases"].toArray())if(value.toObject()["case"]=="root-date-line")oldDatelineRejected=!value.toObject()["stages"].toObject()["selected"].toObject()["selection"].toObject()["previewReady"].toBool();QVERIFY(oldDatelineRejected);
-        QFile manifestFile(QFileInfo(QString::fromUtf8(__FILE__)).dir().filePath("fixtures/web-m973-split/corrections/dateline/observation-manifest.json"));QVERIFY(manifestFile.open(QIODevice::ReadOnly));
+        QFile manifestFile(QDir(QString::fromUtf8(SPLIT_LIFECYCLE_FIXTURES)).filePath("corrections/dateline/observation-manifest.json"));QVERIFY(manifestFile.open(QIODevice::ReadOnly));
         const auto manifest=QJsonDocument::fromJson(manifestFile.readAll()).object();const QString commit="07d3e2053c71573e11c5cf89151f5f6686038511";
         QCOMPARE(manifest["behavioralCommit"].toString(),commit);QCOMPARE(manifest["encoding"].toString(),QString("gzip-json-parts"));
         int all=0,count=0;QSet<QString> seen;
