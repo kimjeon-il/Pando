@@ -83,7 +83,7 @@ export function extractPacketDependency(source, sources, parser=loadPinnedAcorn(
     omittedExports:omitted,reason:'The complete cut import closure consumes only freezeEditingGeometry and its private WeakSet. Unreachable UI packet exports include async syntax unsupported by Qt; the retained prefix is byte-identical.'}};
 }
 // Historical differential oracle only. Production consumes the current root
-// modules through generateCurrent below; these pinned assets remain immutable.
+// calculations through shared C++; these historical oracle assets remain immutable.
 export function generateHistoricalCutOracle(cut=CUT) {
   const parser=loadPinnedAcorn(),outputs=new Map(),modules=[];
   const sources=Object.fromEntries(Object.keys(PINS).map(name=>[name,readFileSync(path.join(cut,'original',name),'utf8')]));

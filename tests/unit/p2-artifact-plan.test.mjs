@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
@@ -7,15 +8,18 @@ import test from 'node:test';
 import { sharedSourceManifest } from '../../tools/package-shared-core-assets.mjs';
 import { wasmStatus, selectJobs, assertSafeGeneratedPaths,
   plan, assertArtifactsCurrent } from '../../scripts/p2-artifact-plan.mjs';
+import { graphStatus, stageArtifacts, publishArtifacts, artifactEvidence, assertBranchState,
+  RECEIPT_PATH } from '../../scripts/lib/p2-artifact-graph.mjs';
+import { publishGeneratedArtifacts } from '../../scripts/p2-publish-artifacts.mjs';
 
 const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
-const bytes=t=>Buffer.isBuffer(t)?t:Buffer.from(t);
 function fixture(t) {
   const root=mkdtempSync(join(tmpdir(),'pando-p2-'));
   t.after(()=>rmSync(root,{recursive:true,force:true}));
   const put=(p,b)=>{const file=join(root,p);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,b);};
   const get=p=>readFileSync(join(root,p));
   put('config/toolchain-versions.json',JSON.stringify({emscripten:'4.0.20'}));
+  put('config/generated-artifacts.json',JSON.stringify({schema:'pandolab-generated-artifact-graph',schemaVersion:1,families:[]}));
   put('shared/CMakeLists.txt','project(Shared)\n');
   put('shared/core/src/calc.cpp','int calc=1;\n');
   const identity=sharedSourceManifest(root);
@@ -51,10 +55,14 @@ test('shared reference calculation edits invalidate WASM',t=>{
   const f=fixture(t);f.put('shared/core/src/referenceimage.cpp','int reference=1;\n');
   assert.equal(plan(f.root).wasm,true);
 });
-test('scope overrides are explicit and bootstrap reruns only the controlled generators',()=>{
+test('scope overrides are explicit and controller changes do not rebuild current WASM',()=>{
   const fresh={wasm:{needed:false}};
   assert.deepEqual(['wasm'].map(k=>selectJobs(fresh,[], 'auto')[k]),[false]);
   assert.equal(selectJobs(fresh,['.github/workflows/generated-artifacts-p2.yml']).bootstrap,true);
+  assert.equal(selectJobs(fresh,['.github/workflows/generated-artifacts-p2.yml']).wasm,false);
+  assert.equal(selectJobs(fresh,['scripts/p2-artifact-plan.mjs']).wasm,false);
+  assert.equal(selectJobs(fresh,[],'wasm').wasm,true);
+  assert.equal(selectJobs(fresh,[],'all').wasm,true);
   assert.deepEqual(['wasm'].map(k=>selectJobs(fresh,[], 'verify')[k]),[false]);
   assert.throws(()=>selectJobs(fresh,[],'unsupported'),/P2_INVALID_SCOPE/);
 });
@@ -69,4 +77,180 @@ test('current output verification fails closed for any selected artifact',()=>{
   assertArtifactsCurrent({wasm:{needed:false}});
   assert.throws(()=>assertArtifactsCurrent({wasm:{needed:true,reasons:['source']}}),/P2_GENERATED_ARTIFACT_STALE: wasm/);
   assert.throws(()=>assertArtifactsCurrent({wasm:{needed:false}},['retired']),/P2_INVALID_SCOPE/);
+});
+
+function graphFixture(t) {
+  const f=fixture(t);
+  const git=(...args)=>execFileSync('git',args,{cwd:f.root,stdio:['ignore','pipe','pipe']}).toString('utf8').trim();
+  git('init','-q');git('config','user.email','test@example.invalid');git('config','user.name','P2 fixture');
+  f.put('.gitignore','build-native/\n');
+  f.put('tools/generate.mjs',`import fs from 'node:fs';\nconst [id,input]=process.argv.slice(2);fs.mkdirSync('out',{recursive:true});fs.writeFileSync('out/'+id+'.txt',fs.readFileSync(input,'utf8')+' generated');\n`);
+  f.put('tools/check.mjs',`import fs from 'node:fs';import assert from 'node:assert/strict';assert.match(fs.readFileSync(process.argv[2],'utf8'),/generated$/);\n`);
+  const family=(id,input,dependencies=[])=>({id,dependencies,inputs:[input],outputs:['out/'+id+'.txt'],tools:['node'],consumers:['consumer/'+id],
+    generate:[['node','tools/generate.mjs',id,input]],validate:[['node','tools/check.mjs','out/'+id+'.txt']]});
+  const families=[family('a','input/a.txt'),family('b','out/a.txt',['a']),family('c','input/c.txt')];
+  f.put('input/a.txt','source-a');f.put('input/c.txt','source-c');
+  for(const id of ['a','b','c'])f.put('out/'+id+'.txt','old');
+  const config=()=>f.put('config/generated-artifacts.json',JSON.stringify({schema:'pandolab-generated-artifact-graph',schemaVersion:1,families}));
+  config();
+  const commit=()=>{git('add','.');git('commit','-qm','fixture');return git('rev-parse','HEAD');};
+  const head=commit();
+  return {...f,git,head,commit,families,config};
+}
+async function publishFixture(f,stageDir='build-native/p2/initial') {
+  const expectedSourceSha=f.git('rev-parse','HEAD');
+  const staged=await stageArtifacts(f.root,{families:['a','b','c'],expectedSourceSha,stageDir});
+  publishArtifacts(f.root,{stageDir,expectedSourceSha});
+  return staged;
+}
+
+test('graph regeneration follows downstream dependencies and preserves unrelated families',async t=>{
+  const f=graphFixture(t);await publishFixture(f);f.commit();
+  assert.deepEqual(graphStatus(f.root).selectedFamilies,[]);
+  f.put('input/a.txt','changed');
+  const plan=graphStatus(f.root);
+  assert.deepEqual(plan.selectedFamilies,['a','b']);
+  assert.ok(plan.statuses.b.reasons.some(reason=>reason.includes('upstream')));
+  assert.equal(plan.statuses.c.needed,false);
+  assert.match(plan.statuses.a.inputs['input/a.txt'],/^[a-f0-9]{64}$/);
+  assert.deepEqual(plan.statuses.a.consumers,['consumer/a']);
+});
+
+test('corrupt output and missing pinned GIS input fail visibly without a download',async t=>{
+  const f=graphFixture(t);await publishFixture(f);f.commit();
+  f.put('out/a.txt','corrupt');
+  assert.match(graphStatus(f.root).statuses.a.reasons.join(';'),/output bytes\/hash/);
+  f.families.push({id:'gis',manual:true,dependencies:[],inputs:[],outputs:['out/gis.bin'],generate:[],validate:[],
+    externalSources:[{path:'external/source.tif',source:'https://example.invalid/pinned.tif',version:'1',sha256:'a'.repeat(64)}]});
+  f.config();
+  const result=graphStatus(f.root,{requested:['gis']});
+  assert.equal(result.statuses.gis.selected,false);
+  assert.match(result.statuses.gis.blocked.join(';'),/missing or mismatched external source/);
+});
+
+test('stage validates actual outputs and does not alter live bytes until publish',async t=>{
+  const f=graphFixture(t),stageDir='build-native/p2/staged';
+  const staged=await stageArtifacts(f.root,{families:['a','b','c'],expectedSourceSha:f.head,stageDir});
+  assert.equal(f.get('out/a.txt').toString(),'old');
+  assert.ok(staged.paths.includes(RECEIPT_PATH));
+  const result=publishArtifacts(f.root,{stageDir,expectedSourceSha:f.head});
+  assert.equal(f.get('out/b.txt').toString(),'source-a generated generated');
+  assert.ok(result.changedPaths.includes('out/b.txt'));
+  const final=f.commit(),evidence=artifactEvidence(f.root,{resultSha:final,expectedSourceSha:f.head,evidenceFile:'build-native/p2/evidence.json'});
+  assert.equal(evidence.resultSha,final);assert.deepEqual(evidence.intermediateSourceShas,[f.head]);
+  assert.deepEqual(graphStatus(f.root).selectedFamilies,[]);
+});
+
+test('unchanged regeneration does not copy files or update provenance just to create a commit',async t=>{
+  const f=graphFixture(t);await publishFixture(f);const head=f.commit();
+  const stageDir='build-native/p2/no-change';
+  const staged=await stageArtifacts(f.root,{families:['a','b','c'],expectedSourceSha:head,stageDir});
+  assert.deepEqual(staged.paths,[]);
+  assert.deepEqual(publishArtifacts(f.root,{stageDir,expectedSourceSha:head}).changedPaths,[]);
+  assert.equal(f.git('status','--porcelain'),'');
+});
+
+test('failed validation, unexpected output, and dirty source cannot publish partial generations',async t=>{
+  const f=graphFixture(t);
+  f.put('input/a.txt','dirty');
+  await assert.rejects(stageArtifacts(f.root,{families:['a','b','c'],expectedSourceSha:f.head,stageDir:'build-native/p2/dirty'}),/P2_DIRTY_SOURCE_CHECKOUT/);
+  const head=f.commit();
+  await assert.rejects(stageArtifacts(f.root,{families:['a','b','c'],expectedSourceSha:head,stageDir:'build-native/p2/failed',
+    run:()=>{throw Error('validator failed');}}),/validator failed/);
+  assert.equal(f.get('out/a.txt').toString(),'old');
+  await assert.rejects(stageArtifacts(f.root,{families:['a','b','c'],expectedSourceSha:head,stageDir:'build-native/p2/outside',
+    run:(_command,cwd)=>writeFileSync(join(cwd,'input/a.txt'),'unexpected')}),/P2_UNEXPECTED_GENERATED_FILE/);
+  assert.equal(f.get('input/a.txt').toString(),'dirty');
+});
+
+test('remote movement aborts publication and partial write failure restores all old bytes',async t=>{
+  const f=graphFixture(t),stageDir='build-native/p2/rollback';
+  await stageArtifacts(f.root,{families:['a','b','c'],expectedSourceSha:f.head,stageDir});
+  assert.throws(()=>publishArtifacts(f.root,{stageDir,expectedSourceSha:f.head,guard:()=>{throw Error('P2_REMOTE_BRANCH_CHANGED');}}),/P2_REMOTE_BRANCH_CHANGED/);
+  assert.equal(f.get('out/a.txt').toString(),'old');
+  assert.throws(()=>publishArtifacts(f.root,{stageDir,expectedSourceSha:f.head,beforeWrite:(_p,index)=>{if(index===1)throw Error('disk failure');}}),/disk failure/);
+  for(const id of ['a','b','c'])assert.equal(f.get('out/'+id+'.txt').toString(),'old');
+  publishArtifacts(f.root,{stageDir,expectedSourceSha:f.head});
+  assert.equal(f.get('out/a.txt').toString(),'source-a generated');
+});
+
+test('native consumers wait for a real Web source commit; a changed source SHA is rejected',t=>{
+  const f=graphFixture(t);
+  f.families.push({id:'mirror',dependencies:['a'],inputs:[],outputs:['out/native.txt'],generate:[],validate:[],afterWebCommit:true});f.config();
+  assert.deepEqual(graphStatus(f.root).deferredFamilies,['mirror']);
+  const changed=f.commit();assert.notEqual(changed,f.head);
+  assert.throws(()=>assertBranchState(f.root,{expectedSourceSha:f.head}),/P2_LOCAL_SOURCE_CHANGED/);
+});
+
+function remoteFixture(t,{native=false,failNative=false}={}) {
+  const f=graphFixture(t);
+  if(native) {
+    f.put('out/mirror.txt','old');
+    f.families.push({id:'mirror',dependencies:['a'],inputs:['out/a.txt'],outputs:['out/mirror.txt'],tools:['node'],
+      generate:[['node','tools/generate.mjs','mirror','out/a.txt']],
+      validate:failNative?[['node','tools/fail.mjs']]:[['node','tools/check.mjs','out/mirror.txt']],afterWebCommit:true});
+    if(failNative)f.put('tools/fail.mjs',"throw Error('native validation failed');\n");
+    f.config();f.commit();
+  }
+  const remote=join(f.root,'build-native/p2/remote.git');
+  mkdirSync(dirname(remote),{recursive:true});f.git('init','--bare','-q',remote);
+  f.git('--git-dir',remote,'config','core.logAllRefUpdates','true');
+  f.git('branch','-M','work/objects');f.git('remote','add','origin',remote);
+  f.git('push','-q','origin','HEAD:refs/heads/work/objects');
+  return {...f,remote,source:f.git('rev-parse','HEAD'),remoteHead:()=>f.git('ls-remote','origin','refs/heads/work/objects').split(/\s/)[0]};
+}
+
+test('publication commits WASM then Web before native provenance and writes the remote once at the final SHA',async t=>{
+  const f=remoteFixture(t,{native:true});
+  f.put('assets/wasm/pandoeditor-core.js','export default()=>({regenerated:true});\n');
+  const manifest=JSON.parse(f.get('assets/wasm/pandoeditor-core.manifest.json'));
+  manifest.assets.js.sha256=digest(f.get('assets/wasm/pandoeditor-core.js'));
+  f.put('assets/wasm/pandoeditor-core.manifest.json',JSON.stringify(manifest));
+  const result=await publishGeneratedArtifacts(f.root,{expectedSourceSha:f.source,branch:'work/objects',wasmBuilt:true,
+    beforeFinalGuard:()=>assert.equal(f.remoteHead(),f.source,'intermediate commits must remain local')});
+  assert.deepEqual(result.commits.map(c=>c.phase),['wasm','web','native']);
+  assert.equal(f.remoteHead(),result.resultSha);
+  const receipt=JSON.parse(f.get(RECEIPT_PATH));
+  assert.equal(receipt.families.mirror.sourceSha,result.commits[1].sha);
+  const updates=f.git('--git-dir',f.remote,'reflog','show','--format=%H','refs/heads/work/objects').split('\n');
+  assert.equal(updates.length,2,'one initial fixture push and one final publication');
+  assert.equal(JSON.parse(f.get(result.evidenceFile)).resultSha,result.resultSha);
+});
+
+test('native validation failure keeps even successful Web commits off the remote',async t=>{
+  const f=remoteFixture(t,{native:true,failNative:true});
+  await assert.rejects(publishGeneratedArtifacts(f.root,{expectedSourceSha:f.source,branch:'work/objects'}),/Command failed/);
+  assert.notEqual(f.git('rev-parse','HEAD'),f.source,'Web was committed locally before native validation');
+  assert.equal(f.remoteHead(),f.source,'failed native outputs cannot publish the intermediate Web commit');
+});
+
+test('wasm-only publication does not generate or claim unrecorded data families',async t=>{
+  const f=remoteFixture(t);
+  assert.deepEqual(plan(f.root,{manual:'wasm'}).selectedFamilies,[]);
+  assert.deepEqual(plan(f.root,{manual:'wasm'}).deferredFamilies,[]);
+  const result=await publishGeneratedArtifacts(f.root,{scope:'wasm',expectedSourceSha:f.source,branch:'work/objects',wasmBuilt:true});
+  assert.equal(result.pushed,false);assert.equal(f.get('out/a.txt').toString(),'old');
+  const evidence=JSON.parse(f.get(result.evidenceFile));
+  assert.deepEqual(evidence.families,{});assert.deepEqual(evidence.verifiedScope,['wasm']);
+  assert.ok(evidence.wasm.assets.wasm.sha256);
+});
+
+test('verify scope checks current manifests and generator validators without commits or pushes',async t=>{
+  const f=remoteFixture(t);
+  await assert.rejects(publishGeneratedArtifacts(f.root,{scope:'verify',expectedSourceSha:f.source,branch:'work/objects'}),/P2_GENERATED_ARTIFACT_STALE/);
+  const published=await publishGeneratedArtifacts(f.root,{expectedSourceSha:f.source,branch:'work/objects'});
+  const verified=await publishGeneratedArtifacts(f.root,{scope:'verify',expectedSourceSha:published.resultSha,branch:'work/objects'});
+  assert.equal(verified.resultSha,published.resultSha);assert.equal(verified.pushed,false);assert.deepEqual(verified.commits,[]);
+  assert.deepEqual(verified.verifiedScope,['wasm','a','b','c']);
+});
+
+test('a concurrent remote commit survives the final publication guard',async t=>{
+  const f=remoteFixture(t);let concurrent;
+  await assert.rejects(publishGeneratedArtifacts(f.root,{expectedSourceSha:f.source,branch:'work/objects',
+    beforeFinalGuard:()=>{
+      concurrent=f.git('commit-tree',f.git('rev-parse',f.source+'^{tree}'),'-p',f.source,'-m','another author');
+      f.git('push','-q','origin',concurrent+':refs/heads/work/objects');
+    }}),/P2_REMOTE_BRANCH_CHANGED/);
+  assert.equal(f.remoteHead(),concurrent);
+  assert.notEqual(f.remoteHead(),f.git('rev-parse','HEAD'));
 });

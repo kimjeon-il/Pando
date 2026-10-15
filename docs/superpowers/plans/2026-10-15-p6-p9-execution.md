@@ -20,3 +20,12 @@ Constraints: no main integration/deployment without a new instruction; no other 
 - Remote run 38750407788: polygon 241, cut 6, river 18 and reference frozen fixtures passed. Wrapping compared against obsolete pre-P5 observations; captured actual 8e229826 baseline separately, preserving historical fixtures.
 - Remote WASM generation/adapters run 38750414154 passed; verified outputs committed by bot as 9c73c2f3. Latest river workspace/signature and empty-wrapping corrections require the next build.
 - P7 graph extension in progress. P8/P9 not complete; no performance or physical-device pass claimed.
+
+## 2026-10-16 execution update
+
+- User changed the verification schedule: finish P6–P8 implementation first; consolidate functional/performance acceptance at P9. No repeated intermediate suites. Fix compilation blockers directly; retain prior evidence.
+- P6 shared C++ comparison 38755218968 and compiled WASM publication 38756134022 passed. Bot 68b5e122 fast-forwarded into the objects worktree.
+- P6 initial performance showed regressions; bulk polygon marshaling, reference prepared coefficients/mesh arrays and river grid lookup were implemented. Acceptance measurement deferred to P9, not claimed passed.
+- Qt Linux 12/13 passed in 38756271115; historical lifecycle winding assertions updated to current canonical contract. No rerun before P9.
+- P7 graph/stage/publication implementation ready; actual first data-family publication pending. P8 CI ownership/obsolete native tool paths being consolidated.
+- Evidence report: reports/development/testing/p6-p9-execution-2026-10-16.md. Main integration/deployment remains out of scope.

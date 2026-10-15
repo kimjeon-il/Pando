@@ -28,7 +28,7 @@ export function pinnedVersions() {
 export function changedPaths({base = '', head = 'HEAD'} = {}) {
   if (SHA.test(base) && !/^0{40}$/.test(base)) {
     try {
-      return { paths: changedLines(execFileSync('git', ['diff', '--name-only', '--diff-filter=ACMRT', '-z', base, head], {cwd:root})), fallback:false };
+      return { paths: changedLines(execFileSync('git', ['diff', '--name-only', '--diff-filter=ACDMRT', '-z', base, head], {cwd:root})), fallback:false };
     } catch {
       // Shallow history or an unreachable 'before' SHA: do not misreport clean.
     }
@@ -73,6 +73,7 @@ export function classifyPaths(paths, capability = {}, manual = 'auto') {
     else mark('wasm');
   } else {
     for (const path of paths.map(p=>p.replaceAll('\\','/'))) {
+      if (path.endsWith('.md')) continue;
       if (infrastructure(path)) {
         out.infra=true;
         for (const key of ['ui','objects','gis','places','core','native','wasm','gisTools']) mark(key);
