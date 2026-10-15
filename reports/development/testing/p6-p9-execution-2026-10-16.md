@@ -3,7 +3,7 @@
 > 보고서 ID: `DEV-076` · 상태: `investigating` · 지도 반영: `not-applicable` · 색인일: 2026-10-16
 > 원문 최종 수정: 2026-10-16
 > 기준본: `8e22982616e3c9ba43eeb84baec17cd886267cfa` · 구현 브랜치: `work/objects`
-> 검증된 WASM 결과 커밋: `68b5e122` · 후속 P7/P8 및 검사 수정은 아직 별도 검증 전
+> 검증된 WASM 결과 커밋: `68b5e122` · P7 생성물 결과 `989a249f`; 후속 정밀 검사 보강과 P9는 별도 검증 전
 
 ## 대상과 실행 원칙
 
@@ -14,7 +14,7 @@
 | 단계 | 구현 | 남은 확인 |
 | --- | --- | --- |
 | P6 | polygon-clipping 0.15.7 포트, 잘라내기·수계·참조이미지 공유 C++, Qt 직접 호출·웹 WASM 연결, 제품용 JS 번들과 필수 Node 빌드 경로 제거 | 최종 후보의 Qt lifecycle·웹 사용자 흐름·성능 |
-| P7 | 기존 P2에 입력 그래프·선택 생성·임시 출력 검증·롤백·원격 SHA 보호·실제 결과 SHA 영수증 연결 | 실제 계열별 최초 생성/기존 출력 비교·원격 게시 |
+| P7 | 기존 P2에 입력 그래프·선택 생성·임시 출력 검증·롤백·원격 SHA 보호·실제 결과 SHA 영수증 연결 | 최초 원격 생성/게시 통과; 후속 공유 정밀 검사 보강 반영 예정 |
 | P8 | P1/P2/P3 실행 책임 구분, 원본/봇 커밋 검증 순서, Qt 빌드 재사용, 일반 workspace의 Acorn 제거, 연구 재수집 수동화 | 최종 CI 계획과 실제 원격 연결 |
 | P9 | 기준본과 반복 측정 도구 확보 | 최종 기능·성능·생성물 재현·실기기 검증 미완료 |
 
@@ -26,9 +26,11 @@
 - [최적화 후 공통 C++ 38755218968](https://github.com/kimjeon-il/Pando/actions/runs/38755218968): 공유 구현 비교 통과. WASM 바인딩 컴파일 증거와 구분한다.
 - [WASM 생성 38756134022](https://github.com/kimjeon-il/Pando/actions/runs/38756134022): 실제 Emscripten 컴파일·산출물 해시·ABI·연결된 계산 어댑터 검사 통과. 봇 결과 `68b5e122`를 로컬로 fast-forward했다.
 - [이전 Qt 실행 38752939754](https://github.com/kimjeon-il/Pando/actions/runs/38752939754): Windows/Linux 앱 빌드는 성공. Linux fixture 경로와 Windows 단일 중첩 QJsonArray 입력 구성에서 실패를 확인하여 수정했다. 성공한 앱 빌드와 실패한 CTest를 구분한다.
-- [Qt 실행 38756271115](https://github.com/kimjeon-il/Pando/actions/runs/38756271115): Linux 12/13 통과, split lifecycle의 과거 정규화 기대값 2건 실패. 과거 fixture를 삭제하지 않고 현행 canonical 형상으로 비교하도록 수정했으며 재실행은 P9에 포함한다. Windows 결과는 확정 전이다.
+- [Qt 실행 38756271115](https://github.com/kimjeon-il/Pando/actions/runs/38756271115): Linux 12/13 통과, split lifecycle의 과거 정규화 기대값 2건 실패. 과거 fixture를 삭제하지 않고 현행 canonical 형상으로 비교하도록 수정했으며 재실행은 P9에 포함한다. Windows도 12/13 통과했으며 같은 lifecycle 항목이 남았다.
 - P2 그래프/게시 모의 저장소 검사: 변경 없음, 하위 갱신, 손상, 원본 누락, 동시 원격 갱신 거부와 로컬 WASM→웹→앱 커밋 순서 확인. 실제 전체 자산 생성 완료를 의미하지 않는다.
 - P1/P3 분류 검사: UI·공통 C++·네이티브·문서 변경과 원본/결과 SHA 실행 순서 확인. 실제 최종 CI 성공과 구분한다.
+
+- [P7 생성·게시 38758885726](https://github.com/kimjeon-il/Pando/actions/runs/38758885726): 9개 웹 계열을 임시 위치에서 생성·검증한 뒤 웹 커밋 `57820b04`, 네이티브 동등 바이트 커밋 `989a249f`를 로컬에서 만들고 최종 결과를 한 번에 push했다. 실제 원격 게시가 확인되었다. 앞선 38758008881은 잔존 Python/Shapely 호출 때문에 중단되었고 산출물을 게시하지 않았다. 해당 경로는 웹과 공유하는 검사로 교체했다.
 
 ## 성능과 미검증 범위
 

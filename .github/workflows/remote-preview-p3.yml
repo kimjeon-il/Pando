@@ -195,12 +195,20 @@ jobs:
         run: node --test tests/unit/p5-spherical-area-delegation.test.mjs tests/unit/edit-preview-handoff.test.mjs tests/unit/country-shared-boundary-state.test.mjs tests/unit/country-shared-boundary-generator.test.mjs
       - name: Verify consecutive country merges and current Worker contracts
         if: inputs.scope == 'acceptance'
-        run: node --test tests/unit/map-edit-preparation-worker.test.mjs tests/unit/map-edit-worker-client.test.mjs
+        run: node --test tests/unit/map-edit-preparation-worker.test.mjs tests/unit/map-edit-worker-client.test.mjs tests/unit/project-preview-worker.test.mjs tests/unit/project-preview-topology.test.mjs tests/unit/gis-geometry-worker.test.mjs tests/unit/shared-geometry-calculations.test.mjs tests/unit/current-hydro-layout.test.mjs tests/unit/hydro-packfile.test.mjs
+      - name: Record final committed artifact identity and current hydro consumption
+        if: inputs.scope == 'acceptance'
+        run: |
+          mkdir -p test-results/p9-artifacts
+          source_sha="$(git rev-parse HEAD)"
+          node scripts/p2-artifact-plan.mjs --evidence --result-sha "$source_sha" --expected-source-sha "$source_sha" --evidence-file test-results/p9-artifacts/generated.json
+          node tools/check-current-hydro-layout.mjs --root . --allow-retired false --out test-results/p9-artifacts/hydro.json
       - name: Verify affected Web editing, persistence and reference workflows
         if: inputs.scope == 'acceptance'
         shell: bash
         env:
           PANDOLAB_BROWSER_CHANNEL: chromium
+          PANDOLAB_TEST_PROFILING: 'off'
         run: |
           mkdir -p test-results/p9-browser
           pnpm exec playwright test tests/browser/annex-e2e.spec.mjs tests/browser/boundary-cut-snapping.spec.mjs tests/browser/reference-image-live-wire.spec.mjs tests/browser/reference-image-line-refine.spec.mjs tests/browser/timeline-persistence.spec.mjs --grep 'annex - (polygon|components|line multiple crossings)|a child cut|live-wire accepts|line refinement accepts|static v10 UI file|complex timeline' --workers=1 --retries=0 --output=test-results/p9-browser
@@ -225,6 +233,7 @@ jobs:
           path: |
             test-results/p3-browser
             test-results/p9-browser
+            test-results/p9-artifacts
             test-results/p3-browser.log
             playwright-report
           if-no-files-found: warn

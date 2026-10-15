@@ -29,3 +29,6 @@ Constraints: no main integration/deployment without a new instruction; no other 
 - Qt Linux 12/13 passed in 38756271115; historical lifecycle winding assertions updated to current canonical contract. No rerun before P9.
 - P7 graph/stage/publication implementation ready; actual first data-family publication pending. P8 CI ownership/obsolete native tool paths being consolidated.
 - Evidence report: reports/development/testing/p6-p9-execution-2026-10-16.md. Main integration/deployment remains out of scope.
+
+- P7 first real generation/publication38758885726 passed: Web57820b04 -> native989a249f, one guarded push; local fast-forward complete. The earlier run stopped on an obsolete Shapely call, now removed from ordinary preview generation. No new intermediate suites were run.
+- P8 implementation wired current manifest/Worker hydro contracts, retained research jobs as explicit dispatch, and removed automatic duplicate publishers. P9 acceptance scope reuses existing affected user-flow tests and matched-run calculation measurement.
