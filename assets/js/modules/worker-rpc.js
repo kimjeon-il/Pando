@@ -191,7 +191,8 @@ export function createWorkerRpcClient({
     worker = null;
     if (!retiredWorker) return;
     retiredWorker.onmessage = null;
-    retiredWorker.onerror = null;
+    // Termination can dispatch a late importScripts ErrorEvent.
+    retiredWorker.onerror = event => event.preventDefault?.();
     try { retiredWorker.terminate?.(); } catch (_) { /* best effort */ }
   }
 
@@ -218,6 +219,7 @@ export function createWorkerRpcClient({
       handleMessage(event);
     };
     currentWorker.onerror = event => {
+      event.preventDefault?.();
       if (closed || worker !== currentWorker) return;
       handleCrash(event);
     };
