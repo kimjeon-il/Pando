@@ -76,18 +76,10 @@ function densifyLine(coordinates, maxEdgeDegrees) {
   return result;
 }
 
-function simplifyLine(coordinates, tolerance, { closed = false, maxEdgeDegrees = 0 } = {}) {
+function simplifyLine(coordinates, tolerance, { maxEdgeDegrees = 0 } = {}) {
   const source = (coordinates || []).filter(finiteCoordinate).map(cloneCoordinate);
   if (!source.length) return [];
-  if (!closed) return densifyLine(simplifyOpenLine(source, tolerance), maxEdgeDegrees);
-  const open = source.length > 1 && source[0][0] === source[source.length - 1][0] && source[0][1] === source[source.length - 1][1]
-    ? source.slice(0, -1) : source;
-  if (open.length < 3) return [];
-  const simplified = simplifyOpenLine([...open, open[0]], tolerance);
-  const ring = simplified.length >= 4 ? simplified : [...open.map(cloneCoordinate), cloneCoordinate(open[0])];
-  const dense = densifyLine(ring, maxEdgeDegrees);
-  if (dense.length > 1) dense[dense.length - 1] = cloneCoordinate(dense[0]);
-  return dense.length >= 4 ? dense : [];
+  return densifyLine(simplifyOpenLine(source, tolerance), maxEdgeDegrees);
 }
 
 export function resolveRenderLod({ requested = 'high', policy = 'exact', protected: protectedGeometry = false } = {}) {
@@ -102,21 +94,15 @@ export function simplifyRenderGeometry(geometry, {
 } = {}) {
   const level = resolveRenderLod({ requested: lod, policy });
   if (!geometry || level === RENDER_LOD_LEVELS.HIGH || policy !== 'independent') return geometry;
+  // Independent ring reduction can move holes outside their shell or create crossings.
+  // Preserve polygon topology; the common mesh engine refines its interior edges.
+  if (geometry.type === 'Polygon' || geometry.type === 'MultiPolygon') return geometry;
   const tolerance = level === RENDER_LOD_LEVELS.COARSE ? 0.075 : 0.018;
   const maxEdgeDegrees = projection === 'globe' ? (level === RENDER_LOD_LEVELS.COARSE ? 4 : 2.5) : 0;
   const line = coordinates => simplifyLine(coordinates, tolerance, { maxEdgeDegrees });
-  const ring = coordinates => simplifyLine(coordinates, tolerance, { closed: true, maxEdgeDegrees });
   if (geometry.type === 'LineString') return { type: 'LineString', coordinates: line(geometry.coordinates) };
   if (geometry.type === 'MultiLineString') return {
     type: 'MultiLineString', coordinates: (geometry.coordinates || []).map(line).filter(part => part.length >= 2),
-  };
-  if (geometry.type === 'Polygon') return {
-    type: 'Polygon', coordinates: (geometry.coordinates || []).map(ring).filter(part => part.length >= 4),
-  };
-  if (geometry.type === 'MultiPolygon') return {
-    type: 'MultiPolygon',
-    coordinates: (geometry.coordinates || []).map(polygon => (polygon || []).map(ring).filter(part => part.length >= 4))
-      .filter(polygon => polygon.length),
   };
   return geometry;
 }
