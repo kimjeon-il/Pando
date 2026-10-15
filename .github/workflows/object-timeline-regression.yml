@@ -51,6 +51,9 @@ jobs:
         run: |
           node --test \
             tests/unit/temporal.test.mjs \
+            tests/unit/timeline-records.test.mjs \
+            tests/unit/timeline-storage.test.mjs \
+            tests/unit/project-timeline-domain.test.mjs \
             tests/unit/timeline-edit.test.mjs \
             tests/unit/timeline-resolver.test.mjs \
             tests/unit/timeline-objects-parity.test.mjs
