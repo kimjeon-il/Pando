@@ -13,7 +13,7 @@ namespace {
 Geometry geometry(const QJsonObject& object) {
     Geometry result;result.type=object["type"].toString().toStdString();
     auto polygons=object["coordinates"].toArray();
-    if(result.type=="Polygon")polygons=QJsonArray{polygons};
+    if(result.type=="Polygon")polygons=QJsonArray{QJsonValue(polygons)};
     for(const auto& p:polygons){Polygon polygon;for(const auto& r:p.toArray()){Ring ring;
         for(const auto& point:r.toArray()){auto c=point.toArray();ring.push_back({c[0].toDouble(),c[1].toDouble()});}
         polygon.push_back(std::move(ring));}result.polygons.push_back(std::move(polygon));}

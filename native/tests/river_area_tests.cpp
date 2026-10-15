@@ -17,7 +17,7 @@ namespace {
 Geometry decoded(const QByteArray& json) {
     const auto row=QJsonDocument::fromJson(json).object();
     Geometry result;result.type=row["type"].toString().toStdString();
-    auto polygons=row["coordinates"].toArray();if(result.type=="Polygon")polygons=QJsonArray{polygons};
+    auto polygons=row["coordinates"].toArray();if(result.type=="Polygon")polygons=QJsonArray{QJsonValue(polygons)};
     for(const auto& p:polygons){Polygon polygon;for(const auto& r:p.toArray()){Ring ring;
         for(const auto& v:r.toArray()){auto xy=v.toArray();ring.push_back({xy[0].toDouble(),xy[1].toDouble()});}
         polygon.push_back(std::move(ring));}result.polygons.push_back(std::move(polygon));}return result;
