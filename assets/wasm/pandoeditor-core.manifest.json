@@ -1,7 +1,7 @@
 {
   "schema": "pandoeditor-core-wasm",
   "abiVersion": 1,
-  "sourceSha256": "0753e77d36a5b0d607cf0df2d5c60e93cb86d46c87879cee77630f1748ff1a34",
+  "sourceSha256": "613bd0b95e60f2d3fba77b4c246f9c2e9f61e50b43d86c29698117d545d5c607",
   "compiler": {
     "name": "emscripten",
     "version": "4.0.20"
@@ -161,7 +161,7 @@
     },
     {
       "path": "shared/core/include/pandoeditor/referenceimage.h",
-      "sha256": "f1a3e30de0dcf3de3389bbbb12c5082451962ed197159d6a86e9ef3a2657f98d"
+      "sha256": "9301d0bce757a373c06594aa002f9149db218df7fffcb80f32fc44bf0c31cb59"
     },
     {
       "path": "shared/core/include/pandoeditor/referencetracing.h",
@@ -389,7 +389,7 @@
     },
     {
       "path": "shared/core/src/referenceimage.cpp",
-      "sha256": "02af4119cdde91584f99864c001f1d9b6de5723b885cfbf1e962932ff31eeb2d"
+      "sha256": "bda6526527d0d6338595554265ef4bbf880cacf62a7bfb0d03f2a58637562e7e"
     },
     {
       "path": "shared/core/src/referencetracing.cpp",
@@ -397,7 +397,7 @@
     },
     {
       "path": "shared/core/src/riverpartition.cpp",
-      "sha256": "3b6db9abb0f1661266da20092d6dc6551ec4e4cdd9f7cd5d96cc2ba038b1bc53"
+      "sha256": "2bebf9cac662400fb66c52255846bb0158f7db5a245799da7fc7d840381927e2"
     },
     {
       "path": "shared/core/src/snapshot.cpp",
@@ -525,7 +525,7 @@
     },
     {
       "path": "shared/tests/reference-image-tests.cpp",
-      "sha256": "b9b6e06fc08a7b023c8c478276425b84cab14ae2d4572445d1d0a8323bb29310"
+      "sha256": "42dbc1fe289860ee74b2dd0d1ab453ab743dc6b3457b83f32e90c4b57099191a"
     },
     {
       "path": "shared/tests/river-partition-probe.cpp",
@@ -573,11 +573,11 @@
     },
     {
       "path": "shared/wasm/polygon-bindings.cpp",
-      "sha256": "5e5f0c4167047a50d1407036ba23e67a856c00b873f6bbd9eca130371d9d1947"
+      "sha256": "febd89c89c25fd594c772b34a87af38285be892dd8a2fc233471a5bff1bb9bac"
     },
     {
       "path": "shared/wasm/reference-bindings.cpp",
-      "sha256": "2c5e8c7bc07b559399f1ae0e89bb3d698bcee28b3f3aadc5117c7c27ffdb5e58"
+      "sha256": "8887e0cc79a38475a3d2c5db18e32a93b00b47a346fe4f7ba0965dbfa0545eec"
     },
     {
       "path": "shared/wasm/river-bindings.cpp",
@@ -595,11 +595,11 @@
   "assets": {
     "js": {
       "file": "pandoeditor-core.js",
-      "sha256": "0918cf3ee00bf132bdaa11898cfaf9125bf788a0d34f6a41f82355d02777079d"
+      "sha256": "ff53f6a075ee3042feb59835cebeadd9d6842db72ca77dee674cdc699e1805a6"
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "dfb0c42d8118df3f8bad2c4456379bc698de10ada1099fdd018c56f99560b33e"
+      "sha256": "9de3983871294c468e910cf2b8915e50f0023e6e9983f3b847a4a83b1cc8f695"
     }
   }
 }
