@@ -131,6 +131,16 @@ jobs:
           build-native/emsdk/emsdk activate "$required_version"
           source build-native/emsdk/emsdk_env.sh
           emcc --version | sed -n '1p' | grep -F "$required_version"
+          # GitHub's /archive/ endpoint has intermittently returned HTTP 404
+          # for the pinned zlib 1.3.1 tag. Use its canonical codeload host,
+          # which serves the identical bytes; Emscripten's SHA-512 validation
+          # remains unchanged. Refuse an unrecognized SDK port definition.
+          port_file=build-native/emsdk/upstream/emscripten/tools/ports/zlib.py
+          original='https://github.com/madler/zlib/archive/refs/tags/v{VERSION}.tar.gz'
+          canonical='https://codeload.github.com/madler/zlib/tar.gz/refs/tags/v{VERSION}'
+          grep -Fq "$original" "$port_file"
+          sed -i "s|$original|$canonical|" "$port_file"
+          grep -Fq "$canonical" "$port_file"
           emcmake cmake --preset pando-wasm
           cmake --build --preset pando-wasm
           node tools/package-shared-core-assets.mjs --build-dir build-native/p1/pando-wasm/shared/wasm
