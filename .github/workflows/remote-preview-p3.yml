@@ -384,14 +384,17 @@ jobs:
           }
           exit $ctestExit
       - name: Verify affected native hydro consumers in the existing Qt build
-        if: needs.plan.outputs.hydro == 'true' && !inputs.retry_failed
+        if: needs.plan.outputs.hydro == 'true' && (!inputs.retry_failed || runner.os == 'Windows')
         shell: pwsh
         run: |
           $manifest = Get-Content native/assets/world/manifest.json -Raw | ConvertFrom-Json
           $env:PANDOEDITOR_HYDRO_FULL_MANIFEST = (Resolve-Path (Join-Path native/assets/world $manifest.hydro.path)).Path
-          cmake --build --preset $env:PANDO_P3_QT_PRESET --target hydro_manifest_tests hydro_runtime_tests hydro_full_dataset_tests river_selection_controller_tests physical_data_store_tests
+          $targets = @('hydro_manifest_tests', 'hydro_runtime_tests', 'hydro_full_dataset_tests', 'physical_data_store_tests')
+          if ('${{ inputs.scope }}' -ne 'acceptance') { $targets += 'river_selection_controller_tests' }
+          cmake --build --preset $env:PANDO_P3_QT_PRESET --target @targets
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          ctest --test-dir "build-native/p3/$env:PANDO_P3_QT_PRESET" -C Release -R '^(hydro_manifest_tests|hydro_runtime_tests|hydro_full_dataset_tests|river_selection_controller_tests|physical_data_store_tests)$' --output-on-failure
+          $pattern = '^(' + ($targets -join '|') + ')$'
+          ctest --test-dir "build-native/p3/$env:PANDO_P3_QT_PRESET" -C Release -R $pattern --output-on-failure
           exit $LASTEXITCODE
       - name: Verify affected native commands, persistence and Undo/Redo
         if: inputs.scope == 'acceptance'
