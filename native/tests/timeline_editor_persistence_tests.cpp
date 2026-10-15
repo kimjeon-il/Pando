@@ -329,9 +329,16 @@ private slots:
     QTemporaryDir dir;QVERIFY(dir.isValid());
     auto web=QJsonDocument::fromJson(read(QStringLiteral(PANDOEDITOR_EXCHANGE_FIXTURES)+"/complex.json")).object();
     auto generic=QJsonDocument::fromJson(inlineOnlyWebFixture()).object()["genericFeatures"].toArray().first().toObject();
-    generic["geometry"]=QJsonObject{{"type","Polygon"},{"coordinates",QJsonArray{QJsonArray{QJsonArray{30,30},QJsonArray{32,30},QJsonArray{32,32},QJsonArray{30,30}}}}};
+    const QJsonArray ring{QJsonArray{30,30},QJsonArray{32,30},QJsonArray{32,32},QJsonArray{30,30}};
+    // Explicit value construction retains the single ring on MSVC as well as
+    // GCC; QJsonArray{ring} can select the array copy constructor and flatten it.
+    const QJsonArray coordinates{QJsonValue(ring)};
+    QCOMPARE(coordinates.size(),1);QCOMPARE(coordinates.first().toArray().size(),4);
+    generic["geometry"]=QJsonObject{{"type","Polygon"},{"coordinates",coordinates}};
     auto properties=generic["properties"].toObject(),source=properties["source"].toObject();source["sourceType"]="Polygon";properties["source"]=source;generic["properties"]=properties;
-    web["genericFeatures"]=QJsonArray{generic};Project imported;imported.replace(::projectcodec::decodeWeb(QJsonDocument(web).toJson()));
+    web["genericFeatures"]=QJsonArray{generic};Project imported;
+    try {imported.replace(::projectcodec::decodeWeb(QJsonDocument(web).toJson()));}
+    catch(const std::exception& error){QFAIL(error.what());}
     QVERIFY(!isStaticTimeline(imported.document()));auto candidate=imported.document();const auto ref=candidate.genericFeatures.front().geometry;
     QVERIFY(!candidate.geometryProvenance.inlineAllocations.at(ref).promoted);
     auto historical=std::find_if(candidate.timelineRecords.geometryBindings.begin(),candidate.timelineRecords.geometryBindings.end(),[](const auto& binding){return binding.validity.to.has_value();});
