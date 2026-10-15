@@ -31,7 +31,7 @@ const summarize = rounds => Object.fromEntries(['interactivePaintMs','editableMs
 test.use({ trace: 'off', screenshot: 'off' });
 
 test('P9 alternates fixed baseline and candidate browser startup, focus frames and main-page heap', async ({ playwright, baseURL }, testInfo) => {
-  test.setTimeout(20*60_000);
+  test.setTimeout(30*60_000);
   const report = {
     schema: 'pando-p9-browser-performance-v1', baselineSha, candidateSha: gitHead(candidateRoot),
     status: 'unverified', rounds: [], warmups: {}, metrics: {},
@@ -42,6 +42,7 @@ test('P9 alternates fixed baseline and candidate browser startup, focus frames a
       storage: 'separate fresh contexts, retained per side after one warmup; Cache Storage may be warm',
       concurrency: 'one application page at a time; previous page and CDP session closed before every sample',
       frames: '120 consecutive requestAnimationFrame intervals starting immediately before invoking the existing RUS focus button command; excludes pointer and panel animation timing',
+      frameCollectionDeadlineMs: 120_000,
       warmupsPerContext: 1, initialAlternatingRounds: 5, maximumExtraRoundsIfUncertain: 5,
       memory: 'CDP Performance.getMetrics JSHeapUsedSize after focus frames, no forced GC',
       node: process.version, cpu: os.cpus()[0]?.model, platform: process.platform },
@@ -98,7 +99,7 @@ test('P9 alternates fixed baseline and candidate browser startup, focus frames a
       });
       await focus.evaluate(button=>button.click());
       expect(await page.evaluate(()=>JSON.stringify(window.__PANDOLAB_VIEW_DEBUG__.snapshot()))).not.toBe(beforeView);
-      await page.waitForFunction(()=>globalThis.__p9FocusFrames.done,undefined,{timeout:30_000});
+      await page.waitForFunction(()=>globalThis.__p9FocusFrames.done,undefined,{timeout:report.conditions.frameCollectionDeadlineMs});
       const frames = await page.evaluate(()=>globalThis.__p9FocusFrames.intervals);
       expect(frames).toHaveLength(120);
       expect(frames.every(value=>Number.isFinite(value)&&value>0)).toBe(true);

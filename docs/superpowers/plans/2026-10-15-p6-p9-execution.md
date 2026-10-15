@@ -4,7 +4,7 @@ Baseline: `8e22982616e3c9ba43eeb84baec17cd886267cfa`, permanent `work/objects`.
 
 The approved conversation plan is the specification. Implement in this order:
 
-- [ ] P6: port polygon-clipping 0.15.7 behavior to shared C++; wire native and WASM; port cut/river calculations; port reference image calculations; retire product QJSEngine scripts and required Node build/test dependencies. Preserve current formats, cancellation, atomicity and Undo/Redo.
+- [x] P6: port polygon-clipping 0.15.7 behavior to shared C++; wire native and WASM; port cut/river calculations; port reference image calculations; retire product QJSEngine scripts and required Node build/test dependencies. Preserve current formats, cancellation, atomicity and Undo/Redo.
 - [x] P7: extend the existing P2 artifact planner with input/output dependencies for territorial, mesh, place, hydro, terrain and native assets. Stage, validate and publish only affected outputs against the originating branch SHA.
 - [x] P8: consolidate affected CI classification and execution; remove proven-unused tools and dependencies; preserve GIS evidence and manual research workflows.
 - [ ] P9: verify one final SHA across Web/Qt workflows and reproducible artifacts; compare performance against baseline; record physical-device gaps explicitly.
@@ -56,3 +56,18 @@ Constraints: no main integration/deployment without a new instruction; no other 
 - Native 38777255148 built both apps; Linux passed five selected tests, with current persistence fixtures/contracts and event-based river cancellation still requiring follow-up. Windows selected CTests actually executed zero because of PowerShell filter argument precedence; that is not a pass. Added --no-tests=error and explicit OS-specific target selection, current manifest fixtures, LF hashes and persistent failure logs.
 - Native follow-up 38781160361 selects only Linux five and Windows ten unresolved targets. P2 38781165569 succeeded and published actual result 05fabceafee3a6b1fd0afdc2a2f70e4b4c691de6 from source 44276b96. Fixed data bytes did not change; only dependency receipt/build metadata/index changed.
 - Browser 38782006562 targets the five unresolved cases and the not-yet-run browser paired comparison on this actual published result. No additional local duplicate runs or full suites. P6 exit acceptance and P9 remain open until these results; unavailable Qt performance fixtures and physical-device evidence remain explicit gaps.
+
+## Acceptance receipts at 4e53feee
+
+- Both latest product apps built on 44276b96 under interpreter guards. Linux remaining hydro/reference/physical tests passed; Windows passed eight of ten selected targets, including current normalizer and command/Undo flows. Product/native assets and shared calculation sources have not changed since those builds.
+- Remaining persistence checks passed 107 cases on both OSes. Two newly added hydro fixture cases retained the pre-edit Web document identity; corrected via the current codec factory, retaining exact final byte comparison. A Windows preview fixture also flattened a single QJsonArray; fixed explicit value nesting and restored the original genuine sweep-failure assertion.
+- 38786479504 verifies only Linux persistence and Windows persistence/preview, without rebuilding/capturing the app. No completed tests are added to this follow-up.
+- Web component annex and live-wire passed in 38783631339; line-refine passed in 38782006562. Polygon and multiple-crossing annex passed locally but hit the remote 180-second workflow budget; their remote completion is not claimed and they are not repeated again.
+- Performance-only 38786487427 reached the fixed baseline focus/view-change but exceeded the 30-second 120-frame collection deadline in its first warmup. No paired distribution or frame/memory non-regression is claimed. Output JSON now persists even on failure. Future collection budget is explicit; no further browser measurement is run in this task under the user's minimal-check constraint.
+- Qt performance fixtures and physical GPU/Windows-screen/Android-touch evidence remain unavailable. P9 remains incomplete; do not merge/deploy or claim full acceptance.
+
+## Final scoped receipt
+
+- 38786479504 succeeded on 4e53feee0a69d0e44c19b92f0e14f4a3a297093f: Linux persistence 1/1 CTest; Windows persistence/preview 2/2, with 109/35 Qt cases passed. Retain earlier passing app builds and unchanged functional/calculation evidence. P6 exit checks are satisfied within that recorded scope.
+- P6–P8 implementation is complete and pushed on work/objects. P9 is deliberately unchecked: remote annex polygon/multiple-crossing timing, paired browser startup/frame/heap distributions, missing external Qt performance fixtures and physical-device validation remain open. No main integration, deployment or category transfer.
+- Future frame collection deadline is explicitly 120 seconds (same 120 samples and unchanged comparison rule); syntax checked only. No further browser rerun was made under the user's minimal-check instruction.
