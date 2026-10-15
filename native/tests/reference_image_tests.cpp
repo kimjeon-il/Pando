@@ -54,7 +54,7 @@ private slots:
 
     void fixedWebLiveWireCorpus()
     {
-        QFile file(QFileInfo(QString::fromUtf8(__FILE__)).absoluteDir().filePath("fixtures/reference-trace.json"));QVERIFY(file.open(QIODevice::ReadOnly));const auto fixtures=QJsonDocument::fromJson(file.readAll()).array();QCOMPARE(fixtures.size(),3);
+        QFile file(QDir(QString::fromUtf8(REFERENCE_IMAGE_FIXTURES)).filePath("reference-trace.json"));QVERIFY(file.open(QIODevice::ReadOnly));const auto fixtures=QJsonDocument::fromJson(file.readAll()).array();QCOMPARE(fixtures.size(),3);
         QTemporaryDir dir;ReferenceImageLibrary library;int processed=0;
         for(const auto value:fixtures){const auto row=value.toObject();const auto input=row["input"].toObject(),expected=row["expected"].toObject();const auto edge=input["edge"].toString();QImage image(64,64,QImage::Format_RGB32);
             for(int y=0;y<64;++y)for(int x=0;x<64;++x){int c=edge=="weak"?128:(x>=32&&(edge!="turn"||y<54))?255:0;image.setPixelColor(x,y,QColor(c,c,c));}
@@ -69,7 +69,7 @@ private slots:
 
     void lineRefinementUsesProductionSession()
     {
-        QFile file(QFileInfo(QString::fromUtf8(__FILE__)).absoluteDir().filePath("fixtures/reference-refine.json"));QVERIFY(file.open(QIODevice::ReadOnly));const auto fixtures=QJsonDocument::fromJson(file.readAll()).array();QCOMPARE(fixtures.size(),3);
+        QFile file(QDir(QString::fromUtf8(REFERENCE_IMAGE_FIXTURES)).filePath("reference-refine.json"));QVERIFY(file.open(QIODevice::ReadOnly));const auto fixtures=QJsonDocument::fromJson(file.readAll()).array();QCOMPARE(fixtures.size(),3);
         QTemporaryDir dir;ReferenceImageLibrary library;int processed=0;
         for(const auto value:fixtures){const auto row=value.toObject();const auto input=row["input"].toObject(),expected=row["expected"].toObject();const auto edge=input["edge"].toString();QImage image(64,64,QImage::Format_RGB32);
             for(int y=0;y<64;++y)for(int x=0;x<64;++x){int c=edge=="weak"?128:(x>=32&&(edge!="turn"||y<54))?255:0;image.setPixelColor(x,y,QColor(c,c,c));}
@@ -140,7 +140,7 @@ private slots:
 
     void fixedWebGeographicCorpus()
     {
-        QFile file(QFileInfo(QString::fromUtf8(__FILE__)).absoluteDir().filePath("fixtures/reference-calibration.json"));
+        QFile file(QDir(QString::fromUtf8(REFERENCE_IMAGE_FIXTURES)).filePath("reference-calibration.json"));
         QVERIFY(file.open(QIODevice::ReadOnly));const auto fixtures=QJsonDocument::fromJson(file.readAll()).array();QCOMPARE(fixtures.size(),7);
         ReferenceImageLibrary library;int processed=0;
         for(const auto &fixture:fixtures) {

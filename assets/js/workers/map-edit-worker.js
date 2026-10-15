@@ -239,7 +239,7 @@ async function execute(payload, context) {
     } else if (message.operation === 'territorial-edit') {
       result = calculateTerritorialEdit(message.payload, sourceFeatures('territorial'), self.polygonClipping);
     } else {
-      ({ result, afterFeatures } = createCountryCommandCalculator(self.polygonClipping).calculate(message, new Map(sourceFeatures('territorial').filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId)).map(feature => [featureId(feature), feature]))));
+      ({ result, afterFeatures } = createCountryCommandCalculator().calculate(message, new Map(sourceFeatures('territorial').filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId)).map(feature => [featureId(feature), feature]))));
     }
     assertRequestCurrent(message, epoch);
     if (message.operation === 'territorial-edit') {

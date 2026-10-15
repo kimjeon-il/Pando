@@ -118,7 +118,7 @@ test('main validator and actual GIS Worker agree on normal, empty, invalid, prec
   ];
   const mainOutcome = collection => {
     try {
-      return { ok: true, ...validateCollection(collection, null, clipperContext.polygonClipping) };
+      return { ok: true, ...validateCollection(collection, null) };
     } catch (error) {
       return { ok: false, error: error.message };
     }

@@ -20,6 +20,24 @@ template<class T> std::vector<T> readVector(const val& value) {
 template<class T> val webVector(const std::vector<T>& value) {
     return val(emscripten::typed_memory_view(value.size(),value.data())).call<val>("slice");
 }
+
+class PreparedReferenceImageWarp {
+public:
+    explicit PreparedReferenceImageWarp(const std::string& descriptor)
+        : warp_(prepareReferenceImageWarp(codecjson::parse(descriptor))) {}
+    val project(const std::string& input) const {
+        const auto p=projectReferenceImagePoint(warp_,codecjson::parse(input));
+        if(!p)return val::null();auto out=val::array();out.set(0,(*p)[0]);out.set(1,(*p)[1]);return out;
+    }
+    val mesh(double columns,double rows) const {
+        const auto result=buildReferenceImageMesh(warp_,columns,rows);
+        if(!result.columns)return val::null();
+        auto out=val::object();out.set("columns",result.columns);out.set("rows",result.rows);
+        out.set("vertices",webVector(result.vertices));out.set("triangles",webVector(result.triangles));return out;
+    }
+private:
+    PreparedReferenceWarp warp_;
+};
 double option(const val& value,const char* key,double fallback) {
     const auto entry=value[key];return entry.isUndefined()?fallback:val::global("Number")(entry).as<double>();
 }
@@ -85,6 +103,10 @@ val calculatePlacement(const std::string& operation,const val& input,const val& 
 }
 }
 EMSCRIPTEN_BINDINGS(pando_reference_image) {
+    emscripten::class_<PreparedReferenceImageWarp>("PreparedReferenceImageWarp")
+        .constructor<std::string>()
+        .function("project",&PreparedReferenceImageWarp::project)
+        .function("mesh",&PreparedReferenceImageWarp::mesh);
     emscripten::function("referenceImageCalculate",&calculate);
     emscripten::function("referenceImagePlacement",&calculatePlacement);
     emscripten::function("referenceGradientField",&gradientField);

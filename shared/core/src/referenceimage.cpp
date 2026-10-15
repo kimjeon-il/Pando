@@ -99,24 +99,14 @@ Row basis(P image,const V& points) {
 V array(const Row& row) {auto out=V::arr();for(auto x:row)out.array.push_back(V::num(x));return out;}
 Row row(const V& value) {Row out;for(const auto& v:value.array)out.push_back(number(v));return out;}
 std::optional<P> project(const V& warp,P uv,bool geographic=true) {
-    if(!yes(get(warp,"ok")))return {};
-    const auto mode=text(get(warp,"mode"));const auto a=row(get(warp,"xCoefficients")),b=row(get(warp,"yCoefficients"));P p;
-    if(mode=="similarity"&&a.size()==4)p={a[0]*uv[0]-a[1]*uv[1]+a[2],a[1]*uv[0]+a[0]*uv[1]+a[3]};
-    else if(mode=="affine"&&a.size()==3&&b.size()==3)p={a[0]*uv[0]+a[1]*uv[1]+a[2],b[0]*uv[0]+b[1]*uv[1]+b[2]};
-    else if(mode=="projective"&&a.size()==8) {
-        const auto d=a[6]*uv[0]+a[7]*uv[1]+1;if(!std::isfinite(d)||std::abs(d)<epsilon)return {};
-        p={(a[0]*uv[0]+a[1]*uv[1]+a[2])/d,(a[3]*uv[0]+a[4]*uv[1]+a[5])/d};
-    } else if(mode=="tps") {
-        const auto r=basis(uv,get(warp,"controlPoints"));if(a.size()!=r.size()||b.size()!=r.size())return {};p={0,0};
-        for(std::size_t i=0;i<r.size();++i){p[0]+=a[i]*r[i];p[1]+=b[i]*r[i];}
-    } else return {};
-    if(!std::isfinite(p[0])||!std::isfinite(p[1]))return {};
-    return geographic?P{wrap(p[0]),std::clamp(p[1],-90.,90.)}:p;
+    return projectReferenceImageWarp(prepareReferenceImageWarp(warp),uv,geographic);
 }
+
 V diagnostics(const V& points,const V& warp) {
+    const auto prepared=prepareReferenceImageWarp(warp);
     auto residuals=V::arr(),warnings=V::arr();Row soft,hard;double minx=INFINITY,miny=INFINITY,maxx=-INFINITY,maxy=-INFINITY;
     for(const auto& p:points.array) {
-        const auto uv=*point(get(p,"image"));const auto projected=project(warp,uv);const auto meters=projected?distance(*point(get(p,"coordinate")),*projected):INFINITY;
+        const auto uv=*point(get(p,"image"));const auto projected=projectReferenceImageWarp(prepared,uv);const auto meters=projected?distance(*point(get(p,"coordinate")),*projected):INFINITY;
         const bool pinned=yes(get(p,"pinned"));residuals.array.push_back(obj({{"id",get(p,"id")},{"pinned",V::boolean(pinned)},{"meters",std::isfinite(meters)?V::num(meters):V{}}}));
         if(std::isfinite(meters))(pinned?hard:soft).push_back(meters);
         minx=std::min(minx,uv[0]);maxx=std::max(maxx,uv[0]);miny=std::min(miny,uv[1]);maxy=std::max(maxy,uv[1]);
@@ -161,7 +151,7 @@ V projective(const V& quad) {
     for(int i=0;i<4;++i)points.array.push_back(obj({{"id",V::str("corner-"+std::to_string(i))},{"image",pair(corners[i])},{"coordinate",quad.array[i]}}));return fit(points,"projective");
 }
 V quad(const V& warp) {
-    auto result=V::arr();for(P uv:{P{0,0},P{1,0},P{1,1},P{0,1}}){const auto p=project(warp,uv);if(!p)return {};result.array.push_back(pair(*p));}return result;
+    const auto prepared=prepareReferenceImageWarp(warp);auto result=V::arr();for(P uv:{P{0,0},P{1,0},P{1,1},P{0,1}}){const auto p=projectReferenceImageWarp(prepared,uv);if(!p)return {};result.array.push_back(pair(*p));}return result;
 }
 std::vector<P> polyline(const V& raw,bool geographic) {
     std::vector<P> result;for(const auto& p:raw.array){auto value=point(p);if(!value)continue;if(geographic)*value={wrap((*value)[0]),std::clamp((*value)[1],-90.,90.)};else if((*value)[0]<0||(*value)[0]>1||(*value)[1]<0||(*value)[1]>1)continue;result.push_back(*value);}return result;
@@ -203,11 +193,14 @@ V calibrationWarp(const V& record) {
     if(yes(get(result,"ok"))&&!lines.array.empty()){std::set<std::string> ids;for(const auto& p:lines.array)ids.insert(text(get(p,"linearConstraintId")));auto& d=result.object["diagnostics"];d.object["linearConstraintCount"]=V::num(ids.size());d.object["linearConstraintPointCount"]=V::num(lines.array.size());}return result;
 }
 V mesh(const V& warp,double columns=24,double rows=16) {
-    if(!yes(get(warp,"ok")))return {};const int cols=int(std::clamp(std::floor((columns?columns:24)+.5),1.,128.)),lines=int(std::clamp(std::floor((rows?rows:16)+.5),1.,128.));auto vertices=V::arr(),triangles=V::arr();
-    for(int y=0;y<=lines;++y)for(int x=0;x<=cols;++x){P uv{double(x)/cols,double(y)/lines};const auto p=project(warp,uv);vertices.array.push_back(obj({{"uv",pair(uv)},{"coordinate",p?pair(*p):V{}}}));}
-    for(int y=0;y<lines;++y)for(int x=0;x<cols;++x){const double a=y*(cols+1)+x,b=a+1,c=a+cols+1,d=c+1;triangles.array.push_back(array({a,b,d}));triangles.array.push_back(array({a,d,c}));}
-    return obj({{"columns",V::num(cols)},{"rows",V::num(lines)},{"vertices",vertices},{"triangles",triangles}});
+    const auto grid=buildReferenceImageMesh(prepareReferenceImageWarp(warp),columns,rows);
+    if(!grid.columns)return {};auto vertices=V::arr(),triangles=V::arr();
+    vertices.array.reserve(grid.vertices.size()/4);triangles.array.reserve(grid.triangles.size()/3);
+    for(std::size_t i=0;i<grid.vertices.size();i+=4)vertices.array.push_back(obj({{"uv",pair({grid.vertices[i],grid.vertices[i+1]})},{"coordinate",std::isfinite(grid.vertices[i+2])?pair({grid.vertices[i+2],grid.vertices[i+3]}):V{}}}));
+    for(std::size_t i=0;i<grid.triangles.size();i+=3)triangles.array.push_back(array({double(grid.triangles[i]),double(grid.triangles[i+1]),double(grid.triangles[i+2])}));
+    return obj({{"columns",V::num(grid.columns)},{"rows",V::num(grid.rows)},{"vertices",vertices},{"triangles",triangles}});
 }
+
 std::optional<P> placementCoordinate(const V& record,P uv) {
     if(uv[0]<0||uv[0]>1||uv[1]<0||uv[1]>1)return {};if(yes(get(record,"flipX")))uv[0]=1-uv[0];if(yes(get(record,"flipY")))uv[1]=1-uv[1];return project(projective(get(record,"mapQuad")),uv);
 }
@@ -267,6 +260,53 @@ V autoGeoref(const V& input){
 }
 }
 
+PreparedReferenceWarp prepareReferenceImageWarp(const V& value) {
+    PreparedReferenceWarp warp;if(!yes(get(value,"ok")))return warp;
+    const auto mode=text(get(value,"mode"));
+    warp.xCoefficients=row(get(value,"xCoefficients"));warp.yCoefficients=row(get(value,"yCoefficients"));
+    const auto& a=warp.xCoefficients;const auto& b=warp.yCoefficients;
+    if(mode=="similarity"&&a.size()==4)warp.mode=PreparedReferenceWarp::Similarity;
+    else if(mode=="affine"&&a.size()==3&&b.size()==3)warp.mode=PreparedReferenceWarp::Affine;
+    else if(mode=="projective"&&a.size()==8)warp.mode=PreparedReferenceWarp::Projective;
+    else if(mode=="tps") {
+        for(const auto& p:get(value,"controlPoints").array){const auto uv=point(get(p,"image"));if(!uv)return {};warp.controlPoints.push_back(*uv);}
+        if(a.size()==warp.controlPoints.size()+3&&b.size()==a.size())warp.mode=PreparedReferenceWarp::ThinPlateSpline;
+    }
+    return warp;
+}
+std::optional<ReferencePoint> projectReferenceImageWarp(const PreparedReferenceWarp& warp,ReferencePoint uv,bool geographic) {
+    const auto& a=warp.xCoefficients;const auto& b=warp.yCoefficients;P p;
+    if(warp.mode==PreparedReferenceWarp::Similarity)p={a[0]*uv[0]-a[1]*uv[1]+a[2],a[1]*uv[0]+a[0]*uv[1]+a[3]};
+    else if(warp.mode==PreparedReferenceWarp::Affine)p={a[0]*uv[0]+a[1]*uv[1]+a[2],b[0]*uv[0]+b[1]*uv[1]+b[2]};
+    else if(warp.mode==PreparedReferenceWarp::Projective) {
+        const auto d=a[6]*uv[0]+a[7]*uv[1]+1;if(!std::isfinite(d)||std::abs(d)<epsilon)return {};
+        p={(a[0]*uv[0]+a[1]*uv[1]+a[2])/d,(a[3]*uv[0]+a[4]*uv[1]+a[5])/d};
+    } else if(warp.mode==PreparedReferenceWarp::ThinPlateSpline) {
+        p={0,0};std::size_t i=0;
+        for(const auto& control:warp.controlPoints) {const auto dx=uv[0]-control[0],dy=uv[1]-control[1],r=radial(dx*dx+dy*dy);p[0]+=a[i]*r;p[1]+=b[i]*r;++i;}
+        for(const auto r:{1.,uv[0],uv[1]}){p[0]+=a[i]*r;p[1]+=b[i]*r;++i;}
+    } else return {};
+    if(!std::isfinite(p[0])||!std::isfinite(p[1]))return {};
+    return geographic?P{wrap(p[0]),std::clamp(p[1],-90.,90.)}:p;
+}
+ReferenceWarpMesh buildReferenceImageMesh(const PreparedReferenceWarp& warp,double columns,double rows) {
+    ReferenceWarpMesh result;if(warp.mode==PreparedReferenceWarp::Invalid)return result;
+    result.columns=int(std::clamp(std::floor((std::isfinite(columns)&&columns?columns:24)+.5),1.,128.));
+    result.rows=int(std::clamp(std::floor((std::isfinite(rows)&&rows?rows:16)+.5),1.,128.));
+    result.vertices.reserve((result.columns+1)*(result.rows+1)*4);result.triangles.reserve(result.columns*result.rows*6);
+    for(int y=0;y<=result.rows;++y)for(int x=0;x<=result.columns;++x) {
+        const P uv{double(x)/result.columns,double(y)/result.rows};const auto p=projectReferenceImageWarp(warp,uv);
+        result.vertices.insert(result.vertices.end(),{uv[0],uv[1],p?(*p)[0]:NAN,p?(*p)[1]:NAN});
+    }
+    for(int y=0;y<result.rows;++y)for(int x=0;x<result.columns;++x) {
+        const auto a=std::uint32_t(y*(result.columns+1)+x),b=a+1,c=a+result.columns+1,d=c+1;
+        result.triangles.insert(result.triangles.end(),{a,b,d,a,d,c});
+    }
+    return result;
+}
+std::optional<ReferencePoint> projectReferenceImagePoint(const PreparedReferenceWarp& warp,const V& value) {
+    const auto uv=point(value);return uv?projectReferenceImageWarp(warp,*uv):std::nullopt;
+}
 std::optional<ReferencePoint> projectReferenceImageWarp(const V& warp,ReferencePoint point,bool geographic) {
     return project(warp,point,geographic);
 }
