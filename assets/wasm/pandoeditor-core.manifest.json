@@ -1,7 +1,7 @@
 {
   "schema": "pandoeditor-core-wasm",
   "abiVersion": 1,
-  "sourceSha256": "084705f90da97d29a05072f97a01cdfbed8f3f3fae8bc224f99c02e664ea412e",
+  "sourceSha256": "2ee1f9eec7e183fa00edbb1a6499b8804576989d9e14d7f7300f26c6d3d375c0",
   "compiler": {
     "name": "emscripten",
     "version": "4.0.20"
@@ -53,7 +53,7 @@
     },
     {
       "path": "shared/core/include/pandoeditor/document.h",
-      "sha256": "904fc7c0d65a8b5e9c0c49f86a053d8a03a5fd0912759c3494a3bcf870255ca9"
+      "sha256": "fe4bfa33e8ca80fd6f54a8c6fcd2b1ccf7923bc606e24a2ed1ae28874863f8b1"
     },
     {
       "path": "shared/core/include/pandoeditor/geobounds.h",
@@ -261,7 +261,7 @@
     },
     {
       "path": "shared/core/src/document.cpp",
-      "sha256": "f84ee257ca99afd69cbc6371f202a5ecc2819ca9970337530c7eed8b50f60b0a"
+      "sha256": "4c114badebcd44740b95babb1071694472f8704c984c41d66483372dbf2dd38c"
     },
     {
       "path": "shared/core/src/documentstate.h",
@@ -511,7 +511,7 @@
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "bc88ec3ae1732597a1f2da3b768340e48d207a528085f0b15c84c3c4f0db0317"
+      "sha256": "5ba1246d9343b85575654a2d2d85cef02f2fdbb8405af0801122156d004cd9a2"
     }
   }
 }
