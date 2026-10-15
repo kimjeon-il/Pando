@@ -161,3 +161,6 @@ else()
 endif()
 add_test(NAME boundary_packet_tests COMMAND boundary_packet_tests)
 set_tests_properties(boundary_packet_tests PROPERTIES TIMEOUT 10)
+add_executable(polygon_clipping_probe polygon-clipping-probe.cpp)
+target_link_libraries(polygon_clipping_probe PRIVATE Pandoeditor::Core)
+

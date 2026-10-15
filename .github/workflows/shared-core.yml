@@ -123,12 +123,34 @@ on:
       - 'pnpm-workspace.yaml'
       - '.github/workflows/shared-core.yml'
   workflow_dispatch:
+    inputs:
+      scope:
+        description: Focused shared calculation verification
+        type: choice
+        options: [all, p6-polygon]
+        default: all
 
 permissions:
   contents: read
 
 jobs:
+  p6-polygon:
+    if: github.event_name == 'workflow_dispatch' && inputs.scope == 'p6-polygon'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Compile native polygon kernel and current contract probe
+        run: |
+          cmake -S shared -B build-native/p6-core -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+          cmake --build build-native/p6-core --target polygon_clipping_probe --parallel 2
+      - name: Compare pinned polygon behavior
+        run: node tools/p6-polygon-parity.mjs build-native/p6-core/tests/polygon_clipping_probe
   contracts:
+    if: github.event_name != 'workflow_dispatch' || inputs.scope != 'p6-polygon'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
@@ -303,6 +325,7 @@ jobs:
             build-native/wasm/wasm/pandoeditor-core.wasm
           if-no-files-found: error
   qt-core-adapters:
+    if: github.event_name != 'workflow_dispatch' || inputs.scope != 'p6-polygon'
     runs-on: windows-2022
     timeout-minutes: 20
     steps:
