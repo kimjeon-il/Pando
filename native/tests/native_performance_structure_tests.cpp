@@ -5,7 +5,6 @@
 #include "nativeperformancemetrics.h"
 #include "native_performance_input_state.h"
 #include <QElapsedTimer>
-#include <QDebug>
 #include <QFile>
 #include <QSemaphore>
 #include <QSignalSpy>
@@ -14,8 +13,11 @@
 #include <QtTest>
 #include <atomic>
 #include <cmath>
+#include <type_traits>
 
 using namespace pandoeditor;
+static_assert(std::is_same_v<decltype(CountryView::color),std::uint32_t>,
+    "Resolved CountryView colors must be values, never references to conditional results");
 namespace {
 Project sample() {
     Project p;
@@ -296,36 +298,43 @@ private slots:
         QCOMPARE(measured.first()[3].toInt(),int(JobDisposition::Cancelled));QVERIFY(measured.first()[2].toDouble()>0);
         QVERIFY(!project.canUndo());QCOMPARE(runner.runningCount(),std::size_t(0));
     }
+    void countryColorViewOwnsExplicitAndFallbackAcrossRevisions() {
+        auto project=sample();const auto ref=territorialRef("A");
+        const auto baseline=project.snapshot();
+        QVERIFY(project.country("A"));QCOMPARE(project.country("A")->color,std::uint32_t(0x123456));
+        QCOMPARE(project.propertyView(ref)->effectiveColor,std::uint32_t(0x123456));
+        QCOMPARE(baseline.country("A")->color,std::uint32_t(0x123456));
+        QVERIFY(project.setColor("A",0x345678));
+        QCOMPARE(project.document().presentation.objectStyles.at(ref).color,std::uint32_t(0x345678));
+        QCOMPARE(project.country("A")->color,std::uint32_t(0x345678));
+        QCOMPARE(baseline.country("A")->color,std::uint32_t(0x123456));
+        QVERIFY(project.undo());
+        QCOMPARE(project.country("A")->color,std::uint32_t(0x123456));
+        QVERIFY(project.redo());
+        QCOMPARE(project.country("A")->color,std::uint32_t(0x345678));
+        auto fallbackDocument=project.document();
+        auto& fallbackStyle=fallbackDocument.presentation.objectStyles.at(ref);
+        fallbackStyle.color=0;fallbackStyle.explicitColor=false;
+        Project fallback;fallback.replace(std::move(fallbackDocument));
+        QCOMPARE(fallback.country("A")->color,std::uint32_t(0xcccccc));
+        QCOMPARE(fallback.propertyView(ref)->effectiveColor,std::uint32_t(0xcccccc));
+    }
     void staleWorkerIsMeasuredAndNeverPublishesPreparedPayload() {
         auto project=sample();CommandJobRunner runner([&]()->const Project&{return project;});QSignalSpy measured(&runner,&CommandJobRunner::operationMeasured);
-        // Diagnostics for the Windows-only stale-worker color mismatch. Keep
-        // all original success/failure expectations and production code intact.
-        const auto sourceSnapshot=project.snapshot();
-        const auto reportColor=[&](const char* phase) {
-            const auto ref=territorialRef("A");
-            const auto& style=project.document().presentation.objectStyles.at(ref);
-            const auto* view=project.country("A");
-            const auto* property=project.propertyView(ref);
-            const auto* original=sourceSnapshot.country("A");
-            const auto address=[](const void* ptr){return QString::number(quintptr(ptr),16);};
-            qInfo().noquote() << "P5_WINDOWS_COLOR_DIAGNOSTIC" << phase
-                << "revision" << project.revision()
-                << "raw" << style.color << "explicit" << style.explicitColor
-                << "view" << (view?view->color:0u)
-                << "effective" << (property?property->effectiveColor:0u)
-                << "sourceSnapshot" << (original?original->color:0u)
-                << "rawAddress" << address(&style.color)
-                << "viewAddress" << address(view?&view->color:nullptr)
-                << "sameAddress" << (view&&&view->color==&style.color);
-        };
-        reportColor("initial");
+        const auto original=project.snapshot(),ref=territorialRef("A");
+        QCOMPARE(project.country("A")->color,std::uint32_t(0x123456));
+        QCOMPARE(original.country("A")->color,std::uint32_t(0x123456));
         auto gate=std::make_shared<Gate>();Release release{gate};bool completed=false;
         runner.submit(project.snapshot(),"stale",blocked(gate,request(project)),[&](auto,auto disposition,PrepareResult result){QCOMPARE(disposition,JobDisposition::Stale);QVERIFY(!result.preview);completed=true;});
-        QTRY_VERIFY(gate->started.available());reportColor("worker-started");
-        QVERIFY(project.setMemo("A","Unrelated later edit"));reportColor("memo-committed");
-        gate->release.release();QTRY_VERIFY(completed);reportColor("stale-completed");QCOMPARE(measured.size(),1);
+        QTRY_VERIFY(gate->started.available());QVERIFY(project.setMemo("A","Unrelated later edit"));
+        QCOMPARE(project.document().presentation.objectStyles.at(ref).color,std::uint32_t(0x123456));
+        QCOMPARE(project.country("A")->color,std::uint32_t(0x123456));
+        QCOMPARE(original.country("A")->color,std::uint32_t(0x123456));
+        gate->release.release();QTRY_VERIFY(completed);QCOMPARE(measured.size(),1);
         QCOMPARE(measured.first()[3].toInt(),int(JobDisposition::Stale));QVERIFY(measured.first()[2].toDouble()>0);
         QVERIFY(project.country("A"));QCOMPARE(project.country("A")->color,std::uint32_t(0x123456));
+        QCOMPARE(project.document().presentation.objectStyles.at(ref).color,std::uint32_t(0x123456));
+        QCOMPARE(original.country("A")->color,std::uint32_t(0x123456));
     }
     void cancelledQueuedTaskHasNoInventedDurationEvent() {
         auto project=sample();CommandJobRunner runner([&]()->const Project&{return project;});QSignalSpy measured(&runner,&CommandJobRunner::operationMeasured);
