@@ -79,3 +79,10 @@ Constraints: no main integration/deployment without a new instruction; no other 
 - Browser paired comparison resumed as 38810034862 using the already documented 120-second collection budget. Result pending.
 - Extend the existing native probe with an opt-in P9 relative profile and production-full-world inputs; identical measurement overlay on baseline/candidate, remote builds only. This does not certify the historical M98 full-stack/stress gate.
 - Android physical touch remains pending a connected device. P9 remains unchecked until actual outstanding results exist.
+
+### Device/performance receipts
+
+- Physical GTX 1650 browser startup/editable/JS-heap comparison completed ten alternating pairs. Those three metrics show no regression; focus-frame p95 remains uncertain after the one permitted extra round. Do not repeat or relabel it passed.
+- Remote Windows baseline/candidate Qt measurement binaries were built successfully in 38812500369, using identical measurement overlays. Local production fixture preparation hit the QtTest 300-second limit; native distributions remain unavailable.
+- The separate full-RUS edit/Worker/autosave group hit an asynchronous test setup race after successful warmups and one pair. The helper now awaits actual drawing-mode readiness; unfinished samples are retained and excluded from acceptance.
+- Android 16/Edge on the connected Galaxy S22+ reached editable, but no completed touch flow was recorded before the user disconnected it. Android touch remains unverified. P9 is still unchecked; no main integration/deployment.

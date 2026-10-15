@@ -127,7 +127,13 @@ export async function readP9EditWorkload(page) {
     probe.drainLongTasks?.();
     return {installed:true,longTaskSupported:probe.longTaskSupported,stage:probe.stage,
       requests:probe.requests.filter(request=>request.stage),longTasks:probe.longTasks,
-      errors:probe.errors,windows:probe.windows};
+      errors:probe.errors,windows:probe.windows,
+      modeUi:{stageLabel:document.querySelector('#modeTaskStage')?.textContent,
+        instruction:document.querySelector('#modeTaskInstruction')?.textContent,
+        busy:document.querySelector('#modeActionBar')?.getAttribute('aria-busy'),
+        lineChecked:document.querySelector('#modeDirectLineMethodInput')?.checked,
+        polygonChecked:document.querySelector('#modePolygonMethodInput')?.checked,
+        componentsChecked:document.querySelector('#modeComponentsMethodInput')?.checked}};
   });
 }
 
@@ -207,7 +213,13 @@ export async function runP9EditWorkload(page, { timeoutMs=90_000 }={}) {
   await expect(page.locator('#modePrimaryBtn')).toBeEnabled({timeout:timeoutMs});
   await page.locator('#territorialCreateNameInput').fill('P9 러시아 경계선 시험');
   await page.locator('#modePrimaryBtn').click();
+  // Setup and method selection both await the real source/component prepare.
+  // A checked radio alone does not establish that the drawing draft is active.
+  await expect(page.locator('#modeActionBar')).toHaveAttribute('aria-busy','false',{timeout:timeoutMs});
   await page.locator('#modeDirectLineMethodInput').check();
+  await expect(page.locator('#modeTaskInstruction')).toHaveText('기준 영역을 가로질러 선을 그리세요.',{timeout:timeoutMs});
+  await expect(page.locator('#modeDirectLineMethodInput')).toBeChecked({timeout:timeoutMs});
+  await expect(page.locator('#modeActionBar')).toHaveAttribute('aria-busy','false',{timeout:timeoutMs});
   const map=await page.locator('#map').boundingBox();expect(map).toBeTruthy();
   const coordinates=[[45,42],[45,67.35]];
   const points=await page.evaluate(coords=>coords.map(coordinate=>window.__PANDOLAB_VIEW_DEBUG__.geoToScreen(coordinate)),coordinates);
