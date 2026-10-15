@@ -1,7 +1,9 @@
 #include <pandoeditor/boundarychain.h>
+#include <pandoeditor/boundarycontact.h>
 #include <emscripten/bind.h>
 #include <emscripten/val.h>
 #include <cmath>
+#include <exception>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -58,6 +60,61 @@ val boundaryConnectForWeb(val input) {
     std::terminate();
 }
 }
+BoundaryInteriorRef readInterior(val value) {
+    requireArray(value,"INVALID_BOUNDARY_INTERIOR");
+    if(value["length"].as<unsigned>()!=3
+       ||value[2].typeOf().as<std::string>()!="number")
+        throw std::invalid_argument("INVALID_BOUNDARY_INTERIOR: expected segment and side");
+    const double side=value[2].as<double>();
+    if(!std::isfinite(side))
+        throw std::invalid_argument("INVALID_BOUNDARY_INTERIOR: nonfinite side");
+    return {{readPoint(value[0]),readPoint(value[1])},side};
+}
+bool opposingInteriors(val segment,val input) {
+    requireArray(segment,"INVALID_BOUNDARY_SEGMENT");
+    if(segment["length"].as<unsigned>()!=2)
+        throw std::invalid_argument("INVALID_BOUNDARY_SEGMENT: expected endpoints");
+    requireArray(input,"INVALID_BOUNDARY_INTERIOR");
+    const unsigned count=input["length"].as<unsigned>();
+    if(count>1'000'000)
+        throw std::invalid_argument("INVALID_BOUNDARY_INTERIOR: excessive owner refs");
+    std::vector<BoundaryInteriorRef> refs;refs.reserve(count);
+    for(unsigned i=0;i<count;++i)refs.push_back(readInterior(input[i]));
+    return boundaryOpposingInteriors({readPoint(segment[0]),readPoint(segment[1])},refs);
+}
+bool boundaryOpposingForWeb(val segment,val input) {
+    try {return opposingInteriors(segment,input);}
+    catch(const std::exception& error) {
+        auto js=val::global("Error").new_(std::string(error.what()));
+        js.set("code",std::string("PL-BOUNDARY-INTERIOR"));
+        js.throw_();
+    }
+    std::terminate();
+}
+val boundaryOpposingBatchForWeb(val input) {
+    try {
+        requireArray(input,"INVALID_BOUNDARY_INTERIOR");
+        const auto count=input["length"].as<unsigned>();
+        if(count>1'000'000)
+            throw std::invalid_argument("INVALID_BOUNDARY_INTERIOR: excessive comparisons");
+        auto out=val::array();
+        for(unsigned i=0;i<count;++i) {
+            const auto item=input[i];
+            requireArray(item,"INVALID_BOUNDARY_INTERIOR");
+            if(item["length"].as<unsigned>()!=2)
+                throw std::invalid_argument("INVALID_BOUNDARY_INTERIOR: expected segment and refs");
+            out.set(i,opposingInteriors(item[0],item[1]));
+        }
+        return out;
+    }catch(const std::exception& error) {
+        auto js=val::global("Error").new_(std::string(error.what()));
+        js.set("code",std::string("PL-BOUNDARY-INTERIOR"));
+        js.throw_();
+    }
+    std::terminate();
+}
 EMSCRIPTEN_BINDINGS(pandoeditor_boundary_chains) {
     emscripten::function("boundaryConnectChains",&boundaryConnectForWeb);
+    emscripten::function("boundaryOpposingInteriors",&boundaryOpposingForWeb);
+    emscripten::function("boundaryOpposingInteriorsBatch",&boundaryOpposingBatchForWeb);
 }
