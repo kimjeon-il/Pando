@@ -141,6 +141,19 @@ jobs:
           grep -Fq "$original" "$port_file"
           sed -i "s|$original|$canonical|" "$port_file"
           grep -Fq "$canonical" "$port_file"
+          # Emscripten 4.0.20 derives the archive suffix from the last
+          # URL component. Codeload ends in v1.3.1, not .tar.gz, although its
+          # content is the same SHA-512 verified gzip archive. Fix only zlib's
+          # suffix inference; do not weaken fetch or integrity verification.
+          node --input-type=module <<'NODE'
+          import {readFileSync,writeFileSync} from 'node:fs';
+          const file='build-native/emsdk/upstream/emscripten/tools/ports/__init__.py';
+          const input=readFileSync(file,'utf8');
+          const old="    ext = url_filename.split('.', 1)[1]";
+          if(input.split(old).length!==2)throw Error('Unexpected pinned Emscripten port loader');
+          const next="    ext = 'tar.gz' if name == 'zlib' and url.startswith('https://codeload.github.com/madler/zlib/tar.gz/refs/tags/v') else url_filename.split('.', 1)[1]";
+          writeFileSync(file,input.replace(old,next));
+          NODE
           emcmake cmake --preset pando-wasm
           cmake --build --preset pando-wasm
           node tools/package-shared-core-assets.mjs --build-dir build-native/p1/pando-wasm/shared/wasm
