@@ -1,14 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { setImmediate } from 'node:timers';
+import { readFileSync } from 'node:fs';
 
 import { createHydroService, createTerrainService } from '../../assets/js/modules/physical-layer-service.js';
 
-const rasterManifest = {
-  version: '0.12.6', crs: 'EPSG:4326', extent: [-180, -90, 180, 90], gutter: 1,
-  urlTemplate: 'terrain/v0.12.6/{level}/{column}-{row}.webp',
-  levels: [{ id: 0, width: 2, height: 1, columns: 1, rows: 1, tileSize: 1024 }],
-};
+const rasterManifest = JSON.parse(readFileSync(new URL('../../assets/data/terrain-preview/v0.13.3-p1/manifest.json', import.meta.url)));
 
 function response(json, ok = true, status = 200) {
   return { ok, status, async json() { return json; } };
@@ -34,7 +31,7 @@ test('terrain service preserves manifest retry policy and lifecycle callbacks', 
     ['loading'],
     ['fetch', 'https://example.test/terrain.json', 3, 15000],
     ['retry', 'terrain-manifest', 2],
-    ['ready', 1],
+    ['ready', 2],
   ]);
 });
 

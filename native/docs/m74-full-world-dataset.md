@@ -1,5 +1,10 @@
 # M7.4 — pinned full-world runtime implementation
 
+This is the historical M7.4 implementation record. Current terrain uses DEM
+0.13.3 and the bundled DEM preview; see [the current terrain contract](../../docs/terrain-preview.md).
+The old raster package and the unrun-environment statements below describe that
+original stage and are not the current runtime or validation status.
+
 ## Source and package contract
 
 The bundled country assets, plus the original terrain manifest, are the exact Git

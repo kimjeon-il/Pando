@@ -58,15 +58,15 @@
     }
   },
   "terrain": {
-    "path": "terrain/v0.12.6/manifest.json",
-    "version": "0.12.6",
-    "gitBlobSha": "6821c49315ffd381758f81dfe4d83b6b574f0ad4",
-    "sha256": "093ae0f088622e2867cad5f318749c47e28776a870e6467d00c31ef810d8690f",
+    "path": "terrain-preview/v0.13.3-p1/manifest.json",
+    "version": "0.13.3-p1",
+    "gitBlobSha": "f64a38ac40f8c9f963e9cdaed3ecc4c54b3b75dc",
+    "sha256": "05e3a657287151c29c338caaec9c5d7cd22d4144d7e2db8ecad536742fe6fee8",
     "required": false,
-    "bytes": 2024,
+    "bytes": 2273,
     "source": {
-      "ref": "c0bd31d13dc8495593d78cf51f7cc195de7c9469",
-      "path": "assets/data/terrain/v0.12.6/manifest.json"
+      "ref": "e07ca47faa2c586751a7bebdf5f6eba479102976",
+      "path": "assets/data/terrain-preview/v0.13.3-p1/manifest.json"
     }
   },
   "hydro": {
