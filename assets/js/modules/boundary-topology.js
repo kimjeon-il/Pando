@@ -151,6 +151,21 @@ export function buildCountrySharedBoundaryContact(left, right) {
   return computeCountrySharedContacts([[left, right]])[0];
 }
 
+// Worker source identities remain JS-owned after C++ contact discovery.
+// Both static cache assembly and incremental patches must merge the same refs
+// without duplicating owner/reference union logic or mutating input rows.
+export function mergeSharedBoundaryContributions(segments) {
+  if (!segments.length) return null;
+  if (segments.length === 1) return segments[0];
+  const refs = [];
+  for (const segment of segments) for (const ref of segment.refs) {
+    if (!refs.some(other => other.featureId === ref.featureId
+      && other.polygonIndex === ref.polygonIndex
+      && other.ringIndex === ref.ringIndex && other.segmentIndex === ref.segmentIndex)) refs.push(ref);
+  }
+  return { ...segments[0], ownerIds: [...new Set(segments.flatMap(segment => segment.ownerIds))].sort(), refs };
+}
+
 export function buildCountrySharedBoundarySegments(features = [], { preparedStore } = {}) {
   const store = preparedStore || createPreparedBoundaryStore();
   if (!preparedStore) store.replace(features);
@@ -169,12 +184,7 @@ export function buildCountrySharedBoundarySegments(features = [], { preparedStor
     for (const segment of segments) {
       const key = segmentKey(segment.start, segment.end, 7);
       const previous = shared.get(key);
-      if (previous) {
-        previous.ownerIds = [...new Set([...previous.ownerIds, ...segment.ownerIds])].sort();
-        for (const ref of segment.refs) if (!previous.refs.some(other => other.featureId === ref.featureId
-          && other.polygonIndex === ref.polygonIndex && other.ringIndex === ref.ringIndex
-          && other.segmentIndex === ref.segmentIndex)) previous.refs.push(ref);
-      } else shared.set(key, segment);
+      shared.set(key, previous ? mergeSharedBoundaryContributions([previous, segment]) : segment);
     }
   return [...shared.values()];
 }
