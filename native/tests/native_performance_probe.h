@@ -18,6 +18,7 @@
 #include <limits>
 #include <QMouseEvent>
 #include <QKeyEvent>
+#include <QDirIterator>
 
 class NativePerfEventFilter final : public QObject {
 public:
@@ -39,10 +40,107 @@ static QString nativePerfFileHash(const QString& path)
     return QString::fromLatin1(hash.result().toHex());
 }
 
+static QString nativePerfWorldRoot()
+{
+    const auto supplied=qEnvironmentVariable("PANDOEDITOR_NATIVE_PERF_WORLD_ROOT");
+    return supplied.isEmpty()?QStringLiteral(PANDOEDITOR_WORLD_ASSET_DIR):supplied;
+}
+
+// Generate measurement inputs through the real world loader and project writer.
+// All roles retain the entire published world; only the view/input differs.
+// These newly pinned inputs do not establish the historical M98 full-stack gate.
+static void prepareNativePerformanceFixtures()
+{
+    const auto output=qEnvironmentVariable("PANDOEDITOR_NATIVE_PERF_FIXTURE_OUTPUT");
+    QVERIFY2(!output.isEmpty()&&!QFileInfo::exists(output),"A fresh fixture output path is required");
+    const auto world=nativePerfWorldRoot();
+    const auto worldManifest=nativePerfJsonFile(QDir(world).filePath("manifest.json"));
+    QVERIFY(!worldManifest.isEmpty());
+    QTemporaryDir privateData;QVERIFY(privateData.isValid());
+    EditorControllerConfig config;config.bootstrapWorld=true;config.worldDataRoot=world;
+    config.appearancePath=privateData.filePath("appearance.json");
+    EditorController editor(config);
+    QTRY_VERIFY_WITH_TIMEOUT(!editor.startupBusy()&&editor.worldStatus()=="canonical",90000);
+    const auto project=QJsonDocument::fromJson(editor.documentBytes()).object();
+    const auto unitCount=project.value("units").toArray().size();
+    QVERIFY(unitCount>=worldManifest.value("countryCount").toInt());
+    QVERIFY(project.value("geometries").toArray().size()>=worldManifest.value("countryCount").toInt());
+    QVERIFY(QDir().mkpath(output));const QDir destination(output);
+    const auto write=[&](const QString& name,const QJsonObject& value)->bool {
+        QSaveFile file(destination.filePath(name));
+        return file.open(QIODevice::WriteOnly)&&file.write(QJsonDocument(value).toJson())>0&&file.commit();
+    };
+    QJsonArray assets;
+    for(const auto& root:{world,QDir(world).filePath("../place")}) {
+        QDirIterator files(root,QDir::Files,QDirIterator::Subdirectories);
+        while(files.hasNext()) {
+            const auto file=files.next();
+            assets.append(QJsonObject{{"path",destination.relativeFilePath(file)},{"sha256",nativePerfFileHash(file)}});
+        }
+    }
+    QVERIFY(!assets.isEmpty());
+    const auto placePath=QDir(world).filePath("../place/manifest.json");
+    const auto place=nativePerfJsonFile(placePath);
+    QVERIFY(!place.isEmpty()&&place.value("revision").toString()!="empty-v1");
+    QJsonArray fixtures;
+    const QStringList roles={"world-standard","dense-view","editing-heavy","large-project"};
+    for(const auto& role:roles) {
+        const auto projectName=role+".pando.json",viewName=role+".view.json",inputName=role+".input.json";
+        QVERIFY(editor.saveFile(QUrl::fromLocalFile(destination.filePath(projectName))));
+        QVERIFY(editor.setProjectionMode("flat"));
+        const bool europe=role=="dense-view"||role=="editing-heavy";
+        const bool large=role=="large-project";
+        QVERIFY(editor.publishMapView({{"viewportWidth",1920},{"viewportHeight",929},
+            {"centerLongitude",europe?15.:large?100.:0.},{"centerLatitude",europe?50.5:large?55.:20.},
+            {"scale",europe?5000.:large?2200.:300.},{"translateX",960.},{"translateY",464.5}}));
+        const auto view=editor.mapViewState();
+        QJsonObject input{{"schema","pandoeditor-native-performance-inputs"},{"version",2},
+            {"sequenceId","m98-native-v3-prepared-drag"},{"measurementScope","p9-relative"},
+            {"script",QJsonObject{{"panCount",120},{"zoomCount",90},{"wheelAngleDelta",5},
+                {"panSampleStart",1},{"panPreparationOffset",QJsonArray{20,0}},{"demZoomOutInitialScaleMultiplier",2}}}};
+        if(role=="editing-heavy") {
+            QPoint selection;bool found=false;
+            for(int y=160;y<760&&!found;y+=20)for(int x=500;x<1400&&!found;x+=20) {
+                const auto hit=editor.pickObjectScreen(x,y,view.value("flatZoom").toDouble());
+                if(hit.value("domain").toString()=="territorial"&&hit.value("id").toString()=="DEU") {
+                    selection={x,y};found=true;
+                }
+            }
+            QVERIFY2(found,"Published world must expose a real DEU selection point");
+            editor.selectCountry("DEU");QVERIFY(editor.beginGeometryEdit());
+            double distance=std::numeric_limits<double>::infinity();QPointF vertex;
+            for(const auto& path:editor.geometryDraftPaths())for(const auto& value:path.toMap().value("vertices").toList()) {
+                const auto point=value.toMap();
+                const auto screen=editor.editMapPointToScreen(point.value("x").toDouble(),point.value("y").toDouble(),view);
+                if(screen.x()<500||screen.x()>1400||screen.y()<180||screen.y()>700)continue;
+                const auto candidate=std::hypot(screen.x()-918,screen.y()-277);
+                if(candidate<distance){distance=candidate;vertex=screen;}
+            }
+            QVERIFY(std::isfinite(distance));editor.cancelGeometryEdit();
+            input["editingPreviewCancel"]=QJsonObject{{"selectionScreen",QJsonArray{selection.x(),selection.y()}},
+                {"selectionEntityId","DEU"},{"dragFrom",QJsonArray{qRound(vertex.x()),qRound(vertex.y())}},
+                {"dragTo",QJsonArray{qRound(vertex.x())+8,qRound(vertex.y())-5}}};
+        }
+        QVERIFY(write(viewName,{{"format","pandoeditor-view-state"},{"view",QJsonObject::fromVariantMap(view)}}));
+        QVERIFY(write(inputName,input));
+        fixtures.append(QJsonObject{{"id",role},{"projectPath",projectName},{"projectSha256",nativePerfFileHash(destination.filePath(projectName))},
+            {"viewPath",viewName},{"viewSha256",nativePerfFileHash(destination.filePath(viewName))},
+            {"inputContractPath",inputName},{"inputContractSha256",nativePerfFileHash(destination.filePath(inputName))},
+            {"assets",assets},{"expectedFinalStates",QJsonObject{{"p9-preview-cancel","document-and-history-unchanged"}}},
+            {"fullStack",false},{"datasetClass","production-full-world"},{"unitCount",unitCount},
+            {"geometryCount",project.value("geometries").toArray().size()}});
+    }
+    QVERIFY(write("fixtures.json",{{"schema","pandoeditor-native-performance-fixtures"},{"version",2},
+        {"measurementScope","p9-relative"},{"fixtureDefinition","Entire canonical production world in all roles; standard/global, dense/Europe, editing/DEU, large/Asia navigation. No cloned objects or generated geometry. M98 full-stack/stress acceptance is not established."},
+        {"productionPlace",QJsonObject{{"path",destination.relativeFilePath(placePath)},
+            {"sha256",nativePerfFileHash(placePath)},{"revision",place.value("revision")}}},{"fixtures",fixtures}}));
+}
+
 // Opt-in native-device measurement. It uses the production QML and controller,
 // isolated persistence, and never changes the supplied recovery files.
 static void runNativePerformanceProbe()
 {
+    const bool relative=qEnvironmentVariable("PANDOEDITOR_NATIVE_PERF_PROFILE")=="p9-relative";
     const auto reportPath=qEnvironmentVariable("PANDOEDITOR_NATIVE_PERF_REPORT");
     if(reportPath.isEmpty())QSKIP("Native GPU performance requires an explicit isolated measurement run");
     const auto manifestPath=qEnvironmentVariable("PANDOEDITOR_NATIVE_PERF_FIXTURES");
@@ -88,7 +186,7 @@ static void runNativePerformanceProbe()
     }
     EditorControllerConfig config;
     config.bootstrapWorld=true;config.autosaveEnabled=true;config.projectPreviewEnabled=true;
-    config.worldDataRoot=QStringLiteral(PANDOEDITOR_WORLD_ASSET_DIR);
+    config.worldDataRoot=nativePerfWorldRoot();
     config.privateProjectPath=privateData.filePath("private.json");
     config.autosaveProjectPath=privateData.filePath("autosave-project.json");
     config.autosaveViewPath=privateData.filePath("autosave-view.json");
@@ -97,6 +195,7 @@ static void runNativePerformanceProbe()
     const auto recovery=fixtureProjects.value("world-standard");
     QElapsedTimer clock;clock.start();
     EditorController editor(config);
+    if(relative)QVERIFY(editor.configurePlaceData(QUrl::fromLocalFile(QDir(config.worldDataRoot).filePath("../place/manifest.json"))));
     const auto seedViewPath=qEnvironmentVariable("PANDOEDITOR_NATIVE_PERF_VIEW");
     if(recovery.isEmpty()&&!seedViewPath.isEmpty()) {
         QFile seed(seedViewPath);QVERIFY(seed.open(QIODevice::ReadOnly));
@@ -341,9 +440,15 @@ static void runNativePerformanceProbe()
     const auto initialEnvelope=nativePerfJsonFile(QFileInfo(manifestPath).dir().filePath(fixtureContracts.value("world-standard").value("viewPath").toString()));
     const auto fixtureView=initialEnvelope.value("view").toObject().toVariantMap();
     QVERIFY(!fixtureView.isEmpty());QVERIFY(editor.setProjectionMode(fixtureView.value("projection").toString()));QVERIFY(editor.publishMapView(fixtureView));
+    if(relative) {
+        window->update();
+        QTRY_VERIFY_WITH_TIMEOUT(gpu->rendererReady()&&!gpu->uploadsPending()&&presents.load()>0&&!editor.startupBusy(),90000);
+        QCOMPARE(window->rendererInterface()->graphicsApi(),QSGRendererInterface::Direct3D11);
+    }
+    const auto startupReadyMs=clock.nsecsElapsed()/1.e6;
     bool customWarmup=false;
     int warmup=qEnvironmentVariableIntValue("PANDOEDITOR_NATIVE_PERF_WARMUP_MS",&customWarmup);
-    warmup=customWarmup?std::max(60000,warmup):60000;
+    warmup=relative?0:customWarmup?std::max(60000,warmup):60000;
     QTest::qWait(warmup);
     QVERIFY(window->isExposed());QVERIFY(gpu->rendererReady());
     QVERIFY(presents.load()>0);QVERIFY(gpu->geometryUploadCount()>0);
@@ -458,7 +563,12 @@ static void runNativePerformanceProbe()
         const auto envelope=nativePerfJsonFile(QFileInfo(manifestPath).dir().filePath(fixture.value("viewPath").toString()));
         const auto view=envelope.value("view").toObject().toVariantMap();
         if(view.isEmpty()||!editor.setProjectionMode(view.value("projection").toString())||!editor.publishMapView(view))return stepFailure("Fixture view failed: "+id);
-        QTest::qWait(1000);return true;
+        if(!relative){QTest::qWait(1000);return true;}
+        const auto previous=presents.load();window->update();QElapsedTimer ready;ready.start();
+        do {QTest::qWait(10);}while(ready.elapsed()<90000&&
+            (!gpu->rendererReady()||gpu->uploadsPending()||editor.startupBusy()||presents.load()<=previous));
+        return (gpu->rendererReady()&&!gpu->uploadsPending()&&!editor.startupBusy()&&presents.load()>previous)
+            ||stepFailure("P9 fixture did not publish a ready frame: "+id);
     };
     const auto pan=[&](int kind,int count) {
         const auto started=clock.nsecsElapsed();phase.store(-1);
@@ -536,7 +646,40 @@ static void runNativePerformanceProbe()
         if(inputAssociationFailed||editor.geometryEditState().value("active").toBool()||editor.documentBytes()!=before||editor.dirty()!=beforeDirty||editor.canUndo()!=beforeUndo||editor.canRedo()!=beforeRedo)return stepFailure("Preview cancellation changed canonical document or history");
         return true;
     };
-    for(int kind=0;kind<ids.size();++kind){
+    QJsonArray relativeMeasurements;
+    if(relative) {
+        QCOMPARE(mode,QString("diagnostic"));
+        QCOMPARE(manifest.value("measurementScope").toString(),QString("p9-relative"));
+        for(const auto* id:{"world-standard","dense-view","editing-heavy","large-project"}) {
+            const QString role=QString::fromLatin1(id);const auto fixture=fixtureContracts.value(role);
+            QCOMPARE(fixture.value("datasetClass").toString(),QString("production-full-world"));
+            QVERIFY(fixture.value("unitCount").toInt()>=258);
+            QElapsedTimer operation;operation.start();QVERIFY2(loadFixture(role),qPrintable(lastStepFailure));
+            const double loadMs=operation.nsecsElapsed()/1.e6;
+            qsizetype firstFrame=0;{std::lock_guard<std::mutex> lock(frameMutex);firstFrame=presentationFrames.size();}
+            operation.restart();pan(1,120);
+            QVERIFY2(!inputAssociationFailed,"P9 pan failed actual input-to-render association; raw journal retained");
+            const double panMs=operation.nsecsElapsed()/1.e6;QJsonArray frameIntervals;
+            {std::lock_guard<std::mutex> lock(frameMutex);
+                for(int i=firstFrame;i<presentationFrames.size();++i)frameIntervals.append(presentationFrames[i].toObject().value("ms"));}
+            QVERIFY2(frameIntervals.size()>=100,"P9 requires actual swaps throughout the 120-move pan");
+            QJsonValue editMs(QJsonValue::Null);
+            if(role=="editing-heavy") {
+                QVERIFY2(loadFixture(role),qPrintable(lastStepFailure));operation.restart();
+                QVERIFY2(previewCancel(),qPrintable(lastStepFailure));editMs=operation.nsecsElapsed()/1.e6;
+            }
+            QVERIFY(window->grabWindow().save(reportPath+"-"+role+".png"));
+            const auto saved=privateData.filePath(role+"-save.json");operation.restart();
+            QVERIFY(editor.saveFile(QUrl::fromLocalFile(saved)));const auto saveMs=operation.nsecsElapsed()/1.e6;
+            QCOMPARE(readFile(saved),editor.documentBytes());
+            relativeMeasurements.append(QJsonObject{{"fixtureId",role},{"loadAndFirstReadyFrameMs",loadMs},{"panMs",panMs},
+                {"previewAndCancelMs",editMs},{"saveMs",saveMs},{"swapIntervalsMs",frameIntervals},
+                {"placeResources",QJsonObject::fromVariantMap(editor.placeDataStatus())},
+                {"terrainResources",QJsonObject::fromVariantMap(editor.terrainDataStatus())},
+                {"hydroResources",QJsonObject::fromVariantMap(editor.hydroDataStatus())}});
+        }
+    }
+    for(int kind=0;!relative&&kind<ids.size();++kind){
         const QString fixtureId=kind==14?"large-project":kind==8||kind==9||kind==12?"dense-view":"world-standard";
         QVERIFY2(loadFixture(fixtureId),qPrintable(lastStepFailure));
         if(kind==3||kind==4)QVERIFY(editor.setProjectionMode("globe"));
@@ -580,7 +723,7 @@ static void runNativePerformanceProbe()
         const QJsonObject scenario{{"id",ids[kind]},{"name",names[kind]},{"fixtureId",fixtureId},{"status","completed"},{"startMs",double(started)},{"endMs",double(clock.elapsed())},{"expectedFinalState",expected},{"actualFinalState",actual}};
         scenarios.append(scenario);journal.write(QJsonDocument(scenario).toJson(QJsonDocument::Compact)+'\n');journal.flush();
     }
-    bool customRepeat=false;int repeatMs=qEnvironmentVariableIntValue("PANDOEDITOR_NATIVE_PERF_REPEAT_MS",&customRepeat);repeatMs=customRepeat?std::max(720000,repeatMs):720000;
+    bool customRepeat=false;int repeatMs=qEnvironmentVariableIntValue("PANDOEDITOR_NATIVE_PERF_REPEAT_MS",&customRepeat);repeatMs=relative?0:customRepeat?std::max(720000,repeatMs):720000;
     const auto repeatStart=clock.elapsed();int cycle=0;
     repeatPhase.store(true);
     while(clock.elapsed()-repeatStart<repeatMs){
@@ -638,6 +781,8 @@ static void runNativePerformanceProbe()
     QJsonArray fixtureReceipts;
     for(auto it=fixtureContracts.begin();it!=fixtureContracts.end();++it)fixtureReceipts.append(QJsonObject{{"id",it.key()},{"manifestSha256",nativePerfFileHash(manifestPath)},{"fullStack",it.value().value("fullStack")}});
     QJsonObject result{{"schema","pandoeditor-native-performance"},{"version",2},
+        {"measurementProfile",relative?"p9-relative":"m98-stress"},{"startupToProjectViewMs",startupReadyMs},
+        {"relativeMeasurements",relativeMeasurements},
         {"completed",true},{"measurementMode",mode},{"diagnosticReason",qEnvironmentVariable("PANDOEDITOR_NATIVE_PERF_REASON")},
         {"warmupMs",warmup},{"repeatMs",repeatMs},{"ablation",ablation},{"inputRevision",QStringLiteral("m98-native-v3-prepared-drag")},
         {"logicalProcessors",logicalProcessors},{"cpuNormalization","process-time/all-active-logical-processors"},

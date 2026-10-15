@@ -1905,6 +1905,7 @@ private slots:
 class NativePerformanceTests : public QObject {
     Q_OBJECT
 private slots:
+    void nativePerformancePrepareFixtures() { prepareNativePerformanceFixtures(); }
     void nativePerformanceProbe() { runNativePerformanceProbe(); }
 };
 int main(int argc,char** argv) {
@@ -1916,7 +1917,8 @@ int main(int argc,char** argv) {
         if (font>=0) app.setFont(QFont(QFontDatabase::applicationFontFamilies(font).first()));
     }
     for(int i=1;i<argc;++i) {
-        if(QString::fromLocal8Bit(argv[i])==QStringLiteral("nativePerformanceProbe")) {
+        if(QString::fromLocal8Bit(argv[i])==QStringLiteral("nativePerformanceProbe")||
+            QString::fromLocal8Bit(argv[i])==QStringLiteral("nativePerformancePrepareFixtures")) {
             NativePerformanceTests test;return QTest::qExec(&test,argc,argv);
         }
     }
