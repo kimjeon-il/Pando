@@ -30,9 +30,9 @@ int main() {
     const auto changed=replaceGeometryBindingAtMonth(records,"A","1914-06",{"shape",3});
     const auto reparented=replaceParentRelationAtMonth(records,"B","1914-07","","explicit");
     const auto ended=truncateTimelineEntityAtMonth(records,"A","1914-07");
-    const partial=editTimelineRecordAtMonth(records,"parentRelations","B","1914-07",
+    const auto partial=editTimelineRecordAtMonth(records,"parentRelations","B","1914-07",
         TimelineEditPatch{std::nullopt,std::nullopt,std::string("explicit")});
-    const noop=editTimelineRecordAtMonth(records,"parentRelations","B","1914-07",TimelineEditPatch{});
+    const auto noop=editTimelineRecordAtMonth(records,"parentRelations","B","1914-07",TimelineEditPatch{});
 
     const auto initial=initialTimelineMonth(records,"2026-10");
     Project project;
