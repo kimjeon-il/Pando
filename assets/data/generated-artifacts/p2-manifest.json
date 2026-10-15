@@ -1567,6 +1567,73 @@
         ]
       ],
       "sourceSha": "835e4584e2656d4fdfbd24f7077c3f464275871b"
+    },
+    "native-assets": {
+      "inputFingerprint": "e62587972db65c0e85e1cd82eed1e9a292233d4be9a7f339b93c69d6d6c85f8a",
+      "outputFingerprint": "519620e334b9f3fd7de67e8bc997ca02f18c9944b4f8ace6ab1b9df2c8ce68e6",
+      "inputs": {},
+      "generatorHashes": {
+        "assets/js/modules/country-mesh-codec.js": "3871e8e118e35bdbee07a1b2c376f3b6ea1f4ee008c05bbe9b75bee459000c01",
+        "assets/js/modules/polygon-mesh-codec.js": "ce7ebccdee3a289c5d5f6bc2c7b24f05cf77257bbd9fd5c683265f3327bc6e70",
+        "native/tools/lib/world-dataset-contract.mjs": "d4a160b599d680089ae56d588b59704501b3ae835bc40483b000caf6ff2a037d",
+        "native/tools/sync-world-data.mjs": "cc58a4b74830dd91de12e2f1fa4f617b009c679dcb06bf56b1d828f19df366bd",
+        "native/tools/verify-world-assets.mjs": "e30d68877f7d717835c06f6759b68702be1fe8d427ab6af5e6a541df9ed2f954",
+        "scripts/lib/p2-artifact-graph.mjs": "43e35cfae984c9cd82b92e534a8941dfc3e36fcd7a2f723de035de996fbba411",
+        "scripts/p2-sync-native-artifacts.mjs": "84fa75dac7e8a7a258ded7b2c2e20aa0e01ee051c6f977493a8d876579dad45d",
+        "scripts/p2-validate-artifacts.mjs": "e7218961d0ff6288b0fa2cd88154bbb0ed2db8f34958de2cbdd31465a255dc16"
+      },
+      "tools": {
+        "node": "24"
+      },
+      "dependencies": {
+        "world-bundle": "cadf86b08c84e259211a4435024953ba413650bc63ab47ceb8efb7273dd5c1fb",
+        "historical-world": "284ecee86f5b745171159983416dcd1fcd4f6c49886d52c7b1cb4e5afa60d33f",
+        "places": "7469eca633fbb3669dd2ea9bd25066f06f82828b22320169f82dd181663c80d7",
+        "hydro": "0bbe01264b4fd53dc8b2bd15f562255eee54f27fbdaf69e3b01237b00d237afe",
+        "terrain": "a3deead71a595408645fc2dd77d436facf8c78356edcf212070efc252f6aad1e"
+      },
+      "outputs": {
+        "native/assets/place/manifest.json": "b9ad0bb6733a46a83a9c295eeceef79b626b21f213cb4e18ffd1205895a54829",
+        "native/assets/place/places-v1.bin": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
+        "native/assets/world/historical-world/v1/coverage-report.json": "3acc77a9a3e5cfba0ba4e6fd9c6e58b7bf3af0e964f2bedc26c7fb053119338b",
+        "native/assets/world/historical-world/v1/expected-trace.json": "b51f656af8c5935d03bf48594cf2e29b78723561149a0586857ba27419359281",
+        "native/assets/world/historical-world/v1/manifest.json": "45ce4ccee1e320d870dd9d71f629a5598e62a1306cac6e799d2d28e8dd6514a7",
+        "native/assets/world/historical-world/v1/world-project.json.gz": "9b32768028fe90a5aea82d1ba6b08a9446e7d91895e7590f9e7af6b09911985e",
+        "native/assets/world/hydro/v0.13.2/hydro.bin": "91c2268c6dbfdfa7fc6103d8ad0b4eeca71f6c522df5c0118db69a3654ff532a",
+        "native/assets/world/hydro/v0.13.2/manifest.json": "2bde5c10bdf4d26fd29d2b983b70029022cfaa9fda816a105e6f4338b85f0d24",
+        "native/assets/world/manifest.json": "a302675a255e8d61a88b43637c2b5d07d16c62f1df5004de5ffca965a9af8f32",
+        "native/assets/world/terrain-preview/v0.13.3-p1/0/0-0.webp": "0e1622d6429a56f382493dad4ee5a903b7d209237dedd3a5dc8d09a72379fd89",
+        "native/assets/world/terrain-preview/v0.13.3-p1/0/1-0.webp": "5f99f8bcbd21ff722f908348ba26b96d21ffc826293430df607636431b54adc6",
+        "native/assets/world/terrain-preview/v0.13.3-p1/1/0-0.webp": "608c8bf9a156324189b0980831ce4a2193631d0f2b12d21ede90e18ebcbb46cd",
+        "native/assets/world/terrain-preview/v0.13.3-p1/1/0-1.webp": "05e39e4d50ba0c929717d1e47a85477c7052670006a9cf907eb93f573225de13",
+        "native/assets/world/terrain-preview/v0.13.3-p1/1/1-0.webp": "a572f3d3e5d11603cfbcecf6a7de79300c41ff4e230247dacf351ef4a8dec7c6",
+        "native/assets/world/terrain-preview/v0.13.3-p1/1/1-1.webp": "95565e6a6aeb46dc824811fdc1d4d61d1aebf1b0df775548bee197714992fdc7",
+        "native/assets/world/terrain-preview/v0.13.3-p1/1/2-0.webp": "ca28d962900674c12ef418a03437e23d538ebc3da3011c804d95305960879782",
+        "native/assets/world/terrain-preview/v0.13.3-p1/1/2-1.webp": "c44de7f316321266eed62dc54bf5d3504f900378f5274d2b5c50b45a80162502",
+        "native/assets/world/terrain-preview/v0.13.3-p1/manifest.json": "05e3a657287151c29c338caaec9c5d7cd22d4144d7e2db8ecad536742fe6fee8",
+        "native/assets/world/world/objects/countries-canonical-sha256-638c6f4868b9d270a62cd66ca13a18dc8a4215fa7c48ff9280a089e433f81dd1.pcg.gz": "638c6f4868b9d270a62cd66ca13a18dc8a4215fa7c48ff9280a089e433f81dd1",
+        "native/assets/world/world/objects/countries-preview-sha256-4a607622d4bc26870276b134c533de10af89018b34494b32773ea2a49e9cd166.geojson.gz": "4a607622d4bc26870276b134c533de10af89018b34494b32773ea2a49e9cd166",
+        "native/assets/world/world/objects/country-label-anchors-sha256-caeee3f0d05265cc564f68ef092b25ea8c5c4d6f1c36e2beb35a239551751512.json": "caeee3f0d05265cc564f68ef092b25ea8c5c4d6f1c36e2beb35a239551751512",
+        "native/assets/world/world/objects/world-mesh-preview-sha256-fc00477f2cd4ff25920cbf90d65ea715a4ad41a21b3ba5d5bbc825c169cd841e.bin.gz": "fc00477f2cd4ff25920cbf90d65ea715a4ad41a21b3ba5d5bbc825c169cd841e",
+        "native/assets/world/world/objects/world-mesh-sha256-c7f687e9d14325ae9c8334cb4fabc3afd016e1a1231cf16b1c0729499a713ec8.bin.gz": "c7f687e9d14325ae9c8334cb4fabc3afd016e1a1231cf16b1c0729499a713ec8"
+      },
+      "consumers": [
+        "native/app/worlddataset.cpp",
+        "native/app/placeruntimestore.cpp"
+      ],
+      "provenance": [],
+      "validation": [
+        [
+          "node",
+          "native/tools/verify-world-assets.mjs"
+        ],
+        [
+          "node",
+          "scripts/p2-validate-artifacts.mjs",
+          "native-assets"
+        ]
+      ],
+      "sourceSha": "57820b04434d81e05d2159da1c0292af6f08752b"
     }
   }
 }
