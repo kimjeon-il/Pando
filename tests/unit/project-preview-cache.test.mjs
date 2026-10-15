@@ -68,7 +68,7 @@ test('a cancelled preview worker error cannot terminate replacement ensure', asy
   assert.equal(workers[1].terminated, false);
   assert.equal(workers.length, 2);
   await finishEnsure(workers[1], replacement);
-  assert.equal(warnings.length, 1, 'only the original cancellation should warn');
+  assert.equal(warnings.length, 0, 'superseded preview preparation is expected cancellation');
   assert.equal(workers[1].terminated, true, 'idle cache workers are released');
 });
 

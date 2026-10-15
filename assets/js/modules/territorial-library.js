@@ -1,4 +1,4 @@
-import { compareTemporal, normalizeTemporalInterval, parseTemporal, temporalIntervalsOverlap } from './temporal.js';
+import { normalizeTemporalInterval, parseTemporal, temporalIntervalsOverlap, sharedCalculationCore } from './temporal.js';
 import {createGeometryVersionStore} from './geometry-version-store.js';
 
 export const TERRITORIAL_LIBRARY_SCHEMA_VERSION = 2;
@@ -115,25 +115,24 @@ export function normalizeTerritorialLibraryEntity(raw) {
   });
 }
 
-// A coarse cursor denotes the end of its year/month. Stored endpoints retain
-// their precision; inclusive bounds expand toward the appropriate direction.
+// P5-4: the historical library has a separate reference date from the map
+// timeline. Its inclusive end-of-year/month version calculations are C++ owned.
+for (const name of ['timelineVersionExistsAt', 'timelineSelectGeometryVersion']) {
+  if (typeof sharedCalculationCore[name] !== 'function') {
+    throw Object.assign(new Error('Required shared C++ library calculation is missing: ' + name),
+      { code: 'PL-CORE-WASM-CAPABILITY' });
+  }
+}
+
 export function territorialEntityExistsAt(entity, referenceDate) {
   const point = parseTemporal(referenceDate, { nullable: false });
-  const { validFrom, validTo } = entity.lifetime;
-  return (!validFrom || compareTemporal(validFrom, point, {rightBoundary: 'end'}) <= 0)
-    && (!validTo || compareTemporal(validTo, point, {leftBoundary: 'end', rightBoundary: 'end'}) >= 0);
+  return sharedCalculationCore.timelineVersionExistsAt(entity.lifetime, point.canonical);
 }
 
 export function selectGeometryVersion(entity, referenceDate = null) {
-  if (!referenceDate) {
-    if (entity.geometryVersions.length === 1 && !entity.lifetime.validFrom && !entity.lifetime.validTo
-      && !entity.geometryVersions[0].validFrom && !entity.geometryVersions[0].validTo) return entity.geometryVersions[0];
-    throw new Error('A reference date is required for dated territorial geometry');
-  }
-  if (!territorialEntityExistsAt(entity, referenceDate)) return null;
-  const candidates = entity.geometryVersions.filter(version => territorialEntityExistsAt({lifetime: version}, referenceDate));
-  if (candidates.length > 1) throw new Error('Ambiguous territorial geometry selection');
-  return candidates[0] || null;
+  const index = sharedCalculationCore.timelineSelectGeometryVersion(
+    entity.lifetime, entity.geometryVersions, referenceDate);
+  return index < 0 ? null : entity.geometryVersions[index];
 }
 
 export function instantiateLibraryEntity(entity, referenceDate) {

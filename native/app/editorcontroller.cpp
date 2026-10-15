@@ -904,20 +904,8 @@ bool EditorController::setTimelineMonth(const QString& month) {
 bool EditorController::shiftTimelineMonth(int offset) {
     if(offset!=1&&offset!=-1&&offset!=12&&offset!=-12)return false;
     try {
-        const auto point=pandoeditor::parseTemporal(project_.timelineCursor());
-        if(point.precision!="month")return false;
-        int year=point.year,month=*point.month;
-        if(offset==12)year=year==-1?1:year+1;
-        else if(offset==-12)year=year==1?-1:year-1;
-        else {
-            month+=offset;
-            if(month==0){month=12;year=year==1?-1:year-1;}
-            if(month==13){month=1;year=year==-1?1:year+1;}
-        }
-        std::ostringstream value;
-        if(year<0)value<<'-';else if(year>9999)value<<'+';
-        value<<std::setw(4)<<std::setfill('0')<<std::abs(year)<<'-'<<std::setw(2)<<month;
-        return setTimelineMonth(QString::fromStdString(value.str()));
+        return setTimelineMonth(QString::fromStdString(
+            pandoeditor::shiftTemporalMonth(project_.timelineCursor(),offset)));
     } catch(const std::exception& error) {
         emit errorOccurred(QString::fromUtf8(error.what()));return false;
     }

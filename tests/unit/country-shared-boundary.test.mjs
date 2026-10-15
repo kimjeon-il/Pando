@@ -1,3 +1,4 @@
+import '../helpers/spherical-core.mjs';
 import { createMapVisualFrame } from '../../assets/js/modules/map-visual-frame.js';
 import { resolveMapStrokeStyle } from '../../assets/js/modules/map-interaction-style.js';
 import { createEnvironment } from '../../assets/js/modules/app-environment.js';
