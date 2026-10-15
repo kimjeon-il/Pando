@@ -125,6 +125,8 @@ export function selectedD3dAdapter(log='') {
  return selected;
 }
 const relativeRoles=['world-standard','dense-view','editing-heavy','large-project'];
+const relativePreviewEntities={'editing-heavy':'DEU','large-project':'RUS'};
+const relativePreviewGestures={'editing-heavy':'pointer-drag','large-project':'keyboard-nudge'};
 function relativeMetrics(rounds) {
  const values={};
  const add=(key,side,value)=>{values[key]??={baseline:[],candidate:[]};values[key][side].push(value);};
@@ -135,7 +137,7 @@ function relativeMetrics(rounds) {
   for(const row of report.relativeMeasurements??[]) {
    for(const key of ['loadAndFirstReadyFrameMs','panMs','saveMs'])add(`${row.fixtureId}.${key}`,side,row[key]);
    add(`${row.fixtureId}.frameP95Ms`,side,percentile(row.swapIntervalsMs??[],.95));
-   if(row.fixtureId==='editing-heavy')add('editing-heavy.previewAndCancelMs',side,row.previewAndCancelMs);
+   if(relativePreviewEntities[row.fixtureId])add(`${row.fixtureId}.previewAndCancelMs`,side,row.previewAndCancelMs);
   }
   for(const [key,field] of [['peakWorkingSetBytes','workingSetBytes'],['peakPrivateBytes','privateBytes']])
    add(key,side,processSamples?.length?Math.max(...processSamples.map(s=>s[field])):null);
@@ -181,12 +183,17 @@ export function summarizeRelativeRounds(rounds) {
    const adapter=selectedD3dAdapter(rendererLog);adapterReceipts.push({run:r.run,...adapter});
    check(adapter?.hardware===true&&(env.adapters??[]).some(a=>a.Name===adapter.name),`${r.run}: actual selected physical adapter is missing or software`);
    check(relativeRoles.every(id=>(d.fixtures??[]).some(f=>f.id===id&&f.manifestSha256===env.fixtureManifestSha256)),`${r.run}: four immutable fixture receipts missing`);
-   check(Number.isFinite(d.startupToProjectViewMs)&&d.startupToProjectViewMs>=0,`${r.run}: startup observation missing`);
+   check(d.startupMeasurement==='existing-world-project-open',`${r.run}: existing-world-project-open measurement label missing`);
+   check(Number.isFinite(d.startupToProjectViewMs)&&d.startupToProjectViewMs>=0,`${r.run}: project-open startup observation missing`);
    check(equal((d.relativeMeasurements??[]).map(v=>v.fixtureId),relativeRoles),`${r.run}: four production-world roles required`);
    for(const row of d.relativeMeasurements??[]) {
     check(['loadAndFirstReadyFrameMs','panMs','saveMs'].every(key=>Number.isFinite(row[key])&&row[key]>=0),`${r.run}/${row.fixtureId}: operation timing missing`);
     check(row.swapIntervalsMs?.length>=100&&row.swapIntervalsMs.every(v=>Number.isFinite(v)&&v>=0),`${r.run}/${row.fixtureId}: swap intervals missing/invalid`);
-    if(row.fixtureId==='editing-heavy')check(Number.isFinite(row.previewAndCancelMs)&&row.previewAndCancelMs>=0,`${r.run}: edit preview/cancel observation missing`);
+    if(relativePreviewEntities[row.fixtureId]) {
+     check(Number.isFinite(row.previewAndCancelMs)&&row.previewAndCancelMs>=0,`${r.run}/${row.fixtureId}: edit preview/cancel observation missing`);
+     check(row.previewEntityId===relativePreviewEntities[row.fixtureId],`${r.run}/${row.fixtureId}: preview entity identity mismatch`);
+     check(row.previewGesture===relativePreviewGestures[row.fixtureId],`${r.run}/${row.fixtureId}: preview input gesture mismatch`);
+    }
    }
    check((d.inputs??[]).length>=480&&(d.inputs??[]).every(v=>v.matched===true&&v.delivered===true&&v.renderSnapshotMatched===true&&v.renderUploadsPending===false&&v.stateChanged===true),`${r.run}: actual input/render association failed`);
    check(process.length>0&&process.every(s=>Number.isFinite(s.workingSetBytes)&&s.workingSetBytes>0&&Number.isFinite(s.privateBytes)&&s.privateBytes>0),`${r.run}: process memory samples missing/invalid`);
@@ -195,8 +202,8 @@ export function summarizeRelativeRounds(rounds) {
  if(rounds.length===2)check(relativeStatus(relativeMetrics(rounds.slice(0,1)))==='uncertain','Additional round is allowed only after initial uncertainty');
  const metrics=relativeMetrics(rounds),status=faults.length?'BLOCKED':relativeStatus(metrics);
  return {schema:'pando-p9-native-relative-comparison',version:1,status,roundCount:rounds.length,additionalRoundAllowed:status==='uncertain'&&rounds.length===1,
-  m98Acceptance:false,acceptedBy:null,metrics,adapterReceipts,faults,
-  scope:'Production full-world fixed inputs: fresh-process startup through project view, four-role load/pan/save/Qt swap p95, DEU preview/cancel, sampled peak process memory. Two discarded warmups, then five alternating baseline/candidate pairs per round.',
+  m98Acceptance:false,acceptedBy:null,startupMeasurement:'existing-world-project-open',metrics,adapterReceipts,faults,
+  scope:'Production full-world saved-project inputs: fresh-process existing-world-project open through the first project view, four-role load/pan/save/Qt swap p95, DEU pointer-drag and RUS one-pixel keyboard-nudge geometry preview/cancel, sampled peak process memory. Two discarded warmups, then five alternating baseline/candidate pairs per round.',
   limitations:['New full-world role inputs do not establish historical M98 full-stack/stress acceptance.','Swap intervals do not prove GPU completion or DWM presentation.','Sampled process memory is not driver VRAM; physical provider coverage is recorded in raw reports.']};
 }
 export function readRelativeDirectory(directory) {
