@@ -184,6 +184,38 @@ template<typename F> auto boundary(F&& function)->decltype(function()) {
     }
     std::terminate();
 }
+// The same as-of-end rule is used by the Qt library catalog. Source/target
+// validity are independent of the current document's timeline cursor.
+Validity libraryValidity(const val& input) {
+    if(input.isNull()||!is(input,"object")||arrayValue(input)
+        ||!val::global("Object").call<bool>("hasOwn",input,std::string("validFrom"))
+        ||!val::global("Object").call<bool>("hasOwn",input,std::string("validTo")))
+        fail("PL-LIB-DATE","Both validity endpoints are required.");
+    const auto endpointValue=[](val item)->std::optional<std::string> {
+        if(item.isNull())return std::nullopt;
+        return readText(item,"PL-LIB-DATE");
+    };
+    return {endpointValue(input["validFrom"]),endpointValue(input["validTo"])};
+}
+bool versionExistsAt(val lifetime,const std::string& referenceDate) {
+    return boundary([&] {
+        return validityContainsAtEnd(libraryValidity(lifetime),parseTemporal(referenceDate));
+    });
+}
+int selectGeometryVersion(val lifetime,val versions,val referenceDate) {
+    return boundary([&] {
+        array(versions,"PL-LIB-GEOMETRY");
+        std::vector<Validity> candidates;
+        const auto count=versions["length"].as<unsigned>();
+        candidates.reserve(count);
+        for(unsigned i=0;i<count;++i)candidates.push_back(libraryValidity(versions[i]));
+        std::optional<std::string> date;
+        if(!referenceDate.isNull()&&!referenceDate.isUndefined())
+            date=readText(referenceDate,"PL-LIB-DATE");
+        const auto index=selectTimelineVersion(libraryValidity(lifetime),candidates,date);
+        return index?static_cast<int>(*index):-1;
+    });
+}
 val normalizeRecords(val input,val contextInput) {
     return boundary([&] {
         const auto records=readRecords(input);
@@ -231,4 +263,6 @@ EMSCRIPTEN_BINDINGS(pandoeditor_timeline_calculations) {
     emscripten::function("timelineResolveWorld",&resolvedWorld);
     emscripten::function("timelineEditRecord",&editRecord);
     emscripten::function("timelineTruncateEntity",&truncateEntity);
+    emscripten::function("timelineVersionExistsAt",&versionExistsAt);
+    emscripten::function("timelineSelectGeometryVersion",&selectGeometryVersion);
 }
