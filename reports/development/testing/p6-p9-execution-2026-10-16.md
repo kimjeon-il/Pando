@@ -64,3 +64,7 @@
 - 참조 경로의 짧은 CPU 측정에서 보정/준비 62%, C++ 메시/전달 17%, JS 조립 16%, 점 투영 5%였다. WASM→JS 및 invoke_* 프레임이 46 self samples 중 최소 8개였다. 짧은 계측 표본이며 전체 회귀의 원인 비율로 확정하지 않는다.
 - 기존 CMake는 JS 예외 에뮬레이션(-fexceptions, DISABLE_EXCEPTION_CATCHING=0)을 전체 C++에 적용했다. [Emscripten 공식 설명](https://emscripten.org/docs/porting/exceptions.html)은 이 모드의 비용과 -fwasm-exceptions의 낮은 비용을 명시한다. 고정 SDK 4.0.20의 [설정 원본](https://github.com/emscripten-core/emscripten/blob/4.0.20/src/settings.js)도 확인했다.
 - 계산 규칙을 더 바꾸기 전에 코어와 바인딩 모두 native WASM 예외 처리로 전환한다. 컴파일·링크에 같은 모드를 쓰고 JS 에뮬레이션 옵션을 제거한다. 네이티브 Qt 빌드에는 영향이 없다. 성능·현재 오류 계약·브라우저 실행은 새 산출물에서 확인하며, 미지원 WASM 엔진이나 실기기 통과를 가정하지 않는다.
+
+- Native WASM 예외 빌드 38768464589 성공, 결과 3a2b4ad8. WASM 크기는 3,415,952→2,809,068바이트였다.
+- 다른 검사를 동시에 실행하지 않은 Windows 교대 비교에서 reference 중앙 13.7792→13.7352ms로 no-regression, river 8.31695→9.32335ms로 uncertain이었다. 참조 회귀는 이 조건에서 해소됐으며 수계는 아직 통과로 표시하지 않는다.
+- 수계의 남은 식별자 생성에서 좌표 정수 문자열의 printf 기반 변환과 FNV 결과의 iostream/locale 구성을 제거한다. 동일한 정수/고정8자리 소문자16진수 표현으로 직접 인코딩하며, 좌표 양자화·FNV 연산·후보 키·수치 순서는 유지한다.
