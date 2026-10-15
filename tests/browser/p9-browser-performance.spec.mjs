@@ -7,11 +7,13 @@ import { existsSync, readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import os from 'node:os';
 import { createP3PreviewServer } from '../../scripts/p3-preview-server.mjs';
+import { installP9EditWorkload, runP9EditWorkload, readP9EditWorkload, P9_EDIT_METRIC_KEYS } from './helpers/p9-edit-workload.mjs';
 
 const baselineSha = '8e22982616e3c9ba43eeb84baec17cd886267cfa';
 const candidateRoot = fileURLToPath(new URL('../../', import.meta.url));
 const viewport = { width: 1440, height: 900 };
 const hardware = process.env.PANDO_P9_HARDWARE === 'true';
+const editWorkload = process.env.PANDO_P9_WORKLOAD === 'edit';
 const gpuArgs = hardware ? [] : ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'];
 const median = values => {
   const sorted = [...values].sort((a,b)=>a-b), index = Math.floor(sorted.length/2);
@@ -42,7 +44,8 @@ function verifyBaseline(root) {
   expect(count).toBeGreaterThan(0);
   return { kind: 'verified-static-git-archive', sha: baselineSha, verifiedBlobs: count };
 }
-const summarize = rounds => Object.fromEntries(['interactivePaintMs','editableMs','frameP95Ms','jsHeapUsedBytes'].map(key=>{
+const metricKeys = editWorkload ? P9_EDIT_METRIC_KEYS : ['interactivePaintMs','editableMs','frameP95Ms','jsHeapUsedBytes'];
+const summarize = rounds => Object.fromEntries(metricKeys.map(key=>{
   const baseline = rounds.map(row=>row.baseline[key]), candidate = rounds.map(row=>row.candidate[key]);
   return [key, {
     baseline, candidate, baselineMedian: median(baseline), candidateMedian: median(candidate),
@@ -56,18 +59,18 @@ const summarize = rounds => Object.fromEntries(['interactivePaintMs','editableMs
 
 test.use({ trace: 'off', screenshot: 'off' });
 
-test('P9 alternates fixed baseline and candidate browser startup, focus frames and main-page heap', async ({ playwright, baseURL }, testInfo) => {
+test(`P9 alternates fixed baseline and candidate ${editWorkload ? 'large RUS editing, Worker and autosave' : 'browser startup, focus frames and main-page heap'}`, async ({ playwright, baseURL }, testInfo) => {
   test.setTimeout(30*60_000);
   const report = {
     schema: 'pando-p9-browser-performance-v1', baselineSha, candidateSha: gitHead(candidateRoot),
     status: 'unverified', rounds: [], warmups: {}, metrics: {},
-    scope: `Chromium ${hardware ? 'physical GPU' : 'software WebGL'} startup and RUS selection/focus; main-page JS heap only.`,
-    notVerified: [...(hardware ? [] : ['physical GPU']), 'Qt startup/frames/memory', 'Android touch', 'large geometry edit frames', 'Worker/WASM/GPU/process memory'],
+    scope: `Chromium ${hardware ? 'physical GPU' : 'software WebGL'} ${editWorkload ? 'full RUS line preparation/cancellation, Worker RTT/compute, main-page LongTask/rAF and real autosave/Undo' : 'startup and RUS selection/focus; main-page JS heap only'}.`,
+    notVerified: [...(hardware ? [] : ['physical GPU']), 'Qt startup/frames/memory', 'Android touch', ...(editWorkload ? ['startup/focus/heap are in a separate completed report'] : ['large geometry edit frames']), 'Worker/WASM/GPU/process memory'],
     conditions: { viewport, deviceScaleFactor: 1, softwareGpuArguments: gpuArgs,
       httpCache: 'disabled by CDP on both pages', serviceWorkers: 'blocked',
       storage: 'separate fresh contexts, retained per side after one warmup; Cache Storage may be warm',
       concurrency: 'one application page at a time; previous page and CDP session closed before every sample',
-      frames: 'Reset the view through the existing command before every RUS focus; 120 consecutive requestAnimationFrame intervals starting immediately before focus, excluding pointer and panel animation timing',
+      frames: editWorkload ? 'Actual rAF intervals during the existing full-RUS line-preparation and cancellation workflow; no idle intervals appended' : 'Reset the view through the existing command before every RUS focus; 120 consecutive requestAnimationFrame intervals starting immediately before focus, excluding pointer and panel animation timing',
       frameCollectionDeadlineMs: 120_000,
       warmupsPerContext: 1, initialAlternatingRounds: 5, maximumExtraRoundsIfUncertain: 5,
       memory: 'CDP Performance.getMetrics JSHeapUsedSize after focus frames, no forced GC',
@@ -98,6 +101,7 @@ test('P9 alternates fixed baseline and candidate browser startup, focus frames a
       if(activePage) { await activePage.close(); activePage = null; }
       const {context,url} = sides[side];
       const page = await context.newPage(); activePage = page;
+      if(editWorkload) await installP9EditWorkload(page);
       const cdp = await context.newCDPSession(page); activeCdp = cdp;
       await cdp.send('Network.enable');
       await cdp.send('Network.setCacheDisabled',{cacheDisabled:true});
@@ -105,6 +109,12 @@ test('P9 alternates fixed baseline and candidate browser startup, focus frames a
       await page.bringToFront();
       await page.goto(url,{waitUntil:'domcontentloaded'});
       await expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{timeout:120_000});
+      if(editWorkload) {
+        const edit = await runP9EditWorkload(page);
+        report.conditions.editInput ??= edit.input;
+        expect(edit.input, 'Every side and round must edit identical canonical input').toEqual(report.conditions.editInput);
+        return { ...edit.metrics, editWorkload: edit };
+      }
       const startup = await page.evaluate(()=>({
         interactivePaintMs: globalThis.__PANDOLAB_STARTUP_METRICS__?.interactivePaintMs,
         editableMs: globalThis.__PANDOLAB_STARTUP_METRICS__?.editableMs,
@@ -165,6 +175,10 @@ test('P9 alternates fixed baseline and candidate browser startup, focus frames a
       :Object.values(report.metrics).some(metric=>metric.status==='uncertain')?'uncertain':'no-regression';
     expect(report.status,'See attached distributions; uncertain results do not satisfy P9').toBe('no-regression');
   } catch(error) {
+    if(editWorkload && activePage && !activePage.isClosed()) {
+      try { report.partialEditWorkload = await readP9EditWorkload(activePage); }
+      catch(diagnosticError) { report.partialEditWorkloadError = diagnosticError.message; }
+    }
     if(activeCdp) {
       try {
         const partial = await activeCdp.send('Runtime.evaluate', { expression: 'JSON.stringify({frames:globalThis.__p9FocusFrames,visibility:document.visibilityState,render:globalThis.__PANDOLAB_RENDER_DEBUG__?.snapshot()})', returnByValue: true, timeout: 5000 });
