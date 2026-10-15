@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <iostream>
 #include <map>
+#include <sstream>
 #include <stdexcept>
 #include <vector>
 
@@ -42,7 +43,7 @@ double sphericalDistance(double lonA,double latA,double lonB,double latB) {
 Geometry rectangle(double west,double south,double east,double north) {
     return {"Polygon",{},{},{{{{west,south},{east,south},{east,north},{west,north},{west,south}}}}};
 }
-void checkSharedBoundary(const Geometry& geometry) {
+void checkSharedBoundary(const Geometry& geometry,const char* fixture) {
     const auto packet=makePolygonGeometryPacket(geometry);
     require(packet.triangleCount&&packet.triangleCount==packet.globeTriangleCount,
             "both views retain matching refined triangle counts");
@@ -67,8 +68,13 @@ void checkSharedBoundary(const Geometry& geometry) {
     for(std::size_t i=0;i<outline.size();i+=4) {
         const double ax=outline[i],ay=outline[i+1],bx=outline[i+2],by=outline[i+3];
         require(sphericalDistance(ax,ay,bx,by)<=.50001,"stroke edge exceeds angular limit");
-        require(faceEdges[edge(ax,ay,bx,by)]==1,
-                "visible outline must be one exposed refined fill edge");
+        const auto incidence=faceEdges[edge(ax,ay,bx,by)];
+        if(incidence!=1) {
+            std::ostringstream message;
+            message<<fixture<<": visible outline must be one exposed refined fill edge; "
+                <<ax<<','<<ay<<" -> "<<bx<<','<<by<<" has "<<incidence<<" incident faces";
+            throw std::runtime_error(message.str());
+        }
         require(std::abs(std::abs(ay)-90)>1e-7&&std::abs(std::abs(by)-90)>1e-7,
                 "artificial polar closure must remain hidden");
     }
@@ -84,7 +90,7 @@ void rectangleAndSourceImmutability() {
     require(geometry.polygons.front().front().size()==oldShell.size()&&
             geometry.polygons.front().front()[1].x==oldShell[1].x,
             "render packets never modify editable source coordinates");
-    checkSharedBoundary(geometry);
+    checkSharedBoundary(geometry,"rectangle");
     const auto standalone=makeStrokeGeometryPacket(geometry);
     require(*standalone.startsEnds==*packet.boundaryStartsEnds,
             "standalone polygon stroke uses identical rendered boundary coordinates");
@@ -92,9 +98,9 @@ void rectangleAndSourceImmutability() {
 void holesAndDateline() {
     auto geometry=rectangle(0,0,8,6);
     geometry.polygons.front().push_back({{2,2},{2,4},{4,4},{4,2},{2,2}});
-    checkSharedBoundary(geometry);
+    checkSharedBoundary(geometry,"holes");
     auto dateline=rectangle(179,-1,-179,1);
-    checkSharedBoundary(dateline);
+    checkSharedBoundary(dateline,"dateline");
     const auto packet=makePolygonGeometryPacket(dateline);
     for(std::size_t i=0;i<packet.boundaryStartsEnds->size();i+=4)
         require(std::abs((*packet.boundaryStartsEnds)[i]-(*packet.boundaryStartsEnds)[i+2])<180,
@@ -104,7 +110,7 @@ void polarClosure() {
     Geometry cap{"Polygon",{},{},{{{
         {-180,80},{-90,80},{0,80},{90,80},{180,80},{180,90},{-180,90},{-180,80}
     }}}};
-    checkSharedBoundary(cap);
+    checkSharedBoundary(cap,"polar cap");
 }
 void cacheReusesOnePreparedSurface() {
     GeometryPacketCache cache;
@@ -129,7 +135,7 @@ void renderLodKeepsOnePolygonSubdivisionOwner() {
     const auto derived=prepareRenderGeometry(source,RenderLod::Coarse,LodPolicy::Independent,false,true);
     require(derived.polygons.front().front().size()==source.polygons.front().front().size(),
             "LOD simplifies source rings but leaves spherical edge refinement to polygon tessellation");
-    checkSharedBoundary(derived);
+    checkSharedBoundary(derived,"render LOD");
 }
 }
 int main() {
