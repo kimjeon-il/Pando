@@ -184,3 +184,166 @@ export function buildTopologyPreview(canonicalFeatures, {
   }
   throw new Error(`canonical topology에서 유효한 미리보기를 만들지 못했습니다: ${lastFailure}`);
 }
+
+
+function bounds(geometry) {
+  const result = [Infinity, Infinity, -Infinity, -Infinity];
+  const scan = value => {
+    if (typeof value?.[0] === 'number') {
+      result[0] = Math.min(result[0], value[0]); result[1] = Math.min(result[1], value[1]);
+      result[2] = Math.max(result[2], value[0]); result[3] = Math.max(result[3], value[1]);
+    } else for (const part of value || []) scan(part);
+  };
+  scan(geometry.coordinates);
+  return result;
+}
+
+function area(ring) {
+  let total = 0;
+  for (let index = 1; index < ring.length; index += 1) {
+    total += ring[index - 1][0] * ring[index][1] - ring[index][0] * ring[index - 1][1];
+  }
+  return Math.abs(total) / 2;
+}
+
+function components(geometry) {
+  return (geometry.type === 'MultiPolygon' ? geometry.coordinates : [geometry.coordinates])
+    .map(polygon => ({ polygon, box: bounds({ coordinates: polygon }) }));
+}
+
+function boxesOverlap(left, right) {
+  return left[0] < right[2] && right[0] < left[2]
+    && left[1] < right[3] && right[1] < left[3];
+}
+
+function intersectionIssues(features, unitParents, clipper) {
+  const rows = features.map(feature => ({ id: String(feature.id), feature,
+    components: components(feature.geometry), box: bounds(feature.geometry) }))
+    .sort((a, b) => a.box[0] - b.box[0]);
+  const isAncestor = (parent, child) => {
+    let id = child;
+    const seen = new Set();
+    while (unitParents.has(id) && !seen.has(id)) {
+      seen.add(id); id = unitParents.get(id);
+      if (id === parent) return true;
+    }
+    return false;
+  };
+  const issues = [];
+  for (let leftIndex = 0; leftIndex < rows.length; leftIndex += 1) {
+    const left = rows[leftIndex];
+    for (let rightIndex = leftIndex + 1; rightIndex < rows.length; rightIndex += 1) {
+      const right = rows[rightIndex];
+      if (right.box[0] > left.box[2]) break;
+      if (right.box[1] > left.box[3] || right.box[3] < left.box[1]
+        || isAncestor(left.id, right.id) || isAncestor(right.id, left.id)) continue;
+      const points = [];
+      for (const leftPart of left.components) for (const rightPart of right.components) {
+        if (!boxesOverlap(leftPart.box, rightPart.box)) continue;
+        const overlap = clipper.intersection([leftPart.polygon], [rightPart.polygon]);
+        for (const polygon of overlap || []) {
+          const size = area(polygon[0]) - polygon.slice(1).reduce((sum, hole) => sum + area(hole), 0);
+          if (size <= 1e-14) continue;
+          const ring = polygon[0];
+          const stride = Math.max(1, Math.floor(ring.length / 8));
+          for (let index = 0; index < ring.length - 1 && points.length < 8; index += stride) points.push(ring[index]);
+        }
+      }
+      if (points.length) issues.push({ ids: [left.id, right.id], points, reason: 'overlap' });
+    }
+  }
+  return issues;
+}
+
+function ringRelation(point, ring) {
+  let inside = false;
+  for (let index = 1; index < ring.length; index += 1) {
+    const a = ring[index - 1], b = ring[index];
+    const cross = (point[0] - a[0]) * (b[1] - a[1]) - (point[1] - a[1]) * (b[0] - a[0]);
+    if (Math.abs(cross) <= 1e-12 * Math.max(1, Math.hypot(b[0] - a[0], b[1] - a[1]))
+      && point[0] >= Math.min(a[0], b[0]) - 1e-12 && point[0] <= Math.max(a[0], b[0]) + 1e-12
+      && point[1] >= Math.min(a[1], b[1]) - 1e-12 && point[1] <= Math.max(a[1], b[1]) + 1e-12) return 0;
+    if ((a[1] > point[1]) !== (b[1] > point[1])
+      && point[0] < (b[0] - a[0]) * (point[1] - a[1]) / (b[1] - a[1]) + a[0]) inside = !inside;
+  }
+  return inside ? 1 : -1;
+}
+
+function geometryRelation(point, parts) {
+  for (const { polygon, box } of parts) {
+    if (point[0] < box[0] || point[0] > box[2] || point[1] < box[1] || point[1] > box[3]) continue;
+    const outer = ringRelation(point, polygon[0]);
+    if (outer === 0) return 0;
+    if (outer < 0) continue;
+    let inHole = false;
+    for (const hole of polygon.slice(1)) {
+      const relation = ringRelation(point, hole);
+      if (relation === 0) return 0;
+      if (relation > 0) { inHole = true; break; }
+    }
+    if (!inHole) return 1;
+  }
+  return -1;
+}
+
+function segments(parts) {
+  return parts.flatMap(({ polygon }) => polygon.flatMap(ring => ring.slice(0, -1).map((a, index) => {
+    const b = ring[index + 1];
+    return { a, b, box: [Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.max(a[0], b[0]), Math.max(a[1], b[1])] };
+  })));
+}
+
+function properCrossing(first, second) {
+  const orient = (a, b, c) => (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
+  const a = orient(first.a, first.b, second.a), b = orient(first.a, first.b, second.b);
+  const c = orient(second.a, second.b, first.a), d = orient(second.a, second.b, first.b);
+  return a * b < -1e-24 && c * d < -1e-24;
+}
+
+export function previewContainmentIssue(child, parent) {
+  const childParts = components(child), parentParts = components(parent);
+  for (const { polygon } of childParts) for (const ring of polygon) for (const point of ring.slice(0, -1)) {
+    if (geometryRelation(point, parentParts) < 0) return point;
+  }
+  const parentEdges = segments(parentParts);
+  const parentBox = bounds(parent);
+  const span = Math.max(1e-9, parentBox[2] - parentBox[0]);
+  const buckets = Array.from({ length: 64 }, () => []);
+  const bin = x => Math.max(0, Math.min(63, Math.floor((x - parentBox[0]) / span * 64)));
+  for (const edge of parentEdges) for (let index = bin(edge.box[0]); index <= bin(edge.box[2]); index += 1) buckets[index].push(edge);
+  for (const edge of segments(childParts)) {
+    const checked = new Set();
+    for (let index = bin(edge.box[0]); index <= bin(edge.box[2]); index += 1) for (const other of buckets[index]) {
+      if (checked.has(other) || !boxesOverlap(edge.box, other.box)) continue;
+      checked.add(other);
+      if (properCrossing(edge, other)) return edge.a;
+    }
+  }
+  // A parent hole can be wholly covered without crossing its boundary.
+  for (const { polygon } of parentParts) for (const hole of polygon.slice(1)) {
+    if (geometryRelation(hole[0], childParts) > 0) return hole[0];
+  }
+  return null;
+}
+
+function containmentIssues(features, requiredPairs) {
+  const byId = new Map(features.map(feature => [String(feature.id), feature.geometry]));
+  const issues = [];
+  for (const [id, parentId] of requiredPairs) {
+    const child = byId.get(id), parent = byId.get(parentId);
+    if (!child || !parent) continue;
+    const point = previewContainmentIssue(child, parent);
+    if (point) issues.push({ ids: [id, parentId], points: [point], reason: 'containment' });
+  }
+  return issues;
+}
+
+export function inspectTopologyPreviewFeatures(features, {
+  validateGeometry, clipper, unitParents = new Map(), requiredContainment = [],
+}) {
+  const invalid=features.flatMap(feature=>validateGeometry(feature).map(issue=>({
+    ids:[String(feature.id)],point:issue.coordinate||null,reason:issue.kind||'invalid',
+  })));
+  return invalid.length?invalid:[...intersectionIssues(features,unitParents,clipper),
+    ...containmentIssues(features,requiredContainment)];
+}

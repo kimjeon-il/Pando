@@ -50,7 +50,7 @@ on:
         type: choice
         required: false
         default: auto
-        options: [auto, preview, browser, qt, all]
+        options: [auto, preview, browser, qt, all, acceptance]
 permissions:
   contents: read
 concurrency:
@@ -193,6 +193,17 @@ jobs:
         run: node --test tests/unit/country-mesh-codec-runtime.test.mjs tests/unit/gpu-scene-platform-port.test.mjs
       - name: Verify C++ area, shared-border packet, and boundary-edit handoff
         run: node --test tests/unit/p5-spherical-area-delegation.test.mjs tests/unit/edit-preview-handoff.test.mjs tests/unit/country-shared-boundary-state.test.mjs tests/unit/country-shared-boundary-generator.test.mjs
+      - name: Verify consecutive country merges and current Worker contracts
+        if: inputs.scope == 'acceptance'
+        run: node --test tests/unit/map-edit-preparation-worker.test.mjs tests/unit/map-edit-worker-client.test.mjs
+      - name: Verify affected Web editing, persistence and reference workflows
+        if: inputs.scope == 'acceptance'
+        shell: bash
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: |
+          mkdir -p test-results/p9-browser
+          pnpm exec playwright test tests/browser/annex-e2e.spec.mjs tests/browser/boundary-cut-snapping.spec.mjs tests/browser/reference-image-live-wire.spec.mjs tests/browser/reference-image-line-refine.spec.mjs tests/browser/timeline-persistence.spec.mjs --grep 'annex - (polygon|components|line multiple crossings)|a child cut|live-wire accepts|line refinement accepts|static v10 UI file|complex timeline' --workers=1 --retries=0 --output=test-results/p9-browser
       - name: Run real desktop and emulated mobile screenshots plus startup observability
         shell: bash
         env:
@@ -213,6 +224,7 @@ jobs:
           name: p3-browser-${{ needs.plan.outputs.slug }}-${{ inputs.source_sha || github.sha }}
           path: |
             test-results/p3-browser
+            test-results/p9-browser
             test-results/p3-browser.log
             playwright-report
           if-no-files-found: warn
@@ -338,6 +350,14 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           ctest --test-dir "build-native/p3/$env:PANDO_P3_QT_PRESET" -C Release -R '^(hydro_manifest_tests|hydro_runtime_tests|hydro_full_dataset_tests|river_selection_controller_tests|physical_data_store_tests)$' --output-on-failure
           exit $LASTEXITCODE
+      - name: Verify affected native commands, persistence and Undo/Redo
+        if: inputs.scope == 'acceptance'
+        shell: pwsh
+        run: |
+          cmake --build --preset $env:PANDO_P3_QT_PRESET --target territorial_geometry_tests territorial_geometry_preview_tests split_selection_controller_tests river_selection_controller_tests timeline_editor_persistence_tests
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          ctest --test-dir "build-native/p3/$env:PANDO_P3_QT_PRESET" -C Release -R '^(territorial_geometry_tests|territorial_geometry_preview_tests|split_selection_controller_tests|river_selection_controller_tests|timeline_editor_persistence_tests)$' --output-on-failure
+          exit $LASTEXITCODE
       - name: Build and CTest the shared C++ normalization through Qt
         shell: bash
         run: |
@@ -394,3 +414,30 @@ jobs:
             build-native/p3/${{ matrix.preset }}/Testing/Temporary/LastTest.log
           if-no-files-found: warn
           retention-days: 10
+
+  calculation-performance:
+    if: inputs.scope == 'acceptance'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 8e22982616e3c9ba43eeb84baec17cd886267cfa
+          path: build-native/p9/baseline
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Compare changed calculations on the same runner with alternating samples
+        run: node tools/p6-calculation-performance.mjs --baseline build-native/p9/baseline --candidate . --output build-native/p9/calculation-performance.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p9-calculation-performance-${{ inputs.source_sha || github.sha }}
+          path: build-native/p9/calculation-performance.json
+          if-no-files-found: warn
+          retention-days: 14
