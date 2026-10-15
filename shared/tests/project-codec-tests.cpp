@@ -6,6 +6,7 @@
 #include <iostream>
 #include <iterator>
 #include <limits>
+#include <cmath>
 
 using namespace pandoeditor;
 int main() {
@@ -16,6 +17,12 @@ int main() {
     try { codecjson::parse("{\"a\":1,\"\\u0061\":2}");assert(false); }
     catch(const std::invalid_argument& error) { assert(std::string(error.what()).find("DUPLICATE_KEY")==0); }
     assert(codecjson::Value::num(1.25).encode()=="1.25");
+    assert(std::signbit(codecjson::finiteNumber(codecjson::parse("-0"))));
+    assert(codecjson::finiteNumber(codecjson::parse("9007199254740993"))==9007199254740992.0);
+    assert(codecjson::finiteNumber(codecjson::parse("9223372036854775808"))==9223372036854775808.0);
+    assert(codecjson::finiteNumber(codecjson::parse("-9223372036854775808"))==-9223372036854775808.0);
+    assert(codecjson::finiteNumber(codecjson::parse("1.25"))==1.25);
+    assert(codecjson::finiteNumber(codecjson::parse("1e2"))==100);
     // Captured with Qt 6.8.3 QJsonDocument in a tiny Core-only oracle. These
     // tokens also pin geometry/provenance hashes across the codec extraction.
     const double numbers[]={-0.0,0.0,1.25,1e-7,1e-6,1e20,1e21,9007199254740992.0,

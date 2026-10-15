@@ -1,10 +1,75 @@
 {
-  "reason": "P9 exposed invalid winding after splitting planar longitude edges. Pre-P6 evidence remains unchanged in wrapping-baseline.json; these two current results segment before deciding spherical winding.",
+  "reason": "P9 exposed invalid winding after splitting planar longitude edges. Pre-P6 evidence remains unchanged in wrapping-baseline.json; these current results segment before deciding spherical winding. Planar areas and components are preserved.",
   "cases": [
     {
-      "id": "planar-wide-edge",
+      "id": "long-edge-unwrapped-source",
+      "operation": "wrap",
       "expected": {
-        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              [
+                170,
+                10
+              ],
+              [
+                180,
+                10
+              ],
+              [
+                180,
+                0
+              ],
+              [
+                170,
+                0
+              ],
+              [
+                170,
+                10
+              ]
+            ]
+          ],
+          [
+            [
+              [
+                -180,
+                10
+              ],
+              [
+                -35,
+                10
+              ],
+              [
+                110,
+                10
+              ],
+              [
+                110,
+                0
+              ],
+              [
+                -35,
+                0
+              ],
+              [
+                -180,
+                0
+              ],
+              [
+                -180,
+                10
+              ]
+            ]
+          ]
+        ],
+        "type": "MultiPolygon"
+      }
+    },
+    {
+      "id": "planar-wide-edge",
+      "operation": "normalize-clipped",
+      "expected": {
         "coordinates": [
           [
             [
@@ -36,21 +101,26 @@
               0
             ]
           ]
-        ]
+        ],
+        "type": "Polygon"
       }
     },
     {
       "id": "planar-wide-edge-with-hole",
+      "operation": "normalize-clipped",
       "expected": {
-        "type": "Polygon",
         "coordinates": [
           [
             [
-              -175,
+              0,
               -10
             ],
             [
-              -175,
+              175,
+              -10
+            ],
+            [
+              175,
               10
             ],
             [
@@ -58,19 +128,15 @@
               10
             ],
             [
-              175,
+              -175,
               10
             ],
             [
-              175,
+              -175,
               -10
             ],
             [
               0,
-              -10
-            ],
-            [
-              -175,
               -10
             ]
           ],
@@ -104,7 +170,8 @@
               -5
             ]
           ]
-        ]
+        ],
+        "type": "Polygon"
       }
     }
   ]

@@ -208,7 +208,7 @@ jobs:
         run: |
           if [ "$RETRY_FAILED" = true ]; then
             node --test --test-name-pattern='wide source' tests/unit/map-edit-preparation-worker.test.mjs
-            node --test tests/unit/p6-polygon-core.test.mjs tests/unit/reference-shared-runtime.test.mjs
+            node --test tests/unit/p6-polygon-core.test.mjs tests/unit/reference-shared-runtime.test.mjs tests/unit/river-territory-partition.test.mjs
           else
             node --test tests/unit/map-edit-preparation-worker.test.mjs tests/unit/map-edit-worker-client.test.mjs tests/unit/project-preview-worker.test.mjs tests/unit/project-preview-topology.test.mjs tests/unit/gis-geometry-worker.test.mjs tests/unit/shared-geometry-calculations.test.mjs tests/unit/current-hydro-layout.test.mjs tests/unit/hydro-packfile.test.mjs
           fi
@@ -274,6 +274,7 @@ jobs:
     timeout-minutes: 75
     env:
       PANDO_P3_QT_PRESET: ${{ matrix.preset }}
+      PANDO_P9_RETRY: ${{ inputs.retry_failed }}
       QT_QPA_PLATFORM: offscreen
       QT_QUICK_BACKEND: software
     steps:
@@ -352,12 +353,16 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          ctest --preset "$PANDO_P3_QT_PRESET" 2>&1 | tee p3-ctest.log
+          selection=()
+          if [ "$PANDO_P9_RETRY" = true ]; then selection=(-R '^(geometry_calculator_tests|cut_geometry_calculator_tests|split_geometry_normalizer_tests|split_geometry_lifecycle_tests|river_partition_tests|river_area_tests|reference_image_tests|reference_auto_georef_tests)$'); fi
+          ctest --preset "$PANDO_P3_QT_PRESET" "${selection[@]}" 2>&1 | tee p3-ctest.log
       - name: Run focused Qt CTest and preserve Windows failure diagnostics
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          ctest --preset $env:PANDO_P3_QT_PRESET 2>&1 | Tee-Object p3-ctest.log
+          $selection = @()
+          if ($env:PANDO_P9_RETRY -eq 'true') { $selection = @('-R', '^(geometry_calculator_tests|cut_geometry_calculator_tests|split_geometry_normalizer_tests|split_geometry_lifecycle_tests|river_partition_tests|river_area_tests|reference_image_tests|reference_auto_georef_tests)$') }
+          ctest --preset $env:PANDO_P3_QT_PRESET @selection 2>&1 | Tee-Object p3-ctest.log
           $ctestExit = $LASTEXITCODE
           # QtTest writes persistent logs on both platforms, including Windows
           # executables whose stdout is unavailable to CTest. Never rerun an unrelated test.
