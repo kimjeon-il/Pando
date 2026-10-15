@@ -9,6 +9,7 @@ param(
  [ValidateSet('m98-stress','p9-relative')][string]$Profile='m98-stress',
  [string]$BaselineProbeExecutable,
  [string]$BaselineSourceCommit,
+ [string]$AdditionalRoundFrom,
  [ValidateRange(1,20)][int]$Runs=3,
  [ValidateRange(60000,3600000)][int]$WarmupMs=60000,
  [ValidateRange(720000,7200000)][int]$RepeatMs=720000,
@@ -23,12 +24,28 @@ param(
 $ErrorActionPreference='Stop'
 $probePath=(Resolve-Path -LiteralPath $ProbeExecutable).Path
 $baselinePath=$null
+$buildIdentity=$null;$previousRound=$null
 if($Profile -eq 'p9-relative'){
  if($Mode -ne 'diagnostic' -or !$DiagnosticReason){throw 'P9 relative comparison requires explicit diagnostic scope; it does not establish M98 acceptance'}
  if($Runs -ne 5){throw 'P9 relative comparison requires exactly five alternating measured pairs'}
  if($BaselineSourceCommit -notmatch '^[a-f0-9]{40}$'){throw 'P9 baseline source commit is required'}
  $baselinePath=(Resolve-Path -LiteralPath $BaselineProbeExecutable).Path
-}
+ $identityPath=Join-Path (Split-Path $probePath -Parent) 'source-identity.json'
+ $buildIdentity=Get-Content -LiteralPath $identityPath -Raw | ConvertFrom-Json
+ if($buildIdentity.baselineSourceSha -ne $BaselineSourceCommit -or $buildIdentity.candidateSourceSha -notmatch '^[a-f0-9]{40}$'){throw 'CI source identity does not match the requested pair'}
+ if($buildIdentity.binaries.baseline.sha256 -ne (Get-FileHash -LiteralPath $baselinePath).Hash -or $buildIdentity.binaries.candidate.sha256 -ne (Get-FileHash -LiteralPath $probePath).Hash){throw 'CI test binary identity mismatch'}
+ foreach($overlay in $buildIdentity.measurementOverlaySha256.PSObject.Properties){
+  $localOverlay=Join-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) $overlay.Name
+  if((Get-FileHash -LiteralPath $localOverlay).Hash -ne $overlay.Value){throw "Measurement overlay differs from compiled CI source: $($overlay.Name)"}
+ }
+ if($AdditionalRoundFrom){
+  $AdditionalRoundFrom=(Resolve-Path -LiteralPath $AdditionalRoundFrom).Path
+  $assessment=Get-Content -LiteralPath (Join-Path $AdditionalRoundFrom 'assessment.json') -Raw | ConvertFrom-Json
+  if($assessment.schema -ne 'pando-p9-native-relative-comparison' -or $assessment.status -ne 'uncertain' -or $assessment.roundCount -ne 1 -or !$assessment.additionalRoundAllowed){throw 'One additional round is allowed only after initial P9 uncertainty'}
+  $previousRound=Get-Content -LiteralPath (Join-Path $AdditionalRoundFrom 'environment.json') -Raw | ConvertFrom-Json
+  if($previousRound.additionalRoundFrom){throw 'An additional round cannot be repeated'}
+ }
+}elseif($AdditionalRoundFrom){throw 'Additional round applies only to P9 relative comparison'}
 $qtPath=(Resolve-Path -LiteralPath $QtBin).Path
 $manifestPath=(Resolve-Path -LiteralPath $FixtureManifest).Path
 if(Test-Path -LiteralPath $OutputDirectory){throw 'Use a new evidence output directory'}
@@ -120,15 +137,24 @@ foreach($runtimeFile in @("$qtPath/Qt6Core.dll","$qtPath/Qt6Gui.dll","$qtPath/Qt
 $metadata=[ordered]@{sourceCommit=(git rev-parse HEAD);sourceDirty=[bool](git status --porcelain --untracked-files=no);binarySha256=(Get-FileHash -LiteralPath $probePath).Hash;fixtureManifestSha256=$preflight.fixtureManifestSha256;buildType='Release';qtBin=$qtPath;os=[Environment]::OSVersion.VersionString;adapters=@(Get-CimInstance Win32_VideoController | Select-Object Name,DriverVersion);cpu=@(Get-CimInstance Win32_Processor | Select-Object Name,NumberOfLogicalProcessors);inputHashes=$hashes;measurementMode=$Mode;diagnosticReason=$DiagnosticReason;runs=$Runs;warmupMs=$WarmupMs;repeatMs=$RepeatMs;qtFunctionTimeoutMs=$TimeoutSeconds*1000;acceptedBy=$null}
 $metadata.measurementProfile=$Profile
 $metadata.qtPluginPath=$qtPluginPath;$metadata.qtQmlPath=$qtQmlPath
+$metadata.workspaceCommit=$metadata.sourceCommit
 if($baselinePath){
+ $metadata.sourceCommit=$buildIdentity.candidateSourceSha
  $metadata.baselineSourceCommit=$BaselineSourceCommit;$metadata.baselineBinarySha256=(Get-FileHash -LiteralPath $baselinePath).Hash
+ $metadata.buildIdentity=$buildIdentity
  $metadata.warmupMs=0;$metadata.repeatMs=0
  $metadata.cacheCondition='One discarded full workload per version warms OS inputs and the shared installed physical-data disk cache; each measured run starts a fresh process with isolated project persistence and fresh in-memory caches. Existing physical-data cache is preserved.'
  $metadata.scope='P9 same-input production-world relative startup/pan-swap/edit-preview-cancel/save/process-memory comparison. No M98 full-stack, 12-minute plateau, GPU completion, or Android evidence.'
+ $metadata.additionalRoundFrom=$AdditionalRoundFrom
+ if($previousRound){
+  foreach($key in @('sourceCommit','baselineSourceCommit','binarySha256','baselineBinarySha256','fixtureManifestSha256')){
+   if($previousRound.$key -ne $metadata[$key]){throw "Additional round changed $key"}
+  }
+ }
 }
 $metadata | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath "$reportRoot/environment.json" -Encoding utf8
 if($Mode -eq 'acceptance' -and $metadata.sourceDirty){throw 'Acceptance requires the final fixed source commit; working tree is dirty'}
-$envNames=@('PATH','QTEST_FUNCTION_TIMEOUT','QT_QPA_PLATFORM','QT_PLUGIN_PATH','QML_IMPORT_PATH','QML2_IMPORT_PATH','QT_QUICK_BACKEND','QSG_RHI_BACKEND','PANDOEDITOR_MAP_RENDERER','QSG_RENDER_TIMING','QSG_RENDERER_DEBUG','PANDOEDITOR_NATIVE_PERF_REPORT','PANDOEDITOR_NATIVE_PERF_FIXTURES','PANDOEDITOR_NATIVE_PERF_MODE','PANDOEDITOR_NATIVE_PERF_REASON','PANDOEDITOR_NATIVE_PERF_PROVENANCE','PANDOEDITOR_NATIVE_PERF_PREFLIGHT','PANDOEDITOR_NATIVE_PERF_WARMUP_MS','PANDOEDITOR_NATIVE_PERF_REPEAT_MS','PANDOEDITOR_NATIVE_PERF_RUN_ID','PANDOEDITOR_NATIVE_PERF_BRIEF','PANDOEDITOR_NATIVE_PERF_ABLATION','PANDOEDITOR_NATIVE_PERF_RECOVERY','PANDOEDITOR_NATIVE_PERF_VIEW','PANDOEDITOR_NATIVE_PERF_PROFILE','PANDOEDITOR_NATIVE_PERF_WORLD_ROOT','PANDOEDITOR_WORLD_DATA_ROOT','PANDOEDITOR_TERRAIN_DEM_DATA_ROOT')
+$envNames=@('PATH','QTEST_FUNCTION_TIMEOUT','QT_QPA_PLATFORM','QT_PLUGIN_PATH','QML_IMPORT_PATH','QML2_IMPORT_PATH','QT_QUICK_BACKEND','QSG_RHI_BACKEND','QSG_INFO','QT_LOGGING_RULES','QSG_RHI_PREFER_SOFTWARE_RENDERER','QT_D3D_ADAPTER_INDEX','PANDOEDITOR_MAP_RENDERER','QSG_RENDER_TIMING','QSG_RENDERER_DEBUG','PANDOEDITOR_NATIVE_PERF_REPORT','PANDOEDITOR_NATIVE_PERF_FIXTURES','PANDOEDITOR_NATIVE_PERF_MODE','PANDOEDITOR_NATIVE_PERF_REASON','PANDOEDITOR_NATIVE_PERF_PROVENANCE','PANDOEDITOR_NATIVE_PERF_PREFLIGHT','PANDOEDITOR_NATIVE_PERF_WARMUP_MS','PANDOEDITOR_NATIVE_PERF_REPEAT_MS','PANDOEDITOR_NATIVE_PERF_RUN_ID','PANDOEDITOR_NATIVE_PERF_BRIEF','PANDOEDITOR_NATIVE_PERF_ABLATION','PANDOEDITOR_NATIVE_PERF_RECOVERY','PANDOEDITOR_NATIVE_PERF_VIEW','PANDOEDITOR_NATIVE_PERF_PROFILE','PANDOEDITOR_NATIVE_PERF_WORLD_ROOT','PANDOEDITOR_WORLD_DATA_ROOT','PANDOEDITOR_TERRAIN_DEM_DATA_ROOT')
 $saved=@{};foreach($name in $envNames){$saved[$name]=[Environment]::GetEnvironmentVariable($name,'Process')}
 try{
  $env:PATH="$qtPath;$env:PATH";$env:QT_QPA_PLATFORM='windows'
@@ -136,7 +162,10 @@ try{
  if($AdditionalQtPluginDirectory){$env:QT_PLUGIN_PATH=$AdditionalQtPluginDirectory+';'+$env:QT_PLUGIN_PATH}
  $env:QML_IMPORT_PATH=$qtQmlPath;$env:QML2_IMPORT_PATH=$env:QML_IMPORT_PATH
  $env:QT_QUICK_BACKEND=$null;$env:QSG_RHI_BACKEND=$null;$env:PANDOEDITOR_MAP_RENDERER=$null
- if($baselinePath){$env:QSG_RHI_BACKEND='d3d11'}
+ if($baselinePath){
+  $env:QSG_RHI_BACKEND='d3d11';$env:QSG_INFO='1';$env:QT_LOGGING_RULES='qt.scenegraph.general.debug=true;qt.rhi.general.debug=true'
+  $env:QSG_RHI_PREFER_SOFTWARE_RENDERER='0';$env:QT_D3D_ADAPTER_INDEX=$null
+ }
  $env:QSG_RENDER_TIMING=$null;$env:QSG_RENDERER_DEBUG=$null
  $env:PANDOEDITOR_NATIVE_PERF_BRIEF=$null;$env:PANDOEDITOR_NATIVE_PERF_ABLATION=$null;$env:PANDOEDITOR_NATIVE_PERF_RECOVERY=$null;$env:PANDOEDITOR_NATIVE_PERF_VIEW=$null
  $env:PANDOEDITOR_NATIVE_PERF_FIXTURES=$manifestPath;$env:PANDOEDITOR_NATIVE_PERF_MODE=$Mode;$env:PANDOEDITOR_NATIVE_PERF_REASON=$DiagnosticReason
@@ -152,13 +181,21 @@ try{
  $failures=[Collections.Generic.List[object]]::new()
  $runPlan=@()
  if($baselinePath){
-  foreach($version in @('baseline','candidate')){$runPlan+=@{id="warmup-$version";version=$version;warmup=$true}}
-  for($run=1;$run -le $Runs;$run++){foreach($version in @('baseline','candidate')){$runPlan+=@{id="run-$run-$version";version=$version;warmup=$false}}}
+  if(!$AdditionalRoundFrom){foreach($version in @('baseline','candidate')){$runPlan+=@{id="warmup-$version";version=$version;warmup=$true}}}
+  $runPrefix=if($AdditionalRoundFrom){'extra'}else{'run'}
+  for($run=1;$run -le $Runs;$run++){foreach($version in @('baseline','candidate')){$runPlan+=@{id="$runPrefix-$run-$version";version=$version;warmup=$false}}}
  }else{for($run=1;$run -le $Runs;$run++){$runPlan+=@{id="run-$run";version='candidate';warmup=$false}}}
  foreach($planned in $runPlan){
   $currentProbe=if($planned.version -eq 'baseline'){$baselinePath}else{$probePath}
   $runRoot=Join-Path $reportRoot $planned.id;New-Item -ItemType Directory -Path $runRoot | Out-Null
   $env:PANDOEDITOR_NATIVE_PERF_REPORT="$runRoot/measurement.json";$env:PANDOEDITOR_NATIVE_PERF_RUN_ID=$planned.id
+  if($baselinePath){
+   $runMetadata=[ordered]@{};foreach($key in $metadata.Keys){$runMetadata[$key]=$metadata[$key]}
+   if($planned.version -eq 'baseline'){$runMetadata.sourceCommit=$BaselineSourceCommit;$runMetadata.binarySha256=$metadata.baselineBinarySha256}
+   $runMetadata.runId=$planned.id;$runMetadata.warmup=$planned.warmup
+   $runMetadata | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath "$runRoot/provenance.json" -Encoding utf8
+   $env:PANDOEDITOR_NATIVE_PERF_PROVENANCE="$runRoot/provenance.json"
+  }
   $arguments=@('nativePerformanceProbe','-o',('"'+$runRoot+'/qt-test.txt,txt"'))
   # The requested device measurement needs an exposed Windows map window.
   $probe=Start-Process -FilePath $currentProbe -ArgumentList $arguments -WorkingDirectory (Split-Path $currentProbe -Parent) -WindowStyle Normal -PassThru -RedirectStandardOutput "$runRoot/stdout.txt" -RedirectStandardError "$runRoot/stderr.txt"
@@ -174,7 +211,7 @@ try{
   $failures | ConvertTo-Json | Set-Content -LiteralPath "$reportRoot/run-results.json" -Encoding utf8
   if(!$timedOut -and $null -eq $nativeExit){throw 'Native process exit code unavailable; raw failure preserved'}
   foreach($path in $hashes.Keys){if((Get-FileHash -LiteralPath $path).Hash -ne $hashes[$path]){throw "Immutable fixture changed: $path"}}
-  if((Get-FileHash -LiteralPath $probePath).Hash -ne $metadata.binarySha256 -or (git rev-parse HEAD) -ne $metadata.sourceCommit){throw 'Binary/source changed during the fixed repeated run'}
+  if((Get-FileHash -LiteralPath $probePath).Hash -ne $metadata.binarySha256 -or (git rev-parse HEAD) -ne $metadata.workspaceCommit){throw 'Binary/source changed during the fixed repeated run'}
   if($baselinePath -and (Get-FileHash -LiteralPath $baselinePath).Hash -ne $metadata.baselineBinarySha256){throw 'Baseline binary changed during the fixed repeated run'}
   if($baselinePath -and ($timedOut -or $nativeExit -ne 0 -or !(Test-Path -LiteralPath "$runRoot/measurement.json"))){throw 'P9 workload failed; stop comparison and preserve raw evidence'}
   $failures | ConvertTo-Json | Set-Content -LiteralPath "$reportRoot/run-results.json" -Encoding utf8
