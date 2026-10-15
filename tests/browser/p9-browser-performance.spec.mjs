@@ -3,19 +3,45 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 import { writeFile } from 'node:fs/promises';
+import { existsSync, readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import os from 'node:os';
 import { createP3PreviewServer } from '../../scripts/p3-preview-server.mjs';
 
 const baselineSha = '8e22982616e3c9ba43eeb84baec17cd886267cfa';
 const candidateRoot = fileURLToPath(new URL('../../', import.meta.url));
 const viewport = { width: 1440, height: 900 };
-const gpuArgs = ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'];
+const hardware = process.env.PANDO_P9_HARDWARE === 'true';
+const gpuArgs = hardware ? [] : ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'];
 const median = values => {
   const sorted = [...values].sort((a,b)=>a-b), index = Math.floor(sorted.length/2);
   return sorted.length%2 ? sorted[index] : (sorted[index-1]+sorted[index])/2;
 };
 const percentile = (values, fraction) => [...values].sort((a,b)=>a-b)[Math.ceil(values.length*fraction)-1];
 const gitHead = root => execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
+function verifyBaseline(root) {
+  if (existsSync(resolve(root, '.git'))) {
+    expect(gitHead(root), 'baseline HEAD must match the pre-P6 revision').toBe(baselineSha);
+    expect(execFileSync('git', ['diff', '--name-only', 'HEAD', '--', 'index.html', 'assets'], { cwd: root, encoding: 'utf8' }).trim()).toBe('');
+    return { kind: 'checkout', sha: baselineSha };
+  }
+  // A static git archive is a measurement input, with no branch or worktree.
+  // Verify every served baseline blob against the fixed Git tree before use.
+  const tree = execFileSync('git', ['ls-tree', '-rz', baselineSha, '--', 'index.html', 'assets'], {
+    cwd: candidateRoot, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024,
+  });
+  let count = 0;
+  for (const entry of tree.split('\0').filter(Boolean)) {
+    const match = /^\d+ blob ([a-f0-9]{40})\t(.+)$/.exec(entry);
+    expect(match, `Unexpected baseline tree entry ${entry}`).toBeTruthy();
+    const bytes = readFileSync(resolve(root, match[2]));
+    const hash = createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex');
+    expect(hash, `Changed baseline input ${match[2]}`).toBe(match[1]);
+    count++;
+  }
+  expect(count).toBeGreaterThan(0);
+  return { kind: 'verified-static-git-archive', sha: baselineSha, verifiedBlobs: count };
+}
 const summarize = rounds => Object.fromEntries(['interactivePaintMs','editableMs','frameP95Ms','jsHeapUsedBytes'].map(key=>{
   const baseline = rounds.map(row=>row.baseline[key]), candidate = rounds.map(row=>row.candidate[key]);
   return [key, {
@@ -35,8 +61,8 @@ test('P9 alternates fixed baseline and candidate browser startup, focus frames a
   const report = {
     schema: 'pando-p9-browser-performance-v1', baselineSha, candidateSha: gitHead(candidateRoot),
     status: 'unverified', rounds: [], warmups: {}, metrics: {},
-    scope: 'Chromium software WebGL startup and RUS selection/focus; main-page JS heap only.',
-    notVerified: ['physical GPU', 'Qt startup/frames/memory', 'Android touch', 'large geometry edit frames', 'Worker/WASM/GPU/process memory'],
+    scope: `Chromium ${hardware ? 'physical GPU' : 'software WebGL'} startup and RUS selection/focus; main-page JS heap only.`,
+    notVerified: [...(hardware ? [] : ['physical GPU']), 'Qt startup/frames/memory', 'Android touch', 'large geometry edit frames', 'Worker/WASM/GPU/process memory'],
     conditions: { viewport, deviceScaleFactor: 1, softwareGpuArguments: gpuArgs,
       httpCache: 'disabled by CDP on both pages', serviceWorkers: 'blocked',
       storage: 'separate fresh contexts, retained per side after one warmup; Cache Storage may be warm',
@@ -51,7 +77,7 @@ test('P9 alternates fixed baseline and candidate browser startup, focus frames a
   try {
     const baselineRoot = process.env.PANDO_P9_BASELINE_ROOT;
     expect(baselineRoot, 'PANDO_P9_BASELINE_ROOT must name the fixed baseline checkout').toBeTruthy();
-    expect(gitHead(resolve(baselineRoot)), 'baseline HEAD must match the pre-P6 revision').toBe(baselineSha);
+    report.conditions.baselineInput = verifyBaseline(resolve(baselineRoot));
     expect(baseURL, 'candidate baseURL is required').toBeTruthy();
     server = createP3PreviewServer(baselineRoot);
     await new Promise((done,reject)=>{server.once('error',reject);server.listen(0,'127.0.0.1',done);});
@@ -59,7 +85,7 @@ test('P9 alternates fixed baseline and candidate browser startup, focus frames a
     const candidateUrl = new URL('/?debug=1&renderer=webgl2',baseURL).href;
     const launch = testInfo.project.use.launchOptions || {};
     browser = await playwright.chromium.launch({ ...launch, channel: testInfo.project.use.channel,
-      headless: true, args: [...(launch.args||[]),...gpuArgs] });
+      headless: !hardware, args: [...(launch.args||[]),...gpuArgs] });
     report.conditions.browserVersion = browser.version();
     const sides = {};
     let activePage = null, activeCdp = null;
@@ -111,13 +137,16 @@ test('P9 alternates fixed baseline and candidate browser startup, focus frames a
     for(const side of ['baseline','candidate']) {
       report.warmups[side] = await sample(side);
       const renderer = await activePage.evaluate(()=>{
-        const canvas=document.createElement('canvas'),gl=canvas.getContext('webgl2');
+        const canvas=document.querySelector('#map canvas'),gl=canvas?.getContext('webgl2');
         if(!gl)return null;const info=gl.getExtension('WEBGL_debug_renderer_info');
         const name=info?gl.getParameter(info.UNMASKED_RENDERER_WEBGL):gl.getParameter(gl.RENDERER);
-        gl.getExtension('WEBGL_lose_context')?.loseContext();return name;
+        return name;
       });
       report.conditions[side+'Renderer'] = renderer;
-      expect(renderer,`${side} must use software SwiftShader`).toMatch(/SwiftShader/i);
+      if(hardware) {
+        expect(renderer,`${side} application GL context is required`).toBeTruthy();
+        expect(renderer,`${side} must use the physical GPU`).not.toMatch(/SwiftShader|llvmpipe|software/i);
+      } else expect(renderer,`${side} must use software SwiftShader`).toMatch(/SwiftShader/i);
     }
     async function measureFive() {
       for(let count=0;count<5;count++) {
