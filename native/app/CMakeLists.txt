@@ -12,6 +12,12 @@ else()
     find_package(Qt6 6.5 REQUIRED COMPONENTS ShaderTools)
 endif()
 find_package(ZLIB REQUIRED)
+
+# Python interpreters are research/legacy oracles, never a Qt runtime/build prerequisite.
+option(PANDOEDITOR_ENABLE_PYTHON_ORACLES "Register optional Python GIS and legacy regression oracles" OFF)
+if(BUILD_TESTING AND PANDOEDITOR_ENABLE_PYTHON_ORACLES)
+    find_package(Python3 REQUIRED COMPONENTS Interpreter)
+endif()
 if(BUILD_TESTING)
     add_executable(place_label_collision_tests ../tests/place_label_collision_tests.cpp)
     target_link_libraries(place_label_collision_tests PRIVATE Pandoeditor::MapEngine)
@@ -366,8 +372,7 @@ if(BUILD_TESTING)
         FILES "${PROJECT_SOURCE_DIR}/assets/sample.pando.json")
     add_test(NAME gis_failure_matrix_tests COMMAND gis_failure_matrix_tests -o -,txt)
     set_tests_properties(gis_failure_matrix_tests PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
-    find_package(Python3 COMPONENTS Interpreter QUIET)
-    if(Python3_Interpreter_FOUND)
+    if(PANDOEDITOR_ENABLE_PYTHON_ORACLES)
         add_test(NAME terrain_dem_acquisition_tests
             COMMAND "${Python3_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/tools/test_acquire_terrain_dem.py")
         add_test(NAME m6_gpkg_web_fixture
@@ -387,7 +392,7 @@ if(BUILD_TESTING)
     target_compile_definitions(project_geopackage_tests PRIVATE
         WEB_GPKG_FIXTURE="${PROJECT_SOURCE_DIR}/tests/fixtures/web-m6")
     add_test(NAME project_geopackage_tests COMMAND project_geopackage_tests)
-    if(Python3_Interpreter_FOUND)
+    if(PANDOEDITOR_ENABLE_PYTHON_ORACLES)
         add_test(NAME m6_project_gpkg_sqlite_oracle
             COMMAND "${Python3_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/tools/m6-project-gpkg-oracle.py"
                 "$<TARGET_FILE:project_geopackage_tests>")
@@ -406,7 +411,7 @@ if(BUILD_TESTING)
         FILES "${PROJECT_SOURCE_DIR}/assets/sample.pando.json")
     add_test(NAME gis_export_controller_tests COMMAND gis_export_controller_tests -o -,txt)
     set_tests_properties(gis_export_controller_tests PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
-    if(Python3_Interpreter_FOUND)
+    if(PANDOEDITOR_ENABLE_PYTHON_ORACLES)
         add_test(NAME m6_gis_export_sqlite_oracle
             COMMAND "${Python3_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/tools/m6-gis-export-oracle.py"
                 "$<TARGET_FILE:gis_export_tests>")
@@ -461,8 +466,10 @@ if(BUILD_TESTING)
     if(M972_NODE_EXECUTABLE)
         add_test(NAME m972_river_oracle_contract COMMAND "${M972_NODE_EXECUTABLE}" --test
             "${PROJECT_SOURCE_DIR}/tools/m97/river-kernel.test.mjs")
-        set_tests_properties(m972_river_oracle_contract PROPERTIES
-            ENVIRONMENT "PANDOEDITOR_PYTHON_EXECUTABLE=${Python3_EXECUTABLE}")
+        if(PANDOEDITOR_ENABLE_PYTHON_ORACLES)
+            set_tests_properties(m972_river_oracle_contract PROPERTIES
+                ENVIRONMENT "PANDOEDITOR_ENABLE_PYTHON_ORACLES=1;PANDOEDITOR_PYTHON_EXECUTABLE=${Python3_EXECUTABLE}")
+        endif()
         add_test(NAME m972_river_synthetic_browser_baseline COMMAND "${M972_NODE_EXECUTABLE}"
             "${PROJECT_SOURCE_DIR}/tools/m97/river/differential.mjs" --native "$<TARGET_FILE:m972_river_probe>" --synthetic)
         add_test(NAME m972_river_full_source_browser_baseline COMMAND "${M972_NODE_EXECUTABLE}" --max-old-space-size=256
@@ -982,6 +989,12 @@ if(BUILD_TESTING)
     target_compile_definitions(split_geometry_normalizer_tests PRIVATE M973_SPLIT_NORMALIZER_FIXTURE="${PROJECT_SOURCE_DIR}/assets/geometry/split-corrections/normalizer-cases.json")
     add_test(NAME split_geometry_normalizer_tests COMMAND split_geometry_normalizer_tests -o -,txt)
     set_tests_properties(split_geometry_normalizer_tests PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
+    # P5-2: prove the Qt QJSEngine adapter calls shared/core, independent of
+    # unrelated historical clipping oracle cases.
+    add_test(NAME p5_spherical_area_qt_bridge
+        COMMAND split_geometry_normalizer_tests sharedSphericalAreaIsIdenticalToQtAdapter -o -,txt)
+    set_tests_properties(p5_spherical_area_qt_bridge PROPERTIES
+        ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
 endif()
 if(BUILD_TESTING)
     find_program(M973_NODE_EXECUTABLE node)
@@ -1092,12 +1105,11 @@ if(BUILD_TESTING)
     add_test(NAME m974_boundary_ui_tests COMMAND m974_boundary_ui_tests -o -,txt)
     set_tests_properties(m974_boundary_ui_tests PROPERTIES TIMEOUT 180 ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
 endif()
-if(BUILD_TESTING)
-    find_package(Python3 REQUIRED COMPONENTS Interpreter)
+if(BUILD_TESTING AND PANDOEDITOR_ENABLE_PYTHON_ORACLES)
     add_test(NAME m974_regression_gate_tests COMMAND "${Python3_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/tests/m974_regression_gate_tests.py")
 endif()
 
-if(BUILD_TESTING)
+if(BUILD_TESTING AND PANDOEDITOR_ENABLE_PYTHON_ORACLES)
     add_test(NAME m974_boundary_delivery_tests
         COMMAND "${Python3_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/tests/m974_boundary_delivery_tests.py"
             --probe "$<TARGET_FILE:m974_boundary_probe>"

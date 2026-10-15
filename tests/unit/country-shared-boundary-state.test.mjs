@@ -1,3 +1,5 @@
+import '../helpers/spherical-core.mjs';
+const verifiedNodeCoreUrl = new URL('../../tools/load-spherical-core.mjs', import.meta.url).href;
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { Worker } from 'node:worker_threads';
@@ -246,6 +248,7 @@ function countryWorker(t, cache, quality = 'preview') {
     import { gzipSync } from 'node:zlib';
     globalThis.self = { location: { href: ${JSON.stringify(moduleUrl)} }, postMessage: (...args) => parentPort.postMessage(...args) };
     if (workerData.cache) globalThis.fetch = async () => new Response(gzipSync(JSON.stringify(workerData.cache)));
+    await import(${JSON.stringify(verifiedNodeCoreUrl)});
     await import(${JSON.stringify(moduleUrl)});
     parentPort.on('message', data => self.onmessage({ data }));`;
   const worker = new Worker(new URL(`data:text/javascript,${encodeURIComponent(wrapper)}`), { workerData: { cache } });
@@ -308,6 +311,7 @@ test('the real Worker coalesces rapid replace patches and deletions while preser
       parentPort.postMessage({ type: 'cache-stalled' });
       return new Promise(resolve => { release = () => resolve(new Response(gzipSync(JSON.stringify(workerData.cache)))); });
     };
+    await import(${JSON.stringify(verifiedNodeCoreUrl)});
     await import(${JSON.stringify(moduleUrl)});
     parentPort.on('message', data => data.type === 'release-cache' ? release() : self.onmessage({ data }));`;
   const worker = new Worker(new URL(`data:text/javascript,${encodeURIComponent(wrapper)}`), { workerData: { cache } });

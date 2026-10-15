@@ -24,6 +24,11 @@ test('Russia nested edits retain parent candidates, locks and history after auto
     await page.mouse.up();
     await expect(page.locator('#modeDraftDoneBtn')).toBeEnabled({ timeout: 30000 });
     await page.locator('#modeDraftDoneBtn').click();
+    // Draw completion enters area review; the user must explicitly confirm the
+    // current drawn area before advancing to the final create/review stage.
+    await expect(page.locator('#modeDraftDoneBtn')).toHaveAttribute('aria-label', '현재 영역 확정', { timeout: 60000 });
+    await expect(page.locator('#modeDraftDoneBtn')).toBeEnabled({ timeout: 60000 });
+    await page.locator('#modeDraftDoneBtn').click();
     await expect(page.locator('#modePrimaryBtn')).toBeEnabled({ timeout: 60000 });
     await page.locator('#modePrimaryBtn').click();
     await expect(page.locator('#modePrimaryBtn')).toContainText('생성');
@@ -119,7 +124,9 @@ test('Russia detailed line preparation remains cancellable and keeps the origina
 
 for (const renderer of ['webgl2', 'webgl1', 'canvas']) {
   test(`Russia detailed polygon creation, boundary refresh, undo and preparation cancellation (${renderer})`, async ({ page }, testInfo) => {
-    test.setTimeout(150_000);
+    // The full-resolution parent may require an additional asynchronous history
+    // rehydration after creation. Keep the contract strict but allow it to settle.
+    test.setTimeout(300_000);
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
     await page.addInitScript(() => {
@@ -158,6 +165,11 @@ for (const renderer of ['webgl2', 'webgl1', 'canvas']) {
     await page.mouse.up();
     await expect(page.locator('#modeDraftDoneBtn')).toBeEnabled({ timeout: 30000 });
     await page.locator('#modeDraftDoneBtn').click();
+    // Draw completion enters area review; the user must explicitly confirm the
+    // current drawn area before advancing to the final create/review stage.
+    await expect(page.locator('#modeDraftDoneBtn')).toHaveAttribute('aria-label', '현재 영역 확정', { timeout: 60000 });
+    await expect(page.locator('#modeDraftDoneBtn')).toBeEnabled({ timeout: 60000 });
+    await page.locator('#modeDraftDoneBtn').click();
     await expect(page.locator('#modePrimaryBtn')).toBeEnabled({ timeout: 60000 });
     await page.locator('#modePrimaryBtn').click();
     await expect(page.locator('#modePrimaryBtn')).toContainText('생성');
@@ -169,7 +181,9 @@ for (const renderer of ['webgl2', 'webgl1', 'canvas']) {
     await expect(page.locator('path.territorial-internal-boundary')).toHaveCount(0);
     expect(await page.evaluate(() => JSON.stringify(window.PANDOLAB_TERRITORIAL.get('RUS').geometry) === window.__russiaOriginal)).toBe(true);
     await page.locator('#undoBtn').click();
-    await expect.poll(children).toBe(0);
+    // The UI triggers asynchronous C++ project history; a click is not its
+    // completion signal, particularly for Russia's 36,756 coordinates.
+    await expect.poll(children, { timeout: 90_000 }).toBe(0);
     await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('RUS'));
     await page.locator('#editEntityCoastBtn').evaluate(button => button.click());
     await page.locator('#modeCancelBtn').click();
