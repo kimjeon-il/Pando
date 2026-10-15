@@ -5,6 +5,7 @@
 #include "nativeperformancemetrics.h"
 #include "native_performance_input_state.h"
 #include <QElapsedTimer>
+#include <QDebug>
 #include <QFile>
 #include <QSemaphore>
 #include <QSignalSpy>
@@ -297,10 +298,32 @@ private slots:
     }
     void staleWorkerIsMeasuredAndNeverPublishesPreparedPayload() {
         auto project=sample();CommandJobRunner runner([&]()->const Project&{return project;});QSignalSpy measured(&runner,&CommandJobRunner::operationMeasured);
+        // Diagnostics for the Windows-only stale-worker color mismatch. Keep
+        // all original success/failure expectations and production code intact.
+        const auto sourceSnapshot=project.snapshot();
+        const auto reportColor=[&](const char* phase) {
+            const auto ref=territorialRef("A");
+            const auto& style=project.document().presentation.objectStyles.at(ref);
+            const auto* view=project.country("A");
+            const auto* property=project.propertyView(ref);
+            const auto* original=sourceSnapshot.country("A");
+            const auto address=[](const void* ptr){return QString::number(quintptr(ptr),16);};
+            qInfo().noquote() << "P5_WINDOWS_COLOR_DIAGNOSTIC" << phase
+                << "revision" << project.revision()
+                << "raw" << style.color << "explicit" << style.explicitColor
+                << "view" << (view?view->color:0u)
+                << "effective" << (property?property->effectiveColor:0u)
+                << "sourceSnapshot" << (original?original->color:0u)
+                << "rawAddress" << address(&style.color)
+                << "viewAddress" << address(view?&view->color:nullptr)
+                << "sameAddress" << (view&&&view->color==&style.color);
+        };
+        reportColor("initial");
         auto gate=std::make_shared<Gate>();Release release{gate};bool completed=false;
         runner.submit(project.snapshot(),"stale",blocked(gate,request(project)),[&](auto,auto disposition,PrepareResult result){QCOMPARE(disposition,JobDisposition::Stale);QVERIFY(!result.preview);completed=true;});
-        QTRY_VERIFY(gate->started.available());QVERIFY(project.setMemo("A","Unrelated later edit"));
-        gate->release.release();QTRY_VERIFY(completed);QCOMPARE(measured.size(),1);
+        QTRY_VERIFY(gate->started.available());reportColor("worker-started");
+        QVERIFY(project.setMemo("A","Unrelated later edit"));reportColor("memo-committed");
+        gate->release.release();QTRY_VERIFY(completed);reportColor("stale-completed");QCOMPARE(measured.size(),1);
         QCOMPARE(measured.first()[3].toInt(),int(JobDisposition::Stale));QVERIFY(measured.first()[2].toDouble()>0);
         QVERIFY(project.country("A"));QCOMPARE(project.country("A")->color,std::uint32_t(0x123456));
     }
