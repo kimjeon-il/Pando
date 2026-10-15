@@ -249,12 +249,32 @@ jobs:
         run: |
           set -o pipefail
           ctest --preset "$PANDO_P3_QT_PRESET" 2>&1 | tee p3-ctest.log
-      - name: Run focused Qt CTest and core state checks (Windows)
+      - name: Run focused Qt CTest and preserve Windows failure diagnostics
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
           ctest --preset $env:PANDO_P3_QT_PRESET 2>&1 | Tee-Object p3-ctest.log
-          exit $LASTEXITCODE
+          $ctestExit = $LASTEXITCODE
+          if ($ctestExit -ne 0) {
+            # QtTest may exit without writing to the CTest console on Windows.
+            # Capture its own text output and NTSTATUS without masking the failure.
+            $target = "build-native/p3/$env:PANDO_P3_QT_PRESET/native/Release/native_performance_structure_tests.exe"
+            $log = Join-Path (Get-Location).Path 'p3-native-performance-structure-diagnostic.log'
+            $ErrorActionPreference = 'Continue'
+            if (Test-Path $target) {
+              & $target -o "$log,txt" 2>&1 | Tee-Object p3-native-performance-structure-console.log
+              $directExit = $LASTEXITCODE
+              Write-Host ("Native performance structure exit: decimal={0}, hex=0x{1}" -f $directExit, [Convert]::ToString([int]$directExit,16))
+              if (Test-Path $log) {
+                Get-Content $log | Select-Object -Last 250
+              } else {
+                Write-Host 'No QtTest diagnostic file was written; process may have failed during startup.'
+              }
+            } else {
+              Write-Host "Native test executable was not found: $target"
+            }
+          }
+          exit $ctestExit
       - name: Build and CTest the shared C++ spherical area in Qt's JS bridge
         shell: bash
         run: |
@@ -295,6 +315,8 @@ jobs:
           path: |
             p3-qt-build.log
             p3-ctest.log
+            p3-native-performance-structure-diagnostic.log
+            p3-native-performance-structure-console.log
             p3-p5-qt-area-build.log
             p3-p5-qt-area-ctest.log
             p3-qt-regenerated-geometry.patch
