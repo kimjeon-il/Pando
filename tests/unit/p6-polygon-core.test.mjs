@@ -14,3 +14,19 @@ test('shared polygon operation owns multi-operand union, holes and empty interse
   assert.deepEqual(core.polygonOperation('intersection',[a,box(10,10,1,1)],false),[]);
   assert.deepEqual(a,box(0,0,2,2));
 });
+
+
+test('WASM wrapping preserves every pre-P6 case, including empty geometry', async () => {
+  const { readFileSync } = await import('node:fs');
+  const core = await loadVerifiedCore();
+  const fixture = JSON.parse(readFileSync(new URL('../fixtures/p6/wrapping-baseline.json', import.meta.url)));
+  for (const row of fixture.cases.filter(row => row.operation === 'wrap')) {
+    assert.deepEqual(JSON.parse(core.wrapPolygonGeometry(JSON.stringify(row.input))), row.expected, row.id);
+  }
+});
+
+test('cut and wrapping failures retain technical JavaScript errors', async () => {
+  const core = await loadVerifiedCore();
+  assert.throws(() => core.wrapPolygonGeometry('{'), error => error instanceof Error && error.code === 'PL-GEOMETRY-CALCULATION');
+  assert.throws(() => new core.PreparedCutGeometry('{'), error => error instanceof Error && error.code === 'PL-CUT-CALCULATION');
+});

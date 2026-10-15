@@ -938,7 +938,7 @@ target_sources(pandoeditor_editor PRIVATE splitgeometrynormalizer.cpp splitgeome
 if(BUILD_TESTING)
     add_executable(split_geometry_normalizer_tests ../tests/split_geometry_normalizer_tests.cpp)
     target_link_libraries(split_geometry_normalizer_tests PRIVATE pandoeditor_editor Qt6::Test)
-    target_compile_definitions(split_geometry_normalizer_tests PRIVATE M973_SPLIT_NORMALIZER_FIXTURE="${PROJECT_SOURCE_DIR}/assets/geometry/split-corrections/normalizer-cases.json")
+    target_compile_definitions(split_geometry_normalizer_tests PRIVATE M973_SPLIT_NORMALIZER_FIXTURE="${PROJECT_SOURCE_DIR}/../tests/fixtures/p6/wrapping-baseline.json")
     add_test(NAME split_geometry_normalizer_tests COMMAND split_geometry_normalizer_tests -o -,txt)
     set_tests_properties(split_geometry_normalizer_tests PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
     # P6: prove the Qt adapter calls shared/core, independent of

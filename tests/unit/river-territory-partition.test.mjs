@@ -9,6 +9,7 @@ const {
   RIVER_TERRITORY_PARTITION_ALGORITHM_REVISION,
   RIVER_TERRITORY_PARTITION_CONFIG,
   riverTerritoryPartitionConfigFingerprint,
+  riverTerritoryAreaKm2,
 } = await import('../../assets/js/modules/river-territory-partition.js');
 
 const clipper = globalThis.polygonClipping;
@@ -32,7 +33,7 @@ function river(id, coordinates, type = 'LineString') {
 const square = donor('square', [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]]);
 
 function partition(donors, rivers, options = {}) {
-  return buildRiverTerritoryPartitions({ donors, riverFeatures: rivers, clipper, ...options });
+  return buildRiverTerritoryPartitions({ donors, riverFeatures: rivers, ...options });
 }
 
 test('one crossing river creates two disjoint donor cells', () => {
@@ -184,4 +185,35 @@ test('metric workspace unwraps a date-line component', () => {
   const left = workspace.toMeters([179.5, 0]);
   const right = workspace.toMeters([-179.5, 0]);
   assert.ok(Math.abs(right[0] - left[0]) < 120000);
+});
+
+
+test('prepared workspace remains stable when source coordinates change', () => {
+  const component = structuredClone(square.geometry.coordinates);
+  const workspace = createRiverPartitionWorkspace(component);
+  const meters = workspace.toMeters([0.25, 0.75]);
+  component[0][0][0] = 30;
+  assert.deepEqual(workspace.toMeters([0.25, 0.75]), meters);
+  const inverse = workspace.toLonLat(meters);
+  assert.ok(Math.abs(inverse[0] - 0.25) < 1e-10);
+  assert.ok(Math.abs(inverse[1] - 0.75) < 1e-10);
+});
+
+test('nonfinite coordinates cannot become zero during the WASM JSON transport', () => {
+  for (const value of [NaN, Infinity, -Infinity]) {
+    assert.throws(() => createRiverPartitionWorkspace([[[value, 0], [1, 0], [1, 1], [value, 0]]]),
+      error => error.code === 'PL-RIVER-CALCULATION' && /NONFINITE/.test(error.message));
+  }
+});
+
+test('shared spherical area preserves the frozen D3 winding and dateline metrics', () => {
+  const cases = [
+    [[[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]], 12364.031909465642],
+    [[[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]], 510053516.9409623],
+    [[[[179, 10], [179, 11], [-179, 11], [-179, 10], [179, 10]]], 24316.52184605573],
+  ];
+  for (const [coordinates, expected] of cases) {
+    const actual = riverTerritoryAreaKm2({ type: 'Polygon', coordinates });
+    assert.ok(Math.abs(actual - expected) <= Math.max(1e-20, Math.abs(expected) * 2e-14));
+  }
 });

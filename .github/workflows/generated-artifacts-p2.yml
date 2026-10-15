@@ -142,6 +142,9 @@ jobs:
           node --test tests/unit/p6-polygon-core.test.mjs
           tests/unit/reference-shared-runtime.test.mjs
           tests/unit/edit-preparation.test.mjs
+          tests/unit/reference-image-georef.test.mjs tests/unit/reference-image-transform.test.mjs
+          tests/unit/reference-image-live-wire.test.mjs tests/unit/reference-image-line-refiner.test.mjs
+          tests/unit/river-territory-partition.test.mjs
       - name: Validate all generated source fingerprints and output hashes
         run: |
           mkdir -p build-native/p2

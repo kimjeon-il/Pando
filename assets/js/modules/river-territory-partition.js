@@ -16,7 +16,13 @@ function calculate(operation, input) {
   if (typeof core.riverPartitionCalculate !== 'function') {
     throw Object.assign(new Error('공통 C++ 수계 계산을 사용할 수 없습니다.'), { code: 'PL-CORE-WASM-CAPABILITY' });
   }
-  return JSON.parse(core.riverPartitionCalculate(operation, JSON.stringify(input)));
+  const encoded = JSON.stringify(input, (_key, value) => {
+    if (typeof value === 'number' && !Number.isFinite(value)) {
+      throw Object.assign(new TypeError('RIVER_NONFINITE_INPUT'), { code: 'PL-RIVER-CALCULATION' });
+    }
+    return value;
+  });
+  return JSON.parse(core.riverPartitionCalculate(operation, encoded));
 }
 
 export function composeRiverBoundaryTerritoryComponents(input = {}) {
@@ -24,13 +30,12 @@ export function composeRiverBoundaryTerritoryComponents(input = {}) {
 }
 
 export function createRiverPartitionWorkspace(component) {
-  const snapshot = structuredClone(component);
-  const workspace = calculate('workspace', { component: snapshot });
+  const workspace = Object.freeze(calculate('workspace', { component }));
   return Object.freeze({
     centerLongitude: workspace.centerLongitude,
     centerLatitude: workspace.centerLatitude,
-    toMeters: point => calculate('workspace', { component: snapshot, points: [point] }).points[0],
-    toLonLat: point => calculate('workspace', { component: snapshot, points: [point], direction: 'toLonLat' }).points[0],
+    toMeters: point => calculate('transform', { workspace, point }),
+    toLonLat: point => calculate('transform', { workspace, point, direction: 'toLonLat' }),
   });
 }
 

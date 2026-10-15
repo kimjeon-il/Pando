@@ -129,7 +129,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
+      - name: Verify native source and executable provenance
+        run: node --test tests/unit/native-build-provenance.test.mjs
       - name: Compile native polygon kernel and current contract probe
+        id: compile
         run: |
           cmake -S shared -B build-native/p6-core -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
           cmake --build build-native/p6-core --target polygon_clipping_probe cut_geometry_probe reference_image_core_tests river_partition_probe --parallel 2
@@ -139,10 +142,10 @@ jobs:
       - name: Compare frozen cut behavior
         run: node tools/p6-cut-parity.mjs build-native/p6-core/tests/cut_geometry_probe
       - name: Compare frozen river behavior
-        if: success() || failure()
+        if: (success() || failure()) && steps.compile.outcome == 'success'
         run: node shared/tests/river-partition-parity.mjs build-native/p6-core/tests/river_partition_probe
       - name: Compare frozen reference behavior
-        if: success() || failure()
+        if: (success() || failure()) && steps.compile.outcome == 'success'
         run: ctest --test-dir build-native/p6-core -R '^reference_image_core_tests$' --output-on-failure
   contracts:
     if: github.event_name != 'workflow_dispatch' || (inputs.scope != 'p6-polygon' && inputs.scope != 'p6-calculations')

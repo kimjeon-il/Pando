@@ -1,3 +1,4 @@
+/* global process, URL, structuredClone, console */
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { spawnSync } from 'node:child_process';

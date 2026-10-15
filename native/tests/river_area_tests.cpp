@@ -35,11 +35,12 @@ QString metricBits(double value) {quint64 bits;std::memcpy(&bits,&value,sizeof b
 struct SyntheticMetricEvidence {Geometry geometry;double nativeArea=0,browserArea=0;QJsonObject diagnostic;};
 SyntheticMetricEvidence syntheticMetricEvidence(bool oneStepDifferent=false) {
     SyntheticMetricEvidence fixture;fixture.geometry=square();fixture.nativeArea=calculateRiverAreaKm2(fixture.geometry).areaKm2;
-    QJSEngine engine;QFile source(":/river/current/d3.min.js");source.open(QIODevice::ReadOnly);engine.evaluate(QString::fromUtf8(source.readAll()));
+    QJSEngine engine;
     const auto input=QJsonDocument::fromJson(R"({"coordinates":[[[0,0],[0,1],[1,1],[1,0],[0,0]]],"type":"Polygon"})").object();
     auto value=engine.globalObject().property("JSON").property("parse").call({QString::fromUtf8(QJsonDocument(input).toJson(QJsonDocument::Compact))});
     const auto canonical=engine.globalObject().property("JSON").property("stringify").call({value}).toString().toUtf8();
-    double steradians=engine.globalObject().property("d3").property("geo").property("area").call({value}).toNumber();
+    // Frozen D3 3.5.6 square result, independent of the migrated implementation.
+    double steradians=0.0003046096848622025;
     if(oneStepDifferent)steradians=std::nextafter(steradians,0.);
     const double squared=engine.evaluate("6371.0088**2").toNumber();
     const auto multiply=engine.evaluate("(function(a,b){return a*b;})");fixture.browserArea=multiply.call({steradians,squared}).toNumber();
@@ -202,25 +203,7 @@ private slots:
         auto withoutTrim=source;withoutTrim.replace(".replace(/(\\.\\d*?)0+$/, \"$1\").replace(/\\.$/, \"\")","");
         const auto changed=m972test::evaluateProductionMetricFormatter(1.,withoutTrim);QVERIFY(!changed.ok||changed.text!=QString("1 km²"));
     }
-    void runtimeLoadsByteVerifiedOriginalAndApprovedAdapter() {
-        const auto result=calculateRiverAreaKm2(square());QVERIFY2(result.succeeded(),qPrintable(result.detail));
-        QFile original(":/river/current/d3-original.min.js");QVERIFY(original.open(QIODevice::ReadOnly));const auto bytes=original.readAll();
-        QCOMPARE(bytes.size(),qsizetype(151144));
-        QCOMPARE(QCryptographicHash::hash(bytes,QCryptographicHash::Sha256).toHex(),
-            QByteArray("4cdf92091ed0cfdd8b862af1c6d4744bd0458e746b92c1bbd5403a1143ecd538"));
-        QFile adapted(":/river/current/d3.min.js");QVERIFY(adapted.open(QIODevice::ReadOnly));const auto generated=adapted.readAll();
-        QCOMPARE(generated.size(),qsizetype(158242));
-        const auto generatedSha256=QCryptographicHash::hash(generated,QCryptographicHash::Sha256).toHex();
-        QCOMPARE(generatedSha256,QByteArray("f273f409d8b1ba4c35d98fb06ca56f06726359d792ad719400d0e46a8c15cd85"));
-        QFile provenance(":/river/d3-provenance.json");QVERIFY(provenance.open(QIODevice::ReadOnly));
-        const auto manifest=QJsonDocument::fromJson(provenance.readAll()).object();
-        QCOMPARE(manifest["sha256"].toString().toLatin1(),QCryptographicHash::hash(bytes,QCryptographicHash::Sha256).toHex());
-        const auto adapter=manifest["adapter"].toObject();
-        QCOMPARE(adapter["sha256"].toString().toLatin1(),generatedSha256);
-        QCOMPARE(adapter["bytes"].toInt(),158242);QCOMPARE(adapter["modifiedScopeCount"].toInt(),531);
-        QCOMPARE(adapter["insertedVarCount"].toInt(),2409);
-        QCOMPARE(adapter["parser"].toObject()["version"].toString(),QString("8.15.0"));
-    }
+
 };
 QTEST_GUILESS_MAIN(RiverAreaTests)
 #include "river_area_tests.moc"

@@ -3,7 +3,7 @@
 #include <QFile>
 #include <QJsonDocument>
 #include <QJsonArray>
-#include <QJSEngine>
+#include <pandoeditor/sphericalpolygon.h>
 #include <atomic>
 #include <limits>
 #include <future>
@@ -41,13 +41,15 @@ private slots:
             QCOMPARE(QJsonDocument::fromJson(composed.json).object(),expected["composed"].toObject());
         }
     }
-    void nullNormalizationPrecedesFallbackAndCacheRecomposition() {
+    void canonicalNormalizationPreservesSmallCellsAndCacheRecomposition() {
         auto base=bases(QJsonDocument::fromJson(R"([{"key":"base","countryId":"d","polygonIndex":0,"sourcePolygonIndex":7,"geometry":{"type":"Polygon","coordinates":[[[0,0],[1,0],[1,1],[0,1],[0,0]]]},"custom":"untouched"}])").array());
         RiverPartitionCell microscopic;microscopic.key="raw-identity";microscopic.donorCountryId="d";microscopic.componentKey="d:0";
         microscopic.geometry.type="Polygon";microscopic.geometry.polygons={{{{0,0},{1e-8,0},{1e-8,1e-8},{0,1e-8},{0,0}}}};
         microscopic.area=123;microscopic.areaM2=456;microscopic.algorithmRevision="raw-revision";
         microscopic.sourceRiverIds={"z","a"};microscopic.riverBoundarySegments={{{{1,1},{0,0}}}};
-        const auto filtered=normalizeRiverPartitionCandidates({microscopic});QVERIFY(filtered.succeeded());QVERIFY(filtered.candidates.empty());
+        const auto preserved=normalizeRiverPartitionCandidates({microscopic});QVERIFY2(preserved.succeeded(),qPrintable(preserved.detail));QCOMPARE(preserved.candidates.size(),std::size_t(1));
+        auto empty=microscopic;empty.geometry.type="MultiPolygon";empty.geometry.polygons.clear();
+        const auto filtered=normalizeRiverPartitionCandidates({empty});QVERIFY(filtered.succeeded());QVERIFY(filtered.candidates.empty());
         const auto fallback=composeRiverPartitionComponents(base,filtered.candidates,{});QVERIFY(fallback.succeeded());
         QCOMPARE(fallback.components.size(),std::size_t(1));QVERIFY(!fallback.components[0].isRiver);
         QCOMPARE(fallback.components[0].key,QString("base"));QCOMPARE(fallback.components[0].sourcePolygonIndex,7);
@@ -71,18 +73,17 @@ private slots:
         QCOMPARE(suppressed.components.size(),std::size_t(1));QCOMPARE(suppressed.invalidDonorIds,QStringList{"d"});
         QCOMPARE(suppressed.riverCandidateCount,0);QCOMPARE(suppressed.splitComponentCount,0);
     }
-    void pinnedNormalizerRetainsExactRingSemanticsAndNull() {
+    void canonicalNormalizerRetainsShellsHolesAndTinyIslands() {
         Geometry input;input.type="Polygon";input.polygons={{{{0,0},{0.5,0},{0.25,0},{1,0},{1,1},{1,1+5e-11},{0,1},{0,5e-11}},
             {{0.1,0.1},{0.1+1e-8,0.1},{0.1+1e-8,0.1+1e-8},{0.1,0.1+1e-8},{0.1,0.1}}}};
         const auto result=normalizeRiverGeometry(input);QVERIFY2(result.succeeded(),qPrintable(result.detail));QVERIFY(result.geometry);
-        QCOMPARE(result.geometry->type,std::string("Polygon"));QCOMPARE(result.geometry->polygons[0].size(),std::size_t(1));
-        const auto& ring=result.geometry->polygons[0][0];QCOMPARE(ring.size(),std::size_t(6));
-        QCOMPARE(ring[0].x,0.);QCOMPARE(ring[0].y,1.);QCOMPARE(ring[1].x,1.);QCOMPARE(ring[1].y,1.);
-        QCOMPARE(ring[2].x,1.);QCOMPARE(ring[2].y,0.);
-        // Upstream removes backtracks, but preserves forward collinear points.
-        QCOMPARE(ring[3].x,0.25);QCOMPARE(ring[3].y,0.);QCOMPARE(ring[4].x,0.);QCOMPARE(ring[4].y,0.);
+        QCOMPARE(result.geometry->type,std::string("Polygon"));QCOMPARE(result.geometry->polygons[0].size(),std::size_t(2));
+        QVERIFY(hasCanonicalSphericalWinding(*result.geometry));
+        QCOMPARE(result.geometry->polygons[0][0].size(),std::size_t(6));
         Geometry tiny;tiny.type="Polygon";tiny.polygons={{{{0,0},{1e-8,0},{1e-8,1e-8},{0,0}}}};
-        const auto none=normalizeRiverGeometry(tiny);QVERIFY(none.succeeded());QVERIFY(!none.geometry);
+        const auto small=normalizeRiverGeometry(tiny);QVERIFY(small.succeeded());QVERIFY(small.geometry);
+        QCOMPARE(small.geometry->polygons[0][0].size(),std::size_t(4));
+        Geometry empty;const auto none=normalizeRiverGeometry(empty);QVERIFY(none.succeeded());QVERIFY(!none.geometry);
         QCOMPARE(input.polygons[0][0].size(),std::size_t(8));
         const auto cancelled=normalizeRiverGeometry(input,[]{return true;});QCOMPARE(cancelled.status,RiverPartitionStatus::Cancelled);QVERIFY(!cancelled.geometry);
         input.polygons[0][0][0].x=std::numeric_limits<double>::infinity();
@@ -115,7 +116,8 @@ private slots:
         QVERIFY2(result.succeeded(),qPrintable(result.detail));QCOMPARE(result.presentationCandidates.size(),result.candidates.size());
         QCOMPARE(result.presentationCandidates[0].key,result.candidates[0].key);
         QCOMPARE(result.presentationCandidates[0].sourceRiverIds,result.candidates[0].sourceRiverIds);
-        QVERIFY(result.presentationCandidates[0].geometry.polygons[0][0][0].y!=result.candidates[0].geometry.polygons[0][0][0].y);
+        QVERIFY(hasCanonicalSphericalWinding(result.presentationCandidates[0].geometry));
+        QVERIFY(!hasCanonicalSphericalWinding(result.candidates[0].geometry));
         QCOMPARE(result.presentationComponents[0].sourcePolygonIndex,7);QVERIFY(!result.presentationJson.isEmpty());QVERIFY(!result.workspaceJson.isEmpty());
     }
     void liveHydroRevisionUsesExactSortedJsEditedSignatureBeforeKernel() {
@@ -195,39 +197,32 @@ private slots:
         }
         QCOMPARE(byName["crossing-pair"],byName["crossing-pair-reversed"]);
     }
-    void platformAdaptersAreBoundedAndPrivate() {
-        QJSEngine engine;const auto previousCos=engine.evaluate("Math.cos(0.7719766168394622)").toNumber();
-        engine.globalObject().setProperty("globalThis",engine.globalObject());
-        QFile platform(QStringLiteral(M972_RIVER_ASSETS)+"/platform.js");QVERIFY(platform.open(QIODevice::ReadOnly));
-        const auto loaded=engine.evaluate(QString::fromUtf8(platform.readAll()));QVERIFY2(!loaded.isError(),qPrintable(loaded.toString()));
-        QFile checks(QStringLiteral(M972_RIVER_FIXTURE)+"/platform-tests.js");QVERIFY(checks.open(QIODevice::ReadOnly));
-        const auto checked=engine.evaluate(QString::fromUtf8(checks.readAll()));QVERIFY2(!checked.isError(),qPrintable(checked.toString()));
-        QCOMPARE(engine.evaluate("Object.keys("+engine.globalObject().property("JSON").property("stringify").call({checked}).toString()+").length").toInt(),24);
-        const auto result=calculateRiverPartitionsJson(R"({"request":{},"components":[]})");QVERIFY(result.succeeded());
-        QCOMPARE(engine.evaluate("Math.cos(0.7719766168394622)").toNumber(),previousCos);
-        QJSEngine untouched;QCOMPARE(untouched.evaluate("typeof structuredClone").toString(),QString("undefined"));
-        QCOMPARE(untouched.evaluate("Math.cos(0.7719766168394622)").toNumber(),previousCos);
+    void parallelCalculationsOwnTheirState() {
+        const QByteArray input=R"({"request":{},"components":[]})";
+        auto one=std::async(std::launch::async,[input]{return calculateRiverPartitionsJson(input);});
+        auto two=std::async(std::launch::async,[input]{return calculateRiverPartitionsJson(input);});
+        const auto a=one.get(),b=two.get();QVERIFY(a.succeeded());QVERIFY(b.succeeded());
+        QVERIFY(a.candidates.empty());QVERIFY(b.candidates.empty());QVERIFY(a.inputUnchanged);QVERIFY(b.inputUnchanged);
     }
     void errorsAndNonfiniteInputsFailClosed() {
-        const auto error=calculateRiverPartitionsJson(R"({"request":{},"omitClipper":true})");
-        QCOMPARE(error.status,RiverPartitionStatus::Failed);QVERIFY(error.detail.contains("polygon-clipping"));QVERIFY(error.candidates.empty());
+        const auto error=calculateRiverPartitionsJson("[]");
+        QCOMPARE(error.status,RiverPartitionStatus::Failed);QVERIFY(!error.detail.isEmpty());QVERIFY(error.candidates.empty());
         const auto invalid=calculateRiverPartitionsJson("not json");QCOMPARE(invalid.status,RiverPartitionStatus::Failed);
         const auto nonfinite=calculateRiverPartitionsJson(R"({"request":{"hydroRevision":1e999}})");QCOMPARE(nonfinite.status,RiverPartitionStatus::Failed);
         RiverPartitionRequest typed;RiverPartitionDonor donor;donor.countryId="bad";donor.geometry.type="Polygon";donor.geometry.polygons={{{{std::numeric_limits<double>::infinity(),0}}}};typed.donors.push_back(donor);
         QCOMPARE(calculateRiverPartitions(typed).status,RiverPartitionStatus::Failed);
-        int checks=0;const auto cancelled=calculateRiverPartitionsJson(R"({"request":{},"omitClipper":true})",[&]{return ++checks>=5;});
+        int checks=0;const auto cancelled=calculateRiverPartitionsJson(R"({"request":{}})",[&]{return ++checks>=5;});
         QCOMPARE(cancelled.status,RiverPartitionStatus::Cancelled);QVERIFY(cancelled.detail.isEmpty());QVERIFY(cancelled.json.isEmpty());
     }
     void wrappedOutputParseFailureDiscardsResult() {
         const auto nested=[](int depth){return QByteArray("{\"request\":{\"hydroRevision\":")+QByteArray(depth,'[')+'0'+QByteArray(depth,']')+"},\"components\":[]}";};
-        const auto supported=calculateRiverPartitionsJson(nested(1020));
+        const auto supported=calculateRiverPartitionsJson(nested(120));
         QVERIFY2(supported.succeeded(),qPrintable(supported.detail));QVERIFY(supported.diagnostics.hydroRevision.isArray());
-        // The finite acyclic depth-1022 input is accepted by QJSEngine. Wrapping
-        // its revision under result.diagnostics exceeds QJsonDocument's limit.
+        // Shared JSON transport bounds nesting. Rejection must retain no partial result.
         int checksUntilReturn=0;
-        const auto result=calculateRiverPartitionsJson(nested(1022),[&]{++checksUntilReturn;return false;});
+        const auto result=calculateRiverPartitionsJson(nested(127),[&]{++checksUntilReturn;return false;});
         QCOMPARE(result.status,RiverPartitionStatus::Failed);
-        QVERIFY(result.detail.startsWith("RIVER_RESULT_JSON_PARSE_ERROR"));
+        QVERIFY(result.detail.contains("LIMIT_EXCEEDED"));
         QVERIFY(result.candidates.empty());QVERIFY(result.components.empty());QVERIFY(result.donors.empty());
         QVERIFY(result.invalidDonorIds.empty());QVERIFY(result.donorRevisionStrings.empty());QVERIFY(result.editedRiverSignature.isEmpty());
         QVERIFY(result.json.isEmpty());QVERIFY(!result.inputUnchanged);QVERIFY(!result.compositionInputUnchanged);
@@ -235,7 +230,7 @@ private slots:
         // Turn cancellation on at the failing call's final cancellation query.
         // It must override the output-parser exception and retain no error/data.
         int checks=0;
-        const auto cancelled=calculateRiverPartitionsJson(nested(1022),[&]{return ++checks>=checksUntilReturn;});
+        const auto cancelled=calculateRiverPartitionsJson(nested(127),[&]{return ++checks>=checksUntilReturn;});
         QCOMPARE(cancelled.status,RiverPartitionStatus::Cancelled);QVERIFY(cancelled.detail.isEmpty());
         QVERIFY(cancelled.candidates.empty());QVERIFY(cancelled.components.empty());QVERIFY(cancelled.donors.empty());QVERIFY(cancelled.json.isEmpty());
     }
