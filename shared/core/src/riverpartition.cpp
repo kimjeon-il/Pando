@@ -8,12 +8,11 @@
 #include <chrono>
 #include <cmath>
 #include <cstdint>
-#include <iomanip>
+#include <charconv>
 #include <iterator>
 #include <map>
 #include <numeric>
 #include <set>
-#include <sstream>
 #include <stdexcept>
 #include <unordered_map>
 namespace pandoeditor {
@@ -92,9 +91,10 @@ struct Component{std::set<std::size_t> edges,nodes;};
 std::vector<Component> components(const Graph& g,const std::set<std::size_t>& active){auto remaining=active;std::vector<Component> out;while(!remaining.empty()){auto first=*remaining.begin();Component c;std::vector<std::size_t> queue{g.edges[first].a,g.edges[first].b};while(!queue.empty()){auto id=queue.back();queue.pop_back();if(!c.nodes.insert(id).second)continue;for(auto e:g.nodes[id].edges){if(!active.count(e))continue;c.edges.insert(e);remaining.erase(e);queue.push_back(g.edges[e].a==id?g.edges[e].b:g.edges[e].a);}}out.push_back(std::move(c));}return out;}
 std::set<std::size_t> prune(const Graph& g,V& d){std::set<std::size_t> active;for(std::size_t i=0;i<g.edges.size();++i)if(g.edges[i].river)active.insert(i);auto initial=active.size();auto disconnected=[&]{for(const auto& c:components(g,active)){std::size_t count=0;for(auto n:c.nodes)if(g.nodes[n].boundary)++count;if(count<2)for(auto e:c.edges)active.erase(e);}};disconnected();bool changed=true;while(changed){changed=false;std::map<std::size_t,std::size_t> degree;for(auto e:active){++degree[g.edges[e].a];++degree[g.edges[e].b];}for(const auto& [n,count]:degree)if(count<=1&&!g.nodes[n].boundary)for(auto e:g.nodes[n].edges)if(active.erase(e))changed=true;}disconnected();count(d,"retainedRiverEdges",active.size());count(d,"prunedRiverEdges",initial-active.size());return active;}
 std::string join(const std::vector<std::string>& v,const std::string& separator){std::string out;for(std::size_t i=0;i<v.size();++i){if(i)out+=separator;out+=v[i];}return out;}
-std::string ringKey(const Ring& r){std::vector<std::string> values;for(std::size_t i=0;i+1<r.size();++i)values.push_back(std::to_string(static_cast<long long>(std::floor(r[i].x*1e7+.5)))+","+std::to_string(static_cast<long long>(std::floor(r[i].y*1e7+.5))));if(values.empty())return "";auto key=[](std::vector<std::string> v){auto i=std::min_element(v.begin(),v.end());std::rotate(v.begin(),i,v.end());return join(v,";");};auto a=key(values);std::reverse(values.begin(),values.end());return std::min(a,key(values));}
+std::string integerText(std::int64_t value){char buffer[32];const auto converted=std::to_chars(buffer,buffer+sizeof(buffer),value);return {buffer,converted.ptr};}
+std::string ringKey(const Ring& r){std::vector<std::string> values;for(std::size_t i=0;i+1<r.size();++i)values.push_back(integerText(static_cast<long long>(std::floor(r[i].x*1e7+.5)))+","+integerText(static_cast<long long>(std::floor(r[i].y*1e7+.5))));if(values.empty())return "";auto key=[](std::vector<std::string> v){auto i=std::min_element(v.begin(),v.end());std::rotate(v.begin(),i,v.end());return join(v,";");};auto a=key(values);std::reverse(values.begin(),values.end());return std::min(a,key(values));}
 std::string geometryKey(const Polygon& p){std::vector<std::string> v;for(const auto& r:p)v.push_back(ringKey(r));std::sort(v.begin(),v.end());return join(v,"|");}
-std::string hashText(const std::string& text){std::uint32_t hash=2166136261u;auto add=[&](std::uint32_t c){hash^=c;hash*=16777619u;};for(std::size_t i=0;i<text.size();){auto a=static_cast<unsigned char>(text[i++]);std::uint32_t cp=a;int remaining=0;if(a>=0xf0){cp=a&7;remaining=3;}else if(a>=0xe0){cp=a&15;remaining=2;}else if(a>=0xc0){cp=a&31;remaining=1;}while(remaining--&&i<text.size())cp=(cp<<6)|(static_cast<unsigned char>(text[i++])&63);if(cp>0xffff){cp-=0x10000;add(0xd800+(cp>>10));add(0xdc00+(cp&1023));}else add(cp);}std::ostringstream out;out<<std::hex<<std::setfill('0')<<std::setw(8)<<hash;return out.str();}
+std::string hashText(const std::string& text){std::uint32_t hash=2166136261u;auto add=[&](std::uint32_t c){hash^=c;hash*=16777619u;};for(std::size_t i=0;i<text.size();){auto a=static_cast<unsigned char>(text[i++]);std::uint32_t cp=a;int remaining=0;if(a>=0xf0){cp=a&7;remaining=3;}else if(a>=0xe0){cp=a&15;remaining=2;}else if(a>=0xc0){cp=a&31;remaining=1;}while(remaining--&&i<text.size())cp=(cp<<6)|(static_cast<unsigned char>(text[i++])&63);if(cp>0xffff){cp-=0x10000;add(0xd800+(cp>>10));add(0xdc00+(cp&1023));}else add(cp);}constexpr char digits[]="0123456789abcdef";std::string out(8,'0');for(int i=7;i>=0;--i){out[i]=digits[hash&15];hash>>=4;}return out;}
 struct PreparedRiverFeature {std::string source;std::vector<Ring> parts;};
 std::vector<PreparedRiverFeature> prepareRivers(const V& features,const GeometryCancellation& cancelled) {
  std::vector<PreparedRiverFeature> prepared;prepared.reserve(features.array.size());
