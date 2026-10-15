@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -40,6 +41,31 @@ if (existsSync(resolve(projectRoot, bundlePath))) {
     }
   } catch (error) {
     failures.push(`세계지도 데이터 매니페스트 검증에 실패했습니다: ${error.message}`);
+  }
+}
+
+// Generated preparation metadata is an integrity contract, not merely a version label.
+// A stale size or checksum disables fixed-mesh loading and large polygon editing.
+const preparedPath = 'assets/data/prepared-polygons/generated/v2/manifest.json';
+expect(existsSync(resolve(projectRoot, preparedPath)), `Prepared polygon manifest is missing: ${preparedPath}`);
+if (existsSync(resolve(projectRoot, preparedPath))) {
+  try {
+    const bytes = readFileSync(resolve(projectRoot, preparedPath));
+    const manifest = JSON.parse(bytes.toString('utf8'));
+    const expected = {
+      url: preparedPath,
+      encoding: 'identity',
+      compressedBytes: bytes.length,
+      decodedBytes: bytes.length,
+      sha256: createHash('sha256').update(bytes).digest('hex'),
+      algorithmSourceSha256: manifest.algorithmSourceSha256,
+    };
+    for (const [key, value] of Object.entries(expected)) {
+      expect(buildMeta?.preparedPolygonMeshes?.[key] === value,
+        `build-meta.js의 preparedPolygonMeshes.${key}가 현재 매니페스트와 다릅니다.`);
+    }
+  } catch (error) {
+    failures.push(`Prepared polygon metadata validation failed: ${error.message}`);
   }
 }
 
