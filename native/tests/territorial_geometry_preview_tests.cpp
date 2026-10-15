@@ -96,7 +96,7 @@ ProjectDocument sliverFixture(Geometry donor=rectangle(0,0,.01,.01)) {
 }
 Geometry decodePolygon(const QJsonObject& row) {
     Geometry geometry;geometry.type=row["type"].toString().toStdString();auto polygons=row["coordinates"].toArray();
-    if(geometry.type=="Polygon")polygons=QJsonArray{polygons};
+    if(geometry.type=="Polygon")polygons=QJsonArray{QJsonValue(polygons)};
     for(const auto& p:polygons) {Polygon polygon;for(const auto& r:p.toArray()) {Ring ring;
         for(const auto& v:r.toArray()) {const auto point=v.toArray();ring.push_back({point[0].toDouble(),point[1].toDouble()});}
         polygon.push_back(std::move(ring));}geometry.polygons.push_back(std::move(polygon));}return geometry;
@@ -301,10 +301,7 @@ private slots:
         GeometryOperationRequest request{GeometryOperation::Union,
             decodePolygon({{"type","Polygon"},{"coordinates",shapes[0]}}),decodePolygon({{"type","Polygon"},{"coordinates",shapes[1]}})};
         const auto strict=calculateGeometry(request);QCOMPARE(strict.status,GeometryOperationStatus::Failed);
-        // Check the public failure contract and original diagnostic retention,
-        // rather than depending on the sweep implementation's wording.
-        qInfo().noquote()<<"Strict clipping diagnostic:"<<QString::fromStdString(strict.detail);
-        QVERIFY2(!strict.detail.empty(),"Clipping failure lost its underlying diagnostic");
+        QVERIFY2(QString::fromStdString(strict.detail).contains("SweepLine tree"),strict.detail.c_str());
         const auto exhausted=calculateRiverGeometryIntermediate(request);QCOMPARE(exhausted.status,GeometryOperationStatus::Failed);
         QCOMPARE(exhausted.detail,strict.detail);
         auto transformed=request;
