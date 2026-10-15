@@ -21,6 +21,9 @@ for (const name of required) {
   }
 }
 
+// The verified compiled module is shared by temporal and timeline adapters.
+export const sharedCalculationCore = core;
+
 const text = value => String(value ?? '').trim();
 const messages = Object.freeze({
   format: 'YYYY, YYYY-MM 또는 YYYY-MM-DD 형식을 사용하세요.',

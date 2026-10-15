@@ -1,54 +1,25 @@
-import { compareTemporal, normalizeTemporalInterval, parseTemporal, temporalMonthEnd, shiftTemporalMonth } from './temporal.js';
+import { sharedCalculationCore } from './temporal.js';
 
-const collectionFields = Object.freeze({ geometryBindings: ['geometryRef'], parentRelations: ['parentId', 'coverageMode'] });
-const priorMonth = value => shiftTemporalMonth(value.canonical, -1);
-function active(row, month) {
-  const interval = normalizeTemporalInterval(row.validFrom, row.validTo);
-  return (!interval.start || compareTemporal(interval.start, month, { rightBoundary: 'end' }) <= 0)
-    && (!interval.end || compareTemporal(interval.end, month, { leftBoundary: 'end', rightBoundary: 'end' }) >= 0);
+const collectionFields = Object.freeze({
+  geometryBindings: ['geometryRef'],
+  parentRelations: ['parentId', 'coverageMode'],
+});
+for (const name of ['timelineEditRecord', 'timelineTruncateEntity']) {
+  if (typeof sharedCalculationCore[name] !== 'function')
+    throw Object.assign(new Error('Canonical C++ timeline editing capability is unavailable: ' + name),
+      { code: 'PL-CORE-WASM-CAPABILITY' });
 }
 
-/** Replace one effective record without rewriting later, independently dated records. */
+/** A typed edit intent; effective-slot selection, splitting and IDs are C++ owned. */
 export function replaceTimelineRecordAtMonth(records, collection, entityId, cursor, patch) {
   const fields = collectionFields[collection];
-  if (!fields || Object.keys(patch).some(key => !fields.includes(key))) throw new TypeError('Invalid timeline record patch.');
-  const month = parseTemporal(cursor, { nullable: false });
-  if (month.precision !== 'month') throw Object.assign(new Error('Timeline cursor requires month precision.'), { code: 'INVALID_TIMELINE_CURSOR' });
-  const point = temporalMonthEnd(month);
-  const rows = records[collection];
-  const index = rows.findIndex(row => row.entityId === entityId && active(row, point));
-  if (index < 0) throw Object.assign(new Error(`Entity ${entityId} is inactive at ${cursor}.`), { code: 'TIMELINE_INACTIVE' });
-  const original = rows[index];
-  if (fields.every(key => !Object.hasOwn(patch, key) || JSON.stringify(original[key]) === JSON.stringify(patch[key]))) return records;
-  const from = original.validFrom == null ? null : parseTemporal(original.validFrom, { nullable: false });
-  const split = !from || compareTemporal(from, month) < 0;
-  const copy = { ...records, [collection]: [...rows] };
-  if (!split) copy[collection][index] = { ...original, ...structuredClone(patch) };
-  else {
-    const ids = new Set(['lifetimes', 'geometryBindings', 'parentRelations'].flatMap(name => records[name].map(row => row.id)));
-    const base = `${original.id}:${month.canonical}`;
-    let id = base, suffix = 0;
-    while (ids.has(id)) id = `${base}:${++suffix}`;
-    copy[collection].splice(index, 1, { ...original, validTo: priorMonth(month) },
-      { ...original, ...structuredClone(patch), id, validFrom: month.canonical });
-  }
-  return copy;
+  if (!fields || Object.keys(patch).some(key => !fields.includes(key)))
+    throw new TypeError('Invalid timeline record patch.');
+  const result = sharedCalculationCore.timelineEditRecord(records, collection, entityId, cursor, patch);
+  return result.changed ? result.records : records;
 }
 
-/** End the entity at the month boundary, leaving earlier records untouched. */
+/** End an entity at a month boundary without changing the stored source records. */
 export function truncateTimelineEntityAtMonth(records, entityId, cursor) {
-  const month = parseTemporal(cursor, { nullable: false });
-  if (month.precision !== 'month') throw Object.assign(new Error('Timeline cursor requires month precision.'), { code: 'INVALID_TIMELINE_CURSOR' });
-  const lastMonth = priorMonth(month);
-  const result = { ...records };
-  for (const name of ['lifetimes', 'geometryBindings', 'parentRelations']) {
-    result[name] = records[name].flatMap(row => {
-      if (row.entityId !== entityId) return [row];
-      const interval = normalizeTemporalInterval(row.validFrom, row.validTo);
-      if (interval.end && compareTemporal(interval.end, month, { leftBoundary: 'end', rightBoundary: 'start' }) < 0) return [row];
-      if (interval.start && compareTemporal(interval.start, month, { leftBoundary: 'start', rightBoundary: 'start' }) >= 0) return [];
-      return [{ ...row, validTo: lastMonth }];
-    });
-  }
-  return result;
+  return sharedCalculationCore.timelineTruncateEntity(records, entityId, cursor);
 }
