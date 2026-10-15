@@ -50,9 +50,14 @@ val polygonOperation(const std::string& name,val inputs,bool precisionRetry){
 }
 }
 std::string wrapGeometry(const std::string& input){
-    const auto geometry=projectcodec::readWebGeometry(codecjson::parse(input));
-    const auto result=wrapPolygonGeometry(geometry);
-    return result.polygons.empty()?"null":projectcodec::webGeometryValue(result).encode();
+    try {
+        const auto geometry=projectcodec::readWebGeometry(codecjson::parse(input));
+        return projectcodec::webGeometryValue(wrapPolygonGeometry(geometry)).encode();
+    } catch(const std::exception& error) {
+        auto js=val::global("Error").new_(std::string(error.what()));
+        js.set("code",std::string("PL-GEOMETRY-CALCULATION"));js.throw_();
+    }
+    std::terminate();
 }
 EMSCRIPTEN_BINDINGS(pando_polygon_calculation){
     emscripten::function("polygonOperation",&polygonOperation);

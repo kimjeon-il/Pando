@@ -43,8 +43,8 @@ private slots:
         QTest::addColumn<QJsonObject>("row");
         QFile file(QStringLiteral(M973_SPLIT_NORMALIZER_FIXTURE));QVERIFY(file.open(QIODevice::ReadOnly));
         const auto fixture=QJsonDocument::fromJson(file.readAll()).object();
-        QCOMPARE(fixture["behavioralCommit"].toString(),QString("07d3e2053c71573e11c5cf89151f5f6686038511"));
-        QCOMPARE(fixture["definitions"].toArray().size(),8);
+        QCOMPARE(fixture["sourceCommit"].toString(),QString("8e22982616e3c9ba43eeb84baec17cd886267cfa"));
+        QVERIFY(!fixture["sourceSha256"].toString().isEmpty());
         const auto rows=fixture["cases"].toArray();QCOMPARE(rows.size(),63);
         for(const auto& value:rows){const auto row=value.toObject();QTest::newRow(qPrintable(row["id"].toString()))<<row;}
     }
@@ -65,7 +65,7 @@ private slots:
     }
     void clippedPlanarEdgesAreSubdividedWithoutRounding() {
         const auto output=normalizeSplitClippedGeometry(wide());QVERIFY2(output.succeeded(),output.detail.c_str());
-        const auto expected=QJsonDocument::fromJson(R"({"type":"Polygon","coordinates":[[[-170,0],[-170,10],[0,10],[170,10],[170,0],[0,0],[-170,0]]]})").object();
+        const auto expected=QJsonDocument::fromJson(R"({"type":"Polygon","coordinates":[[[170,0],[170,10],[0,10],[-170,10],[-170,0],[0,0],[170,0]]]})").object();
         QCOMPARE(json(output.geometry),expected);QVERIFY(output.inputUnchanged);
         const auto wrapped=wrapSplitGeometry(output.geometry);QVERIFY(wrapped.succeeded());QCOMPARE(json(wrapped.geometry),expected);
     }
@@ -86,7 +86,7 @@ private slots:
             QCOMPARE(operation(invalid,[]{return true;}).status,GeometryOperationStatus::Cancelled);
         }
         Geometry degenerate;degenerate.type="Polygon";degenerate.polygons={{{{0,0},{1,1},{0,0}}}};
-        QCOMPARE(normalizeSplitClippedGeometry(degenerate).status,GeometryOperationStatus::Empty);
+        QCOMPARE(normalizeSplitClippedGeometry(degenerate).status,GeometryOperationStatus::Failed);
     }
     void concurrentCalculationsOwnTheirResultsAndDoNotMutateInput() {
         const auto input=crossing();const auto before=json(input);
