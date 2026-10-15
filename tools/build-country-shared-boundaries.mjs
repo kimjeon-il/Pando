@@ -1,11 +1,27 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { gzipSync, gunzipSync } from 'node:zlib';
+// The runtime boundary topology now uses the source-pinned C++ integral.
+import './load-spherical-core.mjs';
 import { fileURLToPath } from 'node:url';
 import { buildCountrySharedBoundarySegments, serializeCountrySharedBoundarySegments } from '../assets/js/modules/boundary-topology.js';
+import { sharedCalculationCore } from '../assets/js/modules/temporal.js';
 import { countryGeometrySignature } from '../assets/js/modules/country-shared-boundary-cache.js';
 import { classifyBuiltinCountries } from '../assets/js/modules/builtin-subunits.js';
 
+// The source contact topology and grouped chain-conservation check both use
+// the same C++ kernel as the Web worker. Keep cache serialization and exact v1
+// bytes unchanged; only file I/O, classification and signatures stay in Node.
+function verifySharedBorderChains(segments, quality) {
+  if (typeof sharedCalculationCore.boundaryVerifyStrokeChains !== 'function') {
+    throw Object.assign(new Error('Compiled shared-border chain verifier unavailable.'),
+      { code: 'PL-CORE-WASM-CAPABILITY' });
+  }
+  const checked = sharedCalculationCore.boundaryVerifyStrokeChains(
+    segments.map(segment => [segment.start, segment.end, segment.ownerIds]));
+  if (checked !== segments.length)
+    throw new Error('Shared-border generator dropped source edges: ' + quality);
+}
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const data = path.join(root, 'assets', 'data');
 const bundle = JSON.parse(fs.readFileSync(path.join(data, 'world/current.json'), 'utf8'));
@@ -24,6 +40,7 @@ for (const [quality, input, output] of inputs) {
   }))];
   const signatures = Object.fromEntries(countries.map(feature => [String(feature.id), countryGeometrySignature(feature)]));
   const segments = serializeCountrySharedBoundarySegments(buildCountrySharedBoundarySegments(countries));
+  verifySharedBorderChains(segments, quality);
   const content = Buffer.from(JSON.stringify({ version: 1, quality, signatures, segments }));
   const payload = gzipSync(content, { level: 9, mtime: 0 });
   const destination = path.join(data, output);
