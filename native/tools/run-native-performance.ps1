@@ -143,7 +143,7 @@ if($baselinePath){
  $metadata.baselineSourceCommit=$BaselineSourceCommit;$metadata.baselineBinarySha256=(Get-FileHash -LiteralPath $baselinePath).Hash
  $metadata.buildIdentity=$buildIdentity
  $metadata.warmupMs=0;$metadata.repeatMs=0
- $metadata.cacheCondition='One discarded full workload per version warms OS inputs and the shared installed physical-data disk cache; each measured run starts a fresh process with isolated project persistence and fresh in-memory caches. Existing physical-data cache is preserved.'
+ $metadata.cacheCondition='One discarded full workload per version warms OS inputs and each executable-name-specific physical-data disk cache; each measured run starts a fresh process with isolated project persistence and fresh in-memory caches. Existing physical-data caches are preserved.'
  $metadata.scope='P9 same-input production-world relative startup/pan-swap/edit-preview-cancel/save/process-memory comparison. No M98 full-stack, 12-minute plateau, GPU completion, or Android evidence.'
  $metadata.additionalRoundFrom=$AdditionalRoundFrom
  if($previousRound){

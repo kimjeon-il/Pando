@@ -67,13 +67,13 @@ test('P9 alternates fixed baseline and candidate browser startup, focus frames a
       httpCache: 'disabled by CDP on both pages', serviceWorkers: 'blocked',
       storage: 'separate fresh contexts, retained per side after one warmup; Cache Storage may be warm',
       concurrency: 'one application page at a time; previous page and CDP session closed before every sample',
-      frames: '120 consecutive requestAnimationFrame intervals starting immediately before invoking the existing RUS focus button command; excludes pointer and panel animation timing',
+      frames: 'Reset the view through the existing command before every RUS focus; 120 consecutive requestAnimationFrame intervals starting immediately before focus, excluding pointer and panel animation timing',
       frameCollectionDeadlineMs: 120_000,
       warmupsPerContext: 1, initialAlternatingRounds: 5, maximumExtraRoundsIfUncertain: 5,
       memory: 'CDP Performance.getMetrics JSHeapUsedSize after focus frames, no forced GC',
       node: process.version, cpu: os.cpus()[0]?.model, platform: process.platform },
   };
-  let server, browser;
+  let server, browser, activePage = null, activeCdp = null;
   try {
     const baselineRoot = process.env.PANDO_P9_BASELINE_ROOT;
     expect(baselineRoot, 'PANDO_P9_BASELINE_ROOT must name the fixed baseline checkout').toBeTruthy();
@@ -88,7 +88,6 @@ test('P9 alternates fixed baseline and candidate browser startup, focus frames a
       headless: !hardware, args: [...(launch.args||[]),...gpuArgs] });
     report.conditions.browserVersion = browser.version();
     const sides = {};
-    let activePage = null, activeCdp = null;
     for(const [side,url] of Object.entries({baseline:baselineUrl,candidate:candidateUrl})) {
       const context = await browser.newContext({ viewport, deviceScaleFactor: 1, serviceWorkers: 'block',
         locale: 'ko-KR', timezoneId: 'UTC', colorScheme: 'light' });
@@ -111,6 +110,9 @@ test('P9 alternates fixed baseline and candidate browser startup, focus frames a
         editableMs: globalThis.__PANDOLAB_STARTUP_METRICS__?.editableMs,
       }));
       for(const [key,value] of Object.entries(startup))expect(typeof value==='number'&&Number.isFinite(value)&&value>=0,`${side} missing startup ${key}`).toBe(true);
+      // The retained context restores the last saved RUS view on later pages.
+      // Reset through the real command so every sample performs the same move.
+      await page.locator('#resetViewBtn').evaluate(button=>button.click());
       await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.select('RUS'));
       await expect(page.locator('#propertyTitle')).toHaveText('러시아');
       const focus = page.locator('#focusSelectedObjectBtn');
@@ -163,6 +165,12 @@ test('P9 alternates fixed baseline and candidate browser startup, focus frames a
       :Object.values(report.metrics).some(metric=>metric.status==='uncertain')?'uncertain':'no-regression';
     expect(report.status,'See attached distributions; uncertain results do not satisfy P9').toBe('no-regression');
   } catch(error) {
+    if(activeCdp) {
+      try {
+        const partial = await activeCdp.send('Runtime.evaluate', { expression: 'JSON.stringify({frames:globalThis.__p9FocusFrames,visibility:document.visibilityState,render:globalThis.__PANDOLAB_RENDER_DEBUG__?.snapshot()})', returnByValue: true, timeout: 5000 });
+        report.partialSample = JSON.parse(partial.result.value || 'null');
+      } catch(diagnosticError) { report.partialSampleError = diagnosticError.message; }
+    }
     report.error={name:error.name,message:error.message};throw error;
   } finally {
     const reportPath=testInfo.outputPath('p9-browser-performance.json');
