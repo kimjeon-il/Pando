@@ -54,6 +54,15 @@ on:
         description: Optional comma-separated Qt CTest/target names for a focused native run
         type: string
         required: false
+      native_app:
+        description: Build/capture the app; disable only when reusing an unchanged app build
+        type: boolean
+        required: false
+        default: true
+      browser_tests:
+        description: Optional Playwright grep for remaining browser acceptance cases
+        type: string
+        required: false
       scope:
         description: Run changed scopes only (auto), or select a diagnostic
         type: choice
@@ -230,6 +239,7 @@ jobs:
           path: build-native/p9/baseline
           persist-credentials: false
       - name: Run real desktop and emulated mobile screenshots plus startup observability
+        if: inputs.browser_tests == ''
         shell: bash
         env:
           PANDO_P3_BRANCH: ${{ github.head_ref || github.ref_name }}
@@ -250,11 +260,14 @@ jobs:
           PANDOLAB_BROWSER_CHANNEL: chromium
           PANDOLAB_TEST_PROFILING: 'off'
           RETRY_FAILED: ${{ inputs.retry_failed }}
+          PANDO_BROWSER_TESTS: ${{ inputs.browser_tests }}
         run: |
           mkdir -p test-results/p9-browser
           reuse=()
           if [ "$RETRY_FAILED" = true ]; then reuse=(--grep-invert 'a child cut'); fi
-          pnpm exec playwright test tests/browser/annex-e2e.spec.mjs tests/browser/boundary-cut-snapping.spec.mjs tests/browser/reference-image-live-wire.spec.mjs tests/browser/reference-image-line-refine.spec.mjs tests/browser/timeline-persistence.spec.mjs tests/browser/russia-edit-preparation.spec.mjs --grep 'annex - (polygon|components|line multiple crossings)|a child cut|live-wire accepts|line refinement accepts|static v10 UI file|complex timeline|Russia detailed line preparation|Russia detailed polygon creation.*\(webgl2\)' "${reuse[@]}" --workers=1 --retries=0 --output=test-results/p9-browser
+          pattern='annex - (polygon|components|line multiple crossings)|a child cut|live-wire accepts|line refinement accepts|static v10 UI file|complex timeline|Russia detailed line preparation|Russia detailed polygon creation.*\(webgl2\)'
+          if [ -n "$PANDO_BROWSER_TESTS" ]; then pattern="$PANDO_BROWSER_TESTS"; fi
+          pnpm exec playwright test tests/browser/annex-e2e.spec.mjs tests/browser/boundary-cut-snapping.spec.mjs tests/browser/reference-image-live-wire.spec.mjs tests/browser/reference-image-line-refine.spec.mjs tests/browser/timeline-persistence.spec.mjs tests/browser/russia-edit-preparation.spec.mjs --grep "$pattern" "${reuse[@]}" --trace off --workers=1 --retries=0 --output=test-results/p9-browser
       - name: Compare initial display, edit readiness, frames and JS heap against the fixed baseline
         if: inputs.scope == 'acceptance' || (inputs.scope == 'browser' && inputs.retry_failed)
         env:
@@ -297,6 +310,7 @@ jobs:
       PANDO_P3_QT_PRESET: ${{ matrix.preset }}
       PANDO_P9_RETRY: ${{ inputs.retry_failed }}
       PANDO_NATIVE_TESTS: ${{ inputs.native_tests }}
+      PANDO_NATIVE_APP: ${{ github.event_name != 'workflow_dispatch' || inputs.native_app }}
       QT_QPA_PLATFORM: offscreen
       QT_QUICK_BACKEND: software
     steps:
@@ -371,7 +385,10 @@ jobs:
           if [ -n "$PANDO_NATIVE_TESTS" ]; then
             [[ "$PANDO_NATIVE_TESTS" =~ ^[a-zA-Z0-9_]+(,[a-zA-Z0-9_]+)*$ ]]
             IFS=, read -ra selected <<< "$PANDO_NATIVE_TESTS"
-            selection=(--target pandoeditor "${selected[@]}")
+            selection=(--target "${selected[@]}")
+            if [ "$PANDO_NATIVE_APP" = true ]; then selection+=(pandoeditor); fi
+          elif [ "$PANDO_NATIVE_APP" != true ]; then
+            echo 'native_app=false requires an explicit native_tests list' >&2; exit 1
           fi
           cmake --build --preset "$PANDO_P3_QT_PRESET" "${selection[@]}" 2>&1 | tee p3-qt-build.log
       - name: Build Windows app and selected Qt/native test targets
@@ -382,7 +399,10 @@ jobs:
           $selection = @()
           if ($env:PANDO_NATIVE_TESTS) {
             if ($env:PANDO_NATIVE_TESTS -notmatch '^[a-zA-Z0-9_]+(,[a-zA-Z0-9_]+)*$') { throw 'Invalid native test target list' }
-            $selection = @('--target', 'pandoeditor') + $env:PANDO_NATIVE_TESTS.Split(',')
+            $selection = @('--target') + $env:PANDO_NATIVE_TESTS.Split(',')
+            if ($env:PANDO_NATIVE_APP -eq 'true') { $selection += 'pandoeditor' }
+          } elseif ($env:PANDO_NATIVE_APP -ne 'true') {
+            throw 'native_app=false requires an explicit native_tests list'
           }
           cmake --build --preset $env:PANDO_P3_QT_PRESET @selection 2>&1 | Tee-Object p3-qt-build.log
           exit $LASTEXITCODE
@@ -394,15 +414,15 @@ jobs:
           selection=()
           if [ "$PANDO_P9_RETRY" = true ]; then selection=(-R '^(geometry_calculator_tests|cut_geometry_calculator_tests|split_geometry_normalizer_tests|split_geometry_lifecycle_tests|river_partition_tests|river_area_tests|reference_image_tests|reference_auto_georef_tests)$'); fi
           if [ -n "$PANDO_NATIVE_TESTS" ]; then selection=(-R "^(${PANDO_NATIVE_TESTS//,/|})$"); fi
-          ctest --preset "$PANDO_P3_QT_PRESET" "${selection[@]}" 2>&1 | tee p3-ctest.log
+          ctest --preset "$PANDO_P3_QT_PRESET" "${selection[@]}" --no-tests=error 2>&1 | tee p3-ctest.log
       - name: Run focused Qt CTest and preserve Windows failure diagnostics
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
           $selection = @()
           if ($env:PANDO_P9_RETRY -eq 'true') { $selection = @('-R', '^(geometry_calculator_tests|cut_geometry_calculator_tests|split_geometry_normalizer_tests|split_geometry_lifecycle_tests|river_partition_tests|river_area_tests|reference_image_tests|reference_auto_georef_tests)$') }
-          if ($env:PANDO_NATIVE_TESTS) { $selection = @('-R', '^(' + $env:PANDO_NATIVE_TESTS.Replace(',', '|') + ')$') }
-          ctest --preset $env:PANDO_P3_QT_PRESET @selection 2>&1 | Tee-Object p3-ctest.log
+          if ($env:PANDO_NATIVE_TESTS) { $selection = @('-R', ('^(' + $env:PANDO_NATIVE_TESTS.Replace(',', '|') + ')$')) }
+          ctest --preset $env:PANDO_P3_QT_PRESET @selection --no-tests=error 2>&1 | Tee-Object p3-ctest.log
           $ctestExit = $LASTEXITCODE
           # QtTest writes persistent logs on both platforms, including Windows
           # executables whose stdout is unavailable to CTest. Never rerun an unrelated test.
@@ -417,7 +437,7 @@ jobs:
           $manifest = Get-Content native/assets/world/manifest.json -Raw | ConvertFrom-Json
           $env:PANDOEDITOR_HYDRO_FULL_MANIFEST = (Resolve-Path (Join-Path native/assets/world $manifest.hydro.path)).Path
           $targets = @('hydro_manifest_tests', 'hydro_runtime_tests', 'hydro_full_dataset_tests', 'physical_data_store_tests')
-          if ('${{ inputs.scope }}' -ne 'acceptance') { $targets += 'river_selection_controller_tests' }
+          if ('${{ inputs.scope }}' -ne 'acceptance' -and !$env:PANDO_NATIVE_TESTS.Split(',').Contains('river_selection_controller_tests')) { $targets += 'river_selection_controller_tests' }
           cmake --build --preset $env:PANDO_P3_QT_PRESET --target @targets
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $pattern = '^(' + ($targets -join '|') + ')$'
@@ -447,7 +467,7 @@ jobs:
             if ($attempts) { throw "Native product build invoked forbidden tools: $attempts" }
           }
       - name: Capture a real nonblank Qt Quick application window under Linux Xvfb
-        if: ${{ !cancelled() && runner.os == 'Linux' && steps.build_linux.outcome == 'success' }}
+        if: ${{ !cancelled() && runner.os == 'Linux' && steps.build_linux.outcome == 'success' && (github.event_name != 'workflow_dispatch' || inputs.native_app) }}
         shell: bash
         run: |
           set -euo pipefail
@@ -457,7 +477,7 @@ jobs:
             "$PWD/test-results/p3-qt/native-window.png"
       - name: Record Qt binary identity for this platform
         shell: bash
-        if: ${{ !cancelled() && (steps.build_linux.outcome == 'success' || steps.build_windows.outcome == 'success') }}
+        if: ${{ !cancelled() && (steps.build_linux.outcome == 'success' || steps.build_windows.outcome == 'success') && (github.event_name != 'workflow_dispatch' || inputs.native_app) }}
         env:
           P3_OS: ${{ matrix.os_id }}
         run: |
