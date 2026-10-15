@@ -233,43 +233,20 @@ export function buildBoundaryTopologyFromSegments(rawSegments, { precision = 7, 
   }
 
   const nodeValues = [...nodes.values()];
-  // A shared-border vertex may lie inside the opposite owner's longer segment.
-  // Looking at every node for every segment turns detailed country geometry into
-  // O(n²) work, so query only coarse geographic buckets crossed by the segment.
-  const bucketSize = 0.25;
-  const bucketKey = (x, y) => `${x}:${y}`;
-  const nodeBuckets = new Map();
-  for (const node of nodeValues) {
-    const key = bucketKey(Math.floor(node.coordinate[0] / bucketSize), Math.floor(node.coordinate[1] / bucketSize));
-    if (!nodeBuckets.has(key)) nodeBuckets.set(key, []);
-    nodeBuckets.get(key).push(node);
+  // One compiled C++ crossing owns geographic node buckets, epsilon
+  // projections and stable split ordering. JS retains edit references and
+  // object-key Map identities, not a second arithmetic implementation.
+  const splitRows = rawSegments.length
+    ? sharedCalculationCore.boundarySplitCandidatesBatch(
+      rawSegments.map(({ a, b }) => [a, b]), nodeValues.map(node => node.coordinate), epsilon) : [];
+  if (!Array.isArray(splitRows) || splitRows.length !== rawSegments.length
+    || splitRows.some(row => !Array.isArray(row))) {
+    throw Object.assign(new Error('Incomplete compiled boundary topology split result.'),
+      { code: 'PL-BOUNDARY-SPLIT' });
   }
-  const nodesNearSegment = raw => {
-    const minX = Math.floor((Math.min(raw.a[0], raw.b[0]) - epsilon) / bucketSize);
-    const maxX = Math.floor((Math.max(raw.a[0], raw.b[0]) + epsilon) / bucketSize);
-    const minY = Math.floor((Math.min(raw.a[1], raw.b[1]) - epsilon) / bucketSize);
-    const maxY = Math.floor((Math.max(raw.a[1], raw.b[1]) + epsilon) / bucketSize);
-    const cellCount = (maxX - minX + 1) * (maxY - minY + 1);
-    if (cellCount > 4096) return nodeValues;
-    const output = [];
-    const seen = new Set();
-    for (let x = minX; x <= maxX; x += 1) {
-      for (let y = minY; y <= maxY; y += 1) {
-        for (const node of nodeBuckets.get(bucketKey(x, y)) || []) {
-          if (seen.has(node.key)) continue;
-          seen.add(node.key);
-          output.push(node);
-        }
-      }
-    }
-    return output;
-  };
   const segments = new Map();
-  for (const raw of rawSegments) {
-    const split = nodesNearSegment(raw)
-      .map(node => ({ node, t: pointOnSegment(node.coordinate, raw.a, raw.b, epsilon) }))
-      .filter(item => item.t !== null)
-      .sort((left, right) => left.t - right.t);
+  for (const [rawIndex, raw] of rawSegments.entries()) {
+    const split = splitRows[rawIndex].map(([nodeIndex, t]) => ({ node: nodeValues[nodeIndex], t }));
     for (const item of split) {
       item.node.ownerIds.add(raw.featureId);
       if (item.t > epsilon && item.t < 1 - epsilon && !item.node.virtualRefs.some(ref => ref.featureId === raw.featureId
