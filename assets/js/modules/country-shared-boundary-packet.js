@@ -145,6 +145,13 @@ export function prepareCountrySharedBoundaryPacket(segments = [], features = [],
   });
   const flags = mixedContacts.length
     ? sharedCalculationCore.boundaryOpposingInteriorsBatch(mixedContacts.map(item => item.comparison)) : [];
+  // An incomplete native result must never silently turn an internal shared
+  // country edge into an exterior or suppress the country's dashed boundary.
+  if (!Array.isArray(flags) || flags.length !== mixedContacts.length
+    || flags.some(value => typeof value !== 'boolean')) {
+    throw Object.assign(new Error('Incomplete compiled country boundary interior classifications.'),
+      { code: 'PL-BOUNDARY-INTERIOR' });
+  }
   const opposingSegments = new Set(mixedContacts.filter((_, i) => flags[i]).map(item => item.index));
   segments.forEach((segment, index) => {
     const owners = segment.ownerIds.map(id => byId.get(id));
