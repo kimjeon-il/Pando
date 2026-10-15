@@ -156,7 +156,7 @@ if($baselinePath){
  $metadata.buildIdentity=$buildIdentity
  $metadata.warmupMs=0;$metadata.repeatMs=0
  $metadata.cacheCondition='One discarded full workload per version warms OS inputs and each executable-name-specific physical-data disk cache; each measured run starts a fresh process with isolated project persistence and fresh in-memory caches. Existing physical-data caches are preserved.'
- $metadata.scope='P9 same-input production-world relative startup/pan-swap/edit-preview-cancel/save/process-memory comparison. No M98 full-stack, 12-minute plateau, GPU completion, or Android evidence.'
+ $metadata.scope='P9 same-input production-world saved-project open/pan-swap/edit-preview-cancel/save/process-memory comparison; static country base disabled in both versions. No cold-world-bootstrap, M98 full-stack, 12-minute plateau, GPU completion, or Android evidence.'
  $metadata.additionalRoundFrom=$AdditionalRoundFrom
  if($previousRound){
   foreach($key in @('sourceCommit','baselineSourceCommit','binarySha256','baselineBinarySha256','fixtureManifestSha256')){
@@ -198,6 +198,7 @@ try{
   for($run=1;$run -le $Runs;$run++){foreach($version in @('baseline','candidate')){$runPlan+=@{id="$runPrefix-$run-$version";version=$version;warmup=$false}}}
  }else{for($run=1;$run -le $Runs;$run++){$runPlan+=@{id="run-$run";version='candidate';warmup=$false}}}
  foreach($planned in $runPlan){
+  Write-Host "P9 native: $($planned.id)"
   $currentProbe=if($planned.version -eq 'baseline'){$baselinePath}else{$probePath}
   $runRoot=Join-Path $reportRoot $planned.id;New-Item -ItemType Directory -Path $runRoot | Out-Null
   $env:PANDOEDITOR_NATIVE_PERF_REPORT="$runRoot/measurement.json";$env:PANDOEDITOR_NATIVE_PERF_RUN_ID=$planned.id

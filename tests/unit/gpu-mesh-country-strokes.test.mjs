@@ -1,3 +1,4 @@
+import '../helpers/spherical-core.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -15,7 +16,6 @@ function loadClassic(relativePath, globalName) {
   return value;
 }
 
-const earcut = loadClassic('assets/js/vendor/earcut.min.js', 'earcut');
 const meshCore = loadClassic('assets/js/workers/gpu-mesh-core.js', 'PandoLabGpuMeshCore');
 
 const square = (id, x) => ({
@@ -34,7 +34,7 @@ test('GPU mesh worker packets include stable contiguous country stroke owner ran
   const mesh = meshCore.buildGpuMeshFeatures([
     square('AAA', 0),
     square('BBB', 3),
-  ], earcut, { validate: true });
+  ], { validate: true });
 
   assert.ok(mesh.strokeStartsEnds instanceof Float32Array);
   assert.equal(mesh.strokeStartsEnds.length, mesh.lineIndices.length * 2);
@@ -91,7 +91,7 @@ test('GPU mesh metadata represents date-line countries as wrapped longitude boun
       ]],
     },
   };
-  const mesh = meshCore.buildGpuMeshFeatures([feature], earcut, { validate: true });
+  const mesh = meshCore.buildGpuMeshFeatures([feature], { validate: true });
   assert.deepEqual(Array.from(mesh.countryBounds), [179_000_000, -1_000_000, -179_000_000, 1_000_000]);
   assert.equal(mesh.countryBoundsFlags[0] & meshCore.COUNTRY_BOUNDS_FLAG_DATELINE, 1);
   assert.equal(mesh.countryTriangleRanges.length, 2);
@@ -120,7 +120,7 @@ test('canonical and preview country boundary chains track refined fill edges', (
   const geometry = { type: 'Polygon', coordinates: [[[0, 0], [8, 0], [8, 5], [0, 5], [0, 0]]] };
   const before = structuredClone(geometry);
   for (const maxEdgeDegrees of [0.499, 2]) {
-    const mesh = meshCore.buildGpuMeshFeatures([{ id: 'WIDE', geometry }], earcut,
+    const mesh = meshCore.buildGpuMeshFeatures([{ id: 'WIDE', geometry }],
       { validate: true, maxEdgeDegrees });
     assert.ok(mesh.lineIndices.length > 8, 'long source edges must be subdivided');
     assert.ok(mesh.stats.maxEdgeDegrees <= maxEdgeDegrees + 1e-9);
@@ -139,7 +139,7 @@ test('holes and dateline outlines follow fill while artificial polar edges remai
       [180, 80], [180, 90], [-180, 90], [-180, 80]]] },
   ];
   for (const [index, geometry] of geometries.entries()) {
-    const mesh = meshCore.buildGpuMeshFeatures([{ id: String(index), geometry }], earcut, { validate: true });
+    const mesh = meshCore.buildGpuMeshFeatures([{ id: String(index), geometry }], { validate: true });
     assert.ok(mesh.lineIndices.length > 0);
     assertBoundaryEdgesBelongToFill(mesh);
     if (index === 2) for (let i = 0; i < mesh.strokeStartsEnds.length; i += 4) {
@@ -154,7 +154,7 @@ test('Argentina outlines follow the surviving fill after packed sliver removal',
     'assets/data/territorial-entities/generated/current-world.geojson'), 'utf8'));
   const feature = countries.features.find(row => row.id === 'ARG');
   const before = structuredClone(feature.geometry);
-  const mesh = meshCore.buildGpuMeshFeatures([feature], earcut, { validate: true });
+  const mesh = meshCore.buildGpuMeshFeatures([feature], { validate: true });
   assert.ok(mesh.stats.removedDegenerateTriangleCount > 0, 'exercise packed triangle removal');
   assertBoundaryEdgesBelongToFill(mesh);
   const nearBorder = [];
@@ -179,7 +179,7 @@ test('discarded boundary slivers do not introduce packed zero-length outlines', 
     [46.517656, 39.278844], [46.52510326301004, 39.27274946911331],
     [46.541841, 39.259052], [19.680276, 54.436678], [48.667817, 46.107815],
   ]] };
-  const mesh = meshCore.buildGpuMeshFeatures([{ id: 'SCOPE', geometry }], earcut, { validate: true });
+  const mesh = meshCore.buildGpuMeshFeatures([{ id: 'SCOPE', geometry }], { validate: true });
   assert.ok(mesh.stats.removedDegenerateTriangleCount > 0);
   assertBoundaryEdgesBelongToFill(mesh);
   for (let i = 0; i < mesh.lineIndices.length; i += 2) {
@@ -195,7 +195,7 @@ test('source triangulation slivers discarded before refinement still reconcile o
     [19.958729, 53.374928], [19.959197, 53.374839], [19.959822, 53.374611],
     [19.957188, 53.374299], [19.957493, 53.374536], [19.957644, 53.374773],
   ]] };
-  const mesh = meshCore.buildGpuMeshFeatures([{ id: 'COLLINEAR', geometry }], earcut, { validate: true });
+  const mesh = meshCore.buildGpuMeshFeatures([{ id: 'COLLINEAR', geometry }], { validate: true });
   assertBoundaryEdgesBelongToFill(mesh);
   const perimeter = mesh.lineIndices.reduce((sum, vertex, i) => {
     if (i % 2) return sum;
@@ -217,7 +217,7 @@ test('a polygon collapsed by packing leaves no ghost outline', () => {
     [46.499489324376, 39.51548391294333], [46.503704, 39.518468],
   ]] };
   const before = structuredClone(geometry);
-  const mesh = meshCore.buildGpuMeshFeatures([{ id: 'SLIVER', geometry }], earcut, { validate: true });
+  const mesh = meshCore.buildGpuMeshFeatures([{ id: 'SLIVER', geometry }], { validate: true });
   assert.ok(mesh.stats.removedDegenerateTriangleCount > 0);
   assert.equal(mesh.triangleIndices.length, 0);
   assert.equal(mesh.lineIndices.length, 0, 'discarded fill must not leave strokes');

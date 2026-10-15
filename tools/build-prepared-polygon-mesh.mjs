@@ -1,9 +1,9 @@
 import { createHash } from 'node:crypto';
+import { sharedSourceManifest } from './package-shared-core-assets.mjs';
 import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gunzipSync, gzipSync } from 'node:zlib';
-import '../assets/js/vendor/earcut.min.js';
 import '../assets/js/workers/gpu-mesh-core.js';
 import { encodePolygonMesh, POLYGON_MESH_FORMAT_VERSION } from '../assets/js/modules/polygon-mesh-codec.js';
 import './load-spherical-core.mjs';
@@ -79,7 +79,7 @@ for (const [digest, geometry] of [...geometries].sort(([a], [b]) => a.localeComp
   bytes += compressed.length; count++;
   if (count % 25 === 0) console.log(`Prepared ${count}/${geometries.size} fixed polygon meshes`);
 }
-const algorithmSourceSha256 = sha256(readFileSync(resolve(root, 'assets/js/workers/gpu-mesh-core.js'), 'utf8').replace(/\r\n/g, '\n'));
+const algorithmSourceSha256 = sharedSourceManifest(root).sourceSha256;
 const manifest = { schema: 'pandolab-prepared-polygon-meshes', schemaVersion: 2,
   meshFormatVersion: POLYGON_MESH_FORMAT_VERSION,
   algorithmVersion: engine.MESH_ALGORITHM_REVISION, algorithmSourceSha256,

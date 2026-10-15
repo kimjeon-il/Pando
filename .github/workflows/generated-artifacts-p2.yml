@@ -163,6 +163,15 @@ jobs:
           node tools/package-shared-core-assets.mjs --build-dir build-native/p1/pando-wasm/shared/wasm
       - name: Verify published compiled identity and package hashes
         run: node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
+      - name: Verify the changed geographic contact and common fill kernels
+        if: needs.plan.outputs.wasm == 'true' && inputs.verification != 'full'
+        env:
+          PANDOEDITOR_WASM_MODULE: ${{ github.workspace }}/assets/wasm/pandoeditor-core.js
+        run: >-
+          node --test shared/tests/p5-country-contact-wasm.test.mjs
+          shared/tests/p5-boundary-split-wasm.test.mjs shared/tests/p5-polygon-mesh-wasm.test.mjs
+          tests/unit/country-contact-core.test.mjs tests/unit/country-contact-legacy-parity.test.mjs
+          tests/unit/boundary-topology-split.test.mjs
       - name: Test the compiled runtime ABI and bounded document session
         if: inputs.verification == 'full'
         shell: bash

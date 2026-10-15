@@ -134,7 +134,6 @@ test('country normalizer and GPU mesh preserve winding, finite packets and owner
   const classicContext = vm.createContext({ console, self: null, PandoLabSphericalCore: sphericalCore });
   classicContext.self = classicContext;
   const countryGeometry = loadClassic('assets/js/modules/polygon-geometry.js', 'PandoLabPolygonGeometry', classicContext);
-  const earcut = loadClassic('assets/js/vendor/earcut.min.js', 'earcut', classicContext);
   const meshCore = loadClassic('assets/js/workers/gpu-mesh-core.js', 'PandoLabGpuMeshCore', classicContext);
   const fixtures = [
     polygonFeature('normal', [ring(0, 0, 2, 2)]),
@@ -145,7 +144,7 @@ test('country normalizer and GPU mesh preserve winding, finite packets and owner
   const snapshot = clone(fixtures);
   const normalized = fixtures.map(feature => ({ ...feature, geometry: countryGeometry.normalizePolygonGeometry(feature.geometry) })).filter(feature => feature.geometry);
   assert.ok(normalized.every(feature => countryGeometry.hasCanonicalPolygonWinding(feature.geometry)));
-  const mesh = meshCore.buildGpuMeshFeatures(normalized, earcut, { validate: true });
+  const mesh = meshCore.buildGpuMeshFeatures(normalized, { validate: true });
   assert.ok(Array.from(mesh.positions).every(Number.isFinite));
   assert.ok(Array.from(mesh.strokeStartsEnds).every(Number.isFinite));
   assert.ok(Array.from(mesh.triangleIndices).every(index => index >= 0 && index < mesh.positions.length / 2));
@@ -159,7 +158,7 @@ test('country normalizer and GPU mesh preserve winding, finite packets and owner
     assert.notEqual(area, 0);
   }
   assert.deepEqual(fixtures, snapshot);
-  const repeat = meshCore.buildGpuMeshFeatures(normalized.map(clone), earcut, { validate: true });
+  const repeat = meshCore.buildGpuMeshFeatures(normalized.map(clone), { validate: true });
   assert.deepEqual(Array.from(repeat.strokeStartsEnds), Array.from(mesh.strokeStartsEnds));
   assert.deepEqual(repeat.strokeOwnerRanges, mesh.strokeOwnerRanges);
 });

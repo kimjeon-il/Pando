@@ -60,7 +60,9 @@ const summarize = rounds => Object.fromEntries(metricKeys.map(key=>{
 test.use({ trace: 'off', screenshot: 'off' });
 
 test(`P9 alternates fixed baseline and candidate ${editWorkload ? 'large RUS editing, Worker and autosave' : 'browser startup, focus frames and main-page heap'}`, async ({ playwright, baseURL }, testInfo) => {
-  test.setTimeout(30*60_000);
+  // Full RUS save verification is deliberately outside compared timing and is
+  // expensive on the baseline. Allow the specified two rounds to finish once.
+  test.setTimeout((editWorkload ? 45 : 30)*60_000);
   const report = {
     schema: 'pando-p9-browser-performance-v1', baselineSha, candidateSha: gitHead(candidateRoot),
     status: 'unverified', rounds: [], warmups: {}, metrics: {},
@@ -77,6 +79,12 @@ test(`P9 alternates fixed baseline and candidate ${editWorkload ? 'large RUS edi
       node: process.version, cpu: os.cpus()[0]?.model, platform: process.platform },
   };
   let server, browser, activePage = null, activeCdp = null;
+  const reportPath=testInfo.outputPath('p9-browser-performance.json');
+  async function checkpoint(stage) {
+    report.stage=stage;
+    await writeFile(reportPath,JSON.stringify(report,null,2)+'\n');
+    console.log(`P9 ${editWorkload?'RUS edit':'startup'}: ${stage}; complete pairs=${report.rounds.length}`);
+  }
   try {
     const baselineRoot = process.env.PANDO_P9_BASELINE_ROOT;
     expect(baselineRoot, 'PANDO_P9_BASELINE_ROOT must name the fixed baseline checkout').toBeTruthy();
@@ -148,6 +156,7 @@ test(`P9 alternates fixed baseline and candidate ${editWorkload ? 'large RUS edi
     }
     for(const side of ['baseline','candidate']) {
       report.warmups[side] = await sample(side);
+      await checkpoint(`warmup-${side}`);
       const renderer = await activePage.evaluate(()=>{
         const canvas=document.querySelector('#map canvas'),gl=canvas?.getContext('webgl2');
         if(!gl)return null;const info=gl.getExtension('WEBGL_debug_renderer_info');
@@ -166,6 +175,7 @@ test(`P9 alternates fixed baseline and candidate ${editWorkload ? 'large RUS edi
         round.order=round.index%2?['candidate','baseline']:['baseline','candidate'];
         for(const side of round.order)round[side]=await sample(side);
         report.rounds.push(round);
+        await checkpoint(`pair-${round.index+1}`);
       }
       report.metrics=summarize(report.rounds);
     }
@@ -187,7 +197,6 @@ test(`P9 alternates fixed baseline and candidate ${editWorkload ? 'large RUS edi
     }
     report.error={name:error.name,message:error.message};throw error;
   } finally {
-    const reportPath=testInfo.outputPath('p9-browser-performance.json');
     await writeFile(reportPath,JSON.stringify(report,null,2)+'\n');
     await testInfo.attach('p9-browser-performance.json',{path:reportPath,contentType:'application/json'});
     if(browser)await browser.close();

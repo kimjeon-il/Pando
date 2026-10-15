@@ -123,7 +123,7 @@ async function inspectLineCandidate(page) {
     const area = geometry => polygons(geometry).reduce((sum, polygon) =>
       sum + Math.abs(polygon.reduce((part, ring, index) => part + (index ? -1 : 1) * Math.abs(signedArea(ring)), 0)), 0);
     const geometry = selected.__data__.geometry;
-    const packet = buildPolygonGeometryPacket(geometry, { triangulate: window.earcut });
+    const packet = buildPolygonGeometryPacket(geometry);
     const packetArea = Array.from({ length: packet.indices.length / 3 }, (_, index) => {
       const triangle = Array.from(packet.indices.slice(index * 3, index * 3 + 3), vertex =>
         [packet.positions[vertex * 2], packet.positions[vertex * 2 + 1]]);

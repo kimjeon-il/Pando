@@ -47,10 +47,14 @@ const cases=[
   [rectangle('A',0,0,1,2),rectangle('B',1,.5,2,1.5)],
   [rectangle('A',0,0,2,2),rectangle('B',0,0,2,2)],
   [rectangle('A',0,0,1,1),rectangle('B',10,0,11,1)],
-  [rectangle('A',179,0,181,1),rectangle('B',181,0,182,1)],
-  [rectangle('A',-179,10,179,11),rectangle('B',-179,10,179,11)],
   [rectangle('A',0,80,5,85),rectangle('B',5,81,6,84)],
   [rectangle('A',-40,-80,-35,-75),rectangle('B',-35,-80,-32,-75)],
+];
+// Preserve former inputs while checking the intentional longitude correction
+// independently of the retired raw-longitude broad phase.
+const geographicCorrections=[
+  {features:[rectangle('A',179,0,181,1),rectangle('B',181,0,182,1)],segments:1},
+  {features:[rectangle('A',-179,10,179,11),rectangle('B',-179,10,179,11)],segments:6},
 ];
 for(let i=0;i<48;i++) {
   const x=-70+i*.49,y=-40+i*.83;
@@ -79,4 +83,15 @@ test('one C++ batch preserves original pair results and source data identities',
     assert.deepEqual(segments,reference(...pairs[i]).segments,'batch '+i);
     assert.deepEqual(pairs[i].map(row=>row.feature),snapshot[i]);
   });
+});
+test('the former planar dateline cases use geographic source contacts',()=>{
+  for(const {features,segments:count} of geographicCorrections){
+    const pair=features.map(prepareBoundaryFeature);
+    const segments=computeCountrySharedContacts([pair])[0];
+    assert.equal(segments.length,count);
+    for(const segment of segments){
+      assert.ok(Math.abs(segment.start[0])>=179&&Math.abs(segment.end[0])>=179);
+      assert.equal(segment.refs.length,2);
+    }
+  }
 });

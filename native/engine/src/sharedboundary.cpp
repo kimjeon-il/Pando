@@ -24,9 +24,9 @@ bool touches(const Geometry& geometry,Point point){
     for(const auto& polygon:geometry.polygons)for(const auto& ring:polygon)for(std::size_t i=1;i<ring.size();++i){const auto a=ring[i-1],b=ring[i];const double dx=b.x-a.x,dy=b.y-a.y,length=std::hypot(dx,dy);if(!length)continue;const double t=((point.x-a.x)*dx+(point.y-a.y)*dy)/(length*length);if(t>=-epsilon&&t<=1+epsilon&&std::abs(dx*(point.y-a.y)-dy*(point.x-a.x))/length<=epsilon)return true;}return false;
 }
 using Bounds=std::array<double,4>;
-struct Raw {Reference ref;std::size_t end=0;Point a,b;Bounds bounds;};
+struct Raw {Reference ref;std::size_t end=0;Point a,b;Bounds bounds;std::vector<BoundaryBox> boxes;};
 std::vector<Raw> sourceSegments(const TerritorialUnit& unit,const Geometry& geometry){
-    std::vector<Raw> rows;for(std::size_t p=0;p<geometry.polygons.size();++p)for(std::size_t r=0;r<geometry.polygons[p].size();++r){const auto& ring=geometry.polygons[p][r];const auto limit=ring.empty()?0:ring.size()-1;for(std::size_t v=0;v<limit;++v){const auto a=ring[v],b=ring[v+1];rows.push_back({{unit.id,p,r,v,0},(v+1)%limit,a,b,{std::min(a.x,b.x),std::min(a.y,b.y),std::max(a.x,b.x),std::max(a.y,b.y)}});}}return rows;
+    std::vector<Raw> rows;for(std::size_t p=0;p<geometry.polygons.size();++p)for(std::size_t r=0;r<geometry.polygons[p].size();++r){const auto& ring=geometry.polygons[p][r];const auto limit=ring.empty()?0:ring.size()-1;for(std::size_t v=0;v<limit;++v){const auto a=ring[v],b=ring[v+1];const auto connected=connectedBoundaryEdge({a,b});rows.push_back({{unit.id,p,r,v,0},(v+1)%limit,a,b,{std::min(connected.first.x,connected.second.x),std::min(a.y,b.y),std::max(connected.first.x,connected.second.x),std::max(a.y,b.y)},boundaryEdgeBoxes({a,b})});}}return rows;
 }
 bool overlap(Bounds a,Bounds b){return a[0]<=b[2]&&a[2]>=b[0]&&a[1]<=b[3]&&a[3]>=b[1];}
 Bounds padded(Bounds b){const auto margin=epsilon*(1+std::hypot(b[2]-b[0],b[3]-b[1]));return {b[0]-margin,b[1]-margin,b[2]+margin,b[3]+margin};}
@@ -35,17 +35,37 @@ Bounds padded(Bounds b){const auto margin=epsilon*(1+std::hypot(b[2]-b[0],b[3]-b
 class SpatialIndex {
     std::map<std::pair<int,int>,std::vector<std::size_t>> cells_;
     std::vector<std::size_t> large_;
-    const std::vector<Raw>& rows_;
+    std::vector<std::pair<Bounds,std::size_t>> entries_;
 public:
-    explicit SpatialIndex(const std::vector<Raw>& rows):rows_(rows){for(std::size_t i=0;i<rows.size();++i){const auto b=rows[i].bounds;const int x0=std::floor(b[0]),x1=std::floor(b[2]),y0=std::floor(b[1]),y1=std::floor(b[3]);if(double(x1-x0+1)*(y1-y0+1)>4096)large_.push_back(i);else for(int x=x0;x<=x1;++x)for(int y=y0;y<=y1;++y)cells_[{x,y}].push_back(i);}}
-    std::vector<std::size_t> query(Bounds b)const{const int x0=std::floor(b[0]),x1=std::floor(b[2]),y0=std::floor(b[1]),y1=std::floor(b[3]);std::vector<std::size_t> result;std::set<std::size_t> seen;auto add=[&](std::size_t i){if(seen.insert(i).second&&overlap(rows_[i].bounds,b))result.push_back(i);};if(double(x1-x0+1)*(y1-y0+1)>4096){for(std::size_t i=0;i<rows_.size();++i)add(i);}else{for(auto i:large_)add(i);for(int x=x0;x<=x1;++x)for(int y=y0;y<=y1;++y){const auto found=cells_.find({x,y});if(found!=cells_.end())for(auto i:found->second)add(i);}}return result;}
+    explicit SpatialIndex(const std::vector<Raw>& rows){
+        for(std::size_t i=0;i<rows.size();++i)for(const auto& b:rows[i].boxes){
+            const auto entry=entries_.size();entries_.emplace_back(b,i);
+            const int x0=std::floor(b[0]),x1=std::floor(b[2]),y0=std::floor(b[1]),y1=std::floor(b[3]);
+            if(double(x1-x0+1)*(y1-y0+1)>4096)large_.push_back(entry);
+            else for(int x=x0;x<=x1;++x)for(int y=y0;y<=y1;++y)cells_[{x,y}].push_back(entry);
+        }
+    }
+    std::vector<std::size_t> query(Bounds bounds)const{
+        std::vector<std::size_t> result;std::set<std::size_t> seen;
+        for(const auto [west,east]:boundaryLongitudeRanges(bounds[0],bounds[2])){
+            const Bounds b{west,bounds[1],east,bounds[3]};
+            const int x0=std::floor(west),x1=std::floor(east),y0=std::floor(b[1]),y1=std::floor(b[3]);
+            const auto add=[&](std::size_t i){const auto& [box,row]=entries_[i];
+                if(overlap(box,b)&&seen.insert(row).second)result.push_back(row);};
+            if(double(x1-x0+1)*(y1-y0+1)>4096){for(std::size_t i=0;i<entries_.size();++i)add(i);}
+            else{for(auto i:large_)add(i);for(int x=x0;x<=x1;++x)for(int y=y0;y<=y1;++y){
+                const auto found=cells_.find({x,y});if(found!=cells_.end())for(auto i:found->second)add(i);}}
+        }
+        return result;
+    }
 };
 std::string parentId(const ProjectDocument& d,const std::string& id){return staticParentRelation(d,id).parentId;}
 }
 NodeKey nodeKey(Point point){
     // JavaScript Math.round ties toward +infinity, unlike std::round.
     const auto quantize=[](double value){const double scaled=value*factor,lower=std::floor(scaled);return (lower+(scaled-lower>=.5?1:0))/factor;};
-    return {quantize(point.x),quantize(point.y)};
+    const auto longitude=quantize(boundaryLongitudeNear(point.x,0.));
+    return {longitude==180.?-180.:longitude,quantize(point.y)};
 }
 std::string nodeKeyText(Point point){
     const auto number=[](double value){

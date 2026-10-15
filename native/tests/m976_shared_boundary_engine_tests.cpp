@@ -293,9 +293,24 @@ void cancellationAndInvalidCoordinates() {
 }
 }
 
+namespace {
+void datelineContact() {
+    ProjectDocument document;
+    append(document,"DATE",polygon({{179,0},{-179,0},{-179,1},{179,1},{179,0}}));
+    append(document,"ZERO",box(0,1,1,1));
+    const auto falseContact=prepare(document,{"DATE","ZERO"});
+    require(!falseContact->valid()&&falseContact->error()=="BOUNDARY_ISOLATED_OWNER",
+            "Dateline crossing created a Greenwich editing boundary");
+    append(document,"NORTH",polygon({{179,1},{-179,1},{-179,2},{179,2},{179,1}}));
+    const auto realContact=prepare(document,{"DATE","NORTH"});
+    require(realContact->valid()&&!realContact->segments().empty(),
+            "Real dateline editing boundary was lost");
+}
+}
+
 int main(int argc, char** argv) {
     const std::vector<std::pair<const char*,void(*)()>> tests{
-        {"quantization",quantization}, {"topologyOrder",topologyOrder}, {"virtualInterior",virtualInterior},
+        {"quantization",quantization}, {"datelineContact",datelineContact}, {"topologyOrder",topologyOrder}, {"virtualInterior",virtualInterior},
         {"groupedDragHistory",groupedDragHistory}, {"disconnectedPairs",disconnectedPairs},
         {"fixedAndLocked",fixedAndLocked}, {"destinationOwner",destinationOwner},
         {"cancellationAndInvalidCoordinates",cancellationAndInvalidCoordinates}

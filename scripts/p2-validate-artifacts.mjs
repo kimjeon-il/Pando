@@ -1,5 +1,6 @@
 // Decode the actual generated packets, and verify Web/native consumption bytes.
 import assert from 'node:assert/strict';
+import { sharedSourceManifest } from '../tools/package-shared-core-assets.mjs';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -27,7 +28,7 @@ if(family==='world-mesh') {
   const manifest=json('assets/data/prepared-polygons/generated/v2/manifest.json');
   assert.equal(manifest.schema,'pandolab-prepared-polygon-meshes');
   assert.ok(Object.keys(manifest.meshes).length,'empty prepared meshes');
-  assert.equal(sha(Buffer.from(read('assets/js/workers/gpu-mesh-core.js').toString('utf8').replaceAll('\r\n','\n'))),manifest.algorithmSourceSha256);
+  assert.equal(sharedSourceManifest(root).sourceSha256,manifest.algorithmSourceSha256);
   for(const [path,hash] of Object.entries(manifest.inputHashes))assert.equal(sha(read(path)),hash,'prepared input '+path);
   for(const spec of Object.values(manifest.meshes)) {
     const bytes=read(spec.url);assert.equal(sha(bytes),spec.sha256);assert.equal(bytes.length,spec.compressedBytes);

@@ -5,7 +5,7 @@ configure_file(src/version.cpp.in generated/version.cpp @ONLY)
 get_filename_component(PANDOEDITOR_SHARED_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/.." ABSOLUTE)
 get_filename_component(PANDOEDITOR_REPOSITORY_ROOT "${PANDOEDITOR_SHARED_ROOT}/.." ABSOLUTE)
 file(GLOB_RECURSE PANDOEDITOR_CORE_PIN_INPUTS CONFIGURE_DEPENDS
-    "${PANDOEDITOR_SHARED_ROOT}/*.cpp" "${PANDOEDITOR_SHARED_ROOT}/*.h"
+    "${PANDOEDITOR_SHARED_ROOT}/*.cpp" "${PANDOEDITOR_SHARED_ROOT}/*.h" "${PANDOEDITOR_SHARED_ROOT}/*.hpp"
     "${PANDOEDITOR_SHARED_ROOT}/*.cpp.in" "${PANDOEDITOR_SHARED_ROOT}/*.h.in"
     "${PANDOEDITOR_SHARED_ROOT}/*.cmake" "${PANDOEDITOR_SHARED_ROOT}/CMakeLists.txt")
 list(SORT PANDOEDITOR_CORE_PIN_INPUTS)
@@ -66,6 +66,7 @@ add_library(pandoeditor_core STATIC
     src/boundarypacket.cpp
     src/boundarycontact.cpp
     src/boundaryoverlap.cpp
+    src/polygonmesh.cpp
     src/boundaryrefinement.cpp
     src/boundarysplit.cpp
     src/countrycontact.cpp
@@ -87,6 +88,8 @@ add_library(Pandoeditor::Core ALIAS pandoeditor_core)
 target_include_directories(pandoeditor_core PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
+target_include_directories(pandoeditor_core PRIVATE
+    "${PANDOEDITOR_SHARED_ROOT}/third_party/earcut")
 target_compile_features(pandoeditor_core PUBLIC cxx_std_17)
 if(MSVC)
     target_compile_options(pandoeditor_core PUBLIC /utf-8)
@@ -133,4 +136,9 @@ set_source_files_properties(src/countrycontact.cpp PROPERTIES COMPILE_OPTIONS
 # Owner-group chains, seam division, refinement and dash phase use the same
 # strict intermediate double operations in Qt, GCC/Clang and Emscripten.
 set_source_files_properties(src/boundarypacket.cpp PROPERTIES COMPILE_OPTIONS
+    "$<$<CXX_COMPILER_ID:MSVC>:/fp:strict>;$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-ffp-contract=off>")
+
+# Fill projection and shared-edge subdivision use identical double operations
+# in Qt, GCC/Clang and Emscripten, including projected-area validation.
+set_source_files_properties(src/polygonmesh.cpp PROPERTIES COMPILE_OPTIONS
     "$<$<CXX_COMPILER_ID:MSVC>:/fp:strict>;$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-ffp-contract=off>")

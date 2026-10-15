@@ -10,14 +10,17 @@ if (assetRevision) {
   meshCoreUrl.searchParams.set('v', assetRevision);
   rpcHostUrl.searchParams.set('v', assetRevision);
 }
-importScripts('../vendor/earcut.min.js', './geographic-boundary-core.js', meshCoreUrl.href, rpcHostUrl.href);
+importScripts('./geographic-boundary-core.js', meshCoreUrl.href, rpcHostUrl.href);
 
+const meshCoreReady = import('../modules/temporal.js')
+  .then(({ sharedCalculationCore }) => self.PandoLabGpuMeshCore.setSharedCore(sharedCalculationCore));
+meshCoreReady.catch(() => {}); // Each mesh operation awaits this prerequisite.
 const strokePreparation = import(`../modules/country-stroke-preparation.js?v=${encodeURIComponent(assetRevision)}`);
 const blockPreparation = import(`../modules/mesh-spatial-blocks.js?v=${encodeURIComponent(assetRevision)}`);
-const polygonPreparation = Promise.all([
+const polygonPreparation = meshCoreReady.then(() => Promise.all([
   import(`../modules/prepared-polygon-mesh.js?v=${encodeURIComponent(assetRevision)}`),
   import(`../modules/stored-asset-loader.js?v=${encodeURIComponent(assetRevision)}`),
-]).then(([{ createPreparedPolygonMeshStore }, { createStoredAssetLoader }]) => {
+])).then(([{ createPreparedPolygonMeshStore }, { createStoredAssetLoader }]) => {
   const engine = self.PandoLabGpuMeshCore;
   const spec = globalThis.PANDOLAB_BUILD_META.preparedPolygonMeshes;
   const base = new URL('../../../', self.location.href);
@@ -42,8 +45,8 @@ const polygonPreparation = Promise.all([
   });
 });
 polygonPreparation.catch(() => {}); // The operation awaits and propagates its own initialization error.
-const countryPreparation = import(`../modules/country-mesh-preparation.js?v=${encodeURIComponent(assetRevision)}`)
-  .then(({ createCountryMeshPreparation }) => createCountryMeshPreparation({ engine: self.PandoLabGpuMeshCore, triangulate: self.earcut }));
+const countryPreparation = meshCoreReady.then(() => import(`../modules/country-mesh-preparation.js?v=${encodeURIComponent(assetRevision)}`))
+  .then(({ createCountryMeshPreparation }) => createCountryMeshPreparation({ engine: self.PandoLabGpuMeshCore }));
 countryPreparation.catch(() => {}); // The mesh operation propagates initialization failures.
 async function buildMesh(features, context) {
   const started = performance.now();
