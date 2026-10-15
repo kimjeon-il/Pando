@@ -7,6 +7,7 @@ on:
       - '.github/workflows/object-timeline-regression.yml'
       - 'assets/wasm/pandoeditor-core.manifest.json'
       - 'assets/js/modules/temporal.js'
+      - 'assets/js/modules/territorial-library.js'
       - 'assets/js/modules/timeline*.js'
       - 'assets/js/modules/project-state.js'
       - 'assets/js/modules/project-serializer.js'
@@ -56,4 +57,7 @@ jobs:
             tests/unit/project-timeline-domain.test.mjs \
             tests/unit/timeline-edit.test.mjs \
             tests/unit/timeline-resolver.test.mjs \
-            tests/unit/timeline-objects-parity.test.mjs
+            tests/unit/timeline-objects-parity.test.mjs \
+            tests/unit/territorial-library.test.mjs \
+            tests/unit/territorial-library-service.test.mjs \
+            tests/unit/territorial-timeline-storage.test.mjs
