@@ -1,6 +1,6 @@
 # P5-6 — 공통 C++ 계산 단일 정본 통합 및 앱·웹 종료 검증
 
-> 보고서 ID: `DEV-075` · 작성: 2026-10-15 · 상태: `verification-in-progress` · 지도 변경: `not-applicable`  
+> 보고서 ID: `DEV-075` · 작성: 2026-10-15 · 상태: `implemented / scoped integration CI verified` · 지도 변경: `not-applicable`  
 > 기준 통합본: `main` `691ec5d8184f840aa87477d2d340dfbf0fa5d7b9`  
 > 검증용 `work/objects` 커밋: `8f2c8d367570177170926fbb77e90c806692d44d`(P1·P3·P5), `9389df049f0c162578b7483245ece10b71db96ca`(객체 타임라인)  
 > 두 검증 커밋은 워크플로 주석만 추가했다. 프로덕션 웹·앱 코드 및 WASM 바이너리는 기준 `main`과 동일하다.
@@ -21,7 +21,7 @@
 | P1 원격 개발·웹 스모크·C++ 코어·엔진·GIS C++ 도구 | [#38739689081](https://github.com/kimjeon-il/Pando/actions/runs/38739689081) | **SUCCESS**; WASM 재빌드/기본 Qt 앱 잡은 변경 분류에 따라 skip(별도 P2/P3 검증 사용) |
 | P5 공유 국경선·C++ 단일 소유권·성능·러시아 실편집 | [#38739689090](https://github.com/kimjeon-il/Pando/actions/runs/38739689090) | **SUCCESS**, 4/4 잡 통과 |
 | 객체 타임라인·라이브러리 C++/WASM 연동 | [#38740170698](https://github.com/kimjeon-il/Pando/actions/runs/38740170698) | **SUCCESS**, 시간대/기록/편집·라이브러리 회귀검사 |
-| 앱·웹 P3 브라우저/양 OS Qt | [#38739689107](https://github.com/kimjeon-il/Pando/actions/runs/38739689107) | 브라우저/웹 스냅샷·Linux Qt **SUCCESS**; Windows Qt 종료 판정 확인 대기 |
+| 앱·웹 P3 브라우저/양 OS Qt | [#38739689107](https://github.com/kimjeon-il/Pando/actions/runs/38739689107) | **SUCCESS**; 브라우저/웹 스냅샷·Linux/Windows Qt 각 5/5 CTest 통과, C++ 면적 연동 1/1 통과 |
 | 소스 일치 WASM 생성·ABI·문서 세션 | [#38734216094](https://github.com/kimjeon-il/Pando/actions/runs/38734216094) | **SUCCESS**; 이후 병합 소스·매니페스트/바이너리 동일성 점검 |
 | `main` Pages 배포 | [#38737601463](https://github.com/kimjeon-il/Pando/actions/runs/38737601463) | **SUCCESS**, 기준 커밋 `691ec5d` |
 
@@ -48,5 +48,5 @@
 
 - 기존 고배율/고좌표 편집의 Long Task 최적화, GPU 프레임 레이트, Android 및 실제 Windows 하드웨어 렌더링 성능은 이번 P5-6 계산 통합 게이트에 포함되지 않았다.
 - 선택된 P1/P3/P5 CI가 통과해도 전 저장소 테스트, 수동 UX 탐색, 현장 브라우저 캐시 동기화가 모두 통과했다는 의미는 아니다.
-- **공식 P5 종료 판정**: 현재 대기 중인 최신 P3 Windows Qt 결과를 확인한 후 갱신한다. 기존 수정본 기준 Windows/Linux CTest 5개 전부 통과한 기록은 [#38735587140](https://github.com/kimjeon-il/Pando/actions/runs/38735587140)에 있다.
+- **공식 P5 종료 판정: 범위 내 완료.** 검증용 통합 소스에서 P1, P3, P5, 객체 타임라인 CI 모두 통과했고 Windows/Linux Qt CTest는 각각 5/5, 면적 연동 CTest는 각각 1/1 통과했다. 이전 색상 참조 오류는 Windows에서 재발하지 않았다. 과거 실패본 대비 확인 가능한 선행 성공 기록은 [#38735587140](https://github.com/kimjeon-il/Pando/actions/runs/38735587140)이다.
 - `main` 통합본 소스를 검증하려는 목적에서, 브랜치 주석만 바꾼 `work/objects`에 CI를 실행했으며 이번 보고서 작성/검증 트리거 단계에서 `main`에 직접 커밋하거나 다시 병합하지 않았다.
