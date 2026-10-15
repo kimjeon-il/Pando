@@ -1,4 +1,5 @@
-import {readFileSync,writeFileSync} from 'node:fs';
+import {readFileSync,writeFileSync,existsSync} from 'node:fs';
+import path from 'node:path';
 import {pathToFileURL} from 'node:url';
 export const scenarioContracts=[
  ['idle','Idle',0],['flat-pan','Flat pan',120],['flat-zoom','Flat zoom',90],
@@ -108,4 +109,115 @@ export function summarizeRuns(reports){
  const scenarios=scenarioContracts.map(([id,name])=>({id,name,inputDistributionMs:distribution((reports??[]).flatMap(d=>(d.inputs??[]).filter(x=>x.scenarioId===id).map(x=>x.latencyMs))),frameDistributionMs:distribution((reports??[]).flatMap(d=>(d.presentationFrames??[]).filter(x=>x.scenarioId===id).map(x=>x.ms)))}));
  return {schema:'pandoeditor-native-performance-run-assessment',version:2,status:runs.some(r=>r.status==='BLOCKED')?'BLOCKED':faults.length?'FAIL':acceptanceEligible?'MEASURED_UNAPPROVED':'DIAGNOSTIC',acceptedBy:null,acceptanceEligible,runs,scenarios,faults};
 }
-if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){try{const input=process.argv[2];if(!input)throw Error('Usage: node summarize-native-performance.mjs report.json [summary.json]');const d=JSON.parse(readFileSync(input,'utf8').replace(/^\uFEFF/,'')),r=Array.isArray(d)?summarizeRuns(d):summarize(d);if(process.argv[3])writeFileSync(process.argv[3],JSON.stringify(r,null,2)+'\n');console.log(JSON.stringify(r,null,2));if(['FAIL','BLOCKED'].includes(r.status))process.exitCode=1;}catch(e){console.error(e.message);process.exitCode=2;}}
+
+// QRhi 6.8 prints all enumerated adapters, then "using this adapter" after
+// the selected one. Enumeration of Microsoft's fallback does not select it.
+export function selectedD3dAdapter(log='') {
+ let adapter=null,selected=null;
+ for(const line of log.split(/\r?\n/)) {
+  const match=line.match(/Adapter\s+(\d+):\s+'([^']+)'\s+\(vendor 0x([0-9a-f]+) device 0x([0-9a-f]+) flags 0x([0-9a-f]+)\)/i);
+  if(match)adapter={index:Number(match[1]),name:match[2],vendor:match[3],device:match[4],flags:parseInt(match[5],16)};
+  if(/using this adapter/i.test(line)&&adapter)selected={...adapter};
+ }
+ if(!selected)return null;
+ selected.hardware=!(selected.flags&2)&&!/(WARP|Microsoft Basic|software|llvmpipe|SwiftShader)/i.test(selected.name)&&
+  !/(using|attempting|falling back).*software rasterizer|D3D_DRIVER_TYPE_WARP/i.test(log);
+ return selected;
+}
+const relativeRoles=['world-standard','dense-view','editing-heavy','large-project'];
+function relativeMetrics(rounds) {
+ const values={};
+ const add=(key,side,value)=>{values[key]??={baseline:[],candidate:[]};values[key][side].push(value);};
+ for(const round of rounds)for(const {receipt,report,processSamples} of round.runs??[]) {
+  if(receipt?.warmup)continue;
+  const side=receipt?.version;if(!['baseline','candidate'].includes(side)||!report)continue;
+  add('startupToProjectViewMs',side,report.startupToProjectViewMs);
+  for(const row of report.relativeMeasurements??[]) {
+   for(const key of ['loadAndFirstReadyFrameMs','panMs','saveMs'])add(`${row.fixtureId}.${key}`,side,row[key]);
+   add(`${row.fixtureId}.frameP95Ms`,side,percentile(row.swapIntervalsMs??[],.95));
+   if(row.fixtureId==='editing-heavy')add('editing-heavy.previewAndCancelMs',side,row.previewAndCancelMs);
+  }
+  for(const [key,field] of [['peakWorkingSetBytes','workingSetBytes'],['peakPrivateBytes','privateBytes']])
+   add(key,side,processSamples?.length?Math.max(...processSamples.map(s=>s[field])):null);
+ }
+ return Object.fromEntries(Object.entries(values).map(([key,value])=>[key,{baseline:distribution(value.baseline),candidate:distribution(value.candidate),
+  baselineValues:value.baseline,candidateValues:value.candidate,
+  status:Math.min(...value.candidate)>Math.max(...value.baseline)?'regression':percentile(value.candidate,.5)>percentile(value.baseline,.5)?'uncertain':'no-regression'}]));
+}
+const relativeStatus=metrics=>Object.values(metrics).some(m=>m.status==='regression')?'regression':Object.values(metrics).some(m=>m.status==='uncertain')?'uncertain':'no-regression';
+export function summarizeRelativeRounds(rounds) {
+ const faults=[],check=(ok,message)=>{if(!ok)faults.push(message);};
+ check(Array.isArray(rounds)&&[1,2].includes(rounds.length),'Exactly one initial round and at most one additional round are allowed');
+ rounds=Array.isArray(rounds)?rounds:[];const environment=rounds[0]?.environment;
+ let common=null;const adapterReceipts=[];
+ for(const [roundIndex,round] of rounds.entries()) {
+  const env=round.environment??{},runs=round.runs??[];
+  check(env.measurementProfile==='p9-relative','P9 profile required');
+  for(const key of ['sourceCommit','baselineSourceCommit'])check(/^[a-f0-9]{40}$/i.test(env[key]??''),`Missing ${key}`);
+  for(const key of ['binarySha256','baselineBinarySha256','fixtureManifestSha256'])check(/^[a-f0-9]{64}$/i.test(env[key]??''),`Missing ${key}`);
+  check(Boolean(env.inputHashes&&Object.keys(env.inputHashes).length&&env.cacheCondition),'Input hashes and cache condition required');
+  for(const key of ['sourceCommit','baselineSourceCommit','binarySha256','baselineBinarySha256','fixtureManifestSha256','inputHashes','os','adapters','cpu','cacheCondition'])
+   check(equal(env[key],environment?.[key]),`Round ${roundIndex+1}: changed ${key}`);
+  const expected=[];
+  if(roundIndex===0)for(const side of ['baseline','candidate'])expected.push(`warmup-${side}`);
+  else check(Boolean(env.additionalRoundFrom),'Additional round must name the original evidence');
+  for(let i=1;i<=5;i++)for(const side of ['baseline','candidate'])expected.push(`${roundIndex?'extra':'run'}-${i}-${side}`);
+  check(equal(runs.map(r=>r.receipt?.run),expected),`Round ${roundIndex+1}: warmup/alternating five-pair sequence mismatch`);
+  for(const {receipt:r={},report:d,processSamples:process=[],rendererLog=''} of runs) {
+   check(r.exitCodeObserved===true&&r.exitCode===0&&!r.timedOut&&r.rawReportExists===true,`${r.run}: process did not complete`);
+   check(Boolean(d),`${r.run}: missing report`);if(!d)continue;
+   const p=d.provenance??{},side=r.version,baseline=side==='baseline';
+   check(['baseline','candidate'].includes(side),`${r.run}: invalid version`);
+   check(r.warmup===r.run?.startsWith('warmup-'),`${r.run}: warmup classification mismatch`);
+   check(d.schema==='pandoeditor-native-performance'&&d.version===2&&d.measurementProfile==='p9-relative'&&d.completed===true&&d.measurementMode==='diagnostic'&&Boolean(d.diagnosticReason),`${r.run}: incomplete P9 diagnostic report`);
+   check(p.sourceCommit===(baseline?env.baselineSourceCommit:env.sourceCommit)&&p.binarySha256===(baseline?env.baselineBinarySha256:env.binarySha256)&&r.binarySha256===p.binarySha256&&p.runId===r.run,`${r.run}: source/binary/run identity mismatch`);
+   check(p.fixtureManifestSha256===env.fixtureManifestSha256&&equal(p.inputHashes,env.inputHashes)&&d.preflight?.status==='PASS',`${r.run}: immutable inputs/preflight mismatch`);
+   check(p.buildType==='Release'&&p.graphicsApi==='Direct3D11'&&Boolean(p.qtVersion),`${r.run}: Release hardware backend/Qt identity missing`);
+   if(env.buildIdentity?.qtVersion)check(p.qtVersion===String(env.buildIdentity.qtVersion),`${r.run}: loaded Qt differs from the CI runtime`);
+   const identity={qtVersion:p.qtVersion,os:p.os,adapters:p.adapters,cpu:p.cpu,logicalProcessors:d.logicalProcessors,graphicsApi:p.graphicsApi,
+    fixtures:[...(d.fixtures??[])].sort((a,b)=>a.id.localeCompare(b.id))};
+   common??=identity;check(equal(identity,common),`${r.run}: Qt/device/fixture identity changed`);
+   for(const key of ['os','adapters','cpu'])check(equal(p[key],env[key]),`${r.run}: ${key} differs from environment`);
+   const adapter=selectedD3dAdapter(rendererLog);adapterReceipts.push({run:r.run,...adapter});
+   check(adapter?.hardware===true&&(env.adapters??[]).some(a=>a.Name===adapter.name),`${r.run}: actual selected physical adapter is missing or software`);
+   check(relativeRoles.every(id=>(d.fixtures??[]).some(f=>f.id===id&&f.manifestSha256===env.fixtureManifestSha256)),`${r.run}: four immutable fixture receipts missing`);
+   check(Number.isFinite(d.startupToProjectViewMs)&&d.startupToProjectViewMs>=0,`${r.run}: startup observation missing`);
+   check(equal((d.relativeMeasurements??[]).map(v=>v.fixtureId),relativeRoles),`${r.run}: four production-world roles required`);
+   for(const row of d.relativeMeasurements??[]) {
+    check(['loadAndFirstReadyFrameMs','panMs','saveMs'].every(key=>Number.isFinite(row[key])&&row[key]>=0),`${r.run}/${row.fixtureId}: operation timing missing`);
+    check(row.swapIntervalsMs?.length>=100&&row.swapIntervalsMs.every(v=>Number.isFinite(v)&&v>=0),`${r.run}/${row.fixtureId}: swap intervals missing/invalid`);
+    if(row.fixtureId==='editing-heavy')check(Number.isFinite(row.previewAndCancelMs)&&row.previewAndCancelMs>=0,`${r.run}: edit preview/cancel observation missing`);
+   }
+   check((d.inputs??[]).length>=480&&(d.inputs??[]).every(v=>v.matched===true&&v.delivered===true&&v.renderSnapshotMatched===true&&v.renderUploadsPending===false&&v.stateChanged===true),`${r.run}: actual input/render association failed`);
+   check(process.length>0&&process.every(s=>Number.isFinite(s.workingSetBytes)&&s.workingSetBytes>0&&Number.isFinite(s.privateBytes)&&s.privateBytes>0),`${r.run}: process memory samples missing/invalid`);
+  }
+ }
+ if(rounds.length===2)check(relativeStatus(relativeMetrics(rounds.slice(0,1)))==='uncertain','Additional round is allowed only after initial uncertainty');
+ const metrics=relativeMetrics(rounds),status=faults.length?'BLOCKED':relativeStatus(metrics);
+ return {schema:'pando-p9-native-relative-comparison',version:1,status,roundCount:rounds.length,additionalRoundAllowed:status==='uncertain'&&rounds.length===1,
+  m98Acceptance:false,acceptedBy:null,metrics,adapterReceipts,faults,
+  scope:'Production full-world fixed inputs: fresh-process startup through project view, four-role load/pan/save/Qt swap p95, DEU preview/cancel, sampled peak process memory. Two discarded warmups, then five alternating baseline/candidate pairs per round.',
+  limitations:['New full-world role inputs do not establish historical M98 full-stack/stress acceptance.','Swap intervals do not prove GPU completion or DWM presentation.','Sampled process memory is not driver VRAM; physical provider coverage is recorded in raw reports.']};
+}
+export function readRelativeDirectory(directory) {
+ const json=file=>JSON.parse(readFileSync(path.join(directory,file),'utf8').replace(/^\uFEFF/,''));
+ const environment=json('environment.json'),receipts=json('run-results.json');
+ return {environment,runs:receipts.map(receipt=>({receipt,
+  report:existsSync(path.join(directory,receipt.run,'measurement.json'))?json(`${receipt.run}/measurement.json`):null,
+  processSamples:existsSync(path.join(directory,receipt.run,'process.json'))?[json(`${receipt.run}/process.json`)].flat().filter(Boolean):[],
+  rendererLog:['qt-test.txt','stderr.txt','stdout.txt'].filter(name=>existsSync(path.join(directory,receipt.run,name))).map(name=>readFileSync(path.join(directory,receipt.run,name),'utf8')).join('\n')}))};
+}
+if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){try{
+ const args=process.argv.slice(2);let r,output;
+ if(args[0]==='--p9') {
+  if(!args[1])throw Error('Usage: --p9 evidence-directory [--extra evidence-directory] [--out assessment.json]');
+  const extra=args.indexOf('--extra'),out=args.indexOf('--out');
+  r=summarizeRelativeRounds([readRelativeDirectory(args[1]),...(extra<0?[]:[readRelativeDirectory(args[extra+1])])]);
+  output=out<0?path.join(extra<0?args[1]:args[extra+1],'assessment.json'):args[out+1];
+ }else{
+  if(!args[0])throw Error('Usage: node summarize-native-performance.mjs report.json [summary.json]');
+  const d=JSON.parse(readFileSync(args[0],'utf8').replace(/^\uFEFF/,''));r=Array.isArray(d)?summarizeRuns(d):summarize(d);output=args[1];
+ }
+ if(output)writeFileSync(output,JSON.stringify(r,null,2)+'\n');console.log(JSON.stringify(r,null,2));
+ if(['FAIL','BLOCKED','uncertain','regression'].includes(r.status))process.exitCode=1;
+}catch(e){console.error(e.message);process.exitCode=2;}}
