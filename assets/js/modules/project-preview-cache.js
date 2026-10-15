@@ -21,11 +21,11 @@ export function createProjectPreviewCache({ storage, scheduler, getGeometry, get
     retiredWorker.terminate();
   }
 
-  function stopWorker(reason = '미리보기 준비가 취소됐습니다.') {
+  function stopWorker(reason = '미리보기 준비가 취소됐습니다.', cancelled = true) {
     retireWorker();
     for (const task of pending.values()) {
       clearTimeout(task.timeout);
-      task.reject(new Error(reason));
+      task.reject(Object.assign(new Error(reason), { cancelled }));
     }
     pending.clear();
   }
@@ -54,7 +54,7 @@ export function createProjectPreviewCache({ storage, scheduler, getGeometry, get
     currentWorker.onerror = event => {
       event.preventDefault?.();
       if (worker !== currentWorker) return;
-      stopWorker(event.message || '미리보기 Worker 오류');
+      stopWorker(event.message || '미리보기 Worker 오류', false);
     };
     return worker;
   }
@@ -62,7 +62,7 @@ export function createProjectPreviewCache({ storage, scheduler, getGeometry, get
   function run(type, data) {
     const id = ++nextId;
     return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => stopWorker('미리보기 Worker 시간 초과'), 60_000);
+      const timeout = setTimeout(() => stopWorker('미리보기 Worker 시간 초과', false), 60_000);
       pending.set(id, { resolve, reject, timeout });
       try { getWorker().postMessage({ id, type, ...data }); }
       catch (error) { pending.delete(id); clearTimeout(timeout); reject(error); }
@@ -81,7 +81,7 @@ export function createProjectPreviewCache({ storage, scheduler, getGeometry, get
       const result = await run('validate', { source, baseline, cache });
       return requestedEpoch === epoch ? result : null;
     } catch (error) {
-      onWarning('Project preview cache rejected', error);
+      if (!error.cancelled) onWarning('Project preview cache rejected', error);
       return null;
     } finally {
       releaseWorkerIfIdle();
@@ -120,7 +120,7 @@ export function createProjectPreviewCache({ storage, scheduler, getGeometry, get
       await storage.writePreview(cache);
       return expectedEpoch === epoch;
     } catch (error) {
-      onWarning('Project preview cache unavailable', error);
+      if (!error.cancelled) onWarning('Project preview cache unavailable', error);
       return false;
     } finally {
       releaseWorkerIfIdle();
