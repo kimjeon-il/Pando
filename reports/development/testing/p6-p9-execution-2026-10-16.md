@@ -57,3 +57,10 @@
 - 동일 Windows/Node 환경의 river/reference 한정 교대 비교: river 중앙 8.63085→15.10245ms, reference 13.9045→22.5133ms. 한 차례 추가 측정 후에도 각각 미확정·회귀다. 범위 및 반복 데이터는 build-native/p9/calculation-performance-f1db6cf5-windows.json에 남겼다. 통과로 처리하지 않았다.
 - 후속 최소 수정: 수계 원본 수치/ID 요청당 준비, 소유권이 끝난 후보 이동; 정확한 정수 토큰의 빠른 수치 파싱; 참조 좌표·계수 재사용 및 WASM 보정/준비 통합. 원본 수치 알고리즘·오차·메시 불변성은 유지한다. 후속 WASM은 먼저 이 두 성능 항목만 확인하며, 불필요한 고정 자산 재생성은 최종 계산 후보 확정 뒤에 시행한다.
 - Windows 기본 실패의 원인은 fixture reader의 임시 QJsonObject에 대한 QJsonValueRef 수명 오류였다. 값을 소유하도록 고쳤으며 expected geometry는 그대로다.
+
+### WASM 예외 처리 비용 확인
+
+- 38767156038 WASM 빌드 성공, 결과 69ec57c0. 폴리곤·참조·수계 관련 24개 검사 통과.
+- 참조 경로의 짧은 CPU 측정에서 보정/준비 62%, C++ 메시/전달 17%, JS 조립 16%, 점 투영 5%였다. WASM→JS 및 invoke_* 프레임이 46 self samples 중 최소 8개였다. 짧은 계측 표본이며 전체 회귀의 원인 비율로 확정하지 않는다.
+- 기존 CMake는 JS 예외 에뮬레이션(-fexceptions, DISABLE_EXCEPTION_CATCHING=0)을 전체 C++에 적용했다. [Emscripten 공식 설명](https://emscripten.org/docs/porting/exceptions.html)은 이 모드의 비용과 -fwasm-exceptions의 낮은 비용을 명시한다. 고정 SDK 4.0.20의 [설정 원본](https://github.com/emscripten-core/emscripten/blob/4.0.20/src/settings.js)도 확인했다.
+- 계산 규칙을 더 바꾸기 전에 코어와 바인딩 모두 native WASM 예외 처리로 전환한다. 컴파일·링크에 같은 모드를 쓰고 JS 에뮬레이션 옵션을 제거한다. 네이티브 Qt 빌드에는 영향이 없다. 성능·현재 오류 계약·브라우저 실행은 새 산출물에서 확인하며, 미지원 WASM 엔진이나 실기기 통과를 가정하지 않는다.
