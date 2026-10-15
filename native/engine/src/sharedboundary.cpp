@@ -1,4 +1,5 @@
 #include <pandoeditor/map/sharedboundary.h>
+#include <pandoeditor/boundarysplit.h>
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -19,12 +20,6 @@ bool sameGeometry(const Geometry& a,const Geometry& b){
 bool sameDrafts(const Drafts& a,const Drafts& b){if(a.size()!=b.size())return false;for(const auto& [id,g]:a){const auto found=b.find(id);if(found==b.end()||!sameGeometry(g,found->second))return false;}return true;}
 template<class T> void uniqueAppend(std::vector<T>& values,const T& value){if(std::find(values.begin(),values.end(),value)==values.end())values.push_back(value);}
 bool hasRef(const std::vector<Reference>& refs,const Reference& ref){return std::any_of(refs.begin(),refs.end(),[&](const auto& r){return r.owner==ref.owner&&r.polygon==ref.polygon&&r.ring==ref.ring&&r.index==ref.index;});}
-std::optional<double> onSegment(Point point,Point a,Point b){
-    const double dx=b.x-a.x,dy=b.y-a.y,length2=dx*dx+dy*dy;if(!length2)return {};
-    const double t=((point.x-a.x)*dx+(point.y-a.y)*dy)/length2;if(t < -epsilon||t > 1+epsilon)return {};
-    if(std::hypot(point.x-(a.x+dx*t),point.y-(a.y+dy*t))>epsilon)return {};
-    return std::clamp(t,0.,1.);
-}
 bool touches(const Geometry& geometry,Point point){
     for(const auto& polygon:geometry.polygons)for(const auto& ring:polygon)for(std::size_t i=1;i<ring.size();++i){const auto a=ring[i-1],b=ring[i];const double dx=b.x-a.x,dy=b.y-a.y,length=std::hypot(dx,dy);if(!length)continue;const double t=((point.x-a.x)*dx+(point.y-a.y)*dy)/(length*length);if(t>=-epsilon&&t<=1+epsilon&&std::abs(dx*(point.y-a.y)-dy*(point.x-a.x))/length<=epsilon)return true;}return false;
 }
@@ -98,15 +93,38 @@ std::shared_ptr<Session> Session::prepare(const ProjectDocument& d,const Documen
         for(const auto& id:session->selected_)for(const auto i:byOwner[id]){checkpoint();add(i);for(auto candidate:indexRows.query(padded(raw[i].bounds)))add(candidate);}
         std::map<NodeKey,std::size_t> nodeIds;
         for(auto i:selectedRows){checkpoint();const auto& row=raw[i];for(const auto endpoint:{std::pair{row.a,row.ref.index},std::pair{row.b,row.end}}){const auto key=nodeKey(endpoint.first);auto [it,inserted]=nodeIds.emplace(key,session->nodes_.size());if(inserted)session->nodes_.push_back({key,endpoint.first});auto& node=session->nodes_[it->second];uniqueAppend(node.owners,row.ref.owner);auto ref=row.ref;ref.index=endpoint.second;if(!hasRef(node.refs,ref))node.refs.push_back(ref);}}
-        // Preserve the web bucket scan order when splitting differently segmented borders.
-        std::map<std::pair<int,int>,std::vector<std::size_t>> buckets;for(std::size_t i=0;i<session->nodes_.size();++i){const auto p=session->nodes_[i].coordinate;buckets[{int(std::floor(p.x/.25)),int(std::floor(p.y/.25))}].push_back(i);}
-        std::vector<Segment> segments;std::map<std::pair<NodeKey,NodeKey>,std::size_t> segmentIds;
-        for(auto i:selectedRows){checkpoint();const auto& row=raw[i];const int x0=std::floor((row.bounds[0]-epsilon)/.25),x1=std::floor((row.bounds[2]+epsilon)/.25),y0=std::floor((row.bounds[1]-epsilon)/.25),y1=std::floor((row.bounds[3]+epsilon)/.25);std::vector<std::size_t> nearby;
-            if(double(x1-x0+1)*(y1-y0+1)>4096){for(std::size_t n=0;n<session->nodes_.size();++n)nearby.push_back(n);}else for(int x=x0;x<=x1;++x)for(int y=y0;y<=y1;++y){const auto bucket=buckets.find({x,y});if(bucket!=buckets.end())nearby.insert(nearby.end(),bucket->second.begin(),bucket->second.end());}
-            std::vector<std::pair<std::size_t,double>> split;for(auto n:nearby)if(auto t=onSegment(session->nodes_[n].coordinate,row.a,row.b))split.emplace_back(n,*t);
-            std::stable_sort(split.begin(),split.end(),[](const auto& a,const auto& b){return a.second<b.second;});
-            for(const auto [n,t]:split){auto& node=session->nodes_[n];uniqueAppend(node.owners,row.ref.owner);if(t>epsilon&&t<1-epsilon&&!hasRef(node.virtualRefs,row.ref)){auto ref=row.ref;ref.t=t;node.virtualRefs.push_back(std::move(ref));}}
-            for(std::size_t j=1;j<split.size();++j){if(split[j].second-split[j-1].second<=epsilon)continue;const auto a=split[j-1].first,b=split[j].first;const auto left=session->nodes_[a].key,right=session->nodes_[b].key;const auto key=std::minmax(left,right);auto [it,inserted]=segmentIds.emplace(std::make_pair(key.first,key.second),segments.size());if(inserted)segments.push_back({a,b,{}});uniqueAppend(segments[it->second].owners,row.ref.owner);}
+        // Native boundary editing and the browser's country-contact topology
+        // now use one C++ geographic candidate scan and epsilon projection.
+        // Preserve selected source order and first occurrence of node keys.
+        std::vector<BoundaryEdge> sourceEdges;sourceEdges.reserve(selectedRows.size());
+        for(const auto i:selectedRows)sourceEdges.emplace_back(raw[i].a,raw[i].b);
+        std::vector<Point> nodeCoordinates;nodeCoordinates.reserve(session->nodes_.size());
+        for(const auto& node:session->nodes_)nodeCoordinates.push_back(node.coordinate);
+        const auto splitRows=boundarySplitCandidates(sourceEdges,nodeCoordinates,epsilon);
+        std::vector<Segment> segments;
+        std::map<std::pair<NodeKey,NodeKey>,std::size_t> segmentIds;
+        for(std::size_t rawIndex=0;rawIndex<selectedRows.size();++rawIndex){
+            checkpoint();
+            const auto& row=raw[selectedRows[rawIndex]];
+            const auto& split=splitRows[rawIndex];
+            for(const auto& candidate:split){
+                const auto n=candidate.nodeIndex;const double t=candidate.t;
+                auto& node=session->nodes_[n];
+                uniqueAppend(node.owners,row.ref.owner);
+                if(t>epsilon&&t<1-epsilon&&!hasRef(node.virtualRefs,row.ref)){
+                    auto ref=row.ref;ref.t=t;node.virtualRefs.push_back(std::move(ref));
+                }
+            }
+            for(std::size_t j=1;j<split.size();++j){
+                if(split[j].t-split[j-1].t<=epsilon)continue;
+                const auto a=split[j-1].nodeIndex,b=split[j].nodeIndex;
+                const auto left=session->nodes_[a].key,right=session->nodes_[b].key;
+                const auto key=std::minmax(left,right);
+                auto [it,inserted]=segmentIds.emplace(
+                    std::make_pair(key.first,key.second),segments.size());
+                if(inserted)segments.push_back({a,b,{}});
+                uniqueAppend(segments[it->second].owners,row.ref.owner);
+            }
         }
         for(const auto& segment:segments) {
             const auto endpoints=std::make_pair(session->nodes_[segment.start].coordinate,session->nodes_[segment.end].coordinate);
