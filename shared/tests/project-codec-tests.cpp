@@ -29,6 +29,13 @@ int main() {
         assert(actual==encodedNumbers[i]);
     }
     assert(codecjson::Value::str(std::string("\0\b\f\n\r\t",6)).encode()=="\"\\u0000\\b\\f\\n\\r\\t\"");
+    const std::string nested="{\"a\":[{\"escaped\\\"key\":[1.2300,true,null,\"\\ud800\"]}],\"z\":9007199254740993}";
+    assert(codecjson::parse(nested).encode()==nested);
+    auto boundary=codecjson::Value::num(1);
+    for(int depth=0;depth<128;++depth){auto parent=codecjson::Value::arr();parent.array.push_back(std::move(boundary));boundary=std::move(parent);}
+    assert(boundary.encode()==std::string(128,'[')+"1"+std::string(128,']'));
+    auto excessive=codecjson::Value::arr();excessive.array.push_back(std::move(boundary));
+    try {excessive.encode();assert(false);}catch(const std::invalid_argument& error){assert(std::string(error.what()).find("LIMIT_EXCEEDED")==0);}
     std::ifstream input(PROJECT_CODEC_FIXTURE,std::ios::binary);
     assert(input);
     const std::string bytes{std::istreambuf_iterator<char>(input),std::istreambuf_iterator<char>()};

@@ -182,7 +182,11 @@ V calibrationWarp(const V& record) {
     auto points=V::arr();const auto& anchor=get(record,"anchor");if(anchor.kind==V::Object)points.array.push_back(obj({{"id",V::str("anchor")},{"image",get(anchor,"image")},{"coordinate",get(anchor,"coordinate")},{"pinned",V::boolean(true)}}));
     for(auto p:get(record,"controlPoints").array){p.object["pinned"]=V::boolean(false);points.array.push_back(p);}
     const auto mode=text(get(record,"mode"),text(get(record,"warpMode"),"auto"));auto lines=V::arr();
-    if(!points.array.empty()) {const auto base=fit(points,mode);if(yes(get(base,"ok")))lines=linearPoints(get(record,"linearConstraints"),base);}
+    const auto& constraints=get(record,"linearConstraints");
+    const bool hasEnabledConstraints=std::any_of(constraints.array.begin(),constraints.array.end(),[](const V& item){
+        return get(item,"enabled").kind!=V::Bool||yes(get(item,"enabled"));
+    });
+    if(!points.array.empty()&&hasEnabledConstraints) {const auto base=fit(points,mode);if(yes(get(base,"ok")))lines=linearPoints(constraints,base);}
     points.array.insert(points.array.end(),lines.array.begin(),lines.array.end());V result;
     if(yes(get(record,"cornerPinEnabled"))&&!points.array.empty()) {
         const auto& mapQuad=get(record,"mapQuad");if(mapQuad.kind!=V::Array||mapQuad.array.size()!=4)return obj({{"ok",V::boolean(false)},{"mode",V::str("tps")},{"minimumPoints",V::num(3)},{"pointCount",V::num(points.array.size())},{"reason",V::str("invalid-corner-pin-quad")}});

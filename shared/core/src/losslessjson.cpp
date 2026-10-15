@@ -141,22 +141,33 @@ Value Value::num(double number) {
     if(number==0){value.raw="0";return value;}
     // Qt FloatingPointShortest chooses whichever fixed/scientific form is
     // shorter; chars_format::general uses a different exponent window.
-    std::array<char,64> buffer{};const auto result=std::to_chars(buffer.data(),buffer.data()+buffer.size(),number);
+    std::array<char,64> buffer{};
     // QJsonValue stores exactly representable int64 values as integer tokens.
     // This is observable in native files and provenance digests.
     if(std::trunc(number)==number&&number>=-9223372036854775808.0&&number<9223372036854775808.0) {
         const auto integer=std::to_chars(buffer.data(),buffer.data()+buffer.size(),static_cast<std::int64_t>(number));
         require(integer.ec==std::errc{},"INVALID_JSON: number conversion");value.raw.assign(buffer.data(),integer.ptr);return value;
     }
+    const auto result=std::to_chars(buffer.data(),buffer.data()+buffer.size(),number);
     require(result.ec==std::errc{},"INVALID_JSON: number conversion");value.raw.assign(buffer.data(),result.ptr);return value;
 }
 Value Value::boolean(bool value){Value result;result.kind=Bool;result.raw=value?"true":"false";return result;}
+namespace {
+void appendEncoded(const Value& value,std::string& output,int depth) {
+    require(depth<=128,"LIMIT_EXCEEDED: encoded JSON nesting exceeds 128");
+    if(value.kind!=Value::Object&&value.kind!=Value::Array){output+=value.raw;return;}
+    output+=value.kind==Value::Object?'{':'[';bool first=true;
+    if(value.kind==Value::Object)for(const auto& entry:value.object){
+        if(!first)output+=',';first=false;output+=quoted(entry.first);output+=':';
+        appendEncoded(entry.second,output,depth+1);
+    }else for(const auto& entry:value.array){
+        if(!first)output+=',';first=false;appendEncoded(entry,output,depth+1);
+    }
+    output+=value.kind==Value::Object?'}':']';
+}
+}
 std::string Value::encode(int depth) const {
-    require(depth<=128,"LIMIT_EXCEEDED: encoded JSON nesting exceeds 128");if(kind!=Object&&kind!=Array)return raw;
-    std::string output=kind==Object?"{":"[";bool first=true;
-    if(kind==Object)for(const auto& entry:object){if(!first)output+=',';first=false;output+=quoted(entry.first)+":"+entry.second.encode(depth+1);}
-    else for(const auto& value:array){if(!first)output+=',';first=false;output+=value.encode(depth+1);}
-    output+=kind==Object?'}':']';return output;
+    std::string output;appendEncoded(*this,output,depth);return output;
 }
 Value parse(const std::string& bytes,ParsedTextPolicy policy){return Parser(bytes,policy).parse();}
 double finiteNumber(const Value& value) {
