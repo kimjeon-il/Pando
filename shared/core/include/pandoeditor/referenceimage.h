@@ -20,6 +20,7 @@ struct PreparedReferenceWarp {
     enum Mode { Invalid, Similarity, Affine, Projective, ThinPlateSpline } mode=Invalid;
     std::vector<double> xCoefficients,yCoefficients;
     std::vector<ReferencePoint> controlPoints;
+    bool restrictToImage=false,flipX=false,flipY=false;
 };
 struct ReferenceWarpMesh {
     int columns=0,rows=0;

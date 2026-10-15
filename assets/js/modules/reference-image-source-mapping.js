@@ -1,8 +1,5 @@
 import { buildReferenceImageCalibrationWarp } from './reference-image-georef.js';
-import {
-  buildReferenceImagePlacementWarp,
-  referenceImagePlacementCoordinateAtUv,
-} from './reference-image-transform.js';
+import { createCalculatedReferenceWarp } from './reference-image-core.js';
 
 export function buildReferenceImageSourceMapping(record = {}) {
   const calibration = buildReferenceImageCalibrationWarp({
@@ -16,14 +13,15 @@ export function buildReferenceImageSourceMapping(record = {}) {
 
   if (!record.cornerPinEnabled) return calibration;
 
-  const placement = buildReferenceImagePlacementWarp(record);
+  // Keep projection and mesh attached to the same prepared C++ warp, including
+  // placement flips and UV bounds. A JS project wrapper loses that ownership.
+  const placement = createCalculatedReferenceWarp('placementWarp', {
+    mapQuad: record.mapQuad, flipX: record.flipX, flipY: record.flipY,
+  });
   if (!placement.ok) return calibration;
 
   return Object.freeze({
     ...placement,
     source: 'corner-pin',
-    project(imageUv) {
-      return referenceImagePlacementCoordinateAtUv(record, imageUv);
-    },
   });
 }
