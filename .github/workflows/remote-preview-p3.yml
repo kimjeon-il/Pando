@@ -230,6 +230,7 @@ jobs:
             node --test tests/unit/map-edit-preparation-worker.test.mjs tests/unit/map-edit-worker-client.test.mjs tests/unit/project-preview-worker.test.mjs tests/unit/project-preview-topology.test.mjs tests/unit/gis-geometry-worker.test.mjs tests/unit/shared-geometry-calculations.test.mjs tests/unit/current-hydro-layout.test.mjs tests/unit/hydro-packfile.test.mjs
           fi
       - name: Record final committed artifact identity and current hydro consumption
+        id: acceptance_inputs
         if: inputs.scope == 'acceptance' || (inputs.scope == 'browser' && inputs.retry_failed)
         run: |
           mkdir -p test-results/p9-artifacts
@@ -237,6 +238,7 @@ jobs:
           node scripts/p2-artifact-plan.mjs --evidence --result-sha "$source_sha" --expected-source-sha "$source_sha" --evidence-file test-results/p9-artifacts/generated.json
           if [ '${{ inputs.scope }}' = acceptance ]; then node tools/check-current-hydro-layout.mjs --root . --allow-retired false --out test-results/p9-artifacts/hydro.json; fi
       - uses: actions/checkout@v4
+        id: acceptance_baseline
         if: inputs.scope == 'acceptance' || (inputs.scope == 'browser' && inputs.retry_failed)
         with:
           ref: 8e22982616e3c9ba43eeb84baec17cd886267cfa
@@ -273,7 +275,7 @@ jobs:
           if [ -n "$PANDO_BROWSER_TESTS" ]; then pattern="$PANDO_BROWSER_TESTS"; fi
           pnpm exec playwright test tests/browser/annex-e2e.spec.mjs tests/browser/boundary-cut-snapping.spec.mjs tests/browser/reference-image-live-wire.spec.mjs tests/browser/reference-image-line-refine.spec.mjs tests/browser/timeline-persistence.spec.mjs tests/browser/russia-edit-preparation.spec.mjs --grep "$pattern" "${reuse[@]}" --trace off --workers=1 --retries=0 --output=test-results/p9-browser
       - name: Compare initial display, edit readiness, frames and JS heap against the fixed baseline
-        if: inputs.scope == 'acceptance' || (inputs.scope == 'browser' && inputs.retry_failed)
+        if: ${{ !cancelled() && steps.acceptance_inputs.outcome == 'success' && steps.acceptance_baseline.outcome == 'success' }}
         env:
           PANDOLAB_BROWSER_CHANNEL: chromium
           PANDO_P9_BASELINE_ROOT: build-native/p9/baseline

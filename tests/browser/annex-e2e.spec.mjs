@@ -30,10 +30,17 @@ async function openAnnex(page, center, { renderer = 'webgl2', targetId = 'GRC' }
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await page.locator('#flatBtn').evaluate(button => button.click());
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('TUR'));
-  await page.locator('#focusSelectedObjectBtn').click({ timeout: 10_000 });
+  // Focus is setup for the annex workflow. Dispatch its real command without
+  // pointer-hover rendering becoming part of Playwright's click completion.
+  await page.locator('#focusSelectedObjectBtn').evaluate(button => button.click());
   const map = await page.locator('#map').boundingBox();
   const centerPoint = await page.evaluate(coordinate => window.__PANDOLAB_VIEW_DEBUG__.geoToScreen(coordinate), center);
   expect(centerPoint).toBeTruthy();
+  expect(centerPoint.every(Number.isFinite)).toBe(true);
+  expect(centerPoint[0]).toBeGreaterThan(0);
+  expect(centerPoint[0]).toBeLessThan(map.width);
+  expect(centerPoint[1]).toBeGreaterThan(0);
+  expect(centerPoint[1]).toBeLessThan(map.height);
   await page.mouse.move(map.x + centerPoint[0], map.y + centerPoint[1]);
   await page.mouse.wheel(0, -400);
   await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select(id), targetId);

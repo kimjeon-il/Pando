@@ -380,7 +380,8 @@ private slots:
     QCOMPARE(root["version"].toInt(),10);QVERIFY(!root["geometryProvenance"].toObject()["inlineAllocations"].toArray().isEmpty());
     const auto target=dir.filePath("active.json"),invalidPath=dir.filePath("invalid.json");write(target,valid);
     EditorController editor({false,dir.filePath("private.json")});QVERIFY(editor.openFile(QUrl::fromLocalFile(target)));editor.selectCountry("A");
-    editor.setColor("#123456");editor.setColor("#654321");editor.undo();editor.setNameDraft("keep pending draft");
+    editor.setColor("#123456");editor.setColor("#654321");editor.undo();QVERIFY(editor.selectionItems().isEmpty());editor.selectCountry("A");editor.setNameDraft("keep pending draft");
+    QCOMPARE(editor.nameDraft(),QString("keep pending draft"));
     const auto before=editor.documentBytes();const auto revision=editor.revision();const auto selection=editor.primaryObject();const auto fileName=editor.fileName();const auto instance=editor.projectInstanceId();
     const auto assertUnchanged=[&] {
         QCOMPARE(editor.documentBytes(),before);QCOMPARE(editor.revision(),revision);QCOMPARE(editor.primaryObject(),selection);
@@ -422,7 +423,11 @@ private slots:
         QCOMPARE(current.timelineCursor(),std::string("1914-06"));
     }
  }
- void nativeOnlyVisibilitySurvivesNativeSaveButRefusesWebExport_data() {visibilityBoundaryData();}
+ void nativeOnlyVisibilitySurvivesNativeSaveButRefusesWebExport_data() {
+    QTest::addColumn<QString>("key");QTest::addColumn<bool>("item");
+    for(const auto* key:{"hydro","terrain","countryLabels"})QTest::newRow((QByteArray("layer-")+key).constData())<<QString(key)<<false;
+    QTest::newRow("item-terrain")<<QString("terrain")<<true;
+ }
  void nativeOnlyVisibilitySurvivesNativeSaveButRefusesWebExport() {
     QFETCH(QString,key);QFETCH(bool,item);auto document=fixture("static");
     if(item)document.presentation.webPresentation.itemVisibility[key.toStdString()]["A"]=false;
@@ -434,11 +439,35 @@ private slots:
     QVERIFY2(error.contains("UNSUPPORTED_WEB_EXPORT")&&error.contains(key),qPrintable(error.isEmpty()?"Native-only visibility produced incompatible web JSON":error));
     QCOMPARE(output,QByteArray("not published"));QCOMPARE(::projectcodec::encode(reopened),before);QCOMPARE(::projectcodec::encode(original),before);
  }
+ void nativeHydroVisibilityUsesCanonicalWebGroup_data() {
+    QTest::addColumn<QString>("kind");QTest::newRow("river")<<QString("river");QTest::newRow("lake")<<QString("lake");
+ }
+ void nativeHydroVisibilityUsesCanonicalWebGroup() {
+    QFETCH(QString,kind);auto document=fixture("static");const GeometryRef geometry{"visibility-hydro",1};
+    document.geometries.insert(geometry,inlineShape(kind=="river"?"hydroEdits":"distributionEntry"));
+    document.geometryProvenance.originalArchive.insert(geometry);
+    addInlineContent(document,"hydroEdits",geometry);document.hydro.back().kind=kind.toStdString();
+    document.presentation.webPresentation.itemVisibility["hydro"][contentId]=false;
+    Project original;original.replace(document);const auto before=::projectcodec::encode(original);
+    const auto nativeGroup=kind=="river"?QString("rivers"):QString("lakes");
+    const auto hidden=QJsonDocument::fromJson(before).object()["presentation"].toObject()["webPresentation"].toObject()["hiddenItems"].toObject();
+    QCOMPARE(hidden[nativeGroup].toArray(),QJsonArray{QString::fromStdString(contentId)});QVERIFY(!hidden.contains("hydro"));
+    Project reopened;reopened.replace(::projectcodec::decode(before));QCOMPARE(::projectcodec::encode(reopened),before);
+    const auto& items=reopened.document().presentation.webPresentation.itemVisibility;
+    QVERIFY(!items.count("rivers"));QVERIFY(!items.count("lakes"));QVERIFY(!items.at("hydro").at(contentId));
+    const auto web=::projectcodec::encodeWeb(reopened.snapshot());
+    const auto webHidden=QJsonDocument::fromJson(web).object()["itemVisibility"].toObject()["hydro"].toObject();
+    QVERIFY(webHidden.contains(QString::fromStdString(contentId)));QCOMPARE(webHidden[QString::fromStdString(contentId)],QJsonValue(false));
+    Project restored;restored.replace(::projectcodec::decodeWeb(web));QCOMPARE(::projectcodec::encode(restored),before);
+    QCOMPARE(::projectcodec::encode(original),before);
+ }
  void supportedWebPresentationNamespacesRoundTrip() {
     auto document=fixture("static");auto& presentation=document.presentation.webPresentation;
+    const GeometryRef hydroGeometry{"visibility-hydro",1};document.geometries.insert(hydroGeometry,inlineShape("hydroEdits"));document.geometryProvenance.originalArchive.insert(hydroGeometry);addInlineContent(document,"hydroEdits",hydroGeometry);
     // Pinned real-web project-state.js uses distinct layer, item and style namespaces.
     for(const auto* key:{"countries","subunits","regions","distributions","rivers","lakes","genericFeatures","labels","basemapLabels","countryFlags","subunitLabels","subunitFlags","regionLabels","regionFlags"})presentation.visibility[key]=false;
-    for(const auto* key:{"countries","subunits","regions","distributions","hydro","genericFeatures","labels","countryLabels"})presentation.itemVisibility[key]["A"]=false;
+    for(const auto* key:{"countries","subunits","regions","distributions","genericFeatures","labels","countryLabels"})presentation.itemVisibility[key]["A"]=false;
+    presentation.itemVisibility["hydro"][contentId]=false;
     for(const auto* key:{"countries","subunits","regions","distributions","rivers","lakes","hydro","genericFeatures","labels","countryLabels","terrain"})presentation.styles[key].opacity=0.5;
     Project original;original.replace(document);const auto before=::projectcodec::encode(original);
     Project reopened;reopened.replace(::projectcodec::decodeWeb(::projectcodec::encodeWeb(original.snapshot())));
@@ -448,8 +477,8 @@ private slots:
  void inlineGeometryReferencesArePreservedOrExplicitlyRefused_data() {
     QTest::addColumn<QString>("domain");QTest::addColumn<QString>("scenario");QTest::addColumn<bool>("representable");
     for(const auto* domain:{"label","hydroEdits","genericFeatures","distributionEntry"}) {
-        for(const auto* scenario:{"unique","duplicate-first","synthetic-preferred","changed-version-unique"})QTest::newRow((QByteArray(domain)+"-"+scenario).constData())<<QString(domain)<<QString(scenario)<<true;
-        for(const auto* scenario:{"duplicate-later","equal-versions","synthetic-equal-versions","synthetic-conflict"})QTest::newRow((QByteArray(domain)+"-"+scenario).constData())<<QString(domain)<<QString(scenario)<<false;
+        for(const auto* scenario:{"unique","duplicate-first","synthetic-preferred","changed-version-unique","synthetic-distinct-version"})QTest::newRow((QByteArray(domain)+"-"+scenario).constData())<<QString(domain)<<QString(scenario)<<true;
+        for(const auto* scenario:{"duplicate-later","equal-versions","synthetic-equal-versions"})QTest::newRow((QByteArray(domain)+"-"+scenario).constData())<<QString(domain)<<QString(scenario)<<false;
     }
  }
  void inlineGeometryReferencesArePreservedOrExplicitlyRefused() {
@@ -465,7 +494,9 @@ private slots:
     if(scenario=="equal-versions")document.geometries.insert({target.id,1},shape);
     if(scenario=="changed-version-unique")document.geometries.insert({target.id,1},inlineShape(domain,1));
     if(scenario=="synthetic-equal-versions")document.geometries.insert(synthetic,shape);
-    if(scenario=="synthetic-conflict")document.geometries.insert(synthetic,inlineShape(domain,1));
+    // A different shape at version 1 does not conflict with the exact version 2
+    // archive match. Equal shapes remain ambiguous and must still be refused.
+    if(scenario=="synthetic-distinct-version")document.geometries.insert(synthetic,inlineShape(domain,1));
     document.geometries.insert(target,shape);addInlineContent(document,domain,target);
     Project original;original.replace(document);const auto baseline=::projectcodec::encode(original);
     QVERIFY(original.setColor("A",0x123456));const auto firstEdit=::projectcodec::encode(original);
@@ -484,7 +515,7 @@ private slots:
             const auto restored=::projectcodec::decodeWeb(output);const auto actual=inlineContentRef(restored,domain);
             QFAIL(qPrintable(QString("Web exchange rebound %1/%2 to %3/%4 instead of refusing").arg(QString::fromStdString(target.id)).arg(target.version).arg(QString::fromStdString(actual.id)).arg(actual.version)));
         }
-        QVERIFY2(error.contains(scenario=="synthetic-conflict"?"GEOMETRY_ARCHIVE_CONFLICT":"UNSUPPORTED_WEB_EXPORT: non-territorial geometry reference"),qPrintable(error));
+        QVERIFY2(error.contains("UNSUPPORTED_WEB_EXPORT: non-territorial geometry reference"),qPrintable(error));
         QCOMPARE(output,QByteArray("not published"));
     }
     QCOMPARE(::projectcodec::encode(original),before);QCOMPARE(::projectcodec::encode(frozen),before);QCOMPARE(original.revision(),revision);
