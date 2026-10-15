@@ -159,7 +159,8 @@ std::vector<CountryView> countryViews(const ProjectDocument& d) {
     requireStaticTimeline(d);
     for(const auto& u:d.units) if(isRootGeneral(d,u)) {
         auto ref=territorialRef(u.id); const auto& s=d.presentation.objectStyles.at(ref);
-        result.push_back({u.id,(u.nameExplicit&&!u.name.empty()?u.name:u.baseName),d.geometries.get(staticGeometryBinding(d,u.id).geometryRef)->polygons,(s.explicitColor?s.color:countryDefault),u.notes,s.opacity,nativeLayerId(d,ref),u.locked});
+        const std::uint32_t resolvedColor=s.explicitColor?s.color:countryDefault;
+        result.push_back({u.id,(u.nameExplicit&&!u.name.empty()?u.name:u.baseName),d.geometries.get(staticGeometryBinding(d,u.id).geometryRef)->polygons,resolvedColor,u.notes,s.opacity,nativeLayerId(d,ref),u.locked});
     }
     return result;
 }

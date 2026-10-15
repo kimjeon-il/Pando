@@ -18,10 +18,12 @@ export function createGpuCanvasWorker({ worker, generation, acceptFrame, onStale
     inFlightRenderRequestId = ++renderRequestId;
     postMessage({ ...message, renderRequestId: inFlightRenderRequestId });
   }
-  function settlePick(id, value) {
+  function settlePick(id, value, error = null) {
     const pending = picks.get(id);
     if (!pending) return;
-    picks.delete(id); clearTimeout(pending.timer); pending.resolve(value);
+    picks.delete(id); clearTimeout(pending.timer);
+    if (error) pending.reject(Object.assign(new Error(error.message), { code: error.code, stack: error.stack }));
+    else pending.resolve(value);
   }
   worker.onmessage = event => {
     const message = event.data || {};
@@ -32,7 +34,7 @@ export function createGpuCanvasWorker({ worker, generation, acceptFrame, onStale
       flush();
       return;
     }
-    if (message.type === 'hydro-pick') { settlePick(Number(message.requestId), message.fid); return; }
+    if (message.type === 'hydro-pick') { settlePick(Number(message.requestId), message.fid, message.error); return; }
     if (message.type !== 'frame') { onmessage?.(event); return; }
     // Completion belongs to a submission, independently of bitmap freshness.
     if (inFlightRenderRequestId !== null && message.renderRequestId === inFlightRenderRequestId
@@ -49,7 +51,7 @@ export function createGpuCanvasWorker({ worker, generation, acceptFrame, onStale
     }
     flush();
   };
-  worker.onerror = event => { if (live) onerror?.(event); };
+  worker.onerror = event => { event.preventDefault?.(); if (live) onerror?.(event); };
   return Object.freeze({
     get onmessage() { return onmessage; }, set onmessage(handler) { onmessage = handler; },
     get onerror() { return onerror; }, set onerror(handler) { onerror = handler; },
@@ -64,9 +66,9 @@ export function createGpuCanvasWorker({ worker, generation, acceptFrame, onStale
     pick(point) {
       if (!live || !ready) return Promise.resolve(null);
       const id = ++requestId;
-      return new Promise(resolve => {
+      return new Promise((resolve, reject) => {
         const timer = setTimeout(() => settlePick(id, null), 900);
-        picks.set(id, { resolve, timer });
+        picks.set(id, { resolve, reject, timer });
         postMessage({ type: 'hydro-pick', requestId: id, point });
       });
     },

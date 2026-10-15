@@ -13,13 +13,17 @@
 namespace {
 void require(bool condition,const char* message) {if(!condition)throw std::runtime_error(message);}
 bool writeLossless(const QImage& image,const QString& path) {
-    QImageWriter writer(path,"webp");writer.setQuality(100);return writer.write(image);
+    QImageWriter writer(path,"webp");writer.setQuality(100);
+    const bool written=writer.write(image);
+    if(!written)std::cerr<<"WebP writer: "<<writer.errorString().toStdString()<<"; plugin paths="
+        <<QCoreApplication::libraryPaths().join(';').toStdString()<<'\n';
+    return written;
 }
 }
 int main(int argc,char** argv) {
     QCoreApplication app(argc,argv);
     try {
-        require(argc==2,"fixed DEM manifest argument required");
+        require(argc==3,"fixed DEM and preview manifest arguments required");
         QFile file(QString::fromLocal8Bit(argv[1]));require(file.open(QIODevice::ReadOnly),"manifest readable");
         const auto manifest=file.readAll();QTemporaryDir root;require(root.isValid(),"isolated fixture root");
         TerrainTileProvider provider(manifest,root.path());
@@ -66,14 +70,13 @@ int main(int argc,char** argv) {
         provider.protectVisible({});provider.setCacheBudget(0);
         require(provider.cachedBytes()==0,"released DEM and tint become evictable");
         std::cout<<"PASS released resource reclamation\n";
-        auto rasterPath=QString::fromLocal8Bit(argv[1]);
-        rasterPath.replace("v0.13.3/manifest.json","v0.12.6/manifest.json");
-        rasterPath.replace("v0.13.3\\manifest.json","v0.12.6\\manifest.json");
-        QFile rasterManifest(rasterPath);require(rasterManifest.open(QIODevice::ReadOnly),"fixed raster fallback manifest");
-        TerrainTileProvider raster(rasterManifest.readAll(),root.path());require(raster.available(),"raster fallback remains supported");
-        const auto rasterTile=root.path()+"/terrain/v0.12.6/0/0-0.webp";
+        const auto previewPath=QString::fromLocal8Bit(argv[2]);
+        QFile rasterManifest(previewPath);require(rasterManifest.open(QIODevice::ReadOnly),"fixed DEM preview manifest");
+        TerrainTileProvider raster(rasterManifest.readAll(),root.path());require(raster.available(),"DEM preview fallback is supported");
+        require(raster.levelSize(1)==QSize(2700,1350),"DEM preview contains two fixed LODs");
+        const auto rasterTile=root.path()+"/terrain-preview/v0.13.3-p1/0/0-0.webp";
         require(QDir().mkpath(QFileInfo(rasterTile).absolutePath()),"raster fixture directory");
-        QImage rawRaster(16,16,QImage::Format_RGBA8888);rawRaster.fill(QColor(255,0,0,64));
+        QImage rawRaster(1026,677,QImage::Format_RGBA8888);rawRaster.fill(QColor(255,0,0,64));
         // Qt 6.8.3 scans a WebPBitstreamFeatures-sized header; a uniform tiny
         // lossless WebP can be shorter. Distinct data pixels keep this decoder
         // fixture large enough without changing the independently tested pixel.
@@ -90,7 +93,7 @@ int main(int argc,char** argv) {
         require(observed==QColor(255,0,0,64),"original raster RGBA remains decoded data");
         require(raster.loadTile(0,0,0,true).pixelColor(0,0)==QColor(64,64,64,255),
                 "fixed Web gray uses encoded A and opaque output, not RGB luminance");
-        std::cout<<"PASS fixed raster alpha-data gray interpretation\n9/9 cases passed; fail=0 skip=0\n";
+        std::cout<<"PASS DEM preview alpha-data gray interpretation\n9/9 cases passed; fail=0 skip=0\n";
         return 0;
     } catch(const std::exception& error) {std::cerr<<"FAIL "<<error.what()<<'\n';return 1;}
 }

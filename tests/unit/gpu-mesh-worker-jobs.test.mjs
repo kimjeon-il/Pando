@@ -15,9 +15,12 @@ test('full rebuild owner settles replaced, stale and disposed requests and prese
   workers[1].onmessage({ data: { ...sent.find(x => x.type === 'request' && x.metadata.geometryRevision === 4), type: 'result', projectRevision: 1, ok: true, result: 'old-project' } });
   assert.equal(await second, null);
   const third = owner.rebuild({ token: 3, projectGeneration: 2, geometryRevision: 4, features: [] });
-  workers[2].onmessage({ data: { ...sent.at(-1), type: 'result', ok: true, result: 'current' } });
+  workers[1].onmessage({ data: { ...sent.at(-1), type: 'result', ok: true, result: 'current' } });
   assert.equal(await third, 'current');
-  const fourth = owner.rebuild({ token: 4 }); owner.cancelAll();
+  assert.equal(workers.length, 2, 'idle rebuild Worker retains prepared geometry');
+  owner.cancelAll('prepare-full-rebuild', { preserveIdleRebuild: true });
+  const fourth = owner.rebuild({ token: 4 });
+  assert.equal(workers.length, 2); owner.cancelAll();
   assert.equal(await fourth, null);
   assert.equal(sent[0].operation, 'geometry.mesh');
   assert.equal(sent[0].projectRevision, 2);

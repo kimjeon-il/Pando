@@ -1,5 +1,7 @@
 #!/usr/bin/env node
-// Read-only permanent regression check for user-approved terrain v0.12.0 retirement.
+// Historical cross-branch audit for the v0.12.0 retirement receipts. Its fixed
+// v0.12.6 corpus and separate App repository are preserved as historical evidence.
+// Current monorepo releases use check-terrain-preview.mjs instead.
 import {mkdirSync,writeFileSync} from 'node:fs';
 import {resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';

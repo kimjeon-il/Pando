@@ -11,7 +11,7 @@ function setup(){
  const temp=mkdtempSync(join(tmpdir(),'pando-release-stage10-')),root=join(temp,'web');
  const paths=['index.html','.nojekyll','assets/js/gis-io.js',
    'assets/js/vendor/gdal/gdal3WebAssembly.wasm','assets/js/vendor/gdal/gdal3WebAssembly.data',
-   'assets/data/terrain/v0.12.6/manifest.json',
+   'assets/data/terrain-preview/v0.13.3-p1/manifest.json',
    'assets/data/hydro/v0.13.1/manifest.json',
    'assets/data/hydro/v0.13.2/manifest.json',
    'assets/data/hydro/v0.13.2/hydro.bin',
@@ -82,13 +82,14 @@ test('modified source contents fail exact Git Blob verification',async()=>{
   await assert.rejects(stageCandidate(x.profile,x.lock,x.root,join(x.temp,'staged')),/size changed|digest/);
  }finally{rmSync(x.temp,{recursive:true,force:true});}
 });
-test('symlinked source path is rejected without following outside root',async()=>{
+test('symlinked source path is rejected without following outside root',async t=>{
  const x=setup();
  try{
   const target=join(x.temp,'outside');writeFileSync(target,'bad');
   const p=x.profile.fileManifest.find(f=>f.path==='assets/js/gis-io.js');
   unlinkSync(join(x.root,p.path));
-  symlinkSync(target,join(x.root,p.path));
+  try { symlinkSync(target,join(x.root,p.path)); }
+  catch (error) { if (error?.code === 'EPERM') { t.skip('Windows symlink creation is not permitted'); return; } throw error; }
   await assert.rejects(stageCandidate(x.profile,x.lock,x.root,join(x.temp,'staged')),/Symlink source rejected/);
  }finally{rmSync(x.temp,{recursive:true,force:true});}
 });

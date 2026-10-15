@@ -252,7 +252,7 @@ export function createEnvironment() {
 
     TERRITORIAL_LIBRARY_INDEX_URL.searchParams.set('v', ASSET_REVISION);
 
-    (PHYSICAL_DATASET = 'HydroRIVERS 1.0 · Natural Earth 5.0.0 호수 · raster 3.2.0');
+    (PHYSICAL_DATASET = 'HydroRIVERS 1.0 · Natural Earth 5.0.0 호수 · ETOPO 2022 DEM');
 
     (TERRAIN_DATASET = TERRAIN_RASTER_DATASET);
 

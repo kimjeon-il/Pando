@@ -295,3 +295,22 @@ test('retiring RPC workers contains import errors while genuine crashes still re
   assert.equal(suppressed, 2, 'handled crash and termination event must not reach the global handler');
   client.stop();
 });
+
+test('bounded monotonic progress renews an idle deadline; repeats and foreign progress cannot', async () => {
+  let serial = 0; const timers = new Map();
+  const worker = fakeWorker();
+  const client = createWorkerRpcClient({ createWorker: () => worker, schedule: callback => { timers.set(++serial, callback); return serial; }, clearSchedule: id => timers.delete(id) });
+  const pending = client.request('geometry.mesh', {}, { projectRevision: 2,
+    progress: { operation: 'geometry.mesh-progress', total: 3 } });
+  const request = worker.messages[0];
+  const progress = (completed, overrides = {}) => worker.onmessage({ data: { rpc: WORKER_RPC_PROTOCOL, protocolVersion: 1,
+    type: 'event', operation: 'geometry.mesh-progress', projectRevision: 2,
+    payload: { requestId: request.requestId, completed, total: 3 }, ...overrides } });
+  progress(1); assert.equal(serial, 2);
+  progress(1); progress(4); progress(2, { projectRevision: 1 });
+  progress(2, { operation: 'foreign-progress' });
+  assert.equal(serial, 2);
+  progress(2); assert.equal(serial, 3);
+  timers.get(3)(); await assert.rejects(pending, { code: 'PL-WORKER-RPC-TIMEOUT' });
+  assert.equal(timers.size, 0); client.stop();
+});

@@ -145,6 +145,14 @@ export function createWorkerRpcClient({
     const decoded = codec.decodeMessage(event?.data);
     if (!decoded) return;
     if (decoded.kind === 'event') {
+      const entry = pending.get(Number(decoded.payload?.requestId));
+      const completed = decoded.payload?.completed;
+      if (entry?.progress && decoded.operation === entry.progress.operation
+        && Number(decoded.projectRevision) === entry.projectRevision
+        && decoded.payload.total === entry.progress.total && Number.isInteger(completed)
+        && completed > entry.progressCompleted && completed <= entry.progress.total) {
+        entry.progressCompleted = completed; entry.renewTimeout?.();
+      }
       onEvent(decoded);
       return;
     }
@@ -265,7 +273,10 @@ export function createWorkerRpcClient({
     signal = null,
     transfer = [],
     metadata = null,
+    progress = null,
   } = {}) {
+    if (progress && (!text(progress.operation) || !Number.isSafeInteger(progress.total) || progress.total <= 0))
+      throw new TypeError('Worker progress requires an operation and a positive finite total.');
     const resolvedOperation = text(operation);
     if (!resolvedOperation) throw new TypeError('Worker RPC operation is required.');
     const resolvedRequestId = requestId == null ? sequence + 1 : Number(requestId);
@@ -310,6 +321,9 @@ export function createWorkerRpcClient({
       reject,
       settled: false,
       timeoutHandle: null,
+      progress: progress ? { operation: progress.operation, total: progress.total } : null,
+      progressCompleted: 0,
+      timeoutVersion: 0,
       signal,
       abortHandler: null,
     };
@@ -318,20 +332,25 @@ export function createWorkerRpcClient({
 
     const timeout = Math.max(0, Number(timeoutMs || 0));
     if (timeout > 0) {
-      entry.timeoutHandle = schedule(() => {
-        if (!pending.has(entry.requestId) || entry.settled) return;
-        postCancel(entry, 'timeout');
-        metrics.timedOut += 1;
-        rejectEntry(entry, createWorkerRpcError({
-          message: `Worker 작업이 ${timeout}ms 제한 시간을 초과했습니다.`,
-          category: WORKER_RPC_ERROR_CATEGORIES.TIMEOUT,
-          code: 'PL-WORKER-RPC-TIMEOUT',
-          operation: entry.operation,
-          requestId: entry.requestId,
-          projectRevision: entry.projectRevision,
-          retryable: true,
-        }));
-      }, timeout);
+      entry.renewTimeout = () => {
+        if (entry.timeoutHandle !== null) clearSchedule(entry.timeoutHandle);
+        const version = ++entry.timeoutVersion;
+        entry.timeoutHandle = schedule(() => {
+          if (!pending.has(entry.requestId) || entry.settled || version !== entry.timeoutVersion) return;
+          postCancel(entry, 'timeout');
+          metrics.timedOut += 1;
+          rejectEntry(entry, createWorkerRpcError({
+            message: entry.progress ? `Worker 작업이 ${timeout}ms 동안 진행되지 않았습니다.` : `Worker 작업이 ${timeout}ms 제한 시간을 초과했습니다.`,
+            category: WORKER_RPC_ERROR_CATEGORIES.TIMEOUT,
+            code: 'PL-WORKER-RPC-TIMEOUT',
+            operation: entry.operation,
+            requestId: entry.requestId,
+            projectRevision: entry.projectRevision,
+            retryable: true,
+          }));
+        }, timeout);
+      };
+      entry.renewTimeout();
     }
     if (signal) {
       entry.abortHandler = () => cancel(entry.requestId, 'aborted');

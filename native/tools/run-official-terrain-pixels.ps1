@@ -12,7 +12,7 @@ New-Item -ItemType Directory -Path $Evidence | Out-Null
 $verified=@()
 foreach($pair in @(@{inventory='physical-inventory-terrain-dem-c3c18d1.json';root=$DemRoot;dem=$true},@{inventory='physical-inventory-c0bd31d1.json';root=$RasterRoot;dem=$false})) {
     $inventory=Get-Content -LiteralPath (Join-Path $source ('assets/world/'+$pair.inventory)) -Raw | ConvertFrom-Json
-    $assets=if($pair.dem){@($inventory.assets)}else{@($inventory.assets | Where-Object {$_.path -in @('terrain/v0.12.6/0/0-0.webp','terrain/v0.12.6/0/1-0.webp')})}
+    $assets=if($pair.dem){@($inventory.assets)}else{@($inventory.assets | Where-Object {$_.path -in @('terrain-preview/v0.13.3-p1/0/0-0.webp','terrain-preview/v0.13.3-p1/0/1-0.webp')})}
     foreach($asset in $assets) {
         $path=Join-Path $pair.root $asset.path
         if(!(Test-Path -LiteralPath $path)){throw "Missing immutable source asset: $path"}
@@ -25,7 +25,7 @@ $verified|ConvertTo-Json -Depth 4|Set-Content -LiteralPath (Join-Path $Evidence 
 $env:PANDOEDITOR_OFFICIAL_DEM_ROOT=$DemRoot
 $env:PANDOEDITOR_OFFICIAL_RASTER_ROOT=$RasterRoot
 $env:PANDOEDITOR_OFFICIAL_DEM_MANIFEST=Join-Path $source 'assets/world/terrain/v0.13.3/manifest.json'
-$env:PANDOEDITOR_OFFICIAL_RASTER_MANIFEST=Join-Path $source 'assets/world/terrain/v0.12.6/manifest.json'
+$env:PANDOEDITOR_OFFICIAL_RASTER_MANIFEST=Join-Path $source 'assets/world/terrain-preview/v0.13.3-p1/manifest.json'
 $env:PANDOEDITOR_UI_CAPTURE_DIR=Join-Path $Evidence 'captures'
 $env:QT_QPA_PLATFORM='windows';$env:QT_QUICK_BACKEND=$null;$env:QSG_RHI_BACKEND='d3d11';$env:QSG_INFO='1'
 $log=Join-Path $Evidence 'qt.txt'
