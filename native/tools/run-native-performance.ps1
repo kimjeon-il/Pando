@@ -15,6 +15,8 @@ param(
 # Fixture manifest schema: pandoeditor-native-performance-fixtures/version2; four
 # fixtures {id,projectPath,projectSha256,viewPath,viewSha256,assets:[{path,sha256}],
 # fullStack,expectedFinalStates,inputContractPath,inputContractSha256}; paths relative to the manifest.
+# productionPlace {path,sha256,revision} pins a fixture manifest copy and the
+# identical production manifest used by the measured application.
 $ErrorActionPreference='Stop'
 $probePath=(Resolve-Path -LiteralPath $ProbeExecutable).Path
 $qtPath=(Resolve-Path -LiteralPath $QtBin).Path
@@ -40,6 +42,26 @@ function Test-ImmutableInput($relative,$expected){
  if($actual -ne $expected){$missing.Add("SHA256 mismatch: $path");return}
  $hashes[$path]=$actual
 }
+function Test-ProductionPlaceInput($contract,$productionPath){
+ $receipt=@{revision=$null;sha256=$null}
+ if(!$contract.path -or $contract.sha256 -notmatch '^[a-fA-F0-9]{64}$'){
+  $missing.Add('Missing production place manifest path/hash in fixture contract')
+ }else{
+  Test-ImmutableInput $contract.path $contract.sha256
+ }
+ if([string]::IsNullOrWhiteSpace($contract.revision)){$missing.Add('Missing production place revision in fixture contract')}
+ if(!(Test-Path -LiteralPath $productionPath -PathType Leaf)){
+  $missing.Add('Production place manifest absent');return $receipt
+ }
+ $receipt.sha256=(Get-FileHash -LiteralPath $productionPath -Algorithm SHA256).Hash
+ $hashes[$productionPath]=$receipt.sha256
+ $productionPlace=Get-Content -LiteralPath $productionPath -Raw | ConvertFrom-Json
+ $receipt.revision=$productionPlace.revision
+ if($receipt.sha256 -ne $contract.sha256){$missing.Add('Production place manifest SHA256 mismatch against fixture contract')}
+ if(!$receipt.revision -or $receipt.revision -ne $contract.revision){$missing.Add('Production place revision mismatch against fixture contract')}
+ if($receipt.revision -eq 'empty-v1'){$missing.Add('Production place runtime is empty-v1: full Dense and full acceptance blocked')}
+ return $receipt
+}
 if($manifest.schema -ne 'pandoeditor-native-performance-fixtures' -or $manifest.version -ne 2){$missing.Add('Immutable fixture schema/version mismatch')}
 foreach($id in @('world-standard','dense-view','editing-heavy','large-project')){
  $fixture=@($manifest.fixtures | Where-Object id -eq $id)
@@ -63,16 +85,8 @@ foreach($id in @('world-standard','dense-view','editing-heavy','large-project'))
  if($Mode -eq 'acceptance' -and !$fixture.fullStack){$missing.Add("Reduced fixture forbidden for acceptance: $id")}
 }
 $productionPlacePath=Join-Path (Split-Path $PSScriptRoot -Parent) 'assets/place/manifest.json'
-$productionPlaceRevision=$null;$productionPlaceSha=$null
-if(!(Test-Path -LiteralPath $productionPlacePath -PathType Leaf)){$missing.Add('Production place manifest absent')}
-else{
- $productionPlaceSha=(Get-FileHash -LiteralPath $productionPlacePath).Hash
- $hashes[$productionPlacePath]=$productionPlaceSha
- $productionPlace=Get-Content -LiteralPath $productionPlacePath -Raw | ConvertFrom-Json
- $productionPlaceRevision=$productionPlace.revision
- if($productionPlaceSha -ne '148660B93529A60640F6A340117F976A7E2822AB8F34FA1814023920FC82F4B7'){$missing.Add('Fixed Web production place manifest SHA256 mismatch')}
- if($productionPlaceRevision -eq 'empty-v1'){$missing.Add('Production place runtime is empty-v1: full Dense and full acceptance blocked')}
-}
+$productionPlaceReceipt=Test-ProductionPlaceInput $manifest.productionPlace $productionPlacePath
+$productionPlaceRevision=$productionPlaceReceipt.revision;$productionPlaceSha=$productionPlaceReceipt.sha256
 $preflight=[ordered]@{status=if($missing.Count){'BLOCKED'}else{'PASS'};missing=@($missing);placeDatasetVersion=$productionPlaceRevision;productionPlaceManifestSha256=$productionPlaceSha;fixtureManifestSha256=(Get-FileHash -LiteralPath $manifestPath).Hash}
 $preflight | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath "$reportRoot/preflight.json" -Encoding utf8
 if($invalidProjects.Count){throw ($invalidProjects -join '; ')}

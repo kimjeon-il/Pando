@@ -2,6 +2,8 @@
 #include <pandoeditor/sphericalpolygon.h>
 #include <cmath>
 #include <QFile>
+#include <QDir>
+#include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -26,6 +28,15 @@ QJsonObject json(const Geometry& geometry) {
 }
 Geometry crossing() {Geometry value;value.type="Polygon";value.polygons={{{{179,-2},{179,2},{-179,2},{-179,-2},{179,-2}}}};return value;}
 Geometry wide() {Geometry value;value.type="Polygon";value.polygons={{{{-170,0},{-170,10},{170,10},{170,0},{-170,0}}}};return value;}
+double planarArea(const Geometry& geometry) {
+    double area=0;
+    for(const auto& polygon:geometry.polygons)for(std::size_t r=0;r<polygon.size();++r){
+        const auto& ring=polygon[r];double sum=0;
+        for(std::size_t i=1;i<ring.size();++i)sum+=ring[i-1].x*ring[i].y-ring[i].x*ring[i-1].y;
+        area+=(r==0?1:-1)*std::abs(sum/2);
+    }
+    return area;
+}
 }
 class SplitGeometryNormalizerTests:public QObject {
     Q_OBJECT
@@ -39,16 +50,28 @@ private slots:
             QCOMPARE(json(source),before);
         }
     }
-    void exactApprovedSourceObservations_data() {
+    void baselineObservationsAndCurrentCorrections_data() {
         QTest::addColumn<QJsonObject>("row");
         QFile file(QStringLiteral(M973_SPLIT_NORMALIZER_FIXTURE));QVERIFY(file.open(QIODevice::ReadOnly));
         const auto fixture=QJsonDocument::fromJson(file.readAll()).object();
         QCOMPARE(fixture["sourceCommit"].toString(),QString("8e22982616e3c9ba43eeb84baec17cd886267cfa"));
         QVERIFY(!fixture["sourceSha256"].toString().isEmpty());
         const auto rows=fixture["cases"].toArray();QCOMPARE(rows.size(),63);
-        for(const auto& value:rows){const auto row=value.toObject();QTest::newRow(qPrintable(row["id"].toString()))<<row;}
+        QFile corrections(QFileInfo(file).dir().filePath("wrapping-corrections.json"));
+        QVERIFY(corrections.open(QIODevice::ReadOnly));
+        auto corrected=QJsonDocument::fromJson(corrections.readAll()).object()["cases"].toArray();
+        for(const auto& value:rows){auto row=value.toObject();
+            for(qsizetype i=0;i<corrected.size();++i){const auto current=corrected[i].toObject();
+                if(current["id"]!=row["id"])continue;
+                QCOMPARE(current.value("operation"),row.value("operation"));
+                row.insert("baselineExpected",row["expected"]);row.insert("expected",current["expected"]);
+                corrected.removeAt(i);break;
+            }
+            QTest::newRow(qPrintable(row["id"].toString()))<<row;
+        }
+        QVERIFY2(corrected.isEmpty(),"Every correction must identify a baseline case");
     }
-    void exactApprovedSourceObservations() {
+    void baselineObservationsAndCurrentCorrections() {
         QFETCH(QJsonObject,row);const auto input=geometry(row["input"].toObject());const auto before=json(input);
         const auto output=row["operation"].toString()=="wrap"?wrapSplitGeometry(input):normalizeSplitClippedGeometry(input);
         QVERIFY2(output.succeeded(),output.detail.c_str());QVERIFY(output.inputUnchanged);QCOMPARE(json(input),before);
@@ -56,6 +79,12 @@ private slots:
         if(expected.isNull()||expected.toObject()["coordinates"].toArray().isEmpty()){
             QCOMPARE(output.status,GeometryOperationStatus::Empty);QVERIFY(output.geometry.polygons.empty());
         }else{QCOMPARE(output.status,GeometryOperationStatus::Completed);QCOMPARE(json(output.geometry),expected.toObject());}
+        if(row.contains("baselineExpected")){
+            const auto baseline=geometry(row["baselineExpected"].toObject());
+            QVERIFY(!hasCanonicalSphericalWinding(baseline));
+            QVERIFY(hasCanonicalSphericalWinding(output.geometry));
+            QCOMPARE(planarArea(output.geometry),planarArea(baseline));
+        }
     }
     void wrappedDatelineHasExactStripCoordinates() {
         const auto output=wrapSplitGeometry(crossing());QVERIFY2(output.succeeded(),output.detail.c_str());
@@ -65,7 +94,7 @@ private slots:
     }
     void clippedPlanarEdgesAreSubdividedWithoutRounding() {
         const auto output=normalizeSplitClippedGeometry(wide());QVERIFY2(output.succeeded(),output.detail.c_str());
-        const auto expected=QJsonDocument::fromJson(R"({"type":"Polygon","coordinates":[[[170,0],[170,10],[0,10],[-170,10],[-170,0],[0,0],[170,0]]]})").object();
+        const auto expected=QJsonDocument::fromJson(R"({"type":"Polygon","coordinates":[[[-170,0],[-170,10],[0,10],[170,10],[170,0],[0,0],[-170,0]]]})").object();
         QCOMPARE(json(output.geometry),expected);QVERIFY(output.inputUnchanged);
         const auto wrapped=wrapSplitGeometry(output.geometry);QVERIFY(wrapped.succeeded());QCOMPARE(json(wrapped.geometry),expected);
     }
