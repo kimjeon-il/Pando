@@ -10,7 +10,7 @@
     "preview": "canonical-topology-simplified",
     "previewSourceScale": "derived",
     "simplificationQuantile": 0.16,
-    "coordinateCount": 105884,
+    "coordinateCount": 105390,
     "meshAlgorithmRevision": 4
   },
   "defaultClassification": {
@@ -474,26 +474,26 @@
   },
   "assets": {
     "previewCountries": {
-      "url": "world/objects/countries-preview-sha256-079587b1e4154d6d7cebaf843841a8852bcb888bcb43633c418301d7946c93a5.geojson.gz",
+      "url": "world/objects/countries-preview-sha256-4a607622d4bc26870276b134c533de10af89018b34494b32773ea2a49e9cd166.geojson.gz",
       "encoding": "gzip",
-      "compressedBytes": 917509,
-      "decodedBytes": 2438942,
-      "sha256": "079587b1e4154d6d7cebaf843841a8852bcb888bcb43633c418301d7946c93a5"
+      "compressedBytes": 913515,
+      "decodedBytes": 2427766,
+      "sha256": "4a607622d4bc26870276b134c533de10af89018b34494b32773ea2a49e9cd166"
     },
     "previewMesh": {
-      "url": "world/objects/world-mesh-preview-sha256-64881cfbf1b42b125b8ff23524a59497f52d76ca2bef77afc6381d74a3b21129.bin.gz",
+      "url": "world/objects/world-mesh-preview-sha256-fc00477f2cd4ff25920cbf90d65ea715a4ad41a21b3ba5d5bbc825c169cd841e.bin.gz",
       "encoding": "gzip",
-      "compressedBytes": 1734076,
-      "decodedBytes": 3764504,
-      "sha256": "64881cfbf1b42b125b8ff23524a59497f52d76ca2bef77afc6381d74a3b21129",
+      "compressedBytes": 1725040,
+      "decodedBytes": 3744412,
+      "sha256": "fc00477f2cd4ff25920cbf90d65ea715a4ad41a21b3ba5d5bbc825c169cd841e",
       "header": [
         1129137969,
         2,
         258,
-        125463,
-        421656,
-        203478,
-        105884,
+        124814,
+        419244,
+        202490,
+        105390,
         4,
         516,
         516,

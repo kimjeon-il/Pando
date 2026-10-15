@@ -6,7 +6,7 @@
   "algorithmSourceSha256": "ab8912ce2e683e1c933137f4787afa80ab9d718afd4b2f3f545fdc4a34949f10",
   "maxEdgeDegrees": 0.499,
   "inputHashes": {
-    "assets/data/historical-world/generated/v1/world-project.json.gz": "407dc470779fd4f53219cfa77002253ea7a3c10e4d75b12133108f69c65bfe99",
+    "assets/data/historical-world/generated/v1/world-project.json.gz": "9b32768028fe90a5aea82d1ba6b08a9446e7d91895e7590f9e7af6b09911985e",
     "assets/data/territorial-entities/generated/current-world.geojson": "6d29c349478cb2a7899573544ba580da70bd902c12ee86a4a93662ca6e94ad72",
     "assets/data/territorial-entities/generated/v2/state-ABW.json.gz": "a427e103fb240c1ec95b44216defbd79ab97e1a0c9ba260b4600dd4385acc831",
     "assets/data/territorial-entities/generated/v2/state-AFG.json.gz": "daf94898d403323e51259b3e4a7a3b75c43ee5ab8c70fc0a88c2860a004925f7",
