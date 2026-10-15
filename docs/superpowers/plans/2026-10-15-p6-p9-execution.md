@@ -86,3 +86,9 @@ Constraints: no main integration/deployment without a new instruction; no other 
 - Remote Windows baseline/candidate Qt measurement binaries were built successfully in 38812500369, using identical measurement overlays. Local production fixture preparation hit the QtTest 300-second limit; native distributions remain unavailable.
 - The separate full-RUS edit/Worker/autosave group hit an asynchronous test setup race after successful warmups and one pair. The helper now awaits actual drawing-mode readiness; unfinished samples are retained and excluded from acceptance.
 - Android 16/Edge on the connected Galaxy S22+ reached editable, but no completed touch flow was recorded before the user disconnected it. Android touch remains unverified. P9 is still unchecked; no main integration/deployment.
+
+### Bounded measurement outcome at f90ccf21
+
+- Full-RUS edit/Worker/autosave completed the first five pairs and four additional pairs before the 30-minute overall deadline interrupted the last autosave. The first five pairs show lower Worker RTT/compute and autosave medians, unchanged/lower LongTask medians, and uncertain edit-frame p95. Overall status remains unverified; retain raw evidence and do not repeat this group.
+- One 30-second verbose fixture diagnostic reached the preview future's `Pinned world preview unavailable: Unknown exception` error; the constructor/event loop are responsive. All nine world assets match manifest size/hash and compressed inputs fit existing decode limits. The underlying decoder/loader failure is not identified; no Qt frame/startup/memory distributions are claimed.
+- Stop expanding checks. Remaining P9 gates are explicit: unresolved web frame acceptance, native preview failure before paired measurement, and disconnected Android touch proof. Completed functional/build/asset evidence is retained, and P9 remains unchecked.
