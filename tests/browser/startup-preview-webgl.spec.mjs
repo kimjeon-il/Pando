@@ -74,7 +74,7 @@ for (const renderer of ['webgl2', 'canvas']) {
       await canonicalGate;
       if (!page.isClosed()) await route.continue();
     });
-    await context.route('**/terrain/v0.12.6/**/*.webp*', async route => {
+    await context.route('**/terrain-preview/v0.13.3-p1/**/*.webp*', async route => {
       const tile = new URL(route.request().url()).pathname.match(/\/(\d+)\/(\d+)-(\d+)\.webp$/);
       if (tile) {
         started.push(Number(tile[1]));

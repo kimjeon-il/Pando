@@ -6,6 +6,7 @@
 #include <QQmlContext>
 #include <QQuickWindow>
 #include <QQuickStyle>
+#include <QSignalSpy>
 #include <QTemporaryDir>
 #include <QTest>
 #include <QFile>
@@ -13,12 +14,63 @@
 #include <QSGRendererInterface>
 #include <QJsonDocument>
 #include <QScopeGuard>
+#include <QNetworkProxy>
+#include <QStandardPaths>
+#include <QUuid>
 
 // Actual pinned DEM + application controller/QML/QSG path. These are device
 // diagnostics; full corpus pixel parity and performance acceptance are separate.
 class TerrainControllerDisplayTests final : public QObject {
     Q_OBJECT
 private slots:
+    void bundledPreviewSurvivesDemFailure() {
+        QCOMPARE(qEnvironmentVariable("QT_QPA_PLATFORM"),QString("windows"));
+        const auto previousProxy=QNetworkProxy::applicationProxy();
+        const auto previousName=QCoreApplication::applicationName();
+        const auto previousDemRoot=qgetenv("PANDOEDITOR_TERRAIN_DEM_DATA_ROOT");
+        const auto previousWorldRoot=qgetenv("PANDOEDITOR_WORLD_DATA_ROOT");
+        const auto restore=qScopeGuard([&] {
+            QNetworkProxy::setApplicationProxy(previousProxy);QCoreApplication::setApplicationName(previousName);
+            qputenv("PANDOEDITOR_TERRAIN_DEM_DATA_ROOT",previousDemRoot);qputenv("PANDOEDITOR_WORLD_DATA_ROOT",previousWorldRoot);
+        });
+        // A refused local proxy deterministically exercises real native download
+        // failure; the test does not depend on the public service being down.
+        QNetworkProxy::setApplicationProxy(QNetworkProxy(QNetworkProxy::HttpProxy,"127.0.0.1",1));
+        QCoreApplication::setApplicationName("terrain-preview-test-"+QUuid::createUuid().toString(QUuid::Id128));
+        QStandardPaths::setTestModeEnabled(true);qunsetenv("PANDOEDITOR_TERRAIN_DEM_DATA_ROOT");qunsetenv("PANDOEDITOR_WORLD_DATA_ROOT");
+        QTemporaryDir settings;QVERIFY(settings.isValid());
+        EditorControllerConfig config;config.bootstrapWorld=true;config.worldDataRoot=QStringLiteral(PANDOEDITOR_WORLD_ASSET_DIR);
+        config.appearancePath=settings.filePath("appearance.json");
+        EditorController editor(config);QQmlApplicationEngine engine;QStringList warnings;
+        connect(&engine,&QQmlEngine::warnings,this,[&](const auto& rows){for(const auto& row:rows)warnings<<row.toString();});
+        engine.rootContext()->setContextProperty("editor",&editor);engine.load(QUrl("qrc:/common/Main.qml"));
+        QVERIFY2(!engine.rootObjects().isEmpty(),qPrintable(warnings.join('\n')));
+        auto* window=qobject_cast<QQuickWindow*>(engine.rootObjects().front());QVERIFY(window);
+        window->resize(1100,760);window->show();QVERIFY(QTest::qWaitForWindowExposed(window));
+        QTRY_COMPARE_WITH_TIMEOUT(editor.worldStatus(),QString("canonical"),30000);
+        const auto displayed=[&]{const auto status=editor.terrainDataStatus();return status.value("displayReceiptAccepted").toBool()&&status.value("displayedDraws").toULongLong()>0;};
+        QTRY_VERIFY_WITH_TIMEOUT(displayed(),15000);
+        QCOMPARE(editor.terrainDataStatus().value("version").toString(),QString("0.13.3-p1"));
+        QCOMPARE(editor.terrainDataStatus().value("representation").toString(),QString("raster"));
+        QTRY_VERIFY_WITH_TIMEOUT(!editor.terrainDataStatus().value("error").toString().isEmpty(),15000);
+        const auto document=editor.documentBytes();const auto dirty=editor.dirty(),undo=editor.canUndo(),redo=editor.canRedo();
+        const auto capture=qEnvironmentVariable("PANDOEDITOR_UI_CAPTURE_DIR");QVERIFY(!capture.isEmpty());QVERIFY(QDir().mkpath(capture));
+        QSignalSpy swaps(window,&QQuickWindow::frameSwapped);
+        auto before=swaps.count();QVERIFY(editor.setTerrainMode("color"));QTRY_VERIFY_WITH_TIMEOUT(swaps.count()>before&&displayed(),10000);
+        const auto color=window->grabWindow();QVERIFY(!color.isNull());QVERIFY(color.save(capture+"/preview-color.png"));
+        before=swaps.count();QVERIFY(editor.setTerrainMode("gray"));QTRY_VERIFY_WITH_TIMEOUT(swaps.count()>before&&displayed(),10000);
+        const auto gray=window->grabWindow();QVERIFY(!gray.isNull());QVERIFY(gray.save(capture+"/preview-gray.png"));
+        QVERIFY(color!=gray);
+        QVERIFY(editor.setProjectionMode("flat"));QTRY_VERIFY_WITH_TIMEOUT(displayed(),10000);
+        const auto view=editor.mapViewState();QVERIFY(editor.publishMapView({{"scale",view.value("scale").toDouble()*8}}));
+        QTRY_VERIFY_WITH_TIMEOUT(displayed(),10000);QCOMPARE(editor.terrainDataStatus().value("targetLevel").toInt(),1);
+        QVERIFY(editor.setProjectionMode("globe"));QTRY_VERIFY_WITH_TIMEOUT(displayed(),10000);
+        QVERIFY(window->grabWindow().save(capture+"/preview-globe.png"));
+        QCOMPARE(editor.documentBytes(),document);QCOMPARE(editor.dirty(),dirty);QCOMPARE(editor.canUndo(),undo);QCOMPARE(editor.canRedo(),redo);
+        QVERIFY2(warnings.isEmpty(),qPrintable(warnings.join('\n')));
+        qInfo().noquote()<<"TERRAIN_PREVIEW_DISPLAY"<<QJsonDocument::fromVariant(editor.terrainDataStatus()).toJson(QJsonDocument::Compact);
+        window->setProperty("allowClose",true);window->close();
+    }
     void actualDemTransitionsRetainDisplayAndRejectObsoleteWork() {
         QCOMPARE(qEnvironmentVariable("QT_QPA_PLATFORM"),QString("windows"));
         QTemporaryDir settings;QVERIFY(settings.isValid());

@@ -1,0 +1,112 @@
+import { expect, test } from '@playwright/test';
+import { existsSync } from 'node:fs';
+import { resolve } from 'node:path';
+
+const sourceCache = resolve('.terrain-preview-cache/source');
+const demManifest = resolve('native/assets/world/terrain/v0.13.3/manifest.json');
+const demOrigin = 'https://kimjeon-il.github.io/world-map-terrain-v0.13.0';
+test.use({ viewport: { width: 960, height: 720 }, launchOptions: {
+  args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu-sandbox'],
+} });
+
+async function terrainStyle(page, style) {
+  // This suite exercises renderer transitions through the canonical style input.
+  // Keep menu layout outside the terrain source and color transition checks.
+  const input = page.locator('#terrain' + (style === 'physical' ? 'Physical' : 'Political') + 'Radio');
+  await input.evaluate(element => element.click());
+  await expect(input).toBeChecked();
+}
+
+test('WebGL DEM failure uses the new preview through color, gray and view changes', async ({ page, context }, testInfo) => {
+  const errors = [], oldRequests = [];
+  page.on('pageerror', error => errors.push(error.message));
+  context.on('request', request => { if (request.url().includes('/terrain/v0.12.6/')) oldRequests.push(request.url()); });
+  await context.route(`${demOrigin}/terrain/**`, route => route.fulfill({ status: 503, body: 'fixed DEM failure' }));
+  await page.goto('/?renderer=webgl2&debug=1', { waitUntil: 'domcontentloaded' });
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainDatasetVersion), { timeout: 30000 }).toBe('0.13.3-p1');
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainTilesLoaded || 0)).toBeGreaterThan(0);
+  await terrainStyle(page, 'physical');
+  await page.screenshot({ path: testInfo.outputPath('webgl-preview-color.png') });
+  await terrainStyle(page, 'political');
+  await page.evaluate(() => {
+    const host = window.__PANDOLAB_MAP_HOST__, view = host.getViewState();
+    host.setViewState({ projection: 'flat', view: { ...view, flatZoom: 8, flatCenter: [180, 30] } });
+    host.requestRepaint('preview-dateline');
+  });
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainTargetLevel)).toBe(1);
+  await page.screenshot({ path: testInfo.outputPath('webgl-preview-dateline-gray.png') });
+  expect(oldRequests).toEqual([]);expect(errors).toEqual([]);
+});
+
+test('Canvas Worker keeps preview while DEM is delayed and replaces it with detailed DEM', async ({ page, context }, testInfo) => {
+  test.skip(!existsSync(resolve(sourceCache, 'terrain/v0.13.3/tint.webp')), 'Run the pinned preview generator with --rebuild-check to prepare DEM test inputs');
+  const errors = [];
+  await page.addInitScript(() => {
+    window.__terrainFrames = [];
+    const NativeWorker = window.Worker;
+    window.Worker = class extends NativeWorker {
+      constructor(...args) { super(...args); this.addEventListener('message', ({ data }) => {
+        if (data.type === 'frame') window.__terrainFrames.push({ stats: data.terrainStats, revision: data.revision, style: data.styleRevision, complete: data.terrainComplete });
+      }); }
+    };
+  });
+  page.on('pageerror', error => errors.push(error.message));
+  let releaseDem;
+  const gate = new Promise(resolveGate => { releaseDem = resolveGate; });
+  await context.route(`${demOrigin}/terrain/**`, async route => {
+    const pathname = new URL(route.request().url()).pathname;
+    if (pathname.endsWith('/manifest.json')) {
+      await gate;
+      if (!page.isClosed()) await route.fulfill({ path: demManifest, contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' } });
+      return;
+    }
+    const file = resolve(sourceCache, pathname.slice(pathname.indexOf('/terrain/') + 1));
+    if (!existsSync(file)) { await route.fulfill({ status: 503, body: 'fixed uncached detail failure' }); return; }
+    await route.fulfill({ path: file, contentType: 'image/webp', headers: { 'Access-Control-Allow-Origin': '*' } });
+  });
+  try {
+    await page.goto('/?renderer=canvas&debug=1', { waitUntil: 'domcontentloaded' });
+    await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.renderer)).toBe('canvas-worker');
+    await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainSource), { timeout: 30000 }).toBe('dem-preview');
+    await terrainStyle(page, 'physical');
+    await page.screenshot({ path: testInfo.outputPath('canvas-dem-delayed-preview.png') });
+    releaseDem();
+    await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 60000 });
+    await page.locator('#flatBtn').evaluate(button => button.click());
+    await expect.poll(() => page.evaluate(() => window.__PANDOLAB_VIEW_DEBUG__.snapshot().projection)).toBe('flat');
+    await page.evaluate(() => {
+      const map = document.getElementById('map'), rect = map.getBoundingClientRect();
+      const zoom = window.__PANDOLAB_VIEW_DEBUG__.snapshot().zoom;
+      map.dispatchEvent(new window.WheelEvent('wheel', { bubbles: true, cancelable: true,
+        clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2, deltaY: -Math.log(2 / zoom) / 0.0013 }));
+    });
+    await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainDetailTileCount || 0), { timeout: 30000 }).toBeGreaterThan(0);
+    const metrics = await page.evaluate(() => window.__PANDOLAB_GPU_METRICS__);
+    expect(metrics.terrainDatasetVersion).toBe('0.13.3');
+    expect(metrics.terrainDemCacheBytes).toBeLessThanOrEqual(96 * 1024 * 1024);
+    await terrainStyle(page, 'physical');
+    await page.screenshot({ path: testInfo.outputPath('canvas-dem-detail-color.png') });
+    await terrainStyle(page, 'political');
+    await page.screenshot({ path: testInfo.outputPath('canvas-dem-detail-gray.png') });
+    expect(errors).toEqual([]);
+  } catch (error) {
+    if (!page.isClosed()) {
+      const diagnostics = await page.evaluate(() => ({ metrics: window.__PANDOLAB_GPU_METRICS__, frames: window.__terrainFrames.slice(-5) })).catch(() => null);
+      console.log(JSON.stringify(diagnostics));
+    }
+    throw error;
+  } finally { releaseDem(); }
+});
+
+test('Canvas without OffscreenCanvas displays the bundled preview', async ({ page, context }, testInfo) => {
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.addInitScript(() => { window.OffscreenCanvas = undefined; });
+  await context.route(`${demOrigin}/terrain/**`, route => route.fulfill({ status: 503, body: 'fixed DEM failure' }));
+  await page.goto('/?renderer=canvas&debug=1', { waitUntil: 'domcontentloaded' });
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.renderer), { timeout: 30000 }).toBe('canvas2d');
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainRenderedLevel), { timeout: 30000 }).toBe(1);
+  await terrainStyle(page, 'physical');
+  await page.screenshot({ path: testInfo.outputPath('canvas2d-preview-color.png') });
+  expect(errors).toEqual([]);
+});

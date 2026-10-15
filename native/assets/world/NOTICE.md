@@ -9,9 +9,12 @@ and updated hydro core-metadata integrity values). Other bundled world assets
 retain their original c0bd31d1 source identity. The physical inventory records
 explicit source URLs for the two updated hydro files while its unchanged assets
 continue to use the older pinned commit.
-The terrain manifest describes Natural Earth raster 3.2.0 at 1:10m; optional
-tiles and the hydro 0.13.1 shards must be installed separately with their own
-manifest hashes. The app must never substitute another dataset silently.
+The terrain fallback is now the DEM-derived preview `0.13.3-p1` pinned to
+`kimjeon-il/Pando@e07ca47faa2c586751a7bebdf5f6eba479102976`. Its manifest is a
+byte-identical copy of the Web manifest; all eight tiles are embedded directly
+from the monorepo Web files as Qt resources. The app verifies them before use.
+DEM 0.13.3 remains the primary terrain source; preview fallback never changes
+document geometry. See [the current terrain contract](../../../docs/terrain-preview.md).
 
 The exact blob and SHA-256 identities are in `manifest.json`. See the upstream
 world-map repository's Natural Earth and hydro notices for source attribution.
@@ -34,7 +37,7 @@ byte size, required policy and original upstream commit/path. No runtime file
 may be chosen from GitHub's moving main branch.
 
 The current installed world is still the **legacy mixed snapshot**:
-country preview/meshes/canonical packet and terrain from Web commit
+country preview/meshes/canonical packet from Web commit
 `c0bd31d13dc8495593d78cf51f7cc195de7c9469`;
 corrected BJN/SER anchors and hydro manifest from
 `a87f4d27fb1bc16528aa57242ecb52e28e4550b2`.

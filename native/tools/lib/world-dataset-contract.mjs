@@ -63,7 +63,9 @@ export function validateWorldDataset(manifest) {
     ensure(safeRelativePath(entry.path) && !seenPaths.has(entry.path),
       `Unsafe or duplicate asset path: ${role}`);
     seenPaths.add(entry.path);
-    ensure(SEMVER_RE.test(entry.version || '') && COMMIT_RE.test(entry.gitBlobSha || '')
+    const terrainPreviewVersion = role === 'terrain' && entry.version === '0.13.3-p1'
+      && entry.path === 'terrain-preview/v0.13.3-p1/manifest.json';
+    ensure((SEMVER_RE.test(entry.version || '') || terrainPreviewVersion) && COMMIT_RE.test(entry.gitBlobSha || '')
       && SHA_RE.test(entry.sha256 || ''), `Invalid native asset identity: ${role}`);
     ensure(Number.isSafeInteger(entry.bytes) && entry.bytes > 0 && entry.bytes < 100_000_000,
       `Invalid native asset byte length: ${role}`);

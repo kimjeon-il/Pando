@@ -109,6 +109,7 @@ export function createServiceAssembly() {
       sharedBoundaryCacheUrls: globalThis.PANDOLAB_WORLD_SHARED_BOUNDARY_CACHE_URLS || null,
       PHYSICAL_DATA_BASE_URL: dependencies.physicalConfig.PHYSICAL_DATA_BASE_URL,
       TERRAIN_RASTER_MANIFEST_URL: dependencies.physicalConfig.TERRAIN_RASTER_MANIFEST_URL,
+      TERRAIN_PRIMARY_MANIFEST_URL: dependencies.physicalConfig.TERRAIN_PRIMARY_MANIFEST_URL,
       onTerrainSourceChanged: manifest => { dependencies.projectState.state.terrainManifest = manifest; },
       createCountryFillResolver: () => {
         const resolve = createTerritorialFillResolver({ state: dependencies.projectState.state,

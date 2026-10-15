@@ -66,14 +66,14 @@ void PhysicalDataStoreTests::pinnedTerrainMetadataSeedsAndRejectsAlteredBytes() 
     QFile inventoryFile(QStringLiteral(PHYSICAL_INVENTORY));QVERIFY(inventoryFile.open(QIODevice::ReadOnly));
     const auto inventory=parsePhysicalInventory(inventoryFile.readAll());QVERIFY(inventory.valid());
     const auto found=std::find_if(inventory.assets.begin(),inventory.assets.end(),[](const auto& asset) {
-        return asset.path=="terrain/v0.12.6/manifest.json";
+        return asset.path=="terrain-preview/v0.13.3-p1/manifest.json";
     });
     QVERIFY(found!=inventory.assets.end());
     QFile manifest(QDir(QFileInfo(QStringLiteral(PHYSICAL_INVENTORY)).absolutePath()).filePath(found->path));
     QVERIFY(manifest.open(QIODevice::ReadOnly));const auto bytes=manifest.readAll();
-    // Independent immutable c0bd31d Git blob identity, also pinned by WorldDataset.
-    QCOMPARE(bytes.size(),qsizetype(2024));
-    QCOMPARE(hash(bytes),QString("093ae0f088622e2867cad5f318749c47e28776a870e6467d00c31ef810d8690f"));
+    // The Web preview corpus and native world role pin the same immutable bytes.
+    QCOMPARE(bytes.size(),qsizetype(2273));
+    QCOMPARE(hash(bytes),QString("05e3a657287151c29c338caaec9c5d7cd22d4144d7e2db8ecad536742fe6fee8"));
     QTemporaryDir root;QVERIFY(root.isValid());PhysicalDataStore store(root.path());
     QVERIFY(store.installVerified(*found,bytes));
     QVERIFY(!store.resolveExisting(*found).isEmpty());
@@ -157,8 +157,8 @@ void PhysicalDataStoreTests::pinnedInventoryAndViewportSelectionAreLazy() {
     QFile inventoryFile(QStringLiteral(PHYSICAL_INVENTORY));QVERIFY(inventoryFile.open(QIODevice::ReadOnly));
     const auto inventory=parsePhysicalInventory(inventoryFile.readAll());QVERIFY2(inventory.valid(),qPrintable(inventory.error));
     QCOMPARE(inventory.dataset,QStringLiteral("world"));QCOMPARE(inventory.version,QStringLiteral("c0bd31d1"));
-    QCOMPARE(inventory.assets.size(),337);
-    QVERIFY(std::any_of(inventory.assets.cbegin(),inventory.assets.cend(),[](const auto& asset){return asset.path=="terrain/v0.12.6/4/21-10.webp";}));
+    QCOMPARE(inventory.assets.size(),11);
+    QVERIFY(std::any_of(inventory.assets.cbegin(),inventory.assets.cend(),[](const auto& asset){return asset.path=="terrain-preview/v0.13.3-p1/1/2-1.webp";}));
     QVERIFY(std::none_of(inventory.assets.cbegin(),inventory.assets.cend(),[](const auto& asset){return asset.path.startsWith("hydro/v0.13.0/")||asset.path.startsWith("hydro/v0.13.1/");}));
     const auto hydroManifest=std::find_if(inventory.assets.cbegin(),inventory.assets.cend(),[](const auto& asset){
         return asset.path=="hydro/v0.13.2/manifest.json";
@@ -175,12 +175,12 @@ void PhysicalDataStoreTests::pinnedInventoryAndViewportSelectionAreLazy() {
     QCOMPARE(hydroManifest->url.toString(),upstream+hydroManifest->path);
     QCOMPARE(hydroBinary->url.toString(),upstream+hydroBinary->path);
 
-    const QByteArray manifest=R"({"version":"0.12.6","crs":"EPSG:4326","tileFormat":"lossless WebP RGBA","gutter":1,"levels":[{"id":0,"width":1350,"height":675,"columns":2,"rows":1,"tileSize":1024},{"id":1,"width":2700,"height":1350,"columns":3,"rows":2,"tileSize":1024},{"id":2,"width":5400,"height":2700,"columns":6,"rows":3,"tileSize":1024},{"id":3,"width":10800,"height":5400,"columns":11,"rows":6,"tileSize":1024},{"id":4,"width":21600,"height":10800,"columns":22,"rows":11,"tileSize":1024}]})";
+    const QByteArray manifest=R"({"version":"0.13.3-p1","representation":"raster-rgba-v1","crs":"EPSG:4326","tileFormat":"lossless WebP RGBA","gutter":1,"levels":[{"id":0,"width":1350,"height":675,"columns":2,"rows":1,"tileSize":1024},{"id":1,"width":2700,"height":1350,"columns":3,"rows":2,"tileSize":1024}]})";
     QStringList resolved;TerrainTileProvider provider(manifest,QString(),[&](const QString& path){resolved.push_back(path);return path;});
     QVERIFY2(provider.available(),qPrintable(provider.error()));
     MapViewState view;view.viewportWidth=800;view.viewportHeight=600;view.scale=150;view.translateX=400;view.translateY=300;
-    const auto tiles=provider.tilesForView(view);QVERIFY(!tiles.empty());QVERIFY(resolved.size()<334);
-    for(const auto& path:resolved)QVERIFY(path.startsWith("terrain/v0.12.6/"));
+    const auto tiles=provider.tilesForView(view);QVERIFY(!tiles.empty());QVERIFY(resolved.size()<8);
+    for(const auto& path:resolved)QVERIFY(path.startsWith("terrain-preview/v0.13.3-p1/"));
 }
 
 QTEST_GUILESS_MAIN(PhysicalDataStoreTests)

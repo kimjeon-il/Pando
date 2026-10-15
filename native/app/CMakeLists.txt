@@ -152,6 +152,12 @@ qt_add_resources(pandoeditor_editor terrain_dem_metadata
     FILES "${PROJECT_SOURCE_DIR}/assets/world/terrain/v0.13.3/manifest.json"
           "${PROJECT_SOURCE_DIR}/assets/world/physical-inventory-terrain-dem-c3c18d1.json"
           "${PROJECT_SOURCE_DIR}/assets/world/terrain-dem-provenance-c3c18d1.json")
+file(GLOB PANDO_TERRAIN_PREVIEW_TILES CONFIGURE_DEPENDS
+    "${PROJECT_SOURCE_DIR}/../assets/data/terrain-preview/v0.13.3-p1/[0-1]/*.webp")
+list(LENGTH PANDO_TERRAIN_PREVIEW_TILES PANDO_TERRAIN_PREVIEW_TILE_COUNT)
+if(NOT PANDO_TERRAIN_PREVIEW_TILE_COUNT EQUAL 8)
+    message(FATAL_ERROR "The pinned terrain preview must contain exactly eight tiles")
+endif()
 qt_add_resources(pandoeditor_editor place_runtime PREFIX "/place" BASE "${PROJECT_SOURCE_DIR}/assets/place"
     FILES "${PROJECT_SOURCE_DIR}/assets/place/manifest.json"
           "${PROJECT_SOURCE_DIR}/assets/place/places-v1.bin")
@@ -242,6 +248,8 @@ qt_add_resources(pandoeditor sample PREFIX "/assets" BASE "${PROJECT_SOURCE_DIR}
 qt_add_resources(pandoeditor world_data BIG_RESOURCES PREFIX "/world" BASE "${PROJECT_SOURCE_DIR}/assets/world"
     FILES ${PANDO_WORLD_RESOURCE_FILES}
         "${PROJECT_SOURCE_DIR}/assets/world/physical-inventory-c0bd31d1.json")
+qt_add_resources(pandoeditor_editor terrain_preview_tiles BIG_RESOURCES PREFIX "/world"
+    BASE "${PROJECT_SOURCE_DIR}/../assets/data" FILES ${PANDO_TERRAIN_PREVIEW_TILES})
 
 file(GLOB_RECURSE DEFAULT_FLAG_FILES CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/assets/defaults/flags/*")
 qt_add_resources(pandoeditor default_flags PREFIX "/defaults/flags" BASE "${PROJECT_SOURCE_DIR}/assets/defaults/flags" FILES ${DEFAULT_FLAG_FILES})
@@ -488,13 +496,14 @@ if(BUILD_TESTING)
     target_include_directories(terrain_dem_provider_tests PRIVATE ../renderer)
     target_link_libraries(terrain_dem_provider_tests PRIVATE Pandoeditor::MapEngine Qt6::Gui)
     add_test(NAME terrain_dem_provider_tests COMMAND terrain_dem_provider_tests
-        "${PROJECT_SOURCE_DIR}/assets/world/terrain/v0.13.3/manifest.json")
+        "${PROJECT_SOURCE_DIR}/assets/world/terrain/v0.13.3/manifest.json"
+        "${PROJECT_SOURCE_DIR}/../assets/data/terrain-preview/v0.13.3-p1/manifest.json")
     add_executable(terrain_lod_demand_tests ../tests/terrain_lod_demand_tests.cpp ../renderer/terrainprovider.cpp)
     target_include_directories(terrain_lod_demand_tests PRIVATE ../renderer)
     target_link_libraries(terrain_lod_demand_tests PRIVATE Pandoeditor::MapEngine Qt6::Gui)
     add_test(NAME terrain_lod_demand_tests COMMAND terrain_lod_demand_tests
         "${PROJECT_SOURCE_DIR}/assets/world/terrain/v0.13.3/manifest.json"
-        "${PROJECT_SOURCE_DIR}/assets/world/terrain/v0.12.6/manifest.json")
+        "${PROJECT_SOURCE_DIR}/../assets/data/terrain-preview/v0.13.3-p1/manifest.json")
     add_executable(terrain_display_state_tests ../tests/terrain_display_state_tests.cpp)
     add_executable(terrain_grid_mesh_tests ../tests/terrain_grid_mesh_tests.cpp)
     add_test(NAME terrain_grid_mesh_tests COMMAND terrain_grid_mesh_tests)
@@ -506,7 +515,8 @@ if(BUILD_TESTING)
     target_include_directories(terrain_render_protection_tests PRIVATE ../renderer)
     target_link_libraries(terrain_render_protection_tests PRIVATE Pandoeditor::MapEngine Qt6::Gui)
     add_test(NAME terrain_render_protection_tests COMMAND terrain_render_protection_tests
-        "${PROJECT_SOURCE_DIR}/assets/world/terrain/v0.12.6/manifest.json")
+        "${PROJECT_SOURCE_DIR}/../assets/data/terrain-preview/v0.13.3-p1/manifest.json"
+        "${PROJECT_SOURCE_DIR}/assets/world/terrain/v0.13.3/manifest.json")
     # Standalone latest-Web catalog preparation; editor/UI adoption is P8.
     find_package(ZLIB REQUIRED)
     add_executable(territorial_library_catalog_tests ../tests/territorial_library_catalog_tests.cpp
@@ -895,7 +905,7 @@ if(BUILD_TESTING)
     qt_add_resources(river_selection_controller_tests physical_metadata PREFIX "/world" BASE "${PROJECT_SOURCE_DIR}/assets/world"
         FILES "${PROJECT_SOURCE_DIR}/assets/world/physical-inventory-c0bd31d1.json"
               "${PROJECT_SOURCE_DIR}/assets/world/hydro/v0.13.2/manifest.json"
-              "${PROJECT_SOURCE_DIR}/assets/world/terrain/v0.12.6/manifest.json")
+              "${PROJECT_SOURCE_DIR}/assets/world/terrain-preview/v0.13.3-p1/manifest.json")
     add_test(NAME river_selection_controller_tests COMMAND river_selection_controller_tests -o -,txt)
     set_tests_properties(river_selection_controller_tests PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
 endif()
