@@ -176,7 +176,6 @@ export function buildCountrySharedBoundarySegments(features = [], { preparedStor
           && other.segmentIndex === ref.segmentIndex)) previous.refs.push(ref);
       } else shared.set(key, segment);
     }
-  }
   return [...shared.values()];
 }
 
