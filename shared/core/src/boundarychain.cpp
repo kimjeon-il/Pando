@@ -61,7 +61,8 @@ std::vector<BoundaryChain> connectBoundaryChains(const std::vector<BoundaryEdge>
         entry->second.push_back(edge);
     };
     for(const auto& [a,b]:source) {
-        const auto start=nodeKey(a),end=nodeKey(b),index=edges.size();
+        const auto start=nodeKey(a),end=nodeKey(b);
+        const auto index=edges.size();
         edges.push_back({a,b,start,end});
         append(start,index);append(end,index);
     }
