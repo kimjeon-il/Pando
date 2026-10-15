@@ -1,7 +1,7 @@
 {
   "schema": "pandoeditor-core-wasm",
   "abiVersion": 1,
-  "sourceSha256": "80daf2c2b8b491eecd22b8954583408b7d3b3dff1e641c82a57f88f8a8aa39ae",
+  "sourceSha256": "57895a607c3bdc87b539b45ded045d8682ac7b36a00104feaf5e00854d2adda5",
   "compiler": {
     "name": "emscripten",
     "version": "4.0.20"
@@ -13,7 +13,7 @@
     },
     {
       "path": "shared/core/CMakeLists.txt",
-      "sha256": "6fe20cb8e4dc51ba99e904a55b710a2ef379c7a7f0f9e62a679fe86552a1b1de"
+      "sha256": "dc0945632cc97b19e0102a81047e21b04433b0fe49e7b8d8b681dbddda36f189"
     },
     {
       "path": "shared/core/include/pandoeditor/boundarychain.h",
@@ -37,7 +37,7 @@
     },
     {
       "path": "shared/core/include/pandoeditor/boundarysplit.h",
-      "sha256": "ace7b7e438729d749b8a60ea926d9b2f1eb529ee379306c204a902969fdca6d9"
+      "sha256": "506383b9f4ed5998822ae0c7eaec84882b4d1c1da0e5e8f3786ee4dd166d9e99"
     },
     {
       "path": "shared/core/include/pandoeditor/commands.h",
@@ -138,6 +138,10 @@
     {
       "path": "shared/core/include/pandoeditor/polygonclipping.h",
       "sha256": "c901fd80b5c8e67a3e6b43b117a2aa60058fcc5bc624428c18ac5eea989f3adb"
+    },
+    {
+      "path": "shared/core/include/pandoeditor/polygonmesh.h",
+      "sha256": "4a06e0b5ae72dafee79c5416f6cce01e9c06deaa755f02596e353c9b1808fa3e"
     },
     {
       "path": "shared/core/include/pandoeditor/polygonwrapping.h",
@@ -265,7 +269,7 @@
     },
     {
       "path": "shared/core/src/boundarysplit.cpp",
-      "sha256": "0f5221ebddebb24737d3ebabc77b5acd63cf317286021b7ba59af41d2d9f3575"
+      "sha256": "028bbbba7f924fb18aa6991a6392fb4669038d919928cd48fa9101aa153bc14c"
     },
     {
       "path": "shared/core/src/commandbatch.cpp",
@@ -281,7 +285,7 @@
     },
     {
       "path": "shared/core/src/countrycontact.cpp",
-      "sha256": "adb11d6fe69d08ce99a8727eb5ee0c0701a9722d81065a0666985ff9eaedad2f"
+      "sha256": "30d31476a2874943d4780f1e4ca6234a18f2456f36772d9fc00cacd1363a0847"
     },
     {
       "path": "shared/core/src/cutgeometry.cpp",
@@ -366,6 +370,10 @@
     {
       "path": "shared/core/src/polygonclipping.cpp",
       "sha256": "d55dee6406c730bbce58b15694ae27e1ca5e8dc3978f07498561dbd1a41ec850"
+    },
+    {
+      "path": "shared/core/src/polygonmesh.cpp",
+      "sha256": "a8b70721f78b82f14bb7ad5519202cf6346890945e44f0bc5ae4dad9cda83e0b"
     },
     {
       "path": "shared/core/src/polygonwrapping.cpp",
@@ -473,7 +481,7 @@
     },
     {
       "path": "shared/tests/CMakeLists.txt",
-      "sha256": "c250c1a3b7608a2e5a0cc2e22bf7dd6892bf062b08f8475cb50fc40f16838ab8"
+      "sha256": "f06cedeb713ab9015744102f320c683a6cda761626843dea25160d7174fbd523"
     },
     {
       "path": "shared/tests/boundary-chain-tests.cpp",
@@ -497,11 +505,11 @@
     },
     {
       "path": "shared/tests/boundary-split-tests.cpp",
-      "sha256": "3446eb2e632978df166d2f8e82c0ad5200e5d4e20f6b109908b5a2edb6d05bfb"
+      "sha256": "5fed06bcf628c51ba0e0b2e06d010d41da25a1613e88295db6975758c44aab4b"
     },
     {
       "path": "shared/tests/country-contact-tests.cpp",
-      "sha256": "2eec79d2c662a57a10f114ba5c41b0abd9a791a33ef19d3f9e99157c413cafaf"
+      "sha256": "843428283c097cb0a8c68f20562629649016611a4a69a8a5a3c583a3c0ace4cb"
     },
     {
       "path": "shared/tests/cut-geometry-probe.cpp",
@@ -518,6 +526,10 @@
     {
       "path": "shared/tests/polygon-clipping-probe.cpp",
       "sha256": "c860a9929e4d82e5f5fa59ac0900c6fd980a72a9e66ddcdf3811411a88869a09"
+    },
+    {
+      "path": "shared/tests/polygon-mesh-tests.cpp",
+      "sha256": "1027459c14839f5da4bab3d22ecaa377cd6297e6900170bc71dead21797238dc"
     },
     {
       "path": "shared/tests/project-codec-tests.cpp",
@@ -560,16 +572,24 @@
       "sha256": "41bab1e4dcc6a405a34e0c73ae4540c24e93ab1e24dc00f631c84adf0786e0f9"
     },
     {
+      "path": "shared/third_party/earcut/earcut.hpp",
+      "sha256": "3b838bc3f643d34ced850b6d53b19e2d9abdf6c2c067425b02868d131379b3cc"
+    },
+    {
       "path": "shared/wasm/CMakeLists.txt",
-      "sha256": "8e39f31ea3294f0330332f2a328697f28bf13af7454d43aecaf2c6cf8239ece5"
+      "sha256": "ff83dd8e9c6cfd7f1d0007b43bfa39993f0fe32f59c4d636a4a7583e8a92c679"
     },
     {
       "path": "shared/wasm/boundary-bindings.cpp",
-      "sha256": "61df609a16ab39a18ab850faf471b674b9578919f8b77d00546143f40ab64556"
+      "sha256": "2da0bfadccb7862b8a63a4971a554c7ce780bc5397a9d24708a2568ce4006fc5"
     },
     {
       "path": "shared/wasm/cut-bindings.cpp",
       "sha256": "84d1a2852b791e159b41851a3ee65b749acbec5076c17ef52407f587cc5ad258"
+    },
+    {
+      "path": "shared/wasm/mesh-bindings.cpp",
+      "sha256": "7f22844de0d10d2afa47d98f61313b9d87bcd533913ff5175eb4aad27859a06e"
     },
     {
       "path": "shared/wasm/polygon-bindings.cpp",
@@ -595,11 +615,11 @@
   "assets": {
     "js": {
       "file": "pandoeditor-core.js",
-      "sha256": "1eaa424d6692f7d23f3f2f61c2ec6e47885bafdb0f42e3040ec665944aa3589e"
+      "sha256": "ddae754b3dbdb1c771cbe7ba92b949f3b2f29d7e00fdf9b5e74f00e8c14ab4c8"
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "f14cd76e51fbbd6b2e587d6958ce8ae2f9f4f16f84343a3b982c0cfa70d0a8cc"
+      "sha256": "a0f9f5a3ce3d045bc92834064c5a20f51cc6a08a3dc315b2737859e06365e3ea"
     }
   }
 }
