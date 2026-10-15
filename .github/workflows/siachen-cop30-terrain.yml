@@ -1,9 +1,6 @@
+# Explicit GIS/source-data reproduction; lightweight source checks remain in gis-python-p4.yml.
 name: Siachen Saltoro GLO30 terrain comparison
 on:
-  push:
-    branches: [work/gis]
-    paths:
-      - scripts/research/siachen/compare_cop30_sia_bilafond.py
   workflow_dispatch:
 permissions:
   contents: write

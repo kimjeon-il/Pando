@@ -4,7 +4,7 @@ import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import test from 'node:test';
-import { classifyP3, previewSlug } from '../../scripts/p3-plan-remote.mjs';
+import { classifyP3, scheduleP3, previewSlug } from '../../scripts/p3-plan-remote.mjs';
 import { stagePreview } from '../../scripts/p3-stage-preview.mjs';
 import { createRuntimePerformanceMetrics } from '../../assets/js/modules/runtime-performance-metrics.js';
 
@@ -102,4 +102,33 @@ test('P3 startup telemetry preserves late interactive, editable and ready milest
   globalObject.__PANDOLAB_STARTUP_METRICS__.readyMs = 4811.5;
   assert.equal(metrics.snapshot().startup.readyMs, 4811.5);
   metrics.dispose();
+});
+
+
+test('native documentation changes do not rebuild the app',()=>{
+  const result=classifyP3(['native/docs/build.md','shared/README.md'],full);
+  for(const key of ['preview','browser','qt'])assert.equal(result[key],false,key);
+});
+
+test('source push waits for artifacts; result SHA dispatch verifies once',()=>{
+  const affected=classifyP3(['shared/core/src/polygonclipping.cpp'],full);
+  const artifactState={statuses:{wasm:{needed:true}},selectedFamilies:['world-mesh'],deferredFamilies:[],blockedFamilies:[]};
+  const pending=scheduleP3(affected,{event:'push',artifactState});
+  for(const key of ['preview','browser','qt'])assert.equal(pending[key],false,key);
+  assert.equal(pending.deferredToArtifacts,true);
+  const dispatched=scheduleP3(affected,{event:'workflow_dispatch',artifactState});
+  for(const key of ['preview','browser','qt'])assert.equal(dispatched[key],true,key);
+  artifactState.statuses.wasm.needed=false;artifactState.selectedFamilies=[];
+  assert.equal(scheduleP3(affected,{event:'push',artifactState}).qt,true);
+});
+
+test('hydro changes reuse the Qt build and unrelated app changes omit hydro tests',()=>{
+  const hydro=classifyP3(['native/app/hydroassetreader.cpp'],full);
+  assert.equal(hydro.hydro,true);assert.equal(hydro.qt,true);
+  assert.equal(classifyP3(['native/app/referenceimagelibrary.cpp'],full).hydro,false);
+  for(const file of ['assets/css/a.css','native/app/editorcontroller.cpp','shared/core/src/geometry.cpp','assets/data/hydro/current/manifest.json','docs/build.md','assets/wasm/pandoeditor-core.wasm']) {
+    const result=classifyP3([file],full);
+    assert.equal(typeof result.qt,'boolean');
+    assert.equal(typeof result.contracts,'boolean');
+  }
 });

@@ -65,3 +65,9 @@ test('native build receipt edits trigger only native C++ contract work', () => {
   assert.equal(p.qt,false);
   assert.equal(p.python,false);
 });
+
+
+test('native and shared documentation do not start compilation', () => {
+  const result=classifyPaths(['native/docs/build.md','shared/README.md'],all);
+  for(const key of ['web','qt','core','native','wasm','gisTools'])assert.equal(result[key],false,key);
+});
