@@ -10,13 +10,17 @@ on:
       - 'shared/core/src/boundarycontact.cpp'
       - 'shared/core/include/pandoeditor/boundaryoverlap.h'
       - 'shared/core/src/boundaryoverlap.cpp'
+      - 'shared/core/include/pandoeditor/boundaryrefinement.h'
+      - 'shared/core/src/boundaryrefinement.cpp'
       - 'shared/core/CMakeLists.txt'
       - 'shared/tests/boundary-chain-tests.cpp'
       - 'shared/tests/boundary-interior-tests.cpp'
       - 'shared/tests/boundary-overlap-tests.cpp'
+      - 'shared/tests/boundary-refinement-tests.cpp'
       - 'shared/tests/CMakeLists.txt'
       - 'assets/wasm/pandoeditor-core.manifest.json'
       - 'assets/js/modules/boundary-lines.js'
+      - 'assets/js/modules/geographic-boundary.js'
       - 'assets/js/modules/boundary-topology.js'
       - 'assets/js/modules/country-shared-boundary-packet.js'
       - 'tools/build-country-shared-boundaries.mjs'
@@ -38,8 +42,8 @@ jobs:
       - name: Build and check canonical native boundary-chain kernel
         run: |
           cmake -S shared -B build-native/p5-border -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
-          cmake --build build-native/p5-border --target boundary_chain_tests boundary_interior_tests boundary_overlap_tests --parallel 2
-          ctest --test-dir build-native/p5-border -R '^(boundary_chain_tests|boundary_interior_tests|boundary_overlap_tests)$' --output-on-failure
+          cmake --build build-native/p5-border --target boundary_chain_tests boundary_interior_tests boundary_overlap_tests boundary_refinement_tests --parallel 2
+          ctest --test-dir build-native/p5-border -R '^(boundary_chain_tests|boundary_interior_tests|boundary_overlap_tests|boundary_refinement_tests)$' --output-on-failure
   generator:
     runs-on: ubuntu-24.04
     timeout-minutes: 25
