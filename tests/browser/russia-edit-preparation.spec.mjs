@@ -24,6 +24,11 @@ test('Russia nested edits retain parent candidates, locks and history after auto
     await page.mouse.up();
     await expect(page.locator('#modeDraftDoneBtn')).toBeEnabled({ timeout: 30000 });
     await page.locator('#modeDraftDoneBtn').click();
+    // Draw completion enters area review; the user must explicitly confirm the
+    // current drawn area before advancing to the final create/review stage.
+    await expect(page.locator('#modeDraftDoneBtn')).toHaveAttribute('aria-label', '현재 영역 확정', { timeout: 60000 });
+    await expect(page.locator('#modeDraftDoneBtn')).toBeEnabled({ timeout: 60000 });
+    await page.locator('#modeDraftDoneBtn').click();
     await expect(page.locator('#modePrimaryBtn')).toBeEnabled({ timeout: 60000 });
     await page.locator('#modePrimaryBtn').click();
     await expect(page.locator('#modePrimaryBtn')).toContainText('생성');
@@ -157,6 +162,11 @@ for (const renderer of ['webgl2', 'webgl1', 'canvas']) {
     for (const point of [...points.slice(1), points[0]]) await page.mouse.move(map.x + point[0], map.y + point[1], { steps: 5 });
     await page.mouse.up();
     await expect(page.locator('#modeDraftDoneBtn')).toBeEnabled({ timeout: 30000 });
+    await page.locator('#modeDraftDoneBtn').click();
+    // Draw completion enters area review; the user must explicitly confirm the
+    // current drawn area before advancing to the final create/review stage.
+    await expect(page.locator('#modeDraftDoneBtn')).toHaveAttribute('aria-label', '현재 영역 확정', { timeout: 60000 });
+    await expect(page.locator('#modeDraftDoneBtn')).toBeEnabled({ timeout: 60000 });
     await page.locator('#modeDraftDoneBtn').click();
     await expect(page.locator('#modePrimaryBtn')).toBeEnabled({ timeout: 60000 });
     await page.locator('#modePrimaryBtn').click();
