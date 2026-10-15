@@ -19,7 +19,9 @@ test('country contact topology keeps ordered source refs for split and reversed 
   const result=core.countryContactPairsBatch([a,b],[[0,1]])[0];
   assert.equal(result[1].length,1);
   const shared=result[1][0];
-  assert.deepEqual(shared.slice(0,2),[[1,0],[1,1]]);
+  // The source-insertion order encounters B's reverse vertical edge first;
+  // keeping that orientation preserves dash and source-ref order of the Web topology.
+  assert.deepEqual(shared.slice(0,2),[[1,1],[1,0]]);
   assert.equal(shared[2].length,2);
   assert.deepEqual(shared[2].map(ref=>ref.slice(0,2)),[[0,1],[1,3]]);
   const reverse=core.countryContactPairsBatch([a,b],[[1,0]])[0];
