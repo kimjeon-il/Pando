@@ -98,3 +98,10 @@ test('one Worker mesh serves both fill and outline roles and survives style chan
   assert.equal(submitted.length, 1);
   builder.releasePrepared();
 });
+
+test('triangulation rejection identifies the failing scene geometry', async () => {
+  const store = createPreparedPolygonMeshStore({ engine });
+  await assert.rejects(store.prepare({ cacheKey: 'edited-object:revision-7',
+    geometry: { type: 'Polygon', coordinates: [[[0,0],[1,0],[2,0],[0,0]]] } }, context),
+  error => error.code === 'PL-MESH-TRIANGULATION' && error.message.includes('edited-object:revision-7'));
+});
