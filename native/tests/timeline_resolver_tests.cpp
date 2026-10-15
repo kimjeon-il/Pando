@@ -30,6 +30,10 @@ int main() {
     const auto changed=replaceGeometryBindingAtMonth(records,"A","1914-06",{"shape",3});
     const auto reparented=replaceParentRelationAtMonth(records,"B","1914-07","","explicit");
     const auto ended=truncateTimelineEntityAtMonth(records,"A","1914-07");
+    const partial=editTimelineRecordAtMonth(records,"parentRelations","B","1914-07",
+        TimelineEditPatch{std::nullopt,std::nullopt,std::string("explicit")});
+    const noop=editTimelineRecordAtMonth(records,"parentRelations","B","1914-07",TimelineEditPatch{});
+
     const auto initial=initialTimelineMonth(records,"2026-10");
     Project project;
     const auto emptyProjectWorld=project.resolveWorld("1914-07");
@@ -49,6 +53,11 @@ int main() {
         &&records.geometryBindings.front().geometryRef.version==1&&initial=="1914-07"
         &&reparented.parentRelations.size()==3&&reparented.parentRelations.at(1).validity.to=="1914-06"
         &&reparented.parentRelations.at(2).parentId.empty()
+        &&partial.changed&&partial.records.parentRelations.size()==3
+        &&partial.records.parentRelations.at(1).validity.to=="1914-06"
+        &&partial.records.parentRelations.at(2).coverageMode=="explicit"
+        &&partial.records.parentRelations.at(2).parentId=="A"
+        &&!noop.changed&&noop.records.parentRelations.size()==2
         &&ended.lifetimes.front().validity.to=="1914-06"
         &&ended.geometryBindings.size()==2
         &&ended.geometryBindings.front().validity.to=="1914-06"
