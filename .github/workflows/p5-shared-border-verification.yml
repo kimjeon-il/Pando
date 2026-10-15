@@ -6,11 +6,16 @@ on:
       - '.github/workflows/p5-shared-border-verification.yml'
       - 'shared/core/include/pandoeditor/boundarychain.h'
       - 'shared/core/src/boundarychain.cpp'
+      - 'shared/core/include/pandoeditor/boundarycontact.h'
+      - 'shared/core/src/boundarycontact.cpp'
       - 'shared/core/CMakeLists.txt'
       - 'shared/tests/boundary-chain-tests.cpp'
+      - 'shared/tests/boundary-interior-tests.cpp'
       - 'shared/tests/CMakeLists.txt'
       - 'assets/wasm/pandoeditor-core.manifest.json'
       - 'assets/js/modules/boundary-lines.js'
+      - 'assets/js/modules/boundary-topology.js'
+      - 'assets/js/modules/country-shared-boundary-packet.js'
       - 'tools/build-country-shared-boundaries.mjs'
       - 'tests/unit/boundary-lines.test.mjs'
       - 'tests/unit/country-shared-boundary-generator.test.mjs'
@@ -30,8 +35,34 @@ jobs:
       - name: Build and check canonical native boundary-chain kernel
         run: |
           cmake -S shared -B build-native/p5-border -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
-          cmake --build build-native/p5-border --target boundary_chain_tests --parallel 2
-          ctest --test-dir build-native/p5-border -R '^boundary_chain_tests$' --output-on-failure
+          cmake --build build-native/p5-border --target boundary_chain_tests boundary_interior_tests --parallel 2
+          ctest --test-dir build-native/p5-border -R '^(boundary_chain_tests|boundary_interior_tests)
+  generator:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+      - name: Check the exact C++ source fingerprint before generated-cache tests
+        id: core
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync, appendFileSync } from 'node:fs';
+          import { sharedSourceManifest } from './tools/package-shared-core-assets.mjs';
+          const manifest=JSON.parse(readFileSync('assets/wasm/pandoeditor-core.manifest.json','utf8'));
+          const ready=sharedSourceManifest(process.cwd()).sourceSha256===manifest.sourceSha256;
+          appendFileSync(process.env.GITHUB_OUTPUT,'ready='+ready+'\n');
+          if (!ready) console.log('P2 source-matched WASM publication must precede this generator verification.');
+          NODE
+      - name: Run Web chain and immutable shared-cache generator regression
+        if: steps.core.outputs.ready == 'true'
+        run: |
+          node --test tests/unit/boundary-lines.test.mjs tests/unit/country-shared-boundary-generator.test.mjs
+ --output-on-failure
   generator:
     runs-on: ubuntu-24.04
     timeout-minutes: 25
