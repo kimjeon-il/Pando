@@ -4,6 +4,8 @@ import '../../assets/js/vendor/earcut.min.js';
 import '../../assets/js/workers/gpu-mesh-core.js';
 import { buildPolygonGeometryPacket } from '../../assets/js/modules/render-scene.js';
 
+import { simplifyRenderGeometry } from '../../assets/js/modules/render-lod.js';
+
 const polygon = rings => ({ type: 'Polygon', coordinates: rings });
 const square = (left, bottom, right, top) => [[left, bottom], [right, bottom], [right, top], [left, top], [left, bottom]];
 const angle = (a, b) => {
@@ -52,4 +54,19 @@ test('holes remain empty after subdivision and failed triangulation is visible',
     assert.ok(!(centroid[0] > 1 && centroid[0] < 3 && centroid[1] > 1 && centroid[1] < 3));
   }
   assert.throws(() => buildPolygonGeometryPacket(geometry, { triangulate: () => [] }), /triangulation|삼각분할/i);
+});
+
+test('display LOD preserves a hole inside a narrow shell protrusion', () => {
+  const geometry = polygon([
+    [[0,0],[4,0],[4,4],[0,4],[0,2.1],[-.05,2],[0,1.9],[0,0]],
+    [[-.03,2],[-.015,2.02],[-.015,1.98],[-.03,2]],
+  ]);
+  for (const type of ['Polygon', 'MultiPolygon']) {
+    const source = type === 'Polygon' ? geometry : { type, coordinates: [geometry.coordinates] };
+    for (const projection of ['flat', 'globe']) for (const lod of ['coarse', 'medium']) {
+      const display = simplifyRenderGeometry(source, { lod, policy: 'independent', projection });
+      assert.equal(display, source, 'ring topology must remain canonical');
+      assert.ok(buildPolygonGeometryPacket(display).triangleCount > 0);
+    }
+  }
 });

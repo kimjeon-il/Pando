@@ -1,11 +1,10 @@
 #include "editorcontroller.h"
+#include <pandoeditor/temporal.h>
 #include "placenamedisplay.h"
 #include <QCryptographicHash>
 #include <QDataStream>
 #include <QFontMetricsF>
 #include <QGuiApplication>
-#include <QDate>
-#include <QRegularExpression>
 #include <QFont>
 #include <QUuid>
 #include <algorithm>
@@ -76,11 +75,8 @@ void EditorController::refreshBuiltinPlaceLabels() {
     QFont secondaryFont=primaryFont;secondaryFont.setPixelSize(10);secondaryFont.setWeight(QFont::Normal);
     const QFontMetricsF primaryMetrics(primaryFont),secondaryMetrics(secondaryFont);
     const auto cursor=QString::fromStdString(project_.timelineCursor());
-    QString mapDate;
-    if(QRegularExpression(QStringLiteral("^[0-9]{4}-[0-9]{2}$")).match(cursor).hasMatch()){
-        const auto first=QDate::fromString(cursor+QStringLiteral("-01"),QStringLiteral("yyyy-MM-dd"));
-        if(first.isValid())mapDate=cursor+QStringLiteral("-")+QString::number(first.daysInMonth()).rightJustified(2,QChar('0'));
-    }
+    const auto mapDate=QString::fromStdString(
+        pandoeditor::temporalMonthEnd(project_.timelineCursor()).canonical);
     QByteArray signatureBytes;QDataStream stream(&signatureBytes,QIODevice::WriteOnly);
     const auto identity=placeRuntime_.sourceIdentity();
     stream<<quint64(identity?identity->generation:0)<<primaryFont.toString()<<secondaryFont.toString()<<quint64(records.size());

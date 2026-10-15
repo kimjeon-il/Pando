@@ -132,7 +132,9 @@
         "pandoeditor",
         "temporal_tests",
         "m72_mapprojection_lifetime_tests",
-        "interaction_style_policy_tests"
+        "interaction_style_policy_tests",
+        "m976_shared_boundary_engine_tests",
+        "native_performance_structure_tests"
       ],
       "jobs": 2
     },
@@ -144,7 +146,9 @@
         "pandoeditor",
         "temporal_tests",
         "m72_mapprojection_lifetime_tests",
-        "interaction_style_policy_tests"
+        "interaction_style_policy_tests",
+        "m976_shared_boundary_engine_tests",
+        "native_performance_structure_tests"
       ],
       "jobs": 2
     }
@@ -182,7 +186,7 @@
       },
       "filter": {
         "include": {
-          "name": "^(temporal_tests|m72_mapprojection_lifetime_tests|interaction_style_policy_tests)$"
+          "name": "^(temporal_tests|m72_mapprojection_lifetime_tests|interaction_style_policy_tests|m976_shared_boundary_engine_tests|native_performance_structure_tests)$"
         }
       }
     },
@@ -195,7 +199,7 @@
       },
       "filter": {
         "include": {
-          "name": "^(temporal_tests|m72_mapprojection_lifetime_tests|interaction_style_policy_tests)$"
+          "name": "^(temporal_tests|m72_mapprojection_lifetime_tests|interaction_style_policy_tests|m976_shared_boundary_engine_tests|native_performance_structure_tests)$"
         }
       }
     }

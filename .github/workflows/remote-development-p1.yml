@@ -13,6 +13,8 @@ on:
       - 'config/toolchain-versions.json'
       - 'scripts/p1-plan-remote-checks.mjs'
       - 'tests/unit/p1-remote-scopes.test.mjs'
+      - 'tests/unit/p4-python-isolation.test.mjs'
+      - 'tests/unit/versioning-source-schema.test.mjs'
       - 'shared/**'
       - 'native/**'
       - 'tools/**'
@@ -55,7 +57,6 @@ jobs:
       wasm: ${{ steps.scope.outputs.wasm }}
       qt: ${{ steps.scope.outputs.qt }}
       gis_tools: ${{ steps.scope.outputs.gis_tools }}
-      python: ${{ steps.scope.outputs.python }}
       ui: ${{ steps.scope.outputs.ui }}
       objects: ${{ steps.scope.outputs.objects }}
       gis: ${{ steps.scope.outputs.gis }}
@@ -73,7 +74,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
       - name: Verify the same pinned versions and selective scopes
-        run: node --test tests/unit/p1-remote-scopes.test.mjs
+        run: node --test tests/unit/p1-remote-scopes.test.mjs tests/unit/p4-python-isolation.test.mjs tests/unit/versioning-source-schema.test.mjs
       - name: Try shallow-fetching push/PR base for exact changed paths
         shell: bash
         env:
@@ -182,21 +183,6 @@ jobs:
           cmake --preset pando-gis-tools
           cmake --build --preset pando-gis-tools
           ctest --preset pando-gis-tools
-
-  python-source:
-    needs: plan
-    if: needs.plan.outputs.python == 'true'
-    runs-on: ubuntu-24.04
-    timeout-minutes: 8
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: actions/setup-python@v5
-        with:
-          python-version-file: '.python-version'
-      - name: Syntax-check research/GIS Python only (no global dependencies)
-        run: python -m compileall -q tools scripts/research tests/python
 
   wasm-compile:
     needs: plan

@@ -1,13 +1,7 @@
-import { parseTemporal } from './temporal.js';
+import { parseTemporal, shiftTemporalMonth } from './temporal.js';
 
 export function shiftTimelineMonth(value, delta) {
-  const point = parseTemporal(value, { nullable: false });
-  if (point.precision !== 'month' || !Number.isInteger(delta)) throw new TypeError('A month and integer offset are required.');
-  let year = point.year, month = point.month + delta;
-  while (month < 1) { month += 12; year = year === 1 ? -1 : year - 1; }
-  while (month > 12) { month -= 12; year = year === -1 ? 1 : year + 1; }
-  const signed = year < 0 ? '-' : year > 9999 ? '+' : '';
-  return `${signed}${String(Math.abs(year)).padStart(4, '0')}-${String(month).padStart(2, '0')}`;
+  return shiftTemporalMonth(value, delta);
 }
 
 export function timelineMonthLabel(value) {

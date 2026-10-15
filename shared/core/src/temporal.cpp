@@ -133,6 +133,36 @@ bool temporalIntervalsOverlap(const TemporalInterval& left,const TemporalInterva
        compareTemporal(*rightEnd,*leftStart,TemporalBoundary::End,TemporalBoundary::Start)<0)return false;
     return true;
 }
+std::string shiftTemporalMonth(const std::string& cursor,int offset) {
+    const auto point=parseTemporal(cursor);
+    if(point.precision!="month")throw std::invalid_argument("INVALID_DATE: month precision required");
+    // Astronomical indexing is internal only: historical calendar years never expose year zero.
+    const std::int64_t astronomicalYear=point.year>0?point.year:static_cast<std::int64_t>(point.year)+1;
+    const std::int64_t shifted=astronomicalYear*12+(*point.month-1)+static_cast<std::int64_t>(offset);
+    std::int64_t nextYear=shifted/12,monthIndex=shifted%12;
+    if(monthIndex<0){monthIndex+=12;--nextYear;}
+    const std::int64_t historicYear=nextYear>0?nextYear:nextYear-1;
+    if(historicYear==0||historicYear<-999999||historicYear>999999)
+        throw std::invalid_argument("INVALID_DATE: year out of range");
+    const auto year=static_cast<int>(historicYear);
+    std::string digits=std::to_string(std::abs(year));
+    if(digits.size()<4)digits.insert(0,4-digits.size(),'0');
+    const std::string prefix=year<0?"-":year>9999?"+":"";
+    const auto month=std::to_string(monthIndex+1);
+    return prefix+digits+"-"+(month.size()==1?"0":"")+month;
+}
+TemporalKey temporalFollowingDay(const TemporalKey& date) {
+    if(date.year==0||date.year<-999999||date.year>999999)
+        throw std::invalid_argument("INVALID_DATE: year out of range");
+    if(date.month<1||date.month>12)throw std::invalid_argument("INVALID_DATE: month");
+    const int last=monthDays(date.year,date.month);
+    if(date.day<1||date.day>last)throw std::invalid_argument("INVALID_DATE: day");
+    if(date.day<last)return {date.year,date.month,date.day+1};
+    if(date.month<12)return {date.year,date.month+1,1};
+    // +999999-12-31 transitions to an internal +1000000-01-01 event
+    // sentinel; it must never be serialized as a public TemporalValue.
+    return {date.year==-1?1:date.year+1,1,1};
+}
 std::pair<std::int64_t,std::int64_t> temporalBounds(const Validity& validity) {
     const auto interval=normalizeTemporalInterval(validity.from,validity.to);
     return {interval.start?interval.start->start:-infinity,

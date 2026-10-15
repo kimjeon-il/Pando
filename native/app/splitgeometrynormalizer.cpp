@@ -5,6 +5,7 @@
 #include <QCryptographicHash>
 #include <QFile>
 #include <QJSEngine>
+#include <QObject>
 #include <QResource>
 #include <cmath>
 #include <limits>
@@ -15,6 +16,57 @@ static void initializeSplitNormalizerResources() {
     static const bool initialized=[] {Q_INIT_RESOURCE(current_geometry);return true;}();
     (void)initialized;
 }
+// Bridges Qt's QJSEngine to the same source of truth used by WebAssembly.
+// Keep one instance per engine/worker thread and preserve the source ring.
+class NativeSphericalAreaBridge final : public QObject {
+    Q_OBJECT
+public:
+    explicit NativeSphericalAreaBridge(QJSEngine* engine) : QObject(engine), engine_(engine) {}
+    Q_INVOKABLE QJSValue sphericalRingSignedArea(const QJSValue& input) {
+        try { return QJSValue(pandoeditor::sphericalRingSignedArea(readRing(input))); }
+        catch(const std::exception& error) {
+            engine_->throwError(QJSValue::TypeError,QString::fromUtf8(error.what()));
+            return {};
+        }
+    }
+    Q_INVOKABLE QJSValue sphericalRingSignedAreas(const QJSValue& inputs) {
+        try {
+            if(!inputs.isArray()||inputs.property(QStringLiteral("length")).toUInt()>16384)
+                throw std::invalid_argument("INVALID_POLYGON_RING: batch size");
+            const auto count=inputs.property(QStringLiteral("length")).toUInt();
+            auto result=engine_->newArray(count);
+            for(uint i=0;i<count;++i)
+                result.setProperty(i,pandoeditor::sphericalRingSignedArea(readRing(inputs.property(i))));
+            return result;
+        }catch(const std::exception& error) {
+            engine_->throwError(QJSValue::TypeError,QString::fromUtf8(error.what()));
+            return {};
+        }
+    }
+private:
+    static pandoeditor::Ring readRing(const QJSValue& source) {
+        if(!source.isArray())throw std::invalid_argument("INVALID_POLYGON_RING: array required");
+        const auto count=source.property(QStringLiteral("length")).toUInt();
+        if(count<4||count>2000000)throw std::invalid_argument("INVALID_POLYGON_RING: size");
+        pandoeditor::Ring ring;
+        ring.reserve(count);
+        for(uint i=0;i<count;++i) {
+            const auto pair=source.property(i);
+            if(!pair.isArray()||pair.property(QStringLiteral("length")).toUInt()!=2
+                ||!pair.property(0).isNumber()||!pair.property(1).isNumber())
+                throw std::invalid_argument("INVALID_POLYGON_COORDINATE: numeric pair");
+            const double lon=pair.property(0).toNumber(),lat=pair.property(1).toNumber();
+            if(!std::isfinite(lon)||!std::isfinite(lat)||std::abs(lat)>90)
+                throw std::invalid_argument("INVALID_POLYGON_COORDINATE: finite geographic pair");
+            ring.push_back({lon,lat});
+        }
+        if(ring.front().x!=ring.back().x||ring.front().y!=ring.back().y)
+            throw std::invalid_argument("INVALID_POLYGON_RING: closed ring required");
+        return ring;
+    }
+    QJSEngine* engine_;
+};
+
 namespace pandoeditor {
 namespace {
 struct Cancelled {};
@@ -120,9 +172,11 @@ void loadCanonicalPolygonGeometry(QJSEngine& engine) {
     initializeSplitNormalizerResources();
     const auto source=verified(":/geometry/polygon-geometry.js",PANDO_CURRENT_GEOMETRY_NORMALIZER_SHA256);
     engine.globalObject().setProperty("globalThis",engine.globalObject());
+    engine.globalObject().setProperty("PandoLabSphericalAreaCore",
+        engine.newQObject(new NativeSphericalAreaBridge(&engine)));
     jsCheck(engine.evaluate(QString::fromUtf8(source),":/geometry/polygon-geometry.js"));
     const auto api=engine.globalObject().property("PandoLabPolygonGeometry");
-    for(const auto name:{"ensureClosedRing","hasCanonicalPolygonWinding","normalizePolygonGeometry","normalizeClippedPolygonGeometry","wrapPolygonGeometry","orientRing","ringDistinctCoordinateCount","ringSignedArea"})
+    for(const auto name:{"ensureClosedRing","hasCanonicalPolygonWinding","normalizePolygonGeometry","normalizeClippedPolygonGeometry","wrapPolygonGeometry","orientRing","ringDistinctCoordinateCount","ringSignedArea","sphericalSignedArea","sphericalSignedAreas"})
         if(!api.property(name).isCallable())throw std::runtime_error("SPLIT_NORMALIZER_INVALID_EXPORT");
 }
 SplitGeometryNormalizationResult wrapSplitGeometry(const Geometry& geometry,const GeometryCancellation& cancelled) {
@@ -135,3 +189,5 @@ SplitGeometryNormalizationResult normalizeSplitClippedGeometry(const Geometry& g
     return nativeNormalize(geometry,true,cancelled);
 }
 }
+
+#include "splitgeometrynormalizer.moc"

@@ -1,5 +1,4 @@
 import { decodePolygonMesh, encodePolygonMesh } from './polygon-mesh-codec.js';
-import { simplifyRenderGeometry } from './render-lod.js';
 
 export async function polygonGeometryDigest(geometry) {
   const bytes = new TextEncoder().encode(JSON.stringify([geometry.type, geometry.coordinates]));
@@ -16,8 +15,8 @@ export function createPreparedPolygonMeshStore({ engine, loadManifest = null, lo
     let encoded = digests.get(packets.get(item.cacheKey));
     // A cache-key mapping may survive eviction of its encoded payload.
     if (!encoded) {
-      const geometry = simplifyRenderGeometry(item.geometry, { lod: item.lod || 'high',
-        policy: item.lodPolicy || 'exact', projection: item.projection || 'flat' });
+      // Polygon rings must retain their topology at every display quality.
+      const geometry = item.geometry;
       const digest = await polygonGeometryDigest(geometry);
       context.throwIfCancelled();
       encoded = digests.get(digest);
@@ -25,7 +24,7 @@ export function createPreparedPolygonMeshStore({ engine, loadManifest = null, lo
         const manifest = loadManifest ? await (manifestPromise ||= loadManifest()) : null;
         const spec = manifest?.meshes?.[digest];
         if (spec) { encoded = await loadAsset(spec); assetHits++; }
-        else { encoded = encodePolygonMesh(engine.buildPolygonGeometryPacket(geometry)); builds++; }
+        else { encoded = encodePolygonMesh(engine.buildPolygonGeometryPacket(geometry, { ownerId: item.cacheKey })); builds++; }
         context.throwIfCancelled();
         // Admit only the current algorithm and precision contract.
         decodePolygonMesh(encoded, { algorithmVersion: engine.MESH_ALGORITHM_REVISION });

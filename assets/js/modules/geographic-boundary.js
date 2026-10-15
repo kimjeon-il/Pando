@@ -1,5 +1,13 @@
+import { sharedCalculationCore } from './temporal.js';
+
 const STROKE_EPSILON = 1e-7;
-export const MAX_BOUNDARY_EDGE_DEGREES = 0.499;
+// Same C++ threshold used by native polygon tessellation and Web display.
+export const MAX_BOUNDARY_EDGE_DEGREES = sharedCalculationCore.boundaryDefaultMaxEdgeDegrees;
+if (typeof sharedCalculationCore.boundaryRefineSegments !== 'function'
+  || MAX_BOUNDARY_EDGE_DEGREES !== 0.499) {
+  throw Object.assign(new Error('Compiled geographic boundary refinement is unavailable.'),
+    { code: 'PL-CORE-WASM-CAPABILITY' });
+}
 
 export function normalizeLongitude(value) {
   let longitude = Number(value);
@@ -122,34 +130,15 @@ export function buildRenderableStrokeFeature(value) {
 // threshold and microdegree precision as the refined country fill mesh.
 // Topology and owner classification always operate on unmodified source edges.
 export function densifyBoundarySegmentsForProjection(segments, maxEdgeDegrees = MAX_BOUNDARY_EDGE_DEGREES) {
-  const limit = Math.max(0.01, Number(maxEdgeDegrees) || MAX_BOUNDARY_EDGE_DEGREES);
-  const radians = Math.PI / 180;
-  const minimumDot = Math.cos(Math.max(0.01, limit - 0.000002) * radians);
-  const packed = point => [Math.round(point[0] * 1e6) * 1e-6, Math.round(point[1] * 1e6) * 1e-6];
-  const vector = point => {
-    const longitude = point[0] * radians, latitude = point[1] * radians;
-    const cos = Math.cos(latitude);
-    return [cos * Math.cos(longitude), cos * Math.sin(longitude), Math.sin(latitude)];
-  };
-  const result = [];
+  // The browser retains only input validation/coercion. The angular
+  // subdivision and microdegree packing are exclusively computed in C++.
+  const source = [];
   for (const [a, b] of segments || []) {
     if (!validPoint(a) || !validPoint(b)) continue;
-    const stack = [[[Number(a[0]), Number(a[1])], [Number(b[0]), Number(b[1])], 0]];
-    while (stack.length) {
-      const [left, right, depth] = stack.pop();
-      const x = vector(left), y = vector(right);
-      const dot = x[0] * y[0] + x[1] * y[1] + x[2] * y[2];
-      if (dot < minimumDot - 1e-14) {
-        if (depth >= 40) throw new Error('Display boundary refinement did not converge');
-        const mid = [(left[0] + right[0]) / 2, (left[1] + right[1]) / 2];
-        stack.push([mid, right, depth + 1], [left, mid, depth + 1]);
-        continue;
-      }
-      const first = packed(left), last = packed(right);
-      if (first[0] !== last[0] || first[1] !== last[1]) result.push([first, last]);
-    }
+    source.push([[Number(a[0]), Number(a[1])], [Number(b[0]), Number(b[1])]]);
   }
-  return result;
+  return sharedCalculationCore.boundaryRefineSegments(source,
+    Number(maxEdgeDegrees) || MAX_BOUNDARY_EDGE_DEGREES);
 }
 
 // All display consumers apply seam splitting and refinement only after

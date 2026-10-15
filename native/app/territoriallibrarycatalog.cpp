@@ -3,6 +3,7 @@
 #include "webjson.h"
 #include <pandoeditor/geometry-types.h>
 #include <pandoeditor/temporal.h>
+#include <pandoeditor/timeline-resolver.h>
 #include <QCryptographicHash>
 #include <QDir>
 #include <QFile>
@@ -67,18 +68,18 @@ QJsonObject canonicalInterval(const QJsonObject& value) {
 }
 bool existsAt(const QJsonObject& lifetime,const TemporalValue& point) {
     const auto limits=interval(lifetime);
-    // Fixed Web's coarse cursor is END of year/month, including its upper bound.
-    return (!limits.start||compareTemporal(*limits.start,point,TemporalBoundary::Start,TemporalBoundary::End)<=0)
-        &&(!limits.end||compareTemporal(*limits.end,point,TemporalBoundary::End,TemporalBoundary::End)>=0);
+    return validityContainsAtEnd({limits.validFrom,limits.validTo},point);
 }
 QJsonObject selectVersion(const QJsonObject& entity,const TemporalValue& point) {
-    if(!existsAt(entity.value("lifetime").toObject(),point))return {};
-    QJsonObject selected;
-    for(const auto& raw:entity.value("geometryVersions").toArray()) {
-        const auto version=raw.toObject();if(!existsAt(version,point))continue;
-        require(selected.isEmpty(),"PL-LIB-GEOMETRY: ambiguous date selection");selected=version;
+    const auto lifetime=interval(entity.value("lifetime").toObject());
+    const auto versions=entity.value("geometryVersions").toArray();
+    std::vector<Validity> bounds;bounds.reserve(versions.size());
+    for(const auto& raw:versions) {
+        const auto valid=interval(raw.toObject());
+        bounds.push_back({valid.validFrom,valid.validTo});
     }
-    return selected;
+    const auto selected=selectTimelineVersion({lifetime.validFrom,lifetime.validTo},bounds,point.canonical);
+    return selected?versions.at(static_cast<qsizetype>(*selected)).toObject():QJsonObject{};
 }
 void validateVersions(const QJsonArray& versions,bool indexed) {
     require(!versions.isEmpty(),"PL-LIB-GEOMETRY: missing geometry versions");
