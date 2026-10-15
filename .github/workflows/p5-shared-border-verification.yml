@@ -1,0 +1,217 @@
+name: P5 Shared border calculation and generator verification
+on:
+  push:
+    branches: [work/objects]
+    paths:
+      - '.github/workflows/p5-shared-border-verification.yml'
+      - 'shared/core/include/pandoeditor/boundarychain.h'
+      - 'shared/core/src/boundarychain.cpp'
+      - 'shared/core/include/pandoeditor/boundarypacket.h'
+      - 'shared/core/src/boundarypacket.cpp'
+      - 'shared/tests/boundary-packet-tests.cpp'
+      - 'shared/tests/p5-boundary-packet-wasm.test.mjs'
+      - 'shared/core/include/pandoeditor/boundarycontact.h'
+      - 'shared/core/src/boundarycontact.cpp'
+      - 'shared/core/include/pandoeditor/boundaryoverlap.h'
+      - 'shared/core/src/boundaryoverlap.cpp'
+      - 'shared/core/include/pandoeditor/boundaryrefinement.h'
+      - 'shared/core/src/boundaryrefinement.cpp'
+      - 'shared/core/include/pandoeditor/boundarysplit.h'
+      - 'shared/core/src/boundarysplit.cpp'
+      - 'shared/core/include/pandoeditor/countrycontact.h'
+      - 'shared/core/src/countrycontact.cpp'
+      - 'shared/core/CMakeLists.txt'
+      - 'shared/tests/boundary-chain-tests.cpp'
+      - 'shared/tests/boundary-interior-tests.cpp'
+      - 'shared/tests/boundary-overlap-tests.cpp'
+      - 'shared/tests/boundary-refinement-tests.cpp'
+      - 'shared/tests/boundary-split-tests.cpp'
+      - 'shared/tests/country-contact-tests.cpp'
+      - 'shared/tests/CMakeLists.txt'
+      - 'assets/wasm/pandoeditor-core.manifest.json'
+      - 'assets/js/modules/boundary-lines.js'
+      - 'assets/js/modules/geographic-boundary.js'
+      - 'native/engine/src/renderpacket.cpp'
+      - 'tests/unit/boundary-display-refinement.test.mjs'
+      - 'assets/js/modules/boundary-topology.js'
+      - 'assets/js/modules/country-contact-core.js'
+      - 'tests/unit/country-contact-core.test.mjs'
+      - 'tests/unit/country-contact-legacy-parity.test.mjs'
+      - 'assets/js/modules/country-shared-boundary-packet.js'
+      - 'tests/unit/p5-6-contribution-merge.test.mjs'
+      - 'tests/unit/p5-6-core-ownership.test.mjs'
+      - 'tests/unit/p5-6-performance-review.test.mjs'
+      - 'tools/p5-6-core-ownership.mjs'
+      - 'tools/p5-6-review-performance.mjs'
+      - 'tests/browser/russia-edit-preparation.spec.mjs'
+      - 'assets/js/build-meta.js'
+      - 'assets/data/prepared-polygons/generated/v2/manifest.json'
+      - 'scripts/check-version.mjs'
+      - 'tools/build-country-shared-boundaries.mjs'
+      - 'tools/benchmark-shared-border-p5.mjs'
+      - 'tests/unit/boundary-lines.test.mjs'
+      - 'tests/unit/country-shared-boundary-generator.test.mjs'
+      - 'tests/unit/boundary-topology-split.test.mjs'
+      - 'native/engine/src/sharedboundary.cpp'
+      - 'CMakePresets.json'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install bounded core C++ prerequisites
+        run: sudo apt-get update && sudo apt-get install -y ninja-build zlib1g-dev
+      - name: Build and check canonical native boundary-chain kernel
+        run: |
+          cmake -S shared -B build-native/p5-border -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+          cmake --build build-native/p5-border --target boundary_chain_tests boundary_packet_tests boundary_interior_tests boundary_overlap_tests boundary_refinement_tests boundary_split_tests country_contact_tests --parallel 2
+          ctest --test-dir build-native/p5-border -R '^(boundary_chain_tests|boundary_packet_tests|boundary_interior_tests|boundary_overlap_tests|boundary_refinement_tests|boundary_split_tests|country_contact_tests)$' --output-on-failure
+  generator:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+      - name: Verify generated Web metadata matches current prepared mesh manifest
+        run: node scripts/check-version.mjs
+      - name: Assert shared C++ ownership of migrated Web rules
+        run: |
+          node --test tests/unit/p5-6-core-ownership.test.mjs tests/unit/p5-6-contribution-merge.test.mjs tests/unit/p5-6-performance-review.test.mjs
+          node tools/p5-6-core-ownership.mjs --output build-native/p5-6-ownership.json
+      - name: Preserve ownership audit even when a later generator check fails
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p5-6-core-ownership-${{ github.sha }}
+          path: build-native/p5-6-ownership.json
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Check the exact C++ source fingerprint before generated-cache tests
+        id: core
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync, appendFileSync } from 'node:fs';
+          import { sharedSourceManifest } from './tools/package-shared-core-assets.mjs';
+          const manifest=JSON.parse(readFileSync('assets/wasm/pandoeditor-core.manifest.json','utf8'));
+          const ready=sharedSourceManifest(process.cwd()).sourceSha256===manifest.sourceSha256;
+          appendFileSync(process.env.GITHUB_OUTPUT,'ready='+ready+'\n');
+          if (!ready) console.log('P2 source-matched WASM publication must precede this generator verification.');
+          NODE
+      - name: Run Web chain and immutable shared-cache generator regression
+        if: steps.core.outputs.ready == 'true'
+        run: |
+          node --test tests/unit/boundary-lines.test.mjs tests/unit/country-shared-boundary-generator.test.mjs tests/unit/p5-6-contribution-merge.test.mjs tests/unit/country-shared-boundary-state.test.mjs tests/unit/boundary-display-refinement.test.mjs tests/unit/country-shared-boundary.test.mjs tests/unit/country-contact-core.test.mjs tests/unit/country-contact-legacy-parity.test.mjs tests/unit/boundary-topology-split.test.mjs
+
+  performance:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: kimjeon-il/Pando
+          ref: b436f85a53a5d5fde4e44ca502e08c79488bd1ce
+          path: build-native/p5-legacy
+          sparse-checkout: |
+            assets/js/modules/country-shared-boundary-packet.js
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+      - name: Verify immutable pre-C++ packet adapter
+        run: |
+          cp build-native/p5-legacy/assets/js/modules/country-shared-boundary-packet.js assets/js/modules/.p5-legacy-country-shared-boundary-packet.js
+          test "$(git hash-object assets/js/modules/.p5-legacy-country-shared-boundary-packet.js)" = be3a2ebde3820e25a6ac231565e7b406eac21f89
+      - name: Measure real-world preview, canonical, and stress packet paths
+        run: |
+          node --expose-gc --max-old-space-size=3072 tools/benchmark-shared-border-p5.mjs --output build-native/p5-performance.json --check-regressions
+      - name: Summarize comparable CPU timings and transient memory caveats
+        run: |
+          node tools/p5-6-review-performance.mjs --input build-native/p5-performance.json --output build-native/p5-6-performance-review.json
+      - name: Publish comparable elapsed times and footprint evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p5-shared-border-performance-${{ github.sha }}
+          path: |
+            build-native/p5-performance.json
+            build-native/p5-6-performance-review.json
+          if-no-files-found: warn
+          retention-days: 14
+
+  browser-russia:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+      - uses: pnpm/action-setup@v4
+      - name: Install existing browser regression dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Install headless Chromium for the large polygon edit test
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Exercise real 36,756-coordinate Russia edit and record long tasks
+        shell: bash
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: |
+          set -euo pipefail
+          mkdir -p test-results/p5-6-russia
+          pnpm exec playwright test tests/browser/russia-edit-preparation.spec.mjs \
+            --grep 'Russia detailed polygon creation.*webgl2' \
+            --workers=1 --retries=0 --output=test-results/p5-6-russia \
+            2>&1 | tee test-results/p5-6-russia.log
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readdirSync,readFileSync,writeFileSync} from 'node:fs';
+          import {join} from 'node:path';
+          const base='test-results/p5-6-russia';
+          function find(directory) {
+            for(const entry of readdirSync(directory,{withFileTypes:true})) {
+              const path=join(directory,entry.name);
+              if(entry.isDirectory()){const result=find(path);if(result)return result;}
+              else if(entry.name==='russia-edit-metrics.json')return path;
+            }
+            return '';
+          }
+          const file=find(base);assert.ok(file,'P5_6_RUSSIA_METRICS_MISSING');
+          const data=JSON.parse(readFileSync(file,'utf8'));
+          assert.equal(data.renderer,'webgl2');
+          assert.equal(data.polygons,214);
+          assert.equal(data.pairs,36756);
+          assert.ok(Number.isFinite(data.longestTaskMs)&&Number.isInteger(data.longTasks));
+          assert.ok(data.requests>0,'real map edits must submit a Worker job');
+          writeFileSync('test-results/p5-6-russia-summary.json',JSON.stringify({
+            schema:'p5-6-russia-browser-performance-v1',fixture:'live RUS',
+            ...data,clock:'Chromium PerformanceObserver longtask',acceptance:'functional pass; timing diagnostic only',
+            note:'Chromium software GPU is not an actual hardware FPS certification'
+          },null,2)+'\\n');
+          NODE
+      - name: Archive real Russia-edit performance and failure evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p5-6-russia-web-performance-${{ github.sha }}
+          path: |
+            test-results/p5-6-russia
+            test-results/p5-6-russia.log
+            test-results/p5-6-russia-summary.json
+          if-no-files-found: warn
+          retention-days: 14

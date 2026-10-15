@@ -1,0 +1,39 @@
+import assert from 'node:assert/strict';
+import { readdirSync, readFileSync } from 'node:fs';
+import test from 'node:test';
+
+const root=new URL('../../',import.meta.url);
+const file=p=>readFileSync(new URL(p,root),'utf8');
+const project=file('assets/js/modules/project-state.js');
+const domain=file('assets/js/modules/project-domain.js');
+const serializer=file('assets/js/modules/project-serializer.js');
+const version=file('assets/js/modules/version-contract.js');
+const territorial=file('assets/js/modules/territorial-units.js');
+const distribution=file('assets/js/modules/distribution-model.js');
+const gis=file('assets/js/gis-adapters.js');
+
+test('project data follows its C++-compatible schema and UUID identity policy',()=>{
+  assert.match(serializer,/schemaVersion = PROJECT_SCHEMA_VERSION/);
+  assert.match(serializer,/schemaVersion,/);
+  assert.match(domain,/commandOwner\.inspectImport\(JSON\.stringify\(project\)/);
+  assert.match(version,/export const PROJECT_SCHEMA_VERSION = 10/);
+  assert.match(project,/export \{ PROJECT_SCHEMA_VERSION \}/);
+  assert.doesNotMatch(project,/migrateProject/);
+  for(const name of ['territorialEntities','entityDelta'])assert.ok(serializer.includes(name));
+  assert.match(project,/createProjectObjectId/);
+  assert.match(project,/crypto\.randomUUID/);
+});
+test('runtime no longer embeds legacy territorial/thematic feature aliases',()=>{
+  const modulesDir=new URL('assets/js/modules/',root);
+  const sources=readdirSync(modulesDir).filter(name=>name.endsWith('.js'))
+    .map(name=>readFileSync(new URL(name,modulesDir),'utf8')).join('\n');
+  const combined=[sources,territorial,distribution].join('\n');
+  assert.doesNotMatch(combined,/migrateLegacyCountryRegions/);
+  assert.doesNotMatch(combined,/migrateThematicGenericFeatures/);
+  assert.doesNotMatch(gis,/administrative_areas/);
+});
+test('external GIS columns never reintroduce internal project aliases',()=>{
+  for(const name of ['parent_id','entity_kind'])assert.ok(gis.includes(name));
+  for(const name of ['associated_country_id','parent_territorial_unit_id','countryRegions'])
+    assert.equal(gis.includes(name),false,name);
+});

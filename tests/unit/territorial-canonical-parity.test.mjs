@@ -1,3 +1,4 @@
+import '../helpers/spherical-core.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {gunzipSync} from 'node:zlib';
