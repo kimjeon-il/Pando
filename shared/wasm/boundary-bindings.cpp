@@ -1,6 +1,7 @@
 #include <pandoeditor/boundarychain.h>
 #include <pandoeditor/boundarycontact.h>
 #include <pandoeditor/boundaryoverlap.h>
+#include <pandoeditor/boundaryrefinement.h>
 #include <emscripten/bind.h>
 #include <emscripten/val.h>
 #include <cmath>
@@ -168,9 +169,35 @@ val boundaryOverlapBatchForWeb(val input) {
     }
     std::terminate();
 }
+val boundaryRefineForWeb(val input,double maximumDegrees) {
+    try {
+        requireArray(input,"INVALID_BOUNDARY_REFINEMENT");
+        const unsigned count=input["length"].as<unsigned>();
+        if(count>1'000'000)
+            throw std::invalid_argument("INVALID_BOUNDARY_REFINEMENT: excessive source edges");
+        std::vector<BoundaryEdge> edges;edges.reserve(count);
+        for(unsigned i=0;i<count;++i)edges.push_back(overlapEdge(input[i]));
+        const auto refined=refineDisplayBoundarySegments(edges,maximumDegrees);
+        auto result=val::array();
+        unsigned index=0;
+        for(const auto& [a,b]:refined) {
+            auto piece=val::array();
+            piece.set(0,webPoint(a));piece.set(1,webPoint(b));
+            result.set(index++,piece);
+        }
+        return result;
+    }catch(const std::exception& error) {
+        auto js=val::global("Error").new_(std::string(error.what()));
+        js.set("code",std::string("PL-BOUNDARY-REFINEMENT"));
+        js.throw_();
+    }
+    std::terminate();
+}
 EMSCRIPTEN_BINDINGS(pandoeditor_boundary_chains) {
     emscripten::function("boundaryConnectChains",&boundaryConnectForWeb);
     emscripten::function("boundaryOpposingInteriors",&boundaryOpposingForWeb);
     emscripten::function("boundaryOpposingInteriorsBatch",&boundaryOpposingBatchForWeb);
     emscripten::function("boundarySubtractOverlapsBatch",&boundaryOverlapBatchForWeb);
+    emscripten::function("boundaryRefineSegments",&boundaryRefineForWeb);
+    emscripten::constant("boundaryDefaultMaxEdgeDegrees",pandoeditor::kDefaultBoundaryEdgeDegrees);
 }
