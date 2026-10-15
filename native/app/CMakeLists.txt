@@ -581,7 +581,7 @@ if(BUILD_TESTING)
     target_link_libraries(physical_data_store_tests PRIVATE pandoeditor_editor Qt6::Test Qt6::Network)
     target_compile_definitions(physical_data_store_tests PRIVATE
         PHYSICAL_INVENTORY="${PROJECT_SOURCE_DIR}/assets/world/physical-inventory-c0bd31d1.json")
-    add_test(NAME physical_data_store_tests COMMAND physical_data_store_tests -o -,txt)
+    add_test(NAME physical_data_store_tests COMMAND physical_data_store_tests -o -,txt -o "${CMAKE_BINARY_DIR}/physical_data_store_tests.txt,txt")
     add_executable(view_navigation_tests ../tests/view_navigation_tests.cpp)
     target_link_libraries(view_navigation_tests PRIVATE pandoeditor_editor Qt6::Test)
     qt_add_resources(view_navigation_tests world_metadata
@@ -668,7 +668,7 @@ if(BUILD_TESTING)
 
     add_executable(territorial_geometry_preview_tests ../tests/territorial_geometry_preview_tests.cpp)
     target_link_libraries(territorial_geometry_preview_tests PRIVATE pandoeditor_editor Qt6::Test)
-    add_test(NAME territorial_geometry_preview_tests COMMAND territorial_geometry_preview_tests -o -,txt)
+    add_test(NAME territorial_geometry_preview_tests COMMAND territorial_geometry_preview_tests -o -,txt -o "${CMAKE_BINARY_DIR}/territorial_geometry_preview_tests.txt,txt")
     set_tests_properties(territorial_geometry_preview_tests PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
     add_executable(territorial_geometry_tests ../tests/territorial_geometry_tests.cpp)
     add_executable(m4_geometry_probe ../tests/m4_geometry_probe.cpp)
@@ -676,7 +676,7 @@ if(BUILD_TESTING)
     target_link_libraries(territorial_geometry_tests PRIVATE pandoeditor_editor Qt6::Test)
     qt_add_resources(territorial_geometry_tests sample PREFIX "/assets" BASE "${PROJECT_SOURCE_DIR}/assets"
         FILES "${PROJECT_SOURCE_DIR}/assets/sample.pando.json")
-    add_test(NAME territorial_geometry_tests COMMAND territorial_geometry_tests -o -,txt)
+    add_test(NAME territorial_geometry_tests COMMAND territorial_geometry_tests -o -,txt -o "${CMAKE_BINARY_DIR}/territorial_geometry_tests.txt,txt")
     set_tests_properties(territorial_geometry_tests PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
     add_executable(retained_reference_tests ../tests/retained_reference_tests.cpp)
     target_link_libraries(retained_reference_tests PRIVATE pandoeditor_editor Qt6::Test)
@@ -723,7 +723,7 @@ if(BUILD_TESTING)
         BASE "${PROJECT_SOURCE_DIR}/assets/defaults/flags"
         FILES "${PROJECT_SOURCE_DIR}/assets/defaults/flags/country-flags.js"
               "${PROJECT_SOURCE_DIR}/assets/defaults/flags/native/gu.svg")
-    add_test(NAME timeline_editor_persistence_tests COMMAND timeline_editor_persistence_tests -o -,txt)
+    add_test(NAME timeline_editor_persistence_tests COMMAND timeline_editor_persistence_tests -o -,txt -o "${CMAKE_BINARY_DIR}/timeline_editor_persistence_tests.txt,txt")
     add_executable(editor_tests ../tests/editor_tests.cpp)
     target_link_libraries(editor_tests PRIVATE pandoeditor_editor)
     qt_add_resources(editor_tests sample PREFIX "/assets" BASE "${PROJECT_SOURCE_DIR}/assets"
@@ -849,7 +849,7 @@ if(BUILD_TESTING)
         FILES "${PROJECT_SOURCE_DIR}/assets/world/physical-inventory-c0bd31d1.json"
               "${PROJECT_SOURCE_DIR}/assets/world/hydro/v0.13.2/manifest.json"
               "${PROJECT_SOURCE_DIR}/assets/world/terrain-preview/v0.13.3-p1/manifest.json")
-    add_test(NAME river_selection_controller_tests COMMAND river_selection_controller_tests -o -,txt)
+    add_test(NAME river_selection_controller_tests COMMAND river_selection_controller_tests -o -,txt -o "${CMAKE_BINARY_DIR}/river_selection_controller_tests.txt,txt")
     set_tests_properties(river_selection_controller_tests PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
 endif()
 
@@ -899,7 +899,7 @@ if(BUILD_TESTING)
     add_executable(split_selection_controller_tests ../tests/split_selection_controller_tests.cpp)
     target_link_libraries(split_selection_controller_tests PRIVATE pandoeditor_editor Qt6::Test)
     qt_add_resources(split_selection_controller_tests sample PREFIX "/assets" BASE "${PROJECT_SOURCE_DIR}/assets" FILES "${PROJECT_SOURCE_DIR}/assets/sample.pando.json")
-    add_test(NAME split_selection_controller_tests COMMAND split_selection_controller_tests -o -,txt)
+    add_test(NAME split_selection_controller_tests COMMAND split_selection_controller_tests -o -,txt -o "${CMAKE_BINARY_DIR}/split_selection_controller_tests.txt,txt")
     set_tests_properties(split_selection_controller_tests PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
 endif()
 

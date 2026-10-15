@@ -64,7 +64,11 @@ Set retry_failed=true only when the preceding acceptance evidence is retained: t
 
 For a narrower Qt follow-up, use scope=qt and native_tests with comma-separated CMake target/CTest names. Only the app and those test targets are built; the CTest name filter selects the same list. Retain the earlier evidence for omitted tests. Independent native commands, hydro checks and screenshot collection continue after a CTest failure when the app build succeeded, while the failed check still fails the job.
 
+Use native_tests_windows to override that list when the two OSes have different completed evidence. An explicit list owns the entire native test selection, including hydro; automatic hydro expansion is omitted. native_app=false builds only those tests and omits app binaries/screenshots, and is valid only with an explicit test list and retained evidence for unchanged app sources. A zero-test CTest run is an error.
+
 For the remaining browser acceptance only, use scope=browser with retry_failed=true. This preserves the user flows and paired browser performance, while Qt, calculation timing and completed contracts are omitted. Startup/screenshot checks run first and require the enhanced state during acceptance; an explicit startup error stops that group immediately instead of making each editing case wait for the same failed startup.
+
+browser_tests optionally narrows the Playwright name expression to unresolved cases and reuses the earlier startup/screenshot evidence. The acceptance flows disable full DOM tracing; model/geometry, conservation and Undo assertions remain, and errors/screenshots are retained. The paired timing case also runs without tracing.
 
 The P9 browser performance case checks out baseline 8e22982616e3c9ba43eeb84baec17cd886267cfa. It runs one app page at a time with one warmup per side and five alternating rounds; uncertain metrics receive at most one additional five-round group. HTTP cache is disabled identically. It records startup paint/edit readiness, RUS focus frame p95 and main-page JS heap, preserving distributions and unverified scopes. Physical GPU, Qt performance, Android touch, large-edit frame comparison and total Worker/WASM/GPU memory remain distinct requirements.
 
