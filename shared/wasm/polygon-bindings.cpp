@@ -1,4 +1,6 @@
 #include <pandoeditor/polygonclipping.h>
+#include <pandoeditor/polygonwrapping.h>
+#include <pandoeditor/projectcodec.h>
 #include <emscripten/bind.h>
 #include <emscripten/val.h>
 #include <cmath>
@@ -47,4 +49,12 @@ val polygonOperation(const std::string& name,val inputs,bool precisionRetry){
     std::terminate();
 }
 }
-EMSCRIPTEN_BINDINGS(pando_polygon_calculation){emscripten::function("polygonOperation",&polygonOperation);}
+std::string wrapGeometry(const std::string& input){
+    const auto geometry=projectcodec::readWebGeometry(codecjson::parse(input));
+    const auto result=wrapPolygonGeometry(geometry);
+    return result.polygons.empty()?"null":projectcodec::webGeometryValue(result).encode();
+}
+EMSCRIPTEN_BINDINGS(pando_polygon_calculation){
+    emscripten::function("polygonOperation",&polygonOperation);
+    emscripten::function("wrapPolygonGeometry",&wrapGeometry);
+}

@@ -20,6 +20,7 @@ const geometryCoreReady = import(versionedWorkerAssetUrl('../modules/core-wasm-l
   }))
   .then(core => { self.PandoLabSphericalCore = core; });
 
+let clearCutPreparation = null;
 const calculationsReady = geometryCoreReady.then(() => Promise.all([
   'coordinate-bounds.js', 'polygon-clipping-calculation.js',
   'map-edit-preparation-operations.js', 'map-edit-library-calculation.js',
@@ -28,7 +29,11 @@ const calculationsReady = geometryCoreReady.then(() => Promise.all([
   'edit-display-preparation.js', 'map-edit-query-calculations.js',
   'boundary-topology.js', 'map-edit-country-commands.js',
 ].map(name => import(versionedWorkerAssetUrl('../modules/' + name)))))
-  .then(modules => Object.assign({}, ...modules));
+  .then(modules => {
+    const api = Object.assign({}, ...modules);
+    clearCutPreparation = api.clearPreparedCutSources;
+    return api;
+  });
 // Report initialization failures through the existing execute error envelope.
 calculationsReady.catch(() => {});
 
@@ -112,7 +117,8 @@ function handleEvent(operation, message = {}, context) {
     if (operation === 'edit-sync') { syncEditSources(message); return; }
     if (operation === 'map-edit.rebase') {
       projectEpoch += 1;
-      displayService = null; cutSources.clear(); coastTopologyCache = null; coastResultCache = new WeakMap();
+      displayService = null; cutSources.clear();
+      if (clearCutPreparation) clearCutPreparation(); coastTopologyCache = null; coastResultCache = new WeakMap();
       editSources.clear(); validatedPreviews.clear();
       syncEditSources(message.editSources || { patches: [], sourceRevision: 0 });
       boundaryService = null;
@@ -197,10 +203,9 @@ async function execute(payload, context) {
       if (message.payload.sourceKey && !source) throw new Error('스냅 원본을 다시 준비하세요.');
       result = await calculateSnapCandidates(message.payload, [...editSources.values()].filter(row => ['country', 'territorial', 'generic'].includes(row.kind)).map(row => row.feature), source, requestCheckpoint(message, epoch, true));
     } else if (message.operation === 'territorial-cut') {
-      if (!self.d3) importScripts(versionedWorkerAssetUrl('../vendor/d3.min.js'));
       const source = rememberCutSource(message.payload);
       if (!source) throw new Error('분할 원본을 다시 준비하세요.');
-      result = prepareCutInWorker({ ...message.payload, source }, self.PandoLabPolygonGeometry, self.d3, self.polygonClipping);
+      result = prepareCutInWorker({ ...message.payload, source });
     } else if (message.operation === 'territorial-display') {
       displayService ||= createEditDisplayPreparation();
       const service = displayService;

@@ -1,4 +1,5 @@
 #include <pandoeditor/cutgeometry.h>
+#include <pandoeditor/planargraph.h>
 #include <pandoeditor/polygonclipping.h>
 #include <pandoeditor/projectcodec.h>
 #include <pandoeditor/sphericalpolygon.h>
@@ -100,7 +101,7 @@ struct Projection {
         if(ry!=0||rz!=0){const double cp=std::cos(lat),x=std::cos(lon)*cp,y=std::sin(lon)*cp,z=std::sin(lat),k=z*std::cos(ry)+x*std::sin(ry);
             lon=std::atan2(y*std::cos(rz)-k*std::sin(rz),x*std::cos(ry)-z*std::sin(ry));lat=std::asin(std::clamp(k*std::cos(rz)+y*std::sin(rz),-1.,1.));}
         const auto projected=raw(lon,lat),offset=raw(center.x*rad,center.y*rad);
-        return {projected.x*scale+translate.x-offset.x*scale,translate.y+offset.y*scale-projected.y*scale};
+        return {projected.x*scale+(translate.x-offset.x*scale),translate.y+offset.y*scale-projected.y*scale};
     }
     bool visible(Point p)const{
         const auto projected=project(p);if(!std::isfinite(projected.x)||!std::isfinite(projected.y))return false;
@@ -115,20 +116,10 @@ struct Ref {std::size_t ring,index;double t;};
 struct BoundaryEvent {double position;Point point;std::vector<Ref> refs;};
 struct GraphEdge {std::size_t a,b;bool cut;};
 struct Graph {Ring nodes;std::vector<GraphEdge> edges;std::size_t cutEdges=0;};
-struct Face {Ring ring;std::vector<std::size_t> edgeIds;};
-std::vector<Face> faces(const Graph& graph){
-    struct Half {std::size_t edge,from,to,twin;bool visited=false;};
-    std::vector<Half> half;std::map<std::size_t,std::vector<std::size_t>> outgoing;
-    for(std::size_t i=0;i<graph.edges.size();++i){const auto e=graph.edges[i];const auto n=half.size();half.push_back({i,e.a,e.b,n+1});half.push_back({i,e.b,e.a,n});outgoing[e.a].push_back(n);outgoing[e.b].push_back(n+1);}
-    for(auto& [id,ids]:outgoing){const auto p=graph.nodes[id];std::stable_sort(ids.begin(),ids.end(),[&](auto a,auto b){const auto x=graph.nodes[half[a].to],y=graph.nodes[half[b].to];return std::atan2(x.y-p.y,x.x-p.x)<std::atan2(y.y-p.y,y.x-p.x);});}
-    std::vector<Face> result;
-    for(std::size_t start=0;start<half.size();++start){if(half[start].visited)continue;Face f;std::size_t current=start;
-        while(!half[current].visited){auto& h=half[current];h.visited=true;f.ring.push_back(graph.nodes[h.from]);if(std::find(f.edgeIds.begin(),f.edgeIds.end(),h.edge)==f.edgeIds.end())f.edgeIds.push_back(h.edge);
-            const auto& choices=outgoing.at(h.to);const auto index=std::size_t(std::find(choices.begin(),choices.end(),h.twin)-choices.begin());current=choices[(index+choices.size()-1)%choices.size()];}
-        if(current!=start||f.ring.size()<3)continue;f.ring.push_back(f.ring[0]);double area=0;const auto origin=f.ring[0];
-        for(std::size_t i=1;i<f.ring.size();++i)area+=cross(delta(f.ring[i-1],origin),delta(f.ring[i],origin));
-        if(area>0)result.push_back(std::move(f));
-    }return result;
+std::vector<PlanarGraphFace> faces(const Graph& graph){
+    std::vector<PlanarGraphEdge> edges;edges.reserve(graph.edges.size());
+    for(std::size_t i=0;i<graph.edges.size();++i)edges.push_back({i,graph.edges[i].a,graph.edges[i].b});
+    return tracePlanarGraphFaces(graph.nodes,edges);
 }
 Point atPosition(const Ring& line,double position){const double max=double(line.size()-1),bounded=std::clamp(position,0.,max);if(bounded>=max)return line.back();const auto i=std::size_t(std::floor(bounded));return interpolate(line[i],line[i+1],bounded-double(i));}
 Graph graphFor(const Polygon& component,const Ring& line,const std::vector<BoundaryEvent>& events){
