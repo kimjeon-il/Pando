@@ -50,6 +50,10 @@ on:
         type: boolean
         required: false
         default: false
+      native_tests:
+        description: Optional comma-separated Qt CTest/target names for a focused native run
+        type: string
+        required: false
       scope:
         description: Run changed scopes only (auto), or select a diagnostic
         type: choice
@@ -288,6 +292,7 @@ jobs:
     env:
       PANDO_P3_QT_PRESET: ${{ matrix.preset }}
       PANDO_P9_RETRY: ${{ inputs.retry_failed }}
+      PANDO_NATIVE_TESTS: ${{ inputs.native_tests }}
       QT_QPA_PLATFORM: offscreen
       QT_QUICK_BACKEND: software
     steps:
@@ -350,16 +355,29 @@ jobs:
           cmake --preset $env:PANDO_P3_QT_PRESET "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
           exit $LASTEXITCODE
       - name: Build Linux app and selected Qt/native test targets
+        id: build_linux
         if: runner.os == 'Linux'
         shell: bash
         run: |
           set -o pipefail
-          cmake --build --preset "$PANDO_P3_QT_PRESET" 2>&1 | tee p3-qt-build.log
+          selection=()
+          if [ -n "$PANDO_NATIVE_TESTS" ]; then
+            [[ "$PANDO_NATIVE_TESTS" =~ ^[a-zA-Z0-9_]+(,[a-zA-Z0-9_]+)*$ ]]
+            IFS=, read -ra selected <<< "$PANDO_NATIVE_TESTS"
+            selection=(--target pandoeditor "${selected[@]}")
+          fi
+          cmake --build --preset "$PANDO_P3_QT_PRESET" "${selection[@]}" 2>&1 | tee p3-qt-build.log
       - name: Build Windows app and selected Qt/native test targets
+        id: build_windows
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          cmake --build --preset $env:PANDO_P3_QT_PRESET 2>&1 | Tee-Object p3-qt-build.log
+          $selection = @()
+          if ($env:PANDO_NATIVE_TESTS) {
+            if ($env:PANDO_NATIVE_TESTS -notmatch '^[a-zA-Z0-9_]+(,[a-zA-Z0-9_]+)*$') { throw 'Invalid native test target list' }
+            $selection = @('--target', 'pandoeditor') + $env:PANDO_NATIVE_TESTS.Split(',')
+          }
+          cmake --build --preset $env:PANDO_P3_QT_PRESET @selection 2>&1 | Tee-Object p3-qt-build.log
           exit $LASTEXITCODE
       - name: Run focused Qt CTest and core state checks (Linux)
         if: runner.os == 'Linux'
@@ -368,6 +386,7 @@ jobs:
           set -o pipefail
           selection=()
           if [ "$PANDO_P9_RETRY" = true ]; then selection=(-R '^(geometry_calculator_tests|cut_geometry_calculator_tests|split_geometry_normalizer_tests|split_geometry_lifecycle_tests|river_partition_tests|river_area_tests|reference_image_tests|reference_auto_georef_tests)$'); fi
+          if [ -n "$PANDO_NATIVE_TESTS" ]; then selection=(-R "^(${PANDO_NATIVE_TESTS//,/|})$"); fi
           ctest --preset "$PANDO_P3_QT_PRESET" "${selection[@]}" 2>&1 | tee p3-ctest.log
       - name: Run focused Qt CTest and preserve Windows failure diagnostics
         if: runner.os == 'Windows'
@@ -375,6 +394,7 @@ jobs:
         run: |
           $selection = @()
           if ($env:PANDO_P9_RETRY -eq 'true') { $selection = @('-R', '^(geometry_calculator_tests|cut_geometry_calculator_tests|split_geometry_normalizer_tests|split_geometry_lifecycle_tests|river_partition_tests|river_area_tests|reference_image_tests|reference_auto_georef_tests)$') }
+          if ($env:PANDO_NATIVE_TESTS) { $selection = @('-R', '^(' + $env:PANDO_NATIVE_TESTS.Replace(',', '|') + ')$') }
           ctest --preset $env:PANDO_P3_QT_PRESET @selection 2>&1 | Tee-Object p3-ctest.log
           $ctestExit = $LASTEXITCODE
           # QtTest writes persistent logs on both platforms, including Windows
@@ -384,7 +404,7 @@ jobs:
           }
           exit $ctestExit
       - name: Verify affected native hydro consumers in the existing Qt build
-        if: needs.plan.outputs.hydro == 'true' && (!inputs.retry_failed || runner.os == 'Windows')
+        if: ${{ !cancelled() && (steps.build_linux.outcome == 'success' || steps.build_windows.outcome == 'success') && needs.plan.outputs.hydro == 'true' && (!inputs.retry_failed || runner.os == 'Windows') }}
         shell: pwsh
         run: |
           $manifest = Get-Content native/assets/world/manifest.json -Raw | ConvertFrom-Json
@@ -397,7 +417,7 @@ jobs:
           ctest --test-dir "build-native/p3/$env:PANDO_P3_QT_PRESET" -C Release -R $pattern --output-on-failure
           exit $LASTEXITCODE
       - name: Verify affected native commands, persistence and Undo/Redo
-        if: inputs.scope == 'acceptance'
+        if: ${{ !cancelled() && (steps.build_linux.outcome == 'success' || steps.build_windows.outcome == 'success') && inputs.scope == 'acceptance' }}
         shell: pwsh
         run: |
           cmake --build --preset $env:PANDO_P3_QT_PRESET --target project_codec_tests territorial_geometry_tests territorial_geometry_preview_tests split_selection_controller_tests river_selection_controller_tests timeline_editor_persistence_tests
@@ -405,6 +425,7 @@ jobs:
           ctest --test-dir "build-native/p3/$env:PANDO_P3_QT_PRESET" -C Release -R '^(project_codec_tests|territorial_geometry_tests|territorial_geometry_preview_tests|split_selection_controller_tests|river_selection_controller_tests|timeline_editor_persistence_tests)$' --output-on-failure
           exit $LASTEXITCODE
       - name: Build and CTest the shared C++ normalization through Qt
+        if: ${{ !cancelled() && (steps.build_linux.outcome == 'success' || steps.build_windows.outcome == 'success') && inputs.native_tests == '' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -419,7 +440,7 @@ jobs:
             if ($attempts) { throw "Native product build invoked forbidden tools: $attempts" }
           }
       - name: Capture a real nonblank Qt Quick application window under Linux Xvfb
-        if: runner.os == 'Linux'
+        if: ${{ !cancelled() && runner.os == 'Linux' && steps.build_linux.outcome == 'success' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -429,7 +450,7 @@ jobs:
             "$PWD/test-results/p3-qt/native-window.png"
       - name: Record Qt binary identity for this platform
         shell: bash
-        if: success()
+        if: ${{ !cancelled() && (steps.build_linux.outcome == 'success' || steps.build_windows.outcome == 'success') }}
         env:
           P3_OS: ${{ matrix.os_id }}
         run: |
