@@ -215,8 +215,15 @@ V mesh(const V& warp,double columns=24,double rows=16) {
     return obj({{"columns",V::num(grid.columns)},{"rows",V::num(grid.rows)},{"vertices",vertices},{"triangles",triangles}});
 }
 
+V placementWarp(const V& record) {
+    auto warp=projective(get(record,"mapQuad"));
+    warp.object["restrictToImage"]=V::boolean(true);
+    warp.object["flipX"]=V::boolean(yes(get(record,"flipX")));
+    warp.object["flipY"]=V::boolean(yes(get(record,"flipY")));
+    return warp;
+}
 std::optional<P> placementCoordinate(const V& record,P uv) {
-    if(uv[0]<0||uv[0]>1||uv[1]<0||uv[1]>1)return {};if(yes(get(record,"flipX")))uv[0]=1-uv[0];if(yes(get(record,"flipY")))uv[1]=1-uv[1];return project(projective(get(record,"mapQuad")),uv);
+    return project(placementWarp(record),uv);
 }
 bool alignAnchor(V& record) {
     const auto& anchor=get(record,"anchor");const auto uv=point(get(anchor,"image")),target=point(get(anchor,"coordinate"));if(!uv||!target)return false;const auto current=placementCoordinate(record,*uv);if(!current)return false;
@@ -276,6 +283,8 @@ V autoGeoref(const V& input){
 
 PreparedReferenceWarp prepareReferenceImageWarp(const V& value) {
     PreparedReferenceWarp warp;if(!yes(get(value,"ok")))return warp;
+    warp.restrictToImage=yes(get(value,"restrictToImage"));
+    warp.flipX=yes(get(value,"flipX"));warp.flipY=yes(get(value,"flipY"));
     const auto mode=text(get(value,"mode"));
     warp.xCoefficients=row(get(value,"xCoefficients"));warp.yCoefficients=row(get(value,"yCoefficients"));
     const auto& a=warp.xCoefficients;const auto& b=warp.yCoefficients;
@@ -289,6 +298,8 @@ PreparedReferenceWarp prepareReferenceImageWarp(const V& value) {
     return warp;
 }
 std::optional<ReferencePoint> projectReferenceImageWarp(const PreparedReferenceWarp& warp,ReferencePoint uv,bool geographic) {
+    if(warp.restrictToImage&&(uv[0]<0||uv[0]>1||uv[1]<0||uv[1]>1))return {};
+    if(warp.flipX)uv[0]=1-uv[0];if(warp.flipY)uv[1]=1-uv[1];
     const auto& a=warp.xCoefficients;const auto& b=warp.yCoefficients;P p;
     if(warp.mode==PreparedReferenceWarp::Similarity)p={a[0]*uv[0]-a[1]*uv[1]+a[2],a[1]*uv[0]+a[0]*uv[1]+a[3]};
     else if(warp.mode==PreparedReferenceWarp::Affine)p={a[0]*uv[0]+a[1]*uv[1]+a[2],b[0]*uv[0]+b[1]*uv[1]+b[2]};
@@ -332,6 +343,7 @@ codecjson::Value referenceImageOperation(const std::string& operation,const V& i
     if(operation=="project") {const auto uv=point(get(input,"point"));const auto p=uv?project(get(input,"warp"),*uv):std::nullopt;return p?pair(*p):V{};}
     if(operation=="projectRaw") {const auto uv=point(get(input,"point"));const auto p=uv?project(get(input,"warp"),*uv,false):std::nullopt;return p?pair(*p):V{};}
     if(operation=="projective")return projective(input);
+    if(operation=="placementWarp")return placementWarp(input);
     if(operation=="calibrationWarp")return calibrationWarp(input);
     if(operation=="mesh")return mesh(get(input,"warp"),field(input,"columns",24),field(input,"rows",16));
     if(operation=="linearPoints")return linearPoints(get(input,"constraints"),get(input,"baseWarp"),field(input,"samplesPerConstraint",4),field(input,"maximumSamples",24));
