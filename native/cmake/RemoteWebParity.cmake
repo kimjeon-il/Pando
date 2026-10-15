@@ -1,5 +1,16 @@
 # Explicit remote Web/native differential checks. Never part of the default native test set.
 find_program(PANDO_REMOTE_PARITY_NODE NAMES node REQUIRED)
+add_test(NAME m971_editing_oracle_contract
+    COMMAND "${PANDO_REMOTE_PARITY_NODE}" --test
+        "${PROJECT_SOURCE_DIR}/tools/m97/contract.test.mjs"
+        "${PROJECT_SOURCE_DIR}/tools/m97/calculations.test.mjs"
+        "${PROJECT_SOURCE_DIR}/tools/m97/corpus.test.mjs"
+        "${PROJECT_SOURCE_DIR}/tools/m97/cut-corpus.test.mjs"
+        "${PROJECT_SOURCE_DIR}/tools/m97/native-baseline.test.mjs"
+        "${PROJECT_SOURCE_DIR}/tools/m97/web-lifecycle.test.mjs"
+        "${PROJECT_SOURCE_DIR}/tools/m97/web-selection.test.mjs"
+        "${PROJECT_SOURCE_DIR}/tools/m97/registration.test.mjs")
+set_tests_properties(m971_editing_oracle_contract PROPERTIES TIMEOUT 60)
 add_test(NAME m972_river_oracle_contract COMMAND "${PANDO_REMOTE_PARITY_NODE}" --test
     "${PROJECT_SOURCE_DIR}/tools/m97/river-kernel.test.mjs")
     if(PANDOEDITOR_ENABLE_PYTHON_ORACLES)
