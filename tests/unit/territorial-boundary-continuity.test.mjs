@@ -1,3 +1,4 @@
+import '../helpers/spherical-core.mjs';
 import { createMapVisualFrame } from '../../assets/js/modules/map-visual-frame.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
