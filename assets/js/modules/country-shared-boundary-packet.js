@@ -1,10 +1,11 @@
 import { buildGpuStrokeInstances } from './gpu-stroke-geometry.js';
-import { buildCountrySharedBoundaryContact, boundaryInteriorComparison, createPreparedBoundaryStore,
+import { boundaryInteriorComparison, createPreparedBoundaryStore,
   attachBoundarySegmentReferences, serializeCountrySharedBoundarySegments, topologyNodeKey } from './boundary-topology.js';
 import { createBoundarySpatialIndex, segmentBounds } from './boundary-spatial-index.js';
 import { connectBoundarySegments } from './boundary-lines.js';
 import { buildRefinedBoundarySegments, MAX_BOUNDARY_EDGE_DEGREES } from './geographic-boundary.js';
 import { sharedCalculationCore } from './temporal.js';
+import { computeCountrySharedContacts } from './country-contact-core.js';
 
 export function shouldShowSharedCountryBorders(settings) {
   return settings?.terrainVisible === true && settings?.terrainStyle === 'physical';
@@ -69,7 +70,7 @@ export function createCountrySharedBoundaryState() {
   function reconcile(changed) {
     const obsolete = new Set([...changed].flatMap(id => [...(contactsByOwner.get(id) || [])]));
     for (const key of obsolete) removeContact(key);
-    const visited = new Set();
+    const visited = new Set(), pairs = [], owners = [];
     for (const id of changed) {
       const left = preparedStore.get(id);
       if (!left?.segments.length) continue;
@@ -78,10 +79,15 @@ export function createCountrySharedBoundaryState() {
         const ids = [left.id, right.id].sort(), key = contactKey(ids);
         if (visited.has(key)) continue;
         visited.add(key);
-        contactComputationCount++;
-        addContact(ids, buildCountrySharedBoundaryContact(left, right));
+        pairs.push([left, right]);
+        owners.push(ids);
       }
     }
+    const contacts = computeCountrySharedContacts(pairs);
+    contacts.forEach((segments, index) => {
+      contactComputationCount++;
+      addContact(owners[index], segments);
+    });
   }
   function seed(segments, changed) {
     contacts.clear(); contactsByOwner.clear(); edges.clear();
