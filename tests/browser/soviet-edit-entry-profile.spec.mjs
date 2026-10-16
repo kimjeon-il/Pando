@@ -70,14 +70,9 @@ test('1989 Soviet actual coast-edit entry CPU and memory after autosave quiescen
     const {gpu,selection}=window.__PANDOLAB_RENDER_DEBUG__.snapshot();
     return gpu.selection?.segmentCount>0&&gpu.selection?.channels?.primary?.drawSucceeded===true&&selection.fallbackCount===0;
   }),{timeout:90_000}).toBe(true);
-  // Exclude the first session-only full-project autosave from edit-entry timing.
-  await expect.poll(()=>page.evaluate(()=>{
-    const save=window.__PANDOLAB_PERFORMANCE_REPORT__?.()?.operations?.['autosave.persist'];
-    return (save?.samples||[]).some(row=>row.detail?.outcome==='indexeddb');
-  }),{timeout:90_000}).toBe(true);
-  // Autosave completion is not preview-cache completion: it can spawn a
-  // second full-project Core/WASM preview Worker 1.5 s later. Do not charge
-  // that unrelated admission to opening the actual coast editor.
+  // Cursor-only timeline updates deliberately avoid full-project autosave.
+  // Settle startup work and any independent preview Worker before attributing
+  // the cost of opening the coast editor; no full autosave is required here.
   await page.waitForTimeout(5000);
   try {
     await expect.poll(() => page.workers().filter(worker => worker.url().includes('/project-preview-worker.js')).length,
@@ -118,7 +113,7 @@ test('1989 Soviet actual coast-edit entry CPU and memory after autosave quiescen
     afterCancel=await snap(page,cdp,cancelConfirmed?'edit-cancelled-after-gc':'cancel-attempted-still-editing');
   }
   const result={schema:'pandolab-soviet-edit-entry-v1',entity:'state:soviet-union',month:'1989-06',
-    conditions:'web WebGL2 with full autosave + project-preview quiescence before editing; CI SwiftShader not a physical GPU',
+    conditions:'web WebGL2 after cursor-only timeline update and preview Worker quiescence; CI SwiftShader not a physical GPU',
     previewWorkerQuiescent,editOpened,reason,editReadyMs:Number(editReadyMs.toFixed(1)),cancelConfirmed,before,active,afterGc,afterCancel,
     profile,errors};
   await mkdir('test-results/soviet-edit-entry',{recursive:true});
