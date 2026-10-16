@@ -3,7 +3,7 @@
   "schemaVersion": 2,
   "meshFormatVersion": 2,
   "algorithmVersion": 5,
-  "algorithmSourceSha256": "18634595bb1b792fd9ddf8cb88e63a2b214b6f1d54f0ff66eac43c2a2c1f46e7",
+  "algorithmSourceSha256": "540788cb5824455c645d6056b374da0233e16d7dd870f29a718f2c8c7767146b",
   "maxEdgeDegrees": 0.499,
   "inputHashes": {
     "assets/data/historical-world/generated/v1/world-project.json.gz": "7b7a325b9033124b4a304f9e1a2c833ab0504253c181714f5f85d424df2a089e",
