@@ -135,6 +135,7 @@
         }
       }
     ],
+    "propertyBindings": [],
     "parentRelations": [
       {
         "id": "parent:A",
@@ -184,8 +185,7 @@
         "parentId": "C",
         "coverageMode": "explicit"
       }
-    ],
-    "propertyBindings": []
+    ]
   },
   "geometries": [
     {
@@ -473,7 +473,7 @@
   "physicalSourceInfo": {
     "terrain": {
       "dataset": "terrain",
-      "version": "0.12.6"
+      "version": "0.13.3-p1"
     },
     "hydro": {
       "dataset": "hydro",

@@ -1,4 +1,6 @@
 import { isBuiltinPlaceId } from './place-contract.js';
+import { resolvePlaceLabelRows } from './place-name-display.js';
+import { temporalMonthEnd } from './temporal.js';
 
 const PROPERTY_TYPE_LABELS = Object.freeze({
   entity: '객체',
@@ -298,6 +300,10 @@ export function createObjectPropertyController(runtime = {}) {
     $('labelNotesInput').readOnly = builtin;
     $('labelBuiltinInfo').hidden = !builtin;
     $('labelBuiltinSource').textContent = builtin ? label.source : '';
+    if (builtin && /^\d{4}-\d{2}$/u.test(state.timelineCursor || '')) {
+      const rows = resolvePlaceLabelRows(label, { ko: true, en: true, native: true }, temporalMonthEnd(state.timelineCursor).canonical);
+      if (rows.some(row => row.modernName)) $('labelBuiltinSource').textContent += ' · (현)은 현대 명칭입니다. 해당 시점의 명칭은 미확인입니다.';
+    }
     $('labelBuiltinId').textContent = builtin ? label.sourceId : '';
     $('copyPlaceSection').hidden = !builtin;
     const settings = automaticLabelSettings(label.kind, state.labelSettings[labelKey('label', label.id)] || {});

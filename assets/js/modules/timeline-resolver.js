@@ -22,7 +22,10 @@ export function initialTimelineMonth(records, currentMonth) {
 export function projectTimelineIdentity(identity, values) {
   if (!Object.keys(values).length) return identity;
   const properties = { ...identity.properties, style: { ...identity.properties.style }, metadata: { ...identity.properties.metadata } };
-  if (values.name) properties.name = values.name.name;
+  if (values.name) {
+    properties.name = values.name.name;
+    properties.metadata.nameSource = { baseName: properties.metadata.nameSource?.baseName || '', nameExplicit: values.name.nameExplicit };
+  }
   if (values.color) {
     if (values.color.explicitColor) properties.style.color = '#' + values.color.color.toString(16).padStart(6, '0');
     else delete properties.style.color;
