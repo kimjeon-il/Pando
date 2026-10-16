@@ -29,6 +29,8 @@ function fixture() {
   put(root, 'native/CMakeLists.txt', 'project(native)');
   put(root, 'shared/core/CMakeLists.txt', 'project(shared)');
   put(root, 'shared/core/src/project.cpp', '// native and wasm source');
+  put(root, 'apps/web-shell/src-tauri/src/lib.rs', '// native shell source');
+  put(root, 'apps/web-shell/src-tauri/gen/android/build.gradle.kts', '// Android build');
   put(root, 'assets/js/workers/core-session-worker.js', '// required core worker');
   put(root, 'assets/wasm/pandoeditor-core.js', 'export default function Core() {}');
   put(root, 'assets/wasm/pandoeditor-core.wasm', Buffer.from([0, 97, 115, 109, 1, 0, 0, 0]));
@@ -46,12 +48,14 @@ test('stages committed Web bytes and reports while excluding native source', () 
   assert.equal(readFileSync(join(stage, 'reports/a.md'), 'utf8'), 'report');
   assert.equal(existsSync(join(stage, 'native')), false);
   assert.equal(existsSync(join(stage, 'shared')), false);
+  assert.equal(existsSync(join(stage, 'apps')), false);
   assert.deepEqual(readFileSync(join(stage, 'assets/wasm/pandoeditor-core.wasm')),
     Buffer.from([0, 97, 115, 109, 1, 0, 0, 0]));
   const evidence = JSON.parse(readFileSync(manifest, 'utf8'));
   assert.equal(evidence.fileCount, 9);
   assert.equal(evidence.excludedNativeFiles, 1);
   assert.equal(evidence.excludedSharedFiles, 2);
+  assert.equal(evidence.excludedAppFiles, 2);
   assert.equal(evidence.files.some(file => file.path.startsWith('native/')), false);
 });
 
