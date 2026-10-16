@@ -32,6 +32,7 @@ export function createPersistenceService({
   let restoring = false;
   let resolving = false;
   let activeProjectSavedAt = null;
+  let lastPreviewContentRevision = null;
   const projectSavedAt = project => typeof project?.savedAt === 'string' ? project.savedAt : null;
   const scopedView = (view, project) => {
     if (!view || typeof view !== 'object' || !Object.hasOwn(view, 'lastViewedMonth')) return view;
@@ -127,7 +128,18 @@ export function createPersistenceService({
       else onAutosaveState(AUTOSAVE_STATES.SAVED);
       activeProjectSavedAt = projectSavedAt(autosaveProject);
       queueView();
-      previewCache?.schedule(autosaveProject);
+      // Geometry preview is independent of presentation-only and session
+      // persistence. A Core content checkpoint plus project generation and
+      // baseline identifies an unchanged preview source without inspection.
+      const checkpoint = receipt.checkpoint;
+      const baselineRevision = previewCache ? previewBaseline()?.sourceSha256 : null;
+      const previewRevision = baselineRevision && Number.isSafeInteger(checkpoint?.projectGeneration)
+        && Number.isSafeInteger(checkpoint?.content)
+        ? `${checkpoint.projectGeneration}:${checkpoint.content}:${baselineRevision}` : null;
+      if (previewCache && (!previewRevision || previewRevision !== lastPreviewContentRevision)) {
+        previewCache.schedule(autosaveProject, checkpoint);
+        lastPreviewContentRevision = previewRevision;
+      }
     } catch (error) {
       if (error.cancelled || (epoch !== persistenceEpoch && error.name === 'AbortError')) {
         detail.outcome = 'discarded-failure';
@@ -324,6 +336,7 @@ export function createPersistenceService({
     previewCache?.cancel();
     queuedAutosave = null;
     activeProjectSavedAt = null;
+    lastPreviewContentRevision = null;
     scheduler.cancel('autosave');
     scheduler.cancel('view-autosave');
   }
@@ -338,7 +351,7 @@ export function createPersistenceService({
 
   return Object.freeze({ persist, queueProject, queuePresentation, queueView, restore, clear, cancelPending,
     getRecovery, resolveRecovery, completeRecovery,
-    restorePreview: project => previewCache?.restore(project) ?? Promise.resolve(null),
+    restorePreview: (project, preparedSource = null) => previewCache?.restore(project, preparedSource) ?? Promise.resolve(null),
     ensurePreview: project => previewCache?.schedule(project),
   });
 }

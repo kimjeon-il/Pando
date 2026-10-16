@@ -32,6 +32,10 @@ jobs:
       - uses: pnpm/action-setup@v4
       - name: Install pinned JS dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Verify preview calculation reuse and Worker lifecycle
+        run: |
+          pnpm exec eslint assets/js/modules/project-preview-cache.js assets/js/modules/persistence-service.js assets/js/modules/app-history-assembly.js assets/js/modules/app-progressive-startup.js assets/js/workers/project-preview-worker.js tests/unit/project-preview-cache.test.mjs tests/unit/project-preview-worker.test.mjs tests/unit/persistence-service.test.mjs
+          node --test tests/unit/project-preview-cache.test.mjs tests/unit/project-preview-worker.test.mjs tests/unit/persistence-service.test.mjs
       - name: Verify generated browser and dataset metadata
         run: |
           node scripts/generate-build-metadata.mjs --check
