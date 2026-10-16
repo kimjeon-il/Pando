@@ -126,6 +126,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+      - name: Install the existing native test configuration dependency
+        run: sudo apt-get update && sudo apt-get install -y qt6-base-dev
       - name: Verify the changed native fill and contact adapters without rebuilding Qt
         run: |
           cmake -S native -B build-native/geometry-native -DCMAKE_BUILD_TYPE=Release -DPANDOEDITOR_BUILD_APP=OFF -DBUILD_TESTING=ON
