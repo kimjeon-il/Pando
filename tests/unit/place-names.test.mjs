@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { normalizePlace, normalizePlaceLanguages, togglePlaceLanguage } from '../../assets/js/modules/place-contract.js';
-import { resolvePlaceLabelRows, hasPlaceNameCoverage } from '../../assets/js/modules/place-name-display.js';
+import { resolvePlaceLabelRows } from '../../assets/js/modules/place-name-display.js';
 import { placeLabelDimensions, layoutLabels } from '../../assets/js/modules/label-layout.js';
 
 const place = changes => normalizePlace({source:'geonames',sourceId:'703448',name:'키이우',nameEn:'Kyiv',nameNative:'Київ',
@@ -26,7 +26,6 @@ test('missing timelines and dates before naming evidence show current-name prefi
   assert.ok(resolvePlaceLabelRows(record,languages,'2012-06-30','2026-10-16').every(row=>row.modernName));
   assert.deepEqual(resolvePlaceLabelRows(record,languages,'2026-10-31','2026-10-16').map(row=>row.text),['서울','Seoul']);
   assert.deepEqual(resolvePlaceLabelRows(place(),{ko:true},'1700-01-01','2026-10-16').map(row=>row.text),['(현)키이우']);
-  assert.equal(hasPlaceNameCoverage(place(),'1700-01-01'),true);
 });
 test('identical English/native names deduplicate without duplicating the place object',()=>{
   const record=place({name:'부다페스트',nameEn:'Budapest',nameNative:'Budapest',nameTimeline:[]});

@@ -20,7 +20,7 @@ private slots:
         Geometry geometry{"Polygon",{},{},{{{{0,0},{2,0},{2,2},{0,0}}}}};
         Project project;project.replace(makeTerritorialDocument({{{"A","Baseline"},geometry,{}}}));
         QTemporaryDir directory;QVERIFY(directory.isValid());const auto path=directory.filePath("properties.pando.json");
-        QFile file(path);QVERIFY(file.open(QIODevice::WriteOnly));file.write(projectcodec::encode(project));file.close();
+        QFile file(path);QVERIFY(file.open(QIODevice::WriteOnly));file.write(::projectcodec::encode(project));file.close();
         EditorController editor({false,directory.filePath("private.json")});QVERIFY(editor.openFile(QUrl::fromLocalFile(path)));
         QVERIFY(editor.setTimelineMonth("2013-01"));QVERIFY(editor.selectObject({{"domain","territorial"},{"id","A"}}));
         editor.setNameDraft("Future");QVERIFY(editor.commitObjectField("name"));
