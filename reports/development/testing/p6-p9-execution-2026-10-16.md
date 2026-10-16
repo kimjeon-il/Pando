@@ -5,7 +5,7 @@
 > 기준본: `8e22982616e3c9ba43eeb84baec17cd886267cfa` · 구현 브랜치: `work/objects`
 > 이전 선택 검증 후보: `4e53feee0a69d0e44c19b92f0e14f4a3a297093f` · 제품/생성물 `05fabcea`와 동일 · WASM 결과 `607d0e64`
 > 추가 실기기/성능 측정: 웹 `8df284ab`·`f90ccf21`, Qt 원격 비교 바이너리 `9bd078c7` · 기존 제품/자산과 동일하며 측정 도구만 변경
-> 접촉·메시 수정 후: 웹 비교 `70789caf989831e8cfa97953b3bb0821669cf444` · native 출력 수정 `4418b791` · 새 Qt 측정 overlay `b81c6173` · 리비전 5 자산 결과 `761016e1`
+> 접촉·메시 수정 후: 웹 비교 `70789caf989831e8cfa97953b3bb0821669cf444` · native 출력 수정 `4418b791` · Qt 측정 overlay `ad3ba73b` · 리비전 5 자산 결과 `761016e1`
 
 ## 대상과 실행 원칙
 
@@ -280,3 +280,12 @@
 | 자동 저장 대기 포함 | 21,662.80ms | 9,078.15ms | no-regression |
 
 LongTask 합계는 중앙값이 40ms 증가했고 분포가 겹쳐 미확정이다. 측정 기준을 완화하거나 통과로 바꾸지 않는다. 이전 focus 프레임의 미확정 상태와 Android 실제 터치 미검증도 유지하므로 **전체 P9 완료가 아니다**.
+
+### Qt 실측 시작 조건과 제한된 RUS 입력
+
+- [Windows 실행 38830134932](https://github.com/kimjeon-il/Pando/actions/runs/38830134932)은 양쪽 실행 파일의 빌드·runtime 포장과 후보 접촉/외곽선 CTest 2개를 모두 통과했다. 두 실행 파일의 소스·overlay·Qt 6.8.3·Release flags를 대조했으며 실제 비교에는 한 runtime의 동일 DLL 바이트를 사용했다. 새 정본 입력 준비도 **138.788초, QtTest 3개 슬롯 통과**다.
+- 전체 세계 표시 조건의 기준본 준비 실행은 초기 준비와 실제 pan **120건**을 통과했지만 뷰 복귀 뒤 업로드 완료까지 90초 안에 도달하지 못했다. 그동안 continuation **117→194**, 업로드 **758,552,292→921,528,468 bytes**로 실제 작업이 진행됐다. 마지막 정본/렌더 frame의 scene/view는 일치하고 CPU·IO 준비는 끝났으나, 렌더 geometry **734,272,668 bytes**, 그중 stroke **703,783,824 bytes**를 2MB씩 업로드 중이었다. 정지한 continuation이나 가짜 pending으로 판정하지 않는다. 결과는 `build-native/p9/shared-mesh-native-rus-performance/warmup-baseline/`에 보존하며, 완성된 성능 분포가 없다.
+- 기존 프로젝트 표시 계약으로 RUS 외 국가만 숨긴 입력에서는 초기 준비 **25.289초**, pan **120건**, 복귀 준비 **67.745초**를 통과했다. 다음 편집 버튼 입력은 실제 편집 활성화와 최신 업로드 완료 frame까지 도달했지만, action **5,099.7823ms**가 측정기의 고정 5초를 넘어서 `delivered=false`로 종료됐다. 원본은 `build-native/p9/shared-mesh-native-rus-visible-performance/warmup-baseline/`다. 실제 동작 실패나 후보 회귀로 바꿔 기록하지 않는다.
+- overlay `ad3ba73b`은 상대 비교의 입력 총대기를 60초로 하고 기존 M98의 5초는 유지한다. action 시간은 계속 총 latency에 포함하며 최신 frame·모델·업로드 확인은 그대로다. 편집·취소를 pan보다 먼저 실행해 고정 좌표를 유지하고, 같은 뷰로 재복귀하는 중복 준비를 제거했다. 두 버전에 같은 overlay를 적용하는 [원격 실행 38833466816](https://github.com/kimjeon-il/Pando/actions/runs/38833466816)을 시작했다. 제품 계산 소스 변경은 없다.
+- 이번 RUS 비교 입력은 `build-native/p9/shared-mesh-native-inputs-rus-isolated/fixtures.json`이다. **277 units·528 geometries·전체 timeline의 원시 JSON 바이트를 보존**하며, RUS 외 국가와 내장 rivers/lakes의 화면 표시만 기존 설정으로 끈다. 수계 데이터·자산·원본 프로젝트는 삭제하지 않았다. 기준본도 동일 표시 계약을 읽음을 확인했다. manifest SHA-256은 `31455664b65e4f825a3cb9044a13a3e7d49bce719add2196bbf2d90e7c94cf63`, project SHA-256은 `4fcd912aa552f11e8cb6b1a1eb4ff92cdc44bfb6e5f33e79c8f49182d6fb0a1e`다. 입력 파생 근거는 같은 폴더의 `derivation-receipt.json`에 보존한다.
+- 이 범위는 전체 세계 데이터를 보유한 **단일 대형 RUS의 이동·정점 이동·미리보기·취소·저장 비교**다. 전체 세계 동시 표시·수계 편집·네 역할 P9·M98의 완료 증거로 확대하지 않는다. 새 비교 결과가 나오기 전 성능 통과를 주장하지 않는다.
