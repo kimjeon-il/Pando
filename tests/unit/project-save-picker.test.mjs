@@ -52,3 +52,42 @@ test('unsupported picker uses download fallback', async () => {
   assert.equal(anchor.download, '판도연구소-프로젝트.gpkg');
   assert.deepEqual(calls, ['download']);
 });
+
+test('native project save uses canonical domain writer, not the browser picker', async () => {
+  const events = [], blob = new Blob(['project']);
+  const controller = createGisFileController({
+    elements: { save: {} },
+    fileAccess: { async saveProjectFile(value) { assert.equal(value, blob); events.push('native'); return { cancelled: false, path: 'C:/map.gpkg' }; } },
+    window: { showSaveFilePicker() { assert.fail('browser picker is not used by Tauri'); } },
+    projectDomain: { async save(write) { events.push('core'); return write(blob); } },
+  });
+  assert.deepEqual(await controller.saveProject(), { downloaded: false });
+  assert.deepEqual(events, ['core', 'native']);
+});
+
+test('native project save cancellation is never reported as completed', async () => {
+  const controller = createGisFileController({
+    elements: { save: {} },
+    fileAccess: { async saveProjectFile() { return { cancelled: true }; } },
+    projectDomain: { save: write => write(new Blob(['project'])) },
+  });
+  assert.equal(await controller.saveProject(), false);
+});
+
+test('native project open invokes the established project import and restores focus', async () => {
+  const events = [], trigger = { focus() { events.push('focus'); } };
+  const file = new Blob([new Uint8Array([0, 255, 10])]);
+  const controller = createGisFileController({
+    elements: { projectOpen: trigger },
+    fileAccess: { async openProjectFile() { events.push('picker'); return { cancelled: false, path: 'C:/test/map.gpkg', blob: file }; } },
+    onFiles: async (files, options) => {
+      events.push('import');
+      assert.equal(options.sourceKind, 'project');
+      assert.equal(files.length, 1);
+      assert.equal(files[0].name, 'map.gpkg');
+      assert.deepEqual(new Uint8Array(await files[0].arrayBuffer()), new Uint8Array([0, 255, 10]));
+    },
+  });
+  await controller.openProjectPicker();
+  assert.deepEqual(events, ['picker', 'import', 'focus']);
+});
