@@ -10,6 +10,7 @@
     "allow-finish-probe",
     "allow-save-project-file",
     "allow-save-export-file",
-    "allow-open-project-file"
+    "allow-open-project-file",
+    "allow-open-gis-files"
   ]
 }

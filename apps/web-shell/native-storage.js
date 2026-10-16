@@ -14,6 +14,14 @@ export function decodeBytes(base64) {
   if (binary.length > LIMIT) throw new Error('Native project exceeds the 1 MiB limit.');
   return Uint8Array.from(binary, character => character.charCodeAt(0));
 }
+function selectedGisName(path) {
+  const segment = String(path || '').split(/[\\/]/).pop();
+  const decoded = decodeURIComponent(segment || '');
+  const name = decoded.split(/[\\/]/).pop().split(':').pop();
+  if (!/\.[a-z0-9]{1,8}$/i.test(name)) throw new Error('GIS 파일 이름을 확인할 수 없습니다. 다른 파일 제공자를 선택하세요.');
+  return name;
+}
+
 export function createNativeStorage(invoke = invokeNative) {
   return Object.freeze({
     async saveProjectFile(blob) {
@@ -26,6 +34,14 @@ export function createNativeStorage(invoke = invokeNative) {
       }
       if (!(blob instanceof Blob) || blob.size > LIMIT) throw new Error('GIS export exceeds the 1 MiB prototype limit.');
       return invoke('save_export_file', { filename, contents: encodeBytes(new Uint8Array(await blob.arrayBuffer())) });
+    },
+    async openGisFiles() {
+      const result = await invoke('open_gis_files', {});
+      if (result.cancelled) return { cancelled: true, files: [] };
+      if (!Array.isArray(result.files) || !result.files.length) throw new Error('No GIS files were selected.');
+      return { cancelled: false, files: result.files.map(file => new File(
+        [decodeBytes(file.contents)], selectedGisName(file.path),
+      )) };
     },
     async openProjectFile() {
       const result = await invoke('open_project_file', {});
@@ -45,4 +61,4 @@ export function createNativeStorage(invoke = invokeNative) {
   });
 }
 const native = createNativeStorage();
-export const { saveProjectFile, openProjectFile, writeProbeFile, readProbeFile, writeDiagnosticReport, finishDiagnostics } = native;
+export const { saveProjectFile, saveExportFile, openProjectFile, openGisFiles, writeProbeFile, readProbeFile, writeDiagnosticReport, finishDiagnostics } = native;

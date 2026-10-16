@@ -21,6 +21,7 @@ fn main() {
             "save_project_file",
             "save_export_file",
             "open_project_file",
+            "open_gis_files",
         ]),
     ))
     .expect("failed to build prototype shell configuration");
