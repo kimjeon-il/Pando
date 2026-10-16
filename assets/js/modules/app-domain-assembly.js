@@ -1217,7 +1217,7 @@ export function createDomainAssembly() {
     renderingDomain?.invalidateProject?.('timeline-cursor');
     // A cursor change does not modify the canonical document. Persist only
     // the small view/session record, never the full geometry archive.
-    dependencies.domains.projectDomain.queueViewAutosave();
+    projectDomain.queueViewAutosave();
     return true;
   }
 
