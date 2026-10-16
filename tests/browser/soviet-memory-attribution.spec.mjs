@@ -41,6 +41,7 @@ async function snapshot(page, cdp, workerProbe, label) {
       + Number(gpu.terrainCacheBytes || 0) + Number(gpu.hydroCacheBytes || 0);
     return {
       month: document.querySelector('#timelineMonthInput')?.value ?? null,
+      boundaryReplacementPending: gpu.countrySharedBoundaryReplacementPending ?? null,
       renderer: gpu.renderer,
       gpu: {
         renderer: gpu.renderer, meshVariantBytes: mesh, meshVariantSumBytes: meshBytes,
@@ -79,6 +80,7 @@ async function snapshot(page, cdp, workerProbe, label) {
     workerMemory, chromium, gpu: app.gpu,
     cpuGeometryCaches: app.cpuGeometryCaches, session: {
       month: app.month, renderer: app.renderer, editor: app.editor,
+      boundaryReplacementPending: app.boundaryReplacementPending,
       previewCacheWorkerActive: workerMemory.workers.some(worker => worker.url.endsWith('/project-preview-worker.js')),
       autosave: app.autosave,
     },
@@ -101,12 +103,14 @@ test('measure main JS, each Worker JS/WASM, GPU caches and Chromium PSS across S
     origin: new URL(page.url()).origin,
   });
   const phases = [];
-  const results = { schema: 'pandolab-soviet-memory-attribution-v1',
+  const results = { schema: 'pandolab-soviet-memory-attribution-v2',
     sha: process.env.GITHUB_SHA || null, runUrl: process.env.GITHUB_RUN_ID ?
       `https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}` : null,
     platform: { ci: 'GitHub Ubuntu Chromium, SwiftShader software WebGL2',
       workerJs: 'CDP per-target Runtime.getHeapUsage',
-      workerWasm: 'CDP queryObjects WebAssembly.Memory live instances (allocated linear bytes, not used C++ heap)',
+      workerWasm: 'CDP queryObjects of first observed WebAssembly.Memory instances then WeakRef size sampling (linear allocation, not used C++ heap; later new instances may be missed)',
+      diagnostics: 'Read-only Worker CDP expressions for shared-boundary queue/latest message and map-edit source counts; lexical access may be unavailable',
+      idle: 'GC snapshots after boundary rendering has settled, then 6 and 30 seconds without input; no OS compaction assumed',
       chromiumPss: '/proc/smaps_rollup by process (Workers can share renderer process; not worker PSS)',
       gpu: 'application counters; excludes framebuffer stencil/staging and driver VRAM; not additive to PSS',
       gc: 'Worker and main V8 GC requested at every phase; OS memory return is not guaranteed' },
@@ -126,54 +130,56 @@ test('measure main JS, each Worker JS/WASM, GPU caches and Chromium PSS across S
   };
   try {
     phases.push(await snapshot(page, cdp, workerProbe, 'startup-modern'));
-    const started = Date.now();
-    await setMonth(page, '1989-06');
-    await expect.poll(() => page.evaluate(() =>
-      window.PANDOLAB_TERRITORIAL.get('state:soviet-union')?.geometry?.coordinates?.length || 0),
-    { timeout: 90_000 }).toBeGreaterThan(0);
-    await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('state:soviet-union'));
-    await expect.poll(() => page.evaluate(() => {
-      const { gpu, selection } = window.__PANDOLAB_RENDER_DEBUG__.snapshot();
-      return gpu.selection?.segmentCount > 0 && gpu.selection?.channels?.primary?.drawSucceeded === true
-        && selection.fallbackCount === 0;
-    }), { timeout: 90_000, intervals: [450, 1000, 1500] }).toBe(true);
-    results.durations.firstSovietMonthAndSelectionMs = Date.now() - started;
-    phases.push(await snapshot(page, cdp, workerProbe, 'soviet-selected'));
-
-    await waitForSettledWork(page);
-    const editStarted = Date.now();
-    await page.locator('#actionsTabBtn').evaluate(button => button.click());
-    await expect(page.locator('#editEntityCoastBtn')).toBeEnabled({ timeout: 30_000 });
-    await page.locator('#editEntityCoastBtn').evaluate(button => button.click());
-    await expect(page.locator('#modePrimaryBtn')).toHaveAttribute('aria-label', '수정 완료', { timeout: 130_000 });
-    await expect.poll(() => page.locator('circle.country-vertex').count(), { timeout: 75_000 }).toBeGreaterThan(0);
-    results.durations.editEntryMs = Date.now() - editStarted;
-    phases.push(await snapshot(page, cdp, workerProbe, 'soviet-edit-open'));
-    for (let attempt = 0; attempt < 2; attempt++) {
-      await page.locator('#modeCancelBtn').evaluate(button => button.click());
-      if (await page.locator('#confirmModal').isVisible())
-        await page.locator('#confirmModalOkBtn').evaluate(button => button.click());
-      await page.waitForTimeout(500);
-      if ((await page.locator('circle.country-vertex').count()) === 0) break;
-    }
-    await expect.poll(() => page.locator('circle.country-vertex').count(), { timeout: 15_000 }).toBe(0);
-    phases.push(await snapshot(page, cdp, workerProbe, 'soviet-edit-cancelled'));
-
     for (let cycle = 1; cycle <= 3; cycle++) {
-      const startedReturn = Date.now();
-      await setMonth(page, '2026-10');
-      await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('state:soviet-union') === null),
-        { timeout: 90_000 }).toBe(true);
-      await waitForSettledWork(page);
-      phases.push(await snapshot(page, cdp, workerProbe, `returned-modern-${cycle}`));
-      results.durations[`returnModern${cycle}Ms`] = Date.now() - startedReturn;
-      if (cycle === 3) break;
+      const sovietStarted = Date.now();
       await setMonth(page, '1989-06');
       await expect.poll(() => page.evaluate(() =>
         window.PANDOLAB_TERRITORIAL.get('state:soviet-union')?.geometry?.coordinates?.length || 0),
-        { timeout: 90_000 }).toBeGreaterThan(0);
+      { timeout: 90_000 }).toBeGreaterThan(0);
+      await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('state:soviet-union'));
+      await expect.poll(() => page.evaluate(() => {
+        const { gpu, selection } = window.__PANDOLAB_RENDER_DEBUG__.snapshot();
+        return gpu.selection?.segmentCount > 0 && gpu.selection?.channels?.primary?.drawSucceeded === true
+          && selection.fallbackCount === 0;
+      }), { timeout: 90_000, intervals: [450, 1000, 1500] }).toBe(true);
+      if (cycle === 1) results.durations.firstSovietMonthAndSelectionMs = Date.now() - sovietStarted;
+      phases.push(await snapshot(page, cdp, workerProbe,
+        cycle === 1 ? 'soviet-selected' : `reentered-soviet-${cycle - 1}`));
+
       await waitForSettledWork(page);
-      phases.push(await snapshot(page, cdp, workerProbe, `reentered-soviet-${cycle}`));
+      const editStarted = Date.now();
+      await page.locator('#actionsTabBtn').evaluate(button => button.click());
+      await expect(page.locator('#editEntityCoastBtn')).toBeEnabled({ timeout: 30_000 });
+      await page.locator('#editEntityCoastBtn').evaluate(button => button.click());
+      await expect(page.locator('#modePrimaryBtn')).toHaveAttribute('aria-label', '수정 완료', { timeout: 130_000 });
+      await expect.poll(() => page.locator('circle.country-vertex').count(), { timeout: 75_000 }).toBeGreaterThan(0);
+      results.durations[`editEntry${cycle}Ms`] = Date.now() - editStarted;
+      phases.push(await snapshot(page, cdp, workerProbe, `soviet-edit-open-${cycle}`));
+      for (let attempt = 0; attempt < 2; attempt++) {
+        await page.locator('#modeCancelBtn').evaluate(button => button.click());
+        if (await page.locator('#confirmModal').isVisible())
+          await page.locator('#confirmModalOkBtn').evaluate(button => button.click());
+        await page.waitForTimeout(500);
+        if ((await page.locator('circle.country-vertex').count()) === 0) break;
+      }
+      await expect.poll(() => page.locator('circle.country-vertex').count(), { timeout: 15_000 }).toBe(0);
+      phases.push(await snapshot(page, cdp, workerProbe, `soviet-edit-cancelled-${cycle}`));
+
+      const returnedStarted = Date.now();
+      await setMonth(page, '2026-10');
+      await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('state:soviet-union') === null),
+        { timeout: 90_000 }).toBe(true);
+      await expect.poll(() => page.evaluate(() => {
+        const gpu = window.__PANDOLAB_RENDER_DEBUG__?.snapshot()?.gpu;
+        return gpu?.renderer === 'webgl2' && !gpu.countrySharedBoundaryReplacementPending;
+      }), { timeout: 90_000, intervals: [500, 1200, 1800] }).toBe(true);
+      await waitForSettledWork(page);
+      phases.push(await snapshot(page, cdp, workerProbe, `returned-modern-${cycle}`));
+      results.durations[`returnModern${cycle}Ms`] = Date.now() - returnedStarted;
+      await page.waitForTimeout(6_000);
+      phases.push(await snapshot(page, cdp, workerProbe, `idle-modern-${cycle}-6s`));
+      await page.waitForTimeout(24_000);
+      phases.push(await snapshot(page, cdp, workerProbe, `idle-modern-${cycle}-30s`));
     }
   } finally {
     await report();
@@ -181,11 +187,13 @@ test('measure main JS, each Worker JS/WASM, GPU caches and Chromium PSS across S
     await cdp.detach();
   }
 
-  expect(phases.length).toBe(9);
+  expect(phases.length).toBe(19);
   expect(phases.every(phase => phase.chromium.available)).toBe(true);
   expect(phases.every(phase => phase.workerMemory.jsComplete && phase.workerMemory.wasmComplete)).toBe(true);
   expect(phases[0].workerMemory.workers.some(worker => worker.url.endsWith('/core-session-worker.js')
     && worker.wasmLinearMemory.allocatedBytes > 0)).toBe(true);
-  expect(phases[3].session.editor.vertexCount).toBe(0);
+  expect(phases.filter(phase => phase.label.startsWith('soviet-edit-cancelled-'))
+    .every(phase => phase.session.editor.vertexCount === 0)).toBe(true);
+  expect(phases.filter(phase => phase.label.startsWith('idle-modern-') && phase.label.endsWith('-30s')).length).toBe(3);
   expect(errors).toEqual([]);
 });

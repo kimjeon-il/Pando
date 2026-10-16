@@ -148,6 +148,23 @@ export async function createWorkerMemoryProbe(cdp, { origin = 'http://127.0.0.1:
     }
   }
 
+
+  async function workerDiagnostics(sessionId, path) {
+    // Read-only CDP expressions against Worker lexical bindings: no product API or retained objects.
+    const expression = path.endsWith('/country-shared-boundary-worker.js')
+      ? '(() => { const message = typeof latestMessage === "undefined" ? null : latestMessage; const waiting = typeof queued === "undefined" ? null : queued; const state = typeof boundaryState === "undefined" ? null : boundaryState; return { available: true, kind: "shared-boundary", draining: typeof draining === "undefined" ? null : draining, queued: !!waiting, queuedFeatureCount: waiting?.features?.length ?? null, latestMessageFeatureCount: message?.features?.length ?? null, latestMessageType: message?.type ?? null, latestSequence: typeof latestSequence === "undefined" ? null : latestSequence, stateStats: state?.stats?.() ?? null, pendingCacheSegmentCount: typeof pendingCache === "undefined" ? null : pendingCache?.segments?.length ?? null }; })()'
+      : path.endsWith('/map-edit-worker.js')
+        ? '(() => ({ available: true, kind: "map-edit", editSourceCount: typeof editSources === "undefined" ? null : editSources.size, boundaryFeatureCount: typeof boundaryFeatures === "undefined" ? null : boundaryFeatures.size, pendingResultCount: typeof pendingResults === "undefined" ? null : pendingResults.size, cutSourceCount: typeof cutSources === "undefined" ? null : cutSources.size, validatedPreviewCount: typeof validatedPreviews === "undefined" ? null : validatedPreviews.size, coastTopologyGeometryCount: typeof coastTopologyCache === "undefined" ? null : coastTopologyCache?.geometries?.length ?? null, dataRevision: typeof currentDataRevision === "undefined" ? null : currentDataRevision }))()'
+        : null;
+    if (!expression) return null;
+    try {
+      const response = await call(sessionId, 'Runtime.evaluate', { expression, returnByValue: true });
+      return response?.result?.value || { available: false, reason: response?.exceptionDetails?.text || 'Worker lexical binding unavailable' };
+    } catch (error) {
+      return { available: false, reason: errorText(error) };
+    }
+  }
+
   async function sample({ collectGarbage = true } = {}) {
     const targetInfos = (await cdp.send('Target.getTargets')).targetInfos || [];
     const live = targetInfos.filter(target => WORKER_TARGET_TYPES.has(target.type) && target.url.startsWith(origin));
@@ -167,6 +184,7 @@ export async function createWorkerMemoryProbe(cdp, { origin = 'http://127.0.0.1:
           totalBytes: js.totalSize, embedderUsedBytes: js.embedderHeapUsedSize ?? null,
           backingStorageBytes: js.backingStorageSize ?? null };
         info.wasmLinearMemory = await wasmLinearMemory(sessionId);
+        info.diagnostics = await workerDiagnostics(sessionId, info.url);
       } catch (error) {
         info.error = errorText(error);
         info.jsHeap ||= { available: false };
@@ -213,10 +231,14 @@ export function summarizeMemoryPhases(phases) {
     workerWasmLinearBytes: subtract(value(b.workerMemory, 'wasmAllocatedBytes'), value(a.workerMemory, 'wasmAllocatedBytes')),
     gpuTrackedBytes: subtract(value(b.gpu, 'trackedBytes'), value(a.gpu, 'trackedBytes')),
   });
-  const returns = phases.filter(phase => phase.label.startsWith('returned-modern'));
+  const returns = phases.filter(phase => /^returned-modern-\d+$/.test(phase.label));
+  const idle30 = phases.filter(phase => /^idle-modern-\d+-30s$/.test(phase.label));
   return {
     initialToFinal: first && last ? delta(first, last) : null,
     returnToReturn: returns.length > 1 ? delta(returns[0], returns.at(-1)) : null,
     returnedModernPssMiB: returns.map(phase => ({ label: phase.label, value: phase.chromium?.pssMiB ?? null })),
+    idle30PssMiB: idle30.map(phase => ({ label: phase.label, value: phase.chromium?.pssMiB ?? null })),
+    idle30Trend: idle30.length > 1 ? delta(idle30[0], idle30.at(-1)) : null,
+    lastReturnToIdle30: returns.length && idle30.length ? delta(returns.at(-1), idle30.at(-1)) : null,
   };
 }

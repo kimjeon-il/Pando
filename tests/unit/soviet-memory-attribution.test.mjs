@@ -80,12 +80,18 @@ test('memory delta reports unknown measurements as unavailable instead of zero',
       workerMemory: { jsUsedBytes: null, wasmAllocatedBytes: 30 }, gpu: { trackedBytes: 7 } },
     { label: 'returned-modern-1', chromium: { pssMiB: 2000 }, mainJsHeap: { usedBytes: 13 },
       workerMemory: { jsUsedBytes: null, wasmAllocatedBytes: 40 }, gpu: { trackedBytes: 10 } },
+    { label: 'idle-modern-1-30s', chromium: { pssMiB: 1900 }, mainJsHeap: { usedBytes: 12 },
+      workerMemory: { jsUsedBytes: null, wasmAllocatedBytes: 40 }, gpu: { trackedBytes: 10 } },
     { label: 'returned-modern-3', chromium: { pssMiB: 2200 }, mainJsHeap: { usedBytes: 15 },
+      workerMemory: { jsUsedBytes: null, wasmAllocatedBytes: 50 }, gpu: { trackedBytes: 9 } },
+    { label: 'idle-modern-3-30s', chromium: { pssMiB: 2100 }, mainJsHeap: { usedBytes: 14 },
       workerMemory: { jsUsedBytes: null, wasmAllocatedBytes: 50 }, gpu: { trackedBytes: 9 } },
   ];
   const result = summarizeMemoryPhases(phases);
-  assert.equal(result.initialToFinal.chromiumPssMiB, 400);
+  assert.equal(result.initialToFinal.chromiumPssMiB, 300);
   assert.equal(result.initialToFinal.workerJsUsedBytes, null);
   assert.equal(result.initialToFinal.workerWasmLinearBytes, 20);
   assert.equal(result.returnToReturn.chromiumPssMiB, 200);
+  assert.equal(result.idle30Trend.chromiumPssMiB, 200);
+  assert.equal(result.lastReturnToIdle30.chromiumPssMiB, -100);
 });
