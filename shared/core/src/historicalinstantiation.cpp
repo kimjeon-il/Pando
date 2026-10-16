@@ -1,6 +1,8 @@
 #include <pandoeditor/historicalinstantiation.h>
 #include <pandoeditor/project.h>
 #include <pandoeditor/geometrypredicates.h>
+#include <pandoeditor/timeline-view.h>
+#include <pandoeditor/webterritorialcommands.h>
 #include <algorithm>
 #include <limits>
 #include <set>
@@ -16,9 +18,12 @@ HistoricalInstantiationPlan planHistoricalSelections(const ProjectSnapshot& proj
     const std::vector<HistoricalAddition>& selections,
     const std::vector<GeometryReplacement>& replacements,
     const std::map<ObjectRef,ObjectRef>& transfers) {
-    requireStaticTimeline(project.document());
+    const bool dated=project.timelineEditsEnabled()||!isStaticTimeline(project.document());
+    if(dated&&project.timelineMonth().empty())throw TimelineError("TIMELINE_CURSOR_REQUIRED","Historical insertion requires the current map month.");
+    const auto view=dated?timelineDocumentView(project.document(),project.timelineMonth()).document:project.document();
     if(selections.empty())throw std::invalid_argument("INVALID_LIBRARY: empty selection");
     HistoricalInstantiationPlan plan{project.instanceId(),project.document().documentId,project.revision(),{}};
+    if(dated)plan.applicationMonth=project.timelineMonth();
     std::set<std::string> ids;std::map<std::string,std::string> batch;
     for(const auto& addition:selections) {
         if(addition.selection.libraryId.empty()||!batch.emplace(addition.selection.libraryId,instanceId(addition)).second||
@@ -38,7 +43,9 @@ HistoricalInstantiationPlan planHistoricalSelections(const ProjectSnapshot& proj
         if(selection.type==UnitKind::Regional&&addition.parent)throw std::invalid_argument("INVALID_PARENT_KIND");
         if(addition.parent)if(const auto parent=batch.find(addition.parent->id);parent!=batch.end())
             addition.parent=territorialRef(parent->second);
-        if(selection.validity.from||selection.validity.to)throw std::invalid_argument("TIMELINE_ACTIVATION: dated creation requires T4");
+        // Catalog validity describes the source, never the inserted object's
+        // lifespan. The selected geometry starts at the destination map month.
+        addition.selection.validity={};
         for(const auto& [country,name]:selection.instantiation.countryNameUpdates) {
             const auto existing=plan.countryNameUpdates.find(country);
             if(existing!=plan.countryNameUpdates.end()&&existing->second!=name)
@@ -60,14 +67,14 @@ HistoricalInstantiationPlan planHistoricalSelections(const ProjectSnapshot& proj
         const auto expanded=std::find_if(replacements.begin(),replacements.end(),[&](const auto& patch){return patch.owner==target;});
         const auto existingTarget=project.index().objects.find(target);
         const bool expandedRoot=expanded!=replacements.end()&&existingTarget!=project.index().objects.end()&&
-            isRootGeneral(project.document(),project.document().units.at(existingTarget->second))&&
+            isRootGeneral(view,project.document().units.at(existingTarget->second))&&
             std::any_of(plan.additions.begin(),plan.additions.end(),[](const auto& addition){return !addition.instanceId.empty();});
         const Geometry* targetShape=selected!=plan.additions.end()?&selected->selection.geometry:expandedRoot?&expanded->geometry:nullptr;
         if(donor.domain!="territorial"||target.domain!="territorial"||found==project.index().objects.end()||
            project.document().units.at(found->second).kind!=UnitKind::General||donor==target||
            !targetShape||
            !geometryContains(*targetShape,
-               *project.document().geometries.get(staticGeometryBinding(project.document(),donor.id).geometryRef)))
+               *view.geometries.get(staticGeometryBinding(view,donor.id).geometryRef)))
             throw std::invalid_argument("INVALID_LIBRARY: territory transfer target");
     }
     for(const auto& update:plan.countryNameUpdates) {
@@ -132,6 +139,46 @@ HistoricalInstantiationPlan planIndependentHistoricalSnapshot(const ProjectSnaps
     return planIndependentHistorical(project,catalog,requests);
 }
 void applyHistoricalInstantiation(ProjectDocument& document,const HistoricalInstantiationPlan& plan) {
+    if(plan.applicationMonth) {
+        auto frame=timelineDocumentView(document,*plan.applicationMonth);
+        WebTerritorialEdit edit;edit.operation=WebTerritorialOperation::Patch;
+        std::map<std::string,std::size_t> rows;
+        const auto existing=[&](const std::string& id)->WebTerritorialFeature& {
+            if(const auto found=rows.find(id);found!=rows.end())return edit.features.at(found->second);
+            const auto identity=std::find_if(frame.document.units.begin(),frame.document.units.end(),[&](const auto& unit){return unit.id==id;});
+            if(identity==frame.document.units.end()||frame.inactiveIds.count(id))throw TimelineError("not-found","Historical edit target is inactive.");
+            WebTerritorialFeature row;row.identity=*identity;const auto owner=territorialRef(id);
+            const auto& relation=staticParentRelation(frame.document,id);row.parentId=relation.parentId;row.coverageMode=relation.coverageMode;
+            row.validity=frame.world.find(id)->validity;
+            row.geometry=*frame.document.geometries.get(staticGeometryBinding(frame.document,id).geometryRef);
+            row.style=frame.document.presentation.objectStyles.at(owner);
+            if(frame.document.countryDetails.count(owner))row.countryDetails=frame.document.countryDetails.at(owner);
+            if(frame.document.symbols.count(owner))row.symbol=frame.document.symbols.at(owner);
+            rows.emplace(id,edit.features.size());edit.features.push_back(std::move(row));return edit.features.back();
+        };
+        for(const auto& patch:plan.territoryReplacements)existing(patch.owner.id).geometry=patch.geometry;
+        for(const auto& [id,name]:plan.countryNameUpdates){auto& row=existing(id);row.identity.name=name;row.identity.nameExplicit=true;}
+        for(const auto& addition:plan.additions) {
+            const auto& selection=addition.selection;WebTerritorialFeature row;
+            row.identity.id=instanceId(addition);row.identity.kind=addition.asIndependentCountry?UnitKind::General:selection.type;
+            row.identity.name=addition.asIndependentCountry?addition.countryName:selection.name;
+            row.identity.baseName=row.identity.kind==UnitKind::General?row.identity.name:"";row.identity.nameExplicit=true;
+            row.identity.sourceEntityId=selection.libraryId;row.identity.sourceGeometryVersion=selection.geometryVersionId;
+            row.identity.metadata=selection.metadata.empty()?"{}":selection.metadata;
+            row.identity.libraryOrigin=LibraryOrigin{selection.libraryId,selection.geometryVersionId,addition.referenceDate,selection.sourceId,"2",selection.certainty,selection.datePrecision,selection.partial,selection.missingSourceIds};
+            row.geometry=selection.geometry;row.parentId=addition.parent?addition.parent->id:"";
+            row.coverageMode=!addition.instanceId.empty()&&!row.parentId.empty()?"partition":"explicit";
+            row.style=addition.initialObjectStyle.value_or(ObjectStyle{});row.countryDetails=addition.initialCountryDetails;row.symbol=addition.initialSymbolStyle;
+            rows.emplace(row.identity.id,edit.features.size());edit.features.push_back(std::move(row));
+        }
+        for(const auto& [donor,target]:plan.territoryTransfers) {
+            edit.removedIds.push_back(donor.id);
+            for(const auto& resolved:frame.world.entities)if(resolved.parentId==donor.id)existing(resolved.id).parentId=target.id;
+        }
+        Project bridge;bridge.replace(document);bridge.setTimelineCursor(*plan.applicationMonth);
+        document=applyWebTerritorialEdit(bridge.snapshot(),edit,TerritorialEditContext::LibraryImport);
+        return;
+    }
     std::set<ObjectRef> replaced;
     for(const auto& patch:plan.territoryReplacements) {
         if(patch.owner.domain!="territorial"||!replaced.insert(patch.owner).second)

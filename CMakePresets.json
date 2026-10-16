@@ -134,7 +134,15 @@
         "m72_mapprojection_lifetime_tests",
         "interaction_style_policy_tests",
         "m976_shared_boundary_engine_tests",
-        "native_performance_structure_tests"
+        "native_performance_structure_tests",
+        "geometry_calculator_tests",
+        "cut_geometry_calculator_tests",
+        "split_geometry_normalizer_tests",
+        "split_geometry_lifecycle_tests",
+        "river_partition_tests",
+        "river_area_tests",
+        "reference_image_tests",
+        "reference_auto_georef_tests"
       ],
       "jobs": 2
     },
@@ -148,7 +156,15 @@
         "m72_mapprojection_lifetime_tests",
         "interaction_style_policy_tests",
         "m976_shared_boundary_engine_tests",
-        "native_performance_structure_tests"
+        "native_performance_structure_tests",
+        "geometry_calculator_tests",
+        "cut_geometry_calculator_tests",
+        "split_geometry_normalizer_tests",
+        "split_geometry_lifecycle_tests",
+        "river_partition_tests",
+        "river_area_tests",
+        "reference_image_tests",
+        "reference_auto_georef_tests"
       ],
       "jobs": 2
     }
@@ -186,7 +202,7 @@
       },
       "filter": {
         "include": {
-          "name": "^(temporal_tests|m72_mapprojection_lifetime_tests|interaction_style_policy_tests|m976_shared_boundary_engine_tests|native_performance_structure_tests)$"
+          "name": "^(temporal_tests|m72_mapprojection_lifetime_tests|interaction_style_policy_tests|m976_shared_boundary_engine_tests|native_performance_structure_tests|geometry_calculator_tests|cut_geometry_calculator_tests|split_geometry_normalizer_tests|split_geometry_lifecycle_tests|river_partition_tests|river_area_tests|reference_image_tests|reference_auto_georef_tests)$"
         }
       }
     },
@@ -199,7 +215,7 @@
       },
       "filter": {
         "include": {
-          "name": "^(temporal_tests|m72_mapprojection_lifetime_tests|interaction_style_policy_tests|m976_shared_boundary_engine_tests|native_performance_structure_tests)$"
+          "name": "^(temporal_tests|m72_mapprojection_lifetime_tests|interaction_style_policy_tests|m976_shared_boundary_engine_tests|native_performance_structure_tests|geometry_calculator_tests|cut_geometry_calculator_tests|split_geometry_normalizer_tests|split_geometry_lifecycle_tests|river_partition_tests|river_area_tests|reference_image_tests|reference_auto_georef_tests)$"
         }
       }
     }

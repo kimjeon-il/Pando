@@ -142,6 +142,11 @@ export function createTerritorialLibraryController({
     if (!validFrom && !validTo) return '기간 미상';
     return `${validFrom ? year(validFrom) : '?'}–${validTo ? year(validTo) : '현재'}`;
   }
+  function availabilityNotice(status) {
+    return status==='absent'?'기록된 존속 기간 밖의 시점입니다.':status==='geometry-gap'?
+      '이 시점의 국토 자료가 비어 있습니다. 국가의 부재를 뜻하지 않습니다.':status==='unknown'?
+      '이 시점의 존속 여부와 국토 자료가 확인되지 않았습니다.':'';
+  }
 
   function setTimePopover(open, { restoreFocus = false } = {}) {
     timePopoverOpen = !!open;
@@ -241,7 +246,7 @@ export function createTerritorialLibraryController({
       const help = document.createElement('p');
       help.className = 'editor-help';
       help.textContent = !selectedId ? '항목을 선택하세요.' : !resolution
-        ? (referenceDate ? '선택한 시점의 국토 자료가 없습니다.' : '대표 국토 자료를 정할 수 없습니다. 시점을 입력해 주세요.')
+        ? (referenceDate ? availabilityNotice(service.sourceAvailability(selectedId,referenceDate)) : '대표 국토 자료를 정할 수 없습니다. 시점을 입력해 주세요.')
         : '국토 자료를 불러오는 중입니다.';
       elements.preview.replaceChildren(help);
       elements.add.disabled = true;
@@ -302,7 +307,7 @@ export function createTerritorialLibraryController({
       const strong = document.createElement('strong');
       strong.textContent = entity.names.ko || entity.names.en || Object.values(entity.names)[0];
       const small = document.createElement('small');
-      small.textContent = period(entity);
+      small.textContent = [period(entity),availabilityNotice(entity.sourceAvailability)].filter(Boolean).join(' · ');
       const flagUrl = String(entity.metadata?.defaultFlagDataUrl || '').trim();
       if (flagUrl) {
         const flag = document.createElement('span');
@@ -319,7 +324,7 @@ export function createTerritorialLibraryController({
     }
     if (!results.length) fragment.appendChild(createEmptyState(
       flagPicker ? '국기가 있는 항목이 없습니다.' : '조건에 맞는 항목이 없습니다.',
-      referenceDate ? '기록된 존속 기간에서 확인되는 항목이 없습니다. 검색어나 시점을 바꾸거나 시점을 비워 보세요.' : '검색어를 바꿔 보세요.',
+      '검색어에 맞는 등록 자료가 없습니다. 검색어를 바꿔 보세요.',
       { compact: true },
     ));
     elements.results.replaceChildren(fragment);

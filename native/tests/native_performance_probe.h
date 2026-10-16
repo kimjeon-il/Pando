@@ -2,6 +2,7 @@
 #include "gpumapitem.h"
 #include "maprenderitem.h"
 #include "terrainimageprovider.h"
+#include "worlddatasetloader.h"
 #include "native_performance_input_state.h"
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -18,6 +19,10 @@
 #include <limits>
 #include <QMouseEvent>
 #include <QKeyEvent>
+#include <QDirIterator>
+#include <QLineF>
+#include <QGuiApplication>
+#include <QStyleHints>
 
 class NativePerfEventFilter final : public QObject {
 public:
@@ -39,22 +44,175 @@ static QString nativePerfFileHash(const QString& path)
     return QString::fromLatin1(hash.result().toHex());
 }
 
+static QString nativePerfWorldRoot()
+{
+    const auto supplied=qEnvironmentVariable("PANDOEDITOR_NATIVE_PERF_WORLD_ROOT");
+    return supplied.isEmpty()?QStringLiteral(PANDOEDITOR_WORLD_ASSET_DIR):supplied;
+}
+
+// Generate measurement inputs through the real world loader and project writer.
+// All roles retain the entire published world; only the view/input differs.
+// These newly pinned inputs do not establish the historical M98 full-stack gate.
+static void prepareNativePerformanceFixtures()
+{
+    const auto output=qEnvironmentVariable("PANDOEDITOR_NATIVE_PERF_FIXTURE_OUTPUT");
+    QVERIFY2(!output.isEmpty()&&!QFileInfo::exists(output),"A fresh fixture output path is required");
+    const auto world=nativePerfWorldRoot();
+    const auto worldManifest=nativePerfJsonFile(QDir(world).filePath("manifest.json"));
+    QVERIFY(!worldManifest.isEmpty());
+    // Exercise the actual pinned loader directly before its asynchronous
+    // controller boundary; failures retain the original decoder diagnostic.
+    const auto loadedPreview=WorldDatasetLoader::preview(world);
+    QVERIFY(loadedPreview.frame&&loadedPreview.frame->mesh&&loadedPreview.frame->mesh->sourceCoordinateCount>0);
+    QTemporaryDir privateData;QVERIFY(privateData.isValid());
+    EditorControllerConfig config;config.bootstrapWorld=true;config.worldDataRoot=world;
+    config.appearancePath=privateData.filePath("appearance.json");
+    EditorController editor(config);
+    QSignalSpy startupErrors(&editor,&EditorController::errorOccurred);
+    QTRY_VERIFY_WITH_TIMEOUT((!editor.startupBusy()&&editor.worldStatus()=="canonical")||!startupErrors.isEmpty(),90000);
+    QVERIFY2(!editor.startupBusy()&&editor.worldStatus()=="canonical",
+        qPrintable(startupErrors.isEmpty()?QString("World startup: ")+editor.worldStatus():startupErrors.first().first().toString()));
+    const auto project=QJsonDocument::fromJson(editor.documentBytes()).object();
+    const auto unitCount=project.value("units").toArray().size();
+    QVERIFY(unitCount>=worldManifest.value("countryCount").toInt());
+    QVERIFY(project.value("geometries").toArray().size()>=worldManifest.value("countryCount").toInt());
+    QVERIFY(QDir().mkpath(output));const QDir destination(output);
+    const auto write=[&](const QString& name,const QJsonObject& value)->bool {
+        QSaveFile file(destination.filePath(name));
+        return file.open(QIODevice::WriteOnly)&&file.write(QJsonDocument(value).toJson())>0&&file.commit();
+    };
+    QJsonArray assets;
+    for(const auto& root:{world,QDir(world).filePath("../place")}) {
+        QDirIterator files(root,QDir::Files,QDirIterator::Subdirectories);
+        while(files.hasNext()) {
+            const auto file=files.next();
+            assets.append(QJsonObject{{"path",destination.relativeFilePath(file)},{"sha256",nativePerfFileHash(file)}});
+        }
+    }
+    QVERIFY(!assets.isEmpty());
+    const auto placePath=QDir(world).filePath("../place/manifest.json");
+    const auto place=nativePerfJsonFile(placePath);
+    QVERIFY(!place.isEmpty()&&place.value("revision").toString()!="empty-v1");
+    const QString projectName="production-world.pando.json";
+    QVERIFY(editor.saveFile(QUrl::fromLocalFile(destination.filePath(projectName))));
+    const auto projectHash=nativePerfFileHash(destination.filePath(projectName));
+    QVERIFY(!projectHash.isEmpty());
+    QJsonArray fixtures;
+    const QStringList roles={"world-standard","dense-view","editing-heavy","large-project"};
+    for(const auto& role:roles) {
+        const auto viewName=role+".view.json",inputName=role+".input.json";
+        QVERIFY(editor.setProjectionMode("flat"));
+        const bool europe=role=="dense-view"||role=="editing-heavy";
+        const bool large=role=="large-project";
+        QVERIFY(editor.publishMapView({{"viewportWidth",1920},{"viewportHeight",929},
+            {"centerLongitude",europe?15.:large?100.:0.},{"centerLatitude",europe?50.5:large?55.:20.},
+            {"scale",europe?5000.:large?2200.:300.},{"translateX",960.},{"translateY",464.5}}));
+        const auto view=editor.mapViewState();
+        QJsonObject input{{"schema","pandoeditor-native-performance-inputs"},{"version",2},
+            {"sequenceId","m98-native-v3-prepared-drag"},{"measurementScope","p9-relative"},
+            {"script",QJsonObject{{"panCount",120},{"zoomCount",90},{"wheelAngleDelta",5},
+                {"panSampleStart",1},{"panPreparationOffset",QJsonArray{20,0}},{"demZoomOutInitialScaleMultiplier",2}}}};
+        if(role=="editing-heavy"||large) {
+            const QString entityId=large?"RUS":"DEU";
+            QPoint selection;bool found=false;
+            for(int y=160;y<760&&!found;y+=20)for(int x=500;x<(large?1720:1400)&&!found;x+=20) {
+                const auto hit=editor.pickObjectScreen(x,y,view.value("flatZoom").toDouble());
+                if(hit.value("domain").toString()=="territorial"&&hit.value("id").toString()==entityId) {
+                    selection={x,y};found=true;
+                }
+            }
+            QVERIFY2(found,qPrintable("Published world must expose a real selection point: "+entityId));
+            editor.selectCountry(entityId);
+            const auto before=editor.documentBytes();
+            const auto beforeDirty=editor.dirty(),beforeUndo=editor.canUndo(),beforeRedo=editor.canRedo();
+            QVERIFY(editor.beginGeometryEdit());
+            double distance=std::numeric_limits<double>::infinity(),neighborLength=0;QPointF vertex;
+            for(const auto& path:editor.geometryDraftPaths()) {
+                const auto vertices=path.toMap().value("vertices").toList();
+                QList<QPointF> screens;screens.reserve(vertices.size());
+                for(const auto& value:vertices) {
+                    const auto point=value.toMap();
+                    screens.append(editor.editMapPointToScreen(point.value("x").toDouble(),point.value("y").toDouble(),view));
+                }
+                // Closed source rings repeat their first vertex. Do not treat
+                // that duplicate as a zero-length neighbour of vertex zero.
+                if(screens.size()>1&&QLineF(screens.front(),screens.back()).length()<1e-6)screens.removeLast();
+                for(qsizetype i=0;i<screens.size();++i) {
+                    const auto screen=screens[i];
+                    if(screen.x()<500||screen.x()>(large?1720:1400)||screen.y()<180||screen.y()>700)continue;
+                    const double adjacent=std::min(QLineF(screen,screens[(i+screens.size()-1)%screens.size()]).length(),
+                        QLineF(screen,screens[(i+1)%screens.size()]).length());
+                    if(large&&adjacent<6)continue;
+                    const auto candidate=std::hypot(screen.x()-(large?960:918),screen.y()-(large?464.5:277));
+                    if(candidate<distance){distance=candidate;vertex=screen;neighborLength=adjacent;}
+                }
+            }
+            QVERIFY2(std::isfinite(distance),qPrintable("No visible source vertex with sufficient adjacent segment length: "+entityId));
+            editor.cancelGeometryEdit();
+            QCOMPARE(editor.documentBytes(),before);QCOMPARE(editor.dirty(),beforeDirty);
+            QCOMPARE(editor.canUndo(),beforeUndo);QCOMPARE(editor.canRedo(),beforeRedo);
+            QJsonObject editingInput{{"selectionScreen",QJsonArray{selection.x(),selection.y()}},
+                {"selectionEntityId",entityId},{"sourceVertexMinNeighborPixels",neighborLength},
+                {"gesture",large?"keyboard-nudge":"pointer-drag"}};
+            if(large) {
+                editingInput["vertexScreen"]=QJsonArray{qRound(vertex.x()),qRound(vertex.y())};
+                editingInput["nudgePixels"]=QJsonArray{1,0};
+            }else {
+                editingInput["dragFrom"]=QJsonArray{qRound(vertex.x()),qRound(vertex.y())};
+                editingInput["dragTo"]=QJsonArray{qRound(vertex.x())+8,qRound(vertex.y())-5};
+            }
+            input["editingPreviewCancel"]=editingInput;
+        }
+        QVERIFY(write(viewName,{{"format","pandoeditor-view-state"},{"view",QJsonObject::fromVariantMap(view)}}));
+        QVERIFY(write(inputName,input));
+        fixtures.append(QJsonObject{{"id",role},{"projectPath",projectName},{"projectSha256",projectHash},
+            {"viewPath",viewName},{"viewSha256",nativePerfFileHash(destination.filePath(viewName))},
+            {"inputContractPath",inputName},{"inputContractSha256",nativePerfFileHash(destination.filePath(inputName))},
+            {"assets",assets},{"expectedFinalStates",QJsonObject{{"p9-preview-cancel","document-and-history-unchanged"}}},
+            {"fullStack",false},{"datasetClass","production-full-world"},{"unitCount",unitCount},
+            {"geometryCount",project.value("geometries").toArray().size()}});
+    }
+    QVERIFY(write("fixtures.json",{{"schema","pandoeditor-native-performance-fixtures"},{"version",2},
+        {"measurementScope","p9-relative"},{"fixtureDefinition","One canonical production-world saved project shared by all roles; standard/global, dense/Europe, editing/DEU, large/Asia navigation and RUS preview/cancel. No cloned objects or generated geometry. Existing-world-project open is measured; M98 full-stack/stress acceptance is not established."},
+        {"productionPlace",QJsonObject{{"path",destination.relativeFilePath(placePath)},
+            {"sha256",nativePerfFileHash(placePath)},{"revision",place.value("revision")}}},{"fixtures",fixtures}}));
+}
+
 // Opt-in native-device measurement. It uses the production QML and controller,
 // isolated persistence, and never changes the supplied recovery files.
 static void runNativePerformanceProbe()
 {
+    const bool relative=qEnvironmentVariable("PANDOEDITOR_NATIVE_PERF_PROFILE")=="p9-relative";
     const auto reportPath=qEnvironmentVariable("PANDOEDITOR_NATIVE_PERF_REPORT");
     if(reportPath.isEmpty())QSKIP("Native GPU performance requires an explicit isolated measurement run");
     const auto manifestPath=qEnvironmentVariable("PANDOEDITOR_NATIVE_PERF_FIXTURES");
     const auto manifest=nativePerfJsonFile(manifestPath);
     QCOMPARE(manifest.value("schema").toString(),QString("pandoeditor-native-performance-fixtures"));
     QCOMPARE(manifest.value("version").toInt(),2);
+    const QStringList knownFixtureIds={"world-standard","dense-view","editing-heavy","large-project"};
+    QStringList selectedFixtureIds=knownFixtureIds;
+    if(relative&&qEnvironmentVariableIsSet("PANDOEDITOR_NATIVE_PERF_FIXTURE_IDS")) {
+        QJsonParseError error;
+        const auto selection=QJsonDocument::fromJson(qgetenv("PANDOEDITOR_NATIVE_PERF_FIXTURE_IDS"),&error);
+        QVERIFY2(error.error==QJsonParseError::NoError&&selection.isArray(),"Fixture selection must be a JSON array");
+        selectedFixtureIds.clear();
+        for(const auto& value:selection.array()) {
+            QVERIFY2(value.isString()&&knownFixtureIds.contains(value.toString())&&!selectedFixtureIds.contains(value.toString()),
+                "Fixture selection must contain unique known role IDs");
+            selectedFixtureIds.append(value.toString());
+        }
+        QVERIFY2(!selectedFixtureIds.isEmpty(),"At least one fixture role must be selected");
+    }
+    const auto initialFixtureId=selectedFixtureIds.front();
     const QStringList ids={"idle","flat-pan","flat-zoom","globe-rotation","globe-zoom","projection-switch","hover","selection","dense-labels","hydro-dense","dem-zoom-in","dem-zoom-out","combined-pan","menu-panel","large-navigation"};
     const QStringList names={"Idle","Flat pan","Flat zoom","Globe rotation","Globe zoom",QString::fromUtf8("Flat ↔ Globe switch"),"Hover","Selection","Dense labels pan/zoom","Hydro dense viewport","DEM LOD zoom-in","DEM LOD zoom-out",QString::fromUtf8("Terrain + labels + hydro 동시 pan"),"Menu/panel UI","Large project navigation"};
     QHash<QString,QJsonObject> fixtureContracts;
     QHash<QString,QJsonObject> inputContracts;
     for(const auto& value:manifest.value("fixtures").toArray()) {
-        const auto fixture=value.toObject();fixtureContracts.insert(fixture.value("id").toString(),fixture);
+        const auto fixture=value.toObject();const auto fixtureId=fixture.value("id").toString();
+        if(!selectedFixtureIds.contains(fixtureId))continue;
+        QVERIFY2(!fixtureContracts.contains(fixtureId),"Duplicate selected fixture in input manifest");
+        fixtureContracts.insert(fixtureId,fixture);
         for(const auto& pair:{qMakePair("projectPath","projectSha256"),qMakePair("viewPath","viewSha256")}) {
             const auto path=QFileInfo(manifestPath).dir().filePath(fixture.value(pair.first).toString());
             QCOMPARE(nativePerfFileHash(path),fixture.value(pair.second).toString().toLower());
@@ -76,27 +234,35 @@ static void runNativePerformanceProbe()
         QCOMPARE(script.value("demZoomOutInitialScaleMultiplier").toDouble(),2.);
         inputContracts.insert(fixture.value("id").toString(),contract);
     }
-    for(const auto* id:{"world-standard","dense-view","editing-heavy","large-project"})QVERIFY(fixtureContracts.contains(id));
+    for(const auto& id:selectedFixtureIds)QVERIFY(fixtureContracts.contains(id));
     const auto mode=qEnvironmentVariable("PANDOEDITOR_NATIVE_PERF_MODE");
     const auto preflight=nativePerfJsonFile(qEnvironmentVariable("PANDOEDITOR_NATIVE_PERF_PREFLIGHT"));
     QVERIFY2(mode=="diagnostic"||preflight.value("status").toString()=="PASS","Production full-stack acceptance preflight blocked");
     QTemporaryDir privateData;QVERIFY(privateData.isValid());
-    QHash<QString,QString> fixtureProjects;
+    QHash<QString,QString> fixtureProjects,privateCopies;
     for(auto it=fixtureContracts.begin();it!=fixtureContracts.end();++it) {
         const auto original=QFileInfo(manifestPath).dir().filePath(it.value().value("projectPath").toString());
-        const auto copy=privateData.filePath(it.key()+".json");QVERIFY(QFile::copy(original,copy));fixtureProjects.insert(it.key(),copy);
+        if(!privateCopies.contains(original)) {
+            const auto copy=privateData.filePath(QString("input-project-%1.json").arg(privateCopies.size()));
+            QVERIFY(QFile::copy(original,copy));privateCopies.insert(original,copy);
+        }
+        fixtureProjects.insert(it.key(),privateCopies.value(original));
     }
     EditorControllerConfig config;
-    config.bootstrapWorld=true;config.autosaveEnabled=true;config.projectPreviewEnabled=true;
-    config.worldDataRoot=QStringLiteral(PANDOEDITOR_WORLD_ASSET_DIR);
+    // P9 compares opening the same full-world saved project in both products.
+    // Disable the static base in both: a pre-P6 decoder cannot consume a new
+    // algorithm's fixed meshes, and patching that baseline would invalidate it.
+    config.bootstrapWorld=!relative;config.autosaveEnabled=true;config.projectPreviewEnabled=true;
+    config.worldDataRoot=nativePerfWorldRoot();
     config.privateProjectPath=privateData.filePath("private.json");
     config.autosaveProjectPath=privateData.filePath("autosave-project.json");
     config.autosaveViewPath=privateData.filePath("autosave-view.json");
     config.appearancePath=privateData.filePath("appearance.json");
     config.projectPreviewCachePath=privateData.filePath("preview");
-    const auto recovery=fixtureProjects.value("world-standard");
+    const auto recovery=fixtureProjects.value(initialFixtureId);
     QElapsedTimer clock;clock.start();
     EditorController editor(config);
+    if(relative)QVERIFY(editor.configurePlaceData(QUrl::fromLocalFile(QDir(config.worldDataRoot).filePath("../place/manifest.json"))));
     const auto seedViewPath=qEnvironmentVariable("PANDOEDITOR_NATIVE_PERF_VIEW");
     if(recovery.isEmpty()&&!seedViewPath.isEmpty()) {
         QFile seed(seedViewPath);QVERIFY(seed.open(QIODevice::ReadOnly));
@@ -332,22 +498,75 @@ static void runNativePerformanceProbe()
             if(ablation=="no-map")gpu->setVisible(false);
         }
     });
+    QJsonObject lastReadiness;
+    const auto latestFrameReady=[&](quint64 previousPresents)->bool {
+        const auto quality=editor.renderQuality(),physical=editor.terrainDataStatus(),place=editor.placeDataStatus();
+        const auto zero=[](const QVariantMap& values,const char* key) {
+            bool valid=false;const auto value=values.value(key).toULongLong(&valid);
+            return values.contains(key)&&valid&&value==0;
+        };
+        const auto inactive=[](const QVariantMap& values,const char* key) {
+            return values.contains(key)&&values.value(key).isValid()&&!values.value(key).toBool();
+        };
+        const auto caches=quality.value("resourceCaches").toMap();
+        bool providersSettled=true;
+        for(const auto* domain:{"hydro","place","label"})
+            providersSettled&=zero(caches.value(domain).toMap(),"pendingCount");
+        const bool preparationReady=!editor.startupBusy()&&zero(quality,"pendingJobs")&&
+            inactive(quality,"viewportResourcePending")&&zero(place,"pendingCount")&&providersSettled&&
+            zero(physical,"activeDownloads")&&zero(physical,"queuedDownloads")&&zero(physical,"pendingJobs")&&
+            inactive(physical,"cpuPreparationPending")&&inactive(physical,"cpuPreparationScheduled")&&
+            inactive(physical,"uploadWorkPending")&&zero(physical,"pendingDisplayAdoptions");
+        const auto frame=sceneBridge->frameSnapshot();
+        const auto rendered=gpu->renderObservation();
+        const bool latestRendered=frame&&rendered&&rendered->rendererReady&&!rendered->stats.uploadsPending&&rendered->frame==frame;
+        lastReadiness={{"preparationReady",preparationReady},{"latestRendered",latestRendered},
+            {"presentsAdvanced",presents.load()>previousPresents},{"startupBusy",editor.startupBusy()},
+            {"pendingJobs",QJsonValue::fromVariant(quality.value("pendingJobs"))},
+            {"viewportResourcePending",QJsonValue::fromVariant(quality.value("viewportResourcePending"))},
+            {"place",QJsonObject::fromVariantMap(place)},{"physical",QJsonObject::fromVariantMap(physical)},
+            {"providerCaches",QJsonObject{{"hydro",QJsonObject::fromVariantMap(caches.value("hydro").toMap())},
+                {"place",QJsonObject::fromVariantMap(caches.value("place").toMap())},
+                {"label",QJsonObject::fromVariantMap(caches.value("label").toMap())}}},
+            {"bridgeFrame",frameState(frame)},{"renderFrame",rendered?frameState(rendered->frame):QJsonObject{}},
+            {"renderUploadsPending",rendered?QJsonValue(rendered->stats.uploadsPending):QJsonValue(QJsonValue::Null)}};
+        return preparationReady&&latestRendered&&presents.load()>previousPresents;
+    };
+    const auto waitForLatestFrame=[&](const QString& stage)->bool {
+        const auto previous=presents.load();QElapsedTimer readiness;readiness.start();window->update();
+        // Poll actual owned work and the immutable frame receipt. Disabled
+        // providers need no dataset bootstrap; only already-issued work settles.
+        bool ready=false;
+        do {QTest::qWait(10);ready=latestFrameReady(previous);}while(!ready&&readiness.elapsed()<90000);
+        auto event=lastReadiness;event["event"]="fixture-readiness";event["stage"]=stage;
+        event["elapsedMs"]=double(clock.elapsed());event["waitMs"]=double(readiness.elapsed());event["ready"]=ready;
+        journal.write(QJsonDocument(event).toJson(QJsonDocument::Compact)+'\n');journal.flush();
+        return ready;
+    };
     pulse.start();sample.start();
     // Finish immutable world/provider bootstrap, then use the normal project
     // import path. Raw project files are not autosave envelopes.
     QTRY_VERIFY_WITH_TIMEOUT(!editor.startupBusy()&&editor.worldStatus()!="loading-preview"&&editor.worldStatus()!="preview"&&editor.worldStatus()!="canonical-pending-mesh",90000);
+    QElapsedTimer initialProjectLoad;initialProjectLoad.start();
     QVERIFY(editor.openFile(QUrl::fromLocalFile(recovery)));
     QTRY_VERIFY_WITH_TIMEOUT(!editor.startupBusy(),90000);
-    const auto initialEnvelope=nativePerfJsonFile(QFileInfo(manifestPath).dir().filePath(fixtureContracts.value("world-standard").value("viewPath").toString()));
+    const auto initialEnvelope=nativePerfJsonFile(QFileInfo(manifestPath).dir().filePath(fixtureContracts.value(initialFixtureId).value("viewPath").toString()));
     const auto fixtureView=initialEnvelope.value("view").toObject().toVariantMap();
     QVERIFY(!fixtureView.isEmpty());QVERIFY(editor.setProjectionMode(fixtureView.value("projection").toString()));QVERIFY(editor.publishMapView(fixtureView));
+    if(relative) {
+        QVERIFY2(waitForLatestFrame("initial-project-load:"+initialFixtureId),qPrintable(QString::fromUtf8(QJsonDocument(lastReadiness).toJson(QJsonDocument::Compact))));
+        QCOMPARE(window->rendererInterface()->graphicsApi(),QSGRendererInterface::Direct3D11);
+    }
+    const auto initialProjectLoadMs=initialProjectLoad.nsecsElapsed()/1.e6;
+    const auto startupReadyMs=clock.nsecsElapsed()/1.e6;
     bool customWarmup=false;
     int warmup=qEnvironmentVariableIntValue("PANDOEDITOR_NATIVE_PERF_WARMUP_MS",&customWarmup);
-    warmup=customWarmup?std::max(60000,warmup):60000;
-    QTest::qWait(warmup);
-    QVERIFY(window->isExposed());QVERIFY(gpu->rendererReady());
+    warmup=relative?0:customWarmup?std::max(60000,warmup):60000;
+    if(warmup>0)QTest::qWait(warmup);
+    QVERIFY(window->isExposed());
     QVERIFY(presents.load()>0);QVERIFY(gpu->geometryUploadCount()>0);
-    QVERIFY(!gpu->uploadsPending());QVERIFY(!editor.startupBusy());
+    if(relative)QVERIFY2(latestFrameReady(0),qPrintable(QString::fromUtf8(QJsonDocument(lastReadiness).toJson(QJsonDocument::Compact))));
+    else {QVERIFY(gpu->rendererReady());QVERIFY(!gpu->uploadsPending());QVERIFY(!editor.startupBusy());}
     const auto initialView=QJsonObject::fromVariantMap(editor.mapViewState());
     QString fingerprintOwner,documentFingerprint;quint64 fingerprintRevision=std::numeric_limits<quint64>::max();
     quint64 geometryDraftRevision=0;
@@ -376,19 +595,22 @@ static void runNativePerformanceProbe()
         result["contentEditActive"]=editor.contentEditState().value("active").toBool();
         return result;
     };
+    QString activeFixture=initialFixtureId;
     bool inputAssociationFailed=false;QString lastStepFailure;
     const auto stepFailure=[&](const QString& message) {
         inputAssociationFailed=true;lastStepFailure=message;
         journal.write(QJsonDocument(QJsonObject{{"event","step-failure"},{"elapsedMs",double(clock.elapsed())},{"message",message}}).toJson(QJsonDocument::Compact)+'\n');journal.flush();
         return false;
     };
+    const int inputTimeoutMs=relative?60'000:5'000;
+    const qint64 inputTimeoutNs=qint64(inputTimeoutMs)*1'000'000;
     const auto input=[&](int kind,const std::function<void()>& action,const std::function<bool()>& ready=std::function<bool()>{}) {
         phase.store(kind);
         const auto before=currentState();
         const auto start=clock.nsecsElapsed();
         rawInputSequence=requested.load()+1;
         QEventLoop presentedLoop;
-        QTimer deadline;deadline.setSingleShot(true);deadline.setInterval(5000);
+        QTimer deadline;deadline.setSingleShot(true);deadline.setInterval(inputTimeoutMs);
         int sequence=0;
         const auto wake=QObject::connect(window,&QQuickWindow::frameSwapped,&presentedLoop,[&]{
             if(presented.load()>=sequence)presentedLoop.quit();
@@ -399,8 +621,8 @@ static void runNativePerformanceProbe()
         QCoreApplication::processEvents();
         const auto frameMatchesGui=[&]{const auto frame=frameState(sceneBridge->frameSnapshot());
             return frame.value("selectedId").toString()==editor.selectedId()&&frame.value("hoveredId").toString()==editor.hoverObject().value("id").toString()&&frame.value("viewRevision").toDouble()==editor.mapViewState().value("revision").toDouble();};
-        while(!frameMatchesGui()&&clock.nsecsElapsed()-start<5'000'000'000LL)QTest::qWait(5);
-        while(ready&&!ready()&&clock.nsecsElapsed()-start<5'000'000'000LL)QTest::qWait(5);
+        while(!frameMatchesGui()&&clock.nsecsElapsed()-start<inputTimeoutNs)QTest::qWait(5);
+        while(ready&&!ready()&&clock.nsecsElapsed()-start<inputTimeoutNs)QTest::qWait(5);
         const bool completionReady=frameMatchesGui()&&(!ready||ready());
         auto expected=currentState();
         const auto initialExpected=expected;QJsonArray targetAdvances;
@@ -420,11 +642,11 @@ static void runNativePerformanceProbe()
             window->update();
         });
         refreshTarget.start();window->update();
-        if(presented.load()<sequence&&clock.nsecsElapsed()-start<5'000'000'000LL)presentedLoop.exec();
+        if(presented.load()<sequence&&clock.nsecsElapsed()-start<inputTimeoutNs)presentedLoop.exec();
         refreshTarget.stop();QObject::disconnect(wake);
         const bool delivered=presented.load()>=sequence;
         QJsonObject actual,owner;{std::lock_guard<std::mutex> lock(frameMutex);actual=presentedState;owner=presentedOwner;}
-        QJsonObject observation{{"event","input"},{"scenarioId",repeatPhase.load()?QString("long-run"):ids.value(kind)},{"elapsedMs",start/1.e6},
+        QJsonObject observation{{"event","input"},{"fixtureId",activeFixture},{"scenarioId",repeatPhase.load()?QString("long-run"):ids.value(kind)},{"elapsedMs",start/1.e6},
             {"latencyMs",((delivered?presentedNs.load():clock.nsecsElapsed())-start)/1.e6},
             {"startedNs",double(start)},{"synchronizedNs",double(synchronizedNs.load())},{"presentedNs",double(presentedNs.load())},
             {"inputSequence",sequence},{"frameSequence",double(presentedFrame.load())},
@@ -448,7 +670,6 @@ static void runNativePerformanceProbe()
     };
     const QPoint panStart=map->mapToScene({960,464.5}).toPoint();
     QJsonArray scenarios,cycles;
-    QString activeFixture="world-standard";
     const auto loadFixture=[&](const QString& id)->bool {
         phase.store(-1);const auto fixture=fixtureContracts.value(id);
         if(id!=activeFixture) {
@@ -458,7 +679,9 @@ static void runNativePerformanceProbe()
         const auto envelope=nativePerfJsonFile(QFileInfo(manifestPath).dir().filePath(fixture.value("viewPath").toString()));
         const auto view=envelope.value("view").toObject().toVariantMap();
         if(view.isEmpty()||!editor.setProjectionMode(view.value("projection").toString())||!editor.publishMapView(view))return stepFailure("Fixture view failed: "+id);
-        QTest::qWait(1000);return true;
+        if(!relative){QTest::qWait(1000);return true;}
+        return waitForLatestFrame("fixture:"+id)
+            ||stepFailure("P9 fixture did not publish a ready frame: "+id);
     };
     const auto pan=[&](int kind,int count) {
         const auto started=clock.nsecsElapsed();phase.store(-1);
@@ -507,36 +730,97 @@ static void runNativePerformanceProbe()
         input(kind,[&]{QTest::mouseClick(window,Qt::LeftButton,Qt::NoModifier,p,0);});
         return !inputAssociationFailed&&!editor.selectedId().isEmpty()||stepFailure("Actual selection pointer failed");
     };
-    const auto previewCancel=[&]()->bool {
-        const auto contract=inputContracts.value("editing-heavy").value("editingPreviewCancel").toObject();
+    const auto previewCancel=[&](const QString& fixtureId)->bool {
+        const auto contract=inputContracts.value(fixtureId).value("editingPreviewCancel").toObject();
         if(contract.isEmpty())return stepFailure("Missing immutable editing preview/cancel contract");
         const auto before=editor.documentBytes();
         const auto beforeDirty=editor.dirty(),beforeUndo=editor.canUndo(),beforeRedo=editor.canRedo();
         if(!selectAt(12,contract.value("selectionScreen").toArray()))return false;
         const auto expectedEntity=contract.value("selectionEntityId").toString();
-        if(!expectedEntity.isEmpty()&&editor.selectedId()!=expectedEntity)return stepFailure("Editing fixture selection identity mismatch");
+        if(expectedEntity.isEmpty()||editor.selectedId()!=expectedEntity)return stepFailure("Editing fixture selection identity mismatch: "+fixtureId);
         enterExistingControlRoute(window,"editorGeometryAction");
         input(12,[&]{clickItem("editorGeometryAction");});
         if(inputAssociationFailed||!editor.geometryEditState().value("active").toBool())return stepFailure("Actual geometry edit pointer failed");
-        const auto from=contract.value("dragFrom").toArray(),to=contract.value("dragTo").toArray();
-        if(from.size()!=2||to.size()!=2)return stepFailure("Missing immutable drag points");
+        const auto gesture=contract.value("gesture").toString();
+        if(gesture!="pointer-drag"&&gesture!="keyboard-nudge")return stepFailure("Missing immutable geometry input gesture");
+        const auto from=contract.value(gesture=="keyboard-nudge"?"vertexScreen":"dragFrom").toArray();
+        if(from.size()!=2)return stepFailure("Missing immutable vertex selection point");
         const auto a=map->mapToScene(QPointF(from[0].toDouble(),from[1].toDouble())).toPoint();
-        const auto b=map->mapToScene(QPointF(to[0].toDouble(),to[1].toDouble())).toPoint();
         input(12,[&]{QTest::mouseClick(window,Qt::LeftButton,Qt::NoModifier,a,0);});
         if(inputAssociationFailed||editor.geometryEditState().value("selectedVertex").toInt()<0)return stepFailure("Actual vertex selection failed");
         const auto originalDraft=editor.geometryDraftPaths();
-        QTest::mousePress(window,Qt::LeftButton,Qt::NoModifier,a,0);
-        for(int step=1;step<=8&&!inputAssociationFailed;++step)input(12,[&]{QTest::mouseMove(window,a+(b-a)*step/8,0);});
-        input(12,[&]{QTest::mouseRelease(window,Qt::LeftButton,Qt::NoModifier,b,0);});
+        if(gesture=="keyboard-nudge") {
+            const auto pixels=contract.value("nudgePixels").toArray();
+            if(pixels!=QJsonArray({1,0}))return stepFailure("Immutable RUS nudge must be one pixel right");
+            input(12,[&]{QTest::keyClick(window,Qt::Key_Right,Qt::NoModifier,0);});
+        }else {
+            const auto to=contract.value("dragTo").toArray();
+            if(to.size()!=2)return stepFailure("Missing immutable drag destination");
+            const auto b=map->mapToScene(QPointF(to[0].toDouble(),to[1].toDouble())).toPoint();
+            const int activationDistance=QGuiApplication::styleHints()->startDragDistance()+2;
+            const auto activation=a+QPoint(b.x()<a.x()?-activationDistance:activationDistance,
+                b.y()<a.y()?-activationDistance:activationDistance);
+            // One observation covers the actual gesture, including the moves
+            // that activate Qt's DragHandler before returning to its fixed end.
+            input(12,[&]{
+                QTest::mousePress(window,Qt::LeftButton,Qt::NoModifier,a,0);
+                QTest::mouseMove(window,activation,0);QCoreApplication::processEvents();
+                QTest::mouseMove(window,b,0);QCoreApplication::processEvents();
+                QTest::mouseRelease(window,Qt::LeftButton,Qt::NoModifier,b,0);
+            });
+        }
         if(inputAssociationFailed)return false;
-        if(editor.geometryDraftPaths()==originalDraft||!editor.geometryEditState().value("canUndo").toBool())return stepFailure("Actual drag did not change the edit draft");
+        if(editor.geometryDraftPaths()==originalDraft||!editor.geometryEditState().value("canUndo").toBool())return stepFailure("Actual geometry input did not change the edit draft: "+gesture);
         input(12,[&]{clickItem("geometryPreview");},[&]{return editor.geometryEditState().value("previewReady").toBool();});
         if(inputAssociationFailed||!editor.geometryEditState().value("previewReady").toBool())return stepFailure("Actual geometry preview failed");
         input(12,[&]{clickItem("geometryCancel");});
         if(inputAssociationFailed||editor.geometryEditState().value("active").toBool()||editor.documentBytes()!=before||editor.dirty()!=beforeDirty||editor.canUndo()!=beforeUndo||editor.canRedo()!=beforeRedo)return stepFailure("Preview cancellation changed canonical document or history");
         return true;
     };
-    for(int kind=0;kind<ids.size();++kind){
+    QJsonArray relativeMeasurements;
+    if(relative) {
+        QCOMPARE(mode,QString("diagnostic"));
+        QCOMPARE(manifest.value("measurementScope").toString(),QString("p9-relative"));
+        for(const auto& role:selectedFixtureIds) {
+            const auto fixture=fixtureContracts.value(role);
+            QCOMPARE(fixture.value("datasetClass").toString(),QString("production-full-world"));
+            QVERIFY(fixture.value("unitCount").toInt()>=258);
+            QElapsedTimer operation;operation.start();
+            if(role!=initialFixtureId)QVERIFY2(loadFixture(role),qPrintable(lastStepFailure));
+            const double loadMs=role==initialFixtureId?initialProjectLoadMs:operation.nsecsElapsed()/1.e6;
+            QJsonValue editMs(QJsonValue::Null);
+            const auto editingInput=inputContracts.value(role).value("editingPreviewCancel").toObject();
+            const auto previewEntity=editingInput.value("selectionEntityId").toString();
+            const auto previewGesture=editingInput.value("gesture").toString();
+            if(role=="editing-heavy"||role=="large-project") {
+                QCOMPARE(previewEntity,QString(role=="large-project"?"RUS":"DEU"));
+                QCOMPARE(previewGesture,QString(role=="large-project"?"keyboard-nudge":"pointer-drag"));
+                operation.restart();
+                QVERIFY2(previewCancel(role),qPrintable(lastStepFailure));editMs=operation.nsecsElapsed()/1.e6;
+            }
+            const auto firstPanInput=inputs.size();
+            qsizetype firstFrame=0;{std::lock_guard<std::mutex> lock(frameMutex);firstFrame=presentationFrames.size();}
+            operation.restart();pan(1,120);
+            const auto panInputCount=inputs.size()-firstPanInput;
+            QVERIFY2(!inputAssociationFailed,"P9 pan failed actual input-to-render association; raw journal retained");
+            const double panMs=operation.nsecsElapsed()/1.e6;QJsonArray frameIntervals;
+            {std::lock_guard<std::mutex> lock(frameMutex);
+                for(int i=firstFrame;i<presentationFrames.size();++i)frameIntervals.append(presentationFrames[i].toObject().value("ms"));}
+            QVERIFY2(frameIntervals.size()>=100,"P9 requires actual swaps throughout the 120-move pan");
+            QVERIFY(window->grabWindow().save(reportPath+"-"+role+".png"));
+            const auto saved=privateData.filePath(role+"-save.json");operation.restart();
+            QVERIFY(editor.saveFile(QUrl::fromLocalFile(saved)));const auto saveMs=operation.nsecsElapsed()/1.e6;
+            QCOMPARE(readFile(saved),editor.documentBytes());
+            relativeMeasurements.append(QJsonObject{{"fixtureId",role},{"loadAndFirstReadyFrameMs",loadMs},{"panMs",panMs},
+                {"panInputCount",double(panInputCount)},
+                {"previewAndCancelMs",editMs},{"previewEntityId",previewEntity},{"previewGesture",previewGesture},
+                {"saveMs",saveMs},{"swapIntervalsMs",frameIntervals},
+                {"placeResources",QJsonObject::fromVariantMap(editor.placeDataStatus())},
+                {"terrainResources",QJsonObject::fromVariantMap(editor.terrainDataStatus())},
+                {"hydroResources",QJsonObject::fromVariantMap(editor.hydroDataStatus())}});
+        }
+    }
+    for(int kind=0;!relative&&kind<ids.size();++kind){
         const QString fixtureId=kind==14?"large-project":kind==8||kind==9||kind==12?"dense-view":"world-standard";
         QVERIFY2(loadFixture(fixtureId),qPrintable(lastStepFailure));
         if(kind==3||kind==4)QVERIFY(editor.setProjectionMode("globe"));
@@ -580,13 +864,13 @@ static void runNativePerformanceProbe()
         const QJsonObject scenario{{"id",ids[kind]},{"name",names[kind]},{"fixtureId",fixtureId},{"status","completed"},{"startMs",double(started)},{"endMs",double(clock.elapsed())},{"expectedFinalState",expected},{"actualFinalState",actual}};
         scenarios.append(scenario);journal.write(QJsonDocument(scenario).toJson(QJsonDocument::Compact)+'\n');journal.flush();
     }
-    bool customRepeat=false;int repeatMs=qEnvironmentVariableIntValue("PANDOEDITOR_NATIVE_PERF_REPEAT_MS",&customRepeat);repeatMs=customRepeat?std::max(720000,repeatMs):720000;
+    bool customRepeat=false;int repeatMs=qEnvironmentVariableIntValue("PANDOEDITOR_NATIVE_PERF_REPEAT_MS",&customRepeat);repeatMs=relative?0:customRepeat?std::max(720000,repeatMs):720000;
     const auto repeatStart=clock.elapsed();int cycle=0;
     repeatPhase.store(true);
     while(clock.elapsed()-repeatStart<repeatMs){
         const auto started=clock.elapsed();QVERIFY2(loadFixture("dense-view"),qPrintable(lastStepFailure));phase.store(12);pan(12,120);zoom(12,90);
         QVERIFY2(projectionInput(12,"globe"),qPrintable(lastStepFailure));pan(12,120);zoom(12,90);QVERIFY2(projectionInput(12,"flat"),qPrintable(lastStepFailure));
-        QVERIFY2(loadFixture("editing-heavy"),qPrintable(lastStepFailure));phase.store(12);QVERIFY2(previewCancel(),qPrintable(lastStepFailure));QVERIFY2(loadFixture("dense-view"),qPrintable(lastStepFailure));phase.store(12);
+        QVERIFY2(loadFixture("editing-heavy"),qPrintable(lastStepFailure));phase.store(12);QVERIFY2(previewCancel("editing-heavy"),qPrintable(lastStepFailure));QVERIFY2(loadFixture("dense-view"),qPrintable(lastStepFailure));phase.store(12);
         QVERIFY2(!inputAssociationFailed,"Long-run input-to-render association failed; raw states retained in journal");
         while(clock.elapsed()-started<60000)QTest::qWait(100);
         const auto resource=editor.terrainDataStatus(),quality=editor.renderQuality();
@@ -638,6 +922,10 @@ static void runNativePerformanceProbe()
     QJsonArray fixtureReceipts;
     for(auto it=fixtureContracts.begin();it!=fixtureContracts.end();++it)fixtureReceipts.append(QJsonObject{{"id",it.key()},{"manifestSha256",nativePerfFileHash(manifestPath)},{"fullStack",it.value().value("fullStack")}});
     QJsonObject result{{"schema","pandoeditor-native-performance"},{"version",2},
+        {"measurementProfile",relative?"p9-relative":"m98-stress"},{"startupToProjectViewMs",startupReadyMs},
+        {"fixtureIds",QJsonArray::fromStringList(selectedFixtureIds)},{"initialProjectLoadMs",initialProjectLoadMs},
+        {"startupMeasurement",relative?"existing-world-project-open":"production-world-bootstrap"},
+        {"relativeMeasurements",relativeMeasurements},
         {"completed",true},{"measurementMode",mode},{"diagnosticReason",qEnvironmentVariable("PANDOEDITOR_NATIVE_PERF_REASON")},
         {"warmupMs",warmup},{"repeatMs",repeatMs},{"ablation",ablation},{"inputRevision",QStringLiteral("m98-native-v3-prepared-drag")},
         {"logicalProcessors",logicalProcessors},{"cpuNormalization","process-time/all-active-logical-processors"},

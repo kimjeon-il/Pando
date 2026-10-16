@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-finish-probe"
+description = "Enables the finish_probe command without any pre-configured scope."
+commands.allow = ["finish_probe"]
+
+[[permission]]
+identifier = "deny-finish-probe"
+description = "Denies the finish_probe command without any pre-configured scope."
+commands.deny = ["finish_probe"]

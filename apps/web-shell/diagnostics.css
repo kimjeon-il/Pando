@@ -1,0 +1,30 @@
+#shellDiagnostics {
+  position: fixed;
+  z-index: 10000;
+  right: 14px;
+  bottom: 42px;
+  width: min(340px, calc(100vw - 28px));
+  max-height: calc(100vh - 100px);
+  overflow: auto;
+  box-sizing: border-box;
+  padding: 14px;
+  color: #203047;
+  background: #ffffffed;
+  border: 1px solid #c4cfde;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px #14263d26;
+  font: 12px/1.5 system-ui, sans-serif;
+}
+#shellDiagnostics strong { font-size: 14px; }
+#shellDiagnostics .shell-scope { margin: 4px 0 10px; color: #57677c; }
+#shellDiagnostics dl { display: grid; grid-template-columns: 1fr auto; gap: 5px 12px; margin: 0; }
+#shellDiagnostics dt, #shellDiagnostics dd { margin: 0; }
+#shellDiagnostics dd { font-weight: 650; font-size: 11px; }
+#shellDiagnostics dd[data-status="PASS"] { color: #166936; }
+#shellDiagnostics dd[data-status="FAIL"] { color: #b42318; }
+#shellDiagnostics dd[data-status="RUNNING"] { color: #175baf; }
+#shellDiagnostics dd[data-status="NOT_RUN"], #shellDiagnostics dd[data-status="CANCELLED"] { color: #68768b; }
+#shellDiagnostics .shell-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+#shellDiagnostics button { padding: 6px 9px; border: 1px solid #bdc9d9; border-radius: 6px; background: #f4f7fb; color: inherit; cursor: pointer; font: inherit; }
+#shellDiagnostics button:disabled { opacity: .5; cursor: wait; }
+#shellDiagnostics .shell-result { margin: 10px 0 0; overflow-wrap: anywhere; }

@@ -30,7 +30,7 @@ export function createSelectionRuntime(api, {features=seedSelectionFeatures(api)
   const errors=[], requests=[], previews=[], effects=[]; let draft=[], uid=0;
   const workflow=api.createTerritorySelectionWorkflow(), components=api.createTerritoryComponents(), modes=api.createCountryModes(), commits=api.createCountryCommits(), rivers=api.createRiverCandidates();
   const plan=api.createTerritoryComponentPlan({clipper:api.clipper,normalize:api.normalizePolygonGeometry});
-  const calculator=api.createCountryCommandCalculator(api.clipper);
+  const calculator=api.createCountryCommandCalculator();
   const worker={ stop(){effects.push('worker.stop');}, async execute(operation,{payload}) {
     requests.push({operation,payload:clone(payload)});
     const method={'territory-components':'prepare','territory-selection':'selection','territory-slivers':'slivers'}[operation];

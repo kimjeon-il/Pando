@@ -1,15 +1,7 @@
+# Explicit GIS/source-data reproduction; lightweight source checks remain in gis-python-p4.yml.
 name: German Empire 1914 historic-coast microtile evidence
 on:
   workflow_dispatch:
-  push:
-    branches: [work/gis]
-    paths:
-      - tools/probe_german_empire_coast_microtiles.py
-      - .github/workflows/german-empire-coast-microtiles.yml
-      - tools/build_german_cecilienkoog_1905_provisional.py
-      - tools/render_german_cecilienkoog_1905_qa.py
-      - tools/historical-library/sources/german-coastline/cecilienkoog-1905-dyke-manual-source.json
-      - tests/unit/historical-german-coastline-cecilienkoog.test.mjs
 permissions:
   contents: write
 concurrency:

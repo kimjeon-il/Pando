@@ -1,0 +1,67 @@
+import { createRuntimeProfile } from './runtime-profile.js';
+import { installDiagnostics } from './diagnostics.js';
+import { finishDiagnostics } from './native-storage.js';
+import { installNetworkGuard } from './network-guard.js';
+
+async function start() {
+  if (document.readyState === 'loading' && (!globalThis.PANDOLAB_BUILD_META || !window.d3)) {
+    await new Promise(resolve => document.addEventListener('DOMContentLoaded', resolve, { once: true }));
+  }
+  const meta = globalThis.PANDOLAB_BUILD_META;
+  if (!meta?.assetRevision || !window.d3) throw new Error('The bundled application dependencies are unavailable.');
+  installNetworkGuard();
+  const assetBase = new URL('../assets/js/', import.meta.url);
+  const versionedAsset = relative => {
+    const url = new URL(relative, assetBase);
+    url.searchParams.set('v', meta.assetRevision);
+    return url;
+  };
+  window.PANDOLAB_APP_VERSION = meta.appVersion;
+  window.PANDOLAB_ASSET_REVISION = meta.assetRevision;
+  window.PANDOLAB_DATA_REVISION = meta.dataRevision;
+  window.PANDOLAB_ASSET_BASE_URL = assetBase.href;
+  window.PANDOLAB_LABEL_ANCHORS = {};
+  window.__PANDOLAB_STARTUP_METRICS__ = { source: 'desktop-tiny-fixture', startupPhase: 'project-loading' };
+  let modalStyles;
+  window.PANDOLAB_ENSURE_MODAL_STYLES = () => modalStyles ||= new Promise((resolve, reject) => {
+    const style = document.createElement('link');
+    style.rel = 'stylesheet';
+    style.href = versionedAsset('../css/ui-modal.bundle.css').href;
+    style.dataset.pandolabUiModal = 'ui-modal-bundle';
+    style.addEventListener('load', () => resolve(style), { once: true });
+    style.addEventListener('error', () => { modalStyles = null; reject(new Error('Modal styles unavailable.')); }, { once: true });
+    document.head.append(style);
+  });
+  const profile = await createRuntimeProfile();
+  const countries = await fetch(profile.countriesUrl);
+  if (!countries.ok) throw new Error(`Shell geometry unavailable (${countries.status}).`);
+  window.PANDOLAB_COUNTRIES = await countries.json();
+  const { composeApplication } = await import(versionedAsset('./modules/app-composition.js').href);
+  let diagnostics;
+  const application = await composeApplication({ revision: meta.assetRevision, platform: profile.platform,
+    onComposed: async runtime => { diagnostics = await installDiagnostics(runtime); },
+  });
+  if (!await application.start()) throw new Error('The application could not finish startup.');
+  const { initializeUiRuntime } = await import(versionedAsset('./modules/ui-runtime.js').href);
+  initializeUiRuntime(document);
+  document.body.classList.remove('is-loading');
+  document.getElementById('bootstrapLoading').hidden = true;
+  document.getElementById('app').removeAttribute('aria-busy');
+  window.__PANDOLAB_STARTUP_METRICS__.startupPhase = 'canonical-ready';
+  window.dispatchEvent(new CustomEvent('pandolab:interactive'));
+  window.__PANDOLAB_SHELL_READY__ = true;
+  if (window.__PANDOLAB_SHELL_AUTO__) await diagnostics.run();
+}
+
+start().catch(async error => {
+  console.error('[PANDOEDITOR-SHELL-STARTUP]', error);
+  const message = document.getElementById('bootstrapLoadingText');
+  if (message) message.textContent = error.message;
+  const overlay = document.getElementById('bootstrapLoading');
+  if (overlay) overlay.hidden = false;
+  const report = { schema: 'pandolab-web-shell-diagnostics', ok: false, stage: 'startup',
+    error: { name: String(error.name || 'Error'), code: String(error.code || ''), message: String(error.message || error), stack: String(error.stack || '') },
+  };
+  try { await finishDiagnostics(report); }
+  catch (reportError) { console.error('[PANDOEDITOR-SHELL-REPORT]', reportError); }
+});
