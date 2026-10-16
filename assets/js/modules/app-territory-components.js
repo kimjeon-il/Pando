@@ -1,3 +1,4 @@
+import { riverTerritoryAreaKm2 } from './river-territory-partition.js';
 import { freezeEditingGeometry } from './editing-render-packet.js';
 /** TerritoryComponents: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
@@ -40,7 +41,7 @@ export function createTerritoryComponents() {
       (0, dependencies.objectPresentation.territorialEntityName)(feature) || feature.properties?.name || '기준 영역']));
     const items = result.items.map(item => ({ ...item, geometry: freezeEditingGeometry(item.geometry),
       countryName: names.get(item.countryId) || '기준 영역',
-      areaKm2: Math.max(0, dependencies.platform.d3.geo.area(item.geometry) * 6371.0088 ** 2),
+      areaKm2: riverTerritoryAreaKm2(item.geometry),
     }));
     session.componentIndex = { key, items, byKey: new Map(items.map(item => [item.key, item])), river: null };
     return session.componentIndex;
@@ -88,7 +89,7 @@ export function createTerritoryComponents() {
       ...item, key: String(item.key), geometry: freezeEditingGeometry(item.geometry),
       countryName: baseByComponent.get(item.componentKey)?.countryName || '기준 영역',
       areaKm2: Number.isFinite(item.areaKm2) ? item.areaKm2 : Number.isFinite(item.areaM2)
-        ? item.areaM2 / 1e6 : dependencies.platform.d3.geo.area(item.geometry) * 6371.0088 ** 2,
+        ? item.areaM2 / 1e6 : riverTerritoryAreaKm2(item.geometry),
       usesRiverBoundary: item.partitionKind === 'river',
       riverBoundarySegments: item.riverBoundarySegments || [],
     }));

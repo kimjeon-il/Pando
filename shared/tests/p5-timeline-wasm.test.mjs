@@ -25,7 +25,7 @@ test('P5-4 timeline normalization rejects the same invalid corpus and preserves 
         error=>error?.code===fixture.expected,fixture.name);
     } else {
       const result=core.timelineNormalizeRecords(input,context);
-      assert.equal(result.schemaVersion,1,fixture.name);
+      assert.equal(result.schemaVersion,2,fixture.name);
       assert.deepEqual(result,core.timelineNormalizeRecords(result,context),fixture.name);
       assert.deepEqual(result.lifetimes.map(x=>x.id),input.lifetimes.map(x=>x.id),fixture.name);
     }

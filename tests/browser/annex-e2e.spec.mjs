@@ -1,6 +1,36 @@
 import { expect, test } from '@playwright/test';
+import { writeFile } from 'node:fs/promises';
 
 test.use({ channel: 'chromium', viewport: { width: 1440, height: 900 } });
+
+// Opt-in device evidence accompanies the existing model/geometry/Undo checks.
+// Read the application's contexts so a separate probe canvas cannot stand in
+// for the GPU that actually rendered this workflow.
+test.afterEach(async ({ page }, testInfo) => {
+  if (process.env.PANDO_P9_DEVICE_EVIDENCE !== 'true' || page.isClosed()) return;
+  const device = await page.evaluate(() => ({
+    userAgent: navigator.userAgent,
+    viewport: [innerWidth, innerHeight, devicePixelRatio],
+    canvases: [...document.querySelectorAll('#map canvas')].map(canvas => {
+      const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+      if (!gl) return null;
+      const extension = gl.getExtension('WEBGL_debug_renderer_info');
+      return {
+        width: canvas.width, height: canvas.height,
+        renderer: extension ? gl.getParameter(extension.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER),
+        vendor: extension ? gl.getParameter(extension.UNMASKED_VENDOR_WEBGL) : gl.getParameter(gl.VENDOR),
+      };
+    }).filter(Boolean),
+  }));
+  const devicePath = testInfo.outputPath('actual-render-device.json');
+  const screenshotPath = testInfo.outputPath('actual-device-window.png');
+  await writeFile(devicePath, JSON.stringify(device, null, 2));
+  await page.screenshot({ path: screenshotPath });
+  await testInfo.attach('actual-render-device', { path: devicePath, contentType: 'application/json' });
+  await testInfo.attach('actual-device-window', { path: screenshotPath, contentType: 'image/png' });
+  expect(device.canvases.length).toBeGreaterThan(0);
+  for (const { renderer } of device.canvases) expect(renderer).not.toMatch(/swiftshader|llvmpipe|software/i);
+});
 
 async function openAnnex(page, center, { renderer = 'webgl2', targetId = 'GRC' } = {}) {
   await page.addInitScript(() => {
@@ -24,16 +54,23 @@ async function openAnnex(page, center, { renderer = 'webgl2', targetId = 'GRC' }
     };
   });
   const errors = [];
-  page.on('pageerror', error => errors.push(`pageerror: ${error.message}`));
-  page.on('console', message => { if (message.type() === 'error') errors.push(`console: ${message.text()}`); });
+  page.on('pageerror', error => {errors.push(`pageerror: ${error.message}`);console.error('ANNEX_PAGEERROR',error.message);});
+  page.on('console', message => { if (message.type() === 'error') {errors.push(`console: ${message.text()}`);console.error('ANNEX_CONSOLE',message.text());} });
   await page.goto(`/?debug=1&renderer=${renderer}`);
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await page.locator('#flatBtn').evaluate(button => button.click());
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('TUR'));
-  await page.locator('#focusSelectedObjectBtn').click({ timeout: 10_000 });
+  // Focus is setup for the annex workflow. Dispatch its real command without
+  // pointer-hover rendering becoming part of Playwright's click completion.
+  await page.locator('#focusSelectedObjectBtn').evaluate(button => button.click());
   const map = await page.locator('#map').boundingBox();
   const centerPoint = await page.evaluate(coordinate => window.__PANDOLAB_VIEW_DEBUG__.geoToScreen(coordinate), center);
   expect(centerPoint).toBeTruthy();
+  expect(centerPoint.every(Number.isFinite)).toBe(true);
+  expect(centerPoint[0]).toBeGreaterThan(0);
+  expect(centerPoint[0]).toBeLessThan(map.width);
+  expect(centerPoint[1]).toBeGreaterThan(0);
+  expect(centerPoint[1]).toBeLessThan(map.height);
   await page.mouse.move(map.x + centerPoint[0], map.y + centerPoint[1]);
   await page.mouse.wheel(0, -400);
   await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select(id), targetId);
@@ -86,7 +123,7 @@ async function inspectLineCandidate(page) {
     const area = geometry => polygons(geometry).reduce((sum, polygon) =>
       sum + Math.abs(polygon.reduce((part, ring, index) => part + (index ? -1 : 1) * Math.abs(signedArea(ring)), 0)), 0);
     const geometry = selected.__data__.geometry;
-    const packet = buildPolygonGeometryPacket(geometry, { triangulate: window.earcut });
+    const packet = buildPolygonGeometryPacket(geometry);
     const packetArea = Array.from({ length: packet.indices.length / 3 }, (_, index) => {
       const triangle = Array.from(packet.indices.slice(index * 3, index * 3 + 3), vertex =>
         [packet.positions[vertex * 2], packet.positions[vertex * 2 + 1]]);

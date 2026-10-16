@@ -96,7 +96,7 @@ ProjectDocument sliverFixture(Geometry donor=rectangle(0,0,.01,.01)) {
 }
 Geometry decodePolygon(const QJsonObject& row) {
     Geometry geometry;geometry.type=row["type"].toString().toStdString();auto polygons=row["coordinates"].toArray();
-    if(geometry.type=="Polygon")polygons=QJsonArray{polygons};
+    if(geometry.type=="Polygon")polygons=QJsonArray{QJsonValue(polygons)};
     for(const auto& p:polygons) {Polygon polygon;for(const auto& r:p.toArray()) {Ring ring;
         for(const auto& v:r.toArray()) {const auto point=v.toArray();ring.push_back({point[0].toDouble(),point[1].toDouble()});}
         polygon.push_back(std::move(ring));}geometry.polygons.push_back(std::move(polygon));}return geometry;
@@ -237,8 +237,11 @@ private slots:
                 QCOMPARE(adaptedArea.status,GeometryOperationStatus::Cancelled);
             }
         }
-        const auto dropped=runtime.normalizeRiver(microscopic,{});
-        QCOMPARE(dropped.status,GeometryOperationStatus::Completed);QVERIFY(!dropped.geometry);
+        // The pinned P5 common normalizer already rejects this source ring;
+        // silently returning an empty success would discard positive geometry.
+        const auto rejected=runtime.normalizeRiver(microscopic,{});
+        QCOMPARE(rejected.status,GeometryOperationStatus::Failed);QVERIFY(!rejected.geometry);
+        QCOMPARE(rejected.detail,std::string("INVALID_POLYGON: component 0 ring 0: INVALID_POLYGON_RING: degenerate shell or hole"));
     }
     void rawRiverIntermediateRetainsMicroscopicPositiveRemnant() {
         const auto donor=rectangle(20,45,.01,.01);auto selected=donor;
@@ -298,7 +301,7 @@ private slots:
         GeometryOperationRequest request{GeometryOperation::Union,
             decodePolygon({{"type","Polygon"},{"coordinates",shapes[0]}}),decodePolygon({{"type","Polygon"},{"coordinates",shapes[1]}})};
         const auto strict=calculateGeometry(request);QCOMPARE(strict.status,GeometryOperationStatus::Failed);
-        QVERIFY(QString::fromStdString(strict.detail).contains("SweepLine tree"));
+        QVERIFY2(QString::fromStdString(strict.detail).contains("SweepLine tree"),strict.detail.c_str());
         const auto exhausted=calculateRiverGeometryIntermediate(request);QCOMPARE(exhausted.status,GeometryOperationStatus::Failed);
         QCOMPARE(exhausted.detail,strict.detail);
         auto transformed=request;
@@ -441,7 +444,7 @@ private slots:
         Project project;project.replace(sliverFixture(donor));const auto before=::projectcodec::encode(project);
         AnnexGeometryPreviewRequest request{territorialRef("T"),{territorialRef("D")},selected,{{"D",0,{remainder.geometry}}}};
         const auto blocked=preview(project,request);QVERIFY(!blocked.ok());QVERIFY(blocked.blocking());
-        QCOMPARE(blocked.detail,std::string("RIVER_REMAINDER_NOT_REPRESENTABLE"));QVERIFY(!prepare(project,blocked).ok());QCOMPARE(::projectcodec::encode(project),before);
+        QCOMPARE(blocked.detail,std::string("RIVER_REMAINDER_NOT_REPRESENTABLE: INVALID_GEOMETRY: degenerate ring"));QVERIFY(!prepare(project,blocked).ok());QCOMPARE(::projectcodec::encode(project),before);
         request.riverSliverContext[0].unselectedGeometries.clear();const auto admitted=preview(project,request);
         QVERIFY2(admitted.ok(),admitted.detail.c_str());QCOMPARE(admitted.autoIncludedSliverCount,std::size_t(1));QVERIFY(prepare(project,admitted).ok());
     }

@@ -4,7 +4,7 @@
 #include <stdexcept>
 
 namespace pandoeditor {
-inline constexpr std::uint32_t TimelineRecordSchemaVersion = 1;
+inline constexpr std::uint32_t TimelineRecordSchemaVersion = 2;
 
 struct TimelineLifetime {
     std::string id, entityId;
@@ -20,11 +20,18 @@ struct TimelineParentRelation {
     Validity validity;
     std::string parentId, coverageMode;
 };
+struct TimelinePropertyBinding {
+    std::string id, entityId;
+    Validity validity;
+    // name, flag, or color. The validated value is lossless canonical JSON.
+    std::string property, value;
+};
 struct TimelineRecords {
     std::uint32_t schemaVersion = TimelineRecordSchemaVersion;
     std::vector<TimelineLifetime> lifetimes;
     std::vector<TimelineGeometryBinding> geometryBindings;
     std::vector<TimelineParentRelation> parentRelations;
+    std::vector<TimelinePropertyBinding> propertyBindings;
 };
 // A read-only validation input, not another persisted entity collection.
 struct TimelineEntityIdentity { std::string id, entityKind; };

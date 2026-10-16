@@ -42,7 +42,7 @@ export function createGeometryPreview() {
         if(applyAccepted)await applyAccepted(result,response.result);
         stageDurations['apply-platform']=Math.max(0,metricNow()-effectStartedAt);
         const commitStartedAt=metricNow();
-        dependencies.spatialQuery.mapEditClient.commit(requestId);
+        dependencies.spatialQuery.mapEditClient.commit(requestId,response.geometryRevision);
         stageDurations['commit-external']=Math.max(0,metricNow()-commitStartedAt);
       } }));
       enterStage('success');
@@ -216,7 +216,7 @@ export function createGeometryPreview() {
       const ready=await beginLocalGeometryPreview({ operation,preparedCommand:prepared,preparedPreview:response.result.preview,
         transferredGeometry:response.result.transferredGeometry || transferredGeometry,shouldKeepResult,
         discardPrepared:()=>dependencies.spatialQuery.mapEditClient.discard(requestId),
-        applyAccepted:async result=>{if(applyAccepted)await applyAccepted(result,response.result);dependencies.spatialQuery.mapEditClient.commit(requestId);},
+        applyAccepted:async result=>{if(applyAccepted)await applyAccepted(result,response.result);dependencies.spatialQuery.mapEditClient.commit(requestId,response.geometryRevision);},
         invalidateAfterApply:()=>invalidateAfterApply(response.result),
         onSuccess:()=>onSuccess(response.result) });
       if(!ready){await dependencies.domains.projectDomain.cancelCandidate(prepared.candidateId);dependencies.spatialQuery.mapEditClient.discard(requestId);}
@@ -224,7 +224,10 @@ export function createGeometryPreview() {
     } catch(error) {
       if(prepared?.candidateId)await dependencies.domains.projectDomain.cancelCandidate(prepared.candidateId).catch(cleanupError=>{error.cleanupError=cleanupError;});
       if(requestId)dependencies.spatialQuery.mapEditClient.discard(requestId);
-      if(error.cancelled)dependencies.feedback.setActionStatus('지도 작업을 취소했습니다.','success',2200);
+      if(error.cancelled){
+        console.info('[PL-PREVIEW-CANCELLED]',error);
+        dependencies.feedback.setActionStatus('지도 작업을 취소했습니다.','success',2200);
+      }
       else if(onError)await onError(error);
       else dependencies.feedback.reportOperationError(error,'변경 미리보기를 준비하지 못했습니다.','PL-PREVIEW-PREPARE',4200);
       return false;

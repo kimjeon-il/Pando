@@ -1,14 +1,13 @@
 #include "referenceimagelibrary.h"
-#include "referencetracing.h"
 #include "referenceautogeoref.h"
 #include "referenceocr.h"
 
 #include <algorithm>
 #include <cmath>
-#include <QJSEngine>
+#include <pandoeditor/referenceimage.h>
 #include <QFutureWatcher>
 #include <QtConcurrent>
-#include <QJSValue>
+#include <QMetaObject>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
@@ -22,18 +21,35 @@
 #include <QUuid>
 
 namespace {
-QVariantMap referenceWeb(const QString &name,const QVariantMap &input,QObject *projection=nullptr)
+QVariantMap referenceCalculation(const QString &name,const QVariantMap &input,QObject *projection=nullptr)
 {
-    QJSEngine engine;QFile script(":/reference-web/runtime.js");
-    if(!script.open(QIODevice::ReadOnly))return {{"ok",false},{"reason",script.errorString()}};
-    engine.evaluate("if(!Array.prototype.at)Array.prototype.at=function(i){return this[i<0?this.length+i:i]};");
-    const auto module=engine.evaluate(QString::fromUtf8(script.readAll())+";ReferenceWeb",script.fileName());
-    if(module.isError())return {{"ok",false},{"reason",module.toString()}};
-    const auto json=QString::fromUtf8(QJsonDocument::fromVariant(input).toJson(QJsonDocument::Compact));
-    const auto argument=engine.globalObject().property("JSON").property("parse").call({json});
-    if(projection)QJSEngine::setObjectOwnership(projection,QJSEngine::CppOwnership);
-    const auto result=module.property(name).call({argument,projection?engine.newQObject(projection):QJSValue(QJSValue::NullValue)});
-    return result.isError()?QVariantMap{{"ok",false},{"reason",result.toString()}}:result.toVariant().toMap();
+    pandoeditor::ReferenceProjection host;
+    if(projection) {
+        host.project=[projection](pandoeditor::ReferencePoint p)->std::optional<pandoeditor::ReferencePoint> {
+            QVariantMap result;
+            if(!QMetaObject::invokeMethod(projection,"referenceScreenAtCoordinate",Qt::DirectConnection,
+                Q_RETURN_ARG(QVariantMap,result),Q_ARG(double,p[0]),Q_ARG(double,p[1])))
+                throw std::runtime_error("Reference screen projection is unavailable.");
+            if(!result.value("visible").toBool())return {};
+            return pandoeditor::ReferencePoint{result.value("x").toDouble(),result.value("y").toDouble()};
+        };
+        host.unproject=[projection](pandoeditor::ReferencePoint p)->std::optional<pandoeditor::ReferencePoint> {
+            QVariantList result;
+            if(!QMetaObject::invokeMethod(projection,"referenceCoordinateAtScreen",Qt::DirectConnection,
+                Q_RETURN_ARG(QVariantList,result),Q_ARG(double,p[0]),Q_ARG(double,p[1])))
+                throw std::runtime_error("Reference geographic projection is unavailable.");
+            if(result.size()!=2)return {};
+            return pandoeditor::ReferencePoint{result[0].toDouble(),result[1].toDouble()};
+        };
+    }
+    try {
+        const auto value=pandoeditor::codecjson::parse(QJsonDocument::fromVariant(input).toJson(QJsonDocument::Compact).toStdString());
+        const auto output=pandoeditor::referenceImageOperation(name.toStdString(),value,host).encode();
+        return QJsonDocument::fromJson(QByteArray::fromStdString(output)).toVariant().toMap();
+    } catch(const std::exception &error) {
+        qWarning("[PL-REFERENCE-CALCULATION] %s",error.what());
+        return {{"ok",false},{"reason",QString::fromUtf8(error.what())}};
+    }
 }
 bool finiteQuad(const QVariantList &quad,bool geographic)
 {
@@ -54,15 +70,6 @@ QString normalizedWarp(QString value)
     value = value.toLower();
     return value == "similarity" || value == "affine" || value == "projective" || value == "tps" ? value : QStringLiteral("auto");
 }
-ReferenceWarpMode warpMode(const QString &mode)
-{
-    if (mode == "similarity") return ReferenceWarpMode::Similarity;
-    if (mode == "affine") return ReferenceWarpMode::Affine;
-    if (mode == "projective") return ReferenceWarpMode::Projective;
-    if (mode == "tps") return ReferenceWarpMode::ThinPlateSpline;
-    return ReferenceWarpMode::Auto;
-}
-
 QVariantList normalizedLinearConstraints(const QVariantList &values)
 {
     QVariantList result;QSet<QString> ids;
@@ -203,7 +210,7 @@ bool ReferenceImageLibrary::updateGesture(const QVariantMap &changes)
         const auto quad=changes["mapQuad"].toList(),screen=changes["screenQuad"].toList();
         if(!finiteQuad(quad,true)||!finiteQuad(screen,false))return false;
         auto input=variant(*found,directory());input["controlPoints"]=found->geographicPoints;
-        if(!referenceWeb("cornerQuad",{{"record",input},{"quad",quad},{"screenQuad",screen}})["ok"].toBool())return false;
+        if(!referenceCalculation("cornerQuad",{{"record",input},{"quad",quad},{"screenQuad",screen}})["ok"].toBool())return false;
         found->mapQuad=quad;found->cornerPinEnabled=true;
     }
     state_=std::move(next);emit imagesChanged();return true;}
@@ -212,18 +219,11 @@ bool ReferenceImageLibrary::commitGesture()
 void ReferenceImageLibrary::cancelGesture(){if(!gestureBefore_)return;state_=std::move(*gestureBefore_);gestureBefore_.reset();gestureId_.clear();emit imagesChanged();}
 bool ReferenceImageLibrary::undo(){if(!canUndo())return false;auto previous=undo_.last();for(auto &record:previous)if(const auto current=find(record.id))record.locked=current->locked;else record.locked=false;if(!save(previous))return false;undo_.removeLast();redo_.push_back(state_);state_=std::move(previous);emit imagesChanged();emit historyChanged();return true;}
 bool ReferenceImageLibrary::redo(){if(!canRedo())return false;auto next=redo_.last();for(auto &record:next)if(const auto current=find(record.id))record.locked=current->locked;else record.locked=false;if(!save(next))return false;redo_.removeLast();undo_.push_back(state_);state_=std::move(next);emit imagesChanged();emit historyChanged();return true;}
-QVariantMap ReferenceImageLibrary::solveWarp(const QString &id,const QVariantList &values,const QString &mode) const
-{
-    if(std::none_of(state_.begin(),state_.end(),[&](const auto&i){return i.id==id;}))return {{"valid",false},{"error",QStringLiteral("이미지를 찾을 수 없습니다.")}};QVector<ReferenceControlPoint> points;for(const auto &value:values){const auto map=value.toMap();points.push_back({{map["sourceX"].toDouble(),map["sourceY"].toDouble()},{map["destinationX"].toDouble(),map["destinationY"].toDouble()}});}const auto result=solveReferenceWarp(warpMode(normalizedWarp(mode)),points);return {{"valid",result.valid},{"error",result.error},{"rms",result.rmsError},{"maximum",result.maximumError},{"resolvedMode",int(result.resolvedMode)}};
-}
 const ReferenceImageLibrary::Record *ReferenceImageLibrary::find(const QString &id) const
 {const auto found=std::find_if(state_.begin(),state_.end(),[&](const auto& item){return item.id==id;});return found==state_.end()?nullptr:&*found;}
-QVariantList ReferenceImageLibrary::traceLine(const QString &id,double startX,double startY,double endX,double endY) const
-{QVariantList result;const auto item=find(id);if(!item)return result;QImageReader reader(directory()+"/"+item->fileName);reader.setAutoTransform(true);const auto image=reader.read();for(const auto& point:referenceLiveWire(image,{qRound(startX),qRound(startY)},{qRound(endX),qRound(endY)}))result.push_back(QVariantMap{{"x",point.x()},{"y",point.y()}});return result;}
-
 QVariantMap ReferenceImageLibrary::calibration(const QVariantMap &record) const
 {
-    return referenceWeb("calibration",record);
+    return referenceCalculation("calibration",record);
 }
 bool ReferenceImageLibrary::setCalibration(const QString &id,const QVariantList &points,const QString &mode)
 {
@@ -233,7 +233,7 @@ bool ReferenceImageLibrary::setCalibration(const QString &id,const QVariantList 
     const bool removing=points.size()<item->geographicPoints.size();
     auto before=variant(*item,directory());before["controlPoints"]=item->geographicPoints;
     item->geographicPoints=points;item->warpMode=normalizedWarp(mode);
-    if(removing){auto after=variant(*item,directory());after["controlPoints"]=points;const auto result=referenceWeb("constraintRemoval",{{"before",before},{"after",after}});if(!result["ok"].toBool())return false;item->mapQuad=result["mapQuad"].toList();}
+    if(removing){auto after=variant(*item,directory());after["controlPoints"]=points;const auto result=referenceCalculation("constraintRemoval",{{"before",before},{"after",after}});if(!result["ok"].toBool())return false;item->mapQuad=result["mapQuad"].toList();}
     return setState(std::move(next),true);
 }
 
@@ -418,7 +418,7 @@ bool ReferenceImageLibrary::pickMapCoordinate(double longitude,double latitude)
     if(anchorPicking_) {
         auto input=variant(*item,directory());input["controlPoints"]=item->geographicPoints;
         const QVariantMap anchor{{"image",QVariantList{pendingUv_->x(),pendingUv_->y()}},{"coordinate",QVariantList{longitude,latitude}}};
-        const auto accepted=referenceWeb("anchor",{{"record",input},{"anchor",anchor}});
+        const auto accepted=referenceCalculation("anchor",{{"record",input},{"anchor",anchor}});
         if(!accepted["ok"].toBool()){fail(QStringLiteral("이 위치에는 고정점 제약을 적용할 수 없습니다."));return false;}
         auto next=state_;auto changed=std::find_if(next.begin(),next.end(),[&](const auto &r){return r.id==calibrationId_;});
         changed->anchor=anchor;changed->mapQuad=accepted["mapQuad"].toList();
@@ -462,14 +462,14 @@ bool ReferenceImageLibrary::storeQuad(const QVariantList &quad,const QVariantLis
 {
     const auto item=find(calibrationId_);if(!item||item->locked||gestureBefore_||!finiteQuad(quad,true)||!finiteQuad(screenQuad,false))return false;
     auto input=variant(*item,directory());input["controlPoints"]=item->geographicPoints;
-    if(!referenceWeb("cornerQuad",{{"record",input},{"quad",quad},{"screenQuad",screenQuad}})["ok"].toBool())return false;
+    if(!referenceCalculation("cornerQuad",{{"record",input},{"quad",quad},{"screenQuad",screenQuad}})["ok"].toBool())return false;
     auto next=state_;auto changed=std::find_if(next.begin(),next.end(),[&](const auto &r){return r.id==calibrationId_;});changed->mapQuad=quad;changed->cornerPinEnabled=cornerPin;
     return setState(std::move(next),true);
 }
 bool ReferenceImageLibrary::beginAnchor()
 {const auto item=find(calibrationId_);if(!item||item->locked||gestureBefore_)return false;cancelTrace();anchorPicking_=true;pendingUv_.reset();editingImagePoint_=false;editingPointId_.clear();freeTransformEditing_=false;emit calibrationSessionChanged();return true;}
 bool ReferenceImageLibrary::clearAnchor()
-{const auto item=find(calibrationId_);if(!item||item->locked||gestureBefore_)return false;auto next=state_;auto changed=std::find_if(next.begin(),next.end(),[&](const auto &r){return r.id==calibrationId_;});auto before=variant(*item,directory());before["controlPoints"]=item->geographicPoints;changed->anchor.clear();auto after=variant(*changed,directory());after["controlPoints"]=changed->geographicPoints;const auto result=referenceWeb("constraintRemoval",{{"before",before},{"after",after}});if(!result["ok"].toBool())return false;changed->mapQuad=result["mapQuad"].toList();return setState(std::move(next),true);}
+{const auto item=find(calibrationId_);if(!item||item->locked||gestureBefore_)return false;auto next=state_;auto changed=std::find_if(next.begin(),next.end(),[&](const auto &r){return r.id==calibrationId_;});auto before=variant(*item,directory());before["controlPoints"]=item->geographicPoints;changed->anchor.clear();auto after=variant(*changed,directory());after["controlPoints"]=changed->geographicPoints;const auto result=referenceCalculation("constraintRemoval",{{"before",before},{"after",after}});if(!result["ok"].toBool())return false;changed->mapQuad=result["mapQuad"].toList();return setState(std::move(next),true);}
 bool ReferenceImageLibrary::setFreeTransformEditing(bool enabled)
 {const auto item=find(calibrationId_);if(!item||item->locked||gestureBefore_)return false;cancelTrace();freeTransformEditing_=enabled;pendingUv_.reset();anchorPicking_=false;editingImagePoint_=false;editingPointId_.clear();emit calibrationSessionChanged();return true;}
 
@@ -507,7 +507,7 @@ void ReferenceImageLibrary::calculateTrace() {
   const auto original=image.size();if(std::max(image.width(),image.height())>1024)image=image.scaled(1024,1024,Qt::KeepAspectRatio,Qt::SmoothTransformation);
   image=image.convertToFormat(QImage::Format_RGBA8888);QVariantList data;data.reserve(image.width()*image.height()*4);
   for(int y=0;y<image.height();++y)for(int x=0;x<image.width()*4;++x)data.append(int(image.constScanLine(y)[x]));
-  return referenceWeb(mode=="refine"?"refine":"trace",{{"record",record},{"anchors",anchors},{"sourceWidth",original.width()},{"sourceHeight",original.height()},{"image",QVariantMap{{"width",image.width()},{"height",image.height()},{"data",data}}}});
+  return referenceCalculation(mode=="refine"?"refine":"trace",{{"record",record},{"anchors",anchors},{"sourceWidth",original.width()},{"sourceHeight",original.height()},{"image",QVariantMap{{"width",image.width()},{"height",image.height()},{"data",data}}}});
  }));
 }
 
@@ -522,14 +522,14 @@ bool ReferenceImageLibrary::canRedo() const{return !gestureBefore_&&!redo_.empty
 bool ReferenceImageLibrary::flipPlacement(bool horizontal){const auto item=find(calibrationId_);if(!item||item->locked||!item->geographicPoints.empty()||!item->controlPoints.empty()||!item->anchor.empty()||pendingUv_||!trace_.empty())return false;return updateImage(item->id,{{horizontal?"flipX":"flipY",horizontal?!item->flipX:!item->flipY}});}
 bool ReferenceImageLibrary::rotatePlacement(double angle,QObject *projection){
  const auto item=find(calibrationId_);if(!item||!projection||item->locked||!std::isfinite(angle)||pendingUv_||!trace_.empty()||calibrationSession()["result"].toMap()["calibrationOk"].toBool())return false;
- auto input=variant(*item,directory());input["controlPoints"]=item->geographicPoints;const auto result=referenceWeb("placementRotate",{{"record",input},{"angle",angle}},projection);if(!result["ok"].toBool()||!finiteQuad(result["mapQuad"].toList(),true))return false;
+ auto input=variant(*item,directory());input["controlPoints"]=item->geographicPoints;const auto result=referenceCalculation("placementRotate",{{"record",input},{"angle",angle}},projection);if(!result["ok"].toBool()||!finiteQuad(result["mapQuad"].toList(),true))return false;
  auto next=state_;for(auto &record:next)if(record.id==item->id){record.mapQuad=result["mapQuad"].toList();record.rotation=result["rotation"].toDouble();}return setState(std::move(next),true);
 }
 bool ReferenceImageLibrary::resetPlacement(QObject *projection,double viewportWidth,double viewportHeight){
  const auto item=find(calibrationId_);if(!item||!projection||item->locked||!std::isfinite(viewportWidth)||!std::isfinite(viewportHeight)||viewportWidth<=0||viewportHeight<=0||pendingUv_||!trace_.empty()||calibrationSession()["result"].toMap()["calibrationOk"].toBool())return false;
  QImageReader reader(directory()+"/"+item->fileName);reader.setAutoTransform(true);const auto image=reader.read();if(image.isNull()){fail(QStringLiteral("손상된 이미지는 초기화할 수 없습니다."));return false;}
- const auto result=referenceWeb("placementDefault",{{"width",image.width()},{"height",image.height()},{"viewport",QVariantMap{{"width",viewportWidth},{"height",viewportHeight}}}},projection);if(!result["ok"].toBool()||!finiteQuad(result["mapQuad"].toList(),true))return false;
+ const auto result=referenceCalculation("placementDefault",{{"width",image.width()},{"height",image.height()},{"viewport",QVariantMap{{"width",viewportWidth},{"height",viewportHeight}}}},projection);if(!result["ok"].toBool()||!finiteQuad(result["mapQuad"].toList(),true))return false;
  auto next=state_;for(auto &record:next)if(record.id==item->id){record.mapQuad=result["mapQuad"].toList();record.rotation=0;record.anchor.clear();record.cornerPinEnabled=false;}return setState(std::move(next),true);
 }
-double ReferenceImageLibrary::placementAngle(QObject *projection) const {if(!projection)return 0;const auto item=find(calibrationId_);if(!item)return 0;return referenceWeb("placementAngle",{{"record",variant(*item,directory())}},projection)["angle"].toDouble();}
+double ReferenceImageLibrary::placementAngle(QObject *projection) const {if(!projection)return 0;const auto item=find(calibrationId_);if(!item)return 0;return referenceCalculation("placementAngle",{{"record",variant(*item,directory())}},projection)["angle"].toDouble();}
 bool ReferenceImageLibrary::editCalibrationImagePoint(const QString &id){const auto item=find(calibrationId_);if(!item||item->locked)return false;for(const auto &value:item->geographicPoints)if(value.toMap()["id"]==id){cancelTrace();freeTransformEditing_=false;editingPointId_=id;editingImagePoint_=true;pendingUv_.reset();anchorPicking_=false;emit calibrationSessionChanged();return true;}return false;}

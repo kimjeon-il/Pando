@@ -150,9 +150,9 @@ test('GDR live geometry gaps keep the row but never borrow a representative; una
   await h.controller.open(); await h.controller.select('state:gdr');
   assert.equal(h.version(), 'gdr:1989'); assert.match(textOf(h.elements.preview), /자료 기준 1989-04-25/);
   assert.match(textOf(h.elements.preview), /근사 경계/); assert.doesNotMatch(textOf(h.elements.preview), /시험 데이터|출처|이용 조건/);
-  for (const date of ['1970', '1989-04']) { await h.input('referenceDate', date); assert.equal(h.rows().length, 1); assert.equal(h.version(), undefined); assert.equal(h.elements.add.disabled, true); assert.match(textOf(h.elements.preview), /국토 자료가 없습니다/); }
+  for (const date of ['1970', '1989-04']) { await h.input('referenceDate', date); assert.equal(h.rows().length, 2); assert.equal(h.version(), undefined); assert.equal(h.elements.add.disabled, true); assert.match(textOf(h.elements.preview), /국토 자료가 비어.*부재를 뜻하지/); }
   await h.input('referenceDate', '1989-04-25'); assert.equal(h.version(), 'gdr:1989'); assert.equal(h.elements.add.disabled, false);
-  await h.input('referenceDate', '1990-10-03'); assert.equal(h.rows().length, 0); assert.equal(h.elements.preview.hidden, true); assert.equal(h.elements.add.disabled, true);
+  await h.input('referenceDate', '1990-10-03'); assert.equal(h.rows().length, 2); assert.equal(h.elements.preview.hidden, false); assert.equal(h.elements.add.disabled, true);assert.match(textOf(h.elements.preview),/존속 기간 밖/);
   await h.input('referenceDate', ''); await h.controller.select('state:undated');
   assert.equal(h.elements.add.disabled, true); assert.match(textOf(h.elements.preview), /시점/); assert.deepEqual(h.calls.chunks, ['state:gdr']);
 });

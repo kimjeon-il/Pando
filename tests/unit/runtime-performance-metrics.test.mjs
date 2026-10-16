@@ -148,14 +148,14 @@ test('canonical command, transaction and persistence paths publish operation tim
       payload:{id:'A',field:'name',value:'Ordinary command'}})).ok,true);
     const calls=[],preview=createGeometryPreview();
     preview.connect({domains:{projectDomain:owner.project},spatialQuery:{mapEditClient:{
-      execute:async()=>({requestId:17,result:{name:'Prepared transaction'}}),
-      commit:id=>calls.push(['commit',id]),discard:id=>calls.push(['discard',id]),rebase:()=>calls.push(['rebase']),
+      execute:async()=>({requestId:17,geometryRevision:9,result:{name:'Prepared transaction'}}),
+      commit:(id,revision)=>calls.push(['commit',id,revision]),discard:id=>calls.push(['discard',id]),rebase:()=>calls.push(['rebase']),
     }}});
     const transaction=await preview.transactMapEdit({operation:'geometry-test',payload:{},
       prepareResult:(result,{expectedEpoch})=>owner.project.prepareCommand({commandId:'territorial.field',
         targets:[{domain:'territorial',id:'A'}],expectedEpoch,payload:{id:'A',field:'name',value:result.name}}),
       onSuccess:()=>calls.push(['success']),onError:error=>{throw error;}});
-    assert.equal(transaction,true);assert.deepEqual(calls,[['commit',17],['success']]);
+    assert.equal(transaction,true);assert.deepEqual(calls,[['commit',17,9],['success']]);
     assert.equal(owner.documentModel.territorialViews()[0].properties.name,'Prepared transaction');
 
     const tasks = new Map();

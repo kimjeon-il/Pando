@@ -114,7 +114,13 @@ Geometry annexNormalizeRiver(const Geometry& geometry,const TerritorialPreviewCa
         throw std::runtime_error("RIVER_REMAINDER_NOT_REPRESENTABLE");
     for(std::size_t p=0;p<geometry.polygons.size();++p)
         if(normalized.geometry->polygons[p].size()!=geometry.polygons[p].size())throw std::runtime_error("RIVER_REMAINDER_NOT_REPRESENTABLE");
-    GeometryStore validation;validation.insert({"river-annex-normalized",1},*normalized.geometry);
+    GeometryStore validation;
+    try { validation.insert({"river-annex-normalized",1},*normalized.geometry); }
+    catch(const std::invalid_argument& error) {
+        // The protected piece exists, but cannot cross the strict storage
+        // boundary. Keep both the operation category and the original cause.
+        throw std::runtime_error(std::string("RIVER_REMAINDER_NOT_REPRESENTABLE: ")+error.what());
+    }
     return std::move(*normalized.geometry);
 }
 struct AnnexSlivers { Geometry geometry;double areaM2=0; };

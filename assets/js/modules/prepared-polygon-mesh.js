@@ -24,7 +24,7 @@ export function createPreparedPolygonMeshStore({ engine, loadManifest = null, lo
         const manifest = loadManifest ? await (manifestPromise ||= loadManifest()) : null;
         const spec = manifest?.meshes?.[digest];
         if (spec) { encoded = await loadAsset(spec); assetHits++; }
-        else { encoded = encodePolygonMesh(engine.buildPolygonGeometryPacket(geometry, { ownerId: item.cacheKey })); builds++; }
+        else { encoded = encodePolygonMesh(engine.buildPolygonGeometryPacket(geometry, { ownerId: item.cacheKey, throwIfCancelled: () => context.throwIfCancelled() })); builds++; }
         context.throwIfCancelled();
         // Admit only the current algorithm and precision contract.
         decodePolygonMesh(encoded, { algorithmVersion: engine.MESH_ALGORITHM_REVISION });

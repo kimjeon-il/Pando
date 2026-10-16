@@ -146,6 +146,22 @@ Qt 문서는 포함된 도형을 자체 보관합니다. **웹 프로젝트 가�
 
 ## 테스트
 
+### 네이티브 성능 측정 입력 고정
+
+`tools/run-native-performance.ps1`의 v2 fixture manifest에는 기존 프로젝트·뷰·입력·자산 해시와 함께
+`productionPlace: { "path": "<fixture 기준 상대 경로>", "sha256": "<64자리 SHA256>", "revision": "<지명 revision>" }`가 필수입니다.
+측정 대상 소스의 `native/assets/place/manifest.json`을 fixture 폴더에 바이트 그대로 복사하고,
+그 파일의 SHA256과 JSON `revision`을 기록합니다. runner는 사본과 실제 앱 manifest를 모두 대조하며,
+누락·변조·revision 불일치·`empty-v1`은 acceptance를 차단합니다. 현재 파일을 읽었다는 사실만으로 통과시키지 않습니다.
+
+기존 v2 측정 입력을 prepared-drag 입력으로 만드는 도구는 저장소 루트에서
+`node native/tools/native-performance-prepared-inputs.mjs <원본-v2-manifest> <새-출력-폴더>`로 실행합니다.
+이 도구는 현재 지명 manifest 사본과 위 계약을 새 출력에 함께 기록하며 원본 증거는 덮어쓰지 않습니다.
+새 데이터로 입력을 고정하는 것은 측정 완료나 full-stack 적합성 증거가 아닙니다.
+외부의 네 가지 프로젝트 fixture와 해당 자산이 없으면 Qt 성능 비교는 수행할 수 없습니다.
+
+### 기능 검사
+
 위의 PATH 설정 후 다음을 실행합니다.
 
 ```powershell

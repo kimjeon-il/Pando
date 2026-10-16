@@ -1,9 +1,6 @@
+# Explicit GIS/source-data reproduction; lightweight source checks remain in gis-python-p4.yml.
 name: Siachen AGPL ice-discrepancy diagnostic
 on:
-  push:
-    branches: [work/gis]
-    paths:
-      - scripts/research/siachen/diagnose_glacier_agpl_discrepancy.py
   workflow_dispatch:
 permissions:
   contents: write
