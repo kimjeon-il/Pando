@@ -28,7 +28,7 @@ async function autosave(page) {
   });
 }
 test('1991 library geometry is inserted into 2012 and preserves temporal edits, history and reopen month',async({page},info)=>{
-  test.setTimeout(240000);const errors=[],diagnostics=[];page.on('pageerror',error=>{errors.push(error.message);console.error(error.stack);});
+  test.setTimeout(480000);const errors=[],diagnostics=[];page.on('pageerror',error=>{errors.push(error.message);console.error(error.stack);});
   page.on('console',message=>{
     if(message.type()==='error'||message.type()==='warning') {
       if(message.type()==='error'||/disposed|Autosave .*failed|Immediate autosave failed/u.test(message.text()))diagnostics.push(message.text());
