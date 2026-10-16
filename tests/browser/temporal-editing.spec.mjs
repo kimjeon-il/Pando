@@ -16,9 +16,15 @@ async function autosave(page) {
   });
 }
 test('1991 library geometry is inserted into 2012 and preserves temporal edits, history and reopen month',async({page},info)=>{
-  test.setTimeout(180000);const errors=[];page.on('pageerror',error=>errors.push(error.message));
+  test.setTimeout(180000);const errors=[];page.on('pageerror',error=>{errors.push(error.message);console.error(error.stack);});
+  const startupFailure=new Promise((_,reject)=>{
+    page.once('pageerror',reject);
+    page.on('console',message=>{if(message.type()==='error') {
+      console.error(message.text());if(message.text().startsWith('[PL-BOOT-001]'))reject(new Error(message.text()));
+    }});
+  });
   await page.goto('/?debug=1');
-  await expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{timeout:90000});
+  await Promise.race([expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{timeout:90000}),startupFailure]);
   await month(page,'2011-01');const before=await object(page,'UKR');
   await month(page,'2012-01');
   await page.locator('#createMenuBtn').click();await page.locator('#addFromLibraryBtn').click();

@@ -128,7 +128,7 @@ DocumentSessionState DocumentSession::documentInitialize(const std::string& inpu
         ProjectDocument empty;empty.documentId=content.documentId;empty.exchangeMetadata=content.exchangeMetadata;
         Project staged;staged.replace(std::move(empty));auto payload=codecjson::Value::obj();payload.object["features"]=*features;
         const auto request=readWebTerritorialCommand(staged.snapshot(),"territorial.replace",payload,ports_);
-        source=applyWebTerritorialEdit(staged.snapshot(),std::get<WebTerritorialEdit>(request.args.action));
+        source=applyWebTerritorialEdit(staged.snapshot(),std::get<WebTerritorialEdit>(request.args.action),TerritorialEditContext::SourceAdmission);
     }else source=projectcodec::readWebSnapshot(input,ports_);
     const auto month=loaded_&&preserveCursor?project_.timelineCursor():initialTimelineMonth(source.timelineRecords,currentMonth);
     auto document=projectcodec::replaceWebTerritorialSource(content,source,month);

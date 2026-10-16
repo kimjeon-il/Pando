@@ -223,16 +223,16 @@ void applyMonth(ProjectDocument& d,const ActiveFrame& before,const Rows& next,co
     }
 }
 }
-ProjectDocument applyWebTerritorialEdit(const ProjectSnapshot& snapshot,const WebTerritorialEdit& edit,bool preserveFutureChanges) {
+ProjectDocument applyWebTerritorialEdit(const ProjectSnapshot& snapshot,const WebTerritorialEdit& edit,TerritorialEditContext context) {
     const auto before=activeFrame(snapshot);const auto next=changedRows(before,edit);auto candidate=snapshot.document();
     if(snapshot.timelineEditsEnabled()) {
-        applyMonth(candidate,before,next,snapshot.timelineMonth(),preserveFutureChanges);
+        applyMonth(candidate,before,next,snapshot.timelineMonth(),context==TerritorialEditContext::LibraryImport);
         const auto projected=timelineDocumentView(snapshot.document(),snapshot.timelineMonth());
         captureTimelinePropertyChanges(snapshot.document(),projected.document,candidate,snapshot.timelineMonth());
     }else applyStatic(candidate,next);
     candidate.timelineRecords=normalizeTimelineRecords(candidate.timelineRecords,{timelineEntityCatalog(candidate),[&](const GeometryRef& ref){
         const auto geometry=candidate.geometries.get(ref);return geometry&&(geometry->type=="Polygon"||geometry->type=="MultiPolygon");}});
-    validateTimelineParentChanges(snapshot.document(),candidate);
+    if(context!=TerritorialEditContext::SourceAdmission)validateTimelineParentChanges(snapshot.document(),candidate);
     return candidate;
 }
 }

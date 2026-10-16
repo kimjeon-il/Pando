@@ -16,6 +16,14 @@ void apply(Project& project,const std::string& command,CommandArguments args) {
 std::string name(const Project& project,const std::string& month) {return timelineDocumentView(project.document(),month).document.units.front().name;}
 }
 int main() {
+    Project boot;ProjectDocument blank;blank.documentId="baseline-admission";boot.replace(blank);
+    WebTerritorialFeature root;root.identity.id="Root";root.identity.name="Source root";root.geometry=box(0,2);root.coverageMode="explicit";
+    WebTerritorialFeature child;child.identity.id="Child";child.identity.name="Source child";child.geometry=box(10,2);child.coverageMode="partition";child.parentId="Root";
+    WebTerritorialEdit source;source.operation=WebTerritorialOperation::Replace;source.features={root,child};
+    const auto admitted=applyWebTerritorialEdit(boot.snapshot(),source,TerritorialEditContext::SourceAdmission);
+    assert(admitted.units.size()==2);
+    bool outsideRejected=false;try{(void)applyWebTerritorialEdit(boot.snapshot(),source);}catch(const TimelineError& error){outsideRejected=error.code=="GEOMETRY_OUTSIDE_PARENT";}
+    assert(outsideRejected);
     Project project;project.replace(makeTerritorialDocument({{{"A","Baseline"},box(0,2),{0x112233,1,true}},{{"B","Other"},box(10,2),{}}}));
     project.setTimelineCursor("2013-01");CommandArguments args;args.action=TerritorialFieldEdit{territorialRef("A"),TerritorialField::Name,"Future"};apply(project,"territorial.field",args);
     project.setTimelineCursor("2012-01");args.action=TerritorialFieldEdit{territorialRef("A"),TerritorialField::Name,"Inserted"};apply(project,"territorial.field",args);
@@ -28,7 +36,7 @@ int main() {
     assert(!timelineDocumentView(project.document(),"2011-01").document.symbols.count(territorialRef("A")));
     assert(timelineDocumentView(project.document(),"2012-01").document.symbols.at(territorialRef("A")).policy==FlagPolicy::None);
     WebTerritorialEdit absorption;absorption.operation=WebTerritorialOperation::Remove;absorption.removedIds={"A"};
-    auto suspended=applyWebTerritorialEdit(project.snapshot(),absorption,true);
+    auto suspended=applyWebTerritorialEdit(project.snapshot(),absorption,TerritorialEditContext::LibraryImport);
     assert(!timelineDocumentView(suspended,"2013-01").inactiveIds.count("A"));
     assert(timelineDocumentView(suspended,"2012-01").inactiveIds.count("A"));
     assert(timelineDocumentView(suspended,"2013-01").document.units.front().name=="Future");
