@@ -30,12 +30,36 @@ function geometryRingBounds(geometry) {
   return boxes;
 }
 
-export function createBoundaryPreparation() {
+// Conservative accounting of retained JS collections, not actual V8 heap bytes.
+// One oversize active preparation remains usable; older preparations are evicted.
+export const BOUNDARY_PREPARATION_CACHE_BUDGET_BYTES = 32 * 1024 * 1024;
+const MAX_CACHED_PREPARATIONS = 8;
+const estimateCacheEntryBytes = entry => entry.topology.nodes.size * 240
+  + entry.topology.segments.size * 320 + entry.targetRowCount * 176
+  + (entry.handles?.length || 0) * 256 + (entry.segments?.length || 0) * 176;
+
+export function createBoundaryPreparation({ cacheBudgetBytes = BOUNDARY_PREPARATION_CACHE_BUDGET_BYTES } = {}) {
+  if (!Number.isSafeInteger(cacheBudgetBytes) || cacheBudgetBytes < 1)
+    throw new TypeError('Boundary cache budget must be a positive safe integer.');
   const sources = new Map();
   // Only ring envelopes are indexed at first edit. Unrelated world geometry
   // must not materialize thousands of segment objects and grid entries.
   const featureIndex = createBoundarySpatialIndex();
   const cache = new Map();
+  let evictions = 0;
+  const estimatedCacheBytes = () => [...cache.values()].reduce((sum, entry) => sum + estimateCacheEntryBytes(entry), 0);
+  function retainCacheEntry(entry) {
+    cache.delete(entry.key);
+    cache.set(entry.key, entry);
+    // Keep this entry valid for the active edit, even if it alone exceeds the
+    // budget. Reclaim previous heavy topologies and their detached source rows.
+    while (cache.size > 1 && (cache.size > MAX_CACHED_PREPARATIONS || estimatedCacheBytes() > cacheBudgetBytes)) {
+      cache.delete(cache.keys().next().value);
+      evictions++;
+    }
+    const retained = new Set([...cache.values()].flatMap(row => [...row.dependencies]));
+    for (const [id, source] of sources) if (source.rows && !retained.has(id)) source.rows = null;
+  }
   let sequence = 0;
   const namespace = globalThis.crypto?.randomUUID?.() || `${Date.now()}:${Math.random()}`;
 
@@ -103,6 +127,10 @@ export function createBoundaryPreparation() {
       : !(feature.properties?.entityKind === 'general' && !!feature.properties?.parentId) && !(feature.properties?.entityKind === 'regional'));
     const key = JSON.stringify([mode, ids, parentId, autoSeedId]);
     let entry = cache.get(key);
+    if (entry) {
+      cache.delete(key);
+      cache.set(key, entry);
+    }
     if (!entry) {
       const selected = new Set(ids);
       const rows = new Map();
@@ -157,9 +185,10 @@ export function createBoundaryPreparation() {
       }
       const plan = mode === 'coast' ? planCoastEdit(topology, ids[0]) : planSharedBoundaryEdit(topology, editableIds);
       entry = { id: `boundary:${namespace}:${++sequence}`, key, ids: editableIds, mode, topology, plan, neighbors: [...neighbors], handles: null, segments: null,
-        dependencies: new Set([...rows.values()].map(row => row.featureId)), targetIndex };
-      cache.set(key, entry);
-      while (cache.size > 8) cache.delete(cache.keys().next().value);
+        dependencies: new Set([...rows.values()].map(row => row.featureId)), targetIndex,
+        targetRowCount: [...ids].reduce((sum, id) => sum + sourceRows(id).length, 0) };
+      // Cache publication is deferred until the result is completely prepared,
+      // so a cancelled calculation never occupies a retained slot.
     }
     if (!neighborsOnly && !entry.handles) {
       // A locked unselected owner always stays fixed; selected locked targets were rejected above.
@@ -191,6 +220,7 @@ export function createBoundaryPreparation() {
       entry.segments = segments;
       entry.displayIndex = prepareBoundaryDisplay(handles, segments);
     }
+    retainCacheEntry(entry);
     return { preparationId: entry.id, mode, selectedIds: entry.ids, neighbors: entry.neighbors,
       valid: mode === 'coast' ? entry.plan.segmentKeys.size > 0 : entry.plan.valid,
       isolatedIds: entry.plan.isolatedIds || [],
@@ -220,6 +250,12 @@ export function createBoundaryPreparation() {
       segmentSourceCount: detailed.length,
       segmentCount: detailed.reduce((sum, source) => sum + source.rows.length, 0),
       cachedPreparations: cache.size,
+      cachedNodes: [...cache.values()].reduce((sum, row) => sum + row.topology.nodes.size, 0),
+      cachedSegments: [...cache.values()].reduce((sum, row) => sum + row.topology.segments.size, 0),
+      cachedHandles: [...cache.values()].reduce((sum, row) => sum + (row.handles?.length || 0), 0),
+      cacheEstimatedBytes: estimatedCacheBytes(),
+      cacheBudgetBytes,
+      cacheEvictions: evictions,
     });
   }
   return { sync, prepare, move, stats };
