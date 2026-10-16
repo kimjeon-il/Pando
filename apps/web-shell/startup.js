@@ -2,6 +2,7 @@ import { createRuntimeProfile } from './runtime-profile.js';
 import { installDiagnostics } from './diagnostics.js';
 import { createNativeStorage, finishDiagnostics } from './native-storage.js';
 import { installNetworkGuard } from './network-guard.js';
+import { installFullWorldProbe } from './full-world-probe.js';
 
 async function start() {
   if (document.readyState === 'loading' && (!globalThis.PANDOLAB_BUILD_META || !window.d3)) {
@@ -32,6 +33,7 @@ async function start() {
     window.addEventListener('pandolab:ready', () => {
       window.__PANDOLAB_SHELL_READY__ = true;
     }, { once: true });
+    installFullWorldProbe({ expectedCountryCount: profileMeta.world.countryCount });
     await new Promise((resolve, reject) => {
       const script = document.createElement('script');
       script.src = versionedAsset('./bootstrap.js').href;

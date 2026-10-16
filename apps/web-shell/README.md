@@ -40,7 +40,10 @@ hydro, or built-in place assets: those belong to 2-3D. Native file IPC still
 has the 1 MiB prototype limit (2-3E). WebGL/Android device performance and
 full-world Tauri runtime behavior are not yet certified (2-4).
 The automatic `verify-windows.ps1` small-fixture diagnostic is **not**
-a full-world acceptance test. This setting does not change the public
+a full-world acceptance test. The full-world-only `full-world-probe.js` records
+verified country count, canonical geometry/mesh, worker, WebGL and local-resource
+checks when launched with `--probe-auto`. Run `verify-world-windows.ps1` on a
+freshly built full-world Windows EXE for a separate acceptance report. This setting does not change the public
 GitHub Pages output or the legacy Qt application.
 
 The application identifier is `com.pandolab.webshell.prototype`. Fixed prototype
