@@ -88,6 +88,14 @@ test('1989 Soviet Union pan keeps WebGL geometry and upload resources stable', a
     await page.mouse.move(x + distanceX, y + distanceY, { steps: 8 });
     await page.mouse.up();
   };
+  // Historical outline is a separately uploaded GPU stroke. Complete its
+  // one-time creation before the camera-only reuse interval is sampled.
+  await expect.poll(() => page.evaluate(() => {
+    const snapshot = window.__PANDOLAB_RENDER_DEBUG__.snapshot();
+    return snapshot.gpu.selection?.segmentCount > 0
+      && snapshot.gpu.selection?.channels?.primary?.drawSucceeded === true
+      && snapshot.selection.fallbackCount === 0;
+  }), { timeout: 90_000, intervals: [350, 900, 1500] }).toBe(true);
   await pan(24, 9);
   await page.waitForTimeout(900);
 
