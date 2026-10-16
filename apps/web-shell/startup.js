@@ -9,13 +9,36 @@ async function start() {
   }
   const meta = globalThis.PANDOLAB_BUILD_META;
   if (!meta?.assetRevision || !window.d3) throw new Error('The bundled application dependencies are unavailable.');
-  installNetworkGuard();
+  const profileMeta = await fetch(new URL('./stage-profile.json', import.meta.url)).then(response => {
+    if (!response.ok) throw new Error('The bundled shell profile is missing.');
+    return response.json();
+  });
+  if (!['small-project', 'full-world'].includes(profileMeta.mode)) throw new Error('Unknown shell resource profile.');
+  installNetworkGuard(globalThis, { allowBundledData: profileMeta.mode === 'full-world' });
   const assetBase = new URL('../assets/js/', import.meta.url);
   const versionedAsset = relative => {
     const url = new URL(relative, assetBase);
     url.searchParams.set('v', meta.assetRevision);
     return url;
   };
+  const profile = await createRuntimeProfile();
+  if (profile.mode === 'full-world') {
+    // The full-world shell must take precisely the website's progressive WebGL
+    // preview -> canonical country packet -> canonical mesh startup path.
+    globalThis.__PANDOLAB_SHELL_PLATFORM__ = Object.freeze({
+      ...profile.platform,
+      fileAccess: createNativeStorage(),
+    });
+    window.addEventListener('pandolab:ready', () => {
+      window.__PANDOLAB_SHELL_READY__ = true;
+    }, { once: true });
+    const script = document.createElement('script');
+    script.src = versionedAsset('./bootstrap.js').href;
+    script.async = false;
+    script.onerror = () => { throw new Error('Canonical Web bootstrap unavailable in the shell.'); };
+    document.body.appendChild(script);
+    return;
+  }
   window.PANDOLAB_APP_VERSION = meta.appVersion;
   window.PANDOLAB_ASSET_REVISION = meta.assetRevision;
   window.PANDOLAB_DATA_REVISION = meta.dataRevision;
@@ -32,7 +55,6 @@ async function start() {
     style.addEventListener('error', () => { modalStyles = null; reject(new Error('Modal styles unavailable.')); }, { once: true });
     document.head.append(style);
   });
-  const profile = await createRuntimeProfile();
   const countries = await fetch(profile.countriesUrl);
   if (!countries.ok) throw new Error(`Shell geometry unavailable (${countries.status}).`);
   window.PANDOLAB_COUNTRIES = await countries.json();

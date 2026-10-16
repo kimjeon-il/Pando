@@ -13,7 +13,7 @@ test('entry stays below 400 nonempty lines and owns only versioned composition/s
   const source = read('assets/js/app.js');
   assert.ok(source.split(/\r?\n/).filter(line => line.trim()).length <= 400);
   assert.doesNotMatch(source, /\bfunction\b|=>|document\.|addEventListener\(|new (?:Map|Set|Worker)/);
-  assert.match(source, /await composeApplication\(\{ revision \}\)/);
+  assert.match(source, /await composeApplication\(\{ revision, platform \}\)/);
   assert.match(source, /void application\.start\(\)/);
   assert.match(composition, /encodeURIComponent\(revision\)/);
   assert.equal(new Set(moduleNames).size, moduleNames.length);
