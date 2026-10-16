@@ -19,6 +19,7 @@ fn main() {
             "write_diagnostic_report",
             "finish_probe",
             "save_project_file",
+            "save_export_file",
             "open_project_file",
         ]),
     ))
