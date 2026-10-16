@@ -15,7 +15,7 @@ async function rssPss() {
       sum+=kb; count++;
       if(args.includes('--type=renderer'))renderer+=kb;
       if(args.includes('--type=gpu-process'))gpu+=kb;
-    }catch{}
+    }catch{ /* Chromium processes may exit while /proc is sampled. */ }
   }
   return {totalKiB:sum,rendererKiB:renderer,gpuKiB:gpu,chromiumProcesses:count};
 }
@@ -46,7 +46,7 @@ async function snap(page,cdp,label){
       autosave:{count:status?.count||0,last:(status?.samples||[]).slice(-1)[0]||null},
       latestRendererTimes:d.lastRendererTimes,latestRenderReasons:d.lastReasons};
   });
-  let heap=null;try{heap=await cdp.send('Runtime.getHeapUsage')}catch{}
+  let heap=null;try{heap=await cdp.send('Runtime.getHeapUsage')}catch{ /* CDP heap sampling is optional for this diagnostic. */ }
   return {label,state,mainJsHeapUsedBytes:heap?.usedSize||null,pss:await rssPss(),workers:page.workers().map(w=>new URL(w.url()).pathname)};
 }
 test('1989 Soviet actual coast-edit entry CPU and memory after autosave quiescence',async({page},testInfo)=>{
