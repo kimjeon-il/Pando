@@ -321,6 +321,7 @@ if(BUILD_TESTING)
         FILES "${PROJECT_SOURCE_DIR}/assets/sample.pando.json")
     target_compile_definitions(place_sync_contract_tests PRIVATE
         PLACE_SYNC_CONTRACT_PATH="${PROJECT_SOURCE_DIR}/contracts/places/v2.json"
+        PLACE_SYNC_CURRENT_CONTRACT_PATH="${PROJECT_SOURCE_DIR}/../contracts/places/v3.json"
         PLACE_SYNC_REPOSITORY_ROOT="${PROJECT_SOURCE_DIR}")
     add_test(NAME place_sync_contract_tests COMMAND place_sync_contract_tests)
     set_tests_properties(place_sync_contract_tests PROPERTIES

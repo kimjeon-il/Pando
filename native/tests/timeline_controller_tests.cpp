@@ -173,8 +173,12 @@ private slots:
         QCOMPARE(editor.objectProperties().value("parentId").toString(),QStringLiteral("A"));
         QVERIFY(editor.setTimelineMonth(QStringLiteral("1915-01")));
         editor.undo();
+        QVERIFY(editor.selectionItems().isEmpty());
+        QVERIFY(editor.selectObject({{"domain","territorial"},{"id","B"}}));
         QCOMPARE(editor.objectProperties().value("parentId").toString(),QStringLiteral("A"));
         editor.redo();
+        QVERIFY(editor.selectionItems().isEmpty());
+        QVERIFY(editor.selectObject({{"domain","territorial"},{"id","B"}}));
         QCOMPARE(editor.objectProperties().value("parentId").toString(),QStringLiteral("C"));
         EditorController merging;
         QVERIFY(merging.openFile(QUrl::fromLocalFile(file.fileName())));
@@ -270,8 +274,12 @@ private slots:
         QCOMPARE(editor.objectProperties().value("parentId").toString(),QStringLiteral("A"));
         QVERIFY(editor.setTimelineMonth(QStringLiteral("1914-07")));
         editor.undo();
+        QVERIFY(editor.selectionItems().isEmpty());
+        QVERIFY(editor.selectObject({{"domain","territorial"},{"id","B"}}));
         QCOMPARE(editor.objectProperties().value("parentId").toString(),QStringLiteral("A"));
         editor.redo();
+        QVERIFY(editor.selectionItems().isEmpty());
+        QVERIFY(editor.selectObject({{"domain","territorial"},{"id","B"}}));
         QCOMPARE(editor.objectProperties().value("parentId").toString(),QStringLiteral("C"));
         QVERIFY(editor.beginGeometryEdit());
         const auto oldGeometry=editor.geometryDraftPaths();
