@@ -32,11 +32,14 @@ async function start() {
     window.addEventListener('pandolab:ready', () => {
       window.__PANDOLAB_SHELL_READY__ = true;
     }, { once: true });
-    const script = document.createElement('script');
-    script.src = versionedAsset('./bootstrap.js').href;
-    script.async = false;
-    script.onerror = () => { throw new Error('Canonical Web bootstrap unavailable in the shell.'); };
-    document.body.appendChild(script);
+    await new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = versionedAsset('./bootstrap.js').href;
+      script.async = false;
+      script.onload = resolve;
+      script.onerror = () => reject(new Error('Canonical Web bootstrap unavailable in the shell.'));
+      document.body.appendChild(script);
+    });
     return;
   }
   window.PANDOLAB_APP_VERSION = meta.appVersion;

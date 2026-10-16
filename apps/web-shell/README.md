@@ -4,6 +4,43 @@ An isolated Tauri 2 prototype for Windows x64 and Android arm64. It embeds the
 existing Web frontend staged by `stage.mjs`; it does not package the world data.
 This does not replace or launch the Qt application.
 
+## Resource profiles (2-3A–C)
+
+The default **small-project** profile is the 15-coordinate offline smoke
+fixture. Its original tests, size restrictions and storage namespace remain
+unchanged.
+
+The opt-in **full-world** profile uses the *same* progressive Web startup as
+the public website (`assets/js/bootstrap.js`, `data-loader-worker.js`,
+the verified C++/WASM core, preview geometry and canonical GPU mesh).
+The original Web menu and DOM are packaged, not recreated for Tauri.
+The profile stages only the assets referenced by the current pinned world,
+historical-world, territorial-library and prepared-polygon manifests.
+Every pinned asset is checked for length and SHA-256 before packaging;
+unreferenced older versions are excluded.
+
+For Windows PowerShell (from the repository root):
+
+```powershell
+$env:PANDOLAB_SHELL_PROFILE = 'full-world'
+pnpm --dir apps/web-shell build:windows
+Remove-Item Env:PANDOLAB_SHELL_PROFILE
+```
+
+For Android, set the same environment variable before
+`pnpm --dir apps/web-shell build:android`. Alternatively
+`pnpm --dir apps/web-shell stage:world` creates a full-world staging
+snapshot **only**; subsequent Tauri builds restage using the environment
+variable, so it must also be set for the build.
+
+The full-world profile deliberately **does not** include/activate DEM,
+hydro, or built-in place assets: those belong to 2-3D. Native file IPC still
+has the 1 MiB prototype limit (2-3E). WebGL/Android device performance and
+full-world Tauri runtime behavior are not yet certified (2-4).
+The automatic `verify-windows.ps1` small-fixture diagnostic is **not**
+a full-world acceptance test. This setting does not change the public
+GitHub Pages output or the legacy Qt application.
+
 The application identifier is `com.pandolab.webshell.prototype`. Fixed prototype
 files live below the OS application-data directory in `test-profile/`. Windows
 WebView2 also uses a dedicated `test-profile/webview2` directory, so its browser
