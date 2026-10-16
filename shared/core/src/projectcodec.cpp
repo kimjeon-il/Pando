@@ -1364,7 +1364,12 @@ std::string encodeWebDelta(const ProjectDocument& before,const ProjectDocument& 
         objects.array.push_back(object({{"ref",refValue(ref)},{"value",std::move(value)},{"index",V::num(static_cast<double>(index))},{"geometryChanged",V::boolean(geometryChanged)}}));
     }
     const auto beforeArchive=semanticArchive(before),afterArchive=semanticArchive(after);
-    for(const auto& ref:impact.changedGeometries) {
+    // Undo can unpublish an inline allocation without deleting its native
+    // archive entry. Redo must admit it again even when the allocation itself
+    // did not change: the Web read model owns the published semantic archive.
+    std::set<GeometryRef> publishedGeometries(impact.changedGeometries.begin(),impact.changedGeometries.end());
+    for(const auto& ref:afterArchive)if(!beforeArchive.count(ref))publishedGeometries.insert(ref);
+    for(const auto& ref:publishedGeometries) {
         if(!afterArchive.count(ref))continue;
         const auto shape=after.geometries.get(ref);if(shape)geometries.array.push_back(object({{"id",V::str(ref.id)},{"version",V::num(ref.version)},{"geojson",geometryValue(*shape)}}));
     }

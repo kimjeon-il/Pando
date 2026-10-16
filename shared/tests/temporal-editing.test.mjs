@@ -4,6 +4,8 @@ import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import test from 'node:test';
 import {createEmptyTerritorialState} from '../../assets/js/modules/territorial-entity-store.js';
+import {createCoreDocumentReadModel} from '../../assets/js/modules/core-document-read-model.js';
+import {createTerritorialFeature} from '../../assets/js/modules/territorial-units.js';
 
 const modulePath=resolve(process.env.PANDOEDITOR_WASM_MODULE ?? 'build-native/wasm/wasm/pandoeditor-core.js');
 const {default:createCore}=await import(pathToFileURL(modulePath));
@@ -18,6 +20,23 @@ const name=session=>session.resolveWorld(session.projectState().timelineCursor,s
 test('startup empty state is admitted by the current C++ timeline contract',()=>{
   const empty=createEmptyTerritorialState();
   assert.deepEqual(core.timelineNormalizeRecords(empty.timelineRecords,{entities:[],geometryExists:()=>false}),empty.timelineRecords);
+});
+
+test('dated creation Undo and Redo republish every required geometry to the Web read model',()=>{
+  const session=new core.DocumentSession({validateFlagDataUrl:()=>{}});
+  try {
+    session.documentLoad(JSON.stringify(seed),'2012-01');cursor(session,'2012-01');
+    const model=createCoreDocumentReadModel(session.documentSnapshot());
+    const accept=result=>model.acceptTransition({...result,world:session.resolveWorld('2012-01',result.state.epoch)},'history');
+    const feature=createTerritorialFeature({id:'TEMPORAL_NEW',entityKind:'general',name:'New',
+      geometry:{type:'Polygon',coordinates:[[[20,0],[21,0],[21,1],[20,0]]]}});
+    const result=session.executeCommand({commandId:'territorial.create',expectedEpoch:session.projectState().epoch,
+      targets:[{domain:'territorial',id:feature.id}],payload:{feature}});
+    assert.equal(result.ok,true);accept(result);
+    accept(session.undo(session.projectState().epoch));assert.equal(model.get({domain:'territorial',id:feature.id}),null);
+    accept(session.redo(session.projectState().epoch));
+    assert.deepEqual(model.territorialViews().find(row=>row.id===feature.id).geometry,feature.geometry);
+  }finally{session.delete();}
 });
 
 test('dated names preserve previous months and the next explicit change',()=>{
