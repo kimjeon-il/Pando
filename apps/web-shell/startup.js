@@ -1,6 +1,6 @@
 import { createRuntimeProfile } from './runtime-profile.js';
 import { installDiagnostics } from './diagnostics.js';
-import { finishDiagnostics } from './native-storage.js';
+import { createNativeStorage, finishDiagnostics } from './native-storage.js';
 import { installNetworkGuard } from './network-guard.js';
 
 async function start() {
@@ -38,7 +38,8 @@ async function start() {
   window.PANDOLAB_COUNTRIES = await countries.json();
   const { composeApplication } = await import(versionedAsset('./modules/app-composition.js').href);
   let diagnostics;
-  const application = await composeApplication({ revision: meta.assetRevision, platform: profile.platform,
+  const application = await composeApplication({ revision: meta.assetRevision,
+    platform: { ...profile.platform, fileAccess: createNativeStorage() },
     onComposed: async runtime => { diagnostics = await installDiagnostics(runtime); },
   });
   if (!await application.start()) throw new Error('The application could not finish startup.');
