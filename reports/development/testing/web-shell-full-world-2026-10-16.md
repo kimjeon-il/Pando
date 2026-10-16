@@ -33,9 +33,46 @@
   (GitHub directory metadata 기반이며 실제 앱 패키징 실행 실측 아님).
 - 순수 manifest 계획 단위 테스트 2건(경로 폐쇄, 잘못된 pin·원격/상위 경로 거부):
   소스 대상 격리 JavaScript 실행에서 **PASS**.
-- Node 공식 단위 테스트 명령, 실제 전체 세계 패키징, Windows/Android Tauri 빌드,
+- 전체 저장소의 공식 Node 단위 테스트 명령, 실제 전체 세계 바이너리 패키징, Windows/Android Tauri 빌드,
   WebGL 전체 화면·타임라인·대용량 반응성: 아직 **NOT_RUN**.
 - 기존 소형 앱 소스·검증 수치는 2-3 이후 재빌드하여 비교해야 함.
+
+### 독립 실행 환경 검증 추가 (2026-10-16)
+
+최신 `work/ui` 기반의 2-3A~C 자료를 GitHub 연결로 재확인했고,
+작동 가능한 Linux/Node.js 22 테스트 환경에 관련 JS 원본과 테스트를 옮겨 실제 실행했다.
+단, 전체 저장소 체크아웃은 불가능했으므로 staging 테스트의
+`fixture.mjs`(복잡한 실제 Core fixture 의존성)는 동일한 3객체/15좌표의
+최소 로컬 대체 자료를 사용했다. **이를 전체 저장소의 정식 Node 테스트 통과로 표현하지 않는다.**
+
+- `node --test apps/web-shell/tests/{network-guard,stage-world,stage,world-data-plan}.test.mjs`
+  에 해당하는 소스 4개 묶음을 별도 Node 실행 환경에서 실행: **12 PASS / 0 FAIL**.
+  검사 범위: 소형 모드 복귀, W​​ASM 스테이징 pin 오류,
+  패키징 출력물 소유권 보호, Worker strict 유지, 네트워크 출처 제한,
+  전체 세계자료 파일 선택, 변조된 데이터 거부.
+- 원본 `stage.mjs`를 이용하여 **597개 가상 데이터 파일**을 가진 전체 세계자료 manifest를 생성한 뒤
+  패키징을 끝까지 수행: **PASS**. 출력 총 **607개 파일**의 SHA-256을 재검사: **607건 일치**.
+  선택되지 않은 구버전 자료 및 수계 자료의 배제도 확인했다.
+  **가상 파일 자료로 실행한 것으로 실제 세계지도 79.8 MB 바이너리 패키징 결과가 아니다.**
+- 실제 GitHub manifest 4종을 적용한 계획은 **597개 파일**을 선택한다.
+  GitHub 디렉터리 목록에서 597개 경로의 존재와 등록된 파일 크기를 대조:
+  **누락 0건, 크기 불일치 0건**, 목록상 **79,780,645 bytes**.
+  현재 세계지도의 근거 국가 수는 **258개**.
+  실제 바이너리 SHA-256 전체 재검사와 본앱 패키징은 **NOT_RUN**.
+- `startup.js`, 공용 `app.js`, 웹 `bootstrap.js`, 실제 `data-loader-worker.js`,
+  빌드 metadata, Tauri 패키징 설정의 12개 중요 연결 조건은 소스 검사 **12 PASS**.
+  이는 브라우저 실동작 검증이 아닌 정적 연결 검증이다.
+- Linux Chromium의 로컬 HTTP 및 `tauri.localhost` 탐색은
+  `ERR_BLOCKED_BY_ADMINISTRATOR`로 차단됨.
+  브라우저 부트스트랩·WebGL 동작은 **BLOCKED / NOT_RUN**.
+- 이 환경에는 Windows Tauri 빌드 환경, Rust/Cargo, Android SDK/실기기,
+  전체 세계바이너리 597개 사본이 없으며, Windows/Android 실제 빌드와
+  OS 파일 선택창·성능·세계지도 렌더링은 **NOT_RUN**.
+
+검증용 임시 파일은 별도 환경에 생성했으며 실제 저장소 코드·GIS 자료와
+Qt 앱 코드는 이 검증 과정에서 수정하지 않았다.
+실제 전체 자료 패키징 및 Windows·Android 실행이 통과해야 2-3A~C를
+**실행 검증 완료**로 전환할 수 있다.
 
 ## 후속 단계
 
