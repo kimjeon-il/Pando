@@ -110,6 +110,18 @@ export async function createWorkerMemoryProbe(cdp, { origin = 'http://127.0.0.1:
   }
 
   async function wasmLinearMemory(sessionId) {
+    // WeakRefs retain observability, NOT the memory itself. Avoid repeatedly
+    // scanning a 300+ MiB V8 heap when the current-world Worker is busy.
+    const cached = await call(sessionId, 'Runtime.evaluate', {
+      expression: '(() => { const refs = globalThis.__PANDOLAB_TEST_WASM_MEMORIES__; if (!Array.isArray(refs) || !refs.length) return null; const memories = refs.map(ref => ref.deref()); return memories.some(memory => !memory) ? null : memories.map(memory => memory.buffer.byteLength); })()',
+      returnByValue: true,
+    });
+    const cachedValues = cached?.result?.value;
+    if (Array.isArray(cachedValues)) return {
+      available: true, basis: 'previously-observed live WASM memories (WeakRef)',
+      instanceCount: cachedValues.length, instanceBytes: cachedValues,
+      allocatedBytes: cachedValues.reduce((sum, value) => sum + value, 0),
+    };
     const proto = await call(sessionId, 'Runtime.evaluate', {
       expression: 'WebAssembly.Memory.prototype', returnByValue: false,
     });
@@ -122,7 +134,7 @@ export async function createWorkerMemoryProbe(cdp, { origin = 'http://127.0.0.1:
       if (!instancesId) return { available: false, reason: 'Live WebAssembly.Memory query unavailable' };
       const response = await call(sessionId, 'Runtime.callFunctionOn', {
         objectId: instancesId,
-        functionDeclaration: 'function () { return this.map(memory => memory.buffer.byteLength); }',
+        functionDeclaration: 'function () { const sizes = this.map(memory => memory.buffer.byteLength); if (sizes.length) globalThis.__PANDOLAB_TEST_WASM_MEMORIES__ = this.map(memory => new WeakRef(memory)); return sizes; }',
         returnByValue: true,
       });
       const values = response?.result?.value;
