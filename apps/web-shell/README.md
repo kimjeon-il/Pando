@@ -1,7 +1,9 @@
 # PandoLab 시험용 WebView shell
 
-An isolated Tauri 2 prototype for Windows x64 and Android arm64. It embeds the
-existing Web frontend staged by `stage.mjs`; it does not package the world data.
+A Tauri 2 prototype for Windows x64 and Android arm64. It embeds the
+existing Web frontend staged by `stage.mjs`. The default smoke profile omits
+world data; the opt-in full-world profile packages the current manifest-pinned
+country, historical and prepared geometry assets.
 This does not replace or launch the Qt application.
 
 ## Resource profiles (2-3A–C)
