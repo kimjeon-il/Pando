@@ -6,17 +6,20 @@ import { createNodeCoreProject } from './core-project.mjs';
 import { loadWebOracle } from './web-oracle.mjs';
 import { DISTRIBUTION_MODES } from '../../assets/js/modules/distribution-model.js';
 import { afterEach } from 'node:test';
+import { createProjectSerializer } from '../../assets/js/modules/project-serializer.js';
 
 // These original factories only construct detached scenario inputs. Current
 // behavior, mutation, validation and history are always exercised in C++.
 const { createStaticTerritorialSnapshot }=await loadWebOracle('assets/js/modules/territorial-entity-store.js');
-const { createProjectSerializer }=await loadWebOracle('assets/js/modules/project-serializer.js');
 const fixtures=new WeakMap();
 const liveFixtures=new Set();
 
 /** Detached input construction only; never a current model or command owner. */
 export function staticTerritorialInput(features) {
-  return structuredClone(createStaticTerritorialSnapshot(features));
+  const input=structuredClone(createStaticTerritorialSnapshot(features));
+  input.timelineRecords.schemaVersion=2;
+  input.timelineRecords.propertyBindings=[];
+  return input;
 }
 afterEach(() => {
   for(const fixture of liveFixtures)fixture.dispose();
@@ -84,7 +87,7 @@ export function executeTerritorialTestCommand(state,commandId,payload) {
 }
 
 export function staticSerializerSnapshot(snapshot) {
-  const content = createStaticTerritorialSnapshot(snapshot.territorialEntities);
+  const content = staticTerritorialInput(snapshot.territorialEntities);
   return { baseDatasetFingerprint: '1'.repeat(64), ...snapshot, territorialEntities: content.territorialEntities,
     entityDelta: snapshot.entityDelta ? { ...snapshot.entityDelta,
       changed: snapshot.entityDelta.changed.map(feature => content.territorialEntities.find(entity => entity.id === feature.id)) } : undefined,

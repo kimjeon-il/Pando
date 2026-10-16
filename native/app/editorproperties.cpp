@@ -23,7 +23,7 @@ std::optional<TerritorialField> fieldKind(const QString& field) {
 const TerritorialUnit* EditorController::selectedUnit() const {
  if(selection_.primary() && selection_.primary()->domain!="territorial") return nullptr;
  const auto pos=project_.index().objects.find(territorialRef(selectedId().toStdString()));
- return pos==project_.index().objects.end()?nullptr:&project_.document().units.at(pos->second);
+ return pos==project_.index().objects.end()?nullptr:&project_.viewDocument().units.at(pos->second);
 }
 bool EditorController::propertyBusy() const {return jobBusy() || webImportBusy() || hasWebImportPreview();}
 bool EditorController::selectedEditable() const {
@@ -59,7 +59,7 @@ QVariantMap EditorController::computeObjectProperties() const {
  result["lockLabel"]=allLocked?QStringLiteral("잠금 해제"):selection_.items().size()>1?QStringLiteral("모두 잠금"):QStringLiteral("잠금");
  result["colorEnabled"]=!propertyBusy()&&!layerLocked&&!selection_.items().empty()&&(selection_.items().size()>1||!anyLocked);
  const auto u=selectedUnit();if(!u||selection_.items().size()!=1)return result;
- const auto ref=territorialRef(u->id);const auto& style=project_.document().presentation.objectStyles.at(ref);
+ const auto ref=territorialRef(u->id);const auto& style=project_.viewDocument().presentation.objectStyles.at(ref);
  result["id"]=q(u->id);result["type"]=u->kind==UnitKind::General?"general":"regional";
  result["displayName"]=q(objectDisplayName(*u));result["namePending"]=nameDraft_!=q(u->kind==UnitKind::General?objectDisplayName(*u):u->name);result["nameDraft"]=nameDraft_;result["notesDraft"]=memoDraft_;
  result["color"]=hex(effectiveObjectColor(project_.viewDocument(),ref));result["colorExplicit"]=style.explicitColor;
@@ -88,7 +88,7 @@ QVariantMap EditorController::computeObjectProperties() const {
  }
  result["parentRows"]=parentRows;result["childRows"]=childRows;
  bool conflict=false;const auto normalized=q(trimWebText(u->name)).toLower();
- for(const auto& other:project_.document().units)if(!project_.inactiveEntityIds().count(other.id)&&other.id!=u->id&&other.kind==u->kind&&staticParentRelation(project_.viewDocument(),other.id).parentId==relation.parentId&&q(trimWebText(other.name)).toLower()==normalized){conflict=true;break;}
+ for(const auto& other:project_.viewDocument().units)if(!project_.inactiveEntityIds().count(other.id)&&other.id!=u->id&&other.kind==u->kind&&staticParentRelation(project_.viewDocument(),other.id).parentId==relation.parentId&&q(trimWebText(other.name)).toLower()==normalized){conflict=true;break;}
  result["nameConflict"]=conflict;return result;
 }
 void EditorController::setValidFromDraft(const QString& value){if(!selectionTransition_&&selectedUnit()&&selectedUnit()->kind==UnitKind::Regional){cancelPreview();validFromDraft_=value;emit draftsChanged();emit dirtyChanged();}}

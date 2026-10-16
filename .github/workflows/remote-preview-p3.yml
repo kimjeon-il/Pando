@@ -59,6 +59,12 @@ on:
         type: boolean
         required: false
         default: true
+      native_platform:
+        description: Qt platform for a focused run
+        type: choice
+        required: false
+        default: all
+        options: [all, linux, windows]
       native_p9:
         description: Build only the fixed Windows Qt performance pair for actual-device measurement
         type: boolean
@@ -315,15 +321,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - os: ubuntu-24.04
-            os_id: linux
-            preset: pando-native-qt-ci-linux
-            qt_arch: linux_gcc_64
-          - os: windows-2022
-            os_id: windows
-            preset: pando-native-qt-ci-windows
-            qt_arch: win64_msvc2022_64
+        include: ${{ fromJSON(inputs.native_platform == 'linux' && '[{"os":"ubuntu-24.04","os_id":"linux","preset":"pando-native-qt-ci-linux","qt_arch":"linux_gcc_64"}]' || inputs.native_platform == 'windows' && '[{"os":"windows-2022","os_id":"windows","preset":"pando-native-qt-ci-windows","qt_arch":"win64_msvc2022_64"}]' || '[{"os":"ubuntu-24.04","os_id":"linux","preset":"pando-native-qt-ci-linux","qt_arch":"linux_gcc_64"},{"os":"windows-2022","os_id":"windows","preset":"pando-native-qt-ci-windows","qt_arch":"win64_msvc2022_64"}]') }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 75
     env:

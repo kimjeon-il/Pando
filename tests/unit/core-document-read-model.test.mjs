@@ -168,7 +168,7 @@ test('authoritative header patches preserve explicit null and missing fields wit
 
 test('a retained C++ candidate projects immutable preview rows without publishing document, world or archive changes',() => {
   const model=createCoreDocumentReadModel(seed()),before=model.snapshot(),row={ id: 'A',geometryRef: { id: 'shape',version: 1 },
-    parentId: '',coverageMode: 'explicit',validFrom: null,validTo: null,rootId: 'A',ancestors: [] },world={ month: '1914-07',sourceEpoch: 1,entities: [row] };
+    parentId: '',coverageMode: 'explicit',validFrom: null,validTo: null,rootId: 'A',ancestors: [],properties: {} },world={ month: '1914-07',sourceEpoch: 1,entities: [row] };
   model.acceptWorld(world,1);const currentWorld=model.world(),currentViews=model.territorialViews();
   const value=structuredClone(before.territorialEntities[0]);value.properties.name='Prepared only';
   const native={ delta: { ...emptyDelta(),objects: [{ ref: { domain: 'territorial',id: 'A' },value,index: 0 }] },world };

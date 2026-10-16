@@ -202,7 +202,7 @@ bool EditorController::collectPendingEdits(pandoeditor::CommandArguments& args)
         using namespace pandoeditor;
         const auto ref=territorialRef(id.toStdString());auto pos=project_.index().objects.find(ref);
         if(pos==project_.index().objects.end()){commandError(CommandError::InvalidTargets);return false;}
-        const auto& u=project_.document().units[pos->second];
+        const auto& u=project_.viewDocument().units[pos->second];
         auto active=[&](const char* field){return draft.fields.empty()||draft.fields.count(field);};
         if(active("name") && draft.name.toStdString()!=(u.kind==UnitKind::General?objectDisplayName(u):u.name))args.properties.fields.push_back({ref,TerritorialField::Name,draft.name.toStdString()});
         if(active("notes") && draft.memo.toStdString()!=u.notes)args.properties.fields.push_back({ref,TerritorialField::Notes,draft.memo.toStdString()});
