@@ -1,4 +1,4 @@
-# DEV-080 — 1989년 소련 WebGL 강조선 및 상호작용 패스 최적화
+# DEV-082 — 1989년 소련 WebGL 강조선 및 상호작용 패스 최적화
 
 > 상태: `verified-web` · 지도 데이터 반영: `not-applicable` · 2026-10-16
 > 대상 소스: `work/objects` `06ed2806258f830ee8501d2d295c439374b1de34`

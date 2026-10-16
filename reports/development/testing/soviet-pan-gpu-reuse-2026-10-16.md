@@ -1,6 +1,6 @@
-# DEV-079 — 1989년 소련 지도 이동 시 GPU·메시 재사용 조사
+# DEV-081 — 1989년 소련 지도 이동 시 GPU·메시 재사용 조사
 
-> 조사 ID: `DEV-079` · 상태: `verified-web-only` · 지도 반영: `not-applicable` · 기록일: 2026-10-16
+> 조사 ID: `DEV-081` · 상태: `verified-web-only` · 지도 반영: `not-applicable` · 기록일: 2026-10-16
 > 조사 소스: `work/objects`, 테스트 작성 `46ecfc84575d032d911b2fb4a531cbcbb926e3ac`, 실행 커밋 `da831da3e0e9286f18a0ca5253255ee38d519e73`
 > 실행 증거: [GitHub Actions 38857758047](https://github.com/kimjeon-il/Pando/actions/runs/38857758047) · `soviet-camera` Job 116832942319, Playwright 1/1 통과
 
