@@ -1,4 +1,5 @@
 import {expect,test} from '@playwright/test';
+test.use({viewport:{width:1440,height:900},trace:'off'});
 
 async function month(page,value) {
   await page.locator('#timelineMonthButton').click();
