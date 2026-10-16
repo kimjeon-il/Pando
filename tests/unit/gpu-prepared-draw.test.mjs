@@ -200,3 +200,27 @@ test('interaction pass submits prepared priorities and ranges then composites be
   assert.deepEqual(fallback.previewResults[0].missingKeys, ['preview']);
   assert.deepEqual(calls, ['lake', 'lake-boundary', 'river', 'border-river', 'finish', 'selection', 'preview-outline']);
 });
+
+test('interaction pass skips unneeded water/border masks when no GPU fill is requested', () => {
+  const calls = [];
+  const gl = new Proxy(glFixture(), { get: (target, key) => key in target ? target[key] : () => {} });
+  const polygonOverlayPass = { hasResource: () => true, hasPreparedResource: () => true };
+  const plan = prepareGpuInteractionPlan({
+    interaction: { genericFillItems: [], previewPackets: [], draftPackets: [] },
+    emphasis: { selectedIds: new Set(), primaryId: '', primaryIds: new Set(), hoverId: '', priorities: {} },
+    mesh: { triangleRangesByCountryId: new Map() }, overrideIds: new Set(),
+    countriesVisible: true, isPending: () => false, isVisible: () => true,
+  }, polygonOverlayPass);
+  assert.equal(plan.hasFillItems, false);
+  const skip = () => assert.fail('empty interaction fills must not draw a mask or prepare a framebuffer');
+  const result = drawGpuInteractionPass({ gl, frame, viewport: {}, fillTarget: null, fillTargetReady: false, prepared: plan }, {
+    polygonOverlayPass: { ...polygonOverlayPass, drawPackets: skip, drawResourceItems: skip },
+    strokeRenderer: { drawBatches: skip },
+    selectionPass: { draw: () => { calls.push('selection'); return { succeeded: true }; } },
+    drawHydro: skip, drawCountryBoundaryMask: skip, drawCountryRanges: skip,
+    fillCache: { finishScene: skip, composite: skip },
+  });
+  assert.deepEqual(calls, ['selection']);
+  assert.equal(result.fillOwner, 'gpu');
+  assert.equal(result.genericFillResult.succeeded, true);
+});
