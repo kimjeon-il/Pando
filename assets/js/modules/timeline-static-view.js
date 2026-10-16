@@ -2,7 +2,7 @@ const unsupported = () => { throw Object.assign(new Error('시간 기록의 활�
 
 /** Capability boundary for the existing editor, not a month/date resolver. */
 export function assertStaticTimeline(records, entities) {
-  if (!records || !Array.isArray(entities)) unsupported();
+  if (!records || !Array.isArray(entities) || records.propertyBindings.length) unsupported();
   for (const entity of entities) for (const name of ['lifetimes', 'geometryBindings', 'parentRelations']) {
     const rows = records[name].filter(record => record.entityId === entity.id);
     if (rows.length !== 1 || rows[0].validFrom !== null || rows[0].validTo !== null) unsupported();

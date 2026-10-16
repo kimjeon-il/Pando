@@ -1,6 +1,5 @@
 #pragma once
 
-#include "referencewarp.h"
 #include "referenceimagemodel.h"
 #include "referenceautogeoref.h"
 #include <QJsonObject>
@@ -83,9 +82,6 @@ public:
     Q_INVOKABLE bool undo();
     Q_INVOKABLE bool redo();
     Q_INVOKABLE bool reload();
-    Q_INVOKABLE QVariantMap solveWarp(const QString &id, const QVariantList &controlPoints,
-                                      const QString &mode) const;
-    Q_INVOKABLE QVariantList traceLine(const QString &id,double startX,double startY,double endX,double endY) const;
 
 signals:
     void calibrationSessionChanged();

@@ -18,6 +18,9 @@ add_subdirectory(../shared/core shared-core)
 add_subdirectory(engine)
 
 if(BUILD_TESTING)
+    # Share the core test targets without rebuilding or duplicating the core.
+    # Explicit native CI target selection controls which executables are built.
+    add_subdirectory(../shared/tests shared-tests)
     add_subdirectory(tests/core)
 endif()
 
@@ -26,25 +29,6 @@ if(PANDOEDITOR_BUILD_APP)
     qt_standard_project_setup(REQUIRES 6.5)
     add_subdirectory(app)
     include(app/selection.cmake)
-endif()
-
-# The editing oracle is independent of the native renderer and runs offline.
-# Dedicated CI supplies Node 24 and fails separately if this contract cannot run.
-if(BUILD_TESTING)
-    find_program(PANDOEDITOR_M97_NODE_EXECUTABLE NAMES node)
-    if(PANDOEDITOR_M97_NODE_EXECUTABLE)
-        add_test(NAME m971_editing_oracle_contract
-            COMMAND "${PANDOEDITOR_M97_NODE_EXECUTABLE}" --test
-                "${PROJECT_SOURCE_DIR}/tools/m97/contract.test.mjs"
-                "${PROJECT_SOURCE_DIR}/tools/m97/calculations.test.mjs"
-                "${PROJECT_SOURCE_DIR}/tools/m97/corpus.test.mjs"
-                "${PROJECT_SOURCE_DIR}/tools/m97/cut-corpus.test.mjs"
-                "${PROJECT_SOURCE_DIR}/tools/m97/native-baseline.test.mjs"
-                "${PROJECT_SOURCE_DIR}/tools/m97/web-lifecycle.test.mjs"
-                "${PROJECT_SOURCE_DIR}/tools/m97/web-selection.test.mjs"
-                "${PROJECT_SOURCE_DIR}/tools/m97/registration.test.mjs")
-        set_tests_properties(m971_editing_oracle_contract PROPERTIES TIMEOUT 60)
-    endif()
 endif()
 
 # Native validation programs use assertions with required side effects. Keep

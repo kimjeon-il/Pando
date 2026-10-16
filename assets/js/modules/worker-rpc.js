@@ -227,8 +227,10 @@ export function createWorkerRpcClient({
       handleMessage(event);
     };
     currentWorker.onerror = event => {
-      event.preventDefault?.();
-      if (closed || worker !== currentWorker) return;
+      if (closed || worker !== currentWorker) { event.preventDefault?.(); return; }
+      // Pending operations report their rejection. An idle crash has no such
+      // owner, so retain the browser's native diagnostic and global boundary.
+      if (pending.size) event.preventDefault?.();
       handleCrash(event);
     };
     if (metrics.crashes && restartOnCrash) metrics.restarted += 1;

@@ -105,7 +105,7 @@ private slots:
         QCOMPARE(calculate({GeometryOperation::Intersection,a,b},{}).status,GeometryOperationStatus::Completed);
     }
     void cutLineReconstructsTwoExactRings() {
-        const QJsonObject source{{"type","Polygon"},{"coordinates",QJsonArray{QJsonArray{QJsonArray{0,0},QJsonArray{0,10},QJsonArray{10,10},QJsonArray{10,0},QJsonArray{0,0}}}}};
+        const QJsonObject source{{"type","Polygon"},{"coordinates",QJsonArray{QJsonValue(QJsonArray{QJsonArray{0,0},QJsonArray{0,10},QJsonArray{10,10},QJsonArray{10,0},QJsonArray{0,0}})}}};
         const QJsonObject view{{"kind","flat"},{"scale",500},{"translate",QJsonArray{512,384}},{"rotate",QJsonArray{0,0,0}},{"center",QJsonArray{5,5}},{"size",QJsonObject{{"width",1024},{"height",768}}},{"snapDistance",QJsonObject{{"mouse",10},{"touch",18}}},{"coarsePointer",false}};
         auto result=prepareCutGeometry({{"source",source},{"coords",QJsonArray{QJsonArray{5,-2},QJsonArray{5,12}}},{"view",view},{"buildPreview",true}});
         QVERIFY2(result.succeeded(),qPrintable(result.detail));QVERIFY(result.result["valid"].toBool());QCOMPARE(result.result["split"].toObject()["candidates"].toArray().size(),2);

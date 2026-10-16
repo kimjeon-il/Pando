@@ -38,20 +38,13 @@ on:
       - 'tools/package-shared-core-assets.mjs'
       - 'tools/stage-monorepo-pages.mjs'
       - 'native/tools/reference-parity/**'
-      - 'native/app/reference-web/**'
       - 'native/app/**'
       - 'native/engine/**'
       - 'native/renderer/**'
       - 'native/ui/**'
-      - 'native/assets/geometry/current/**'
-      - 'native/resources/current_geometry.qrc'
       - 'native/cmake/**'
-      - 'native/tools/m97/cut-kernel-generate.mjs'
-      - 'native/tools/m97/current-geometry-source.test.mjs'
       - 'native/tests/json-text-policy/**'
       - 'native/tests/json_text_policy_tests.cpp'
-      - 'native/tests/reference-runtime/**'
-      - 'native/tests/reference_runtime_headless.cpp'
       - 'native/tests/current-geometry/**'
       - 'native/tests/current_geometry_tests.cpp'
       - 'native/tests/verified-file/**'
@@ -99,20 +92,13 @@ on:
       - 'tools/package-shared-core-assets.mjs'
       - 'tools/stage-monorepo-pages.mjs'
       - 'native/tools/reference-parity/**'
-      - 'native/app/reference-web/**'
       - 'native/app/**'
       - 'native/engine/**'
       - 'native/renderer/**'
       - 'native/ui/**'
-      - 'native/assets/geometry/current/**'
-      - 'native/resources/current_geometry.qrc'
       - 'native/cmake/**'
-      - 'native/tools/m97/cut-kernel-generate.mjs'
-      - 'native/tools/m97/current-geometry-source.test.mjs'
       - 'native/tests/json-text-policy/**'
       - 'native/tests/json_text_policy_tests.cpp'
-      - 'native/tests/reference-runtime/**'
-      - 'native/tests/reference_runtime_headless.cpp'
       - 'native/tests/current-geometry/**'
       - 'native/tests/current_geometry_tests.cpp'
       - 'native/tests/verified-file/**'
@@ -123,12 +109,81 @@ on:
       - 'pnpm-workspace.yaml'
       - '.github/workflows/shared-core.yml'
   workflow_dispatch:
+    inputs:
+      scope:
+        description: Focused shared calculation verification
+        type: choice
+        options: [all, p6-polygon, p6-calculations, geometry, native-geometry, temporal]
+        default: all
 
 permissions:
   contents: read
 
 jobs:
+  temporal:
+    if: github.event_name == 'workflow_dispatch' && inputs.scope == 'temporal'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build only the changed temporal command contracts
+        run: |
+          cmake -S shared -B build-native/temporal-core -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+          cmake --build build-native/temporal-core --target temporal_editing_tests --parallel 2
+          ctest --test-dir build-native/temporal-core -R '^temporal_editing_tests$' --output-on-failure --no-tests=error
+  native-geometry:
+    if: github.event_name == 'workflow_dispatch' && inputs.scope == 'native-geometry'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install the existing native test configuration dependency
+        run: sudo apt-get update && sudo apt-get install -y qt6-base-dev
+      - name: Verify the changed native fill and contact adapters without rebuilding Qt
+        run: |
+          cmake -S native -B build-native/geometry-native -DCMAKE_BUILD_TYPE=Release -DPANDOEDITOR_BUILD_APP=OFF -DBUILD_TESTING=ON
+          cmake --build build-native/geometry-native --target polygon_boundary_contract_tests m976_shared_boundary_engine_tests --parallel 2
+          ctest --test-dir build-native/geometry-native -R '^(polygon_boundary_contract_tests|m976_shared_boundary_engine_tests)$' --output-on-failure --no-tests=error
+  geometry:
+    if: github.event_name == 'workflow_dispatch' && inputs.scope == 'geometry'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the changed contact, split and fill-mesh kernels
+        run: |
+          cmake -S shared -B build-native/geometry-core -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+          cmake --build build-native/geometry-core --target country_contact_tests boundary_split_tests polygon_mesh_tests --parallel 2
+          ctest --test-dir build-native/geometry-core -R '^(country_contact_tests|boundary_split_tests|polygon_mesh_tests)$' --output-on-failure --no-tests=error
+  p6-polygon:
+    if: github.event_name == 'workflow_dispatch' && (inputs.scope == 'p6-polygon' || inputs.scope == 'p6-calculations')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Verify native source and executable provenance
+        run: node --test tests/unit/native-build-provenance.test.mjs
+      - name: Compile native polygon kernel and current contract probe
+        id: compile
+        run: |
+          cmake -S shared -B build-native/p6-core -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+          cmake --build build-native/p6-core --target polygon_clipping_probe cut_geometry_probe reference_image_core_tests river_partition_probe --parallel 2
+      - name: Compare pinned polygon behavior
+        run: |
+          node tools/p6-polygon-parity.mjs build-native/p6-core/tests/polygon_clipping_probe
+      - name: Compare frozen cut behavior
+        run: node tools/p6-cut-parity.mjs build-native/p6-core/tests/cut_geometry_probe
+      - name: Compare frozen river behavior
+        if: (success() || failure()) && steps.compile.outcome == 'success'
+        run: node shared/tests/river-partition-parity.mjs build-native/p6-core/tests/river_partition_probe
+      - name: Compare frozen reference behavior
+        if: (success() || failure()) && steps.compile.outcome == 'success'
+        run: ctest --test-dir build-native/p6-core -R '^reference_image_core_tests$' --output-on-failure
   contracts:
+    if: github.event_name != 'workflow_dispatch' || (inputs.scope != 'p6-polygon' && inputs.scope != 'p6-calculations' && inputs.scope != 'geometry' && inputs.scope != 'native-geometry' && inputs.scope != 'temporal')
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
@@ -237,18 +292,12 @@ jobs:
           tests/unit/native-startup-boundary.test.mjs tests/unit/native-build-provenance.test.mjs
           tests/unit/native-selection-boundary.test.mjs tests/unit/native-draft-boundary.test.mjs
           tests/unit/native-session-boundary.test.mjs
-      - name: Shared JS calculation source and deterministic artifact
+      - name: Shared reference calculation frozen fixtures
         run: |
-          node native/tools/reference-parity/build-runtime.mjs --check
-          node native/tools/reference-parity/verify-source.mjs
           node native/tools/reference-parity/calibration-fixtures.mjs
           node native/tools/reference-parity/trace-fixtures.mjs
           node native/tools/reference-parity/refine-fixtures.mjs
           node --test tests/unit/reference-shared-runtime.test.mjs
-      - name: Canonical Web geometry calculation resources
-        run: |
-          node native/tools/m97/cut-kernel-generate.mjs --check
-          node --test native/tools/m97/current-geometry-source.test.mjs
       - name: Pages source exclusion and complete required runtime
         run: node --test tests/unit/monorepo-pages-staging.test.mjs tools/parity/ci-changes.test.mjs
       - name: Record the bounded native and WASM source evidence
@@ -303,6 +352,7 @@ jobs:
             build-native/wasm/wasm/pandoeditor-core.wasm
           if-no-files-found: error
   qt-core-adapters:
+    if: github.event_name != 'workflow_dispatch' || (inputs.scope != 'p6-polygon' && inputs.scope != 'p6-calculations' && inputs.scope != 'geometry' && inputs.scope != 'native-geometry' && inputs.scope != 'temporal')
     runs-on: windows-2022
     timeout-minutes: 20
     steps:
@@ -333,7 +383,7 @@ jobs:
           $taskLibraries = @(Get-ChildItem -LiteralPath build-native/core-adapters -Recurse -Filter pandoeditor_core.lib)
           if ($taskLibraries.Count -ne 1) { throw 'A single source-matched core library is required' }
           $taskCoreLibrary = $taskLibraries[0].FullName
-          foreach ($taskAdapter in @('json-text-policy', 'reference-runtime', 'current-geometry', 'verified-file')) {
+          foreach ($taskAdapter in @('json-text-policy', 'current-geometry', 'verified-file')) {
             $taskBuild = "build-native/qt-$taskAdapter"
             cmake -S "native/tests/$taskAdapter" -B $taskBuild -A x64 "-DPANDO_CORE_LIBRARY=$taskCoreLibrary"
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -346,8 +396,8 @@ jobs:
         shell: pwsh
         run: |
           $taskArtifacts = Get-ChildItem -LiteralPath build-native -Recurse -File |
-            Where-Object { $_.Name -in @('json_text_policy_tests.exe', 'reference_runtime_headless.exe', 'current_geometry_tests.exe', 'verified_file_tests.exe', 'pandoeditor_core.lib') }
-          if (@($taskArtifacts).Count -ne 5) { throw 'Bounded adapter evidence is incomplete' }
+            Where-Object { $_.Name -in @('json_text_policy_tests.exe', 'current_geometry_tests.exe', 'verified_file_tests.exe', 'pandoeditor_core.lib') }
+          if (@($taskArtifacts).Count -ne 4) { throw 'Bounded adapter evidence is incomplete' }
           $taskHashes = @($taskArtifacts | ForEach-Object { @{ path = $_.FullName; sha256 = (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant() } })
           @{ commit = (git rev-parse HEAD); qt = '6.8.3'; applicationExecuted = $false; artifacts = $taskHashes } |
             ConvertTo-Json -Depth 4 | Set-Content -LiteralPath build-native/qt-adapter-evidence.json -Encoding utf8

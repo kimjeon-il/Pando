@@ -3,6 +3,8 @@ import test from 'node:test';
 
 import { referenceImageMappingSignature } from '../../assets/js/modules/reference-image-model.js';
 import { buildReferenceImageSourceMapping } from '../../assets/js/modules/reference-image-source-mapping.js';
+import { buildReferenceImageMesh } from '../../assets/js/modules/reference-image-georef.js';
+import { referenceImagePlacementCoordinateAtUv } from '../../assets/js/modules/reference-image-transform.js';
 
 const quad = [[10, 20], [20, 20], [20, 10], [10, 10]];
 
@@ -29,6 +31,29 @@ test('corner-pin-only source mapping falls back to projective placement and resp
   assert.equal(mapping.source, 'corner-pin');
   assertPairClose(mapping.project([0, 0]), quad[1]);
   assertPairClose(mapping.project([1, 1]), quad[3]);
+});
+
+test('corner-pin analysis keeps prepared mesh identity, flips, bounds and input unchanged', () => {
+  for (const flipX of [false, true]) for (const flipY of [false, true]) {
+    const record = { mapQuad: quad, cornerPinEnabled: true, controlPoints: [], anchor: null, flipX, flipY };
+    const before = structuredClone(record);
+    const mapping = buildReferenceImageSourceMapping(record);
+    const mesh = buildReferenceImageMesh(mapping, { columns: 3, rows: 2 });
+    assert.equal(mesh.vertices.length, 12);
+    assert.equal(mesh.triangles.length, 12);
+    for (const vertex of mesh.vertices) {
+      const expected = referenceImagePlacementCoordinateAtUv(record, vertex.uv);
+      assertPairClose(vertex.coordinate, expected);
+      assertPairClose(mapping.project(vertex.uv), expected);
+    }
+    for (const uv of [[-0.01, 0.5], [1.01, 0.5], [0.5, -0.01], [0.5, 1.01], [NaN, 0], null]) {
+      assert.equal(mapping.project(uv), null);
+    }
+    assert.deepEqual(record, before);
+    const repeated = buildReferenceImageMesh(mapping, { columns: 3, rows: 2 });
+    assert.deepEqual(repeated, mesh);
+    assert.notEqual(repeated.vertices, mesh.vertices);
+  }
 });
 
 test('anchor plus GCP source mapping uses canonical calibration warp', () => {

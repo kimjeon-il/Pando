@@ -6,16 +6,17 @@ import { createTerritorialFeature } from '../../assets/js/modules/territorial-un
 import { boundaryRevisionTimingFixture, isBoundaryRevisionComparison } from './helpers/boundary-revision-timings.mjs';
 
 const comparison = isBoundaryRevisionComparison();
-const loaf = comparison ? null : await import('./helpers/long-animation-frame-diagnostics.mjs');
-const diagnostics = comparison ? null : await import('./helpers/native-action-diagnostics.mjs');
-const timeline = comparison ? null : await import('./helpers/native-action-timeline.mjs');
-const installLongAnimationFrameProbe = comparison ? null : loaf.installLongAnimationFrameProbe;
-const withNativeActionDiagnostics = comparison ? null : diagnostics.withNativeActionDiagnostics;
+const profiling = !comparison && process.env.PANDOLAB_TEST_PROFILING !== 'off';
+const loaf = !profiling ? null : await import('./helpers/long-animation-frame-diagnostics.mjs');
+const diagnostics = !profiling ? null : await import('./helpers/native-action-diagnostics.mjs');
+const timeline = !profiling ? null : await import('./helpers/native-action-timeline.mjs');
+const installLongAnimationFrameProbe = !profiling ? null : loaf.installLongAnimationFrameProbe;
+const withNativeActionDiagnostics = !profiling ? null : diagnostics.withNativeActionDiagnostics;
 const test = base.extend({
   boundaryTimings: boundaryRevisionTimingFixture,
   // The comparator uses a null slot, never the native controller fixture.
   // Its host fixture validates the isolated config before any test action.
-  nativeTimeline: comparison ? async ({ boundaryTimings }, use) => { await use(null); }
+  nativeTimeline: !profiling ? async ({ boundaryTimings }, use) => { await use(null); }
     : [timeline.boundaryNativeTimelineFixture, { timeout: 22_000 }],
 });
 
@@ -61,7 +62,7 @@ async function openApp(page, viewport = { width: 1440, height: 900 }) {
 
 test('a child cut snaps to both parent boundaries, preserves coverage and undoes in one step', async ({ page, nativeTimeline, boundaryTimings }, testInfo) => {
   test.setTimeout(360_000);
-  if (!comparison) await page.addInitScript(installLongAnimationFrameProbe);
+  if (profiling) await page.addInitScript(installLongAnimationFrameProbe);
   const errors = await openApp(page);
 
   await page.locator('#createMenuBtn').click();
@@ -291,7 +292,7 @@ test('a child cut snaps to both parent boundaries, preserves coverage and undoes
     await expect(page.locator('#undoBtn')).toBeEnabled({ timeout: 30_000 });
     await page.locator('#undoBtn').click({ timeout: 30_000, noWaitAfter: true });
   };
-  if (comparison) await timed('undo-click', undo);
+  if (!profiling) await timed('undo-click', undo);
   else await withNativeActionDiagnostics(page, testInfo, { label: 'boundary-project-undo', selector: '#undoBtn', cpuProfile: true, longAnimationFrames: true, nativeTimeline }, undo);
   await timed('child-observation', async () => {
     expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id), child.id)).toBeNull();

@@ -108,7 +108,7 @@ test('map edit calculation preserves originals and shares untouched country obje
   const square = x => normalizePolygonGeometry({ type: 'Polygon', coordinates: [[[x, 0], [x + 1, 0], [x + 1, 1], [x, 1], [x, 0]]] });
   const countries = new Map(['source', 'target', 'untouched'].map((id, index) => [id, { type: 'Feature', id, properties: {}, geometry: square(index) }]));
   const before = structuredClone(countries);
-  const { result, afterFeatures } = createCountryCommandCalculator(globalThis.polygonClipping).calculate({ operation: 'merge', sourceId: 'source', targetIds: ['target'] }, countries);
+  const { result, afterFeatures } = createCountryCommandCalculator().calculate({ operation: 'merge', sourceId: 'source', targetIds: ['target'] }, countries);
   assert.deepEqual(countries, before);
   assert.deepEqual(result.removedIds, ['target']);
   assert.notEqual(result.features[0], countries.get('source'));

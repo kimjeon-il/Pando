@@ -2,17 +2,12 @@
 
 ((scope) => {
   const MAX_RENDER_EDGE_DEGREES = 0.499;
-  const MAX_REFINEMENT_PASSES = 40;
-  const MESH_ALGORITHM_REVISION = 4;
+  const MESH_ALGORITHM_REVISION = 5;
   const DEG_TO_RAD = Math.PI / 180;
   const PARAM_EPSILON = 1e-12;
   const AREA_EPSILON = 1e-20;
   const COUNTRY_BOUNDS_FLAG_DATELINE = 1;
   const COUNTRY_BOUNDS_FLAG_FULL_LONGITUDE = 2;
-
-  function samePoint(a, b, epsilon = PARAM_EPSILON) {
-    return a && b && Math.abs(a[0] - b[0]) <= epsilon && Math.abs(a[1] - b[1]) <= epsilon;
-  }
 
   function isArtificialPolarClosureEdge(a, b) {
     if (scope.PandoLabGeographicBoundary?.isArtificialBoundaryEdge) {
@@ -82,30 +77,6 @@
     };
   }
 
-  function unwrapLongitudeNear(longitude, reference) {
-    let value = normalizeLongitude(longitude);
-    while (value - reference > 180) value -= 360;
-    while (value - reference < -180) value += 360;
-    return value;
-  }
-
-  function unwrapRing(rawRing, anchor = null) {
-    let ring = rawRing || [];
-    if (ring.length > 1 && samePoint(ring[0], ring[ring.length - 1])) ring = ring.slice(0, -1);
-    if (ring.length < 3) return [];
-    const firstLongitude = anchor === null
-      ? Number(ring[0][0])
-      : unwrapLongitudeNear(Number(ring[0][0]), anchor);
-    const output = [[firstLongitude, Number(ring[0][1])]];
-    for (let index = 1; index < ring.length; index += 1) {
-      output.push([
-        unwrapLongitudeNear(Number(ring[index][0]), output[index - 1][0]),
-        Number(ring[index][1]),
-      ]);
-    }
-    return output;
-  }
-
   function unitVector(point) {
     const longitude = point[0] * DEG_TO_RAD;
     const latitude = point[1] * DEG_TO_RAD;
@@ -128,239 +99,30 @@
     return ((b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])) / 2;
   }
 
-  function triangleAreaSum(points, triangles) {
-    let area = 0;
-    for (let index = 0; index < triangles.length; index += 3) {
-      area += Math.abs(signedArea(points[triangles[index]], points[triangles[index + 1]], points[triangles[index + 2]]));
-    }
-    return area;
-  }
-
-  function ringArea(points) {
-    const origin = points[0];
-    let sum = 0;
-    for (let index = 0; index < points.length; index++) {
-      const a = points[index], b = points[(index + 1) % points.length];
-      sum += (a[0] - origin[0]) * (b[1] - origin[1]) - (b[0] - origin[0]) * (a[1] - origin[1]);
-    }
-    return Math.abs(sum / 2);
-  }
-
-  function checkedTriangulation(points, rings, indices, owner) {
-    const expected = ringArea(rings[0].parameter) - rings.slice(1).reduce((sum, ring) => sum + ringArea(ring.parameter), 0);
-    const fail = message => { throw Object.assign(new Error(`GPU 삼각분할 실패 (${owner}): ${message}`), { code: 'PL-MESH-TRIANGULATION' }); };
-    if (!indices?.length || indices.length % 3 || expected <= AREA_EPSILON) fail('빈 면 또는 퇴화된 원본');
-    for (const index of indices) if (!Number.isInteger(index) || index < 0 || index >= points.length) fail('원본 정점 참조 범위');
-    const actual = triangleAreaSum(points, indices);
-    if (Math.abs(actual - expected) > Math.max(1e-9, expected * 1e-8)) fail(`구멍/외곽 면적 불일치 ${expected} → ${actual}`);
-    return indices;
-  }
-
-  function makeParameterSpace(outerRing) {
-    const longitudes = outerRing.map(point => point[0]);
-    const latitudes = outerRing.map(point => point[1]);
-    const longitudeSpan = Math.max(...longitudes) - Math.min(...longitudes);
-    const minimumLatitude = Math.min(...latitudes);
-    const maximumLatitude = Math.max(...latitudes);
-    let pole = 0;
-    if (longitudeSpan >= 300 && minimumLatitude <= -89.5) pole = -1;
-    else if (longitudeSpan >= 300 && maximumLatitude >= 89.5) pole = 1;
-
-    if (!pole) {
-      return {
-        kind: 'unwrapped-lonlat',
-        project: point => [Number(point[0]), Number(point[1])],
-        unproject: (point, longitudeAnchor) => [unwrapLongitudeNear(point[0], longitudeAnchor), Number(point[1])],
-      };
-    }
-
-    return {
-      kind: pole > 0 ? 'north-polar-azimuthal' : 'south-polar-azimuthal',
+  // Projection here is used only by the packed-coordinate degeneracy guard.
+  // Source projection, triangulation and conforming subdivision live in C++.
+  function packingParameterSpace(pole) {
+    return { kind: pole ? 'polar-azimuthal' : 'unwrapped-lonlat',
       project(point) {
-        const longitude = Number(point[0]) * DEG_TO_RAD;
-        const radius = pole > 0 ? 90 - Number(point[1]) : 90 + Number(point[1]);
+        if (!pole) return point;
+        const radius = pole > 0 ? 90 - point[1] : 90 + point[1];
+        const longitude = point[0] * DEG_TO_RAD;
         return [radius * Math.cos(longitude), radius * Math.sin(longitude)];
-      },
-      unproject(point, longitudeAnchor) {
-        const radius = Math.hypot(point[0], point[1]);
-        const latitude = pole > 0 ? 90 - radius : radius - 90;
-        if (radius <= PARAM_EPSILON) return [Number(longitudeAnchor || 0), pole > 0 ? 90 : -90];
-        const longitude = Math.atan2(point[1], point[0]) / DEG_TO_RAD;
-        return [unwrapLongitudeNear(longitude, longitudeAnchor), Math.max(-90, Math.min(90, latitude))];
-      },
-    };
+      } };
   }
 
-  function prepareRing(rawRing, anchor, parameterSpace) {
-    const geo = unwrapRing(rawRing, anchor);
-    if (geo.length < 3) return null;
-    const cleanGeo = [];
-    const parameter = [];
-    for (const point of geo) {
-      const projected = parameterSpace.project(point);
-      if (parameter.length && samePoint(parameter[parameter.length - 1], projected)) continue;
-      cleanGeo.push(point);
-      parameter.push(projected);
+  let sharedCore = null;
+  function setSharedCore(core) {
+    if (typeof core?.polygonBuildFillMesh !== 'function'
+      || core.polygonMeshAlgorithmRevision !== MESH_ALGORITHM_REVISION) {
+      throw Object.assign(new Error('Compiled polygon fill mesh capability is unavailable.'),
+        { code: 'PL-CORE-WASM-CAPABILITY' });
     }
-    if (parameter.length > 1 && samePoint(parameter[0], parameter[parameter.length - 1])) {
-      parameter.pop();
-      cleanGeo.pop();
-    }
-    return cleanGeo.length >= 3 ? { geo: cleanGeo, parameter } : null;
+    sharedCore = core;
   }
-
-  function refineTriangles(geoPoints, parameterPoints, sourceTriangles, parameterSpace, validate, maxEdgeDegrees = MAX_RENDER_EDGE_DEGREES, boundaryChains = [], removedTriangles = []) {
-    const vectors = geoPoints.map(unitVector);
-    const minimumEdgeDot = Math.cos(Math.max(0.01, Number(maxEdgeDegrees) - 0.000002) * DEG_TO_RAD);
-    let triangles = [];
-    for (let index = 0; index < sourceTriangles.length; index += 3) {
-      const a = sourceTriangles[index];
-      const b = sourceTriangles[index + 1];
-      const c = sourceTriangles[index + 2];
-      if (Math.abs(signedArea(parameterPoints[a], parameterPoints[b], parameterPoints[c])) <= AREA_EPSILON) {
-        removedTriangles.push([a, b, c]);
-        continue;
-      }
-      triangles.push(a, b, c);
-    }
-    const sourceArea = validate ? triangleAreaSum(parameterPoints, triangles) : 0;
-
-    const edgeDot = (a, b) => {
-      const va = vectors[a];
-      const vb = vectors[b];
-      return va[0] * vb[0] + va[1] * vb[1] + va[2] * vb[2];
-    };
-    const edgeNeedsSplit = (a, b) => edgeDot(a, b) < minimumEdgeDot - 1e-14;
-
-    for (let pass = 0; pass < MAX_REFINEMENT_PASSES; pass += 1) {
-      const splitEdges = new Map();
-      const markEdge = (a, b) => {
-        if (!edgeNeedsSplit(a, b)) return;
-        const key = edgeKey(a, b);
-        if (!splitEdges.has(key)) splitEdges.set(key, [a, b]);
-      };
-      for (let index = 0; index < triangles.length; index += 3) {
-        const a = triangles[index];
-        const b = triangles[index + 1];
-        const c = triangles[index + 2];
-        markEdge(a, b);
-        markEdge(b, c);
-        markEdge(c, a);
-      }
-      if (!splitEdges.size) {
-        if (validate) {
-          const refinedArea = triangleAreaSum(parameterPoints, triangles);
-          const tolerance = Math.max(1e-10, sourceArea * 1e-10);
-          if (Math.abs(refinedArea - sourceArea) > tolerance) {
-            throw new Error(`GPU 면 세분화 면적 보존 실패: ${sourceArea} → ${refinedArea}`);
-          }
-        }
-        return triangles;
-      }
-
-      const midpointIndices = new Map();
-      for (const [key, edge] of splitEdges) {
-        const aIndex = edge[0];
-        const bIndex = edge[1];
-        const aParameter = parameterPoints[aIndex];
-        const bParameter = parameterPoints[bIndex];
-        const parameterMidpoint = [
-          (aParameter[0] + bParameter[0]) / 2,
-          (aParameter[1] + bParameter[1]) / 2,
-        ];
-        const longitudeAnchor = (geoPoints[aIndex][0] + geoPoints[bIndex][0]) / 2;
-        const geoMidpoint = parameterSpace.unproject(parameterMidpoint, longitudeAnchor);
-        const midpointIndex = geoPoints.length;
-        parameterPoints.push(parameterMidpoint);
-        geoPoints.push(geoMidpoint);
-        vectors.push(unitVector(geoMidpoint));
-        midpointIndices.set(key, midpointIndex);
-      }
-
-      // Carry each boundary midpoint into the line mesh as triangle edges
-      // split. Preserve visibility inherited from the original ring edge.
-      for (const chain of boundaryChains) {
-        const vertices = [];
-        const visible = [];
-        for (let index = 0; index < chain.vertices.length; index += 1) {
-          const a = chain.vertices[index];
-          const b = chain.vertices[(index + 1) % chain.vertices.length];
-          const midpoint = midpointIndices.get(edgeKey(a, b));
-          vertices.push(a);
-          visible.push(chain.visible[index]);
-          if (midpoint !== undefined) {
-            vertices.push(midpoint);
-            visible.push(chain.visible[index]);
-          }
-        }
-        chain.vertices = vertices;
-        chain.visible = visible;
-      }
-
-      const next = [];
-      const add = (a, b, c) => {
-        if (Math.abs(signedArea(parameterPoints[a], parameterPoints[b], parameterPoints[c])) > AREA_EPSILON) next.push(a, b, c);
-        else removedTriangles.push([a, b, c]);
-      };
-      for (let index = 0; index < triangles.length; index += 3) {
-        const a = triangles[index];
-        const b = triangles[index + 1];
-        const c = triangles[index + 2];
-        const ab = midpointIndices.get(edgeKey(a, b));
-        const bc = midpointIndices.get(edgeKey(b, c));
-        const ca = midpointIndices.get(edgeKey(c, a));
-        const mask = (ab === undefined ? 0 : 1) | (bc === undefined ? 0 : 2) | (ca === undefined ? 0 : 4);
-        if (mask === 0) add(a, b, c);
-        else if (mask === 1) {
-          add(a, ab, c); add(ab, b, c);
-        } else if (mask === 2) {
-          add(b, bc, a); add(bc, c, a);
-        } else if (mask === 4) {
-          add(c, ca, b); add(ca, a, b);
-        } else if (mask === 3) {
-          add(ab, b, bc);
-          if (edgeDot(a, bc) >= edgeDot(ab, c)) {
-            add(a, ab, bc); add(a, bc, c);
-          } else {
-            add(a, ab, c); add(ab, bc, c);
-          }
-        } else if (mask === 6) {
-          add(bc, c, ca);
-          if (edgeDot(b, ca) >= edgeDot(bc, a)) {
-            add(b, bc, ca); add(b, ca, a);
-          } else {
-            add(b, bc, a); add(bc, ca, a);
-          }
-        } else if (mask === 5) {
-          add(ca, a, ab);
-          if (edgeDot(c, ab) >= edgeDot(ca, b)) {
-            add(c, ca, ab); add(c, ab, b);
-          } else {
-            add(c, ca, b); add(ca, ab, b);
-          }
-        } else {
-          add(a, ab, ca); add(ab, b, bc); add(ca, bc, c); add(ab, bc, ca);
-        }
-      }
-      triangles = next;
-    }
-
-    let worst = null;
-    for (let index = 0; index < triangles.length; index += 3) {
-      for (const edge of [
-        [triangles[index], triangles[index + 1]],
-        [triangles[index + 1], triangles[index + 2]],
-        [triangles[index + 2], triangles[index]],
-      ]) {
-        if (!edgeNeedsSplit(edge[0], edge[1])) continue;
-        const degrees = angularDistanceDegrees(geoPoints[edge[0]], geoPoints[edge[1]]);
-        if (!worst || degrees > worst.degrees) worst = { degrees, a: geoPoints[edge[0]], b: geoPoints[edge[1]] };
-      }
-    }
-    if (worst) {
-      throw new Error(`GPU 면 세분화가 수렴하지 않았습니다: ${worst.degrees.toFixed(6)}° ${worst.a.join(',')} → ${worst.b.join(',')}`);
-    }
-    return triangles;
+  function requireSharedCore() {
+    if (!sharedCore) setSharedCore(scope.PandoLabSphericalCore);
+    return sharedCore;
   }
 
   function unwrapTriangleLongitudes(points, triangles) {
@@ -540,8 +302,8 @@
     });
   }
 
-  function buildGpuMeshFeatures(features, earcutImpl, options = {}) {
-    if (typeof earcutImpl !== 'function') throw new Error('GPU 삼각분할 엔진이 없습니다.');
+  function buildGpuMeshFeatures(features, options = {}) {
+    const core = requireSharedCore();
     const validate = !!options.validate;
     const maxEdgeDegrees = Number.isFinite(Number(options.maxEdgeDegrees))
       ? Math.max(MAX_RENDER_EDGE_DEGREES, Number(options.maxEdgeDegrees))
@@ -574,57 +336,19 @@
       const countryStrokeStart = strokeStartsEnds.length / 4;
       for (const polygon of polygonsFor(feature.geometry)) {
         if (!polygon?.length) continue;
-        const outer = unwrapRing(polygon[0]);
-        if (outer.length < 3) continue;
-        const anchor = outer.reduce((sum, point) => sum + point[0], 0) / outer.length;
-        const parameterSpace = makeParameterSpace(outer);
-        const rings = [];
-        const outerRing = prepareRing(polygon[0], null, parameterSpace);
-        if (!outerRing) throw Object.assign(new Error(`GPU 삼각분할 실패: ${countryId} shell`), { code: 'PL-MESH-TRIANGULATION' });
-        rings.push(outerRing);
-        for (let ringIndex = 1; ringIndex < polygon.length; ringIndex += 1) {
-          const hole = prepareRing(polygon[ringIndex], anchor, parameterSpace);
-          if (!hole) throw Object.assign(new Error(`GPU 삼각분할 실패: ${countryId} hole ${ringIndex}`), { code: 'PL-MESH-TRIANGULATION' });
-          rings.push(hole);
+        options.throwIfCancelled?.();
+        let refined;
+        try { refined = core.polygonBuildFillMesh(polygon, maxEdgeDegrees, validate, options.throwIfCancelled); }
+        catch (cause) {
+          if (cause.code !== 'PL-MESH-TRIANGULATION') throw cause;
+          throw Object.assign(new Error(`GPU 삼각분할 실패 (${countryId}): ${cause.message}`, { cause }),
+            { code: 'PL-MESH-TRIANGULATION' });
         }
-
-        const parameterFlat = [];
-        const holes = [];
-        const geoPoints = [];
-        const parameterPoints = [];
-        const ringStarts = [];
-        const ringCounts = [];
-        for (let ringIndex = 0; ringIndex < rings.length; ringIndex += 1) {
-          if (ringIndex > 0) holes.push(parameterFlat.length / 2);
-          ringStarts.push(geoPoints.length);
-          ringCounts.push(rings[ringIndex].geo.length);
-          for (let pointIndex = 0; pointIndex < rings[ringIndex].geo.length; pointIndex += 1) {
-            const geoPoint = rings[ringIndex].geo[pointIndex];
-            const parameterPoint = rings[ringIndex].parameter[pointIndex];
-            geoPoints.push([geoPoint[0], geoPoint[1]]);
-            parameterPoints.push([parameterPoint[0], parameterPoint[1]]);
-            parameterFlat.push(parameterPoint[0], parameterPoint[1]);
-          }
-        }
-
-        // Keep the original artificial pole/seam edges hidden even when
-        // their triangles gain new boundary vertices during refinement.
-        const boundaryChains = ringStarts.map((start, ringIndex) => {
-          const vertices = Array.from({ length: ringCounts[ringIndex] }, (_, index) => start + index);
-          return { vertices, visible: vertices.map((a, index) =>
-            !isArtificialPolarClosureEdge(geoPoints[a], geoPoints[vertices[(index + 1) % vertices.length]])) };
-        });
-        const removedTriangles = [];
-        let localTriangles = refineTriangles(
-          geoPoints,
-          parameterPoints,
-          checkedTriangulation(parameterPoints, rings, earcutImpl(parameterFlat, holes, 2), countryId),
-          parameterSpace,
-          validate,
-          maxEdgeDegrees,
-          boundaryChains,
-          removedTriangles,
-        );
+        const geoPoints = refined.geographic;
+        const parameterSpace = packingParameterSpace(refined.pole);
+        const boundaryChains = refined.boundaryChains;
+        const removedTriangles = refined.removedTriangles;
+        let localTriangles = refined.triangles;
         localTriangles = unwrapTriangleLongitudes(geoPoints, localTriangles);
         const packedTriangles = removePackedDegenerateTriangles(geoPoints, localTriangles, parameterSpace);
         localTriangles = packedTriangles.triangles;
@@ -695,8 +419,8 @@
   }
 
   function buildPolygonGeometryPacket(geometry, options = {}) {
-    const mesh = buildGpuMeshFeatures([{ id: options.ownerId || 'overlay', geometry }], options.triangulate || scope.earcut,
-      { validate: true, maxEdgeDegrees: MAX_RENDER_EDGE_DEGREES });
+    const mesh = buildGpuMeshFeatures([{ id: options.ownerId || 'overlay', geometry }],
+      { validate: true, maxEdgeDegrees: MAX_RENDER_EDGE_DEGREES, throwIfCancelled: options.throwIfCancelled });
     if (!mesh.triangleIndices.length) throw Object.assign(new Error('GPU 삼각분할 실패: empty polygon'), { code: 'PL-MESH-TRIANGULATION' });
     const ringCoordinates = [], ringOffsets = [0], polygonOffsets = [0];
     for (const polygon of polygonsFor(geometry)) {
@@ -717,6 +441,7 @@
   }
 
   const api = {
+    setSharedCore,
     MAX_RENDER_EDGE_DEGREES,
     MESH_ALGORITHM_REVISION,
     COUNTRY_BOUNDS_FLAG_DATELINE,

@@ -92,7 +92,8 @@ private slots:
   QTRY_VERIFY_WITH_TIMEOUT(c.geometryEditState().value("canAddPart").toBool(),15000);
   QVERIFY(c.geometryAddTerritoryPart());QTRY_VERIFY_WITH_TIMEOUT(c.geometryEditState().value("canAdvance").toBool(),15000);
   QCOMPARE(c.documentBytes(),before);QVERIFY(c.geometryAdvanceStage());QVERIFY(c.confirmGeometryEdit());
-  QTRY_VERIFY_WITH_TIMEOUT(!c.geometryEditState().value("active").toBool(),15000);
+  QTRY_VERIFY_WITH_TIMEOUT(!c.geometryEditState().value("active").toBool()||!c.geometryEditState().value("error").toString().isEmpty(),15000);
+  QVERIFY2(!c.geometryEditState().value("active").toBool(),qPrintable(c.geometryEditState().value("error").toString()));
   const auto after=c.documentBytes();const auto document=::projectcodec::decode(after);QCOMPARE(document.units.size(),std::size_t(3));
   const auto source=document.geometries.get(staticGeometryBinding(document,"source").geometryRef);QVERIFY(source);QVERIFY(geometryContains(*source,rectangle(20,0,2,2)));
   c.undo();QCOMPARE(c.documentBytes(),before);c.redo();QCOMPARE(c.documentBytes(),after);

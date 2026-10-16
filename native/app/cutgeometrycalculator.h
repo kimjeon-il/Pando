@@ -13,10 +13,8 @@ struct CutGeometryResult {
     bool inputUnchanged=false;
     bool succeeded() const noexcept {return status==CutGeometryStatus::Completed;}
 };
-// Fresh private engine on the calling worker thread. The complete pinned worker
-// result is owned JSON, with raw candidate ordering/IDs/coordinates preserved.
+// Shared immutable preparation is retained on the calling worker thread.
 // A completed result may be pending or invalid: inspect result.valid/status.
-// Synchronous JS cannot be interrupted mid-call; cancellation wins at boundaries.
 CutGeometryResult prepareCutGeometry(const QJsonObject& payload,
     const GeometryCancellation& cancelled={});
 }

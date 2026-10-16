@@ -1,4 +1,5 @@
 name: P1 Remote development (scoped)
+# P5-6 verification receipt: rerun scoped Web + native CI against the integrated main source tree 691ec5d; comment-only change.
 
 on:
   push:
@@ -92,7 +93,8 @@ jobs:
 
   web-smoke:
     needs: plan
-    if: needs.plan.outputs.web == 'true'
+    # Automatic contracts run once in P3, after P2 publishes fresh assets.
+    if: github.event_name == 'workflow_dispatch' && needs.plan.outputs.web == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 8
     steps:
@@ -186,9 +188,9 @@ jobs:
 
   wasm-compile:
     needs: plan
-    # On work/objects P2 owns source-matched WASM generation and publication.
-    # Other work branches retain the P1 standalone compiler smoke.
-    if: needs.plan.outputs.wasm == 'true' && github.ref != 'refs/heads/work/objects'
+    # P2 owns automatic WASM generation on every work branch.
+    # Retain the explicit compiler-only diagnostic.
+    if: github.event_name == 'workflow_dispatch' && needs.plan.outputs.wasm == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     env:
@@ -231,19 +233,14 @@ jobs:
 
   qt-app:
     needs: plan
-    if: needs.plan.outputs.qt == 'true'
+    # P3 owns automatic Windows/Linux Qt builds and CTest.
+    if: github.event_name == 'workflow_dispatch' && needs.plan.outputs.qt == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-      - uses: pnpm/action-setup@v4
-      - name: Install pinned JS geometry parser needed by current Qt build
-        run: pnpm install --frozen-lockfile --ignore-scripts
       - uses: jwlawson/actions-setup-cmake@v2
         with:
           cmake-version: ${{ needs.plan.outputs.cmake_version }}

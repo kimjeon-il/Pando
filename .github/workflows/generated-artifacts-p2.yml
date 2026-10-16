@@ -1,38 +1,46 @@
-name: P2 Source-matched generated runtimes
+name: P2 Source-matched generated artifacts
 on:
   push:
-    branches: [work/objects]
+    branches: [work/ui, work/objects, work/gis, work/places]
     paths:
       - 'shared/**'
-      - 'assets/wasm/**'
-      - 'assets/js/modules/**'
-      - 'assets/js/vendor/**'
-      - 'native/tools/m97/cut-kernel-generate.mjs'
-      - 'native/tools/m97/river/generate-d3-adapter.mjs'
-      - 'native/assets/geometry/current/**'
-      - 'native/resources/current_geometry.qrc'
-      - 'native/tools/reference-parity/**'
-      - 'native/app/reference-web/**'
-      - 'tools/package-shared-core-assets.mjs'
-      - 'scripts/p2-artifact-plan.mjs'
-      - 'tests/unit/p2-artifact-plan.test.mjs'
+      - 'assets/**'
+      - 'native/**'
+      - 'tools/**'
+      - 'scripts/p2-*.mjs'
+      - 'scripts/lib/p2-*.mjs'
+      - 'scripts/generate-build-metadata.mjs'
+      - 'index.html'
+      - 'README.md'
+      - '.gitattributes'
+      - 'tests/unit/**'
+      - 'reports/places/*.json'
       - 'cmake/P2NativeBuildReceipt.cmake'
       - 'CMakeLists.txt'
       - 'CMakePresets.json'
-      - 'config/toolchain-versions.json'
+      - 'config/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
       - '.github/workflows/generated-artifacts-p2.yml'
   workflow_dispatch:
     inputs:
       scope:
         description: Which generator to run; auto only builds stale outputs
         type: choice
-        options: [auto, wasm, geometry, reference, all, verify]
+        options: [auto, wasm, all, verify]
         required: false
         default: auto
+      verification:
+        description: Run minimal publication checks or the consolidated P9 calculation suites
+        type: choice
+        options: [minimal, full, temporal]
+        required: false
+        default: minimal
 permissions:
   contents: read
 concurrency:
-  group: pando-generated-runtime-work-objects
+  group: pando-generated-artifacts-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -41,8 +49,10 @@ jobs:
     timeout-minutes: 7
     outputs:
       wasm: ${{ steps.scopes.outputs.wasm }}
-      geometry: ${{ steps.scopes.outputs.geometry }}
-      reference: ${{ steps.scopes.outputs.reference }}
+      selected_families: ${{ steps.scopes.outputs.selected_families }}
+      deferred_families: ${{ steps.scopes.outputs.deferred_families }}
+      blocked_families: ${{ steps.scopes.outputs.blocked_families }}
+      pnpm_version: ${{ steps.scopes.outputs.pnpm_version }}
       cmake_version: ${{ steps.scopes.outputs.cmake_version }}
       emscripten_version: ${{ steps.scopes.outputs.emscripten_version }}
       emsdk_ref: ${{ steps.scopes.outputs.emsdk_ref }}
@@ -55,6 +65,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
       - name: Test source fingerprint, rebuild selection, publication guard
+        if: github.event_name == 'push' || inputs.verification == 'full'
         run: node --test tests/unit/p2-artifact-plan.test.mjs tests/unit/shared-core-assets.test.mjs
       - name: Select only stale source-derived assets
         id: scopes
@@ -65,17 +76,21 @@ jobs:
 
   generate:
     needs: plan
-    if: needs.plan.outputs.wasm == 'true' || needs.plan.outputs.geometry == 'true' || needs.plan.outputs.reference == 'true'
+    if: >-
+      needs.plan.outputs.wasm == 'true' || needs.plan.outputs.selected_families != '[]' ||
+      needs.plan.outputs.deferred_families != '[]' || needs.plan.outputs.blocked_families != '[]' ||
+      inputs.scope == 'verify' || inputs.verification == 'full'
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 90
     permissions:
       contents: write
+      actions: write
     env:
       EMCC_CORES: '1'
       BINARYEN_CORES: '1'
+      PANDO_P2_SCOPE: ${{ inputs.scope || 'auto' }}
       PANDO_P2_WASM: ${{ needs.plan.outputs.wasm }}
-      PANDO_P2_GEOMETRY: ${{ needs.plan.outputs.geometry }}
-      PANDO_P2_REFERENCE: ${{ needs.plan.outputs.reference }}
+      PANDO_P2_BASE_SHA: ${{ github.event.before || '' }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -84,26 +99,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
-      - uses: pnpm/action-setup@v4
-        if: needs.plan.outputs.geometry == 'true' || needs.plan.outputs.reference == 'true'
-      - name: Install the existing JS adapters only when needed
-        if: needs.plan.outputs.geometry == 'true' || needs.plan.outputs.reference == 'true'
+      - name: Install pinned package manager only for selected data-family owners
+        uses: pnpm/action-setup@v4
+        if: needs.plan.outputs.selected_families != '[]' || needs.plan.outputs.deferred_families != '[]' || inputs.scope == 'verify' || inputs.verification == 'full'
+        with:
+          version: ${{ needs.plan.outputs.pnpm_version }}
+          run_install: false
+      - name: Install frozen dependencies for current data generators
+        if: needs.plan.outputs.selected_families != '[]' || needs.plan.outputs.deferred_families != '[]' || inputs.scope == 'verify' || inputs.verification == 'full'
         run: pnpm install --frozen-lockfile --ignore-scripts
-
-      - name: Regenerate Qt geometry from current Web calculation sources
-        if: needs.plan.outputs.geometry == 'true'
-        run: |
-          node native/tools/m97/cut-kernel-generate.mjs
-          node native/tools/m97/cut-kernel-generate.mjs --check
-          node --test native/tools/m97/current-geometry-source.test.mjs
-      - name: Regenerate the existing Qt reference calculation bundle
-        if: needs.plan.outputs.reference == 'true'
-        run: |
-          node native/tools/reference-parity/build-runtime.mjs
-          node native/tools/reference-parity/build-runtime.mjs --check
-          node native/tools/reference-parity/verify-source.mjs
-          node --test tests/unit/reference-shared-runtime.test.mjs
-
       - uses: jwlawson/actions-setup-cmake@v2
         if: needs.plan.outputs.wasm == 'true'
         with:
@@ -157,68 +161,74 @@ jobs:
           emcmake cmake --preset pando-wasm
           cmake --build --preset pando-wasm
           node tools/package-shared-core-assets.mjs --build-dir build-native/p1/pando-wasm/shared/wasm
-          node tools/package-shared-core-assets.mjs --build-dir build-native/p1/pando-wasm/shared/wasm --check
+      - name: Verify published compiled identity and package hashes
+        run: node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
+      - name: Verify the changed geographic contact and common fill kernels
+        if: needs.plan.outputs.wasm == 'true' && inputs.verification != 'full' && inputs.verification != 'temporal'
+        env:
+          PANDOEDITOR_WASM_MODULE: ${{ github.workspace }}/assets/wasm/pandoeditor-core.js
+        run: >-
+          node --test shared/tests/p5-country-contact-wasm.test.mjs
+          shared/tests/p5-boundary-split-wasm.test.mjs shared/tests/p5-polygon-mesh-wasm.test.mjs
+          tests/unit/country-contact-core.test.mjs tests/unit/country-contact-legacy-parity.test.mjs
+          tests/unit/boundary-topology-split.test.mjs
+      - name: Verify changed temporal editing and place naming
+        if: inputs.verification == 'temporal'
+        env:
+          PANDOEDITOR_WASM_MODULE: ${{ github.workspace }}/assets/wasm/pandoeditor-core.js
+        run: >-
+          node --test shared/tests/temporal-editing.test.mjs
+          tests/unit/place-names.test.mjs tests/unit/territorial-library-service.test.mjs
+      - uses: actions/upload-artifact@v4
+        if: always() && inputs.verification == 'temporal'
+        with:
+          name: temporal-wasm-${{ github.sha }}
+          path: |
+            assets/wasm/pandoeditor-core.js
+            assets/wasm/pandoeditor-core.wasm
+            assets/wasm/pandoeditor-core.manifest.json
+          if-no-files-found: error
+          retention-days: 7
       - name: Test the compiled runtime ABI and bounded document session
-        if: needs.plan.outputs.wasm == 'true'
+        if: inputs.verification == 'full'
         shell: bash
         run: |
           node --test tests/unit/shared-core-assets.test.mjs tests/unit/core-wasm-loader.test.mjs
-          PANDOEDITOR_WASM_MODULE="$PWD/build-native/p1/pando-wasm/shared/wasm/pandoeditor-core.js" node --test shared/tests/wasm-document-session.test.mjs shared/tests/p5-spherical-area-wasm.test.mjs shared/tests/p5-temporal-wasm.test.mjs shared/tests/p5-timeline-wasm.test.mjs shared/tests/p5-boundary-chains-wasm.test.mjs shared/tests/p5-boundary-packet-wasm.test.mjs shared/tests/p5-boundary-interiors-wasm.test.mjs shared/tests/p5-boundary-overlap-wasm.test.mjs shared/tests/p5-boundary-refinement-wasm.test.mjs shared/tests/p5-boundary-split-wasm.test.mjs shared/tests/p5-country-contact-wasm.test.mjs tests/unit/boundary-lines.test.mjs
+          PANDOEDITOR_WASM_MODULE="$PWD/assets/wasm/pandoeditor-core.js" node --test shared/tests/wasm-document-session.test.mjs shared/tests/p5-spherical-area-wasm.test.mjs shared/tests/p5-temporal-wasm.test.mjs shared/tests/p5-timeline-wasm.test.mjs shared/tests/p5-boundary-chains-wasm.test.mjs shared/tests/p5-boundary-packet-wasm.test.mjs shared/tests/p5-boundary-interiors-wasm.test.mjs shared/tests/p5-boundary-overlap-wasm.test.mjs shared/tests/p5-boundary-refinement-wasm.test.mjs shared/tests/p5-boundary-split-wasm.test.mjs shared/tests/p5-country-contact-wasm.test.mjs tests/unit/boundary-lines.test.mjs
 
-      - name: Verify regenerated geometry against source-matched C++ calculations
-        if: needs.plan.outputs.geometry == 'true'
+      - name: Verify P6 product calculation adapters
+        if: inputs.verification == 'full'
+        run: >-
+          node --test tests/unit/p6-polygon-core.test.mjs
+          tests/unit/reference-shared-runtime.test.mjs
+          tests/unit/edit-preparation.test.mjs
+          tests/unit/reference-image-georef.test.mjs tests/unit/reference-image-transform.test.mjs
+          tests/unit/reference-image-live-wire.test.mjs tests/unit/reference-image-line-refiner.test.mjs
+          tests/unit/river-territory-partition.test.mjs
+      - name: Commit verified phases locally, then publish one guarded result
+        id: publish
         shell: bash
         run: |
           set -euo pipefail
-          if [ "$PANDO_P2_WASM" = "true" ]; then
-            export PANDOEDITOR_WASM_MODULE="$PWD/build-native/p1/pando-wasm/shared/wasm/pandoeditor-core.js"
-          fi
-          node --test tests/unit/p5-spherical-area-delegation.test.mjs tests/unit/polygon-geometry.test.mjs tests/unit/country-shared-boundary.test.mjs
-
-      - name: Validate all generated source fingerprints and output hashes
-        run: |
-          mkdir -p build-native/p2
-          node scripts/p2-artifact-plan.mjs --check > build-native/p2/artifact-evidence.json
-      - name: Stage only the owned immutable output families
-        shell: bash
-        run: |
-          set -euo pipefail
-          git add -A -- \
-            assets/wasm/pandoeditor-core.js \
-            assets/wasm/pandoeditor-core.wasm \
-            assets/wasm/pandoeditor-core.manifest.json \
-            native/assets/geometry/current \
-            native/resources/current_geometry.qrc \
-            native/app/reference-web/runtime.js \
-            native/app/reference-web/manifest.json
-          git diff --cached --check
-          node scripts/p2-artifact-plan.mjs --validate-staged
-      - name: Push only verified artifacts to work/objects
-        shell: bash
-        run: |
-          set -euo pipefail
-          if git diff --cached --quiet; then
-            echo 'Source-matched generated artifacts already current.'
-            exit 0
-          fi
-          remote_sha="$(git ls-remote origin refs/heads/work/objects | cut -f1)"
-          if [ "$remote_sha" != "$GITHUB_SHA" ]; then
-            echo "::error::Branch advanced during generation; refusing stale publication"
-            exit 1
-          fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'build(p2): publish source-matched WASM and Qt adapters'
-          git push origin HEAD:refs/heads/work/objects
-          echo "P2 generated asset commit: $(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
+          node scripts/p2-publish-artifacts.mjs
+      - name: Hand the exact verified result to P3
+        if: steps.publish.outputs.pushed == 'true' && inputs.scope != 'wasm' && (github.event_name == 'push' || inputs.verification == 'full')
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RESULT_SHA: ${{ steps.publish.outputs.result_sha }}
+          BASE_SHA: ${{ steps.publish.outputs.base_sha }}
+        run: >-
+          gh workflow run remote-preview-p3.yml --ref "$GITHUB_REF_NAME"
+          -f source_sha="$RESULT_SHA" -f base_sha="$BASE_SHA"
+          -f original_source_sha="$GITHUB_SHA" -f scope=auto
       - uses: actions/upload-artifact@v4
-        if: success()
+        if: always() && steps.publish.outcome == 'success'
         with:
-          name: p2-generated-${{ github.sha }}
+          name: p2-generated-${{ steps.publish.outputs.result_sha }}
           path: |
             build-native/p2/artifact-evidence.json
             assets/wasm/pandoeditor-core.manifest.json
-            native/assets/geometry/current/manifest.json
-            native/app/reference-web/manifest.json
           if-no-files-found: error
           retention-days: 14
