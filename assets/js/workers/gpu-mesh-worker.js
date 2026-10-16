@@ -31,7 +31,7 @@ const polygonPreparation = meshCoreReady.then(() => Promise.all([
       const url = new URL(asset.url, base); url.searchParams.set('sha256', asset.sha256); return url;
     } });
   return createPreparedPolygonMeshStore({ engine,
-    loadManifest: async () => {
+    loadManifest: globalThis.PANDOLAB_BUILD_META.resourceProfile === 'small-project' ? null : async () => {
       if (!spec) throw new Error('Required prepared polygon manifest is missing from build metadata');
       const result = await loadAsset(spec, 'mesh', 'polygon-manifest', 'Prepared polygon manifest', buffer => JSON.parse(new TextDecoder().decode(buffer)));
       const manifest = result.value;
