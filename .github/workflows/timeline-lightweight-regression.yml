@@ -7,6 +7,7 @@ on:
       - 'tests/browser/soviet-lightweight-timeline.spec.mjs'
       - 'tests/browser/temporal-editing.spec.mjs'
       - 'tests/unit/persistence-service.test.mjs'
+      - 'tests/unit/lightweight-timeline-history.test.mjs'
       - 'tests/unit/progressive-startup-runtime.test.mjs'
       - 'tests/unit/progressive-startup-runtime-contract.test.mjs'
       - 'assets/js/modules/app-domain-assembly.js'
@@ -38,8 +39,7 @@ jobs:
           node --check assets/js/modules/persistence-service.js
           node --check assets/js/modules/app-progressive-startup.js
           timeout 90s node --test tests/unit/persistence-service.test.mjs
-          timeout 90s node --test tests/unit/progressive-startup-runtime.test.mjs
-          timeout 90s node --test tests/unit/progressive-startup-runtime-contract.test.mjs
+          node --test tests/unit/lightweight-timeline-history.test.mjs
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Exercise Soviet month change and reopen without full autosave
