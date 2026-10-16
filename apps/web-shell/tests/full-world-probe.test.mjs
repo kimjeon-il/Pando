@@ -11,7 +11,9 @@ function runtime({ renderer = 'webgl2', blocked = [] } = {}) {
     },
     __PANDOLAB_STARTUP_METRICS__: {
       preview: { source: 'local' }, geometry: { source: 'local' }, mesh: { source: 'local' },
-      readyMs: 1400,
+      readyMs: 1400, physicalDeferredUntilReady: true,
+      physicalLoadStartedMs: 1405, physicalManifestLoadFinishedMs: 1650,
+      physicalManifestLoadResults: ['fulfilled', 'fulfilled'],
     },
     __PANDOLAB_GPU_METRICS__: { renderer, triangleCount: 2304, countryBaseIndexCount: 258, activeWebGlContextCount: 1 },
     __PANDOLAB_SHELL_NETWORK__: { blocked, workers: [{ name: 'pandolab-data-loader', type: 'module' }] },
@@ -40,6 +42,9 @@ test('full-world probe requires canonical world, actual WebGL and original Worke
   assert.equal(report.observed.sovereignRootCount, 207,
     'Current source polygons differ from canonical editable entities');
   assert.equal(report.observed.renderer, 'webgl2');
+  assert.equal(report.observed.physicalDeferredUntilReady, true);
+  assert.equal(report.observed.physicalLoadStartedMs, 1405);
+  assert.deepEqual(report.observed.physicalManifestLoadResults, ['fulfilled', 'fulfilled']);
 });
 test('full-world probe fails canvas fallback and any blocked remote request', () => {
   assert.equal(inspectFullWorldRuntime(runtime({ renderer: 'canvas' })).ok, false);

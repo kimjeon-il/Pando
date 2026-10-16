@@ -58,6 +58,11 @@ export function inspectFullWorldRuntime(scope = globalThis, {
       canonicalGeometryReceivedMs: startup.canonicalGeometryReceivedMs ?? null,
       canonicalMeshReceivedMs: startup.canonicalMeshReceivedMs ?? null,
       readyMs: startup.readyMs ?? null,
+      physicalDeferredUntilReady: startup.physicalDeferredUntilReady === true,
+      physicalLoadStartedMs: startup.physicalLoadStartedMs ?? null,
+      physicalManifestLoadFinishedMs: startup.physicalManifestLoadFinishedMs ?? null,
+      physicalManifestLoadResults: Array.isArray(startup.physicalManifestLoadResults)
+        ? startup.physicalManifestLoadResults : null,
       dataRevision: String(meta.dataRevision || ''),
       blockedRequests: blocked.length,
       workers: workers.map(worker => ({ name: worker.name, type: worker.type })),
