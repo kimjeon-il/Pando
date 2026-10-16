@@ -60,10 +60,23 @@ export function createHistoryAssembly({ storageNamespace = null } = {}) {
       storage: browserProjectStorage,scheduler: dependencies.projectState.mapWorkScheduler,
       canPersist: () => dependencies.readiness.canMutateProject(dependencies.projectState.state.dataReadiness),
       buildAutosave: () => dependencies.domains.projectDomain.buildAutosave(),previewBaseline: () => window.PANDOLAB_PREVIEW_BASELINE,
-      previewGeometry: async () => {
-        const receipt=await dependencies.domains.projectDomain.buildAutosave();
-        if(receipt.checkpoint.epoch!==dependencies.domains.projectDomain.state().epoch)return null;
-        return {entities:dependencies.territorialModel.entityStore.snapshot(),project:receipt.project};
+      previewGeometry: async (savedProject, savedCheckpoint = null) => {
+        const domain = dependencies.domains.projectDomain;
+        if (savedCheckpoint) {
+          const current = domain.state();
+          // The persisted receipt must still identify the exact accepted Core
+          // state. A later timeline edit can change visible geometry without
+          // changing the content checkpoint.
+          if (savedCheckpoint.projectGeneration !== domain.getGeneration()
+            || savedCheckpoint.epoch !== current.epoch
+            || savedCheckpoint.content !== current.checkpoint) return null;
+          return { entities: dependencies.territorialModel.entityStore.snapshot(), project: savedProject };
+        }
+        // Startup callers have no saved receipt; retain the verified export
+        // and geometry-key comparison rather than guessing identity.
+        const receipt = await domain.buildAutosave();
+        if (receipt.checkpoint.epoch !== domain.state().epoch) return null;
+        return { entities: dependencies.territorialModel.entityStore.snapshot(), project: receipt.project };
       },
       previewProjection: project=>queryStoredProject(project,async options=>{
         const projection=await dependencies.domains.projectDomain.inspectImport(project,options);

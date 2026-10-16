@@ -347,7 +347,7 @@ export function createProgressiveStartup({ startupMesh = 'builtin', deferPhysica
     const previewInput=savedProject ? {project:savedProject,
       territorialViews:(await dependencies.domains.projectDomain.inspectImport(savedProject)).territorialViews}:null;
     const defaultPreview = !savedProject || matchesDefaultPreview(previewInput, baseline);
-    const cachedPreview = !defaultPreview ? await dependencies.domains.projectDomain.restorePreview(savedProject) : null;
+    const cachedPreview = !defaultPreview ? await dependencies.domains.projectDomain.restorePreview(savedProject, previewInput) : null;
     const previewSource = !savedProject ? {kind:'default'} : previewSourceForProject(previewInput, baseline, cachedPreview);
     const hasStoredCountryGeometry = previewSource.kind === 'restore';
     const sourceMonth = window.PANDOLAB_BUILD_META?.historicalWorld?.sourceMonth || new Date().toISOString().slice(0, 7);
