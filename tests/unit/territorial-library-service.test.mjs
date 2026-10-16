@@ -200,7 +200,7 @@ test('representatives skip unusable metadata and nonmember or out-of-lifetime sn
 test('wholly unknown lifetimes remain eligible for permitted blank representative candidates and imports', async () => {
   const value=entity('state:current');
   const f=fixture({entities:[value],snapshots:[snapshot('current','2026-10-06',[value.entityId])]});await f.service.load();
-  assert.deepEqual(f.service.search({referenceDate:'2026-10-06'}),[]);
+  assert.equal(f.service.search({referenceDate:'2026-10-06'})[0].entities[0].sourceAvailability,'available');
   const selection=f.service.resolveSelection(value.entityId,null);
   assert.deepEqual(selection,{
     entityId:value.entityId,geometryVersionId:'state:current:v1',referenceDate:'2026-10-06',mode:'representative',basis:'snapshot',sourceDate:'2026-10-06',
@@ -275,7 +275,7 @@ test('events use only existing lifetime endpoints and explicit dissolution metad
   const f=fixture({entities:[gdr,unknown],snapshots:[snapshot('current','2026-10-06',[unknown.entityId])]});await f.service.load();
   assert.equal(typeof f.service.events,'function');
   const before=JSON.stringify(f.index);
-  assert.deepEqual(f.service.search({query:'GDR',referenceDate:'1990-10-03'}),[]);
+  assert.equal(f.service.search({query:'GDR',referenceDate:'1990-10-03'})[0].entities[0].sourceAvailability,'absent');
   const events=f.service.events({query:' gdr '});
   assert.deepEqual(events.map(({entityId,date,name})=>({entityId,date,name})),[
     {entityId:gdr.entityId,date:'1949-10-07',name:'독일 민주 공화국 · 기록 시작'},

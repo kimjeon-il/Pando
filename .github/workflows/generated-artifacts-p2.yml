@@ -179,6 +179,16 @@ jobs:
         run: >-
           node --test shared/tests/temporal-editing.test.mjs
           tests/unit/place-names.test.mjs tests/unit/territorial-library-service.test.mjs
+      - uses: actions/upload-artifact@v4
+        if: always() && inputs.verification == 'temporal'
+        with:
+          name: temporal-wasm-${{ github.sha }}
+          path: |
+            assets/wasm/pandoeditor-core.js
+            assets/wasm/pandoeditor-core.wasm
+            assets/wasm/pandoeditor-core.manifest.json
+          if-no-files-found: error
+          retention-days: 7
       - name: Test the compiled runtime ABI and bounded document session
         if: inputs.verification == 'full'
         shell: bash

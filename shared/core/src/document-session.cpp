@@ -56,7 +56,8 @@ DocumentSessionState DocumentSession::documentLoad(const std::string& input,cons
     const auto month=projectcodec::restoredTimelineMonth(document,currentMonth);
     // Both decoding and Project::replace build a validated candidate before the
     // canonical state changes. No partially parsed document can publish.
-    Project candidate;candidate.replace(std::move(document));candidate.setTimelineCursor(month,false);
+    const bool resumeEditing=document.reopenMonth.has_value();
+    Project candidate;candidate.replace(std::move(document));candidate.setTimelineCursor(month,resumeEditing);
     const auto header=codecjson::parse(candidate.document().exchangeMetadata);
     auto active=storageBaseline_&&header.object.at("baseDataset").string==storageBaseline_->baseDataset()?storageBaseline_:
         std::optional<projectcodec::WebStorageBaseline>{projectcodec::admitWebStorageDocumentBaseline(candidate.snapshot(),ports_)};

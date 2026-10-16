@@ -16,7 +16,7 @@ TimelineRecords replaceParentRelationAtMonth(const TimelineRecords&,const std::s
                                               const std::string& month,const std::string& parentId,
                                               const std::string& coverageMode);
 TimelineRecords truncateTimelineEntityAtMonth(const TimelineRecords&,const std::string& entityId,
-                                              const std::string& month);
+                                              const std::string& month,bool preserveFutureChanges=false);
 TimelineRecords replacePropertyBindingAtMonth(const TimelineRecords&,const std::string& entityId,
     const std::string& month,const std::string& property,const std::string& value);
 }
