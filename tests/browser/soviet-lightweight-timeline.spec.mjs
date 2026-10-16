@@ -102,23 +102,42 @@ test('Soviet month-only moves save a small session record, persist across reload
   { timeout: 60_000 }).toBeGreaterThan(0);
 
   await month(page, '2026-10');
-  await page.evaluate(async () => {
-    await window.PANDOLAB_TERRITORIAL.setName('IRL', '경량 시점 저장 검증');
+  const edit = await page.evaluate(async () => {
+    const before = window.PANDOLAB_TERRITORIAL.get('IRL')?.properties?.name;
+    const result = await window.PANDOLAB_TERRITORIAL.setName('IRL', '경량 시점 저장 검증');
+    return {
+      before, changed: result?.changed === true, result,
+      after: window.PANDOLAB_TERRITORIAL.get('IRL')?.properties?.name,
+    };
   });
-  await expect.poll(async () => {
+  console.log('SOVIET_EDIT_COMMAND', JSON.stringify(edit));
+  expect(edit.changed).toBe(true);
+  expect(edit.after).toBe('경량 시점 저장 검증');
+  try {
+    await expect.poll(async () => {
+      const record = await storage(page);
+      return record.project?.territorialEntities?.find(entity => entity.id === 'IRL')?.properties?.name;
+    }, { timeout: 40_000 }).toBe('경량 시점 저장 검증');
+  } catch (error) {
     const record = await storage(page);
-    return record.project?.format === 'pandolab-autosave-delta'
-      ? record.project.entityDelta?.changed?.find(entity => entity.id === 'IRL')?.properties?.name
-      : null;
-  }, { timeout: 90_000 }).toBe('경량 시점 저장 검증');
+    const perf = await page.evaluate(() => window.__PANDOLAB_PERFORMANCE_REPORT__?.()?.operations?.['autosave.persist']);
+    console.log('SOVIET_EDIT_AUTOSAVE_DIAGNOSTIC', JSON.stringify({
+      format: record.project?.format, savedAt: record.project?.savedAt,
+      storedName: record.project?.territorialEntities?.find(entity => entity.id === 'IRL')?.properties?.name,
+      changedIds: record.project?.entityDelta?.changed?.map(entity => entity.id).slice(0, 10),
+      view: record.view, autosaveCount: perf?.count,
+      recentAutosave: perf?.samples?.slice(-3),
+    }));
+    throw error;
+  }
   await expect.poll(async () => {
     const {project, view} = await storage(page);
     return project?.savedAt && view?.projectSavedAt === project.savedAt
       && view?.lastViewedMonth === '2026-10';
   }, { timeout: 40_000 }).toBe(true);
   const edited = await storage(page);
-  expect(edited.project?.format).toBe('pandolab-autosave-delta');
-  expect(edited.project?.entityDelta?.changed?.find(entity => entity.id === 'IRL')?.properties?.name)
+  expect(edited.project?.format).toBe('pandolab-autosave-full');
+  expect(edited.project?.territorialEntities?.find(entity => entity.id === 'IRL')?.properties?.name)
     .toBe('경량 시점 저장 검증');
   await month(page, '1989-06');
   await expect.poll(async () => (await storage(page)).view?.lastViewedMonth,
