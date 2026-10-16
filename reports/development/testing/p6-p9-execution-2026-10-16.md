@@ -3,8 +3,9 @@
 > 보고서 ID: `DEV-076` · 상태: `investigating` · 지도 반영: `not-applicable` · 색인일: 2026-10-16
 > 원문 최종 수정: 2026-10-16
 > 기준본: `8e22982616e3c9ba43eeb84baec17cd886267cfa` · 구현 브랜치: `work/objects`
-> 최종 선택 검증 후보: `4e53feee0a69d0e44c19b92f0e14f4a3a297093f` · 제품/생성물 `05fabcea`와 동일 · WASM 결과 `607d0e64`
+> 이전 선택 검증 후보: `4e53feee0a69d0e44c19b92f0e14f4a3a297093f` · 제품/생성물 `05fabcea`와 동일 · WASM 결과 `607d0e64`
 > 추가 실기기/성능 측정: 웹 `8df284ab`·`f90ccf21`, Qt 원격 비교 바이너리 `9bd078c7` · 기존 제품/자산과 동일하며 측정 도구만 변경
+> 접촉·메시 수정 후: 웹 비교 `70789caf989831e8cfa97953b3bb0821669cf444` · native 출력 수정 `4418b791` · 새 Qt 측정 overlay `b81c6173` · 리비전 5 자산 결과 `761016e1`
 
 ## 대상과 실행 원칙
 
@@ -17,7 +18,7 @@
 | P6 | 구현 및 관련 계산·명령·저장 검사 완료. polygon-clipping 0.15.7 포트, 잘라내기·수계·참조이미지 공유 C++, Qt 직접 호출·웹 WASM 연결, 제품용 JS 번들과 필수 Node 빌드 경로 제거 | 프레임/전체 앱 성능과 실기기는 P9의 미검증 범위 |
 | P7 | 완료. 기존 P2 입력 그래프·선택 생성·임시 출력 검증·롤백·원격 SHA 보호·실제 결과 SHA 영수증과 빌드 메타데이터 연결 | 최종 게시 38781165569 → 05fabcea; 원본 GIS 재가공은 명시 실행 |
 | P8 | 완료. P1/P2/P3 책임 분리, 실제 변경 범위와 봇 결과 분류, 명시 검사 선택, 일반 workspace의 Acorn 제거, 연구 재수집 수동화 | 변경된 실행 경로의 실제 원격 연결 확인; 필수 보호 규칙 변경 없음 |
-| P9 | 일부 완료. 기능별 모델/형상/저장·Undo, 네이티브 양 OS, 생성물, 계산 4종 성능, Windows 실제 GPU 편입 2종과 웹 시작·힙·Worker·저장 비교 확보 | 웹 프레임 미확정, 러시아 추가 측정 마지막 쌍 시간 제한, Qt 성능 입력 준비 실패, Android 실제 터치 미검증 |
+| P9 | 일부 완료. 기존 기능 증거 보존. 새 웹 러시아 비교 10쌍 완료, Qt 정본 입력 준비 성공, 접촉·공통 메시 및 native 외곽선 검사 통과 | 새 웹 LongTask 합계 및 이전 focus 프레임 미확정, Qt 대형 객체 비교 진행 중, Android 실제 터치 미검증 |
 
 수계·지형 원본 GIS 재가공은 명시 작업이며 원본 경로·버전·해시가 없으면 중단한다. 자동 다운로드나 대체 자료로 통과시키지 않는다.
 
@@ -252,3 +253,30 @@
 - [P2 실행 38822625252](https://github.com/kimjeon-il/Pando/actions/runs/38822625252)은 새 WASM의 선택된 접촉/분할/메시 계약과 기존 생성물 그래프의 생성·검증·게시를 완료했다. 결과 SHA는 `761016e1`이며 변경된 공통 엔진의 리비전은 5다. 이 자산으로 웹 채움·경계·캐시·decoder 검사 **22/22 통과**를 확인했다.
 - [Qt 실행 38824019671](https://github.com/kimjeon-il/Pando/actions/runs/38824019671)은 기준본·후보 `ui_tests`를 모두 컴파일했고 접촉 CTest는 통과했지만, 북극 채움 외곽선 CTest가 실패했다. 실제 Float32 위치가 겹친 서로 다른 정점 ID를 별개 경계로 세어 내부 radial edge 124개를 외곽선으로 만들었다. 공유 계산을 변경하지 않고 native 출력 포장에서 좌표 alias별 면 접속 수를 세도록 수정했다. 기존 외곽선·각도·pole 검사는 유지하며 실제 C++ 재검증 전에는 성공으로 표시하지 않는다.
 - 불변 기준본을 다시 컴파일하지 않도록 성공적으로 빌드된 기준본 exe의 GitHub run/commit/artifact digest/개별 exe SHA-256/Qt 버전/측정 overlay SHA-256을 `config/p9-native-baseline-artifact.json`에 고정했다. 후속은 이 신원을 검증한 기준본만 재사용하고 후보만 컴파일한다. 실패한 후보의 검증이나 성능을 성공으로 간주하는 캐시가 아니다.
+
+### 공통 메시 수정 후 실제 결과
+
+- native 출력 수정 `4418b791`은 Float32로 포장된 실제 위치가 같은 정점들의 면 접속 수를 통합한다. 북극에서 잘못 노출된 내부 선분 **124→0**, 실제 외곽선 누락 **0**을 확인했다. [native 선택 실행 38828375050](https://github.com/kimjeon-il/Pando/actions/runs/38828375050)에서 `polygon_boundary_contract_tests`, `m976_shared_boundary_engine_tests` **2/2 통과**, 실행 시간 0.09초다. 이 실행은 Linux 엔진 검사이며 Qt 화면 성능 비교가 아니다.
+- [Windows 실행 38826578740](https://github.com/kimjeon-il/Pando/actions/runs/38826578740)은 수정된 후보 `ui_tests`를 컴파일했지만, 별도 빌드된 같은 zlib 1.3.2 DLL의 PE 해시를 동일 바이트로 강제한 runtime 포장에서 중단됐다. 제품 검사 실패와 구분한다. 현재 포장은 FileVersion·ProductVersion·OriginalFilename이 모두 일치하는 의존성만 허용하며, 비교할 두 실행 파일에는 **같은 실제 DLL 바이트**를 제공하고 그 해시를 기록한다.
+- 해당 원격 Windows 후보와 동일 Qt 6.8.3 MSVC runtime으로 실제 loader/project writer를 실행했다. 정본 세계 프로젝트 입력 준비는 **141.768초, QtTest 3개 슬롯 통과**로 완료됐으며, 저장 파일은 **30,578,953 bytes**다. 과거 preview 통계 하드코딩 때문에 막힌 입력 준비는 해결됐다. 이 성공은 아직 Qt 성능 분포를 뜻하지 않는다.
+- 첫 Qt 비교 시도는 기준본 준비 실행에서 늦게 도착한 geometry upload로 중단됐다. 앞선 renderer-ready 확인 뒤 `qWait(0)`에서 새로운 업로드가 시작돼 후속 준비 assertion이 실패한 측정 시작 경합이다. 후보나 측정 쌍은 실행되지 않았으며 부분 값을 비교에 사용하지 않는다. 원본은 `build-native/p9/shared-mesh-native-performance/warmup-baseline/qt-test.txt`와 journal에 보존한다.
+- 측정 overlay `b81c6173`은 이미 발행된 준비·IO 완료, bridge의 최신 불변 frame과 실제 renderer frame 일치, upload 완료와 새 frame swap을 함께 기다린다. 비활성 자료의 전체 로드는 요구하지 않는다. 이번 요청은 `large-project` 역할의 RUS만 선택하되 실제 pan **120건**, 정점 **1px 이동**, preview·cancel, 정본/dirty/Undo/Redo 보존, 저장 bytes 비교를 유지한다. 요약기 관련 검사 **11/11 통과**는 측정 도구 검증이며 성능 통과가 아니다.
+- 측정 overlay가 바뀌었으므로 과거 기준본 exe는 재사용하지 않는다. [Windows 비교 빌드 38830134932](https://github.com/kimjeon-il/Pando/actions/runs/38830134932)는 기준본과 후보를 병렬로 빌드하며, 양쪽에 동일 overlay와 `/MP2 /EHsc`를 적용한다. 기존 빌드 명령이 기본 C++ flags를 치환하면서 빠뜨린 exception-unwinding 옵션도 양쪽에 동일하게 복구했다. 이 기록 시점에는 빌드 진행 중이다.
+
+### 실제 GPU 브라우저 러시아 비교 — 완료된 10쌍
+
+웹 제품 소스 `70789caf989831e8cfa97953b3bb0821669cf444`, 기준본 `8e22982616e3c9ba43eeb84baec17cd886267cfa`를 같은 Windows·Chromium 151·실제 GTX 1650/Direct3D11에서 비교했다. 양쪽 준비 실행 후 5쌍과 허용된 추가 5쌍을 모두 완료했다. 실행 시간 약 30분이며 **시간 초과가 아닌 `uncertain` 판정으로 종료**했다. 추가 반복은 하지 않는다. 이후 native 출력·측정 도구 변경은 이 웹 제품/WASM/자산 바이트를 바꾸지 않았다.
+
+실제 RUS 선 준비·취소, 원본 객체·형상·history 보존, IndexedDB v10 자동 저장 내용, Undo 후 저장 복원을 각 표본에서 확인했다. 원본 JSON은 `build-native/p9/shared-mesh-russia-performance/p9-browser-performance-P9--00563-editing-Worker-and-autosave/p9-browser-performance.json`, 실행 로그는 `build-native/p9/shared-mesh-russia-performance.log`다. 과거 미완료 측정과 별개인 완료 분포다.
+
+| 지표 | 기준본 중앙값 | 후보 중앙값 | 10쌍 판정 |
+| --- | ---: | ---: | --- |
+| 편집 rAF p95 | 95.00ms | 79.85ms | no-regression |
+| LongTask 합계 | 2,440ms | 2,480ms | **uncertain**: 기준본 2,390–2,836ms, 후보 2,392–2,582ms |
+| 최장 LongTask | 643.5ms | 575.5ms | no-regression |
+| cut Worker 왕복 p95 | 990.95ms | 619.15ms | no-regression |
+| cut Worker 내부 계산 p95 | 947.45ms | 590.10ms | no-regression |
+| 자동 저장 persist | 13,194.80ms | 4,841.00ms | no-regression |
+| 자동 저장 대기 포함 | 21,662.80ms | 9,078.15ms | no-regression |
+
+LongTask 합계는 중앙값이 40ms 증가했고 분포가 겹쳐 미확정이다. 측정 기준을 완화하거나 통과로 바꾸지 않는다. 이전 focus 프레임의 미확정 상태와 Android 실제 터치 미검증도 유지하므로 **전체 P9 완료가 아니다**.
