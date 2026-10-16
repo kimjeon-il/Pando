@@ -14,6 +14,11 @@ function fixture() {
       canonical: 'countries-canonical-shared-v0.36.1.json.gz',
     } },
   };
+  world.defaultClassification = {
+    countries: Object.fromEntries(Array.from({ length: 207 }, (_, i) => ['root-' + i, 'source'])),
+    units: Object.fromEntries(Array.from({ length: 47 }, (_, i) => ['unit-' + i, { parentId: 'root-0' }])),
+    removedIds: Array.from({ length: 51 }, (_, i) => 'removed-' + i),
+  };
   const meta = { dataRevision: 'data-' + 'b'.repeat(32),
     historicalWorld: pin('assets/data/historical-world/generated/v1/manifest.json'),
     territorialIndex: pin('assets/data/territorial-entities/generated/v2/index.json'),
@@ -31,6 +36,10 @@ test('full-world manifest closure includes active historical and prepared geomet
   const plan = buildFullWorldAssetPlan(fixture());
   const paths = plan.entries.map(item => item.path);
   assert.equal(plan.countryCount, 258);
+  assert.equal(plan.modelEntityCount, 254);
+  assert.equal(plan.rootCount, 207);
+  assert.equal(plan.unitCount, 47);
+  assert.equal(plan.mergedSourceCount, 4);
   assert.equal(plan.entries.length, 14);
   assert.equal(new Set(paths).size, paths.length);
   assert.ok(paths.includes('assets/data/world/current.json'));

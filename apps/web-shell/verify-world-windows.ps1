@@ -36,7 +36,9 @@ try {
   if ($report.schema -ne 'pandolab-web-shell-world-probe' -or
       $report.phase -ne 'canonical-ready' -or
       -not $report.ok -or $process.ExitCode -ne 0 -or
-      $report.observed.countryCount -ne 258) {
+      $report.observed.sourceCountryCount -ne 258 -or
+      $report.observed.countryCount -ne 254 -or
+      $report.observed.sovereignRootCount -ne 207) {
     throw "Windows full-world test failed: $($report | ConvertTo-Json -Depth 9 -Compress)"
   }
   Write-Output "Full-world WebView test PASS: $reportFile"
