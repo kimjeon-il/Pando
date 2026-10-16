@@ -157,3 +157,48 @@ test('fresh worker preparation namespaces cannot accept a previous worker move',
   assert.notEqual(old.preparationId, ready.preparationId);
   assert.throws(() => replacement.move({ preparationId: old.preparationId, nodeKey: '2,1', coordinate: [2.1, 1] }), /변경/);
 });
+
+
+test('initial edit indexes world envelopes without eagerly materializing distant boundaries', async () => {
+  const service = createBoundaryPreparation();
+  const remote = Array.from({ length: 250 }, (_, index) => {
+    const x = 70 + index * 0.12, y = 35 + (index % 12) * 0.15;
+    return feature('remote-' + index, [[x, y], [x + 0.08, y], [x + 0.08, y + 0.08], [x, y]]);
+  });
+  await service.sync([...fixtures(), ...remote]);
+  assert.deepEqual(service.stats(), { sourceCount: 253, segmentSourceCount: 0, segmentCount: 0, cachedPreparations: 0 });
+  const prepared = await service.prepare(request);
+  assert.equal(prepared.valid, true);
+  assert.deepEqual(prepared.neighbors, ['C']);
+  assert.equal(service.stats().segmentSourceCount, 3, 'only selected and near-contact sources may be segmented');
+  assert.ok(service.stats().segmentCount < 30);
+  assert.strictEqual((await service.prepare(request)).handles, prepared.handles);
+  assert.equal(service.stats().segmentSourceCount, 3);
+});
+
+test('a previously distant or unmaterialized owner entering contact invalidates prepared editing', async () => {
+  const service = createBoundaryPreparation(), rows = fixtures();
+  const remote = feature('F', [[45, 30], [46, 30], [46, 31], [45, 30]]);
+  await service.sync([...rows, remote]);
+  const first = await service.prepare({ targetIds: ['A'], mode: 'coast' });
+  assert.equal(service.stats().segmentSourceCount, 3);
+  const contacting = feature('F', [[-1, 0], [0, 0], [0, 2], [-1, 2], [-1, 0]]);
+  await service.sync([...rows, contacting]);
+  const second = await service.prepare({ targetIds: ['A'], mode: 'coast' });
+  assert.notEqual(second.preparationId, first.preparationId);
+  assert.equal(service.stats().segmentSourceCount, 4);
+  assert.equal(second.handles.find(handle => handle.nodeKey === '0,0')?.fixed, true);
+});
+
+test('irrelevant updates do not invalidate a cached boundary even if no remote segments were built', async () => {
+  const service = createBoundaryPreparation(), rows = fixtures();
+  const far = feature('F', [[-80, -40], [-79, -40], [-79, -39], [-80, -40]]);
+  await service.sync([...rows, far]);
+  const first = await service.prepare(request);
+  assert.equal(service.stats().segmentSourceCount, 3);
+  await service.sync([...rows, { ...far, geometry: structuredClone(far.geometry) }]);
+  const next = await service.prepare(request);
+  assert.strictEqual(next.handles, first.handles);
+  assert.equal(next.preparationId, first.preparationId);
+  assert.equal(service.stats().segmentSourceCount, 3);
+});
