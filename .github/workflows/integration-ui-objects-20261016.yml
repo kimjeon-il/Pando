@@ -36,6 +36,10 @@ jobs:
         run: |
           pnpm exec eslint assets/js/modules/project-preview-cache.js assets/js/modules/persistence-service.js assets/js/modules/app-history-assembly.js assets/js/modules/app-progressive-startup.js assets/js/workers/project-preview-worker.js tests/unit/project-preview-cache.test.mjs tests/unit/project-preview-worker.test.mjs tests/unit/persistence-service.test.mjs
           node --test tests/unit/project-preview-cache.test.mjs tests/unit/project-preview-worker.test.mjs tests/unit/persistence-service.test.mjs
+      - name: Verify scoped boundary preparation, cancellation and render packets
+        run: |
+          pnpm exec eslint assets/js/modules/boundary-preparation.js assets/js/modules/map-edit-preparation-operations.js assets/js/modules/app-geometry-preview.js tests/unit/boundary-preparation.test.mjs tests/unit/boundary-preparation-session.test.mjs tests/browser/soviet-edit-entry-profile.spec.mjs
+          node --test tests/unit/boundary-preparation.test.mjs tests/unit/boundary-preparation-session.test.mjs tests/unit/map-edit-worker-client.test.mjs tests/unit/editing-render-packet.test.mjs
       - name: Verify generated browser and dataset metadata
         run: |
           node scripts/generate-build-metadata.mjs --check

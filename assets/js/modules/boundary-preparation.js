@@ -10,9 +10,31 @@ const padded = bounds => {
   return [bounds[0] - margin, bounds[1] - margin, bounds[2] + margin, bounds[3] + margin];
 };
 
+// A ring envelope includes every source segment (including dateline-crossing
+// edges). It is only a conservative broad phase: exact contacts and splits
+// remain owned by the existing C++ topology calculation.
+function geometryRingBounds(geometry) {
+  const polygons = geometry?.type === 'Polygon' ? [geometry.coordinates]
+    : geometry?.type === 'MultiPolygon' ? geometry.coordinates : [];
+  const boxes = [];
+  for (const rings of polygons || []) for (const ring of rings || []) {
+    let west = Infinity, south = Infinity, east = -Infinity, north = -Infinity;
+    for (const point of ring || []) {
+      const x = point?.[0], y = point?.[1];
+      if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
+      west = Math.min(west, x); east = Math.max(east, x);
+      south = Math.min(south, y); north = Math.max(north, y);
+    }
+    if (west <= east && south <= north) boxes.push([west, south, east, north]);
+  }
+  return boxes;
+}
+
 export function createBoundaryPreparation() {
   const sources = new Map();
-  const index = createBoundarySpatialIndex();
+  // Only ring envelopes are indexed at first edit. Unrelated world geometry
+  // must not materialize thousands of segment objects and grid entries.
+  const featureIndex = createBoundarySpatialIndex();
   const cache = new Map();
   let sequence = 0;
   const namespace = globalThis.crypto?.randomUUID?.() || `${Date.now()}:${Math.random()}`;
@@ -26,22 +48,32 @@ export function createBoundaryPreparation() {
         const feature = incoming.get(id);
         if (feature?.geometry === previous.feature.geometry && metadata(feature) === previous.metadata) continue;
         changed.add(id);
-        for (const row of previous.rows) { dirty.push(row.bounds); index.remove(row.id); }
+        dirty.push(...previous.boxes);
+        featureIndex.remove(id);
         sources.delete(id);
       }
       for (const [id, feature] of incoming) {
         if (sources.has(id)) continue;
         await checkpoint();
         changed.add(id);
-        const rows = boundarySourceSegments(feature).map((row, i) => ({ ...row, id: `${id}:${i}`, bounds: segmentBounds(row) }));
-        for (const row of rows) { index.insert(row.id, row, row.bounds); dirty.push(row.bounds); }
-        sources.set(id, { feature, rows, metadata: metadata(feature) });
+        const boxes = geometryRingBounds(feature.geometry);
+        sources.set(id, { feature, boxes, rows: null, metadata: metadata(feature) });
+        dirty.push(...boxes);
+        if (boxes.length) featureIndex.insert(id, id, boxes);
       }
     } finally {
       if (changed.size) for (const [key, entry] of cache) {
         if ([...changed].some(id => entry.dependencies.has(id)) || dirty.some(bounds => entry.targetIndex.query(padded(bounds)).length)) cache.delete(key);
       }
     }
+  }
+
+  function sourceRows(id) {
+    const source = sources.get(id);
+    if (!source) return [];
+    if (!source.rows) source.rows = boundarySourceSegments(source.feature)
+      .map((row, index) => ({ ...row, id: `${id}:${index}`, bounds: segmentBounds(row) }));
+    return source.rows;
   }
 
   async function prepare({ targetIds, mode, neighborsOnly = false, autoSeedId = null }, checkpoint = async () => {}) {
@@ -75,12 +107,36 @@ export function createBoundaryPreparation() {
       const selected = new Set(ids);
       const rows = new Map();
       const targetIndex = createBoundarySpatialIndex();
-      for (const id of ids) for (const row of sources.get(id).rows) {
+      // Build only the selected edges first. The target segment index then
+      // tests candidate edges directly, avoiding a second world-wide index.
+      const candidateIds = new Set();
+      for (const id of ids) {
+        const source = sources.get(id);
+        for (const bounds of source.boxes) {
+          for (const candidateId of featureIndex.query(padded(bounds))) candidateIds.add(candidateId);
+        }
+        for (const row of sourceRows(id)) {
+          await checkpoint();
+          rows.set(row.id, row);
+          targetIndex.insert(row.id, row, padded(row.bounds));
+        }
+      }
+      // Ring envelopes may return false positives, never false negatives.
+      // Restrict their detailed segment materialization to eligible owners;
+      // exact C++ topology still decides shared/coast segment membership.
+      for (const id of candidateIds) {
+        if (selected.has(id)) continue;
+        const source = sources.get(id);
+        const feature = source?.feature;
+        if (!allowed(feature) && id !== parentId) continue;
+        // A large country's ring envelope can cover remote countries with no
+        // nearby coastline. Reject those before reading any candidate edges.
+        if (!source.boxes.some(bounds => targetIndex.query(bounds).length)) continue;
         await checkpoint();
-        rows.set(row.id, row); targetIndex.insert(row.id, row, padded(row.bounds));
-        for (const candidate of index.query(padded(row.bounds))) {
-          const feature = sources.get(candidate.featureId)?.feature;
-          if (allowed(feature) || candidate.featureId === parentId) rows.set(candidate.id, candidate);
+        for (const candidate of sourceRows(id)) {
+          // Symmetric overlap with the padded target segment reproduces the
+          // original per-target-row query without indexing distant segments.
+          if (targetIndex.query(candidate.bounds).length) rows.set(candidate.id, candidate);
         }
       }
       // Parent ownership marks its exterior as an unselected/fixed boundary.
@@ -157,5 +213,14 @@ export function createBoundaryPreparation() {
     moveTopologyNode(features, node, coordinate);
     return { features: [...features.values()], affectedIds: [...features.keys()] };
   }
-  return { sync, prepare, move };
+  function stats() {
+    const detailed = [...sources.values()].filter(source => source.rows);
+    return Object.freeze({
+      sourceCount: sources.size,
+      segmentSourceCount: detailed.length,
+      segmentCount: detailed.reduce((sum, source) => sum + source.rows.length, 0),
+      cachedPreparations: cache.size,
+    });
+  }
+  return { sync, prepare, move, stats };
 }
