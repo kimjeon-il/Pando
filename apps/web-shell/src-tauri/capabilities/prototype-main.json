@@ -2,15 +2,19 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "prototype-main",
   "description": "Only fixed prototype storage and user-selected project dialogs.",
-  "windows": ["main"],
+  "windows": [
+    "main"
+  ],
   "permissions": [
     "allow-write-probe-file",
     "allow-read-probe-file",
     "allow-write-diagnostic-report",
     "allow-finish-probe",
-    "allow-save-project-file",
-    "allow-save-export-file",
-    "allow-open-project-file",
-    "allow-open-gis-files"
+    "allow-begin-document-write",
+    "allow-append-document-chunk",
+    "allow-finish-document-write",
+    "allow-begin-document-read",
+    "allow-read-document-chunk",
+    "allow-abort-document-transfer"
   ]
 }
