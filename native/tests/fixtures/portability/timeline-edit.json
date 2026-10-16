@@ -11,7 +11,7 @@
     }
   ],
   "records": {
-    "schemaVersion": 1,
+    "schemaVersion": 2,
     "lifetimes": [
       {
         "id": "life:A",
@@ -75,7 +75,8 @@
         "parentId": "",
         "coverageMode": "explicit"
       }
-    ]
+    ],
+    "propertyBindings": []
   },
   "cases": [
     {
@@ -84,7 +85,7 @@
       "month": "1914-07",
       "version": 2,
       "expected": {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "lifetimes": [
           {
             "id": "life:A",
@@ -158,7 +159,8 @@
             "parentId": "",
             "coverageMode": "explicit"
           }
-        ]
+        ],
+        "propertyBindings": []
       }
     },
     {
@@ -167,7 +169,7 @@
       "month": "1914-06",
       "version": 2,
       "expected": {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "lifetimes": [
           {
             "id": "life:A",
@@ -231,7 +233,8 @@
             "parentId": "",
             "coverageMode": "explicit"
           }
-        ]
+        ],
+        "propertyBindings": []
       }
     },
     {
@@ -240,7 +243,7 @@
       "month": "1914-07",
       "version": 1,
       "expected": {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "lifetimes": [
           {
             "id": "life:A",
@@ -304,7 +307,8 @@
             "parentId": "",
             "coverageMode": "explicit"
           }
-        ]
+        ],
+        "propertyBindings": []
       },
       "identity": true
     },
@@ -315,7 +319,7 @@
       "parentId": "B",
       "coverageMode": "partition",
       "expected": {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "lifetimes": [
           {
             "id": "life:A",
@@ -387,7 +391,8 @@
             "parentId": "",
             "coverageMode": "explicit"
           }
-        ]
+        ],
+        "propertyBindings": []
       }
     },
     {
@@ -395,7 +400,7 @@
       "op": "truncate",
       "month": "1914-07",
       "expected": {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "lifetimes": [
           {
             "id": "life:A",
@@ -449,7 +454,8 @@
             "parentId": "",
             "coverageMode": "explicit"
           }
-        ]
+        ],
+        "propertyBindings": []
       }
     }
   ]

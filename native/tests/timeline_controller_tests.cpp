@@ -4,6 +4,8 @@
 #include <pandoeditor/project.h>
 #include <pandoeditor/timeline-view.h>
 #include <QFile>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QSignalSpy>
 #include <QTemporaryDir>
 #include <QtTest>
@@ -13,6 +15,30 @@
 class TimelineControllerTests final : public QObject {
     Q_OBJECT
 private slots:
+    void lastViewedMonthIsSessionStateAndRestoresFromFileAndAutosave() {
+        QTemporaryDir directory;QVERIFY(directory.isValid());
+        const auto path=directory.filePath("last-month.pando.json");
+        EditorController editor({false,directory.filePath("private.json")});
+        const bool dirty=editor.dirty(),undo=editor.canUndo();
+        QVERIFY(editor.setTimelineMonth(QStringLiteral("2012-06")));
+        QCOMPARE(editor.dirty(),dirty);QCOMPARE(editor.canUndo(),undo);
+        const auto bytes=editor.documentBytes();
+        QCOMPARE(QJsonDocument::fromJson(bytes).object()["editorState"].toObject()["lastViewedMonth"].toString(),QStringLiteral("2012-06"));
+        QVERIFY(editor.saveFile(QUrl::fromLocalFile(path)));
+        EditorController reopened({false,directory.filePath("reopened.json")});
+        QVERIFY(reopened.openFile(QUrl::fromLocalFile(path)));QCOMPARE(reopened.timelineMonth(),QStringLiteral("2012-06"));
+        QVERIFY(reopened.setTimelineMonth(QStringLiteral("2013-07")));QVERIFY(!reopened.dirty());QVERIFY(!reopened.canUndo());
+        QVERIFY(reopened.saveFile(QUrl::fromLocalFile(path)));
+        QVERIFY(editor.openFile(QUrl::fromLocalFile(path)));QCOMPARE(editor.timelineMonth(),QStringLiteral("2013-07"));
+        EditorControllerConfig recovery;recovery.privateProjectPath=directory.filePath("recovery-private.json");recovery.autosaveEnabled=true;
+        recovery.autosaveProjectPath=directory.filePath("autosave.json");recovery.autosaveViewPath=directory.filePath("view.json");
+        {
+            EditorController saving(recovery);QVERIFY(saving.openFile(QUrl::fromLocalFile(path)));
+            QVERIFY(saving.setTimelineMonth(QStringLiteral("2011-03")));QVERIFY(!saving.dirty());
+        }
+        EditorController recovered(recovery);
+        QTRY_COMPARE_WITH_TIMEOUT(recovered.timelineMonth(),QStringLiteral("2011-03"),10000);
+    }
     void datedSharedBoundaryPreservesEarlierMonth() {
         try {
         pandoeditor::ProjectDocument document = makeTerritorialDocument({{{"A","Alpha","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}}},{0x336699,1},"countries"},

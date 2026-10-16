@@ -1,6 +1,6 @@
 import { sharedCalculationCore } from './temporal.js';
 
-export const TIMELINE_RECORD_SCHEMA_VERSION = 1;
+export const TIMELINE_RECORD_SCHEMA_VERSION = 2;
 
 if (typeof sharedCalculationCore.timelineNormalizeRecords !== 'function') {
   throw Object.assign(new Error('Canonical C++ timeline validator is unavailable.'),
@@ -9,9 +9,10 @@ if (typeof sharedCalculationCore.timelineNormalizeRecords !== 'function') {
 
 /** Freeze the result of C++ validation; no browser-side timeline graph is built. */
 function immutableRecords(records) {
-  for (const name of ['lifetimes', 'geometryBindings', 'parentRelations']) {
+  for (const name of ['lifetimes', 'geometryBindings', 'parentRelations', 'propertyBindings']) {
     for (const row of records[name]) {
       if (row.geometryRef) Object.freeze(row.geometryRef);
+      if (row.value) Object.freeze(row.value);
       Object.freeze(row);
     }
     Object.freeze(records[name]);

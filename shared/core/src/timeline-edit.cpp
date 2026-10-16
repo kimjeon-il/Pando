@@ -15,6 +15,7 @@ std::string nextRecordId(const TimelineRecords& rows,const std::string& base) {
     for(const auto& row:rows.lifetimes)ids.insert(row.id);
     for(const auto& row:rows.geometryBindings)ids.insert(row.id);
     for(const auto& row:rows.parentRelations)ids.insert(row.id);
+    for(const auto& row:rows.propertyBindings)ids.insert(row.id);
     auto result=base;
     for(unsigned suffix=1;ids.count(result);++suffix)result=base+":"+std::to_string(suffix);
     return result;
@@ -94,7 +95,37 @@ TimelineRecords truncateTimelineEntityAtMonth(const TimelineRecords& original,co
         }
         rows=std::move(kept);
     };
-    truncate(result.lifetimes);truncate(result.geometryBindings);truncate(result.parentRelations);
+    truncate(result.lifetimes);truncate(result.geometryBindings);truncate(result.parentRelations);truncate(result.propertyBindings);
+    return result;
+}
+TimelineRecords replacePropertyBindingAtMonth(const TimelineRecords& original,const std::string& id,
+    const std::string& cursor,const std::string& property,const std::string& value) {
+    const auto month=parseTemporal(cursor);
+    if(month.precision!="month")throw TimelineError("INVALID_TIMELINE_CURSOR","month precision required");
+    auto result=original;const auto point=temporalMonthEnd(month.canonical);
+    auto& rows=result.propertyBindings;
+    auto selected=std::find_if(rows.begin(),rows.end(),[&](const auto& row){return row.entityId==id&&row.property==property&&active(row.validity,point);});
+    if(selected!=rows.end()) {
+        if(selected->value==value)return result;
+        auto changed=*selected;changed.value=value;
+        if(!selected->validity.from||parseTemporal(*selected->validity.from).startKey<month.startKey) {
+            changed.id=nextRecordId(original,selected->id+":"+month.canonical);changed.validity.from=month.canonical;
+            selected->validity.to=shiftTemporalMonth(month.canonical,-1);rows.push_back(std::move(changed));
+        }else *selected=std::move(changed);
+        return result;
+    }
+    const auto life=std::find_if(result.lifetimes.begin(),result.lifetimes.end(),[&](const auto& row){return row.entityId==id&&active(row.validity,point);});
+    if(life==result.lifetimes.end())throw TimelineError("TIMELINE_INACTIVE","property owner is inactive");
+    auto end=life->validity.to;
+    for(const auto& row:rows)if(row.entityId==id&&row.property==property&&row.validity.from) {
+        const auto start=parseTemporal(*row.validity.from);
+        if(month.startKey<start.startKey) {
+            const auto nextMonth=start.precision=="year"?start.canonical+"-01":start.precision=="date"?start.canonical.substr(0,start.canonical.size()-3):start.canonical;
+            const auto previous=shiftTemporalMonth(nextMonth,-1);
+            if(!end||parseTemporal(previous).endKey<parseTemporal(*end).endKey)end=previous;
+        }
+    }
+    rows.push_back({nextRecordId(original,"property:"+id+":"+property+":"+month.canonical),id,{month.canonical,end},property,value});
     return result;
 }
 }

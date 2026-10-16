@@ -4,7 +4,8 @@ import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { canonicalPlaceTextBytes, generatePlaceRelease, validateRuntimeApproval } from '../../tools/build-place-runtime.mjs';
 import { decodePlaceTile } from '../../assets/js/modules/place-codec.js';
-import { normalizePlace, resolvePlaceLabelRows, hasPlaceNameCoverage } from '../../assets/js/modules/place-contract.js';
+import { normalizePlace } from '../../assets/js/modules/place-contract.js';
+import { resolvePlaceLabelRows, hasPlaceNameCoverage } from '../../assets/js/modules/place-name-display.js';
 import { createPlaceWorkerStore } from '../../assets/js/modules/place-worker-store.js';
 
 const assets = new URL('../../assets/data/places/', import.meta.url);
@@ -60,22 +61,25 @@ test('published PLAC v3 bytes decode every place with historical name transition
     ['1924-01-01', '1930-01-01', '1970-01-01'].map(date =>
       resolvePlaceLabelRows(volgograd, triple, date)[0]?.text),
     ['차리친', '스탈린그라드', '볼고그라드']);
-  assert.ok(!hasPlaceNameCoverage(byId.get('524305'), '1915-01-01'));
+  assert.ok(hasPlaceNameCoverage(byId.get('524305'), '1915-01-01'));
+  assert.ok(resolvePlaceLabelRows(byId.get('524305'),triple,'1915-01-01')[0].modernName);
   assert.ok(hasPlaceNameCoverage(byId.get('524305'), '1916-12-31'));
   const minsk = byId.get('625144');
   assert.deepEqual(resolvePlaceLabelRows(minsk, triple, '1995-12-31').map(x => x.text).filter(x => x === 'Минск'), []);
   assert.ok(resolvePlaceLabelRows(minsk, triple, '1997-01-01').map(x => x.text).includes('Минск'));
-  assert.ok(!hasPlaceNameCoverage(byId.get('2172517'), '1900-01-01'));
+  assert.ok(hasPlaceNameCoverage(byId.get('2172517'), '1900-01-01'));
+  assert.ok(resolvePlaceLabelRows(byId.get('2172517'),triple,'1900-01-01')[0].modernName);
   assert.ok(hasPlaceNameCoverage(byId.get('2172517'), '1913-03-12'));
-  // A source-reviewed city cannot appear before its verified modern urban start,
-  // even if the research record's name survey happens to begin in 1801.
+  // Name periods are not settlement-existence records. A date before their
+  // first selected name keeps an explicitly current-name label.
   for (const [id, lastBefore, firstAt] of [
     ['1835235', '1904-12-31', '1905-01-01'],
     ['1526273', '1829-12-31', '1830-12-31'],
     ['1528675', '1867-12-31', '1868-12-31'],
     ['162183', '1880-12-31', '1881-12-31'],
   ]) {
-    assert.equal(hasPlaceNameCoverage(byId.get(id), lastBefore), false, id + ' appeared before urban founding');
+    assert.equal(hasPlaceNameCoverage(byId.get(id), lastBefore), true);
+    assert.ok(resolvePlaceLabelRows(byId.get(id),triple,lastBefore)[0].modernName,id);
     assert.equal(hasPlaceNameCoverage(byId.get(id), firstAt), true, id + ' missing after founding');
   }
 });

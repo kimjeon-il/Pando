@@ -83,10 +83,6 @@ void EditorController::refreshBuiltinPlaceLabels() {
     std::vector<MapLabelSource> sources;sources.reserve(records.size());
     for(const auto& record:records) {
         if(cursor.startsWith('-'))continue;
-        if(!mapDate.isEmpty()&&!record.nameTimeline.empty()){
-            const auto& first=record.nameTimeline.front();
-            if(!first.fromDate.isEmpty()?mapDate<first.fromDate:mapDate.left(4).toInt()<first.fromYear)continue;
-        }
         const auto rows=resolvePlaceDisplayRows(record,placeLanguages_,mapDate);
         if(rows.empty())continue; // Unavailable language is omitted, never synthesized.
         const auto settings=automaticLabelSettings(record.kind.toStdString());MapLabelSource source;

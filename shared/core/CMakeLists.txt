@@ -36,6 +36,7 @@ add_library(pandoeditor_core STATIC
     src/document.cpp
     src/geometryprovenance.cpp
     src/temporal.cpp
+    src/placenames.cpp
     src/timeline-records.cpp
     src/timeline-resolver.cpp
     src/timeline-view.cpp

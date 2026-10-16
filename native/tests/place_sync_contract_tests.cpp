@@ -74,6 +74,19 @@ bool hasLines(EditorController& editor,const QString& id,int count) {
 class PlaceSyncContractTests final : public QObject {
     Q_OBJECT
 private slots:
+    void historicalEvidenceIsPerLanguageAndMissingPeriodsUseCurrentPrefix() {
+        PlaceRecord record;record.name=QStringLiteral("서울");record.nameEn="Seoul";record.nameNative=QStringLiteral("서울");
+        PlaceLanguageSelection all{true,true,true};
+        auto selected=resolvePlaceDisplayRows(record,all,"2012-06-30","2026-10-16");
+        QCOMPARE(selected.size(),std::size_t(2));QCOMPARE(selected.at(0).text,QStringLiteral("(현)서울"));QVERIFY(selected.at(0).modernName);
+        QCOMPARE(selected.at(1).text,QStringLiteral("(현)Seoul"));
+        PlaceNameTransition naming;naming.fromYear=1900;naming.ko=QStringLiteral("한성");record.nameTimeline.push_back(naming);
+        selected=resolvePlaceDisplayRows(record,all,"2012-06-30","2026-10-16");
+        QCOMPARE(selected.at(0).text,QStringLiteral("한성"));QVERIFY(!selected.at(0).modernName);
+        QCOMPARE(selected.at(1).text,QStringLiteral("(현)Seoul"));
+        selected=resolvePlaceDisplayRows(record,all,"1800-06-30","2026-10-16");QCOMPARE(selected.at(0).text,QStringLiteral("(현)서울"));
+        selected=resolvePlaceDisplayRows(record,all,"2026-10-31","2026-10-16");QVERIFY(!selected.at(1).modernName);
+    }
     void published163ApprovedCityPlaceAssetsLoadAndSearchHistoricNames() {
         Q_INIT_RESOURCE(place_runtime);
         QFile manifest(QStringLiteral(":/place/manifest.json"));
@@ -610,13 +623,8 @@ private slots:
             QCOMPARE(row.coordinates.x,expected.value("coordinates").toArray().at(0).toDouble());
             QCOMPARE(row.coordinates.y,expected.value("coordinates").toArray().at(1).toDouble());
             QCOMPARE(row.nameTimeline.size(),std::size_t(expected.value("nameTimeline").toArray().size()));
-            const auto scenarios=fixture.value("scenarios").toArray();
-            for(const auto& scenarioValue:scenarios) {
-                const auto scenario=scenarioValue.toObject();
-                const auto date=scenario.value("date").isNull()?QString():scenario.value("date").toString();
-                QCOMPARE(rows(resolvePlaceDisplayRows(row,flags(scenario.value("languages").toObject()),date)),
-                    scenario.value("rows").toArray());
-            }
+            // Frozen v2 vectors verify decoding. Current display evidence and
+            // prefixes are covered by the shared v3 contract and focused test.
             QVERIFY_EXCEPTION_THROWN(PlaceRuntimeStore::decodeTile(payload.left(payload.size()-1)),
                 std::exception);
         }

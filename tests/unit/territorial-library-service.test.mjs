@@ -74,21 +74,25 @@ test('blank browsing keeps every identity, name alias and catalog order without 
   assert.equal(f.loads(),0);assert.equal(f.todayCalls(),0);
 });
 
-test('dated search excludes only wholly unknown lifetimes and retains inclusive endpoints and geometry gaps', async () => {
+test('dated search distinguishes availability, gaps, explicit absence and unknown lifetimes', async () => {
   const unknown = entity('state:unknown');
+  unknown.geometryVersions[0].validFrom='2000';
   const started = entity('state:started');started.lifetime.validFrom='1950';
   const ended = entity('state:ended','','1950');
   const gap = entity('state:gap','','1990-10-02');
   gap.lifetime.validFrom='1949-10-07';
   gap.geometryVersions[0].validFrom='1989-04-25';gap.geometryVersions[0].validTo='1989-04-25';
   const f = fixture({entities:[unknown,started,ended,gap]});await f.service.load();
-  assert.deepEqual(ids(f.service.search({referenceDate:'1950-01-01'})), ['state:started','state:ended','state:gap']);
-  assert.deepEqual(ids(f.service.search({referenceDate:'1950-12-31'})), ['state:started','state:ended','state:gap']);
-  assert.deepEqual(ids(f.service.search({referenceDate:'1949-01-01'})), ['state:ended']);
-  assert.deepEqual(ids(f.service.search({referenceDate:'1990-10-02'})), ['state:started','state:gap']);
-  assert.deepEqual(ids(f.service.search({referenceDate:'1990-10-03'})), ['state:started']);
+  const statuses=date=>rows(f.service.search({referenceDate:date})).map(row=>row.sourceAvailability);
+  assert.deepEqual(ids(f.service.search({referenceDate:'1950-01-01'})), ['state:unknown','state:started','state:ended','state:gap']);
+  assert.deepEqual(statuses('1950-01-01'),['unknown','available','available','geometry-gap']);
+  assert.deepEqual(statuses('1950-12-31'),['unknown','available','available','geometry-gap']);
+  assert.deepEqual(statuses('1949-01-01'),['unknown','absent','available','absent']);
+  assert.deepEqual(statuses('1990-10-02'),['unknown','available','absent','geometry-gap']);
+  assert.deepEqual(statuses('1990-10-03'),['unknown','available','absent','absent']);
   const gapRow = rows(f.service.search({query:'gap',referenceDate:'1970'}))[0];
   assert.equal(gapRow.selectedVersionId,null);
+  assert.equal(gapRow.sourceAvailability,'geometry-gap');
   assert.equal(rows(f.service.search({query:'gap',referenceDate:'1989-04-25'}))[0].selectedVersionId,'state:gap:v1');
   assert.throws(()=>f.service.search({referenceDate:'0000'}), {code:'PL-TEMPORAL-001'});
   assert.throws(()=>f.service.search({referenceDate:'invalid'}), {code:'PL-TEMPORAL-001'});

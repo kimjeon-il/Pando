@@ -1,7 +1,8 @@
 import { createMapVisualFrame, isMapVisualFrame } from './map-visual-frame.js';
 import { placeLabelDimensions } from './label-layout.js';
 import { createPlaceRuntime } from './place-runtime.js';
-import { isBuiltinPlaceId, resolvePlaceLabelRows, hasPlaceNameCoverage, PLACE_LIMITS } from './place-contract.js';
+import { isBuiltinPlaceId, PLACE_LIMITS } from './place-contract.js';
+import { resolvePlaceLabelRows, hasPlaceNameCoverage } from './place-name-display.js';
 import { temporalMonthEnd } from './temporal.js';
 import { territorialLabelFlag } from './territorial-label-flags.js';
 import { effectiveTerritorialFlagUrl } from './country-flags.js';

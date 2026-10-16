@@ -154,6 +154,8 @@ struct PreservedExtension {
 };
 struct ProjectDocument {
     std::string documentId;
+    // Input-only codec hint. Live cursor ownership remains Project session state.
+    std::optional<std::string> reopenMonth;
     // Supported file header, source and physical-view annotations. The codec
     // owns this lossless JSON object; temporal/content facts remain typed below.
     std::string exchangeMetadata="{}";

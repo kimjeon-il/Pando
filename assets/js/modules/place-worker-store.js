@@ -1,6 +1,7 @@
 import { createHydroTileWindow, hydroTileSpecsForWindow } from './hydro-tile-window.js';
 import { decodePlaceTile } from './place-codec.js';
-import { comparePlaces, normalizePlaceQuery, resolvePlaceLabelRows, hasPlaceNameCoverage, selectedPlaceNames, PLACE_LIMITS } from './place-contract.js';
+import { comparePlaces, normalizePlaceQuery, selectedPlaceNames, PLACE_LIMITS } from './place-contract.js';
+import { resolvePlaceLabelRows, hasPlaceNameCoverage } from './place-name-display.js';
 import { createFrameProjectors } from './map-visual-frame.js';
 import { placeLabelDimensions, automaticLabelSettings } from './label-layout.js';
 const noCancellation = Object.freeze({ throwIfCancelled() {} });

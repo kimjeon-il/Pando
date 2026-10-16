@@ -113,13 +113,24 @@ on:
       scope:
         description: Focused shared calculation verification
         type: choice
-        options: [all, p6-polygon, p6-calculations, geometry, native-geometry]
+        options: [all, p6-polygon, p6-calculations, geometry, native-geometry, temporal]
         default: all
 
 permissions:
   contents: read
 
 jobs:
+  temporal:
+    if: github.event_name == 'workflow_dispatch' && inputs.scope == 'temporal'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build only the changed temporal command contracts
+        run: |
+          cmake -S shared -B build-native/temporal-core -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+          cmake --build build-native/temporal-core --target temporal_editing_tests --parallel 2
+          ctest --test-dir build-native/temporal-core -R '^temporal_editing_tests$' --output-on-failure --no-tests=error
   native-geometry:
     if: github.event_name == 'workflow_dispatch' && inputs.scope == 'native-geometry'
     runs-on: ubuntu-24.04
@@ -172,7 +183,7 @@ jobs:
         if: (success() || failure()) && steps.compile.outcome == 'success'
         run: ctest --test-dir build-native/p6-core -R '^reference_image_core_tests$' --output-on-failure
   contracts:
-    if: github.event_name != 'workflow_dispatch' || (inputs.scope != 'p6-polygon' && inputs.scope != 'p6-calculations' && inputs.scope != 'geometry' && inputs.scope != 'native-geometry')
+    if: github.event_name != 'workflow_dispatch' || (inputs.scope != 'p6-polygon' && inputs.scope != 'p6-calculations' && inputs.scope != 'geometry' && inputs.scope != 'native-geometry' && inputs.scope != 'temporal')
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:

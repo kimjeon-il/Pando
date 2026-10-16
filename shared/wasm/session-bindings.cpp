@@ -49,7 +49,8 @@ val world(const ResolvedWorld& result) {
         v.set("parentId",webString(row.parentId));v.set("coverageMode",webString(row.coverageMode));v.set("rootId",webString(row.rootId));
         v.set("validFrom",optional(row.validity.from));v.set("validTo",optional(row.validity.to));
         auto ancestors=val::array();unsigned j=0;for(const auto& id:row.ancestors)ancestors.set(j++,webString(id));
-        v.set("ancestors",ancestors);entities.set(i++,v);
+        auto properties=val::object();for(const auto& [name,json]:row.properties)properties.set(name,val::global("JSON").call<val>("parse",json));
+        v.set("properties",properties);v.set("ancestors",ancestors);entities.set(i++,v);
     }
     value.set("entities",entities);return value;
 }

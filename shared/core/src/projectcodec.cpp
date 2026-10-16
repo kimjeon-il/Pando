@@ -1,5 +1,6 @@
 #include <pandoeditor/projectcodec.h>
 #include <pandoeditor/timeline-storage.h>
+#include <pandoeditor/timeline-resolver.h>
 #include <pandoeditor/geometryprovenance.h>
 #include <pandoeditor/webcommands.h>
 
@@ -297,19 +298,24 @@ Validity recordInterval(const V& v,bool timelineOwned=false) {
 }
 TimelineRecords timelineRecords(const V& value,ProjectDocument& d) {
     TimelineRecords result;result.schemaVersion=integer(field(value,"schemaVersion"));
-    unknown(d,10,value,"/timelineRecords",{"schemaVersion","lifetimes","geometryBindings","parentRelations"});
+    unknown(d,10,value,"/timelineRecords",{"schemaVersion","lifetimes","geometryBindings","parentRelations","propertyBindings"});
     for(const auto& row:array(field(value,"lifetimes"))){unknown(d,10,row,"/timelineRecords/lifetimes",{"id","entityId","validFrom","validTo"});result.lifetimes.push_back({str(field(row,"id")),str(field(row,"entityId")),recordInterval(row,true)});}
     for(const auto& row:array(field(value,"geometryBindings"))){unknown(d,10,row,"/timelineRecords/geometryBindings",{"id","entityId","validFrom","validTo","geometryRef"});result.geometryBindings.push_back({str(field(row,"id")),str(field(row,"entityId")),recordInterval(row,true),geometryRef(field(row,"geometryRef"),d,"/timelineRecords/geometryBindings/geometryRef")});}
     for(const auto& row:array(field(value,"parentRelations"))){unknown(d,10,row,"/timelineRecords/parentRelations",{"id","entityId","validFrom","validTo","parentId","coverageMode"});result.parentRelations.push_back({str(field(row,"id")),str(field(row,"entityId")),recordInterval(row,true),str(field(row,"parentId")),str(field(row,"coverageMode"))});}
+    for(const auto& row:array(field(value,"propertyBindings"))) {
+        unknown(d,ProjectVersion,row,"/timelineRecords/propertyBindings",{"id","entityId","validFrom","validTo","property","value"});
+        result.propertyBindings.push_back({str(field(row,"id")),str(field(row,"entityId")),recordInterval(row,true),str(field(row,"property")),field(row,"value").encode()});
+    }
     return result;
 }
 V timelineRecordsValue(const TimelineRecords& records) {
-    V life=V::arr(),bindings=V::arr(),parents=V::arr();
+    V life=V::arr(),bindings=V::arr(),parents=V::arr(),properties=V::arr();
     auto row=[](const auto& record){return object({{"id",V::str(record.id)},{"entityId",V::str(record.entityId)},{"validFrom",record.validity.from?V::str(*record.validity.from):V{}},{"validTo",record.validity.to?V::str(*record.validity.to):V{}}});};
     for(const auto& record:records.lifetimes)life.array.push_back(row(record));
     for(const auto& record:records.geometryBindings){auto value=row(record);value.object["geometryRef"]=geometryRefValue(record.geometryRef);bindings.array.push_back(std::move(value));}
     for(const auto& record:records.parentRelations){auto value=row(record);value.object["parentId"]=V::str(record.parentId);value.object["coverageMode"]=V::str(record.coverageMode);parents.array.push_back(std::move(value));}
-    return object({{"schemaVersion",V::num(records.schemaVersion)},{"lifetimes",life},{"geometryBindings",bindings},{"parentRelations",parents}});
+    for(const auto& record:records.propertyBindings){auto value=row(record);value.object["property"]=V::str(record.property);value.object["value"]=codecjson::parse(record.value);properties.array.push_back(std::move(value));}
+    return object({{"schemaVersion",V::num(records.schemaVersion)},{"lifetimes",life},{"geometryBindings",bindings},{"parentRelations",parents},{"propertyBindings",properties}});
 }
 void restoreArchive(const V& root,ProjectDocument& d) {
     TimelineStorageSnapshot candidate;candidate.records=timelineRecords(field(root,"timelineRecords"),d);
@@ -643,12 +649,29 @@ void validateNativeLabelReferences(const ProjectDocument& document) {
     for(const auto& label:document.labels)if(label.territory)
         require(label.territory->domain=="territorial"&&owners.count(label.territory->id),"DANGLING_REF: content territory");
 }
+std::string restoredTimelineMonth(const ProjectDocument& document,const std::string& currentMonth) {
+    if(document.reopenMonth)return *document.reopenMonth;
+    return initialTimelineMonth(document.timelineRecords,currentMonth);
+}
+namespace {
+void readEditorState(const V& root,ProjectDocument& document) {
+    const auto found=root.object.find("editorState");if(found==root.object.end())return;
+    const auto& state=found->second;
+    require(state.kind==V::Object&&state.object.size()==1,"INVALID_EDITOR_STATE");
+    const auto month=parseTemporal(str(field(state,"lastViewedMonth")));
+    require(month.precision=="month","INVALID_EDITOR_STATE: month precision required");
+    document.reopenMonth=month.canonical;
+}
+V editorStateValue(const ProjectSnapshot& snapshot) {
+    return object({{"lastViewedMonth",V::str(snapshot.timelineMonth())}});
+}
+}
 pandoeditor::ProjectDocument decode(const std::string& data,const PlatformPorts& ports) {
     require(bool(ports.validateFlagDataUrl),"CODEC_PLATFORM_REQUIRED: flag validator");
     const auto root=codecjson::parse(data,ports.parsedTextPolicy);
     require(str(field(root,"format"))=="pandoeditor-project","UNSUPPORTED_FORMAT: expected Qt project");
-    const auto schema=integer(field(root,"version"));require(schema==ProjectVersion,"UNSUPPORTED_VERSION: expected Qt v10");
-    ProjectDocument d;d.documentId=str(field(root,"documentId"));readExtensions(field(root,"extensions"),d);
+    const auto schema=integer(field(root,"version"));require(schema==ProjectVersion,"UNSUPPORTED_VERSION: expected Qt v11");
+    ProjectDocument d;d.documentId=str(field(root,"documentId"));readExtensions(field(root,"extensions"),d);readEditorState(root,d);
     d.exchangeMetadata=field(root,"exchangeMetadata").encode();validateExchangeMetadata(d);
     for(const auto& v:array(field(root,"units"))) {
         unknown(d,10,v,"/units",{"id","kind","name","notes","locked","baseName","nameExplicit","libraryOrigin","metadata","sourceFolderId","sourceEntityId","sourceGeometryVersion"});
@@ -660,8 +683,12 @@ pandoeditor::ProjectDocument decode(const std::string& data,const PlatformPorts&
     restoreArchive(root,d);
     readPresentation(field(root,"presentation"),d);
     readContent(field(root,"content"),d,ports);
+    for(const auto& property:d.timelineRecords.propertyBindings)if(property.property=="flag") {
+        const auto value=codecjson::parse(property.value);
+        if(value.object.at("policy").string=="embedded")ports.validateFlagDataUrl(value.object.at("embeddedDataUrl").string);
+    }
     decodeNativeHydroItems(d);
-    unknown(d,10,root,"",{"format","version","documentId","units","timelineRecords","geometries","presentation","extensions","content","exchangeMetadata","geometryProvenance"});
+    unknown(d,10,root,"",{"format","version","documentId","units","timelineRecords","geometries","presentation","extensions","content","exchangeMetadata","geometryProvenance","editorState"});
     require(root.object.count("geometryProvenance"),"INVALID_GEOMETRY_PROVENANCE: missing ledger");
     readGeometryProvenance(field(root,"geometryProvenance"),d);
     validateNativeFlagPrefixes(d);
@@ -712,8 +739,9 @@ std::string encode(const pandoeditor::ProjectSnapshot& snapshot,const PlatformPo
     for (const auto& e:d.extensions) extensions.array.push_back(extensionValue(e));
     auto webValue=webPresentationValue(d);
     encodeNativeHydroItems(d,webValue);
-    auto root=object({{"format",V::str("pandoeditor-project")},{"version",V::num(10)},{"documentId",V::str(d.documentId)},{"units",units},{"timelineRecords",timelineRecordsValue(d.timelineRecords)},{"geometries",geometries},{"presentation",object({{"userLayers",layers},{"membership",membership},{"objectStyles",styles},{"webPresentation",webValue}})},{"extensions",extensions}});
+    auto root=object({{"format",V::str("pandoeditor-project")},{"version",V::num(ProjectVersion)},{"documentId",V::str(d.documentId)},{"units",units},{"timelineRecords",timelineRecordsValue(d.timelineRecords)},{"geometries",geometries},{"presentation",object({{"userLayers",layers},{"membership",membership},{"objectStyles",styles},{"webPresentation",webValue}})},{"extensions",extensions}});
     root.object["exchangeMetadata"]=jsonObject(d.exchangeMetadata);
+    if(!snapshot.timelineMonth().empty())root.object["editorState"]=editorStateValue(snapshot);
     root.object["content"]=contentValue(d);
     root.object["geometryProvenance"]=geometryProvenanceValue(d.geometryProvenance);
     auto bytes=root.encode()+"\n";
@@ -982,14 +1010,18 @@ ContentEdit readWebContentEdit(const ProjectSnapshot& snapshot,const ObjectRef& 
 namespace {
 ProjectDocument readWebDocumentValue(const V& root,const PlatformPorts& ports,bool wireIds) {
     require(bool(ports.validateFlagDataUrl),"CODEC_PLATFORM_REQUIRED: flag validator");
-    ProjectDocument d;
-    require(integer(field(root,"schemaVersion"))==ProjectVersion,"UNSUPPORTED_VERSION: expected web v10");
+    ProjectDocument d;readEditorState(root,d);
+    require(integer(field(root,"schemaVersion"))==ProjectVersion,"UNSUPPORTED_VERSION: expected web v11");
     const auto format=str(field(root,"format"));require(format!="pandolab-autosave-delta","BASE_DATA_REQUIRED: web delta requires its matching baseline");require(format=="pandolab-project-state"||format=="pandolab-autosave-full","UNSUPPORTED_FORMAT");
-    unknown(d,10,root,"",{"format","schemaVersion","version","savedAt","baseDataset","landObjectModel","territorialModel","distributionModel","sourceInfo","physicalSourceInfo","physicalSettings","territorialEntities","timelineRecords","geometries","labels","hydroEdits","genericFeatures","distributionLayers","distributionEntries","labelSettings","distributionSettings","layerVisibility","itemVisibility","layerPresentation"});
+    unknown(d,10,root,"",{"format","schemaVersion","version","savedAt","baseDataset","landObjectModel","territorialModel","distributionModel","sourceInfo","physicalSourceInfo","physicalSettings","territorialEntities","timelineRecords","geometries","labels","hydroEdits","genericFeatures","distributionLayers","distributionEntries","labelSettings","distributionSettings","layerVisibility","itemVisibility","layerPresentation","editorState"});
     auto header=V::obj();for(const auto& [key,value]:currentWebHeader().object)header.object[key]=field(root,key);validateHeader(header,d);d.exchangeMetadata=header.encode();
     d.documentId="web-"+sha256(root.encode());
     for(const auto& row:array(field(root,"territorialEntities")))readWebTerritorialIdentity(row,d,ports);
     restoreArchive(root,d);
+    for(const auto& property:d.timelineRecords.propertyBindings)if(property.property=="flag") {
+        const auto value=codecjson::parse(property.value);
+        if(value.object.at("policy").string=="embedded")ports.validateFlagDataUrl(value.object.at("embeddedDataUrl").string);
+    }
     for(const auto& [ref,shape]:d.geometries.versions())d.geometryProvenance.originalArchive.insert(ref);
     const WebGeometryReader readGeometry=[&](const std::string& domain,const std::string& id,const V& value){return inlineGeometry(d,domain,id,value);};
     for(const auto& row:array(field(root,"labels"))) {
@@ -1244,6 +1276,7 @@ codecjson::Value encodeWebValue(const ProjectSnapshot& snapshot,const PlatformPo
     require(context.format=="pandolab-project-state"||context.format=="pandolab-autosave-full","UNSUPPORTED_WEB_STORAGE_FORMAT");
     const auto archiveCount=semanticArchive(d).size();
     auto root=webSnapshotValue(d,context);
+    if(!snapshot.timelineMonth().empty())root.object["editorState"]=editorStateValue(snapshot);
     requireWebNumbers(root);
     // Validate the DTO directly: storage changes its envelope before encoding,
     // and must not serialize/parse the entire archive just to obtain this tree.
