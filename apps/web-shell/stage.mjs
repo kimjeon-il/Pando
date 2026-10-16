@@ -138,11 +138,15 @@ async function stageOwnedPrototype({ root, profile }) {
       await emit(item.path, bytes, item.path);
       packagedBytes += bytes.length;
     }
-    worldData = { countryCount: plan.countryCount, sourceSha256: plan.sourceSha256,
+    worldData = { countryCount: plan.countryCount, rootCount: plan.rootCount,
+      unitCount: plan.unitCount, modelEntityCount: plan.modelEntityCount,
+      mergedSourceCount: plan.mergedSourceCount, sourceSha256: plan.sourceSha256,
       fileCount: plan.entries.length, bytes: packagedBytes, dataRevision: meta.dataRevision };
     await emit('shell/stage-profile.json', JSON.stringify({
       mode: profile, assetRevision: meta.assetRevision, dataRevision: meta.dataRevision,
-      world: { countryCount: plan.countryCount, sourceSha256: plan.sourceSha256 },
+      world: { countryCount: plan.countryCount, rootCount: plan.rootCount,
+        unitCount: plan.unitCount, modelEntityCount: plan.modelEntityCount,
+        mergedSourceCount: plan.mergedSourceCount, sourceSha256: plan.sourceSha256 },
     }));
   }
   let commit = 'unavailable', trackedDiffSha256 = null;

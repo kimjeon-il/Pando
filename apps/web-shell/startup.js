@@ -33,7 +33,11 @@ async function start() {
     window.addEventListener('pandolab:ready', () => {
       window.__PANDOLAB_SHELL_READY__ = true;
     }, { once: true });
-    installFullWorldProbe({ expectedCountryCount: profileMeta.world.countryCount });
+    installFullWorldProbe({
+      expectedSourceCount: profileMeta.world.countryCount,
+      expectedModelCount: profileMeta.world.modelEntityCount,
+      expectedRootCount: profileMeta.world.rootCount,
+    });
     await new Promise((resolve, reject) => {
       const script = document.createElement('script');
       script.src = versionedAsset('./bootstrap.js').href;
