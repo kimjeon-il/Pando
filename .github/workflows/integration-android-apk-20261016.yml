@@ -68,7 +68,7 @@ jobs:
         run: pnpm --dir apps/web-shell exec tauri android build --debug --apk --target aarch64
       - name: Validate APK output exists
         run: |
-          find apps/web-shell/src-tauri/gen/android/app/build/outputs/apk -type f -name '*.apk' -print -exec ls -lh {} ;
+          find apps/web-shell/src-tauri/gen/android/app/build/outputs/apk -type f -name '*.apk' -print
           test -n "$(find apps/web-shell/src-tauri/gen/android/app/build/outputs/apk -type f -name '*.apk' -print -quit)"
       - if: always()
         uses: actions/upload-artifact@v4
