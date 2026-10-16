@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { readdir, readFile } from 'node:fs/promises';
+import { readdir, readFile, mkdir, writeFile } from 'node:fs/promises';
 
 test.use({ trace: 'off', viewport: { width: 1440, height: 900 } });
 
@@ -231,6 +231,8 @@ test('1989 Soviet initial timeline admission, selection setup, memory and cache 
       selectionGpuReadyMs: Number(selectionGpuReadyMs.toFixed(1)) },
     phases, errors,
   };
+  await mkdir('test-results/soviet-initialization-memory', { recursive: true });
+  await writeFile('test-results/soviet-initialization-memory/measurement.json', JSON.stringify(result, null, 2));
   await testInfo.attach('soviet-initialization-memory.json', {
     body: Buffer.from(JSON.stringify(result, null, 2)), contentType: 'application/json',
   });
