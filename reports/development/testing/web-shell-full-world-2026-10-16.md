@@ -74,6 +74,52 @@ Qt 앱 코드는 이 검증 과정에서 수정하지 않았다.
 실제 전체 자료 패키징 및 Windows·Android 실행이 통과해야 2-3A~C를
 **실행 검증 완료**로 전환할 수 있다.
 
+## Windows 실제 전체 세계자료 패키징·WebView 실행 검증 (2026-10-16)
+
+**최종 PASS 실행:** [GitHub Actions 38868061025](https://github.com/kimjeon-il/Pando/actions/runs/38868061025),
+`work/ui` 커밋 `bcdb6de1b7b56fc656fd5fd26a0e870c8dfde565`.
+실행 환경: GitHub-hosted `windows-2022`, Windows MSVC, Tauri 2, WebView2.
+검증 대상은 종전 Qt 앱이 아닌 `apps/web-shell`의 전체 세계자료 프로필이다.
+
+| 검증 항목 | 실제 결과 |
+| --- | --- |
+| 관련 Node.js 집중 테스트 | PASS |
+| 실제 정본 파일 패키징 및 길이·SHA-256 검사 | PASS |
+| 대상 전체 세계자료 | **597개 파일, 79,795,768 bytes** |
+| 앱 스테이징 전체 | **1,486개 파일, 135,439,907 bytes** |
+| Windows Tauri MSVC 디버그 앱 빌드 | PASS |
+| Windows WebView 앱 실행 및 자동 진단 | **PASS, 12/12 검사** |
+| 원본 국가·영토 형상 | **258** |
+| 정본 편집 모델 객체 | **254** (상위 국가 207개 + 하위 영토 47개) |
+| 부모 국가 형상에 통합된 원본 항목 | **4** |
+| 지도 렌더러 | **WebGL2**, 활성 컨텍스트 1개, 삼각형 **140,558개** |
+| WASM 코어, 정본 국가 packet·GPU 메시, 로더 Worker | PASS |
+| 의도하지 않은 외부 자료 요청 | **0건** |
+| 미리보기 준비 | 약 **443 ms** |
+| 정본 형상 수신 | 약 **4,824 ms** |
+| 정본 메시 수신 | 약 **16,277 ms** |
+| 정본 렌더링 준비 완료 | 약 **19,190 ms** |
+
+실제 Windows 앱의 `world-windows.json`은 `ok: true`, `phase: canonical-ready`이며
+`packageProfile`, `historicalWorld`, `sourceCountryCount`, `modelEntityCount`,
+`sovereignRootCount`, `preview`, `canonicalGeometry`, `canonicalMesh`, `renderer`,
+`sharedCore`, `dataLoaderWorker`, `blockedRequests` 총 **12개 항목 PASS**로 기록했다.
+실행 파일에 내장된 staging 출처 커밋 및 공통 코어/WASM 해시도 보고서에 포함되어 있다.
+
+[정본 진단·stage evidence ZIP](https://github.com/kimjeon-il/Pando/actions/runs/38868061025/artifacts/12031894268)
+
+최초 3회 실행에서는 애플리케이션의 데이터가 아니라 진단 검사의 **대상 수량 정의**와
+PowerShell 최종 비교 기준이 실제 세계지도의 분류 규칙과 일치하지 않았다.
+원본 형상 258개 중 일부는 하위 객체가 되거나 상위 국가 형상에 통합되므로,
+정본 편집 객체는 254개다. 정확한 기준으로 재검증한 4번째 실행은 워크플로 전체가 성공했다.
+최초 실패 결과를 현재 앱 오류로 해석하지 않는다.
+
+**한계:** 이 결과는 Windows 호스티드 러너의 전체 세계지도 시작·렌더링에 대한 실증이다.
+Android 실기기 실행, 물리 수계·지형·지명 표시(2-3D), 1MiB 초과 프로젝트 파일(2-3E),
+대형 객체 편집/소련 1989년 성능(2-3F 및 2-4), 실제 OS 파일 대화상자 조작은
+이번 자동 실행의 PASS 범위에 포함되지 않는다.
+`main` 및 기존 Qt 앱을 변경하거나 웹사이트에 배포하지 않았다.
+
 ## 후속 단계
 
 1. Node 환경에서 `node --test apps/web-shell/tests/world-data-plan.test.mjs apps/web-shell/tests/stage.test.mjs apps/web-shell/tests/network-guard.test.mjs`.
