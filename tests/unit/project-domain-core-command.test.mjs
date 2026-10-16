@@ -2,6 +2,17 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createProjectDomain } from '../../assets/js/modules/project-domain.js';
 
+test('disposal cancels persistence and rejects pending or late snapshot exports as cancellation',async()=>{
+  let release,started,cancelled=0;
+  const response=new Promise(resolve=>{release=resolve;}),exporting=new Promise(resolve=>{started=resolve;});
+  const domain=createProjectDomain({appVersion:'test',persistence:{cancelPending(){cancelled++;}},
+    commandOwner:{exportSnapshot:()=>{started();return response;}}});
+  const pending=domain.buildAutosave();await exporting;domain.dispose();domain.dispose();
+  release({storageJson:'{}',state:{epoch:1,checkpoint:1,presentationCheckpoint:0}});
+  await assert.rejects(pending,{name:'AbortError',code:'PL-CORE-CANCELLED',cancelled:true});
+  assert.equal(cancelled,1);await assert.rejects(domain.buildAutosave(),{name:'AbortError',cancelled:true});
+});
+
 test('accepted command before/after references are captured at ordered dispatch and publication without whole-project packets', async () => {
   const initial=Object.freeze({ labels: Object.freeze([]) }),first=Object.freeze({ labels: Object.freeze([{ id: 'L' }]) }),
     second=Object.freeze({ labels: Object.freeze([]) });

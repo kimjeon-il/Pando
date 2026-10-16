@@ -64,6 +64,7 @@ export function createProjectDomain({
     if (typeof commandOwner?.exportSnapshot!=='function' || typeof appVersion!=='string')
       throw new TypeError('Project export requires its C++ codec and current application version.');
     const output=await commandOwner.exportSnapshot({ format,version: appVersion,savedAt: new Date().toISOString() });
+    assertActive();
     if (generation!==expectedGeneration || replacing)
       throw Object.assign(new Error('Project export crossed a project replacement.'),{ code: 'PL-PERSISTENCE-STALE' });
     if(format==='pandolab-project-state' && !Object.hasOwn(output,'spatialState'))
@@ -86,7 +87,8 @@ export function createProjectDomain({
     return generation;
   };
   const assertActive = () => {
-    if (disposed) throw new Error('Project domain is disposed.');
+    if (disposed) throw Object.assign(new Error('Project domain is disposed.'),
+      { code: 'PL-CORE-CANCELLED', name: 'AbortError', cancelled: true });
   };
 
   const executeCommand = (envelope,{ applyAccepted } = {}) => {
@@ -462,7 +464,10 @@ export function createProjectDomain({
   };
 
   const resetRenderGeneration = reason => bumpGeneration(reason || 'render-reset');
-  const dispose = () => { disposed = true; };
+  const dispose = () => {
+    if(disposed)return;
+    disposed = true;preparedIntents.clear();if(persistence)persistence.cancelPending();
+  };
 
   const resolveWorld = async (month, options) => {
     assertActive();

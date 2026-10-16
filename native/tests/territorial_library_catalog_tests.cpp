@@ -65,20 +65,22 @@ int main(int argc,char** argv) {
         });
         test("case-insensitive lineage search preserves Korean names and order",[&] {
             const auto value=catalog();
-            require(searchedIds(value->search("kOrEa","2026-10-06"))==QStringList{},"dated search excludes unknown-lifetime lineage members");
+            require(searchedIds(value->search("kOrEa","2026-10-06"))==searchedIds(value->search("kOrEa",{})),"dated search retains matching identities with evidence status");
             require(value->entry("state:KOR").value("names").toObject().value("ko")==QStringLiteral("대한민국"),"current source names schema");
-            require(searchedIds(value->search("대한민국","2026"))==QStringList{},"dated search excludes unknown-lifetime entity");
+            require(searchedIds(value->search("대한민국","2026"))==QStringList{"state:KOR"},"unknown lifetime is not historical absence");
         });
         test("search by lineage includes alive historical entities at exact date",[&] {
             const auto value=catalog();
-            require(searchedIds(value->search("Germany","1900-01-01"))==
-                QStringList{"state:east-prussia","state:west-prussia"},"lineage historical search");
+            require(searchedIds(value->search("Germany","1900-01-01"))==searchedIds(value->search("Germany",{})),"lineage search retains explicit source status");
+            require(value->sourceAvailability("state:deutsche-demokratische-republik","1900-01-01")=="absent","outside recorded lifetime is explicit absence");
         });
         test("alive DDR remains searchable with explicit null geometry gap",[&] {
             const auto value=catalog();const auto result=value->search("독일 민주공화국","1989-04-24");
             require(searchedIds(result)==QStringList{"state:deutsche-demokratische-republik"},"alive entity remains in results");
             require(result[0].toObject().value("entities").toArray()[0].toObject().value("selectedVersionId").isNull(),"explicit missing version");
             require(value->selectedVersionId("state:deutsche-demokratische-republik","1989-04-24").isEmpty(),"no nearest version");
+            require(value->sourceAvailability("state:deutsche-demokratische-republik","1989-04-24")=="geometry-gap","source gap does not imply absence");
+            require(value->sourceAvailability("state:deutsche-demokratische-republik","1989-04-25")=="available","exact source boundary available");
         });
         for(const auto& row:std::vector<std::pair<QString,QString>>{
             {"1941-04-17","state:kingdom-of-yugoslavia:1918-1941-r1"},{"1943",""},

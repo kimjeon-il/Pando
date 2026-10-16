@@ -37,6 +37,9 @@
 
 | ID | 보고서 | 원문 수정일 | 상태 | 지도 반영 |
 | --- | --- | --- | --- | --- |
+| `DEV-077` | [시점별 객체 편집과 라이브러리 삽입](development/testing/temporal-editing-2026-10-16.md) | 2026-10-16 | `implemented` | `not-applicable` |
+| `DEV-076` | [P6–P9 구현·검증 진행 기록](development/testing/p6-p9-execution-2026-10-16.md) | 2026-10-16 | `investigating` | `not-applicable` |
+| `DEV-075` | [P5-6 — 공통 C++ 계산 소유권·앱/웹 종료 검증](development/testing/p5-6-final-verification-2026-10-15.md) | 2026-10-15 | `implemented` | `not-applicable` |
 | `DEV-074` | [P4 — GIS Python 격리·원격 검증](development/testing/p4-python-gis-isolation-2026-10-14.md) | 2026-10-14 | `implemented` | `not-applicable` |
 | `DEV-073` | [P2 — C++ 생성물 자동화 실행·검증](development/testing/p2-generated-artifact-automation-2026-10-14.md) | 2026-10-14 | `implemented` | `not-applicable` |
 | `DEV-072` | [Info tab v9 — implementation and visual verification](development/testing/info-tab-v9-visual-validation-2026-10-06.md) | 2026-10-06 | `historical-record` | `not-applicable` |

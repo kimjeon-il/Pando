@@ -28,7 +28,7 @@ function fixture() {
   return {
     schema: 'pandolab-world-bundle', schemaVersion: 1,
     source: { url: 'territorial-entities/generated/current-world.geojson', sha256: 'a'.repeat(64), countryCount: 258 },
-    derivation: { preview: 'canonical-topology-simplified', coordinateCount: 105884, meshAlgorithmRevision: 4 },
+    derivation: { preview: 'canonical-topology-simplified', coordinateCount: 105884, meshAlgorithmRevision: 5 },
     defaultClassification: { countries: { TEST: 'digest' } }, assets,
     compatibility: { sharedBoundaries: {
       preview: 'countries-preview-shared-v0.34.0.json.gz',

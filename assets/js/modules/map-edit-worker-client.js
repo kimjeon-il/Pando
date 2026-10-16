@@ -201,7 +201,15 @@ export function createMapEditWorkerClient({
     };
   }
 
-  function commit(requestId) {
+  function commit(requestId, geometryRevision) {
+    if (!Number.isSafeInteger(geometryRevision) || geometryRevision < 1 || geometryRevision > dataRevision)
+      throw new TypeError('Map-edit commit requires the prepared geometry revision.');
+    // The accepted Core projection may already have synchronized its patch.
+    // Retire that proposal without applying it or advancing the clock again.
+    if (geometryRevision !== dataRevision) {
+      discard(requestId);
+      return;
+    }
     const nextDataRevision = dataRevision + 1;
     ensureRpc().notify('map-edit.commit', { requestId, dataRevision, nextDataRevision }, {
       projectRevision: currentTargetRevision(),

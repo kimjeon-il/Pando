@@ -5,6 +5,7 @@
 #include <cmath>
 #include <limits>
 #include <map>
+#include <set>
 #include <stdexcept>
 #include <utility>
 #include <vector>
@@ -24,6 +25,7 @@ struct SplitSegment {
     std::vector<CountryContactRef> refs;
 };
 Box bounds(BoundaryEdge edge) {
+    edge=connectedBoundaryEdge(edge);
     return {std::min(edge.first.x,edge.second.x),std::min(edge.first.y,edge.second.y),
             std::max(edge.first.x,edge.second.x),std::max(edge.first.y,edge.second.y)};
 }
@@ -45,48 +47,42 @@ bool large(Box b) {
           *(double(cell(b[3]))-double(cell(b[1]))+1)>4096;
 }
 class Index {
-    std::vector<Box> boxes_;
+    struct Entry { Box bounds;std::size_t row; };
+    std::vector<Entry> boxes_;
     std::vector<std::size_t> big_;
     std::map<std::pair<int,int>,std::vector<std::size_t>> cells_;
 public:
     explicit Index(const CountryContactFeature& source) {
         boxes_.reserve(source.rows.size());
         for(std::size_t i=0;i<source.rows.size();++i) {
-            const auto b=bounds(source.rows[i].edge);
-            boxes_.push_back(b);
-            if(large(b)){big_.push_back(i);continue;}
-            for(int x=cell(b[0]);x<=cell(b[2]);++x)
-                for(int y=cell(b[1]);y<=cell(b[3]);++y)
-                    cells_[{x,y}].push_back(i);
+            for(const auto& part:boundaryEdgeBoxes(source.rows[i].edge)) {
+                const auto entry=boxes_.size();boxes_.push_back({part,i});
+                if(large(part)){big_.push_back(entry);continue;}
+                for(int x=cell(part[0]);x<=cell(part[2]);++x)
+                    for(int y=cell(part[1]);y<=cell(part[3]);++y)
+                        cells_[{x,y}].push_back(entry);
+            }
         }
     }
     std::vector<std::size_t> query(Box box)const {
-        if(box[0]>box[2]) {
-            const auto left=query({box[0],box[1],180.,box[3]});
-            const auto right=query({-180.,box[1],box[2],box[3]});
-            std::vector<bool> seen(boxes_.size(),false);
-            std::vector<std::size_t> out;
-            for(const auto side:{left,right})for(const auto i:side)
-                if(!seen[i]){seen[i]=true;out.push_back(i);}
-            return out;
-        }
         std::vector<std::size_t> out;
-        std::vector<bool> seen(boxes_.size(),false);
-        const auto add=[&](std::size_t i) {
-            if(!seen[i]) {
-                seen[i]=true;
-                if(overlaps(boxes_[i],box))out.push_back(i);
+        std::set<std::size_t> seen;
+        for(const auto [west,east]:boundaryLongitudeRanges(box[0],box[2])) {
+            const Box part{west,box[1],east,box[3]};
+            const auto add=[&](std::size_t i) {
+                const auto& entry=boxes_[i];
+                if(overlaps(entry.bounds,part)&&seen.insert(entry.row).second)out.push_back(entry.row);
+            };
+            if(large(part)) {
+                for(std::size_t i=0;i<boxes_.size();++i)add(i);
+            }else {
+                for(auto i:big_)add(i);
+                for(int x=cell(part[0]);x<=cell(part[2]);++x)
+                    for(int y=cell(part[1]);y<=cell(part[3]);++y) {
+                        const auto it=cells_.find({x,y});
+                        if(it!=cells_.end())for(const auto i:it->second)add(i);
+                    }
             }
-        };
-        if(large(box)) {
-            for(std::size_t i=0;i<boxes_.size();++i)add(i);
-        }else {
-            for(auto i:big_)add(i);
-            for(int x=cell(box[0]);x<=cell(box[2]);++x)
-                for(int y=cell(box[1]);y<=cell(box[3]);++y) {
-                    const auto it=cells_.find({x,y});
-                    if(it!=cells_.end())for(const auto i:it->second)add(i);
-                }
         }
         return out;
     }
@@ -97,18 +93,11 @@ std::pair<double,double> nodeKey(Point p) {
         const double lower=std::floor(scaled);
         return (lower+(scaled-lower>=.5?1.:0.))/factor;
     };
-    return {quant(p.x),quant(p.y)};
+    const double longitude=quant(boundaryLongitudeNear(p.x,0.));
+    return {longitude==180.?-180.:longitude,quant(p.y)};
 }
 double normalize(double longitude) {
-    while(longitude>180)longitude-=360;
-    while(longitude<-180)longitude+=360;
-    return longitude;
-}
-double nearLongitude(double longitude,double anchor) {
-    longitude=normalize(longitude);
-    while(longitude-anchor>180)longitude-=360;
-    while(longitude-anchor<-180)longitude+=360;
-    return longitude;
+    return boundaryLongitudeNear(longitude,0.);
 }
 bool pole(Point p){return std::abs(std::abs(p.y)-90)<=epsilon;}
 bool seam(Point p){return std::abs(std::abs(normalize(p.x))-180)<=epsilon;}
@@ -117,7 +106,7 @@ std::vector<BoundaryEdge> display(Point a,Point b) {
     if(pole(a)||pole(b))return {};
     if(seam(a)&&seam(b)&&std::abs(a.y-b.y)>epsilon)return {};
     Point start{normalize(a.x),a.y};
-    const double next=nearLongitude(b.x,start.x);
+    const double next=boundaryLongitudeNear(b.x,start.x);
     const double delta=next-start.x;
     if(std::abs(delta)>180)return {};
     if(next>180||next<-180) {
@@ -143,11 +132,9 @@ CountryContactResult contact(const CountryContactFeature& a,const CountryContact
                              const Index& left,const Index& right) {
     CountryContactResult output;
     if(a.rows.empty()||b.rows.empty())return output;
-    const auto ba=envelope(a),bb=envelope(b);
-    const Box area{std::max(ba[0],bb[0]),std::max(ba[1],bb[1]),
-                   std::min(ba[2],bb[2]),std::min(ba[3],bb[3])};
-    if(area[0]>area[2]+epsilon||area[1]>area[3]+epsilon)return output;
-    auto rows=left.query(padded(area));
+    // Each row index and query use the same wrapped geographic boxes. Raw
+    // feature-envelope intersection can reject equivalent +/-360 frames.
+    auto rows=left.query(padded(envelope(b)));
     std::stable_sort(rows.begin(),rows.end(),[&](auto x,auto y){
         const auto& lhs=a.rows[x];const auto& rhs=a.rows[y];
         if(lhs.polygon!=rhs.polygon)return lhs.polygon<rhs.polygon;

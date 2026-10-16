@@ -181,7 +181,7 @@ export function compileHistoricalWorldTimeline({ entities, currentSnapshot, curr
     }
   }
   const identities = normalizeTerritorialIdentities(ordered.filter(([id]) => rowsByEntity.has(id)).map(([, value]) => value.identity));
-  const records = { schemaVersion: 1, lifetimes: [], geometryBindings: [], parentRelations: [] };
+  const records = { schemaVersion: 2, lifetimes: [], geometryBindings: [], parentRelations: [], propertyBindings: [] };
   for (const [id] of ordered) {
     const rows = rowsByEntity.get(id); if (!rows) continue;
     for (const name of ['lifetimes', 'geometryBindings', 'parentRelations']) rows[name].forEach((row, i) => records[name].push({ id: `historical-world:${name}:${id}:${i}`, ...row }));

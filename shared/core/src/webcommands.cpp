@@ -1,4 +1,5 @@
 #include <pandoeditor/webcommands.h>
+#include <pandoeditor/timeline-view.h>
 #include <pandoeditor/temporal.h>
 #include <charconv>
 #include <cmath>
@@ -102,8 +103,8 @@ std::vector<ObjectRef> webTerritorialStyleTargets(const V& payload) {
     return {refs.begin(),refs.end()};
 }
 CommandRequest readWebTerritorialStyleCommand(const ProjectSnapshot& snapshot,const std::string& operation,const V& payload) {
-    const auto targets=webTerritorialStyleTargets(payload);const auto& document=snapshot.document();
-    const auto world=resolveWorld(document.timelineRecords,{timelineEntityCatalog(document),
+    const auto targets=webTerritorialStyleTargets(payload);const auto projected=snapshot.timelineMonth().empty()?std::optional<TimelineDocumentView>{}:std::optional<TimelineDocumentView>{timelineDocumentView(snapshot.document(),snapshot.timelineMonth())};const auto& document=projected?projected->document:snapshot.document();
+    const auto world=resolveWorld(snapshot.document().timelineRecords,{timelineEntityCatalog(document),
         [&](const GeometryRef& ref){return document.geometries.get(ref)!=nullptr;}},snapshot.timelineMonth());
     for(const auto& target:targets)if(!world.find(target.id))throw TimelineError("not-found","Territorial entity was not found.");
     CommandArguments arguments;bool changed=false;std::string command=operation;
@@ -157,8 +158,8 @@ CommandRequest readWebMetadataCommand(const ProjectSnapshot& snapshot,const V& p
     const auto id=trimWebText(idValue.string),name=fieldValue.string;const auto target=territorialRef(id);
     const auto found=snapshot.index().objects.find(target);
     if(found==snapshot.index().objects.end())throw TimelineError("not-found","Territorial entity was not found.");
-    const auto& document=snapshot.document();const auto& unit=document.units.at(found->second);
-    const auto currentWorld=resolveWorld(document.timelineRecords,
+    const auto projected=snapshot.timelineMonth().empty()?std::optional<TimelineDocumentView>{}:std::optional<TimelineDocumentView>{timelineDocumentView(snapshot.document(),snapshot.timelineMonth())};const auto& document=projected?projected->document:snapshot.document();const auto& unit=document.units.at(found->second);
+    const auto currentWorld=resolveWorld(snapshot.document().timelineRecords,
         {timelineEntityCatalog(document),[&](const GeometryRef& ref){return document.geometries.get(ref)!=nullptr;}},snapshot.timelineMonth());
     if(!currentWorld.find(id))throw TimelineError("not-found","Territorial entity is inactive.");
     if(unit.locked)throw TimelineError("locked","Territorial entity is locked.");

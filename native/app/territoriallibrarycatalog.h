@@ -24,6 +24,7 @@ public:
     QJsonArray events(const QString& query) const;
     QJsonObject resolveSelection(const QString& entityId,const QString& referenceDate) const;
     QString selectedVersionId(const QString& entityId,const QString& referenceDate) const;
+    QString sourceAvailability(const QString& entityId,const QString& referenceDate) const;
     QJsonObject loadEntity(const QString& entityId) const;
     // A version gap is an explicit error; preview never chooses nearby dates.
     QJsonObject preview(const QString& entityId,const QString& referenceDate) const;

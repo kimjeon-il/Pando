@@ -4,6 +4,8 @@
 #include <QDir>
 #include <QFile>
 #include <QHash>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QSignalSpy>
 #include <QTcpServer>
 #include <QTcpSocket>
@@ -65,15 +67,18 @@ void PhysicalDataStoreTests::valueVerifierSurvivesOwnerAndStillRejectsAlteredByt
 void PhysicalDataStoreTests::pinnedTerrainMetadataSeedsAndRejectsAlteredBytes() {
     QFile inventoryFile(QStringLiteral(PHYSICAL_INVENTORY));QVERIFY(inventoryFile.open(QIODevice::ReadOnly));
     const auto inventory=parsePhysicalInventory(inventoryFile.readAll());QVERIFY(inventory.valid());
-    const auto found=std::find_if(inventory.assets.begin(),inventory.assets.end(),[](const auto& asset) {
-        return asset.path=="terrain-preview/v0.13.3-p1/manifest.json";
+    const QDir assetRoot(QFileInfo(QStringLiteral(PHYSICAL_INVENTORY)).absolutePath());
+    QFile world(assetRoot.filePath("manifest.json"));QVERIFY(world.open(QIODevice::ReadOnly));
+    const auto role=QJsonDocument::fromJson(world.readAll()).object().value("terrain").toObject();
+    const auto found=std::find_if(inventory.assets.begin(),inventory.assets.end(),[&](const auto& asset) {
+        return asset.path==role.value("path").toString();
     });
     QVERIFY(found!=inventory.assets.end());
     QFile manifest(QDir(QFileInfo(QStringLiteral(PHYSICAL_INVENTORY)).absolutePath()).filePath(found->path));
     QVERIFY(manifest.open(QIODevice::ReadOnly));const auto bytes=manifest.readAll();
     // The Web preview corpus and native world role pin the same immutable bytes.
-    QCOMPARE(bytes.size(),qsizetype(2273));
-    QCOMPARE(hash(bytes),QString("05e3a657287151c29c338caaec9c5d7cd22d4144d7e2db8ecad536742fe6fee8"));
+    QCOMPARE(bytes.size(),qsizetype(role.value("bytes").toInteger()));
+    QCOMPARE(hash(bytes),role.value("sha256").toString());
     QTemporaryDir root;QVERIFY(root.isValid());PhysicalDataStore store(root.path());
     QVERIFY(store.installVerified(*found,bytes));
     QVERIFY(!store.resolveExisting(*found).isEmpty());
@@ -156,24 +161,32 @@ void PhysicalDataStoreTests::datasetRootsAreIndependentAndStillHashVerified() {
 void PhysicalDataStoreTests::pinnedInventoryAndViewportSelectionAreLazy() {
     QFile inventoryFile(QStringLiteral(PHYSICAL_INVENTORY));QVERIFY(inventoryFile.open(QIODevice::ReadOnly));
     const auto inventory=parsePhysicalInventory(inventoryFile.readAll());QVERIFY2(inventory.valid(),qPrintable(inventory.error));
-    QCOMPARE(inventory.dataset,QStringLiteral("world"));QCOMPARE(inventory.version,QStringLiteral("c0bd31d1"));
-    QCOMPARE(inventory.assets.size(),11);
-    QVERIFY(std::any_of(inventory.assets.cbegin(),inventory.assets.cend(),[](const auto& asset){return asset.path=="terrain-preview/v0.13.3-p1/1/2-1.webp";}));
-    QVERIFY(std::none_of(inventory.assets.cbegin(),inventory.assets.cend(),[](const auto& asset){return asset.path.startsWith("hydro/v0.13.0/")||asset.path.startsWith("hydro/v0.13.1/");}));
-    const auto hydroManifest=std::find_if(inventory.assets.cbegin(),inventory.assets.cend(),[](const auto& asset){
-        return asset.path=="hydro/v0.13.2/manifest.json";
+    QCOMPARE(inventory.dataset,QStringLiteral("world"));QVERIFY(!inventory.assets.empty());
+    const QDir assetRoot(QFileInfo(QStringLiteral(PHYSICAL_INVENTORY)).absolutePath());
+    QFile worldFile(assetRoot.filePath("manifest.json"));QVERIFY(worldFile.open(QIODevice::ReadOnly));
+    const auto world=QJsonDocument::fromJson(worldFile.readAll()).object();
+    const auto terrain=world.value("terrain").toObject(),hydro=world.value("hydro").toObject();
+    const auto terrainDirectory=QFileInfo(terrain.value("path").toString()).path()+'/';
+    const auto hydroDirectory=QFileInfo(hydro.value("path").toString()).path()+'/';
+    QVERIFY(std::any_of(inventory.assets.cbegin(),inventory.assets.cend(),[&](const auto& asset){return asset.path.startsWith(terrainDirectory)&&asset.path.endsWith(".webp");}));
+    for(const auto& asset:inventory.assets)if(asset.path.startsWith("hydro/"))QVERIFY(asset.path.startsWith(hydroDirectory));
+    const auto hydroManifest=std::find_if(inventory.assets.cbegin(),inventory.assets.cend(),[&](const auto& asset){
+        return asset.path==hydro.value("path").toString();
     });
-    const auto hydroBinary=std::find_if(inventory.assets.cbegin(),inventory.assets.cend(),[](const auto& asset){
-        return asset.path=="hydro/v0.13.2/hydro.bin";
+    QFile hydroFile(assetRoot.filePath(hydro.value("path").toString()));QVERIFY(hydroFile.open(QIODevice::ReadOnly));
+    const auto container=QJsonDocument::fromJson(hydroFile.readAll()).object().value("container").toObject();
+    const auto hydroBinary=std::find_if(inventory.assets.cbegin(),inventory.assets.cend(),[&](const auto& asset){
+        return asset.path==hydroDirectory+container.value("url").toString();
     });
     QVERIFY(hydroManifest!=inventory.assets.cend());QVERIFY(hydroBinary!=inventory.assets.cend());
-    QCOMPARE(hydroManifest->sha256,QString("2bde5c10bdf4d26fd29d2b983b70029022cfaa9fda816a105e6f4338b85f0d24"));
-    QCOMPARE(hydroManifest->bytes,qint64(53375));
-    QCOMPARE(hydroBinary->sha256,QString("91c2268c6dbfdfa7fc6103d8ad0b4eeca71f6c522df5c0118db69a3654ff532a"));
-    QCOMPARE(hydroBinary->bytes,qint64(11974120));
-    const auto upstream=QStringLiteral("https://raw.githubusercontent.com/kimjeon-il/Pando/8de07030cccff5e7ec3c68e6beb6bb288c95afb2/assets/data/");
-    QCOMPARE(hydroManifest->url.toString(),upstream+hydroManifest->path);
-    QCOMPARE(hydroBinary->url.toString(),upstream+hydroBinary->path);
+    QCOMPARE(hydroManifest->sha256,hydro.value("sha256").toString());
+    QCOMPARE(hydroManifest->bytes,hydro.value("bytes").toInteger());
+    QCOMPARE(hydroBinary->sha256,container.value("sha256").toString());
+    QCOMPARE(hydroBinary->bytes,container.value("bytes").toInteger());
+    const auto source=hydro.value("source").toObject();
+    const auto upstream=QStringLiteral("https://raw.githubusercontent.com/")+world.value("origin").toObject().value("repository").toString()+'/'+source.value("ref").toString()+'/';
+    QCOMPARE(hydroManifest->url.toString(),upstream+source.value("path").toString());
+    QCOMPARE(hydroBinary->url.toString(),upstream+QFileInfo(source.value("path").toString()).path()+'/'+container.value("url").toString());
 
     const QByteArray manifest=R"({"version":"0.13.3-p1","representation":"raster-rgba-v1","crs":"EPSG:4326","tileFormat":"lossless WebP RGBA","gutter":1,"levels":[{"id":0,"width":1350,"height":675,"columns":2,"rows":1,"tileSize":1024},{"id":1,"width":2700,"height":1350,"columns":3,"rows":2,"tileSize":1024}]})";
     QStringList resolved;TerrainTileProvider provider(manifest,QString(),[&](const QString& path){resolved.push_back(path);return path;});

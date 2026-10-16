@@ -83,9 +83,9 @@ val common(const std::string& id,const std::string& entityId,const Validity& val
     return output;
 }
 TimelineRecords readRecords(const val& input) {
-    shape(input,{"schemaVersion","lifetimes","geometryBindings","parentRelations"},"TIMELINE_SCHEMA");
+    shape(input,{"schemaVersion","lifetimes","geometryBindings","parentRelations","propertyBindings"},"TIMELINE_SCHEMA");
     const auto ver=input["schemaVersion"];
-    if(!is(ver,"number")||ver.as<double>()!=1)fail("TIMELINE_SCHEMA","Unsupported timeline schema.");
+    if(!is(ver,"number")||ver.as<double>()!=TimelineRecordSchemaVersion)fail("TIMELINE_SCHEMA","Unsupported timeline schema.");
     TimelineRecords records;
     const auto lifetimes=input["lifetimes"],bindings=input["geometryBindings"],parents=input["parentRelations"];
     array(lifetimes,"TIMELINE_SCHEMA");array(bindings,"TIMELINE_SCHEMA");array(parents,"TIMELINE_SCHEMA");
@@ -113,10 +113,17 @@ TimelineRecords readRecords(const val& input) {
             readText(row["parentId"],"TIMELINE_PARENT"),
             readText(row["coverageMode"],"TIMELINE_COVERAGE")});
     }
+    const auto properties=input["propertyBindings"];array(properties,"TIMELINE_SCHEMA");
+    for(unsigned i=0;i<properties["length"].as<unsigned>();++i) {
+        const auto row=properties[i];shape(row,{"id","entityId","validFrom","validTo","property","value"},"TIMELINE_SCHEMA");
+        const auto [id,entity]=readCommon(row);
+        records.propertyBindings.push_back({id,entity,readValidity(row),readText(row["property"],"TIMELINE_PROPERTY"),
+            val::global("JSON").call<val>("stringify",row["value"]).as<std::string>()});
+    }
     return records;
 }
 val webRecords(const TimelineRecords& records) {
-    auto result=val::object(),lifetimes=val::array(),bindings=val::array(),parents=val::array();
+    auto result=val::object(),lifetimes=val::array(),bindings=val::array(),parents=val::array(),properties=val::array();
     result.set("schemaVersion",records.schemaVersion);
     unsigned index=0;
     for(const auto& row:records.lifetimes)
@@ -133,7 +140,11 @@ val webRecords(const TimelineRecords& records) {
         value.set("coverageMode",webText(row.coverageMode));parents.set(index++,value);
     }
     result.set("lifetimes",lifetimes);result.set("geometryBindings",bindings);
-    result.set("parentRelations",parents);return result;
+    index=0;for(const auto& row:records.propertyBindings) {
+        auto value=common(row.id,row.entityId,row.validity);value.set("property",webText(row.property));
+        value.set("value",val::global("JSON").call<val>("parse",row.value));properties.set(index++,value);
+    }
+    result.set("propertyBindings",properties);result.set("parentRelations",parents);return result;
 }
 TimelineValidationContext context(const val& value) {
     if(value.isNull()||!is(value,"object")||arrayValue(value)
@@ -166,7 +177,8 @@ val webWorld(const ResolvedWorld& world) {
         value.set("rootId",webText(row.rootId));
         value.set("validFrom",webEndpoint(row.validity.from));value.set("validTo",webEndpoint(row.validity.to));
         unsigned j=0;for(const auto& ancestor:row.ancestors)ancestors.set(j++,webText(ancestor));
-        value.set("ancestors",ancestors);entities.set(index++,value);
+        auto properties=val::object();for(const auto& [name,json]:row.properties)properties.set(name,val::global("JSON").call<val>("parse",json));
+        value.set("properties",properties);value.set("ancestors",ancestors);entities.set(index++,value);
     }
     result.set("entities",entities);return result;
 }
@@ -214,6 +226,19 @@ int selectGeometryVersion(val lifetime,val versions,val referenceDate) {
             date=readText(referenceDate,"PL-LIB-DATE");
         const auto index=selectTimelineVersion(libraryValidity(lifetime),candidates,date);
         return index?static_cast<int>(*index):-1;
+    });
+}
+std::string sourceAvailability(val lifetime,val versions,const std::string& referenceDate) {
+    return boundary([&] {
+        array(versions,"PL-LIB-GEOMETRY");std::vector<Validity> candidates;
+        for(unsigned i=0;i<versions["length"].as<unsigned>();++i)candidates.push_back(libraryValidity(versions[i]));
+        switch(classifyHistoricalSourceAvailability(libraryValidity(lifetime),candidates,referenceDate)) {
+        case HistoricalSourceAvailability::Available:return std::string("available");
+        case HistoricalSourceAvailability::GeometryGap:return std::string("geometry-gap");
+        case HistoricalSourceAvailability::Absent:return std::string("absent");
+        case HistoricalSourceAvailability::Unknown:return std::string("unknown");
+        }
+        throw std::logic_error("Invalid historical source availability");
     });
 }
 val normalizeRecords(val input,val contextInput) {
@@ -265,4 +290,5 @@ EMSCRIPTEN_BINDINGS(pandoeditor_timeline_calculations) {
     emscripten::function("timelineTruncateEntity",&truncateEntity);
     emscripten::function("timelineVersionExistsAt",&versionExistsAt);
     emscripten::function("timelineSelectGeometryVersion",&selectGeometryVersion);
+    emscripten::function("timelineSourceAvailability",&sourceAvailability);
 }

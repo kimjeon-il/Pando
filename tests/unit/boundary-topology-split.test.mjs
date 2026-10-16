@@ -29,7 +29,7 @@ test('compiled C++ splits a long shared edge against uneven neighboring vertices
   assert.equal(joint.virtualRefs[0].t,.5);
   assert.deepEqual(source,before);
 });
-test('wide date-line source edge activates geographic all-node query without losing refs',()=>{
+test('a short dateline edge cannot share the long route through Greenwich',()=>{
   const source = [
     raw('L',0,[-179,20],[179,20]),
     raw('R',0,[-179,20],[0,20]),
@@ -37,9 +37,8 @@ test('wide date-line source edge activates geographic all-node query without los
   ];
   const topology=buildBoundaryTopologyFromSegments(source);
   const shared=[...topology.segments.values()].filter(segment=>segment.kind==='shared');
-  assert.equal(shared.length,2);
-  assert.equal(topology.nodes.get('0,20').virtualRefs[0]?.featureId,'L');
-  assert.equal(topology.nodes.get('0,20').virtualRefs[0]?.t,.5);
+  assert.equal(shared.length,0);
+  assert.ok(topology.nodes.get('0,20').virtualRefs.every(ref=>ref.featureId!=='L'));
 });
 test('the compiled candidate scan respects custom precision and epsilon',()=>{
   const source=[raw('A',0,[0,0],[1,0]),raw('B',0,[1,0],[0,0])];

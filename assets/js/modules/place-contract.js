@@ -1,3 +1,5 @@
+import { sharedCalculationCore } from './temporal.js';
+
 /** Builtin places share label identity but not project storage. */
 export const PLACE_LIMITS = Object.freeze({ candidates: 1500, layoutCandidates: 2048, tileRecords: 512, queryTiles: 96, shardBytes: 512 * 1024, cacheBytes: 24 * 1024 * 1024, searchResults: 50, retainedRecords: 256 });
 export const PLACE_KINDS = Object.freeze(['capital', 'city', 'region', 'town', 'mountain', 'water', 'custom']);
@@ -110,38 +112,6 @@ export function normalizePlace(raw) {
     priority: Math.fround(priority), minZoom: Math.fround(minZoom),
     featureCode: text(raw.featureCode, 'featureCode', 32), notes: '',
   });
-}
-
-/** Select period-appropriate names, then suppress duplicate visual text across all languages. */
-export function resolvePlaceLabelRows(place, languages = DEFAULT_PLACE_LANGUAGES, mapDate = null) {
-  const names = { ko: place.name, en: place.nameEn };
-  let native = [place.nameNative, ...(place.nameNativeExtras || [])];
-  if (mapDate != null) {
-    if (!/^\d{4}-\d{2}-\d{2}$/u.test(mapDate)) throw new TypeError('Invalid map label date');
-    for (const transition of place.nameTimeline || []) {
-      if (transition.fromDate ? transition.fromDate > mapDate : transition.fromYear > Number(mapDate.slice(0, 4))) break;
-      if (transition.ko != null) names.ko = transition.ko;
-      if (transition.en != null) names.en = transition.en;
-      if (transition.native != null) native = [transition.native, ...(transition.nativeExtras || [])];
-    }
-  }
-  const rows = [], seen = new Set();
-  const add = (language, value) => {
-    const name = String(value || '').trim(), key = nativeNameKey(name);
-    if (name && !seen.has(key)) { seen.add(key); rows.push(Object.freeze({ language, text: name })); }
-  };
-  if (languages?.ko === true) add('ko', names.ko);
-  if (languages?.en === true) add('en', names.en);
-  if (languages?.native === true) for (const value of native) add('native', value);
-  return rows;
-}
-/** Keep unverified modern labels off dates earlier than their first selected name period. */
-export function hasPlaceNameCoverage(place, mapDate) {
-  if (mapDate == null) return true;
-  if (!/^\d{4}-\d{2}-\d{2}$/u.test(mapDate)) return false;
-  const first = place.nameTimeline?.[0];
-  return !first || (first.fromDate ? mapDate >= first.fromDate
-    : Number(mapDate.slice(0, 4)) >= first.fromYear);
 }
 
 /** Search only selected names, including historically selected slots and native co-official forms. */

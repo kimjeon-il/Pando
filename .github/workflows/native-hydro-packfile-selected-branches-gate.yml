@@ -1,30 +1,7 @@
+# Standalone diagnostic only; automatic native hydro tests reuse the P3 Qt build on all four work branches.
 name: Hydro v0.13.2 native pin selected-branch gate
 
 on:
-  push:
-    branches: [main, work/objects, work/places, work/ui]
-    paths:
-      - 'native/app/hydromanifest.*'
-      - 'native/app/hydroassetreader.cpp'
-      - 'native/app/hydroshardreader.cpp'
-      - 'native/app/hydroruntimeprovider.cpp'
-      - 'native/assets/world/hydro/v0.13.1/**'
-      - 'native/assets/world/hydro/v0.13.2/**'
-      - 'native/assets/world/manifest.json'
-      - 'native/assets/world/physical-inventory-c0bd31d1.json'
-      - 'native/app/editorcontroller.cpp'
-      - 'native/app/physicaldatastore.cpp'
-      - 'native/app/editorriverselection.cpp'
-      - 'native/app/editorpresentation.cpp'
-      - 'native/app/worlddatasetloader.cpp'
-      - 'native/app/worlddataset.cpp'
-      - 'native/tools/verify-world-assets.mjs'
-      - 'native/app/CMakeLists.txt'
-      - 'native/tests/physical_data_store_tests.cpp'
-      - 'native/tests/river_selection_controller_tests.cpp'
-      - 'native/tests/hydro_manifest_tests.cpp'
-      - 'native/tests/hydro_full_dataset_tests.cpp'
-      - '.github/workflows/native-hydro-packfile-selected-branches-gate.yml'
   workflow_dispatch:
 
 permissions:
@@ -61,8 +38,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
-      - name: Install the pinned Acorn grammar needed by native Qt geometry admission
-        run: npm ci --prefix tools/m97/river/d3-adapter --ignore-scripts --no-audit --no-fund
       - name: Compile Hydro runtime, manifest and full real dataset tests
         run: |
           cmake -S . -B build-hydro-packfile -G Ninja -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON

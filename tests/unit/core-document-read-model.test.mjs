@@ -113,7 +113,7 @@ test('an incomplete authoritative order rejects the entire delta without publish
 test('current document world rows share immutable authoritative identities/archive without another writable timeline source', () => {
   const model = createCoreDocumentReadModel(seed()), initial = model.snapshot();
   const row = { id: 'A', geometryRef: { id: 'shape', version: 1 }, parentId: '', coverageMode: 'explicit',
-    validFrom: null, validTo: null, rootId: 'A', ancestors: [] };
+    validFrom: null, validTo: null, rootId: 'A', ancestors: [], properties: {} };
   const raw = { month: '1914-07', sourceEpoch: 7, entities: [row] };
   const world = model.projectWorld(raw, 7);
   assert.equal(world.entities[0].identity, initial.territorialEntities[0]);
@@ -141,7 +141,7 @@ test('world projection rejects stale epochs and invalid refs without modifying t
 test('accepted metadata acknowledgements reproject current C++ rows while retaining unchanged view and geometry allocations', () => {
   const initial=seed(),model=createCoreDocumentReadModel(initial);
   const rows=['A','B'].map(id => ({ id,geometryRef: { id: 'shape',version: 1 },parentId: '',coverageMode: 'explicit',
-    validFrom: null,validTo: null,rootId: id,ancestors: [] }));
+    validFrom: null,validTo: null,rootId: id,ancestors: [],properties: {} }));
   model.acceptTransition({ state: { epoch: 1 },project: initial,world: { month: '1914-07',sourceEpoch: 1,entities: rows } },'core.document-load');
   const before=model.territorialViews(),changed=structuredClone(initial.territorialEntities[0]);changed.properties.name='Accepted rename';
   model.acceptTransition({ state: { epoch: 2 },delta: { ...emptyDelta(),objects: [
@@ -168,7 +168,7 @@ test('authoritative header patches preserve explicit null and missing fields wit
 
 test('a retained C++ candidate projects immutable preview rows without publishing document, world or archive changes',() => {
   const model=createCoreDocumentReadModel(seed()),before=model.snapshot(),row={ id: 'A',geometryRef: { id: 'shape',version: 1 },
-    parentId: '',coverageMode: 'explicit',validFrom: null,validTo: null,rootId: 'A',ancestors: [] },world={ month: '1914-07',sourceEpoch: 1,entities: [row] };
+    parentId: '',coverageMode: 'explicit',validFrom: null,validTo: null,rootId: 'A',ancestors: [],properties: {} },world={ month: '1914-07',sourceEpoch: 1,entities: [row] };
   model.acceptWorld(world,1);const currentWorld=model.world(),currentViews=model.territorialViews();
   const value=structuredClone(before.territorialEntities[0]);value.properties.name='Prepared only';
   const native={ delta: { ...emptyDelta(),objects: [{ ref: { domain: 'territorial',id: 'A' },value,index: 0 }] },world };
