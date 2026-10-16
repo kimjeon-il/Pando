@@ -12,11 +12,30 @@ export function createGisFileController({
   let returnFocus = null;
   let saving = false;
 
-  const openPicker = ({ target = '', trigger = null } = {}) => {
+  const openPicker = async ({ target = '', trigger = null } = {}) => {
     setTarget(target);
     returnFocus = trigger || elements.open;
-    elements.input.dataset.returnFocusId = returnFocus?.id || '';
-    elements.input.click();
+    if (!fileAccess) {
+      elements.input.dataset.returnFocusId = returnFocus?.id || '';
+      elements.input.click();
+      return true;
+    }
+    const focusTarget = returnFocus;
+    try {
+      const selection = await fileAccess.openGisFiles();
+      if (selection?.cancelled) {
+        setTarget('');
+        return false;
+      }
+      if (!Array.isArray(selection?.files) || !selection.files.length) throw new Error('선택한 GIS 파일이 없습니다.');
+      return await onFiles(selection.files, { sourceKind: 'vector' });
+    } catch (error) {
+      setTarget('');
+      throw error;
+    } finally {
+      returnFocus = null;
+      focusTarget?.focus?.({ preventScroll: true });
+    }
   };
 
   const handleChange = async event => {

@@ -35,3 +35,21 @@ test('native GIS export accepts only expected names and propagates picker cancel
   await assert.rejects(storage.saveExportFile('malicious.exe', new Blob()), /Unsupported/);
   assert.equal(commands.length, 1);
 });
+
+test('native GIS multi-file reader preserves selected bytes and original extensions', async () => {
+  const storage = createNativeStorage(async command => {
+    assert.equal(command, 'open_gis_files');
+    return { cancelled: false, files: [
+      { path: 'C:/cartography/part.shp', contents: 'AP8=' },
+      { path: 'content://documents/document/primary%3ADownload%2Fpart.dbf', contents: 'AQID' },
+    ] };
+  });
+  const { files } = await storage.openGisFiles();
+  assert.deepEqual(files.map(file => file.name), ['part.shp', 'part.dbf']);
+  assert.deepEqual(new Uint8Array(await files[0].arrayBuffer()), new Uint8Array([0, 255]));
+  await assert.rejects(
+    createNativeStorage(async () => ({ cancelled: false, files: [{ path: 'content://documents/opaque-token', contents: '' }] })).openGisFiles(),
+    /GIS 파일 이름/,
+  );
+  assert.deepEqual(await createNativeStorage(async () => ({ cancelled: true })).openGisFiles(), { cancelled: true, files: [] });
+});

@@ -91,3 +91,32 @@ test('native project open invokes the established project import and restores fo
   await controller.openProjectPicker();
   assert.deepEqual(events, ['picker', 'import', 'focus']);
 });
+
+test('native GIS multi-file picker uses existing GIS import without changing the target', async () => {
+  const calls = [], focus = { focus() { calls.push('focus'); } };
+  const files = [new File(['a'], 'map.shp'), new File(['b'], 'map.dbf')];
+  const controller = createGisFileController({
+    elements: { open: focus },
+    setTarget: value => calls.push('target:' + value),
+    fileAccess: { async openGisFiles() { return { cancelled: false, files }; } },
+    onFiles: async (chosen, options) => {
+      assert.equal(chosen, files);
+      assert.deepEqual(options, { sourceKind: 'vector' });
+      calls.push('import');
+    },
+  });
+  await controller.openPicker({ target: 'countries' });
+  assert.deepEqual(calls, ['target:countries', 'import', 'focus']);
+});
+
+test('native GIS picker cancellation clears stale import target and restores focus', async () => {
+  const calls = [];
+  const controller = createGisFileController({
+    elements: { open: { focus() { calls.push('focus'); } } },
+    setTarget: target => calls.push('target:' + target),
+    fileAccess: { async openGisFiles() { return { cancelled: true, files: [] }; } },
+    onFiles: async () => assert.fail('cancelled native import must not mutate the project'),
+  });
+  assert.equal(await controller.openPicker({ target: 'countries' }), false);
+  assert.deepEqual(calls, ['target:countries', 'target:', 'focus']);
+});

@@ -46,6 +46,18 @@ struct ProjectFile {
     contents: Option<String>,
 }
 
+#[derive(Serialize)]
+struct GisInput {
+    path: String,
+    contents: String,
+}
+
+#[derive(Serialize)]
+struct GisFiles {
+    cancelled: bool,
+    files: Vec<GisInput>,
+}
+
 fn profile_dir(app: &tauri::AppHandle) -> Result<PathBuf, String> {
     app.path()
         .app_data_dir()
@@ -185,7 +197,7 @@ async fn finish_probe(
 }
 
 fn project_dialog(app: &tauri::AppHandle) -> tauri_plugin_dialog::FileDialogBuilder<tauri::Wry> {
-    let builder = app.dialog().file().set_file_name("판도연구소-시험.gpkg");
+    let builder = app.dialog().file().set_file_name("판도연구소-프로젝트.gpkg");
     #[cfg(target_os = "android")]
     {
         builder.add_filter(
@@ -305,6 +317,48 @@ async fn open_project_file(app: tauri::AppHandle) -> Result<ProjectFile, String>
     })
 }
 
+#[tauri::command]
+async fn open_gis_files(app: tauri::AppHandle) -> Result<GisFiles, String> {
+    let builder = app.dialog().file();
+    #[cfg(target_os = "android")]
+    let builder = builder.add_filter("GIS files", &[
+        "application/geopackage+sqlite3", "application/zip", "application/geo+json",
+        "application/json", "application/octet-stream",
+    ]);
+    #[cfg(not(target_os = "android"))]
+    let builder = builder.add_filter("GIS files", &[
+        "gpkg", "qgz", "qgs", "shp", "shx", "dbf", "prj", "cpg",
+        "shz", "zip", "geojson", "json", "kml", "kmz", "gml", "xml", "fgb",
+    ]);
+    let Some(paths) = builder.blocking_pick_files() else {
+        return Ok(GisFiles { cancelled: true, files: Vec::new() });
+    };
+    if paths.is_empty() {
+        return Ok(GisFiles { cancelled: true, files: Vec::new() });
+    }
+    if paths.len() > 16 {
+        return Err("Too many selected GIS files (maximum 16 in the prototype)".into());
+    }
+    let mut files = Vec::with_capacity(paths.len());
+    let mut total_bytes = 0usize;
+    for path in paths {
+        // Android content:// URIs must be opened with the Tauri filesystem plugin.
+        let mut options = OpenOptions::new();
+        options.read(true);
+        let file = app.fs().open(path.clone(), options).map_err(|error| error.to_string())?;
+        let mut bytes = Vec::new();
+        file.take(storage::MAX_FILE_BYTES as u64 + 1)
+            .read_to_end(&mut bytes).map_err(|error| error.to_string())?;
+        validate_size(&bytes)?;
+        total_bytes = total_bytes.checked_add(bytes.len()).ok_or("GIS selection size overflow")?;
+        if total_bytes > storage::MAX_FILE_BYTES {
+            return Err("GIS file selection exceeds the 1 MiB prototype limit".into());
+        }
+        files.push(GisInput { path: path.to_string(), contents: BASE64.encode(bytes) });
+    }
+    Ok(GisFiles { cancelled: false, files })
+}
+
 fn local_navigation(url: &tauri::Url) -> bool {
     url.username().is_empty()
         && url.password().is_none()
@@ -346,7 +400,7 @@ pub fn run() {
         .manage(options)
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
-        .invoke_handler(tauri::generate_handler![write_probe_file, read_probe_file, write_diagnostic_report, finish_probe, save_project_file, save_export_file, open_project_file])
+        .invoke_handler(tauri::generate_handler![write_probe_file, read_probe_file, write_diagnostic_report, finish_probe, save_project_file, save_export_file, open_project_file, open_gis_files])
         .setup(move |app| {
             let builder = WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
                 .title("PandoLab 시험용")
