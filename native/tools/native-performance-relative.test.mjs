@@ -10,10 +10,11 @@ function round(values=[10,10,10,10,10],number=1,fixtureIds=roles) {
  const runs=[];
  const add=(id,version,warmup,value)=>{
   const provenance={...structuredClone(environment),sourceCommit:version==='baseline'?environment.baselineSourceCommit:environment.sourceCommit,binarySha256:version==='baseline'?environment.baselineBinarySha256:environment.binarySha256,runId:id,qtVersion:'6.8.3',buildType:'Release',graphicsApi:'Direct3D11'};
+  const input=(fixtureId,scenarioId)=>({fixtureId,scenarioId,latencyMs:value,matched:true,delivered:true,renderSnapshotMatched:true,renderUploadsPending:false,stateChanged:true});
   runs.push({receipt:{run:id,version,warmup,binarySha256:provenance.binarySha256,exitCode:0,exitCodeObserved:true,timedOut:false,rawReportExists:true},
    report:{schema:'pandoeditor-native-performance',version:2,measurementProfile:'p9-relative',completed:true,measurementMode:'diagnostic',diagnosticReason:'Synthetic parser test only',startupMeasurement:'existing-world-project-open',startupToProjectViewMs:value,initialProjectLoadMs:value,fixtureIds:[...fixtureIds],provenance,
     preflight:{status:'PASS'},logicalProcessors:6,fixtures:fixtureIds.map(id=>({id,manifestSha256:environment.fixtureManifestSha256,fullStack:false})),
-    inputs:fixtureIds.flatMap(fixtureId=>Array.from({length:120},()=>({fixtureId,scenarioId:'flat-pan',matched:true,delivered:true,renderSnapshotMatched:true,renderUploadsPending:false,stateChanged:true}))),
+    inputs:fixtureIds.flatMap(fixtureId=>[...Array.from({length:['editing-heavy','large-project'].includes(fixtureId)?6:0},()=>input(fixtureId,'combined-pan')),...Array.from({length:120},()=>input(fixtureId,'flat-pan'))]),
     relativeMeasurements:fixtureIds.map(fixtureId=>({fixtureId,loadAndFirstReadyFrameMs:value,panMs:value,panInputCount:120,saveMs:value,
      previewAndCancelMs:['editing-heavy','large-project'].includes(fixtureId)?value:null,
      previewEntityId:fixtureId==='editing-heavy'?'DEU':fixtureId==='large-project'?'RUS':'',
@@ -32,6 +33,11 @@ test('P9 excludes two warmups and compares five fixed alternating pairs',()=>{
  assert.equal(result.metrics['dense-view.frameP95Ms'].candidate.median,8);
  assert.equal(result.metrics['editing-heavy.previewAndCancelMs'].candidate.count,5);
  assert.equal(result.metrics['large-project.previewAndCancelMs'].candidate.median,8);
+ assert.equal(result.metrics['large-project.previewInputTotalMs'].candidate.median,48);
+ assert.equal(result.metrics['large-project.previewInputP95Ms'].candidate.median,8);
+ assert.equal(result.metrics['large-project.previewInputP95Ms'].candidate.count,5);
+ assert.equal(result.previewInputReceipts.find(v=>v.run==='run-1-candidate'&&v.fixtureId==='large-project').inputCount,6);
+ assert.match(result.previewTimingDefinitions.previewAndCancelMs,/canonical document serialization/);
  assert.equal(result.startupMeasurement,'existing-world-project-open');
  assert.equal(result.metrics.peakWorkingSetBytes.candidate.median,800);
 });
@@ -44,6 +50,16 @@ test('selected adapter is authenticated and software enumeration alone is harmle
 test('hash-map fixture receipt order does not change pinned input identity',()=>{
  const r=round();r.runs[3].report.fixtures.reverse();
  assert.equal(summarizeRelativeRounds([r]).status,'no-regression');
+});
+test('Qt lowercase fixture hashes match PowerShell uppercase hashes without accepting changed or missing hashes',()=>{
+ const r=round();
+ r.environment.fixtureManifestSha256=r.environment.fixtureManifestSha256.toUpperCase();
+ for(const run of r.runs)run.report.provenance.fixtureManifestSha256=r.environment.fixtureManifestSha256;
+ assert.equal(summarizeRelativeRounds([r]).status,'no-regression');
+ for(const hash of ['e'.repeat(64),'bad',null,undefined]){
+  const changed=structuredClone(r);changed.runs[2].report.fixtures[0].manifestSha256=hash;
+  assert.equal(summarizeRelativeRounds([changed]).status,'BLOCKED');
+ }
 });
 test('source, binary, fixture, Qt and device mismatches block comparison',()=>{
  for(const mutation of [
@@ -65,18 +81,40 @@ test('both real entity previews and the saved-project startup label are required
   r=>r.runs[3].report.relativeMeasurements[3].previewEntityId='DEU',
   r=>r.runs[3].report.relativeMeasurements[3].previewGesture='pointer-drag',
   r=>r.runs[3].report.relativeMeasurements[3].previewAndCancelMs=null,
+  r=>r.runs[3].report.inputs.splice(r.runs[3].report.inputs.findIndex(v=>v.fixtureId==='large-project'&&v.scenarioId==='combined-pan'),1),
+  r=>r.runs[3].report.inputs.find(v=>v.fixtureId==='large-project'&&v.scenarioId==='combined-pan').latencyMs=null,
+  r=>r.runs[3].report.inputs.find(v=>v.fixtureId==='large-project'&&v.scenarioId==='combined-pan').latencyMs=-1,
   r=>delete r.runs[3].report.startupMeasurement,
   r=>r.runs[3].report.startupMeasurement='cold-world-bootstrap',
  ]) {const r=round();mutation(r);assert.equal(summarizeRelativeRounds([r]).status,'BLOCKED');}
+ const extended=round(undefined,1,['large-project']);
+ for(const run of extended.runs)run.report.inputs.push({...run.report.inputs.find(v=>v.scenarioId==='combined-pan')});
+ const result=summarizeRelativeRounds([extended]);
+ assert.equal(result.status,'no-regression');assert.equal(result.previewInputReceipts[0].inputCount,7);
+ assert.equal(result.metrics['large-project.previewInputTotalMs'].candidate.median,70);
 });
 test('a slower RUS preview distribution independently fails P9 comparison',()=>{
- const r=round();
- for(const run of r.runs)if(run.receipt.version==='candidate')run.report.relativeMeasurements[3].previewAndCancelMs=20;
- const result=summarizeRelativeRounds([r]);
- assert.equal(result.status,'regression');
- assert.equal(result.metrics['large-project.previewAndCancelMs'].status,'regression');
- assert.equal(result.metrics['large-project.previewAndCancelMs'].candidate.count,5);
- assert.equal(result.metrics.startupToProjectViewMs.status,'no-regression');
+ for(const metric of ['previewAndCancelMs','previewInputTotalMs','previewInputP95Ms']) {
+  const r=round();
+  if(metric==='previewInputTotalMs')for(const run of r.runs)if(run.receipt.version==='baseline') {
+   const inputs=run.report.inputs.filter(v=>v.fixtureId==='large-project'&&v.scenarioId==='combined-pan');
+   for(const [index,input]of inputs.entries())input.latencyMs=index===0?10:0;
+  }
+  for(const run of r.runs)if(run.receipt.version==='candidate') {
+   if(metric==='previewAndCancelMs')run.report.relativeMeasurements[3].previewAndCancelMs=20;
+   else {const inputs=run.report.inputs.filter(v=>v.fixtureId==='large-project'&&v.scenarioId==='combined-pan');
+    for(const input of inputs)input.latencyMs=metric==='previewInputTotalMs'?10:0;
+    if(metric==='previewInputP95Ms')inputs[0].latencyMs=20;
+   }
+  }
+  const result=summarizeRelativeRounds([r]);
+  assert.equal(result.status,'regression');
+  assert.equal(result.metrics[`large-project.${metric}`].status,'regression');
+  assert.equal(result.metrics[`large-project.${metric}`].candidate.count,5);
+  assert.equal(result.metrics.startupToProjectViewMs.status,'no-regression');
+  if(metric==='previewInputTotalMs')assert.equal(result.metrics['large-project.previewInputP95Ms'].status,'no-regression');
+  if(metric==='previewInputP95Ms')assert.equal(result.metrics['large-project.previewInputTotalMs'].status,'no-regression');
+ }
 });
 test('one additional five-pair round is available only after uncertainty',()=>{
  const first=round([9,11,11,11,9]);const result=summarizeRelativeRounds([first]);
@@ -96,6 +134,7 @@ test('large-project-only comparison retains RUS coverage and explicitly limits i
  assert.equal(result.status,'no-regression');assert.deepEqual(result.fixtureIds,['large-project']);
  assert.equal(result.fullFixtureCoverage,false);assert.equal(result.m98Acceptance,false);
  assert.equal(result.metrics['large-project.previewAndCancelMs'].candidate.count,5);
+ assert.equal(result.metrics['large-project.previewInputTotalMs'].candidate.count,5);
  assert.equal(result.metrics['editing-heavy.previewAndCancelMs'],undefined);
  assert.ok(result.limitations.some(text=>text.includes('does not complete full four-role P9')));
 });

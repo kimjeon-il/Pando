@@ -11,6 +11,7 @@ const percentile=(v,p)=>{const s=v.filter(Number.isFinite).sort((a,b)=>a-b);retu
 const distribution=v=>({count:v.length,median:percentile(v,.5),p95:percentile(v,.95),p99:percentile(v,.99),max:v.length?Math.max(...v):null});
 const ordered=v=>Array.isArray(v)?v.map(ordered):v&&typeof v==='object'?Object.fromEntries(Object.keys(v).sort().map(k=>[k,ordered(v[k])])):v;
 const equal=(a,b)=>JSON.stringify(ordered(a))===JSON.stringify(ordered(b));
+const equalSha256=(a,b)=>typeof a==='string'&&typeof b==='string'&&/^[a-f0-9]{64}$/i.test(a)&&/^[a-f0-9]{64}$/i.test(b)&&a.toLowerCase()===b.toLowerCase();
 export function summarize(data){
  if(data.schema!=='pandoeditor-native-performance')throw Error('Unexpected measurement schema');
  if(data.version===1)return {schema:'pandoeditor-native-performance-assessment',version:2,sourceVersion:1,status:'LEGACY_DIAGNOSTIC',acceptedBy:null,acceptanceEligible:false,faults:[],limitations:['Legacy six-phase evidence has no v2 acceptance classification.'],legacy:data};
@@ -127,6 +128,7 @@ export function selectedD3dAdapter(log='') {
 const relativeRoles=['world-standard','dense-view','editing-heavy','large-project'];
 const relativePreviewEntities={'editing-heavy':'DEU','large-project':'RUS'};
 const relativePreviewGestures={'editing-heavy':'pointer-drag','large-project':'keyboard-nudge'};
+const relativePreviewInputs=(report,fixtureId)=>(report.inputs??[]).filter(v=>v.fixtureId===fixtureId&&v.scenarioId==='combined-pan');
 function relativeMetrics(rounds) {
  const values={};
  const add=(key,side,value)=>{values[key]??={baseline:[],candidate:[]};values[key][side].push(value);};
@@ -137,7 +139,12 @@ function relativeMetrics(rounds) {
   for(const row of report.relativeMeasurements??[]) {
    for(const key of ['loadAndFirstReadyFrameMs','panMs','saveMs'])add(`${row.fixtureId}.${key}`,side,row[key]);
    add(`${row.fixtureId}.frameP95Ms`,side,percentile(row.swapIntervalsMs??[],.95));
-   if(relativePreviewEntities[row.fixtureId])add(`${row.fixtureId}.previewAndCancelMs`,side,row.previewAndCancelMs);
+   if(relativePreviewEntities[row.fixtureId]) {
+    add(`${row.fixtureId}.previewAndCancelMs`,side,row.previewAndCancelMs);
+    const latency=relativePreviewInputs(report,row.fixtureId).map(v=>v.latencyMs);
+    add(`${row.fixtureId}.previewInputTotalMs`,side,latency.reduce((sum,value)=>sum+value,0));
+    add(`${row.fixtureId}.previewInputP95Ms`,side,percentile(latency,.95));
+   }
   }
   for(const [key,field] of [['peakWorkingSetBytes','workingSetBytes'],['peakPrivateBytes','privateBytes']])
    add(key,side,processSamples?.length?Math.max(...processSamples.map(s=>s[field])):null);
@@ -153,7 +160,7 @@ export function summarizeRelativeRounds(rounds) {
  rounds=Array.isArray(rounds)?rounds:[];const environment=rounds[0]?.environment;
  const selectedFixtureIds=Array.isArray(environment?.fixtureIds)?environment.fixtureIds:[];
  const fullFixtureCoverage=selectedFixtureIds.length===relativeRoles.length&&relativeRoles.every(id=>selectedFixtureIds.includes(id));
- let common=null;const adapterReceipts=[];
+ let common=null;const adapterReceipts=[],previewInputReceipts=[],previewInputCounts=new Map();
  for(const [roundIndex,round] of rounds.entries()) {
   const env=round.environment??{},runs=round.runs??[];
   const fixtureIds=Array.isArray(env.fixtureIds)?env.fixtureIds:[];
@@ -187,7 +194,7 @@ export function summarizeRelativeRounds(rounds) {
    const adapter=selectedD3dAdapter(rendererLog);adapterReceipts.push({run:r.run,...adapter});
    check(adapter?.hardware===true&&(env.adapters??[]).some(a=>a.Name===adapter.name),`${r.run}: actual selected physical adapter is missing or software`);
    check(equal(d.fixtureIds,fixtureIds)&&equal((d.fixtures??[]).map(f=>f.id).sort(),[...fixtureIds].sort())&&
-    (d.fixtures??[]).every(f=>f.manifestSha256===env.fixtureManifestSha256),`${r.run}: selected immutable fixture receipts mismatch`);
+    (d.fixtures??[]).every(f=>equalSha256(f.manifestSha256,env.fixtureManifestSha256)),`${r.run}: selected immutable fixture receipts mismatch`);
    check(d.startupMeasurement==='existing-world-project-open',`${r.run}: existing-world-project-open measurement label missing`);
    check(Number.isFinite(d.startupToProjectViewMs)&&d.startupToProjectViewMs>=0,`${r.run}: project-open startup observation missing`);
    check(Number.isFinite(d.initialProjectLoadMs)&&d.initialProjectLoadMs>=0&&d.relativeMeasurements?.[0]?.loadAndFirstReadyFrameMs===d.initialProjectLoadMs,`${r.run}: first selected fixture must retain its actual initial project-load timing`);
@@ -201,6 +208,13 @@ export function summarizeRelativeRounds(rounds) {
      check(Number.isFinite(row.previewAndCancelMs)&&row.previewAndCancelMs>=0,`${r.run}/${row.fixtureId}: edit preview/cancel observation missing`);
      check(row.previewEntityId===relativePreviewEntities[row.fixtureId],`${r.run}/${row.fixtureId}: preview entity identity mismatch`);
      check(row.previewGesture===relativePreviewGestures[row.fixtureId],`${r.run}/${row.fixtureId}: preview input gesture mismatch`);
+     const previewInputs=relativePreviewInputs(d,row.fixtureId);
+     check(previewInputs.length>0&&previewInputs.every(v=>Number.isFinite(v.latencyMs)&&v.latencyMs>=0),`${r.run}/${row.fixtureId}: actual edit input latency receipts missing/invalid`);
+     if(!previewInputCounts.has(row.fixtureId))previewInputCounts.set(row.fixtureId,previewInputs.length);
+     check(previewInputs.length===previewInputCounts.get(row.fixtureId),`${r.run}/${row.fixtureId}: actual edit input count changed between compared runs`);
+     const latency=previewInputs.map(v=>v.latencyMs);
+     previewInputReceipts.push({run:r.run,version:side,warmup:r.warmup,fixtureId:row.fixtureId,inputCount:previewInputs.length,
+      inputTotalMs:latency.reduce((sum,value)=>sum+value,0),inputP95Ms:percentile(latency,.95)});
     }
    }
    check((d.inputs??[]).length>=fixtureIds.length*120&&(d.inputs??[]).every(v=>fixtureIds.includes(v.fixtureId)&&v.matched===true&&v.delivered===true&&v.renderSnapshotMatched===true&&v.renderUploadsPending===false&&v.stateChanged===true),`${r.run}: actual input/render association failed`);
@@ -210,7 +224,11 @@ export function summarizeRelativeRounds(rounds) {
  if(rounds.length===2)check(relativeStatus(relativeMetrics(rounds.slice(0,1)))==='uncertain','Additional round is allowed only after initial uncertainty');
  const metrics=relativeMetrics(rounds),status=faults.length?'BLOCKED':relativeStatus(metrics);
  return {schema:'pando-p9-native-relative-comparison',version:1,status,roundCount:rounds.length,additionalRoundAllowed:status==='uncertain'&&rounds.length===1,
-  m98Acceptance:false,acceptedBy:null,fixtureIds:selectedFixtureIds,fullFixtureCoverage,startupMeasurement:'existing-world-project-open',metrics,adapterReceipts,faults,
+  m98Acceptance:false,acceptedBy:null,fixtureIds:selectedFixtureIds,fullFixtureCoverage,startupMeasurement:'existing-world-project-open',metrics,adapterReceipts,previewInputReceipts,faults,
+  previewTimingDefinitions:{
+   previewAndCancelMs:'Elapsed time of the complete preview/cancel operation, including interaction preparation, canonical document serialization and draft/model/history verification; not solely UI response time.',
+   previewInputTotalMs:'Sum of the recorded combined-pan edit input latencyMs values for the same fixture, covering selection/edit/draft gesture/preview/cancel inputs. Each includes its action and matching ready rendered-frame wait; work outside these input intervals is excluded. The actual input count is recorded per run.',
+   previewInputP95Ms:'Nearest-rank p95 of the actual edit input latencyMs array within each run, compared across runs with the same distribution rule as the existing metrics.'},
   scope:`Production full-world saved-project inputs for selected roles (${selectedFixtureIds.join(', ')}): fresh-process existing-world-project open through the first project view, selected-role load/pan/save/Qt swap p95 and declared geometry preview/cancel gestures, sampled peak process memory. Two discarded warmups, then five alternating baseline/candidate pairs per round.`,
   limitations:[...(!fullFixtureCoverage?['This selected-fixture comparison does not complete full four-role P9 or M98 verification.']:[]),
    'New full-world role inputs do not establish historical M98 full-stack/stress acceptance.','Swap intervals do not prove GPU completion or DWM presentation.','Sampled process memory is not driver VRAM; physical provider coverage is recorded in raw reports.']};
