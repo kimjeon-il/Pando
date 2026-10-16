@@ -461,3 +461,35 @@ test('cancelled session writes cannot resurrect a cleared project view', async (
   await Promise.all([full, scheduled]);
   assert.equal(current.storage.view, null);
 });
+
+
+test('presentation-only autosaves keep the existing preview work instead of re-inspecting the project',async()=>{
+  let inspections=0,presentations=0;
+  const checkpoint={projectGeneration:2,epoch:10,content:7};
+  const {service,tasks}=harness({
+    storage:{readPreview:async()=>null,writePreview:async()=>{}},
+    service:{
+      buildAutosave:()=>receipt({format:'pandolab-autosave-full',
+        savedAt:'2026-10-16T00:00:0'+(presentations++)+'.000Z'},{
+        ...checkpoint,presentation:presentations,
+      }),
+      previewBaseline:()=>({sourceSha256:'same-baseline'}),
+      previewGeometry:async()=>null,
+      previewProjection:async project=>{inspections++;return {project,territorialViews:[]};},
+    },
+  });
+  await service.persist();
+  for(let i=0;i<8 && !tasks.has('project-preview-cache');i++)await Promise.resolve();
+  assert.equal(inspections,1);
+  const pending=tasks.get('project-preview-cache')?.task;
+  assert.equal(typeof pending,'function');
+  await service.persist();
+  await Promise.resolve();
+  assert.equal(inspections,1,'same Core content may not rerun inspectImport');
+  assert.equal(tasks.get('project-preview-cache')?.task,pending,'do not cancel an in-flight preview');
+  service.cancelPending();
+  await service.persist();
+  for(let i=0;i<8 && inspections<2;i++)await Promise.resolve();
+  assert.equal(inspections,2,'project cancellation clears the preview revision identity');
+  service.cancelPending();
+});
