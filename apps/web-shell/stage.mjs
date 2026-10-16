@@ -112,7 +112,7 @@ async function stageOwnedPrototype({ root, profile }) {
     }));
   } else {
     const metaSource = await readFile(join(root, 'assets/js/build-meta.js'), 'utf8');
-    const metaLiteral = metaSource.match(/Object\\.freeze\\((\\{[\\s\\S]*\\})\\);\\s*$/)?.[1];
+    const metaLiteral = metaSource.match(/Object\.freeze\((\{[\s\S]*\})\);\s*$/)?.[1];
     if (!metaLiteral) throw new Error('Current published build metadata is required for the full world.');
     const meta = JSON.parse(metaLiteral);
     const loadManifest = async path => JSON.parse(await readFile(join(root, path), 'utf8'));

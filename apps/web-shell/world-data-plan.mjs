@@ -2,7 +2,6 @@
 // It is deliberately separate from physical (terrain/hydro) and place resources.
 const HEX = /^[a-f0-9]{64}$/;
 const PREFIX = 'assets/data/';
-const WORLD_ROOT = 'assets/data/world/objects/';
 const LIBRARY_ROOT = 'assets/data/territorial-entities/generated/v2/';
 const PREPARED_ROOT = 'assets/data/prepared-polygons/generated/v2/';
 
