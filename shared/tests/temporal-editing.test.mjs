@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import test from 'node:test';
+import {createEmptyTerritorialState} from '../../assets/js/modules/territorial-entity-store.js';
 
 const modulePath=resolve(process.env.PANDOEDITOR_WASM_MODULE ?? 'build-native/wasm/wasm/pandoeditor-core.js');
 const {default:createCore}=await import(pathToFileURL(modulePath));
@@ -13,6 +14,11 @@ const execute=(session,field,value)=>session.executeCommand({commandId:'territor
   targets:[{domain:'territorial',id:'A'}],payload:{id:'A',field,value}});
 const name=session=>session.resolveWorld(session.projectState().timelineCursor,session.projectState().epoch).entities
   .find(row=>row.id==='A').properties.name?.name ?? seed.territorialEntities.find(row=>row.id==='A').properties.name;
+
+test('startup empty state is admitted by the current C++ timeline contract',()=>{
+  const empty=createEmptyTerritorialState();
+  assert.deepEqual(core.timelineNormalizeRecords(empty.timelineRecords,{entities:[],geometryExists:()=>false}),empty.timelineRecords);
+});
 
 test('dated names preserve previous months and the next explicit change',()=>{
   const session=new core.DocumentSession({validateFlagDataUrl:()=>{}});
