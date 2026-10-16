@@ -76,7 +76,7 @@ test('preview key and cache validation do not initialize topology or a WASM heap
     "});",
     "parentPort.on('message',data=>self.onmessage({data}));",
   ].join('\n');
-  const worker=new Worker(workerScript,{eval:true});
+  const worker=new Worker(workerScript,{eval:true,execArgv:['--experimental-vm-modules']});
   t.after(()=>worker.terminate());
   const request=payload=>new Promise((resolve,reject)=>{
     const onMessage=message=>{
