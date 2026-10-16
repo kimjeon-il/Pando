@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/soviet-pan-gpu-regression.yml'
       - 'tests/browser/performance-observability.spec.mjs'
+      - 'tests/browser/soviet-web-render-profile.spec.mjs'
       - 'assets/js/modules/gpu-map-renderer.js'
       - 'assets/js/modules/gpu-polygon-overlay-pass.js'
       - 'assets/js/modules/gpu-stroke-renderer.js'
@@ -35,6 +36,10 @@ jobs:
         env:
           PANDOLAB_BROWSER_CHANNEL: chromium
         run: pnpm exec playwright test tests/browser/performance-observability.spec.mjs --grep '1989 Soviet Union pan' --workers=1 --retries=0 --trace off
+      - name: Profile Soviet scene and interaction work
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: pnpm exec playwright test tests/browser/soviet-web-render-profile.spec.mjs --workers=1 --retries=0 --trace off
       - name: Preserve real browser diagnosis
         if: always()
         uses: actions/upload-artifact@v4
