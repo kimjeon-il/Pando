@@ -2,7 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHistoryAssembly } from '../../assets/js/modules/app-history-assembly.js';
 
-function fixture() {
+function fixture(t) {
+  const previousWindow = globalThis.window;
+  globalThis.window = { indexedDB: {}, localStorage: {} };
+  t.after(() => { globalThis.window = previousWindow; });
   const calls = [];
   let cursor = '2026-10';
   let options;
@@ -31,15 +34,15 @@ function fixture() {
   return { owner, calls, options, cursor: () => cursor };
 }
 
-test('view record includes current Core session month but not a document snapshot', () => {
-  const { options } = fixture();
+test('view record includes current Core session month but not a document snapshot', t => {
+  const { options } = fixture(t);
   assert.deepEqual(options.readView(), {
     projection: 'flat', view: { flatZoom: 1 }, lastViewedMonth: '2026-10',
   });
 });
 
-test('restored month is published only through the accepted C++ session owner', async () => {
-  const f = fixture();
+test('restored month is published only through the accepted C++ session owner', async t => {
+  const f = fixture(t);
   assert.equal(await f.owner.applyAutosavedTimeline({ lastViewedMonth: '1989-06' }), true);
   assert.equal(f.cursor(), '1989-06');
   assert.deepEqual(f.calls, ['1989-06']);
@@ -51,7 +54,7 @@ test('restored month is published only through the accepted C++ session owner', 
 test('invalid stale month cannot abort a valid document restore', async t => {
   const warnings = [];
   t.mock.method(console, 'warn', (...args) => warnings.push(args));
-  const f = fixture();
+  const f = fixture(t);
   assert.equal(await f.owner.applyAutosavedTimeline({ lastViewedMonth: 'invalid-date' }), false);
   assert.equal(f.cursor(), '2026-10');
   assert.equal(warnings.length, 1);
