@@ -1,17 +1,17 @@
 {
   "schema": "pando-p9-native-baseline-artifact-v1",
   "baselineSourceSha": "8e22982616e3c9ba43eeb84baec17cd886267cfa",
-  "workflowRunId": 38824019671,
-  "workflowHeadSha": "70789caf989831e8cfa97953b3bb0821669cf444",
-  "artifactId": 12014543822,
-  "artifactName": "p9-windows-qt-pair-70789caf989831e8cfa97953b3bb0821669cf444",
-  "artifactDigest": "sha256:6c09f6012d0a01da04664d33ec7acd18e3be7e8e8cbd23b414c55ffe9b1b9bc0",
+  "workflowRunId": 38830134932,
+  "workflowHeadSha": "b81c61737ce45a716519b91464927134f58e474a",
+  "artifactId": 12017147801,
+  "artifactName": "p9-windows-qt-baseline-b81c61737ce45a716519b91464927134f58e474a",
+  "artifactDigest": "sha256:7fd2e329d54d282f19da5a3424cd23d4f36a24dd01712e4afff478228bba1979",
   "executable": "qt-runtime/baseline-ui_tests.exe",
-  "executableSha256": "4749eb981b0f8f345eb8f2715fd47e7db98d406a028fe61975543f435582b0a7",
+  "executableSha256": "23d2d61f78296307260265e82e1a22511007cbbfd4c7787c1c578172b5751c68",
   "qtVersion": "6.8.3",
   "measurementOverlaySha256": {
     "native/tests/ui_tests.cpp": "9dd72900038f021c7cfdd0aaf964746d48ebf54b5e8bb3888dfac170385782a8",
-    "native/tests/native_performance_probe.h": "c1f6582bd54bd7631aa6e4359015e9ea130a50cdfce80870bbd608c469d74305"
+    "native/tests/native_performance_probe.h": "b88f6f43721aaf81edac53455b355ed852ea28c0fd85f7fc46b008d9dae7993f"
   },
-  "provenance": "The recorded CI run compiled the fixed baseline and identical measurement overlay successfully. Its later candidate polygon-boundary CTest failed. Reuse only the baseline binary; candidate checks and performance remain separate."
+  "provenance": "The successful Windows matrix compiled the fixed baseline and candidate with identical measurement overlays and /MP2 /EHsc Release flags. Candidate contact/outline CTests passed separately. Artifact reuse authenticates only this baseline binary; actual GPU performance remains separate."
 }
