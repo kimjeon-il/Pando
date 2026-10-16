@@ -166,7 +166,11 @@ test('initial edit indexes world envelopes without eagerly materializing distant
     return feature('remote-' + index, [[x, y], [x + 0.08, y], [x + 0.08, y + 0.08], [x, y]]);
   });
   await service.sync([...fixtures(), ...remote]);
-  assert.deepEqual(service.stats(), { sourceCount: 253, segmentSourceCount: 0, segmentCount: 0, cachedPreparations: 0 });
+  assert.deepEqual(
+    (({ sourceCount, segmentSourceCount, segmentCount, cachedPreparations }) =>
+      ({ sourceCount, segmentSourceCount, segmentCount, cachedPreparations }))(service.stats()),
+    { sourceCount: 253, segmentSourceCount: 0, segmentCount: 0, cachedPreparations: 0 },
+  );
   const prepared = await service.prepare(request);
   assert.equal(prepared.valid, true);
   assert.deepEqual(prepared.neighbors, ['C']);
@@ -201,4 +205,45 @@ test('irrelevant updates do not invalidate a cached boundary even if no remote s
   assert.strictEqual(next.handles, first.handles);
   assert.equal(next.preparationId, first.preparationId);
   assert.equal(service.stats().segmentSourceCount, 3);
+});
+
+
+test('byte budget evicts older preparations without losing the active editable topology', async () => {
+  const service = createBoundaryPreparation({ cacheBudgetBytes: 1 });
+  await service.sync(fixtures());
+  const older = await service.prepare({ targetIds: ['A'], mode: 'coast' });
+  const newer = await service.prepare({ targetIds: ['B'], mode: 'coast' });
+  assert.notEqual(older.preparationId, newer.preparationId);
+  const stats = service.stats();
+  assert.equal(stats.cachedPreparations, 1);
+  assert.equal(stats.cacheEvictions, 1);
+  assert.ok(stats.cacheEstimatedBytes > stats.cacheBudgetBytes,
+    'the active edit is never evicted merely because its own estimate exceeds the budget');
+  assert.throws(() => service.move({
+    preparationId: older.preparationId, nodeKey: '0,0', coordinate: [-0.1, 0],
+  }), /변경/);
+  const moved = service.move({
+    preparationId: newer.preparationId, nodeKey: '4,0', coordinate: [4.1, 0],
+  });
+  assert.deepEqual(moved.affectedIds, ['B']);
+  assert.equal((await service.prepare({ targetIds: ['B'], mode: 'coast' })).preparationId, newer.preparationId);
+});
+
+test('cache hit refreshes recent-edit lifetime and budget does not grow with distinct edits', async () => {
+  const service = createBoundaryPreparation({ cacheBudgetBytes: 1_000_000 });
+  await service.sync(fixtures());
+  const a = await service.prepare({ targetIds: ['A'], mode: 'coast' });
+  const b = await service.prepare({ targetIds: ['B'], mode: 'coast' });
+  const replay = await service.prepare({ targetIds: ['A'], mode: 'coast' });
+  assert.strictEqual(replay.handles, a.handles);
+  const c = await service.prepare({ targetIds: ['C'], mode: 'coast' });
+  assert.notEqual(c.preparationId, b.preparationId);
+  assert.ok(service.stats().cacheEstimatedBytes <= service.stats().cacheBudgetBytes);
+  assert.ok(service.stats().cachedPreparations <= 8);
+});
+
+test('invalid boundary cache memory budgets fail before changing any state', () => {
+  for (const budget of [0, -1, Infinity, NaN, 1.2, '32MB']) {
+    assert.throws(() => createBoundaryPreparation({ cacheBudgetBytes: budget }), /positive safe integer/);
+  }
 });

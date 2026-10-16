@@ -20,6 +20,10 @@ export async function prepareBoundaryOperation(operation, payload, features, ser
     sourceCount: stats.sourceCount,
     segmentSourceCount: stats.segmentSourceCount,
     segmentCount: stats.segmentCount,
+    cachedPreparations: stats.cachedPreparations,
+    cacheEstimatedBytes: stats.cacheEstimatedBytes,
+    cacheBudgetBytes: stats.cacheBudgetBytes,
+    cacheEvictions: stats.cacheEvictions,
   } };
 }
 
