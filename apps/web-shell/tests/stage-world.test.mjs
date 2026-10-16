@@ -38,6 +38,11 @@ async function fixture(t) {
     const path = 'assets/data/world/objects/' + role + '-sha256-' + sha(data) + '.bin.gz';
     world.assets[role] = { ...await pinned(path, data), url: path.slice('assets/data/'.length) };
   }
+  world.defaultClassification = {
+    countries: Object.fromEntries(Array.from({ length: 207 }, (_, i) => ['root-' + i, 'source'])),
+    units: Object.fromEntries(Array.from({ length: 47 }, (_, i) => ['unit-' + i, { parentId: 'root-0' }])),
+    removedIds: Array.from({ length: 51 }, (_, i) => 'removed-' + i),
+  };
   for (const role of ['preview', 'canonical']) {
     const name = 'countries-' + role + '-shared-v0.36.1.json.gz';
     await put('assets/data/' + name, 'SHARED');
@@ -73,6 +78,8 @@ test('full-world stage selects manifest-pinned Web resources and keeps the canon
   const staged = await stagePrototype({ root, profile: 'full-world' });
   assert.equal(staged.profile, 'full-world');
   assert.equal(staged.worldData.countryCount, 258);
+  assert.equal(staged.worldData.modelEntityCount, 254);
+  assert.equal(staged.worldData.mergedSourceCount, 4);
   assert.equal(staged.worldData.fileCount, 14);
   assert.equal(staged.fixture, null);
   assert.equal(await readFile(join(staged.directory, 'assets/js/bootstrap.js'), 'utf8'),
