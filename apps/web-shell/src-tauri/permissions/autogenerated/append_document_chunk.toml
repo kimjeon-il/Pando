@@ -1,0 +1,10 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-append-document-chunk"
+description = "Enables append_document_chunk without any pre-configured scope."
+commands.allow = ["append_document_chunk"]
+
+[[permission]]
+identifier = "deny-append-document-chunk"
+commands.deny = ["append_document_chunk"]

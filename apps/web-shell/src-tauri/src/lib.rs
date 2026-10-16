@@ -1,16 +1,13 @@
 mod storage;
+mod document_transfer;
 
-use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
 use serde::Serialize;
 use sha2::{Digest, Sha256};
 use std::{
-    io::{Read, Write},
     path::PathBuf,
     sync::Mutex,
 };
 use tauri::{Manager, WebviewUrl, WebviewWindowBuilder};
-use tauri_plugin_dialog::{DialogExt, FilePath};
-use tauri_plugin_fs::{FsExt, OpenOptions};
 
 const EMBEDDED_STAGE_EVIDENCE: &str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
@@ -38,26 +35,6 @@ struct ReadFile {
 struct ReportFile {
     path: String,
 }
-#[derive(Serialize)]
-struct ProjectFile {
-    cancelled: bool,
-    path: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    contents: Option<String>,
-}
-
-#[derive(Serialize)]
-struct GisInput {
-    path: String,
-    contents: String,
-}
-
-#[derive(Serialize)]
-struct GisFiles {
-    cancelled: bool,
-    files: Vec<GisInput>,
-}
-
 fn profile_dir(app: &tauri::AppHandle) -> Result<PathBuf, String> {
     app.path()
         .app_data_dir()
@@ -196,169 +173,6 @@ async fn finish_probe(
     Ok(written)
 }
 
-fn project_dialog(app: &tauri::AppHandle) -> tauri_plugin_dialog::FileDialogBuilder<tauri::Wry> {
-    let builder = app.dialog().file().set_file_name("판도연구소-프로젝트.gpkg");
-    #[cfg(target_os = "android")]
-    {
-        builder.add_filter(
-            "PandoLab GeoPackage",
-            &["application/geopackage+sqlite3", "application/octet-stream"],
-        )
-    }
-    #[cfg(not(target_os = "android"))]
-    {
-        builder.add_filter("PandoLab GeoPackage", &["gpkg"])
-    }
-}
-
-fn cancelled_project() -> ProjectFile {
-    ProjectFile {
-        cancelled: true,
-        path: None,
-        contents: None,
-    }
-}
-
-fn decode_project(contents: &str) -> Result<Vec<u8>, String> {
-    if contents.len() > (storage::MAX_FILE_BYTES + 2) / 3 * 4 {
-        return Err("Prototype file exceeds the 1 MiB limit".into());
-    }
-    let contents = BASE64
-        .decode(contents)
-        .map_err(|error| format!("Invalid project base64: {error}"))?;
-    validate_size(&contents)?;
-    Ok(contents)
-}
-
-fn write_selected_file(app: &tauri::AppHandle, path: &FilePath, contents: &[u8]) -> Result<(), String> {
-    match path {
-        FilePath::Path(local) => {
-            storage::atomic_write(local, contents).map_err(|error| error.to_string())?
-        }
-        FilePath::Url(url) if url.scheme() == "file" => {
-            let local = url.to_file_path().map_err(|_| "Invalid selected file URL")?;
-            storage::atomic_write(&local, contents).map_err(|error| error.to_string())?;
-        }
-        FilePath::Url(_) => {
-            // Android document-provider writes cannot guarantee an atomic rename.
-            let mut options = OpenOptions::new();
-            options.read(false).write(true).truncate(true);
-            let mut file = app.fs().open(path.clone(), options).map_err(|error| error.to_string())?;
-            file.write_all(contents).and_then(|_| file.flush()).map_err(|error| error.to_string())?;
-        }
-    }
-    Ok(())
-}
-
-#[tauri::command]
-async fn save_project_file(app: tauri::AppHandle, contents: String) -> Result<ProjectFile, String> {
-    // Reject invalid/oversized input before displaying a dialog or creating a document.
-    let contents = decode_project(&contents)?;
-    let Some(path) = project_dialog(&app).blocking_save_file() else {
-        return Ok(cancelled_project());
-    };
-    write_selected_file(&app, &path, &contents)?;
-    Ok(ProjectFile {
-        cancelled: false,
-        path: Some(path.to_string()),
-        contents: None,
-    })
-}
-
-#[tauri::command]
-async fn save_export_file(
-    app: tauri::AppHandle,
-    filename: String,
-    contents: String,
-) -> Result<ProjectFile, String> {
-    // Only current GIS export formats are accepted; JavaScript supplies no path.
-    let extension = match filename.as_str() {
-        "판도연구소-GIS-데이터.gpkg" => "gpkg",
-        "판도연구소-GIS-데이터.zip" => "zip",
-        _ => return Err("Unsupported GIS export format".into()),
-    };
-    let contents = decode_project(&contents)?;
-    let builder = app.dialog().file().set_file_name(filename);
-    #[cfg(target_os = "android")]
-    let builder = match extension {
-        "gpkg" => builder.add_filter("GeoPackage", &["application/geopackage+sqlite3", "application/octet-stream"]),
-        _ => builder.add_filter("ZIP archive", &["application/zip", "application/octet-stream"]),
-    };
-    #[cfg(not(target_os = "android"))]
-    let builder = builder.add_filter("GIS export", &[extension]);
-    let Some(path) = builder.blocking_save_file() else {
-        return Ok(cancelled_project());
-    };
-    write_selected_file(&app, &path, &contents)?;
-    Ok(ProjectFile { cancelled: false, path: Some(path.to_string()), contents: None })
-}
-
-#[tauri::command]
-async fn open_project_file(app: tauri::AppHandle) -> Result<ProjectFile, String> {
-    let Some(path) = project_dialog(&app).blocking_pick_file() else {
-        return Ok(cancelled_project());
-    };
-    let mut options = OpenOptions::new();
-    options.read(true);
-    let file = app
-        .fs()
-        .open(path.clone(), options)
-        .map_err(|error| error.to_string())?;
-    let mut bytes = Vec::new();
-    file.take(storage::MAX_FILE_BYTES as u64 + 1)
-        .read_to_end(&mut bytes)
-        .map_err(|error| error.to_string())?;
-    validate_size(&bytes)?;
-    let contents = BASE64.encode(bytes);
-    Ok(ProjectFile {
-        cancelled: false,
-        path: Some(path.to_string()),
-        contents: Some(contents),
-    })
-}
-
-#[tauri::command]
-async fn open_gis_files(app: tauri::AppHandle) -> Result<GisFiles, String> {
-    let builder = app.dialog().file();
-    #[cfg(target_os = "android")]
-    let builder = builder.add_filter("GIS files", &[
-        "application/geopackage+sqlite3", "application/zip", "application/geo+json",
-        "application/json", "application/octet-stream",
-    ]);
-    #[cfg(not(target_os = "android"))]
-    let builder = builder.add_filter("GIS files", &[
-        "gpkg", "qgz", "qgs", "shp", "shx", "dbf", "prj", "cpg",
-        "shz", "zip", "geojson", "json", "kml", "kmz", "gml", "xml", "fgb",
-    ]);
-    let Some(paths) = builder.blocking_pick_files() else {
-        return Ok(GisFiles { cancelled: true, files: Vec::new() });
-    };
-    if paths.is_empty() {
-        return Ok(GisFiles { cancelled: true, files: Vec::new() });
-    }
-    if paths.len() > 16 {
-        return Err("Too many selected GIS files (maximum 16 in the prototype)".into());
-    }
-    let mut files = Vec::with_capacity(paths.len());
-    let mut total_bytes = 0usize;
-    for path in paths {
-        // Android content:// URIs must be opened with the Tauri filesystem plugin.
-        let mut options = OpenOptions::new();
-        options.read(true);
-        let file = app.fs().open(path.clone(), options).map_err(|error| error.to_string())?;
-        let mut bytes = Vec::new();
-        file.take(storage::MAX_FILE_BYTES as u64 + 1)
-            .read_to_end(&mut bytes).map_err(|error| error.to_string())?;
-        validate_size(&bytes)?;
-        total_bytes = total_bytes.checked_add(bytes.len()).ok_or("GIS selection size overflow")?;
-        if total_bytes > storage::MAX_FILE_BYTES {
-            return Err("GIS file selection exceeds the 1 MiB prototype limit".into());
-        }
-        files.push(GisInput { path: path.to_string(), contents: BASE64.encode(bytes) });
-    }
-    Ok(GisFiles { cancelled: false, files })
-}
-
 fn local_navigation(url: &tauri::Url) -> bool {
     url.username().is_empty()
         && url.password().is_none()
@@ -398,9 +212,13 @@ pub fn run() {
     let auto = options.auto;
     tauri::Builder::default()
         .manage(options)
+        .manage(document_transfer::TransferManager::default())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
-        .invoke_handler(tauri::generate_handler![write_probe_file, read_probe_file, write_diagnostic_report, finish_probe, save_project_file, save_export_file, open_project_file, open_gis_files])
+        .invoke_handler(tauri::generate_handler![write_probe_file, read_probe_file, write_diagnostic_report, finish_probe,
+            document_transfer::begin_document_write, document_transfer::append_document_chunk,
+            document_transfer::finish_document_write, document_transfer::begin_document_read,
+            document_transfer::read_document_chunk, document_transfer::abort_document_transfer])
         .setup(move |app| {
             let builder = WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
                 .title("PandoLab 시험용")
