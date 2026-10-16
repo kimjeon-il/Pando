@@ -90,6 +90,7 @@ export function createProgressiveStartup({ startupMesh = 'builtin' } = {}) {
     const navigationChanged = navigationProjection !== previewStart.projection
       || JSON.stringify(navigationView) !== previewStart.viewJson;
     const previewSearch = dependencies.projectState.state.layerSearch;
+    const liveMonthBeforeAdmission = dependencies.domains.commandOwner.state()?.timelineCursor || '';
     const previewSelection = (dependencies.projectState.state.selected?.domain === 'territorial' && (dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.selected?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.selected?.id)?.properties.parentId)) ? String(dependencies.projectState.state.selected.id || '') : '';
     (0, dependencies.builtinCountries.installCanonicalCountryStore)(geometry.canonicalCountryStore);
     const restored = autosaveRestore.project;
@@ -114,6 +115,10 @@ export function createProgressiveStartup({ startupMesh = 'builtin' } = {}) {
       if(baseline)requireCurrentBaseline(baseline,dependencies.domains.projectDomain.getGeneration());
       await restoreSavedProject(restored);
     } else await admitTerritorialBaseline(baseline,'startup-canonical-territories');
+    const userChangedPreviewMonth = !!previewStart.timelineMonth
+      && liveMonthBeforeAdmission !== previewStart.timelineMonth;
+    await dependencies.persistence.applyAutosavedTimeline(userChangedPreviewMonth
+      ? { lastViewedMonth: liveMonthBeforeAdmission } : autosaveRestore.view);
     if (Number.isFinite(projectGeneration)
       && dependencies.rendering.gpuMapRenderer.getProjectGeneration() !== projectGeneration) return null;
     // A display request may have initialized the edit Worker from preview countries.
@@ -381,6 +386,7 @@ export function createProgressiveStartup({ startupMesh = 'builtin' } = {}) {
     if (!hasStoredCountryGeometry) startTerrainLoading();
     dependencies.startupCommands.markRuntimeReady();
     const previewStart = { projection: dependencies.projectState.state.projection, viewJson: JSON.stringify(dependencies.projectState.state.view),
+      timelineMonth: dependencies.domains.commandOwner.state()?.timelineCursor || '',
       projectGeneration: dependencies.rendering.gpuMapRenderer.getProjectGeneration?.() };
     (0, dependencies.feedback.setActionStatus)(
       hasStoredCountryGeometry || !previewFrameReady ? '저장된 지도 복원 중…' : '미리보기 표시 완료. 편집 데이터 준비 중…',
@@ -474,6 +480,7 @@ export function createProgressiveStartup({ startupMesh = 'builtin' } = {}) {
       if(baseline)requireCurrentBaseline(baseline,dependencies.domains.projectDomain.getGeneration());
       await restoreSavedProject(restored);
     } else await admitTerritorialBaseline(baseline,'startup-canonical-territories');
+    await dependencies.persistence.applyAutosavedTimeline(autosaveRestore.view);
     await (0, dependencies.layerTree.pruneLayerItemVisibility)();
     (0, dependencies.countries.scheduleCountryLabelAnchors)(null, 10);
     (0, dependencies.layers.markLayerTreeDirty)();
