@@ -31,7 +31,7 @@ test('full-world manifest closure includes active historical and prepared geomet
   const plan = buildFullWorldAssetPlan(fixture());
   const paths = plan.entries.map(item => item.path);
   assert.equal(plan.countryCount, 258);
-  assert.equal(plan.entries.length, 13);
+  assert.equal(plan.entries.length, 14);
   assert.equal(new Set(paths).size, paths.length);
   assert.ok(paths.includes('assets/data/world/current.json'));
   assert.ok(paths.includes('assets/data/historical-world/generated/v1/world-project.json.gz'));
