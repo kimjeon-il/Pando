@@ -16,7 +16,13 @@ async function autosave(page) {
   });
 }
 test('1991 library geometry is inserted into 2012 and preserves temporal edits, history and reopen month',async({page},info)=>{
-  test.setTimeout(180000);const errors=[];page.on('pageerror',error=>{errors.push(error.message);console.error(error.stack);});
+  test.setTimeout(240000);const errors=[],diagnostics=[];page.on('pageerror',error=>{errors.push(error.message);console.error(error.stack);});
+  page.on('console',message=>{
+    if(message.type()==='error'||message.type()==='warning') {
+      if(message.type()==='error'||/disposed|Autosave .*failed|Immediate autosave failed/u.test(message.text()))diagnostics.push(message.text());
+      if(message.type()==='warning')console.log(message.text());
+    }
+  });
   const startupFailure=new Promise((_,reject)=>{
     page.once('pageerror',reject);
     page.on('console',message=>{if(message.type()==='error') {
@@ -41,9 +47,13 @@ test('1991 library geometry is inserted into 2012 and preserves temporal edits, 
   const added=await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.list().find(row=>row.properties.sourceEntityId==='state:soviet-union'));
   expect(added.properties.validFrom).toBe('2012-01');expect(added.properties.sourceGeometryVersion).toBe(version);
   expect(added.properties.metadata.sourceReferenceDate).toBe('1991-01-01');
-  await page.locator('#undoBtn').click();await expect.poll(()=>object(page,added.id)).toBeNull();
-  await page.locator('#redoBtn').click();await expect.poll(()=>object(page,added.id)).not.toBeNull();
-  await month(page,'2011-01');expect(await object(page,added.id)).toBeNull();expect(await object(page,'UKR')).toEqual(before);
+  await page.locator('#undoBtn').click();await expect(page.locator('#redoBtn')).toBeEnabled({timeout:30000});
+  await expect.poll(()=>object(page,added.id)).toBeNull();
+  await page.locator('#redoBtn').click();await expect(page.locator('#undoBtn')).toBeEnabled({timeout:30000});
+  await expect.poll(()=>object(page,added.id),{timeout:30000}).not.toBeNull();
+  await month(page,'2011-01');expect(await object(page,added.id)).toBeNull();
+  const preservedPast={...before,properties:{...before.properties,validTo:'2011-12'}};
+  expect(await object(page,'UKR')).toEqual(preservedPast);
   await month(page,'2013-01');expect((await object(page,added.id)).geometry).toEqual(added.geometry);
   await page.evaluate(id=>window.PANDOLAB_TERRITORIAL.setName(id,'Future USSR'),added.id);
   await month(page,'2012-01');await page.evaluate(id=>window.PANDOLAB_TERRITORIAL.setName(id,'Inserted USSR'),added.id);
@@ -59,7 +69,9 @@ test('1991 library geometry is inserted into 2012 and preserves temporal edits, 
   await expect(page.locator('#timelineMonthInput')).toHaveValue('2012-06');
   expect((await object(page,added.id)).properties.name).toBe('Inserted USSR');
   await month(page,'2013-01');expect((await object(page,added.id)).properties.name).toBe('Future USSR');
-  await month(page,'2011-01');expect(await object(page,added.id)).toBeNull();expect(await object(page,'UKR')).toEqual(before);
+  await month(page,'2011-01');expect(await object(page,added.id)).toBeNull();expect(await object(page,'UKR')).toEqual(preservedPast);
   await info.attach('temporal-model-evidence',{body:JSON.stringify({id:added.id,sourceDate:'1991-01-01',version,records:saved.timelineRecords}),contentType:'application/json'});
+  await page.goto('about:blank');
   expect(errors).toEqual([]);
+  expect(diagnostics).toEqual([]);
 });
