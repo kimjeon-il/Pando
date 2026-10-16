@@ -1,55 +1,127 @@
-const LIMIT = 1024 * 1024;
+const CHUNK_BYTES = 256 * 1024;
+const DOCUMENT_LIMIT = 256 * 1024 * 1024;
+const PROBE_LIMIT = 1024 * 1024;
 const invokeNative = (command, payload) => {
-  if (typeof globalThis.__TAURI_INTERNALS__?.invoke !== 'function') throw new Error('Native shell bridge is unavailable; browser execution cannot pass native checks.');
+  if (typeof globalThis.__TAURI_INTERNALS__?.invoke !== 'function') {
+    throw new Error('Native shell bridge is unavailable; browser execution cannot pass native checks.');
+  }
   return globalThis.__TAURI_INTERNALS__.invoke(command, payload);
 };
+
 export function encodeBytes(bytes) {
   let binary = '';
-  for (let index = 0; index < bytes.length; index += 8192) binary += String.fromCharCode(...bytes.subarray(index, index + 8192));
+  for (let index = 0; index < bytes.length; index += 8192) {
+    binary += String.fromCharCode(...bytes.subarray(index, index + 8192));
+  }
   return btoa(binary);
 }
 export function decodeBytes(base64) {
-  if (typeof base64 !== 'string' || base64.length > Math.ceil(LIMIT / 3) * 4) throw new Error('Native project exceeds the 1 MiB limit.');
+  if (typeof base64 !== 'string' || base64.length > Math.ceil(CHUNK_BYTES / 3) * 4) {
+    throw new Error('Invalid 256 KiB native chunk.');
+  }
   const binary = atob(base64);
-  if (binary.length > LIMIT) throw new Error('Native project exceeds the 1 MiB limit.');
+  if (binary.length > CHUNK_BYTES) throw new Error('Invalid 256 KiB native chunk.');
   return Uint8Array.from(binary, character => character.charCodeAt(0));
 }
+
 function selectedGisName(path) {
   const segment = String(path || '').split(/[\\/]/).pop();
   const decoded = decodeURIComponent(segment || '');
   const name = decoded.split(/[\\/]/).pop().split(':').pop();
-  if (!/\.[a-z0-9]{1,8}$/i.test(name)) throw new Error('GIS 파일 이름을 확인할 수 없습니다. 다른 파일 제공자를 선택하세요.');
+  if (!/\.[a-z0-9]{1,8}$/i.test(name)) {
+    throw new Error('GIS 파일 이름을 확인할 수 없습니다. 다른 파일 제공자를 선택하세요.');
+  }
   return name;
 }
 
+function verifyDocumentBlob(blob) {
+  if (!(blob instanceof Blob) || blob.size < 1 || blob.size > DOCUMENT_LIMIT) {
+    throw new Error('Document must be a Blob within the 256 MiB limit.');
+  }
+}
+
 export function createNativeStorage(invoke = invokeNative) {
-  return Object.freeze({
-    async saveProjectFile(blob) {
-      if (!(blob instanceof Blob) || blob.size > LIMIT) throw new Error('Project must be a Blob within the 1 MiB prototype limit.');
-      return invoke('save_project_file', { contents: encodeBytes(new Uint8Array(await blob.arrayBuffer())) });
-    },
-    async saveExportFile(filename, blob) {
-      if (!['판도연구소-GIS-데이터.gpkg', '판도연구소-GIS-데이터.zip'].includes(filename)) {
-        throw new Error('Unsupported GIS export file name.');
+  const abort = async token => {
+    try { await invoke('abort_document_transfer', { token }); }
+    catch (error) { console.error('[PL-NATIVE-TRANSFER-ABORT]', error); }
+  };
+  async function writeDocument(kind, blob) {
+    verifyDocumentBlob(blob);
+    const session = await invoke('begin_document_write', { kind });
+    if (!Number.isSafeInteger(session?.token)) throw new Error('Native write session did not return a token.');
+    const token = session.token;
+    try {
+      for (let offset = 0; offset < blob.size; offset += CHUNK_BYTES) {
+        const slice = new Uint8Array(await blob.slice(offset, offset + CHUNK_BYTES).arrayBuffer());
+        await invoke('append_document_chunk', { token, contents: encodeBytes(slice) });
       }
-      if (!(blob instanceof Blob) || blob.size > LIMIT) throw new Error('GIS export exceeds the 1 MiB prototype limit.');
-      return invoke('save_export_file', { filename, contents: encodeBytes(new Uint8Array(await blob.arrayBuffer())) });
-    },
-    async openGisFiles() {
-      const result = await invoke('open_gis_files', {});
-      if (result.cancelled) return { cancelled: true, files: [] };
-      if (!Array.isArray(result.files) || !result.files.length) throw new Error('No GIS files were selected.');
-      return { cancelled: false, files: result.files.map(file => new File(
-        [decodeBytes(file.contents)], selectedGisName(file.path),
-      )) };
+      return await invoke('finish_document_write', { token });
+    } catch (error) {
+      await abort(token);
+      throw error;
+    }
+  }
+  async function readDocument(kind) {
+    const selection = await invoke('begin_document_read', { kind });
+    if (selection?.cancelled) return { cancelled: true, files: [] };
+    if (!Array.isArray(selection?.files) || !selection.files.length || selection.files.length > 16) {
+      throw new Error('Invalid native document selection.');
+    }
+    if (selection.files.some(file => !Number.isSafeInteger(file.token)
+        || !Number.isSafeInteger(file.bytes) || file.bytes < 1)
+        || selection.files.reduce((sum, file) => sum + file.bytes, 0) > DOCUMENT_LIMIT) {
+      throw new Error('Native document selection exceeds 256 MiB.');
+    }
+    const files = [];
+    for (let index = 0; index < selection.files.length; index++) {
+      const file = selection.files[index];
+      const bytes = [];
+      let size = 0, done = false;
+      try {
+        do {
+          const part = await invoke('read_document_chunk', { token: file.token });
+          const chunk = decodeBytes(part?.contents);
+          if (!chunk.byteLength) throw new Error('Empty native document chunk.');
+          size += chunk.byteLength;
+          if (size > file.bytes) throw new Error('Native document overrun.');
+          bytes.push(chunk);
+          done = part.done === true;
+        } while (!done);
+        if (size !== file.bytes) throw new Error('Native document length differs from selection.');
+        files.push({ path: file.path, blob: new Blob(bytes) });
+      } catch (error) {
+        await abort(file.token);
+        for (const remaining of selection.files.slice(index + 1)) await abort(remaining.token);
+        throw error;
+      }
+    }
+    return { cancelled: false, files };
+  }
+  return Object.freeze({
+    saveProjectFile: blob => writeDocument('project', blob),
+    async saveExportFile(filename, blob) {
+      const kind = filename === '판도연구소-GIS-데이터.gpkg' ? 'gis-gpkg'
+        : filename === '판도연구소-GIS-데이터.zip' ? 'gis-zip' : null;
+      if (!kind) throw new Error('Unsupported GIS export file name.');
+      return writeDocument(kind, blob);
     },
     async openProjectFile() {
-      const result = await invoke('open_project_file', {});
-      if (result.cancelled) return { cancelled: true, path: null, blob: null };
-      return { cancelled: false, path: result.path, blob: new Blob([decodeBytes(result.contents)], { type: 'application/geopackage+sqlite3' }) };
+      const selected = await readDocument('project');
+      if (selected.cancelled) return { cancelled: true, path: null, blob: null };
+      if (selected.files.length !== 1) throw new Error('Project picker must return one document.');
+      return { cancelled: false, path: selected.files[0].path,
+        blob: selected.files[0].blob };
+    },
+    async openGisFiles() {
+      const selected = await readDocument('gis');
+      if (selected.cancelled) return { cancelled: true, files: [] };
+      return { cancelled: false, files: selected.files.map(file =>
+        new File([file.blob], selectedGisName(file.path))) };
     },
     writeProbeFile: contents => {
-      if (typeof contents !== 'string' || new TextEncoder().encode(contents).length > LIMIT) throw new Error('Probe file exceeds the 1 MiB limit.');
+      if (typeof contents !== 'string' || new TextEncoder().encode(contents).length > PROBE_LIMIT) {
+        throw new Error('Probe file exceeds the 1 MiB limit.');
+      }
       return invoke('write_probe_file', { contents });
     },
     readProbeFile: () => invoke('read_probe_file', {}),
@@ -61,4 +133,5 @@ export function createNativeStorage(invoke = invokeNative) {
   });
 }
 const native = createNativeStorage();
-export const { saveProjectFile, saveExportFile, openProjectFile, openGisFiles, writeProbeFile, readProbeFile, writeDiagnosticReport, finishDiagnostics } = native;
+export const { saveProjectFile, saveExportFile, openProjectFile, openGisFiles,
+  writeProbeFile, readProbeFile, writeDiagnosticReport, finishDiagnostics } = native;

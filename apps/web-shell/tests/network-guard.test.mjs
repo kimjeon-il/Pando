@@ -37,8 +37,8 @@ test('allows only native IPC commands at the exact internal origin', async () =>
   const scope = { location: new URL('http://tauri.localhost/'), fetch: async () => new Response('native') };
   const result = installNetworkGuard(scope);
   await scope.fetch('http://ipc.localhost/write_probe_file');
-  await scope.fetch('http://ipc.localhost/open_gis_files');
-  await scope.fetch('http://ipc.localhost/save_export_file');
+  await scope.fetch('http://ipc.localhost/begin_document_read');
+  await scope.fetch('http://ipc.localhost/append_document_chunk');
   await assert.rejects(scope.fetch('http://ipc.localhost/arbitrary_file_access'), /blocked/i);
   await assert.rejects(scope.fetch('http://ipc.localhost.evil.test/write_probe_file'), /blocked/i);
   assert.equal(result.blocked.length, 2);
