@@ -5,7 +5,8 @@ on:
     branches: ['work/integration-ui-objects-20261016']
     paths:
       - '.github/workflows/integration-windows-web-shell-20261016.yml'
-      # One integration acceptance invocation; later pushes can use workflow_dispatch.
+      - 'apps/web-shell/**'
+      - 'assets/js/modules/app-environment.js'
   workflow_dispatch:
 
 permissions:

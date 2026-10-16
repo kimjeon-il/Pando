@@ -67,7 +67,7 @@ test('oversized document is blocked before IPC while tiny probe remains bounded'
   Object.defineProperty(largeBlob, 'size', { value: 256 * 1024 * 1024 + 1 });
   await assert.rejects(storage.saveProjectFile(largeBlob), /256 MiB/);
   assert.equal(invoked, false);
-  await assert.rejects(storage.writeProbeFile('a'.repeat(1024 * 1024 + 1)), /1 MiB/);
+  assert.throws(() => storage.writeProbeFile('a'.repeat(1024 * 1024 + 1)), /1 MiB/);
   assert.equal(invoked, false);
 });
 test('cancelled user selection is not counted as saved project', async () => {
