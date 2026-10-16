@@ -18,6 +18,22 @@ export function initialTimelineMonth(records, currentMonth) {
   return sharedCalculationCore.timelineInitialMonth(records, currentMonth);
 }
 
+/** Map the C++ resolved typed values onto the current Web presentation DTO. */
+export function projectTimelineIdentity(identity, values) {
+  if (!Object.keys(values).length) return identity;
+  const properties = { ...identity.properties, style: { ...identity.properties.style }, metadata: { ...identity.properties.metadata } };
+  if (values.name) properties.name = values.name.name;
+  if (values.color) {
+    if (values.color.explicitColor) properties.style.color = '#' + values.color.color.toString(16).padStart(6, '0');
+    else delete properties.style.color;
+  }
+  if (values.flag) {
+    if (values.flag.policy === 'default') delete properties.metadata.flagDataUrl;
+    else properties.metadata.flagDataUrl = values.flag.policy === 'none' ? null : values.flag.embeddedDataUrl;
+  }
+  return freeze({ ...identity, properties });
+}
+
 /** Only attach Web identities and immutable geometry allocations to C++ world results. */
 export function resolveWorld(identities, records, geometries, month) {
   const context = {
@@ -29,7 +45,7 @@ export function resolveWorld(identities, records, geometries, month) {
   const rows = resolved.entities.map(result => {
     const row = {
       id: result.id,
-      identity: freeze(structuredClone(identityById.get(result.id))),
+      identity: projectTimelineIdentity(freeze(structuredClone(identityById.get(result.id))), result.properties),
       geometryRef: Object.freeze(result.geometryRef),
       geometry: geometries.get(result.geometryRef),
       parentId: result.parentId,

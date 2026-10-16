@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { normalizePlace, resolvePlaceLabelRows, normalizePlaceLanguages, togglePlaceLanguage } from '../../assets/js/modules/place-contract.js';
+import { normalizePlace, normalizePlaceLanguages, togglePlaceLanguage } from '../../assets/js/modules/place-contract.js';
+import { resolvePlaceLabelRows, hasPlaceNameCoverage } from '../../assets/js/modules/place-name-display.js';
 import { placeLabelDimensions, layoutLabels } from '../../assets/js/modules/label-layout.js';
 
 const place = changes => normalizePlace({source:'geonames',sourceId:'703448',name:'키이우',nameEn:'Kyiv',nameNative:'Київ',
@@ -12,11 +13,20 @@ test('Korean, English and native lines are independently selectable and ordered'
   assert.deepEqual(resolvePlaceLabelRows(record,{ko:false,en:false,native:true}).map(row=>row.text),['Київ']);
   assert.deepEqual(resolvePlaceLabelRows(record,{ko:true,en:false,native:false}).map(row=>row.text),['키이우']);
 });
-test('per-language timeline does not silently change the English or native forms',()=>{
+test('per-language evidence marks missing English and native history as current names',()=>{
   const record=place();
-  assert.deepEqual(resolvePlaceLabelRows(record,{ko:true,en:true,native:true},'1990-01-01').map(row=>row.text),['키예프','Kyiv','Київ']);
-  assert.deepEqual(resolvePlaceLabelRows(record,{ko:true,en:true,native:true},'1991-08-24').map(row=>row.text),['키이우','Kyiv','Київ']);
+  assert.deepEqual(resolvePlaceLabelRows(record,{ko:true,en:true,native:true},'1990-01-01').map(row=>row.text),['키예프','(현)Kyiv','(현)Київ']);
+  assert.deepEqual(resolvePlaceLabelRows(record,{ko:true,en:true,native:true},'1991-08-24').map(row=>row.text),['키이우','(현)Kyiv','(현)Київ']);
   assert.throws(()=>resolvePlaceLabelRows(record,{ko:true},'1991'));
+});
+test('missing timelines and dates before naming evidence show current-name prefixes without asserting absence',()=>{
+  const record=place({name:'서울',nameEn:'Seoul',nameNative:'서울',nameTimeline:[]});
+  const languages={ko:true,en:true,native:true};
+  assert.deepEqual(resolvePlaceLabelRows(record,languages,'2012-06-30','2026-10-16').map(row=>row.text),['(현)서울','(현)Seoul']);
+  assert.ok(resolvePlaceLabelRows(record,languages,'2012-06-30','2026-10-16').every(row=>row.modernName));
+  assert.deepEqual(resolvePlaceLabelRows(record,languages,'2026-10-31','2026-10-16').map(row=>row.text),['서울','Seoul']);
+  assert.deepEqual(resolvePlaceLabelRows(place(),{ko:true},'1700-01-01','2026-10-16').map(row=>row.text),['(현)키이우']);
+  assert.equal(hasPlaceNameCoverage(place(),'1700-01-01'),true);
 });
 test('identical English/native names deduplicate without duplicating the place object',()=>{
   const record=place({name:'부다페스트',nameEn:'Budapest',nameNative:'Budapest',nameTimeline:[]});
@@ -71,11 +81,11 @@ test('historical native extras replace, clear and restore without leaking across
     ] });
   const all = { ko: true, en: true, native: true };
   const names = date => resolvePlaceLabelRows(record, all, date).map(row => row.text);
-  assert.deepEqual(names('1878-07-04'), ['레프코샤', 'Nicosia', 'لفقوشه']);
-  assert.deepEqual(names('1878-07-05'), ['레프코샤', 'Nicosia', 'لفقوشه', 'Λευκωσία']);
-  assert.deepEqual(names('1914-11-05'), ['니코시아', 'Nicosia', 'Λευκωσία', 'لفقوشه']);
-  assert.deepEqual(names('1930-05-01'), ['니코시아', 'Nicosia', 'Λευκωσία', 'Lefkoşa']);
-  assert.deepEqual(names('1960-08-16'), ['니코시아', 'Nicosia', 'Λευκωσία', 'Lefkoşa']);
+  assert.deepEqual(names('1878-07-04'), ['레프코샤', '(현)Nicosia', 'لفقوشه']);
+  assert.deepEqual(names('1878-07-05'), ['레프코샤', '(현)Nicosia', 'لفقوشه', 'Λευκωσία']);
+  assert.deepEqual(names('1914-11-05'), ['니코시아', '(현)Nicosia', 'Λευκωσία', 'لفقوشه']);
+  assert.deepEqual(names('1930-05-01'), ['니코시아', '(현)Nicosia', 'Λευκωσία', 'Lefkoşa']);
+  assert.deepEqual(names('1960-08-16'), ['니코시아', '(현)Nicosia', 'Λευκωσία', 'Lefkoşa']);
 });
 
 test('native variants reject invalid type, excess count and normalized duplicates', () => {

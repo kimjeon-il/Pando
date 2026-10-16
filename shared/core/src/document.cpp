@@ -70,6 +70,7 @@ template<class Rows> auto& staticRow(Rows& rows,const std::string& id) {
 }
 }
 bool isStaticTimeline(const ProjectDocument& d) {
+    if(!d.timelineRecords.propertyBindings.empty())return false;
     for(const auto& unit:d.units)if(!staticRows(d.timelineRecords.lifetimes,unit.id)
       ||!staticRows(d.timelineRecords.geometryBindings,unit.id)||!staticRows(d.timelineRecords.parentRelations,unit.id))return false;
     return true;

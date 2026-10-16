@@ -1,5 +1,6 @@
 #include "territorialcatalogadapter.h"
 #include "webjson.h"
+#include <pandoeditor/timeline-view.h>
 #include <QJsonDocument>
 #include <QUuid>
 #include <QRegularExpression>
@@ -25,17 +26,17 @@ Polygon polygon(const QJsonArray& raw) {
     }
     return result;
 }
-bool generalRoot(const ProjectSnapshot& project,const std::string& id) {
+bool generalRoot(const ProjectSnapshot& project,const ProjectDocument& document,const std::set<std::string>& inactive,const std::string& id) {
     const auto found=project.index().objects.find(territorialRef(id));
-    return found!=project.index().objects.end()&&isRootGeneral(project.document(),project.document().units.at(found->second));
+    return found!=project.index().objects.end()&&!inactive.count(id)&&isRootGeneral(document,document.units.at(found->second));
 }
-bool parentBelongsTo(const ProjectSnapshot& project,std::string parent,const std::string& country) {
+bool parentBelongsTo(const ProjectSnapshot& project,const ProjectDocument& document,const std::set<std::string>& inactive,std::string parent,const std::string& country) {
     std::set<std::string> seen;
     while(!parent.empty()&&seen.insert(parent).second) {
         const auto found=project.index().objects.find(territorialRef(parent));
-        if(found==project.index().objects.end()||project.document().units.at(found->second).kind!=UnitKind::General)return false;
-        if(parent==country)return generalRoot(project,country);
-        parent=staticParentRelation(project.document(),parent).parentId;
+        if(found==project.index().objects.end()||inactive.count(parent)||document.units.at(found->second).kind!=UnitKind::General)return false;
+        if(parent==country)return generalRoot(project,document,inactive,country);
+        parent=staticParentRelation(document,parent).parentId;
     }
     return false;
 }
@@ -56,6 +57,7 @@ std::vector<HistoricalAddition> territorialCatalogSelections(const TerritorialLi
     // Fixed Web library-ownership.js allocates each project ID before resolving
     // source parents. Previous imports with the same source ID never participate.
     const auto descriptors=catalog.instantiateDescriptors(roots,date,depth);
+    const auto frame=project.timelineMonth().empty()?TimelineDocumentView{project.document(),{}, {}}:timelineDocumentView(project.document(),project.timelineMonth());
     std::map<std::string,std::string> ids;
     for(const auto& value:descriptors) {
         const auto descriptor=value.toObject();const auto source=text(descriptor.value("entityId"));
@@ -76,8 +78,8 @@ std::vector<HistoricalAddition> territorialCatalogSelections(const TerritorialLi
         selection.name=text(descriptor.value("name"));selection.type=descriptor.value("entityKind")=="regional"?UnitKind::Regional:UnitKind::General;
         selection.parentLibraryId=text(descriptor.value("parentEntityId"));
         selection.geometry=territorialCatalogGeometry(descriptor.value("geometry").toObject());
-        // A selected historical boundary is a static project copy. Dates remain
-        // source provenance; no timeline activation or nearest-version fallback.
+        // Source dates select the boundary and remain provenance. The transaction
+        // owns destination-month activation independently of this catalog date.
         selection.validity={};addition.referenceDate=date.toStdString();addition.instanceId=ids.at(selection.libraryId);
         auto metadata=descriptor.value("metadata").toObject();
         selection.sourceInfo=json(metadata.value("sourceInfo").toObject());
@@ -88,7 +90,7 @@ std::vector<HistoricalAddition> territorialCatalogSelections(const TerritorialLi
         const auto updates=policy.value("countryUpdates").toObject();
         // Fixed Web gis-import-transaction.js maps updates onto actual retained
         // project root IDs; an absent target does not make an import invalid.
-        for(auto it=updates.begin();it!=updates.end();++it)if(generalRoot(project,it.key().toStdString()))
+        for(auto it=updates.begin();it!=updates.end();++it)if(generalRoot(project,frame.document,frame.inactiveIds,it.key().toStdString()))
             selection.instantiation.countryNameUpdates[it.key().toStdString()]=text(it.value().toObject().value("name"));
         if(selection.type==UnitKind::Regional)require(selection.parentLibraryId.empty()&&choice.isEmpty(),"PL-LIB-PARENT: regional entity is independent");
         else if(mode=="root"||selection.parentLibraryId.empty()) {
@@ -98,7 +100,7 @@ std::vector<HistoricalAddition> territorialCatalogSelections(const TerritorialLi
             const auto country=choice.value("countryId").toString().toStdString();
             const auto explicitParent=choice.value("parentId").toString();
             const auto parent=(explicitParent.isEmpty()?choice.value("countryId").toString():explicitParent).toStdString();
-            require(generalRoot(project,country)&&parentBelongsTo(project,parent,country),"PL-LIB-PARENT: select parent in chosen country");
+            require(generalRoot(project,frame.document,frame.inactiveIds,country)&&parentBelongsTo(project,frame.document,frame.inactiveIds,parent,country),"PL-LIB-PARENT: select parent in chosen country");
             addition.parent=territorialRef(parent);
         } else {
             const auto parent=ids.find(selection.parentLibraryId);require(parent!=ids.end(),"PL-LIB-PARENT: ownership required");

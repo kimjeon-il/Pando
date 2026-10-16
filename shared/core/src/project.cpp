@@ -146,7 +146,10 @@ bool territorialDataChanged(const ProjectDocument& before,const TerritorialUnit&
     for(const auto& row:after.timelineRecords.parentRelations)if(row.entityId==next.id)pb.push_back(&row);
     if(pa.size()!=pb.size())return true;
     for(std::size_t i=0;i<pa.size();++i)if(!validity(pa[i]->validity,pb[i]->validity)||pa[i]->parentId!=pb[i]->parentId||pa[i]->coverageMode!=pb[i]->coverageMode)return true;
-    return false;
+    std::vector<std::tuple<std::string,std::optional<std::string>,std::optional<std::string>,std::string>> propertiesA,propertiesB;
+    for(const auto& row:before.timelineRecords.propertyBindings)if(row.entityId==old.id)propertiesA.emplace_back(row.property,row.validity.from,row.validity.to,row.value);
+    for(const auto& row:after.timelineRecords.propertyBindings)if(row.entityId==next.id)propertiesB.emplace_back(row.property,row.validity.from,row.validity.to,row.value);
+    return propertiesA!=propertiesB;
 }
 std::vector<std::string> dirtyTerritorialOrder(const ProjectDocument& before,const ProjectDocument& after) {
     auto result=before.dirtyTerritorialIds;std::set<std::string> seen(result.begin(),result.end());

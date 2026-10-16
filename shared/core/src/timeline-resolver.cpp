@@ -55,6 +55,13 @@ std::string initialTimelineMonth(const TimelineRecords& records,const std::strin
     if(latest->precision=="date")return latest->canonical.substr(0,latest->canonical.size()-3);
     return latest->canonical;
 }
+HistoricalSourceAvailability classifyHistoricalSourceAvailability(const Validity& lifetime,
+    const std::vector<Validity>& versions,const std::string& referenceDate) {
+    if(selectTimelineVersion(lifetime,versions,referenceDate))return HistoricalSourceAvailability::Available;
+    const auto point=parseTemporal(referenceDate);
+    if(!validityContainsAtEnd(lifetime,point))return HistoricalSourceAvailability::Absent;
+    return lifetime.from||lifetime.to?HistoricalSourceAvailability::GeometryGap:HistoricalSourceAvailability::Unknown;
+}
 ResolvedWorld resolveWorld(const TimelineRecords& records,const TimelineValidationContext& context,
                            const std::string& month) {
     const auto cursor=parseTemporal(month);
@@ -69,6 +76,8 @@ ResolvedWorld resolveWorld(const TimelineRecords& records,const TimelineValidati
         const auto* parent=selected(normalized.parentRelations,identity.id,point);
         result.entities.push_back({identity.id,geometry->geometryRef,parent->parentId,parent->coverageMode});
         result.entities.back().validity=lifetime->validity;
+        for(const auto& property:normalized.propertyBindings)if(property.entityId==identity.id&&active(property.validity,point))
+            result.entities.back().properties[property.property]=property.value;
     }
     for(auto& entity:result.entities) {
         auto parent=entity.parentId;
