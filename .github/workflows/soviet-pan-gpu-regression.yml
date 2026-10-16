@@ -8,6 +8,9 @@ on:
       - 'tests/browser/soviet-web-render-profile.spec.mjs'
       - 'assets/js/modules/gpu-map-renderer.js'
       - 'assets/js/modules/rendering-domain.js'
+      - 'assets/js/modules/gpu-interaction-pass.js'
+      - 'assets/js/modules/gpu-scene-preparation.js'
+      - 'tests/unit/gpu-prepared-draw.test.mjs'
       - 'assets/js/modules/gpu-polygon-overlay-pass.js'
       - 'assets/js/modules/gpu-stroke-renderer.js'
       - 'assets/js/modules/render-scene.js'
@@ -34,7 +37,7 @@ jobs:
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Check selection geometry/ownership contracts
-        run: node --test tests/unit/selection-overlay-plan.test.mjs tests/unit/selection-entity-channels.test.mjs
+        run: node --test tests/unit/selection-overlay-plan.test.mjs tests/unit/selection-entity-channels.test.mjs tests/unit/gpu-prepared-draw.test.mjs
       - name: Check Soviet 1989 pure-pan GPU reuse
         env:
           PANDOLAB_BROWSER_CHANNEL: chromium
