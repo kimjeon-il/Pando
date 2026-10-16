@@ -1,11 +1,11 @@
 // The packaged full-world data closure is derived only from the Web manifests.
-// It is deliberately separate from physical (terrain/hydro) and place resources.
+// Keep current world, local physical map and place shard resources together.
 const HEX = /^[a-f0-9]{64}$/;
 const PREFIX = 'assets/data/';
 const LIBRARY_ROOT = 'assets/data/territorial-entities/generated/v2/';
 const PREPARED_ROOT = 'assets/data/prepared-polygons/generated/v2/';
 
-export function buildFullWorldAssetPlan({ meta, world, historical, library, prepared }) {
+export function buildFullWorldAssetPlan({ meta, world, historical, library, prepared, terrain, hydro, places }) {
   if (!meta?.historicalWorld || !meta?.territorialIndex || !meta?.preparedPolygonMeshes
       || !/^data-[a-f0-9]{32}$/.test(meta.dataRevision || '')) {
     throw new Error('Current published world metadata is required.');
@@ -85,7 +85,44 @@ export function buildFullWorldAssetPlan({ meta, world, historical, library, prep
     }
     add(spec.url, spec);
   }
+  // Physical resources are packaged, not eagerly decoded. The unchanged
+  // Web loaders schedule tile and shard reads according to map visibility.
+  const worldFileCount = files.size;
+  const terrainRoot = 'assets/data/terrain-preview/v0.13.3-p1/';
+  if (terrain?.version !== '0.13.3-p1' || terrain.representation !== 'raster-rgba-v1'
+      || terrain.urlTemplate !== 'terrain-preview/v0.13.3-p1/{level}/{column}-{row}.webp'
+      || Object.keys(terrain.tiles || {}).length !== 8) {
+    throw new Error('Local terrain raster manifest is not the current eight-tile profile.');
+  }
+  add(terrainRoot + 'manifest.json');
+  for (const [tile, spec] of Object.entries(terrain.tiles)) {
+    if (!new RegExp('^[01]/[0-9]+-[0-9]+[.]webp$').test(tile)) {
+      throw new Error('Invalid local terrain tile name.');
+    }
+    add(terrainRoot + tile, { sha256: spec.sha256, compressedBytes: spec.bytes });
+  }
+  if (hydro?.version !== '0.13.2' || hydro.schema !== 'pandolab-water-shards-v5'
+      || hydro.container?.url !== 'hydro.bin'
+      || hydro.container?.bytes !== hydro.stats?.compressedBytes) {
+    throw new Error('Local hydro packfile contract is invalid.');
+  }
+  add('assets/data/hydro/v0.13.2/manifest.json');
+  add('assets/data/hydro/v0.13.2/hydro.bin', {
+    sha256: hydro.container.sha256, compressedBytes: hydro.container.bytes,
+  });
+  if (places?.version !== 1 || !places.revision
+      || places.shards?.['places-v1']?.url !== 'places-v1.bin'
+      || Object.keys(places.shards).length !== 1) {
+    throw new Error('Local place packfile contract is invalid.');
+  }
+  add('assets/data/places/manifest.json');
+  add('assets/data/places/places-v1.bin', {
+    sha256: places.shards['places-v1'].sha256,
+    compressedBytes: places.shards['places-v1'].bytes,
+  });
   return Object.freeze({
+    worldFileCount,
+    physicalFileCount: files.size - worldFileCount,
     countryCount: world.source.countryCount,
     rootCount, unitCount, modelEntityCount, mergedSourceCount: removedCount - unitCount,
     sourceSha256: world.source.sha256,
