@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { setImmediate } from 'node:timers';
 
 import { createProjectPreviewCache } from '../../assets/js/modules/project-preview-cache.js';
 
@@ -266,7 +267,7 @@ test('a later persisted project with different content still rejects a stale pre
   const inspected=[];
   let builds=0,writes=0;
   const {cache,workers,ready}=previewCache(t,{
-    onPostMessage:(worker,message)=>queueMicrotask(()=>{
+    onPostMessage:(worker,message)=>globalThis.queueMicrotask(()=>{
       if(worker.terminated)return;
       if(message.type==='key')worker.reply(message.source.project.savedAt===saved.savedAt?'same-key':'newer-key');
       else {builds++;worker.reply({geometryKey:'same-key'});}
