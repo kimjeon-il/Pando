@@ -3538,7 +3538,8 @@ export function createGpuMapRenderer(deps) {
         mesh, overrideMesh, overrideIds: countryOverrideIds, countriesVisible: state.layerVisibility.countries,
         blocked: projectRenderBlocked, isPending: id => geometryRevisionTracker.isPending(id), isVisible: isCountryVisibleById }, polygonOverlayPass);
       const fillTarget = gl.getParameter(gl.FRAMEBUFFER_BINDING);
-      const fillTargetReady = interactionFillCache.beginScene(pixelWidth, pixelHeight, '', projectGeneration);
+      const fillTargetReady = preparedInteraction.hasFillItems
+        && interactionFillCache.beginScene(pixelWidth, pixelHeight, '', projectGeneration);
       performanceMetrics.countryInteractionIndexCount = 0;
       performanceMetrics.countryInteractionRangeCount = 0;
       performanceMetrics.countryInteractionFullIndexCount = Number(mesh?.triangleIndices?.length || 0) + Number(overrideMesh?.triangleIndices?.length || 0);
