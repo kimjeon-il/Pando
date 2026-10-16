@@ -61,6 +61,8 @@ test('1991 library geometry is inserted into 2012 and preserves temporal edits, 
   await month(page,'2013-01');expect((await object(page,added.id)).properties.name).toBe('Future USSR');
   // Month navigation only updates the separately stored session cursor;
   // earlier accepted historical edits remain in the full document receipt.
+  await expect.poll(async()=> (await autosave(page))?.timelineRecords?.propertyBindings
+    ?.some(row=>row.entityId===added.id&&row.value.name==='Inserted USSR'),{timeout:90000}).toBe(true);
   const documentBeforeMonth=await autosave(page);
   await month(page,'2012-06');
   await expect.poll(async()=>{
