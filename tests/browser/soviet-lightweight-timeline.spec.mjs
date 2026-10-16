@@ -30,7 +30,20 @@ async function month(page, value) {
   await expect(page.locator('#timelineMonthInput')).toHaveValue(value);
 }
 async function ready(page) {
-  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 100_000 });
+  await expect.poll(() => page.locator('#app').getAttribute('data-readiness'),
+    { timeout: 85_000, intervals: [250, 750, 1250] }).toMatch(/^(enhanced|error)$/);
+  const state = await page.locator('#app').getAttribute('data-readiness');
+  if (state === 'error') {
+    const details = await page.evaluate(() => ({
+      stage: document.querySelector('#app')?.dataset.readiness || null,
+      actionStatus: document.querySelector('#actionStatus')?.textContent?.slice(0, 500) || null,
+      bootstrapLoading: document.querySelector('#bootstrapLoading')?.textContent?.slice(0, 500) || null,
+      startup: window.__PANDOLAB_STARTUP_METRICS__ || null,
+      performance: window.__PANDOLAB_PERFORMANCE_REPORT__?.()?.startup || null,
+      diagnostics: window.__PANDOLAB_BOOTSTRAP_DIAGNOSTIC__ || null,
+    }));
+    throw new Error('WEB_STARTUP_DIAGNOSTIC ' + JSON.stringify(details));
+  }
   await expect.poll(() => page.evaluate(() => typeof window.PANDOLAB_TERRITORIAL?.get === 'function'),
     { timeout: 20_000 }).toBe(true);
 }
@@ -38,7 +51,10 @@ async function ready(page) {
 test('Soviet month-only moves save a small session record, persist across reload, and keep document autosave', async ({page}, testInfo) => {
   test.setTimeout(300_000);
   const pageErrors = [];
-  page.on('pageerror', error => pageErrors.push(error.message));
+  page.on('pageerror', error => { pageErrors.push(error.message); console.error('BROWSER_PAGE_ERROR', error.stack || error.message); });
+  page.on('console', message => {
+    if (message.type() === 'error') console.error('BROWSER_CONSOLE_ERROR', message.text());
+  });
   await page.goto('/?perf=1&renderer=webgl2');
   await ready(page);
   // A full autosave caused by bootstrap or old IndexedDB data must finish
