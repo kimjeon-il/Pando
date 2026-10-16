@@ -164,11 +164,22 @@ test('1989 Soviet repeated coast edit and month round-trip keep bounded caches a
   await setMonth(page, sourceMonth);
   await expect.poll(() => page.evaluate(() => !window.PANDOLAB_TERRITORIAL.get('state:soviet-union')),
     { timeout: 90_000 }).toBe(true);
+  // Cursor-only movement retires the previous month's heavy boundary topology
+  // without starting a full geometry export or a replacement edit Worker.
+  await expect.poll(async () => {
+    const worker = page.workers().find(value => value.url().includes('/map-edit-worker.js'));
+    if (!worker) return true;
+    return worker.evaluate(() => globalThis.__PANDOLAB_MAP_EDIT_MEMORY_DIAGNOSTICS__?.().boundary === null);
+  }, { timeout: 15_000 }).toBe(true);
   phases.push(await sample(page, cdp, 'modern-after-main-gc', { collectMainGarbage: true }));
+  await page.waitForTimeout(6000);
+  phases.push(await sample(page, cdp, 'modern-idle-6s-after-main-gc', { collectMainGarbage: true }));
   await setMonth(page, '1989-06');
   await expect.poll(() => geometryIdentity(page), { timeout: 90_000 }).toEqual(original);
   await page.waitForTimeout(1500);
   phases.push(await sample(page, cdp, 'soviet-return-after-main-gc', { collectMainGarbage: true }));
+  await page.waitForTimeout(6000);
+  phases.push(await sample(page, cdp, 'soviet-return-idle-6s-after-main-gc', { collectMainGarbage: true }));
 
   const editWorkerReadouts = phases.map(phase => ({
     phase: phase.label,
@@ -176,7 +187,7 @@ test('1989 Soviet repeated coast edit and month round-trip keep bounded caches a
     workers: phase.workers.length,
   }));
   const result = {
-    schema: 'pandolab-soviet-memory-cycle-v1', month: '1989-06', sourceMonth,
+    schema: 'pandolab-soviet-memory-cycle-v2', month: '1989-06', sourceMonth,
     accounting: 'Main JS heap after CDP main GC; Worker JS and WASM only when available; Linux Chromium PSS is not VRAM',
     original, phases, editWorkerReadouts, errors,
   };
@@ -215,5 +226,9 @@ test('1989 Soviet repeated coast edit and month round-trip keep bounded caches a
   }
   const initialWorkerCount = phases[0].workers.length;
   for (const phase of phases) expect(phase.workers.length).toBeLessThanOrEqual(initialWorkerCount + 2);
+  for (const phase of phases.filter(row => row.label.startsWith('modern-') || row.label.startsWith('soviet-return'))) {
+    const memory = phase.workers.find(worker => worker.name === 'map-edit-worker.js')?.mapEdit;
+    if (memory) expect(memory.boundary).toBeNull();
+  }
   await cdp.detach();
 });
