@@ -1,0 +1,10 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-abort-document-transfer"
+description = "Enables abort_document_transfer without any pre-configured scope."
+commands.allow = ["abort_document_transfer"]
+
+[[permission]]
+identifier = "deny-abort-document-transfer"
+commands.deny = ["abort_document_transfer"]

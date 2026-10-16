@@ -18,10 +18,12 @@ fn main() {
             "read_probe_file",
             "write_diagnostic_report",
             "finish_probe",
-            "save_project_file",
-            "save_export_file",
-            "open_project_file",
-            "open_gis_files",
+            "begin_document_write",
+            "append_document_chunk",
+            "finish_document_write",
+            "begin_document_read",
+            "read_document_chunk",
+            "abort_document_transfer",
         ]),
     ))
     .expect("failed to build prototype shell configuration");
