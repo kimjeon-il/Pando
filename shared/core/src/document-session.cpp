@@ -72,7 +72,17 @@ std::string DocumentSession::documentSnapshot() const {requireLoaded();return pr
 std::string DocumentSession::validateImport(const std::string& input,std::optional<std::uint32_t> baselineId) const {
     if(baselineId&&(!storageBaseline_||*baselineId!=storageBaselineId_))throw TimelineError("PL-SCHEMA-BASE","The requested baseline is absent or replaced.");
     auto decoded=projectcodec::decodeWebStorage(input,ports_,storageBaseline_?&*storageBaseline_:nullptr);
-    Project staged;staged.replace(std::move(decoded));return projectcodec::webSnapshot(staged.snapshot());
+    const auto reopenMonth=decoded.reopenMonth;
+    Project staged;staged.replace(std::move(decoded));
+    auto prepared=codecjson::parse(projectcodec::webSnapshot(staged.snapshot()));
+    // This detached import is loaded again by startup/file admission. Keep the
+    // codec-validated reopening hint through preparation without activating or
+    // changing the live session cursor during validation.
+    if(reopenMonth) {
+        auto editor=codecjson::Value::obj();editor.object["lastViewedMonth"]=codecjson::Value::str(*reopenMonth);
+        prepared.object["editorState"]=std::move(editor);
+    }
+    return prepared.encode();
 }
 ImportInspection DocumentSession::inspectImport(const std::string& input,std::optional<std::uint32_t> baselineId,const std::string& currentMonth) const {
     if(baselineId&&(!storageBaseline_||*baselineId!=storageBaselineId_))throw TimelineError("PL-SCHEMA-BASE","The requested baseline is absent or replaced.");

@@ -58,7 +58,9 @@ test('cursor-only export restores the work month without changing history or dir
     const state=session.projectState();assert.equal(state.dirty,before.dirty);assert.equal(state.canUndo,before.canUndo);
     const exported=session.exportSnapshot({expectedEpoch:state.epoch,format:'pandolab-project-state',version:'0.36.0',savedAt:'2026-10-16T00:00:00Z'});
     assert.equal(JSON.parse(exported.storageJson).editorState.lastViewedMonth,'2012-01');
-    restored.documentLoad(exported.storageJson,'2026-10');assert.equal(restored.projectState().timelineCursor,'2012-01');
+    const prepared=restored.validateImport(exported.storageJson,null);
+    assert.equal(prepared.editorState.lastViewedMonth,'2012-01');
+    restored.documentLoad(JSON.stringify(prepared),'2026-10');assert.equal(restored.projectState().timelineCursor,'2012-01');
     assert.equal(execute(restored,'name','Resumed').ok,true);
     cursor(restored,'2011-01');assert.equal(name(restored),seed.territorialEntities.find(row=>row.id==='A').properties.name);
   }finally{session.delete();restored.delete();}
