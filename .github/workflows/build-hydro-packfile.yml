@@ -1,11 +1,7 @@
+# Explicit GIS/source-data reproduction; lightweight source checks remain in gis-python-p4.yml.
 name: Build immutable Hydro v0.13.2 two-file package
 
 on:
-  push:
-    branches: [work/gis]
-    paths:
-      - 'tools/build-hydro-packfile.py'
-      - '.github/workflows/build-hydro-packfile.yml'
   workflow_dispatch:
 
 permissions:

@@ -4,6 +4,7 @@
 #include "geometrycalculator.h"
 #include <pandoeditor/project.h>
 #include <pandoeditor/geometrypredicates.h>
+#include <pandoeditor/timeline-view.h>
 #include <QtTest>
 
 using namespace pandoeditor;
@@ -29,6 +30,40 @@ Project project() {
 class HistoricalTransactionTests:public QObject {
     Q_OBJECT
 private slots:
+    void source1991InsertedAt2012PreservesOtherGeometryVersionsAndUndo() {
+        auto initial=project();auto document=initial.document();
+        const auto past=staticGeometryBinding(document,"A").geometryRef;
+        staticGeometryBinding(document,"A").validity.to="2012-12";
+        const GeometryRef future{"A-future",1};document.geometries.insert(future,box(0,0,12,10));
+        document.timelineRecords.geometryBindings.push_back({"A:2013","A",{{"2013-01"},{}},future});
+        Project p;p.replace(document);p.setTimelineCursor("2012-06");
+        auto source=catalog(box(0,0,4,10));
+        HistoricalAddRequest request;request.libraryId="historical-country:test";request.referenceDate="1991";request.instanceId="imported-copy";
+        auto plan=prepareHistoricalTransaction(p.snapshot(),source,{request},calculateGeometry);
+        QCOMPARE(plan.applicationMonth,std::optional<std::string>("2012-06"));
+        QCOMPARE(plan.additions.front().referenceDate,std::optional<std::string>("1991"));
+        CommandArguments args;args.action=plan;
+        auto prepared=CommandProcessor::prepare(p,CommandProcessor::makeRequest(p,"historical.instantiate",args));
+        QVERIFY2(prepared.ok(),prepared.detail.c_str());QVERIFY(CommandProcessor::confirm(p,*prepared.preview).changed());
+        const auto previous=p.resolveWorld("2011-06"),current=p.resolveWorld("2012-06"),later=p.resolveWorld("2013-06");
+        QVERIFY(!previous.find("imported-copy"));QVERIFY(current.find("imported-copy"));QVERIFY(later.find("imported-copy"));
+        QCOMPARE(previous.find("A")->geometryRef,past);QCOMPARE(later.find("A")->geometryRef,future);
+        QCOMPARE(planarArea(*p.document().geometries.get(current.find("A")->geometryRef)),60.);
+        QCOMPARE(p.document().units.back().libraryOrigin->referenceDate,std::optional<std::string>("1991"));
+        QVERIFY(p.undo());QVERIFY(!p.index().objects.count(territorialRef("imported-copy")));
+        QCOMPARE(p.resolveWorld("2012-06").find("A")->geometryRef,past);
+        QVERIFY(p.redo());QVERIFY(p.resolveWorld("2012-06").find("imported-copy"));
+        QCOMPARE(p.resolveWorld("2013-06").find("A")->geometryRef,future);
+    }
+    void historicalPreparationCannotBeAppliedAfterMonthChange() {
+        auto p=project();p.setTimelineCursor("2012-06");auto source=catalog(box(0,0,4,10));
+        auto plan=prepareHistoricalTransaction(p.snapshot(),source,{{"historical-country:test","1991"}},calculateGeometry);
+        p.setTimelineCursor("2013-06");CommandArguments args;args.action=plan;
+        const auto rejected=CommandProcessor::prepare(p,CommandProcessor::makeRequest(p,"historical.instantiate",args));
+        QVERIFY(!rejected.ok());QCOMPARE(p.document().units.size(),std::size_t(1));
+        QVERIFY_EXCEPTION_THROWN(prepareHistoricalTransaction(p.snapshot(),source,{{"historical-country:test","1991"}},calculateGeometry,[]{return true;}),std::runtime_error);
+        QCOMPARE(p.document().units.size(),std::size_t(1));
+    }
     void disconnectedReplacementComponentsDoNotEnterUnrelatedBooleanWork() {
         auto p=project();auto shape=box(0,0,4,10);shape.type="MultiPolygon";
         shape.polygons.push_back(box(80,40,4,10).polygons.front());

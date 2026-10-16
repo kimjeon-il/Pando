@@ -230,6 +230,29 @@ val boundarySplitCandidatesForWeb(val sourceEdges,val nodeCoordinates,double eps
     std::terminate();
 }
 
+val boundaryEdgeBoxesForWeb(val sourceEdges) {
+    try {
+        requireArray(sourceEdges,"INVALID_BOUNDARY_SPLIT");
+        const unsigned count=sourceEdges["length"].as<unsigned>();
+        if(count>1'000'000)throw std::invalid_argument("INVALID_BOUNDARY_SPLIT: too many edges");
+        auto result=val::array();
+        for(unsigned i=0;i<count;++i) {
+            auto boxes=val::array();unsigned j=0;
+            for(const auto& box:boundaryEdgeBoxes(overlapEdge(sourceEdges[i]))) {
+                auto entry=val::array();
+                for(unsigned k=0;k<4;++k)entry.set(k,box[k]);
+                boxes.set(j++,entry);
+            }
+            result.set(i,boxes);
+        }
+        return result;
+    }catch(const std::exception& error) {
+        auto js=val::global("Error").new_(std::string(error.what()));
+        js.set("code",std::string("PL-BOUNDARY-SPLIT"));js.throw_();
+    }
+    std::terminate();
+}
+
 val countryContactsForWeb(val features,val pairs) {
     try {
         requireArray(features,"INVALID_COUNTRY_CONTACT");
@@ -417,6 +440,7 @@ EMSCRIPTEN_BINDINGS(pandoeditor_boundary_chains) {
     emscripten::function("boundarySubtractOverlapsBatch",&boundaryOverlapBatchForWeb);
     emscripten::function("boundaryRefineSegments",&boundaryRefineForWeb);
     emscripten::function("boundarySplitCandidatesBatch",&boundarySplitCandidatesForWeb);
+    emscripten::function("boundaryEdgeBoxesBatch",&boundaryEdgeBoxesForWeb);
     emscripten::function("countryContactPairsBatch",&countryContactsForWeb);
     emscripten::constant("boundaryDefaultMaxEdgeDegrees",pandoeditor::kDefaultBoundaryEdgeDegrees);
 }

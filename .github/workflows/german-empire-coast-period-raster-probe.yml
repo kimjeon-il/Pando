@@ -1,14 +1,8 @@
+# Explicit GIS/source-data reproduction; lightweight source checks remain in gis-python-p4.yml.
 name: Source-review 1914 German Empire SH coastal raster epochs
 
 on:
   workflow_dispatch:
-  push:
-    branches: [work/gis]
-    paths:
-      - tools/probe_german_empire_1914_coast_period_rasters.py
-      - .github/workflows/german-empire-coast-period-raster-probe.yml
-      - tests/unit/historical-german-coastline-period-screen-samples.test.mjs
-
 permissions:
   contents: write
 

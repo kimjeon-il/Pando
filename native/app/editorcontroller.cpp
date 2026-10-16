@@ -9,6 +9,7 @@
 #include "worlddatasetloader.h"
 #include "worlddataset.h"
 #include <pandoeditor/maprenderorder.h>
+#include <pandoeditor/projectcodec.h>
 #include <QFile>
 #include <QFileInfo>
 #include <QScopedValueRollback>
@@ -869,7 +870,7 @@ bool EditorController::canDeleteLayer() const
 QString EditorController::fileName() const {return filePath_.isEmpty()?QStringLiteral("새 프로젝트"):QFileInfo(filePath_).fileName();}
 QString EditorController::documentNotice() const
 {
-    QString notice=QStringLiteral("저장 형식: Qt v10 · 이전 앱에서는 열 수 없습니다. 열기만으로 원본 파일은 변경되지 않습니다.");
+    QString notice=QStringLiteral("저장 형식: Qt v11 · 이전 앱에서는 열 수 없습니다. 열기만으로 원본 파일은 변경되지 않습니다.");
     const auto& d=project_.document();
     const auto activeUnits=d.units.size()-project_.inactiveEntityIds().size();
     if(activeUnits>project_.countries().size())
@@ -972,10 +973,11 @@ void EditorController::publish(bool pruneSelection)
         else discardOwnPresentationRecovery();
     }
     if(autosave_&&!startupBusy_&&worldStatus_!="recovery-failed"&&
-       (autosaveInstance_!=project_.instanceId()||autosaveRevision_!=project_.revision())) {
+       (autosaveInstance_!=project_.instanceId()||autosaveRevision_!=project_.revision()||autosaveTimelineMonth_!=project_.timelineCursor())) {
         try {
             autosave_->scheduleDocument(project_.snapshot());
             autosaveInstance_=project_.instanceId();autosaveRevision_=project_.revision();
+            autosaveTimelineMonth_=project_.timelineCursor();
         } catch(const std::exception& error) {
             emit errorOccurred(QStringLiteral("자동저장을 준비하지 못했습니다: %1")
                                .arg(QString::fromUtf8(error.what())));
@@ -1097,8 +1099,8 @@ bool EditorController::replaceFromBytes(const QByteArray& bytes,bool imported,co
     auto document=::projectcodec::decode(bytes);
     recordRestore("restoreDecode");
     pandoeditor::Project candidate;candidate.replace(std::move(document));
-    candidate.setTimelineCursor(pandoeditor::initialTimelineMonth(candidate.document().timelineRecords,
-        QDate::currentDate().toString(QStringLiteral("yyyy-MM")).toStdString()),false);
+    candidate.setTimelineCursor(pandoeditor::projectcodec::restoredTimelineMonth(candidate.document(),
+        QDate::currentDate().toString(QStringLiteral("yyyy-MM")).toStdString()),candidate.document().reopenMonth.has_value());
     recordRestore("restoreValidate");
     MapProjection nextProjection;nextProjection.rebuild(candidate.viewDocument(),candidate.inactiveEntityIds());
     recordRestore("restoreProjection");

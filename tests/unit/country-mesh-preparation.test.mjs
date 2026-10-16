@@ -1,16 +1,16 @@
+import '../helpers/spherical-core.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import '../../assets/js/vendor/earcut.min.js';
 import '../../assets/js/workers/gpu-mesh-core.js';
 import { createCountryMeshPreparation } from '../../assets/js/modules/country-mesh-preparation.js';
 const engine = globalThis.PandoLabGpuMeshCore;
 const shape = (id, size = 2) => ({ id, geometry: { type: 'Polygon', coordinates: [[[0,0],[size,0],[size,2],[0,2],[0,0]]] } });
 const context = { throwIfCancelled() {} };
 test('prepared country parts keep exact engine output and reuse only unchanged shapes', async () => {
-  const store = createCountryMeshPreparation({ engine, triangulate: globalThis.earcut });
+  const store = createCountryMeshPreparation({ engine });
   const features = [shape('A'), shape('B', 3)];
   const first = await store.build(features, context);
-  const expected = engine.buildGpuMeshFeatures(features, globalThis.earcut);
+  const expected = engine.buildGpuMeshFeatures(features);
   for (const [key, value] of Object.entries(expected)) {
     if (ArrayBuffer.isView(value)) assert.deepEqual(first[key], value, key);
   }
@@ -25,19 +25,19 @@ test('prepared country parts keep exact engine output and reuse only unchanged s
   assert.equal(changed.preparation.builtCount, 1); assert.equal(changed.preparation.reusedCount, 1);
 });
 test('cache budget and cancellation stay bounded between geometry jobs', async () => {
-  const tiny = createCountryMeshPreparation({ engine, triangulate: globalThis.earcut, byteBudget: 1 });
+  const tiny = createCountryMeshPreparation({ engine, byteBudget: 1 });
   await tiny.build([shape('A')], context);
   assert.equal((await tiny.build([shape('A')], context)).preparation.builtCount, 1);
   let cancelled = false;
-  const store = createCountryMeshPreparation({ engine, triangulate: globalThis.earcut,
+  const store = createCountryMeshPreparation({ engine,
     yieldTask: async () => { cancelled = true; } });
   await assert.rejects(store.build([shape('A')], { throwIfCancelled() { if (cancelled) throw Error('cancelled'); } }), /cancelled/);
 });
 
 test('empty country slots retain their ranges and full-world bounds', async () => {
-  const store = createCountryMeshPreparation({ engine, triangulate: globalThis.earcut });
+  const store = createCountryMeshPreparation({ engine });
   const features = [{ id: 'empty', geometry: null }, shape('A')];
   const mesh = await store.build(features, context);
-  const expected = engine.buildGpuMeshFeatures(features, globalThis.earcut);
+  const expected = engine.buildGpuMeshFeatures(features);
   for (const key of ['countryTriangleRanges', 'countryBoundaryRanges', 'countryBounds', 'countryBoundsFlags']) assert.deepEqual(mesh[key], expected[key]);
 });

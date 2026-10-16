@@ -1,10 +1,8 @@
 const revision = new URL(self.location.href).searchParams.get('v') || '';
 const partitionModuleUrl = new URL('../modules/river-territory-partition.js', self.location.href);
-const polygonClippingUrl = new URL('../vendor/polygon-clipping.min.js', self.location.href);
 const rpcHostUrl = new URL('./worker-rpc-host.js', self.location.href);
 if (revision) {
   partitionModuleUrl.searchParams.set('v', revision);
-  polygonClippingUrl.searchParams.set('v', revision);
   rpcHostUrl.searchParams.set('v', revision);
 }
 
@@ -16,16 +14,17 @@ self.addEventListener('message', retainStartupMessage);
 await import(rpcHostUrl.href);
 const dependencies = Promise.all([
   import(partitionModuleUrl.href),
-  import(polygonClippingUrl.href),
+  import('../modules/core-wasm-loader.js').then(({ loadVerifiedCore }) => loadVerifiedCore({
+    baseUrl: new URL('../../wasm/', self.location.href),
+  })).then(core => { self.PandoLabSphericalCore = core; }),
 ]).then(([partitionModule]) => ({
   partitionModule,
-  clipper: self.polygonClipping || globalThis.polygonClipping || null,
 }));
 
 async function compute(payload, context = null) {
-  const { partitionModule, clipper } = await dependencies;
+  const { partitionModule } = await dependencies;
   context?.throwIfCancelled?.();
-  const result = partitionModule.buildRiverTerritoryPartitions({ ...(payload || {}), clipper });
+  const result = partitionModule.buildRiverTerritoryPartitions(payload || {});
   context?.throwIfCancelled?.();
   return result;
 }

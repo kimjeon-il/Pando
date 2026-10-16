@@ -66,7 +66,8 @@ test('map edit worker client rebases, executes and commits with one revision str
   });
   const response = await client.execute('merge', { targetId: 'AAA' });
   assert.deepEqual(response.result.affectedIds, ['AAA']);
-  client.commit(response.requestId);
+  assert.throws(() => client.commit(response.requestId), /prepared geometry revision/);
+  client.commit(response.requestId, response.geometryRevision);
   assert.deepEqual(workers[0].messages.map(message => message.operation), ['map-edit.rebase', 'merge', 'map-edit.commit']);
 });
 

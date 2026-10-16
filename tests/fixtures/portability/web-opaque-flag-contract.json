@@ -21,7 +21,7 @@
       "flagUrl": null,
       "project": {
         "format": "pandolab-project-state",
-        "schemaVersion": 10,
+        "schemaVersion": 11,
         "version": "0.34.0",
         "savedAt": "2026-10-04T00:00:00.000Z",
         "baseDataset": "external-territorial-entities",
@@ -61,7 +61,7 @@
           "valueKind": "finite-number"
         },
         "timelineRecords": {
-          "schemaVersion": 1,
+          "schemaVersion": 2,
           "lifetimes": [
             {
               "id": "life:A",
@@ -163,7 +163,8 @@
               "parentId": "",
               "coverageMode": "explicit"
             }
-          ]
+          ],
+          "propertyBindings": []
         },
         "geometries": [
           {
@@ -838,7 +839,7 @@
       "flagUrl": "new flag",
       "project": {
         "format": "pandolab-project-state",
-        "schemaVersion": 10,
+        "schemaVersion": 11,
         "version": "0.34.0",
         "savedAt": "2026-10-04T00:00:00.000Z",
         "baseDataset": "external-territorial-entities",
@@ -878,7 +879,7 @@
           "valueKind": "finite-number"
         },
         "timelineRecords": {
-          "schemaVersion": 1,
+          "schemaVersion": 2,
           "lifetimes": [
             {
               "id": "life:A",
@@ -980,7 +981,8 @@
               "parentId": "",
               "coverageMode": "explicit"
             }
-          ]
+          ],
+          "propertyBindings": []
         },
         "geometries": [
           {
@@ -1655,7 +1657,7 @@
       "flagUrl": "new flag",
       "project": {
         "format": "pandolab-project-state",
-        "schemaVersion": 10,
+        "schemaVersion": 11,
         "version": "0.34.0",
         "savedAt": "2026-10-04T00:00:00.000Z",
         "baseDataset": "external-territorial-entities",
@@ -1695,7 +1697,7 @@
           "valueKind": "finite-number"
         },
         "timelineRecords": {
-          "schemaVersion": 1,
+          "schemaVersion": 2,
           "lifetimes": [
             {
               "id": "life:A",
@@ -1797,7 +1799,8 @@
               "parentId": "",
               "coverageMode": "explicit"
             }
-          ]
+          ],
+          "propertyBindings": []
         },
         "geometries": [
           {
@@ -2348,7 +2351,7 @@
       "flagUrl": null,
       "project": {
         "format": "pandolab-project-state",
-        "schemaVersion": 10,
+        "schemaVersion": 11,
         "version": "0.34.0",
         "savedAt": "2026-10-04T00:00:00.000Z",
         "baseDataset": "external-territorial-entities",
@@ -2388,7 +2391,7 @@
           "valueKind": "finite-number"
         },
         "timelineRecords": {
-          "schemaVersion": 1,
+          "schemaVersion": 2,
           "lifetimes": [
             {
               "id": "life:A",
@@ -2490,7 +2493,8 @@
               "parentId": "",
               "coverageMode": "explicit"
             }
-          ]
+          ],
+          "propertyBindings": []
         },
         "geometries": [
           {
@@ -3041,7 +3045,7 @@
       "flagUrl": "new flag",
       "project": {
         "format": "pandolab-project-state",
-        "schemaVersion": 10,
+        "schemaVersion": 11,
         "version": "0.34.0",
         "savedAt": "2026-10-04T00:00:00.000Z",
         "baseDataset": "external-territorial-entities",
@@ -3081,7 +3085,7 @@
           "valueKind": "finite-number"
         },
         "timelineRecords": {
-          "schemaVersion": 1,
+          "schemaVersion": 2,
           "lifetimes": [
             {
               "id": "life:A",
@@ -3183,7 +3187,8 @@
               "parentId": "",
               "coverageMode": "explicit"
             }
-          ]
+          ],
+          "propertyBindings": []
         },
         "geometries": [
           {
@@ -3734,7 +3739,7 @@
       "flagUrl": null,
       "project": {
         "format": "pandolab-project-state",
-        "schemaVersion": 10,
+        "schemaVersion": 11,
         "version": "0.34.0",
         "savedAt": "2026-10-04T00:00:00.000Z",
         "baseDataset": "external-territorial-entities",
@@ -3774,7 +3779,7 @@
           "valueKind": "finite-number"
         },
         "timelineRecords": {
-          "schemaVersion": 1,
+          "schemaVersion": 2,
           "lifetimes": [
             {
               "id": "life:A",
@@ -3876,7 +3881,8 @@
               "parentId": "",
               "coverageMode": "explicit"
             }
-          ]
+          ],
+          "propertyBindings": []
         },
         "geometries": [
           {
@@ -4551,7 +4557,7 @@
       "flagUrl": null,
       "project": {
         "format": "pandolab-project-state",
-        "schemaVersion": 10,
+        "schemaVersion": 11,
         "version": "0.34.0",
         "savedAt": "2026-10-04T00:00:00.000Z",
         "baseDataset": "external-territorial-entities",
@@ -4591,7 +4597,7 @@
           "valueKind": "finite-number"
         },
         "timelineRecords": {
-          "schemaVersion": 1,
+          "schemaVersion": 2,
           "lifetimes": [
             {
               "id": "life:A",
@@ -4693,7 +4699,8 @@
               "parentId": "",
               "coverageMode": "explicit"
             }
-          ]
+          ],
+          "propertyBindings": []
         },
         "geometries": [
           {
@@ -5368,7 +5375,7 @@
       "flagUrl": null,
       "project": {
         "format": "pandolab-project-state",
-        "schemaVersion": 10,
+        "schemaVersion": 11,
         "version": "0.34.0",
         "savedAt": "2026-10-04T00:00:00.000Z",
         "baseDataset": "external-territorial-entities",
@@ -5408,7 +5415,7 @@
           "valueKind": "finite-number"
         },
         "timelineRecords": {
-          "schemaVersion": 1,
+          "schemaVersion": 2,
           "lifetimes": [
             {
               "id": "life:A",
@@ -5510,7 +5517,8 @@
               "parentId": "",
               "coverageMode": "explicit"
             }
-          ]
+          ],
+          "propertyBindings": []
         },
         "geometries": [
           {
@@ -6061,7 +6069,7 @@
       "flagUrl": null,
       "project": {
         "format": "pandolab-project-state",
-        "schemaVersion": 10,
+        "schemaVersion": 11,
         "version": "0.34.0",
         "savedAt": "2026-10-04T00:00:00.000Z",
         "baseDataset": "external-territorial-entities",
@@ -6101,7 +6109,7 @@
           "valueKind": "finite-number"
         },
         "timelineRecords": {
-          "schemaVersion": 1,
+          "schemaVersion": 2,
           "lifetimes": [
             {
               "id": "life:A",
@@ -6203,7 +6211,8 @@
               "parentId": "",
               "coverageMode": "explicit"
             }
-          ]
+          ],
+          "propertyBindings": []
         },
         "geometries": [
           {
@@ -6754,7 +6763,7 @@
       "flagUrl": null,
       "project": {
         "format": "pandolab-project-state",
-        "schemaVersion": 10,
+        "schemaVersion": 11,
         "version": "0.34.0",
         "savedAt": "2026-10-04T00:00:00.000Z",
         "baseDataset": "external-territorial-entities",
@@ -6794,7 +6803,7 @@
           "valueKind": "finite-number"
         },
         "timelineRecords": {
-          "schemaVersion": 1,
+          "schemaVersion": 2,
           "lifetimes": [
             {
               "id": "life:A",
@@ -6896,7 +6905,8 @@
               "parentId": "",
               "coverageMode": "explicit"
             }
-          ]
+          ],
+          "propertyBindings": []
         },
         "geometries": [
           {
@@ -7447,7 +7457,7 @@
       "flagUrl": null,
       "project": {
         "format": "pandolab-project-state",
-        "schemaVersion": 10,
+        "schemaVersion": 11,
         "version": "0.34.0",
         "savedAt": "2026-10-04T00:00:00.000Z",
         "baseDataset": "external-territorial-entities",
@@ -7487,7 +7497,7 @@
           "valueKind": "finite-number"
         },
         "timelineRecords": {
-          "schemaVersion": 1,
+          "schemaVersion": 2,
           "lifetimes": [
             {
               "id": "life:A",
@@ -7589,7 +7599,8 @@
               "parentId": "",
               "coverageMode": "explicit"
             }
-          ]
+          ],
+          "propertyBindings": []
         },
         "geometries": [
           {
@@ -8262,7 +8273,7 @@
       "flagUrl": null,
       "project": {
         "format": "pandolab-project-state",
-        "schemaVersion": 10,
+        "schemaVersion": 11,
         "version": "0.34.0",
         "savedAt": "2026-10-04T00:00:00.000Z",
         "baseDataset": "external-territorial-entities",
@@ -8302,7 +8313,7 @@
           "valueKind": "finite-number"
         },
         "timelineRecords": {
-          "schemaVersion": 1,
+          "schemaVersion": 2,
           "lifetimes": [
             {
               "id": "life:A",
@@ -8404,7 +8415,8 @@
               "parentId": "",
               "coverageMode": "explicit"
             }
-          ]
+          ],
+          "propertyBindings": []
         },
         "geometries": [
           {
@@ -9076,7 +9088,7 @@
       "flagUrl": null,
       "project": {
         "format": "pandolab-project-state",
-        "schemaVersion": 10,
+        "schemaVersion": 11,
         "version": "0.34.0",
         "savedAt": "2026-10-04T00:00:00.000Z",
         "baseDataset": "external-territorial-entities",
@@ -9116,7 +9128,7 @@
           "valueKind": "finite-number"
         },
         "timelineRecords": {
-          "schemaVersion": 1,
+          "schemaVersion": 2,
           "lifetimes": [
             {
               "id": "life:A",
@@ -9218,7 +9230,8 @@
               "parentId": "",
               "coverageMode": "explicit"
             }
-          ]
+          ],
+          "propertyBindings": []
         },
         "geometries": [
           {
@@ -9768,7 +9781,7 @@
       "flagUrl": null,
       "project": {
         "format": "pandolab-project-state",
-        "schemaVersion": 10,
+        "schemaVersion": 11,
         "version": "0.34.0",
         "savedAt": "2026-10-04T00:00:00.000Z",
         "baseDataset": "external-territorial-entities",
@@ -9808,7 +9821,7 @@
           "valueKind": "finite-number"
         },
         "timelineRecords": {
-          "schemaVersion": 1,
+          "schemaVersion": 2,
           "lifetimes": [
             {
               "id": "life:A",
@@ -9910,7 +9923,8 @@
               "parentId": "",
               "coverageMode": "explicit"
             }
-          ]
+          ],
+          "propertyBindings": []
         },
         "geometries": [
           {
@@ -10460,7 +10474,7 @@
       "flagUrl": null,
       "project": {
         "format": "pandolab-project-state",
-        "schemaVersion": 10,
+        "schemaVersion": 11,
         "version": "0.34.0",
         "savedAt": "2026-10-04T00:00:00.000Z",
         "baseDataset": "external-territorial-entities",
@@ -10500,7 +10514,7 @@
           "valueKind": "finite-number"
         },
         "timelineRecords": {
-          "schemaVersion": 1,
+          "schemaVersion": 2,
           "lifetimes": [
             {
               "id": "life:A",
@@ -10602,7 +10616,8 @@
               "parentId": "",
               "coverageMode": "explicit"
             }
-          ]
+          ],
+          "propertyBindings": []
         },
         "geometries": [
           {

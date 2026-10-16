@@ -9,12 +9,15 @@ export function createCoreDocumentClient({
   onTransition = () => {},
 } = {}) {
   let currentState = null;
+  let disposed = false;
   let queue = Promise.resolve();
   const subscribers = new Set();
   const rpc = createWorkerRpcClient({ createWorker, isCurrent: () => true, restartOnCrash: false,
     onCrash: () => { currentState = null; } });
   function ordered(operation, payload, options = {}, requiresDocument = true, atomic = false, injectEpoch = requiresDocument) {
     const result = queue.then(async () => {
+      if (disposed) throw Object.assign(new Error('The C++ document owner was disposed.'),
+        { code: 'PL-CORE-CANCELLED', name: 'AbortError', cancelled: true });
       if (options.isCurrent && !options.isCurrent()) fail('PL-CORE-STALE', 'The request belongs to another project generation.');
       if (requiresDocument && !currentState) fail('PL-CORE-NOT-LOADED', 'The complete C++ document has not been loaded.');
       if (atomic && options.signal?.aborted) throw Object.assign(new Error('Document operation was cancelled before dispatch.'),
@@ -25,6 +28,8 @@ export function createCoreDocumentClient({
       // acknowledgement must update the read model even if the caller aborts.
       const { result } = await rpc.request(operation, request, atomic
         ? { timeoutMs: 0 } : { signal: options.signal });
+      if (disposed) throw Object.assign(new Error('The C++ document owner was disposed.'),
+        { code: 'PL-CORE-CANCELLED', name: 'AbortError', cancelled: true });
       // A validated import is a detached candidate, never a live transition.
       // Header fields in the imported document cannot publish state or deltas.
       if(operation==='core.document-validate-import' || operation==='core.document-inspect-import')return result;
@@ -90,6 +95,6 @@ export function createCoreDocumentClient({
     labelGestureApply: (payload,options) => ordered('core.document-label-gesture',payload,options,true,true),
     storageSnapshot: options => ordered('core.storage-snapshot', {}, options),
     state: () => currentState,
-    dispose: () => { currentState = null; subscribers.clear(); rpc.stop(); },
+    dispose: () => { if(disposed)return;disposed=true;currentState = null; subscribers.clear(); rpc.stop(); },
   });
 }

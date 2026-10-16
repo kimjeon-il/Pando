@@ -1,7 +1,7 @@
 import { polygonGeometryDigest } from './prepared-polygon-mesh.js';
 
 // The mesh Worker owns prepared geometry. Returned arrays never share its cache.
-export function createCountryMeshPreparation({ engine, triangulate, byteBudget = 128 * 1024 * 1024,
+export function createCountryMeshPreparation({ engine, byteBudget = 128 * 1024 * 1024,
   yieldTask = () => new Promise(resolve => setTimeout(resolve, 0)) }) {
   const cache = new Map();
   let cacheBytes = 0;
@@ -22,7 +22,8 @@ export function createCountryMeshPreparation({ engine, triangulate, byteBudget =
         cache.delete(key); cache.set(key, part); preparation.reusedCount++;
       } else {
         const begin = performance.now();
-        part = engine.buildGpuMeshFeatures([feature], triangulate, { validate: false });
+        part = engine.buildGpuMeshFeatures([feature], { validate: false,
+          throwIfCancelled: () => context.throwIfCancelled() });
         const duration = performance.now() - begin;
         preparation.triangulationMs += duration; preparation.builtCount++;
         if (!preparation.slowestFeature || duration > preparation.slowestFeature.ms)

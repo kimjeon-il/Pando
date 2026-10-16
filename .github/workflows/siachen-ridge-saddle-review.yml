@@ -1,9 +1,6 @@
+# Explicit GIS/source-data reproduction; lightweight source checks remain in gis-python-p4.yml.
 name: Siachen terrain continuity and saddle test
 on:
-  push:
-    branches: [work/gis]
-    paths:
-      - scripts/research/siachen/review_saltoro_terrain_continuity.py
   workflow_dispatch:
 permissions:
   contents: write

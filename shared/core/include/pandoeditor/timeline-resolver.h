@@ -9,6 +9,7 @@ struct ResolvedEntity {
     std::string parentId, coverageMode, rootId;
     std::vector<std::string> ancestors;
     Validity validity;
+    std::map<std::string,std::string> properties;
 };
 struct ResolvedWorld {
     std::string month;
@@ -20,6 +21,9 @@ struct ResolvedWorld {
 bool validityContainsAtEnd(const Validity&,const TemporalValue&);
 std::optional<std::size_t> selectTimelineVersion(const Validity& lifetime,
     const std::vector<Validity>& versions,const std::optional<std::string>& referenceDate);
+enum class HistoricalSourceAvailability { Available,GeometryGap,Absent,Unknown };
+HistoricalSourceAvailability classifyHistoricalSourceAvailability(const Validity& lifetime,
+    const std::vector<Validity>& versions,const std::string& referenceDate);
 
 // The input catalog supplies stable identity order; records and geometry are
 // validated before the month-end view is assembled.

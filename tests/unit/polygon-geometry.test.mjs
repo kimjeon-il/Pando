@@ -117,13 +117,14 @@ test('Borneo canonical country rings are clean before runtime normalization', ()
   }
 });
 
-test('geographic wrapping preserves ordinary and exact full-world seam polygons by identity', () => {
+test('geographic wrapping preserves ordinary and exact full-world seam coordinates without mutating input', () => {
   const { wrapPolygonGeometry } = globalThis.PandoLabPolygonGeometry;
-  const forbidden = { intersection() { assert.fail('already planar geometry must not be clipped'); } };
   const ordinary = { type: 'Polygon', coordinates: [counterClockwiseOuter] };
   const world = { type: 'Polygon', coordinates: [[[-180,-90],[180,-90],[180,90],[-180,90],[-180,-90]]] };
-  assert.equal(wrapPolygonGeometry(ordinary, forbidden), ordinary);
-  assert.equal(wrapPolygonGeometry(world, forbidden), world);
+  const before = structuredClone([ordinary,world]);
+  assert.deepEqual(wrapPolygonGeometry(ordinary), ordinary);
+  assert.deepEqual(wrapPolygonGeometry(world), world);
+  assert.deepEqual([ordinary,world],before);
 });
 
 test('wrapping a dateline component does not normalize or drop an untouched tiny island', async () => {
@@ -134,7 +135,7 @@ test('wrapping a dateline component does not normalize or drop an untouched tiny
   const before = structuredClone(source);
   const result = globalThis.PandoLabPolygonGeometry.wrapPolygonGeometry(source, globalThis.polygonClipping);
   assert.equal(result.coordinates.length, 3);
-  assert.equal(result.coordinates[2], island);
+  assert.deepEqual(result.coordinates[2], island);
   assert.deepEqual(source, before);
 });
 

@@ -1,4 +1,6 @@
 #include <pandoeditor/timeline-records.h>
+#include <pandoeditor/losslessjson.h>
+#include <cmath>
 #include <array>
 #include <cstdlib>
 #include <exception>
@@ -27,7 +29,7 @@ struct Change {
     std::string id,entityId,parentId;
     bool add;
 };
-using Slots=std::array<std::map<std::string,std::string>,3>;
+using Slots=std::array<std::map<std::string,std::string>,6>;
 void inspect(const std::map<std::string,Slots>& active) {
     for(const auto& [id,slots]:active) {
         for(const auto& slot:slots) if(slot.size()>1)
@@ -38,6 +40,8 @@ void inspect(const std::map<std::string,Slots>& active) {
         const auto& life=slots[0]; const auto& geometry=slots[1]; const auto& parent=slots[2];
         if(life.empty()&&(!geometry.empty()||!parent.empty()))
             fail("TIMELINE_OUTSIDE_LIFETIME","Records outside the lifetime of "+id+".");
+        if(life.empty())for(std::size_t i=3;i<slots.size();++i)if(!slots[i].empty())
+            fail("TIMELINE_OUTSIDE_LIFETIME","Properties outside the lifetime of "+id+".");
         if(!life.empty()) {
             if(geometry.empty()||parent.empty()) fail("TIMELINE_GAP","Incomplete lifetime coverage for "+id+".");
             parents.emplace(id,parent.begin()->second);
@@ -105,6 +109,34 @@ TimelineRecords normalizeTimelineRecords(const TimelineRecords& input,const Time
         if(!row.parentId.empty()&&(entities.at(row.entityId)!="general"||entities.at(row.parentId)!="general"))
             fail("TIMELINE_KIND","Both ends of an administrative relationship must be general entities.");
         if(row.parentId.empty()&&row.coverageMode!="explicit") fail("TIMELINE_COVERAGE","Roots and regional entities must be explicit.");
+    }
+    for(auto& row:result.propertyBindings) {
+        const auto slot=row.property=="name"?3:row.property=="flag"?4:row.property=="color"?5:0;
+        if(!slot)fail("TIMELINE_PROPERTY","Unsupported temporal property.");
+        common(row,slot,{});
+        using V=codecjson::Value;
+        const auto value=codecjson::parse(row.value);
+        if(value.kind!=V::Object)fail("TIMELINE_PROPERTY","Property value must be an object.");
+        const auto field=[&](const char* key)->const V& {
+            const auto found=value.object.find(key);if(found==value.object.end())fail("TIMELINE_PROPERTY",std::string("Missing ")+key);return found->second;
+        };
+        if(row.property=="name") {
+            if(value.object.size()!=2||field("name").kind!=V::String||field("nameExplicit").kind!=V::Bool)
+                fail("TIMELINE_PROPERTY","Invalid name value.");
+        }else if(row.property=="color") {
+            if(value.object.size()!=2||field("color").kind!=V::Number||field("explicitColor").kind!=V::Bool)
+                fail("TIMELINE_PROPERTY","Invalid color value.");
+            const auto number=std::stod(field("color").raw);
+            if(!std::isfinite(number)||number<0||number>0xffffff||number!=std::floor(number))fail("TIMELINE_PROPERTY","Invalid color.");
+        }else {
+            if(value.object.size()!=4||field("policy").kind!=V::String||field("embeddedDataUrl").kind!=V::String||
+               field("defaultCountryId").kind!=V::String||
+               (field("defaultFlagDataUrl").kind!=V::Null&&field("defaultFlagDataUrl").kind!=V::String))fail("TIMELINE_PROPERTY","Invalid flag value.");
+            const auto& policy=field("policy").string;
+            if(policy!="default"&&policy!="none"&&policy!="embedded")fail("TIMELINE_PROPERTY","Invalid flag policy.");
+            if((policy=="embedded")==field("embeddedDataUrl").string.empty())fail("TIMELINE_PROPERTY","Invalid embedded flag.");
+        }
+        row.value=value.encode();
     }
     for(const auto& entry:entities) if(!hasLife.count(entry.first)) fail("TIMELINE_LIFETIME","No lifetime for "+entry.first+".");
     for(const auto& boundary:events) {

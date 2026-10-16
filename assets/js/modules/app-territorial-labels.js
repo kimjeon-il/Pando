@@ -1,7 +1,8 @@
 import { createMapVisualFrame, isMapVisualFrame } from './map-visual-frame.js';
 import { placeLabelDimensions } from './label-layout.js';
 import { createPlaceRuntime } from './place-runtime.js';
-import { isBuiltinPlaceId, resolvePlaceLabelRows, hasPlaceNameCoverage, PLACE_LIMITS } from './place-contract.js';
+import { isBuiltinPlaceId, PLACE_LIMITS } from './place-contract.js';
+import { resolvePlaceLabelRows } from './place-name-display.js';
 import { temporalMonthEnd } from './temporal.js';
 import { territorialLabelFlag } from './territorial-label-flags.js';
 import { effectiveTerritorialFlagUrl } from './country-flags.js';
@@ -245,7 +246,7 @@ export function createTerritorialLabels() {
       const point = frameContext.projectVisibleCoordinate(coordinate);
       if (!point) continue;
       const priority = settings.priority ?? (label.kind === 'capital' ? dependencies.labelPresentation.LABEL_PRIORITIES.capital : label.kind === 'city' ? dependencies.labelPresentation.LABEL_PRIORITIES.majorCity : label.kind === 'region' ? dependencies.labelPresentation.LABEL_PRIORITIES.administrative : dependencies.labelPresentation.LABEL_PRIORITIES.place);
-      if (isBuiltinPlaceId(label.id) && (beforeCommonEra || !hasPlaceNameCoverage(label, mapDate))) continue;
+      if (isBuiltinPlaceId(label.id) && beforeCommonEra) continue;
       const rows = isBuiltinPlaceId(label.id)
         ? resolvePlaceLabelRows(label, placeLanguages, mapDate)
         : [{ language: 'ko', text: label.name }];

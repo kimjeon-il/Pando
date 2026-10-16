@@ -178,3 +178,16 @@ test('omitted sourceRevision remains valid for source-sensitive operations and p
   assert.equal(preview.ok, true);
   assert.equal(preview.result.preview.validation.blocking, false);
 });
+
+test('an inconsistent geometry revision is an operation error with both revisions, not a cancellation', async t => {
+  const worker = rawWorker(t);
+  await worker.send(rebase());
+  const request = execute(1, 'merge', { sourceId: 'a', targetIds: ['b'] });
+  request.metadata.dataRevision = 2;
+  await worker.send(request);
+  const response = await worker.result(1);
+  assert.equal(response.ok, false);
+  assert.equal(response.error.category, 'OPERATION');
+  assert.equal(response.error.code, 'PL-MAP-EDIT-REVISION');
+  assert.match(response.error.message, /requested 2, worker 1/);
+});

@@ -1,3 +1,4 @@
+import { calculateReferenceImage, calculateReferencePlacement } from './reference-image-core.js';
 import {
   buildReferenceImageMesh,
   buildReferenceImageProjectiveWarpFromQuad,
@@ -185,21 +186,10 @@ export function referenceImageScreenRectToMapQuad(screenRect, rotation, host) {
 }
 
 export function defaultReferenceImageMapQuad(image, mapElement, host) {
-  let rect = defaultReferenceImageScreenRect(image, mapElement);
-  for (let attempt = 0; attempt < 8; attempt += 1) {
-    const quad = referenceImageScreenRectToMapQuad(rect, 0, host);
-    if (quad) return quad;
-    const center = [rect.x + rect.width / 2, rect.y + rect.height / 2];
-    const width = Math.max(REFERENCE_IMAGE_TRANSFORM.minimumWidth, rect.width * 0.82);
-    const height = Math.max(REFERENCE_IMAGE_TRANSFORM.minimumHeight, rect.height * 0.82);
-    rect = {
-      x: center[0] - width / 2,
-      y: center[1] - height / 2,
-      width,
-      height,
-    };
-  }
-  return null;
+  return calculateReferencePlacement('placementDefault', {
+    width: image?.naturalWidth, height: image?.naturalHeight,
+    viewport: { width: mapElement.getBoundingClientRect().width, height: mapElement.getBoundingClientRect().height },
+  }, coordinate => projectVisible(host, coordinate), point => host.unproject(point)).mapQuad;
 }
 
 export function projectReferenceImageMapQuad(record, host) {
@@ -221,13 +211,7 @@ export function buildReferenceImagePlacementWarp(record) {
 }
 
 export function referenceImagePlacementCoordinateAtUv(record, imageUv) {
-  const pair = finitePair(imageUv);
-  if (!pair || pair.some(component => component < 0 || component > 1)) return null;
-  const warp = buildReferenceImagePlacementWarp(record);
-  if (!warp.ok) return null;
-  const u = record.flipX ? 1 - pair[0] : pair[0];
-  const v = record.flipY ? 1 - pair[1] : pair[1];
-  return warp.project([u, v]);
+  return calculateReferenceImage('placementCoordinate', { record, point: imageUv });
 }
 
 export function referenceImagePlacementPointAtUv(record, imageUv, host) {
@@ -237,36 +221,9 @@ export function referenceImagePlacementPointAtUv(record, imageUv, host) {
 
 export function alignReferenceImageAnchor(record) {
   if (!record?.anchor || !record.mapQuad) return false;
-  const current = referenceImagePlacementCoordinateAtUv(record, record.anchor.image);
-  const target = normalizeCoordinate(record.anchor.coordinate);
-  if (!current || !target) return false;
-
-  const targetLon = unwrapLongitude(target[0], current[0]);
-  const deltaLon = targetLon - current[0];
-  const deltaLat = target[1] - current[1];
-  const original = record.mapQuad.map(coordinate => [...coordinate]);
-  const translated = [];
-  for (const coordinate of original) {
-    const lon = unwrapLongitude(coordinate[0], current[0]) + deltaLon;
-    const lat = coordinate[1] + deltaLat;
-    if (!Number.isFinite(lon) || !Number.isFinite(lat) || lat < -90 || lat > 90) return false;
-    translated.push(normalizeCoordinate([lon, lat]));
-  }
-  if (translated.some(coordinate => !coordinate)) return false;
-  record.mapQuad = translated;
-
-  const aligned = referenceImagePlacementCoordinateAtUv(record, record.anchor.image);
-  if (!aligned) {
-    record.mapQuad = original;
-    return false;
-  }
-  const lonError = Math.abs(unwrapLongitude(aligned[0], target[0]) - target[0]);
-  const latError = Math.abs(aligned[1] - target[1]);
-  if (lonError > 1e-8 || latError > 1e-8) {
-    record.mapQuad = original;
-    return false;
-  }
-  return true;
+  const result = calculateReferenceImage('alignAnchor', record);
+  if (result.ok) record.mapQuad = result.mapQuad;
+  return result.ok;
 }
 
 export function referenceImagePlacementGeometry(record, host) {
@@ -529,22 +486,11 @@ export function applyReferenceImagePlacementDrag(record, drag, point, host, { sh
 }
 
 export function setReferenceImagePlacementRotation(record, host, value) {
-  const geometry = referenceImagePlacementGeometry(record, host);
-  if (!geometry) return false;
-  const target = normalizeReferenceImageRotation(value);
-  const delta = normalizeReferenceImageRotation(target - geometry.rotation);
-  const anchorPoint = referenceImageAnchorScreenPoint(record, host);
-  if (record.anchor && !anchorPoint) return false;
-  const pivot = anchorPoint || geometry.center;
-  const changed = applyScreenCorners(record, geometry.corners.map(corner => rotatePoint(corner, pivot, delta)), host);
-  return changed && (!record.anchor || alignReferenceImageAnchor(record));
-}
-
-function unwrapLongitude(value, reference) {
-  let result = value;
-  while (result - reference > 180) result -= 360;
-  while (result - reference < -180) result += 360;
-  return result;
+  const result = calculateReferencePlacement('placementRotate', { record, angle: value },
+    coordinate => projectVisible(host, coordinate), point => host.unproject(point));
+  // Preserve the candidate placement on alignment failure, matching drag handling.
+  if (result.mapQuad) record.mapQuad = result.mapQuad;
+  return result.ok;
 }
 
 export function buildReferenceImagePlacementMesh(record, { columns = 12, rows = 8 } = {}) {
@@ -552,48 +498,9 @@ export function buildReferenceImagePlacementMesh(record, { columns = 12, rows = 
   return warp.ok ? buildReferenceImageMesh(warp, { columns, rows }) : null;
 }
 
-function signedArea(points) {
-  let area = 0;
-  for (let index = 0; index < points.length; index += 1) {
-    const current = points[index];
-    const next = points[(index + 1) % points.length];
-    area += current[0] * next[1] - next[0] * current[1];
-  }
-  return area / 2;
-}
-
-function orientation(a, b, c) {
-  return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
-}
-
-function properSegmentsIntersect(a, b, c, d) {
-  const abC = orientation(a, b, c);
-  const abD = orientation(a, b, d);
-  const cdA = orientation(c, d, a);
-  const cdB = orientation(c, d, b);
-  return abC * abD < 0 && cdA * cdB < 0;
-}
-
-function strictlyConvexQuad(points) {
-  if (!Array.isArray(points) || points.length !== 4) return false;
-  const turns = [];
-  for (let index = 0; index < 4; index += 1) {
-    const a = points[index];
-    const b = points[(index + 1) % 4];
-    const c = points[(index + 2) % 4];
-    const turn = orientation(a, b, c);
-    if (Math.abs(turn) < 1e-6) return false;
-    turns.push(Math.sign(turn));
-  }
-  return turns.every(sign => sign === turns[0]);
-}
-
 function usableFreeTransformQuad(record, host) {
-  const points = projectReferenceImageMapQuad(record, host);
-  if (!points || Math.abs(signedArea(points)) < 64 || !strictlyConvexQuad(points)) return false;
-  if (properSegmentsIntersect(points[0], points[1], points[2], points[3])) return false;
-  if (properSegmentsIntersect(points[1], points[2], points[3], points[0])) return false;
-  return buildReferenceImagePlacementWarp(record).ok;
+  const screenQuad = projectReferenceImageMapQuad(record, host);
+  return !!screenQuad && calculateReferenceImage('usableQuad', { quad: record.mapQuad, screenQuad });
 }
 
 export function referenceImageFreeTransformHit(record, point, host) {

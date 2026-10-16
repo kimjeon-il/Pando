@@ -3,10 +3,35 @@
 #include <QtTest>
 #include <QTemporaryDir>
 #include <QFile>
+#include <pandoeditor/timeline-view.h>
+#include <algorithm>
 
 class HistoricalEditorTests:public QObject {
     Q_OBJECT
 private slots:
+    void sourceDateDoesNotReplaceCurrentInsertionMonth() {
+        QTemporaryDir directory;QVERIFY(directory.isValid());
+        QFile library(directory.filePath("source.json"));QVERIFY(library.open(QIODevice::WriteOnly));
+        library.write(R"({"schemaVersion":2,"entities":[{"libraryId":"historical-region:fixture","type":"region","canonicalName":"1991 boundary","geometryVersions":[{"id":"v1991","geometry":{"type":"Polygon","coordinates":[[[70,0],[71,0],[71,1],[70,1],[70,0]]]}}]}],"snapshots":[]})");library.close();
+        EditorController editor({false,directory.filePath("private.json")});
+        QVERIFY(editor.setTimelineMonth(QStringLiteral("2012-06")));
+        QVERIFY(editor.loadHistoricalLibrary(QUrl::fromLocalFile(library.fileName())));
+        QVERIFY(editor.prepareHistoricalAdd({{"libraryId","historical-region:fixture"},{"referenceDate","1991"}}));
+        QTRY_COMPARE_WITH_TIMEOUT(editor.historicalStage(),QStringLiteral("impact"),15000);
+        QVERIFY2(editor.confirmHistoricalAdd(editor.historicalSession()),qPrintable(editor.historicalError()));
+        const auto document=projectcodec::decode(editor.documentBytes());
+        const auto found=std::find_if(document.units.begin(),document.units.end(),[](const auto& unit){return unit.sourceEntityId=="historical-region:fixture";});
+        QVERIFY(found!=document.units.end());const auto id=found->id;
+        QCOMPARE(found->libraryOrigin->referenceDate,std::optional<std::string>("1991"));
+        pandoeditor::Project result;result.replace(document);
+        QVERIFY(!result.resolveWorld("2011-06").find(id));QVERIFY(result.resolveWorld("2012-06").find(id));QVERIFY(result.resolveWorld("2013-06").find(id));
+        editor.undo();result.replace(projectcodec::decode(editor.documentBytes()));QVERIFY(!result.index().objects.count(pandoeditor::territorialRef(id)));
+        editor.redo();result.replace(projectcodec::decode(editor.documentBytes()));QVERIFY(result.resolveWorld("2012-06").find(id));
+        const auto saved=QUrl::fromLocalFile(directory.filePath("saved.json"));QVERIFY(editor.saveFile(saved));
+        EditorController reopened({false,directory.filePath("reopened.json")});QVERIFY(reopened.openFile(saved));QCOMPARE(reopened.timelineMonth(),QStringLiteral("2012-06"));
+        QVERIFY(editor.prepareHistoricalAdd({{"libraryId","historical-region:fixture"},{"referenceDate","1991"}}));
+        const auto token=editor.historicalSession();editor.cancelHistoricalAdd();QVERIFY(!editor.confirmHistoricalAdd(token));
+    }
     void bundledV2IsDefaultCatalog() {
         EditorController editor;
         QCOMPARE(editor.historicalStage(),QStringLiteral("ready"));
@@ -53,9 +78,11 @@ private slots:
     void coarseDateSearchUsesFirstDay() {
         EditorController editor;
         editor.searchHistorical(QStringLiteral("동독"),QString(),QStringLiteral("all"),QStringLiteral("1949"),QString());
-        QVERIFY(editor.historicalResults().isEmpty()); // GDR starts on 1949-10-07.
+        QCOMPARE(editor.historicalResults().size(),qsizetype(1));
+        QCOMPARE(editor.historicalResults().front().toMap().value("sourceAvailability").toString(),QStringLiteral("absent")); // GDR starts on 1949-10-07.
         editor.searchHistorical(QStringLiteral("동독"),QString(),QStringLiteral("all"),QStringLiteral("1949-10"),QString());
-        QVERIFY(editor.historicalResults().isEmpty());
+        QCOMPARE(editor.historicalResults().size(),qsizetype(1));
+        QCOMPARE(editor.historicalResults().front().toMap().value("sourceAvailability").toString(),QStringLiteral("absent"));
         editor.searchHistorical(QStringLiteral("동독"),QString(),QStringLiteral("all"),QStringLiteral("1949-10-07"),QString());
         QCOMPARE(editor.historicalResults().size(),qsizetype(1));
     }

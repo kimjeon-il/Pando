@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import '../../assets/js/vendor/earcut.min.js';
 import '../../assets/js/workers/gpu-mesh-core.js';
 import { buildPolygonGeometryPacket } from '../../assets/js/modules/render-scene.js';
 
@@ -17,7 +16,7 @@ const angle = (a, b) => {
 test('overlay and country fills use identical refined triangles, including their interior edges', () => {
   const geometry = polygon([square(0, 0, 8, 5)]);
   const packet = buildPolygonGeometryPacket(geometry);
-  const mesh = globalThis.PandoLabGpuMeshCore.buildGpuMeshFeatures([{ id: 'fixture', geometry }], globalThis.earcut, { validate: true });
+  const mesh = globalThis.PandoLabGpuMeshCore.buildGpuMeshFeatures([{ id: 'fixture', geometry }], { validate: true });
   assert.deepEqual(packet.indices, mesh.triangleIndices);
   assert.ok(packet.triangleCount > 2);
   let longest = 0;
@@ -36,7 +35,7 @@ test('date-line and polar fills preserve the common engine contract and reject d
     assert.ok(packet.triangleCount > 0);
     assert.ok(packet.maxEdgeDegrees <= 0.49901);
     assert.ok([...packet.positions].every(Number.isFinite));
-    const canonical = globalThis.PandoLabGpuMeshCore.buildGpuMeshFeatures([{ id: 'fixture', geometry }], globalThis.earcut, { validate: true });
+    const canonical = globalThis.PandoLabGpuMeshCore.buildGpuMeshFeatures([{ id: 'fixture', geometry }], { validate: true });
     assert.deepEqual(packet.indices, canonical.triangleIndices);
   }
   assert.throws(() => buildPolygonGeometryPacket(polygon([[[0,0],[1,0],[2,0],[0,0]]])), /삼각분할/);
@@ -53,7 +52,8 @@ test('holes remain empty after subdivision and failed triangulation is visible',
     }
     assert.ok(!(centroid[0] > 1 && centroid[0] < 3 && centroid[1] > 1 && centroid[1] < 3));
   }
-  assert.throws(() => buildPolygonGeometryPacket(geometry, { triangulate: () => [] }), /triangulation|삼각분할/i);
+  assert.throws(() => buildPolygonGeometryPacket(polygon([square(0,0,2,2), square(3,3,4,4)])),
+    error => error.code === 'PL-MESH-TRIANGULATION', 'invalid hole must fail through the shared engine');
 });
 
 test('display LOD preserves a hole inside a narrow shell protrusion', () => {

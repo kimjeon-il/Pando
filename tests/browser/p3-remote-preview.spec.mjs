@@ -29,6 +29,12 @@ for(const config of [
       const app=page.locator('#app');
       await expect(app).toHaveAttribute('data-readiness',/^(preview|editable|enhanced)$/,
         {timeout:110_000});
+      if(process.env.PANDO_P9_ACCEPTANCE==='true') {
+        await page.waitForFunction(()=>/^(enhanced|error)$/.test(document.getElementById('app')?.dataset.readiness||''),undefined,{timeout:110_000});
+        await testInfo.attach('p9-startup-errors.json',{
+          body:Buffer.from(JSON.stringify({runtimeErrors,readiness:await app.getAttribute('data-readiness')},null,2)),contentType:'application/json'});
+        await expect(app).toHaveAttribute('data-readiness','enhanced',{timeout:1000});
+      }
       await expect(page.locator('#map')).toBeVisible();
       const mapBounds=await page.locator('#map').boundingBox();
       expect(mapBounds.width).toBeGreaterThan(80);

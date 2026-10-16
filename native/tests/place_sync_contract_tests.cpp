@@ -29,7 +29,7 @@ QJsonObject contract() {
     return doc.object();
 }
 QJsonObject contractV3() {
-    const auto path=QString::fromUtf8(PLACE_SYNC_REPOSITORY_ROOT)+"/contracts/places/v3.json";
+    const auto path=QString::fromUtf8(PLACE_SYNC_CURRENT_CONTRACT_PATH);
     QFile file(path);
     if(!file.open(QIODevice::ReadOnly))throw std::runtime_error("Missing shared PLAC v3 contract");
     const auto doc=QJsonDocument::fromJson(file.readAll());
@@ -74,25 +74,38 @@ bool hasLines(EditorController& editor,const QString& id,int count) {
 class PlaceSyncContractTests final : public QObject {
     Q_OBJECT
 private slots:
-    void published163ApprovedCityPlaceAssetsLoadAndSearchHistoricNames() {
+    void historicalEvidenceIsPerLanguageAndMissingPeriodsUseCurrentPrefix() {
+        PlaceRecord record;record.name=QStringLiteral("서울");record.nameEn="Seoul";record.nameNative=QStringLiteral("서울");
+        PlaceLanguageSelection all{true,true,true};
+        auto selected=resolvePlaceDisplayRows(record,all,"2012-06-30","2026-10-16");
+        QCOMPARE(selected.size(),std::size_t(2));QCOMPARE(selected.at(0).text,QStringLiteral("(현)서울"));QVERIFY(selected.at(0).modernName);
+        QCOMPARE(selected.at(1).text,QStringLiteral("(현)Seoul"));
+        PlaceNameTransition naming;naming.fromYear=1900;naming.ko=QStringLiteral("한성");record.nameTimeline.push_back(naming);
+        selected=resolvePlaceDisplayRows(record,all,"2012-06-30","2026-10-16");
+        QCOMPARE(selected.at(0).text,QStringLiteral("한성"));QVERIFY(!selected.at(0).modernName);
+        QCOMPARE(selected.at(1).text,QStringLiteral("(현)Seoul"));
+        selected=resolvePlaceDisplayRows(record,all,"1800-06-30","2026-10-16");QCOMPARE(selected.at(0).text,QStringLiteral("(현)서울"));
+        selected=resolvePlaceDisplayRows(record,all,"2026-10-31","2026-10-16");QVERIFY(!selected.at(1).modernName);
+    }
+    void publishedApprovedCityPlaceAssetsLoadAndSearchHistoricNames() {
         Q_INIT_RESOURCE(place_runtime);
         QFile manifest(QStringLiteral(":/place/manifest.json"));
         QVERIFY(manifest.open(QIODevice::ReadOnly));
         const auto document=QJsonDocument::fromJson(manifest.readAll()).object();
         QVERIFY(!document.isEmpty());
         QCOMPARE(document.value("version").toInt(),1);
-        QCOMPARE(document.value("revision").toString(),
-                 QStringLiteral("approved-places-a912045657f35026"));
-        QCOMPARE(document.value("shards").toObject().size(),1);
-        QCOMPARE(document.value("search").toObject().size(),475);
+        QFile webManifest(QString::fromUtf8(PLACE_SYNC_REPOSITORY_ROOT)+"/../assets/data/places/manifest.json");
+        QVERIFY(webManifest.open(QIODevice::ReadOnly));
+        QCOMPARE(document,QJsonDocument::fromJson(webManifest.readAll()).object());
+        const auto shard=document.value("shards").toObject().value("places-v1").toObject();
         QFile encoded(QStringLiteral(":/place/places-v1.bin"));
         QVERIFY(encoded.open(QIODevice::ReadOnly));
         const auto payload=encoded.readAll();
-        QCOMPARE(payload.size(),55176);
+        QCOMPARE(payload.size(),shard.value("bytes").toInt());
         const auto checksum=QString::fromLatin1(QCryptographicHash::hash(payload,QCryptographicHash::Sha256).toHex());
-        QCOMPARE(checksum,QStringLiteral("43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594"));
+        QCOMPARE(checksum,shard.value("sha256").toString());
         const auto decoded=PlaceRuntimeStore::decodeTile(payload);
-        QCOMPARE(decoded.size(),std::size_t(163));
+        QVERIFY(!decoded.empty());
         QString error;
         const auto runtime=PlaceRuntimeStore::open(QStringLiteral(":/place/manifest.json"),error);
         QVERIFY2(runtime,qPrintable(error));
@@ -610,13 +623,8 @@ private slots:
             QCOMPARE(row.coordinates.x,expected.value("coordinates").toArray().at(0).toDouble());
             QCOMPARE(row.coordinates.y,expected.value("coordinates").toArray().at(1).toDouble());
             QCOMPARE(row.nameTimeline.size(),std::size_t(expected.value("nameTimeline").toArray().size()));
-            const auto scenarios=fixture.value("scenarios").toArray();
-            for(const auto& scenarioValue:scenarios) {
-                const auto scenario=scenarioValue.toObject();
-                const auto date=scenario.value("date").isNull()?QString():scenario.value("date").toString();
-                QCOMPARE(rows(resolvePlaceDisplayRows(row,flags(scenario.value("languages").toObject()),date)),
-                    scenario.value("rows").toArray());
-            }
+            // Frozen v2 vectors verify decoding. Current display evidence and
+            // prefixes are covered by the shared v3 contract and focused test.
             QVERIFY_EXCEPTION_THROWN(PlaceRuntimeStore::decodeTile(payload.left(payload.size()-1)),
                 std::exception);
         }

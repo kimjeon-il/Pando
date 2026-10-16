@@ -40,7 +40,7 @@
     "valueKind": "finite-number"
   },
   "timelineRecords": {
-    "schemaVersion": 1,
+    "schemaVersion": 2,
     "lifetimes": [
       {
         "id": "life:A",
@@ -142,7 +142,8 @@
         "parentId": "",
         "coverageMode": "explicit"
       }
-    ]
+    ],
+    "propertyBindings": []
   },
   "geometries": [
     {

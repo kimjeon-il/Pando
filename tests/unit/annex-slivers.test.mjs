@@ -1,3 +1,4 @@
+import '../helpers/spherical-core.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import '../../assets/js/vendor/polygon-clipping.min.js';
@@ -5,7 +6,7 @@ import { createCountryCommandCalculator } from '../../assets/js/modules/map-edit
 import { hasCanonicalPolygonWinding } from '../../assets/js/modules/map-edit-geometry.js';
 
 const pc = globalThis.polygonClipping;
-const api = createCountryCommandCalculator(pc);
+const api = createCountryCommandCalculator();
 const box = (x, y, size) => [[[x, y], [x, y + size], [x + size, y + size], [x + size, y], [x, y]]];
 const geom = polygons => ({ type: 'MultiPolygon', coordinates: polygons });
 const feature = (id, polygons) => ({ id, properties: {}, geometry: geom(polygons) });

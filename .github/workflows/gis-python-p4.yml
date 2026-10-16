@@ -1,7 +1,7 @@
 name: P4 Isolated GIS Python source checks
 on:
   push:
-    branches: [work/gis, work/objects]
+    branches: [work/ui, work/objects, work/gis, work/places]
     paths:
       - '.github/workflows/gis-python-p4.yml'
       - 'scripts/gis/**/*.py'

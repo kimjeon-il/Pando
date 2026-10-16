@@ -4,6 +4,8 @@
 #include <pandoeditor/project.h>
 #include <pandoeditor/timeline-view.h>
 #include <QFile>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QSignalSpy>
 #include <QTemporaryDir>
 #include <QtTest>
@@ -13,6 +15,45 @@
 class TimelineControllerTests final : public QObject {
     Q_OBJECT
 private slots:
+    void propertyEditorReadsTheResolvedMonthWithoutCreatingDraftsOnNavigation() {
+        using namespace pandoeditor;
+        Geometry geometry{"Polygon",{},{},{{{{0,0},{2,0},{2,2},{0,0}}}}};
+        Project project;project.replace(makeTerritorialDocument({{{"A","Baseline"},geometry,{}}}));
+        QTemporaryDir directory;QVERIFY(directory.isValid());const auto path=directory.filePath("properties.pando.json");
+        QFile file(path);QVERIFY(file.open(QIODevice::WriteOnly));file.write(::projectcodec::encode(project));file.close();
+        EditorController editor({false,directory.filePath("private.json")});QVERIFY(editor.openFile(QUrl::fromLocalFile(path)));
+        QVERIFY(editor.setTimelineMonth("2013-01"));QVERIFY(editor.selectObject({{"domain","territorial"},{"id","A"}}));
+        editor.setNameDraft("Future");QVERIFY(editor.commitObjectField("name"));
+        QCOMPARE(editor.objectProperties().value("displayName").toString(),QString("Future"));
+        QVERIFY(editor.setTimelineMonth("2012-01"));QCOMPARE(editor.objectProperties().value("displayName").toString(),QString("Baseline"));
+        editor.setNameDraft("Inserted");QVERIFY(editor.commitObjectField("name"));
+        QVERIFY(editor.setTimelineMonth("2011-01"));QCOMPARE(editor.objectProperties().value("displayName").toString(),QString("Baseline"));
+        QVERIFY(editor.setTimelineMonth("2013-01"));QCOMPARE(editor.objectProperties().value("displayName").toString(),QString("Future"));
+    }
+    void lastViewedMonthIsSessionStateAndRestoresFromFileAndAutosave() {
+        QTemporaryDir directory;QVERIFY(directory.isValid());
+        const auto path=directory.filePath("last-month.pando.json");
+        EditorController editor({false,directory.filePath("private.json")});
+        const bool dirty=editor.dirty(),undo=editor.canUndo();
+        QVERIFY(editor.setTimelineMonth(QStringLiteral("2012-06")));
+        QCOMPARE(editor.dirty(),dirty);QCOMPARE(editor.canUndo(),undo);
+        const auto bytes=editor.documentBytes();
+        QCOMPARE(QJsonDocument::fromJson(bytes).object()["editorState"].toObject()["lastViewedMonth"].toString(),QStringLiteral("2012-06"));
+        QVERIFY(editor.saveFile(QUrl::fromLocalFile(path)));
+        EditorController reopened({false,directory.filePath("reopened.json")});
+        QVERIFY(reopened.openFile(QUrl::fromLocalFile(path)));QCOMPARE(reopened.timelineMonth(),QStringLiteral("2012-06"));
+        QVERIFY(reopened.setTimelineMonth(QStringLiteral("2013-07")));QVERIFY(!reopened.dirty());QVERIFY(!reopened.canUndo());
+        QVERIFY(reopened.saveFile(QUrl::fromLocalFile(path)));
+        QVERIFY(editor.openFile(QUrl::fromLocalFile(path)));QCOMPARE(editor.timelineMonth(),QStringLiteral("2013-07"));
+        EditorControllerConfig recovery;recovery.privateProjectPath=directory.filePath("recovery-private.json");recovery.autosaveEnabled=true;
+        recovery.autosaveProjectPath=directory.filePath("autosave.json");recovery.autosaveViewPath=directory.filePath("view.json");
+        {
+            EditorController saving(recovery);QVERIFY(saving.openFile(QUrl::fromLocalFile(path)));
+            QVERIFY(saving.setTimelineMonth(QStringLiteral("2011-03")));QVERIFY(!saving.dirty());
+        }
+        EditorController recovered(recovery);
+        QTRY_COMPARE_WITH_TIMEOUT(recovered.timelineMonth(),QStringLiteral("2011-03"),10000);
+    }
     void datedSharedBoundaryPreservesEarlierMonth() {
         try {
         pandoeditor::ProjectDocument document = makeTerritorialDocument({{{"A","Alpha","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}}},{0x336699,1},"countries"},
@@ -132,8 +173,12 @@ private slots:
         QCOMPARE(editor.objectProperties().value("parentId").toString(),QStringLiteral("A"));
         QVERIFY(editor.setTimelineMonth(QStringLiteral("1915-01")));
         editor.undo();
+        QVERIFY(editor.selectionItems().isEmpty());
+        QVERIFY(editor.selectObject({{"domain","territorial"},{"id","B"}}));
         QCOMPARE(editor.objectProperties().value("parentId").toString(),QStringLiteral("A"));
         editor.redo();
+        QVERIFY(editor.selectionItems().isEmpty());
+        QVERIFY(editor.selectObject({{"domain","territorial"},{"id","B"}}));
         QCOMPARE(editor.objectProperties().value("parentId").toString(),QStringLiteral("C"));
         EditorController merging;
         QVERIFY(merging.openFile(QUrl::fromLocalFile(file.fileName())));
@@ -229,16 +274,28 @@ private slots:
         QCOMPARE(editor.objectProperties().value("parentId").toString(),QStringLiteral("A"));
         QVERIFY(editor.setTimelineMonth(QStringLiteral("1914-07")));
         editor.undo();
+        QVERIFY(editor.selectionItems().isEmpty());
+        QVERIFY(editor.selectObject({{"domain","territorial"},{"id","B"}}));
         QCOMPARE(editor.objectProperties().value("parentId").toString(),QStringLiteral("A"));
         editor.redo();
+        QVERIFY(editor.selectionItems().isEmpty());
+        QVERIFY(editor.selectObject({{"domain","territorial"},{"id","B"}}));
         QCOMPARE(editor.objectProperties().value("parentId").toString(),QStringLiteral("C"));
         QVERIFY(editor.beginGeometryEdit());
         const auto oldGeometry=editor.geometryDraftPaths();
-        QVERIFY(editor.geometrySelectNearest(0,0,1000));
-        QVERIFY(editor.geometryMoveSelectedVertex(0.1,0.1));
+        // The fixture has a hole, detached island and antimeridian component.
+        // Choose a geographic exterior vertex explicitly and move it inward;
+        // arbitrary overlay coordinates can select and pull the dateline part
+        // outside parent C, which the common containment rule now rejects.
+        const auto editingDocument=projectcodec::decode(editor.documentBytes());
+        const auto editingView=pandoeditor::timelineDocumentView(editingDocument,"1914-07");
+        MapProjection editingProjection;editingProjection.rebuild(editingView.document,editingView.inactiveIds);
+        const auto vertex=editingProjection.project({10,0}),inward=editingProjection.project({9.5,.5});
+        QVERIFY(editor.geometrySelectNearest(vertex.x,vertex.y,.001));
+        QVERIFY(editor.geometryMoveSelectedVertex(inward.x,inward.y));
         const auto editedGeometry=editor.geometryDraftPaths();
         QVERIFY(editedGeometry!=oldGeometry);
-        QVERIFY(editor.requestGeometryPreview());
+        QVERIFY2(editor.requestGeometryPreview(),qPrintable(editor.geometryEditState().value("error").toString()));
         QVERIFY(editor.geometryEditState().value("previewReady").toBool());
         QVERIFY(editor.confirmGeometryEdit());
         QVERIFY(editor.setTimelineMonth(QStringLiteral("1914-06")));
@@ -308,10 +365,14 @@ private slots:
         creating.redo();
         QVERIFY(creating.countryVisuals().contains(QStringLiteral("D")));
         editor.undo();
+        QVERIFY(editor.selectionItems().isEmpty());
+        QVERIFY(editor.selectObject({{"domain","territorial"},{"id","B"}}));
         QVERIFY(editor.beginGeometryEdit());
         QCOMPARE(editor.geometryDraftPaths(),oldGeometry);
         editor.cancelGeometryEdit();
         editor.redo();
+        QVERIFY(editor.selectionItems().isEmpty());
+        QVERIFY(editor.selectObject({{"domain","territorial"},{"id","B"}}));
         QVERIFY(editor.beginGeometryEdit());
         QCOMPARE(editor.geometryDraftPaths(),editedGeometry);
         editor.cancelGeometryEdit();

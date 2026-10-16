@@ -52,7 +52,7 @@ export async function calculateLibraryBatch(payload, originals, existingUnits, c
     if (!parent || !draft.features.some(country => featureId(country) === territorialRootId(unit, id => byId.get(id)))
       || clipper.difference(multiCoordinates(unit.geometry), multiCoordinates(parent.geometry)).length) throw new Error(`${unit.properties.name}: 상위 단위에 포함되지 않습니다.`);
   }
-  if (validateCollection(draft, [...affected], clipper).overlapAreaKm2 > 0.001) throw new Error('영토 변경 후 국가 간 중첩이 남아 추가할 수 없습니다.');
+  if (validateCollection(draft, [...affected]).overlapAreaKm2 > 0.001) throw new Error('영토 변경 후 국가 간 중첩이 남아 추가할 수 없습니다.');
   const kept = new Set(draft.features.map(featureId));
   return { features: draft.features.filter(feature => affected.has(featureId(feature))), removedIds: originals.filter(feature => !kept.has(featureId(feature))).map(featureId),
     affectedIds: [...affected], transfers, impacts, donorIds: [...donors], deleted };

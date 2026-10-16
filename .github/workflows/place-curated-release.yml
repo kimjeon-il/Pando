@@ -1,17 +1,9 @@
+# Historical explicit reproduction; current automatic publication is owned by generated-artifacts-p2.yml.
 name: Curated Place Release
 
 # Source-review changes on the dedicated places branch rebuild only its own assets.
 # GITHUB_TOKEN commits do not create a second push workflow run.
 on:
-  push:
-    branches:
-      - work/places
-    paths:
-      - 'reports/places/runtime-release-approvals-v1.json'
-      - 'reports/places/tier1-major-cities-batch*.json'
-      - 'tools/build-place-runtime.mjs'
-      - 'tests/unit/place-publication.test.mjs'
-      - '.github/workflows/place-curated-release.yml'
   workflow_dispatch:
 
 permissions:

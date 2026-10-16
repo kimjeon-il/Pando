@@ -1,3 +1,4 @@
+import './load-spherical-core.mjs';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -24,7 +25,6 @@ function loadClassicScript(relativePath, globalName) {
   return value;
 }
 
-const earcut = loadClassicScript(path.join('assets', 'js', 'vendor', 'earcut.min.js'), 'earcut');
 const meshCore = loadClassicScript(path.join('assets', 'js', 'workers', 'gpu-mesh-core.js'), 'PandoLabGpuMeshCore');
 
 function countCoordinates(value) {
@@ -125,7 +125,7 @@ const sourceCoordinateCount = countCoordinates(countries.features.map(feature =>
 if (sourceCoordinateCount !== 548454) throw new Error(`원본 좌표 수가 변경되었습니다: ${sourceCoordinateCount}`);
 
 const startedAt = performance.now();
-const mesh = meshCore.buildGpuMeshFeatures(countries.features, earcut, { validate: true });
+const mesh = meshCore.buildGpuMeshFeatures(countries.features, { validate: true });
 const vertexCount = mesh.positions.length / 2;
 validateIndices(mesh.triangleIndices, vertexCount, 3, '삼각형');
 validateIndices(mesh.lineIndices, vertexCount, 2, '국경선');

@@ -45,6 +45,18 @@ test('source digest defines only source text line endings and retains numeric ed
   assert.notEqual(sharedSourceManifest(root).sourceSha256,before.sourceSha256);
 });
 
+test('vendored C++ headers participate in the same compiled source identity', () => {
+  const {root}=fixture(),before=sharedSourceManifest(root);
+  mkdirSync(join(root,'shared/third_party/earcut'),{recursive:true});
+  const header=join(root,'shared/third_party/earcut/earcut.hpp');
+  writeFileSync(header,'inline int triangulate() { return 1; }\n');
+  const withVendor=sharedSourceManifest(root);
+  assert.equal(withVendor.inputs.length,before.inputs.length+1);
+  assert.notEqual(withVendor.sourceSha256,before.sourceSha256);
+  writeFileSync(header,'inline int triangulate() { return 2; }\n');
+  assert.notEqual(sharedSourceManifest(root).sourceSha256,withVendor.sourceSha256);
+});
+
 test('packages JavaScript with the committed LF bytes before fixing its manifest hash',async () => {
   const {root,build}=fixture();
   const path=join(build,'pandoeditor-core.js'),lf=readFileSync(path);
