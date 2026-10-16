@@ -107,7 +107,9 @@ test('Soviet month-only moves save a small session record, persist across reload
   });
   await expect.poll(async () => {
     const record = await storage(page);
-    return record.project?.territorialEntities?.find(entity => entity.id === 'IRL')?.properties?.name;
+    return record.project?.format === 'pandolab-autosave-delta'
+      ? record.project.entityDelta?.changed?.find(entity => entity.id === 'IRL')?.properties?.name
+      : null;
   }, { timeout: 90_000 }).toBe('경량 시점 저장 검증');
   await expect.poll(async () => {
     const {project, view} = await storage(page);
@@ -115,6 +117,9 @@ test('Soviet month-only moves save a small session record, persist across reload
       && view?.lastViewedMonth === '2026-10';
   }, { timeout: 40_000 }).toBe(true);
   const edited = await storage(page);
+  expect(edited.project?.format).toBe('pandolab-autosave-delta');
+  expect(edited.project?.entityDelta?.changed?.find(entity => entity.id === 'IRL')?.properties?.name)
+    .toBe('경량 시점 저장 검증');
   await month(page, '1989-06');
   await expect.poll(async () => (await storage(page)).view?.lastViewedMonth,
     { timeout: 40_000 }).toBe('1989-06');
