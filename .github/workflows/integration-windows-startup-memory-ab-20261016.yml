@@ -80,7 +80,7 @@ jobs:
       - name: A/B on same runner, isolated cold profiles, 3 runs per mode
         shell: pwsh
         run: |
-          ./apps/web-shell/measure-windows-startup.ps1 -BinaryPath 'apps/web-shell/src-tauri/target/x86_64-pc-windows-msvc/debug/pandolab-web-shell.exe' -HoldAfterReadyMs 12000
+          ./apps/web-shell/measure-windows-startup.ps1 -BinaryPath 'apps/web-shell/src-tauri/target/x86_64-pc-windows-msvc/debug/pandolab-web-shell.exe' -HoldAfterReadyMs 30000
           $data = Get-Content build-native/web-shell/paired-startup-memory.json -Raw | ConvertFrom-Json
           if ($data.schema -ne 'pandolab-windows-webview-paired-startup-memory' -or
               $data.summary.immediate.count -ne 3 -or $data.summary.deferred.count -ne 3) {

@@ -33,12 +33,19 @@ function Read-ProcessTreeMemory([int]$RootPid, [int64]$ElapsedMs) {
   [long]$private = 0
   [long]$working = 0
   [int]$count = 0
+  $processBreakdown = [Collections.Generic.List[object]]::new()
   foreach ($ownedPid in $ids) {
     try {
       $p = Get-Process -Id $ownedPid -ErrorAction Stop
       $private += [long]$p.PrivateMemorySize64
       $working += [long]$p.WorkingSet64
       $count++
+      $processBreakdown.Add([pscustomobject]@{
+        id = $ownedPid
+        name = $p.ProcessName
+        privateCommitMiB = [math]::Round([double]$p.PrivateMemorySize64 / 1MB, 2)
+        workingSetMiB = [math]::Round([double]$p.WorkingSet64 / 1MB, 2)
+      })
     } catch [Microsoft.PowerShell.Commands.ProcessCommandException] {
       # The exact process exited between snapshots.
     }
@@ -48,6 +55,7 @@ function Read-ProcessTreeMemory([int]$RootPid, [int64]$ElapsedMs) {
     processCount = $count
     privateCommitMiB = [math]::Round($private / 1MB, 2)
     summedWorkingSetMiB = [math]::Round($working / 1MB, 2)
+    processBreakdown = @($processBreakdown | Sort-Object privateCommitMiB -Descending)
   }
 }
 
@@ -137,6 +145,7 @@ for ($index = 0; $index -lt $profiles.Count; $index++) {
       lateSummedWorkingSetMiB = [math]::Round([double](($late | Measure-Object summedWorkingSetMiB -Average).Average), 2)
       maximumProcessCount = [int](($valid | Measure-Object processCount -Maximum).Maximum)
       sampleCount = $valid.Count
+      lateProcessBreakdown = @($valid[-1].processBreakdown)
       report = [IO.Path]::GetFileName($reportFile)
     }
     $results.Add($record)
