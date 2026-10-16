@@ -81,6 +81,9 @@ TimelineRecords truncateTimelineEntityAtMonth(const TimelineRecords& original,co
     if(month.precision!="month")throw TimelineError("INVALID_TIMELINE_CURSOR","month precision required");
     const auto lastMonth=shiftTemporalMonth(month.canonical,-1);
     auto result=original;
+    const auto lifetime=std::find_if(original.lifetimes.begin(),original.lifetimes.end(),[&](const auto& row){return row.entityId==id&&active(row.validity,temporalMonthEnd(month.canonical));});
+    if(lifetime==original.lifetimes.end())return original;
+    const auto lifetimeEnd=normalizeTemporalInterval(lifetime->validity.from,lifetime->validity.to).end;
     const auto truncate=[&](auto& rows) {
         using Row=typename std::decay_t<decltype(rows)>::value_type;
         std::vector<Row> kept;
@@ -88,6 +91,7 @@ TimelineRecords truncateTimelineEntityAtMonth(const TimelineRecords& original,co
         for(auto row:rows) {
             if(row.entityId!=id){kept.push_back(std::move(row));continue;}
             const auto interval=normalizeTemporalInterval(row.validity.from,row.validity.to);
+            if(lifetimeEnd&&interval.start&&lifetimeEnd->endKey<interval.start->startKey){kept.push_back(std::move(row));continue;}
             if(interval.end&&interval.end->endKey<month.startKey){kept.push_back(std::move(row));continue;}
             if(interval.start&&!(interval.start->startKey<month.startKey))continue;
             row.validity.to=lastMonth;
@@ -121,11 +125,13 @@ TimelineRecords replacePropertyBindingAtMonth(const TimelineRecords& original,co
         const auto start=parseTemporal(*row.validity.from);
         if(month.startKey<start.startKey) {
             const auto nextMonth=start.precision=="year"?start.canonical+"-01":start.precision=="date"?start.canonical.substr(0,start.canonical.size()-3):start.canonical;
-            const auto previous=shiftTemporalMonth(nextMonth,-1);
+            const auto day=start.startKey.day-1;
+            const auto previous=day>0?nextMonth+"-"+(day<10?"0":"")+std::to_string(day):shiftTemporalMonth(nextMonth,-1);
             if(!end||parseTemporal(previous).endKey<parseTemporal(*end).endKey)end=previous;
         }
     }
-    rows.push_back({nextRecordId(original,"property:"+id+":"+property+":"+month.canonical),id,{month.canonical,end},property,value});
+    const auto begin=life->validity.from&&month.startKey<parseTemporal(*life->validity.from).startKey?*life->validity.from:month.canonical;
+    rows.push_back({nextRecordId(original,"property:"+id+":"+property+":"+month.canonical),id,{begin,end},property,value});
     return result;
 }
 }
