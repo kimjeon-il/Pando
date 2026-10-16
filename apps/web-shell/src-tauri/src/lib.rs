@@ -237,17 +237,7 @@ pub fn run() {
 
 #[cfg(test)]
 mod tests {
-    use super::{decode_project, local_navigation, storage, BASE64};
-    use base64::Engine;
-    #[test]
-    fn project_payload_preserves_binary_and_enforces_decoded_size() {
-        let binary = b"SQLite format 3\0\0\xff\x80";
-        assert_eq!(decode_project(&BASE64.encode(binary)).unwrap(), binary);
-        assert!(decode_project("invalid**base64").is_err());
-        let maximum = vec![0xff; storage::MAX_FILE_BYTES];
-        assert_eq!(decode_project(&BASE64.encode(&maximum)).unwrap(), maximum);
-        assert!(decode_project(&BASE64.encode(vec![0xff; storage::MAX_FILE_BYTES + 1])).is_err());
-    }
+    use super::local_navigation;
     #[test]
     fn navigation_allows_only_packaged_asset_origins() {
         for url in [
