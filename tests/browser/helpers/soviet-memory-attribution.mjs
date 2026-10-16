@@ -35,7 +35,7 @@ export async function chromiumProcessPss({ procRoot = '/proc', platform = proces
       const rollup = await readFile(base + '/smaps_rollup', 'utf8');
       const role = classifyChromiumRole(commandLine);
       rows.push({ pid: Number(pid), role, ...parseSmapsRollup(rollup) });
-    } catch {}
+    } catch { /* A detached Chromium target may disappear during sampling. */ }
   }
   rows.sort((a, b) => a.pid - b.pid);
   const summed = (records, key) => records.reduce((sum, row) => sum + row[key], 0);
@@ -72,7 +72,7 @@ export async function createWorkerMemoryProbe(cdp, { origin = 'http://127.0.0.1:
       clearTimeout(item.timeout);
       if (message.error) item.reject(new Error(`CDP ${item.method}: ${message.error.message}`));
       else item.resolve(message.result);
-    } catch {}
+    } catch { /* A detached Chromium target may disappear during sampling. */ }
   };
   cdp.on('Target.receivedMessageFromTarget', onNestedMessage);
 

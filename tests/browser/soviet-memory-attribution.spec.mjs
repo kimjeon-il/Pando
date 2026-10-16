@@ -18,7 +18,7 @@ async function waitForSettledWork(page) {
   try {
     await expect.poll(() => page.workers().filter(worker => worker.url().includes('/project-preview-worker.js')).length,
       { timeout: 45_000, intervals: [500, 1200, 1800] }).toBe(0);
-  } catch {}
+  } catch { /* Report the in-flight preview in the next snapshot. */ }
 }
 
 async function snapshot(page, cdp, workerProbe, label) {

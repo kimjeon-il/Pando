@@ -53,7 +53,7 @@ test('Worker CDP probe attributes independent V8 and live WASM memory without to
         if (call.method === 'Runtime.evaluate') result = { result: { objectId: 'proto' } };
         if (call.method === 'Runtime.queryObjects') result = { objects: { objectId: 'instances' } };
         if (call.method === 'Runtime.callFunctionOn') result = { result: { value: params.sessionId === 'w1' ? [65536, 131072] : [] } };
-        queueMicrotask(() => this.emit('Target.receivedMessageFromTarget', {
+        Promise.resolve().then(() => this.emit('Target.receivedMessageFromTarget', {
           sessionId: params.sessionId, message: JSON.stringify({ id: call.id, result }),
         }));
         return {};
