@@ -75,7 +75,15 @@ test('1989 Soviet actual coast-edit entry CPU and memory after autosave quiescen
     const save=window.__PANDOLAB_PERFORMANCE_REPORT__?.()?.operations?.['autosave.persist'];
     return (save?.samples||[]).some(row=>row.detail?.outcome==='indexeddb');
   }),{timeout:90_000}).toBe(true);
-  await page.waitForTimeout(1000);
+  // Autosave completion is not preview-cache completion: it can spawn a
+  // second full-project Core/WASM preview Worker 1.5 s later. Do not charge
+  // that unrelated admission to opening the actual coast editor.
+  await page.waitForTimeout(5000);
+  try {
+    await expect.poll(() => page.workers().filter(worker => worker.url().includes('/project-preview-worker.js')).length,
+      { timeout: 45000, intervals: [500, 1000, 1500] }).toBe(0);
+  } catch { /* Report an in-flight preview as attribution uncertainty. */ }
+  const previewWorkerQuiescent = !page.workers().some(worker => worker.url().includes('/project-preview-worker.js'));
   const cdp=await page.context().newCDPSession(page);
   await cdp.send('Profiler.enable');
   await cdp.send('Profiler.setSamplingInterval',{interval:1000});
@@ -98,16 +106,20 @@ test('1989 Soviet actual coast-edit entry CPU and memory after autosave quiescen
   await page.waitForTimeout(300);
   const afterGc=await snap(page,cdp,'edit-entered-after-main-gc');
   let afterCancel=null;
+  let cancelConfirmed=false;
   if(editOpened){
-    await page.locator('#modeCancelBtn').evaluate(b=>b.click());
-    if(await page.locator('#confirmModal').isVisible()) await page.locator('#confirmModalOkBtn').evaluate(b=>b.click());
-    await page.waitForTimeout(1300);
+    for(let step=0;step<2;step++){
+      await page.locator('#modeCancelBtn').evaluate(b=>b.click());
+      if(await page.locator('#confirmModal').isVisible()) await page.locator('#confirmModalOkBtn').evaluate(b=>b.click());
+      await page.waitForTimeout(600);
+      if(await page.locator('circle.country-vertex').count()===0){ cancelConfirmed=true;break; }
+    }
     await cdp.send('HeapProfiler.collectGarbage');
-    afterCancel=await snap(page,cdp,'edit-cancelled-after-gc');
+    afterCancel=await snap(page,cdp,cancelConfirmed?'edit-cancelled-after-gc':'cancel-attempted-still-editing');
   }
   const result={schema:'pandolab-soviet-edit-entry-v1',entity:'state:soviet-union',month:'1989-06',
-    conditions:'web WebGL2 with autosave completion before editing; CI SwiftShader not a physical GPU',
-    editOpened,reason,editReadyMs:Number(editReadyMs.toFixed(1)),before,active,afterGc,afterCancel,
+    conditions:'web WebGL2 with full autosave + project-preview quiescence before editing; CI SwiftShader not a physical GPU',
+    previewWorkerQuiescent,editOpened,reason,editReadyMs:Number(editReadyMs.toFixed(1)),cancelConfirmed,before,active,afterGc,afterCancel,
     profile,errors};
   await mkdir('test-results/soviet-edit-entry',{recursive:true});
   await writeFile('test-results/soviet-edit-entry/measurement.json',JSON.stringify(result,null,2));
