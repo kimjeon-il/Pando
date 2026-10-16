@@ -283,11 +283,19 @@ private slots:
         QCOMPARE(editor.objectProperties().value("parentId").toString(),QStringLiteral("C"));
         QVERIFY(editor.beginGeometryEdit());
         const auto oldGeometry=editor.geometryDraftPaths();
-        QVERIFY(editor.geometrySelectNearest(0,0,1000));
-        QVERIFY(editor.geometryMoveSelectedVertex(0.1,0.1));
+        // The fixture has a hole, detached island and antimeridian component.
+        // Choose a geographic exterior vertex explicitly and move it inward;
+        // arbitrary overlay coordinates can select and pull the dateline part
+        // outside parent C, which the common containment rule now rejects.
+        const auto editingDocument=projectcodec::decode(editor.documentBytes());
+        const auto editingView=pandoeditor::timelineDocumentView(editingDocument,"1914-07");
+        MapProjection editingProjection;editingProjection.rebuild(editingView.document,editingView.inactiveIds);
+        const auto vertex=editingProjection.project({10,0}),inward=editingProjection.project({9.5,.5});
+        QVERIFY(editor.geometrySelectNearest(vertex.x,vertex.y,.001));
+        QVERIFY(editor.geometryMoveSelectedVertex(inward.x,inward.y));
         const auto editedGeometry=editor.geometryDraftPaths();
         QVERIFY(editedGeometry!=oldGeometry);
-        QVERIFY(editor.requestGeometryPreview());
+        QVERIFY2(editor.requestGeometryPreview(),qPrintable(editor.geometryEditState().value("error").toString()));
         QVERIFY(editor.geometryEditState().value("previewReady").toBool());
         QVERIFY(editor.confirmGeometryEdit());
         QVERIFY(editor.setTimelineMonth(QStringLiteral("1914-06")));
@@ -357,10 +365,14 @@ private slots:
         creating.redo();
         QVERIFY(creating.countryVisuals().contains(QStringLiteral("D")));
         editor.undo();
+        QVERIFY(editor.selectionItems().isEmpty());
+        QVERIFY(editor.selectObject({{"domain","territorial"},{"id","B"}}));
         QVERIFY(editor.beginGeometryEdit());
         QCOMPARE(editor.geometryDraftPaths(),oldGeometry);
         editor.cancelGeometryEdit();
         editor.redo();
+        QVERIFY(editor.selectionItems().isEmpty());
+        QVERIFY(editor.selectObject({{"domain","territorial"},{"id","B"}}));
         QVERIFY(editor.beginGeometryEdit());
         QCOMPARE(editor.geometryDraftPaths(),editedGeometry);
         editor.cancelGeometryEdit();
