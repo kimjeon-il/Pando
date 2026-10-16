@@ -7,6 +7,7 @@ on:
       - 'tests/browser/performance-observability.spec.mjs'
       - 'tests/browser/soviet-web-render-profile.spec.mjs'
       - 'assets/js/modules/gpu-map-renderer.js'
+      - 'assets/js/modules/rendering-domain.js'
       - 'assets/js/modules/gpu-polygon-overlay-pass.js'
       - 'assets/js/modules/gpu-stroke-renderer.js'
       - 'assets/js/modules/render-scene.js'
@@ -32,6 +33,8 @@ jobs:
         run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
+      - name: Check selection geometry/ownership contracts
+        run: node --test tests/unit/selection-overlay-plan.test.mjs tests/unit/selection-entity-channels.test.mjs
       - name: Check Soviet 1989 pure-pan GPU reuse
         env:
           PANDOLAB_BROWSER_CHANNEL: chromium
