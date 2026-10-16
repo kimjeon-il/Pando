@@ -1100,7 +1100,7 @@ bool EditorController::replaceFromBytes(const QByteArray& bytes,bool imported,co
     recordRestore("restoreDecode");
     pandoeditor::Project candidate;candidate.replace(std::move(document));
     candidate.setTimelineCursor(pandoeditor::projectcodec::restoredTimelineMonth(candidate.document(),
-        QDate::currentDate().toString(QStringLiteral("yyyy-MM")).toStdString()),false);
+        QDate::currentDate().toString(QStringLiteral("yyyy-MM")).toStdString()),candidate.document().reopenMonth.has_value());
     recordRestore("restoreValidate");
     MapProjection nextProjection;nextProjection.rebuild(candidate.viewDocument(),candidate.inactiveEntityIds());
     recordRestore("restoreProjection");

@@ -84,7 +84,9 @@ void captureTimelinePropertyChanges(const ProjectDocument& source,const ProjectD
     std::map<std::string,const TerritorialUnit*> originals,projected;
     for(const auto& unit:source.units)originals.emplace(unit.id,&unit);
     for(const auto& unit:beforeView.units)projected.emplace(unit.id,&unit);
+    const auto point=temporalMonthEnd(month);
     for(auto& unit:candidate.units) {
+        if(std::none_of(candidate.timelineRecords.lifetimes.begin(),candidate.timelineRecords.lifetimes.end(),[&](const auto& row){return row.entityId==unit.id&&validityContainsAtEnd(row.validity,point);}))continue;
         const auto found=originals.find(unit.id),prior=projected.find(unit.id);
         if(found==originals.end()||prior==projected.end())continue;
         const auto ref=territorialRef(unit.id);
@@ -104,15 +106,24 @@ void captureTimelinePropertyChanges(const ProjectDocument& source,const ProjectD
 void validateTimelineParentChanges(const ProjectDocument& before,const ProjectDocument& after) {
     // Build affected intervals once; validation never scans original segments.
     std::map<std::string,std::vector<Validity>> geometryChanges,relationChanges;
+    std::map<std::string,const TimelineGeometryBinding*> oldGeometry;
+    std::map<std::string,const TimelineParentRelation*> oldRelations;
+    for(const auto& row:before.timelineRecords.geometryBindings)oldGeometry.emplace(row.id,&row);
+    for(const auto& row:before.timelineRecords.parentRelations)oldRelations.emplace(row.id,&row);
+    const auto covers=[](const Validity& outer,const Validity& inner) {
+        const auto a=normalizeTemporalInterval(outer.from,outer.to),b=normalizeTemporalInterval(inner.from,inner.to);
+        return (!a.start||(b.start&&!(b.start->startKey<a.start->startKey)))&&(!a.end||(b.end&&!(a.end->endKey<b.end->endKey)));
+    };
     for(const auto& row:after.timelineRecords.geometryBindings) {
-        const auto old=std::find_if(before.timelineRecords.geometryBindings.begin(),before.timelineRecords.geometryBindings.end(),[&](const auto& prior){return prior.id==row.id;});
-        if(old==before.timelineRecords.geometryBindings.end()||!(old->geometryRef==row.geometryRef)||old->validity.from!=row.validity.from||old->validity.to!=row.validity.to)geometryChanges[row.entityId].push_back(row.validity);
+        const auto old=oldGeometry.find(row.id);
+        if(old==oldGeometry.end()||!(old->second->geometryRef==row.geometryRef)||!covers(old->second->validity,row.validity))geometryChanges[row.entityId].push_back(row.validity);
     }
     for(const auto& row:after.timelineRecords.parentRelations) {
-        const auto old=std::find_if(before.timelineRecords.parentRelations.begin(),before.timelineRecords.parentRelations.end(),[&](const auto& prior){return prior.id==row.id;});
-        if(old==before.timelineRecords.parentRelations.end()||old->parentId!=row.parentId||old->coverageMode!=row.coverageMode||old->validity.from!=row.validity.from||old->validity.to!=row.validity.to)relationChanges[row.entityId].push_back(row.validity);
+        const auto old=oldRelations.find(row.id);
+        if(old==oldRelations.end()||old->second->parentId!=row.parentId||old->second->coverageMode!=row.coverageMode||!covers(old->second->validity,row.validity))relationChanges[row.entityId].push_back(row.validity);
     }
     std::map<std::string,std::vector<const TimelineGeometryBinding*>> shapes;
+    std::map<std::pair<GeometryRef,GeometryRef>,bool> containment;
     for(const auto& row:after.timelineRecords.geometryBindings)shapes[row.entityId].push_back(&row);
     for(const auto& relation:after.timelineRecords.parentRelations)if(!relation.parentId.empty()) {
         std::vector<Validity> changed=relationChanges[relation.entityId];
@@ -122,7 +133,14 @@ void validateTimelineParentChanges(const ProjectDocument& before,const ProjectDo
         if(changed.empty())continue;
         for(const auto* child:shapes[relation.entityId])for(const auto* parent:shapes[relation.parentId]) {
             if(!std::any_of(changed.begin(),changed.end(),[&](const auto& interval){return overlap({relation.validity,child->validity,parent->validity,interval});}))continue;
-            if(!geometryContains(*after.geometries.get(parent->geometryRef),*after.geometries.get(child->geometryRef)))
+            const auto key=std::make_pair(parent->geometryRef,child->geometryRef);
+            auto result=containment.find(key);
+            if(result==containment.end()) {
+                const auto outer=after.geometries.get(parent->geometryRef),inner=after.geometries.get(child->geometryRef);
+                if(!outer||!inner)throw TimelineError("TIMELINE_GEOMETRY","Missing parent/child geometry.");
+                result=containment.emplace(key,geometryContains(*outer,*inner)).first;
+            }
+            if(!result->second)
                 throw TimelineError("GEOMETRY_OUTSIDE_PARENT","Child "+relation.entityId+" is outside parent "+relation.parentId+" during the edited interval.");
         }
     }
