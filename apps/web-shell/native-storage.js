@@ -20,6 +20,13 @@ export function createNativeStorage(invoke = invokeNative) {
       if (!(blob instanceof Blob) || blob.size > LIMIT) throw new Error('Project must be a Blob within the 1 MiB prototype limit.');
       return invoke('save_project_file', { contents: encodeBytes(new Uint8Array(await blob.arrayBuffer())) });
     },
+    async saveExportFile(filename, blob) {
+      if (!['판도연구소-GIS-데이터.gpkg', '판도연구소-GIS-데이터.zip'].includes(filename)) {
+        throw new Error('Unsupported GIS export file name.');
+      }
+      if (!(blob instanceof Blob) || blob.size > LIMIT) throw new Error('GIS export exceeds the 1 MiB prototype limit.');
+      return invoke('save_export_file', { filename, contents: encodeBytes(new Uint8Array(await blob.arrayBuffer())) });
+    },
     async openProjectFile() {
       const result = await invoke('open_project_file', {});
       if (result.cancelled) return { cancelled: true, path: null, blob: null };

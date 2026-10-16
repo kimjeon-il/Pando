@@ -71,6 +71,17 @@ export function createGisFileController({
     window.setTimeout(() => window.URL.revokeObjectURL(url), 1000);
   };
 
+  const saveExportFile = async (filename, blob) => {
+    if (!fileAccess) {
+      downloadBlob(filename, blob);
+      return { downloaded: true };
+    }
+    const result = await fileAccess.saveExportFile(filename, blob);
+    if (result?.cancelled) throw Object.assign(new Error('GIS 내보내기 취소'), { name: 'AbortError' });
+    if (!result?.path) throw new Error('앱 파일 내보내기 대상이 확정되지 않았습니다.');
+    return { downloaded: false };
+  };
+
   const saveProject = async () => {
     if (saving || !requireCanonicalData()) return false;
     saving = true;
@@ -118,6 +129,6 @@ export function createGisFileController({
     }
   };
 
-  const api = Object.freeze({ bind, openPicker, openProjectPicker, handleChange, saveProject });
+  const api = Object.freeze({ bind, openPicker, openProjectPicker, handleChange, saveProject, saveExportFile });
   return api;
 }

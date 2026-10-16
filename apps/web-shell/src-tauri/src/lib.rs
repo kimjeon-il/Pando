@@ -218,6 +218,26 @@ fn decode_project(contents: &str) -> Result<Vec<u8>, String> {
     Ok(contents)
 }
 
+fn write_selected_file(app: &tauri::AppHandle, path: &FilePath, contents: &[u8]) -> Result<(), String> {
+    match path {
+        FilePath::Path(local) => {
+            storage::atomic_write(local, contents).map_err(|error| error.to_string())?
+        }
+        FilePath::Url(url) if url.scheme() == "file" => {
+            let local = url.to_file_path().map_err(|_| "Invalid selected file URL")?;
+            storage::atomic_write(&local, contents).map_err(|error| error.to_string())?;
+        }
+        FilePath::Url(_) => {
+            // Android document-provider writes cannot guarantee an atomic rename.
+            let mut options = OpenOptions::new();
+            options.read(false).write(true).truncate(true);
+            let mut file = app.fs().open(path.clone(), options).map_err(|error| error.to_string())?;
+            file.write_all(contents).and_then(|_| file.flush()).map_err(|error| error.to_string())?;
+        }
+    }
+    Ok(())
+}
+
 #[tauri::command]
 async fn save_project_file(app: tauri::AppHandle, contents: String) -> Result<ProjectFile, String> {
     // Reject invalid/oversized input before displaying a dialog or creating a document.
@@ -225,35 +245,40 @@ async fn save_project_file(app: tauri::AppHandle, contents: String) -> Result<Pr
     let Some(path) = project_dialog(&app).blocking_save_file() else {
         return Ok(cancelled_project());
     };
-    match &path {
-        FilePath::Path(local) => {
-            storage::atomic_write(local, &contents).map_err(|error| error.to_string())?
-        }
-        FilePath::Url(url) if url.scheme() == "file" => {
-            let local = url
-                .to_file_path()
-                .map_err(|_| "Invalid selected file URL")?;
-            storage::atomic_write(&local, &contents).map_err(|error| error.to_string())?;
-        }
-        FilePath::Url(_) => {
-            // Android ACTION_CREATE_DOCUMENT creates a new provider document;
-            // fs resolves its content:// URI without broad storage permissions.
-            let mut options = OpenOptions::new();
-            options.read(false).write(true).truncate(true);
-            let mut file = app
-                .fs()
-                .open(path.clone(), options)
-                .map_err(|error| error.to_string())?;
-            file.write_all(&contents)
-                .and_then(|_| file.flush())
-                .map_err(|error| error.to_string())?;
-        }
-    }
+    write_selected_file(&app, &path, &contents)?;
     Ok(ProjectFile {
         cancelled: false,
         path: Some(path.to_string()),
         contents: None,
     })
+}
+
+#[tauri::command]
+async fn save_export_file(
+    app: tauri::AppHandle,
+    filename: String,
+    contents: String,
+) -> Result<ProjectFile, String> {
+    // Only current GIS export formats are accepted; JavaScript supplies no path.
+    let extension = match filename.as_str() {
+        "판도연구소-GIS-데이터.gpkg" => "gpkg",
+        "판도연구소-GIS-데이터.zip" => "zip",
+        _ => return Err("Unsupported GIS export format".into()),
+    };
+    let contents = decode_project(&contents)?;
+    let builder = app.dialog().file().set_file_name(filename);
+    #[cfg(target_os = "android")]
+    let builder = match extension {
+        "gpkg" => builder.add_filter("GeoPackage", &["application/geopackage+sqlite3", "application/octet-stream"]),
+        _ => builder.add_filter("ZIP archive", &["application/zip", "application/octet-stream"]),
+    };
+    #[cfg(not(target_os = "android"))]
+    let builder = builder.add_filter("GIS export", &[extension]);
+    let Some(path) = builder.blocking_save_file() else {
+        return Ok(cancelled_project());
+    };
+    write_selected_file(&app, &path, &contents)?;
+    Ok(ProjectFile { cancelled: false, path: Some(path.to_string()), contents: None })
 }
 
 #[tauri::command]
@@ -321,7 +346,7 @@ pub fn run() {
         .manage(options)
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
-        .invoke_handler(tauri::generate_handler![write_probe_file, read_probe_file, write_diagnostic_report, finish_probe, save_project_file, open_project_file])
+        .invoke_handler(tauri::generate_handler![write_probe_file, read_probe_file, write_diagnostic_report, finish_probe, save_project_file, save_export_file, open_project_file])
         .setup(move |app| {
             let builder = WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
                 .title("PandoLab 시험용")

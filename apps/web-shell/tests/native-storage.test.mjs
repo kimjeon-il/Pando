@@ -22,3 +22,16 @@ test('oversized project does not cross the native bridge', async () => {
   await assert.rejects(storage.saveProjectFile(new Blob([new Uint8Array(1024 * 1024 + 1)])), /1 MiB/);
   assert.equal(invoked, false);
 });
+
+test('native GIS export accepts only expected names and propagates picker cancellation', async () => {
+  const commands = [];
+  const storage = createNativeStorage(async (name, args) => {
+    commands.push([name, args.filename]);
+    return { cancelled: true };
+  });
+  const out = await storage.saveExportFile('판도연구소-GIS-데이터.zip', new Blob(['zip-content']));
+  assert.equal(out.cancelled, true);
+  assert.deepEqual(commands, [['save_export_file', '판도연구소-GIS-데이터.zip']]);
+  await assert.rejects(storage.saveExportFile('malicious.exe', new Blob()), /Unsupported/);
+  assert.equal(commands.length, 1);
+});
