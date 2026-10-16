@@ -22,6 +22,15 @@ export function buildFullWorldAssetPlan({ meta, world, historical, library, prep
       || prepared?.schemaVersion !== 2 || !prepared.meshes) {
     throw new Error('World library or prepared polygon manifest is unavailable.');
   }
+  const classification = world.defaultClassification;
+  const rootCount = Object.keys(classification?.countries || {}).length;
+  const unitCount = Object.keys(classification?.units || {}).length;
+  const removedCount = Array.isArray(classification?.removedIds) ? classification.removedIds.length : -1;
+  if (rootCount <= 0 || rootCount + removedCount !== world.source.countryCount
+      || unitCount > removedCount) {
+    throw new Error('World classification counts do not match source feature count.');
+  }
+  const modelEntityCount = rootCount + unitCount;
   const files = new Map();
   function add(path, spec = null) {
     if (typeof path !== 'string' || !path.startsWith(PREFIX) || path.includes('\\')
@@ -78,6 +87,7 @@ export function buildFullWorldAssetPlan({ meta, world, historical, library, prep
   }
   return Object.freeze({
     countryCount: world.source.countryCount,
+    rootCount, unitCount, modelEntityCount, mergedSourceCount: removedCount - unitCount,
     sourceSha256: world.source.sha256,
     entries: Object.freeze([...files.values()]),
   });
