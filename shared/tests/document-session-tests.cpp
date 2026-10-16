@@ -136,30 +136,6 @@ int main() {
     std::ifstream file(DOCUMENT_SESSION_FIXTURE,std::ios::binary);assert(file);
     const std::string seed{std::istreambuf_iterator<char>(file),std::istreambuf_iterator<char>()};
     ownedCommandBoundaries(seed);
-    // The cursor's single resolved world is shared with the static projection
-    // and the Worker envelope, without changing the document checkpoint.
-    {
-        DocumentSession cursorSession({[](const std::string&){},true,codecjson::ParsedTextPolicy::PreserveUtf16});
-        const auto initial=cursorSession.documentLoad(seed,"2026-10");
-        const auto checkpoint=cursorSession.project().historyCheckpoint();
-        ResolvedWorld result;
-        assert(cursorSession.setTimelineCursor("2026-09",initial.epoch,&result));
-        const auto projected=cursorSession.resolveWorld("2026-09");
-        assert(result.month=="2026-09"&&result.month==projected.month);
-        assert(result.entities.size()==projected.entities.size());
-        for(std::size_t i=0;i<result.entities.size();++i) {
-            assert(result.entities[i].id==projected.entities[i].id);
-            assert(result.entities[i].geometryRef==projected.entities[i].geometryRef);
-            assert(result.entities[i].parentId==projected.entities[i].parentId);
-        }
-        const auto advanced=cursorSession.projectState();
-        assert(advanced.epoch==initial.epoch+1&&advanced.revision==initial.revision);
-        assert(cursorSession.project().historyCheckpoint()==checkpoint&&!advanced.dirty&&!advanced.canUndo);
-        ResolvedWorld unchanged;
-        assert(!cursorSession.setTimelineCursor("2026-09",advanced.epoch,&unchanged));
-        assert(unchanged.month=="2026-09"&&unchanged.entities.size()==result.entities.size());
-        assert(cursorSession.projectState().epoch==advanced.epoch);
-    }
     auto blank=codecjson::parse(seed);for(auto& row:blank.object.at("territorialEntities").array) {
         auto& properties=row.object.at("properties");properties.object["name"]=codecjson::Value::str("");
         properties.object["metadata"]=codecjson::Value::obj();
@@ -352,5 +328,30 @@ int main() {
     assert(session.undo(session.projectState().epoch).result.changed());
     assert(!session.projectState().documentDirty&&session.projectState().presentationDirty);
     assert(!session.markSaved(session.projectState().epoch).dirty);
+    // Run the independent cursor test after all original document/storage assertions.
+    // The cursor's single resolved world is shared with the static projection
+    // and the Worker envelope, without changing the document checkpoint.
+    {
+        DocumentSession cursorSession({[](const std::string&){},true,codecjson::ParsedTextPolicy::PreserveUtf16});
+        const auto initial=cursorSession.documentLoad(seed,"2026-10");
+        const auto checkpoint=cursorSession.project().historyCheckpoint();
+        ResolvedWorld result;
+        assert(cursorSession.setTimelineCursor("2026-09",initial.epoch,&result));
+        const auto projected=cursorSession.resolveWorld("2026-09");
+        assert(result.month=="2026-09"&&result.month==projected.month);
+        assert(result.entities.size()==projected.entities.size());
+        for(std::size_t i=0;i<result.entities.size();++i) {
+            assert(result.entities[i].id==projected.entities[i].id);
+            assert(result.entities[i].geometryRef==projected.entities[i].geometryRef);
+            assert(result.entities[i].parentId==projected.entities[i].parentId);
+        }
+        const auto advanced=cursorSession.projectState();
+        assert(advanced.epoch==initial.epoch+1&&advanced.revision==initial.revision);
+        assert(cursorSession.project().historyCheckpoint()==checkpoint&&!advanced.dirty&&!advanced.canUndo);
+        ResolvedWorld unchanged;
+        assert(!cursorSession.setTimelineCursor("2026-09",advanced.epoch,&unchanged));
+        assert(unchanged.month=="2026-09"&&unchanged.entities.size()==result.entities.size());
+        assert(cursorSession.projectState().epoch==advanced.epoch);
+    }
     std::cout<<"DocumentSession: all-domain storage, metadata flags, atomic batch, draft separation, saved checkpoints and Project history passed\n";
 }
