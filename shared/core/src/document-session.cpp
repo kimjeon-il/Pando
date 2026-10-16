@@ -53,7 +53,7 @@ void DocumentSession::clearPreview() { preview_.reset();candidateId_=0;candidate
 DocumentSessionState DocumentSession::documentLoad(const std::string& input,const std::string& currentMonth) {
     if(epoch_==std::numeric_limits<std::uint32_t>::max())throw std::overflow_error("CORE_SESSION_EPOCH_OVERFLOW");
     auto document=projectcodec::decodeWebStorage(input,ports_,storageBaseline_?&*storageBaseline_:nullptr);
-    const auto month=initialTimelineMonth(document.timelineRecords,currentMonth);
+    const auto month=projectcodec::restoredTimelineMonth(document,currentMonth);
     // Both decoding and Project::replace build a validated candidate before the
     // canonical state changes. No partially parsed document can publish.
     Project candidate;candidate.replace(std::move(document));candidate.setTimelineCursor(month,false);
@@ -76,7 +76,7 @@ std::string DocumentSession::validateImport(const std::string& input,std::option
 ImportInspection DocumentSession::inspectImport(const std::string& input,std::optional<std::uint32_t> baselineId,const std::string& currentMonth) const {
     if(baselineId&&(!storageBaseline_||*baselineId!=storageBaselineId_))throw TimelineError("PL-SCHEMA-BASE","The requested baseline is absent or replaced.");
     auto decoded=projectcodec::decodeWebStorage(input,ports_,storageBaseline_?&*storageBaseline_:nullptr);
-    const auto month=initialTimelineMonth(decoded.timelineRecords,currentMonth);
+    const auto month=projectcodec::restoredTimelineMonth(decoded,currentMonth);
     Project staged;staged.replace(std::move(decoded));staged.setTimelineCursor(month,false);
     return {projectcodec::webSnapshot(staged.snapshot()),staged.resolveWorld(month)};
 }
@@ -108,7 +108,7 @@ DocumentSessionState DocumentSession::documentLoadBaseline(std::uint32_t id,cons
     if(!storageBaseline_||id!=storageBaselineId_||!storageBaseline_->sourceDocument())throw TimelineError("PL-SCHEMA-BASE","The full accepted baseline source is absent or replaced.");
     if(epoch_==std::numeric_limits<std::uint32_t>::max())throw std::overflow_error("CORE_SESSION_EPOCH_OVERFLOW");
     auto document=*storageBaseline_->sourceDocument();document.dirtyTerritorialIds.clear();
-    const auto month=initialTimelineMonth(document.timelineRecords,currentMonth);Project candidate;candidate.replace(std::move(document));candidate.setTimelineCursor(month,false);
+    const auto month=projectcodec::restoredTimelineMonth(document,currentMonth);Project candidate;candidate.replace(std::move(document));candidate.setTimelineCursor(month,false);
     project_=std::move(candidate);activeBaseline_=storageBaseline_;loaded_=true;stateRevision_=0;clearPreview();
     selection_.resetProject();externalSelectionRefs_.clear();draft_=GeometryDraft{};draftActive_=false;sourceEpoch_=++epoch_;return projectState();
 }
