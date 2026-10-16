@@ -170,13 +170,25 @@ test('cursor transition consumes the one C++ world packet without a follow-up re
   await f.runtime.dispose();
 });
 
-test('cursor transition rejects missing or stale Core world rather than silently resolving again', async () => {
-  const f = fixture();
-  await f.runtime.load({ storageJson: '{}' }, context());
-  const broken = f.runtime.setTimelineCursor({ month: '1914-07', expectedEpoch: 1 }, context());
-  // This fixture produces a valid snapshot; the ABI missing-world case has
-  // separate coverage in the C++ return contract and this assertion pins the
-  // successful epoch and month before the next command.
-  assert.equal((await broken).world.sourceEpoch, 2);
-  await f.runtime.dispose();
+test('cursor transition rejects missing, stale or malformed Core world without a second query', async () => {
+  for (const world of [
+    null,
+    { month: '1914-07', sourceEpoch: 1, entities: [] },
+    { month: '1914-06', sourceEpoch: 2, entities: [] },
+    { month: '1914-07', sourceEpoch: 2, entities: null },
+  ]) {
+    let secondaryQueries = 0;
+    const runtime = createDocumentSessionRuntime({
+      loadModule: async () => ({ DocumentSession: class {
+        setTimelineCursor() { return { state: { epoch: 2, timelineCursor: '1914-07' }, world }; }
+        resolveWorld() { secondaryQueries += 1; return { month: '1914-07', sourceEpoch: 2, entities: [] }; }
+        delete() {}
+      } }),
+      validateFlagDataUrl() {},
+    });
+    await assert.rejects(runtime.setTimelineCursor({ month: '1914-07', expectedEpoch: 1 }, context()),
+      { code: 'PL-CORE-DOCUMENT-ABI' });
+    assert.equal(secondaryQueries, 0);
+    await runtime.dispose();
+  }
 });
