@@ -25,6 +25,7 @@ export async function createRuntimeProfile() {
       platform: Object.freeze({
         physicalResourcesEnabled: true,
         builtinPlacesEnabled: true,
+        deferPhysicalUntilReady: true,
         startupMesh: 'builtin',
         storageNamespace: 'pandoeditor-web-shell-world-v1',
       }),
