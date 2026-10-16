@@ -4,6 +4,13 @@ on:
     branches: [work/objects]
     paths:
       - '.github/workflows/objects-cursor-focused-acceptance.yml'
+      - 'shared/core/**'
+      - 'shared/wasm/session-bindings.cpp'
+      - 'assets/wasm/pandoeditor-core.manifest.json'
+      - 'assets/js/modules/core-document-runtime.js'
+      - 'tests/browser/historical-world-timeline.spec.mjs'
+      - 'tests/browser/temporal-editing.spec.mjs'
+      - 'tests/browser/soviet-initialization-memory.spec.mjs'
   workflow_dispatch:
 permissions:
   contents: read
@@ -86,6 +93,7 @@ jobs:
           PANDOLAB_BROWSER_CHANNEL: chromium
         run: |
           pnpm exec playwright test tests/browser/soviet-initialization-memory.spec.mjs tests/browser/temporal-editing.spec.mjs --workers=1 --retries=0 --trace off
+          pnpm exec playwright test tests/browser/historical-world-timeline.spec.mjs --grep 'new world reset retains the complete history after an edit' --repeat-each=3 --workers=1 --retries=0 --trace off
       - name: Preserve browser evidence on failures
         if: always()
         uses: actions/upload-artifact@v4
