@@ -55,6 +55,20 @@ function harness(overrides = {}) {
   return { service, storage, tasks, events };
 }
 
+test('retired or explicitly cancelled snapshot failures do not publish autosave errors or reject teardown',async()=>{
+  const started=barrier(),finish=barrier(),warnings=[];
+  const current=harness({service:{buildAutosave:async()=>{started.release();await finish.wait;throw Object.assign(new Error('Project domain is disposed.'),{code:'PL-CORE-CANCELLED',name:'AbortError',cancelled:true});},onWarning:(...args)=>warnings.push(args)}});
+  const pending=current.service.persist();await started.wait;current.service.cancelPending();finish.release();await pending;
+  assert.deepEqual(warnings,[]);assert.deepEqual(current.events,[]);assert.equal(current.storage.project,null);
+  const cancelled=harness({service:{buildAutosave:async()=>{throw Object.assign(new Error('disposed'),{name:'AbortError',cancelled:true});},onWarning:(...args)=>warnings.push(args)}});
+  await cancelled.service.persist();assert.deepEqual(cancelled.events,[]);assert.deepEqual(warnings,[]);
+  const active=harness({service:{buildAutosave:async()=>{throw new Error('active failure');},onWarning:(...args)=>warnings.push(args)}});
+  await assert.rejects(active.service.persist(),/active failure/);assert.equal(warnings.length,1);assert.ok(active.events.some(row=>row[0]==='failure'));
+  const aborted=harness({service:{onSaved:async()=>{throw Object.assign(new Error('active acknowledgement aborted'),{name:'AbortError'});},onWarning:(...args)=>warnings.push(args)}});
+  await assert.rejects(aborted.service.persist(),/active acknowledgement aborted/);
+  assert.ok(aborted.events.some(row=>row[0]==='failure'));
+});
+
 test('queued autosaves share a build and clear waits for an active write without restoring cancelled data', async () => {
   let release;
   let builds = 0;

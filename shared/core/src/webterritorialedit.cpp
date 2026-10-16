@@ -2,6 +2,7 @@
 #include <pandoeditor/project.h>
 #include <pandoeditor/projectcodec.h>
 #include <pandoeditor/timeline-edit.h>
+#include <pandoeditor/timeline-view.h>
 #include <algorithm>
 #include <limits>
 #include <map>
@@ -21,7 +22,9 @@ WebTerritorialFeature identityRow(const ProjectDocument& d,const TerritorialUnit
     return row;
 }
 ActiveFrame activeFrame(const ProjectSnapshot& snapshot) {
-    const auto& d=snapshot.document();ActiveFrame frame;
+    const auto& source=snapshot.document();
+    const auto projection=snapshot.timelineEditsEnabled()?std::optional<TimelineDocumentView>{timelineDocumentView(source,snapshot.timelineMonth())}:std::nullopt;
+    const auto& d=projection?projection->document:source;ActiveFrame frame;
     const auto append=[&](const TerritorialUnit& unit,GeometryRef geometry,const std::string& parent,const std::string& coverage,Validity validity) {
         auto row=identityRow(d,unit);const auto shape=d.geometries.get(geometry);
         require(bool(shape),"invalid","Territorial geometry is missing.");row.geometry=*shape;row.parentId=parent;row.coverageMode=coverage;row.validity=std::move(validity);
@@ -30,7 +33,7 @@ ActiveFrame activeFrame(const ProjectSnapshot& snapshot) {
     if(snapshot.timelineEditsEnabled()) {
         require(!snapshot.timelineMonth().empty(),"TIMELINE_ACTIVATION","A timeline month is required.");
         const auto point=parseTemporal(snapshot.timelineMonth());require(point.precision=="month","INVALID_TIMELINE_CURSOR","Month precision is required.");
-        const auto world=resolveWorld(d.timelineRecords,{timelineEntityCatalog(d),[&](const GeometryRef& ref){return bool(d.geometries.get(ref));}},snapshot.timelineMonth());
+        const auto world=resolveWorld(source.timelineRecords,{timelineEntityCatalog(source),[&](const GeometryRef& ref){return bool(source.geometries.get(ref));}},snapshot.timelineMonth());
         for(const auto& resolved:world.entities) {
             const auto found=snapshot.index().objects.find(territorialRef(resolved.id));require(found!=snapshot.index().objects.end(),"invalid","Territorial identity is missing.");
             append(d.units.at(found->second),resolved.geometryRef,resolved.parentId,resolved.coverageMode,resolved.validity);
@@ -126,6 +129,7 @@ struct Allocator {
         recordIds.clear();for(const auto& row:candidate.timelineRecords.lifetimes)recordIds.insert(row.id);
         for(const auto& row:candidate.timelineRecords.geometryBindings)recordIds.insert(row.id);
         for(const auto& row:candidate.timelineRecords.parentRelations)recordIds.insert(row.id);
+        for(const auto& row:candidate.timelineRecords.propertyBindings)recordIds.insert(row.id);
     }
     std::string record(const std::string& base) {
         auto id=base;for(std::uint64_t suffix=1;recordIds.count(id);++suffix)id=base+":"+std::to_string(suffix);
@@ -158,7 +162,7 @@ void setIdentity(ProjectDocument& d,const WebTerritorialFeature& row,bool append
 void applyStatic(ProjectDocument& d,const Rows& next) {
     std::set<std::string> ids;for(const auto& row:next)ids.insert(row.identity.id);
     const auto filter=[&](auto& rows){rows.erase(std::remove_if(rows.begin(),rows.end(),[&](const auto& row){return !ids.count(row.entityId);}),rows.end());};
-    filter(d.timelineRecords.lifetimes);filter(d.timelineRecords.geometryBindings);filter(d.timelineRecords.parentRelations);
+    filter(d.timelineRecords.lifetimes);filter(d.timelineRecords.geometryBindings);filter(d.timelineRecords.parentRelations);filter(d.timelineRecords.propertyBindings);
     std::vector<std::string> deleted;for(const auto& unit:d.units)if(!ids.count(unit.id))deleted.push_back(unit.id);
     for(const auto& id:deleted)eraseIdentity(d,id);
     Allocator allocate(d);
@@ -180,10 +184,10 @@ void applyStatic(ProjectDocument& d,const Rows& next) {
     // retained old order and appended new rows before reaching this boundary.
     std::vector<TerritorialUnit> units;units.reserve(next.size());for(const auto& row:next)units.push_back(row.identity);d.units=std::move(units);
 }
-void applyMonth(ProjectDocument& d,const ActiveFrame& before,const Rows& next,const std::string& month) {
+void applyMonth(ProjectDocument& d,const ActiveFrame& before,const Rows& next,const std::string& month,bool preserveFutureChanges) {
     const auto previous=indexRows(before.rows),after=indexRows(next);
     for(const auto& row:before.rows)if(!after.count(row.identity.id)) {
-        d.timelineRecords=truncateTimelineEntityAtMonth(d.timelineRecords,row.identity.id,month);
+        d.timelineRecords=truncateTimelineEntityAtMonth(d.timelineRecords,row.identity.id,month,preserveFutureChanges);
         if(std::none_of(d.timelineRecords.lifetimes.begin(),d.timelineRecords.lifetimes.end(),[&](const auto& value){return value.entityId==row.identity.id;}))eraseIdentity(d,row.identity.id);
     }
     Allocator allocate(d);
@@ -219,11 +223,16 @@ void applyMonth(ProjectDocument& d,const ActiveFrame& before,const Rows& next,co
     }
 }
 }
-ProjectDocument applyWebTerritorialEdit(const ProjectSnapshot& snapshot,const WebTerritorialEdit& edit) {
+ProjectDocument applyWebTerritorialEdit(const ProjectSnapshot& snapshot,const WebTerritorialEdit& edit,TerritorialEditContext context) {
     const auto before=activeFrame(snapshot);const auto next=changedRows(before,edit);auto candidate=snapshot.document();
-    if(snapshot.timelineEditsEnabled())applyMonth(candidate,before,next,snapshot.timelineMonth());else applyStatic(candidate,next);
+    if(snapshot.timelineEditsEnabled()) {
+        applyMonth(candidate,before,next,snapshot.timelineMonth(),context==TerritorialEditContext::LibraryImport);
+        const auto projected=timelineDocumentView(snapshot.document(),snapshot.timelineMonth());
+        captureTimelinePropertyChanges(snapshot.document(),projected.document,candidate,snapshot.timelineMonth());
+    }else applyStatic(candidate,next);
     candidate.timelineRecords=normalizeTimelineRecords(candidate.timelineRecords,{timelineEntityCatalog(candidate),[&](const GeometryRef& ref){
         const auto geometry=candidate.geometries.get(ref);return geometry&&(geometry->type=="Polygon"||geometry->type=="MultiPolygon");}});
+    if(context!=TerritorialEditContext::SourceAdmission)validateTimelineParentChanges(snapshot.document(),candidate);
     return candidate;
 }
 }

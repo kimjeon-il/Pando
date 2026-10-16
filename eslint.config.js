@@ -29,7 +29,7 @@ export default [
     'tests/fixtures/portability/web-9300609-oracle/**'] },
   js.configs.recommended,
   {
-    files: ['assets/js/**/*.js'],
+    files: ['assets/js/**/*.js', 'apps/web-shell/*.js'],
     languageOptions: { ecmaVersion: 'latest', sourceType: 'module', globals: { ...browserGlobals, console: 'readonly' } },
     rules: {
       'no-unused-vars': ['error', { args: 'none', caughtErrors: 'none', ignoreRestSiblings: true }],
@@ -66,12 +66,12 @@ export default [
     languageOptions: { sourceType: 'module' },
   },
   {
-    files: ['tests/**/*.mjs', 'scripts/**/*.mjs', 'tools/**/*.mjs', 'native/tools/**/*.mjs', '*.config.js'],
+    files: ['tests/**/*.mjs', 'scripts/**/*.mjs', 'tools/**/*.mjs', 'native/tools/**/*.mjs', 'apps/web-shell/**/*.mjs', '*.config.js'],
     languageOptions: { ecmaVersion: 'latest', sourceType: 'module', globals: nodeGlobals },
     rules: { 'no-unused-vars': ['error', { args: 'none', caughtErrors: 'none', ignoreRestSiblings: true }] },
   },
   {
-    files: ['tests/browser/**/*.mjs'],
+    files: ['tests/browser/**/*.mjs', 'apps/web-shell/tests/**/*.mjs'],
     languageOptions: { globals: { ...nodeGlobals, ...browserGlobals } },
   },
 ];

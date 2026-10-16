@@ -1,0 +1,121 @@
+import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
+import { access, mkdir, open, readFile, readdir, rm, unlink, writeFile } from 'node:fs/promises';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { gzipSync } from 'node:zlib';
+import { tinyFixture, SOURCE_MONTH } from './fixture.mjs';
+import { installNetworkGuard } from './network-guard.js';
+
+const here = dirname(fileURLToPath(import.meta.url));
+const repository = resolve(here, '../..');
+const ownership = '.pandolab-web-shell-stage';
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+const exists = async path => access(path).then(() => true, () => false);
+const slash = path => path.replaceAll('\\', '/');
+
+/** Build a disposable local web distribution; never package assets/data. */
+export async function stagePrototype({ root = repository } = {}) {
+  const parent = resolve(root, 'apps/web-shell');
+  await mkdir(parent, { recursive: true });
+  const lockPath = join(parent, '.stage-lock');
+  let lock;
+  try { lock = await open(lockPath, 'wx'); }
+  catch (error) {
+    if (error.code === 'EEXIST') throw new Error('Shell staging is already running; wait for the current build.', { cause: error });
+    throw error;
+  }
+  try { return await stageOwnedPrototype({ root }); }
+  finally { await lock.close(); await unlink(lockPath); }
+}
+
+async function stageOwnedPrototype({ root }) {
+  root = resolve(root);
+  const directory = join(root, 'apps/web-shell/dist');
+  if (await exists(directory)) {
+    if (!await exists(join(directory, ownership))) throw new Error('Output directory ownership is not established; no files removed.');
+    // Only this fixed, owned generated directory may be replaced.
+    if (resolve(directory) !== resolve(root, 'apps/web-shell/dist')) throw new Error('Unsafe output directory');
+    await rm(directory, { recursive: true });
+  }
+  await mkdir(directory, { recursive: true });
+  await writeFile(join(directory, ownership), 'PandoLab web-shell generated files only\n');
+  const files = [];
+  const emit = async (path, bytes, source = null) => {
+    const target = resolve(directory, path);
+    if (!target.startsWith(directory + '\\') && !target.startsWith(directory + '/')) throw new Error(`Unsafe staged path: ${path}`);
+    await mkdir(dirname(target), { recursive: true });
+    await writeFile(target, bytes);
+    files.push({ path: slash(path), bytes: Buffer.byteLength(bytes), sha256: hash(bytes), ...(source ? { source } : {}) });
+  };
+  async function copyTree(path) {
+    if (!await exists(join(root, path))) return;
+    for (const entry of await readdir(join(root, path), { withFileTypes: true })) {
+      const child = join(path, entry.name);
+      if (entry.isSymbolicLink()) throw new Error(`Symbolic links cannot enter the shell distribution: ${child}`);
+      if (entry.isDirectory()) await copyTree(child);
+      else if (entry.isFile() && !entry.name.endsWith('.map')) {
+        let bytes = await readFile(join(root, child));
+        if (slash(child) === 'assets/js/build-meta.js') {
+          bytes = Buffer.concat([bytes, Buffer.from("\nglobalThis.PANDOLAB_BUILD_META = Object.freeze({ ...globalThis.PANDOLAB_BUILD_META, resourceProfile: 'small-project' });\n")]);
+        }
+        if (slash(child).startsWith('assets/js/workers/') && child.endsWith('.js')) {
+          const strict = /^(?:\s|\/\*[\s\S]*?\*\/|\/\/[^\r\n]*(?:\r?\n|$))*(['"])use strict\1\s*;/.test(bytes.toString('utf8'));
+          bytes = Buffer.concat([Buffer.from(`${strict ? "'use strict';\n" : ''}/* Shell-only request guard; original worker follows. */\n(${installNetworkGuard.toString()})();\n`), bytes]);
+        }
+        await emit(child, bytes, slash(child));
+      }
+    }
+  }
+  const manifestPath = 'assets/wasm/pandoeditor-core.manifest.json';
+  const manifestBytes = await readFile(join(root, manifestPath));
+  const coreManifest = JSON.parse(manifestBytes);
+  if (coreManifest.schema !== 'pandoeditor-core-wasm' || coreManifest.abiVersion !== 1) throw new Error('Unexpected WASM manifest');
+  for (const type of ['js', 'wasm']) {
+    const spec = coreManifest.assets?.[type];
+    if (spec?.file !== `pandoeditor-core.${type}`) throw new Error('Unexpected WASM asset path');
+    const path = `assets/wasm/${spec.file}`, bytes = await readFile(join(root, path));
+    if (hash(bytes) !== spec.sha256) throw new Error(`WASM ${type} hash mismatch; regenerate through the existing shared-core owner.`);
+    await emit(path, bytes, path);
+  }
+  await emit(manifestPath, manifestBytes, manifestPath);
+  for (const tree of ['assets/js', 'assets/css', 'assets/fonts', 'assets/vendor']) await copyTree(tree);
+  const html = await readFile(join(root, 'index.html'), 'utf8');
+  const bootstrap = /<script\s+src="assets\/js\/bootstrap\.js[^"]*"\s+defer><\/script>/;
+  if (!bootstrap.test(html)) throw new Error('The current frontend bootstrap entry was not found.');
+  await emit('index.html', html.replace(bootstrap, '<script type="module" src="shell/startup.js"></script>'), 'index.html (shell entry only)');
+  for (const file of ['startup.js', 'runtime-profile.js', 'diagnostics.js', 'native-storage.js', 'network-guard.js', 'fixture-limits.js', 'diagnostics.css']) {
+    if (await exists(join(here, file))) await emit(`shell/${file}`, await readFile(join(here, file)), `apps/web-shell/${file}`);
+  }
+  const fixture = tinyFixture();
+  if (await exists(join(root, 'package.json'))) fixture.project.version = JSON.parse(await readFile(join(root, 'package.json'), 'utf8')).version;
+  if (fixture.coordinateCount > 100) throw new Error('Prototype fixture exceeds the 100-coordinate limit');
+  const projectBytes = Buffer.from(JSON.stringify(fixture.project));
+  const compressed = gzipSync(projectBytes, { level: 9 });
+  await emit('shell/fixture-project.json.gz', compressed);
+  await emit('shell/fixture-countries.json', JSON.stringify(fixture.countries));
+  const world = Buffer.from(JSON.stringify({ schemaVersion: 1, sourceMonth: SOURCE_MONTH,
+    project: { url: '/shell/fixture-project.json.gz', encoding: 'gzip', sha256: hash(compressed),
+      compressedBytes: compressed.length, decodedBytes: projectBytes.length } }));
+  await emit('shell/fixture-world.json', world);
+  const historicalWorld = { url: './fixture-world.json', encoding: 'json', sha256: hash(world),
+    compressedBytes: world.length, decodedBytes: world.length, sourceMonth: SOURCE_MONTH };
+  await emit('shell/stage-profile.json', JSON.stringify({ historicalWorld, countriesUrl: './fixture-countries.json' }));
+  let commit = 'unavailable', trackedDiffSha256 = null;
+  try {
+    commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8', windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+    trackedDiffSha256 = hash(execFileSync('git', ['diff', '--binary', 'HEAD'], { cwd: root, windowsHide: true, maxBuffer: 8 * 1024 * 1024 }));
+  } catch { /* Synthetic staging tests have no Git directory. */ }
+  const result = { schema: 'pandolab-web-shell-stage', directory, commit, trackedDiffSha256,
+    coreSourceSha256: coreManifest.sourceSha256 || null, fixture: { entityCount: fixture.entityCount,
+      coordinateCount: fixture.coordinateCount, sha256: hash(projectBytes) }, files,
+    bytes: files.reduce((sum, file) => sum + file.bytes, 0) };
+  if (result.bytes > 80 * 1024 * 1024 || files.some(file => file.path.startsWith('assets/data/'))) throw new Error('Shell staging exceeded the small offline profile');
+  await writeFile(join(directory, 'shell/stage-evidence.json'), JSON.stringify(result, null, 2));
+  return result;
+}
+
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const result = await stagePrototype();
+  console.log(`Staged ${result.files.length} files, ${result.bytes} bytes, ${result.fixture.coordinateCount} fixture coordinates (${result.commit}).`);
+}

@@ -1,10 +1,7 @@
+# Explicit GIS/source-data reproduction; lightweight source checks remain in gis-python-p4.yml.
 name: One-shot USSR territorial asset regeneration
 on:
-  push:
-    branches:
-      - fix/territory-cpp-normalization-20261013
-    paths:
-      - '.github/workflows/territorial-stage2-refresh.yml'
+  workflow_dispatch:
 permissions:
   contents: write
 jobs:

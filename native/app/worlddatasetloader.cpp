@@ -75,6 +75,7 @@ WorldPreviewResult WorldDatasetLoader::preview(const QString& root) {
     preview.presentation.userLayers={{"countries","Countries"}};
     std::set<std::string> unique;
     auto frame=std::make_shared<WorldBaseFrame>();frame->mesh=std::move(mesh);frame->documentReady=false;
+    std::size_t sourceCoordinateCount=0;
     for(const auto& value:features) {
         const auto object=value.toObject();
         pandoeditor::TerritorialUnit country;
@@ -82,12 +83,15 @@ WorldPreviewResult WorldDatasetLoader::preview(const QString& root) {
         require(!country.id.empty()&&unique.insert(country.id).second,"Duplicate preview country ID");
         country.name=object.value("properties").toObject().value("name").toString().toStdString();
         pandoeditor::GeometryRef ref{"preview:"+country.id,1};
-        preview.geometries.insert(ref,{"MultiPolygon",{},{},previewGeometry(object.value("geometry").toObject())});
+        auto polygons=previewGeometry(object.value("geometry").toObject());
+        for(const auto& polygon:polygons)for(const auto& ring:polygon)sourceCoordinateCount+=ring.size();
+        preview.geometries.insert(ref,{"MultiPolygon",{},{},std::move(polygons)});
         pandoeditor::addStaticTerritorialRecords(preview,country.id,ref);
         preview.presentation.membership.emplace(pandoeditor::territorialRef(country.id),"countries");
         preview.presentation.objectStyles.emplace(pandoeditor::territorialRef(country.id),pandoeditor::ObjectStyle{0xa8c7db,1});
         preview.units.push_back(std::move(country));
     }
+    require(frame->mesh->sourceCoordinateCount==sourceCoordinateCount,"Preview mesh source coordinate count mismatch");
     CanonicalCountryStore packet(source.decompress("countryCanonical",12*1024*1024));
     const auto classified=materializeBuiltinWorld(packet);
     frame->ranges=renderRanges(classified);
@@ -152,7 +156,10 @@ WorldCanonicalResult WorldDatasetLoader::canonical(const QString& root,const std
 }
 std::shared_ptr<const CountryBaseMesh> WorldDatasetLoader::canonicalMesh(const QString& root) {
     WorldDataset source(root);
-    return decodeCountryBaseMesh(source.decompress("canonicalMesh",40*1024*1024),false);
+    auto mesh=decodeCountryBaseMesh(source.decompress("canonicalMesh",40*1024*1024),false);
+    require(mesh->sourceCoordinateCount==source.manifest().value("canonicalPositionCount").toInteger(),
+            "Canonical mesh source coordinate count mismatch");
+    return mesh;
 }
 std::shared_ptr<const WorldBaseFrame> WorldDatasetLoader::matchingBaseFrame(
     const pandoeditor::ProjectDocument& document,const QString& root,const std::string& month) {

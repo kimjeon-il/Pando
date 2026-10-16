@@ -58,13 +58,13 @@ test('catalog search loads only the index and repeated selection loads one uncha
   await expect(page.locator('[data-library-entity-id="state:deutsche-demokratische-republik"]')).toBeVisible();
   await expect(page.locator('[data-library-entity-id="state:deutsche-demokratische-republik"] strong')).toHaveText('독일 민주공화국');
   await page.locator('#territorialLibraryReferenceDateInput').fill('1970');
-  await expect(page.locator('[data-library-entity-id="state:DEU"]')).toHaveCount(0);
+  await expect(page.locator('[data-library-entity-id="state:DEU"]')).toBeVisible();
   await expect(page.locator('[data-library-entity-id="state:deutsche-demokratische-republik"]')).toBeVisible();
   await page.locator('[data-library-entity-id="state:deutsche-demokratische-republik"]').click();
-  await expect(page.locator('#territorialLibraryPreview')).toContainText('국토 자료가 없습니다');
+  await expect(page.locator('#territorialLibraryPreview')).toContainText('국가의 부재를 뜻하지 않습니다');
   await expect(page.locator('#territorialLibraryAddBtn')).toBeDisabled();
   await page.locator('#territorialLibraryReferenceDateInput').fill('1989-04-25');
-  await expect(page.locator('[data-library-entity-id="state:DEU"]')).toHaveCount(0);
+  await expect(page.locator('[data-library-entity-id="state:DEU"]')).toBeVisible();
   await expect(page.locator('[data-library-entity-id="state:deutsche-demokratische-republik"]')).toBeVisible();
   await expect(page.locator('#territorialLibraryPreview [data-geometry-version-id]')).toHaveAttribute('data-geometry-version-id','state:deutsche-demokratische-republik:1989-04-25-r1');
   await expect(page.locator('#territorialLibraryAddBtn')).toBeEnabled();

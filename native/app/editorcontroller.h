@@ -984,6 +984,7 @@ private:
     ProjectStorage storage_;
     std::unique_ptr<ProjectAutosave> autosave_;
     std::string autosaveInstance_;
+    std::string autosaveTimelineMonth_;
     std::uint64_t autosaveRevision_=std::numeric_limits<std::uint64_t>::max();
     bool mobileMode_=false;
     bool importedDirty_=false;

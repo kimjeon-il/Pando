@@ -1,9 +1,11 @@
 import { buildSelectionBoundarySegments } from './selection-stroke-geometry.js';
 import { resolveRenderLod, simplifyRenderGeometry } from './render-lod.js';
-import '../vendor/earcut.min.js';
 import '../workers/gpu-mesh-core.js';
+import { sharedCalculationCore } from './temporal.js';
 import { geometryRevisionKey } from './geometry-versions.js';
 import { geometryReferenceFor } from './geometry-version-store.js';
+
+globalThis.PandoLabGpuMeshCore.setSharedCore(sharedCalculationCore);
 
 const EMPTY_REVISIONS = Object.freeze({
   geometry: 0,
@@ -22,8 +24,8 @@ function finiteCoordinate(value) {
     && Number.isFinite(Number(value[0])) && Number.isFinite(Number(value[1]));
 }
 
-export function buildPolygonGeometryPacket(geometry, { triangulate = globalThis.earcut } = {}) {
-  return globalThis.PandoLabGpuMeshCore.buildPolygonGeometryPacket(geometry, { triangulate });
+export function buildPolygonGeometryPacket(geometry) {
+  return globalThis.PandoLabGpuMeshCore.buildPolygonGeometryPacket(geometry);
 }
 
 export function buildStrokeGeometryPacket(geometry) {
@@ -122,7 +124,6 @@ function freezePacket(item, geometryPacket, kind, { lod = 'high', projection = '
 }
 
 export function createRenderSceneBuilder({
-  triangulate = globalThis.earcut,
   cacheLimit = 4096,
   cacheByteBudget = 192 * 1024 * 1024,
   meshJobs = null,
@@ -220,7 +221,7 @@ export function createRenderSceneBuilder({
         policy: item?.lodPolicy || 'exact',
         projection: context.projection,
       });
-      geometryPacket = buildPolygonGeometryPacket(renderGeometry, { triangulate });
+      geometryPacket = buildPolygonGeometryPacket(renderGeometry);
       triangulationMs += performance.now() - started;
       polygonCacheMisses += 1;
     }

@@ -61,7 +61,8 @@ export function stageWebPages(rootInput, stageInput, manifestInput) {
   const all = gitFiles(root);
   const excludedNativeFiles = all.filter(file => file.path.startsWith('native/')).length;
   const excludedSharedFiles = all.filter(file => file.path.startsWith('shared/')).length;
-  const web = all.filter(file => !file.path.startsWith('native/') && !file.path.startsWith('shared/'));
+  const excludedAppFiles = all.filter(file => file.path.startsWith('apps/')).length;
+  const web = all.filter(file => !['native/', 'shared/', 'apps/'].some(prefix => file.path.startsWith(prefix)));
   const paths = new Set(web.map(file => file.path));
   const required=[...REQUIRED];
   if(paths.has('assets/js/workers/core-session-worker.js'))required.push(
@@ -95,7 +96,7 @@ export function stageWebPages(rootInput, stageInput, manifestInput) {
   }
   const sourceCommit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
   const evidence = { schema: 'pando-web-pages-staging', sourceCommit, fileCount: files.length,
-    bytes: total, limitBytes: LIMIT_BYTES, excludedNativeFiles, excludedSharedFiles, files };
+    bytes: total, limitBytes: LIMIT_BYTES, excludedNativeFiles, excludedSharedFiles, excludedAppFiles, files };
   mkdirSync(dirname(manifest), { recursive: true });
   writeFileSync(manifest, JSON.stringify(evidence, null, 2) + '\n');
   return evidence;
@@ -106,5 +107,5 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const arg = name => { const at = args.indexOf(name); return at < 0 ? null : args[at + 1]; };
   if (!arg('--stage') || !arg('--manifest')) throw Error('Usage: stage-monorepo-pages.mjs --root ROOT --stage OUT --manifest EVIDENCE');
   const result = stageWebPages(arg('--root') || '.', arg('--stage'), arg('--manifest'));
-  process.stdout.write(`${result.fileCount} Web files, ${result.bytes} bytes, ${result.excludedNativeFiles} native and ${result.excludedSharedFiles} shared source files excluded\n`);
+  process.stdout.write(`${result.fileCount} Web files, ${result.bytes} bytes, ${result.excludedNativeFiles} native, ${result.excludedSharedFiles} shared and ${result.excludedAppFiles} app source files excluded\n`);
 }

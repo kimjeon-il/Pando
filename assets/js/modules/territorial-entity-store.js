@@ -1,7 +1,7 @@
 /** Empty detached startup input; C++ admits it before editable data is loaded. */
 export function createEmptyTerritorialState() {
   const geometries=Object.freeze([]);
-  return { territorialEntities: [],timelineRecords: { schemaVersion: 1,lifetimes: [],geometryBindings: [],parentRelations: [] },
+  return { territorialEntities: [],timelineRecords: { schemaVersion: 2,lifetimes: [],geometryBindings: [],parentRelations: [],propertyBindings: [] },
     geometries: Object.freeze({ snapshot: () => geometries,get: () => null }) };
 }
 

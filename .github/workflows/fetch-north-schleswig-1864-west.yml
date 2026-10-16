@@ -1,12 +1,8 @@
+# Explicit GIS/source-data reproduction; lightweight source checks remain in gis-python-p4.yml.
 name: Fetch North Schleswig 1864 west sources
 
 on:
-  push:
-    branches: [work/gis]
-    paths:
-      - tools/fetch_north_schleswig_1864_west_sources.py
-      - .github/workflows/fetch-north-schleswig-1864-west.yml
-
+  workflow_dispatch:
 permissions:
   contents: write
 

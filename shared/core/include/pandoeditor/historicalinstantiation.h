@@ -41,13 +41,17 @@ struct HistoricalInstantiationPlan {
     // country. Dependent typed references are redirected in the same ChangeSet.
     std::map<ObjectRef,ObjectRef> territoryTransfers;
     std::map<std::string,std::string> countryNameUpdates;
+    // Destination editing month; referenceDate on each addition is source
+    // provenance only. Empty retains an explicitly static document operation.
+    std::optional<std::string> applicationMonth;
 };
 HistoricalInstantiationPlan planHistorical(const ProjectSnapshot&,
     const HistoricalLibrary&,const std::vector<HistoricalAddRequest>&,
     const std::vector<GeometryReplacement>& territoryReplacements={},
     const std::map<ObjectRef,ObjectRef>& territoryTransfers={});
 // Catalog adapter has already selected exact dated boundaries and copied source
-// provenance into static selections. No alternate catalog or JSON reader here.
+// provenance into selections. Destination timing comes from the project cursor;
+// no alternate catalog or JSON reader lives here.
 HistoricalInstantiationPlan planHistoricalSelections(const ProjectSnapshot&,
     const std::vector<HistoricalAddition>&,
     const std::vector<GeometryReplacement>& territoryReplacements={},

@@ -18,10 +18,18 @@ int main() {
     result=boundarySplitCandidates({edge(p(1,0),p(0,0))},nodes);
     assert(result[0].size()==5 && result[0][0].nodeIndex==1 &&
            result[0][4].nodeIndex==0);
-    // Date line span forces the >4096-cell broad-phase fallback.
+    // Geographic edges cross the date line locally, never through Greenwich.
     result=boundarySplitCandidates({edge(p(-179,10),p(179,10))},
         {p(-179,10),p(0,10),p(179,10),p(0,11)});
-    assert(result[0].size()==3 && result[0][1].nodeIndex==1);
+    assert(result[0].size()==2 && result[0][0].nodeIndex==0&&result[0][1].nodeIndex==2);
+    result=boundarySplitCandidates({edge(p(179,1),p(-179,1)),edge(p(-179,1),p(179,1)),
+                                   edge(p(539,1),p(541,1))},
+        {p(179,1),p(-179,1),p(180,1),p(0,1),p(1,1)});
+    assert(result.size()==3);
+    for(const auto& split:result)assert(split.size()==3&&split[1].nodeIndex==2&&split[1].t==.5);
+    assert(result[0].front().nodeIndex==0&&result[0].back().nodeIndex==1);
+    assert(result[1].front().nodeIndex==1&&result[1].back().nodeIndex==0);
+    assert(result[2].front().nodeIndex==0&&result[2].back().nodeIndex==1);
     result=boundarySplitCandidates({edge(p(1,1),p(1,1))},nodes);
     assert(result[0].empty());
     result=boundarySplitCandidates({},nodes);

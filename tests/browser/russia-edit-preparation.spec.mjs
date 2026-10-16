@@ -1,6 +1,7 @@
 import { startChildCreation } from './helpers/ui-select.mjs';
 import { expect, test } from '@playwright/test';
 import { writeFile } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import {routeStaticCatalogSource} from './helpers/static-catalog-source.mjs';
 
 test.use({ channel: 'chromium', viewport: { width: 1440, height: 900 } });
@@ -151,7 +152,13 @@ for (const renderer of ['webgl2', 'webgl1', 'canvas']) {
       const polygons = country.geometry.type === 'Polygon' ? [country.geometry.coordinates] : country.geometry.coordinates;
       return { polygons: polygons.length, pairs: polygons.flat().reduce((sum, ring) => sum + ring.length, 0), version: document.querySelector('#app').dataset.appVersion };
     });
-    expect(baseline).toMatchObject({ polygons: 214, pairs: 36756 });
+    const dataRoot = new URL('../../assets/data/', import.meta.url);
+    const buildInput = JSON.parse(readFileSync(new URL('world/build-input.json', dataRoot)));
+    const canonical = JSON.parse(readFileSync(new URL(buildInput.canonicalSource, dataRoot)));
+    const canonicalRussia = canonical.features.find(feature => feature.id === 'RUS').geometry;
+    const canonicalPolygons = canonicalRussia.type === 'Polygon' ? [canonicalRussia.coordinates] : canonicalRussia.coordinates;
+    expect(baseline).toMatchObject({ polygons: canonicalPolygons.length,
+      pairs: canonicalPolygons.flat().reduce((sum, ring) => sum + ring.length, 0) });
     await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('RUS'));
     await startChildCreation(page, 'RUS');
     await expect(page.locator('#modePrimaryBtn')).toBeEnabled({ timeout: 60000 });

@@ -44,7 +44,6 @@ function loadClassicScript(relativePath, globalName) {
 }
 
 const d3 = loadClassicScript(path.join('assets', 'js', 'vendor', 'd3.min.js'), 'd3');
-const earcut = loadClassicScript(path.join('assets', 'js', 'vendor', 'earcut.min.js'), 'earcut');
 const countryGeometry = loadClassicScript(path.join('assets', 'js', 'modules', 'polygon-geometry.js'), 'PandoLabPolygonGeometry');
 const meshCore = loadClassicScript(path.join('assets', 'js', 'workers', 'gpu-mesh-core.js'), 'PandoLabGpuMeshCore');
 
@@ -219,7 +218,7 @@ const canonicalCountryPacketHeader = inspectCanonicalCountryPacket(canonicalCoun
 const canonicalCountryPacket = checkedGzip(canonicalCountryPacketPath, zlib.gzipSync(Buffer.from(canonicalCountryPacketBuffer), { level: 9, mtime: 0 }));
 if (canonicalCountryPacketBuffer.byteLength > 10 * 1024 * 1024) throw new Error(`canonical 국가 packet이 10MiB를 초과했습니다: ${canonicalCountryPacketBuffer.byteLength}`);
 if (canonicalCountryPacket.length > 5.5 * 1024 * 1024) throw new Error(`canonical 국가 packet gzip이 5.5MiB를 초과했습니다: ${canonicalCountryPacket.length}`);
-const mesh = meshCore.buildGpuMeshFeatures(preview.collection.features, earcut, { validate: true, maxEdgeDegrees: 2 });
+const mesh = meshCore.buildGpuMeshFeatures(preview.collection.features, { validate: true, maxEdgeDegrees: 2 });
 validatePackedMeshGeometry(mesh);
 const packedMesh = packMesh(mesh, preview.coordinateCount);
 packedMesh.compressed = checkedGzip(previewMeshPath, packedMesh.compressed);

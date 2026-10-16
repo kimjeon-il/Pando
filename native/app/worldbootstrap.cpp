@@ -9,6 +9,7 @@
 #include <QDate>
 #include <QJsonDocument>
 #include <pandoeditor/timeline-view.h>
+#include <pandoeditor/projectcodec.h>
 
 namespace {
 struct PreparedWorldStartup {
@@ -155,9 +156,8 @@ void EditorController::startAutosaveRecovery(bool useWorldBase) {
             const auto bytes=source.restoreDocument();
             if(bytes.isEmpty())throw std::runtime_error("자동저장 파일이 비어 있거나 손상되었습니다. 원본은 보존됩니다.");
             result->project.replace(::projectcodec::decode(bytes));
-            if(!pandoeditor::isStaticTimeline(result->project.document()))
-                result->project.setTimelineCursor(pandoeditor::initialTimelineMonth(result->project.document().timelineRecords,
-                    QDate::currentDate().toString("yyyy-MM").toStdString()));
+            result->project.setTimelineCursor(pandoeditor::projectcodec::restoredTimelineMonth(result->project.document(),
+                QDate::currentDate().toString("yyyy-MM").toStdString()),result->project.document().reopenMonth.has_value());
             result->view=source.restoreView();
             result->projection.rebuild(result->project.viewDocument(),result->project.inactiveEntityIds());
             if(useWorldBase)try {

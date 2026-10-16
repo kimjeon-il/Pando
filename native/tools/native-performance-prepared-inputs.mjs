@@ -28,9 +28,18 @@ for(const fixture of manifest.fixtures) {
     const name=path.basename(asset.path);assert.ok(!files.has(name)||hash(files.get(name))===hash(content));files.set(name,content);asset.path=name;
   }
 }
+// Pin actual production bytes into the new fixture; never retarget old evidence.
+const productionPlaceBytes=readFileSync(new URL('../assets/place/manifest.json',import.meta.url));
+const productionPlace=JSON.parse(productionPlaceBytes);
+assert.ok(typeof productionPlace.revision==='string'&&productionPlace.revision.trim(),'production place revision required');
+const productionPlaceSha=hash(productionPlaceBytes);
+const productionPlaceName=`production-place-${productionPlaceSha}.json`;
+assert.ok(!files.has(productionPlaceName)||hash(files.get(productionPlaceName))===productionPlaceSha,'production place fixture filename collision');
+files.set(productionPlaceName,productionPlaceBytes);
+manifest.productionPlace={path:productionPlaceName,sha256:productionPlaceSha,revision:productionPlace.revision};
 manifest.previousManifestSha256=hash(bytes);
 manifest.inputRevision='m98-native-v3-prepared-drag';
-manifest.inputChange='Explicit unmeasured drag start is retained as raw setup; 120 measured moves start at sample1. DEM zoom-out has a recorded scale2 preparation. Original 15 scenarios/counts/wheel delta5, projects/assets and expected final contracts are preserved.';
+manifest.inputChange='Explicit unmeasured drag start is retained as raw setup; 120 measured moves start at sample1. DEM zoom-out has a recorded scale2 preparation. Original 15 scenarios/counts/wheel delta5, projects/assets and expected final contracts are preserved. Current production place manifest bytes/revision are explicitly pinned for this new measurement input; this does not establish full-stack fixture acceptance.';
 mkdirSync(output,{recursive:true});for(const [name,content] of files)writeFileSync(path.join(output,name),content);
 writeFileSync(path.join(output,'diagnostic-fixtures.json'),JSON.stringify(manifest,null,2)+'\n');
 console.log(JSON.stringify({previousManifestSha256:hash(bytes),fixtureManifestSha256:hash(readFileSync(path.join(output,'diagnostic-fixtures.json'))),inputRevision:manifest.inputRevision,fixtureCount:manifest.fixtures.length}));

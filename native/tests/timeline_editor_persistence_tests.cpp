@@ -11,6 +11,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
+#include <QDate>
 #include <QTemporaryDir>
 #include <QTest>
 #include <QSignalSpy>
@@ -142,7 +143,11 @@ private slots:
     QTemporaryDir dir;QVERIFY(dir.isValid());auto input=QJsonDocument::fromJson(read(QStringLiteral(PANDOEDITOR_EXCHANGE_FIXTURES)+"/static.json")).object();
     QJsonObject visibility;for(const auto* group:{"countries","subunits","regions","distributions","hydro","genericFeatures","labels","countryLabels"})visibility[group]=QJsonObject{};
     input["itemVisibility"]=visibility;const auto webPath=dir.filePath("input.web.json"),nativePath=dir.filePath("saved.pando.json");write(webPath,QJsonDocument(input).toJson());
-    EditorController editor({false,dir.filePath("private.json")});QVERIFY(editor.prepareWebImport(QUrl::fromLocalFile(webPath)));QTRY_VERIFY(editor.hasWebImportPreview());QVERIFY(editor.confirmWebImport(editor.webImportHash(),"discard"));
+    EditorController editor({false,dir.filePath("private.json")});
+    const auto importMonth=QDate::currentDate().toString(QStringLiteral("yyyy-MM"));
+    QSignalSpy importErrors(&editor,&EditorController::errorOccurred);
+    QVERIFY(editor.prepareWebImport(QUrl::fromLocalFile(webPath)));QTRY_VERIFY(editor.hasWebImportPreview());QVERIFY(editor.confirmWebImport(editor.webImportHash(),"discard"));
+    QCOMPARE(editor.timelineMonth(),importMonth);QVERIFY(importErrors.isEmpty());
     const auto baseline=editor.documentBytes();editor.selectCountry("A");editor.setColor("#123456");editor.undo();QCOMPARE(editor.documentBytes(),baseline);editor.redo();
     QVERIFY(editor.saveFile(QUrl::fromLocalFile(nativePath)));EditorController reopened({false,dir.filePath("private-reopened.json")});QVERIFY(reopened.openFile(QUrl::fromLocalFile(nativePath)));QCOMPARE(reopened.documentBytes(),editor.documentBytes());
     Project project;project.replace(::projectcodec::decode(reopened.documentBytes()));QCOMPARE(QJsonDocument::fromJson(::projectcodec::encodeWeb(project.snapshot())).object()["itemVisibility"].toObject(),visibility);
@@ -188,17 +193,26 @@ private slots:
     QVERIFY(project.setColor("A",0x123456));QCOMPARE(project.document().presentation.webPresentation.objectOrder,std::vector<std::string>{"territorial:entity:A"});
  }
  void savedRankHintsKeepDeliberateNativeCheckpoints_data() {
-    QTest::addColumn<bool>("nameCheckpoint");QTest::newRow("batch-color")<<false;QTest::newRow("fallback-name")<<true;
+    QTest::addColumn<bool>("notesCheckpoint");QTest::newRow("batch-color")<<false;QTest::newRow("trimmed-notes")<<true;
  }
  void savedRankHintsKeepDeliberateNativeCheckpoints() {
-    QFETCH(bool,nameCheckpoint);auto document=fixture("static");document.presentation.webPresentation.objectOrder={"territorial:entity:deleted","territorial:entity:A"};
-    if(nameCheckpoint){document.units.front().name.clear();document.units.front().nameExplicit=true;document.units.front().baseName="Fallback";}
+    QFETCH(bool,notesCheckpoint);auto document=fixture("static");document.presentation.webPresentation.objectOrder={"territorial:entity:deleted","territorial:entity:A"};
+    if(notesCheckpoint)document.units.front().notes="Memo";
     Project project;project.replace(document);CommandArguments args;
-    if(nameCheckpoint)args.action=TerritorialFieldEdit{territorialRef("A"),TerritorialField::Name,""};
+    if(notesCheckpoint)args.action=TerritorialFieldEdit{territorialRef("A"),TerritorialField::Notes," Memo "};
     else args.action=TerritorialColorEdit{{territorialRef("A"),territorialRef("B")},project.country("A")->color};
-    QString error;const auto apply=[&](){auto prepared=CommandProcessor::prepare(project,CommandProcessor::makeRequest(project,nameCheckpoint?"territorial.field":"territorial.batch-color",args));if(!prepared.preview){error=QString::fromStdString(prepared.detail);return false;}const auto result=CommandProcessor::confirm(project,*prepared.preview);error=QString::fromStdString(result.detail);return result.changed();};
+    QString error;const auto apply=[&](){auto prepared=CommandProcessor::prepare(project,CommandProcessor::makeRequest(project,notesCheckpoint?"territorial.field":"territorial.batch-color",args));if(!prepared.preview){error=QString::fromStdString(prepared.detail);return false;}const auto result=CommandProcessor::confirm(project,*prepared.preview);error=QString::fromStdString(result.detail);return result.changed();};
     QVERIFY2(apply(),qPrintable(error));QCOMPARE(project.document().presentation.webPresentation.objectOrder,std::vector<std::string>{"territorial:entity:A"});
     const auto before=::projectcodec::encode(project);project.markSaved();const auto revision=project.revision();QVERIFY2(apply(),qPrintable(error));QCOMPARE(::projectcodec::encode(project),before);QCOMPARE(project.revision(),revision+1);QVERIFY(project.dirty());QVERIFY(project.canUndo());
+ }
+ void repeatedFallbackNameIsNoopAndPreservesRankHints() {
+    auto document=fixture("static");document.presentation.webPresentation.objectOrder={"territorial:entity:deleted","territorial:entity:A"};
+    document.units.front().name.clear();document.units.front().nameExplicit=true;document.units.front().baseName="Fallback";
+    Project project;project.replace(document);const auto before=::projectcodec::encode(project);const auto revision=project.revision();
+    CommandArguments args;args.action=TerritorialFieldEdit{territorialRef("A"),TerritorialField::Name,""};
+    const auto result=CommandProcessor::prepare(project,CommandProcessor::makeRequest(project,"territorial.field",args));
+    QCOMPARE(result.status,CommandStatus::NoOp);QVERIFY(!result.preview);
+    QCOMPARE(::projectcodec::encode(project),before);QCOMPARE(project.revision(),revision);QVERIFY(!project.dirty());QVERIFY(!project.canUndo());
  }
  void webOverlayOrderPreservesOptionalPresence() {
     QFETCH(QString,kind);QFETCH(int,presence);QTemporaryDir dir;QVERIFY(dir.isValid());
@@ -311,27 +325,34 @@ private slots:
     QCOMPARE(emitted,fate=="promoted-then-deleted");
     for(const auto& [ref,geometry]:initial.document().geometries.versions())QVERIFY(project.document().geometries.get(ref)==geometry);
  }
- void historicalBindingPromotionPersistsWithoutRelaxingEditorActivation() {
+ void historicalBindingPromotionPersistsThroughEditorActivation() {
     QTemporaryDir dir;QVERIFY(dir.isValid());
     auto web=QJsonDocument::fromJson(read(QStringLiteral(PANDOEDITOR_EXCHANGE_FIXTURES)+"/complex.json")).object();
     auto generic=QJsonDocument::fromJson(inlineOnlyWebFixture()).object()["genericFeatures"].toArray().first().toObject();
-    generic["geometry"]=QJsonObject{{"type","Polygon"},{"coordinates",QJsonArray{QJsonArray{QJsonArray{30,30},QJsonArray{32,30},QJsonArray{32,32},QJsonArray{30,30}}}}};
+    const QJsonArray ring{QJsonArray{30,30},QJsonArray{32,30},QJsonArray{32,32},QJsonArray{30,30}};
+    // Explicit value construction retains the single ring on MSVC as well as
+    // GCC; QJsonArray{ring} can select the array copy constructor and flatten it.
+    const QJsonArray coordinates{QJsonValue(ring)};
+    QCOMPARE(coordinates.size(),1);QCOMPARE(coordinates.first().toArray().size(),4);
+    generic["geometry"]=QJsonObject{{"type","Polygon"},{"coordinates",coordinates}};
     auto properties=generic["properties"].toObject(),source=properties["source"].toObject();source["sourceType"]="Polygon";properties["source"]=source;generic["properties"]=properties;
-    web["genericFeatures"]=QJsonArray{generic};Project imported;imported.replace(::projectcodec::decodeWeb(QJsonDocument(web).toJson()));
+    web["genericFeatures"]=QJsonArray{generic};Project imported;
+    try {imported.replace(::projectcodec::decodeWeb(QJsonDocument(web).toJson()));}
+    catch(const std::exception& error){QFAIL(error.what());}
     QVERIFY(!isStaticTimeline(imported.document()));auto candidate=imported.document();const auto ref=candidate.genericFeatures.front().geometry;
     QVERIFY(!candidate.geometryProvenance.inlineAllocations.at(ref).promoted);
     auto historical=std::find_if(candidate.timelineRecords.geometryBindings.begin(),candidate.timelineRecords.geometryBindings.end(),[](const auto& binding){return binding.validity.to.has_value();});
     QVERIFY(historical!=candidate.timelineRecords.geometryBindings.end());historical->geometryRef=ref;
-    // Exercise the shared transition on rich storage, not the static-only UI
-    // command entry point. Noncurrent typed adoption must still be semantic.
+    // Noncurrent typed adoption remains semantic through current editor activation.
     reconcileGeometryProvenance(imported.document(),candidate);QVERIFY(candidate.geometryProvenance.inlineAllocations.at(ref).promoted);
     Project rich;rich.replace(candidate);const auto expected=::projectcodec::encode(rich);const auto path=dir.filePath("rich.json");write(path,expected);
     Project reopened;reopened.replace(::projectcodec::decode(read(path)));QCOMPARE(::projectcodec::encode(reopened),expected);QVERIFY(!isStaticTimeline(reopened.document()));
     ProjectAutosave autosave(dir.filePath("autosave.json"),dir.filePath("view.json"));autosave.scheduleDocument(rich.snapshot());QVERIFY(autosave.flushNow());QCOMPARE(autosave.restoreDocument(),expected);
     const auto package=dir.filePath("rich.gpkg");write(package,exportProjectGeoPackage(rich));Project packaged;packaged.replace(::projectcodec::decode(readProjectGeoPackage(package)));QCOMPARE(::projectcodec::encode(packaged),expected);
-    EditorController editor({false,dir.filePath("private.json")});const auto before=editor.documentBytes();const auto instance=editor.projectInstanceId();
-    QVERIFY(!editor.openFile(QUrl::fromLocalFile(path)));QCOMPARE(editor.documentBytes(),before);QCOMPARE(editor.projectInstanceId(),instance);
-    QVERIFY(!editor.openProjectGeoPackage(QUrl::fromLocalFile(package)));QCOMPARE(editor.documentBytes(),before);QCOMPARE(editor.projectInstanceId(),instance);
+    EditorController editor({false,dir.filePath("private.json")});const auto instance=editor.projectInstanceId();
+    QVERIFY(editor.openFile(QUrl::fromLocalFile(path)));QCOMPARE(editor.documentBytes(),expected);QVERIFY(editor.projectInstanceId()!=instance);
+    QVERIFY(!editor.timelineMonth().isEmpty());QVERIFY(!editor.canUndo());QVERIFY(!editor.dirty());
+    QVERIFY(editor.openProjectGeoPackage(QUrl::fromLocalFile(package)));QCOMPARE(editor.documentBytes(),expected);
  }
  void nativeGeoPackageVersionAndMarkerAgreement() {
     QTemporaryDir dir;QVERIFY(dir.isValid());Project source;source.replace(derivedFixture());const auto expected=::projectcodec::encode(source);
@@ -341,9 +362,11 @@ private slots:
     QCOMPARE(root["geometryProvenance"],QJsonDocument::fromJson(expected).object()["geometryProvenance"]);
     QCOMPARE(root["geometries"],QJsonDocument::fromJson(expected).object()["geometries"]);QVERIFY(rows.at("asset_count")=="1");
     Project restored;restored.replace(::projectcodec::decode(readProjectGeoPackage(path)));QCOMPARE(::projectcodec::encode(restored),expected);
-    const auto web=dir.filePath("web-inline-only.gpkg");QVERIFY(QFile::copy(QStringLiteral(PANDOEDITOR_EXCHANGE_FIXTURES)+"/../lineage-v10-content/content.gpkg",web));
+    const auto web=dir.filePath("web-inline-only.gpkg");QVERIFY(QFile::copy(QStringLiteral(PANDOEDITOR_EXCHANGE_FIXTURES)+"/../current-content.gpkg",web));
     replacePackageRow(web,"project_state",inlineOnlyWebFixture());Project imported;imported.replace(::projectcodec::decode(readProjectGeoPackage(web)));
     QCOMPARE(::projectcodec::encode(imported),expected);
+    // The fixed historical oracle deliberately retains retired generic columns.
+    QCOMPARE(packageError(QStringLiteral(PANDOEDITOR_EXCHANGE_FIXTURES)+"/../lineage-v10-content/content.gpkg"),QString("UNSUPPORTED_PROJECT_VECTOR_COLUMN"));
     const auto wrong10=dir.filePath("native10-marker9.gpkg");QVERIFY(QFile::copy(path,wrong10));
     replacePackageRow(wrong10,"source",QJsonDocument(QJsonObject{{"format","pandoeditor-project"},{"version",9}}).toJson());
     QCOMPARE(packageError(wrong10),QString("PROJECT_GPKG_SOURCE_MISMATCH"));
@@ -364,7 +387,8 @@ private slots:
     QCOMPARE(root["version"].toInt(),10);QVERIFY(!root["geometryProvenance"].toObject()["inlineAllocations"].toArray().isEmpty());
     const auto target=dir.filePath("active.json"),invalidPath=dir.filePath("invalid.json");write(target,valid);
     EditorController editor({false,dir.filePath("private.json")});QVERIFY(editor.openFile(QUrl::fromLocalFile(target)));editor.selectCountry("A");
-    editor.setColor("#123456");editor.setColor("#654321");editor.undo();editor.setNameDraft("keep pending draft");
+    editor.setColor("#123456");editor.setColor("#654321");editor.undo();QVERIFY(editor.selectionItems().isEmpty());editor.selectCountry("A");editor.setNameDraft("keep pending draft");
+    QCOMPARE(editor.nameDraft(),QString("keep pending draft"));
     const auto before=editor.documentBytes();const auto revision=editor.revision();const auto selection=editor.primaryObject();const auto fileName=editor.fileName();const auto instance=editor.projectInstanceId();
     const auto assertUnchanged=[&] {
         QCOMPARE(editor.documentBytes(),before);QCOMPARE(editor.revision(),revision);QCOMPARE(editor.primaryObject(),selection);
@@ -406,7 +430,11 @@ private slots:
         QCOMPARE(current.timelineCursor(),std::string("1914-06"));
     }
  }
- void nativeOnlyVisibilitySurvivesNativeSaveButRefusesWebExport_data() {visibilityBoundaryData();}
+ void nativeOnlyVisibilitySurvivesNativeSaveButRefusesWebExport_data() {
+    QTest::addColumn<QString>("key");QTest::addColumn<bool>("item");
+    for(const auto* key:{"hydro","terrain","countryLabels"})QTest::newRow((QByteArray("layer-")+key).constData())<<QString(key)<<false;
+    QTest::newRow("item-terrain")<<QString("terrain")<<true;
+ }
  void nativeOnlyVisibilitySurvivesNativeSaveButRefusesWebExport() {
     QFETCH(QString,key);QFETCH(bool,item);auto document=fixture("static");
     if(item)document.presentation.webPresentation.itemVisibility[key.toStdString()]["A"]=false;
@@ -418,11 +446,40 @@ private slots:
     QVERIFY2(error.contains("UNSUPPORTED_WEB_EXPORT")&&error.contains(key),qPrintable(error.isEmpty()?"Native-only visibility produced incompatible web JSON":error));
     QCOMPARE(output,QByteArray("not published"));QCOMPARE(::projectcodec::encode(reopened),before);QCOMPARE(::projectcodec::encode(original),before);
  }
+ void nativeHydroVisibilityUsesCanonicalWebGroup_data() {
+    QTest::addColumn<QString>("kind");QTest::newRow("river")<<QString("river");QTest::newRow("lake")<<QString("lake");
+ }
+ void nativeHydroVisibilityUsesCanonicalWebGroup() {
+    QFETCH(QString,kind);auto document=fixture("static");const GeometryRef geometry{"visibility-hydro",1};
+    document.geometries.insert(geometry,inlineShape(kind=="river"?"hydroEdits":"distributionEntry"));
+    document.geometryProvenance.originalArchive.insert(geometry);
+    addInlineContent(document,"hydroEdits",geometry);document.hydro.back().kind=kind.toStdString();
+    document.presentation.webPresentation.itemVisibility["hydro"][contentId]=false;
+    // Web imports derive documentId from the complete project. Admit the finished
+    // fixture before taking its native byte baseline, rather than retaining the
+    // static fixture's identity after adding hydro content and visibility.
+    Project prepared;prepared.replace(document);
+    Project original;original.replace(::projectcodec::decodeWeb(::projectcodec::encodeWeb(prepared.snapshot())));
+    const auto before=::projectcodec::encode(original);
+    const auto nativeGroup=kind=="river"?QString("rivers"):QString("lakes");
+    const auto hidden=QJsonDocument::fromJson(before).object()["presentation"].toObject()["webPresentation"].toObject()["hiddenItems"].toObject();
+    QCOMPARE(hidden[nativeGroup].toArray(),QJsonArray{QString::fromStdString(contentId)});QVERIFY(!hidden.contains("hydro"));
+    Project reopened;reopened.replace(::projectcodec::decode(before));QCOMPARE(::projectcodec::encode(reopened),before);
+    const auto& items=reopened.document().presentation.webPresentation.itemVisibility;
+    QVERIFY(!items.count("rivers"));QVERIFY(!items.count("lakes"));QVERIFY(!items.at("hydro").at(contentId));
+    const auto web=::projectcodec::encodeWeb(reopened.snapshot());
+    const auto webHidden=QJsonDocument::fromJson(web).object()["itemVisibility"].toObject()["hydro"].toObject();
+    QVERIFY(webHidden.contains(QString::fromStdString(contentId)));QCOMPARE(webHidden[QString::fromStdString(contentId)],QJsonValue(false));
+    Project restored;restored.replace(::projectcodec::decodeWeb(web));QCOMPARE(::projectcodec::encode(restored),before);
+    QCOMPARE(::projectcodec::encode(original),before);
+ }
  void supportedWebPresentationNamespacesRoundTrip() {
     auto document=fixture("static");auto& presentation=document.presentation.webPresentation;
+    const GeometryRef hydroGeometry{"visibility-hydro",1};document.geometries.insert(hydroGeometry,inlineShape("hydroEdits"));document.geometryProvenance.originalArchive.insert(hydroGeometry);addInlineContent(document,"hydroEdits",hydroGeometry);
     // Pinned real-web project-state.js uses distinct layer, item and style namespaces.
     for(const auto* key:{"countries","subunits","regions","distributions","rivers","lakes","genericFeatures","labels","basemapLabels","countryFlags","subunitLabels","subunitFlags","regionLabels","regionFlags"})presentation.visibility[key]=false;
-    for(const auto* key:{"countries","subunits","regions","distributions","hydro","genericFeatures","labels","countryLabels"})presentation.itemVisibility[key]["A"]=false;
+    for(const auto* key:{"countries","subunits","regions","distributions","genericFeatures","labels","countryLabels"})presentation.itemVisibility[key]["A"]=false;
+    presentation.itemVisibility["hydro"][contentId]=false;
     for(const auto* key:{"countries","subunits","regions","distributions","rivers","lakes","hydro","genericFeatures","labels","countryLabels","terrain"})presentation.styles[key].opacity=0.5;
     Project original;original.replace(document);const auto before=::projectcodec::encode(original);
     Project reopened;reopened.replace(::projectcodec::decodeWeb(::projectcodec::encodeWeb(original.snapshot())));
@@ -432,8 +489,8 @@ private slots:
  void inlineGeometryReferencesArePreservedOrExplicitlyRefused_data() {
     QTest::addColumn<QString>("domain");QTest::addColumn<QString>("scenario");QTest::addColumn<bool>("representable");
     for(const auto* domain:{"label","hydroEdits","genericFeatures","distributionEntry"}) {
-        for(const auto* scenario:{"unique","duplicate-first","synthetic-preferred","changed-version-unique"})QTest::newRow((QByteArray(domain)+"-"+scenario).constData())<<QString(domain)<<QString(scenario)<<true;
-        for(const auto* scenario:{"duplicate-later","equal-versions","synthetic-equal-versions","synthetic-conflict"})QTest::newRow((QByteArray(domain)+"-"+scenario).constData())<<QString(domain)<<QString(scenario)<<false;
+        for(const auto* scenario:{"unique","duplicate-first","synthetic-preferred","changed-version-unique","synthetic-distinct-version"})QTest::newRow((QByteArray(domain)+"-"+scenario).constData())<<QString(domain)<<QString(scenario)<<true;
+        for(const auto* scenario:{"duplicate-later","equal-versions","synthetic-equal-versions"})QTest::newRow((QByteArray(domain)+"-"+scenario).constData())<<QString(domain)<<QString(scenario)<<false;
     }
  }
  void inlineGeometryReferencesArePreservedOrExplicitlyRefused() {
@@ -449,7 +506,9 @@ private slots:
     if(scenario=="equal-versions")document.geometries.insert({target.id,1},shape);
     if(scenario=="changed-version-unique")document.geometries.insert({target.id,1},inlineShape(domain,1));
     if(scenario=="synthetic-equal-versions")document.geometries.insert(synthetic,shape);
-    if(scenario=="synthetic-conflict")document.geometries.insert(synthetic,inlineShape(domain,1));
+    // A different shape at version 1 does not conflict with the exact version 2
+    // archive match. Equal shapes remain ambiguous and must still be refused.
+    if(scenario=="synthetic-distinct-version")document.geometries.insert(synthetic,inlineShape(domain,1));
     document.geometries.insert(target,shape);addInlineContent(document,domain,target);
     Project original;original.replace(document);const auto baseline=::projectcodec::encode(original);
     QVERIFY(original.setColor("A",0x123456));const auto firstEdit=::projectcodec::encode(original);
@@ -468,7 +527,7 @@ private slots:
             const auto restored=::projectcodec::decodeWeb(output);const auto actual=inlineContentRef(restored,domain);
             QFAIL(qPrintable(QString("Web exchange rebound %1/%2 to %3/%4 instead of refusing").arg(QString::fromStdString(target.id)).arg(target.version).arg(QString::fromStdString(actual.id)).arg(actual.version)));
         }
-        QVERIFY2(error.contains(scenario=="synthetic-conflict"?"GEOMETRY_ARCHIVE_CONFLICT":"UNSUPPORTED_WEB_EXPORT: non-territorial geometry reference"),qPrintable(error));
+        QVERIFY2(error.contains("UNSUPPORTED_WEB_EXPORT: non-territorial geometry reference"),qPrintable(error));
         QCOMPARE(output,QByteArray("not published"));
     }
     QCOMPARE(::projectcodec::encode(original),before);QCOMPARE(::projectcodec::encode(frozen),before);QCOMPARE(original.revision(),revision);
@@ -562,7 +621,7 @@ private slots:
         for(const auto* key:{"scenePublicationCount","scenePatchCount","sceneFullBuildCount","scenePreparationCount","viewportResourceGeneration"})
             QCOMPARE(after.value(key),scene.value(key));
     };
-    const auto rejected=dir.filePath("rejected.json");Project complex;complex.replace(fixture("complex"));write(rejected,::projectcodec::encode(complex));
+    const auto rejected=dir.filePath("rejected.json");auto retired=QJsonDocument::fromJson(bytes).object();retired["version"]=9;write(rejected,QJsonDocument(retired).toJson());
     QVERIFY(!editor.openFile(QUrl::fromLocalFile(rejected)));unchanged();
     auto invalid=QJsonDocument::fromJson(bytes).object();invalid["geometries"]=QJsonArray{};write(rejected,QJsonDocument(invalid).toJson());
     QVERIFY(!editor.openFile(QUrl::fromLocalFile(rejected)));unchanged();
@@ -577,15 +636,18 @@ private slots:
     editor.selectCountry("A");editor.setColor("#123456");editor.setColor("#654321");const auto future=editor.documentBytes();editor.undo();QVERIFY(editor.selectionItems().isEmpty());editor.selectCountry("A");
     const auto bytes=editor.documentBytes();const auto selection=editor.primaryObject();const auto paths=editor.objectBounds();
     const auto instance=editor.projectInstanceId();const auto scene=editor.renderQuality();
-    Project complex;complex.replace(fixture("complex"));
+    auto retired=QJsonDocument::fromJson(bytes).object();retired["version"]=9;
     auto invalid=QJsonDocument::fromJson(bytes).object();invalid["geometries"]=QJsonArray{};
-    for(const auto& rejected:{::projectcodec::encode(complex),QJsonDocument(invalid).toJson()}) {
+    for(const auto& rejected:{QJsonDocument(retired).toJson(),QJsonDocument(invalid).toJson()}) {
         write(privatePath,rejected);QVERIFY(!editor.restorePrivateProject());
         QCOMPARE(read(privatePath),rejected);QCOMPARE(editor.documentBytes(),bytes);QCOMPARE(editor.primaryObject(),selection);
         QCOMPARE(editor.objectBounds(),paths);QCOMPARE(editor.projectInstanceId(),instance);QVERIFY(editor.dirty());QVERIFY(editor.canUndo());QVERIFY(editor.canRedo());
         const auto after=editor.renderQuality();for(const auto* key:{"scenePublicationCount","scenePreparationCount","viewportResourceGeneration"})QCOMPARE(after.value(key),scene.value(key));
     }
     editor.redo();QCOMPARE(editor.documentBytes(),future);editor.undo();QCOMPARE(editor.documentBytes(),bytes);
+    Project complex;complex.replace(fixture("complex"));const auto dated=::projectcodec::encode(complex);write(privatePath,dated);
+    QVERIFY(editor.restorePrivateProject());QCOMPARE(editor.documentBytes(),dated);QCOMPARE(read(privatePath),dated);
+    QVERIFY(editor.projectInstanceId()!=instance);QVERIFY(!editor.timelineMonth().isEmpty());QVERIFY(!editor.dirty());QVERIFY(!editor.canUndo());QVERIFY(!editor.canRedo());
  }
  void realNativeAndWebGeoPackageArchives() {
     QTemporaryDir dir;QVERIFY(dir.isValid());
@@ -594,9 +656,9 @@ private slots:
         Project native;native.replace(::projectcodec::decode(readProjectGeoPackage(path)));QCOMPARE(::projectcodec::encode(native),::projectcodec::encode(original));
         Project web;web.replace(::projectcodec::decode(readProjectGeoPackage(QStringLiteral(PANDOEDITOR_EXCHANGE_FIXTURES)+"/"+kind+".gpkg")));
         QCOMPARE(::projectcodec::encodeWeb(web.snapshot()),::projectcodec::encodeWeb(original.snapshot()));
-        EditorController editor(EditorControllerConfig{false,dir.filePath("private.json")});const auto before=editor.documentBytes();
-        if(QString(kind)=="static")QVERIFY(editor.openProjectGeoPackage(QUrl::fromLocalFile(path)));
-        else {QVERIFY(!editor.openProjectGeoPackage(QUrl::fromLocalFile(path)));QCOMPARE(editor.documentBytes(),before);}
+        EditorController editor(EditorControllerConfig{false,dir.filePath("private.json")});
+        QVERIFY(editor.openProjectGeoPackage(QUrl::fromLocalFile(path)));QCOMPARE(editor.documentBytes(),::projectcodec::encode(original));
+        QVERIFY(!editor.timelineMonth().isEmpty());QVERIFY(!editor.canUndo());QVERIFY(!editor.canRedo());
     }
     Project empty;empty.replace(makeTerritorialDocument({},{}));const auto path=dir.filePath("empty.gpkg");write(path,exportProjectGeoPackage(empty));Project restored;restored.replace(::projectcodec::decode(readProjectGeoPackage(path)));QCOMPARE(::projectcodec::encode(restored),::projectcodec::encode(empty));
  }

@@ -16,6 +16,7 @@
 #include <pandoeditor/project.h>
 #include <pandoeditor/presentationcommands.h>
 #include <pandoeditor/geometrypredicates.h>
+#include <pandoeditor/sphericalpolygon.h>
 #include <QtTest>
 using namespace pandoeditor;
 namespace {
@@ -47,7 +48,7 @@ double area(const Project& project,const std::string& id) {
 }
 namespace {
 QByteArray readSplitObservations(const QString& name,const QByteArray& expectedSha,const QByteArray& compressedSha={}) {
-    const auto path=QFileInfo(QString::fromUtf8(__FILE__)).dir().filePath("fixtures/web-m973-split/"+name);
+    const auto path=QDir(QString::fromUtf8(SPLIT_LIFECYCLE_FIXTURES)).filePath(name);
     QFile file(path);
     if(!file.open(QIODevice::ReadOnly))throw std::runtime_error("SPLIT_OBSERVATION_INPUT_UNAVAILABLE");
     const auto input=file.readAll();QByteArray bytes;
@@ -67,7 +68,7 @@ QByteArray readSplitObservations(const QString& name,const QByteArray& expectedS
 }
 Geometry observedGeometry(const QJsonObject& value) {
     Geometry geometry;geometry.type=value["type"].toString().toStdString();QJsonArray polygons=value["coordinates"].toArray();
-    if(geometry.type=="Polygon")polygons=QJsonArray{polygons};
+    if(geometry.type=="Polygon")polygons=QJsonArray{QJsonValue(polygons)};
     for(const auto& p:polygons) {Polygon polygon;for(const auto& r:p.toArray()) {Ring ring;for(const auto& v:r.toArray()) {const auto point=v.toArray();ring.push_back({point[0].toDouble(),point[1].toDouble()});}polygon.push_back(std::move(ring));}geometry.polygons.push_back(std::move(polygon));}
     return geometry;
 }
@@ -110,7 +111,7 @@ private slots:
         // separately approved 07d3e20 observations own current expectations.
         const auto original=QJsonDocument::fromJson(readSplitObservations("lifecycle-observations.json.gz","b29f65be6069b98925d4c9a32c11794c723517ad52bd3dc842f6dff1fa2b7f5d")).object();
         bool oldDatelineRejected=false;for(const auto& value:original["cases"].toArray())if(value.toObject()["case"]=="root-date-line")oldDatelineRejected=!value.toObject()["stages"].toObject()["selected"].toObject()["selection"].toObject()["previewReady"].toBool();QVERIFY(oldDatelineRejected);
-        QFile manifestFile(QFileInfo(QString::fromUtf8(__FILE__)).dir().filePath("fixtures/web-m973-split/corrections/dateline/observation-manifest.json"));QVERIFY(manifestFile.open(QIODevice::ReadOnly));
+        QFile manifestFile(QDir(QString::fromUtf8(SPLIT_LIFECYCLE_FIXTURES)).filePath("corrections/dateline/observation-manifest.json"));QVERIFY(manifestFile.open(QIODevice::ReadOnly));
         const auto manifest=QJsonDocument::fromJson(manifestFile.readAll()).object();const QString commit="07d3e2053c71573e11c5cf89151f5f6686038511";
         QCOMPARE(manifest["behavioralCommit"].toString(),commit);QCOMPARE(manifest["encoding"].toString(),QString("gzip-json-parts"));
         int all=0,count=0;QSet<QString> seen;
@@ -138,7 +139,9 @@ private slots:
         SplitTerritorialIntent intent{territorialRef("source"),observedGeometry(selected["combinedGeometry"].toObject()),created,"새 객체"};
         JobScheduler jobs;auto ticket=jobs.enqueue(project.snapshot(),"observed-split");jobs.takeNext();
         const auto receipt=calculateSplitGeometryPreview(project.snapshot(),intent,territorialPreviewCalculators(),ticket.token());QCOMPARE(::projectcodec::encode(project),before);
-        const auto webPreview=stages["review"].toObject()["document"].toObject()["preview"];
+        // Own the value: auto plus operator[] would retain a QJsonValueRef
+        // into the temporary document object and leave a dangling fixture view.
+        const QJsonValue webPreview=stages["review"].toObject()["document"].toObject().value("preview");
         QVERIFY(!webPreview.isUndefined());
         if(webPreview.isObject()) {
             QVERIFY(webPreview.toObject()["afterFeatures"].isArray());const auto expected=webPreview.toObject()["afterFeatures"].toArray();
@@ -174,7 +177,11 @@ private slots:
             QCOMPARE(staticParentRelation(project.document(),id).parentId,row["parentId"].toString().toStdString());QCOMPARE(staticParentRelation(project.document(),id).coverageMode,row["coverageMode"].toString().toStdString());
             const auto& nativeGeometry=*project.document().geometries.get(staticGeometryBinding(project.document(),id).geometryRef);
             QVERIFY2(sameObservedCoverage(nativeGeometry,observedGeometry(row["geometry"].toObject())),id.c_str());
-            QCOMPARE(observedGeometryJson(nativeGeometry),row["geometry"].toObject());
+            // These archived lifecycle observations predate P5 spherical winding.
+            // Compare their current canonical representation; the dedicated normalizer
+            // corpus separately pins exact 8e229826 coordinates and winding.
+            QCOMPARE(observedGeometryJson(normalizeSphericalPolygonGeometry(nativeGeometry)),
+                observedGeometryJson(normalizeSphericalPolygonGeometry(observedGeometry(row["geometry"].toObject()))));
             QCOMPARE(project.document().presentation.objectStyles.at(territorialRef(id)).explicitColor,properties["style"].toObject().contains("color"));
         }
         const auto entries=observedDocument(confirm)["distributionEntries"].toArray();QCOMPARE(project.document().distributionEntries.size(),std::size_t(entries.size()));
@@ -188,7 +195,7 @@ private slots:
         Geometry input;input.type="Polygon";input.polygons={{{{179,-2},{179,2},{-179,2},{-179,-2},{179,-2}}}};
         const auto before=observedGeometryJson(input);const auto raw=normalizeSplitRawGeometry(input),wrapped=wrapSplitGeometry(input),clipped=normalizeSplitClippedGeometry(input);
         QVERIFY(raw.succeeded());QVERIFY(raw.inputUnchanged);QVERIFY(wrapped.succeeded());QVERIFY(clipped.succeeded());QCOMPARE(observedGeometryJson(input),before);
-        QCOMPARE(raw.geometry.type,std::string("Polygon"));QCOMPARE(raw.geometry.polygons[0][0].size(),std::size_t(5));QCOMPARE(raw.geometry.polygons[0][0][0].x,-179.);
+        QCOMPARE(raw.geometry.type,std::string("Polygon"));QCOMPARE(raw.geometry.polygons[0][0].size(),std::size_t(5));QCOMPARE(observedGeometryJson(raw.geometry),before);
         QCOMPARE(wrapped.geometry.polygons.size(),std::size_t(2));QVERIFY(clipped.geometry.polygons[0][0].size()>raw.geometry.polygons[0][0].size());
     }
     void childSourceMovesContainedChildAndPreservesGrandchildRelation() {

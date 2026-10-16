@@ -1,6 +1,7 @@
 #include "placenamedisplay.h"
-#include <QRegularExpression>
 #include <QSet>
+#include <QDateTime>
+#include <pandoeditor/placenames.h>
 #include <stdexcept>
 
 PlaceLanguageSelection normalizedPlaceLanguages(const QVariantMap& values) {
@@ -25,32 +26,26 @@ std::optional<PlaceLanguageSelection> toggledPlaceLanguage(
     return next;
 }
 std::vector<PlaceDisplayRow> resolvePlaceDisplayRows(
-    const PlaceRecord& record,const PlaceLanguageSelection& selected,const QString& mapDate) {
-    QString ko=record.name,en=record.nameEn;
-    QStringList nativeNames{record.nameNative};nativeNames.append(record.nameNativeExtras);
-    if(!mapDate.isEmpty()) {
-        static const QRegularExpression format("^[0-9]{4}-[0-9]{2}-[0-9]{2}$");
-        if(!format.match(mapDate).hasMatch())throw std::invalid_argument("Invalid map label date");
-        const int year=mapDate.left(4).toInt();
-        for(const auto& transition:record.nameTimeline) {
-            if(!transition.fromDate.isEmpty()?transition.fromDate>mapDate:transition.fromYear>year)break;
-            if(!transition.ko.isEmpty())ko=transition.ko;
-            if(!transition.en.isEmpty())en=transition.en;
-            if(!transition.native.isEmpty()) {
-                nativeNames={transition.native};
-                if(transition.nativeExtras)nativeNames.append(*transition.nativeExtras);
-            }
-        }
+    const PlaceRecord& record,const PlaceLanguageSelection& selected,const QString& mapDate,const QString& sourceReferenceDate) {
+    pandoeditor::PlaceNameInput input;
+    input.names={record.name.toStdString(),record.nameEn.toStdString(),record.nameNative.toStdString()};
+    for(const auto& value:record.nameNativeExtras)input.nativeExtras.push_back(value.toStdString());
+    for(const auto& transition:record.nameTimeline) {
+        pandoeditor::PlaceNamePeriod period;period.fromDate=transition.fromDate.toStdString();period.fromYear=transition.fromYear;
+        const QString names[]{transition.ko,transition.en,transition.native};
+        for(std::size_t i=0;i<3;++i)if(!names[i].isEmpty())period.names[i]=names[i].toStdString();
+        if(transition.nativeExtras)for(const auto& value:*transition.nativeExtras)period.nativeExtras.push_back(value.toStdString());
+        input.timeline.push_back(std::move(period));
     }
+    const auto reference=sourceReferenceDate.isEmpty()?QDateTime::currentDateTimeUtc().date().toString(Qt::ISODate):sourceReferenceDate;
     QSet<QString> seen;std::vector<PlaceDisplayRow> rows;
-    const auto add=[&](const QString& language,const QString& value) {
+    const auto add=[&](const QString& language,const QString& value,bool modernName) {
         const auto name=value.trimmed();
         const auto key=name.normalized(QString::NormalizationForm_KC).toLower();
         if(name.isEmpty()||seen.contains(key))return;
-        seen.insert(key);rows.push_back({language,name});
+        seen.insert(key);rows.push_back({language,(modernName?QStringLiteral("(현)"):QString())+name,modernName});
     };
-    if(selected.ko)add("ko",ko);
-    if(selected.en)add("en",en);
-    if(selected.native)for(const auto& name:nativeNames)add("native",name);
+    for(const auto& row:pandoeditor::resolvePlaceNames(input,{selected.ko,selected.en,selected.native},mapDate.toStdString(),reference.toStdString()))
+        add(QString::fromStdString(row.language),QString::fromStdString(row.text),row.modernName);
     return rows;
 }

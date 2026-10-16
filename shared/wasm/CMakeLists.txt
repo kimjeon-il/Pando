@@ -1,11 +1,10 @@
-add_executable(pandoeditor_wasm session-bindings.cpp timeline-bindings.cpp boundary-bindings.cpp)
+add_executable(pandoeditor_wasm session-bindings.cpp timeline-bindings.cpp boundary-bindings.cpp polygon-bindings.cpp mesh-bindings.cpp cut-bindings.cpp river-bindings.cpp reference-bindings.cpp place-bindings.cpp)
 target_link_libraries(pandoeditor_wasm PRIVATE Pandoeditor::Core)
-target_compile_options(pandoeditor_wasm PRIVATE -fexceptions)
+target_compile_options(pandoeditor_wasm PRIVATE -fwasm-exceptions)
 target_compile_definitions(pandoeditor_wasm PRIVATE
     PANDOEDITOR_CORE_SOURCE_SHA256="${PANDOEDITOR_CORE_SOURCE_SHA256}")
 target_link_options(pandoeditor_wasm PRIVATE
-    --bind --no-entry -fexceptions
-    "-sDISABLE_EXCEPTION_CATCHING=0"
+    --bind --no-entry -fwasm-exceptions
     "-sMODULARIZE=1" "-sEXPORT_ES6=1"
     "-sEXPORT_NAME=createPandoeditorCore"
     "-sENVIRONMENT=web,worker,node"
