@@ -90,7 +90,18 @@ async function snapshot(page, cdp, workerProbe, label) {
 test('measure main JS, each Worker JS/WASM, GPU caches and Chromium PSS across Soviet edit and time round trips', async ({ page }, testInfo) => {
   test.setTimeout(1_200_000);
   const errors = [];
+  const previewWorkerLifecycle = [];
   page.on('pageerror', error => errors.push(error.message));
+  page.on('worker', worker => {
+    if (!worker.url().includes('/project-preview-worker.js')) return;
+    const start = Date.now();
+    const row = { startedAt: new Date(start).toISOString(), closedAt: null, durationMs: null };
+    previewWorkerLifecycle.push(row);
+    worker.on('close', () => {
+      row.closedAt = new Date().toISOString();
+      row.durationMs = Date.now() - start;
+    });
+  });
   await page.goto('/?perf=1&renderer=webgl2');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 120_000 });
   await expect.poll(() => page.evaluate(() => {
@@ -110,11 +121,11 @@ test('measure main JS, each Worker JS/WASM, GPU caches and Chromium PSS across S
       workerJs: 'CDP per-target Runtime.getHeapUsage',
       workerWasm: 'CDP queryObjects of first observed WebAssembly.Memory instances then WeakRef size sampling (linear allocation, not used C++ heap; later new instances may be missed)',
       diagnostics: 'Read-only Worker CDP expressions for shared-boundary queue/latest message and map-edit source counts; lexical access may be unavailable',
-      idle: 'GC snapshots after boundary rendering has settled, then 6 and 30 seconds without input; no OS compaction assumed',
+      idle: 'No-input samples at 6 and 30 seconds may overlap delayed autosave preview; final sample waits for preview Worker retirement and GC',
       chromiumPss: '/proc/smaps_rollup by process (Workers can share renderer process; not worker PSS)',
       gpu: 'application counters; excludes framebuffer stencil/staging and driver VRAM; not additive to PSS',
       gc: 'Worker and main V8 GC requested at every phase; OS memory return is not guaranteed' },
-    phases, durations: {}, errors };
+    phases, durations: {}, errors, previewWorkerLifecycle };
   const report = async () => {
     results.summary = summarizeMemoryPhases(phases);
     await mkdir('test-results/soviet-memory-attribution', { recursive: true });
@@ -181,15 +192,28 @@ test('measure main JS, each Worker JS/WASM, GPU caches and Chromium PSS across S
       await page.waitForTimeout(24_000);
       phases.push(await snapshot(page, cdp, workerProbe, `idle-modern-${cycle}-30s`));
     }
+    // The no-input samples above can overlap a delayed autosave preview.
+    // A true post-preview sample is possible only after its Worker terminates.
+    await expect.poll(() => page.workers().filter(worker =>
+      worker.url().includes('/project-preview-worker.js')).length,
+    { timeout: 95_000, intervals: [1000, 2000] }).toBe(0);
+    await page.waitForTimeout(2_000);
+    phases.push(await snapshot(page, cdp, workerProbe, 'settled-modern-after-preview'));
   } finally {
     await report();
     await workerProbe.dispose();
     await cdp.detach();
   }
 
-  expect(phases.length).toBe(19);
+  expect(phases.length).toBe(20);
   expect(phases.every(phase => phase.chromium.available)).toBe(true);
-  expect(phases.every(phase => phase.workerMemory.jsComplete && phase.workerMemory.wasmComplete)).toBe(true);
+  // Preview workers can be CPU-bound until their 60s owner timeout.
+  // Preserve them as explicitly unavailable; never turn an unknown measurement into zero.
+  expect(phases.every(phase => phase.workerMemory.workers
+    .filter(worker => !worker.url.endsWith('/project-preview-worker.js'))
+    .every(worker => worker.jsHeap?.available && worker.wasmLinearMemory?.available))).toBe(true);
+  expect(phases.at(-1).workerMemory.jsComplete && phases.at(-1).workerMemory.wasmComplete).toBe(true);
+  expect(phases.at(-1).session.previewCacheWorkerActive).toBe(false);
   expect(phases[0].workerMemory.workers.some(worker => worker.url.endsWith('/core-session-worker.js')
     && worker.wasmLinearMemory.allocatedBytes > 0)).toBe(true);
   expect(phases.filter(phase => phase.label.startsWith('soviet-edit-cancelled-'))
