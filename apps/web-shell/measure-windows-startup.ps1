@@ -33,9 +33,9 @@ function Read-ProcessTreeMemory([int]$RootPid, [int64]$ElapsedMs) {
   [long]$private = 0
   [long]$working = 0
   [int]$count = 0
-  foreach ($pid in $ids) {
+  foreach ($ownedPid in $ids) {
     try {
-      $p = Get-Process -Id $pid -ErrorAction Stop
+      $p = Get-Process -Id $ownedPid -ErrorAction Stop
       $private += [long]$p.PrivateMemorySize64
       $working += [long]$p.WorkingSet64
       $count++
@@ -62,8 +62,8 @@ function Median([double[]]$Items) {
 for ($index = 0; $index -lt $profiles.Count; $index++) {
   $mode = $profiles[$index]
   $number = $index + 1
-  $profile = ('pair-{0:D2}-{1}' -f $number, $mode)
-  $reportFile = Join-Path $output ("world-$profile.json")
+  $profileId = ('pair-{0:D2}-{1}' -f $number, $mode)
+  $reportFile = Join-Path $output ("world-$profileId.json")
   if (Test-Path -LiteralPath $reportFile) {
     throw "Diagnostic result already exists; refusing to reuse it: $reportFile"
   }
@@ -75,7 +75,7 @@ for ($index = 0; $index -lt $profiles.Count; $index++) {
   $info.ArgumentList.Add('--probe-hold-ms')
   $info.ArgumentList.Add([string]$HoldAfterReadyMs)
   $info.ArgumentList.Add('--probe-profile-id')
-  $info.ArgumentList.Add($profile)
+  $info.ArgumentList.Add($profileId)
   if ($mode -eq 'immediate') { $info.ArgumentList.Add('--probe-physical-immediate') }
   $info.ArgumentList.Add('--diagnostic-output')
   $info.ArgumentList.Add($reportFile)
