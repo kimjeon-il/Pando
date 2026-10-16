@@ -5,7 +5,7 @@
 원본 웹: `kimjeon-il/Pando:work/places`; 출처 고정 커밋은 `reports/places/source-manifest.json`의 `webCommit`으로 추적한다.
 앱 작업: `kimjeon-il/PandoEditor:work/places`.
 
-앱의 `contracts/places/v3.json`은 웹의 최신 복수 원어명 교환 계약과 동일하며, `v2.json`은 이전 검증 사례용으로 보존한다.
+현행 웹·앱 검사는 저장소 루트 `contracts/places/v3.json` 하나를 읽는다. 앱 안의 중복 v3 사본은 제거했으며 `native/contracts/places/v2.json`은 과거 바이너리 해석 사례용으로 보존한다.
 
 
 ## 2026-10-11 PLAC v3 복수 원어명 이식
