@@ -16,7 +16,7 @@ test('project data follows its C++-compatible schema and UUID identity policy',(
   assert.match(serializer,/schemaVersion = PROJECT_SCHEMA_VERSION/);
   assert.match(serializer,/schemaVersion,/);
   assert.match(domain,/commandOwner\.inspectImport\(JSON\.stringify\(project\)/);
-  assert.match(version,/export const PROJECT_SCHEMA_VERSION = 10/);
+  assert.match(version,/export const PROJECT_SCHEMA_VERSION = 11/);
   assert.match(project,/export \{ PROJECT_SCHEMA_VERSION \}/);
   assert.doesNotMatch(project,/migrateProject/);
   for(const name of ['territorialEntities','entityDelta'])assert.ok(serializer.includes(name));
