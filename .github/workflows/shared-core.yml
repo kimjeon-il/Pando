@@ -113,13 +113,24 @@ on:
       scope:
         description: Focused shared calculation verification
         type: choice
-        options: [all, p6-polygon, p6-calculations, geometry]
+        options: [all, p6-polygon, p6-calculations, geometry, native-geometry]
         default: all
 
 permissions:
   contents: read
 
 jobs:
+  native-geometry:
+    if: github.event_name == 'workflow_dispatch' && inputs.scope == 'native-geometry'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify the changed native fill and contact adapters without rebuilding Qt
+        run: |
+          cmake -S native -B build-native/geometry-native -DCMAKE_BUILD_TYPE=Release -DPANDOEDITOR_BUILD_APP=OFF -DBUILD_TESTING=ON
+          cmake --build build-native/geometry-native --target polygon_boundary_contract_tests m976_shared_boundary_engine_tests --parallel 2
+          ctest --test-dir build-native/geometry-native -R '^(polygon_boundary_contract_tests|m976_shared_boundary_engine_tests)$' --output-on-failure --no-tests=error
   geometry:
     if: github.event_name == 'workflow_dispatch' && inputs.scope == 'geometry'
     runs-on: ubuntu-24.04
@@ -159,7 +170,7 @@ jobs:
         if: (success() || failure()) && steps.compile.outcome == 'success'
         run: ctest --test-dir build-native/p6-core -R '^reference_image_core_tests$' --output-on-failure
   contracts:
-    if: github.event_name != 'workflow_dispatch' || (inputs.scope != 'p6-polygon' && inputs.scope != 'p6-calculations' && inputs.scope != 'geometry')
+    if: github.event_name != 'workflow_dispatch' || (inputs.scope != 'p6-polygon' && inputs.scope != 'p6-calculations' && inputs.scope != 'geometry' && inputs.scope != 'native-geometry')
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
@@ -328,7 +339,7 @@ jobs:
             build-native/wasm/wasm/pandoeditor-core.wasm
           if-no-files-found: error
   qt-core-adapters:
-    if: github.event_name != 'workflow_dispatch' || (inputs.scope != 'p6-polygon' && inputs.scope != 'p6-calculations' && inputs.scope != 'geometry')
+    if: github.event_name != 'workflow_dispatch' || (inputs.scope != 'p6-polygon' && inputs.scope != 'p6-calculations' && inputs.scope != 'geometry' && inputs.scope != 'native-geometry')
     runs-on: windows-2022
     timeout-minutes: 20
     steps:

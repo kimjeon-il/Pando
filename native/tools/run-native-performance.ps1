@@ -34,6 +34,11 @@ if($Profile -eq 'p9-relative'){
  $buildIdentity=Get-Content -LiteralPath $identityPath -Raw | ConvertFrom-Json
  if($buildIdentity.baselineSourceSha -ne $BaselineSourceCommit -or $buildIdentity.candidateSourceSha -notmatch '^[a-f0-9]{40}$'){throw 'CI source identity does not match the requested pair'}
  if($buildIdentity.binaries.baseline.sha256 -ne (Get-FileHash -LiteralPath $baselinePath).Hash -or $buildIdentity.binaries.candidate.sha256 -ne (Get-FileHash -LiteralPath $probePath).Hash){throw 'CI test binary identity mismatch'}
+ if(!$buildIdentity.runtimeDependencies){throw 'Shared native runtime dependency receipt missing'}
+ foreach($dependency in $buildIdentity.runtimeDependencies.PSObject.Properties){
+  $runtimeFile=Join-Path (Split-Path $probePath -Parent) $dependency.Value.file
+  if((Get-FileHash -LiteralPath $runtimeFile).Hash -ne $dependency.Value.sha256 -or (Get-Item -LiteralPath $runtimeFile).VersionInfo.FileVersion -ne $dependency.Value.version){throw "Shared native runtime dependency mismatch: $($dependency.Name)"}
+ }
  foreach($overlay in $buildIdentity.measurementOverlaySha256.PSObject.Properties){
   $sourceRoot=Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
   $localOverlay=Join-Path $sourceRoot $overlay.Name
