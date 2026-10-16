@@ -106,7 +106,7 @@ test('Soviet month-only moves save a small session record, persist across reload
     const before = window.PANDOLAB_TERRITORIAL.get('IRL')?.properties?.name;
     const result = await window.PANDOLAB_TERRITORIAL.setName('IRL', '경량 시점 저장 검증');
     return {
-      before, changed: result?.changed === true, result,
+      before, ok: result?.ok === true, changed: result?.changed === true,
       after: window.PANDOLAB_TERRITORIAL.get('IRL')?.properties?.name,
     };
   });
@@ -116,15 +116,18 @@ test('Soviet month-only moves save a small session record, persist across reload
   try {
     await expect.poll(async () => {
       const record = await storage(page);
-      return record.project?.territorialEntities?.find(entity => entity.id === 'IRL')?.properties?.name;
-    }, { timeout: 40_000 }).toBe('경량 시점 저장 검증');
+      return record.project?.format === 'pandolab-autosave-full'
+        && record.project.timelineRecords?.propertyBindings
+          ?.some(row => row.entityId === 'IRL' && row.value?.name === '경량 시점 저장 검증');
+    }, { timeout: 40_000 }).toBe(true);
   } catch (error) {
     const record = await storage(page);
     const perf = await page.evaluate(() => window.__PANDOLAB_PERFORMANCE_REPORT__?.()?.operations?.['autosave.persist']);
     console.log('SOVIET_EDIT_AUTOSAVE_DIAGNOSTIC', JSON.stringify({
       format: record.project?.format, savedAt: record.project?.savedAt,
-      storedName: record.project?.territorialEntities?.find(entity => entity.id === 'IRL')?.properties?.name,
-      changedIds: record.project?.entityDelta?.changed?.map(entity => entity.id).slice(0, 10),
+      storedBaseName: record.project?.territorialEntities?.find(entity => entity.id === 'IRL')?.properties?.name,
+      persistedNameBindings: record.project?.timelineRecords?.propertyBindings
+        ?.filter(row => row.entityId === 'IRL' && row.value?.name === '경량 시점 저장 검증').slice(0, 5),
       view: record.view, autosaveCount: perf?.count,
       recentAutosave: perf?.samples?.slice(-3),
     }));
@@ -137,8 +140,9 @@ test('Soviet month-only moves save a small session record, persist across reload
   }, { timeout: 40_000 }).toBe(true);
   const edited = await storage(page);
   expect(edited.project?.format).toBe('pandolab-autosave-full');
-  expect(edited.project?.territorialEntities?.find(entity => entity.id === 'IRL')?.properties?.name)
-    .toBe('경량 시점 저장 검증');
+  expect(edited.project?.timelineRecords?.propertyBindings
+    ?.some(row => row.entityId === 'IRL' && row.value?.name === '경량 시점 저장 검증'))
+    .toBe(true);
   await month(page, '1989-06');
   await expect.poll(async () => (await storage(page)).view?.lastViewedMonth,
     { timeout: 40_000 }).toBe('1989-06');
