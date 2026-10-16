@@ -352,7 +352,7 @@ jobs:
             build-native/wasm/wasm/pandoeditor-core.wasm
           if-no-files-found: error
   qt-core-adapters:
-    if: github.event_name != 'workflow_dispatch' || (inputs.scope != 'p6-polygon' && inputs.scope != 'p6-calculations' && inputs.scope != 'geometry' && inputs.scope != 'native-geometry')
+    if: github.event_name != 'workflow_dispatch' || (inputs.scope != 'p6-polygon' && inputs.scope != 'p6-calculations' && inputs.scope != 'geometry' && inputs.scope != 'native-geometry' && inputs.scope != 'temporal')
     runs-on: windows-2022
     timeout-minutes: 20
     steps:

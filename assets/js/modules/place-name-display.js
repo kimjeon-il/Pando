@@ -22,4 +22,3 @@ export function hasPlaceNameCoverage(place, mapDate) {
   if (mapDate == null) return true;
   return /^\d{4}-\d{2}-\d{2}$/u.test(mapDate);
 }
-

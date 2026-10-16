@@ -1512,6 +1512,7 @@ PrepareResult CommandProcessor::prepareRequest(const ProjectSnapshot& project,co
                     for(const auto& row:candidate.timelineRecords.lifetimes)if(row.id==id)return true;
                     for(const auto& row:candidate.timelineRecords.geometryBindings)if(row.id==id)return true;
                     for(const auto& row:candidate.timelineRecords.parentRelations)if(row.id==id)return true;
+                            for(const auto& row:candidate.timelineRecords.propertyBindings)if(row.id==id)return true;
                     return false;
                 };
                 auto id=base;
@@ -1627,6 +1628,7 @@ PrepareResult CommandProcessor::prepareRequest(const ProjectSnapshot& project,co
                             for(const auto& row:candidate.timelineRecords.lifetimes)if(row.id==id)return true;
                             for(const auto& row:candidate.timelineRecords.geometryBindings)if(row.id==id)return true;
                             for(const auto& row:candidate.timelineRecords.parentRelations)if(row.id==id)return true;
+                            for(const auto& row:candidate.timelineRecords.propertyBindings)if(row.id==id)return true;
                             return false;
                         };
                         auto id=base;
