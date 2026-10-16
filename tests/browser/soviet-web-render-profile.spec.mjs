@@ -5,7 +5,6 @@ import { expect, test } from '@playwright/test';
 // admission, mesh uploads, and selected-outline preparation have settled.
 test('1989 Soviet WebGL interaction work with and without selection', async ({ page }, info) => {
   test.setTimeout(240_000);
-  test.use;
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.setViewportSize({ width: 1440, height: 900 });
