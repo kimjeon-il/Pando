@@ -112,7 +112,12 @@ test('1989 Soviet actual coast-edit entry CPU and memory after autosave quiescen
     await cdp.send('HeapProfiler.collectGarbage');
     afterCancel=await snap(page,cdp,cancelConfirmed?'edit-cancelled-after-gc':'cancel-attempted-still-editing');
   }
-  const result={schema:'pandolab-soviet-edit-entry-v1',entity:'state:soviet-union',month:'1989-06',
+  const boundaryPreparation = await page.evaluate(() => {
+    const samples = window.__PANDOLAB_PERFORMANCE_REPORT__?.()?.operations?.['edit.boundary.prepare']?.samples || [];
+    return samples.slice(-1)[0] || null;
+  });
+  const result={schema:'pandolab-soviet-edit-entry-v2',entity:'state:soviet-union',month:'1989-06',
+    boundaryPreparation,
     conditions:'web WebGL2 after cursor-only timeline update and preview Worker quiescence; CI SwiftShader not a physical GPU',
     previewWorkerQuiescent,editOpened,reason,editReadyMs:Number(editReadyMs.toFixed(1)),cancelConfirmed,before,active,afterGc,afterCancel,
     profile,errors};
