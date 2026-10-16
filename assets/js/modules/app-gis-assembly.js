@@ -135,15 +135,9 @@ export function createGisAssembly({ fileAccess = null } = {}) {
           distributions: dependencies.projectState.state.distributionEntries.length,
           labels: dependencies.projectState.state.labels.length,
         }),
-        download: (filename, blob) => {
-          const url = window.URL.createObjectURL(blob);
-          const anchor = document.createElement('a');
-          anchor.href = url;
-          anchor.download = filename;
-          document.body.appendChild(anchor);
-          anchor.click();
-          anchor.remove();
-          window.setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+        download: async (filename, blob) => {
+          const controller = await getGisFileController();
+          return controller.saveExportFile(filename, blob);
         },
         setStatus: dependencies.feedback.setActionStatus,
         reportError: error => (0, dependencies.feedback.reportOperationError)(error, 'GIS 데이터를 내보내지 못했습니다.', 'PL-GIS-EXPORT-001', 4200),
