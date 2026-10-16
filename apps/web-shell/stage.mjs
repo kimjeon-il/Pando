@@ -123,7 +123,7 @@ async function stageOwnedPrototype({ root, profile }) {
       library: await loadManifest('assets/data/territorial-entities/generated/v2/index.json'),
       prepared: await loadManifest('assets/data/prepared-polygons/generated/v2/manifest.json'),
     });
-    const dataRoot = resolve(root, 'assets/data');
+    const dataRoot = await realpath(resolve(root, 'assets/data'));
     let packagedBytes = 0;
     for (const item of plan.entries) {
       const actual = await realpath(resolve(root, item.path));

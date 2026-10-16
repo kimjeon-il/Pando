@@ -6,7 +6,8 @@ export async function createRuntimeProfile() {
   const profile = await response.json();
   if (profile.mode === 'full-world') {
     const meta = globalThis.PANDOLAB_BUILD_META;
-    if (!meta?.historicalWorld || profile.dataRevision !== meta.dataRevision
+    if (!meta?.historicalWorld || meta.resourceProfile !== 'full-world'
+        || profile.dataRevision !== meta.dataRevision
         || profile.assetRevision !== meta.assetRevision) {
       throw new Error('Bundled full-world assets do not match the running application.');
     }
