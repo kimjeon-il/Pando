@@ -64,6 +64,8 @@ The frontend invokes these commands through `window.__TAURI_INTERNALS__.invoke`:
 | `finish_probe` | `{report: object}` | `{path}` |
 | `save_project_file` | `{contents: base64String}` | `{cancelled, path}` |
 | `open_project_file` | `{}` | `{cancelled, path, contents?: base64String}` |
+| `save_export_file` | `{filename, contents: base64String}` | `{cancelled, path}` |
+| `open_gis_files` | `{}` | `{cancelled, files: [{path, contents}]}` |
 
 The diagnostic snapshot filename is `small-project.json`; the report filename is
 `diagnostic-report.json`. Both have a strict 1 MiB UTF-8 byte limit, checked before
@@ -74,6 +76,11 @@ the native file picker and cannot be supplied by JavaScript. Cancellation return
 `cancelled: true`; file I/O and encoding failures reject the command. Current
 project import/export uses the production binary GeoPackage codec and a `.gpkg`
 picker filter. Its IPC payload is base64, with a 1 MiB decoded-byte limit.
+GIS ZIP/GeoPackage export accepts only the current product filenames; GIS multi-import
+accepts up to 16 user-selected files with a 1 MiB combined limit. Android provider
+URIs that do not expose a file extension are rejected instead of being assigned
+a misleading GIS format. Full-project file sizes and provider-name recovery belong
+to the later full-world app expansion.
 
 Android pickers return `content://` URIs, which the filesystem plugin opens through
 the platform provider. Android export uses `ACTION_CREATE_DOCUMENT` and writes a
