@@ -27,12 +27,45 @@ jobs:
           cmake -S . -B build-native/cursor-focused -G Ninja -DCMAKE_BUILD_TYPE=Release -DPANDO_BUILD_VARIANT=core -DBUILD_TESTING=ON
           cmake --build build-native/cursor-focused --target temporal_editing_tests --parallel 2
           ctest --test-dir build-native/cursor-focused -R '^temporal_editing_tests$' --output-on-failure
-      - name: Verify cursor transition ABI against the source-matched generated WASM
+      - name: Verify cursor transition ABI against source-matched generated WASM
         env:
           PANDOEDITOR_WASM_MODULE: ${{ github.workspace }}/assets/wasm/pandoeditor-core.js
         run: |
           node --test tests/unit/core-document-runtime.test.mjs tests/unit/core-document-client.test.mjs
-          node --test tests/unit/core-document-world-wasm.test.mjs shared/tests/wasm-document-session.test.mjs
+          node --test shared/tests/p5-temporal-wasm.test.mjs shared/tests/p5-timeline-wasm.test.mjs
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { readFile } from 'node:fs/promises';
+          import { resolve } from 'node:path';
+          import { pathToFileURL } from 'node:url';
+          const source=resolve(process.env.PANDOEDITOR_WASM_MODULE);
+          const {default:create}=await import(pathToFileURL(source));
+          const core=await create({wasmBinary:await readFile(source.replace(/\.js$/,'.wasm'))});
+          const seed=JSON.parse(await readFile('tests/fixtures/portability/web-document-seed.json','utf8'));
+          const session=new core.DocumentSession({validateFlagDataUrl(){}});
+          try {
+            const initial=session.documentLoad(JSON.stringify(seed),'2026-10');
+            const checkpoint=initial.checkpoint;
+            const changed=session.setTimelineCursor('1914-07',initial.epoch);
+            assert.equal(changed.state.timelineCursor,'1914-07');
+            assert.equal(changed.world.month,'1914-07');
+            assert.equal(changed.world.sourceEpoch,changed.state.epoch);
+            assert.equal(changed.state.checkpoint,checkpoint);
+            assert.equal(changed.state.revision,initial.revision);
+            assert.equal(changed.state.canUndo,false);
+            assert.equal(changed.state.dirty,false);
+            const queried=session.resolveWorld('1914-07',changed.state.epoch);
+            assert.deepEqual(changed.world.entities,queried.entities);
+            const noOp=session.setTimelineCursor('1914-07',changed.state.epoch);
+            assert.equal(noOp.state.epoch,changed.state.epoch);
+            assert.deepEqual(noOp.world.entities,changed.world.entities);
+            const restored=session.setTimelineCursor('2026-10',changed.state.epoch);
+            assert.equal(restored.world.month,'2026-10');
+            assert.equal(restored.world.sourceEpoch,restored.state.epoch);
+            assert.equal(restored.state.canUndo,false);
+            console.log('CURSOR_SINGLE_PASS_REAL_WASM_OK', {initial:initial.epoch,changed:changed.state.epoch,restored:restored.state.epoch,entities:changed.world.entities.length});
+          } finally { session.delete(); }
+          NODE
   browser-cursor:
     runs-on: ubuntu-24.04
     timeout-minutes: 24
