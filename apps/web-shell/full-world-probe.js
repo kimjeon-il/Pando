@@ -1,6 +1,8 @@
 import { finishDiagnostics } from './native-storage.js';
 
-export function inspectFullWorldRuntime(scope = globalThis, expectedCountryCount = 258) {
+export function inspectFullWorldRuntime(scope = globalThis, {
+  expectedSourceCount = 258, expectedModelCount = 254, expectedRootCount = 207,
+} = {}) {
   const meta = scope.PANDOLAB_BUILD_META || {};
   const startup = scope.__PANDOLAB_STARTUP_METRICS__ || {};
   const gpu = scope.__PANDOLAB_GPU_METRICS__ || {};
@@ -14,12 +16,17 @@ export function inspectFullWorldRuntime(scope = globalThis, expectedCountryCount
   const sovereignRoots = typeof territorial?.list === 'function'
     ? territorial.list({ kind: 'general', parentId: '' }) : [];
   const sovereignRootCount = Array.isArray(sovereignRoots) ? sovereignRoots.length : -1;
+  const baseline = scope.PANDOLAB_PREVIEW_BASELINE?.defaultClassification || {};
+  const sourceCountryCount = Object.keys(baseline.countries || {}).length
+    + (Array.isArray(baseline.removedIds) ? baseline.removedIds.length : 0);
   const workers = Array.isArray(network.workers) ? network.workers : [];
   const blocked = Array.isArray(network.blocked) ? network.blocked : [];
   const checks = {
     packageProfile: meta.resourceProfile === 'full-world' ? 'PASS' : 'FAIL',
     historicalWorld: !!meta.historicalWorld?.sha256 ? 'PASS' : 'FAIL',
-    countryCount: countryCount === expectedCountryCount ? 'PASS' : 'FAIL',
+    sourceCountryCount: sourceCountryCount === expectedSourceCount ? 'PASS' : 'FAIL',
+    modelEntityCount: countryCount === expectedModelCount ? 'PASS' : 'FAIL',
+    sovereignRootCount: sovereignRootCount === expectedRootCount ? 'PASS' : 'FAIL',
     preview: startup.preview ? 'PASS' : 'FAIL',
     canonicalGeometry: startup.geometry ? 'PASS' : 'FAIL',
     canonicalMesh: startup.mesh ? 'PASS' : 'FAIL',
@@ -39,7 +46,10 @@ export function inspectFullWorldRuntime(scope = globalThis, expectedCountryCount
     observed: {
       countryCount,
       sovereignRootCount,
-      expectedCountryCount,
+      sourceCountryCount,
+      expectedSourceCount,
+      expectedModelCount,
+      expectedRootCount,
       renderer: String(gpu.renderer || ''),
       triangleCount: Number(gpu.triangleCount || 0),
       countryBaseIndexCount: Number(gpu.countryBaseIndexCount || 0),
@@ -56,7 +66,9 @@ export function inspectFullWorldRuntime(scope = globalThis, expectedCountryCount
 }
 
 export function installFullWorldProbe({
-  scope = globalThis, expectedCountryCount = 258, timeoutMs = 240_000,
+  scope = globalThis,
+  expectedSourceCount = 258, expectedModelCount = 254, expectedRootCount = 207,
+  timeoutMs = 240_000,
   readyDelayMs = 500, reportFn = finishDiagnostics,
 } = {}) {
   if (scope.__PANDOLAB_SHELL_AUTO__ !== true) return false;
@@ -67,7 +79,9 @@ export function installFullWorldProbe({
     scope.clearTimeout(timeout);
     let report;
     try {
-      report = inspectFullWorldRuntime(scope, expectedCountryCount);
+      report = inspectFullWorldRuntime(scope, {
+        expectedSourceCount, expectedModelCount, expectedRootCount,
+      });
     } catch (cause) {
       report = { schema: 'pandolab-web-shell-world-probe', phase, ok: false, error: String(cause) };
     }
