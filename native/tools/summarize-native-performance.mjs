@@ -151,14 +151,18 @@ export function summarizeRelativeRounds(rounds) {
  const faults=[],check=(ok,message)=>{if(!ok)faults.push(message);};
  check(Array.isArray(rounds)&&[1,2].includes(rounds.length),'Exactly one initial round and at most one additional round are allowed');
  rounds=Array.isArray(rounds)?rounds:[];const environment=rounds[0]?.environment;
+ const selectedFixtureIds=Array.isArray(environment?.fixtureIds)?environment.fixtureIds:[];
+ const fullFixtureCoverage=selectedFixtureIds.length===relativeRoles.length&&relativeRoles.every(id=>selectedFixtureIds.includes(id));
  let common=null;const adapterReceipts=[];
  for(const [roundIndex,round] of rounds.entries()) {
   const env=round.environment??{},runs=round.runs??[];
+  const fixtureIds=Array.isArray(env.fixtureIds)?env.fixtureIds:[];
+  check(fixtureIds.length>0&&new Set(fixtureIds).size===fixtureIds.length&&fixtureIds.every(id=>relativeRoles.includes(id)),`Round ${roundIndex+1}: fixtureIds must contain unique known production-world roles`);
   check(env.measurementProfile==='p9-relative','P9 profile required');
   for(const key of ['sourceCommit','baselineSourceCommit'])check(/^[a-f0-9]{40}$/i.test(env[key]??''),`Missing ${key}`);
   for(const key of ['binarySha256','baselineBinarySha256','fixtureManifestSha256'])check(/^[a-f0-9]{64}$/i.test(env[key]??''),`Missing ${key}`);
   check(Boolean(env.inputHashes&&Object.keys(env.inputHashes).length&&env.cacheCondition),'Input hashes and cache condition required');
-  for(const key of ['sourceCommit','baselineSourceCommit','binarySha256','baselineBinarySha256','fixtureManifestSha256','inputHashes','os','adapters','cpu','cacheCondition'])
+  for(const key of ['sourceCommit','baselineSourceCommit','binarySha256','baselineBinarySha256','fixtureManifestSha256','fixtureIds','inputHashes','os','adapters','cpu','cacheCondition'])
    check(equal(env[key],environment?.[key]),`Round ${roundIndex+1}: changed ${key}`);
   const expected=[];
   if(roundIndex===0)for(const side of ['baseline','candidate'])expected.push(`warmup-${side}`);
@@ -173,7 +177,7 @@ export function summarizeRelativeRounds(rounds) {
    check(r.warmup===r.run?.startsWith('warmup-'),`${r.run}: warmup classification mismatch`);
    check(d.schema==='pandoeditor-native-performance'&&d.version===2&&d.measurementProfile==='p9-relative'&&d.completed===true&&d.measurementMode==='diagnostic'&&Boolean(d.diagnosticReason),`${r.run}: incomplete P9 diagnostic report`);
    check(p.sourceCommit===(baseline?env.baselineSourceCommit:env.sourceCommit)&&p.binarySha256===(baseline?env.baselineBinarySha256:env.binarySha256)&&r.binarySha256===p.binarySha256&&p.runId===r.run,`${r.run}: source/binary/run identity mismatch`);
-   check(p.fixtureManifestSha256===env.fixtureManifestSha256&&equal(p.inputHashes,env.inputHashes)&&d.preflight?.status==='PASS',`${r.run}: immutable inputs/preflight mismatch`);
+   check(p.fixtureManifestSha256===env.fixtureManifestSha256&&equal(p.inputHashes,env.inputHashes)&&equal(p.fixtureIds,fixtureIds)&&d.preflight?.status==='PASS',`${r.run}: immutable inputs/preflight mismatch`);
    check(p.buildType==='Release'&&p.graphicsApi==='Direct3D11'&&Boolean(p.qtVersion),`${r.run}: Release hardware backend/Qt identity missing`);
    if(env.buildIdentity?.qtVersion)check(p.qtVersion===String(env.buildIdentity.qtVersion),`${r.run}: loaded Qt differs from the CI runtime`);
    const identity={qtVersion:p.qtVersion,os:p.os,adapters:p.adapters,cpu:p.cpu,logicalProcessors:d.logicalProcessors,graphicsApi:p.graphicsApi,
@@ -182,29 +186,34 @@ export function summarizeRelativeRounds(rounds) {
    for(const key of ['os','adapters','cpu'])check(equal(p[key],env[key]),`${r.run}: ${key} differs from environment`);
    const adapter=selectedD3dAdapter(rendererLog);adapterReceipts.push({run:r.run,...adapter});
    check(adapter?.hardware===true&&(env.adapters??[]).some(a=>a.Name===adapter.name),`${r.run}: actual selected physical adapter is missing or software`);
-   check(relativeRoles.every(id=>(d.fixtures??[]).some(f=>f.id===id&&f.manifestSha256===env.fixtureManifestSha256)),`${r.run}: four immutable fixture receipts missing`);
+   check(equal(d.fixtureIds,fixtureIds)&&equal((d.fixtures??[]).map(f=>f.id).sort(),[...fixtureIds].sort())&&
+    (d.fixtures??[]).every(f=>f.manifestSha256===env.fixtureManifestSha256),`${r.run}: selected immutable fixture receipts mismatch`);
    check(d.startupMeasurement==='existing-world-project-open',`${r.run}: existing-world-project-open measurement label missing`);
    check(Number.isFinite(d.startupToProjectViewMs)&&d.startupToProjectViewMs>=0,`${r.run}: project-open startup observation missing`);
-   check(equal((d.relativeMeasurements??[]).map(v=>v.fixtureId),relativeRoles),`${r.run}: four production-world roles required`);
+   check(Number.isFinite(d.initialProjectLoadMs)&&d.initialProjectLoadMs>=0&&d.relativeMeasurements?.[0]?.loadAndFirstReadyFrameMs===d.initialProjectLoadMs,`${r.run}: first selected fixture must retain its actual initial project-load timing`);
+   check(equal((d.relativeMeasurements??[]).map(v=>v.fixtureId),fixtureIds),`${r.run}: selected production-world roles mismatch`);
    for(const row of d.relativeMeasurements??[]) {
     check(['loadAndFirstReadyFrameMs','panMs','saveMs'].every(key=>Number.isFinite(row[key])&&row[key]>=0),`${r.run}/${row.fixtureId}: operation timing missing`);
     check(row.swapIntervalsMs?.length>=100&&row.swapIntervalsMs.every(v=>Number.isFinite(v)&&v>=0),`${r.run}/${row.fixtureId}: swap intervals missing/invalid`);
+    const panInputs=(d.inputs??[]).filter(v=>v.fixtureId===row.fixtureId&&v.scenarioId==='flat-pan');
+    check(row.panInputCount===120&&panInputs.length===120,`${r.run}/${row.fixtureId}: 120 actual pan input receipts required`);
     if(relativePreviewEntities[row.fixtureId]) {
      check(Number.isFinite(row.previewAndCancelMs)&&row.previewAndCancelMs>=0,`${r.run}/${row.fixtureId}: edit preview/cancel observation missing`);
      check(row.previewEntityId===relativePreviewEntities[row.fixtureId],`${r.run}/${row.fixtureId}: preview entity identity mismatch`);
      check(row.previewGesture===relativePreviewGestures[row.fixtureId],`${r.run}/${row.fixtureId}: preview input gesture mismatch`);
     }
    }
-   check((d.inputs??[]).length>=480&&(d.inputs??[]).every(v=>v.matched===true&&v.delivered===true&&v.renderSnapshotMatched===true&&v.renderUploadsPending===false&&v.stateChanged===true),`${r.run}: actual input/render association failed`);
+   check((d.inputs??[]).length>=fixtureIds.length*120&&(d.inputs??[]).every(v=>fixtureIds.includes(v.fixtureId)&&v.matched===true&&v.delivered===true&&v.renderSnapshotMatched===true&&v.renderUploadsPending===false&&v.stateChanged===true),`${r.run}: actual input/render association failed`);
    check(process.length>0&&process.every(s=>Number.isFinite(s.workingSetBytes)&&s.workingSetBytes>0&&Number.isFinite(s.privateBytes)&&s.privateBytes>0),`${r.run}: process memory samples missing/invalid`);
   }
  }
  if(rounds.length===2)check(relativeStatus(relativeMetrics(rounds.slice(0,1)))==='uncertain','Additional round is allowed only after initial uncertainty');
  const metrics=relativeMetrics(rounds),status=faults.length?'BLOCKED':relativeStatus(metrics);
  return {schema:'pando-p9-native-relative-comparison',version:1,status,roundCount:rounds.length,additionalRoundAllowed:status==='uncertain'&&rounds.length===1,
-  m98Acceptance:false,acceptedBy:null,startupMeasurement:'existing-world-project-open',metrics,adapterReceipts,faults,
-  scope:'Production full-world saved-project inputs: fresh-process existing-world-project open through the first project view, four-role load/pan/save/Qt swap p95, DEU pointer-drag and RUS one-pixel keyboard-nudge geometry preview/cancel, sampled peak process memory. Two discarded warmups, then five alternating baseline/candidate pairs per round.',
-  limitations:['New full-world role inputs do not establish historical M98 full-stack/stress acceptance.','Swap intervals do not prove GPU completion or DWM presentation.','Sampled process memory is not driver VRAM; physical provider coverage is recorded in raw reports.']};
+  m98Acceptance:false,acceptedBy:null,fixtureIds:selectedFixtureIds,fullFixtureCoverage,startupMeasurement:'existing-world-project-open',metrics,adapterReceipts,faults,
+  scope:`Production full-world saved-project inputs for selected roles (${selectedFixtureIds.join(', ')}): fresh-process existing-world-project open through the first project view, selected-role load/pan/save/Qt swap p95 and declared geometry preview/cancel gestures, sampled peak process memory. Two discarded warmups, then five alternating baseline/candidate pairs per round.`,
+  limitations:[...(!fullFixtureCoverage?['This selected-fixture comparison does not complete full four-role P9 or M98 verification.']:[]),
+   'New full-world role inputs do not establish historical M98 full-stack/stress acceptance.','Swap intervals do not prove GPU completion or DWM presentation.','Sampled process memory is not driver VRAM; physical provider coverage is recorded in raw reports.']};
 }
 export function readRelativeDirectory(directory) {
  const json=file=>JSON.parse(readFileSync(path.join(directory,file),'utf8').replace(/^\uFEFF/,''));

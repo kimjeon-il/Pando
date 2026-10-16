@@ -1,7 +1,8 @@
 param(
  [Parameter(Mandatory=$true)][string]$BaselineRoot,
  [Parameter(Mandatory=$true)][string]$OutputDirectory,
- [string]$BaselineArtifactReceipt
+ [string]$BaselineArtifactReceipt,
+ [ValidateSet('pair','baseline','candidate')][string]$BuildSide='pair'
 )
 $ErrorActionPreference='Stop'
 $sourceRoot=(Resolve-Path (Join-Path $PSScriptRoot '..')).Path
@@ -27,12 +28,13 @@ $receipt=[ordered]@{
  measurementOverlaySha256=$hashes; baselineChangedFiles=$baselineChanges
  scope='Source-bound test executables and their shared Qt runtime; no product packaging or acceptance claim'
  compileParallelism='MSBuild jobs=2, MSVC /MP2 for both versions'
+ compileFlags='MSVC /MP2 /EHsc with Release preset optimization flags'
  binaries=@{}
  runtimeDependencies=@{}
 }
 $preset='pando-native-qt-ci-windows'
 $cachedBaseline=$null
-if ($BaselineArtifactReceipt) {
+if ($BaselineArtifactReceipt -and $BuildSide -ne 'candidate') {
  $cache=Get-Content -LiteralPath $BaselineArtifactReceipt -Raw | ConvertFrom-Json
  if ($cache.schema -ne 'pando-p9-native-baseline-artifact-v1' -or $cache.baselineSourceSha -ne $baselineSha) { throw 'Wrong baseline artifact contract' }
  foreach ($relative in $overlay) {
@@ -51,7 +53,8 @@ if ($BaselineArtifactReceipt) {
  if ((Get-FileHash -LiteralPath $cachedBaseline).Hash -ne $cache.executableSha256) { throw 'Baseline executable hash mismatch' }
  $receipt.baselineBuildArtifact=$cache
 }
-foreach ($side in @('baseline','candidate')) {
+$sides=if($BuildSide -eq 'pair'){@('baseline','candidate')}else{@($BuildSide)}
+foreach ($side in $sides) {
  $root=if ($side -eq 'baseline') { $baseline } else { $sourceRoot }
  Push-Location $root
  try {
@@ -59,7 +62,7 @@ foreach ($side in @('baseline','candidate')) {
    Write-Host "Reuse verified baseline from CI $($cache.workflowRunId)"
    $built=@(Get-Item -LiteralPath $cachedBaseline)
   } else {
-  cmake --preset $preset "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" '-DCMAKE_CXX_FLAGS=/MP2' 2>&1 | Tee-Object (Join-Path $sourceRoot "build-native/p9/qt-pair-$side-configure.log")
+  cmake --preset $preset "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" '-DCMAKE_CXX_FLAGS=/MP2 /EHsc' 2>&1 | Tee-Object (Join-Path $sourceRoot "build-native/p9/qt-pair-$side-configure.log")
   if ($LASTEXITCODE -ne 0) { throw "$side configure failed" }
   cmake --build --preset $preset --target ui_tests 2>&1 | Tee-Object (Join-Path $sourceRoot "build-native/p9/qt-pair-$side-build.log")
   if ($LASTEXITCODE -ne 0) { throw "$side test executable build failed" }
@@ -86,11 +89,13 @@ foreach ($side in @('baseline','candidate')) {
  } finally { Pop-Location }
 }
 $deploy=(Get-Command windeployqt.exe -CommandType Application).Source
-& $deploy --release --no-translations --qmldir (Join-Path $sourceRoot 'native/ui') --dir $output (Join-Path $output 'candidate-ui_tests.exe')
+$deploySide=if($BuildSide -eq 'baseline'){'baseline'}else{'candidate'}
+& $deploy --release --no-translations --qmldir (Join-Path $sourceRoot 'native/ui') --dir $output (Join-Path $output "$deploySide-ui_tests.exe")
 if ($LASTEXITCODE -ne 0) { throw 'Qt test runtime staging failed' }
 $receipt.qtVersion=(& (Join-Path (Split-Path $deploy -Parent) 'qmake.exe') -query QT_VERSION)
 $receipt | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath (Join-Path $output 'source-identity.json') -Encoding utf8
 # Preserve both source-bound executables even if a focused gate fails.
+if('candidate' -notin $sides){return}
 $engineTests=@('polygon_boundary_contract_tests','m976_shared_boundary_engine_tests')
 cmake --build --preset $preset --target @engineTests 2>&1 | Tee-Object (Join-Path $sourceRoot 'build-native/p9/qt-pair-engine-build.log')
 if ($LASTEXITCODE -ne 0) { throw 'Changed mesh/contact engine test build failed' }
