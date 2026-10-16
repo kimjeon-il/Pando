@@ -1213,6 +1213,10 @@ export function createDomainAssembly() {
     }
     const changed = await territorialEntityStore.setTimelineCursor(month, { canPublish });
     if (!changed) return false;
+    // The map-edit Worker may be idle with an earlier month's large cached
+    // topology. Drop that derived cache without re-exporting or re-sending the
+    // whole current world; the next actual edit refreshes its sources.
+    dependencies.spatialQuery.mapEditClient.invalidateBoundaryCache();
     dependencies.rendering.gpuMapRenderer.invalidateCountryPreview();
     renderingDomain?.invalidateProject?.('timeline-cursor');
     // A cursor change does not modify the canonical document. Persist only
