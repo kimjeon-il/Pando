@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { sharedSourceManifest } from './package-shared-core-assets.mjs';
 import { createHash } from 'node:crypto';
 import { readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -17,18 +18,18 @@ const bundle = readJson('assets/data/world/current.json');
 const seed = readJson('assets/data/world/build-input.json');
 const prepared = readJson('assets/data/prepared-polygons/generated/v2/manifest.json');
 const oldPrepared = readJson('assets/data/prepared-polygons/generated/v1/manifest.json');
-const algorithm = readFileSync(resolve(root, 'assets/js/workers/gpu-mesh-core.js'), 'utf8').replace(/\r\n/g, '\n');
+const algorithmSourceSha256 = sharedSourceManifest(root).sourceSha256;
 
-assert.equal(engine.MESH_ALGORITHM_REVISION, 4);
+assert.equal(engine.MESH_ALGORITHM_REVISION, 5);
 assert.equal(legacy.version, '0.36.1');
-assert.equal(legacy.meshAlgorithmRevision, 4);
-assert.equal(bundle.derivation.meshAlgorithmRevision, 4);
+assert.equal(legacy.meshAlgorithmRevision, 5);
+assert.equal(bundle.derivation.meshAlgorithmRevision, 5);
 assert.equal(seed.legacyPreviewManifest, 'world-preview-v0.36.1.json');
 assert.equal(prepared.schemaVersion, 2);
 assert.equal(prepared.meshFormatVersion, POLYGON_MESH_FORMAT_VERSION);
 assert.equal(prepared.algorithmVersion, engine.MESH_ALGORITHM_REVISION);
 assert.equal(prepared.maxEdgeDegrees, engine.MAX_RENDER_EDGE_DEGREES);
-assert.equal(prepared.algorithmSourceSha256, digest(algorithm));
+assert.equal(prepared.algorithmSourceSha256, algorithmSourceSha256);
 assert.equal(oldPrepared.schemaVersion, 1, 'v1 must remain intact');
 
 for (const role of ['previewCountries', 'previewMesh', 'canonicalCountryPacket', 'canonicalMesh', 'labelAnchors']) {
@@ -73,7 +74,7 @@ for (const [hash, entry] of [assets[0], assets[Math.floor(assets.length / 2)], m
   const decodedBytes = gunzipSync(readFileSync(resolve(root, entry.url)));
   assert.equal(decodedBytes.length, entry.decodedBytes, hash + ' decoded mesh size');
   const packet = decodePolygonMesh(decodedBytes.buffer.slice(decodedBytes.byteOffset, decodedBytes.byteOffset + decodedBytes.length),
-    { algorithmVersion: 4 });
+    { algorithmVersion: engine.MESH_ALGORITHM_REVISION });
   assert.ok(packet.triangleCount > 0 && packet.segmentCount > 0);
   const triangleEdges = new Set(), key = (a, b) => a < b ? a + ':' + b : b + ':' + a;
   for (let i = 0; i < packet.indices.length; i += 3) {
@@ -104,6 +105,6 @@ for (const [hash, entry] of [assets[0], assets[Math.floor(assets.length / 2)], m
       + ' removedPolygonsNeedReview=true');
   }
 }
-console.log(JSON.stringify({ version: legacy.version, algorithmRevision: 4, fixedMeshCount: assets.length,
+console.log(JSON.stringify({ version: legacy.version, algorithmRevision: 5, fixedMeshCount: assets.length,
   fixedGzipBytes: totalCompressedBytes, largestMeshGzipBytes: maxAsset[1].compressedBytes,
   verifiedWorldAssets: Object.keys(bundle.assets).length, sharedCaches: 2 }, null, 2));

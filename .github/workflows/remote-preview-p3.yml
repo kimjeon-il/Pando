@@ -1,4 +1,5 @@
 name: P3 Remote preview and Qt verification
+# P5-6 verification receipt: rerun scoped Web + native CI against the integrated main source tree 691ec5d; comment-only change.
 # P5-4 verification receipt: force both native Qt CI presets on this push; application sources remain unchanged.
 on:
   push:
@@ -9,7 +10,7 @@ on:
       - 'scripts/p3-stage-preview.mjs'
       - 'scripts/p3-preview-server.mjs'
       - '.devcontainer/**'
-      - 'tests/unit/p3-preview-server.test.mjs'
+      - 'tests/unit/**'
       - 'tests/unit/p3-remote-plan.test.mjs'
       - 'tests/browser/p3-remote-preview.spec.mjs'
       - 'tests/browser/performance-observability.spec.mjs'
@@ -32,16 +33,70 @@ on:
     branches: [main]
   workflow_dispatch:
     inputs:
+      source_sha:
+        description: Verified artifact result SHA (empty uses selected branch)
+        type: string
+        required: false
+      original_source_sha:
+        description: Source SHA that produced the verified artifact result
+        type: string
+        required: false
+      base_sha:
+        description: Source change base before artifact publication
+        type: string
+        required: false
+      retry_failed:
+        description: Resume P9 using completed evidence; select browser or Qt scope for remaining work
+        type: boolean
+        required: false
+        default: false
+      native_tests:
+        description: Optional comma-separated Qt CTest/target names for a focused native run
+        type: string
+        required: false
+      native_app:
+        description: Build/capture the app; disable only when reusing an unchanged app build
+        type: boolean
+        required: false
+        default: true
+      native_platform:
+        description: Qt platform for a focused run
+        type: choice
+        required: false
+        default: all
+        options: [all, linux, windows]
+      native_p9:
+        description: Build only the fixed Windows Qt performance pair for actual-device measurement
+        type: boolean
+        required: false
+        default: false
+      native_p9_baseline_receipt:
+        description: Optional source-bound baseline artifact receipt path; verify and reuse without rebuilding it
+        type: string
+        required: false
+      native_tests_windows:
+        description: Optional Windows override for native_tests when completed OS evidence differs
+        type: string
+        required: false
+      browser_tests:
+        description: Optional Playwright grep for remaining browser acceptance cases
+        type: string
+        required: false
+      browser_flows:
+        description: Run editing flows; disable only to measure performance after reusing flow evidence
+        type: boolean
+        required: false
+        default: true
       scope:
         description: Run changed scopes only (auto), or select a diagnostic
         type: choice
         required: false
         default: auto
-        options: [auto, preview, browser, qt, all]
+        options: [auto, preview, browser, qt, all, acceptance]
 permissions:
   contents: read
 concurrency:
-  group: p3-preview-${{ github.event.pull_request.number || github.ref }}
+  group: p3-preview-${{ github.event.pull_request.number || github.ref }}${{ inputs.native_tests && '-focused-native' || '' }}
   cancel-in-progress: true
 
 jobs:
@@ -52,33 +107,86 @@ jobs:
       preview: ${{ steps.scope.outputs.preview }}
       browser: ${{ steps.scope.outputs.browser }}
       qt: ${{ steps.scope.outputs.qt }}
+      hydro: ${{ steps.scope.outputs.hydro }}
+      contracts: ${{ steps.scope.outputs.contracts }}
+      ui: ${{ steps.scope.outputs.ui }}
+      objects: ${{ steps.scope.outputs.objects }}
+      gis: ${{ steps.scope.outputs.gis }}
+      places: ${{ steps.scope.outputs.places }}
       slug: ${{ steps.scope.outputs.slug }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 2
+          ref: ${{ inputs.source_sha || github.sha }}
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
       - name: Check preview and build plan without installing SDKs
         run: node --test tests/unit/p3-remote-plan.test.mjs tests/unit/p3-preview-server.test.mjs
+      - name: Fetch source-change base for artifact result verification
+        shell: bash
+        env:
+          BASE_SHA: ${{ inputs.base_sha || github.event.pull_request.base.sha || github.event.before || '' }}
+          SOURCE_SHA: ${{ inputs.source_sha || github.sha }}
+          ORIGINAL_SOURCE_SHA: ${{ inputs.original_source_sha || '' }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          if [ -n "$ORIGINAL_SOURCE_SHA" ]; then
+            [[ "$ORIGINAL_SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]
+            git fetch --no-tags --deepen=10 origin "$GITHUB_REF_NAME"
+            git merge-base --is-ancestor "$ORIGINAL_SOURCE_SHA" HEAD
+          fi
+          if [[ "$BASE_SHA" =~ ^[0-9a-f]{40}$ ]] && [[ ! "$BASE_SHA" =~ ^0{40}$ ]]; then
+            git cat-file -e "$BASE_SHA^{commit}" 2>/dev/null || git fetch --no-tags --depth=1 origin "$BASE_SHA"
+          fi
       - name: Resolve changed scopes using the actual Git history
         id: scope
         env:
-          PANDO_P3_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || '' }}
+          PANDO_P3_BASE_SHA: ${{ inputs.base_sha || github.event.pull_request.base.sha || github.event.before || '' }}
           PANDO_P3_BRANCH: ${{ github.head_ref || github.ref_name }}
           PANDO_P3_SCOPE: ${{ inputs.scope || 'auto' }}
         run: node scripts/p3-plan-remote.mjs --github-output
 
+  web-contracts:
+    needs: plan
+    if: needs.plan.outputs.contracts == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Run affected contracts against the verified generated runtime
+        shell: bash
+        env:
+          UI: ${{ needs.plan.outputs.ui }}
+          OBJECTS: ${{ needs.plan.outputs.objects }}
+          GIS: ${{ needs.plan.outputs.gis }}
+          PLACES: ${{ needs.plan.outputs.places }}
+          RETRY_FAILED: ${{ inputs.retry_failed }}
+        run: |
+          set -euo pipefail
+          if [ "$RETRY_FAILED" != true ] && [ "$UI" = true ]; then node --test tests/unit/surface-controller.test.mjs; fi
+          if [ "$RETRY_FAILED" != true ] && [ "$OBJECTS" = true ]; then node --test tests/unit/temporal.test.mjs; fi
+          if [ "$GIS" = true ]; then node --test tests/unit/polygon-geometry.test.mjs; fi
+          if [ "$RETRY_FAILED" != true ] && [ "$PLACES" = true ]; then node --test tests/unit/place-codec.test.mjs; fi
+
   web-snapshot:
     needs: plan
-    if: needs.plan.outputs.preview == 'true'
+    if: needs.plan.outputs.preview == 'true' && !inputs.retry_failed
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ inputs.source_sha || github.sha }}
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
@@ -92,7 +200,7 @@ jobs:
       - name: Upload runnable static Web preview for this branch
         uses: actions/upload-artifact@v4
         with:
-          name: p3-web-${{ needs.plan.outputs.slug }}-${{ github.sha }}
+          name: p3-web-${{ needs.plan.outputs.slug }}-${{ inputs.source_sha || github.sha }}
           path: ${{ runner.temp }}/p3-preview/${{ needs.plan.outputs.slug }}
           retention-days: 5
           compression-level: 0
@@ -110,10 +218,11 @@ jobs:
     needs: plan
     if: needs.plan.outputs.browser == 'true'
     runs-on: ubuntu-24.04
-    timeout-minutes: 18
+    timeout-minutes: ${{ (inputs.scope == 'acceptance' || (inputs.scope == 'browser' && inputs.retry_failed)) && 40 || 18 }}
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ inputs.source_sha || github.sha }}
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
@@ -124,29 +233,83 @@ jobs:
       - name: Install Chromium and OS dependencies
         run: pnpm exec playwright install --with-deps chromium
       - name: Verify the active built-in world mesh decoder and GPU capability wiring
+        if: ${{ !inputs.retry_failed }}
         run: node --test tests/unit/country-mesh-codec-runtime.test.mjs tests/unit/gpu-scene-platform-port.test.mjs
       - name: Verify C++ area, shared-border packet, and boundary-edit handoff
+        if: ${{ !inputs.retry_failed }}
         run: node --test tests/unit/p5-spherical-area-delegation.test.mjs tests/unit/edit-preview-handoff.test.mjs tests/unit/country-shared-boundary-state.test.mjs tests/unit/country-shared-boundary-generator.test.mjs
+      - name: Verify consecutive country merges and current Worker contracts
+        if: inputs.scope == 'acceptance'
+        env:
+          RETRY_FAILED: ${{ inputs.retry_failed }}
+        run: |
+          if [ "$RETRY_FAILED" = true ]; then
+            node --test --test-name-pattern='wide source' tests/unit/map-edit-preparation-worker.test.mjs
+            node --test tests/unit/p6-polygon-core.test.mjs tests/unit/reference-shared-runtime.test.mjs tests/unit/river-territory-partition.test.mjs
+          else
+            node --test tests/unit/map-edit-preparation-worker.test.mjs tests/unit/map-edit-worker-client.test.mjs tests/unit/project-preview-worker.test.mjs tests/unit/project-preview-topology.test.mjs tests/unit/gis-geometry-worker.test.mjs tests/unit/shared-geometry-calculations.test.mjs tests/unit/current-hydro-layout.test.mjs tests/unit/hydro-packfile.test.mjs
+          fi
+      - name: Record final committed artifact identity and current hydro consumption
+        id: acceptance_inputs
+        if: inputs.scope == 'acceptance' || (inputs.scope == 'browser' && inputs.retry_failed)
+        run: |
+          mkdir -p test-results/p9-artifacts
+          source_sha="$(git rev-parse HEAD)"
+          node scripts/p2-artifact-plan.mjs --evidence --result-sha "$source_sha" --expected-source-sha "$source_sha" --evidence-file test-results/p9-artifacts/generated.json
+          if [ '${{ inputs.scope }}' = acceptance ]; then node tools/check-current-hydro-layout.mjs --root . --allow-retired false --out test-results/p9-artifacts/hydro.json; fi
+      - uses: actions/checkout@v4
+        id: acceptance_baseline
+        if: inputs.scope == 'acceptance' || (inputs.scope == 'browser' && inputs.retry_failed)
+        with:
+          ref: 8e22982616e3c9ba43eeb84baec17cd886267cfa
+          path: build-native/p9/baseline
+          persist-credentials: false
       - name: Run real desktop and emulated mobile screenshots plus startup observability
+        if: inputs.browser_tests == ''
         shell: bash
         env:
           PANDO_P3_BRANCH: ${{ github.head_ref || github.ref_name }}
           PANDOLAB_BROWSER_CHANNEL: chromium
+          PANDO_P9_ACCEPTANCE: ${{ inputs.scope == 'acceptance' || (inputs.scope == 'browser' && inputs.retry_failed) }}
         run: |
           set -euo pipefail
           mkdir -p test-results/p3-browser
           pnpm exec playwright test \
             tests/browser/p3-remote-preview.spec.mjs \
             tests/browser/performance-observability.spec.mjs \
-            --workers=1 --retries=0 --output=test-results/p3-browser \
+            --workers=1 --retries=0 --max-failures=1 --output=test-results/p3-browser \
             2>&1 | tee test-results/p3-browser.log
+      - name: Verify affected Web editing, persistence and reference workflows
+        if: inputs.browser_flows != false && (inputs.scope == 'acceptance' || (inputs.scope == 'browser' && inputs.retry_failed))
+        shell: bash
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+          PANDOLAB_TEST_PROFILING: 'off'
+          RETRY_FAILED: ${{ inputs.retry_failed }}
+          PANDO_BROWSER_TESTS: ${{ inputs.browser_tests }}
+        run: |
+          mkdir -p test-results/p9-browser
+          reuse=()
+          if [ "$RETRY_FAILED" = true ]; then reuse=(--grep-invert 'a child cut'); fi
+          pattern='annex - (polygon|components|line multiple crossings)|a child cut|live-wire accepts|line refinement accepts|static v10 UI file|complex timeline|Russia detailed line preparation|Russia detailed polygon creation.*\(webgl2\)'
+          if [ -n "$PANDO_BROWSER_TESTS" ]; then pattern="$PANDO_BROWSER_TESTS"; fi
+          pnpm exec playwright test tests/browser/annex-e2e.spec.mjs tests/browser/boundary-cut-snapping.spec.mjs tests/browser/reference-image-live-wire.spec.mjs tests/browser/reference-image-line-refine.spec.mjs tests/browser/timeline-persistence.spec.mjs tests/browser/russia-edit-preparation.spec.mjs --grep "$pattern" "${reuse[@]}" --trace off --workers=1 --retries=0 --output=test-results/p9-browser
+      - name: Compare initial display, edit readiness, frames and JS heap against the fixed baseline
+        if: ${{ !cancelled() && steps.acceptance_inputs.outcome == 'success' && steps.acceptance_baseline.outcome == 'success' }}
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+          PANDO_P9_BASELINE_ROOT: build-native/p9/baseline
+        run: pnpm exec playwright test tests/browser/p9-browser-performance.spec.mjs --workers=1 --retries=0 --output=test-results/p9-browser-performance
       - name: Archive screenshots, test output and failure evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: p3-browser-${{ needs.plan.outputs.slug }}-${{ github.sha }}
+          name: p3-browser-${{ needs.plan.outputs.slug }}-${{ inputs.source_sha || github.sha }}
           path: |
             test-results/p3-browser
+            test-results/p9-browser
+            test-results/p9-browser-performance
+            test-results/p9-artifacts
             test-results/p3-browser.log
             playwright-report
           if-no-files-found: warn
@@ -154,23 +317,18 @@ jobs:
 
   qt-build-and-ctest:
     needs: plan
-    if: needs.plan.outputs.qt == 'true'
+    if: needs.plan.outputs.qt == 'true' && !inputs.native_p9
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - os: ubuntu-24.04
-            os_id: linux
-            preset: pando-native-qt-ci-linux
-            qt_arch: linux_gcc_64
-          - os: windows-2022
-            os_id: windows
-            preset: pando-native-qt-ci-windows
-            qt_arch: win64_msvc2022_64
+        include: ${{ fromJSON(inputs.native_platform == 'linux' && '[{"os":"ubuntu-24.04","os_id":"linux","preset":"pando-native-qt-ci-linux","qt_arch":"linux_gcc_64"}]' || inputs.native_platform == 'windows' && '[{"os":"windows-2022","os_id":"windows","preset":"pando-native-qt-ci-windows","qt_arch":"win64_msvc2022_64"}]' || '[{"os":"ubuntu-24.04","os_id":"linux","preset":"pando-native-qt-ci-linux","qt_arch":"linux_gcc_64"},{"os":"windows-2022","os_id":"windows","preset":"pando-native-qt-ci-windows","qt_arch":"win64_msvc2022_64"}]') }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 75
     env:
       PANDO_P3_QT_PRESET: ${{ matrix.preset }}
+      PANDO_P9_RETRY: ${{ inputs.retry_failed }}
+      PANDO_NATIVE_TESTS: ${{ matrix.os_id == 'windows' && inputs.native_tests_windows || inputs.native_tests }}
+      PANDO_NATIVE_APP: ${{ github.event_name != 'workflow_dispatch' || inputs.native_app }}
       QT_QPA_PLATFORM: offscreen
       QT_QUICK_BACKEND: software
     steps:
@@ -179,30 +337,8 @@ jobs:
         run: git config --global core.autocrlf false
       - uses: actions/checkout@v4
         with:
+          ref: ${{ inputs.source_sha || github.sha }}
           persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-      - uses: pnpm/action-setup@v4
-      - name: Install existing native JS geometry adapters
-        run: pnpm install --frozen-lockfile --ignore-scripts
-      - name: Check or regenerate branch-local Qt geometry for the test build
-        shell: bash
-        run: |
-          set -euo pipefail
-          if ! node native/tools/m97/cut-kernel-generate.mjs --check; then
-            echo "::warning::Stale tracked Qt adapters; regenerate from this branch's own JS sources in the isolated CI checkout"
-            node native/tools/m97/cut-kernel-generate.mjs
-            node native/tools/m97/cut-kernel-generate.mjs --check
-            git diff --binary -- native/assets/geometry/current native/resources/current_geometry.qrc > p3-qt-regenerated-geometry.patch
-            git status --short -- native/assets/geometry/current native/resources/current_geometry.qrc
-            test -s p3-qt-regenerated-geometry.patch || {
-              echo "::error::Qt generator changed untracked outputs only; cannot capture full patch"
-              exit 1
-            }
-            echo "### Qt generated inputs repaired for this CI build" >> "$GITHUB_STEP_SUMMARY"
-            echo "The branch still contains outdated generated assets. Review the p3-qt-regenerated-geometry.patch artifact before merging." >> "$GITHUB_STEP_SUMMARY"
-          fi
       - uses: jwlawson/actions-setup-cmake@v2
         with:
           cmake-version: '3.31.6'
@@ -221,6 +357,32 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: vcpkg install zlib:x64-windows
+      - name: Prepare executable tool guard after SDK installation
+        shell: pwsh
+        run: |
+          cmake -S tools/native-build-guard -B build-native/p6-tool-guard
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cmake --build build-native/p6-tool-guard --config Release --parallel 2
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $guard = (Resolve-Path build-native/p6-tool-guard/bin).Path
+          $guard | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          "PANDO_DENIED_TOOL_LOG=$env:RUNNER_TEMP/pando-forbidden-native-tools.log" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          $world = Get-Content native/assets/world/manifest.json -Raw | ConvertFrom-Json
+          $fullHydro = (Resolve-Path (Join-Path native/assets/world $world.hydro.path)).Path
+          "PANDOEDITOR_HYDRO_FULL_MANIFEST=$fullHydro" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+      - name: Confirm product build cannot invoke Node, pnpm or Python
+        shell: pwsh
+        run: |
+          $guard = (Resolve-Path build-native/p6-tool-guard/bin).Path
+          foreach ($tool in @('node', 'pnpm', 'python', 'python3')) {
+            $resolved = (Get-Command $tool -CommandType Application | Select-Object -First 1).Source
+            if (-not $resolved.StartsWith($guard)) { throw "Tool guard did not own $tool" }
+            & $resolved --version
+            if ($LASTEXITCODE -ne 97) { throw "Tool guard failed for $tool" }
+          }
+          # These four deliberate probes are not product-build invocations.
+          [System.IO.File]::WriteAllText($env:PANDO_DENIED_TOOL_LOG, '')
+          exit 0
       - name: Configure pinned Linux Qt app and selected CTests
         if: runner.os == 'Linux'
         shell: bash
@@ -232,57 +394,98 @@ jobs:
           cmake --preset $env:PANDO_P3_QT_PRESET "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
           exit $LASTEXITCODE
       - name: Build Linux app and selected Qt/native test targets
+        id: build_linux
         if: runner.os == 'Linux'
         shell: bash
         run: |
           set -o pipefail
-          cmake --build --preset "$PANDO_P3_QT_PRESET" 2>&1 | tee p3-qt-build.log
+          selection=()
+          if [ -n "$PANDO_NATIVE_TESTS" ]; then
+            [[ "$PANDO_NATIVE_TESTS" =~ ^[a-zA-Z0-9_]+(,[a-zA-Z0-9_]+)*$ ]]
+            IFS=, read -ra selected <<< "$PANDO_NATIVE_TESTS"
+            selection=(--target "${selected[@]}")
+            if [ "$PANDO_NATIVE_APP" = true ]; then selection+=(pandoeditor); fi
+          elif [ "$PANDO_NATIVE_APP" != true ]; then
+            echo 'native_app=false requires an explicit native_tests list' >&2; exit 1
+          fi
+          cmake --build --preset "$PANDO_P3_QT_PRESET" "${selection[@]}" 2>&1 | tee p3-qt-build.log
       - name: Build Windows app and selected Qt/native test targets
+        id: build_windows
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          cmake --build --preset $env:PANDO_P3_QT_PRESET 2>&1 | Tee-Object p3-qt-build.log
+          $selection = @()
+          if ($env:PANDO_NATIVE_TESTS) {
+            if ($env:PANDO_NATIVE_TESTS -notmatch '^[a-zA-Z0-9_]+(,[a-zA-Z0-9_]+)*$') { throw 'Invalid native test target list' }
+            $selection = @('--target') + $env:PANDO_NATIVE_TESTS.Split(',')
+            if ($env:PANDO_NATIVE_APP -eq 'true') { $selection += 'pandoeditor' }
+          } elseif ($env:PANDO_NATIVE_APP -ne 'true') {
+            throw 'native_app=false requires an explicit native_tests list'
+          }
+          cmake --build --preset $env:PANDO_P3_QT_PRESET @selection 2>&1 | Tee-Object p3-qt-build.log
           exit $LASTEXITCODE
       - name: Run focused Qt CTest and core state checks (Linux)
         if: runner.os == 'Linux'
         shell: bash
         run: |
           set -o pipefail
-          ctest --preset "$PANDO_P3_QT_PRESET" 2>&1 | tee p3-ctest.log
+          selection=()
+          if [ "$PANDO_P9_RETRY" = true ]; then selection=(-R '^(geometry_calculator_tests|cut_geometry_calculator_tests|split_geometry_normalizer_tests|split_geometry_lifecycle_tests|river_partition_tests|river_area_tests|reference_image_tests|reference_auto_georef_tests)$'); fi
+          if [ -n "$PANDO_NATIVE_TESTS" ]; then selection=(-R "^(${PANDO_NATIVE_TESTS//,/|})$"); fi
+          ctest --preset "$PANDO_P3_QT_PRESET" "${selection[@]}" --no-tests=error 2>&1 | tee p3-ctest.log
       - name: Run focused Qt CTest and preserve Windows failure diagnostics
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          ctest --preset $env:PANDO_P3_QT_PRESET 2>&1 | Tee-Object p3-ctest.log
+          $selection = @()
+          if ($env:PANDO_P9_RETRY -eq 'true') { $selection = @('-R', '^(geometry_calculator_tests|cut_geometry_calculator_tests|split_geometry_normalizer_tests|split_geometry_lifecycle_tests|river_partition_tests|river_area_tests|reference_image_tests|reference_auto_georef_tests)$') }
+          if ($env:PANDO_NATIVE_TESTS) { $selection = @('-R', ('^(' + $env:PANDO_NATIVE_TESTS.Replace(',', '|') + ')$')) }
+          ctest --preset $env:PANDO_P3_QT_PRESET @selection --no-tests=error 2>&1 | Tee-Object p3-ctest.log
           $ctestExit = $LASTEXITCODE
-          if ($ctestExit -ne 0) {
-            # QtTest may exit without writing to the CTest console on Windows.
-            # Capture its own text output and NTSTATUS without masking the failure.
-            $target = "build-native/p3/$env:PANDO_P3_QT_PRESET/native/Release/native_performance_structure_tests.exe"
-            $log = Join-Path (Get-Location).Path 'p3-native-performance-structure-diagnostic.log'
-            $ErrorActionPreference = 'Continue'
-            if (Test-Path $target) {
-              & $target -o "$log,txt" 2>&1 | Tee-Object p3-native-performance-structure-console.log
-              $directExit = $LASTEXITCODE
-              Write-Host ("Native performance structure exit: decimal={0}, hex=0x{1}" -f $directExit, [Convert]::ToString([int]$directExit,16))
-              if (Test-Path $log) {
-                Get-Content $log | Select-Object -Last 250
-              } else {
-                Write-Host 'No QtTest diagnostic file was written; process may have failed during startup.'
-              }
-            } else {
-              Write-Host "Native test executable was not found: $target"
-            }
+          # QtTest writes persistent logs on both platforms, including Windows
+          # executables whose stdout is unavailable to CTest. Never rerun an unrelated test.
+          Get-ChildItem "build-native/p3/$env:PANDO_P3_QT_PRESET/*_tests.txt" | ForEach-Object {
+            Get-Content $_.FullName | Select-String -Pattern "FAIL!|QFATAL|Totals:" -Context 0,2
           }
           exit $ctestExit
-      - name: Build and CTest the shared C++ spherical area in Qt's JS bridge
+      - name: Verify affected native hydro consumers in the existing Qt build
+        if: ${{ !cancelled() && (steps.build_linux.outcome == 'success' || steps.build_windows.outcome == 'success') && needs.plan.outputs.hydro == 'true' && env.PANDO_NATIVE_TESTS == '' && (!inputs.retry_failed || runner.os == 'Windows') }}
+        shell: pwsh
+        run: |
+          $manifest = Get-Content native/assets/world/manifest.json -Raw | ConvertFrom-Json
+          $env:PANDOEDITOR_HYDRO_FULL_MANIFEST = (Resolve-Path (Join-Path native/assets/world $manifest.hydro.path)).Path
+          $targets = @('hydro_manifest_tests', 'hydro_runtime_tests', 'hydro_full_dataset_tests', 'physical_data_store_tests')
+          if ('${{ inputs.scope }}' -ne 'acceptance' -and !$env:PANDO_NATIVE_TESTS.Split(',').Contains('river_selection_controller_tests')) { $targets += 'river_selection_controller_tests' }
+          cmake --build --preset $env:PANDO_P3_QT_PRESET --target @targets
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $pattern = '^(' + ($targets -join '|') + ')$'
+          ctest --test-dir "build-native/p3/$env:PANDO_P3_QT_PRESET" -C Release -R $pattern --output-on-failure
+          exit $LASTEXITCODE
+      - name: Verify affected native commands, persistence and Undo/Redo
+        if: ${{ !cancelled() && (steps.build_linux.outcome == 'success' || steps.build_windows.outcome == 'success') && inputs.scope == 'acceptance' }}
+        shell: pwsh
+        run: |
+          cmake --build --preset $env:PANDO_P3_QT_PRESET --target project_codec_tests territorial_geometry_tests territorial_geometry_preview_tests split_selection_controller_tests river_selection_controller_tests timeline_editor_persistence_tests
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          ctest --test-dir "build-native/p3/$env:PANDO_P3_QT_PRESET" -C Release -R '^(project_codec_tests|territorial_geometry_tests|territorial_geometry_preview_tests|split_selection_controller_tests|river_selection_controller_tests|timeline_editor_persistence_tests)$' --output-on-failure
+          exit $LASTEXITCODE
+      - name: Build and CTest the shared C++ normalization through Qt
+        if: ${{ !cancelled() && (steps.build_linux.outcome == 'success' || steps.build_windows.outcome == 'success') && inputs.native_tests == '' }}
         shell: bash
         run: |
           set -euo pipefail
           cmake --build --preset "$PANDO_P3_QT_PRESET" --target split_geometry_normalizer_tests 2>&1 | tee p3-p5-qt-area-build.log
           ctest --test-dir "build-native/p3/$PANDO_P3_QT_PRESET" -C Release -R p5_spherical_area_qt_bridge --output-on-failure 2>&1 | tee p3-p5-qt-area-ctest.log
+      - name: Reject any hidden product interpreter invocation
+        if: always()
+        shell: pwsh
+        run: |
+          if (Test-Path $env:PANDO_DENIED_TOOL_LOG) {
+            $attempts = Get-Content -Raw $env:PANDO_DENIED_TOOL_LOG
+            if ($attempts) { throw "Native product build invoked forbidden tools: $attempts" }
+          }
       - name: Capture a real nonblank Qt Quick application window under Linux Xvfb
-        if: runner.os == 'Linux'
+        if: ${{ !cancelled() && runner.os == 'Linux' && steps.build_linux.outcome == 'success' && (github.event_name != 'workflow_dispatch' || inputs.native_app) }}
         shell: bash
         run: |
           set -euo pipefail
@@ -292,7 +495,7 @@ jobs:
             "$PWD/test-results/p3-qt/native-window.png"
       - name: Record Qt binary identity for this platform
         shell: bash
-        if: success()
+        if: ${{ !cancelled() && (steps.build_linux.outcome == 'success' || steps.build_windows.outcome == 'success') && (github.event_name != 'workflow_dispatch' || inputs.native_app) }}
         env:
           P3_OS: ${{ matrix.os_id }}
         run: |
@@ -311,17 +514,116 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: p3-qt-${{ matrix.os_id }}-${{ github.sha }}
+          name: p3-qt-${{ matrix.os_id }}-${{ inputs.source_sha || github.sha }}
           path: |
             p3-qt-build.log
             p3-ctest.log
-            p3-native-performance-structure-diagnostic.log
-            p3-native-performance-structure-console.log
+            build-native/p3/${{ matrix.preset }}/*_tests.txt
             p3-p5-qt-area-build.log
             p3-p5-qt-area-ctest.log
-            p3-qt-regenerated-geometry.patch
             test-results/p3-qt
             build-native/p3/${{ matrix.preset }}/native/build-provenance.json
             build-native/p3/${{ matrix.preset }}/Testing/Temporary/LastTest.log
           if-no-files-found: warn
           retention-days: 10
+
+  qt-p9-pair:
+    needs: plan
+    if: inputs.native_p9 && inputs.scope == 'qt'
+    runs-on: windows-2022
+    strategy:
+      fail-fast: false
+      matrix:
+        part: [baseline, candidate]
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Preserve exact source bytes for paired measurement identities
+        shell: bash
+        run: git config --global core.autocrlf false
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 8e22982616e3c9ba43eeb84baec17cd886267cfa
+          path: build-native/p9/baseline
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+        if: matrix.part == 'baseline' && inputs.native_p9_baseline_receipt == ''
+      - name: Prepare only the baseline's retired JS build dependency
+        if: matrix.part == 'baseline' && inputs.native_p9_baseline_receipt == ''
+        shell: pwsh
+        run: |
+          pnpm --dir build-native/p9/baseline install --frozen-lockfile --ignore-scripts
+          exit $LASTEXITCODE
+      - uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: '3.31.6'
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.3'
+          arch: win64_msvc2022_64
+          modules: qtshadertools qtimageformats
+          cache: true
+      - name: Install matching Windows zlib
+        shell: pwsh
+        run: vcpkg install zlib:x64-windows
+      - name: Build the same measurement overlay on baseline and candidate
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASELINE_RECEIPT: ${{ inputs.native_p9_baseline_receipt }}
+          BUILD_SIDE: ${{ matrix.part }}
+        run: ./scripts/p9-build-native-pair.ps1 -BaselineRoot build-native/p9/baseline -OutputDirectory build-native/p9/qt-runtime -BaselineArtifactReceipt "$env:BASELINE_RECEIPT" -BuildSide "$env:BUILD_SIDE"
+      - name: Archive the test executables, matching runtime and source identities
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p9-windows-qt-${{ matrix.part }}-${{ inputs.source_sha || github.sha }}
+          path: |
+            build-native/p9/qt-runtime
+            build-native/p9/qt-pair-*.log
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 10
+
+  calculation-performance:
+    if: inputs.scope == 'acceptance'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 8e22982616e3c9ba43eeb84baec17cd886267cfa
+          path: build-native/p9/baseline
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Compare changed calculations on the same runner with alternating samples
+        env:
+          RETRY_FAILED: ${{ inputs.retry_failed }}
+        run: |
+          if [ "$RETRY_FAILED" = true ]; then
+            node tools/p6-calculation-performance.mjs --baseline build-native/p9/baseline --candidate . --operations river,reference --output build-native/p9/calculation-performance.json
+          else
+            node tools/p6-calculation-performance.mjs --baseline build-native/p9/baseline --candidate . --output build-native/p9/calculation-performance.json
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p9-calculation-performance-${{ inputs.source_sha || github.sha }}
+          path: build-native/p9/calculation-performance.json
+          if-no-files-found: warn
+          retention-days: 14

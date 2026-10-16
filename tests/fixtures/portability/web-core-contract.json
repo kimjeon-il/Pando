@@ -31,7 +31,7 @@
           }
         ],
         "timelineRecords": {
-          "schemaVersion": 1,
+          "schemaVersion": 2,
           "lifetimes": [
             {
               "id": "lifetime:A",
@@ -61,7 +61,8 @@
               "parentId": "",
               "coverageMode": "explicit"
             }
-          ]
+          ],
+          "propertyBindings": []
         },
         "geometries": [
           {
@@ -226,7 +227,7 @@
           }
         ],
         "timelineRecords": {
-          "schemaVersion": 1,
+          "schemaVersion": 2,
           "lifetimes": [
             {
               "id": "lifetime:A",
@@ -256,7 +257,8 @@
               "parentId": "",
               "coverageMode": "explicit"
             }
-          ]
+          ],
+          "propertyBindings": []
         },
         "geometries": [
           {
@@ -421,7 +423,7 @@
           }
         ],
         "timelineRecords": {
-          "schemaVersion": 1,
+          "schemaVersion": 2,
           "lifetimes": [
             {
               "id": "lifetime:A",
@@ -451,7 +453,8 @@
               "parentId": "",
               "coverageMode": "explicit"
             }
-          ]
+          ],
+          "propertyBindings": []
         },
         "geometries": [
           {
@@ -569,7 +572,7 @@
           }
         ],
         "timelineRecords": {
-          "schemaVersion": 1,
+          "schemaVersion": 2,
           "lifetimes": [
             {
               "id": "lifetime:A",
@@ -599,7 +602,8 @@
               "parentId": "",
               "coverageMode": "explicit"
             }
-          ]
+          ],
+          "propertyBindings": []
         },
         "geometries": [
           {
@@ -725,7 +729,7 @@
           }
         ],
         "timelineRecords": {
-          "schemaVersion": 1,
+          "schemaVersion": 2,
           "lifetimes": [
             {
               "id": "lifetime:A",
@@ -755,7 +759,8 @@
               "parentId": "",
               "coverageMode": "explicit"
             }
-          ]
+          ],
+          "propertyBindings": []
         },
         "geometries": [
           {
@@ -870,7 +875,7 @@
           }
         ],
         "timelineRecords": {
-          "schemaVersion": 1,
+          "schemaVersion": 2,
           "lifetimes": [
             {
               "id": "lifetime:A",
@@ -900,7 +905,8 @@
               "parentId": "",
               "coverageMode": "explicit"
             }
-          ]
+          ],
+          "propertyBindings": []
         },
         "geometries": [
           {
@@ -1015,7 +1021,7 @@
           }
         ],
         "timelineRecords": {
-          "schemaVersion": 1,
+          "schemaVersion": 2,
           "lifetimes": [
             {
               "id": "lifetime:A",
@@ -1045,7 +1051,8 @@
               "parentId": "",
               "coverageMode": "explicit"
             }
-          ]
+          ],
+          "propertyBindings": []
         },
         "geometries": [
           {

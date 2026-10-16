@@ -35,7 +35,7 @@ GitHub 저장소 **Actions → P3 Remote preview and Qt verification → 해당 
 - Linux: `cmake --preset pando-native-qt-ci-linux`, `cmake --build --preset pando-native-qt-ci-linux`, `ctest --preset pando-native-qt-ci-linux`
 - Windows: `cmake --preset pando-native-qt-ci-windows` (vcpkg zlib toolchain 추가), `cmake --build --preset pando-native-qt-ci-windows`, `ctest --preset pando-native-qt-ci-windows`
 
-CMake 3.31.6, Qt 6.8.3, Node 24, pnpm 11.19.0은 앱과 선택 CTest에 맞춰 설치한다. P4 이후 기본 Qt CMake 설정은 Python을 탐색하지 않는다. 이전 Python GIS·레거시 오라클은 별도 실행 경로에서만 등록하며, Qt의 JS geometry source admission 때문에 Node/pnpm 의존성은 P5/P6 전까지 유지한다. 기존 P2 WASM/Qt 생성물은 이번 Qt 빌드에서 **검사**하지만 별도의 무단 갱신을 하지 않는다.
+CMake 3.31.6과 Qt 6.8.3을 고정한다. SDK 설치 준비 이후 제품 configure/build/CTest 단계에서는 Node·pnpm·Python 호출을 거부하는 실행 파일을 PATH 앞에 둔다. GitHub Actions 자체 런타임과 제품 도구 호출은 구분한다. Qt는 공유 C++를 직접 호출하고 QML UI를 유지한다. 선택적인 웹 동등성 오라클은 기본 네이티브 검사 목록과 분리되어 있다.
 
 앱 전체 `pandoeditor`와 선택된 `temporal_tests`, `m72_mapprojection_lifetime_tests`, `interaction_style_policy_tests` CTest를 빌드한다. Linux에서는 Xvfb 가상 디스플레이에서 `pandoeditor --smoke-check`을 실행해 실제 Qt Quick 창 캡처를 시도하며, 결과를 브라우저 캡처와 **분리**한다. 이 캡처는 실제 GPU/모바일 화면 검증이 아니다.
 
@@ -48,3 +48,30 @@ CMake 3.31.6, Qt 6.8.3, Node 24, pnpm 11.19.0은 앱과 선택 CTest에 맞춰 �
 수동 실행은 `auto`, `preview`, `browser`, `qt`, `all` 중 선택한다. 메인에 통합되지 않은 브랜치 전용 워크플로의 수동 실행 노출은 GitHub 제한을 따르며, 브랜치의 소스 push가 기본 실행 경로다.
 
 남은 별도 항목은 실장치 GPU/드라이버, Android 휴대폰 터치·성능, Windows 실제 그래픽 화면, 전체 브라우저 회귀와 대규모 GIS 데이터 교차 검증이다. 경량 브라우저/Qt의 선별 결과만 성공으로 기록해야 하며, 제품 배포·정식 성능 수용은 P9 단계가 담당한다.
+
+
+## P7/P8 실행 순서
+
+P2가 입력 그래프에서 오래된 생성물을 찾으면 원본 push의 P3 무거운 작업을 보류한다. P2 게시가 끝나면 `source_sha`(실제 결과), `original_source_sha`(원본), `base_sha`(변경 기준)를 전달한다. P3는 지정 SHA를 체크아웃하고 원본의 후손인지 확인한다. UI/객체/GIS/지명 경량 계약, 브라우저, Qt를 실제 변경 범위로 선택한다. 수계 네이티브 검사는 별도 앱 빌드 대신 같은 Qt 빌드 디렉터리를 재사용한다. 문서 변경은 무거운 작업을 선택하지 않는다.
+
+수동 진단으로 `qt`/`browser` 등을 선택할 수 있다. 구현 중 중간 반복 회귀는 하지 않고 최종 기능·성능 검증은 P9에서 모아 실행한다. 이미 생성한 로그는 재사용하며 실패한 직접 항목만 다시 확인한다.
+
+## P9 final candidate and focused resume
+
+Run scope=acceptance against the committed P2 result SHA, with base_sha set to the fixed pre-P6 source and original_source_sha identifying the generating source commit. This records Web user flows, real software-rendered browser output, both Qt product builds/CTest and matched-run calculation performance. It does not deploy Pages.
+
+Set retry_failed=true only when the preceding acceptance evidence is retained: the workflow reuses completed UI/temporal/place, mesh/boundary, Web snapshot and hydro checks; it checks changed geometry/reference/river contracts and the remaining user flows. Qt retry CTest selects the eight affected calculation/lifecycle targets plus the native user-flow and codec checks. Calculation remeasurement selects river/reference only.
+
+For a narrower Qt follow-up, use scope=qt and native_tests with comma-separated CMake target/CTest names. Only the app and those test targets are built; the CTest name filter selects the same list. Retain the earlier evidence for omitted tests. Independent native commands, hydro checks and screenshot collection continue after a CTest failure when the app build succeeded, while the failed check still fails the job.
+
+Use native_tests_windows to override that list when the two OSes have different completed evidence. An explicit list owns the entire native test selection, including hydro; automatic hydro expansion is omitted. native_app=false builds only those tests and omits app binaries/screenshots, and is valid only with an explicit test list and retained evidence for unchanged app sources. A zero-test CTest run is an error.
+
+For the remaining browser acceptance only, use scope=browser with retry_failed=true. This preserves the user flows and paired browser performance, while Qt, calculation timing and completed contracts are omitted. Startup/screenshot checks run first and require the enhanced state during acceptance; an explicit startup error stops that group immediately instead of making each editing case wait for the same failed startup.
+
+browser_tests optionally narrows the Playwright name expression to unresolved cases and reuses the earlier startup/screenshot evidence. The acceptance flows disable full DOM tracing; model/geometry, conservation and Undo assertions remain, and errors/screenshots are retained. The paired timing case also runs without tracing.
+
+Set browser_flows=false only for a performance-only follow-up with retained editing-flow evidence; provide browser_tests to reuse completed startup screenshots. The timing case invokes the existing focus command on both revisions and verifies the view changed, so panel visibility and pointer-hover animation are outside the measured frame scope. Its JSON is saved to the test output directory even when measurement fails.
+
+The P9 browser performance case checks out baseline 8e22982616e3c9ba43eeb84baec17cd886267cfa. It runs one app page at a time with one warmup per side and five alternating rounds; uncertain metrics receive at most one additional five-round group. HTTP cache is disabled identically. It records startup paint/edit readiness, RUS focus frame p95 and main-page JS heap, preserving distributions and unverified scopes. Physical GPU, Qt performance, Android touch, large-edit frame comparison and total Worker/WASM/GPU memory remain distinct requirements.
+
+For a calculation-only local diagnosis against an existing fixed baseline checkout, use tools/p6-calculation-performance.mjs --baseline <baseline-directory> --candidate . --operations river,reference --output <raw-result.json>. Do not run other CPU checks during timing. The required WASM build uses native WebAssembly exception handling; browser execution and operation error contracts must be checked after changing that compiler mode.

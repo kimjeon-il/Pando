@@ -1,4 +1,5 @@
 name: P5 Shared border calculation and generator verification
+# P5-6 verification receipt: rerun scoped Web + native CI against the integrated main source tree 691ec5d; comment-only change.
 on:
   push:
     branches: [work/objects]

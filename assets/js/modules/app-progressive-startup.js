@@ -5,7 +5,8 @@
 import { matchesDefaultPreview, previewSourceForProject } from './project-preview-policy.js';
 import { geometryRevision } from './geometry-versions.js';
 
-export function createProgressiveStartup() {
+export function createProgressiveStartup({ startupMesh = 'builtin' } = {}) {
+  if (!['builtin', 'project'].includes(startupMesh)) throw new TypeError('Unsupported startup mesh source.');
   let dependencies;
   let restoringCountryFirstPaint = false;
 
@@ -483,8 +484,18 @@ export function createProgressiveStartup() {
     dependencies.projectState.state.boundaryPreparation = null;
 
     const { gpuReady } = await initializeStartupRuntime({
+      allowPreview: startupMesh !== 'project',
       afterInitialMapSetup: () => dependencies.spatialQuery.mapEditClient.rebase(),
     });
+    if (startupMesh === 'project') {
+      (0, dependencies.readinessUi.applyDataReadinessEvent)(dependencies.applicationConstantsA.READINESS_EVENTS.GEOMETRY_READY);
+      const rebuilt = await dependencies.rendering.gpuMapRenderer.rebuildFromCountries(
+        (0, dependencies.countries.builtinTerritorialScene)({ canonical: true }).collection.features,
+        { reason: 'project-startup' },
+      );
+      if (rebuilt === false) throw new Error('Project startup mesh could not be prepared.');
+      (0, dependencies.readinessUi.applyDataReadinessEvent)(dependencies.applicationConstantsA.READINESS_EVENTS.MESH_READY);
+    }
     if (gpuReady) {
       dependencies.projectState.state.countryVisualPhase = 'canonical';
     }

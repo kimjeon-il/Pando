@@ -3,6 +3,9 @@ import {createGeometryVersionStore} from './geometry-version-store.js';
 
 export const TERRITORIAL_LIBRARY_SCHEMA_VERSION = 2;
 export const LIBRARY_ENTITY_TYPES = Object.freeze({ GENERAL: 'general', REGIONAL: 'regional' });
+export function historicalSourceAvailability(entity,referenceDate) {
+  return sharedCalculationCore.timelineSourceAvailability(entity.lifetime,entity.geometryVersions,referenceDate);
+}
 const text = value => String(value ?? '').trim();
 
 function freeze(value) {

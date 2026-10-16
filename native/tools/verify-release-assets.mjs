@@ -35,7 +35,7 @@ try {
   check('flag license and notices',required.every(name=>existsSync(join(flags,name))));
   check('native flag resources',existsSync(join(flags,'native'))&&
     readdirSync(join(flags,'native')).some(name=>name.endsWith('.svg'))&&cmake.includes('default_flags'));
-  check('earcut license',existsSync(join(root,'third_party/earcut/LICENSE')));
+  check('earcut license',existsSync(join(root,'../shared/third_party/earcut/LICENSE')));
   const failed=checks.filter(item=>item.status==='failed').length;
   const report={schema:'pandoeditor-release-assets',version:1,generatedAt:new Date().toISOString(),
     scope:'source tree only',status:failed?'failed':'source-verified',checks,

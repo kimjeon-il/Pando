@@ -1,70 +1,76 @@
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { runInNewContext } from 'node:vm';
-import { createReferenceManifest, verifyReferenceManifest } from '../../native/tools/reference-parity/source-manifest.mjs';
-import { spawnSync } from 'node:child_process';
-import { copyFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import { calculateReferenceImage } from '../../assets/js/modules/reference-image-core.js';
+import { buildReferenceImageCalibrationWarp, buildReferenceImageProjectiveWarpFromQuad, buildReferenceImageMesh } from '../../assets/js/modules/reference-image-georef.js';
 
-test('reference source and artifact hashes reject independent source or runtime changes', () => {
-  const root=mkdtempSync(join(tmpdir(),'pando-reference-source-'));
-  mkdirSync(join(root,'assets/js/modules'),{recursive:true});
-  const path='assets/js/modules/reference.js';
-  writeFileSync(join(root,path),'export const input=1;\n');
-  const runtime=Buffer.from('var ReferenceWeb={input:1};\n');
-  const manifest=createReferenceManifest(root,[path],runtime);
-  verifyReferenceManifest(root,manifest,runtime);
-  // Source line endings are a declared build representation, not geometry normalization.
-  writeFileSync(join(root,path),'export const input=1;\r\n');
-  verifyReferenceManifest(root,manifest,runtime);
-  writeFileSync(join(root,path),'export const input=2;\n');
-  assert.throws(()=>verifyReferenceManifest(root,manifest,runtime),/source hash/);
-  writeFileSync(join(root,path),'export const input=1;\n');
-  assert.throws(()=>verifyReferenceManifest(root,manifest,Buffer.from('modified')),/runtime hash/);
-});
+function close(actual, expected, path = '') {
+  if (typeof expected === 'number') { assert.ok(Math.abs(actual - expected) < 1e-10, path); return; }
+  if (Array.isArray(expected)) { assert.equal(actual.length, expected.length, path); expected.forEach((value, index) => close(actual[index], value, path + '[' + index + ']')); return; }
+  if (expected && typeof expected === 'object') { for (const [key, value] of Object.entries(expected)) close(actual[key], value, path + '.' + key); return; }
+  assert.equal(actual, expected, path);
+}
 
-test('bundled native calibration retains reviewed affine, projective, TPS and error fixtures', () => {
-  const native=new URL('../../native/',import.meta.url);
-  const code=readFileSync(new URL('app/reference-web/runtime.js',native),'utf8');
-  const api=runInNewContext(`${code}\nReferenceWeb;`,{}, {timeout:1000});
-  const cases=JSON.parse(readFileSync(new URL('tests/fixtures/reference-calibration.json',native)));
-  for(const {input,expected} of cases) {
-    const actual=JSON.parse(JSON.stringify(api.calibration(input)));
-    assert.equal(actual.calibrationOk,expected.ok,input.warpMode);
-    assert.equal(actual.calibrationReason,expected.reason,input.warpMode);
-    assert.deepEqual(actual.mesh,expected.mesh,input.warpMode);
+test('shared native and Web calibration retain frozen pre-port geometry fixtures', () => {
+  const cases = JSON.parse(readFileSync(new URL('../../native/tests/fixtures/reference-calibration.json', import.meta.url)));
+  for (const { input, expected } of cases) {
+    const snapshot = structuredClone(input);
+    const actual = calculateReferenceImage('calibration', input);
+    assert.equal(actual.calibrationOk, expected.ok, input.id);
+    assert.equal(actual.calibrationReason, expected.reason, input.id);
+    close(actual.mesh, expected.mesh, input.id);
+    const warp = buildReferenceImageCalibrationWarp({ ...input, mode: input.warpMode });
+    if (warp.ok) close(buildReferenceImageMesh(warp), expected.mesh, input.id + '.adapter');
+    assert.deepEqual(input, snapshot);
   }
 });
 
-test('native build admission rejects canonical JS edits before accepting the generated runtime', () => {
-  const root=mkdtempSync(join(tmpdir(),'pando-native-reference-check-'));
-  mkdirSync(join(root,'assets/js/modules'),{recursive:true});
-  mkdirSync(join(root,'native/tools/reference-parity'),{recursive:true});
-  mkdirSync(join(root,'native/app/reference-web'),{recursive:true});
-  for(const file of ['verify-source.mjs','source-manifest.mjs'])copyFileSync(
-    new URL('../../native/tools/reference-parity/'+file,import.meta.url),join(root,'native/tools/reference-parity',file));
-  const source='assets/js/modules/reference.js',runtime=Buffer.from('var ReferenceWeb={input:1};\n');
-  writeFileSync(join(root,source),'export const input=1;\n');
-  writeFileSync(join(root,'native/app/reference-web/runtime.js'),runtime);
-  writeFileSync(join(root,'native/app/reference-web/manifest.json'),JSON.stringify(createReferenceManifest(root,[source],runtime)));
-  const module=fileURLToPath(new URL('../../native/cmake/ReferenceRuntime.cmake',import.meta.url)).replaceAll('\\','/');
-  writeFileSync(join(root,'CMakeLists.txt'),`cmake_minimum_required(VERSION 3.21)
-project(ReferenceAdmission LANGUAGES NONE)
-set(PANDO_REFERENCE_SOURCE_ROOT "${root.replaceAll('\\','/')}")
-include("${module}")
-add_custom_target(editor ALL)
-add_dependencies(editor pandoeditor_reference_runtime_check)
-`);
-  const cmake=process.env.PANDOEDITOR_CMAKE_EXE||'cmake';
-  const run=args=>spawnSync(cmake,args,{encoding:'utf8',timeout:15000});
-  const configured=run(['-S',root,'-B',join(root,'build'),'-G','Ninja']);
-  assert.equal(configured.status,0,configured.stdout+configured.stderr);
-  const build=()=>run(['--build',join(root,'build'),'--parallel','1']);
-  const before=build();assert.equal(before.status,0,before.stdout+before.stderr);
-  writeFileSync(join(root,source),'export const input=2;\n');
-  const after=build();assert.notEqual(after.status,0);
-  assert.match(after.stdout+after.stderr,/source hash/);
+test('shared capability rejects an unknown operation with its technical error code', () => {
+  assert.throws(() => calculateReferenceImage('retired-operation', {}), error =>
+    error.code === 'PL-REFERENCE-CALCULATION' && /Unknown reference image calculation/.test(error.message));
+});
+
+test('nonfinite image coordinates stay invalid across the WASM transport', () => {
+  const result = calculateReferenceImage('normalize', [
+    { id: 'nan', image: [NaN, 0], coordinate: [10, 20] },
+    { id: 'infinite', image: [0, Infinity], coordinate: [10, 20] },
+  ]);
+  assert.deepEqual(result, []);
+});
+
+test('prepared projection retains invalid-point behavior and immutable mesh results', () => {
+  const warp = buildReferenceImageProjectiveWarpFromQuad([[10, 40], [20, 40], [20, 30], [10, 30]]);
+  assert.equal(warp.ok, true);
+  assert.equal(warp.project([NaN, 0]), null);
+  assert.equal(warp.project([0, Infinity]), null);
+  assert.equal(warp.project(null), null);
+  const first = buildReferenceImageMesh(warp, { columns: 3, rows: 2 });
+  const again = buildReferenceImageMesh(warp, { columns: 3, rows: 2 });
+  assert.deepEqual(first, again);
+  assert.equal(first.vertices.length, 12);
+  assert.ok(Object.isFrozen(first.vertices[0].coordinate));
+  assert.throws(() => { first.vertices[0].coordinate[0] = 999; }, TypeError);
+  assert.deepEqual(warp.project([0, 0]), first.vertices[0].coordinate);
+});
+
+test('immutable mesh layout reuse never reuses coordinates from another warp', () => {
+  const a = buildReferenceImageProjectiveWarpFromQuad([[10,40],[20,40],[20,30],[10,30]]);
+  const b = buildReferenceImageProjectiveWarpFromQuad([[30,40],[40,40],[40,30],[30,30]]);
+  const options = { columns: 3, rows: 2 };
+  const first = buildReferenceImageMesh(a, options), second = buildReferenceImageMesh(b, options);
+  assert.deepEqual(first.triangles, second.triangles);
+  assert.deepEqual(first.vertices.map(v=>v.uv), second.vertices.map(v=>v.uv));
+  assert.notDeepEqual(first.vertices.map(v=>v.coordinate), second.vertices.map(v=>v.coordinate));
+  assert.throws(()=>{second.triangles[0][0]=999;},TypeError);
+  assert.throws(()=>{second.vertices[0].uv[0]=999;},TypeError);
+  assert.deepEqual(first, buildReferenceImageMesh(a, options));
+});
+
+test('disabled linear constraints do not change the calibration result', () => {
+  const cases = JSON.parse(readFileSync(new URL('../../native/tests/fixtures/reference-calibration.json', import.meta.url)));
+  for(const {input} of cases) {
+    const plain = {...input,linearConstraints:[]};
+    const disabled = {...plain,linearConstraints:[{id:'ignored',enabled:false,image:[[0,0],[1,1]],coordinates:[[0,0],[5,5]]}]};
+    assert.deepEqual(calculateReferenceImage('calibrationWarp', plain), calculateReferenceImage('calibrationWarp', disabled));
+  }
 });

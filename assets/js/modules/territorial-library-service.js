@@ -1,4 +1,4 @@
-import {instantiateLibraryEntity, territorialEntityExistsAt, selectGeometryVersion} from './territorial-library.js';
+import {instantiateLibraryEntity, territorialEntityExistsAt, selectGeometryVersion,historicalSourceAvailability} from './territorial-library.js';
 import {compareTemporal, parseTemporal} from './temporal.js';
 
 const compareIdentity = (left, right) => left < right ? -1 : left > right ? 1 : 0;
@@ -60,10 +60,9 @@ export function createTerritorialLibraryService({loader, today = () => {
   function search({query = '', referenceDate = null} = {}) {
     const dated = parseTemporal(referenceDate) !== null;
     return matchingGroups(query).map(group=>({...group, entities:group.entities
-      // Unknown lifetimes are excluded only from dated browsing, never imports or representatives.
-      .filter(entity=>!dated || ((entity.lifetime.validFrom !== null || entity.lifetime.validTo !== null)
-        && territorialEntityExistsAt(entity,referenceDate)))
-      .map(entity=>({...entity, selectedVersionId:dated ? selectGeometryVersion(entity,referenceDate)?.versionId || null : null})),
+      .map(entity=>({...entity,
+        sourceAvailability:dated?historicalSourceAvailability(entity,referenceDate):null,
+        selectedVersionId:dated ? selectGeometryVersion(entity,referenceDate)?.versionId || null : null})),
     })).filter(group=>group.entities.length);
   }
   function events({query = ''} = {}) {
@@ -137,5 +136,6 @@ export function createTerritorialLibraryService({loader, today = () => {
   return Object.freeze({load,get,list,loadEntity:loader.loadEntity, getLoadedEntity:loader.peek,entityRefsWithChildren,instantiateDescriptors,
     snapshots:()=>catalog?.snapshots || [],getSnapshot:id=>catalog?.snapshots.find(s=>s.id===id) || null,
     today,normalizeReferenceDate,resolveSelection,search,events,
+    sourceAvailability:(id,date)=>historicalSourceAvailability(get(id),date),
   });
 }

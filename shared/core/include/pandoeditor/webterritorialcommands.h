@@ -8,6 +8,9 @@ namespace codecjson { struct Value; }
 namespace projectcodec { struct PlatformPorts; }
 
 enum class WebTerritorialOperation { Create,Geometry,Parent,Remove,Patch,Replace,CopyRegion };
+// Source admission preserves the supplied baseline. User mutations validate
+// changed spatial relationships; library edits also retain future records.
+enum class TerritorialEditContext { UserCommand,SourceAdmission,LibraryImport };
 struct WebTerritorialFeature {
     TerritorialUnit identity;
     Geometry geometry;
@@ -29,5 +32,6 @@ struct WebTerritorialEdit {
 CommandRequest readWebTerritorialCommand(const ProjectSnapshot&,const std::string& operationId,
                                         const codecjson::Value&,const projectcodec::PlatformPorts&);
 codecjson::Value normalizeWebTerritorialResolvedFeature(const codecjson::Value&);
-ProjectDocument applyWebTerritorialEdit(const ProjectSnapshot&,const WebTerritorialEdit&);
+ProjectDocument applyWebTerritorialEdit(const ProjectSnapshot&,const WebTerritorialEdit&,
+    TerritorialEditContext context=TerritorialEditContext::UserCommand);
 }

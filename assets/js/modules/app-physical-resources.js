@@ -2,7 +2,7 @@
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createPhysicalResources() {
+export function createPhysicalResources({ enabled = true } = {}) {
   let dependencies;
   let terrainService;
   let hydroService;
@@ -21,10 +21,12 @@ export function createPhysicalResources() {
   }
 
   async function loadTerrainManifest(force = false) {
+    if (!enabled) return false;
     return terrainService.load(force);
   }
 
   async function loadHydroData(force = false) {
+    if (!enabled) return false;
     return hydroService.load(force);
   }
 

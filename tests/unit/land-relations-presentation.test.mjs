@@ -29,7 +29,7 @@ async function fixture() {
 }
 function splitPlan(views) {
   const selected=square(0,5,10,10),next=feature('new',selected);
-  const {result}=createCountryCommandCalculator(globalThis.polygonClipping).calculate({operation:'new-country',sourceIds:['source'],
+  const {result}=createCountryCommandCalculator().calculate({operation:'new-country',sourceIds:['source'],
     transferredGeometry:selected,newFeature:next},new Map(views.filter(row=>!row.properties.parentId).map(row=>[row.id,row])));
   const updates=new Map(result.features.map(row=>[row.id,row]));
   const proposed=[...views.map(row=>updates.get(row.id)||row),updates.get('new')];

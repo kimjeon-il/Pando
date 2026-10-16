@@ -44,8 +44,6 @@ function reference(edges,nodes,epsilon=1e-7) {
 }
 const cases=[
   {edges:[[[0,0],[1,0]],[[1,0],[0,0]]],nodes:[[0,0],[1,0],[.25,0],[.75,0],[.5,0]]},
-  {edges:[[[-179,10],[179,10]]],nodes:[[-179,10],[0,10],[179,10],[0,11]]},
-  {edges:[[[179.8,85],[-179.8,85]]],nodes:[[179.8,85],[-179.8,85],[0,85]]},
   {edges:[[[.25,0],[.25,0]]],nodes:[[.25,0],[.25,.2]]},
   {edges:[[[0,0],[1,0]]],nodes:[[0,.00000009],[1,-.00000009],[.5,0],[.5,.000001]]},
   {edges:[],nodes:[[0,0]]},
@@ -62,6 +60,27 @@ for(let k=0;k<84;k++){
 test('shared topology split candidate ABI is compiled in C++',()=>{
   assert.equal(typeof core.boundarySplitCandidatesBatch,'function');
   assert.equal(core.coreAbiVersion,1);
+});
+test('dateline split uses connected longitude and excludes Greenwich nodes',()=>{
+  const edges=[[[179,1],[-179,1]],[[-179,1],[179,1]],[[539,1],[541,1]]];
+  const nodes=[[179,1],[-179,1],[180,1],[0,1],[1,1]];
+  const snapshot=structuredClone({edges,nodes});
+  assert.deepEqual(core.boundarySplitCandidatesBatch(edges,nodes,1e-7),[
+    [[0,0],[2,.5],[1,1]],[[1,0],[2,.5],[0,1]],[[0,0],[2,.5],[1,1]],
+  ]);
+  assert.deepEqual({edges,nodes},snapshot);
+});
+test('explicit geographic corrections replace the historical planar dateline results',()=>{
+  const corrections=[
+    {edges:[[[-179,10],[179,10]]],nodes:[[-179,10],[0,10],[179,10],[0,11]],
+      historical:[[[0,0],[1,.5],[2,1]]],current:[[[0,0],[2,1]]]},
+    {edges:[[[179.8,85],[-179.8,85]]],nodes:[[179.8,85],[-179.8,85],[0,85]],
+      historical:[[[0,0],[2,.5],[1,1]]],current:[[[0,0],[1,1]]]},
+  ];
+  for(const {edges,nodes,historical,current} of corrections){
+    assert.deepEqual(reference(edges,nodes),historical);
+    assert.deepEqual(core.boundarySplitCandidatesBatch(edges,nodes,1e-7),current);
+  }
 });
 test('C++ returns exactly the historical bucket, projected vertex and stable split order',()=>{
   for(const {edges,nodes} of cases){

@@ -42,6 +42,15 @@ function barrier() {
   return { wait, release };
 }
 
+for(const method of ['ensure','schedule'])test('cancelled '+method+' source-query rejection cannot report a warning after preview retirement',async t=>{
+  let reject;const requested=barrier(),source=new Promise((_resolve,no)=>{reject=no;});
+  const {cache,project,warnings,workers}=previewCache(t,{getPreviewSource:()=>{requested.release();return source;}});
+  const pending=cache[method](project);await requested.wait;cache.cancel();reject(new Error('Project domain is disposed.'));
+  if(method==='ensure')assert.equal(await pending,false);
+  else await new Promise(resolve=>setImmediate(resolve));
+  assert.deepEqual(warnings,[]);assert.equal(workers.length,0);
+});
+
 const autoReply = (worker, message) => globalThis.queueMicrotask(() => {
   if (!worker.terminated) worker.reply(message.type === 'key' ? 'same-key'
     : { geometryKey: 'same-key', baseSourceSha256: 'baseline' });

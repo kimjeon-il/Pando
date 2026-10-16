@@ -11,7 +11,7 @@ async function fixture(t,{execute}={}) {
   const owner=await createNodeCoreProject(seed);t.after(()=>owner.dispose());
   const state={geometryPreview:{revision:0,session:null},get stateRevision(){return owner.client.state().stateRevision;}};
   const mapEditClient={async execute(operation,payload){calls.push(['execute',operation,payload]);if(execute)return execute(operation,payload);throw new Error('unexpected geometry worker call');},
-    commit:id=>calls.push(['commit',id]),discard:id=>calls.push(['discard',id]),stop:()=>calls.push(['stop']),rebase:()=>calls.push(['rebase']),sourcesCurrent:()=>true};
+    commit:(id,revision)=>calls.push(['commit',id,revision]),discard:id=>calls.push(['discard',id]),stop:()=>calls.push(['stop']),rebase:()=>calls.push(['rebase']),sourcesCurrent:()=>true};
   const preview=createGeometryPreview();preview.connect({domains:{projectDomain:owner.project,
     renderingDomain:{invalidateGpuInteraction:reason=>calls.push(['gpu',reason])},editingDomain:{refreshEditingPresentation:reason=>calls.push(['draft',reason])}},
     feedback:{setActionStatus:(...args)=>calls.push(['status',...args]),reportOperationError:(...args)=>calls.push(['error',...args])},
@@ -21,6 +21,39 @@ async function fixture(t,{execute}={}) {
 }
 const validPreview={validation:{issues:[]},delta:null,metrics:null};
 function geometryCommand(owner,geometry){return {commandId:'territorial.geometry',targets:[{domain:'territorial',id:'A'}],expectedEpoch:owner.client.state().epoch,payload:{id:'A',geometry}};}
+
+test('cancelled previews retain their technical error in diagnostics', async t => {
+  const error = Object.assign(new Error('Superseded geometry request'), { cancelled: true, code: 'PL-WORKER-RPC-CANCELLED' });
+  const log = t.mock.method(console, 'info', () => {});
+  const owner = await fixture(t, { execute: async () => { throw error; } });
+  assert.equal(await owner.preview.beginWorkerGeometryPreview({ operation: 'merge', payload: {}, prepareResult() { assert.fail('cancelled result cannot prepare a command'); } }), false);
+  assert.equal(log.mock.callCount(), 1);
+  assert.equal(log.mock.calls[0].arguments[0], '[PL-PREVIEW-CANCELLED]');
+  assert.equal(log.mock.calls[0].arguments[1], error);
+});
+
+test('worker revision failures reach the operation error boundary without a cancellation notice', async t => {
+  const error = Object.assign(new Error('Map-edit data revision mismatch: requested 4, worker 3.'), { code: 'PL-MAP-EDIT-REVISION' });
+  const owner = await fixture(t, { execute: async () => { throw error; } });
+  assert.equal(await owner.preview.beginWorkerGeometryPreview({ operation: 'merge', payload: {}, prepareResult() { assert.fail('failed result cannot prepare a command'); } }), false);
+  assert.equal(owner.calls.find(row => row[0] === 'error')[1], error);
+  assert.equal(owner.calls.some(row => row[0] === 'status' && row[1] === '지도 작업을 취소했습니다.'), false);
+});
+
+test('accepted worker previews commit their original geometry revision after publishing the Core projection', async t => {
+  let proposal;
+  const owner = await fixture(t, { execute: async () => ({ requestId: 17, geometryRevision: 9, result: proposal }) });
+  const before = owner.documentModel.territorialViews()[0], geometry = structuredClone(before.geometry);
+  (geometry.type === 'MultiPolygon' ? geometry.coordinates[0][0] : geometry.coordinates[0])[1][0] += 0.125;
+  proposal = { features: [{ ...before, geometry }], removedIds: [], affectedIds: ['A'], preview: validPreview };
+  assert.equal(await owner.preview.beginWorkerGeometryPreview({ operation: 'merge', payload: {},
+    prepareResult: (result, { expectedEpoch }) => owner.project.prepareCommand({ ...geometryCommand(owner, result.features[0].geometry), expectedEpoch }) }), true);
+  assert.equal(await owner.preview.applyActiveGeometryPreview(), true);
+  assert.deepEqual(owner.calls.find(row => row[0] === 'commit'), ['commit', 17, 9]);
+  assert.deepEqual(owner.documentModel.territorialViews()[0].geometry, geometry);
+  assert.equal(await owner.project.undo(), true);
+  assert.deepEqual(owner.documentModel.territorialViews()[0].geometry, before.geometry);
+});
 
 test('discard clears only the direct preview awaiting that geometry session, preserving a newer drag',async t=>{
   const {preview,state}=await fixture(t),controller=preview.editPreviewController;

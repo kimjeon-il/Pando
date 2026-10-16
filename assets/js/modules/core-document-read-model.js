@@ -1,4 +1,5 @@
 import { createGeometryVersionStore } from './geometry-version-store.js';
+import { projectTimelineIdentity } from './timeline-resolver.js';
 
 const fields = Object.freeze({ territorial: 'territorialEntities', label: 'labels', hydro: 'hydroEdits',
   generic: 'genericFeatures', distributionLayer: 'distributionLayers', distributionEntry: 'distributionEntries' });
@@ -64,7 +65,8 @@ export function createCoreDocumentReadModel(initialProject) {
         invalid(`The C++ world contains an unknown/duplicate identity or geometry: ${row.id}`);
       for (const field of ['parentId','coverageMode','validFrom','validTo','rootId'])
         if (!Object.hasOwn(row, field)) invalid(`Required C++ world field is missing: ${field}`);
-      const projected = freeze({ ...structuredClone(row), identity, geometry });
+      if (!row.properties || typeof row.properties !== 'object') invalid('C++ temporal property projection is required.');
+      const projected = freeze({ ...structuredClone(row), identity: projectTimelineIdentity(identity, row.properties), geometry });
       byId.set(row.id, projected);
       return projected;
     });
@@ -80,7 +82,7 @@ export function createCoreDocumentReadModel(initialProject) {
     const previous=new Map((world?.entities || []).map((row,index) => [row.id,{ row,view: territorialViews[index] }]));
     const nextViews=Object.freeze(nextWorld.entities.map(row => {
       const prior=previous.get(row.id);
-      if (prior && prior.row.identity===row.identity && prior.row.geometry===row.geometry
+      if (prior && (prior.row.identity===row.identity || (prior.row.identity.id===row.identity.id && JSON.stringify(prior.row.identity.properties)===JSON.stringify(row.identity.properties))) && prior.row.geometry===row.geometry
         && ['parentId','coverageMode','validFrom','validTo'].every(field => prior.row[field]===row[field])) return prior.view;
       return freeze({ ...row.identity,geometry: row.geometry,properties: { ...row.identity.properties,
         parentId: row.parentId,coverageMode: row.coverageMode,validFrom: row.validFrom,validTo: row.validTo } });
@@ -96,8 +98,8 @@ export function createCoreDocumentReadModel(initialProject) {
   }
   function rebaseWorld(epoch) {
     if (!world) invalid('A current C++ world must be admitted before rebasing an unchanged timeline.');
-    const entities=world.entities.map(({ id,geometryRef,parentId,coverageMode,validFrom,validTo,rootId,ancestors }) => ({
-      id,geometryRef,parentId,coverageMode,validFrom,validTo,rootId,ancestors,
+    const entities=world.entities.map(({ id,geometryRef,parentId,coverageMode,validFrom,validTo,rootId,ancestors,properties }) => ({
+      id,geometryRef,parentId,coverageMode,validFrom,validTo,rootId,ancestors,properties,
     }));
     return acceptWorld({ month: world.month,sourceEpoch: epoch,entities },epoch);
   }

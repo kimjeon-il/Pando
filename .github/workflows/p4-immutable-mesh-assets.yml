@@ -1,13 +1,7 @@
+# Historical explicit reproduction; current automatic publication is owned by generated-artifacts-p2.yml.
 name: P4 immutable mesh asset publication
 
 on:
-  push:
-    branches: [work/objects]
-    paths:
-      - '.github/workflows/p4-immutable-mesh-assets.yml'
-      - 'tools/regenerate-render-mesh-assets-p4.mjs'
-      - 'tools/verify-render-mesh-assets-p4.mjs'
-      - 'assets/js/workers/gpu-mesh-core.js'
   workflow_dispatch:
 
 permissions:
