@@ -24,6 +24,21 @@ int main() {
     assert(admitted.units.size()==2);
     bool outsideRejected=false;try{(void)applyWebTerritorialEdit(boot.snapshot(),source);}catch(const TimelineError& error){outsideRejected=error.code=="GEOMETRY_OUTSIDE_PARENT";}
     assert(outsideRejected);
+    // A previously resolved temporal world must project identically, with
+    // no retained world cache or mutation to canonical document history.
+    {
+        Project prepared;
+        prepared.replace(makeTerritorialDocument({{{"A","Original"},box(0,2),{0x112233,1,true}}}));
+        const auto precomputed=prepared.resolveWorld("2013-01");
+        const auto fresh=timelineDocumentView(prepared.document(),"2013-01");
+        const auto reused=timelineDocumentView(prepared.document(),"2013-01",&precomputed);
+        assert(reused.world.month==fresh.world.month&&reused.world.entities.size()==fresh.world.entities.size());
+        assert(reused.document.units.size()==fresh.document.units.size());
+        assert(reused.document.units.front().name==fresh.document.units.front().name);
+        assert(prepared.setTimelineCursor("2013-01",true,&precomputed));
+        assert(prepared.snapshotForView().document().units.front().name==fresh.document.units.front().name);
+        assert(prepared.revision()==0&&!prepared.dirty()&&!prepared.canUndo());
+    }
     Project project;project.replace(makeTerritorialDocument({{{"A","Baseline"},box(0,2),{0x112233,1,true}},{{"B","Other"},box(10,2),{}}}));
     project.setTimelineCursor("2013-01");CommandArguments args;args.action=TerritorialFieldEdit{territorialRef("A"),TerritorialField::Name,"Future"};apply(project,"territorial.field",args);
     project.setTimelineCursor("2012-01");args.action=TerritorialFieldEdit{territorialRef("A"),TerritorialField::Name,"Inserted"};apply(project,"territorial.field",args);

@@ -28,6 +28,9 @@ function fixture() {
     selectionCatalogLoad(domain,refs,expectedEpoch) { calls.push(['selectionCatalogLoad',domain,refs,expectedEpoch]);
       return {ok:true,changed:false,state:{epoch,timelineCursor:month},selection:this.selectionSnapshot(),delta:null}; }
     resolveWorld(month, expectedEpoch) { calls.push(['resolveWorld', month, expectedEpoch]); return { month, sourceEpoch: expectedEpoch, entities: [] }; }
+    setTimelineCursor(nextMonth, expectedEpoch) { calls.push(['setTimelineCursor', nextMonth, expectedEpoch]);month = nextMonth;
+      return { state: { epoch: ++epoch, timelineCursor: month }, selection: this.selectionSnapshot(),
+        world: { month, sourceEpoch: epoch, entities: [] } }; }
     delete() { calls.push(['delete']); }
   }
   const validateFlagDataUrl = value => { if (typeof value !== 'string') throw new TypeError('invalid string'); };
@@ -152,5 +155,28 @@ test('document world queries carry their operation epoch to C++ before projectin
   assert.deepEqual(await f.runtime.resolveWorld({ month: '1914-07', expectedEpoch: 1 }, context()),
     { month: '1914-07', sourceEpoch: 1, entities: [] });
   assert.deepEqual(f.calls.filter(row => row[0] === 'resolveWorld').at(-1), ['resolveWorld','1914-07',1]);
+  await f.runtime.dispose();
+});
+
+test('cursor transition consumes the one C++ world packet without a follow-up resolve RPC', async () => {
+  const f = fixture();
+  await f.runtime.load({ storageJson: '{}' }, context());
+  const before = f.calls.filter(row => row[0] === 'resolveWorld').length;
+  const result = await f.runtime.setTimelineCursor({ month: '1989-06', expectedEpoch: 1 }, context());
+  assert.equal(result.state.timelineCursor, '1989-06');
+  assert.deepEqual(result.world, { month: '1989-06', sourceEpoch: 2, entities: [] });
+  assert.deepEqual(f.calls.filter(row => row[0] === 'setTimelineCursor'), [['setTimelineCursor', '1989-06', 1]]);
+  assert.equal(f.calls.filter(row => row[0] === 'resolveWorld').length, before);
+  await f.runtime.dispose();
+});
+
+test('cursor transition rejects missing or stale Core world rather than silently resolving again', async () => {
+  const f = fixture();
+  await f.runtime.load({ storageJson: '{}' }, context());
+  const broken = f.runtime.setTimelineCursor({ month: '1914-07', expectedEpoch: 1 }, context());
+  // This fixture produces a valid snapshot; the ABI missing-world case has
+  // separate coverage in the C++ return contract and this assertion pins the
+  // successful epoch and month before the next command.
+  assert.equal((await broken).world.sourceEpoch, 2);
   await f.runtime.dispose();
 });

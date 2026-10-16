@@ -53,7 +53,7 @@ class Project {
 public:
     const std::string& timelineCursor() const noexcept { return timelineCursor_; }
     // Session month only: no content revision, dirty bit or history entry.
-    bool setTimelineCursor(const std::string& month,bool activateEdits=true);
+    bool setTimelineCursor(const std::string& month,bool activateEdits=true,const ResolvedWorld* resolved=nullptr);
     bool timelineEditsEnabled() const noexcept { return timelineEditsEnabled_; }
     ResolvedWorld resolveWorld(const std::string& month) const;
     std::uint64_t presentationRevision() const noexcept { return presentationRevision_; }

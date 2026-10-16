@@ -165,10 +165,10 @@ std::vector<std::string> dirtyTerritorialOrder(const ProjectDocument& before,con
     return result;
 }
 std::shared_ptr<const detail::DocumentState> projectedState(const ProjectDocument& document,
-                                                             const std::string& month) {
+                                                             const std::string& month,const ResolvedWorld* resolved=nullptr) {
     if(isStaticTimeline(document))return {};
     if(month.empty())throw TimelineError("TIMELINE_CURSOR_REQUIRED","dated view needs a month");
-    auto projection=timelineDocumentView(document,month);
+    auto projection=timelineDocumentView(document,month,resolved);
     return std::make_shared<const detail::DocumentState>(std::move(projection.document),
         std::move(projection.inactiveIds));
 }
@@ -247,7 +247,7 @@ void Project::replace(ProjectDocument document)
     presentationCheckpoint_=savedPresentationCheckpoint_=0;
     timelineCursor_.clear();timelineEditsEnabled_=!isStaticTimeline(state_->document);
 }
-bool Project::setTimelineCursor(const std::string& month,bool activateEdits) {
+bool Project::setTimelineCursor(const std::string& month,bool activateEdits,const ResolvedWorld* resolved) {
     std::string next;
     if(!month.empty()) {
         const auto parsed=parseTemporal(month);
@@ -256,7 +256,7 @@ bool Project::setTimelineCursor(const std::string& month,bool activateEdits) {
     }
     const bool activates=activateEdits&&!timelineEditsEnabled_;
     if(next==timelineCursor_){timelineEditsEnabled_=timelineEditsEnabled_||activateEdits;return activates;}
-    auto view=next.empty()?std::shared_ptr<const detail::DocumentState>{}:projectedState(document(),next);
+    auto view=next.empty()?std::shared_ptr<const detail::DocumentState>{}:projectedState(document(),next,resolved);
     viewState_=std::move(view);
     timelineCursor_.swap(next);timelineEditsEnabled_=timelineEditsEnabled_||activateEdits;return true;
 }

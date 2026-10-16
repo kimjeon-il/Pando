@@ -531,8 +531,17 @@ public:
         return boundary([&]{session_.requireEpoch(epoch);auto value=world(session_.resolveWorld(month));value.set("sourceEpoch",epoch);return value;});
     }
     val setTimelineCursor(const std::string& month,std::uint32_t epoch) {
-        return boundary([&]{session_.setTimelineCursor(month,epoch);auto value=val::object();
-            value.set("state",documentState(session_.projectState()));value.set("selection",::selectionSnapshot(session_.selection()));return value;});
+        return boundary([&]{
+            ResolvedWorld resolved;
+            session_.setTimelineCursor(month,epoch,&resolved);
+            const auto state=session_.projectState();
+            auto result=val::object(),projected=world(resolved);
+            projected.set("sourceEpoch",state.epoch);
+            result.set("state",documentState(state));
+            result.set("selection",::selectionSnapshot(session_.selection()));
+            result.set("world",projected);
+            return result;
+        });
     }
     val selectionCatalogLoad(const std::string& domain,val rows,std::uint32_t epoch) {
         return boundary([&]{array(rows,"CORE_SELECTION_CATALOG");std::vector<SelectionCatalogEntry> entries;
