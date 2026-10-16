@@ -43,9 +43,11 @@ jobs:
             assert.equal(s.worldData.modelEntityCount,254);
             assert.equal(s.worldData.rootCount,207);
             assert.equal(s.worldData.mergedSourceCount,4);
-            assert.equal(s.worldData.fileCount,597);
-            assert.equal(s.files.filter(x=>x.path.startsWith('assets/data/')).length,597);
-            assert.equal(s.files.filter(x=>/^assets\\/data\\/(hydro|terrain|places)\\//.test(x.path)).length,0);
+            assert.equal(s.worldData.worldFileCount,597);
+            assert.equal(s.worldData.physicalFileCount,13);
+            assert.equal(s.worldData.fileCount,610);
+            assert.equal(s.files.filter(x=>x.path.startsWith('assets/data/')).length,610);
+            assert.equal(s.files.filter(x=>/assets\\/data\\/(hydro|terrain-preview|places)\\//.test(x.path)).length,13);
             console.log('FULL_WORLD_STAGE_PASS',JSON.stringify(s.worldData));
           "
       - if: always()
