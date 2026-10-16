@@ -37,6 +37,7 @@
 
 | ID | 보고서 | 원문 수정일 | 상태 | 지도 반영 |
 | --- | --- | --- | --- | --- |
+| `DEV-080` | [1989년 소련 WebGL 선택 강조선 및 빈 상호작용 패스 최적화](development/testing/soviet-render-hotpaths-2026-10-16.md) | 2026-10-16 | `verified-web` | `not-applicable` |
 | `DEV-079` | [1989년 소련 지도 이동 WebGL2 메시·GPU 업로드 재사용 검증](development/testing/soviet-pan-gpu-reuse-2026-10-16.md) | 2026-10-16 | `verified-web-only` | `not-applicable` |
 | `DEV-078` | [Windows·Android 웹 기반 시험용 앱](development/testing/web-shell-prototype-2026-10-16.md) | 2026-10-16 | `investigating` | `not-applicable` |
 | `DEV-077` | [시점별 객체 편집과 라이브러리 삽입](development/testing/temporal-editing-2026-10-16.md) | 2026-10-16 | `implemented` | `not-applicable` |
