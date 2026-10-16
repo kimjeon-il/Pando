@@ -1,0 +1,597 @@
+{
+  "reviewId": "GEO-REVIEW-20261017",
+  "batchDate": "2026-10-17",
+  "observedAtUtc": "2026-10-16T22:46:39.088170+00:00",
+  "branch": "work/gis",
+  "baseCommit": "ab37cbb6083e5e1da0b78691e8b9a446a16ad115",
+  "index": {
+    "path": "assets/data/territorial-entities/generated/v2/index.json",
+    "sha256": "78332ec4637dc468bdcdfb1fa901fdbf45f078792317bf1822a5f23e92b3649f",
+    "entityCount": 281,
+    "lineageCount": 262,
+    "topLevelFullyUndatedCount": 117,
+    "snapshotReferenceDates": {
+      "world:natural-earth-5.1.1": "2026-10-06",
+      "pilot-1991": "1991"
+    }
+  },
+  "reportInventory": [
+    {
+      "path": "reports/geography/country-geometry-identity-consolidation-2026-10-13.md",
+      "reviewedOriginalCommit": "5b539e76f0a9c70afaa0188f543bc97557dee179",
+      "reviewedOriginalBlob": "e9dd404c54c0bf3853f9ab89b85c220827054c18"
+    },
+    {
+      "path": "reports/geography/country-lifetime-a-d-2026-10-13.md",
+      "reviewedOriginalCommit": "9f25f5d13a050dd48df9121eef8a0bf09f0f89e8",
+      "reviewedOriginalBlob": "a7272dc4466ef1bbbea3d98b0914b5f3f3c25cbd"
+    },
+    {
+      "path": "reports/geography/country-lifetime-asia-middle-east-2026-10-17.md",
+      "reviewedOriginalCommit": "72886513dd98e7da9889a37d617fbdedfeb640da",
+      "reviewedOriginalBlob": "e9c89a0eba9f4223012ec5772d072de810eb2f0f"
+    },
+    {
+      "path": "reports/geography/country-lifetime-europe-1801-plus-2026-10-15.md",
+      "reviewedOriginalCommit": "6b509611ce9bac87a89cd9df0119689b83277f00",
+      "reviewedOriginalBlob": "276f5180a9fbb471e81c05d488a3b79c9485f01b"
+    },
+    {
+      "path": "reports/geography/country-lifetime-rotation-progress.md",
+      "reviewedOriginalCommit": "869ca8866ef82ce8dbed7980824f74ac5bc53769",
+      "reviewedOriginalBlob": "57e6095d14d0e634a079d106ce116cf8259f8361"
+    },
+    {
+      "path": "reports/geography/germany/1914-screen-delta-precheck.md",
+      "reviewedOriginalCommit": "ac7145b6ce5b1ac75005f5097d4c2b127b39cfd6",
+      "reviewedOriginalBlob": "434d772408b5aeaa683d1c90a3c65fe0fc218192"
+    },
+    {
+      "path": "reports/geography/germany/1914-sh-period-map-overlay-review.md",
+      "reviewedOriginalCommit": "b6ef69827bcc34b271d8a04a044b1acb4cc25ef5",
+      "reviewedOriginalBlob": "25b6efbcdd26c799d01d42c145cc477447203129"
+    },
+    {
+      "path": "reports/geography/germany/north-schleswig/german-denmark-1914-north-schleswig-001-026.0619-hugum-stage4.hotspots.review.md",
+      "reviewedOriginalCommit": "ac7145b6ce5b1ac75005f5097d4c2b127b39cfd6",
+      "reviewedOriginalBlob": "347407866f81d8e866f642db2fb325b56abbe57b"
+    },
+    {
+      "path": "reports/geography/germany/north-schleswig/german-denmark-1914-north-schleswig-001-026.0619-hugum-stage4.review.md",
+      "reviewedOriginalCommit": "ac7145b6ce5b1ac75005f5097d4c2b127b39cfd6",
+      "reviewedOriginalBlob": "bda15af605152779eb2bb417063f889a734f931e"
+    },
+    {
+      "path": "reports/geography/germany/north-schleswig/german-denmark-1914-north-schleswig-001-026.0717-hvidding-ufer-stage5.review.md",
+      "reviewedOriginalCommit": "ac7145b6ce5b1ac75005f5097d4c2b127b39cfd6",
+      "reviewedOriginalBlob": "6c587000836d2bedc427e8710cfc90c1e22fcbb1"
+    },
+    {
+      "path": "reports/geography/germany/north-schleswig/german-denmark-1914-north-schleswig-001-026.0718-east-stage2.review.md",
+      "reviewedOriginalCommit": "ac7145b6ce5b1ac75005f5097d4c2b127b39cfd6",
+      "reviewedOriginalBlob": "70b7ac84ef995cff89b08a8f8e5c5528301ef23b"
+    },
+    {
+      "path": "reports/geography/germany/north-schleswig/german-denmark-1914-north-schleswig-001-026.0718-west-stage1.review.md",
+      "reviewedOriginalCommit": "ac7145b6ce5b1ac75005f5097d4c2b127b39cfd6",
+      "reviewedOriginalBlob": "84ba50dafcb60cf28f94b529c5197b4aa8395e49"
+    },
+    {
+      "path": "reports/geography/germany/north-schleswig/german-denmark-1914-north-schleswig-001-026.0719-spandet-stage3.review.md",
+      "reviewedOriginalCommit": "ac7145b6ce5b1ac75005f5097d4c2b127b39cfd6",
+      "reviewedOriginalBlob": "3cccc9449282ef1c698f0a7576b58336c4edc59f"
+    },
+    {
+      "path": "reports/geography/germany/north-schleswig/german-denmark-1914-north-schleswig-001-026.review.md",
+      "reviewedOriginalCommit": "ac7145b6ce5b1ac75005f5097d4c2b127b39cfd6",
+      "reviewedOriginalBlob": "acdca5970347b38f11144ce4d493ae0841e26140"
+    },
+    {
+      "path": "reports/geography/historical-timeline-2025-central-asia-2026-10-17.md",
+      "reviewedOriginalCommit": "ab37cbb6083e5e1da0b78691e8b9a446a16ad115",
+      "reviewedOriginalBlob": "24e1e206e2d28e09ae8ee438cbf85228676c6ec0"
+    },
+    {
+      "path": "reports/geography/indonesia-west-new-guinea-east-timor-territorial-epochs-2026-10-13.md",
+      "reviewedOriginalCommit": "5b539e76f0a9c70afaa0188f543bc97557dee179",
+      "reviewedOriginalBlob": "ff5e8839b5a0e32a5b2ef3bf9f1e5905ca8aa39e"
+    },
+    {
+      "path": "reports/geography/netherlands/land-reclamation-reverse-timeline.md",
+      "reviewedOriginalCommit": "ac7145b6ce5b1ac75005f5097d4c2b127b39cfd6",
+      "reviewedOriginalBlob": "710c716ee5dfb2e31133676dc69aee8f0c95ae49"
+    },
+    {
+      "path": "reports/geography/netherlands/phase0-canonical-audit.md",
+      "reviewedOriginalCommit": "ac7145b6ce5b1ac75005f5097d4c2b127b39cfd6",
+      "reviewedOriginalBlob": "ca343d33c561dccfad37d0348641a2ddf4ee73a2"
+    },
+    {
+      "path": "reports/geography/serbia/serbia-1914-qa.md",
+      "reviewedOriginalCommit": "a1b0a6d899df00cff965b8066481cd1b113ef2fe",
+      "reviewedOriginalBlob": "20eb17c0547f27facc751661c7d6570afb5011a6"
+    },
+    {
+      "path": "reports/geography/serbia/serbia-montenegro-1914-border-candidate-qa.md",
+      "reviewedOriginalCommit": "a1b0a6d899df00cff965b8066481cd1b113ef2fe",
+      "reviewedOriginalBlob": "e3fed6dfade061c3c1a3d2b3c1af1bf79cf41bde"
+    },
+    {
+      "path": "reports/geography/serbia/serbia-montenegro-1914-map-crosscheck.md",
+      "reviewedOriginalCommit": "a1b0a6d899df00cff965b8066481cd1b113ef2fe",
+      "reviewedOriginalBlob": "9f0720827a0ed7fb9e21678ff6d50529a7e30a40"
+    },
+    {
+      "path": "reports/geography/sudan-ukraine-post-transition-2026-10-13.md",
+      "reviewedOriginalCommit": "1519f609bd69f7e57dbdfdcec4e8036366bbd12f",
+      "reviewedOriginalBlob": "b8b833de4cb44b428d6ea8133141909ccd01377a"
+    },
+    {
+      "path": "reports/geography/verified-entity-lifetimes.md",
+      "reviewedOriginalCommit": "b6ef69827bcc34b271d8a04a044b1acb4cc25ef5",
+      "reviewedOriginalBlob": "02f043f5108327d0d16dfd202c9ae67fee45a86c"
+    }
+  ],
+  "prior90StartDates": {
+    "count": 90,
+    "matchedCount": 90,
+    "sourceReport": "reports/geography/verified-entity-lifetimes.md",
+    "originalApplicationCommit": "7f26e56932772688d1b3340cdada1a3a11263813",
+    "mismatches": []
+  },
+  "priorPendingResearch": [
+    {
+      "report": "country-lifetime-a-d-2026-10-13.md",
+      "entityIds": [
+        "state:AFG",
+        "state:AND",
+        "state:ARG",
+        "state:ARM",
+        "state:ATA",
+        "state:AUS",
+        "state:AUT",
+        "state:AZE",
+        "state:BGR",
+        "state:BHR",
+        "state:BIH",
+        "state:BJN",
+        "state:BLR",
+        "state:BOL",
+        "state:BRI",
+        "state:BRN",
+        "state:BRT",
+        "state:BTN",
+        "state:CAN",
+        "state:CHE",
+        "state:CHN",
+        "state:CMR",
+        "state:CNM",
+        "state:COK",
+        "state:COL",
+        "state:CRI",
+        "state:CUB",
+        "state:CYN",
+        "state:DEU",
+        "state:DNK",
+        "state:DOM",
+        "state:DZA"
+      ],
+      "allCurrentLifetimesFullyUndated": true,
+      "scope": "identity list/current values only; no new full legal-source verification"
+    },
+    {
+      "report": "country-lifetime-europe-1801-plus-2026-10-15.md",
+      "entityIds": [
+        "state:ESP",
+        "state:EST",
+        "state:FRA",
+        "state:GBR",
+        "state:GEO",
+        "state:GRC",
+        "state:HRV",
+        "state:HUN",
+        "state:ISL",
+        "state:KOS",
+        "state:LIE",
+        "state:LTU",
+        "state:LUX",
+        "state:LVA",
+        "state:MCO",
+        "state:MKD",
+        "state:MNE",
+        "state:NLD",
+        "state:NOR",
+        "state:POL",
+        "state:PRT",
+        "state:ROU",
+        "state:RUS",
+        "state:SMR",
+        "state:SRB",
+        "state:SWE",
+        "state:TUR"
+      ],
+      "allCurrentLifetimesFullyUndated": true,
+      "scope": "identity list/current values only; no new full legal-source verification"
+    }
+  ],
+  "focusedEntities": [
+    {
+      "entityId": "state:IRQ",
+      "source": "assets/data/territorial-entities/source/countries/irq.json",
+      "sourceSha256": "d192aca872a2b5d2a63294c5adcd39330ea850260874236e76b3d641e79c5fc6",
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "geometryVersions": [
+        {
+          "versionId": "state:IRQ:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "datePrecision": "current",
+          "certainty": "high",
+          "sourceId": "natural-earth-5.1.1"
+        }
+      ],
+      "chunk": "assets/data/territorial-entities/generated/v2/state-IRQ.json.gz",
+      "chunkSha256": "b73e1ac82669ec03881df31487d8f8f0a1121937ca132e73bee712607b07dcb1",
+      "sourceIndexChunkAgree": true
+    },
+    {
+      "entityId": "state:JOR",
+      "source": "assets/data/territorial-entities/source/countries/jor.json",
+      "sourceSha256": "971421c308b96f49bfa7f374d85245fde8c350c352c3fde5e2fca9c87c10fe22",
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "geometryVersions": [
+        {
+          "versionId": "state:JOR:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "datePrecision": "current",
+          "certainty": "high",
+          "sourceId": "natural-earth-5.1.1"
+        }
+      ],
+      "chunk": "assets/data/territorial-entities/generated/v2/state-JOR.json.gz",
+      "chunkSha256": "40c45ecb41ca8badbf951285c256b8dcd6a62bb1a76ab3efd71c6be99afafcee",
+      "sourceIndexChunkAgree": true
+    },
+    {
+      "entityId": "state:LBN",
+      "source": "assets/data/territorial-entities/source/countries/lbn.json",
+      "sourceSha256": "c7dae0c27ba10350a5018f57c051e87283f5914b6dc5418cf45601aca8021775",
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "geometryVersions": [
+        {
+          "versionId": "state:LBN:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "datePrecision": "current",
+          "certainty": "high",
+          "sourceId": "natural-earth-5.1.1"
+        }
+      ],
+      "chunk": "assets/data/territorial-entities/generated/v2/state-LBN.json.gz",
+      "chunkSha256": "55ce27963525b8a73af54f4856ec8f2af1abce4afd7a419937817d1552525131",
+      "sourceIndexChunkAgree": true
+    },
+    {
+      "entityId": "state:KGZ",
+      "source": "assets/data/territorial-entities/source/countries/kgz.json",
+      "sourceSha256": "c39d5e329da6f89faafbab584679d9e320063ae2542b2846935184387fd27d28",
+      "lifetime": {
+        "validFrom": "1991-08-31",
+        "validTo": null
+      },
+      "geometryVersions": [
+        {
+          "versionId": "state:KGZ:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "datePrecision": "current",
+          "certainty": "high",
+          "sourceId": "natural-earth-5.1.1"
+        }
+      ],
+      "chunk": "assets/data/territorial-entities/generated/v2/state-KGZ.json.gz",
+      "chunkSha256": "e5a2dc52fb1974ba585c5ca876fee9700fb6d55d8a6f5e5d7df9dc77df5527eb",
+      "sourceIndexChunkAgree": true
+    },
+    {
+      "entityId": "state:TJK",
+      "source": "assets/data/territorial-entities/source/countries/tjk.json",
+      "sourceSha256": "23e84e76afc43939e34880837bdd796c861a13230cb281527ee0ae18c4b608c3",
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "geometryVersions": [
+        {
+          "versionId": "state:TJK:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "datePrecision": "current",
+          "certainty": "high",
+          "sourceId": "natural-earth-5.1.1"
+        }
+      ],
+      "chunk": "assets/data/territorial-entities/generated/v2/state-TJK.json.gz",
+      "chunkSha256": "9193cab31dd7c530aa70fe4e41f8b68dcaef9b3d84174ff8534f5c96825d769c",
+      "sourceIndexChunkAgree": true
+    },
+    {
+      "entityId": "state:UZB",
+      "source": "assets/data/territorial-entities/source/countries/uzb.json",
+      "sourceSha256": "ff973e65037f2b2201b8b3cd4b4982cf84f3e92ed4becea883555ea4be7f7053",
+      "lifetime": {
+        "validFrom": "1991-08-31",
+        "validTo": null
+      },
+      "geometryVersions": [
+        {
+          "versionId": "state:UZB:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "datePrecision": "current",
+          "certainty": "high",
+          "sourceId": "natural-earth-5.1.1"
+        }
+      ],
+      "chunk": "assets/data/territorial-entities/generated/v2/state-UZB.json.gz",
+      "chunkSha256": "818afb50d0b43fb6c706b0fb7a08ca393d5eba943c59cb5fd7510d04b24185d1",
+      "sourceIndexChunkAgree": true
+    }
+  ],
+  "priorConsolidation": {
+    "retiredDuplicateIdsAbsent": [
+      "state:indonesia",
+      "state:ukraine",
+      "state:sudan"
+    ],
+    "currentEntities": [
+      {
+        "entityId": "state:IDN",
+        "lifetime": {
+          "validFrom": "1945-08-17",
+          "validTo": null
+        },
+        "geometryVersions": [
+          {
+            "versionId": "state:IDN:1945-1963-before-west-new-guinea-r1",
+            "validFrom": "1945-08-17",
+            "validTo": "1963-04-30",
+            "datePrecision": "approximate",
+            "certainty": "low",
+            "sourceId": "natural-earth-5.1.1-admin1-papua-island-mask",
+            "verifiedHistoricalGeometry": false
+          },
+          {
+            "versionId": "state:IDN:1963-1975-before-east-timor-r1",
+            "validFrom": "1963-05-01",
+            "validTo": "1975-12-06",
+            "datePrecision": "approximate",
+            "certainty": "low",
+            "sourceId": "natural-earth-5.1.1-post-west-new-guinea-temporal-proxy",
+            "verifiedHistoricalGeometry": false
+          },
+          {
+            "versionId": "state:indonesia:1945-2002-r1",
+            "validFrom": "1975-12-07",
+            "validTo": "1999-10-24",
+            "datePrecision": "approximate",
+            "certainty": "low",
+            "sourceId": "natural-earth-5.1.1-historical-successor-union",
+            "verifiedHistoricalGeometry": false
+          },
+          {
+            "versionId": "state:IDN:1999-2026-after-east-timor-r1",
+            "validFrom": "1999-10-25",
+            "validTo": "2026-10-05",
+            "datePrecision": "approximate",
+            "certainty": "low",
+            "sourceId": "natural-earth-5.1.1-post-east-timor-temporal-proxy",
+            "verifiedHistoricalGeometry": false
+          },
+          {
+            "versionId": "state:IDN:natural-earth-5.1.1",
+            "validFrom": "2026-10-06",
+            "validTo": null,
+            "datePrecision": "current",
+            "certainty": "high",
+            "sourceId": "natural-earth-5.1.1"
+          }
+        ]
+      },
+      {
+        "entityId": "state:UKR",
+        "lifetime": {
+          "validFrom": "1991-08-24",
+          "validTo": null
+        },
+        "geometryVersions": [
+          {
+            "versionId": "state:ukraine:1991-2014-r1",
+            "validFrom": "1991-08-24",
+            "validTo": "2014-03-17",
+            "datePrecision": "reference-date",
+            "certainty": "medium",
+            "sourceId": "natural-earth-5.1.1-historical-successor-union"
+          },
+          {
+            "versionId": "state:UKR:2014-03-18-post-crimea-r1",
+            "validFrom": "2014-03-18",
+            "validTo": "2026-10-05",
+            "datePrecision": "approximate",
+            "certainty": "low",
+            "sourceId": "natural-earth-5.1.1-current-outline-temporal-proxy",
+            "verifiedHistoricalGeometry": false
+          },
+          {
+            "versionId": "state:UKR:natural-earth-5.1.1",
+            "validFrom": "2026-10-06",
+            "validTo": null,
+            "datePrecision": "current",
+            "certainty": "high",
+            "sourceId": "natural-earth-5.1.1"
+          }
+        ]
+      },
+      {
+        "entityId": "state:SDN",
+        "lifetime": {
+          "validFrom": "1956-01-01",
+          "validTo": null
+        },
+        "geometryVersions": [
+          {
+            "versionId": "state:sudan:1956-2011-r1",
+            "validFrom": "1956-01-01",
+            "validTo": "2011-07-08",
+            "datePrecision": "reference-date",
+            "certainty": "medium",
+            "sourceId": "natural-earth-5.1.1-historical-successor-union"
+          },
+          {
+            "versionId": "state:SDN:2011-07-09-post-secession-r1",
+            "validFrom": "2011-07-09",
+            "validTo": "2026-10-05",
+            "datePrecision": "approximate",
+            "certainty": "low",
+            "sourceId": "natural-earth-5.1.1-current-outline-temporal-proxy",
+            "verifiedHistoricalGeometry": false
+          },
+          {
+            "versionId": "state:SDN:natural-earth-5.1.1",
+            "validFrom": "2026-10-06",
+            "validTo": null,
+            "datePrecision": "current",
+            "certainty": "high",
+            "sourceId": "natural-earth-5.1.1"
+          }
+        ]
+      },
+      {
+        "entityId": "state:SDS",
+        "lifetime": {
+          "validFrom": "2011-07-09",
+          "validTo": null
+        },
+        "geometryVersions": [
+          {
+            "versionId": "state:SDS:2011-07-09-independence-r1",
+            "validFrom": "2011-07-09",
+            "validTo": "2026-10-05",
+            "datePrecision": "approximate",
+            "certainty": "low",
+            "sourceId": "natural-earth-5.1.1-current-outline-temporal-proxy",
+            "verifiedHistoricalGeometry": false
+          },
+          {
+            "versionId": "state:SDS:natural-earth-5.1.1",
+            "validFrom": "2026-10-06",
+            "validTo": null,
+            "datePrecision": "current",
+            "certainty": "high",
+            "sourceId": "natural-earth-5.1.1"
+          }
+        ]
+      },
+      {
+        "entityId": "state:TLS",
+        "lifetime": {
+          "validFrom": "2002-05-20",
+          "validTo": null
+        },
+        "geometryVersions": [
+          {
+            "versionId": "state:TLS:2002-2026-independence-r1",
+            "validFrom": "2002-05-20",
+            "validTo": "2026-10-05",
+            "datePrecision": "approximate",
+            "certainty": "low",
+            "sourceId": "natural-earth-5.1.1-east-timor-independence-proxy",
+            "verifiedHistoricalGeometry": false
+          },
+          {
+            "versionId": "state:TLS:natural-earth-5.1.1",
+            "validFrom": "2026-10-06",
+            "validTo": null,
+            "datePrecision": "current",
+            "certainty": "high",
+            "sourceId": "natural-earth-5.1.1"
+          }
+        ]
+      }
+    ],
+    "scope": "identity, lifetime, geometry metadata only; no topology, visual, historical-border accuracy or browser check"
+  },
+  "sourceRefinements": [
+    {
+      "target": "state:JOR",
+      "event": "Anglo-Transjordan treaty entry into force",
+      "date": "1946-06-17",
+      "precision": "day",
+      "source": "https://treaties.un.org/doc/Publication/UNTS/Volume%206/v6.pdf#page=157",
+      "locator": "No.74, printed pp.143-144; PDF pp.157-158",
+      "appliedToData": false
+    },
+    {
+      "target": [
+        "state:KGZ",
+        "state:TJK"
+      ],
+      "event": "exchange-of-ratifications protocol signing",
+      "date": "2025-03-31",
+      "precision": "day",
+      "source": "https://ru.kabar.kg/news/prezidenty-kyrgyzstana-i-tadzhikistana-podpisali-protokol-ob-obmene-ratifikacionnymi-gramotami/",
+      "sourceDependence": "Kabar republishes presidential press office statement; not multiple independent primary sources",
+      "appliedToData": false
+    },
+    {
+      "target": [
+        "state:KGZ",
+        "state:TJK",
+        "state:UZB"
+      ],
+      "event": "tripoint treaty entry into force for Uzbekistan",
+      "date": "2025-11-15",
+      "precision": "day",
+      "source": "https://lex.uz/ru/docs/7860582",
+      "locator": "editorial note; articles 1-4; appendices 1 and 2 expressly omitted",
+      "appliedToData": false
+    }
+  ],
+  "result": {
+    "dataChanges": 0,
+    "sourceRefinements": 3,
+    "focusedHeldItems": 5,
+    "unchangedPriorResearchEntities": 59,
+    "heldItemKeys": [
+      "IRQ-lifetime",
+      "JOR-lifetime",
+      "LBN-lifetime",
+      "KGZ-TJK-boundary",
+      "KGZ-TJK-UZB-tripoint"
+    ]
+  },
+  "verificationMethod": [
+    "read tracked source/countries JSON and generated index with Python json",
+    "decode six generated chunks using gzip, compare source/index/chunk lifetime and geometry metadata, verify SHA-256",
+    "extract 90 table rows from GEO-023 and compare current index validFrom",
+    "enumerate 32 and 27 prior research rows and assert current fully-undated lifetime",
+    "enumerate geography Markdown excluding hydro, terrain and this review; record original blobs/last commits at base",
+    "read consolidated identities/version metadata and assert retired duplicate IDs absent"
+  ],
+  "notRun": [
+    "historical geometry reconstruction",
+    "shared-boundary/topology GIS checks",
+    "independent historical reference screen delta at 2560 CSS px/flatZoom=64",
+    "web/native builds and browser/full test suites"
+  ]
+}

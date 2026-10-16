@@ -16,6 +16,10 @@
 
 | ID | 보고서 | 원문 수정일 | 상태 | 지도 반영 |
 | --- | --- | --- | --- | --- |
+| `GEO-REVIEW-20261017` | [10월 17일 아침 보고서 검토 — 효력일 근거 보완·데이터 보류](geography/reviews/morning-2026-10-17.md) | 2026-10-17 회차 / 2026-10-16 UTC | `investigating` | `not-applied` |
+| `GEO-LIFE-005` | [아시아 국가 존속기간 — 이라크·요르단·레바논](geography/country-lifetime-asia-middle-east-2026-10-17.md) | 2026-10-17 | `investigating` | `not-applied` |
+| `GEO-LIFE-ROTATION` | [국가 존속기간 조사 지역 순환 진행기록](geography/country-lifetime-rotation-progress.md) | 2026-10-17 | `investigating` | `not-applied` |
+| `GEO-TIME-001` | [2025년 중앙아시아 국경 획정 사건](geography/historical-timeline-2025-central-asia-2026-10-17.md) | 2026-10-17 | `investigating` | `not-applied` |
 | `GEO-DEU-008` | [1914 German Empire coast vs provisional modern coastline — screen-space preliminary check](geography/germany/1914-screen-delta-precheck.md) | 2026-10-09 | `investigating` | `not-applied` |
 | `GEO-DEU-007` | [Official Schleswig-Holstein WMS period-map coast review — October 9, 2026](geography/germany/1914-sh-period-map-overlay-review.md) | 2026-10-09 | `investigating` | `not-applied` |
 | `GEO-009` | [현행 수계 데이터 최적화 — 1단계 (2026-10-09)](geography/hydro/active-hydro-optimization-stage1.md) | 2026-10-09 | `historical-record` | `unverified` |

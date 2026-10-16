@@ -5,6 +5,8 @@
 > 원본 조사 기준: `kimjeon-il/Pando` `work/gis` 커밋 `a3af030cd31be91c31e3391e3d18a52ca10e3f12` 및 `assets/data/territorial-entities/generated/v2/index.json` (`world:natural-earth-5.1.1`)  
 > 근거: 이라크/요르단/레바논 정부 자료, 유엔 문서, 미국 국무부 역사국 기록. 이번 단계는 **문헌 1차 조사·출처 대조만**이며 `lifetime` 값이나 형상은 수정하지 않는다.
 
+> **부분 후속 검토:** [GEO-REVIEW-20261017](reviews/morning-2026-10-17.md)에서 UNTS 원문으로 영국–트란스요르단 조약의 **1946-06-17 발효**를 확인했다. 아래는 `72886513`의 1차 조사 기록이며, 요르단 조약 발효일의 미확인 상태는 후속 검토로 보완된다. 국가 최초 존속일·동일성·형상 반영은 계속 보류한다.
+
 ## 선정·1801년 하한
 
 - 기존 [A–D 조사](country-lifetime-a-d-2026-10-13.md)(`GEO-LIFE-001`) 및 [유럽 조사](country-lifetime-europe-1801-plus-2026-10-15.md)(`GEO-LIFE-004`)에 중복되지 않는 아시아 `IRQ`·`JOR`·`LBN` 3개를 골랐다. 현행 색인에는 281개 객체가 있고 최상위 일반객체 양끝의 국가 존속기간 공란은 117개로 확인했다. 세 대상 모두 `lifetime.validFrom=null`, `validTo=null`이다.
