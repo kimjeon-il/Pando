@@ -181,7 +181,7 @@ export function createPersistenceService({
     scheduler.scheduleIdle('view-autosave', () => {
       const startedAt = metricNow();
       // Order light session writes after any active full document write so
-      // their savedAt identity always refers to the latest committed document.
+      // their savedAt identity always refers to the latest persisted project.
       const pending = writeTail.then(async () => {
         if (expectedEpoch !== persistenceEpoch || restoring || recovery || !canPersist()) return false;
         const view = readView() || {};
