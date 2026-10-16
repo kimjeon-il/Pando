@@ -602,13 +602,15 @@ static void runNativePerformanceProbe()
         journal.write(QJsonDocument(QJsonObject{{"event","step-failure"},{"elapsedMs",double(clock.elapsed())},{"message",message}}).toJson(QJsonDocument::Compact)+'\n');journal.flush();
         return false;
     };
+    const int inputTimeoutMs=relative?60'000:5'000;
+    const qint64 inputTimeoutNs=qint64(inputTimeoutMs)*1'000'000;
     const auto input=[&](int kind,const std::function<void()>& action,const std::function<bool()>& ready=std::function<bool()>{}) {
         phase.store(kind);
         const auto before=currentState();
         const auto start=clock.nsecsElapsed();
         rawInputSequence=requested.load()+1;
         QEventLoop presentedLoop;
-        QTimer deadline;deadline.setSingleShot(true);deadline.setInterval(5000);
+        QTimer deadline;deadline.setSingleShot(true);deadline.setInterval(inputTimeoutMs);
         int sequence=0;
         const auto wake=QObject::connect(window,&QQuickWindow::frameSwapped,&presentedLoop,[&]{
             if(presented.load()>=sequence)presentedLoop.quit();
@@ -619,8 +621,8 @@ static void runNativePerformanceProbe()
         QCoreApplication::processEvents();
         const auto frameMatchesGui=[&]{const auto frame=frameState(sceneBridge->frameSnapshot());
             return frame.value("selectedId").toString()==editor.selectedId()&&frame.value("hoveredId").toString()==editor.hoverObject().value("id").toString()&&frame.value("viewRevision").toDouble()==editor.mapViewState().value("revision").toDouble();};
-        while(!frameMatchesGui()&&clock.nsecsElapsed()-start<5'000'000'000LL)QTest::qWait(5);
-        while(ready&&!ready()&&clock.nsecsElapsed()-start<5'000'000'000LL)QTest::qWait(5);
+        while(!frameMatchesGui()&&clock.nsecsElapsed()-start<inputTimeoutNs)QTest::qWait(5);
+        while(ready&&!ready()&&clock.nsecsElapsed()-start<inputTimeoutNs)QTest::qWait(5);
         const bool completionReady=frameMatchesGui()&&(!ready||ready());
         auto expected=currentState();
         const auto initialExpected=expected;QJsonArray targetAdvances;
@@ -640,7 +642,7 @@ static void runNativePerformanceProbe()
             window->update();
         });
         refreshTarget.start();window->update();
-        if(presented.load()<sequence&&clock.nsecsElapsed()-start<5'000'000'000LL)presentedLoop.exec();
+        if(presented.load()<sequence&&clock.nsecsElapsed()-start<inputTimeoutNs)presentedLoop.exec();
         refreshTarget.stop();QObject::disconnect(wake);
         const bool delivered=presented.load()>=sequence;
         QJsonObject actual,owner;{std::lock_guard<std::mutex> lock(frameMutex);actual=presentedState;owner=presentedOwner;}
@@ -786,6 +788,16 @@ static void runNativePerformanceProbe()
             QElapsedTimer operation;operation.start();
             if(role!=initialFixtureId)QVERIFY2(loadFixture(role),qPrintable(lastStepFailure));
             const double loadMs=role==initialFixtureId?initialProjectLoadMs:operation.nsecsElapsed()/1.e6;
+            QJsonValue editMs(QJsonValue::Null);
+            const auto editingInput=inputContracts.value(role).value("editingPreviewCancel").toObject();
+            const auto previewEntity=editingInput.value("selectionEntityId").toString();
+            const auto previewGesture=editingInput.value("gesture").toString();
+            if(role=="editing-heavy"||role=="large-project") {
+                QCOMPARE(previewEntity,QString(role=="large-project"?"RUS":"DEU"));
+                QCOMPARE(previewGesture,QString(role=="large-project"?"keyboard-nudge":"pointer-drag"));
+                operation.restart();
+                QVERIFY2(previewCancel(role),qPrintable(lastStepFailure));editMs=operation.nsecsElapsed()/1.e6;
+            }
             const auto firstPanInput=inputs.size();
             qsizetype firstFrame=0;{std::lock_guard<std::mutex> lock(frameMutex);firstFrame=presentationFrames.size();}
             operation.restart();pan(1,120);
@@ -795,16 +807,6 @@ static void runNativePerformanceProbe()
             {std::lock_guard<std::mutex> lock(frameMutex);
                 for(int i=firstFrame;i<presentationFrames.size();++i)frameIntervals.append(presentationFrames[i].toObject().value("ms"));}
             QVERIFY2(frameIntervals.size()>=100,"P9 requires actual swaps throughout the 120-move pan");
-            QJsonValue editMs(QJsonValue::Null);
-            const auto editingInput=inputContracts.value(role).value("editingPreviewCancel").toObject();
-            const auto previewEntity=editingInput.value("selectionEntityId").toString();
-            const auto previewGesture=editingInput.value("gesture").toString();
-            if(role=="editing-heavy"||role=="large-project") {
-                QCOMPARE(previewEntity,QString(role=="large-project"?"RUS":"DEU"));
-                QCOMPARE(previewGesture,QString(role=="large-project"?"keyboard-nudge":"pointer-drag"));
-                QVERIFY2(loadFixture(role),qPrintable(lastStepFailure));operation.restart();
-                QVERIFY2(previewCancel(role),qPrintable(lastStepFailure));editMs=operation.nsecsElapsed()/1.e6;
-            }
             QVERIFY(window->grabWindow().save(reportPath+"-"+role+".png"));
             const auto saved=privateData.filePath(role+"-save.json");operation.restart();
             QVERIFY(editor.saveFile(QUrl::fromLocalFile(saved)));const auto saveMs=operation.nsecsElapsed()/1.e6;
