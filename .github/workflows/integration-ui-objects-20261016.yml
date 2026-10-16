@@ -5,6 +5,8 @@ on:
     paths:
       - '.github/workflows/integration-ui-objects-20261016.yml'
       - 'assets/js/**'
+      - 'assets/css/**'
+      - 'tests/browser/timeline-controls.spec.mjs'
       - 'assets/data/**'
       - 'apps/web-shell/**'
       - 'index.html'
@@ -64,3 +66,36 @@ jobs:
           tests/unit/gpu-prepared-draw.test.mjs
           tests/unit/selection-overlay-plan.test.mjs
           tests/unit/selection-entity-channels.test.mjs
+
+  mobile-ui-layout:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - name: Install pinned browser dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Confirm generated CSS matches canonical source
+        run: |
+          node scripts/build-ui-bundle.mjs
+          git diff --exit-code -- assets/css/ui.bundle.css assets/css/ui-modal.bundle.css
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Verify mobile timeline and map toolbar hit targets
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: >
+          pnpm exec playwright test tests/browser/timeline-controls.spec.mjs
+          --workers=1 --retries=0 --trace off
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-mobile-layout-${{ github.sha }}
+          path: test-results/
+          if-no-files-found: warn
+          retention-days: 7
