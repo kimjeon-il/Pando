@@ -1882,8 +1882,8 @@
       "sourceSha": "863794ff5f7bcb448f0b02900f99b28d17bfbd16"
     },
     "native-assets": {
-      "inputFingerprint": "a6db05558d1b199daf2384ff84a82234072fb5163842127f138aa0e51ad496bd",
-      "outputFingerprint": "ebf258856f621617cc09a41d6589edd83348bd2d0b5cf412ef7047876472fb7e",
+      "inputFingerprint": "086aca3dd171bb1e8e3d59ddfcbf291c33a3dba44dcc563837aa9a775b555747",
+      "outputFingerprint": "04f403f5acc0eb1c11bc29b028f310c7c7d00b5982b2466b71e4012e8e131bb8",
       "inputs": {},
       "generatorHashes": {
         "assets/js/modules/country-mesh-codec.js": "f99018c281bd54fd8d5c40c246fc33a0f0704b294e38137ae797576fc2e43af2",
@@ -1901,7 +1901,7 @@
       },
       "dependencies": {
         "world-bundle": "29773e5cc81520cb6cf1c01ffdf98c1b0c8cf7bc1d099d88014224b6c381c82e",
-        "historical-world": "284ecee86f5b745171159983416dcd1fcd4f6c49886d52c7b1cb4e5afa60d33f",
+        "historical-world": "64ac03cddd00832f82bd0acbd588f8563ecadc8ffbb5002c7f0e5e26eee3aa35",
         "places": "7469eca633fbb3669dd2ea9bd25066f06f82828b22320169f82dd181663c80d7",
         "hydro": "0bbe01264b4fd53dc8b2bd15f562255eee54f27fbdaf69e3b01237b00d237afe",
         "terrain": "a3deead71a595408645fc2dd77d436facf8c78356edcf212070efc252f6aad1e"
@@ -1911,11 +1911,11 @@
         "native/assets/place/places-v1.bin": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "native/assets/world/historical-world/v1/coverage-report.json": "3acc77a9a3e5cfba0ba4e6fd9c6e58b7bf3af0e964f2bedc26c7fb053119338b",
         "native/assets/world/historical-world/v1/expected-trace.json": "b51f656af8c5935d03bf48594cf2e29b78723561149a0586857ba27419359281",
-        "native/assets/world/historical-world/v1/manifest.json": "45ce4ccee1e320d870dd9d71f629a5598e62a1306cac6e799d2d28e8dd6514a7",
-        "native/assets/world/historical-world/v1/world-project.json.gz": "9b32768028fe90a5aea82d1ba6b08a9446e7d91895e7590f9e7af6b09911985e",
+        "native/assets/world/historical-world/v1/manifest.json": "520c13ca5fa452316cc8197cac10250d613f35488e17965a88b2f81b5286e652",
+        "native/assets/world/historical-world/v1/world-project.json.gz": "7b7a325b9033124b4a304f9e1a2c833ab0504253c181714f5f85d424df2a089e",
         "native/assets/world/hydro/v0.13.2/hydro.bin": "91c2268c6dbfdfa7fc6103d8ad0b4eeca71f6c522df5c0118db69a3654ff532a",
         "native/assets/world/hydro/v0.13.2/manifest.json": "2bde5c10bdf4d26fd29d2b983b70029022cfaa9fda816a105e6f4338b85f0d24",
-        "native/assets/world/manifest.json": "ec74ae6d08a580f2b67bcaed0fec09693d168606d35c90a9bf82480ae28cc091",
+        "native/assets/world/manifest.json": "d4b15725294d1831ff6c6c4b6eb8615cd6a93a9adde3584b85f606bfc5b53ca9",
         "native/assets/world/terrain-preview/v0.13.3-p1/0/0-0.webp": "0e1622d6429a56f382493dad4ee5a903b7d209237dedd3a5dc8d09a72379fd89",
         "native/assets/world/terrain-preview/v0.13.3-p1/0/1-0.webp": "5f99f8bcbd21ff722f908348ba26b96d21ffc826293430df607636431b54adc6",
         "native/assets/world/terrain-preview/v0.13.3-p1/1/0-0.webp": "608c8bf9a156324189b0980831ce4a2193631d0f2b12d21ede90e18ebcbb46cd",
@@ -1947,7 +1947,7 @@
           "native-assets"
         ]
       ],
-      "sourceSha": "5920f74d75c513f91e8a934db5814e863358955f"
+      "sourceSha": "48fb3c908f38a1d01eb2a682e9b64550258f6d02"
     },
     "build-metadata": {
       "inputFingerprint": "848ea8e6e2a171eb8598e4e67f7b0018f374adaa3941ec868e10faa3395c09a8",

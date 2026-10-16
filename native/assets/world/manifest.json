@@ -6,7 +6,7 @@
   "origin": {
     "repository": "kimjeon-il/Pando",
     "mode": "web-bundle",
-    "webCommit": "5920f74d75c513f91e8a934db5814e863358955f",
+    "webCommit": "48fb3c908f38a1d01eb2a682e9b64550258f6d02",
     "worldBundleSha256": "a9ac4356c02417b87d6503c8ff92856c338be3c8665199d24a97a6f378d77ef1"
   },
   "countryPreview": {
@@ -17,7 +17,7 @@
     "required": false,
     "bytes": 917486,
     "source": {
-      "ref": "5920f74d75c513f91e8a934db5814e863358955f",
+      "ref": "48fb3c908f38a1d01eb2a682e9b64550258f6d02",
       "path": "assets/data/world/objects/countries-preview-sha256-b8877a6f3f3bbe9ff78c8007ce163e1adde2e80c1d0daa3b920423070b412252.geojson.gz"
     }
   },
@@ -29,7 +29,7 @@
     "required": true,
     "bytes": 1734093,
     "source": {
-      "ref": "5920f74d75c513f91e8a934db5814e863358955f",
+      "ref": "48fb3c908f38a1d01eb2a682e9b64550258f6d02",
       "path": "assets/data/world/objects/world-mesh-preview-sha256-766f8107bfa250e6c22acff3e191ba30b0d3a2bb1252b1ce009e7f89ff37e583.bin.gz"
     }
   },
@@ -41,7 +41,7 @@
     "required": true,
     "bytes": 5122041,
     "source": {
-      "ref": "5920f74d75c513f91e8a934db5814e863358955f",
+      "ref": "48fb3c908f38a1d01eb2a682e9b64550258f6d02",
       "path": "assets/data/world/objects/countries-canonical-sha256-638c6f4868b9d270a62cd66ca13a18dc8a4215fa7c48ff9280a089e433f81dd1.pcg.gz"
     }
   },
@@ -53,7 +53,7 @@
     "required": true,
     "bytes": 14619919,
     "source": {
-      "ref": "5920f74d75c513f91e8a934db5814e863358955f",
+      "ref": "48fb3c908f38a1d01eb2a682e9b64550258f6d02",
       "path": "assets/data/world/objects/world-mesh-sha256-4be87dae5827f8b56eae5df04ab6bf4c6046c3e42581b15263b16ad992ac1a53.bin.gz"
     }
   },
@@ -89,23 +89,23 @@
     "bytes": 13826,
     "required": true,
     "source": {
-      "ref": "5920f74d75c513f91e8a934db5814e863358955f",
+      "ref": "48fb3c908f38a1d01eb2a682e9b64550258f6d02",
       "path": "assets/data/world/objects/country-label-anchors-sha256-caeee3f0d05265cc564f68ef092b25ea8c5c4d6f1c36e2beb35a239551751512.json"
     }
   },
   "historicalTimelineManifest": {
     "path": "historical-world/v1/manifest.json",
     "version": "1",
-    "gitBlobSha": "46e5a4f1c57eccb1a74bc1bf90ea42b7b13a65e4",
-    "sha256": "07db420ea1f0f37ea7c9ff5d4c69888e1550121131450a22ca4e86bcec1953c7",
+    "gitBlobSha": "54e141fb6e7fe20d72f850ab00db3513e8fe01fe",
+    "sha256": "520c13ca5fa452316cc8197cac10250d613f35488e17965a88b2f81b5286e652",
     "required": true,
     "bytes": 59226
   },
   "historicalTimeline": {
     "path": "historical-world/v1/world-project.json.gz",
     "version": "1",
-    "gitBlobSha": "2d44b75ffc24a301a0c89fe6a6cd2fc39207edaa",
-    "sha256": "a1ca6de9f0f087d10d468ad55040c9becbc9a244d5ae0da00cd4003be11da24a",
+    "gitBlobSha": "8c3ba9b3ee747cc910670a0eea9a3ac6c3f5adfa",
+    "sha256": "7b7a325b9033124b4a304f9e1a2c833ab0504253c181714f5f85d424df2a089e",
     "required": true,
     "bytes": 6339335
   }
