@@ -239,9 +239,11 @@ export function createEnvironment() {
       // The storage repository is stable; data versions are immutable paths.
       official: new URL(`https://kimjeon-il.github.io/world-map-terrain-v0.13.0/terrain/v${TERRAIN_DEM_VERSION}/manifest.json`),
       raster: TERRAIN_RASTER_MANIFEST_URL,
-      dev: TERRAIN_DEV_DEM_MANIFEST_URL,
+      dev: globalThis.PANDOLAB_BUILD_META?.resourceProfile === 'full-world'
+        ? null : TERRAIN_DEV_DEM_MANIFEST_URL,
       preview: new URLSearchParams(location.search).get('demTerrain') === 'preview',
-      rasterOnly: new URLSearchParams(location.search).get('demTerrain') === 'raster',
+      rasterOnly: globalThis.PANDOLAB_BUILD_META?.resourceProfile === 'full-world'
+        || new URLSearchParams(location.search).get('demTerrain') === 'raster',
       defaultDem: TERRAIN_DEM_DEFAULT_ENABLED,
     });
     (TERRAIN_PRIMARY_MANIFEST_URL = terrainSelection.primary);
