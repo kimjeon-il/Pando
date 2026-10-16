@@ -19,7 +19,8 @@
 ## 구현 구조
 
 - `app/placeruntimestore.h/.cpp`: PLAC v3 바이너리·추가 원어명(최대 2개)·날짜별 이력 디코딩. 기존 P7 v1·v2 고정 검증 자료도 유지.
-- `app/placenamedisplay.h/.cpp`: 언어 토글, 기본값, 날짜별 지명 선택, 중복 제거 정책의 단일 C++ 소유자.
+- 저장소 루트 `shared/core/src/placenames.cpp`: 날짜·언어별 명칭 근거 선택의 공통 C++ 정본. 웹은 WASM, Qt는 직접 호출한다. 과거 시점의 근거가 없는 명칭은 현대 명칭으로 분류한다.
+- `app/placenamedisplay.h/.cpp`와 웹 `assets/js/modules/place-name-display.js`: 공통 계산 결과에 `(현)` 접두 표시와 플랫폼별 유니코드 중복 제거를 적용한다. 예: `(현)서울`.
 - `app/placeruntimeprovider.cpp`: v3 레코드 유지 및 선택·캐시·Worker 생명주기.
 - `app/editorplace.cpp`: Qt 폰트 실측에 따른 여러 언어의 단일 충돌 상자 계산.
 - `engine/include/pandoeditor/map/labelengine.h`, `engine/src/labelengine.cpp`: 하나의 지명 ID에 여러 텍스트 행 전달.

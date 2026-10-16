@@ -5,6 +5,15 @@ import { createPlaceRuntime } from '../../assets/js/modules/place-runtime.js';
 import { normalizePlace, PLACE_LIMITS } from '../../assets/js/modules/place-contract.js';
 const deferred = () => { let resolve, reject; const promise = new Promise((a,b) => { resolve=a; reject=b; }); return { promise, resolve, reject }; };
 const tick = () => new Promise(resolve => setImmediate(resolve));
+
+test('disposal retires a pending identity admission failure without reporting a place load error',async()=>{
+  const admission=deferred(),started=deferred(),errors=[],published=[];
+  const runtime=createPlaceRuntime({rpc:{request:async()=>({result:{records:[],signature:'retired'}}),stop(){}},
+    admitReferences:()=>{started.resolve();return admission.promise;},onError:error=>errors.push(error),onSnapshot:value=>published.push(value)});
+  const pending=runtime.prepare({threshold:1});await started.promise;runtime.dispose();
+  admission.reject(Object.assign(new Error('The complete C++ document has not been loaded.'),{code:'PL-CORE-NOT-LOADED'}));
+  assert.equal(await pending,false);assert.deepEqual(errors,[]);assert.deepEqual(published,[]);assert.equal(runtime.snapshot().signature,'empty');
+});
 test('manifest URL crosses the Worker boundary as a string', () => {
   assert.throws(() => createPlaceRuntime({ admitReferences:async ()=>{}, manifestUrl: new URL('http://localhost/manifest.json'), rpc: { stop() {} } }), /string/u);
 });

@@ -78,6 +78,20 @@ function fixture({ onTransition } = {}) {
     holdCommand() { hold = true; }, releaseCommand() { hold = false; heldReply(); }, commandHeld };
 }
 
+test('disposal cancels queued work and a late atomic acknowledgement without publishing unloaded-document errors',async()=>{
+  const transitions=[],f=fixture({onTransition:(_result,operation)=>transitions.push(operation)});
+  await f.client.load('{}');f.holdCommand();
+  const running=f.client.execute({commandId:'territorial.parent'});
+  const queued=f.client.selectionCatalogLoad('placeBuiltin',[]);
+  const completed=Promise.allSettled([running,queued]);
+  await f.commandHeld;f.releaseCommand();f.client.dispose();
+  for(const result of await completed){assert.equal(result.status,'rejected');assert.equal(result.reason.name,'AbortError');assert.equal(result.reason.cancelled,true);}
+  assert.deepEqual(transitions,['core.document-load']);assert.equal(f.client.state(),null);
+  assert.equal(f.sent.filter(row=>row.type==='request').length,2);
+  await assert.rejects(f.client.exportSnapshot({}),{code:'PL-CORE-CANCELLED'});
+  const active=fixture();await assert.rejects(active.client.exportSnapshot({}),{code:'PL-CORE-NOT-LOADED'});active.client.dispose();
+});
+
 test('acknowledgement subscribers publish in registration order and unsubscribe without another owner', async () => {
   const calls=[],f=fixture({ onTransition: (_result,operation) => calls.push(`model:${operation}`) });
   const remove=f.client.subscribeTransitions((_result,operation) => calls.push(`selection:${operation}`));
