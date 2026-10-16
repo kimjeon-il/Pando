@@ -47,7 +47,7 @@ jobs:
             assert.equal(s.worldData.physicalFileCount,13);
             assert.equal(s.worldData.fileCount,610);
             assert.equal(s.files.filter(x=>x.path.startsWith('assets/data/')).length,610);
-            assert.equal(s.files.filter(x=>/assets\\/data\\/(hydro|terrain-preview|places)\\//.test(x.path)).length,13);
+            assert.equal(s.files.filter(x=>['hydro/','terrain-preview/','places/'].some(t=>x.path.startsWith('assets/data/'+t))).length,13);
             console.log('FULL_WORLD_STAGE_PASS',JSON.stringify(s.worldData));
           "
       - if: always()
