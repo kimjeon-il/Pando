@@ -118,6 +118,10 @@ export function createPersistenceService({
       else onAutosaveState(AUTOSAVE_STATES.SAVED);
       previewCache?.schedule(autosaveProject);
     } catch (error) {
+      if (error.cancelled || (epoch !== persistenceEpoch && error.name === 'AbortError')) {
+        detail.outcome = 'discarded-failure';
+        return;
+      }
       if (epoch !== persistenceEpoch) detail.outcome = 'discarded-failure';
       else if (detail.outcome === 'acknowledging') {
         detail.outcome = 'acknowledgement-failed';

@@ -63,7 +63,7 @@ export function createPlaceRuntime({ manifestUrl = new URL('../../data/places/ma
       });
     } catch (error) {
       if(current===revision)requestedKey=null;
-      if(!error.cancelled && error.name!=='AbortError' && error.code!=='PL-CORE-STALE')onError(error);
+      if(!closed && current===revision && !error.cancelled && error.name!=='AbortError' && error.code!=='PL-CORE-STALE')onError(error);
       return false;
     }
   }
