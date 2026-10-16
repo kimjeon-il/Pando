@@ -51,6 +51,17 @@ fn new_spool(app: &tauri::AppHandle, token: u64) -> Result<(Spool, File), String
     Ok((Spool(path), file))
 }
 
+fn decode_transfer_chunk(contents: &str) -> Result<Vec<u8>, String> {
+    if contents.len() > (CHUNK_BYTES + 2) / 3 * 4 {
+        return Err("Document transfer chunk exceeds 256 KiB".into());
+    }
+    let decoded = BASE64.decode(contents).map_err(|e| e.to_string())?;
+    if decoded.is_empty() || decoded.len() > CHUNK_BYTES {
+        return Err("Invalid document transfer chunk size".into());
+    }
+    Ok(decoded)
+}
+
 fn validate_kind(kind: &str, write: bool) -> Result<(), String> {
     let ok = if write { matches!(kind, "project" | "gis-gpkg" | "gis-zip") }
              else { matches!(kind, "project" | "gis") };
@@ -118,13 +129,7 @@ pub fn append_document_chunk(
     token: u64,
     contents: String,
 ) -> Result<(), String> {
-    if contents.len() > (CHUNK_BYTES + 2) / 3 * 4 {
-        return Err("Document transfer chunk exceeds 256 KiB".into());
-    }
-    let decoded = BASE64.decode(contents).map_err(|e| e.to_string())?;
-    if decoded.is_empty() || decoded.len() > CHUNK_BYTES {
-        return Err("Invalid document transfer chunk size".into());
-    }
+    let decoded = decode_transfer_chunk(&contents)?;
     let mut sessions = manager.sessions.lock().map_err(|e| e.to_string())?;
     let Some(Session::Write { spool, len, .. }) = sessions.get_mut(&token) else {
         return Err("Unknown document write token".into());
@@ -246,4 +251,17 @@ pub fn abort_document_transfer(
     token: u64,
 ) -> Result<bool, String> {
     Ok(manager.sessions.lock().map_err(|e| e.to_string())?.remove(&token).is_some())
+}
+
+#[cfg(test)]
+mod chunk_transfer_tests {
+    use super::*;
+    #[test]
+    fn binary_chunk_limits_and_round_trip() {
+        let sample = vec![0xffu8; CHUNK_BYTES];
+        assert_eq!(decode_transfer_chunk(&BASE64.encode(&sample)).unwrap(), sample);
+        assert!(decode_transfer_chunk(&BASE64.encode(vec![0u8; CHUNK_BYTES + 1])).is_err());
+        assert!(decode_transfer_chunk("invalid**base64").is_err());
+        assert!(decode_transfer_chunk("").is_err());
+    }
 }
