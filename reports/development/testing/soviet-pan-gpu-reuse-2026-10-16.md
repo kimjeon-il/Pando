@@ -37,10 +37,10 @@ GPU 기본 메시의 `meshVariantBytes`는 미리보기 3,755,216B, 정본 32,63
 
 ## 정적 코드 검토와 추가 조사 범위
 
-- Web: `assets/js/modules/map-render-coordinator.js`의 VIEW 무효화는 장면 메시 변경과 분리되어 있으며, `gpu-map-renderer.js`의 카메라 이동은 기존 GPU 버퍼를 참조한다. 장면 재그리기 및 GPU 버퍼 재생성은 서로 다른 작업이다.
-- Native Qt: `native/engine/src/mapscenebuilder.cpp`는 시점이 같은 장면 메시를 재사용하고, `native/renderer/scenegraph/mapscenenode.cpp`는 동일 준비 장면에서 카메라 uniform만 갱신한다. 기존 `native/tests/map_render_tests.cpp`는 소형 모델의 이동·확대·회전·크기 변경에 대한 업로드 증가 0을 검증한다.
-- Native Qt의 실제 GPU 선택 여부는 `native/renderer/gpumapitem.cpp`의 `rendererReady`, `diagnostic`, Qt graphics API와 `native/renderer/maprenderitem.cpp`의 CPU fallback 상태를 **실제 1989 소련 프로젝트 창에서** 확인해야 한다. 일부 레이어 투명도 조건은 CPU fallback을 유발할 수 있다.
-- 이번 실행은 GPU 드라이버·물리 GPU 가속 여부, FPS/체감 지연의 원인별 비율, GPU VRAM, JS+WASM 힙/RSS, Qt 실물 1989년 소련 시점, 지구본 회전·지도 축척 변화는 확인하지 않았다. 특히 소련의 고정밀 메시 최초 준비 지연과 메모리 보유량은 이번 pan 증분 검사와 별개다.
+- 웹 정본: `assets/js/modules/map-render-coordinator.js`의 VIEW 무효화는 장면 메시 변경과 분리되어 있으며, `gpu-map-renderer.js`의 카메라 이동은 기존 GPU 버퍼를 참조한다. 장면 재그리기 및 GPU 버퍼 재생성은 서로 다른 작업이다.
+- 신규 웹 UI 앱: 기존 웹의 WebGL/Canvas·WASM·Worker 렌더링 경로를 실행하는 Windows WebView2 및 Android WebView 환경을 조사한다. `apps/web-shell/`은 별도의 시험용 프로토타입이므로 완성 앱과 동일하다고 간주하지 않는다.
+- **Qt 앱 조사 제외 (사용자 범위 변경, 2026-10-16):** Qt 앱은 새 웹 UI 앱으로 교체될 예정이므로 앞으로의 원인 분석, CPU fallback 확인, 코드 수정, 성능 회귀 검증에서 제외한다. 이전 판본에 포함된 Qt 정적 검토는 당시의 기록일 뿐, 웹 UI 앱의 GPU 동작을 설명하는 근거로 사용하지 않는다.
+- 이번 실행은 실제 사용자 PC/WebView의 GPU 드라이버·물리 GPU 가속 여부, FPS/체감 지연의 원인별 비율, GPU VRAM, JS+WASM 힙/RSS, 지구본 회전·지도 축척 변화는 확인하지 않았다. 특히 소련의 고정밀 메시 최초 준비 지연과 메모리 보유량은 이번 pan 증분 검사와 별개다.
 
 ## 판정 및 변경
 
@@ -48,4 +48,4 @@ GPU 기본 메시의 `meshVariantBytes`는 미리보기 3,755,216B, 정본 32,63
 
 주의: 자동 실행된 기존 P3(38857487033)의 `browser-regression`은 건너뛰었으므로 그것을 성공 근거로 사용하지 않았다. 별도의 38857758047에서 직접 수행한 테스트만 성공 증거다. 해당 실행은 stdout 로그를 보존했지만 테스트용 아티팩트 업로드는 `test-results/` 파일 부재로 생략되었다.
 
-후속으로는 실제 사용자 PC의 Qt rendererReady/diagnostic, 소련 표시 시 첫 메시 준비시간, GPU frame-base vs selection SVG 대비, 리소스 생존량을 구분 계측해야 한다. 별도 사용자 지시 없이 GIS 원본 또는 화면 표시 형상은 바꾸지 않는다.
+후속으로는 **브라우저 및 새 웹 UI 앱(WebView)** 의 실제 GPU/소프트웨어 렌더러 선택, 소련 표시 시 첫 메시 준비시간, 전체 장면 그리기와 선택 SVG의 시간 비중, Worker/WASM 작업 및 CPU·GPU 리소스 생존량을 구분 계측한다. **Qt 앱은 후속 조사에서 제외한다.** 별도 사용자 지시 없이 GIS 원본 또는 화면 표시 형상은 바꾸지 않는다.
