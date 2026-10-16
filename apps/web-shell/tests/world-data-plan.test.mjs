@@ -30,7 +30,25 @@ function fixture() {
   const prepared = { schemaVersion: 2, meshes: {
     first: pin('assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-' + SHA + '.bin.gz'),
   } };
-  return { meta, world, historical, library, prepared };
+  const terrain = {
+    version: '0.13.3-p1', representation: 'raster-rgba-v1',
+    urlTemplate: 'terrain-preview/v0.13.3-p1/{level}/{column}-{row}.webp',
+    tiles: Object.fromEntries([
+      '0/0-0.webp', '0/1-0.webp',
+      '1/0-0.webp', '1/1-0.webp', '1/2-0.webp',
+      '1/0-1.webp', '1/1-1.webp', '1/2-1.webp',
+    ].map(path => [path, { sha256: SHA, bytes: 3 }])),
+  };
+  const hydro = {
+    version: '0.13.2', schema: 'pandolab-water-shards-v5',
+    container: { url: 'hydro.bin', sha256: SHA, bytes: 3 },
+    stats: { compressedBytes: 3 },
+  };
+  const places = {
+    version: 1, revision: 'test',
+    shards: { 'places-v1': { url: 'places-v1.bin', sha256: SHA, bytes: 3 } },
+  };
+  return { meta, world, historical, library, prepared, terrain, hydro, places };
 }
 test('full-world manifest closure includes active historical and prepared geometry only', () => {
   const plan = buildFullWorldAssetPlan(fixture());
@@ -40,12 +58,17 @@ test('full-world manifest closure includes active historical and prepared geomet
   assert.equal(plan.rootCount, 207);
   assert.equal(plan.unitCount, 47);
   assert.equal(plan.mergedSourceCount, 4);
-  assert.equal(plan.entries.length, 14);
+  assert.equal(plan.entries.length, 27);
+  assert.equal(plan.worldFileCount, 14);
+  assert.equal(plan.physicalFileCount, 13);
   assert.equal(new Set(paths).size, paths.length);
   assert.ok(paths.includes('assets/data/world/current.json'));
   assert.ok(paths.includes('assets/data/historical-world/generated/v1/world-project.json.gz'));
   assert.ok(paths.includes('assets/data/territorial-entities/generated/v2/state-ABC.json.gz'));
-  assert.ok(!paths.some(path => /terrain|hydro|places/.test(path)));
+  assert.ok(paths.includes('assets/data/hydro/v0.13.2/hydro.bin'));
+  assert.ok(paths.includes('assets/data/terrain-preview/v0.13.3-p1/1/2-1.webp'));
+  assert.ok(paths.includes('assets/data/places/places-v1.bin'));
+  assert.equal(paths.filter(path => /terrain-preview|hydro|places/.test(path)).length, 13);
 });
 test('full-world manifest closure rejects traversal, remote paths and altered hash paths', () => {
   const bad = fixture();

@@ -122,6 +122,9 @@ async function stageOwnedPrototype({ root, profile }) {
       historical: await loadManifest('assets/data/historical-world/generated/v1/manifest.json'),
       library: await loadManifest('assets/data/territorial-entities/generated/v2/index.json'),
       prepared: await loadManifest('assets/data/prepared-polygons/generated/v2/manifest.json'),
+      terrain: await loadManifest('assets/data/terrain-preview/v0.13.3-p1/manifest.json'),
+      hydro: await loadManifest('assets/data/hydro/v0.13.2/manifest.json'),
+      places: await loadManifest('assets/data/places/manifest.json'),
     });
     const dataRoot = await realpath(resolve(root, 'assets/data'));
     let packagedBytes = 0;
@@ -138,13 +141,15 @@ async function stageOwnedPrototype({ root, profile }) {
       await emit(item.path, bytes, item.path);
       packagedBytes += bytes.length;
     }
-    worldData = { countryCount: plan.countryCount, rootCount: plan.rootCount,
+    worldData = { countryCount: plan.countryCount, worldFileCount: plan.worldFileCount,
+      physicalFileCount: plan.physicalFileCount, rootCount: plan.rootCount,
       unitCount: plan.unitCount, modelEntityCount: plan.modelEntityCount,
       mergedSourceCount: plan.mergedSourceCount, sourceSha256: plan.sourceSha256,
       fileCount: plan.entries.length, bytes: packagedBytes, dataRevision: meta.dataRevision };
     await emit('shell/stage-profile.json', JSON.stringify({
       mode: profile, assetRevision: meta.assetRevision, dataRevision: meta.dataRevision,
       world: { countryCount: plan.countryCount, rootCount: plan.rootCount,
+        worldFileCount: plan.worldFileCount, physicalFileCount: plan.physicalFileCount,
         unitCount: plan.unitCount, modelEntityCount: plan.modelEntityCount,
         mergedSourceCount: plan.mergedSourceCount, sourceSha256: plan.sourceSha256 },
     }));

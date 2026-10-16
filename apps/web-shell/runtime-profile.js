@@ -23,8 +23,8 @@ export async function createRuntimeProfile() {
     return Object.freeze({
       mode: 'full-world',
       platform: Object.freeze({
-        physicalResourcesEnabled: false,
-        builtinPlacesEnabled: false,
+        physicalResourcesEnabled: true,
+        builtinPlacesEnabled: true,
         startupMesh: 'builtin',
         storageNamespace: 'pandoeditor-web-shell-world-v1',
       }),
