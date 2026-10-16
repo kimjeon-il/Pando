@@ -184,10 +184,10 @@ void applyStatic(ProjectDocument& d,const Rows& next) {
     // retained old order and appended new rows before reaching this boundary.
     std::vector<TerritorialUnit> units;units.reserve(next.size());for(const auto& row:next)units.push_back(row.identity);d.units=std::move(units);
 }
-void applyMonth(ProjectDocument& d,const ActiveFrame& before,const Rows& next,const std::string& month) {
+void applyMonth(ProjectDocument& d,const ActiveFrame& before,const Rows& next,const std::string& month,bool preserveFutureChanges) {
     const auto previous=indexRows(before.rows),after=indexRows(next);
     for(const auto& row:before.rows)if(!after.count(row.identity.id)) {
-        d.timelineRecords=truncateTimelineEntityAtMonth(d.timelineRecords,row.identity.id,month);
+        d.timelineRecords=truncateTimelineEntityAtMonth(d.timelineRecords,row.identity.id,month,preserveFutureChanges);
         if(std::none_of(d.timelineRecords.lifetimes.begin(),d.timelineRecords.lifetimes.end(),[&](const auto& value){return value.entityId==row.identity.id;}))eraseIdentity(d,row.identity.id);
     }
     Allocator allocate(d);
@@ -223,10 +223,10 @@ void applyMonth(ProjectDocument& d,const ActiveFrame& before,const Rows& next,co
     }
 }
 }
-ProjectDocument applyWebTerritorialEdit(const ProjectSnapshot& snapshot,const WebTerritorialEdit& edit) {
+ProjectDocument applyWebTerritorialEdit(const ProjectSnapshot& snapshot,const WebTerritorialEdit& edit,bool preserveFutureChanges) {
     const auto before=activeFrame(snapshot);const auto next=changedRows(before,edit);auto candidate=snapshot.document();
     if(snapshot.timelineEditsEnabled()) {
-        applyMonth(candidate,before,next,snapshot.timelineMonth());
+        applyMonth(candidate,before,next,snapshot.timelineMonth(),preserveFutureChanges);
         const auto projected=timelineDocumentView(snapshot.document(),snapshot.timelineMonth());
         captureTimelinePropertyChanges(snapshot.document(),projected.document,candidate,snapshot.timelineMonth());
     }else applyStatic(candidate,next);

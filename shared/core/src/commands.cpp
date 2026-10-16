@@ -1442,7 +1442,7 @@ PrepareResult CommandProcessor::prepareRequest(const ProjectSnapshot& project,co
         }
         if(const auto* edit=std::get_if<WebTerritorialEdit>(&request.args.action)) {
             validateRequest(project,request);
-            auto candidate=applyWebTerritorialEdit(project,*edit);
+            auto candidate=applyWebTerritorialEdit(project,*edit,workflow=="territorial.library-import");
             if(!workflow.empty()) {
                 const auto beforeWorld=resolveWorld(project.document().timelineRecords,{timelineEntityCatalog(project.document()),[&](const GeometryRef& ref){return bool(project.document().geometries.get(ref));}},project.timelineMonth());
                 const auto afterWorld=resolveWorld(candidate.timelineRecords,{timelineEntityCatalog(candidate),[&](const GeometryRef& ref){return bool(candidate.geometries.get(ref));}},project.timelineMonth());

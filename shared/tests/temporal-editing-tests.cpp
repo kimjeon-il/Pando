@@ -27,6 +27,11 @@ int main() {
     TerritorialSymbolStyle symbol;symbol.policy=FlagPolicy::None;args.action=ContentEdit{territorialRef("A"),symbol,{},false};apply(project,"content.edit",args);
     assert(!timelineDocumentView(project.document(),"2011-01").document.symbols.count(territorialRef("A")));
     assert(timelineDocumentView(project.document(),"2012-01").document.symbols.at(territorialRef("A")).policy==FlagPolicy::None);
+    WebTerritorialEdit absorption;absorption.operation=WebTerritorialOperation::Remove;absorption.removedIds={"A"};
+    auto suspended=applyWebTerritorialEdit(project.snapshot(),absorption,true);
+    assert(!timelineDocumentView(suspended,"2013-01").inactiveIds.count("A"));
+    assert(timelineDocumentView(suspended,"2012-01").inactiveIds.count("A"));
+    assert(timelineDocumentView(suspended,"2013-01").document.units.front().name=="Future");
     args.action=TimelineParentEdit{"A","2012-01","B","partition"};
     const auto rejected=CommandProcessor::prepare(project,CommandProcessor::makeRequest(project,"timeline.parent",args));assert(!rejected.ok());
     WebTerritorialEdit web;web.operation=WebTerritorialOperation::Parent;web.id="A";web.parentId="B";args.action=web;

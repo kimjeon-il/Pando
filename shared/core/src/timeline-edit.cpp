@@ -76,7 +76,7 @@ TimelineEditResult editTimelineRecordAtMonth(const TimelineRecords& original,con
     throw TimelineError("TIMELINE_EDIT_COLLECTION","Unsupported timeline record collection.");
 }
 TimelineRecords truncateTimelineEntityAtMonth(const TimelineRecords& original,const std::string& id,
-                                              const std::string& cursor) {
+                                              const std::string& cursor,bool preserveFutureChanges) {
     const auto month=parseTemporal(cursor);
     if(month.precision!="month")throw TimelineError("INVALID_TIMELINE_CURSOR","month precision required");
     const auto lastMonth=shiftTemporalMonth(month.canonical,-1);
@@ -84,6 +84,15 @@ TimelineRecords truncateTimelineEntityAtMonth(const TimelineRecords& original,co
     const auto lifetime=std::find_if(original.lifetimes.begin(),original.lifetimes.end(),[&](const auto& row){return row.entityId==id&&active(row.validity,temporalMonthEnd(month.canonical));});
     if(lifetime==original.lifetimes.end())return original;
     const auto lifetimeEnd=normalizeTemporalInterval(lifetime->validity.from,lifetime->validity.to).end;
+    std::optional<TemporalValue> resume;
+    if(preserveFutureChanges) {
+        const auto point=temporalMonthEnd(month.canonical);
+        const auto inspect=[&](const auto& rows){for(const auto& row:rows)if(row.entityId==id&&row.validity.from) {
+            const auto start=parseTemporal(*row.validity.from);
+            if(point.endKey<start.startKey&&(!resume||start.startKey<resume->startKey))resume=start;
+        }};
+        inspect(original.lifetimes);inspect(original.geometryBindings);inspect(original.parentRelations);inspect(original.propertyBindings);
+    }
     const auto truncate=[&](auto& rows) {
         using Row=typename std::decay_t<decltype(rows)>::value_type;
         std::vector<Row> kept;
@@ -93,6 +102,13 @@ TimelineRecords truncateTimelineEntityAtMonth(const TimelineRecords& original,co
             const auto interval=normalizeTemporalInterval(row.validity.from,row.validity.to);
             if(lifetimeEnd&&interval.start&&lifetimeEnd->endKey<interval.start->startKey){kept.push_back(std::move(row));continue;}
             if(interval.end&&interval.end->endKey<month.startKey){kept.push_back(std::move(row));continue;}
+            if(resume&&(!interval.end||!(interval.end->endKey<resume->startKey))) {
+                auto future=row;
+                if(!interval.start||interval.start->startKey<resume->startKey) {
+                    future.validity.from=resume->canonical;future.id=nextRecordId(original,row.id+":resume:"+resume->canonical);
+                }
+                kept.push_back(std::move(future));
+            }
             if(interval.start&&!(interval.start->startKey<month.startKey))continue;
             row.validity.to=lastMonth;
             kept.push_back(std::move(row));

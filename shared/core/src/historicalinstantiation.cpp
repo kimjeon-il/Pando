@@ -176,7 +176,7 @@ void applyHistoricalInstantiation(ProjectDocument& document,const HistoricalInst
             for(const auto& resolved:frame.world.entities)if(resolved.parentId==donor.id)existing(resolved.id).parentId=target.id;
         }
         Project bridge;bridge.replace(document);bridge.setTimelineCursor(*plan.applicationMonth);
-        document=applyWebTerritorialEdit(bridge.snapshot(),edit);
+        document=applyWebTerritorialEdit(bridge.snapshot(),edit,true);
         return;
     }
     std::set<ObjectRef> replaced;

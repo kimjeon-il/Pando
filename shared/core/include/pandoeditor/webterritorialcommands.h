@@ -29,5 +29,5 @@ struct WebTerritorialEdit {
 CommandRequest readWebTerritorialCommand(const ProjectSnapshot&,const std::string& operationId,
                                         const codecjson::Value&,const projectcodec::PlatformPorts&);
 codecjson::Value normalizeWebTerritorialResolvedFeature(const codecjson::Value&);
-ProjectDocument applyWebTerritorialEdit(const ProjectSnapshot&,const WebTerritorialEdit&);
+ProjectDocument applyWebTerritorialEdit(const ProjectSnapshot&,const WebTerritorialEdit&,bool preserveFutureChanges=false);
 }
