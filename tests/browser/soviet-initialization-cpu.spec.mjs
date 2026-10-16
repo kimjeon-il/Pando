@@ -58,7 +58,15 @@ async function memorySample(page, cdp, label) {
       selectionFallback: d.selection.fallbackCount || 0,
     };
   });
-  return { label, app, cdpMainHeap: heap?.usedSize || null, chromiumPss: await browserPssKiB() };
+  const autosave = await page.evaluate(() => {
+    const report = window.__PANDOLAB_PERFORMANCE_REPORT__?.();
+    const record = report?.operations?.['autosave.persist'];
+    return { count: record?.count || 0, samples: (record?.samples || []).slice(-3).map(item => ({
+      durationMs: item.durationMs, detail: item.detail,
+    })) };
+  });
+  return { label, app, cdpMainHeap: heap?.usedSize || null, chromiumPss: await browserPssKiB(),
+    workerUrls: page.workers().map(worker => new URL(worker.url()).pathname), autosave };
 }
 async function month(page, text) {
   await page.locator('#timelineMonthButton').click();
@@ -111,6 +119,10 @@ test('attribute first Soviet timeline and GPU-selection CPU cost, then test memo
     { timeout: 90_000 }).toBe(true);
   const toModernWallMs = (await page.evaluate(() => performance.now())) - toModernStarted;
   memory.push(await memorySample(page, cdp, 'returned-modern-after-main-gc'));
+  await page.waitForTimeout(5_000);
+  memory.push(await memorySample(page, cdp, 'returned-modern-idle-5s-after-main-gc'));
+  await page.waitForTimeout(7_000);
+  memory.push(await memorySample(page, cdp, 'returned-modern-idle-12s-after-main-gc'));
   const result = {
     schema: 'pandolab-soviet-cpu-attribution-v1',
     scope: 'main JavaScript thread sampled CDP CPU profiler; Worker/WASM CPU excluded; isolated CI Chromium PSS',
