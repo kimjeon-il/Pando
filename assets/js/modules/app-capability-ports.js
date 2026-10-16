@@ -13,7 +13,7 @@ export const SPATIAL_DATA_OWNER_PORTS = Object.freeze({
   readinessNotifications: Object.freeze(["platform","projectState","readiness","surfaces"]),
   countryIndex: Object.freeze(["countries","domains","geometryModel","layers","mapView","platform","projectState","spatialQuery"]),
   spatialIndex: Object.freeze(["objectModelB","countries","countryCommands","cutGeometry","domains","geometryPreview","labels","mapView","platform","presentation","projectState","rendering","spatialFactories","surfaces","territorialModel","territoryGeometry"]),
-  geometryPreview: Object.freeze(["domains","feedback","geometryEditingCore","platform","presentation","projectState","readiness","snapshots","spatialFactories","spatialQuery","taskUi","territorialModel","territoryGeometry","validation"]),
+  geometryPreview: Object.freeze(["domains","feedback","geometryEditingCore","platform","presentation","projectState","readiness","snapshots","spatialFactories","spatialQuery","taskUi","territorialModel","territoryGeometry"]),
   territoryComponents: Object.freeze(["countries","cutGeometry","geometryModel","geometryPreview","platform","presentation","projectState","territorialModel","objectPresentation"]),
   countryValidation: Object.freeze(["countries","domains","geometryModel","geometryPreview","projectState","snapshots","spatialQuery"]),
   landRelations: Object.freeze(["cutGeometry","geometryModel","geometryPreview","layers","presentation","projectState","surfaces","territorialModel","territoryGeometry"]),
