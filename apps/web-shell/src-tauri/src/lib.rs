@@ -17,6 +17,9 @@ const EMBEDDED_STAGE_EVIDENCE: &str = include_str!(concat!(
 #[derive(Default)]
 struct ProbeOptions {
     auto: bool,
+    physical_immediate: bool,
+    probe_hold_ms: u64,
+    profile_id: Option<String>,
     diagnostic_output: Option<PathBuf>,
     write_lock: Mutex<()>,
 }
@@ -191,6 +194,24 @@ fn probe_options() -> Result<ProbeOptions, String> {
         while let Some(arg) = args.next() {
             if arg == "--probe-auto" {
                 options.auto = true;
+            } else if arg == "--probe-physical-immediate" {
+                options.physical_immediate = true;
+            } else if arg == "--probe-hold-ms" {
+                let requested = args.next().ok_or("--probe-hold-ms requires milliseconds")?;
+                let duration = requested.to_string_lossy().parse::<u64>()
+                    .map_err(|_| "--probe-hold-ms must be an integer")?;
+                if !(1000..=30_000).contains(&duration) {
+                    return Err("--probe-hold-ms must be between 1000 and 30000".into());
+                }
+                options.probe_hold_ms = duration;
+            } else if arg == "--probe-profile-id" {
+                let requested = args.next().ok_or("--probe-profile-id requires an identifier")?;
+                let value = requested.to_string_lossy();
+                if value.len() > 24 || value.is_empty()
+                    || !value.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-') {
+                    return Err("Invalid probe profile identifier".into());
+                }
+                options.profile_id = Some(value.to_string());
             } else if arg == "--diagnostic-output" {
                 let path = PathBuf::from(
                     args.next()
@@ -202,6 +223,10 @@ fn probe_options() -> Result<ProbeOptions, String> {
                 options.diagnostic_output = Some(path);
             }
         }
+        if !options.auto && (options.physical_immediate
+            || options.probe_hold_ms > 0 || options.profile_id.is_some()) {
+            return Err("Performance flags require --probe-auto".into());
+        }
     }
     Ok(options)
 }
@@ -210,6 +235,9 @@ fn probe_options() -> Result<ProbeOptions, String> {
 pub fn run() {
     let options = probe_options().expect("invalid prototype arguments");
     let auto = options.auto;
+    let physical_immediate = options.auto && options.physical_immediate;
+    let probe_hold_ms = if options.probe_hold_ms > 0 { options.probe_hold_ms } else { 500 };
+    let profile_id = options.profile_id.clone();
     tauri::Builder::default()
         .manage(options)
         .manage(document_transfer::TransferManager::default())
@@ -225,9 +253,19 @@ pub fn run() {
                 .inner_size(1280.0, 820.0)
                 .on_navigation(local_navigation)
                 .on_new_window(|_, _| tauri::webview::NewWindowResponse::Deny)
-                .initialization_script(format!("Object.defineProperty(window, '__PANDOLAB_SHELL_AUTO__', {{ value: {auto}, writable: false }});"));
+                .initialization_script(format!(
+                    "Object.defineProperty(window, '__PANDOLAB_SHELL_AUTO__', {{ value: {auto}, writable: false }});\
+                     Object.defineProperty(window, '__PANDOLAB_SHELL_PROBE_PHYSICAL_IMMEDIATE__', {{ value: {physical_immediate}, writable: false }});\
+                     Object.defineProperty(window, '__PANDOLAB_SHELL_PROBE_HOLD_MS__', {{ value: {probe_hold_ms}, writable: false }});"
+                ));
             #[cfg(windows)]
-            let builder = builder.data_directory(app.path().app_local_data_dir()?.join("test-profile").join("webview2"));
+            let builder = builder.data_directory({
+                let directory = app.path().app_local_data_dir()?.join("test-profile");
+                match &profile_id {
+                    Some(id) => directory.join(format!("webview2-benchmark-{id}")),
+                    None => directory.join("webview2"),
+                }
+            });
             builder.build()?;
             Ok(())
         })
