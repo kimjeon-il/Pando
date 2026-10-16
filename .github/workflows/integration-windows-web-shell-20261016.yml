@@ -61,11 +61,17 @@ jobs:
               $stage.worldData.modelEntityCount -ne 254 -or
               $stage.worldData.rootCount -ne 207 -or
               $stage.worldData.mergedSourceCount -ne 4 -or
-              $stage.worldData.fileCount -ne 597) {
-            throw 'Full-world package must contain 258 source polygons, 254 editable entities, and 597 pinned files.'
+              $stage.worldData.worldFileCount -ne 597 -or
+              $stage.worldData.physicalFileCount -ne 13 -or
+              $stage.worldData.fileCount -ne 610) {
+            throw 'Full-world package must contain 258 source polygons, 254 entities, and 610 pinned files.'
           }
-          if ($stage.files.Where({ $_.path -match '^assets/data/(?:hydro|terrain|places)/' }).Count -ne 0) {
-            throw 'Physical data unexpectedly entered the scoped full-world stage.'
+          foreach ($path in @('assets/data/hydro/v0.13.2/hydro.bin',
+              'assets/data/places/places-v1.bin',
+              'assets/data/terrain-preview/v0.13.3-p1/1/2-1.webp')) {
+            if ($stage.files.Where({ $_.path -eq $path }).Count -ne 1) {
+              throw "Missing required offline physical resource: $path"
+            }
           }
           Write-Output "Verified $($stage.worldData.fileCount) pinned world files ($($stage.worldData.bytes) bytes)."
       - name: Build full-world Windows Tauri app using native MSVC
