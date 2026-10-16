@@ -264,13 +264,12 @@ QJsonArray TerritorialLibraryCatalog::search(const QString& query,const QString&
     for(const auto& raw:lineages()) {
         const auto lineage=raw.toObject();const bool groupMatch=needle.isEmpty()||namesMatch(lineage.value("names").toObject());QJsonArray entities;
         for(const auto& ref:lineage.value("entityRefs").toArray()) {
-            auto entity=entry(ref.toString());const auto lifetime=entity.value("lifetime").toObject();
-            if(dated&&lifetime.value("validFrom").isNull()&&lifetime.value("validTo").isNull())continue;
-            if(dated&&!existsAt(lifetime,*point))continue;
+            auto entity=entry(ref.toString());
             bool entityMatch=groupMatch||namesMatch(entity.value("names").toObject());
             for(const auto& alias:entity.value("alternateNames").toArray())entityMatch=entityMatch||alias.toString().toLower().contains(needle);
             if(!entityMatch)continue;
             const auto selected=dated?selectVersion(entity,*point):QJsonObject{};
+            entity["sourceAvailability"]=dated?QJsonValue(sourceAvailability(ref.toString(),date)):QJsonValue::Null;
             entity["selectedVersionId"]=selected.isEmpty()?QJsonValue::Null:selected.value("versionId");entities.push_back(entity);
         }
         if(!entities.isEmpty())groups.push_back(QJsonObject{{"lineageId",lineage.value("lineageId")},{"names",lineage.value("names")},{"entities",entities}});
@@ -366,6 +365,17 @@ QJsonArray TerritorialLibraryCatalog::events(const QString& query) const {
 QString TerritorialLibraryCatalog::selectedVersionId(const QString& id,const QString& date) const {
     return selectVersion(entry(id),parseTemporal(date.toStdString())).value("versionId").toString();
 }
+QString TerritorialLibraryCatalog::sourceAvailability(const QString& id,const QString& date) const {
+    const auto entity=entry(id);const auto lifetime=interval(entity.value("lifetime").toObject());std::vector<Validity> bounds;
+    for(const auto& raw:entity.value("geometryVersions").toArray()) {const auto value=interval(raw.toObject());bounds.push_back({value.validFrom,value.validTo});}
+    switch(classifyHistoricalSourceAvailability({lifetime.validFrom,lifetime.validTo},bounds,date.toStdString())) {
+    case HistoricalSourceAvailability::Available:return QStringLiteral("available");
+    case HistoricalSourceAvailability::GeometryGap:return QStringLiteral("geometry-gap");
+    case HistoricalSourceAvailability::Absent:return QStringLiteral("absent");
+    case HistoricalSourceAvailability::Unknown:return QStringLiteral("unknown");
+    }
+    throw std::logic_error("Invalid historical source availability");
+}
 QJsonObject TerritorialLibraryCatalog::loadEntity(const QString& id) const {
     const auto spec=entry(id);std::lock_guard lock(mutex_);
     if(const auto found=loaded_.find(id);found!=loaded_.end())return found->second;
@@ -384,7 +394,10 @@ QJsonObject TerritorialLibraryCatalog::loadEntity(const QString& id) const {
 QJsonObject TerritorialLibraryCatalog::preview(const QString& id,const QString& date) const {
     const auto point=parseTemporal(date.toStdString());
     // Do not decode an unusable selection merely to discover an indexed gap.
-    require(!selectVersion(entry(id),point).isEmpty(),"PL-LIB-GEOMETRY-GAP: no boundary at the selected date");
+    const auto status=sourceAvailability(id,date);
+    if(status=="absent")throw std::invalid_argument("PL-LIB-HISTORICAL-ABSENT: outside the recorded lifetime");
+    if(status=="unknown")throw std::invalid_argument("PL-LIB-SOURCE-UNKNOWN: lifetime and boundary are not established at this date");
+    require(status=="available","PL-LIB-GEOMETRY-GAP: missing source boundary, not evidence of historical absence");
     const auto entity=loadEntity(id);const auto version=selectVersion(entity,point);
     require(!version.isEmpty(),"PL-LIB-GEOMETRY-GAP: no boundary at the selected date");
     return {{"entity",entity},{"version",version}};

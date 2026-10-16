@@ -1,4 +1,5 @@
 name: Objects timeline regression
+# P5-6 final integration: exercise calendar, timeline records, resolver and library parity against main 691ec5d source.
 
 on:
   push:

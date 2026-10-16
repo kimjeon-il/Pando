@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "revision": "approved-places-a912045657f35026",
+  "revision": "approved-places-d35bd85615fbaf49",
   "stages": [
     {
       "id": 0,
@@ -13,15 +13,15 @@
     "0/0-0": {
       "shard": "places-v1",
       "offset": 0,
-      "length": 55176,
-      "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594"
+      "length": 59394,
+      "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799"
     }
   },
   "shards": {
     "places-v1": {
       "url": "places-v1.bin",
-      "bytes": 55176,
-      "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594"
+      "bytes": 59394,
+      "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799"
     }
   },
   "search": {
@@ -29,8 +29,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ab",
         "last": "ab￿"
       }
@@ -39,8 +39,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ad",
         "last": "ad￿"
       }
@@ -49,8 +49,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ag",
         "last": "ag￿"
       }
@@ -59,8 +59,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ah",
         "last": "ah￿"
       }
@@ -69,8 +69,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ak",
         "last": "ak￿"
       }
@@ -79,8 +79,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "al",
         "last": "al￿"
       }
@@ -89,8 +89,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "am",
         "last": "am￿"
       }
@@ -99,8 +99,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "an",
         "last": "an￿"
       }
@@ -109,8 +109,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "aq",
         "last": "aq￿"
       }
@@ -119,8 +119,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "as",
         "last": "as￿"
       }
@@ -129,8 +129,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "at",
         "last": "at￿"
       }
@@ -139,8 +139,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "au",
         "last": "au￿"
       }
@@ -149,8 +149,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "a¢",
         "last": "a¢￿"
       }
@@ -159,8 +159,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "aş",
         "last": "aş￿"
       }
@@ -169,8 +169,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ba",
         "last": "ba￿"
       }
@@ -179,8 +179,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "be",
         "last": "be￿"
       }
@@ -189,8 +189,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "bi",
         "last": "bi￿"
       }
@@ -199,8 +199,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "bl",
         "last": "bl￿"
       }
@@ -209,8 +209,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "bo",
         "last": "bo￿"
       }
@@ -219,8 +219,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "br",
         "last": "br￿"
       }
@@ -229,8 +229,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "bu",
         "last": "bu￿"
       }
@@ -239,8 +239,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "by",
         "last": "by￿"
       }
@@ -249,8 +249,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ca",
         "last": "ca￿"
       }
@@ -259,8 +259,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ch",
         "last": "ch￿"
       }
@@ -269,8 +269,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ci",
         "last": "ci￿"
       }
@@ -279,8 +279,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "co",
         "last": "co￿"
       }
@@ -289,8 +289,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "da",
         "last": "da￿"
       }
@@ -299,8 +299,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "de",
         "last": "de￿"
       }
@@ -309,8 +309,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "dh",
         "last": "dh￿"
       }
@@ -319,8 +319,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "dj",
         "last": "dj￿"
       }
@@ -329,8 +329,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "do",
         "last": "do￿"
       }
@@ -339,8 +339,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "du",
         "last": "du￿"
       }
@@ -349,8 +349,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ed",
         "last": "ed￿"
       }
@@ -359,8 +359,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "er",
         "last": "er￿"
       }
@@ -369,8 +369,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "fo",
         "last": "fo￿"
       }
@@ -379,8 +379,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "fr",
         "last": "fr￿"
       }
@@ -389,8 +389,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "fu",
         "last": "fu￿"
       }
@@ -399,8 +399,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ga",
         "last": "ga￿"
       }
@@ -409,8 +409,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "gd",
         "last": "gd￿"
       }
@@ -419,8 +419,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ge",
         "last": "ge￿"
       }
@@ -429,18 +429,28 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "gi",
         "last": "gi￿"
+      }
+    ],
+    "go": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
+        "first": "go",
+        "last": "go￿"
       }
     ],
     "gu": [
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "gu",
         "last": "gu￿"
       }
@@ -449,8 +459,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ha",
         "last": "ha￿"
       }
@@ -459,8 +469,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "he",
         "last": "he￿"
       }
@@ -469,8 +479,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ho",
         "last": "ho￿"
       }
@@ -479,8 +489,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "hà",
         "last": "hà￿"
       }
@@ -489,8 +499,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "hồ",
         "last": "hồ￿"
       }
@@ -499,8 +509,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ik",
         "last": "ik￿"
       }
@@ -509,8 +519,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "il",
         "last": "il￿"
       }
@@ -519,8 +529,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "in",
         "last": "in￿"
       }
@@ -529,8 +539,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "is",
         "last": "is￿"
       }
@@ -539,8 +549,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "i̇",
         "last": "i̇￿"
       }
@@ -549,8 +559,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ja",
         "last": "ja￿"
       }
@@ -559,8 +569,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ji",
         "last": "ji￿"
       }
@@ -569,8 +579,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "jo",
         "last": "jo￿"
       }
@@ -579,8 +589,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ju",
         "last": "ju￿"
       }
@@ -589,8 +599,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ka",
         "last": "ka￿"
       }
@@ -599,8 +609,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ke",
         "last": "ke￿"
       }
@@ -609,8 +619,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "kh",
         "last": "kh￿"
       }
@@ -619,8 +629,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ki",
         "last": "ki￿"
       }
@@ -629,8 +639,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "kj",
         "last": "kj￿"
       }
@@ -639,8 +649,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ko",
         "last": "ko￿"
       }
@@ -649,18 +659,28 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "kr",
         "last": "kr￿"
+      }
+    ],
+    "ku": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
+        "first": "ku",
+        "last": "ku￿"
       }
     ],
     "ky": [
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ky",
         "last": "ky￿"
       }
@@ -669,8 +689,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "kö",
         "last": "kö￿"
       }
@@ -679,8 +699,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "kø",
         "last": "kø￿"
       }
@@ -689,8 +709,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "l'",
         "last": "l'￿"
       }
@@ -699,8 +719,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "la",
         "last": "la￿"
       }
@@ -709,8 +729,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "le",
         "last": "le￿"
       }
@@ -719,8 +739,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "li",
         "last": "li￿"
       }
@@ -729,8 +749,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "lj",
         "last": "lj￿"
       }
@@ -739,8 +759,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "lo",
         "last": "lo￿"
       }
@@ -749,8 +769,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "lu",
         "last": "lu￿"
       }
@@ -759,8 +779,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "lv",
         "last": "lv￿"
       }
@@ -769,8 +789,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "lw",
         "last": "lw￿"
       }
@@ -779,8 +799,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "lé",
         "last": "lé￿"
       }
@@ -789,8 +809,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "lë",
         "last": "lë￿"
       }
@@ -799,8 +819,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ma",
         "last": "ma￿"
       }
@@ -809,8 +829,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "mb",
         "last": "mb￿"
       }
@@ -819,8 +839,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "me",
         "last": "me￿"
       }
@@ -829,8 +849,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "mi",
         "last": "mi￿"
       }
@@ -839,8 +859,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "mo",
         "last": "mo￿"
       }
@@ -849,8 +869,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "mu",
         "last": "mu￿"
       }
@@ -859,8 +879,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "n'",
         "last": "n'￿"
       }
@@ -869,8 +889,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "na",
         "last": "na￿"
       }
@@ -879,8 +899,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ne",
         "last": "ne￿"
       }
@@ -889,8 +909,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ni",
         "last": "ni￿"
       }
@@ -899,8 +919,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "no",
         "last": "no￿"
       }
@@ -909,18 +929,28 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "nu",
         "last": "nu￿"
+      }
+    ],
+    "or": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
+        "first": "or",
+        "last": "or￿"
       }
     ],
     "os": [
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "os",
         "last": "os￿"
       }
@@ -929,8 +959,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ot",
         "last": "ot￿"
       }
@@ -939,8 +969,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "oy",
         "last": "oy￿"
       }
@@ -949,8 +979,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "pa",
         "last": "pa￿"
       }
@@ -959,8 +989,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "pe",
         "last": "pe￿"
       }
@@ -969,8 +999,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "pi",
         "last": "pi￿"
       }
@@ -979,8 +1009,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "po",
         "last": "po￿"
       }
@@ -989,8 +1019,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "pr",
         "last": "pr￿"
       }
@@ -999,8 +1029,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "pu",
         "last": "pu￿"
       }
@@ -1009,8 +1039,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "re",
         "last": "re￿"
       }
@@ -1019,8 +1049,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ri",
         "last": "ri￿"
       }
@@ -1029,8 +1059,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ro",
         "last": "ro￿"
       }
@@ -1039,8 +1069,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "rī",
         "last": "rī￿"
       }
@@ -1049,8 +1079,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "sa",
         "last": "sa￿"
       }
@@ -1059,8 +1089,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "se",
         "last": "se￿"
       }
@@ -1069,8 +1099,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "sh",
         "last": "sh￿"
       }
@@ -1079,8 +1109,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "si",
         "last": "si￿"
       }
@@ -1089,8 +1119,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "sk",
         "last": "sk￿"
       }
@@ -1099,8 +1129,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "so",
         "last": "so￿"
       }
@@ -1109,8 +1139,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "sr",
         "last": "sr￿"
       }
@@ -1119,8 +1149,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "st",
         "last": "st￿"
       }
@@ -1129,18 +1159,28 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "su",
         "last": "su￿"
+      }
+    ],
+    "sv": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
+        "first": "sv",
+        "last": "sv￿"
       }
     ],
     "sy": [
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "sy",
         "last": "sy￿"
       }
@@ -1149,8 +1189,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "sà",
         "last": "sà￿"
       }
@@ -1159,8 +1199,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "sã",
         "last": "sã￿"
       }
@@ -1169,8 +1209,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "t'",
         "last": "t'￿"
       }
@@ -1179,8 +1219,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ta",
         "last": "ta￿"
       }
@@ -1189,8 +1229,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "tb",
         "last": "tb￿"
       }
@@ -1199,8 +1239,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "te",
         "last": "te￿"
       }
@@ -1209,8 +1249,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "th",
         "last": "th￿"
       }
@@ -1219,8 +1259,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ti",
         "last": "ti￿"
       }
@@ -1229,8 +1269,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "to",
         "last": "to￿"
       }
@@ -1239,8 +1279,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ts",
         "last": "ts￿"
       }
@@ -1249,8 +1289,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ul",
         "last": "ul￿"
       }
@@ -1259,8 +1299,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "us",
         "last": "us￿"
       }
@@ -1269,8 +1309,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "va",
         "last": "va￿"
       }
@@ -1279,18 +1319,28 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "vi",
         "last": "vi￿"
+      }
+    ],
+    "vo": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
+        "first": "vo",
+        "last": "vo￿"
       }
     ],
     "wa": [
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "wa",
         "last": "wa￿"
       }
@@ -1299,8 +1349,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "we",
         "last": "we￿"
       }
@@ -1309,8 +1359,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "wi",
         "last": "wi￿"
       }
@@ -1319,8 +1369,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "wr",
         "last": "wr￿"
       }
@@ -1329,8 +1379,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ya",
         "last": "ya￿"
       }
@@ -1339,8 +1389,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ye",
         "last": "ye￿"
       }
@@ -1349,8 +1399,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "yo",
         "last": "yo￿"
       }
@@ -1359,8 +1409,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "za",
         "last": "za￿"
       }
@@ -1369,8 +1419,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "èk",
         "last": "èk￿"
       }
@@ -1379,8 +1429,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "αθ",
         "last": "αθ￿"
       }
@@ -1389,8 +1439,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "κω",
         "last": "κω￿"
       }
@@ -1399,8 +1449,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "λε",
         "last": "λε￿"
       }
@@ -1409,8 +1459,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ак",
         "last": "ак￿"
       }
@@ -1419,8 +1469,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ас",
         "last": "ас￿"
       }
@@ -1429,8 +1479,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "аш",
         "last": "аш￿"
       }
@@ -1439,8 +1489,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ақ",
         "last": "ақ￿"
       }
@@ -1449,8 +1499,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ба",
         "last": "ба￿"
       }
@@ -1459,8 +1509,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "бе",
         "last": "бе￿"
       }
@@ -1469,8 +1519,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "би",
         "last": "би￿"
       }
@@ -1479,8 +1529,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "бу",
         "last": "бу￿"
       }
@@ -1489,8 +1539,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ва",
         "last": "ва￿"
       }
@@ -1499,28 +1549,58 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ви",
         "last": "ви￿"
+      }
+    ],
+    "во": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
+        "first": "во",
+        "last": "во￿"
+      }
+    ],
+    "го": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
+        "first": "го",
+        "last": "го￿"
       }
     ],
     "ду": [
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ду",
         "last": "ду￿"
+      }
+    ],
+    "ек": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
+        "first": "ек",
+        "last": "ек￿"
       }
     ],
     "их": [
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "их",
         "last": "их￿"
       }
@@ -1529,28 +1609,58 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ка",
         "last": "ка￿"
+      }
+    ],
+    "ке": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
+        "first": "ке",
+        "last": "ке￿"
       }
     ],
     "ки": [
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ки",
         "last": "ки￿"
+      }
+    ],
+    "кр": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
+        "first": "кр",
+        "last": "кр￿"
+      }
+    ],
+    "ку": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
+        "first": "ку",
+        "last": "ку￿"
       }
     ],
     "кі": [
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "кі",
         "last": "кі￿"
       }
@@ -1559,8 +1669,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ле",
         "last": "ле￿"
       }
@@ -1569,8 +1679,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ль",
         "last": "ль￿"
       }
@@ -1579,8 +1689,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ме",
         "last": "ме￿"
       }
@@ -1589,8 +1699,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ми",
         "last": "ми￿"
       }
@@ -1599,18 +1709,28 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "мо",
         "last": "мо￿"
+      }
+    ],
+    "му": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
+        "first": "му",
+        "last": "му￿"
       }
     ],
     "мі": [
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "мі",
         "last": "мі￿"
       }
@@ -1619,8 +1739,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ни",
         "last": "ни￿"
       }
@@ -1629,18 +1749,28 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "нұ",
         "last": "нұ￿"
+      }
+    ],
+    "ор": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
+        "first": "ор",
+        "last": "ор￿"
       }
     ],
     "пе": [
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "пе",
         "last": "пе￿"
       }
@@ -1649,8 +1779,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "пи",
         "last": "пи￿"
       }
@@ -1659,8 +1789,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "по",
         "last": "по￿"
       }
@@ -1669,8 +1799,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "пр",
         "last": "пр￿"
       }
@@ -1679,8 +1809,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ре",
         "last": "ре￿"
       }
@@ -1689,28 +1819,58 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ри",
         "last": "ри￿"
+      }
+    ],
+    "ро": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
+        "first": "ро",
+        "last": "ро￿"
       }
     ],
     "са": [
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "са",
         "last": "са￿"
+      }
+    ],
+    "св": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
+        "first": "св",
+        "last": "св￿"
+      }
+    ],
+    "си": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
+        "first": "си",
+        "last": "си￿"
       }
     ],
     "ск": [
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ск",
         "last": "ск￿"
       }
@@ -1719,8 +1879,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "со",
         "last": "со￿"
       }
@@ -1729,8 +1889,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ст",
         "last": "ст￿"
       }
@@ -1739,8 +1899,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "та",
         "last": "та￿"
       }
@@ -1749,8 +1909,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ти",
         "last": "ти￿"
       }
@@ -1759,8 +1919,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "то",
         "last": "то￿"
       }
@@ -1769,8 +1929,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ул",
         "last": "ул￿"
       }
@@ -1779,28 +1939,58 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "фр",
         "last": "фр￿"
+      }
+    ],
+    "ца": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
+        "first": "ца",
+        "last": "ца￿"
       }
     ],
     "це": [
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "це",
         "last": "це￿"
+      }
+    ],
+    "чк": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
+        "first": "чк",
+        "last": "чк￿"
+      }
+    ],
+    "ще": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
+        "first": "ще",
+        "last": "ще￿"
       }
     ],
     "эр": [
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "эр",
         "last": "эр￿"
       }
@@ -1809,8 +1999,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "եր",
         "last": "եր￿"
       }
@@ -1819,8 +2009,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "յե",
         "last": "յե￿"
       }
@@ -1829,8 +2019,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "אח",
         "last": "אח￿"
       }
@@ -1839,8 +2029,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "תל",
         "last": "תל￿"
       }
@@ -1849,8 +2039,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "آت",
         "last": "آت￿"
       }
@@ -1859,8 +2049,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "اس",
         "last": "اس￿"
       }
@@ -1869,8 +2059,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ال",
         "last": "ال￿"
       }
@@ -1879,8 +2069,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ان",
         "last": "ان￿"
       }
@@ -1889,8 +2079,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ای",
         "last": "ای￿"
       }
@@ -1899,8 +2089,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "با",
         "last": "با￿"
       }
@@ -1909,8 +2099,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "بل",
         "last": "بل￿"
       }
@@ -1919,8 +2109,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "تا",
         "last": "تا￿"
       }
@@ -1929,8 +2119,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "تی",
         "last": "تی￿"
       }
@@ -1939,8 +2129,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ده",
         "last": "ده￿"
       }
@@ -1949,8 +2139,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "دو",
         "last": "دو￿"
       }
@@ -1959,8 +2149,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "دہ",
         "last": "دہ￿"
       }
@@ -1969,8 +2159,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "سر",
         "last": "سر￿"
       }
@@ -1979,8 +2169,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "صو",
         "last": "صو￿"
       }
@@ -1989,8 +2179,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "قا",
         "last": "قا￿"
       }
@@ -1999,8 +2189,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "قس",
         "last": "قس￿"
       }
@@ -2009,8 +2199,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "لف",
         "last": "لف￿"
       }
@@ -2019,8 +2209,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "نو",
         "last": "نو￿"
       }
@@ -2029,8 +2219,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "پر",
         "last": "پر￿"
       }
@@ -2039,8 +2229,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "پو",
         "last": "پو￿"
       }
@@ -2049,8 +2239,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "दि",
         "last": "दि￿"
       }
@@ -2059,8 +2249,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "मु",
         "last": "मु￿"
       }
@@ -2069,8 +2259,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "কল",
         "last": "কল￿"
       }
@@ -2079,8 +2269,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ঢা",
         "last": "ঢা￿"
       }
@@ -2089,8 +2279,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ਦਿ",
         "last": "ਦਿ￿"
       }
@@ -2099,8 +2289,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "செ",
         "last": "செ￿"
       }
@@ -2109,8 +2299,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "කෝ",
         "last": "කෝ￿"
       }
@@ -2119,8 +2309,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ශ්",
         "last": "ශ්￿"
       }
@@ -2129,8 +2319,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "กร",
         "last": "กร￿"
       }
@@ -2139,8 +2329,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "နေ",
         "last": "နေ￿"
       }
@@ -2149,8 +2339,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "თბ",
         "last": "თბ￿"
       }
@@ -2159,8 +2349,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ტფ",
         "last": "ტფ￿"
       }
@@ -2169,8 +2359,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "አዲ",
         "last": "አዲ￿"
       }
@@ -2179,8 +2369,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "ἀθ",
         "last": "ἀθ￿"
       }
@@ -2189,8 +2379,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "上海",
         "last": "上海￿"
       }
@@ -2199,8 +2389,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "京城",
         "last": "京城￿"
       }
@@ -2209,8 +2399,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "京都",
         "last": "京都￿"
       }
@@ -2219,8 +2409,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "仁川",
         "last": "仁川￿"
       }
@@ -2229,8 +2419,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "北京",
         "last": "北京￿"
       }
@@ -2239,8 +2429,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "北平",
         "last": "北平￿"
       }
@@ -2249,8 +2439,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "南京",
         "last": "南京￿"
       }
@@ -2259,8 +2449,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "名古",
         "last": "名古￿"
       }
@@ -2269,8 +2459,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "大坂",
         "last": "大坂￿"
       }
@@ -2279,8 +2469,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "大田",
         "last": "大田￿"
       }
@@ -2289,8 +2479,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "大邱",
         "last": "大邱￿"
       }
@@ -2299,8 +2489,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "大阪",
         "last": "大阪￿"
       }
@@ -2309,8 +2499,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "天京",
         "last": "天京￿"
       }
@@ -2319,8 +2509,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "天津",
         "last": "天津￿"
       }
@@ -2329,8 +2519,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "广州",
         "last": "广州￿"
       }
@@ -2339,8 +2529,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "廣州",
         "last": "廣州￿"
       }
@@ -2349,8 +2539,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "昇隆",
         "last": "昇隆￿"
       }
@@ -2359,8 +2549,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "昇龍",
         "last": "昇龍￿"
       }
@@ -2369,8 +2559,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "東京",
         "last": "東京￿"
       }
@@ -2379,8 +2569,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "柴棍",
         "last": "柴棍￿"
       }
@@ -2389,8 +2579,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "横浜",
         "last": "横浜￿"
       }
@@ -2399,8 +2589,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "江戸",
         "last": "江戸￿"
       }
@@ -2409,8 +2599,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "河內",
         "last": "河內￿"
       }
@@ -2419,8 +2609,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "漢城",
         "last": "漢城￿"
       }
@@ -2429,8 +2619,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "漢陽",
         "last": "漢陽￿"
       }
@@ -2439,8 +2629,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "臺北",
         "last": "臺北￿"
       }
@@ -2449,8 +2639,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "釜山",
         "last": "釜山￿"
       }
@@ -2459,8 +2649,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "가보",
         "last": "가보￿"
       }
@@ -2469,8 +2659,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "개버",
         "last": "개버￿"
       }
@@ -2479,18 +2669,28 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "경성",
         "last": "경성￿"
+      }
+    ],
+    "고리": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
+        "first": "고리",
+        "last": "고리￿"
       }
     ],
     "광저": [
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "광저",
         "last": "광저￿"
       }
@@ -2499,8 +2699,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "광주",
         "last": "광주￿"
       }
@@ -2509,8 +2709,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "교토",
         "last": "교토￿"
       }
@@ -2519,8 +2719,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "그단",
         "last": "그단￿"
       }
@@ -2529,8 +2729,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "기테",
         "last": "기테￿"
       }
@@ -2539,8 +2739,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "나고",
         "last": "나고￿"
       }
@@ -2549,8 +2749,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "나이",
         "last": "나이￿"
       }
@@ -2559,8 +2759,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "난징",
         "last": "난징￿"
       }
@@ -2569,8 +2769,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "남경",
         "last": "남경￿"
       }
@@ -2579,8 +2779,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "네피",
         "last": "네피￿"
       }
@@ -2589,8 +2789,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "누르",
         "last": "누르￿"
       }
@@ -2599,8 +2799,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "누메",
         "last": "누메￿"
       }
@@ -2609,8 +2809,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "누악",
         "last": "누악￿"
       }
@@ -2619,8 +2819,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "뉴욕",
         "last": "뉴욕￿"
       }
@@ -2629,18 +2829,28 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "니슬",
         "last": "니슬￿"
+      }
+    ],
+    "니즈": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
+        "first": "니즈",
+        "last": "니즈￿"
       }
     ],
     "니코": [
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "니코",
         "last": "니코￿"
       }
@@ -2649,8 +2859,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "다이",
         "last": "다이￿"
       }
@@ -2659,8 +2869,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "다카",
         "last": "다카￿"
       }
@@ -2669,8 +2879,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "단치",
         "last": "단치￿"
       }
@@ -2679,8 +2889,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "대구",
         "last": "대구￿"
       }
@@ -2689,8 +2899,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "대전",
         "last": "대전￿"
       }
@@ -2699,8 +2909,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "더블",
         "last": "더블￿"
       }
@@ -2709,8 +2919,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "델리",
         "last": "델리￿"
       }
@@ -2719,8 +2929,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "도도",
         "last": "도도￿"
       }
@@ -2729,8 +2939,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "도쿄",
         "last": "도쿄￿"
       }
@@ -2739,8 +2949,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "두샨",
         "last": "두샨￿"
       }
@@ -2749,8 +2959,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "라고",
         "last": "라고￿"
       }
@@ -2759,8 +2969,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "라이",
         "last": "라이￿"
       }
@@ -2769,8 +2979,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "런던",
         "last": "런던￿"
       }
@@ -2779,8 +2989,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "레닌",
         "last": "레닌￿"
       }
@@ -2789,8 +2999,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "레발",
         "last": "레발￿"
       }
@@ -2799,8 +3009,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "레벨",
         "last": "레벨￿"
       }
@@ -2809,8 +3019,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "레오",
         "last": "레오￿"
       }
@@ -2819,8 +3029,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "레이",
         "last": "레이￿"
       }
@@ -2829,8 +3039,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "레타",
         "last": "레타￿"
       }
@@ -2839,8 +3049,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "레프",
         "last": "레프￿"
       }
@@ -2849,8 +3059,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "렘베",
         "last": "렘베￿"
       }
@@ -2859,8 +3069,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "로렌",
         "last": "로렌￿"
       }
@@ -2869,8 +3079,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "로마",
         "last": "로마￿"
       }
@@ -2879,8 +3089,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "로밤",
         "last": "로밤￿"
       }
@@ -2889,8 +3099,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "로스",
         "last": "로스￿"
       }
@@ -2899,8 +3109,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "루사",
         "last": "루사￿"
       }
@@ -2909,8 +3119,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "룩셈",
         "last": "룩셈￿"
       }
@@ -2919,8 +3129,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "류블",
         "last": "류블￿"
       }
@@ -2929,8 +3139,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "르부",
         "last": "르부￿"
       }
@@ -2939,8 +3149,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "리가",
         "last": "리가￿"
       }
@@ -2949,8 +3159,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "리보",
         "last": "리보￿"
       }
@@ -2959,8 +3169,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "리브",
         "last": "리브￿"
       }
@@ -2969,8 +3179,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "리비",
         "last": "리비￿"
       }
@@ -2979,8 +3189,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "리스",
         "last": "리스￿"
       }
@@ -2989,8 +3199,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "릴롱",
         "last": "릴롱￿"
       }
@@ -2999,8 +3209,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "마드",
         "last": "마드￿"
       }
@@ -3009,8 +3219,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "마세",
         "last": "마세￿"
       }
@@ -3019,8 +3229,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "마푸",
         "last": "마푸￿"
       }
@@ -3029,8 +3239,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "말라",
         "last": "말라￿"
       }
@@ -3039,8 +3249,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "멕시",
         "last": "멕시￿"
       }
@@ -3049,8 +3259,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "모나",
         "last": "모나￿"
       }
@@ -3059,8 +3269,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "모스",
         "last": "모스￿"
       }
@@ -3069,18 +3279,38 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "몬로",
         "last": "몬로￿"
+      }
+    ],
+    "몰로": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
+        "first": "몰로",
+        "last": "몰로￿"
+      }
+    ],
+    "무르": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
+        "first": "무르",
+        "last": "무르￿"
       }
     ],
     "뭄바": [
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "뭄바",
         "last": "뭄바￿"
       }
@@ -3089,8 +3319,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "민스",
         "last": "민스￿"
       }
@@ -3099,8 +3329,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "바르",
         "last": "바르￿"
       }
@@ -3109,8 +3339,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "바이",
         "last": "바이￿"
       }
@@ -3119,8 +3349,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "바쿠",
         "last": "바쿠￿"
       }
@@ -3129,8 +3359,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "바타",
         "last": "바타￿"
       }
@@ -3139,8 +3369,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "반다",
         "last": "반다￿"
       }
@@ -3149,8 +3379,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "반줄",
         "last": "반줄￿"
       }
@@ -3159,8 +3389,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "발레",
         "last": "발레￿"
       }
@@ -3169,8 +3399,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "발렌",
         "last": "발렌￿"
       }
@@ -3179,8 +3409,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "방기",
         "last": "방기￿"
       }
@@ -3189,8 +3419,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "방콕",
         "last": "방콕￿"
       }
@@ -3199,8 +3429,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "배서",
         "last": "배서￿"
       }
@@ -3209,8 +3439,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "베른",
         "last": "베른￿"
       }
@@ -3219,8 +3449,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "베를",
         "last": "베를￿"
       }
@@ -3229,8 +3459,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "베오",
         "last": "베오￿"
       }
@@ -3239,8 +3469,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "베이",
         "last": "베이￿"
       }
@@ -3249,8 +3479,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "벨그",
         "last": "벨그￿"
       }
@@ -3259,8 +3489,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "벨모",
         "last": "벨모￿"
       }
@@ -3269,18 +3499,28 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "보고",
         "last": "보고￿"
+      }
+    ],
+    "볼고": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
+        "first": "볼고",
+        "last": "볼고￿"
       }
     ],
     "봄베": [
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "봄베",
         "last": "봄베￿"
       }
@@ -3289,8 +3529,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "부다",
         "last": "부다￿"
       }
@@ -3299,8 +3539,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "부산",
         "last": "부산￿"
       }
@@ -3309,8 +3549,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "부에",
         "last": "부에￿"
       }
@@ -3319,8 +3559,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "부줌",
         "last": "부줌￿"
       }
@@ -3329,8 +3569,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "부쿠",
         "last": "부쿠￿"
       }
@@ -3339,8 +3579,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "북경",
         "last": "북경￿"
       }
@@ -3349,8 +3589,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "브라",
         "last": "브라￿"
       }
@@ -3359,8 +3599,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "브레",
         "last": "브레￿"
       }
@@ -3369,8 +3609,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "브로",
         "last": "브로￿"
       }
@@ -3379,8 +3619,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "브루",
         "last": "브루￿"
       }
@@ -3389,8 +3629,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "브뤼",
         "last": "브뤼￿"
       }
@@ -3399,8 +3639,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "블룸",
         "last": "블룸￿"
       }
@@ -3409,8 +3649,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "비슈",
         "last": "비슈￿"
       }
@@ -3419,8 +3659,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "빅토",
         "last": "빅토￿"
       }
@@ -3429,8 +3669,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "빈트",
         "last": "빈트￿"
       }
@@ -3439,8 +3679,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "빌나",
         "last": "빌나￿"
       }
@@ -3449,8 +3689,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "빌노",
         "last": "빌노￿"
       }
@@ -3459,8 +3699,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "빌뉴",
         "last": "빌뉴￿"
       }
@@ -3469,18 +3709,28 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "사라",
         "last": "사라￿"
+      }
+    ],
+    "사마": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
+        "first": "사마",
+        "last": "사마￿"
       }
     ],
     "사이": [
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "사이",
         "last": "사이￿"
       }
@@ -3489,8 +3739,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "산마",
         "last": "산마￿"
       }
@@ -3499,8 +3749,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "산타",
         "last": "산타￿"
       }
@@ -3509,8 +3759,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "산토",
         "last": "산토￿"
       }
@@ -3519,8 +3769,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "상트",
         "last": "상트￿"
       }
@@ -3529,8 +3779,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "상파",
         "last": "상파￿"
       }
@@ -3539,8 +3789,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "상하",
         "last": "상하￿"
       }
@@ -3549,8 +3799,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "상해",
         "last": "상해￿"
       }
@@ -3559,18 +3809,28 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "서울",
         "last": "서울￿"
+      }
+    ],
+    "셰글": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
+        "first": "셰글",
+        "last": "셰글￿"
       }
     ],
     "소프": [
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "소프",
         "last": "소프￿"
       }
@@ -3579,8 +3839,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "소피",
         "last": "소피￿"
       }
@@ -3589,8 +3849,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "솔즈",
         "last": "솔즈￿"
       }
@@ -3599,8 +3859,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "수크",
         "last": "수크￿"
       }
@@ -3609,18 +3869,28 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "스리",
         "last": "스리￿"
+      }
+    ],
+    "스베": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
+        "first": "스베",
+        "last": "스베￿"
       }
     ],
     "스코": [
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "스코",
         "last": "스코￿"
       }
@@ -3629,8 +3899,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "스타",
         "last": "스타￿"
       }
@@ -3639,8 +3909,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "스탈",
         "last": "스탈￿"
       }
@@ -3649,8 +3919,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "스톡",
         "last": "스톡￿"
       }
@@ -3659,8 +3929,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "시드",
         "last": "시드￿"
       }
@@ -3669,18 +3939,28 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "시우",
         "last": "시우￿"
+      }
+    ],
+    "심비": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
+        "first": "심비",
+        "last": "심비￿"
       }
     ],
     "싱가": [
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "싱가",
         "last": "싱가￿"
       }
@@ -3689,8 +3969,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "아가",
         "last": "아가￿"
       }
@@ -3699,8 +3979,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "아디",
         "last": "아디￿"
       }
@@ -3709,8 +3989,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "아부",
         "last": "아부￿"
       }
@@ -3719,8 +3999,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "아비",
         "last": "아비￿"
       }
@@ -3729,8 +4009,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "아슈",
         "last": "아슈￿"
       }
@@ -3739,8 +4019,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "아스",
         "last": "아스￿"
       }
@@ -3749,8 +4029,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "아시",
         "last": "아시￿"
       }
@@ -3759,8 +4039,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "아크",
         "last": "아크￿"
       }
@@ -3769,8 +4049,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "아테",
         "last": "아테￿"
       }
@@ -3779,8 +4059,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "아티",
         "last": "아티￿"
       }
@@ -3789,8 +4069,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "아후",
         "last": "아후￿"
       }
@@ -3799,8 +4079,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "안도",
         "last": "안도￿"
       }
@@ -3809,8 +4089,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "안타",
         "last": "안타￿"
       }
@@ -3819,8 +4099,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "알제",
         "last": "알제￿"
       }
@@ -3829,8 +4109,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "암스",
         "last": "암스￿"
       }
@@ -3839,8 +4119,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "앙카",
         "last": "앙카￿"
       }
@@ -3849,8 +4129,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "야무",
         "last": "야무￿"
       }
@@ -3859,8 +4139,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "야운",
         "last": "야운￿"
       }
@@ -3869,8 +4149,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "에도",
         "last": "에도￿"
       }
@@ -3879,8 +4159,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "에리",
         "last": "에리￿"
       }
@@ -3889,8 +4169,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "에코",
         "last": "에코￿"
       }
@@ -3899,18 +4179,38 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "예레",
         "last": "예레￿"
+      }
+    ],
+    "예카": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
+        "first": "예카",
+        "last": "예카￿"
+      }
+    ],
+    "오렌": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
+        "first": "오렌",
+        "last": "오렌￿"
       }
     ],
     "오사": [
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "오사",
         "last": "오사￿"
       }
@@ -3919,8 +4219,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "오슬",
         "last": "오슬￿"
       }
@@ -3929,8 +4229,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "오얄",
         "last": "오얄￿"
       }
@@ -3939,8 +4239,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "오클",
         "last": "오클￿"
       }
@@ -3949,8 +4249,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "오타",
         "last": "오타￿"
       }
@@ -3959,8 +4259,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "요코",
         "last": "요코￿"
       }
@@ -3969,8 +4269,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "요하",
         "last": "요하￿"
       }
@@ -3979,8 +4279,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "우숨",
         "last": "우숨￿"
       }
@@ -3989,18 +4289,28 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "울란",
         "last": "울란￿"
+      }
+    ],
+    "울리": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
+        "first": "울리",
+        "last": "울리￿"
       }
     ],
     "웰링": [
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "웰링",
         "last": "웰링￿"
       }
@@ -4009,8 +4319,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "위스",
         "last": "위스￿"
       }
@@ -4019,8 +4329,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "은자",
         "last": "은자￿"
       }
@@ -4029,8 +4339,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "음바",
         "last": "음바￿"
       }
@@ -4039,8 +4349,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "이라",
         "last": "이라￿"
       }
@@ -4049,8 +4359,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "이스",
         "last": "이스￿"
       }
@@ -4059,8 +4369,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "이슬",
         "last": "이슬￿"
       }
@@ -4069,8 +4379,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "이흐",
         "last": "이흐￿"
       }
@@ -4079,8 +4389,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "인천",
         "last": "인천￿"
       }
@@ -4089,8 +4399,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "자그",
         "last": "자그￿"
       }
@@ -4099,8 +4409,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "자카",
         "last": "자카￿"
       }
@@ -4109,8 +4419,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "제물",
         "last": "제물￿"
       }
@@ -4119,8 +4429,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "조지",
         "last": "조지￿"
       }
@@ -4129,8 +4439,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "주바",
         "last": "주바￿"
       }
@@ -4139,18 +4449,28 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "지부",
         "last": "지부￿"
+      }
+    ],
+    "차리": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
+        "first": "차리",
+        "last": "차리￿"
       }
     ],
     "천경": [
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "천경",
         "last": "천경￿"
       }
@@ -4159,8 +4479,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "천진",
         "last": "천진￿"
       }
@@ -4169,8 +4489,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "첸나",
         "last": "첸나￿"
       }
@@ -4179,8 +4499,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "첼리",
         "last": "첼리￿"
       }
@@ -4189,18 +4509,28 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "추키",
         "last": "추키￿"
+      }
+    ],
+    "치칼": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
+        "first": "치칼",
+        "last": "치칼￿"
       }
     ],
     "카이": [
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "카이",
         "last": "카이￿"
       }
@@ -4209,8 +4539,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "칼리",
         "last": "칼리￿"
       }
@@ -4219,8 +4549,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "캄팔",
         "last": "캄팔￿"
       }
@@ -4229,8 +4559,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "캔버",
         "last": "캔버￿"
       }
@@ -4239,18 +4569,28 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "캘커",
         "last": "캘커￿"
+      }
+    ],
+    "케메": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
+        "first": "케메",
+        "last": "케메￿"
       }
     ],
     "코나": [
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "코나",
         "last": "코나￿"
       }
@@ -4259,8 +4599,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "코스",
         "last": "코스￿"
       }
@@ -4269,8 +4609,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "코테",
         "last": "코테￿"
       }
@@ -4279,8 +4619,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "코펜",
         "last": "코펜￿"
       }
@@ -4289,8 +4629,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "콘스",
         "last": "콘스￿"
       }
@@ -4299,8 +4639,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "콜로",
         "last": "콜로￿"
       }
@@ -4309,8 +4649,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "콜카",
         "last": "콜카￿"
       }
@@ -4319,8 +4659,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "쾨니",
         "last": "쾨니￿"
       }
@@ -4329,18 +4669,38 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "쾰른",
         "last": "쾰른￿"
+      }
+    ],
+    "쿠이": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
+        "first": "쿠이",
+        "last": "쿠이￿"
+      }
+    ],
+    "크라": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
+        "first": "크라",
+        "last": "크라￿"
       }
     ],
     "크리": [
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "크리",
         "last": "크리￿"
       }
@@ -4349,8 +4709,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "키갈",
         "last": "키갈￿"
       }
@@ -4359,8 +4719,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "키시",
         "last": "키시￿"
       }
@@ -4369,8 +4729,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "키예",
         "last": "키예￿"
       }
@@ -4379,8 +4739,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "키이",
         "last": "키이￿"
       }
@@ -4389,8 +4749,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "킨샤",
         "last": "킨샤￿"
       }
@@ -4399,8 +4759,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "킹스",
         "last": "킹스￿"
       }
@@ -4409,8 +4769,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "타나",
         "last": "타나￿"
       }
@@ -4419,8 +4779,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "타슈",
         "last": "타슈￿"
       }
@@ -4429,8 +4789,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "타이",
         "last": "타이￿"
       }
@@ -4439,8 +4799,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "탈린",
         "last": "탈린￿"
       }
@@ -4449,8 +4809,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "탕롱",
         "last": "탕롱￿"
       }
@@ -4459,8 +4819,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "텔아",
         "last": "텔아￿"
       }
@@ -4469,8 +4829,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "톈진",
         "last": "톈진￿"
       }
@@ -4479,8 +4839,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "트빌",
         "last": "트빌￿"
       }
@@ -4489,8 +4849,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "트필",
         "last": "트필￿"
       }
@@ -4499,8 +4859,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "티라",
         "last": "티라￿"
       }
@@ -4509,8 +4869,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "티란",
         "last": "티란￿"
       }
@@ -4519,8 +4879,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "티토",
         "last": "티토￿"
       }
@@ -4529,8 +4889,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "티플",
         "last": "티플￿"
       }
@@ -4539,8 +4899,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "파두",
         "last": "파두￿"
       }
@@ -4549,8 +4909,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "파리",
         "last": "파리￿"
       }
@@ -4559,18 +4919,28 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "팔리",
         "last": "팔리￿"
+      }
+    ],
+    "페름": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
+        "first": "페름",
+        "last": "페름￿"
       }
     ],
     "페트": [
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "페트",
         "last": "페트￿"
       }
@@ -4579,8 +4949,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "포드",
         "last": "포드￿"
       }
@@ -4589,8 +4959,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "포르",
         "last": "포르￿"
       }
@@ -4599,8 +4969,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "포조",
         "last": "포조￿"
       }
@@ -4609,8 +4979,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "포트",
         "last": "포트￿"
       }
@@ -4619,8 +4989,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "폴토",
         "last": "폴토￿"
       }
@@ -4629,8 +4999,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "푸트",
         "last": "푸트￿"
       }
@@ -4639,8 +5009,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "프라",
         "last": "프라￿"
       }
@@ -4649,8 +5019,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "프레",
         "last": "프레￿"
       }
@@ -4659,8 +5029,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "프룬",
         "last": "프룬￿"
       }
@@ -4669,8 +5039,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "프리",
         "last": "프리￿"
       }
@@ -4679,8 +5049,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "피슈",
         "last": "피슈￿"
       }
@@ -4689,8 +5059,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "하갓",
         "last": "하갓￿"
       }
@@ -4699,8 +5069,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "하노",
         "last": "하노￿"
       }
@@ -4709,8 +5079,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "하라",
         "last": "하라￿"
       }
@@ -4719,8 +5089,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "하르",
         "last": "하르￿"
       }
@@ -4729,8 +5099,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "한성",
         "last": "한성￿"
       }
@@ -4739,8 +5109,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "한양",
         "last": "한양￿"
       }
@@ -4749,8 +5119,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "헬싱",
         "last": "헬싱￿"
       }
@@ -4759,8 +5129,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "호니",
         "last": "호니￿"
       }
@@ -4769,8 +5139,8 @@
       {
         "shard": "places-v1",
         "offset": 0,
-        "length": 55176,
-        "sha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+        "length": 59394,
+        "sha256": "413878742c99b2270787edd55fdbe1f85ffb4507c47f6ef5e8617b2bb82cb799",
         "first": "호찌",
         "last": "호찌￿"
       }

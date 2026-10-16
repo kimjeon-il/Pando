@@ -81,7 +81,7 @@ export function createProjectPreviewCache({ storage, scheduler, getGeometry, get
       const result = await run('validate', { source, baseline, cache });
       return requestedEpoch === epoch ? result : null;
     } catch (error) {
-      if (!error.cancelled) onWarning('Project preview cache rejected', error);
+      if (requestedEpoch === epoch && !error.cancelled && error.name !== 'AbortError') onWarning('Project preview cache rejected', error);
       return null;
     } finally {
       releaseWorkerIfIdle();
@@ -120,7 +120,7 @@ export function createProjectPreviewCache({ storage, scheduler, getGeometry, get
       await storage.writePreview(cache);
       return expectedEpoch === epoch;
     } catch (error) {
-      if (!error.cancelled) onWarning('Project preview cache unavailable', error);
+      if (expectedEpoch === epoch && !error.cancelled && error.name !== 'AbortError') onWarning('Project preview cache unavailable', error);
       return false;
     } finally {
       releaseWorkerIfIdle();
@@ -148,7 +148,9 @@ export function createProjectPreviewCache({ storage, scheduler, getGeometry, get
         work=ensure(project,requestedEpoch,source).finally(()=>{if(inFlight===work)inFlight=null;});
         inFlight=work;
       },1500);
-    })().catch(error=>onWarning('Project preview cache unavailable',error))
+    })().catch(error=>{
+      if(requestedEpoch===epoch && !error.cancelled && error.name!=='AbortError')onWarning('Project preview cache unavailable',error);
+    })
       .finally(()=>{if(inFlight===query)inFlight=null;});
     inFlight=query;
   }

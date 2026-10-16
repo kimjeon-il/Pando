@@ -1,6 +1,6 @@
 #include "referenceimagelibrary.h"
-#include "referencewarp.h"
-#include "referencetracing.h"
+#include <pandoeditor/referenceimage.h>
+#include <pandoeditor/referencetracing.h>
 
 #include <QImage>
 #include <QPainter>
@@ -16,6 +16,13 @@
 #include <QUuid>
 #include <QJsonDocument>
 #include <QJsonArray>
+
+namespace {
+QVariant referenceCalculation(const char* operation,const QVariant& input) {
+    const auto value=pandoeditor::codecjson::parse(QJsonDocument::fromVariant(input).toJson(QJsonDocument::Compact).toStdString());
+    return QJsonDocument::fromJson(QByteArray::fromStdString(pandoeditor::referenceImageOperation(operation,value).encode())).toVariant();
+}
+}
 
 class ReferenceImageTests : public QObject
 {
@@ -47,7 +54,7 @@ private slots:
 
     void fixedWebLiveWireCorpus()
     {
-        QFile file(QFileInfo(QString::fromUtf8(__FILE__)).absoluteDir().filePath("fixtures/reference-trace.json"));QVERIFY(file.open(QIODevice::ReadOnly));const auto fixtures=QJsonDocument::fromJson(file.readAll()).array();QCOMPARE(fixtures.size(),3);
+        QFile file(QDir(QString::fromUtf8(REFERENCE_IMAGE_FIXTURES)).filePath("reference-trace.json"));QVERIFY(file.open(QIODevice::ReadOnly));const auto fixtures=QJsonDocument::fromJson(file.readAll()).array();QCOMPARE(fixtures.size(),3);
         QTemporaryDir dir;ReferenceImageLibrary library;int processed=0;
         for(const auto value:fixtures){const auto row=value.toObject();const auto input=row["input"].toObject(),expected=row["expected"].toObject();const auto edge=input["edge"].toString();QImage image(64,64,QImage::Format_RGB32);
             for(int y=0;y<64;++y)for(int x=0;x<64;++x){int c=edge=="weak"?128:(x>=32&&(edge!="turn"||y<54))?255:0;image.setPixelColor(x,y,QColor(c,c,c));}
@@ -62,7 +69,7 @@ private slots:
 
     void lineRefinementUsesProductionSession()
     {
-        QFile file(QFileInfo(QString::fromUtf8(__FILE__)).absoluteDir().filePath("fixtures/reference-refine.json"));QVERIFY(file.open(QIODevice::ReadOnly));const auto fixtures=QJsonDocument::fromJson(file.readAll()).array();QCOMPARE(fixtures.size(),3);
+        QFile file(QDir(QString::fromUtf8(REFERENCE_IMAGE_FIXTURES)).filePath("reference-refine.json"));QVERIFY(file.open(QIODevice::ReadOnly));const auto fixtures=QJsonDocument::fromJson(file.readAll()).array();QCOMPARE(fixtures.size(),3);
         QTemporaryDir dir;ReferenceImageLibrary library;int processed=0;
         for(const auto value:fixtures){const auto row=value.toObject();const auto input=row["input"].toObject(),expected=row["expected"].toObject();const auto edge=input["edge"].toString();QImage image(64,64,QImage::Format_RGB32);
             for(int y=0;y<64;++y)for(int x=0;x<64;++x){int c=edge=="weak"?128:(x>=32&&(edge!="turn"||y<54))?255:0;image.setPixelColor(x,y,QColor(c,c,c));}
@@ -133,7 +140,7 @@ private slots:
 
     void fixedWebGeographicCorpus()
     {
-        QFile file(QFileInfo(QString::fromUtf8(__FILE__)).absoluteDir().filePath("fixtures/reference-calibration.json"));
+        QFile file(QDir(QString::fromUtf8(REFERENCE_IMAGE_FIXTURES)).filePath("reference-calibration.json"));
         QVERIFY(file.open(QIODevice::ReadOnly));const auto fixtures=QJsonDocument::fromJson(file.readAll()).array();QCOMPARE(fixtures.size(),7);
         ReferenceImageLibrary library;int processed=0;
         for(const auto &fixture:fixtures) {
@@ -225,28 +232,20 @@ private slots:
         QVERIFY(!library.images().back().toMap()["cornerPinEnabled"].toBool());
     }
 
-    void solvesSimilarityAffineProjectiveAndTps()
+    void sharedCalibrationFitsModesAndRejectsSingularInputs()
     {
-        const QVector<ReferenceControlPoint> similarity{{{0,0},{5,7}},{{10,0},{25,7}}};
-        auto result=solveReferenceWarp(ReferenceWarpMode::Similarity,similarity);
-        QVERIFY(result.valid);QCOMPARE(result.map({4,3}),QPointF(13,13));QVERIFY(result.rmsError<1e-8);
-
-        const QVector<ReferenceControlPoint> affine{{{0,0},{2,3}},{{10,0},{22,3}},{{0,10},{2,33}}};
-        result=solveReferenceWarp(ReferenceWarpMode::Affine,affine);
-        QVERIFY(result.valid);QVERIFY(QLineF(result.map({4,5}),QPointF(10,18)).length()<1e-8);
-
-        const QVector<ReferenceControlPoint> projective{{{0,0},{0,0}},{{10,0},{12,1}},{{10,10},{11,12}},{{0,10},{1,10}}};
-        result=solveReferenceWarp(ReferenceWarpMode::Projective,projective);
-        QVERIFY(result.valid);QVERIFY(result.maximumError<1e-7);
-
-        result=solveReferenceWarp(ReferenceWarpMode::ThinPlateSpline,affine);
-        QVERIFY(result.valid);QVERIFY(result.maximumError<1e-7);
-    }
-
-    void rejectsInsufficientAndDuplicateControlPoints()
-    {
-        QVERIFY(!solveReferenceWarp(ReferenceWarpMode::Affine,{{{0,0},{0,0}},{{1,0},{1,0}}}).valid);
-        QVERIFY(!solveReferenceWarp(ReferenceWarpMode::Similarity,{{{0,0},{0,0}},{{0,0},{1,1}}}).valid);
+        const auto point=[](const char* id,double u,double v,double x,double y){return QVariantMap{{"id",id},{"image",QVariantList{u,v}},{"coordinate",QVariantList{x,y}}};};
+        const QVariantList points{point("a",0,0,10,40),point("b",1,0,20,40),point("c",0,1,10,30),point("d",1,1,20,30)};
+        for(const QString& mode:{QStringLiteral("similarity"),QStringLiteral("affine"),QStringLiteral("projective"),QStringLiteral("tps")}) {
+            const auto warp=referenceCalculation("warp",QVariantMap{{"points",points},{"mode",mode}}).toMap();
+            QVERIFY(warp.value("ok").toBool());
+            const auto projected=referenceCalculation("project",QVariantMap{{"warp",warp},{"point",QVariantList{.5,.5}}}).toList();
+            QCOMPARE(projected.size(),2);QVERIFY(std::abs(projected[0].toDouble()-15)<1e-7);QVERIFY(std::abs(projected[1].toDouble()-35)<1e-7);
+        }
+        const auto insufficient=referenceCalculation("warp",QVariantMap{{"points",QVariantList{points[0]}},{"mode","affine"}}).toMap();
+        QVERIFY(!insufficient.value("ok").toBool());QCOMPARE(insufficient.value("reason").toString(),QStringLiteral("insufficient-control-points"));
+        const auto singular=referenceCalculation("warp",QVariantMap{{"points",QVariantList{point("a",0,0,10,40),point("b",0,0,20,40)}},{"mode","similarity"}}).toMap();
+        QVERIFY(!singular.value("ok").toBool());QCOMPARE(singular.value("reason").toString(),QStringLiteral("singular-control-points"));
     }
 
     void persistsSeparatelyAndKeepsFiftyStepHistory()
@@ -319,12 +318,14 @@ private slots:
 
     void liveWireAndGradientRefinerFollowImageEdge()
     {
-        QImage image(32,24,QImage::Format_RGB32);image.fill(Qt::white);
-        for(int y=0;y<image.height();++y)for(int x=0;x<16;++x)image.setPixel(x,y,qRgb(0,0,0));
-        const auto path=referenceLiveWire(image,{15,2},{15,21});QVERIFY(path.size()>=20);
-        for(const auto& point:path)QVERIFY(std::abs(point.x()-15)<=1);
-        const QVector<QPointF> draft{{12,3},{12,10},{12,20}};const auto refined=refineReferenceLine(image,draft,5);QCOMPARE(refined.size(),draft.size());
-        for(const auto& point:refined)QVERIFY(point.x()>=14&&point.x()<=16);
+        std::vector<std::uint8_t> rgba(32*24*4,255);
+        for(int y=0;y<24;++y)for(int x=0;x<16;++x)for(int channel=0;channel<3;++channel)rgba[(y*32+x)*4+channel]=0;
+        const auto field=pandoeditor::buildReferenceGradientField(32,24,rgba,32,24);
+        const auto tree=pandoeditor::buildReferenceTraceTree(field,{15,2},pandoeditor::ReferencePoint{15,21});
+        const auto path=pandoeditor::traceReferencePath(field,tree,{15,21});QVERIFY(path.ok);QVERIFY(path.points.size()>=20);
+        for(const auto& point:path.points)QVERIFY(std::abs(point[0]-15)<=1);
+        const auto refined=pandoeditor::refineReferenceTrace(field,{{12,3},{12,10},{12,20}},5);QVERIFY(refined.ok);QVERIFY(refined.points.size()>=2);
+        for(const auto& point:refined.points)QVERIFY(point[0]>=14&&point[0]<=16);
     }
 
     void linearConstraintsPersistAndDriveTpsCalibration()

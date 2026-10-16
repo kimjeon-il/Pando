@@ -14,7 +14,7 @@ QJsonArray corpus() {
     return QJsonDocument::fromJson(file.readAll()).array();
 }
 Geometry decodedGeometry(const QJsonObject& value) {
-    Geometry geometry;geometry.type=value["type"].toString().toStdString();auto polygons=value["coordinates"].toArray();if(geometry.type=="Polygon")polygons=QJsonArray{polygons};
+    Geometry geometry;geometry.type=value["type"].toString().toStdString();auto polygons=value["coordinates"].toArray();if(geometry.type=="Polygon")polygons=QJsonArray{QJsonValue(polygons)};
     for(const auto& polygon:polygons){Polygon rings;for(const auto& ring:polygon.toArray()){Ring points;for(const auto& point:ring.toArray()){const auto xy=point.toArray();points.push_back({xy[0].toDouble(),xy[1].toDouble()});}rings.push_back(std::move(points));}geometry.polygons.push_back(std::move(rings));}return geometry;
 }
 TerritoryCutRequest typedRequest(const QJsonObject& input) {
@@ -38,7 +38,7 @@ class CutGeometryCalculatorTests : public QObject {
     Q_OBJECT
 private slots:
     void typedAdapterMatchesActualOwnedKernelResults() {
-        auto cases=corpus();auto pending=payload();pending["coords"]=QJsonArray{QJsonArray{1,2}};cases.append(QJsonObject{{"payload",pending}});
+        auto cases=corpus();auto pending=payload();pending["coords"]=QJsonArray{QJsonValue(QJsonArray{1,2})};cases.append(QJsonObject{{"payload",pending}});
         for(const auto& row:cases) {
             const auto input=row.toObject()["payload"].toObject();const auto raw=prepareCutGeometry(input);QVERIFY2(raw.succeeded(),qPrintable(raw.detail));
             const auto typed=prepareTerritoryLineCandidates(typedRequest(input));
@@ -75,7 +75,7 @@ private slots:
         QCOMPARE(result.result,expected);QVERIFY(result.inputUnchanged);
     }
     void pendingLinePreservesExactResult() {
-        auto input=payload();input["coords"]=QJsonArray{QJsonArray{1,2}};
+        auto input=payload();input["coords"]=QJsonArray{QJsonValue(QJsonArray{1,2})};
         const auto result=prepareCutGeometry(input);QVERIFY2(result.succeeded(),qPrintable(result.detail));
         QCOMPARE(result.result,QJsonObject({{"line",input["coords"]},{"snaps",QJsonObject{{"start",QJsonValue::Null},{"end",QJsonValue::Null}}},
             {"status","pending"},{"valid",false},{"message",""},{"issues",QJsonArray{}}}));

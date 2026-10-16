@@ -1,5 +1,6 @@
 #include "referenceautogeoref.h"
-#include "referencewarp.h"
+#include <pandoeditor/referenceimage.h>
+#include <QJsonDocument>
 
 #include <algorithm>
 #include <array>
@@ -14,8 +15,6 @@
 #include <QVector>
 
 namespace {
-constexpr double EarthRadiusMeters=6371008.8;
-constexpr double Pi=3.14159265358979323846;
 
 struct Candidate {
     QString id,name,kind;
@@ -33,17 +32,6 @@ bool pair(const QVariant& value,QPointF& result)
     const auto items=value.toList();if(items.size()!=2)return false;
     bool xok=false,yok=false;const double x=items[0].toDouble(&xok),y=items[1].toDouble(&yok);
     if(!xok||!yok||!std::isfinite(x)||!std::isfinite(y))return false;result={x,y};return true;
-}
-
-double haversine(const QPointF& a,const QPointF& b)
-{
-    const double toRadians=Pi/180.;
-    const double lat1=a.y()*toRadians,lat2=b.y()*toRadians;
-    const double dLat=(b.y()-a.y())*toRadians;
-    double dLon=b.x()-a.x();while(dLon>180)dLon-=360;while(dLon<-180)dLon+=360;dLon*=toRadians;
-    const double sLat=std::sin(dLat/2),sLon=std::sin(dLon/2);
-    const double h=sLat*sLat+std::cos(lat1)*std::cos(lat2)*sLon*sLon;
-    return 2*EarthRadiusMeters*std::asin(std::min(1.,std::sqrt(std::max(0.,h))));
 }
 
 int medianLuma(const QImage& image,int left,int top,int right,int bottom)
@@ -119,165 +107,6 @@ std::optional<Candidate> detect(const QImage& image,const QVariantMap& seed,int 
     candidate.coordinate=coordinate;candidate.pixel=center;candidate.confidence=clamp(bestScore*.9+priority*.1,0,1);return candidate;
 }
 
-ReferenceWarpMode resolvedMode(const QString& requested,int count)
-{
-    const auto mode=requested.toLower();
-    if(mode=="similarity")return ReferenceWarpMode::Similarity;
-    if(mode=="affine")return ReferenceWarpMode::Affine;
-    if(mode=="projective")return ReferenceWarpMode::Projective;
-    if(count>=4)return ReferenceWarpMode::Projective;
-    if(count>=3)return ReferenceWarpMode::Affine;
-    return ReferenceWarpMode::Similarity;
-}
-int minimum(ReferenceWarpMode mode)
-{return mode==ReferenceWarpMode::Projective?4:mode==ReferenceWarpMode::Affine?3:2;}
-QString modeName(ReferenceWarpMode mode)
-{return mode==ReferenceWarpMode::Projective?"projective":mode==ReferenceWarpMode::Affine?"affine":"similarity";}
-
-bool anchorPair(const QVariantMap& anchor,QPointF& image,QPointF& coordinate)
-{
-    if(anchor.isEmpty())return false;
-    return pair(anchor.value("image"),image)&&pair(anchor.value("coordinate"),coordinate)
-        &&image.x()>=0&&image.x()<=1&&image.y()>=0&&image.y()<=1
-        &&coordinate.x()>=-180&&coordinate.x()<=180&&coordinate.y()>=-90&&coordinate.y()<=90;
-}
-
-bool enforceAnchor(ReferenceWarpResult& warp,const QVariantMap& anchor)
-{
-    QPointF image,coordinate;if(!anchorPair(anchor,image,coordinate))return anchor.isEmpty();
-    if(!warp.valid)return false;
-    const QPointF actual=warp.map(image),delta=coordinate-actual;
-    if(!std::isfinite(delta.x())||!std::isfinite(delta.y()))return false;
-    if(warp.resolvedMode==ReferenceWarpMode::Similarity) {
-        if(warp.xCoefficients.size()<4)return false;
-        warp.xCoefficients[2]+=delta.x();warp.xCoefficients[3]+=delta.y();
-    } else if(warp.resolvedMode==ReferenceWarpMode::Affine) {
-        if(warp.xCoefficients.size()<3||warp.yCoefficients.size()<3)return false;
-        warp.xCoefficients[2]+=delta.x();warp.yCoefficients[2]+=delta.y();
-    } else if(warp.resolvedMode==ReferenceWarpMode::Projective) {
-        if(warp.xCoefficients.size()<8)return false;
-        const double h6=warp.xCoefficients[6],h7=warp.xCoefficients[7];
-        warp.xCoefficients[0]+=delta.x()*h6;warp.xCoefficients[1]+=delta.x()*h7;warp.xCoefficients[2]+=delta.x();
-        warp.xCoefficients[3]+=delta.y()*h6;warp.xCoefficients[4]+=delta.y()*h7;warp.xCoefficients[5]+=delta.y();
-    } else {
-        const int count=warp.controlPoints.size();
-        if(warp.xCoefficients.size()<count+3||warp.yCoefficients.size()<count+3)return false;
-        warp.xCoefficients[count]+=delta.x();warp.yCoefficients[count]+=delta.y();
-    }
-    return haversine(warp.map(image),coordinate)<=.01;
-}
-
-quint32 nextRandom(quint32& state)
-{state^=state<<13;state^=state>>17;state^=state<<5;return state;}
-
-QVector<int> sampleIndices(int count,int needed,quint32& state)
-{
-    QVector<int> indices;indices.reserve(count);for(int i=0;i<count;++i)indices.push_back(i);
-    for(int i=0;i<needed;++i){const int offset=int(nextRandom(state)%quint32(count-i));std::swap(indices[i],indices[i+offset]);}
-    indices.resize(needed);std::sort(indices.begin(),indices.end());return indices;
-}
-
-QVector<ReferenceControlPoint> controls(const QVector<Candidate>& candidates,const QVector<int>& indices,const QVariantMap& anchor={})
-{
-    QVector<ReferenceControlPoint> result;result.reserve(indices.size()+1);
-    QPointF anchorImage,anchorCoordinate;if(anchorPair(anchor,anchorImage,anchorCoordinate))result.push_back({anchorImage,anchorCoordinate});
-    for(int index:indices)result.push_back({candidates[index].image,candidates[index].coordinate});return result;
-}
-QVector<ReferenceControlPoint> controls(const QVector<Candidate>& candidates,const QVariantMap& anchor={})
-{
-    QVector<ReferenceControlPoint> result;result.reserve(candidates.size()+1);
-    QPointF anchorImage,anchorCoordinate;if(anchorPair(anchor,anchorImage,anchorCoordinate))result.push_back({anchorImage,anchorCoordinate});
-    for(const auto& c:candidates)result.push_back({c.image,c.coordinate});return result;
-}
-
-struct Score {QVector<int> inliers;double confidence=0,rms=std::numeric_limits<double>::infinity();};
-Score score(const ReferenceWarpResult& warp,const QVector<Candidate>& candidates,double threshold,const QVariantMap& anchor)
-{
-    Score result;double squared=0;
-    QPointF anchorImage,anchorCoordinate;
-    if(!anchor.isEmpty()&&pair(anchor.value("image"),anchorImage)&&pair(anchor.value("coordinate"),anchorCoordinate)){
-        if(haversine(warp.map(anchorImage),anchorCoordinate)>threshold)return result;
-    }
-    for(int i=0;i<candidates.size();++i){
-        const double meters=haversine(warp.map(candidates[i].image),candidates[i].coordinate);
-        if(!std::isfinite(meters)||meters>threshold)continue;result.inliers.push_back(i);result.confidence+=candidates[i].confidence;squared+=meters*meters;
-    }
-    if(!result.inliers.isEmpty())result.rms=std::sqrt(squared/result.inliers.size());return result;
-}
-bool better(const Score& a,const Score& b)
-{
-    if(a.inliers.size()!=b.inliers.size())return a.inliers.size()>b.inliers.size();
-    if(std::abs(a.confidence-b.confidence)>1e-12)return a.confidence>b.confidence;
-    return a.rms<b.rms;
-}
-
-struct ModelValidation {
-    ReferenceWarpMode mode=ReferenceWarpMode::Similarity;
-    int count=0;
-    double rms=std::numeric_limits<double>::infinity();
-    double median=std::numeric_limits<double>::infinity();
-    double maximum=std::numeric_limits<double>::infinity();
-};
-
-int modeComplexity(ReferenceWarpMode mode)
-{return mode==ReferenceWarpMode::Similarity?0:mode==ReferenceWarpMode::Affine?1:2;}
-
-std::optional<ModelValidation> crossValidate(ReferenceWarpMode mode,const QVector<Candidate>& candidates,const QVariantMap& anchor)
-{
-    QPointF anchorImage,anchorCoordinate;const int hard=anchorPair(anchor,anchorImage,anchorCoordinate)?1:0;
-    const int needed=minimum(mode);
-    if(candidates.size()<2||candidates.size()-1+hard<needed)return {};
-    QVector<double> errors;errors.reserve(candidates.size());
-    for(int hold=0;hold<candidates.size();++hold){
-        QVector<Candidate> training;training.reserve(candidates.size()-1);
-        for(int i=0;i<candidates.size();++i)if(i!=hold)training.push_back(candidates[i]);
-        auto warp=solveReferenceWarp(mode,controls(training,anchor));
-        if(!warp.valid||!enforceAnchor(warp,anchor))return {};
-        const double meters=haversine(warp.map(candidates[hold].image),candidates[hold].coordinate);
-        if(!std::isfinite(meters))return {};
-        errors.push_back(meters);
-    }
-    auto sorted=errors;std::sort(sorted.begin(),sorted.end());
-    double squared=0;for(double value:errors)squared+=value*value;
-    const int middle=sorted.size()/2;
-    const double median=sorted.size()%2?sorted[middle]:(sorted[middle-1]+sorted[middle])/2.;
-    return ModelValidation{mode,int(errors.size()),std::sqrt(squared/errors.size()),median,sorted.back()};
-}
-
-QVariantMap validationVariant(const ModelValidation& value)
-{
-    return {{"mode",modeName(value.mode)},{"count",value.count},{"rmsMeters",value.rms},
-        {"medianMeters",value.median},{"maxMeters",value.maximum}};
-}
-
-ReferenceWarpMode selectRefitMode(const QString& requested,ReferenceWarpMode consensus,
-                                  const QVector<Candidate>& accepted,const QVariantMap& anchor,
-                                  QVariantMap& diagnostics)
-{
-    QVariantList values;
-    if(requested.toLower()!="auto"||accepted.size()<5){
-        diagnostics={{"consensusMode",modeName(consensus)},{"selectedMode",modeName(consensus)},{"validations",values}};
-        return consensus;
-    }
-    QVector<ModelValidation> validations;
-    for(const auto candidate:{ReferenceWarpMode::Similarity,ReferenceWarpMode::Affine,ReferenceWarpMode::Projective})
-        if(auto value=crossValidate(candidate,accepted,anchor))validations.push_back(*value);
-    if(validations.isEmpty()){
-        diagnostics={{"consensusMode",modeName(consensus)},{"selectedMode",modeName(consensus)},{"validations",values}};
-        return consensus;
-    }
-    ModelValidation best=validations.front();
-    for(int i=1;i<validations.size();++i){
-        const auto& candidate=validations[i];
-        const bool materiallyBetter=candidate.rms<best.rms*.99;
-        const bool effectivelyTied=candidate.rms<=best.rms*1.01;
-        if(materiallyBetter||(effectivelyTied&&modeComplexity(candidate.mode)<modeComplexity(best.mode)))best=candidate;
-    }
-    for(const auto& value:validations)values.push_back(validationVariant(value));
-    diagnostics={{"consensusMode",modeName(consensus)},{"selectedMode",modeName(best.mode)},{"validations",values}};
-    return best.mode;
-}
-
 QString normalizedName(QString value)
 {
     value=value.normalized(QString::NormalizationForm_D).toLower();
@@ -322,47 +151,36 @@ ReferenceAutoGeorefResult solveCandidates(const QVector<Candidate>& candidates,i
                                           const QString& source)
 {
     ReferenceAutoGeorefResult output;output.seedCount=seedCount;output.candidateCount=candidates.size();output.source=source;
-    QPointF anchorImage,anchorCoordinate;const bool hasAnchor=anchorPair(anchor,anchorImage,anchorCoordinate);
-    if(!anchor.isEmpty()&&!hasAnchor){output.reason=QStringLiteral("invalid-anchor");return output;}
-    const int candidateCount=int(candidates.size()),hardPointCount=hasAnchor?1:0,totalPointCount=candidateCount+hardPointCount;
-    if(totalPointCount<2){output.reason=source=="place-ocr"?QStringLiteral("insufficient-ocr-symbol-candidates"):QStringLiteral("insufficient-symbol-candidates");return output;}
-    const auto consensusMode=resolvedMode(requestedMode,totalPointCount);const int required=minimum(consensusMode),requiredSoft=std::max(0,required-hardPointCount);output.mode=modeName(consensusMode);
-    if(candidateCount<requiredSoft||totalPointCount<required){output.reason=QStringLiteral("insufficient-auto-georef-candidates");return output;}
-    const double threshold=25000.;
-    const int requiredTotalInliers=std::min(totalPointCount,std::max(required,int(std::ceil(totalPointCount*.35))));
-    const int requiredInliers=std::max(0,requiredTotalInliers-hardPointCount);
-    Score best;bool hasBest=false;quint32 random=0x6d2b79f5u;QSet<QString> seen;
-    for(int trial=0;trial<512;++trial){
-        const auto indices=sampleIndices(candidateCount,requiredSoft,random);QString key;for(int index:indices)key+=QString::number(index)+",";
-        if(seen.contains(key)){if(requiredSoft>=candidateCount||seen.size()>=std::max(1,candidateCount*32))break;continue;}seen.insert(key);
-        auto warp=solveReferenceWarp(consensusMode,controls(candidates,indices,anchor));if(!warp.valid||!enforceAnchor(warp,anchor))continue;const auto current=score(warp,candidates,threshold,anchor);
-        if(current.inliers.size()<requiredInliers)continue;if(!hasBest||better(current,best)){best=current;hasBest=true;}
-        if(current.inliers.size()==candidateCount)break;
+    QPointF anchorImage,anchorCoordinate;
+    if(!anchor.isEmpty()&&(!pair(anchor.value("image"),anchorImage)||!pair(anchor.value("coordinate"),anchorCoordinate)
+        ||anchorImage.x()<0||anchorImage.x()>1||anchorImage.y()<0||anchorImage.y()>1
+        ||anchorCoordinate.x()< -180||anchorCoordinate.x()>180||anchorCoordinate.y()< -90||anchorCoordinate.y()>90)) {
+        output.reason=QStringLiteral("invalid-anchor");return output;
     }
-    if(!hasBest){output.reason=QStringLiteral("no-auto-georef-consensus");return output;}
-
-    QVector<Candidate> accepted;for(int index:best.inliers)accepted.push_back(candidates[index]);
-    const auto refitMode=selectRefitMode(requestedMode,consensusMode,accepted,anchor,output.modelSelection);
-    output.mode=modeName(refitMode);
-    auto finalWarp=solveReferenceWarp(refitMode,controls(accepted,anchor));if(!finalWarp.valid||!enforceAnchor(finalWarp,anchor)){output.reason=QStringLiteral("auto-georef-refit-failed");return output;}
-    const auto finalScore=score(finalWarp,candidates,threshold,anchor);if(finalScore.inliers.size()<requiredInliers){output.reason=QStringLiteral("auto-georef-refit-failed");return output;}
-    accepted.clear();for(int index:finalScore.inliers)accepted.push_back(candidates[index]);finalWarp=solveReferenceWarp(refitMode,controls(accepted,anchor));
-    if(!finalWarp.valid||!enforceAnchor(finalWarp,anchor)){output.reason=QStringLiteral("auto-georef-refit-failed");return output;}
-
-    double squared=0;QSet<int> inlierSet;for(int index:finalScore.inliers)inlierSet.insert(index);
-    for(int i=0;i<candidates.size();++i){
-        const double meters=haversine(finalWarp.map(candidates[i].image),candidates[i].coordinate);
-        const bool inlier=inlierSet.contains(i)&&meters<=threshold;
-        QVariantMap match{{"id",candidates[i].id},{"name",candidates[i].name},{"image",QVariantList{candidates[i].image.x(),candidates[i].image.y()}},
-            {"coordinate",QVariantList{candidates[i].coordinate.x(),candidates[i].coordinate.y()}},{"confidence",candidates[i].confidence},{"residualMeters",meters},{"inlier",inlier}};
+    if(candidates.size()+(anchor.isEmpty()?0:1)<2){output.reason=source=="place-ocr"?QStringLiteral("insufficient-ocr-symbol-candidates"):QStringLiteral("insufficient-symbol-candidates");return output;}
+    QVariantList points;
+    for(const auto &candidate:candidates)points.push_back(QVariantMap{{"id",candidate.id},
+        {"image",QVariantList{candidate.image.x(),candidate.image.y()}},
+        {"coordinate",QVariantList{candidate.coordinate.x(),candidate.coordinate.y()}},
+        {"confidence",candidate.confidence},{"origin",source}});
+    const QVariantMap input{{"points",points},{"anchor",anchor.isEmpty()?QVariant():QVariant(anchor)},
+        {"mode",requestedMode},{"maxTrials",256},{"inlierThresholdMeters",25000.}};
+    const auto raw=pandoeditor::referenceImageOperation("autoGeoref",pandoeditor::codecjson::parse(
+        QJsonDocument::fromVariant(input).toJson(QJsonDocument::Compact).toStdString())).encode();
+    const auto result=QJsonDocument::fromJson(QByteArray::fromStdString(raw)).toVariant().toMap();
+    output.ok=result.value("ok").toBool();output.reason=result.value("reason").toString();output.mode=result.value("mode").toString();
+    if(!output.ok)return output;
+    const auto diagnostics=result.value("diagnostics").toMap();output.rmsMeters=diagnostics.value("rmsMeters").toDouble();
+    output.hardMaxMeters=diagnostics.value("hardMaxMeters").toDouble();output.modelSelection=diagnostics.value("modelSelection").toMap();
+    output.inlierCount=result.value("inlierCount").toInt();output.rejectedCount=result.value("rejectedCount").toInt();output.rejectedIds=result.value("rejectedIds").toList();
+    for(const auto &value:result.value("matches").toList()) {
+        auto match=value.toMap();const auto id=match.value("id").toString();
+        const auto sourceCandidate=std::find_if(candidates.begin(),candidates.end(),[&](const auto &candidate){return candidate.id==id;});
+        if(sourceCandidate!=candidates.end())match["name"]=sourceCandidate->name;
         output.matches.push_back(match);
-        if(inlier){output.controlPoints.push_back(QVariantMap{{"id",candidates[i].id},{"image",match["image"]},{"coordinate",match["coordinate"]}});squared+=meters*meters;}
-        else output.rejectedIds.push_back(candidates[i].id);
+        if(match.value("inlier").toBool())output.controlPoints.push_back(QVariantMap{{"id",id},{"image",match.value("image")},{"coordinate",match.value("coordinate")}});
     }
-    output.inlierCount=output.controlPoints.size();output.rejectedCount=output.rejectedIds.size();
-    if(hasAnchor)output.hardMaxMeters=haversine(finalWarp.map(anchorImage),anchorCoordinate);
-    output.rmsMeters=output.inlierCount?std::sqrt(squared/output.inlierCount):0.;output.ok=output.inlierCount>=requiredInliers;
-    if(!output.ok)output.reason=QStringLiteral("no-auto-georef-consensus");return output;
+    return output;
 }
 
 std::optional<Candidate> detectNearTextBox(const QImage& image,const QVariantMap& seed,const QVariantMap& detection,int searchRadius)

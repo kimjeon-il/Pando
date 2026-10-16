@@ -6,7 +6,7 @@ import { territorialRootId } from './territorial-units.js';
 import { sharedCalculationCore } from './temporal.js';
 import { computeCountrySharedContacts } from './country-contact-core.js';
 
-for (const capability of ['boundaryOpposingInteriors', 'boundaryOpposingInteriorsBatch']) {
+for (const capability of ['boundaryOpposingInteriors', 'boundaryOpposingInteriorsBatch', 'boundaryEdgeBoxesBatch']) {
   if (typeof sharedCalculationCore?.[capability] !== 'function') {
     throw Object.assign(new Error('Shared C++ boundary contact capability unavailable: ' + capability),
       { code: 'PL-CORE-WASM-CAPABILITY' });
@@ -39,19 +39,6 @@ function polygonRings(feature) {
 
 function featureId(feature, index = 0) {
   return String(feature?.id || index);
-}
-
-function pointOnSegment(point, a, b, epsilon) {
-  const dx = Number(b[0]) - Number(a[0]);
-  const dy = Number(b[1]) - Number(a[1]);
-  const length2 = dx * dx + dy * dy;
-  if (!length2) return null;
-  const t = ((Number(point[0]) - Number(a[0])) * dx + (Number(point[1]) - Number(a[1])) * dy) / length2;
-  if (t < -epsilon || t > 1 + epsilon) return null;
-  const x = Number(a[0]) + dx * t;
-  const y = Number(a[1]) + dy * t;
-  const distance = Math.hypot(Number(point[0]) - x, Number(point[1]) - y);
-  return distance <= epsilon ? Math.max(0, Math.min(1, t)) : null;
 }
 
 export function boundarySourceSegments(feature, fallbackId = 0) {
@@ -88,13 +75,14 @@ export function prepareBoundaryFeature(feature) {
   const segments = boundarySourceSegments(feature);
   const bounds = [Infinity, Infinity, -Infinity, -Infinity];
   const spatialIndex = createBoundarySpatialIndex();
+  const boxes = segments.length
+    ? sharedCalculationCore.boundaryEdgeBoxesBatch(segments.map(({ a, b }) => [a, b])) : [];
   segments.forEach((row, index) => {
-    const box = segmentBounds(row);
-    for (let axis = 0; axis < 2; axis++) {
+    for (const box of boxes[index]) for (let axis = 0; axis < 2; axis++) {
       bounds[axis] = Math.min(bounds[axis], box[axis]);
       bounds[axis + 2] = Math.max(bounds[axis + 2], box[axis + 2]);
     }
-    spatialIndex.insert(index, row, box);
+    spatialIndex.insert(index, row, boxes[index]);
   });
   return { id: String(feature.id), feature, geometry: feature.geometry, segments, bounds, spatialIndex,
     renderableSegments: buildRenderableBoundarySegments(feature.geometry) };
@@ -201,13 +189,11 @@ export function attachBoundarySegmentReferences(segment, preparedStore) {
   for (const id of segment.ownerIds) {
     const prepared = preparedStore.get(id);
     if (!prepared) throw new Error(`공유 경계의 원본 객체가 없습니다: ${id}`);
-    let edge;
-    for (const shift of [0, 360, -360]) {
-      const start = [segment.start[0] + shift, segment.start[1]], end = [segment.end[0] + shift, segment.end[1]];
-      edge = prepared.spatialIndex.query(padBoundaryBounds(segmentBounds({ a: start, b: end })))
-        .find(row => pointOnSegment(start, row.a, row.b, 1e-7) !== null && pointOnSegment(end, row.a, row.b, 1e-7) !== null);
-      if (edge) break;
-    }
+    const candidates = prepared.spatialIndex.query(padBoundaryBounds(segmentBounds({ a: segment.start, b: segment.end })));
+    const splits = candidates.length ? sharedCalculationCore.boundarySplitCandidatesBatch(
+      candidates.map(({ a, b }) => [a, b]), [segment.start, segment.end], 1e-7) : [];
+    const edge = candidates.find((_, index) => splits[index].some(([node]) => node === 0)
+      && splits[index].some(([node]) => node === 1));
     if (!edge) throw new Error(`공유 경계의 원본 구간이 없습니다: ${id}`);
     refs.push(edge);
   }

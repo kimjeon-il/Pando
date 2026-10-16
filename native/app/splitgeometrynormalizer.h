@@ -1,6 +1,5 @@
 #pragma once
 #include <pandoeditor/geometryoperations.h>
-class QJSEngine;
 namespace pandoeditor {
 struct SplitGeometryNormalizationResult {
     GeometryOperationStatus status=GeometryOperationStatus::Failed;
@@ -11,13 +10,8 @@ struct SplitGeometryNormalizationResult {
         return status==GeometryOperationStatus::Completed || status==GeometryOperationStatus::Empty;
     }
 };
-// Evaluate the complete, hash-verified canonical Web helper in an engine owned
-// by the caller. The caller loads polygon clipping; this never replaces it.
-void loadCanonicalPolygonGeometry(QJSEngine& engine);
-// Fresh private engine per call. Source coordinates and component order are
-// retained exactly. Raw cut-worker input must not be prewrapped through this API.
-// Empty is successful, not a canonical replacement. Synchronous JS cancellation
-// wins at call boundaries; callers retain cancellation/stale-result checks.
+// Source coordinates and component order are retained. Raw cut-worker input
+// must not be prewrapped through this API. Empty is a successful calculation.
 SplitGeometryNormalizationResult wrapSplitGeometry(const Geometry& geometry,
     const GeometryCancellation& cancelled={});
 // Ordinary entity-store normalization: keep raw geographic edges unsegmented.

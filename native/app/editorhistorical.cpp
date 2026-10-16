@@ -12,6 +12,7 @@
 #include <QFileInfo>
 #include <QFile>
 #include <QCryptographicHash>
+#include <QUuid>
 #include <QCollator>
 #include <QLocale>
 #include <algorithm>
@@ -452,6 +453,7 @@ bool EditorController::prepareHistoricalAdd(const QVariantMap& options) {
             const auto choice=ownership.value(qs(id)).toMap();
             pandoeditor::HistoricalAddRequest request;
             request.libraryId=id;request.referenceDate=referenceDate;
+            request.instanceId="library_"+QUuid::createUuid().toString(QUuid::WithoutBraces).toStdString();
             request.geometryVersionId=choice.value("geometryVersionId",
                 id==libraryId?options.value("geometryVersionId",historicalVersionId_):QVariant()).toString().toStdString();
             request.approvePartial=choice.value("approvePartial",options.value("approvePartial")).toBool();
@@ -481,12 +483,17 @@ bool EditorController::prepareHistoricalAdd(const QVariantMap& options) {
         const auto base=project_.snapshot();
         const auto catalog=historicalLibrary_;
         const auto token=historicalSession_;
+        auto cancelled=std::make_shared<std::atomic_bool>(false);historicalCatalogCancel_=cancelled;
         historicalError_.clear();historicalPreviewEpoch_=coreEpoch();historicalStage_=QStringLiteral("preparing");emit historicalChanged();
         auto* watcher=new QFutureWatcher<pandoeditor::HistoricalInstantiationPlan>(this);
         connect(watcher,&QFutureWatcher<pandoeditor::HistoricalInstantiationPlan>::finished,this,
-            [this,watcher,token]() {
+            [this,watcher,token,base,catalog,cancelled]() {
                 watcher->deleteLater();
                 if(token!=historicalSession_)return;
+                if(cancelled->load()||catalog!=historicalLibrary_||!base.matches(project_)) {
+                    historicalStage_=QStringLiteral("ready");historicalError_=QStringLiteral("PL-LIB-STALE: project or map month changed");
+                    emit historicalChanged();return;
+                }
                 try {
                     auto plan=watcher->result();
                     pandoeditor::CommandArguments args;args.action=plan;
@@ -508,8 +515,9 @@ bool EditorController::prepareHistoricalAdd(const QVariantMap& options) {
                 }catch(const std::exception& error){historicalStage_=QStringLiteral("ready");historicalError_=QString::fromUtf8(error.what());}
                 emit historicalChanged();
             });
-        watcher->setFuture(QtConcurrent::run([base,catalog,requests=std::move(requests)]() {
-            return pandoeditor::prepareHistoricalTransaction(base,*catalog,requests,pandoeditor::makeTransactionGeometryCalculator());
+        watcher->setFuture(QtConcurrent::run([base,catalog,cancelled,requests=std::move(requests)]() {
+            return pandoeditor::prepareHistoricalTransaction(base,*catalog,requests,pandoeditor::makeTransactionGeometryCalculator(),
+                [cancelled](){return cancelled->load();});
         }));
         return true;
     }catch(const std::exception& error){historicalStage_=QStringLiteral("ready");historicalError_=QString::fromUtf8(error.what());emit historicalChanged();return false;}

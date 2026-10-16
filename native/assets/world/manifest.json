@@ -5,56 +5,56 @@
   "canonicalPositionCount": 548454,
   "origin": {
     "repository": "kimjeon-il/Pando",
-    "mode": "mixed-pinned",
-    "webCommit": null,
-    "worldBundleSha256": null
+    "mode": "web-bundle",
+    "webCommit": "5920f74d75c513f91e8a934db5814e863358955f",
+    "worldBundleSha256": "a9ac4356c02417b87d6503c8ff92856c338be3c8665199d24a97a6f378d77ef1"
   },
   "countryPreview": {
-    "path": "countries-preview-v0.36.1.geojson.gz",
+    "path": "world/objects/countries-preview-sha256-b8877a6f3f3bbe9ff78c8007ce163e1adde2e80c1d0daa3b920423070b412252.geojson.gz",
     "version": "0.36.1",
-    "gitBlobSha": "98b65632a12664ed3ea3f38dcd07e893251731a9",
-    "sha256": "079587b1e4154d6d7cebaf843841a8852bcb888bcb43633c418301d7946c93a5",
+    "gitBlobSha": "fafc6ca4bbd9493932f0080ccf38e9b9c5a4bb09",
+    "sha256": "b8877a6f3f3bbe9ff78c8007ce163e1adde2e80c1d0daa3b920423070b412252",
     "required": false,
-    "bytes": 917509,
+    "bytes": 917486,
     "source": {
-      "ref": "89acb00b5c5d7e49caefa9f1ce79e0a803853efa",
-      "path": "assets/data/countries-preview-v0.36.1.geojson.gz"
+      "ref": "5920f74d75c513f91e8a934db5814e863358955f",
+      "path": "assets/data/world/objects/countries-preview-sha256-b8877a6f3f3bbe9ff78c8007ce163e1adde2e80c1d0daa3b920423070b412252.geojson.gz"
     }
   },
   "previewMesh": {
-    "path": "world-mesh-preview-v0.36.1.bin.gz",
+    "path": "world/objects/world-mesh-preview-sha256-766f8107bfa250e6c22acff3e191ba30b0d3a2bb1252b1ce009e7f89ff37e583.bin.gz",
     "version": "0.36.1",
-    "gitBlobSha": "7e9a401df56d412791f2d965edc33164f2c9c61b",
-    "sha256": "64881cfbf1b42b125b8ff23524a59497f52d76ca2bef77afc6381d74a3b21129",
+    "gitBlobSha": "d51ecca9d640af1e1ba5bc9da583a5865183214e",
+    "sha256": "766f8107bfa250e6c22acff3e191ba30b0d3a2bb1252b1ce009e7f89ff37e583",
     "required": true,
-    "bytes": 1734076,
+    "bytes": 1734093,
     "source": {
-      "ref": "89acb00b5c5d7e49caefa9f1ce79e0a803853efa",
-      "path": "assets/data/world-mesh-preview-v0.36.1.bin.gz"
+      "ref": "5920f74d75c513f91e8a934db5814e863358955f",
+      "path": "assets/data/world/objects/world-mesh-preview-sha256-766f8107bfa250e6c22acff3e191ba30b0d3a2bb1252b1ce009e7f89ff37e583.bin.gz"
     }
   },
   "countryCanonical": {
-    "path": "countries-canonical-v0.36.1.pcg.gz",
+    "path": "world/objects/countries-canonical-sha256-638c6f4868b9d270a62cd66ca13a18dc8a4215fa7c48ff9280a089e433f81dd1.pcg.gz",
     "version": "0.36.1",
     "gitBlobSha": "0b2d8b120fb369ddea5cdc01b0d3acec3644f5ac",
     "sha256": "638c6f4868b9d270a62cd66ca13a18dc8a4215fa7c48ff9280a089e433f81dd1",
     "required": true,
     "bytes": 5122041,
     "source": {
-      "ref": "89acb00b5c5d7e49caefa9f1ce79e0a803853efa",
-      "path": "assets/data/countries-canonical-v0.36.1.pcg.gz"
+      "ref": "5920f74d75c513f91e8a934db5814e863358955f",
+      "path": "assets/data/world/objects/countries-canonical-sha256-638c6f4868b9d270a62cd66ca13a18dc8a4215fa7c48ff9280a089e433f81dd1.pcg.gz"
     }
   },
   "canonicalMesh": {
-    "path": "world-mesh-v0.36.1.bin.gz",
+    "path": "world/objects/world-mesh-sha256-4be87dae5827f8b56eae5df04ab6bf4c6046c3e42581b15263b16ad992ac1a53.bin.gz",
     "version": "0.36.1",
-    "gitBlobSha": "dddfda917e4ab12ae9a9b21aa9e50730156471a2",
-    "sha256": "c7f687e9d14325ae9c8334cb4fabc3afd016e1a1231cf16b1c0729499a713ec8",
+    "gitBlobSha": "fb17fb7f511f8cd2acbb59862fd1a996ae7db027",
+    "sha256": "4be87dae5827f8b56eae5df04ab6bf4c6046c3e42581b15263b16ad992ac1a53",
     "required": true,
     "bytes": 14619919,
     "source": {
-      "ref": "89acb00b5c5d7e49caefa9f1ce79e0a803853efa",
-      "path": "assets/data/world-mesh-v0.36.1.bin.gz"
+      "ref": "5920f74d75c513f91e8a934db5814e863358955f",
+      "path": "assets/data/world/objects/world-mesh-sha256-4be87dae5827f8b56eae5df04ab6bf4c6046c3e42581b15263b16ad992ac1a53.bin.gz"
     }
   },
   "terrain": {
@@ -82,31 +82,31 @@
     }
   },
   "labelAnchors": {
-    "path": "country-label-anchors-v0.10.1.json",
+    "path": "world/objects/country-label-anchors-sha256-caeee3f0d05265cc564f68ef092b25ea8c5c4d6f1c36e2beb35a239551751512.json",
     "version": "0.10.1",
     "gitBlobSha": "c29a00e0b991e922a9d09ee1ea5bfcda476c0ba8",
     "sha256": "caeee3f0d05265cc564f68ef092b25ea8c5c4d6f1c36e2beb35a239551751512",
     "bytes": 13826,
     "required": true,
     "source": {
-      "ref": "a87f4d27fb1bc16528aa57242ecb52e28e4550b2",
-      "path": "assets/data/country-label-anchors-v0.10.1.json"
+      "ref": "5920f74d75c513f91e8a934db5814e863358955f",
+      "path": "assets/data/world/objects/country-label-anchors-sha256-caeee3f0d05265cc564f68ef092b25ea8c5c4d6f1c36e2beb35a239551751512.json"
     }
   },
   "historicalTimelineManifest": {
     "path": "historical-world/v1/manifest.json",
     "version": "1",
-    "gitBlobSha": "a38a05065ca154b6dea444c7b1ccffa2d1ad9014",
-    "sha256": "9ed1b70c54d7b46558aa7820bb8d01498d1fe198c07a652e98837dc434955f16",
+    "gitBlobSha": "46e5a4f1c57eccb1a74bc1bf90ea42b7b13a65e4",
+    "sha256": "07db420ea1f0f37ea7c9ff5d4c69888e1550121131450a22ca4e86bcec1953c7",
     "required": true,
     "bytes": 59226
   },
   "historicalTimeline": {
     "path": "historical-world/v1/world-project.json.gz",
     "version": "1",
-    "gitBlobSha": "1f4c898ecda3a9eaf7d0a8038299c85081c3d296",
-    "sha256": "0f0f8af994d41a7e6e4115a1df94d6f991db77044e9f48dee16b1d559195222a",
+    "gitBlobSha": "2d44b75ffc24a301a0c89fe6a6cd2fc39207edaa",
+    "sha256": "a1ca6de9f0f087d10d468ad55040c9becbc9a244d5ae0da00cd4003be11da24a",
     "required": true,
-    "bytes": 6340225
+    "bytes": 6339335
   }
 }
