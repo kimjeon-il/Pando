@@ -1,0 +1,42 @@
+name: Soviet initial memory analysis
+on:
+  push:
+    branches: [work/objects]
+    paths:
+      - '.github/workflows/soviet-initialization-memory.yml'
+      - 'tests/browser/soviet-initialization-memory.spec.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser-memory:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - name: Install current test dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Measure true historical-world and selected Soviet initialization
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: pnpm exec playwright test tests/browser/soviet-initialization-memory.spec.mjs --workers=1 --retries=0 --trace off
+      - name: Preserve unmodified measurement and failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: soviet-initialization-memory-${{ github.sha }}
+          path: |
+            test-results/soviet-initialization-memory/
+            test-results/soviet-initialization-memory*/
+          if-no-files-found: warn
+          retention-days: 14
