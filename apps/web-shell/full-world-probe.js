@@ -6,9 +6,14 @@ export function inspectFullWorldRuntime(scope = globalThis, expectedCountryCount
   const gpu = scope.__PANDOLAB_GPU_METRICS__ || {};
   const network = scope.__PANDOLAB_SHELL_NETWORK__ || {};
   const territorial = scope.PANDOLAB_TERRITORIAL;
+  // Current world geometry contains 258 territorial features, including
+  // dependent territories. Filtering parentId:'' measures only sovereign roots.
   const countries = typeof territorial?.list === 'function'
-    ? territorial.list({ kind: 'general', parentId: '' }) : [];
+    ? territorial.list({ kind: 'general' }) : [];
   const countryCount = Array.isArray(countries) ? countries.length : -1;
+  const sovereignRoots = typeof territorial?.list === 'function'
+    ? territorial.list({ kind: 'general', parentId: '' }) : [];
+  const sovereignRootCount = Array.isArray(sovereignRoots) ? sovereignRoots.length : -1;
   const workers = Array.isArray(network.workers) ? network.workers : [];
   const blocked = Array.isArray(network.blocked) ? network.blocked : [];
   const checks = {
@@ -33,6 +38,7 @@ export function inspectFullWorldRuntime(scope = globalThis, expectedCountryCount
     checks,
     observed: {
       countryCount,
+      sovereignRootCount,
       expectedCountryCount,
       renderer: String(gpu.renderer || ''),
       triangleCount: Number(gpu.triangleCount || 0),
