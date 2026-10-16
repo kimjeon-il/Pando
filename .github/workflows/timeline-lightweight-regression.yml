@@ -12,6 +12,7 @@ on:
       - 'tests/unit/progressive-startup-runtime-contract.test.mjs'
       - 'assets/js/modules/app-domain-assembly.js'
       - 'assets/js/modules/app-history-assembly.js'
+      - 'assets/js/modules/app-capability-ports-lifecycle-ui.js'
       - 'assets/js/modules/persistence-service.js'
       - 'assets/js/modules/app-progressive-startup.js'
   workflow_dispatch:
