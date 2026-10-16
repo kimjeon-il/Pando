@@ -127,7 +127,7 @@ export async function composeApplication({ revision, platform = {}, onComposed =
   const historyAssembly = factoryHistoryAssembly.createHistoryAssembly({ storageNamespace: platform.storageNamespace });
   const projectRestore = factoryProjectRestore.createProjectRestore();
   const objectDeletion = factoryObjectDeletion.createObjectDeletion();
-  const gisAssembly = factoryGisAssembly.createGisAssembly();
+  const gisAssembly = factoryGisAssembly.createGisAssembly({ fileAccess: platform.fileAccess });
   const libraryAssembly = factoryLibraryAssembly.createLibraryAssembly();
   const navigationBindings = factoryNavigationBindings.createNavigationBindings();
   const toolBindings = factoryToolBindings.createToolBindings();

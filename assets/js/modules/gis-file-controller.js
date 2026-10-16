@@ -4,6 +4,7 @@ export function createGisFileController({
   setTarget = () => {},
   requireCanonicalData = () => true,
   projectDomain = null,
+  fileAccess = null,
   setActionStatus = () => {},
   window = globalThis,
   document = globalThis.document,
@@ -35,11 +36,28 @@ export function createGisFileController({
     return api;
   };
 
-  const openProjectPicker = () => {
+  const openProjectPicker = async () => {
     setTarget('');
     returnFocus = elements.projectOpen;
-    elements.projectInput.dataset.returnFocusId = returnFocus?.id || '';
-    elements.projectInput.click();
+    if (!fileAccess) {
+      elements.projectInput.dataset.returnFocusId = returnFocus?.id || '';
+      elements.projectInput.click();
+      return true;
+    }
+    const target = returnFocus;
+    try {
+      const selected = await fileAccess.openProjectFile();
+      if (selected?.cancelled) return false;
+      if (!(selected?.blob instanceof Blob)) throw new TypeError('The application project picker must return a Blob.');
+      const name = String(selected.path || '').split(/[\\/]/).pop();
+      const filename = name && /\.gpkg$/i.test(name) ? name : '판도연구소-프로젝트.gpkg';
+      return await onFiles([new File([selected.blob], filename, {
+        type: 'application/geopackage+sqlite3',
+      })], { sourceKind: 'project' });
+    } finally {
+      returnFocus = null;
+      target?.focus?.({ preventScroll: true });
+    }
   };
 
   const downloadBlob = (filename, blob) => {
@@ -61,12 +79,19 @@ export function createGisFileController({
     try {
       const filename = '판도연구소-프로젝트.gpkg';
       // Request the destination while the click still has user activation.
-      const handle = typeof window.showSaveFilePicker === 'function'
+      const handle = !fileAccess && typeof window.showSaveFilePicker === 'function'
         ? await window.showSaveFilePicker({
           suggestedName: filename,
           types: [{ description: '판도연구소 프로젝트', accept: { 'application/geopackage+sqlite3': ['.gpkg'] } }],
         }) : null;
       return await projectDomain.save(async blob => {
+        if (fileAccess) {
+          const selected = await fileAccess.saveProjectFile(blob);
+          if (selected?.cancelled) throw Object.assign(new Error('프로젝트 저장 취소'), { name: 'AbortError' });
+          if (!selected?.path) throw new Error('앱 파일 저장 대상이 확정되지 않았습니다.');
+          setActionStatus('프로젝트 저장 완료', 'success', 3200);
+          return { downloaded: false };
+        }
         if (handle) {
           const writable = await handle.createWritable();
           await writable.write(blob);

@@ -2,7 +2,7 @@
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createGisAssembly() {
+export function createGisAssembly({ fileAccess = null } = {}) {
   let dependencies;
   let gisWorkflow;
   let gisImportCommitterPromise;
@@ -74,6 +74,7 @@ export function createGisAssembly() {
           onFiles: openGisFiles,
           requireCanonicalData: dependencies.readinessUi.requireCanonicalData,
           projectDomain: dependencies.domains.projectDomain,
+          fileAccess,
           setActionStatus: dependencies.feedback.setActionStatus,
           window,
           document,
