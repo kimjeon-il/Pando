@@ -15,7 +15,9 @@ function runtime({ renderer = 'webgl2', blocked = [] } = {}) {
     },
     __PANDOLAB_GPU_METRICS__: { renderer, triangleCount: 2304, countryBaseIndexCount: 258, activeWebGlContextCount: 1 },
     __PANDOLAB_SHELL_NETWORK__: { blocked, workers: [{ name: 'pandolab-data-loader', type: 'module' }] },
-    PANDOLAB_TERRITORIAL: { list: () => Array.from({ length: 258 }, (_, id) => ({ id })) },
+    PANDOLAB_TERRITORIAL: { list: options => Array.from({
+      length: Object.hasOwn(options, 'parentId') ? 207 : 258,
+    }, (_, id) => ({ id })) },
     PandoLabSphericalCore: { verified: true },
     __PANDOLAB_SHELL_AUTO__: true,
     addEventListener(name, fn) { handlers.set(name, fn); },
@@ -30,6 +32,8 @@ test('full-world probe requires canonical world, actual WebGL and original Worke
   const report = inspectFullWorldRuntime(scope);
   assert.equal(report.ok, true);
   assert.equal(report.observed.countryCount, 258);
+  assert.equal(report.observed.sovereignRootCount, 207,
+    'Dependent territories must not be excluded from canonical world counts');
   assert.equal(report.observed.renderer, 'webgl2');
 });
 test('full-world probe fails canvas fallback and any blocked remote request', () => {
