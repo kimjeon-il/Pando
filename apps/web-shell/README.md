@@ -35,9 +35,9 @@ For Android, set the same environment variable before
 snapshot **only**; subsequent Tauri builds restage using the environment
 variable, so it must also be set for the build.
 
-The full-world profile deliberately **does not** include/activate DEM,
-hydro, or built-in place assets: those belong to 2-3D. Native file IPC still
-has the 1 MiB prototype limit (2-3E). WebGL/Android device performance and
+The full-world profile includes manifest-pinned local terrain-preview tiles, HydroRIVERS
+and built-in places, while retaining lazy Worker loading. Official high-resolution
+online DEM tiles remain outside the offline distribution. WebGL/Android device performance and
 full-world Tauri runtime behavior are not yet certified (2-4).
 The automatic `verify-windows.ps1` small-fixture diagnostic is **not**
 a full-world acceptance test. The full-world-only `full-world-probe.js` records
@@ -104,10 +104,12 @@ The frontend invokes these commands through `window.__TAURI_INTERNALS__.invoke`:
 | `read_probe_file` | `{}` | `{contents, path}` |
 | `write_diagnostic_report` | `{report: object}` | `{path}` |
 | `finish_probe` | `{report: object}` | `{path}` |
-| `save_project_file` | `{contents: base64String}` | `{cancelled, path}` |
-| `open_project_file` | `{}` | `{cancelled, path, contents?: base64String}` |
-| `save_export_file` | `{filename, contents: base64String}` | `{cancelled, path}` |
-| `open_gis_files` | `{}` | `{cancelled, files: [{path, contents}]}` |
+| `begin_document_write` | `{kind: 'project'/'gis-gpkg'/'gis-zip'}` | `{token}` |
+| `append_document_chunk` | `{token, contents: base64Chunk}` | `{}` |
+| `finish_document_write` | `{token}` | `{cancelled, path}` |
+| `begin_document_read` | `{kind: 'project'/'gis'}` | `{cancelled, files: [{token,path,bytes}]}` |
+| `read_document_chunk` | `{token}` | `{contents: base64Chunk, done}` |
+| `abort_document_transfer` | `{token}` | `boolean` |
 
 The diagnostic snapshot filename is `small-project.json`; the report filename is
 `diagnostic-report.json`. Both have a strict 1 MiB UTF-8 byte limit, checked before
@@ -117,9 +119,10 @@ before allocating an entire file. Import/export paths originate exclusively in
 the native file picker and cannot be supplied by JavaScript. Cancellation returns
 `cancelled: true`; file I/O and encoding failures reject the command. Current
 project import/export uses the production binary GeoPackage codec and a `.gpkg`
-picker filter. Its IPC payload is base64, with a 1 MiB decoded-byte limit.
-GIS ZIP/GeoPackage export accepts only the current product filenames; GIS multi-import
-accepts up to 16 user-selected files with a 1 MiB combined limit. Android provider
+picker filter. Document I/O uses 256 KiB Base64 chunks over the native IPC,
+backed by a disk spool rather than whole-file Base64 values. Maximum total
+project/GIS document size is 256 MiB, with up to 16 GIS files per import.
+Small probe and diagnostic files retain the original 1 MiB bound. Android provider
 URIs that do not expose a file extension are rejected instead of being assigned
 a misleading GIS format. Full-project file sizes and provider-name recovery belong
 to the later full-world app expansion.

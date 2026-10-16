@@ -18,7 +18,7 @@ export function installNetworkGuard(scope = globalThis, { allowBundledData = fal
     const url = new URL(typeof input === 'object' && input?.url ? input.url : String(input), scope.location.href);
     const row = { url: url.href, context: scope.document ? 'window' : 'worker' };
     record('requests', row);
-    const command = /^\/(write_probe_file|read_probe_file|write_diagnostic_report|finish_probe|save_project_file|open_project_file|save_export_file|open_gis_files)$/.test(url.pathname);
+    const command = /^\/(write_probe_file|read_probe_file|write_diagnostic_report|finish_probe|begin_document_write|append_document_chunk|finish_document_write|begin_document_read|read_document_chunk|abort_document_transfer)$/.test(url.pathname);
     const ipc = command && (['http://ipc.localhost', 'https://ipc.localhost'].includes(url.origin)
       || (url.protocol === 'ipc:' && url.hostname === 'localhost'));
     const bundledData = decodeURIComponent(url.pathname).startsWith('/assets/data/');
