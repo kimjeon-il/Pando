@@ -134,7 +134,9 @@ export async function composeApplication({ revision, platform = {}, onComposed =
   const fileBindings = factoryFileBindings.createFileBindings();
   const globalInputBindings = factoryGlobalInputBindings.createGlobalInputBindings();
   const editorBindings = factoryEditorBindings.createEditorBindings();
-  const progressiveStartup = factoryProgressiveStartup.createProgressiveStartup({ startupMesh: platform.startupMesh });
+  const progressiveStartup = factoryProgressiveStartup.createProgressiveStartup({
+    startupMesh: platform.startupMesh, deferPhysicalUntilReady: platform.deferPhysicalUntilReady === true,
+  });
   const domainAssembly = factoryDomainAssembly.createDomainAssembly();
   const lifecycleAssembly = factoryLifecycleAssembly.createLifecycleAssembly();
   const applicationProviders = {
