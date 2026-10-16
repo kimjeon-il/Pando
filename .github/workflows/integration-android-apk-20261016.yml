@@ -59,7 +59,9 @@ jobs:
             const s=JSON.parse(fs.readFileSync('apps/web-shell/dist/shell/stage-evidence.json','utf8'));
             assert.equal(s.profile,'full-world');
             assert.equal(s.worldData.countryCount,258);
-            assert.equal(s.worldData.fileCount,597);
+            assert.equal(s.worldData.worldFileCount,597);
+            assert.equal(s.worldData.physicalFileCount,13);
+            assert.equal(s.worldData.fileCount,610);
             console.log('ANDROID_STAGE_PASS', JSON.stringify(s.worldData));
           "
       - name: Build arm64 Android debug APK from the common Web runtime

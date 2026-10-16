@@ -111,3 +111,23 @@ pub fn atomic_copy(source: &Path, path: &Path, limit: u64) -> io::Result<()> {
     fs::rename(&pending.0, path)?;
     Ok(())
 }
+
+#[cfg(test)]
+mod bounded_copy_tests {
+    use super::*;
+    #[test]
+    fn copying_multimegabyte_document_is_atomic_and_byte_exact() {
+        let root = std::env::temp_dir().join(format!("pandolab-doc-copy-{}",
+            std::process::id()));
+        fs::create_dir_all(&root).expect("create test folder");
+        let src = root.join("input.bin");
+        let target = root.join("out.gpkg");
+        let bytes = vec![0xA5u8; 2 * 1024 * 1024 + 1];
+        fs::write(&src, &bytes).expect("seed large document");
+        atomic_copy(&src, &target, 4 * 1024 * 1024).expect("atomic copy");
+        assert_eq!(fs::read(&target).expect("read output"), bytes);
+        assert!(atomic_copy(&src, &target, 1024 * 1024).is_err());
+        assert_eq!(fs::read(&target).expect("read preserved output"), bytes);
+        fs::remove_dir_all(root).expect("remove test folder");
+    }
+}
