@@ -146,12 +146,12 @@ async function readSnapshot(page, cdp, label) {
     };
   });
   let cdpHeap = null, cdpPerformance = null;
-  try { cdpHeap = await cdp.send('Runtime.getHeapUsage'); } catch {}
+  try { cdpHeap = await cdp.send('Runtime.getHeapUsage'); } catch { /* Optional CDP heap metric. */ }
   try {
     const performanceData = await cdp.send('Performance.getMetrics');
     const metrics = new Map(performanceData.metrics.map(row => [row.name, row.value]));
     cdpPerformance = Object.fromEntries(['JSHeapUsedSize','JSHeapTotalSize','Nodes','Documents','ScriptDuration','TaskDuration','LayoutDuration','RecalcStyleDuration'].map(key => [key, metrics.get(key) ?? null]));
-  } catch {}
+  } catch { /* Optional performance counters are not uniformly available. */ }
   return {
     label, at: new Date().toISOString(), page: pageState,
     cdpHeap: cdpHeap ? { usedSize: cdpHeap.usedSize, totalSize: cdpHeap.totalSize, embedderHeapUsedSize: cdpHeap.embedderHeapUsedSize } : null,
@@ -168,7 +168,7 @@ test('1989 Soviet initial timeline admission, selection setup, memory and cache 
   await page.addInitScript(() => {
     window.__SOVIET_MEMORY_TASKS__ = [];
     try {
-      new PerformanceObserver(list => {
+      new window.PerformanceObserver(list => {
         const rows = list.getEntries();
         for (const item of rows) if (window.__SOVIET_MEMORY_TASKS__.length < 240)
           window.__SOVIET_MEMORY_TASKS__.push({ startTime: Number(item.startTime.toFixed(1)), duration: Number(item.duration.toFixed(1)) });

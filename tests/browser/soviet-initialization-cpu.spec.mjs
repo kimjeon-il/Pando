@@ -45,7 +45,7 @@ async function memorySample(page, cdp, label) {
   let heap = null;
   await cdp.send('HeapProfiler.collectGarbage');
   await page.waitForTimeout(200);
-  try { heap = await cdp.send('Runtime.getHeapUsage'); } catch {}
+  try { heap = await cdp.send('Runtime.getHeapUsage'); } catch { /* Optional CDP heap metric. */ }
   const app = await page.evaluate(() => {
     const d = window.__PANDOLAB_RENDER_DEBUG__.snapshot(), g = d.gpu;
     return {
