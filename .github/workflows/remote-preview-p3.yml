@@ -533,6 +533,10 @@ jobs:
     needs: plan
     if: inputs.native_p9 && inputs.scope == 'qt'
     runs-on: windows-2022
+    strategy:
+      fail-fast: false
+      matrix:
+        part: [baseline, candidate]
     timeout-minutes: 60
     permissions:
       contents: read
@@ -554,9 +558,9 @@ jobs:
         with:
           node-version-file: .nvmrc
       - uses: pnpm/action-setup@v4
-        if: inputs.native_p9_baseline_receipt == ''
+        if: matrix.part == 'baseline' && inputs.native_p9_baseline_receipt == ''
       - name: Prepare only the baseline's retired JS build dependency
-        if: inputs.native_p9_baseline_receipt == ''
+        if: matrix.part == 'baseline' && inputs.native_p9_baseline_receipt == ''
         shell: pwsh
         run: |
           pnpm --dir build-native/p9/baseline install --frozen-lockfile --ignore-scripts
@@ -578,12 +582,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           BASELINE_RECEIPT: ${{ inputs.native_p9_baseline_receipt }}
-        run: ./scripts/p9-build-native-pair.ps1 -BaselineRoot build-native/p9/baseline -OutputDirectory build-native/p9/qt-runtime -BaselineArtifactReceipt "$env:BASELINE_RECEIPT"
+          BUILD_SIDE: ${{ matrix.part }}
+        run: ./scripts/p9-build-native-pair.ps1 -BaselineRoot build-native/p9/baseline -OutputDirectory build-native/p9/qt-runtime -BaselineArtifactReceipt "$env:BASELINE_RECEIPT" -BuildSide "$env:BUILD_SIDE"
       - name: Archive the test executables, matching runtime and source identities
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: p9-windows-qt-pair-${{ inputs.source_sha || github.sha }}
+          name: p9-windows-qt-${{ matrix.part }}-${{ inputs.source_sha || github.sha }}
           path: |
             build-native/p9/qt-runtime
             build-native/p9/qt-pair-*.log
