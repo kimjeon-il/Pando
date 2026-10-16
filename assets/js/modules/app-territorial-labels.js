@@ -13,7 +13,7 @@ import { createTerritorialFillResolver } from './territorial-fill-style.js';
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createTerritorialLabels() {
+export function createTerritorialLabels({ builtinPlacesEnabled = true } = {}) {
   let dependencies;
   let countryOutlineCache;
   let labelLayoutMetrics;
@@ -42,6 +42,7 @@ export function createTerritorialLabels() {
   }
 
   function preparePlaces({ force = false } = {}) {
+    if (!builtinPlacesEnabled) return Promise.resolve(false);
     if (dependencies.projectState.state.mapMoving) { builtinPlaces.beginInteraction(); return Promise.resolve(false); }
     if (!force && dependencies.projectState.state.layerVisibility.labels === false) { builtinPlaces.cancelViewport(); return builtinPlaces.settle(null); }
     return builtinPlaces.settle(placeView());

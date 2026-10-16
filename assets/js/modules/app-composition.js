@@ -1,5 +1,5 @@
 /** Compose owners, connect their explicit ports, then initialize in dependency order. */
-export async function composeApplication({ revision }) {
+export async function composeApplication({ revision, platform = {}, onComposed = null }) {
   const [
     runtime, factoryEnvironment, factoryBuiltinSession, factoryWorkspaceSurfaces, factoryProjectSession,
     factoryObjectCommands, factoryServiceAssembly, factoryRenderQuality, factoryPointerTargets,
@@ -83,7 +83,7 @@ export async function composeApplication({ revision }) {
     import(new URL(`./app-connect-lifecycle-ui.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
   ]);
   const environment = factoryEnvironment.createEnvironment();
-  const builtinSession = factoryBuiltinSession.createBuiltinSession();
+  const builtinSession = factoryBuiltinSession.createBuiltinSession({ historicalWorldLoader: platform.historicalWorldLoader });
   const workspaceSurfaces = factoryWorkspaceSurfaces.createWorkspaceSurfaces();
   const projectSession = factoryProjectSession.createProjectSession();
   const objectCommands = factoryObjectCommands.createObjectCommands();
@@ -104,8 +104,8 @@ export async function composeApplication({ revision }) {
   const objectPresentation = factoryObjectPresentation.createObjectPresentation();
   const hydroSettings = factoryHydroSettings.createHydroSettings();
   const layerList = factoryLayerList.createLayerList();
-  const territorialLabels = factoryTerritorialLabels.createTerritorialLabels();
-  const physicalResources = factoryPhysicalResources.createPhysicalResources();
+  const territorialLabels = factoryTerritorialLabels.createTerritorialLabels({ builtinPlacesEnabled: platform.builtinPlacesEnabled });
+  const physicalResources = factoryPhysicalResources.createPhysicalResources({ enabled: platform.physicalResourcesEnabled });
   const interactionPackets = factoryInteractionPackets.createInteractionPackets();
   const territoryComponentUi = factoryTerritoryComponentUi.createTerritoryComponentUi();
   const gpuScene = factoryGpuScene.createGpuScene();
@@ -124,7 +124,7 @@ export async function composeApplication({ revision }) {
   const territorialConversion = factoryTerritorialConversion.createTerritorialConversion();
   const projectSnapshots = factoryProjectSnapshots.createProjectSnapshots();
   const mapSettings = factoryMapSettings.createMapSettings();
-  const historyAssembly = factoryHistoryAssembly.createHistoryAssembly();
+  const historyAssembly = factoryHistoryAssembly.createHistoryAssembly({ storageNamespace: platform.storageNamespace });
   const projectRestore = factoryProjectRestore.createProjectRestore();
   const objectDeletion = factoryObjectDeletion.createObjectDeletion();
   const gisAssembly = factoryGisAssembly.createGisAssembly();
@@ -134,7 +134,7 @@ export async function composeApplication({ revision }) {
   const fileBindings = factoryFileBindings.createFileBindings();
   const globalInputBindings = factoryGlobalInputBindings.createGlobalInputBindings();
   const editorBindings = factoryEditorBindings.createEditorBindings();
-  const progressiveStartup = factoryProgressiveStartup.createProgressiveStartup();
+  const progressiveStartup = factoryProgressiveStartup.createProgressiveStartup({ startupMesh: platform.startupMesh });
   const domainAssembly = factoryDomainAssembly.createDomainAssembly();
   const lifecycleAssembly = factoryLifecycleAssembly.createLifecycleAssembly();
   const applicationProviders = {
@@ -257,6 +257,18 @@ export async function composeApplication({ revision }) {
       if (startedWithReferenceImages) return startedWithReferenceImages;
       startedWithReferenceImages = lifecycle.start().then(async started => {
         if (!started) return started;
+        if (onComposed) await onComposed(Object.freeze({
+          projectDomain: domainAssembly.projectDomain,
+          entityRepository: domainAssembly.territorialEntityRepository,
+          gpuMapRenderer: serviceAssembly.gpuMapRenderer,
+          persistenceService: historyAssembly.persistenceService,
+          getState: () => projectSession.state,
+          saveState: projectSession.saveState,
+          projectUi: lifecycleAssembly.projectUi,
+          getView: () => mapHost.projectionViewSnapshot(),
+          navigation: cameraNavigation,
+          setTimelineMonth: month => domainAssembly.setTimelineMonth(month),
+        }));
         const { installTimelineControls } = await import(`./timeline-controls.js?v=${encodeURIComponent(revision)}`);
         installTimelineControls({ document, window,
           getMonth: () => domainAssembly.timelineMonth,

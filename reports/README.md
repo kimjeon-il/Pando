@@ -37,6 +37,7 @@
 
 | ID | 보고서 | 원문 수정일 | 상태 | 지도 반영 |
 | --- | --- | --- | --- | --- |
+| `DEV-078` | [Windows·Android 웹 기반 시험용 앱](development/testing/web-shell-prototype-2026-10-16.md) | 2026-10-16 | `investigating` | `not-applicable` |
 | `DEV-077` | [시점별 객체 편집과 라이브러리 삽입](development/testing/temporal-editing-2026-10-16.md) | 2026-10-16 | `implemented` | `not-applicable` |
 | `DEV-076` | [P6–P9 구현·검증 진행 기록](development/testing/p6-p9-execution-2026-10-16.md) | 2026-10-16 | `investigating` | `not-applicable` |
 | `DEV-075` | [P5-6 — 공통 C++ 계산 소유권·앱/웹 종료 검증](development/testing/p5-6-final-verification-2026-10-15.md) | 2026-10-15 | `implemented` | `not-applicable` |
