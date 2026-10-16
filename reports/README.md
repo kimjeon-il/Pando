@@ -37,6 +37,7 @@
 
 | ID | 보고서 | 원문 수정일 | 상태 | 지도 반영 |
 | --- | --- | --- | --- | --- |
+| `DEV-085` | [1989년 소련 대형 경계 편집 준비 지연 선분 생성 최적화](development/testing/soviet-boundary-preparation-2026-10-16.md) | 2026-10-16 | `verified-web-ci` | `not-applicable` |
 | `DEV-084` | [신규 WebView 전체 세계지도 물리 자료 로딩 경량화](development/testing/web-shell-physical-startup-2026-10-16.md) | 2026-10-16 | `implementation-verified-linux-unit` | `not-applicable` |
 | `DEV-083` | [1989년 소련 초기 준비시간·메모리 원인 조사](development/testing/soviet-initialization-memory-2026-10-16.md) | 2026-10-16 | `verified-web-diagnostics` | `not-applicable` |
 | `DEV-082` | [1989년 소련 WebGL 선택 강조선 및 빈 상호작용 패스 최적화](development/testing/soviet-render-hotpaths-2026-10-16.md) | 2026-10-16 | `verified-web` | `not-applicable` |
