@@ -1,6 +1,7 @@
 #include "historicaltransaction.h"
 #include <pandoeditor/project.h>
 #include <pandoeditor/geometrypredicates.h>
+#include <pandoeditor/timeline-view.h>
 #include <map>
 #include <set>
 #include <stdexcept>
@@ -52,12 +53,21 @@ HistoricalInstantiationPlan prepareHistoricalTransaction(const ProjectSnapshot& 
     const GeometryCalculator& calculator,const GeometryCancellation& cancelled) {
     if(!calculator)throw std::invalid_argument("INVALID_LIBRARY: M4 calculator required");
     if(cancelled&&cancelled())throw std::runtime_error("CANCELLED");
+    const bool dated=project.timelineEditsEnabled()||!isStaticTimeline(project.document());
+    const auto frame=dated?timelineDocumentView(project.document(),project.timelineMonth()):TimelineDocumentView{project.document(),{}, {}};
+    const auto& document=frame.document;
     std::vector<Geometry> replacements;
     std::map<ObjectRef,Geometry> replacementTargets;
     std::vector<GeometryReplacement> patches;
     const auto identity=[](const HistoricalAddition& item)->const std::string& {
         return item.instanceId.empty()?item.selection.libraryId:item.instanceId;
     };
+    std::map<std::string,std::string> importedIds;
+    for(const auto& item:additions)importedIds.emplace(item.selection.libraryId,identity(item));
+    for(auto& item:additions)if(item.parent) {
+        const auto imported=importedIds.find(item.parent->id);
+        if(imported!=importedIds.end())item.parent=territorialRef(imported->second);
+    }
     std::map<std::string,std::size_t> selectedById;
     for(std::size_t n=0;n<additions.size();++n)selectedById.emplace(identity(additions[n]),n);
     std::map<std::string,std::vector<Geometry>> expansions;
@@ -73,13 +83,13 @@ HistoricalInstantiationPlan prepareHistoricalTransaction(const ProjectSnapshot& 
                 parent=owner.parent->id;
             } else {
                 const auto projectParent=project.index().objects.find(territorialRef(parent));
-                if(projectParent==project.index().objects.end()||project.document().units.at(projectParent->second).kind!=UnitKind::General)
+                if(projectParent==project.index().objects.end()||frame.inactiveIds.count(parent)||document.units.at(projectParent->second).kind!=UnitKind::General)
                     throw std::invalid_argument("INVALID_PARENT_KIND");
-                const auto& owner=project.document().units.at(projectParent->second);
-                if(isRootGeneral(project.document(),owner)){expansions[parent].push_back(item.selection.geometry);break;}
-                const auto& shape=*project.document().geometries.get(staticGeometryBinding(project.document(),parent).geometryRef);
+                const auto& owner=document.units.at(projectParent->second);
+                if(isRootGeneral(document,owner)){expansions[parent].push_back(item.selection.geometry);break;}
+                const auto& shape=*document.geometries.get(staticGeometryBinding(document,parent).geometryRef);
                 if(!geometryContains(shape,item.selection.geometry))throw std::invalid_argument("PL-LIB-PARENT: boundary outside intermediate parent");
-                parent=staticParentRelation(project.document(),parent).parentId;
+                parent=staticParentRelation(document,parent).parentId;
             }
         }
     }
@@ -89,7 +99,7 @@ HistoricalInstantiationPlan prepareHistoricalTransaction(const ProjectSnapshot& 
         Geometry original;
         const auto fresh=selectedById.find(id);
         if(fresh!=selectedById.end())original=additions.at(fresh->second).selection.geometry;
-        else original=*project.document().geometries.get(staticGeometryBinding(project.document(),id).geometryRef);
+        else original=*document.geometries.get(staticGeometryBinding(document,id).geometryRef);
         bool needed=false;for(const auto& shape:operands)needed=needed||!geometryContains(original,shape);
         if(!needed)continue;
         operands.insert(operands.begin(),original);
@@ -121,10 +131,10 @@ HistoricalInstantiationPlan prepareHistoricalTransaction(const ProjectSnapshot& 
             combined=std::move(result.geometry);
         }
         std::map<ObjectRef,Geometry> donorRemainders;
-        for(const auto& unit:project.document().units)if(isRootGeneral(project.document(),unit)) {
+        for(const auto& unit:document.units)if(!frame.inactiveIds.count(unit.id)&&isRootGeneral(document,unit)) {
             if(replacementTargets.count(territorialRef(unit.id)))continue;
             if(cancelled&&cancelled())throw std::runtime_error("CANCELLED");
-            const auto& original=*project.document().geometries.get(pandoeditor::staticGeometryBinding(project.document(),unit.id).geometryRef);
+            const auto& original=*document.geometries.get(pandoeditor::staticGeometryBinding(document,unit.id).geometryRef);
             const auto relevant=relevantReplacement(original,combined);
             if(relevant.polygons.empty())continue;
             const auto intersection=calculator({GeometryOperation::Intersection,original,relevant,{}},cancelled);
@@ -149,11 +159,11 @@ HistoricalInstantiationPlan prepareHistoricalTransaction(const ProjectSnapshot& 
             donorRemainders.emplace(territorialRef(unit.id),remaining.geometry);
             patches.push_back({territorialRef(unit.id),std::move(remaining.geometry)});
         }
-        for(const auto& unit:project.document().units)if(unit.kind==UnitKind::General&&!isRootGeneral(project.document(),unit)) {
+        for(const auto& unit:document.units)if(!frame.inactiveIds.count(unit.id)&&unit.kind==UnitKind::General&&!isRootGeneral(document,unit)) {
             if(cancelled&&cancelled())throw std::runtime_error("CANCELLED");
-            const auto& relation=staticParentRelation(project.document(),unit.id);
+            const auto& relation=staticParentRelation(document,unit.id);
             const auto parent=territorialRef(relation.parentId);if(relation.parentId.empty()||!donorRemainders.count(parent))continue;
-            const auto& original=*project.document().geometries.get(staticGeometryBinding(project.document(),unit.id).geometryRef);
+            const auto& original=*document.geometries.get(staticGeometryBinding(document,unit.id).geometryRef);
             auto remaining=calculator({GeometryOperation::Intersection,original,donorRemainders.at(parent),{}},cancelled);
             if(remaining.status==GeometryOperationStatus::Empty)
                 throw std::invalid_argument("INVALID_LIBRARY: territory would erase dependent unit");

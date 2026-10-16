@@ -1,38 +1,55 @@
-# P2 — 소스 일치 생성물 및 원격 C++ 빌드 증빙
+# P2/P7 — 생성물 입력 그래프와 원격 게시
 
-기준: `work/objects` (2026-10-14). 개발 브랜치를 유지하며 제품의 C++ 로직, HTML, 런타임 정책을 바꾸지 않고 **기존 생성기/패키징기**를 원격 CI에 연결한다. P1 `CMakePresets.json`을 모든 C++ 빌드에서 재사용한다.
+공통 C++ 빌드는 루트 CMake 프리셋을 사용한다. 생성물의 정본 입력·생성기·검증기·소비 위치는 `config/generated-artifacts.json`에 기록한다. 기존 계열별 manifest는 유지한다.
 
-## 책임 구분과 생성물 계약
+## 소유권과 도구
 
-| 정본 입력 | 생성기·컴파일러 | 저장 위치 | 검증·해시 |
-| --- | --- | --- | --- |
-| `shared/**` C++17 원본, CMake 소스 계약 | Emscripten 4.0.20 + `tools/package-shared-core-assets.mjs` | `assets/wasm/pandoeditor-core.js`, `.wasm`, `.manifest.json` | `sourceSha256`, 각 소스 파일 SHA-256, compiler, ABI 1, JS/WASM 바이트 SHA-256, **실제 컴파일된 모듈 초기화** |
-| `shared/core/**` + `native/engine/**` | P1 CMake `pando-native-core` | 격리된 `build-native/p1/pando-native-core`의 C++ 정적 라이브러리. **실행 파일을 Git에 추가하지 않음** | `cmake/P2NativeBuildReceipt.cmake` → 빌드 실행 SHA, CMake 버전, 입력별 해시와 정적 라이브러리의 크기·SHA-256·타깃/의존 관계를 JSON artifact로 업로드 |
-| 기존 웹 계산 JS·고정 vendor·Qt 어댑터 원본 | `native/tools/m97/cut-kernel-generate.mjs` | `native/assets/geometry/current/**`, `native/resources/current_geometry.qrc` | 정본 JS·고정 Acorn 8.15.0·변환 원본/산출물 SHA, `--check` 및 현행 테스트 |
-| 웹 참조이미지 계산 원본 JS | `native/tools/reference-parity/build-runtime.mjs` (esbuild 0.25.10) | `native/app/reference-web/runtime.js`, `manifest.json` | 소스 파일별 SHA·번들 SHA, `--check`, 참조 계산 회귀 |
+| 계열 | 실행 경로 | 도구 |
+| --- | --- | --- |
+| 공통 C++ → WASM | `pando-wasm` → `tools/package-shared-core-assets.mjs` | 원격 Emscripten, CMake; 게시용 Node |
+| 네이티브 C++/Qt | `pando-native-core`, `pando-native-qt-ci-linux/windows` | CMake, C++, Qt, zlib; 제품 빌드에 Node/pnpm/Python 불필요 |
+| 영토·현재 세계·역사 세계 | 그래프에 연결한 기존 생성기 | Node 및 동일 C++ WASM |
+| 국가 메시·미리보기·공유 경계·준비 메시 | 기존 생성기와 바이트/디코더 검증 | Node, 필요한 웹 패키지 |
+| 지명·네이티브 자산 | 기존 생성기·미러 도구 | Node; 같은 형식의 웹/앱 출력은 바이트 비교 |
+| 수계·지형 원본 가공 | 명시적인 GIS 데이터 작업 | 원본 출처·버전·해시 필요; 일반 개발에서 Python 설치/다운로드 없음 |
 
-일반 Web JS UI·지형/수계/역사 GIS 대형 생성물까지 C++로 옮긴 것이 아니다. 그 작업은 P5/P7의 대상이다. 성능이 높은 메시/LOD/캐시는 변경하지 않는다.
+제품용 Qt geometry/reference JS 번들과 생성 경로는 제거했다. 과거 오라클 재현용 도구는 일반 앱 빌드와 분리한다.
 
-## 자동 실행 조건
+## 계획과 실행
 
-- `work/objects`의 관련 소스·manifest 변경 시 `.github/workflows/generated-artifacts-p2.yml`이 실행된다. 변경 파일은 실행 **후보**일 뿐이다. `scripts/p2-artifact-plan.mjs`가 현재 원본·기존 매니페스트·파일 해시를 검사해 **WASM / Qt 지오메트리 / 참조 계산을 독립적으로** 선택한다.
-- 기본 `auto`에서는 누락/불일치/생성기 변경이 없는 산출물을 재컴파일하지 않는다. CI·계획기 최초 설치 등에서만 재생성 경로의 실제 실행을 확인한다. 수동 실행 시 `wasm`, `geometry`, `reference`, `all`, `verify` 스코프를 선택할 수 있다.
-- WASM이 필요한 경우: `emcmake cmake --preset pando-wasm` → `cmake --build --preset pando-wasm` → 패키징 → ABI·소스·파일 해시 대조 → 집중 WASM 계약.
-- Qt JS 생성물이 필요한 경우: 기존 `pnpm install --frozen-lockfile --ignore-scripts`로 개발 파서 준비 → 원본 생성기 → `--check` → 집중 계약. **Qt/CMake 앱 전체 빌드는 여기서 실행하지 않는다.**
-- 네이티브 C++는 기존 P1의 `native-engine` 경량 빌드가 소유한다. `cmake/P2NativeBuildReceipt.cmake`가 **실제 컴파일된 2개 아카이브**를 확인해 원본·바이너리 영수증을 GitHub artifact로 업로드한다. Qt·Node.js·Python 없이 동작해야 한다. `work/objects`의 중복 Emscripten 컴파일은 P1에서 건너뛰고 P2가 전담한다.
+`.github/workflows/generated-artifacts-p2.yml`은 `work/ui`, `work/objects`, `work/gis`, `work/places`에서 실제 입력 지문을 비교한다. 브랜치 이름으로 계열을 제한하지 않는다.
 
-## 게시 및 실패 처리
+- `auto`: 입력·생성기·도구·의존 출력 지문이 바뀐 계열과 하위 계열만 생성.
+- `wasm`: WASM만 생성.
+- `all`: 일반 계열을 명시적으로 재생성. 수동 GIS 원본 가공은 포함하지 않음.
+- `verify`: 기존 출력의 지문·해시 및 실제 계열 검증기를 실행. 생성·커밋·푸시하지 않음.
 
-1. 생성한 산출물의 원본 지문과 출력 해시가 일치하는지 다시 검사한다. 소스 정합성이 없으면 **게시 금지**한다.
-2. `assets/wasm/`의 지정 3개 파일, `native/assets/geometry/current/`, `native/resources/current_geometry.qrc`, `native/app/reference-web/`의 지정 2개 파일만 staging한다. `scripts/p2-artifact-plan.mjs --validate-staged`로 허용 경로/실제 변경 종류를 검증한다.
-3. 생성물이 기존 바이트와 같으면 **추가 커밋하지 않는다**. 다르면 기존 `work/objects` head SHA를 다시 확인하고 `github-actions[bot]`이 **해당 브랜치에만** 일반 fast-forward push한다. 다른 사람이 새 커밋을 올렸다면 덮어쓰지 않고 실패로 기록한다. 강제 push·stash·reset·clean은 사용하지 않는다.
-4. GitHub Actions의 기본 `GITHUB_TOKEN`으로 만든 봇 커밋은 별도의 일반 push 워크플로를 자동 재트리거하지 않으므로 **동일한 생성 작업 내에서 실제 검증**을 완료한다. 생성물은 커밋되므로 이후 PR의 main 대비 검증에서도 동일 바이트를 확인할 수 있다.
-5. 출처/ABI 불일치·구문 변환 실패·Qt 원본 동작 회귀·네이티브 컴파일 오류는 다른 성공 검사로 은폐하지 않는다. P4의 국가 폴리곤 채색/외곽선 문제나 역사 GIS 데이터는 이 자동 생성 범위 밖이므로 무단 재생성하지 않는다.
+검사 없이 계획만 읽기:
 
-## 후속 분리 작업
+```sh
+node scripts/p2-artifact-plan.mjs
+```
 
-- **P3:** Windows/Linux Qt 전체 앱 빌드·실제 실행·화면 캡처·원격 웹 미리보기. `pando-native-qt`의 남은 Node/Acorn 전처리는 P5/P6 전까지 필요하다.
-- **P5~P6:** Qt가 JS 계산 소스를 가져오는 경로를 C++로 옮겨 앱 빌드에서 Node 필수를 제거한다.
-- **P7:** 국가 메시·GIS·지명 등 대형 데이터의 입력 그래프와 출력 미러까지 같은 자동화 원칙으로 확장한다.
+수동 원격 생성:
 
-기존 생성물 `sourceSha256` 계산은 `shared/**`의 C++/CMake/테스트 소스 파일에도 걸쳐 있다. 향후 순수 테스트 수정 시 불필요한 WASM 재빌드를 피하려면 CMake와 패키징기의 원본 지문을 **함께** 좁혀야 한다. 현재 계약을 단독 변경해 이미 배포된 소스 해시를 무효화하지 않는다.
+```sh
+gh workflow run generated-artifacts-p2.yml --ref work/objects -f scope=auto
+```
+
+출력 영수증은 `assets/data/generated-artifacts/p2-manifest.json`이다. 일반 원본이 없으면 해당 계열은 차단 사유를 출력한다. 원본을 임의 다운로드하거나 대체하지 않는다. 수계·지형의 별도 외부 원본 매핑이 없는 작업은 수동 차단 상태로 남는다.
+
+## 게시 트랜잭션
+
+1. 원격 시작 SHA와 로컬 HEAD를 확인한다. 미커밋 변경이 있으면 staging을 거부한다.
+2. 검증한 WASM을 로컬 커밋한다. 원격에는 아직 반영하지 않는다.
+3. 추적된 소스만 `build-native/p2/`의 임시 출력 위치에 복사한다. 선택한 기존 생성기와 검증기를 실행하고 선언된 출력 밖의 변경을 거부한다.
+4. 모든 선택 출력 검증 후 게시한다. 중간 실패 시 백업 바이트를 복원한다. manifest는 마지막에 게시한다.
+5. 웹 출력을 로컬 커밋한 뒤 그 실제 SHA로 네이티브 자산의 출처를 기록한다. 네이티브 검증 후 로컬 커밋한다.
+6. 시작 이후 원격 브랜치가 바뀌지 않았는지 다시 확인하고 최종 결과를 일반 fast-forward push 한 번으로 반영한다. 강제 push, stash, reset, clean은 사용하지 않는다.
+7. 실제 최종 결과 SHA의 커밋된 바이트와 입력 지문을 evidence artifact에 연결한다. 바이트와 지문이 같으면 재생성·복사·커밋하지 않는다.
+
+정상 자동 소스 push의 검증은 P3가 최종 결과 SHA에서 수행한다. 원본 push 때 오래된 WASM으로 P3를 먼저 실행하지 않는다. 구현 중 수동 생성과 P9 최종 검증의 구체적 실행 범위는 workflow 입력으로 구분한다.
+
+## 검증 상태
+
+이 문서는 실행 계약이다. 구현 여부와 실제 실행 증거, 미검증 항목은 `reports/development/testing/p6-p9-execution-2026-10-16.md`에 기록한다. 그래프 등록만으로 실제 자산 재생성·앱/웹 동등성·성능 통과를 뜻하지 않는다.

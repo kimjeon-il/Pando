@@ -7,9 +7,13 @@ import '../../assets/js/vendor/polygon-clipping.min.js';
 import { area, multiCoordinates, hasCanonicalPolygonWinding } from '../../assets/js/modules/map-edit-geometry.js';
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
 import { normalizeCountryFeature } from '../../assets/js/modules/country-feature.js';
+import { loadVerifiedCore } from '../helpers/node-core-wasm-loader.mjs';
+
+globalThis.PandoLabSphericalCore = await loadVerifiedCore();
 
 function harness(t, rows, { failFirstClipMethod = '' } = {}) {
   const script = new URL('../../assets/js/workers/map-edit-worker.js', import.meta.url).href;
+  const coreAdapter = new URL('../helpers/node-core-wasm-loader.mjs', import.meta.url).href;
   const createWorker = () => {
     const worker = new Worker(`
       const { parentPort } = require('node:worker_threads');
@@ -20,7 +24,7 @@ function harness(t, rows, { failFirstClipMethod = '' } = {}) {
       self.postMessage = data => parentPort.postMessage(data);
       vm.runInThisContext(fs.readFileSync(self.location, 'utf8'), {
         filename: self.location.href,
-        importModuleDynamically: specifier => import(new URL(specifier, self.location).href),
+        importModuleDynamically: specifier => import(specifier.includes('core-wasm-loader.js') ? ${JSON.stringify(coreAdapter)} : new URL(specifier, self.location).href),
       });
       const failMethod = ${JSON.stringify(failFirstClipMethod)};
       if (failMethod) {
@@ -90,7 +94,7 @@ test('actual Worker creates a country, discards a preview and commits a reversib
   const second = await client.execute('new-country', payload);
   assert.deepEqual(second.result.features, first.result.features);
   assertNewCountryPartition(second.result, original.geometry, selected);
-  client.commit(second.requestId);
+  client.commit(second.requestId, second.geometryRevision);
   const merged = await client.execute('merge', { sourceId: 'A', targetIds: ['B'] });
   assert.deepEqual(merged.result.removedIds, ['B']);
   assert.equal(merged.result.preview.validation.blocking, false);
@@ -153,9 +157,26 @@ test('country command previews stay pending until commit and discard preserves w
   client.discard(first.requestId);
   const second = await client.execute('merge', { sourceId: 'a', targetIds: ['b'] });
   assert.deepEqual(second.result.features, first.result.features);
-  client.commit(second.requestId);
+  client.commit(second.requestId, second.geometryRevision);
   await assert.rejects(client.execute('merge', { sourceId: 'a', targetIds: ['b'] }), /합병할 국가/);
   assert.deepEqual(originals, before);
+});
+
+test('canonical patches followed by commit keep consecutive country merges synchronized', async t => {
+  const rows = ['a', 'b', 'c'].map((id, index) => ({ kind: 'territorial', feature: feature(id, square(index, 0, index + 1, 1)) }));
+  const client = harness(t, rows);
+  const first = await client.execute('merge', { sourceId: 'a', targetIds: ['b'] });
+  const updates = new Map(first.result.features.map(value => [value.id, value]));
+  const removed = new Set(first.result.removedIds);
+  rows.splice(0, rows.length, ...rows.filter(row => !removed.has(row.feature.id)).map(row => ({ ...row, feature: updates.get(row.feature.id) || row.feature })));
+  assert.equal(client.syncPatch(first.result.affectedIds), true);
+  const synchronizedRevision = client.stats().dataRevision;
+  client.commit(first.requestId, first.geometryRevision);
+  const second = await client.execute('merge', { sourceId: 'a', targetIds: ['c'] });
+  assert.equal(client.stats().dataRevision, synchronizedRevision);
+  assert.deepEqual(second.result.removedIds, ['c']);
+  assert.equal(second.result.preview.validation.blocking, false);
+  assert.equal(area(second.result.features[0].geometry), 3);
 });
 
 test('actual map-edit Worker retries country clipping sweep failures through the shared calculation', async t => {
@@ -399,7 +420,7 @@ for (const scope of ['root', 'child']) test(`actual ${scope} split Worker accept
   client.discard(first.requestId);
   const second = await client.execute(operation, payload);
   assert.deepEqual(second.result.features, first.result.features);
-  client.commit(second.requestId);
+  client.commit(second.requestId, second.geometryRevision);
   assert.deepEqual(rows, before);
 });
 

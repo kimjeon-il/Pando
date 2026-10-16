@@ -19,7 +19,10 @@ test('preview Worker preserves canonical validator coordinates for topology repa
         const url = new URL(specifier, self.location);
         if (url.pathname.endsWith('/core-wasm-loader.js')) return import(${JSON.stringify(coreAdapter)});
         if (url.pathname.endsWith('/project-preview-topology.js')) {
-          const adapter = new vm.SyntheticModule(['buildTopologyPreview'], function () {
+          const shared = await import(url.href);
+          const adapter = new vm.SyntheticModule(['buildTopologyPreview','inspectTopologyPreviewFeatures','previewContainmentIssue'], function () {
+            this.setExport('inspectTopologyPreviewFeatures',shared.inspectTopologyPreviewFeatures);
+            this.setExport('previewContainmentIssue',shared.previewContainmentIssue);
             this.setExport('buildTopologyPreview', (features, options) => {
               const candidate = self.topojson.topology({ countries: { type: 'FeatureCollection', features } });
               parentPort.postMessage({ issues: options.inspectCandidate(candidate) });

@@ -1,3 +1,4 @@
+import '../helpers/spherical-core.mjs';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import fs from 'node:fs';
@@ -99,7 +100,7 @@ test('production Serbia rivers separate three northern cells from the southern m
     riverSliverContext: [{ donorId: 'SRB', polygonIndex: 0,
       unselectedGeometries: result.candidates.filter(cell => !selected.includes(cell)).map(cell => cell.geometry) }],
   };
-  const { result: annex } = createCountryCommandCalculator(clipper).calculate(payload, new Map(collection.features.map(feature => [feature.id, feature])));
+  const { result: annex } = createCountryCommandCalculator().calculate(payload, new Map(collection.features.map(feature => [feature.id, feature])));
   // Two persisted artifacts plus one smaller raw clipping fragment that the
   // old normalization dropped. All are transferred, not silently discarded.
   assert.equal(annex.autoIncludedSlivers.count, 3);
@@ -153,7 +154,7 @@ test('Moldova river cells can be annexed into Romania without a retraced boundar
   });
   const selected = partitions.candidates.find(candidate => candidate.key === 'MDA:river-cell:6c83e30a');
   assert.ok(selected, 'expected the Moldova river partition that meets the Romanian border');
-  const { result } = createCountryCommandCalculator(globalThis.polygonClipping).calculate({
+  const { result } = createCountryCommandCalculator().calculate({
     operation: 'annex', targetId: 'ROU', donorIds: ['MDA'], transferredGeometry: selected.geometry,
     riverSliverContext: [{ donorId: 'MDA', polygonIndex: 0,
       unselectedGeometries: partitions.candidates.filter(candidate => candidate !== selected).map(candidate => candidate.geometry) }],

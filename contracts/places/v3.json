@@ -118,7 +118,9 @@
       "extraLineHeight": 14
     },
     "geometryNotice": "CSS-pixel heuristic, not native Qt font measurements",
-    "collisionPolicy": "one atomic collision box per place including up to three native rows"
+    "collisionPolicy": "one atomic collision box per place including up to three native rows",
+    "currentNamePrefix": "(현)",
+    "namingEvidence": "Historical evidence is per language; missing selected naming records use an explicitly current name. Naming dates do not establish settlement existence."
   },
   "limits": {
     "candidates": 1500,
@@ -237,7 +239,7 @@
             ],
             [
               "en",
-              "Nicosia"
+              "(현)Nicosia"
             ],
             [
               "native",
@@ -259,7 +261,7 @@
             ],
             [
               "en",
-              "Nicosia"
+              "(현)Nicosia"
             ],
             [
               "native",
@@ -285,7 +287,7 @@
             ],
             [
               "en",
-              "Nicosia"
+              "(현)Nicosia"
             ],
             [
               "native",
@@ -311,7 +313,7 @@
             ],
             [
               "en",
-              "Nicosia"
+              "(현)Nicosia"
             ],
             [
               "native",

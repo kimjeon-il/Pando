@@ -3,7 +3,8 @@
 #include <pandoeditor/geometryoperations.h>
 
 namespace pandoeditor {
-// Read-only worker step. The output is bound to the snapshot revision and is
+// Read-only worker step. Geometry comes from the current-month resolved view;
+// reference dates remain source provenance. Output is bound to the revision and
 // subsequently applied through one CommandProcessor ChangeSet.
 HistoricalInstantiationPlan prepareHistoricalTransaction(
     const ProjectSnapshot&,const HistoricalLibrary&,

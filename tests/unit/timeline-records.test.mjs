@@ -10,7 +10,7 @@ for (const row of timelineCases()) {
     const contextBefore = structuredClone(row.context);
     if (row.expected === 'OK') {
       const result = normalizeTimelineRecords(row.input, timelineContext(row.context));
-      assert.equal(result.schemaVersion, 1);
+      assert.equal(result.schemaVersion, 2);
       const expected = structuredClone(before);
       for (const name of ['lifetimes', 'geometryBindings', 'parentRelations']) {
         for (const record of expected[name]) {

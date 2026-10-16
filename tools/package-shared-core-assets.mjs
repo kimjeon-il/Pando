@@ -11,7 +11,7 @@ export function sharedSourceManifest(root) {
     for(const entry of readdirSync(folder,{withFileTypes:true})) {
       const name=prefix+entry.name;
       if(entry.isDirectory())scan(join(folder,entry.name),name+'/');
-      else if(entry.isFile()&&(/\.(cpp|h)(\.in)?$|\.cmake$/.test(name)||entry.name==='CMakeLists.txt'))paths.push(name);
+      else if(entry.isFile()&&(/\.(cpp|h|hpp)(\.in)?$|\.cmake$/.test(name)||entry.name==='CMakeLists.txt'))paths.push(name);
     }
   }
   scan(base);

@@ -106,7 +106,7 @@
     }
   ],
   "timelineRecords": {
-    "schemaVersion": 1,
+    "schemaVersion": 2,
     "lifetimes": [
       {
         "id": "life:A",
@@ -250,7 +250,8 @@
         "parentId": "C",
         "coverageMode": "explicit"
       }
-    ]
+    ],
+    "propertyBindings": []
   },
   "geometries": [
     {

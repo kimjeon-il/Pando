@@ -155,16 +155,18 @@ struct OwnerRecords {
     std::vector<std::tuple<std::string,std::optional<std::string>,std::optional<std::string>>> lifetimes;
     std::vector<const TimelineGeometryBinding*> bindings;
     std::vector<std::tuple<std::string,std::optional<std::string>,std::optional<std::string>,std::string,std::string>> parents;
+    std::vector<std::tuple<std::string,std::optional<std::string>,std::optional<std::string>,std::string,std::string>> properties;
 };
 std::map<std::string,OwnerRecords> ownerRecords(const ProjectDocument& document) {
     std::map<std::string,OwnerRecords> result;
     for(const auto& row:document.timelineRecords.lifetimes)result[row.entityId].lifetimes.emplace_back(row.id,row.validity.from,row.validity.to);
     for(const auto& row:document.timelineRecords.geometryBindings)result[row.entityId].bindings.push_back(&row);
     for(const auto& row:document.timelineRecords.parentRelations)result[row.entityId].parents.emplace_back(row.id,row.validity.from,row.validity.to,row.parentId,row.coverageMode);
+    for(const auto& row:document.timelineRecords.propertyBindings)result[row.entityId].properties.emplace_back(row.id,row.validity.from,row.validity.to,row.property,row.value);
     return result;
 }
 bool sameOwner(const ProjectDocument& a,const OwnerRecords& ar,const ProjectDocument& b,const OwnerRecords& br) {
-    if(ar.lifetimes!=br.lifetimes||ar.parents!=br.parents||ar.bindings.size()!=br.bindings.size())return false;
+    if(ar.lifetimes!=br.lifetimes||ar.parents!=br.parents||ar.properties!=br.properties||ar.bindings.size()!=br.bindings.size())return false;
     for(std::size_t i=0;i<ar.bindings.size();++i) {
         const auto& x=*ar.bindings[i],&y=*br.bindings[i];
         if(std::tie(x.id,x.validity.from,x.validity.to,x.geometryRef.id,x.geometryRef.version)!=

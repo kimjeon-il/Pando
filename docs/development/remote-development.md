@@ -8,8 +8,8 @@
 
 | 도구 | CI 버전 | 사용하는 범위 |
 |---|---|---|
-| Node.js | 24 버전대 (`.nvmrc`) | 변경 분류·웹 테스트·남아 있는 Qt JS geometry generator |
-| pnpm | 정확히 11.19.0 | JS 패키지/Qt의 현행 Acorn 준비가 필요한 작업 |
+| Node.js | 24 버전대 (`.nvmrc`) | 변경 분류·웹 테스트·생성물 게시 |
+| pnpm | 정확히 11.19.0 | 웹 패키지가 필요한 생성·테스트 작업 |
 | Python | 3.12 버전대 (`.python-version`) | **P4 독립 GIS/레거시 전용** `.github/workflows/gis-python-p4.yml`에서만 설치. 일반 웹·Qt·C++ core·WASM 작업에는 불필요 |
 | CMake | 3.31.6 | 공통 CMake preset 진입점 (소스 최소 요구 버전은 3.21) |
 | Qt | 6.8.3 | Qt Quick 앱을 빌드하는 job에만 설치 |
@@ -28,9 +28,9 @@ GitHub Actions와 클라우드 개발환경은 각각의 스코프에서 아래 
 | `pando-native-core` | 위와 동일; Qt/Node/Python 없음 | `cmake --preset pando-native-core && cmake --build --preset pando-native-core`. 현재 MapEngine 정적 라이브러리 |
 | `pando-gis-tools` | CMake, Ninja, C++17 | `cmake --preset pando-gis-tools && cmake --build --preset pando-gis-tools && ctest --preset pando-gis-tools`. GEOS/PROJ 없이 정규화 단위 계약 |
 | `pando-wasm` | 활성화된 Emscripten 4.0.20 SDK | `emcmake cmake --preset pando-wasm && cmake --build --preset pando-wasm`. 전용 WASM을 빌드하며 Git에 자동 반영하지 않음 |
-| `pando-native-qt` | Qt 6.8.3, CMake, Ninja, Node 24, pnpm과 현재 Acorn | `pnpm install --frozen-lockfile --ignore-scripts && cmake --preset pando-native-qt && cmake --build --preset pando-native-qt`. 앱 전체 빌드. Qt source 변경 또는 명시적 진단에서만 실행 |
+| `pando-native-qt` | Qt 6.8.3, CMake, Ninja, C++ | `cmake --preset pando-native-qt && cmake --build --preset pando-native-qt`. 앱 전체 빌드. Qt source 변경 또는 명시적 진단에서만 실행 |
 
-기본 `cmake -S .`는 core를 선택한다. Qt 앱 전체 빌드는 **아직** 기존 JS geometry 검증·생성물에 의존한다. P5/P6 이전에는 Node를 필수 빌드에서 억지로 삭제하지 않으며 P2 이전에는 오래된 바이너리를 자동 재생성해서 소스 불일치를 은폐하지 않는다.
+기본 `cmake -S .`는 core를 선택한다. Qt 앱은 공유 C++를 직접 호출한다. 제품 계산용 JS 생성/실행과 필수 Node 탐색은 제거했다. 원격 Qt 제품 configure/build/CTest 단계는 Node·pnpm·Python 호출을 차단하여 숨은 의존성을 확인한다.
 
 ## 범위 선택 및 CI 동작
 
@@ -48,7 +48,7 @@ GitHub Actions와 클라우드 개발환경은 각각의 스코프에서 아래 
 | 빌드·툴체인·본 P1 CI 파일 | 존재하는 모든 경량 스코프 + WASM | Qt 전체는 native 앱 경로를 수정할 때만 |
 | `reports/**`만 변경 | 별도 P1 빌드 불필요 | 요청할 때만 |
 
-P1는 **새로운 경량 원격 게이트**이며 이전 전 범위 CI를 이 단계에서 삭제하거나 실패를 무시하도록 바꾸지 않는다. 파일 이름이 `legacy`인 이전 게이트라도 삭제 여부는 P8에서 재검토한다.
+자동 실행 책임은 P1 공통/네이티브 C++·경량 도구, P2 생성물, P3 웹 계약·브라우저·Qt, P4 GIS 원본 도구로 구분한다. P1의 수동 WASM/Qt 진단은 유지하되 자동 중복 실행은 제거한다. 과거 GIS 연구/재수집은 명시 실행으로 보존한다.
 
 `work/ui`, `work/places`의 현재 분기에는 아직 `native/`와 `shared/`가 없을 수 있다. 이러한 branch에서는 UI/지명 웹 검증은 실행하고, **실제로 없는 C++ 소스의 빌드를 성공인 것처럼 보고하지 않고 건너뛴다.** 소스 통합 시 동일 공통 진입점으로 네이티브 빌드가 자동 활성화된다. 이는 다른 브랜치의 미완성 변경을 무단 병합하지 않기 위함이다.
 
@@ -56,7 +56,6 @@ P1는 **새로운 경량 원격 게이트**이며 이전 전 범위 CI를 이 �
 
 ## P0 대비 남은 알려진 실패 (기존 제품/생성물)
 
-- `native/app/CMakeLists.txt`의 `PANDO_GEOMETRY_NODE_EXECUTABLE REQUIRED` 및 `native/tools/m97/river/d3-adapter/node_modules/acorn` 의존은 여전히 존재한다. 새 Qt job에서는 의도적으로 `pnpm install --frozen-lockfile --ignore-scripts`을 실행하여 설치 누락을 막는다. 코드 소유권 이전은 P5/P6이다.
 - 이전 `main`의 `CUT_GENERATED_DRIFT` (Qt용 current geometry) 및 준비 메시 v2와 JS 원본 경계 정합성, 지형·역사 자산 버전 기대값 불일치, 브라우저 readiness 실패는 **P1 외부의 별도 제품/생성물 오류**다. 성공 표시를 위해 테스트 기대값/원본을 무작정 수정하지 않는다.
 - `work/objects`의 과거 P4 메시 자동 생성은 채색/외곽선 차이로 실패한 적이 있다. 원본 확인 없이 생성기 실행을 반복하거나 결과물을 조용히 push하지 않는다.
 - 이 P1 워크플로가 통과한 경우에도 앱 전체/성능/실물 GPU/배포가 완료됐다는 뜻은 아니다. P3에서 브라우저와 네이티브 앱 Windows/Linux 계측을 확대한다.

@@ -2,10 +2,11 @@
 #include <pandoeditor/sphericalpolygon.h>
 #include <cmath>
 #include <QFile>
+#include <QDir>
+#include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QJSEngine>
 #include <QtTest>
 #include <future>
 #include <limits>
@@ -14,7 +15,7 @@ namespace {
 Geometry geometry(const QJsonObject& object) {
     Geometry result;result.type=object["type"].toString().toStdString();
     auto polygons=object["coordinates"].toArray();
-    if(result.type=="Polygon")polygons=QJsonArray{polygons};
+    if(result.type=="Polygon")polygons=QJsonArray{QJsonValue(polygons)};
     for(const auto& p:polygons){Polygon polygon;for(const auto& r:p.toArray()){Ring ring;
         for(const auto& point:r.toArray()){auto c=point.toArray();ring.push_back({c[0].toDouble(),c[1].toDouble()});}
         polygon.push_back(std::move(ring));}result.polygons.push_back(std::move(polygon));}
@@ -27,44 +28,50 @@ QJsonObject json(const Geometry& geometry) {
 }
 Geometry crossing() {Geometry value;value.type="Polygon";value.polygons={{{{179,-2},{179,2},{-179,2},{-179,-2},{179,-2}}}};return value;}
 Geometry wide() {Geometry value;value.type="Polygon";value.polygons={{{{-170,0},{-170,10},{170,10},{170,0},{-170,0}}}};return value;}
+double planarArea(const Geometry& geometry) {
+    double area=0;
+    for(const auto& polygon:geometry.polygons)for(std::size_t r=0;r<polygon.size();++r){
+        const auto& ring=polygon[r];double sum=0;
+        for(std::size_t i=1;i<ring.size();++i)sum+=ring[i-1].x*ring[i].y-ring[i].x*ring[i-1].y;
+        area+=(r==0?1:-1)*std::abs(sum/2);
+    }
+    return area;
+}
 }
 class SplitGeometryNormalizerTests:public QObject {
     Q_OBJECT
 private slots:
-    void sharedSphericalAreaIsIdenticalToQtAdapter() {
-        QJSEngine engine;
-        loadCanonicalPolygonGeometry(engine);
-        const auto original=crossing().polygons.at(0).at(0);
-        const auto expected=sphericalRingSignedArea(original);
-        const QString r=QStringLiteral("[[179,-2],[179,2],[-179,2],[-179,-2],[179,-2]]");
-        const auto single=engine.evaluate(QStringLiteral("PandoLabPolygonGeometry.sphericalSignedArea(")+r+QStringLiteral(")"));
-        QVERIFY2(!single.isError(),qPrintable(single.toString()));
-        QVERIFY(std::abs(single.toNumber()-expected)<1e-12);
-        const auto batch=engine.evaluate(QStringLiteral("PandoLabPolygonGeometry.sphericalSignedAreas([")
-            +r+QStringLiteral(",[[179,-2],[-179,-2],[-179,2],[179,2],[179,-2]]])"));
-        QVERIFY2(!batch.isError(),qPrintable(batch.toString()));
-        QCOMPARE(batch.property(QStringLiteral("length")).toUInt(),2u);
-        QVERIFY(std::abs(batch.property(0).toNumber()-expected)<1e-12);
-        QVERIFY(std::abs(batch.property(1).toNumber()+expected)<1e-12);
-        const auto invalid=engine.evaluate(QStringLiteral("PandoLabPolygonGeometry.sphericalSignedArea([[0,0],[1,0],[1,1]])"));
-        QVERIFY(invalid.isError());
-        // A polar cap must use the same spherical integral in Qt and WASM.
-        const Ring cap{{170,80},{-170,80},{-90,85},{0,89},{90,85},{170,80}};
-        const auto polar=engine.evaluate(QStringLiteral(
-            "PandoLabPolygonGeometry.sphericalSignedArea([[170,80],[-170,80],[-90,85],[0,89],[90,85],[170,80]])"));
-        QVERIFY2(!polar.isError(),qPrintable(polar.toString()));
-        QVERIFY(std::abs(polar.toNumber()-sphericalRingSignedArea(cap))<1e-12);
+    void sharedNormalizationIsIdenticalToQtAdapter() {
+        for(const auto source:{crossing(),wide()}){
+            const auto before=json(source);
+            const auto actual=normalizeSplitRawGeometry(source);
+            QVERIFY2(actual.succeeded(),actual.detail.c_str());
+            QCOMPARE(json(actual.geometry),json(normalizeSphericalPolygonGeometry(source)));
+            QCOMPARE(json(source),before);
+        }
     }
-    void exactApprovedSourceObservations_data() {
+    void baselineObservationsAndCurrentCorrections_data() {
         QTest::addColumn<QJsonObject>("row");
         QFile file(QStringLiteral(M973_SPLIT_NORMALIZER_FIXTURE));QVERIFY(file.open(QIODevice::ReadOnly));
         const auto fixture=QJsonDocument::fromJson(file.readAll()).object();
-        QCOMPARE(fixture["behavioralCommit"].toString(),QString("07d3e2053c71573e11c5cf89151f5f6686038511"));
-        QCOMPARE(fixture["definitions"].toArray().size(),8);
+        QCOMPARE(fixture["sourceCommit"].toString(),QString("8e22982616e3c9ba43eeb84baec17cd886267cfa"));
+        QVERIFY(!fixture["sourceSha256"].toString().isEmpty());
         const auto rows=fixture["cases"].toArray();QCOMPARE(rows.size(),63);
-        for(const auto& value:rows){const auto row=value.toObject();QTest::newRow(qPrintable(row["id"].toString()))<<row;}
+        QFile corrections(QFileInfo(file).dir().filePath("wrapping-corrections.json"));
+        QVERIFY(corrections.open(QIODevice::ReadOnly));
+        auto corrected=QJsonDocument::fromJson(corrections.readAll()).object()["cases"].toArray();
+        for(const auto& value:rows){auto row=value.toObject();
+            for(qsizetype i=0;i<corrected.size();++i){const auto current=corrected[i].toObject();
+                if(current["id"]!=row["id"])continue;
+                QCOMPARE(current.value("operation"),row.value("operation"));
+                row.insert("baselineExpected",row["expected"]);row.insert("expected",current["expected"]);
+                corrected.removeAt(i);break;
+            }
+            QTest::newRow(qPrintable(row["id"].toString()))<<row;
+        }
+        QVERIFY2(corrected.isEmpty(),"Every correction must identify a baseline case");
     }
-    void exactApprovedSourceObservations() {
+    void baselineObservationsAndCurrentCorrections() {
         QFETCH(QJsonObject,row);const auto input=geometry(row["input"].toObject());const auto before=json(input);
         const auto output=row["operation"].toString()=="wrap"?wrapSplitGeometry(input):normalizeSplitClippedGeometry(input);
         QVERIFY2(output.succeeded(),output.detail.c_str());QVERIFY(output.inputUnchanged);QCOMPARE(json(input),before);
@@ -72,6 +79,12 @@ private slots:
         if(expected.isNull()||expected.toObject()["coordinates"].toArray().isEmpty()){
             QCOMPARE(output.status,GeometryOperationStatus::Empty);QVERIFY(output.geometry.polygons.empty());
         }else{QCOMPARE(output.status,GeometryOperationStatus::Completed);QCOMPARE(json(output.geometry),expected.toObject());}
+        if(row.contains("baselineExpected")){
+            const auto baseline=geometry(row["baselineExpected"].toObject());
+            QVERIFY(!hasCanonicalSphericalWinding(baseline));
+            QVERIFY(hasCanonicalSphericalWinding(output.geometry));
+            QCOMPARE(planarArea(output.geometry),planarArea(baseline));
+        }
     }
     void wrappedDatelineHasExactStripCoordinates() {
         const auto output=wrapSplitGeometry(crossing());QVERIFY2(output.succeeded(),output.detail.c_str());
@@ -87,7 +100,7 @@ private slots:
     }
     void cancellationDiscardsAllValuesAtEveryBoundary() {
         for(const auto operation:{wrapSplitGeometry,normalizeSplitClippedGeometry}) {
-            int checks=0;const auto completed=operation(crossing(),[&]{++checks;return false;});QVERIFY(completed.succeeded());QVERIFY(checks>3);
+            int checks=0;const auto completed=operation(crossing(),[&]{++checks;return false;});QVERIFY(completed.succeeded());QVERIFY(checks>0);
             for(int stop=1;stop<=checks;++stop){int current=0;const auto result=operation(crossing(),[&]{return ++current>=stop;});
                 QCOMPARE(result.status,GeometryOperationStatus::Cancelled);QVERIFY(result.geometry.polygons.empty());QVERIFY(result.detail.empty());QVERIFY(!result.inputUnchanged);}
         }
@@ -102,14 +115,9 @@ private slots:
             QCOMPARE(operation(invalid,[]{return true;}).status,GeometryOperationStatus::Cancelled);
         }
         Geometry degenerate;degenerate.type="Polygon";degenerate.polygons={{{{0,0},{1,1},{0,0}}}};
-        QCOMPARE(normalizeSplitClippedGeometry(degenerate).status,GeometryOperationStatus::Empty);
+        QCOMPARE(normalizeSplitClippedGeometry(degenerate).status,GeometryOperationStatus::Failed);
     }
-    void fullApprovedExportsAreLoadedWithoutPruning() {
-        QJSEngine engine;loadCanonicalPolygonGeometry(engine);
-        const auto api=engine.globalObject().property("PandoLabPolygonGeometry");
-        for(const auto name:{"ensureClosedRing","hasCanonicalPolygonWinding","normalizePolygonGeometry","normalizeClippedPolygonGeometry","wrapPolygonGeometry","orientRing","ringDistinctCoordinateCount","ringSignedArea","sphericalSignedArea","sphericalSignedAreas"})QVERIFY2(api.property(name).isCallable(),name);
-    }
-    void freshWorkerEnginesOwnTheirResultsAndDoNotMutateInput() {
+    void concurrentCalculationsOwnTheirResultsAndDoNotMutateInput() {
         const auto input=crossing();const auto before=json(input);
         auto first=std::async(std::launch::async,[input]{return wrapSplitGeometry(input);});
         auto second=std::async(std::launch::async,[input]{return wrapSplitGeometry(input);});

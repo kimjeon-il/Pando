@@ -1,10 +1,6 @@
+# Explicit GIS/source-data reproduction; lightweight source checks remain in gis-python-p4.yml.
 name: Siachen RGI7 research extraction
 on:
-  push:
-    branches:
-      - work/gis
-    paths:
-      - scripts/research/siachen/extract_rgi7.py
   workflow_dispatch:
 permissions:
   contents: write

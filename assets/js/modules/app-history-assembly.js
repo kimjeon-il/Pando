@@ -1,5 +1,5 @@
 /** Device persistence and service installation; C++ owns commands and history. */
-export function createHistoryAssembly() {
+export function createHistoryAssembly({ storageNamespace = null } = {}) {
   let dependencies;
   let browserProjectStorage;
   let persistenceService;
@@ -40,9 +40,9 @@ export function createHistoryAssembly() {
   }
   function initializeBrowserProjectStorage() {
     browserProjectStorage=dependencies.projectServices.createBrowserProjectStorage({
-      indexedDB: window.indexedDB,localStorage: window.localStorage,databaseName: dependencies.platformConfigurationA.AUTOSAVE_DB_NAME,
+      indexedDB: window.indexedDB,localStorage: window.localStorage,databaseName: storageNamespace || dependencies.platformConfigurationA.AUTOSAVE_DB_NAME,
       storeName: dependencies.platformConfigurationA.AUTOSAVE_STORE_NAME,projectKey: dependencies.platformConfigurationA.AUTOSAVE_RECORD_KEY,
-      viewKey: dependencies.platformConfigurationA.AUTOSAVE_VIEW_KEY,fallbackKey: dependencies.platformConfigurationB.STORAGE_KEY,
+      viewKey: dependencies.platformConfigurationA.AUTOSAVE_VIEW_KEY,fallbackKey: storageNamespace ? `${storageNamespace}-project` : dependencies.platformConfigurationB.STORAGE_KEY,
     });
     persistenceService=dependencies.projectServices.createPersistenceService({
       storage: browserProjectStorage,scheduler: dependencies.projectState.mapWorkScheduler,

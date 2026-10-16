@@ -2,6 +2,7 @@
 #include "webimport.h"
 #include <QFileInfo>
 #include <QDir>
+#include <QDate>
 #include <QPointer>
 #include <exception>
 
@@ -67,9 +68,10 @@ bool EditorController::prepareWebImport(const QUrl& url) {
         auto session=std::make_shared<WebImportSession>(project_.snapshot(),importEditEpoch_,url);
         auto work=std::make_shared<CompletedImport>();
         const auto storage=storage_;
+        const auto currentMonth=QDate::currentDate().toString(QStringLiteral("yyyy-MM")).toStdString();
         // The existing latest-wins runner bounds physical concurrency to one.
         // Source I/O, migration, validation and projection all operate on values.
-        auto task=[work,storage,url](const ProjectSnapshot&,const JobToken& token) {
+        auto task=[work,storage,url,currentMonth](const ProjectSnapshot&,const JobToken& token) {
             PrepareResult result;
             try {
                 if(token.cancelled())return result;
@@ -78,6 +80,10 @@ bool EditorController::prepareWebImport(const QUrl& url) {
                 if(token.cancelled())return result;
                 requireStaticTimeline(work->candidate.document);
                 work->project.replace(std::move(work->candidate.document));
+                // Static imports still need a display month for place labels,
+                // matching ordinary open; do not activate timeline editing.
+                work->project.setTimelineCursor(initialTimelineMonth(
+                    work->project.document().timelineRecords,currentMonth),false);
                 work->projection.rebuild(work->project.document());
                 result.status=CommandStatus::Prepared;
             } catch(const std::exception& e) {work->error=QString::fromUtf8(e.what());result.error=CommandError::PrepareFailed;}

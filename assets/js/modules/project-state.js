@@ -156,7 +156,7 @@ export function assertCurrentProjectSchema(input, { baseEntities = null, baseDat
     'timelineRecords', 'geometries', 'distributionLayers', 'distributionEntries',
     'labelSettings', 'distributionSettings', 'layerPresentation', 'physicalSettings',
     'layerVisibility', 'itemVisibility', 'baseDataset', 'landObjectModel', 'territorialModel',
-    'distributionModel', 'physicalSourceInfo',
+    'distributionModel', 'physicalSourceInfo', 'editorState',
   ]), '프로젝트');
   if (project.format !== 'pandolab-autosave-delta' && (Object.hasOwn(project, 'entityDelta') || Object.hasOwn(project, 'baseDatasetFingerprint'))) {
     throw schemaError('변경분과 기준 fingerprint는 delta 자동저장에만 허용됩니다.', 'PL-SCHEMA-FIELD');

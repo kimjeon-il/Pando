@@ -27,8 +27,10 @@ export function createBoundarySpatialIndex() {
   }
   function insert(id, value, bounds) {
     remove(id);
-    const locations = keys(bounds);
-    entries.set(id, { value, bounds, keys: locations });
+    const boxes = Array.isArray(bounds[0]) ? bounds : [bounds];
+    const groups = boxes.map(keys);
+    const locations = groups.some(group => group === null) ? null : [...new Set(groups.flat())];
+    entries.set(id, { value, boxes, keys: locations });
     if (!locations) large.add(id);
     else for (const key of locations) {
       if (!cells.has(key)) cells.set(key, new Set());
@@ -36,13 +38,14 @@ export function createBoundarySpatialIndex() {
     }
   }
   function query(bounds) {
+    if (Array.isArray(bounds[0])) return [...new Set(bounds.flatMap(query))];
     if (bounds[0] > bounds[2]) return [...new Set([
       ...query([bounds[0], bounds[1], 180, bounds[3]]), ...query([-180, bounds[1], bounds[2], bounds[3]]),
     ])];
     const locations = keys(bounds);
     const ids = locations ? new Set(large) : new Set(entries.keys());
     if (locations) for (const key of locations) for (const id of cells.get(key) || []) ids.add(id);
-    return [...ids].map(id => entries.get(id)).filter(entry => overlaps(entry.bounds, bounds)).map(entry => entry.value);
+    return [...ids].map(id => entries.get(id)).filter(entry => entry.boxes.some(box => overlaps(box, bounds))).map(entry => entry.value);
   }
   return { insert, remove, query, values: () => [...entries.values()].map(entry => entry.value) };
 }

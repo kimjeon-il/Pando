@@ -1,6 +1,5 @@
-// Revision 4 refines fill/stroke boundaries without changing the v2 packed layout.
-// Keep accepting revision 3 for older pinned fixtures; reject unknown revisions.
-const SUPPORTED_MESH_ALGORITHM_REVISIONS = new Set([3, 4]);
+// Revision 5 uses the shared C++ fill mesh; the packed v2 layout is unchanged.
+const MESH_ALGORITHM_REVISION = 5;
 
 export function decodeCountryMesh(buffer, ids = []) {
   if (!(buffer instanceof ArrayBuffer) || buffer.byteLength < 32) throw new Error("Invalid country mesh buffer");
@@ -9,7 +8,7 @@ export function decodeCountryMesh(buffer, ids = []) {
   const headerWords = formatVersion >= 2 ? 12 : 8;
   const header = new Uint32Array(buffer, 0, headerWords);
   if (header[0] !== 0x434d4731 || ![1, 2].includes(formatVersion) || header[2] !== 258
-    || header[6] < 1 || !SUPPORTED_MESH_ALGORITHM_REVISIONS.has(header[7])) {
+    || header[6] < 1 || header[7] !== MESH_ALGORITHM_REVISION) {
     throw new Error('외부 GPU 메시 형식 또는 알고리즘 리비전이 올바르지 않습니다.');
   }
   const countryCount = header[2];
