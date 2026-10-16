@@ -36,7 +36,11 @@ snapshot **only**; subsequent Tauri builds restage using the environment
 variable, so it must also be set for the build.
 
 The full-world profile includes manifest-pinned local terrain-preview tiles, HydroRIVERS
-and built-in places, while retaining lazy Worker loading. Official high-resolution
+and built-in places, while retaining lazy Worker loading. Terrain and hydro
+manifest/Worker initialization in this shell profile begins only after the
+canonical country mesh is ready, scheduled at browser idle to avoid contending
+with the first editable map paint. The public Web startup remains unchanged.
+Official high-resolution
 online DEM tiles remain outside the offline distribution. WebGL/Android device performance and
 full-world Tauri runtime behavior are not yet certified (2-4).
 The automatic `verify-windows.ps1` small-fixture diagnostic is **not**
