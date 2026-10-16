@@ -25,6 +25,8 @@
 
 변경 전: [CI 38881802861](https://github.com/kimjeon-il/Pando/actions/runs/38881802861), 소련 메모리 job, `SOVIET_EDIT_ENTRY`. 변경 후: [CI 38884567696](https://github.com/kimjeon-il/Pando/actions/runs/38884567696), 동일 테스트 및 출력. 관측된 차이는 **1,176.9ms(약 29%)**이지만 각각 독립적인 1회 측정이므로 통제된 성능 개선율로 확정하지 않는다. 시작 단계나 환경 차이 및 메인 스레드 경합의 영향을 배제하지 않았다.
 
+후속 독립 CI [38884686067](https://github.com/kimjeon-il/Pando/actions/runs/38884686067)에서는 편집 진입 **3,289.9ms**, Worker 왕복 **1,885.6ms**, 토폴로지·표시 **1,200.5ms**, 패킷 채택 **318.9ms**를 기록했다. 이 시험도 편집 진입·취소·페이지 오류 0건을 확인했다. 두 최적화 후 관측치 사이에도 편차가 있으므로 위 29%는 고정된 성능 향상률이나 중앙값이 아니다.
+
 변경 후 별도 `edit.boundary.prepare` 계측:
 
 | 측정 구간 | 값 |
