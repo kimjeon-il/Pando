@@ -28,6 +28,7 @@ $receipt=[ordered]@{
  scope='Source-bound test executables and their shared Qt runtime; no product packaging or acceptance claim'
  compileParallelism='MSBuild jobs=2, MSVC /MP2 for both versions'
  binaries=@{}
+ runtimeDependencies=@{}
 }
 $preset='pando-native-qt-ci-windows'
 $cachedBaseline=$null
@@ -71,8 +72,15 @@ foreach ($side in @('baseline','candidate')) {
   # vcpkg's app-local deployment owns third-party DLL names and placement.
   foreach ($dependency in Get-ChildItem -LiteralPath $built[0].DirectoryName -File -Filter '*.dll') {
    $deployed=Join-Path $output $dependency.Name
-   if ((Test-Path -LiteralPath $deployed) -and (Get-FileHash -LiteralPath $deployed).Hash -ne (Get-FileHash -LiteralPath $dependency.FullName).Hash) { throw "Different shared runtime dependency: $($dependency.Name)" }
-   Copy-Item -LiteralPath $dependency.FullName -Destination $deployed
+   if ((Test-Path -LiteralPath $deployed) -and (Get-FileHash -LiteralPath $deployed).Hash -ne (Get-FileHash -LiteralPath $dependency.FullName).Hash) {
+    $stagedVersion=(Get-Item -LiteralPath $deployed).VersionInfo
+    $builtVersion=$dependency.VersionInfo
+    if (!$stagedVersion.FileVersion -or $stagedVersion.FileVersion -ne $builtVersion.FileVersion -or $stagedVersion.ProductVersion -ne $builtVersion.ProductVersion -or $stagedVersion.OriginalFilename -ne $builtVersion.OriginalFilename) { throw "Different shared runtime dependency version: $($dependency.Name)" }
+    # Independent vcpkg builds have different PE timestamps. Both probes use
+    # the very same already-staged DLL after its version contract is checked.
+    Write-Host "Both probes use staged $($dependency.Name) $($stagedVersion.FileVersion)"
+   } else { Copy-Item -LiteralPath $dependency.FullName -Destination $deployed }
+   $receipt.runtimeDependencies[$dependency.Name]=@{file=$dependency.Name;sha256=(Get-FileHash -LiteralPath $deployed).Hash;version=(Get-Item -LiteralPath $deployed).VersionInfo.FileVersion}
   }
   $receipt.binaries[$side]=@{file=[IO.Path]::GetFileName($target);sha256=(Get-FileHash -LiteralPath $target).Hash}
  } finally { Pop-Location }
