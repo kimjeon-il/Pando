@@ -1,0 +1,37 @@
+name: Soviet CPU attribution
+on:
+  push:
+    branches: [work/objects]
+    paths:
+      - '.github/workflows/soviet-cpu-attribution.yml'
+      - 'tests/browser/soviet-initialization-cpu.spec.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  profile:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Profile Soviet main-thread work and memory retention
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: pnpm exec playwright test tests/browser/soviet-initialization-cpu.spec.mjs --workers=1 --retries=0 --trace off
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: soviet-cpu-attribution-${{ github.sha }}
+          path: test-results/soviet-cpu-attribution/
+          retention-days: 14
+          if-no-files-found: warn
