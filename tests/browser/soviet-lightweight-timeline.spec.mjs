@@ -26,7 +26,22 @@ async function month(page, value) {
   await page.locator('#timelineMonthButton').click();
   await page.locator('#timelineMonthInput').fill(value);
   await page.locator('#timelineMonthInput').press('Enter');
-  await expect(page.locator('#timelineMonthInput')).toBeHidden({ timeout: 90_000 });
+  const status = await page.evaluate(async () => {
+    const started = performance.now();
+    while (performance.now() - started < 20000) {
+      const input = document.getElementById('timelineMonthInput');
+      const message = document.getElementById('timelineMonthError')?.textContent?.trim() || '';
+      if (input?.hidden || input?.getAttribute('aria-invalid') === 'true')
+        return { hidden: input.hidden, invalid: input.getAttribute('aria-invalid'), error: message,
+          currentMonth: window.PANDOLAB_TERRITORIAL?.list?.()?.[0]?.properties?.validFrom || null,
+          screenStatus: document.querySelector('#actionStatus')?.textContent?.trim() || '' };
+      await new Promise(resolve => setTimeout(resolve, 200));
+    }
+    return { timedOut: true,
+      error: document.getElementById('timelineMonthError')?.textContent?.trim() || '' };
+  });
+  if (!status.hidden) throw new Error('SOVIET_MONTH_DIAGNOSTIC ' + JSON.stringify({ requested: value, ...status }));
+  await expect(page.locator('#timelineMonthInput')).toBeHidden({ timeout: 5_000 });
   await expect(page.locator('#timelineMonthInput')).toHaveValue(value);
 }
 async function ready(page) {
