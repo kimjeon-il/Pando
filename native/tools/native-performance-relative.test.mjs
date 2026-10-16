@@ -4,17 +4,17 @@ import {summarizeRelativeRounds,selectedD3dAdapter} from './summarize-native-per
 
 const roles=['world-standard','dense-view','editing-heavy','large-project'];
 const hardware="qt.rhi.general: Adapter 0: 'NVIDIA GeForce GTX 1650' (vendor 0x10DE device 0x1F82 flags 0x0)\nqt.rhi.general:   using this adapter\nqt.rhi.general: Adapter 1: 'Microsoft Basic Render Driver' (vendor 0x1414 device 0x8C flags 0x2)";
-function round(values=[10,10,10,10,10],number=1) {
+function round(values=[10,10,10,10,10],number=1,fixtureIds=roles) {
  const environment={sourceCommit:'c'.repeat(40),baselineSourceCommit:'b'.repeat(40),binarySha256:'c'.repeat(64),baselineBinarySha256:'b'.repeat(64),fixtureManifestSha256:'f'.repeat(64),inputHashes:{asset:'a'.repeat(64)},
-  os:'Windows 11',adapters:[{Name:'NVIDIA GeForce GTX 1650',DriverVersion:'32.0.16.1088'}],cpu:[{Name:'CPU',NumberOfLogicalProcessors:6}],cacheCondition:'fixed warm disk/fresh process',measurementProfile:'p9-relative',additionalRoundFrom:number===2?'first':null};
+  os:'Windows 11',adapters:[{Name:'NVIDIA GeForce GTX 1650',DriverVersion:'32.0.16.1088'}],cpu:[{Name:'CPU',NumberOfLogicalProcessors:6}],fixtureIds:[...fixtureIds],cacheCondition:'fixed warm disk/fresh process',measurementProfile:'p9-relative',additionalRoundFrom:number===2?'first':null};
  const runs=[];
  const add=(id,version,warmup,value)=>{
   const provenance={...structuredClone(environment),sourceCommit:version==='baseline'?environment.baselineSourceCommit:environment.sourceCommit,binarySha256:version==='baseline'?environment.baselineBinarySha256:environment.binarySha256,runId:id,qtVersion:'6.8.3',buildType:'Release',graphicsApi:'Direct3D11'};
   runs.push({receipt:{run:id,version,warmup,binarySha256:provenance.binarySha256,exitCode:0,exitCodeObserved:true,timedOut:false,rawReportExists:true},
-   report:{schema:'pandoeditor-native-performance',version:2,measurementProfile:'p9-relative',completed:true,measurementMode:'diagnostic',diagnosticReason:'Synthetic parser test only',startupMeasurement:'existing-world-project-open',startupToProjectViewMs:value,provenance,
-    preflight:{status:'PASS'},logicalProcessors:6,fixtures:roles.map(id=>({id,manifestSha256:environment.fixtureManifestSha256,fullStack:false})),
-    inputs:Array.from({length:480},()=>({matched:true,delivered:true,renderSnapshotMatched:true,renderUploadsPending:false,stateChanged:true})),
-    relativeMeasurements:roles.map(fixtureId=>({fixtureId,loadAndFirstReadyFrameMs:value,panMs:value,saveMs:value,
+   report:{schema:'pandoeditor-native-performance',version:2,measurementProfile:'p9-relative',completed:true,measurementMode:'diagnostic',diagnosticReason:'Synthetic parser test only',startupMeasurement:'existing-world-project-open',startupToProjectViewMs:value,initialProjectLoadMs:value,fixtureIds:[...fixtureIds],provenance,
+    preflight:{status:'PASS'},logicalProcessors:6,fixtures:fixtureIds.map(id=>({id,manifestSha256:environment.fixtureManifestSha256,fullStack:false})),
+    inputs:fixtureIds.flatMap(fixtureId=>Array.from({length:120},()=>({fixtureId,scenarioId:'flat-pan',matched:true,delivered:true,renderSnapshotMatched:true,renderUploadsPending:false,stateChanged:true}))),
+    relativeMeasurements:fixtureIds.map(fixtureId=>({fixtureId,loadAndFirstReadyFrameMs:value,panMs:value,panInputCount:120,saveMs:value,
      previewAndCancelMs:['editing-heavy','large-project'].includes(fixtureId)?value:null,
      previewEntityId:fixtureId==='editing-heavy'?'DEU':fixtureId==='large-project'?'RUS':'',
      previewGesture:fixtureId==='editing-heavy'?'pointer-drag':fixtureId==='large-project'?'keyboard-nudge':'',swapIntervalsMs:Array(120).fill(value)}))},
@@ -90,4 +90,27 @@ test('one additional five-pair round is available only after uncertainty',()=>{
 test('fully separated slower distributions are a regression and never retried',()=>{
  const result=summarizeRelativeRounds([round([12,12,12,12,12])]);
  assert.equal(result.status,'regression');assert.equal(result.additionalRoundAllowed,false);
+});
+test('large-project-only comparison retains RUS coverage and explicitly limits its scope',()=>{
+ const result=summarizeRelativeRounds([round([8,8,8,8,8],1,['large-project'])]);
+ assert.equal(result.status,'no-regression');assert.deepEqual(result.fixtureIds,['large-project']);
+ assert.equal(result.fullFixtureCoverage,false);assert.equal(result.m98Acceptance,false);
+ assert.equal(result.metrics['large-project.previewAndCancelMs'].candidate.count,5);
+ assert.equal(result.metrics['editing-heavy.previewAndCancelMs'],undefined);
+ assert.ok(result.limitations.some(text=>text.includes('does not complete full four-role P9')));
+});
+test('selected fixture IDs, first-load timing and per-role input receipts are strict',()=>{
+ for(const mutate of [
+  r=>r.environment.fixtureIds=[],
+  r=>r.environment.fixtureIds=['large-project','large-project'],
+  r=>r.environment.fixtureIds=['unknown'],
+  r=>r.runs[3].report.fixtureIds=roles,
+  r=>r.runs[3].report.relativeMeasurements.push({...r.runs[3].report.relativeMeasurements[0],fixtureId:'editing-heavy'}),
+  r=>r.runs[3].report.inputs.pop(),
+  r=>r.runs[3].report.inputs[0].fixtureId='world-standard',
+  r=>r.runs[3].report.relativeMeasurements[0].panInputCount=119,
+  r=>r.runs[3].report.initialProjectLoadMs=99,
+ ]) {const r=round(undefined,1,['large-project']);mutate(r);assert.equal(summarizeRelativeRounds([r]).status,'BLOCKED');}
+ const first=round([9,11,11,11,9],1,['large-project']),second=round(undefined,2,['editing-heavy']);
+ assert.equal(summarizeRelativeRounds([first,second]).status,'BLOCKED');
 });

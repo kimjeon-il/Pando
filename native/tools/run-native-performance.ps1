@@ -7,6 +7,7 @@ param(
  [ValidateSet('acceptance','diagnostic')][string]$Mode='acceptance',
  [string]$DiagnosticReason,
  [ValidateSet('m98-stress','p9-relative')][string]$Profile='m98-stress',
+ [string[]]$FixtureIds=@('world-standard','dense-view','editing-heavy','large-project'),
  [string]$BaselineProbeExecutable,
  [string]$BaselineSourceCommit,
  [string]$AdditionalRoundFrom,
@@ -22,6 +23,9 @@ param(
 # productionPlace {path,sha256,revision} pins a fixture manifest copy and the
 # identical production manifest used by the measured application.
 $ErrorActionPreference='Stop'
+$knownFixtureIds=@('world-standard','dense-view','editing-heavy','large-project')
+if(!$FixtureIds.Count -or @($FixtureIds | Select-Object -Unique).Count -ne $FixtureIds.Count -or @($FixtureIds | Where-Object {$_ -cnotin $knownFixtureIds}).Count){throw 'FixtureIds must contain unique known fixture role IDs'}
+if($Profile -ne 'p9-relative' -and ($FixtureIds -join ',') -ne ($knownFixtureIds -join ',')){throw 'Fixture selection applies only to the P9 relative profile'}
 $probePath=(Resolve-Path -LiteralPath $ProbeExecutable).Path
 $baselinePath=$null
 $buildIdentity=$null;$previousRound=$null
@@ -108,7 +112,7 @@ function Test-ProductionPlaceInput($contract,$productionPath){
 }
 if($manifest.schema -ne 'pandoeditor-native-performance-fixtures' -or $manifest.version -ne 2){$missing.Add('Immutable fixture schema/version mismatch')}
 if($Profile -eq 'p9-relative' -and $manifest.measurementScope -ne 'p9-relative'){$missing.Add('P9 production input scope missing')}
-foreach($id in @('world-standard','dense-view','editing-heavy','large-project')){
+foreach($id in $FixtureIds){
  $fixture=@($manifest.fixtures | Where-Object id -eq $id)
  if($fixture.Count -ne 1){$missing.Add("Missing/duplicate fixture: $id");continue}
  $fixture=$fixture[0]
@@ -153,6 +157,7 @@ foreach($runtimeFile in @("$qtPath/Qt6Core.dll","$qtPath/Qt6Gui.dll","$qtPath/Qt
 }
 $metadata=[ordered]@{sourceCommit=(git rev-parse HEAD);sourceDirty=[bool](git status --porcelain --untracked-files=no);binarySha256=(Get-FileHash -LiteralPath $probePath).Hash;fixtureManifestSha256=$preflight.fixtureManifestSha256;buildType='Release';qtBin=$qtPath;os=[Environment]::OSVersion.VersionString;adapters=@(Get-CimInstance Win32_VideoController | Select-Object Name,DriverVersion);cpu=@(Get-CimInstance Win32_Processor | Select-Object Name,NumberOfLogicalProcessors);inputHashes=$hashes;measurementMode=$Mode;diagnosticReason=$DiagnosticReason;runs=$Runs;warmupMs=$WarmupMs;repeatMs=$RepeatMs;qtFunctionTimeoutMs=$TimeoutSeconds*1000;acceptedBy=$null}
 $metadata.measurementProfile=$Profile
+$metadata.fixtureIds=@($FixtureIds)
 $metadata.qtPluginPath=$qtPluginPath;$metadata.qtQmlPath=$qtQmlPath
 $metadata.workspaceCommit=$metadata.sourceCommit
 if($baselinePath){
@@ -162,16 +167,19 @@ if($baselinePath){
  $metadata.warmupMs=0;$metadata.repeatMs=0
  $metadata.cacheCondition='One discarded full workload per version warms OS inputs and each executable-name-specific physical-data disk cache; each measured run starts a fresh process with isolated project persistence and fresh in-memory caches. Existing physical-data caches are preserved.'
  $metadata.scope='P9 same-input production-world saved-project open/pan-swap/edit-preview-cancel/save/process-memory comparison; static country base disabled in both versions. No cold-world-bootstrap, M98 full-stack, 12-minute plateau, GPU completion, or Android evidence.'
+ $metadata.scope+=' Selected fixtures: '+($FixtureIds -join ', ')+'.'
+ if($FixtureIds.Count -lt $knownFixtureIds.Count){$metadata.scope+=' This selected-fixture comparison does not complete full four-role P9 or M98 verification.'}
  $metadata.additionalRoundFrom=$AdditionalRoundFrom
  if($previousRound){
   foreach($key in @('sourceCommit','baselineSourceCommit','binarySha256','baselineBinarySha256','fixtureManifestSha256')){
    if($previousRound.$key -ne $metadata[$key]){throw "Additional round changed $key"}
   }
+  if(($previousRound.fixtureIds -join ',') -ne ($FixtureIds -join ',')){throw 'Additional round changed fixtureIds'}
  }
 }
 $metadata | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath "$reportRoot/environment.json" -Encoding utf8
 if($Mode -eq 'acceptance' -and $metadata.sourceDirty){throw 'Acceptance requires the final fixed source commit; working tree is dirty'}
-$envNames=@('PATH','QTEST_FUNCTION_TIMEOUT','QT_QPA_PLATFORM','QT_PLUGIN_PATH','QML_IMPORT_PATH','QML2_IMPORT_PATH','QT_QUICK_BACKEND','QSG_RHI_BACKEND','QSG_INFO','QT_LOGGING_RULES','QSG_RHI_PREFER_SOFTWARE_RENDERER','QT_D3D_ADAPTER_INDEX','PANDOEDITOR_MAP_RENDERER','QSG_RENDER_TIMING','QSG_RENDERER_DEBUG','PANDOEDITOR_NATIVE_PERF_REPORT','PANDOEDITOR_NATIVE_PERF_FIXTURES','PANDOEDITOR_NATIVE_PERF_MODE','PANDOEDITOR_NATIVE_PERF_REASON','PANDOEDITOR_NATIVE_PERF_PROVENANCE','PANDOEDITOR_NATIVE_PERF_PREFLIGHT','PANDOEDITOR_NATIVE_PERF_WARMUP_MS','PANDOEDITOR_NATIVE_PERF_REPEAT_MS','PANDOEDITOR_NATIVE_PERF_RUN_ID','PANDOEDITOR_NATIVE_PERF_BRIEF','PANDOEDITOR_NATIVE_PERF_ABLATION','PANDOEDITOR_NATIVE_PERF_RECOVERY','PANDOEDITOR_NATIVE_PERF_VIEW','PANDOEDITOR_NATIVE_PERF_PROFILE','PANDOEDITOR_NATIVE_PERF_WORLD_ROOT','PANDOEDITOR_WORLD_DATA_ROOT','PANDOEDITOR_TERRAIN_DEM_DATA_ROOT')
+$envNames=@('PATH','QTEST_FUNCTION_TIMEOUT','QT_QPA_PLATFORM','QT_PLUGIN_PATH','QML_IMPORT_PATH','QML2_IMPORT_PATH','QT_QUICK_BACKEND','QSG_RHI_BACKEND','QSG_INFO','QT_LOGGING_RULES','QSG_RHI_PREFER_SOFTWARE_RENDERER','QT_D3D_ADAPTER_INDEX','PANDOEDITOR_MAP_RENDERER','QSG_RENDER_TIMING','QSG_RENDERER_DEBUG','PANDOEDITOR_NATIVE_PERF_REPORT','PANDOEDITOR_NATIVE_PERF_FIXTURES','PANDOEDITOR_NATIVE_PERF_MODE','PANDOEDITOR_NATIVE_PERF_REASON','PANDOEDITOR_NATIVE_PERF_PROVENANCE','PANDOEDITOR_NATIVE_PERF_PREFLIGHT','PANDOEDITOR_NATIVE_PERF_WARMUP_MS','PANDOEDITOR_NATIVE_PERF_REPEAT_MS','PANDOEDITOR_NATIVE_PERF_RUN_ID','PANDOEDITOR_NATIVE_PERF_BRIEF','PANDOEDITOR_NATIVE_PERF_ABLATION','PANDOEDITOR_NATIVE_PERF_RECOVERY','PANDOEDITOR_NATIVE_PERF_VIEW','PANDOEDITOR_NATIVE_PERF_PROFILE','PANDOEDITOR_NATIVE_PERF_FIXTURE_IDS','PANDOEDITOR_NATIVE_PERF_WORLD_ROOT','PANDOEDITOR_WORLD_DATA_ROOT','PANDOEDITOR_TERRAIN_DEM_DATA_ROOT')
 $saved=@{};foreach($name in $envNames){$saved[$name]=[Environment]::GetEnvironmentVariable($name,'Process')}
 try{
  $env:PATH="$qtPath;$env:PATH";$env:QT_QPA_PLATFORM='windows'
@@ -187,6 +195,7 @@ try{
  $env:PANDOEDITOR_NATIVE_PERF_BRIEF=$null;$env:PANDOEDITOR_NATIVE_PERF_ABLATION=$null;$env:PANDOEDITOR_NATIVE_PERF_RECOVERY=$null;$env:PANDOEDITOR_NATIVE_PERF_VIEW=$null
  $env:PANDOEDITOR_NATIVE_PERF_FIXTURES=$manifestPath;$env:PANDOEDITOR_NATIVE_PERF_MODE=$Mode;$env:PANDOEDITOR_NATIVE_PERF_REASON=$DiagnosticReason
  $env:PANDOEDITOR_NATIVE_PERF_PROFILE=$Profile
+ $env:PANDOEDITOR_NATIVE_PERF_FIXTURE_IDS=ConvertTo-Json -InputObject @($FixtureIds) -Compress
  $env:PANDOEDITOR_NATIVE_PERF_WORLD_ROOT=Join-Path (Split-Path $PSScriptRoot -Parent) 'assets/world'
  $env:PANDOEDITOR_WORLD_DATA_ROOT=$env:PANDOEDITOR_NATIVE_PERF_WORLD_ROOT
  $env:PANDOEDITOR_TERRAIN_DEM_DATA_ROOT=$env:PANDOEDITOR_NATIVE_PERF_WORLD_ROOT
