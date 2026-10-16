@@ -1215,7 +1215,9 @@ export function createDomainAssembly() {
     if (!changed) return false;
     dependencies.rendering.gpuMapRenderer.invalidateCountryPreview();
     renderingDomain?.invalidateProject?.('timeline-cursor');
-    dependencies.persistence.persistenceService.queueProject(650, { scope: 'session', markDirty: false });
+    // A cursor change does not modify the canonical document. Persist only
+    // the small view/session record, never the full geometry archive.
+    dependencies.domains.projectDomain.queueViewAutosave();
     return true;
   }
 

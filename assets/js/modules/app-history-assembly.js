@@ -15,6 +15,18 @@ export function createHistoryAssembly({ storageNamespace = null } = {}) {
       ...dependencies.projectState.state.view,...dependencies.platform.deepClone(viewRecord.view) });
     return true;
   }
+  async function applyAutosavedTimeline(viewRecord) {
+    const month = viewRecord?.lastViewedMonth;
+    if (typeof month !== 'string' || !month) return false;
+    if (dependencies.domains.commandOwner.state()?.timelineCursor === month) return false;
+    try {
+      return await dependencies.territorialModel.entityStore.setTimelineCursor(month);
+    } catch (error) {
+      // A stale or invalid view hint must never abort the C++ document load.
+      console.warn('Saved map month was ignored', error);
+      return false;
+    }
+  }
   async function queryStoredProject(project,query) {
     const domain=dependencies.domains.projectDomain,expectedGeneration=domain.getGeneration();
     let baselineId=null;
@@ -57,7 +69,9 @@ export function createHistoryAssembly({ storageNamespace = null } = {}) {
         const projection=await dependencies.domains.projectDomain.inspectImport(project,options);
         return {project,territorialViews:projection.territorialViews};
       }),
-      readView: () => ({ projection: dependencies.projectState.state.projection,view: dependencies.platform.deepClone(dependencies.projectState.state.view) }),
+      readView: () => ({ projection: dependencies.projectState.state.projection,
+        view: dependencies.platform.deepClone(dependencies.projectState.state.view),
+        lastViewedMonth: dependencies.domains.commandOwner.state()?.timelineCursor || null }),
       validateProject: project => queryStoredProject(project,options=>dependencies.domains.projectDomain.prepareImport(project,options)),
       onDirty: () => dependencies.projectSession.saveState.sync(),
       onAutosaveState: (value,options) => dependencies.projectSession.saveState.setAutosave(value,options),
@@ -74,5 +88,7 @@ export function createHistoryAssembly({ storageNamespace = null } = {}) {
     });
   }
   return Object.freeze({ connect,initializeBrowserProjectStorage,initializeCoreServices,
-    get applyAutosavedView() { return applyAutosavedView; },get persistenceService() { return persistenceService; } });
+    get applyAutosavedView() { return applyAutosavedView; },
+    get applyAutosavedTimeline() { return applyAutosavedTimeline; },
+    get persistenceService() { return persistenceService; } });
 }
