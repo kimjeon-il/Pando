@@ -1,0 +1,39 @@
+name: Soviet coast edit preparation analysis
+on:
+  push:
+    branches: [work/objects]
+    paths:
+      - '.github/workflows/soviet-edit-entry-profile.yml'
+      - 'tests/browser/soviet-edit-entry-profile.spec.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  edit-preparation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Measure Soviet coast editor on real historical project
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: pnpm exec playwright test tests/browser/soviet-edit-entry-profile.spec.mjs --workers=1 --retries=0 --trace off
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: soviet-edit-preparation-${{ github.sha }}
+          path: |
+            test-results/soviet-edit-entry/
+            test-results/soviet-edit-entry*/
+          retention-days: 14
+          if-no-files-found: warn
