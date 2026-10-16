@@ -120,3 +120,26 @@ test('native GIS picker cancellation clears stale import target and restores foc
   assert.equal(await controller.openPicker({ target: 'countries' }), false);
   assert.deepEqual(calls, ['target:countries', 'target:', 'focus']);
 });
+
+test('cancelled native project import leaves the model untouched and restores focus', async () => {
+  const events = [];
+  const controller = createGisFileController({
+    elements: { projectOpen: { focus() { events.push('focus'); } } },
+    fileAccess: { async openProjectFile() { events.push('cancel'); return { cancelled: true }; } },
+    onFiles: async () => assert.fail('Cancelled native picker must not import.'),
+  });
+  assert.equal(await controller.openProjectPicker(), false);
+  assert.deepEqual(events, ['cancel', 'focus']);
+});
+
+test('native GIS picker failure clears its import target and returns focus', async () => {
+  const events = [];
+  const controller = createGisFileController({
+    elements: { open: { focus() { events.push('focus'); } } },
+    setTarget: target => events.push('target:' + target),
+    fileAccess: { async openGisFiles() { throw new Error('disk unavailable'); } },
+    onFiles: async () => assert.fail('Failed picker must not import.'),
+  });
+  await assert.rejects(controller.openPicker({ target: 'countries' }), /disk unavailable/);
+  assert.deepEqual(events, ['target:countries', 'target:', 'focus']);
+});

@@ -140,3 +140,12 @@ test('cancelled native GIS picker retains export dialog without an error', async
   assert.equal(f.elements.modal.classList.contains('hidden'), false);
   assert.equal(f.errors.length, 0);
 });
+
+test('native GIS write failure retains modal and reports an operation error', async () => {
+  const f = fixture(async () => { throw new Error('disk full'); });
+  await f.controller.open();
+  assert.equal(await f.controller.confirm(), false);
+  assert.equal(f.elements.modal.classList.contains('hidden'), false);
+  assert.equal(f.errors.length, 1);
+  assert.match(f.errors[0].message, /disk full/);
+});
