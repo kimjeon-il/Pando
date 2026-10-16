@@ -75,3 +75,41 @@ test('desktop and narrow mobile use the same inline date editor and Enter/Done a
   expect(await page.locator('#projectSaveStatus').getAttribute('data-tooltip')).toBe(dirty);
   expect(initial).not.toBe('');
 });
+
+test('mobile timeline and map command toolbar occupy separate rows without covering date buttons', async ({ page }) => {
+  test.setTimeout(120_000);
+  await openApp(page);
+  for (const width of [320, 360, 390, 430, 768]) {
+    await page.setViewportSize({ width, height: 800 });
+    await expect(page.locator('#app')).toHaveAttribute('data-layout', 'mobile');
+    const positions = await page.evaluate(() => {
+      const rect = selector => {
+        const el = document.querySelector(selector);
+        const r = el.getBoundingClientRect();
+        return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, height: r.height };
+      };
+      const controls = {};
+      for (const id of ['timelinePreviousYear', 'timelinePreviousMonth', 'timelineMonthButton',
+        'timelineNextMonth', 'timelineNextYear', 'referenceImageBtn', 'resetViewBtn']) {
+        const el = document.getElementById(id);
+        const r = el.getBoundingClientRect();
+        const target = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+        controls[id] = { visible: r.width > 0 && r.height > 0,
+          unobstructed: el.contains(target), top: r.top, bottom: r.bottom };
+      }
+      return { timeline: rect('.timeline-status'), toolbar: rect('.map-command-toolbar'), controls };
+    });
+    expect(positions.toolbar.bottom, `map toolbar vs timeline at ${width}px`)
+      .toBeLessThanOrEqual(positions.timeline.top - 4);
+    expect(positions.timeline.left, `timeline left at ${width}px`).toBeGreaterThanOrEqual(-1);
+    expect(positions.timeline.right, `timeline right at ${width}px`).toBeLessThanOrEqual(width + 1);
+    for (const [id, control] of Object.entries(positions.controls)) {
+      expect(control.visible, `${id} visible at ${width}px`).toBe(true);
+      expect(control.unobstructed, `${id} hit target at ${width}px`).toBe(true);
+    }
+    await page.locator('#timelineMonthButton').click();
+    await expect(page.locator('#timelineMonthInput')).toBeVisible();
+    await page.locator('#timelineMonthInput').press('Escape');
+    await expect(page.locator('#timelineMonthButton')).toBeVisible();
+  }
+});

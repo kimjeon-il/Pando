@@ -9275,6 +9275,14 @@ body.map-sheet-open .app-root[data-layout="mobile"] .map-bottom-status {
   overflow: visible;
 }
 
+/* The floating timeline's height also reserves space for the mobile map tools. */
+.app-root[data-layout="mobile"] {
+  --ui-mobile-timeline-control-height: 2.5rem;
+  --ui-mobile-timeline-row-height: calc(
+    var(--ui-mobile-timeline-control-height) + var(--ui-space-1) + var(--ui-space-1)
+  );
+}
+
 .app-root[data-layout="mobile"] .timeline-status {
   position: absolute;
   right: var(--ui-space-2);
@@ -9287,8 +9295,8 @@ body.map-sheet-open .app-root[data-layout="mobile"] .map-bottom-status {
 
 .app-root[data-layout="mobile"] .timeline-step {
   width: clamp(2.25rem, 10vw, 2.5rem);
-  min-height: 2.5rem;
-  height: 2.5rem;
+  min-height: var(--ui-mobile-timeline-control-height);
+  height: var(--ui-mobile-timeline-control-height);
 }
 
 .app-root[data-layout="mobile"] .timeline-month-control {
@@ -9297,7 +9305,7 @@ body.map-sheet-open .app-root[data-layout="mobile"] .map-bottom-status {
 
 .app-root[data-layout="mobile"] .timeline-month-button,
 .app-root[data-layout="mobile"] .timeline-month-input {
-  height: 2.5rem;
+  height: var(--ui-mobile-timeline-control-height);
 }
 
 .app-root[data-layout="mobile"] .status-view {
@@ -9744,7 +9752,12 @@ html.keyboard-navigation .map-display-detail-trigger:focus-visible {
   .app-root[data-layout="mobile"] .map-command-toolbar {
     top: auto;
     right: max(var(--ui-map-edge), env(safe-area-inset-right));
-    bottom: calc(var(--ui-map-bottom-occupied-height) + var(--ui-map-edge));
+    /* Stack above the timeline row: the two floating controls cannot share
+       the same horizontal band on narrow Android screens. */
+    bottom: calc(
+      var(--ui-map-bottom-occupied-height) + var(--ui-space-1)
+      + var(--ui-mobile-timeline-row-height) + var(--ui-space-3)
+    );
     left: auto;
     display: flex;
     grid-template-columns: none;
