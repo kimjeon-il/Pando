@@ -45,6 +45,7 @@
 | ID | 보고서 | 원문 수정일 | 상태 | 지도 반영 |
 | --- | --- | --- | --- | --- |
 | `PERF-P0-001` | [기준 코드·기존 계측 자산 통합 검토](development/testing/performance-baseline-consolidation-2026-10-17.md) | 2026-10-17 | `verified-source-and-focused-ci` | `not-applicable` |
+| `OBJ-091` | [공유 국경선 잔여 메모리 소유 구조 3개 GC 순서별 분해](development/testing/soviet-retained-owner-graph-2026-10-17.md) | 2026-10-17 | `verified-isolated-chromium` | `not-applicable` |
 | `OBJ-090` | [렌더링 선분 지연 생성 및 Worker 메모리 61MiB 추가 절감](development/testing/soviet-renderable-on-demand-2026-10-17.md) | 2026-10-17 | `verified-web-paired-and-12cycle` | `not-applicable` |
 | `OBJ-089` | [공유 국경선 선분 공간 인덱스 압축: JS 힙 165MiB 절감 A/B 검증](development/testing/boundary-spatial-index-packed-2026-10-17.md) | 2026-10-17 | `verified-web-paired` | `not-applicable` |
 | `OBJ-088` | [공유 국경선 Worker 메모리 실제 유지 소유자 분석](development/testing/soviet-shared-border-retained-owners-2026-10-17.md) | 2026-10-17 | `verified-web-diagnostics` | `not-applicable` |
