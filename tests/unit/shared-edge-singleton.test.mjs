@@ -52,7 +52,12 @@ test('coincident contributions promote one edge to a merged multi-contact result
   const current = canonical(state);
   const expected = createCountrySharedBoundaryState();
   expected.replace(features);
-  assert.deepEqual(current, canonical(expected), 'recreated contacts match a fresh full replace');
+  // Patch preserves surviving D/E edge identity and Map insertion order;
+  // fresh replace may enumerate A/B/C before D/E. Compare canonical geometry,
+  // not the unrelated contact insertion order.
+  const sortSegments = values => [...values].map(JSON.stringify).sort();
+  assert.deepEqual(sortSegments(current), sortSegments(canonical(expected)),
+    'recreated contact geometry matches a fresh full replace');
 });
 
 test('cached shared segments hydrate to the same output when one and multiple owners coincide', () => {
