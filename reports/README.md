@@ -45,6 +45,7 @@
 | ID | 보고서 | 원문 수정일 | 상태 | 지도 반영 |
 | --- | --- | --- | --- | --- |
 | `PERF-P0-001` | [기준 코드·기존 계측 자산 통합 검토](development/testing/performance-baseline-consolidation-2026-10-17.md) | 2026-10-17 | `verified-source-and-focused-ci` | `not-applicable` |
+| `OBJ-093` | [국가별 준비 자료와 C++ 전달 캐시 참조 소유권 교차 조사](development/testing/soviet-prepared-source-owners-2026-10-17.md) | 2026-10-17 | `source-audit / isolated-gc-in-progress` | `not-applicable` |
 | `OBJ-092` | [단일 접촉 공유 경계 레코드 압축 및 Worker 6MiB 절감](development/testing/soviet-singleton-edge-2026-10-17.md) | 2026-10-17 | `verified-web-paired-and-12cycle` | `not-applicable` |
 | `OBJ-091` | [공유 국경선 잔여 메모리 소유 구조 3개 GC 순서별 분해](development/testing/soviet-retained-owner-graph-2026-10-17.md) | 2026-10-17 | `verified-isolated-chromium` | `not-applicable` |
 | `OBJ-090` | [렌더링 선분 지연 생성 및 Worker 메모리 61MiB 추가 절감](development/testing/soviet-renderable-on-demand-2026-10-17.md) | 2026-10-17 | `verified-web-paired-and-12cycle` | `not-applicable` |
