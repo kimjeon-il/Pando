@@ -1,7 +1,7 @@
 {
   "schema": "pandoeditor-core-wasm",
   "abiVersion": 1,
-  "sourceSha256": "302dc4eedbe9a5f9b862812e285a7e9cf8dbba0004204c428d6faef259522586",
+  "sourceSha256": "e41e89fcb47d6e67f7b65b2a501e222d1eb20fc85799756df7be6c78725c9df0",
   "compiler": {
     "name": "emscripten",
     "version": "4.0.20"
@@ -317,7 +317,7 @@
     },
     {
       "path": "shared/core/src/geometrypredicates.cpp",
-      "sha256": "f4b6cd6bec782e290c9a625b2ffede158b0aa9399b9c122d342e6e4362236d15"
+      "sha256": "6b71db0938783ff9daff4b5a52c3e296b961d243ce0626589d6207a27bbcb103"
     },
     {
       "path": "shared/core/src/geometryprovenance.cpp",
@@ -635,7 +635,7 @@
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "a053a4811de9001ee7e8da288044ee41ff1b2d628493148a00fa2568b9af02f5"
+      "sha256": "77a2c521d6d4f1d91e01c014069819448050830bb38f68c052db569c2915700b"
     }
   }
 }
