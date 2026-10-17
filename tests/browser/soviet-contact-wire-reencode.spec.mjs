@@ -41,25 +41,27 @@ test('benchmark repeated C++ contact source encoding on real prepared modern nei
   const benchmark = await worker.evaluate(async () => {
     const { computeCountrySharedContacts } = await import(new URL('../modules/country-contact-core.js', globalThis.location.href).href);
     const store = boundaryState.preparedStore;
-    const ranked = store.values().sort((a, b) => b.segments.length - a.segments.length);
-    const candidates = [], visited = new Set();
-    for (const left of ranked.slice(0, 35)) for (const right of store.nearby(left.bounds)) {
-      if (left.id === right.id || right.segments.length < 10) continue;
-      const key = [left.id, right.id].sort().join('|');
-      if (visited.has(key)) continue;
-      visited.add(key);
-      const count = left.segments.length + right.segments.length;
-      if (count >= 400 && count <= 100000) candidates.push({ left, right, count });
-    }
-    candidates.sort((a, b) => b.count - a.count || a.left.id.localeCompare(b.left.id));
-    const selected = candidates[0];
-    if (!selected) throw new Error('No suitable modern broad-phase country pair');
-    const pair = [[selected.left, selected.right]];
     const digest = result => ({ segments: result[0].length,
       refs: result[0].reduce((n, row) => n + row.refs.length, 0) });
-    const start = performance.now();
-    const expected = digest(computeCountrySharedContacts(pair));
-    const warmupMs = performance.now() - start;
+    // Restrict CPU parity to real adjacent countries, not an empty broad-phase hit.
+    const candidates = [['RUS', 'CHN'], ['CHN', 'MNG'], ['CAN', 'USA'],
+      ['IND', 'CHN'], ['DEU', 'POL'], ['FRA', 'ESP']];
+    let selected = null, expected = null, warmupMs = null;
+    for (const [leftId, rightId] of candidates) {
+      const left = store.get(leftId), right = store.get(rightId);
+      if (!left || !right) continue;
+      const count = left.segments.length + right.segments.length;
+      if (count < 400 || count > 150000) continue;
+      const start = performance.now();
+      const actual = digest(computeCountrySharedContacts([[left, right]]));
+      if (!actual.segments) continue;
+      selected = { left, right, count };
+      expected = actual;
+      warmupMs = performance.now() - start;
+      break;
+    }
+    if (!selected) throw new Error('No real adjacent modern-country pair found');
+    const pair = [[selected.left, selected.right]];
     const durations = [];
     for (let i = 0; i < 5; i++) {
       const then = performance.now();
