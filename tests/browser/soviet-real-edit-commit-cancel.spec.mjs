@@ -171,7 +171,7 @@ async function dragAndPreview(page, timings) {
   // OBJ-098 acceptance: retain a meaningful final displacement after crossing
   // the drag threshold. The older 1.5px move was frequently normalized to a
   // Core no-op although map-edit moved a temporary vertex successfully.
-  await page.mouse.move(x + 16, y - 11, { steps: 6 });
+  await page.mouse.move(x + 6, y - 4, { steps: 6 });
   await page.mouse.up();
   timings.pointerAttempt = { x, y, coordinate: handle.coordinate, score: handle.score };
   timings.heldSource = await fingerprint(page);
@@ -184,7 +184,7 @@ async function dragAndPreview(page, timings) {
   await expect.poll(() => page.evaluate(() => window.__SOVIET_EDIT_WORKER_OPS__
     ?.some(item => item.operation === 'boundary-move')), { timeout: 35_000 }).toBe(true);
   try {
-    await expect(page.locator('#modePrimaryBtn')).toContainText('변경 적용', { timeout: 52_000 });
+    await expect(page.locator('#modePrimaryBtn')).toContainText('변경 적용', { timeout: 36_000 });
   } catch (error) {
     timings.noPreview = await page.evaluate(() => ({
       mode: document.querySelector('#modePrimaryBtn')?.textContent?.trim(),
@@ -252,6 +252,9 @@ test('real Soviet coastal vertex preview cancel, confirm and Undo/Redo preserve 
             resultChanged: message.result?.changed ?? null,
             candidateId: message.result?.candidateId ?? null,
             resultStatus: message.result?.status || null,
+            resultCoreOk: message.result?.ok ?? null,
+            resultCoreErrorCode: message.result?.error?.code || null,
+            resultCoreError: String(message.result?.error?.message || '').slice(0, 320),
             previewBlocking: message.result?.preview?.validation?.blocking ?? null,
             previewBoundaryCount: message.result?.preview?.delta?.newBoundaries?.length ?? null,
             resultGeometryBytes: message.result?.features?.[0]?.geometry
