@@ -1,0 +1,44 @@
+name: OBJ-098 published WASM Soviet coastline edit acceptance
+on:
+  push:
+    branches: [work/perf-geographic-containment-index-20261018]
+    paths:
+      - '.github/workflows/soviet-geographic-containment-browser.yml'
+      - 'tests/browser/soviet-real-edit-commit-cancel.spec.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: obj098-published-edit-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  published-core-acceptance:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 36
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - name: P2 source-matched WASM and focused boundary contracts
+        run: |
+          pnpm install --frozen-lockfile --ignore-scripts
+          node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
+          node --check tests/browser/soviet-real-edit-commit-cancel.spec.mjs
+          pnpm exec eslint tests/browser/soviet-real-edit-commit-cancel.spec.mjs
+          node --test tests/unit/boundary-source-row-compact.test.mjs tests/unit/country-contact-core.test.mjs
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Edit Soviet 1989 source; cancel candidate, confirm, Undo/Redo/Undo, verify source identity and CPU timing
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: pnpm exec playwright test tests/browser/soviet-real-edit-commit-cancel.spec.mjs --workers=1 --retries=0 --trace off
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: obj098-published-real-soviet-${{ github.sha }}
+          path: test-results/soviet-real-edit/
+          retention-days: 14
+          if-no-files-found: warn
