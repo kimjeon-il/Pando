@@ -66,7 +66,12 @@ export function computeCountrySharedContacts(pairs = []) {
         if (!sourceRow||String(sourceRow.featureId)!==String(original.id)
           ||!Number.isFinite(startT)||!Number.isFinite(endT))
           invalid('missing source segment');
-        return {...sourceRow,startT,endT};
+        // Prepared rows may inherit immutable country/ring metadata. C++ source
+        // refs must still be complete own-property snapshots for cached seeds,
+        // country editing and parity with the original full source records.
+        return { ...sourceRow, featureId: sourceRow.featureId,
+          polygonIndex: sourceRow.polygonIndex, ringIndex: sourceRow.ringIndex,
+          interiorSide: sourceRow.interiorSide, startT, endT };
       });
       return {start,end,ownerIds:[...ownerIds],refs};
     });
