@@ -52,3 +52,94 @@ test('unsupported picker uses download fallback', async () => {
   assert.equal(anchor.download, '판도연구소-프로젝트.gpkg');
   assert.deepEqual(calls, ['download']);
 });
+
+test('native project save uses canonical domain writer, not the browser picker', async () => {
+  const events = [], blob = new Blob(['project']);
+  const controller = createGisFileController({
+    elements: { save: {} },
+    fileAccess: { async saveProjectFile(value) { assert.equal(value, blob); events.push('native'); return { cancelled: false, path: 'C:/map.gpkg' }; } },
+    window: { showSaveFilePicker() { assert.fail('browser picker is not used by Tauri'); } },
+    projectDomain: { async save(write) { events.push('core'); return write(blob); } },
+  });
+  assert.deepEqual(await controller.saveProject(), { downloaded: false });
+  assert.deepEqual(events, ['core', 'native']);
+});
+
+test('native project save cancellation is never reported as completed', async () => {
+  const controller = createGisFileController({
+    elements: { save: {} },
+    fileAccess: { async saveProjectFile() { return { cancelled: true }; } },
+    projectDomain: { save: write => write(new Blob(['project'])) },
+  });
+  assert.equal(await controller.saveProject(), false);
+});
+
+test('native project open invokes the established project import and restores focus', async () => {
+  const events = [], trigger = { focus() { events.push('focus'); } };
+  const file = new Blob([new Uint8Array([0, 255, 10])]);
+  const controller = createGisFileController({
+    elements: { projectOpen: trigger },
+    fileAccess: { async openProjectFile() { events.push('picker'); return { cancelled: false, path: 'C:/test/map.gpkg', blob: file }; } },
+    onFiles: async (files, options) => {
+      events.push('import');
+      assert.equal(options.sourceKind, 'project');
+      assert.equal(files.length, 1);
+      assert.equal(files[0].name, 'map.gpkg');
+      assert.deepEqual(new Uint8Array(await files[0].arrayBuffer()), new Uint8Array([0, 255, 10]));
+    },
+  });
+  await controller.openProjectPicker();
+  assert.deepEqual(events, ['picker', 'import', 'focus']);
+});
+
+test('native GIS multi-file picker uses existing GIS import without changing the target', async () => {
+  const calls = [], focus = { focus() { calls.push('focus'); } };
+  const files = [new File(['a'], 'map.shp'), new File(['b'], 'map.dbf')];
+  const controller = createGisFileController({
+    elements: { open: focus },
+    setTarget: value => calls.push('target:' + value),
+    fileAccess: { async openGisFiles() { return { cancelled: false, files }; } },
+    onFiles: async (chosen, options) => {
+      assert.equal(chosen, files);
+      assert.deepEqual(options, { sourceKind: 'vector' });
+      calls.push('import');
+    },
+  });
+  await controller.openPicker({ target: 'countries' });
+  assert.deepEqual(calls, ['target:countries', 'import', 'focus']);
+});
+
+test('native GIS picker cancellation clears stale import target and restores focus', async () => {
+  const calls = [];
+  const controller = createGisFileController({
+    elements: { open: { focus() { calls.push('focus'); } } },
+    setTarget: target => calls.push('target:' + target),
+    fileAccess: { async openGisFiles() { return { cancelled: true, files: [] }; } },
+    onFiles: async () => assert.fail('cancelled native import must not mutate the project'),
+  });
+  assert.equal(await controller.openPicker({ target: 'countries' }), false);
+  assert.deepEqual(calls, ['target:countries', 'target:', 'focus']);
+});
+
+test('cancelled native project import leaves the model untouched and restores focus', async () => {
+  const events = [];
+  const controller = createGisFileController({
+    elements: { projectOpen: { focus() { events.push('focus'); } } },
+    fileAccess: { async openProjectFile() { events.push('cancel'); return { cancelled: true }; } },
+    onFiles: async () => assert.fail('Cancelled native picker must not import.'),
+  });
+  assert.equal(await controller.openProjectPicker(), false);
+  assert.deepEqual(events, ['cancel', 'focus']);
+});
+
+test('native GIS picker failure clears its import target and returns focus', async () => {
+  const events = [];
+  const controller = createGisFileController({
+    elements: { open: { focus() { events.push('focus'); } } },
+    setTarget: target => events.push('target:' + target),
+    fileAccess: { async openGisFiles() { throw new Error('disk unavailable'); } },
+    onFiles: async () => assert.fail('Failed picker must not import.'),
+  });
+  await assert.rejects(controller.openPicker({ target: 'countries' }), /disk unavailable/);
+  assert.deepEqual(events, ['target:countries', 'target:', 'focus']);
+});

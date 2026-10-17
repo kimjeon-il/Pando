@@ -59,12 +59,24 @@ test('1991 library geometry is inserted into 2012 and preserves temporal edits, 
   await month(page,'2012-01');await page.evaluate(id=>window.PANDOLAB_TERRITORIAL.setName(id,'Inserted USSR'),added.id);
   expect((await object(page,added.id)).properties.name).toBe('Inserted USSR');
   await month(page,'2013-01');expect((await object(page,added.id)).properties.name).toBe('Future USSR');
+  // Month navigation only updates the separately stored session cursor;
+  // earlier accepted historical edits remain in the full document receipt.
+  await expect.poll(async()=> (await autosave(page))?.timelineRecords?.propertyBindings
+    ?.some(row=>row.entityId===added.id&&row.value.name==='Inserted USSR'),{timeout:90000}).toBe(true);
+  const documentBeforeMonth=await autosave(page);
   await month(page,'2012-06');
   await expect.poll(async()=>{
     const saved=await autosave(page);
-    return saved?.editorState?.lastViewedMonth==='2012-06'&&saved.timelineRecords.propertyBindings.some(row=>row.entityId===added.id&&row.value.name==='Inserted USSR');
+    const view=await page.evaluate(async()=>{
+      const db=await new Promise((resolve,reject)=>{const req=indexedDB.open('pandolab-editor',2);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);});
+      try{return await new Promise((resolve,reject)=>{const req=db.transaction('projects','readonly').objectStore('projects').get('active-view');req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);});}
+      finally{db.close();}
+    });
+    return view?.lastViewedMonth==='2012-06' && view.projectSavedAt===saved?.savedAt
+      && saved.timelineRecords.propertyBindings.some(row=>row.entityId===added.id&&row.value.name==='Inserted USSR');
   },{timeout:30000}).toBe(true);
   const saved=await autosave(page);
+  expect(saved).toEqual(documentBeforeMonth);
   await page.reload();await expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{timeout:90000});
   await expect(page.locator('#timelineMonthInput')).toHaveValue('2012-06');
   expect((await object(page,added.id)).properties.name).toBe('Inserted USSR');

@@ -14,6 +14,17 @@ test('allows the local verified engine but records and blocks world and remote r
   assert.equal(result.blocked.length, 2);
 });
 
+test('full-world profile permits bundled assets but blocks remote origins', async () => {
+  const fetched = [];
+  const scope = { location: new URL('https://tauri.localhost/'),
+    fetch: async target => { fetched.push(target); return new Response('packaged'); } };
+  const state = installNetworkGuard(scope, { allowBundledData: true });
+  await scope.fetch('/assets/data/world/current.json');
+  await assert.rejects(scope.fetch('https://elsewhere.example/world.json'), /blocked/i);
+  assert.equal(fetched.length, 1);
+  assert.equal(state.blocked.length, 1);
+});
+
 test('reinstalling the guard preserves one request observer', async () => {
   const scope = { location: new URL('http://localhost/'), fetch: async () => new Response('fixture') };
   const result = installNetworkGuard(scope);
@@ -22,10 +33,12 @@ test('reinstalling the guard preserves one request observer', async () => {
   assert.equal(result.requests.length, 1);
 });
 
-test('allows only the six native IPC commands at the exact internal origin', async () => {
+test('allows only native IPC commands at the exact internal origin', async () => {
   const scope = { location: new URL('http://tauri.localhost/'), fetch: async () => new Response('native') };
   const result = installNetworkGuard(scope);
   await scope.fetch('http://ipc.localhost/write_probe_file');
+  await scope.fetch('http://ipc.localhost/begin_document_read');
+  await scope.fetch('http://ipc.localhost/append_document_chunk');
   await assert.rejects(scope.fetch('http://ipc.localhost/arbitrary_file_access'), /blocked/i);
   await assert.rejects(scope.fetch('http://ipc.localhost.evil.test/write_probe_file'), /blocked/i);
   assert.equal(result.blocked.length, 2);

@@ -20,6 +20,7 @@
 | `GEO-LIFE-005` | [아시아 국가 존속기간 — 이라크·요르단·레바논](geography/country-lifetime-asia-middle-east-2026-10-17.md) | 2026-10-17 | `investigating` | `not-applied` |
 | `GEO-LIFE-ROTATION` | [국가 존속기간 조사 지역 순환 진행기록](geography/country-lifetime-rotation-progress.md) | 2026-10-17 | `investigating` | `not-applied` |
 | `GEO-TIME-001` | [2025년 중앙아시아 국경 획정 사건](geography/historical-timeline-2025-central-asia-2026-10-17.md) | 2026-10-17 | `investigating` | `not-applied` |
+| `GEO-LIFE-004` | [유럽 국가 존속기간 공란 27개 — 1801년 이후 조사](geography/country-lifetime-europe-1801-plus-2026-10-15.md) | 2026-10-15 | `investigating` | `not-applied` |
 | `GEO-DEU-008` | [1914 German Empire coast vs provisional modern coastline — screen-space preliminary check](geography/germany/1914-screen-delta-precheck.md) | 2026-10-09 | `investigating` | `not-applied` |
 | `GEO-DEU-007` | [Official Schleswig-Holstein WMS period-map coast review — October 9, 2026](geography/germany/1914-sh-period-map-overlay-review.md) | 2026-10-09 | `investigating` | `not-applied` |
 | `GEO-009` | [현행 수계 데이터 최적화 — 1단계 (2026-10-09)](geography/hydro/active-hydro-optimization-stage1.md) | 2026-10-09 | `historical-record` | `unverified` |
@@ -27,7 +28,6 @@
 | `GEO-NLD-005` | [Netherlands shoreline pilot — Phase 0 canonical baseline probe](geography/netherlands/phase0-canonical-audit.md) | 2026-10-10 | `investigating` | `not-applied` |
 | `GEO-058` | [Terrain integration validation](geography/terrain/app-terrain-integration-validation.md) | 2026-10-07 | `historical-record` | `unverified` |
 | `GEO-059` | [P2 terrain LOD and demand validation](geography/terrain/app-terrain-p2-validation.md) | 2026-10-07 | `historical-record` | `unverified` |
-| `GEO-LIFE-004` | [유럽 국가 존속기간 공란 27개 — 1801년 이후 조사](geography/country-lifetime-europe-1801-plus-2026-10-15.md) | 2026-10-15 | `investigating` | `not-applied` |
 | `GEO-LIFE-001` | [국가 존속기간 공란 조사 — 최상위 일반객체 A–D 32개](geography/country-lifetime-a-d-2026-10-13.md) | 2026-10-13 | `investigating` | `not-applied` |
 | `GEO-023` | [Verified entity lifetime additions](geography/verified-entity-lifetimes.md) | 2026-10-08 | `historical-record` | `unverified` |
 
@@ -42,6 +42,14 @@
 
 | ID | 보고서 | 원문 수정일 | 상태 | 지도 반영 |
 | --- | --- | --- | --- | --- |
+| `DEV-086` | [1989년 소련 편집 메모리·반복 회귀 검증](development/testing/soviet-memory-lifecycle-regression-2026-10-16.md) | 2026-10-16 | `verified-web-ci-with-observability-limits` | `not-applicable` |
+| `DEV-085` | [1989년 소련 대형 경계 편집 준비 지연 선분 생성 최적화](development/testing/soviet-boundary-preparation-2026-10-16.md) | 2026-10-16 | `verified-web-ci` | `not-applicable` |
+| `DEV-084` | [신규 WebView 전체 세계지도 물리 자료 로딩 경량화](development/testing/web-shell-physical-startup-2026-10-16.md) | 2026-10-16 | `verified-windows-paired-30s` | `not-applicable` |
+| `DEV-083` | [1989년 소련 초기 준비시간·메모리 원인 조사](development/testing/soviet-initialization-memory-2026-10-16.md) | 2026-10-16 | `verified-web-diagnostics` | `not-applicable` |
+| `DEV-082` | [1989년 소련 WebGL 선택 강조선 및 빈 상호작용 패스 최적화](development/testing/soviet-render-hotpaths-2026-10-16.md) | 2026-10-16 | `verified-web` | `not-applicable` |
+| `DEV-081` | [1989년 소련 지도 이동 WebGL2 메시·GPU 업로드 재사용 검증](development/testing/soviet-pan-gpu-reuse-2026-10-16.md) | 2026-10-16 | `verified-web-only` | `not-applicable` |
+| `DEV-080` | [공통 웹 초기화 및 전체 세계 데이터 패키징 — 2-3A~C](development/testing/web-shell-full-world-2026-10-16.md) | 2026-10-16 | `investigating` | `not-applicable` |
+| `DEV-079` | [웹·앱 공통 파일 입출력 — 2-2 구현 기록](development/testing/web-shell-file-io-2026-10-16.md) | 2026-10-16 | `investigating` | `not-applicable` |
 | `DEV-078` | [Windows·Android 웹 기반 시험용 앱](development/testing/web-shell-prototype-2026-10-16.md) | 2026-10-16 | `investigating` | `not-applicable` |
 | `DEV-077` | [시점별 객체 편집과 라이브러리 삽입](development/testing/temporal-editing-2026-10-16.md) | 2026-10-16 | `implemented` | `not-applicable` |
 | `DEV-076` | [P6–P9 구현·검증 진행 기록](development/testing/p6-p9-execution-2026-10-16.md) | 2026-10-16 | `investigating` | `not-applicable` |

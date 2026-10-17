@@ -67,6 +67,28 @@ const pendingResults = new Map();
 let currentDataRevision = 0;
 let projectEpoch = 0;
 
+// Read-only Worker diagnostic for browser performance tests. This is not a
+// second state owner and never initializes a service just to sample memory.
+Object.defineProperty(self, '__PANDOLAB_MAP_EDIT_MEMORY_DIAGNOSTICS__', {
+  configurable: false,
+  value: () => Object.freeze({
+    sourceRevision,
+    dataRevision: currentDataRevision,
+    projectEpoch,
+    editSourceCount: editSources.size,
+    boundaryFeatureCount: boundaryFeatures.size,
+    retainedPreviewCount: validatedPreviews.size,
+    pendingResultCount: pendingResults.size,
+    cutSourceCount: cutSources.size,
+    boundary: boundaryService?.stats() || null,
+    // Emscripten does not guarantee a public HEAP8/HEAPU8 member. Null means
+    // unavailable, NOT zero allocated WASM bytes.
+    wasmHeapBytes: self.PandoLabSphericalCore?.HEAPU8?.buffer?.byteLength
+      ?? self.PandoLabSphericalCore?.HEAP8?.buffer?.byteLength ?? null,
+  }),
+  writable: false,
+});
+
 const featureId = feature => String(feature?.id || '');
 
 function applyPatch(map, features, removedIds) {

@@ -380,3 +380,116 @@ test('cancelled acknowledgement errors retain diagnostics without publishing fai
   assert.equal(current.events.some(row => row[0] === 'failure'), false);
   assert.equal(current.events.some(row => row[0] === 'autosave' && row[1] === 'error'), false);
 });
+
+test('timeline-only session view never builds or writes the full project', async () => {
+  let month = '1989-06', builds = 0;
+  const { service, storage, tasks, events } = harness({ service: {
+    buildAutosave: () => { builds++; return receipt({ format: 'pandolab-autosave-full' }); },
+    readView: () => ({ projection: 'flat', view: { flatZoom: 2 }, lastViewedMonth: month }),
+  } });
+  service.queueView(10);
+  month = '1990-01';
+  await tasks.get('view-autosave').task();
+  assert.equal(builds, 0);
+  assert.equal(storage.project, null);
+  assert.equal(storage.view.lastViewedMonth, '1990-01');
+  assert.equal(storage.view.projectSavedAt, null);
+  assert.equal(events.some(row => row[0] === 'autosave' && row[1] === 'saved'), false);
+});
+
+test('cursor hint is scoped to last fully saved document and survives an unchanged restore', async () => {
+  const stamp = '2026-10-16T08:00:00.000Z';
+  let month = '1914-07';
+  const { service, storage, tasks } = harness({ service: {
+    buildAutosave: () => receipt({ format: 'pandolab-autosave-full', savedAt: stamp, marker: 'edited' }),
+    readView: () => ({ projection: 'flat', view: {}, lastViewedMonth: month }),
+  } });
+  await service.persist();
+  await tasks.get('view-autosave').task();
+  assert.equal(storage.view.projectSavedAt, stamp);
+  month = '1914-06';
+  service.queueView(10);
+  await tasks.get('view-autosave').task();
+  assert.equal(storage.project.marker, 'edited');
+  assert.equal(storage.view.lastViewedMonth, '1914-06');
+  assert.equal((await service.restore()).view.lastViewedMonth, '1914-06');
+});
+
+test('a stale cursor from another imported document does not override its reopening hint', async () => {
+  const { service, storage } = harness();
+  storage.project = { format: 'pandolab-autosave-full', savedAt: '2026-10-16T09:00:00.000Z' };
+  storage.view = { projection: 'globe', lastViewedMonth: '1989-06',
+    projectSavedAt: '2026-10-16T07:00:00.000Z', savedAt: '2026-10-16T10:00:00.000Z' };
+  const restored = await service.restore();
+  assert.equal(restored.view.lastViewedMonth, undefined);
+  assert.equal(restored.view.projection, 'globe');
+  assert.equal(restored.project.savedAt, storage.project.savedAt);
+});
+
+test('light session writes wait for the full autosave and adopt its committed identity', async () => {
+  const started = barrier(), finish = barrier();
+  const stamp = '2026-10-16T09:30:00.000Z';
+  const { service, storage, tasks } = harness({
+    storage: { async writeProject(value) { started.release(); await finish.wait; this.project = value; } },
+    service: {
+      buildAutosave: () => receipt({ format: 'pandolab-autosave-full', savedAt: stamp }),
+      readView: () => ({ lastViewedMonth: '1989-06' }),
+    },
+  });
+  const full = service.persist();
+  await started.wait;
+  service.queueView(10);
+  const writeView = tasks.get('view-autosave').task();
+  assert.equal(storage.view, null);
+  finish.release();
+  await Promise.all([full, writeView]);
+  assert.equal(storage.view.lastViewedMonth, '1989-06');
+  assert.equal(storage.view.projectSavedAt, stamp);
+});
+
+test('cancelled session writes cannot resurrect a cleared project view', async () => {
+  const blocker = barrier(), release = barrier();
+  const current = harness({ storage: {
+    async writeProject(value) { blocker.release(); await release.wait; this.project = value; },
+  }, service: { readView: () => ({ lastViewedMonth: '1989-06' }) } });
+  const full = current.service.persist();
+  await blocker.wait;
+  current.service.queueView(10);
+  const scheduled = current.tasks.get('view-autosave').task();
+  current.service.cancelPending();
+  release.release();
+  await Promise.all([full, scheduled]);
+  assert.equal(current.storage.view, null);
+});
+
+
+test('presentation-only autosaves keep the existing preview work instead of re-inspecting the project',async()=>{
+  let inspections=0,presentations=0;
+  const checkpoint={projectGeneration:2,epoch:10,content:7};
+  const {service,tasks}=harness({
+    storage:{readPreview:async()=>null,writePreview:async()=>{}},
+    service:{
+      buildAutosave:()=>receipt({format:'pandolab-autosave-full',
+        savedAt:'2026-10-16T00:00:0'+(presentations++)+'.000Z'},{
+        ...checkpoint,presentation:presentations,
+      }),
+      previewBaseline:()=>({sourceSha256:'same-baseline'}),
+      previewGeometry:async()=>null,
+      previewProjection:async project=>{inspections++;return {project,territorialViews:[]};},
+    },
+  });
+  await service.persist();
+  for(let i=0;i<8 && !tasks.has('project-preview-cache');i++)await Promise.resolve();
+  assert.equal(inspections,1);
+  const pending=tasks.get('project-preview-cache')?.task;
+  assert.equal(typeof pending,'function');
+  await service.persist();
+  await Promise.resolve();
+  assert.equal(inspections,1,'same Core content may not rerun inspectImport');
+  assert.equal(tasks.get('project-preview-cache')?.task,pending,'do not cancel an in-flight preview');
+  service.cancelPending();
+  await service.persist();
+  for(let i=0;i<8 && inspections<2;i++)await Promise.resolve();
+  assert.equal(inspections,2,'project cancellation clears the preview revision identity');
+  service.cancelPending();
+});

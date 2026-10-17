@@ -1,0 +1,10 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-finish-document-write"
+description = "Enables finish_document_write without any pre-configured scope."
+commands.allow = ["finish_document_write"]
+
+[[permission]]
+identifier = "deny-finish-document-write"
+commands.deny = ["finish_document_write"]

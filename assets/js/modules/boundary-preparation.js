@@ -10,10 +10,56 @@ const padded = bounds => {
   return [bounds[0] - margin, bounds[1] - margin, bounds[2] + margin, bounds[3] + margin];
 };
 
-export function createBoundaryPreparation() {
+// A ring envelope includes every source segment (including dateline-crossing
+// edges). It is only a conservative broad phase: exact contacts and splits
+// remain owned by the existing C++ topology calculation.
+function geometryRingBounds(geometry) {
+  const polygons = geometry?.type === 'Polygon' ? [geometry.coordinates]
+    : geometry?.type === 'MultiPolygon' ? geometry.coordinates : [];
+  const boxes = [];
+  for (const rings of polygons || []) for (const ring of rings || []) {
+    let west = Infinity, south = Infinity, east = -Infinity, north = -Infinity;
+    for (const point of ring || []) {
+      const x = point?.[0], y = point?.[1];
+      if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
+      west = Math.min(west, x); east = Math.max(east, x);
+      south = Math.min(south, y); north = Math.max(north, y);
+    }
+    if (west <= east && south <= north) boxes.push([west, south, east, north]);
+  }
+  return boxes;
+}
+
+// Conservative accounting of retained JS collections, not actual V8 heap bytes.
+// One oversize active preparation remains usable; older preparations are evicted.
+export const BOUNDARY_PREPARATION_CACHE_BUDGET_BYTES = 32 * 1024 * 1024;
+const MAX_CACHED_PREPARATIONS = 8;
+const estimateCacheEntryBytes = entry => entry.topology.nodes.size * 240
+  + entry.topology.segments.size * 320 + entry.targetRowCount * 176
+  + (entry.handles?.length || 0) * 256 + (entry.segments?.length || 0) * 176;
+
+export function createBoundaryPreparation({ cacheBudgetBytes = BOUNDARY_PREPARATION_CACHE_BUDGET_BYTES } = {}) {
+  if (!Number.isSafeInteger(cacheBudgetBytes) || cacheBudgetBytes < 1)
+    throw new TypeError('Boundary cache budget must be a positive safe integer.');
   const sources = new Map();
-  const index = createBoundarySpatialIndex();
+  // Only ring envelopes are indexed at first edit. Unrelated world geometry
+  // must not materialize thousands of segment objects and grid entries.
+  const featureIndex = createBoundarySpatialIndex();
   const cache = new Map();
+  let evictions = 0;
+  const estimatedCacheBytes = () => [...cache.values()].reduce((sum, entry) => sum + estimateCacheEntryBytes(entry), 0);
+  function retainCacheEntry(entry) {
+    cache.delete(entry.key);
+    cache.set(entry.key, entry);
+    // Keep this entry valid for the active edit, even if it alone exceeds the
+    // budget. Reclaim previous heavy topologies and their detached source rows.
+    while (cache.size > 1 && (cache.size > MAX_CACHED_PREPARATIONS || estimatedCacheBytes() > cacheBudgetBytes)) {
+      cache.delete(cache.keys().next().value);
+      evictions++;
+    }
+    const retained = new Set([...cache.values()].flatMap(row => [...row.dependencies]));
+    for (const [id, source] of sources) if (source.rows && !retained.has(id)) source.rows = null;
+  }
   let sequence = 0;
   const namespace = globalThis.crypto?.randomUUID?.() || `${Date.now()}:${Math.random()}`;
 
@@ -26,22 +72,32 @@ export function createBoundaryPreparation() {
         const feature = incoming.get(id);
         if (feature?.geometry === previous.feature.geometry && metadata(feature) === previous.metadata) continue;
         changed.add(id);
-        for (const row of previous.rows) { dirty.push(row.bounds); index.remove(row.id); }
+        dirty.push(...previous.boxes);
+        featureIndex.remove(id);
         sources.delete(id);
       }
       for (const [id, feature] of incoming) {
         if (sources.has(id)) continue;
         await checkpoint();
         changed.add(id);
-        const rows = boundarySourceSegments(feature).map((row, i) => ({ ...row, id: `${id}:${i}`, bounds: segmentBounds(row) }));
-        for (const row of rows) { index.insert(row.id, row, row.bounds); dirty.push(row.bounds); }
-        sources.set(id, { feature, rows, metadata: metadata(feature) });
+        const boxes = geometryRingBounds(feature.geometry);
+        sources.set(id, { feature, boxes, rows: null, metadata: metadata(feature) });
+        dirty.push(...boxes);
+        if (boxes.length) featureIndex.insert(id, id, boxes);
       }
     } finally {
       if (changed.size) for (const [key, entry] of cache) {
         if ([...changed].some(id => entry.dependencies.has(id)) || dirty.some(bounds => entry.targetIndex.query(padded(bounds)).length)) cache.delete(key);
       }
     }
+  }
+
+  function sourceRows(id) {
+    const source = sources.get(id);
+    if (!source) return [];
+    if (!source.rows) source.rows = boundarySourceSegments(source.feature)
+      .map((row, index) => ({ ...row, id: `${id}:${index}`, bounds: segmentBounds(row) }));
+    return source.rows;
   }
 
   async function prepare({ targetIds, mode, neighborsOnly = false, autoSeedId = null }, checkpoint = async () => {}) {
@@ -71,16 +127,44 @@ export function createBoundaryPreparation() {
       : !(feature.properties?.entityKind === 'general' && !!feature.properties?.parentId) && !(feature.properties?.entityKind === 'regional'));
     const key = JSON.stringify([mode, ids, parentId, autoSeedId]);
     let entry = cache.get(key);
+    if (entry) {
+      cache.delete(key);
+      cache.set(key, entry);
+    }
     if (!entry) {
       const selected = new Set(ids);
       const rows = new Map();
       const targetIndex = createBoundarySpatialIndex();
-      for (const id of ids) for (const row of sources.get(id).rows) {
+      // Build only the selected edges first. The target segment index then
+      // tests candidate edges directly, avoiding a second world-wide index.
+      const candidateIds = new Set();
+      for (const id of ids) {
+        const source = sources.get(id);
+        for (const bounds of source.boxes) {
+          for (const candidateId of featureIndex.query(padded(bounds))) candidateIds.add(candidateId);
+        }
+        for (const row of sourceRows(id)) {
+          await checkpoint();
+          rows.set(row.id, row);
+          targetIndex.insert(row.id, row, padded(row.bounds));
+        }
+      }
+      // Ring envelopes may return false positives, never false negatives.
+      // Restrict their detailed segment materialization to eligible owners;
+      // exact C++ topology still decides shared/coast segment membership.
+      for (const id of candidateIds) {
+        if (selected.has(id)) continue;
+        const source = sources.get(id);
+        const feature = source?.feature;
+        if (!allowed(feature) && id !== parentId) continue;
+        // A large country's ring envelope can cover remote countries with no
+        // nearby coastline. Reject those before reading any candidate edges.
+        if (!source.boxes.some(bounds => targetIndex.query(bounds).length)) continue;
         await checkpoint();
-        rows.set(row.id, row); targetIndex.insert(row.id, row, padded(row.bounds));
-        for (const candidate of index.query(padded(row.bounds))) {
-          const feature = sources.get(candidate.featureId)?.feature;
-          if (allowed(feature) || candidate.featureId === parentId) rows.set(candidate.id, candidate);
+        for (const candidate of sourceRows(id)) {
+          // Symmetric overlap with the padded target segment reproduces the
+          // original per-target-row query without indexing distant segments.
+          if (targetIndex.query(candidate.bounds).length) rows.set(candidate.id, candidate);
         }
       }
       // Parent ownership marks its exterior as an unselected/fixed boundary.
@@ -101,9 +185,10 @@ export function createBoundaryPreparation() {
       }
       const plan = mode === 'coast' ? planCoastEdit(topology, ids[0]) : planSharedBoundaryEdit(topology, editableIds);
       entry = { id: `boundary:${namespace}:${++sequence}`, key, ids: editableIds, mode, topology, plan, neighbors: [...neighbors], handles: null, segments: null,
-        dependencies: new Set([...rows.values()].map(row => row.featureId)), targetIndex };
-      cache.set(key, entry);
-      while (cache.size > 8) cache.delete(cache.keys().next().value);
+        dependencies: new Set([...rows.values()].map(row => row.featureId)), targetIndex,
+        targetRowCount: [...ids].reduce((sum, id) => sum + sourceRows(id).length, 0) };
+      // Cache publication is deferred until the result is completely prepared,
+      // so a cancelled calculation never occupies a retained slot.
     }
     if (!neighborsOnly && !entry.handles) {
       // A locked unselected owner always stays fixed; selected locked targets were rejected above.
@@ -135,6 +220,7 @@ export function createBoundaryPreparation() {
       entry.segments = segments;
       entry.displayIndex = prepareBoundaryDisplay(handles, segments);
     }
+    retainCacheEntry(entry);
     return { preparationId: entry.id, mode, selectedIds: entry.ids, neighbors: entry.neighbors,
       valid: mode === 'coast' ? entry.plan.segmentKeys.size > 0 : entry.plan.valid,
       isolatedIds: entry.plan.isolatedIds || [],
@@ -157,5 +243,20 @@ export function createBoundaryPreparation() {
     moveTopologyNode(features, node, coordinate);
     return { features: [...features.values()], affectedIds: [...features.keys()] };
   }
-  return { sync, prepare, move };
+  function stats() {
+    const detailed = [...sources.values()].filter(source => source.rows);
+    return Object.freeze({
+      sourceCount: sources.size,
+      segmentSourceCount: detailed.length,
+      segmentCount: detailed.reduce((sum, source) => sum + source.rows.length, 0),
+      cachedPreparations: cache.size,
+      cachedNodes: [...cache.values()].reduce((sum, row) => sum + row.topology.nodes.size, 0),
+      cachedSegments: [...cache.values()].reduce((sum, row) => sum + row.topology.segments.size, 0),
+      cachedHandles: [...cache.values()].reduce((sum, row) => sum + (row.handles?.length || 0), 0),
+      cacheEstimatedBytes: estimatedCacheBytes(),
+      cacheBudgetBytes,
+      cacheEvictions: evictions,
+    });
+  }
+  return { sync, prepare, move, stats };
 }

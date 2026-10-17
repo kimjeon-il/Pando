@@ -1,5 +1,5 @@
 /** Also serialized into real Worker entrypoints by the shell-only staging step. */
-export function installNetworkGuard(scope = globalThis) {
+export function installNetworkGuard(scope = globalThis, { allowBundledData = false } = {}) {
   if (scope.__PANDOLAB_SHELL_NETWORK__) return scope.__PANDOLAB_SHELL_NETWORK__;
   const state = { requests: [], blocked: [], workers: [] };
   scope.__PANDOLAB_SHELL_NETWORK__ = state;
@@ -18,10 +18,11 @@ export function installNetworkGuard(scope = globalThis) {
     const url = new URL(typeof input === 'object' && input?.url ? input.url : String(input), scope.location.href);
     const row = { url: url.href, context: scope.document ? 'window' : 'worker' };
     record('requests', row);
-    const command = /^\/(write_probe_file|read_probe_file|write_diagnostic_report|finish_probe|save_project_file|open_project_file)$/.test(url.pathname);
+    const command = /^\/(write_probe_file|read_probe_file|write_diagnostic_report|finish_probe|begin_document_write|append_document_chunk|finish_document_write|begin_document_read|read_document_chunk|abort_document_transfer)$/.test(url.pathname);
     const ipc = command && (['http://ipc.localhost', 'https://ipc.localhost'].includes(url.origin)
       || (url.protocol === 'ipc:' && url.hostname === 'localhost'));
-    if ((!ipc && url.origin !== origin) || decodeURIComponent(url.pathname).startsWith('/assets/data/')) {
+    const bundledData = decodeURIComponent(url.pathname).startsWith('/assets/data/');
+    if ((!ipc && url.origin !== origin) || (bundledData && !allowBundledData)) {
       record('blocked', row);
       throw new Error(`Prototype resource request blocked: ${url.href}`);
     }

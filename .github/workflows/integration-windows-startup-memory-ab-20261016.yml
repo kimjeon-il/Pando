@@ -1,0 +1,101 @@
+name: Integrated Windows WebView paired startup and memory (2-3F)
+
+on:
+  push:
+    branches: ['work/integration-ui-objects-20261016']
+    paths:
+      - '.github/workflows/integration-windows-startup-memory-ab-20261016.yml'
+      - 'apps/web-shell/measure-windows-startup.ps1'
+      - 'apps/web-shell/src-tauri/src/lib.rs'
+      - 'apps/web-shell/startup.js'
+      - 'apps/web-shell/full-world-probe.js'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: integrated-windows-webview-physical-ab-20261016
+  cancel-in-progress: false
+
+jobs:
+  paired-windows-startup:
+    runs-on: windows-2022
+    timeout-minutes: 45
+    env:
+      PANDOLAB_SHELL_PROFILE: full-world
+      CARGO_TERM_COLOR: always
+    steps:
+      - name: Preserve Git byte-for-byte release resources
+        shell: pwsh
+        run: git config --global core.autocrlf false
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+      - name: Install pinned dependencies
+        shell: pwsh
+        run: |
+          pnpm install --frozen-lockfile --ignore-scripts
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          pnpm --dir apps/web-shell install --ignore-workspace --frozen-lockfile
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Check full-world and physical-loading unit contracts
+        shell: pwsh
+        run: |
+          node --test tests/unit/deferred-physical-startup.test.mjs apps/web-shell/tests/full-world-probe.test.mjs apps/web-shell/tests/world-data-plan.test.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Stage the same canonical world and physical resources once
+        shell: pwsh
+        run: |
+          node apps/web-shell/stage.mjs --profile=full-world
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $stage = Get-Content apps/web-shell/dist/shell/stage-evidence.json -Raw | ConvertFrom-Json
+          if ($stage.profile -ne 'full-world' -or
+              $stage.worldData.countryCount -ne 258 -or
+              $stage.worldData.worldFileCount -ne 597 -or
+              $stage.worldData.physicalFileCount -ne 13 -or
+              $stage.worldData.fileCount -ne 610) {
+            throw 'The immutable world and physical-resource package is not the expected test input.'
+          }
+      - name: Build one Windows WebView2 executable for both startup policies
+        shell: pwsh
+        run: |
+          pnpm --dir apps/web-shell exec tauri build --debug --no-bundle --target x86_64-pc-windows-msvc
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Verify native diagnostic and file transfer contracts
+        shell: pwsh
+        run: |
+          cargo test --manifest-path apps/web-shell/src-tauri/Cargo.toml --locked --target x86_64-pc-windows-msvc
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: A/B on same runner, isolated cold profiles, 3 runs per mode
+        shell: pwsh
+        run: |
+          ./apps/web-shell/measure-windows-startup.ps1 -BinaryPath 'apps/web-shell/src-tauri/target/x86_64-pc-windows-msvc/debug/pandolab-web-shell.exe' -HoldAfterReadyMs 30000
+          $data = Get-Content build-native/web-shell/paired-startup-memory.json -Raw | ConvertFrom-Json
+          if ($data.schema -ne 'pandolab-windows-webview-paired-startup-memory' -or
+              $data.summary.immediate.count -ne 3 -or $data.summary.deferred.count -ne 3) {
+            throw 'The paired Windows benchmark is incomplete.'
+          }
+          Write-Output ('IMMEDIATE_MEDIANS ' + ($data.summary.immediate | ConvertTo-Json -Compress))
+          Write-Output ('DEFERRED_MEDIANS ' + ($data.summary.deferred | ConvertTo-Json -Compress))
+      - name: Preserve all benchmark evidence including failed attempts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integrated-windows-physical-ab-${{ github.sha }}
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            build-native/web-shell/paired-startup-memory.json
+            build-native/web-shell/world-pair-*.json
+            apps/web-shell/dist/shell/stage-evidence.json
