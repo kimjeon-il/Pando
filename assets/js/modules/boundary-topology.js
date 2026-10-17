@@ -77,13 +77,13 @@ export function prepareBoundaryFeature(feature) {
   const spatialIndex = createBoundarySpatialIndex();
   const boxes = segments.length
     ? sharedCalculationCore.boundaryEdgeBoxesBatch(segments.map(({ a, b }) => [a, b])) : [];
-  segments.forEach((row, index) => {
-    for (const box of boxes[index]) for (let axis = 0; axis < 2; axis++) {
-      bounds[axis] = Math.min(bounds[axis], box[axis]);
-      bounds[axis + 2] = Math.max(bounds[axis + 2], box[axis + 2]);
-    }
-    spatialIndex.insert(index, row, boxes[index]);
-  });
+  for (const rowBoxes of boxes) for (const box of rowBoxes) for (let axis = 0; axis < 2; axis++) {
+    bounds[axis] = Math.min(bounds[axis], box[axis]);
+    bounds[axis + 2] = Math.max(bounds[axis + 2], box[axis + 2]);
+  }
+  // Source segments belong to this immutable geometry revision. Bulk-loading
+  // removes per-edge JS Map/Set/key retention while preserving ordered source refs.
+  spatialIndex.loadPacked(segments, boxes);
   return { id: String(feature.id), feature, geometry: feature.geometry, segments, bounds, spatialIndex,
     renderableSegments: buildRenderableBoundarySegments(feature.geometry) };
 }

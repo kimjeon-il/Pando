@@ -44,6 +44,7 @@
 
 | ID | 보고서 | 원문 수정일 | 상태 | 지도 반영 |
 | --- | --- | --- | --- | --- |
+| `OBJ-089` | [공유 국경선 선분 공간 인덱스 압축: JS 힙 165MiB 절감 A/B 검증](development/testing/boundary-spatial-index-packed-2026-10-17.md) | 2026-10-17 | `verified-web-paired` | `not-applicable` |
 | `OBJ-088` | [공유 국경선 Worker 메모리 실제 유지 소유자 분석](development/testing/soviet-shared-border-retained-owners-2026-10-17.md) | 2026-10-17 | `verified-web-diagnostics` | `not-applicable` |
 | `OBJ-087` | [현행 main 동일 소스 소련 12회 왕복 메모리 검증](development/testing/soviet-main-12cycle-memory-2026-10-17.md) | 2026-10-17 | `verified-web-diagnostics` | `not-applicable` |
 | `OBJ-085` | [소련 미리보기 build 60초 지연 원인 추적](development/testing/soviet-preview-build-attribution-2026-10-17.md) | 2026-10-17 | `verified-web-diagnostics` | `not-applicable` |

@@ -1106,12 +1106,12 @@
       "sourceSha": "0ca968e5adbb0f54250dd82320ce9f8dc138b5e0"
     },
     "shared-boundaries": {
-      "inputFingerprint": "7caaf087bf5317bde2c6806d86c32a94d1980612b7158f11435978621ebadefe",
+      "inputFingerprint": "cccb78cf68695a3fdffe38157c8113a623b7d287952a27cf25f24a1d06db1210",
       "outputFingerprint": "2cae0566d314fece8cc0fd01115db6e27cb8b17e9acabb2bfa9e8895b059a9da",
       "inputs": {},
       "generatorHashes": {
-        "assets/js/modules/boundary-spatial-index.js": "6b627d7e0ee3ac020398ef0617479bc93231847f692a1dff4fcbe82872dceb2e",
-        "assets/js/modules/boundary-topology.js": "b795528fd501af5435ffa438526330756138d1e8cb633cc6ada17efebc6c0e06",
+        "assets/js/modules/boundary-spatial-index.js": "9fe554b8c32276fe9aa5d11416ef052531e280b59f199f468488b2940f23bbee",
+        "assets/js/modules/boundary-topology.js": "4dd10bc6b73dc5f786932582dfe3abec93106743386604ca5fcfa1156818db69",
         "assets/js/modules/builtin-subunits.js": "1681be766cc7179185cf897e19299aa458a14adbc28ffcd9202e41346fa02673",
         "assets/js/modules/builtin-territory-policy.js": "ca5d8cb2fdcc4c7797bc9f114082f7824bcac630a4109b4fe0678fa9643e5dd7",
         "assets/js/modules/core-wasm-loader.js": "3c3dcfe789c2ead4f97e87c69c016e7ad9f040552d759ec81bc6a309f398a484",
@@ -1149,7 +1149,7 @@
           "--check"
         ]
       ],
-      "sourceSha": "110baaed531555fbc210eaf486d90a3b56c63a1f"
+      "sourceSha": "e42cd616a7ee0bb7b62cf305e22c32c7de4d3b4e"
     },
     "prepared-mesh": {
       "inputFingerprint": "e2517f620774f1f3def4549cc12a60d5524e1591a72f0e3c0745a1415a532277",
@@ -1950,8 +1950,8 @@
       "sourceSha": "48fb3c908f38a1d01eb2a682e9b64550258f6d02"
     },
     "build-metadata": {
-      "inputFingerprint": "0bba651a2f67460cde893be7db17d90f465b6b1454b34ba4e348fdab5b8b5ce7",
-      "outputFingerprint": "113b67d211b4aa94396440f98fffb6b85106bf13561af5cb3527ce924448ddf5",
+      "inputFingerprint": "35fedcb96c6232d62625935cf95b129a5b5e8b5b6e9e98979ab8003c76361ee1",
+      "outputFingerprint": "bd7d7648d1ffd2741f1f95d92193abc511c7f5eeaae5e73844ed4c8fd912db58",
       "inputs": {
         "assets/js/app.js": "96dfad126802a4ccf74f83c8d2b52295ebde7deb8113275a01920de895818303",
         "assets/js/bootstrap.js": "45a53c9fdcbbdd914c7ed930569b8da7542b872a1ec3de6e8ed78c4bd57b81a8",
@@ -2038,8 +2038,8 @@
         "assets/js/modules/boundary-ghosting-guard.js": "bf3842761e37488e29a4e7da03f273a14cb996bfdc244a8fc78c717c300d067b",
         "assets/js/modules/boundary-lines.js": "3ce20f207c206113af10b175fb64050923f97f08e047ed23164cd9cf6d55be6d",
         "assets/js/modules/boundary-preparation.js": "b320b6a4a2c431953001febed385397708c891160d58e08c79c86e7517e2b5ca",
-        "assets/js/modules/boundary-spatial-index.js": "6b627d7e0ee3ac020398ef0617479bc93231847f692a1dff4fcbe82872dceb2e",
-        "assets/js/modules/boundary-topology.js": "b795528fd501af5435ffa438526330756138d1e8cb633cc6ada17efebc6c0e06",
+        "assets/js/modules/boundary-spatial-index.js": "9fe554b8c32276fe9aa5d11416ef052531e280b59f199f468488b2940f23bbee",
+        "assets/js/modules/boundary-topology.js": "4dd10bc6b73dc5f786932582dfe3abec93106743386604ca5fcfa1156818db69",
         "assets/js/modules/browser-project-storage.js": "9d2d65a621ff8b0277fa107d91cc52237b5c7c9f587bc36610d7e767c80b06aa",
         "assets/js/modules/builtin-mesh-resource.js": "6bb159a94c44de2f35999e45f57483188f4b71f0899168f9901993f428000150",
         "assets/js/modules/builtin-subunits.js": "1681be766cc7179185cf897e19299aa458a14adbc28ffcd9202e41346fa02673",
@@ -2327,8 +2327,8 @@
       },
       "outputs": {
         "README.md": "8a9d40362af110dde1e0382da8686c873fe0a0a1fdbc499313517d33922f570a",
-        "assets/js/build-meta.js": "af439abc3a9b183a108c5210f44d31b4188d7dbbbead3494c95d501678a7b56e",
-        "index.html": "fccd79b4c4d278a2757a47e8a6918a1b8cae6cebe17427326f76566475bd1015"
+        "assets/js/build-meta.js": "56e56a025799800796a8785cd0f900a5da424218d0dc73bd3ccc8cf04d7a143f",
+        "index.html": "f7778596da36da9943b5245c15ba5e29999dce81f8b85646cfaa8c0636f5d705"
       },
       "consumers": [
         "assets/js/bootstrap.js",
@@ -2343,7 +2343,7 @@
           "--check"
         ]
       ],
-      "sourceSha": "110baaed531555fbc210eaf486d90a3b56c63a1f"
+      "sourceSha": "e42cd616a7ee0bb7b62cf305e22c32c7de4d3b4e"
     }
   }
 }
