@@ -39,7 +39,7 @@ test('benchmark repeated C++ contact source encoding on real prepared modern nei
     && boundaryState?.stats().contactCount === 339
     && (latestMessage?.features?.length || 0) === 254), { timeout: 90_000 }).toBe(true);
   const benchmark = await worker.evaluate(async () => {
-    const { computeCountrySharedContacts } = await import(new URL('../modules/country-contact-core.js', self.location.href).href);
+    const { computeCountrySharedContacts } = await import(new URL('../modules/country-contact-core.js', globalThis.location.href).href);
     const store = boundaryState.preparedStore;
     const ranked = store.values().sort((a, b) => b.segments.length - a.segments.length);
     const candidates = [], visited = new Set();
