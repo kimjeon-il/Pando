@@ -1,6 +1,10 @@
 #include <pandoeditor/geometrypredicates.h>
 #include <cmath>
 #include <algorithm>
+#include <array>
+#include <cstdint>
+#include <limits>
+#include <memory>
 
 namespace pandoeditor {
 namespace {
@@ -94,28 +98,174 @@ std::vector<double> periodicCuts(const Geometry& geometry,Point a,Point b) {
     });
     std::sort(cuts.begin(),cuts.end());cuts.erase(std::unique(cuts.begin(),cuts.end(),[](double a,double b){return std::abs(a-b)<=1e-12;}),cuts.end());return cuts;
 }
+// A local, disposable broad phase for the exact periodic predicates below.
+// This is never stored with the original Geometry or timeline source refs.
+// Use latitude coverage only to eliminate edges that cannot intersect the
+// queried segment; the existing longitude shift and cross-product predicates
+// are still responsible for every actual intersection decision.
+class LatitudeEdgeIndex {
+    struct Edge {Point a,b;double south,north;};
+    static constexpr int bucketCount=91;
+    static constexpr double bucketSize=2.;
+    static constexpr int maximumBucketSpan=16;
+    std::vector<Edge> edges_;
+    std::array<std::vector<std::uint32_t>,bucketCount> bins_;
+    std::vector<std::uint32_t> tall_;
+    mutable std::vector<std::uint32_t> stamps_;
+    mutable std::uint32_t visit_=0;
+    static int bucket(double latitude) {
+        return std::clamp(static_cast<int>(std::floor((latitude+90.)/bucketSize)),0,bucketCount-1);
+    }
+public:
+    void add(Point a,Point b) {
+        const auto south=std::min(a.y,b.y),north=std::max(a.y,b.y);
+        const auto id=static_cast<std::uint32_t>(edges_.size());
+        edges_.push_back({a,b,south,north});
+        stamps_.push_back(0);
+        const int first=bucket(south),last=bucket(north);
+        // Extremely long meridian/seam segments are uncommon; avoid holding
+        // each of them in every geographic latitude bucket.
+        if(last-first>maximumBucketSpan) {tall_.push_back(id);return;}
+        for(int i=first;i<=last;++i)bins_[i].push_back(id);
+    }
+    template<class F> void forLatitude(double south,double north,F&& fn) const {
+        if(edges_.empty())return;
+        if(++visit_==0){std::fill(stamps_.begin(),stamps_.end(),0);visit_=1;}
+        const auto visitId=visit_;
+        const auto test=[&](std::uint32_t id) {
+            if(stamps_[id]==visitId)return;
+            stamps_[id]=visitId;
+            const auto& edge=edges_[id];
+            if(edge.north<south-epsilon||edge.south>north+epsilon)return;
+            fn(edge.a,edge.b);
+        };
+        for(const auto id:tall_)test(id);
+        for(int bin=bucket(south-epsilon),last=bucket(north+epsilon);bin<=last;++bin)
+            for(const auto id:bins_[bin])test(id);
+    }
+};
+struct PreparedPeriodicRing {
+    const Ring* source=nullptr;
+    double west=std::numeric_limits<double>::infinity(),east=-std::numeric_limits<double>::infinity();
+    double south=std::numeric_limits<double>::infinity(),north=-std::numeric_limits<double>::infinity();
+    std::unique_ptr<LatitudeEdgeIndex> indexed;
+    explicit PreparedPeriodicRing(const Ring& ring):source(&ring) {
+        for(const auto p:ring) {
+            west=std::min(west,p.x);east=std::max(east,p.x);
+            south=std::min(south,p.y);north=std::max(north,p.y);
+        }
+        if(ring.size()<48)return;
+        indexed=std::make_unique<LatitudeEdgeIndex>();
+        for(std::size_t i=0,j=ring.size()-1;i<ring.size();j=i++)
+            indexed->add(ring[j],ring[i]);
+    }
+    int locationAt(Point point) const {
+        if(!indexed)return location(*source,point);
+        bool inside=false,boundary=false;
+        indexed->forLatitude(point.y,point.y,[&](Point a,Point b) {
+            if(onSegment(a,b,point))boundary=true;
+            if((a.y>point.y)!=(b.y>point.y) &&
+                point.x<(b.x-a.x)*(point.y-a.y)/(b.y-a.y)+a.x)inside=!inside;
+        });
+        return boundary?2:inside?1:0;
+    }
+    int periodicLocationAt(Point point) const {
+        if(source->size()<3||point.y<south-epsilon||point.y>north+epsilon)return 0;
+        bool boundary=false;
+        const auto first=std::ceil((west-point.x-epsilon)/360),last=std::floor((east-point.x+epsilon)/360);
+        for(auto copy=first;copy<=last;++copy) {
+            const auto found=locationAt({point.x+copy*360,point.y});
+            if(found==1)return 1;
+            boundary|=found==2;
+        }
+        return boundary?2:0;
+    }
+};
+struct PreparedPeriodicPolygon {
+    std::vector<PreparedPeriodicRing> rings;
+};
+struct PreparedPeriodicGeometry {
+    std::vector<PreparedPeriodicPolygon> polygons;
+    LatitudeEdgeIndex edges;
+    explicit PreparedPeriodicGeometry(const Geometry& geometry) {
+        polygons.reserve(geometry.polygons.size());
+        for(const auto& polygon:geometry.polygons) {
+            PreparedPeriodicPolygon item;item.rings.reserve(polygon.size());
+            for(const auto& ring:polygon) {
+                item.rings.emplace_back(ring);
+                for(std::size_t i=1;i<ring.size();++i)edges.add(ring[i-1],ring[i]);
+            }
+            polygons.push_back(std::move(item));
+        }
+    }
+    int locationAt(Point point) const {
+        bool boundary=false;
+        for(const auto& polygon:polygons) {
+            if(polygon.rings.empty())continue;
+            const auto outer=polygon.rings.front().periodicLocationAt(point);
+            if(!outer)continue;
+            bool hole=false,holeBoundary=false;
+            for(std::size_t i=1;i<polygon.rings.size();++i) {
+                const auto found=polygon.rings[i].periodicLocationAt(point);
+                hole|=found==1;holeBoundary|=found==2;
+            }
+            if(hole)continue;
+            if(outer==1&&!holeBoundary)return 1;
+            boundary|=outer==2||holeBoundary;
+        }
+        return boundary?2:0;
+    }
+    std::vector<double> cuts(Point a,Point b) const {
+        std::vector<double> result{0,1};
+        const auto dx=b.x-a.x,dy=b.y-a.y,length=dx*dx+dy*dy;
+        if(length<=epsilon*epsilon)return result;
+        edges.forLatitude(std::min(a.y,b.y),std::max(a.y,b.y),[&](Point c,Point d) {
+            // Preserve the exact longitude periodicity and collinear handling
+            // from periodicCuts. Latitude buckets are only conservative.
+            const auto first=std::ceil((std::min(a.x,b.x)-std::max(c.x,d.x)-epsilon)/360);
+            const auto last=std::floor((std::max(a.x,b.x)-std::min(c.x,d.x)+epsilon)/360);
+            for(auto copy=first;copy<=last;++copy) {
+                const Point start{c.x+copy*360,c.y},finish{d.x+copy*360,d.y};
+                const auto sx=finish.x-start.x,sy=finish.y-start.y,denominator=dx*sy-dy*sx;
+                if(std::abs(denominator)>epsilon) {
+                    const auto t=((start.x-a.x)*sy-(start.y-a.y)*sx)/denominator;
+                    const auto u=((start.x-a.x)*dy-(start.y-a.y)*dx)/denominator;
+                    if(t>=-epsilon&&t<=1+epsilon&&u>=-epsilon&&u<=1+epsilon)result.push_back(std::clamp(t,0.,1.));
+                } else if(std::abs(cross(a,b,start))<=epsilon) {
+                    for(const auto point:{start,finish}) {
+                        const auto t=((point.x-a.x)*dx+(point.y-a.y)*dy)/length;
+                        if(t>=-epsilon&&t<=1+epsilon)result.push_back(std::clamp(t,0.,1.));
+                    }
+                }
+            }
+        });
+        std::sort(result.begin(),result.end());
+        result.erase(std::unique(result.begin(),result.end(),[](double a,double b){return std::abs(a-b)<=1e-12;}),result.end());
+        return result;
+    }
+};
 bool geographicContains(const Geometry& container,const Geometry& subject) {
     if(container.polygons.empty()||subject.polygons.empty())return false;
+    const PreparedPeriodicGeometry containedBy(container),containedGeometry(subject);
     bool contained=true;
     edges(subject,[&](Point a,Point b){
-        if(!contained)return;auto cuts=periodicCuts(container,a,b);const auto own=periodicCuts(subject,a,b);cuts.insert(cuts.end(),own.begin(),own.end());std::sort(cuts.begin(),cuts.end());
-        const auto outside=[&](double t){const Point point{a.x+(b.x-a.x)*t,a.y+(b.y-a.y)*t};return periodicLocation(subject,point)!=0&&periodicLocation(container,point)==0;};
+        if(!contained)return;auto cuts=containedBy.cuts(a,b);const auto own=containedGeometry.cuts(a,b);cuts.insert(cuts.end(),own.begin(),own.end());std::sort(cuts.begin(),cuts.end());
+        const auto outside=[&](double t){const Point point{a.x+(b.x-a.x)*t,a.y+(b.y-a.y)*t};return containedGeometry.locationAt(point)!=0&&containedBy.locationAt(point)==0;};
         for(const auto t:cuts)if(outside(t)){contained=false;return;}
         for(std::size_t index=1;index<cuts.size();++index)if(outside((cuts[index-1]+cuts[index])/2)){contained=false;return;}
     });
     if(!contained)return false;
-    // Explicit holes can become notches in adjacent longitude strips. Inspect
-    // both sides of every container boundary interval, so neither those holes
-    // nor artificial seam edges are mistaken for filled/excluded territory.
+    // Preserve the original geographic hole/seam witness checks. Test the
+    // subject first to avoid full-world lookups at points outside its extent.
     edges(container,[&](Point a,Point b){
-        if(!contained)return;auto cuts=periodicCuts(subject,a,b);const auto other=periodicCuts(container,a,b);cuts.insert(cuts.end(),other.begin(),other.end());std::sort(cuts.begin(),cuts.end());
+        if(!contained)return;auto cuts=containedGeometry.cuts(a,b);const auto other=containedBy.cuts(a,b);cuts.insert(cuts.end(),other.begin(),other.end());std::sort(cuts.begin(),cuts.end());
         const auto dx=b.x-a.x,dy=b.y-a.y,length=std::hypot(dx,dy);if(length<=epsilon)return;
         for(std::size_t index=1;index<cuts.size()&&contained;++index) {
             if(cuts[index]-cuts[index-1]<=1e-12)continue;const auto t=(cuts[index-1]+cuts[index])/2;const Point middle{a.x+dx*t,a.y+dy*t};
             auto distance=length*(cuts[index]-cuts[index-1])*1e-5;
             for(int attempt=0;attempt<10&&contained;++attempt,distance*=.1)for(const auto side:{-1.,1.}) {
                 const Point sample{middle.x-side*dy/length*distance,middle.y+side*dx/length*distance};
-                if(periodicLocation(container,sample)==0&&periodicLocation(subject,sample)==1){contained=false;break;}
+                if(containedGeometry.locationAt(sample)==1&&containedBy.locationAt(sample)==0){contained=false;break;}
             }
         }
     });
