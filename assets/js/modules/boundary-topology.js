@@ -41,7 +41,7 @@ function featureId(feature, index = 0) {
   return String(feature?.id || index);
 }
 
-export function boundarySourceSegments(feature, fallbackId = 0) {
+export function boundarySourceSegments(feature, fallbackId = 0, { compactPrepared = false } = {}) {
   const rows = [];
   const id = featureId(feature, fallbackId);
   for (const polygon of polygonRings(feature)) {
@@ -61,18 +61,33 @@ export function boundarySourceSegments(feature, fallbackId = 0) {
       else if (area < -2 * Math.PI) area += 4 * Math.PI;
       // Spherical winding has the opposite sign to the former planar area.
       const interiorSide = -Math.sign(area) * (ringIndex ? -1 : 1);
-      for (let index = 0; index < limit; index++) rows.push({
-        featureId: id, polygonIndex: polygon.polygonIndex, ringIndex,
-        segmentIndex: index, endVertexIndex: (index + 1) % limit,
-        a: ring[index], b: ring[index + 1], interiorSide,
-      });
+      // The long-lived shared-boundary Worker only needs one copy of the
+      // country/ring/winding metadata. Keep immutable per-edge identities and
+      // original coordinate ARRAY references in ordinary JS objects.
+      // Editing-domain callers still receive their original complete records.
+      const shared = compactPrepared
+        ? { featureId: id, polygonIndex: polygon.polygonIndex, ringIndex, interiorSide } : null;
+      for (let index = 0; index < limit; index++) {
+        if (!shared) {
+          rows.push({ featureId: id, polygonIndex: polygon.polygonIndex, ringIndex,
+            segmentIndex: index, endVertexIndex: (index + 1) % limit,
+            a: ring[index], b: ring[index + 1], interiorSide });
+          continue;
+        }
+        const row = Object.create(shared);
+        row.segmentIndex = index;
+        row.endVertexIndex = (index + 1) % limit;
+        row.a = ring[index];
+        row.b = ring[index + 1];
+        rows.push(row);
+      }
     });
   }
   return rows;
 }
 
 export function prepareBoundaryFeature(feature) {
-  const segments = boundarySourceSegments(feature);
+  const segments = boundarySourceSegments(feature, 0, { compactPrepared: true });
   const bounds = [Infinity, Infinity, -Infinity, -Infinity];
   const spatialIndex = createBoundarySpatialIndex();
   const boxes = segments.length
@@ -200,6 +215,19 @@ export function attachBoundarySegmentReferences(segment, preparedStore) {
   return { ...segment, refs };
 }
 
+// Topology snapshots must include inherited ring metadata, while preserving
+// all custom own fields of edit-time source rows (id, bounds, etc.).
+function snapshotSourceRow(row) {
+  const own = { ...row };
+  if (!Object.hasOwn(row, 'featureId')) {
+    own.featureId = row.featureId;
+    own.polygonIndex = row.polygonIndex;
+    own.ringIndex = row.ringIndex;
+    own.interiorSide = row.interiorSide;
+  }
+  return own;
+}
+
 export function buildBoundaryTopologyFromSegments(rawSegments, { precision = 7, epsilon = 1e-7 } = {}) {
   const nodes = new Map();
   for (const raw of rawSegments) {
@@ -257,7 +285,7 @@ export function buildBoundaryTopologyFromSegments(rawSegments, { precision = 7, 
       });
       const segment = segments.get(key);
       segment.ownerIds.add(raw.featureId);
-      segment.refs.push({ ...raw, startT: start.t, endT: end.t });
+      segment.refs.push({ ...snapshotSourceRow(raw), startT: start.t, endT: end.t });
     }
   }
 
