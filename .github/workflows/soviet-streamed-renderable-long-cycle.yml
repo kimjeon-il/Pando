@@ -1,0 +1,69 @@
+name: Soviet on-demand outline 12-cycle and GPU reuse
+on:
+  push:
+    branches: [work/perf-renderable-on-demand-20261017]
+    paths:
+      - '.github/workflows/soviet-streamed-renderable-long-cycle.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: streamed-outline-long-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  long-run:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: 12 Soviet/modern returns and final 30-second idle
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+          PANDOLAB_EXPECT_MAIN_SHA: ${{ github.sha }}
+        run: pnpm exec playwright test tests/browser/soviet-main-long-cycle.spec.mjs --workers=1 --retries=0 --trace off
+      - name: Confirm no retained display tuple graph grows across returns
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { readFileSync } from 'node:fs';
+          const report=JSON.parse(readFileSync('test-results/soviet-main-long-cycle/measurement.json','utf8'));
+          const summary=report.summary;
+          assert.equal(report.cyclesCompleted,12);
+          assert.deepEqual(report.errors,[]);
+          assert.ok(summary.eligibleSettledModernReturns>=8);
+          assert.equal(report.finalAutosaves,report.initialAutosaves);
+          const early=summary.comparisons.borderJsMiB.first4Median;
+          const late=summary.comparisons.borderJsMiB.last4Median;
+          const idle=summary.finalIdle.borderJsMiB;
+          console.log('SOVIET_STREAMED_12CYCLE',JSON.stringify({
+            cycles:report.cyclesCompleted,earlyBorderJsMiB:early,lateBorderJsMiB:late,
+            last30sBorderJsMiB:idle,last30sChromiumPssMiB:summary.finalIdle.pssMiB,
+            first4GpuTrackedMiB:summary.comparisons.strokeGpuMiB.first4Median,
+            last4GpuTrackedMiB:summary.comparisons.strokeGpuMiB.last4Median,
+            workerWasmFirst4MiB:summary.comparisons.workerWasmMiB.first4Median,
+            workerWasmLast4MiB:summary.comparisons.workerWasmMiB.last4Median,
+          }));
+          assert.ok(late-early<20,'Renderable state should not accumulate across 12 dated world returns');
+          assert.ok(idle<175,'On-demand renderable geometry should avoid the old 195MiB post-idle plateau');
+          assert.equal(summary.comparisons.workerWasmMiB.first4Median,summary.comparisons.workerWasmMiB.last4Median);
+          NODE
+      - name: Check camera-only pan does not force new geometry or GPU uploads
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: pnpm exec playwright test tests/browser/performance-observability.spec.mjs --grep '1989 Soviet Union pan' --workers=1 --retries=0 --trace off
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: soviet-streamed-renderable-long-${{ github.sha }}
+          path: test-results/
+          if-no-files-found: warn
+          retention-days: 14
