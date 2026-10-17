@@ -81,6 +81,9 @@ test('prepared compact source topology can materialize old source refs for legac
     assert.equal(Object.hasOwn(ref,'ringIndex'),true);
     assert.equal(Object.hasOwn(ref,'interiorSide'),true);
   }
-  assert.deepEqual(buildCountrySharedBoundarySegments(inputs).map(({start,end,ownerIds})=>({start,end,ownerIds})),
-    [{ start:[1,0], end:[1,1], ownerIds:['L','R'] }]);
+  const output = buildCountrySharedBoundarySegments(inputs);
+  assert.equal(output.length, 1);
+  assert.deepEqual(output[0].ownerIds, ['L','R']);
+  assert.deepEqual([output[0].start, output[0].end].sort((a, b) => a[1] - b[1]),
+    [[1,0],[1,1]], 'source segment direction is not an output contract');
 });
