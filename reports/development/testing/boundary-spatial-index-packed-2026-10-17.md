@@ -46,10 +46,11 @@ Worker `preparationCount=513`가 동일했다.
 
 ## 동등성·회귀·남은 조건
 
-집중 Node·ESLint 및 기존 C++ 접촉/실제 Worker 계약: 신규 packed 3/3 + 기존 접촉·경계 편집 38/38 **총 41/41 성공**.
+집중 Node·ESLint 및 기존 C++ 접촉/실제 Worker 계약: 신규 packed 4/4 + 기존 접촉·경계 편집 38/38 **총 42/42 성공**.
 검사 범위: 조회 후보의 참조 및 순서, 다중 bbox/날짜변경선, 넓은 영역 fallback, 접촉 계산, 경계 편집 재준비, 신속한 replace/patch.
 
-남은 검사: 소스 일치 P2 생성물 최종 게시와 검증, 실제 Windows WebView2/물리 GPU,
+소스 일치 P2 생성물은 [Actions #39025446286](https://github.com/kimjeon-il/Pando/actions/runs/39025446286)에서 최종 생성·게시 검증에 성공했다.
+남은 검사: 실제 Windows WebView2/물리 GPU,
 12회 장기 시점 왕복 이후 유지량·GPU 업로드와 프로젝트 수정 후 미리보기 비회귀.
 Android 실기기와 Qt 렌더러는 사용자 요청에 따라 현재 범위에서 제외한다.
 이번 소스 변경은 세계 원본 형상이나 역사 사실 데이터를 바꾸지 않았다.
