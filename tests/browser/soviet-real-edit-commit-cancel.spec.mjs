@@ -188,7 +188,7 @@ test('real Soviet coastal vertex preview cancel, confirm and Undo/Redo preserve 
   await page.addInitScript(() => {
     const longTasks = [];
     Object.defineProperty(window, '__SOVIET_EDIT_ACCEPTANCE_TASKS__', { value: longTasks });
-    new PerformanceObserver(list => {
+    new window.PerformanceObserver(list => {
       for (const row of list.getEntries()) {
         longTasks.push({ atMs: Math.round(row.startTime), durationMs: Math.round(row.duration) });
         if (longTasks.length > 1500) longTasks.shift();
