@@ -1,0 +1,54 @@
+name: Soviet shared-boundary retained-owner breakdown
+on:
+  push:
+    branches: [work/perf-retained-owners-20261017]
+    paths:
+      - '.github/workflows/soviet-retained-owner-graph.yml'
+      - 'scripts/research/instrument-shared-boundary-retainers.mjs'
+      - 'tests/browser/soviet-retained-owners-breakdown.spec.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: retained-border-owners-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  isolate-retained-graph:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 34
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - name: Install existing Chromium dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Validate diagnostic syntax and forbid product edits in commit
+        run: |
+          node --check scripts/research/instrument-shared-boundary-retainers.mjs
+          node --check tests/browser/soviet-retained-owners-breakdown.spec.mjs
+          pnpm exec eslint scripts/research/instrument-shared-boundary-retainers.mjs tests/browser/soviet-retained-owners-breakdown.spec.mjs
+          git diff --exit-code -- assets/js/modules/country-shared-boundary-packet.js assets/js/modules/boundary-topology.js
+          node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Temporarily expose closure owners in disposable runner checkout
+        env:
+          PANDO_RETENTION_DIAGNOSTIC_ISOLATED: '1'
+        run: |
+          node scripts/research/instrument-shared-boundary-retainers.mjs
+          git diff --stat -- assets/js/modules/country-shared-boundary-packet.js assets/js/modules/boundary-topology.js
+      - name: Profile three independent release orders after real Soviet to modern return
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+          PANDO_RETENTION_DIAGNOSTIC_ISOLATED: '1'
+        run: pnpm exec playwright test tests/browser/soviet-retained-owners-breakdown.spec.mjs --workers=1 --retries=0 --trace off
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: soviet-retained-owners-${{ github.sha }}
+          path: test-results/soviet-retainer-graph/
+          if-no-files-found: warn
+          retention-days: 14
