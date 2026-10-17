@@ -1,0 +1,85 @@
+/* global boundaryState: readonly, latestMessage: readonly, queued: readonly, draining: readonly */
+import { expect, test } from '@playwright/test';
+import { mkdir, writeFile } from 'node:fs/promises';
+
+test.use({ trace: 'off', viewport: { width: 1440, height: 900 } });
+async function month(page, value) {
+  await page.locator('#timelineMonthButton').click();
+  await page.locator('#timelineMonthInput').fill(value);
+  await page.locator('#timelineMonthInput').press('Enter');
+  await expect(page.locator('#timelineMonthInput')).toBeHidden({ timeout: 90_000 });
+}
+async function ready(page, value, soviet) {
+  await expect.poll(() => page.evaluate(() => {
+    const gpu = window.__PANDOLAB_RENDER_DEBUG__?.snapshot()?.gpu;
+    if (gpu?.renderer !== 'webgl2' || !gpu.canonicalMeshReady
+      || gpu.countrySharedBoundaryReplacementPending) return null;
+    return { month: document.querySelector('#timelineMonthInput')?.value,
+      soviet: !!window.PANDOLAB_TERRITORIAL?.get('state:soviet-union') };
+  }), { timeout: 90_000 }).toEqual({ month: value, soviet });
+}
+
+test('benchmark repeated C++ contact source encoding on real prepared modern neighbors', async ({ page }, info) => {
+  test.setTimeout(500_000);
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.goto('/?perf=1&renderer=webgl2');
+  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 120_000 });
+  await expect.poll(() => page.evaluate(() => {
+    const gpu = window.__PANDOLAB_RENDER_DEBUG__?.snapshot()?.gpu;
+    return gpu?.renderer === 'webgl2' && gpu.canonicalMeshReady && !gpu.countrySharedBoundaryReplacementPending;
+  }), { timeout: 90_000 }).toBe(true);
+  await page.locator('#flatBtn').evaluate(button => button.click());
+  const current = await page.evaluate(() => window.PANDOLAB_BUILD_META?.historicalWorld?.sourceMonth);
+  await month(page, '1989-06'); await ready(page, '1989-06', true);
+  await month(page, current); await ready(page, current, false);
+  const worker = page.workers().find(w => w.url().includes('/country-shared-boundary-worker.js'));
+  expect(worker).toBeTruthy();
+  await expect.poll(() => worker.evaluate(() => !queued && !draining
+    && boundaryState?.stats().contactCount === 339
+    && (latestMessage?.features?.length || 0) === 254), { timeout: 90_000 }).toBe(true);
+  const benchmark = await worker.evaluate(async () => {
+    const { computeCountrySharedContacts } = await import(new URL('../modules/country-contact-core.js', self.location.href).href);
+    const store = boundaryState.preparedStore;
+    const ranked = store.values().sort((a, b) => b.segments.length - a.segments.length);
+    const candidates = [], visited = new Set();
+    for (const left of ranked.slice(0, 35)) for (const right of store.nearby(left.bounds)) {
+      if (left.id === right.id || right.segments.length < 10) continue;
+      const key = [left.id, right.id].sort().join('|');
+      if (visited.has(key)) continue;
+      visited.add(key);
+      const count = left.segments.length + right.segments.length;
+      if (count >= 400 && count <= 100000) candidates.push({ left, right, count });
+    }
+    candidates.sort((a, b) => b.count - a.count || a.left.id.localeCompare(b.left.id));
+    const selected = candidates[0];
+    if (!selected) throw new Error('No suitable modern broad-phase country pair');
+    const pair = [[selected.left, selected.right]];
+    const digest = result => ({ segments: result[0].length,
+      refs: result[0].reduce((n, row) => n + row.refs.length, 0) });
+    const start = performance.now();
+    const expected = digest(computeCountrySharedContacts(pair));
+    const warmupMs = performance.now() - start;
+    const durations = [];
+    for (let i = 0; i < 5; i++) {
+      const then = performance.now();
+      const actual = digest(computeCountrySharedContacts(pair));
+      durations.push(performance.now() - then);
+      if (JSON.stringify(actual) !== JSON.stringify(expected)) throw new Error('Source contact output mismatch');
+    }
+    const ordered = [...durations].sort((a, b) => a - b);
+    return { pair: [selected.left.id, selected.right.id], sourceRows: selected.count,
+      warmupMs: Number(warmupMs.toFixed(2)), samplesMs: durations.map(n => Number(n.toFixed(2))),
+      medianMs: Number(ordered[2].toFixed(2)), output: expected };
+  });
+  expect(benchmark.sourceRows).toBeGreaterThan(399);
+  expect(benchmark.samplesMs.length).toBe(5);
+  expect(errors).toEqual([]);
+  const result = { schema: 'pando-soviet-contact-wire-cpu-v1',
+    source: process.env.PANDOLAB_EXPECT_COMMIT || null, benchmark };
+  await mkdir('test-results/soviet-contact-wire', { recursive: true });
+  const data = JSON.stringify(result, null, 2) + '\n';
+  await writeFile('test-results/soviet-contact-wire/measurement.json', data);
+  await info.attach('contact-wire-cpu.json', { body: Buffer.from(data), contentType: 'application/json' });
+  console.log('SOVIET_CONTACT_WIRE_CPU', JSON.stringify(benchmark));
+});
