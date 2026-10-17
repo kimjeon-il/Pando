@@ -1,0 +1,146 @@
+name: Integrated world Web regression (no Qt or Android)
+on:
+  push:
+    branches: [work/integration-ui-objects-20261016]
+    paths:
+      - '.github/workflows/integration-world-web-regression-20261016.yml'
+      - 'assets/js/**'
+      - 'assets/data/**'
+      - 'apps/web-shell/stage.mjs'
+      - 'apps/web-shell/world-data-plan.mjs'
+      - 'tests/browser/soviet-*.spec.mjs'
+      - 'index.html'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  packaged-world:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - name: Verify current published metadata
+        run: |
+          node scripts/generate-build-metadata.mjs --check
+          node scripts/check-version.mjs
+      - name: Stage actual manifest-pinned full world
+        run: |
+          node apps/web-shell/stage.mjs --profile=full-world
+          node --input-type=module -e "
+            import fs from 'node:fs';
+            import assert from 'node:assert/strict';
+            const s=JSON.parse(fs.readFileSync('apps/web-shell/dist/shell/stage-evidence.json','utf8'));
+            assert.equal(s.profile,'full-world');
+            assert.equal(s.worldData.countryCount,258);
+            assert.equal(s.worldData.modelEntityCount,254);
+            assert.equal(s.worldData.rootCount,207);
+            assert.equal(s.worldData.mergedSourceCount,4);
+            assert.equal(s.worldData.worldFileCount,597);
+            assert.equal(s.worldData.physicalFileCount,13);
+            assert.equal(s.worldData.fileCount,610);
+            assert.equal(s.files.filter(x=>x.path.startsWith('assets/data/')).length,610);
+            assert.equal(s.files.filter(x=>['hydro/','terrain-preview/','places/'].some(t=>x.path.startsWith('assets/data/'+t))).length,13);
+            console.log('FULL_WORLD_STAGE_PASS',JSON.stringify(s.worldData));
+          "
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integrated-full-world-stage-${{ github.sha }}
+          path: apps/web-shell/dist/shell/stage-evidence.json
+          if-no-files-found: warn
+          retention-days: 7
+
+  soviet-render:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Verify Soviet GPU pan resource reuse and selection rendering
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: >
+          pnpm exec playwright test
+          tests/browser/performance-observability.spec.mjs
+          tests/browser/soviet-web-render-profile.spec.mjs
+          --grep '1989 Soviet' --workers=1 --retries=0 --trace off
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integrated-soviet-render-${{ github.sha }}
+          path: test-results/
+          if-no-files-found: warn
+          retention-days: 7
+
+  soviet-memory:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 28
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Attribute Soviet initial memory, CPU, and edit entry
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: >
+          pnpm exec playwright test
+          tests/browser/soviet-initialization-memory.spec.mjs
+          tests/browser/soviet-initialization-cpu.spec.mjs
+          tests/browser/soviet-edit-entry-profile.spec.mjs
+          --workers=1 --retries=0 --trace off
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integrated-soviet-memory-${{ github.sha }}
+          path: test-results/
+          if-no-files-found: warn
+          retention-days: 7
+
+  soviet-timeline:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Validate lightweight timeline saving and reload
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: >
+          pnpm exec playwright test
+          tests/browser/soviet-lightweight-timeline.spec.mjs
+          --workers=1 --retries=0 --trace off
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integrated-soviet-timeline-${{ github.sha }}
+          path: test-results/
+          if-no-files-found: warn
+          retention-days: 7

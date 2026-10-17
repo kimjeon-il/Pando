@@ -1,0 +1,48 @@
+name: Soviet repeated-edit memory ownership and regression
+on:
+  push:
+    branches: [work/integration-ui-objects-20261016]
+    paths:
+      - '.github/workflows/soviet-memory-cycle.yml'
+      - 'assets/js/modules/boundary-preparation.js'
+      - 'assets/js/modules/app-domain-assembly.js'
+      - 'assets/js/modules/map-edit-preparation-operations.js'
+      - 'assets/js/workers/map-edit-worker.js'
+      - 'tests/unit/boundary-preparation.test.mjs'
+      - 'tests/browser/soviet-memory-cycle.spec.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  memory-cycle:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Check bounded boundary ownership and current Worker contracts
+        run: |
+          pnpm exec eslint assets/js/modules/app-domain-assembly.js assets/js/modules/boundary-preparation.js assets/js/modules/map-edit-preparation-operations.js assets/js/workers/map-edit-worker.js tests/unit/boundary-preparation.test.mjs tests/browser/soviet-memory-cycle.spec.mjs
+          node --test tests/unit/boundary-preparation.test.mjs tests/unit/boundary-preparation-session.test.mjs tests/unit/map-edit-worker-client.test.mjs tests/unit/lightweight-timeline-history.test.mjs tests/unit/project-timeline-domain.test.mjs
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Exercise repeated 1989 Soviet coast edits, cancellation, GC and month roundtrip
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: pnpm exec playwright test tests/browser/soviet-memory-cycle.spec.mjs --workers=1 --retries=0 --trace off
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: soviet-memory-cycle-${{ github.sha }}
+          path: |
+            test-results/soviet-memory-cycle/
+            test-results/
+          if-no-files-found: warn
+          retention-days: 10

@@ -4,8 +4,9 @@
  */
 import { matchesDefaultPreview, previewSourceForProject } from './project-preview-policy.js';
 import { geometryRevision } from './geometry-versions.js';
+import { schedulePhysicalAfterCanonical } from './deferred-physical-startup.js';
 
-export function createProgressiveStartup({ startupMesh = 'builtin' } = {}) {
+export function createProgressiveStartup({ startupMesh = 'builtin', deferPhysicalUntilReady = false } = {}) {
   if (!['builtin', 'project'].includes(startupMesh)) throw new TypeError('Unsupported startup mesh source.');
   let dependencies;
   let restoringCountryFirstPaint = false;
@@ -90,6 +91,7 @@ export function createProgressiveStartup({ startupMesh = 'builtin' } = {}) {
     const navigationChanged = navigationProjection !== previewStart.projection
       || JSON.stringify(navigationView) !== previewStart.viewJson;
     const previewSearch = dependencies.projectState.state.layerSearch;
+    const liveMonthBeforeAdmission = dependencies.domains.commandOwner.state()?.timelineCursor || '';
     const previewSelection = (dependencies.projectState.state.selected?.domain === 'territorial' && (dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.selected?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.selected?.id)?.properties.parentId)) ? String(dependencies.projectState.state.selected.id || '') : '';
     (0, dependencies.builtinCountries.installCanonicalCountryStore)(geometry.canonicalCountryStore);
     const restored = autosaveRestore.project;
@@ -114,6 +116,10 @@ export function createProgressiveStartup({ startupMesh = 'builtin' } = {}) {
       if(baseline)requireCurrentBaseline(baseline,dependencies.domains.projectDomain.getGeneration());
       await restoreSavedProject(restored);
     } else await admitTerritorialBaseline(baseline,'startup-canonical-territories');
+    const userChangedPreviewMonth = !!previewStart.timelineMonth
+      && liveMonthBeforeAdmission !== previewStart.timelineMonth;
+    await dependencies.persistence.applyAutosavedTimeline(userChangedPreviewMonth
+      ? { lastViewedMonth: liveMonthBeforeAdmission } : autosaveRestore.view);
     if (Number.isFinite(projectGeneration)
       && dependencies.rendering.gpuMapRenderer.getProjectGeneration() !== projectGeneration) return null;
     // A display request may have initialized the edit Worker from preview countries.
@@ -237,7 +243,7 @@ export function createProgressiveStartup({ startupMesh = 'builtin' } = {}) {
       if (startupMetrics) startupMetrics.canonicalPreviewReleasedBytes = 0;
       (0, dependencies.renderQuality.applyAdaptiveRenderQuality)({ refreshScene: false, reason: 'canonical-ready' });
     }
-    (0, dependencies.physicalData.loadHydroData)();
+    if (!deferPhysicalUntilReady) (0, dependencies.physicalData.loadHydroData)();
     (0, dependencies.readinessUi.applyDataReadinessEvent)(dependencies.applicationConstantsA.READINESS_EVENTS.MESH_READY);
     dependencies.projectState.state.meshProgress = 100;
     if (!context.useBuiltInMesh || (dependencies.projectState.state.autosaveMode === 'full')) {
@@ -295,12 +301,35 @@ export function createProgressiveStartup({ startupMesh = 'builtin' } = {}) {
 
   async function initProgressive() {
     (0, dependencies.platformConfigurationB.assertRuntimeCompatibility)();
+    if (deferPhysicalUntilReady) {
+      // Tauri full-world only: preserve the website's preview/geometry/mesh
+      // priority. Defer optional terrain and hydro until that path completes.
+      schedulePhysicalAfterCanonical({ scope: window, load: () => {
+        const metrics = window.__PANDOLAB_STARTUP_METRICS__;
+        if (metrics) metrics.physicalLoadStartedMs = performance.now() - metrics.startedAt;
+        void Promise.allSettled([
+          Promise.resolve().then(() => dependencies.physicalResources.loadTerrainManifest()),
+          Promise.resolve().then(() => dependencies.physicalData.loadHydroData()),
+        ]).then(results => {
+          if (metrics) {
+            metrics.physicalManifestLoadFinishedMs = performance.now() - metrics.startedAt;
+            metrics.physicalManifestLoadResults = results.map(result => result.status);
+          }
+          for (const result of results) if (result.status === 'rejected') {
+            dependencies.feedback.reportOperationError(result.reason,
+              '지도 부가 자료를 불러오지 못했습니다.', 'PL-PHYSICAL-001', 0);
+          }
+        });
+      } });
+      (window.__PANDOLAB_STARTUP_METRICS__ ||= {}).physicalDeferredUntilReady = true;
+    }
     if (!window.d3) throw new Error('내장 지도 엔진을 불러올 수 없습니다. 페이지를 새로고침하세요.');
     if (!window.PANDOLAB_COUNTRIES?.features?.length) throw new Error('미리보기 국가 데이터를 불러올 수 없습니다. 페이지를 새로고침하세요.');
 
     const startTerrainLoading = () => {
-      // Terrain can use the painted preview; canonical country data/meshes
-      // are not prerequisites. Keep failures separate from country readiness.
+      if (deferPhysicalUntilReady) return;
+      // Normal Web retains painted-preview terrain loading; the full-world
+      // app reserves the first canonical paint and loads later instead.
       dependencies.physicalResources.loadTerrainManifest().catch(error => {
         dependencies.feedback.reportOperationError(error, '지형 자료를 불러오지 못했습니다.', 'PL-TERRAIN-001', 0);
       });
@@ -318,7 +347,7 @@ export function createProgressiveStartup({ startupMesh = 'builtin' } = {}) {
     const previewInput=savedProject ? {project:savedProject,
       territorialViews:(await dependencies.domains.projectDomain.inspectImport(savedProject)).territorialViews}:null;
     const defaultPreview = !savedProject || matchesDefaultPreview(previewInput, baseline);
-    const cachedPreview = !defaultPreview ? await dependencies.domains.projectDomain.restorePreview(savedProject) : null;
+    const cachedPreview = !defaultPreview ? await dependencies.domains.projectDomain.restorePreview(savedProject, previewInput) : null;
     const previewSource = !savedProject ? {kind:'default'} : previewSourceForProject(previewInput, baseline, cachedPreview);
     const hasStoredCountryGeometry = previewSource.kind === 'restore';
     const sourceMonth = window.PANDOLAB_BUILD_META?.historicalWorld?.sourceMonth || new Date().toISOString().slice(0, 7);
@@ -381,6 +410,7 @@ export function createProgressiveStartup({ startupMesh = 'builtin' } = {}) {
     if (!hasStoredCountryGeometry) startTerrainLoading();
     dependencies.startupCommands.markRuntimeReady();
     const previewStart = { projection: dependencies.projectState.state.projection, viewJson: JSON.stringify(dependencies.projectState.state.view),
+      timelineMonth: dependencies.domains.commandOwner.state()?.timelineCursor || '',
       projectGeneration: dependencies.rendering.gpuMapRenderer.getProjectGeneration?.() };
     (0, dependencies.feedback.setActionStatus)(
       hasStoredCountryGeometry || !previewFrameReady ? '저장된 지도 복원 중…' : '미리보기 표시 완료. 편집 데이터 준비 중…',
@@ -474,6 +504,7 @@ export function createProgressiveStartup({ startupMesh = 'builtin' } = {}) {
       if(baseline)requireCurrentBaseline(baseline,dependencies.domains.projectDomain.getGeneration());
       await restoreSavedProject(restored);
     } else await admitTerritorialBaseline(baseline,'startup-canonical-territories');
+    await dependencies.persistence.applyAutosavedTimeline(autosaveRestore.view);
     await (0, dependencies.layerTree.pruneLayerItemVisibility)();
     (0, dependencies.countries.scheduleCountryLabelAnchors)(null, 10);
     (0, dependencies.layers.markLayerTreeDirty)();

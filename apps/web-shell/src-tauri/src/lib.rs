@@ -1,16 +1,13 @@
 mod storage;
+mod document_transfer;
 
-use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
 use serde::Serialize;
 use sha2::{Digest, Sha256};
 use std::{
-    io::{Read, Write},
     path::PathBuf,
     sync::Mutex,
 };
 use tauri::{Manager, WebviewUrl, WebviewWindowBuilder};
-use tauri_plugin_dialog::{DialogExt, FilePath};
-use tauri_plugin_fs::{FsExt, OpenOptions};
 
 const EMBEDDED_STAGE_EVIDENCE: &str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
@@ -20,6 +17,9 @@ const EMBEDDED_STAGE_EVIDENCE: &str = include_str!(concat!(
 #[derive(Default)]
 struct ProbeOptions {
     auto: bool,
+    physical_immediate: bool,
+    probe_hold_ms: u64,
+    profile_id: Option<String>,
     diagnostic_output: Option<PathBuf>,
     write_lock: Mutex<()>,
 }
@@ -38,14 +38,6 @@ struct ReadFile {
 struct ReportFile {
     path: String,
 }
-#[derive(Serialize)]
-struct ProjectFile {
-    cancelled: bool,
-    path: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    contents: Option<String>,
-}
-
 fn profile_dir(app: &tauri::AppHandle) -> Result<PathBuf, String> {
     app.path()
         .app_data_dir()
@@ -184,102 +176,6 @@ async fn finish_probe(
     Ok(written)
 }
 
-fn project_dialog(app: &tauri::AppHandle) -> tauri_plugin_dialog::FileDialogBuilder<tauri::Wry> {
-    let builder = app.dialog().file().set_file_name("판도연구소-시험.gpkg");
-    #[cfg(target_os = "android")]
-    {
-        builder.add_filter(
-            "PandoLab GeoPackage",
-            &["application/geopackage+sqlite3", "application/octet-stream"],
-        )
-    }
-    #[cfg(not(target_os = "android"))]
-    {
-        builder.add_filter("PandoLab GeoPackage", &["gpkg"])
-    }
-}
-
-fn cancelled_project() -> ProjectFile {
-    ProjectFile {
-        cancelled: true,
-        path: None,
-        contents: None,
-    }
-}
-
-fn decode_project(contents: &str) -> Result<Vec<u8>, String> {
-    if contents.len() > (storage::MAX_FILE_BYTES + 2) / 3 * 4 {
-        return Err("Prototype file exceeds the 1 MiB limit".into());
-    }
-    let contents = BASE64
-        .decode(contents)
-        .map_err(|error| format!("Invalid project base64: {error}"))?;
-    validate_size(&contents)?;
-    Ok(contents)
-}
-
-#[tauri::command]
-async fn save_project_file(app: tauri::AppHandle, contents: String) -> Result<ProjectFile, String> {
-    // Reject invalid/oversized input before displaying a dialog or creating a document.
-    let contents = decode_project(&contents)?;
-    let Some(path) = project_dialog(&app).blocking_save_file() else {
-        return Ok(cancelled_project());
-    };
-    match &path {
-        FilePath::Path(local) => {
-            storage::atomic_write(local, &contents).map_err(|error| error.to_string())?
-        }
-        FilePath::Url(url) if url.scheme() == "file" => {
-            let local = url
-                .to_file_path()
-                .map_err(|_| "Invalid selected file URL")?;
-            storage::atomic_write(&local, &contents).map_err(|error| error.to_string())?;
-        }
-        FilePath::Url(_) => {
-            // Android ACTION_CREATE_DOCUMENT creates a new provider document;
-            // fs resolves its content:// URI without broad storage permissions.
-            let mut options = OpenOptions::new();
-            options.read(false).write(true).truncate(true);
-            let mut file = app
-                .fs()
-                .open(path.clone(), options)
-                .map_err(|error| error.to_string())?;
-            file.write_all(&contents)
-                .and_then(|_| file.flush())
-                .map_err(|error| error.to_string())?;
-        }
-    }
-    Ok(ProjectFile {
-        cancelled: false,
-        path: Some(path.to_string()),
-        contents: None,
-    })
-}
-
-#[tauri::command]
-async fn open_project_file(app: tauri::AppHandle) -> Result<ProjectFile, String> {
-    let Some(path) = project_dialog(&app).blocking_pick_file() else {
-        return Ok(cancelled_project());
-    };
-    let mut options = OpenOptions::new();
-    options.read(true);
-    let file = app
-        .fs()
-        .open(path.clone(), options)
-        .map_err(|error| error.to_string())?;
-    let mut bytes = Vec::new();
-    file.take(storage::MAX_FILE_BYTES as u64 + 1)
-        .read_to_end(&mut bytes)
-        .map_err(|error| error.to_string())?;
-    validate_size(&bytes)?;
-    let contents = BASE64.encode(bytes);
-    Ok(ProjectFile {
-        cancelled: false,
-        path: Some(path.to_string()),
-        contents: Some(contents),
-    })
-}
-
 fn local_navigation(url: &tauri::Url) -> bool {
     url.username().is_empty()
         && url.password().is_none()
@@ -298,6 +194,24 @@ fn probe_options() -> Result<ProbeOptions, String> {
         while let Some(arg) = args.next() {
             if arg == "--probe-auto" {
                 options.auto = true;
+            } else if arg == "--probe-physical-immediate" {
+                options.physical_immediate = true;
+            } else if arg == "--probe-hold-ms" {
+                let requested = args.next().ok_or("--probe-hold-ms requires milliseconds")?;
+                let duration = requested.to_string_lossy().parse::<u64>()
+                    .map_err(|_| "--probe-hold-ms must be an integer")?;
+                if !(1000..=30_000).contains(&duration) {
+                    return Err("--probe-hold-ms must be between 1000 and 30000".into());
+                }
+                options.probe_hold_ms = duration;
+            } else if arg == "--probe-profile-id" {
+                let requested = args.next().ok_or("--probe-profile-id requires an identifier")?;
+                let value = requested.to_string_lossy();
+                if value.len() > 24 || value.is_empty()
+                    || !value.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-') {
+                    return Err("Invalid probe profile identifier".into());
+                }
+                options.profile_id = Some(value.to_string());
             } else if arg == "--diagnostic-output" {
                 let path = PathBuf::from(
                     args.next()
@@ -309,6 +223,10 @@ fn probe_options() -> Result<ProbeOptions, String> {
                 options.diagnostic_output = Some(path);
             }
         }
+        if !options.auto && (options.physical_immediate
+            || options.probe_hold_ms > 0 || options.profile_id.is_some()) {
+            return Err("Performance flags require --probe-auto".into());
+        }
     }
     Ok(options)
 }
@@ -317,20 +235,37 @@ fn probe_options() -> Result<ProbeOptions, String> {
 pub fn run() {
     let options = probe_options().expect("invalid prototype arguments");
     let auto = options.auto;
+    let physical_immediate = options.auto && options.physical_immediate;
+    let probe_hold_ms = if options.probe_hold_ms > 0 { options.probe_hold_ms } else { 500 };
+    let profile_id = options.profile_id.clone();
     tauri::Builder::default()
         .manage(options)
+        .manage(document_transfer::TransferManager::default())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
-        .invoke_handler(tauri::generate_handler![write_probe_file, read_probe_file, write_diagnostic_report, finish_probe, save_project_file, open_project_file])
+        .invoke_handler(tauri::generate_handler![write_probe_file, read_probe_file, write_diagnostic_report, finish_probe,
+            document_transfer::begin_document_write, document_transfer::append_document_chunk,
+            document_transfer::finish_document_write, document_transfer::begin_document_read,
+            document_transfer::read_document_chunk, document_transfer::abort_document_transfer])
         .setup(move |app| {
             let builder = WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
                 .title("PandoLab 시험용")
                 .inner_size(1280.0, 820.0)
                 .on_navigation(local_navigation)
                 .on_new_window(|_, _| tauri::webview::NewWindowResponse::Deny)
-                .initialization_script(format!("Object.defineProperty(window, '__PANDOLAB_SHELL_AUTO__', {{ value: {auto}, writable: false }});"));
+                .initialization_script(format!(
+                    "Object.defineProperty(window, '__PANDOLAB_SHELL_AUTO__', {{ value: {auto}, writable: false }});\
+                     Object.defineProperty(window, '__PANDOLAB_SHELL_PROBE_PHYSICAL_IMMEDIATE__', {{ value: {physical_immediate}, writable: false }});\
+                     Object.defineProperty(window, '__PANDOLAB_SHELL_PROBE_HOLD_MS__', {{ value: {probe_hold_ms}, writable: false }});"
+                ));
             #[cfg(windows)]
-            let builder = builder.data_directory(app.path().app_local_data_dir()?.join("test-profile").join("webview2"));
+            let builder = builder.data_directory({
+                let directory = app.path().app_local_data_dir()?.join("test-profile");
+                match &profile_id {
+                    Some(id) => directory.join(format!("webview2-benchmark-{id}")),
+                    None => directory.join("webview2"),
+                }
+            });
             builder.build()?;
             Ok(())
         })
@@ -340,17 +275,7 @@ pub fn run() {
 
 #[cfg(test)]
 mod tests {
-    use super::{decode_project, local_navigation, storage, BASE64};
-    use base64::Engine;
-    #[test]
-    fn project_payload_preserves_binary_and_enforces_decoded_size() {
-        let binary = b"SQLite format 3\0\0\xff\x80";
-        assert_eq!(decode_project(&BASE64.encode(binary)).unwrap(), binary);
-        assert!(decode_project("invalid**base64").is_err());
-        let maximum = vec![0xff; storage::MAX_FILE_BYTES];
-        assert_eq!(decode_project(&BASE64.encode(&maximum)).unwrap(), maximum);
-        assert!(decode_project(&BASE64.encode(vec![0xff; storage::MAX_FILE_BYTES + 1])).is_err());
-    }
+    use super::local_navigation;
     #[test]
     fn navigation_allows_only_packaged_asset_origins() {
         for url in [

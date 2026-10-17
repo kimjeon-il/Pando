@@ -1749,6 +1749,12 @@ export function createRenderingDomain({
         'stroke-width': roleStyle.width, 'stroke-opacity': roleStyle.alpha, 'pointer-events': 'none', 'vector-effect': 'non-scaling-stroke' })) ring.setAttribute(name, value);
     });
     const selectionFramePath = framePath(frameContext);
+    // Historical general countries may have no entry in the immutable modern
+    // country mesh. Use their actual scene geometry for GPU selection strokes
+    // rather than requesting a nonexistent built-in country boundary packet.
+    const countryBoundarySnapshot = gpuMapRenderer?.getCountryInteractionBoundaryData?.() || null;
+    const meshBoundaryOwnerIds = new Set((countryBoundarySnapshot?.visibleIds || []).map(String));
+    const isMeshBoundaryOwner = ref => rootGeneralSelection(ref) && meshBoundaryOwnerIds.has(String(ref.id));
     const selectionPassAvailable = !!selectionPass?.isAvailable?.();
     const sceneOwnsFills = rendererOwnsSceneGeometry(gpuMapRenderer?.getRuntimeState?.()?.renderer);
     const displayFeatureForRef = ref => ref.scopeFeature || (ref.domain === 'territorial'
@@ -1758,7 +1764,7 @@ export function createRenderingDomain({
       const owners = (displayPlan.boundaryOwnersByKey.get(ref.key) || []).map(entry => ({
         key: entry.key, ref: entry.ref, feature: displayFeatureForRef(entry.ref),
       })).filter(item => item.feature?.geometry);
-      if (!owners.length) return rootGeneralSelection(ref)
+      if (!owners.length) return isMeshBoundaryOwner(ref)
         ? boundary : cachedSelectionBoundaryFeature(ref.key, feature, role);
       const signature = owners.map(item => `${item.key}:${selectionGeometryRevision(item.key, 'ownership', item.feature)}`).sort().join(',');
       const revision = `${boundary.revision}:owners:${signature}`;
@@ -1792,7 +1798,8 @@ export function createRenderingDomain({
       const boundary = selectionGeometryKinds(feature).boundary
         ? hierarchyBoundary(hovered, feature, 'hover')
         : { feature, revision: selectionGeometryRevision(key, 'hover', feature) };
-      const plan = planHoverEntry({ ref: hovered, baseBoundaryOwnerId: isCountry ? String(hovered.id) : '', feature, boundary, pendingCountry, hoverStyle: style.hover });
+      const plan = planHoverEntry({ ref: hovered, baseBoundaryOwnerId: isCountry && isMeshBoundaryOwner(hovered) ? String(hovered.id) : '',
+        feature, boundary, pendingCountry, hoverStyle: style.hover });
       if (plan.fill && !sceneOwnsFills) {
         stagedHoverLayer.append('path').datum(feature)
           .attr('class', 'map-hover-shape map-hover-fill')
@@ -1822,7 +1829,8 @@ export function createRenderingDomain({
       const boundary = (isCountry || selectionGeometryKinds(feature).boundary) && outlineVisible
         ? hierarchyBoundary(ref, feature, 'selection-outline')
         : { feature, revision: selectionGeometryRevision(ref.key, 'selection-outline', feature) };
-      const plan = planSelectionEntry({ ref, entry, channel, baseBoundaryOwnerId: isCountry ? String(ref.id) : '', feature, boundary,
+      const plan = planSelectionEntry({ ref, entry, channel,
+        baseBoundaryOwnerId: isCountry && isMeshBoundaryOwner(ref) ? String(ref.id) : '', feature, boundary,
         pendingCountry: state.pendingCountryRenderIds?.has(String(ref.id)), outlineVisible, selectionStyle });
       if (plan.fill && !sceneOwnsFills) stagedSelectionLayer.append('path').datum(feature)
         .attr('class', `map-selection-shape map-selection-fill${primary ? ' is-primary' : ' is-secondary'}`)
@@ -1841,7 +1849,6 @@ export function createRenderingDomain({
     let fillOwner = gpuFrameResult?.interactionResult?.fillOwner || 'svg';
     let fillResourcesByObject = new Map();
     if (updateData) {
-      const countryBoundarySnapshot = gpuMapRenderer?.getCountryInteractionBoundaryData?.() || null;
       selectionPass?.setCountryBoundaryResources?.(countryBoundarySnapshot);
       selectionOverlayStage = 'selection-buffer-build';
       const packet = selectionDomain?.createPacket?.({

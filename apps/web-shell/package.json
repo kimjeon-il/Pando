@@ -6,6 +6,7 @@
   "packageManager": "pnpm@11.19.0",
   "scripts": {
     "stage": "node stage.mjs",
+    "stage:world": "node stage.mjs --profile=full-world",
     "tauri": "tauri",
     "build:windows": "tauri build --debug --no-bundle --target x86_64-pc-windows-gnu",
     "init:android": "tauri android init --ci",

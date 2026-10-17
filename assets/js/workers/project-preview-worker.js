@@ -1,28 +1,34 @@
 'use strict';
 
-importScripts(
-  '../vendor/topojson-client.min.js',
-  '../vendor/topojson-server.min.js',
-  '../vendor/topojson-simplify.min.js',
-  '../modules/polygon-clipping-core.js',
-  '../modules/polygon-geometry.js',
-  './gpu-mesh-core.js',
-);
+// Hashing and cache validation require neither topology code nor a WASM heap.
+// Only a genuine cache build initializes the heavyweight geometry runtime.
+const previewPolicy = import('../modules/project-preview-policy.js');
+let buildModules = null;
 
-const geometryCoreReady = import('../modules/core-wasm-loader.js')
-  .then(({ loadVerifiedCore }) => loadVerifiedCore({
-    baseUrl: new URL('../../wasm/', self.location.href),
-  }))
-  .then(core => { self.PandoLabSphericalCore = core; self.PandoLabGpuMeshCore.setSharedCore(core); });
-
-const modules = geometryCoreReady.then(() => Promise.all([
-  import('../modules/project-preview-topology.js'),
-  import('../modules/geometry-validation.js'),
-  import('../modules/country-stroke-preparation.js'),
-  import('../modules/mesh-spatial-blocks.js'),
-  import('../modules/project-preview-policy.js'),
-]));
-modules.catch(() => {});
+function getBuildModules() {
+  if (buildModules) return buildModules;
+  buildModules = (async () => {
+    importScripts(
+      '../vendor/topojson-client.min.js',
+      '../vendor/topojson-server.min.js',
+      '../vendor/topojson-simplify.min.js',
+      '../modules/polygon-clipping-core.js',
+      '../modules/polygon-geometry.js',
+      './gpu-mesh-core.js',
+    );
+    const { loadVerifiedCore } = await import('../modules/core-wasm-loader.js');
+    const core = await loadVerifiedCore({ baseUrl: new URL('../../wasm/', self.location.href) });
+    self.PandoLabSphericalCore = core;
+    self.PandoLabGpuMeshCore.setSharedCore(core);
+    return Promise.all([
+      import('../modules/project-preview-topology.js'),
+      import('../modules/geometry-validation.js'),
+      import('../modules/country-stroke-preparation.js'),
+      import('../modules/mesh-spatial-blocks.js'),
+    ]);
+  })();
+  return buildModules;
+}
 
 async function sha256(value) {
   const bytes = new TextEncoder().encode(JSON.stringify(value));
@@ -31,7 +37,7 @@ async function sha256(value) {
 }
 
 async function geometryKey(source, baseline) {
-  const policy = (await modules)[4];
+  const policy = await previewPolicy;
   return sha256({ source: baseline?.sourceSha256 || '', classification: policy.BUILTIN_SUBUNIT_REVISION,
     algorithm: policy.PROJECT_PREVIEW_ALGORITHM_REVISION, ...policy.projectPreviewGeometryRows(source) });
 }
@@ -79,9 +85,9 @@ async function unpackCache(record) {
     ? new TYPED_ARRAYS[value.__previewArray](value.values) : value);
 }
 
-async function validateCache(source, baseline, cache) {
-  const { PROJECT_PREVIEW_ALGORITHM_REVISION, PROJECT_PREVIEW_MAX_BYTES } = (await modules)[4];
-  const key = await geometryKey(source, baseline);
+async function validateCache(source, baseline, cache, preparedKey = null) {
+  const { PROJECT_PREVIEW_ALGORITHM_REVISION, PROJECT_PREVIEW_MAX_BYTES } = await previewPolicy;
+  const key = preparedKey ?? await geometryKey(source, baseline);
   if (!cache || cache.algorithmRevision !== PROJECT_PREVIEW_ALGORITHM_REVISION
     || cache.baseSourceSha256 !== baseline?.sourceSha256
     || cache.geometryKey !== key
@@ -96,13 +102,14 @@ async function validateCache(source, baseline, cache) {
   return await cacheIntegrity(unpacked) === unpacked.integrity ? unpacked : null;
 }
 
-async function buildCache(source, baseline, entities) {
-  const key = await geometryKey(source, baseline);
+async function buildCache(source, baseline, entities, preparedKey = null) {
+  const key = preparedKey ?? await geometryKey(source, baseline);
   if (!Array.isArray(entities)) throw Object.assign(new TypeError('Accepted display entities are required to build a project preview.'),
     { code: 'PL-PREVIEW-SOURCE' });
   const features = entities.filter(entity => (entity.properties.entityKind === 'general' && !entity.properties.parentId));
   const territorialUnits = entities.filter(entity => !(entity.properties.entityKind === 'general' && !entity.properties.parentId));
-  const [shared, geometryValidation, stroke, spatial, policy] = await modules;
+  const [shared, geometryValidation, stroke, spatial] = await getBuildModules();
+  const policy = await previewPolicy;
   const current = features.map(feature => ({ type: 'Feature', id: String(feature.id),
     properties: feature.properties || {}, geometry: feature.geometry }));
   const units = territorialUnits.map(unit => ({ type: 'Feature', id: `unit:${unit.id}`,
@@ -152,11 +159,11 @@ async function buildCache(source, baseline, entities) {
 }
 
 self.onmessage = async event => {
-  const { id, type, source, baseline, cache, entities } = event.data || {};
+  const { id, type, source, baseline, cache, entities, key } = event.data || {};
   try {
     const result = type === 'key' ? await geometryKey(source, baseline)
-      : type === 'validate' ? await validateCache(source, baseline, cache)
-        : type === 'build' ? await buildCache(source, baseline, entities)
+      : type === 'validate' ? await validateCache(source, baseline, cache, key)
+        : type === 'build' ? await buildCache(source, baseline, entities, key)
           : null;
     self.postMessage({ id, ok: true, result });
   } catch (error) {

@@ -146,9 +146,15 @@ export function createGeometryPreview() {
       current,
     };
     state.boundaryPreparation = preparation;
+    const preparationStartedAt = metricNow();
+    let roundTripMs = 0, adoptionMs = 0, preparedTiming = null, handleCount = 0, segmentCount = 0;
     preparation.promise = dependencies.spatialQuery.mapEditClient.execute('boundary-prepare', { payload: {
       targetIds, mode, neighborsOnly, autoSeedId: state.boundaryEditAutoSeedId, projectGeneration: dependencies.domains.projectDomain?.getGeneration?.(), revision,
     } }, { signal: controller.signal, jobKey: 'boundary-prepare' }).then(async ({ result }) => {
+      roundTripMs = metricNow() - preparationStartedAt;
+      preparedTiming = result.preparationTiming || null;
+      handleCount = result.handles?.length || 0;
+      segmentCount = result.segments?.length || 0;
       preparation.workerPending = false;
       if (!current()) return stale();
       const scope = state.coastEditScopeGenericFeatureId
@@ -160,7 +166,9 @@ export function createGeometryPreview() {
         if (!current()) throw Object.assign(new Error('준비가 취소되었습니다.'), { cancelled: true });
       };
       const nodes = { get: key => result.handles[result.displayIndex?.nodeKeys?.[key]] };
+      const adoptionStartedAt = metricNow();
       const packet = await adoptBoundaryRenderPacketAsync(result, checkpoint);
+      adoptionMs = metricNow() - adoptionStartedAt;
       if (!current()) return stale();
       preparation.result = result;
       preparation.nodes = nodes;
@@ -182,6 +190,17 @@ export function createGeometryPreview() {
       preparation.message = error.message || '경계 준비에 실패했습니다. 다시 시도하세요.';
       refresh();
       return false;
+    }).finally(() => {
+      // Measurements describe preparation only: never claim that Worker
+      // compute time includes the structured-clone transport or UI adoption.
+      try {
+        getRuntimePerformanceMetrics()?.record('edit.boundary.prepare', metricNow() - preparationStartedAt, {
+          mode, neighborsOnly, status: preparation.status,
+          workerRoundTripMs: roundTripMs, packetAdoptionMs: adoptionMs,
+          handleCount, segmentCount,
+          ...(preparedTiming || {}),
+        });
+      } catch (_) { /* Diagnostics must not change the editing outcome. */ }
     });
     refresh();
     return preparation.promise;
