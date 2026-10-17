@@ -1,0 +1,63 @@
+name: OBJ-095 compact prepared source 12-cycle Worker and GPU checks
+on:
+  push:
+    branches: [work/perf-source-row-owners-20261017]
+    paths:
+      - '.github/workflows/soviet-source-row-long-cycle.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: soviet-source-row-long-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  long-cycle:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 38
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Complete 12 Soviet/modern returns with GC and background Worker retirement
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+          PANDOLAB_EXPECT_MAIN_SHA: ${{ github.sha }}
+        run: pnpm exec playwright test tests/browser/soviet-main-long-cycle.spec.mjs --workers=1 --retries=0 --trace off
+      - name: Guard stable source identities, Worker WASM and full autosave count
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          const report=JSON.parse(readFileSync('test-results/soviet-main-long-cycle/measurement.json','utf8'));
+          const s=report.summary;
+          assert.equal(report.cyclesCompleted,12);
+          assert.deepEqual(report.errors,[]);
+          assert.equal(report.initialAutosaves,report.finalAutosaves);
+          assert.ok(s.eligibleSettledModernReturns>=8);
+          const early=s.comparisons.borderJsMiB.first4Median,late=s.comparisons.borderJsMiB.last4Median;
+          const idle=s.finalIdle.borderJsMiB;
+          assert.equal(s.comparisons.workerWasmMiB.first4Median,s.comparisons.workerWasmMiB.last4Median);
+          assert.ok(late-early<20,'Prepared Worker retained JS must stabilize across date returns');
+          assert.ok(idle<105,'Compact sources must not regress the OBJ-094 idle Worker heap');
+          console.log('OBJ095_SOVIET_LONG_CYCLE',JSON.stringify({cycles:report.cyclesCompleted,
+            earlyBorderJsMiB:early,lateBorderJsMiB:late,lastIdleJsMiB:idle,
+            lastIdlePssMiB:s.finalIdle.pssMiB,wasmMiB:s.comparisons.workerWasmMiB.last4Median}));
+          NODE
+      - name: Camera-only Soviet pan reuses GPU stroke and polygon resources
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: pnpm exec playwright test tests/browser/performance-observability.spec.mjs --grep '1989 Soviet Union pan' --workers=1 --retries=0 --trace off
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: soviet-source-row-long-${{ github.sha }}
+          path: test-results/
+          retention-days: 14
+          if-no-files-found: warn
