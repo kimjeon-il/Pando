@@ -22,6 +22,8 @@ export function createCountrySharedBoundaryState() {
   const preparedStore = createPreparedBoundaryStore();
   const contacts = new Map(), contactsByOwner = new Map(), edges = new Map();
   let contactComputationCount = 0;
+  // Each key normally has one country-pair contributor. Keep that path
+  // Map-free; promote/demote only when coincident multi-owner borders require it.
   function updateEdge(key) {
     const record = edges.get(key);
     const contributions = record.contributions;
