@@ -37,6 +37,7 @@
 
 | ID | 보고서 | 원문 수정일 | 상태 | 지도 반영 |
 | --- | --- | --- | --- | --- |
+| `DEV-088` | [공유 국경선 Worker 360MiB JS 힙 참조 소유권·공간 인덱스 계측](development/testing/soviet-shared-border-retained-owners-2026-10-17.md) | 2026-10-17 | `verified-web-diagnostics` | `not-applicable` |
 | `DEV-087` | [현행 main 동일 소스 1989년 소련 12회 왕복 Worker·WASM 장기 메모리 검증](development/testing/soviet-main-12cycle-memory-2026-10-17.md) | 2026-10-17 | `verified-web-diagnostics` | `not-applicable` |
 | `DEV-085` | [1989년 소련 반복 편집 후 미리보기 Worker 60초 지연 원인](development/testing/soviet-preview-build-attribution-2026-10-17.md) | 2026-10-17 | `verified-web-diagnostics` | `not-applicable` |
 | `DEV-084` | [1989년 소련 편집·시점 왕복 Worker·WASM 메모리 잔류 계측](development/testing/soviet-memory-retention-roundtrip-2026-10-17.md) | 2026-10-17 | `verified-web-diagnostics` | `not-applicable` |
