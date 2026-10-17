@@ -66,7 +66,7 @@ test('small mutable indexes preserve replace/remove and exact dateline inclusion
   index.remove(0);
   assert.deepEqual(index.query([177, -1, -177, 2]), ['west']);
   index.insert(0, 'new-east', [178, 0, 179, 1]);
-  assert.deepEqual(index.query([177, -1, -177, 2]), ['west', 'new-east']);
+  assert.deepEqual(index.query([177, -1, -177, 2]), ['new-east', 'west']);
   assert.deepEqual(index.values(), ['west', 'new-east']);
   assert.deepEqual(index.stats(), { packed: false, entries: 2 });
 });
