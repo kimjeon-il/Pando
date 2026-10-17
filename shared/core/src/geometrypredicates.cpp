@@ -103,6 +103,8 @@ std::vector<double> periodicCuts(const Geometry& geometry,Point a,Point b) {
 // Use latitude coverage only to eliminate edges that cannot intersect the
 // queried segment; the existing longitude shift and cross-product predicates
 // are still responsible for every actual intersection decision.
+// Query buckets include the old epsilon margin; stamp deduplication avoids
+// re-processing an edge whose latitude envelope spans multiple buckets.
 class LatitudeEdgeIndex {
     struct Edge {Point a,b;double south,north;};
     static constexpr int bucketCount=91;
