@@ -1,0 +1,50 @@
+name: Soviet shared border retaining roots (isolated Chromium)
+on:
+  push:
+    branches: [work/integration-ui-objects-20261016]
+    paths:
+      - '.github/workflows/soviet-shared-border-heap-owners.yml'
+      - 'tests/browser/soviet-shared-border-heap-owners.spec.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  retaining-roots:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 15
+      - name: Confirm only test files and an unrelated documentation report differ from pinned main
+        env:
+          MAIN_BASE: e85b3e158d5c02e4aa028283db5b83a1750f4b1a
+        run: |
+          git merge-base --is-ancestor "$MAIN_BASE" HEAD
+          git diff --name-only "$MAIN_BASE" HEAD |
+            grep -Ev '^(\.github/workflows/soviet-main-long-cycle-memory\.yml|tests/browser/soviet-main-long-cycle\.spec\.mjs|tests/browser/helpers/soviet-memory-attribution\.mjs|\.github/workflows/soviet-shared-border-heap-owners\.yml|tests/browser/soviet-shared-border-heap-owners\.spec\.mjs|reports/development/testing/web-shell-physical-startup-2026-10-16\.md)$' > /tmp/non-test-diffs || true
+          test ! -s /tmp/non-test-diffs || { cat /tmp/non-test-diffs; exit 1; }
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Lint isolated memory tests
+        run: |
+          node --check tests/browser/soviet-shared-border-heap-owners.spec.mjs
+          pnpm exec eslint tests/browser/soviet-shared-border-heap-owners.spec.mjs
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Measure retaining roots and derived caches in isolated Chromium
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+          PANDOLAB_EXPECT_MAIN_SHA: e85b3e158d5c02e4aa028283db5b83a1750f4b1a
+        run: pnpm exec playwright test tests/browser/soviet-shared-border-heap-owners.spec.mjs --workers=1 --retries=0 --trace off
+      - name: Preserve raw stage measurements
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: soviet-border-roots-${{ github.sha }}
+          path: test-results/soviet-shared-border-owners/
+          if-no-files-found: warn
+          retention-days: 14
