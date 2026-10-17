@@ -45,7 +45,7 @@ export function scheduleP3(result,{event='push',manual='auto',artifactState}={})
 }
 
 export function previewSlug(branch) {
-  if(!/^work\/(ui|objects|gis|places)$/.test(branch))
+  if(!/^work\/(ui|objects|gis|places|integration-objects-20261017)$/.test(branch))
     throw Error('P3_UNSUPPORTED_PREVIEW_BRANCH: '+branch);
   return branch.replace('/','-');
 }
