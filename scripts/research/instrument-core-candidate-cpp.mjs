@@ -149,7 +149,10 @@ static void obj097BindingStage(const char* name,Obj097BindingClock::time_point b
 const checked=new Set();
 for (const [index,{path,from,to}] of replacements.entries()) {
   const source=await readFile(path,'utf8');
-  assert.equal(source.split(from).length,2,'Unsafe C++ source anchor #'+index+' in '+path);
+  const matches = source.split(from).length - 1;
+  // The impact assignment appears again in the optional copy-region branch.
+  // Measure the primary territorial.edit impact calculation, not that branch.
+  assert.equal(matches,index === 4 ? 2 : 1,'Unsafe C++ source anchor #'+index+' in '+path);
   if(!checked.has(path)) {
     assert.ok(!source.includes('OBJ097_CXX_STAGE'),'C++ source is already instrumented: '+path);
     checked.add(path);
