@@ -63,7 +63,12 @@ export function createDocumentSessionRuntime({ loadModule, validateFlagDataUrl, 
     inspectImport: (payload,context) => call('inspectImport',() => [payload.storageJson,payload.baselineId,currentMonth()],context),
     resolveWorld: (payload, context) => call('resolveWorld', [payload.month, payload.expectedEpoch], context),
     setTimelineCursor: (payload, context) => call('setTimelineCursor', [payload.month, payload.expectedEpoch], context,
-      (result,core) => ({ ...result,world: resolvedWorld(core,result.state) })),
+      result => {
+        if (!result?.state || !result?.world || result.world.sourceEpoch !== result.state.epoch
+          || result.world.month !== result.state.timelineCursor || !Array.isArray(result.world.entities))
+          fail('PL-CORE-DOCUMENT-ABI', 'The C++ cursor transition must return its own epoch-pinned resolved world.');
+        return result;
+      }),
     selectionCatalogLoad: (payload, context) => call('selectionCatalogLoad', [payload.domain,payload.refs,payload.expectedEpoch], context),
     presentationCatalogLoad: (payload,context) => call('presentationCatalogLoad',[payload.catalog,payload.expectedEpoch],context),
     selectionApply: (payload, context) => call('selectionApply', [payload], context),
