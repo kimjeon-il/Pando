@@ -1,3 +1,4 @@
+/* global boundaryState: readonly */
 import { expect, test } from '@playwright/test';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { createWorkerMemoryProbe, chromiumProcessPss } from './helpers/soviet-memory-attribution.mjs';
@@ -8,9 +9,6 @@ const MiB = 1024 * 1024;
 const round = value => Number(Number(value).toFixed(2));
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-function serializableGeometry(geometry) {
-  return JSON.stringify(geometry);
-}
 async function fingerprint(page) {
   return page.evaluate(id => {
     const geometry = window.PANDOLAB_TERRITORIAL?.get(id)?.geometry;
