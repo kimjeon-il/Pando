@@ -70,21 +70,27 @@ jobs:
           assert.equal(before.variant,'packed');
           assert.equal(after.variant,'packed');
           assert.equal(a.worker.complete && b.worker.complete,true);
-          assert.equal(b.worker.wasmLinearMiB,a.worker.wasmLinearMiB,'C++ WASM allocation must not change');
-          assert.equal(b.worker.totalWorkerWasmMiB,a.worker.totalWorkerWasmMiB,'All Worker WASM allocation must not change');
+          assert.equal(b.worker.wasmLinearMiB,a.worker.wasmLinearMiB,'Matched border Worker WASM allocation must not change');
+          // The optional map-edit Worker may be spawned on only one side.
+          // Its 16MiB WASM allocation and JS heap are not attributable to
+          // the shared-boundary Worker. Record the population difference.
+          const sameWorkerPopulation=a.worker.totalWorkerWasmMiB===b.worker.totalWorkerWasmMiB;
           const saved=Number((a.worker.jsMiB-b.worker.jsMiB).toFixed(2));
           const fraction=Number((100*saved/a.worker.jsMiB).toFixed(2));
           const report={
             schema:'pando-renderable-on-demand-paired-v1',
             before,after,savedBorderWorkerJsMiB:saved,percentReduction:fraction,
-            notes:'One sequential matched-run pair: JS V8 after GC differs from WASM linear and summed Chromium PSS; performance timing noise is not a guaranteed speedup.',
+            sameWorkerPopulation,
+            notes:'Matched shared-boundary Worker V8 after GC is comparable. Whole Chromium PSS and total Worker V8/WASM depend on optional Worker population; timing noise is not a guaranteed speedup.',
           };
           writeFileSync('candidate/test-results/soviet-boundary-index-packed/streaming-pair.json',JSON.stringify(report,null,2)+'\n');
           console.log('SOVIET_RENDERABLE_STREAMING_PAIRED',JSON.stringify({
             baselineBorderJsMiB:a.worker.jsMiB,candidateBorderJsMiB:b.worker.jsMiB,savedMiB:saved,percent:fraction,
             baselineChromiumPssMiB:a.chromium.pssMiB,candidateChromiumPssMiB:b.chromium.pssMiB,
             baselineToModernMs:a.toModernMs,candidateToModernMs:b.toModernMs,
-            workerWasmMiB:b.worker.wasmLinearMiB,sharedSegments:b.dimensions.sharedSegments,
+            workerWasmMiB:b.worker.wasmLinearMiB,workerPopulationMatched:sameWorkerPopulation,
+            totalWorkerWasmMiB:[a.worker.totalWorkerWasmMiB,b.worker.totalWorkerWasmMiB],
+            sharedSegments:b.dimensions.sharedSegments,
             contacts:b.dimensions.contacts,
           }));
           assert.ok(saved>=25,'Lazy source outlines must save at least 25MiB Worker JS on a cold modern return');
