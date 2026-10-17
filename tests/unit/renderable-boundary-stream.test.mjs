@@ -48,8 +48,11 @@ test('streamed geographical segments preserve the array source for all seam, pol
 });
 
 test('prepared source geometry retains no eager expanded display-segment array', () => {
-  for (const [name, geometry] of cases.filter(([, row]) =>
-    row.type === 'Polygon' || row.type === 'MultiPolygon')) {
+  // The visitor accepts partially drawn geometry; the C++ preparation path
+  // intentionally rejects unclosed/invalid rings, so test it with valid source.
+  for (const [name, geometry] of cases.filter(([name, row]) =>
+    (row.type === 'Polygon' || row.type === 'MultiPolygon')
+      && name !== 'unclosed polygon' && name !== 'empty and invalid')) {
     const feature = { id: name, geometry };
     const prepared = prepareBoundaryFeature(feature);
     assert.strictEqual(prepared.geometry, geometry);
