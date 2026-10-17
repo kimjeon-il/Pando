@@ -154,8 +154,20 @@ async function dragAndPreview(page, timings) {
   const started = Date.now();
   await page.mouse.move(x, y);
   await page.mouse.down();
-  await page.mouse.move(x + 0.6, y - 0.6, { steps: 4 });
+  // Tiny subpixel movement may never cross Chromium's real pointer-drag
+  // threshold. A distinct mouse gesture must send the production boundary-move
+  // request before it can count as a geometry editing test.
+  await page.mouse.move(x + 20, y - 14, { steps: 8 });
   await page.mouse.up();
+  timings.pointerAttempt = { x, y, coordinate: handle.coordinate, score: handle.score };
+  timings.afterMouseUp = await page.evaluate(() => ({
+    primary: document.querySelector('#modePrimaryBtn')?.textContent?.trim(),
+    aria: document.querySelector('#modePrimaryBtn')?.getAttribute('aria-label'),
+    ops: window.__SOVIET_EDIT_WORKER_OPS__?.slice(-8) || [],
+    vertices: document.querySelectorAll('.country-vertex:not(.fixed-boundary-vertex)').length,
+  }));
+  await expect.poll(() => page.evaluate(() => window.__SOVIET_EDIT_WORKER_OPS__
+    ?.some(item => item.operation === 'boundary-move')), { timeout: 35_000 }).toBe(true);
   await expect(page.locator('#modePrimaryBtn')).toContainText('변경 적용', { timeout: 175_000 });
   await expect(page.locator('#modePrimaryBtn')).toBeEnabled({ timeout: 80_000 });
   timings.dragPreviewMs = Date.now() - started;
@@ -188,6 +200,20 @@ test('real Soviet coastal vertex preview cancel, confirm and Undo/Redo preserve 
   await page.addInitScript(() => {
     const longTasks = [];
     Object.defineProperty(window, '__SOVIET_EDIT_ACCEPTANCE_TASKS__', { value: longTasks });
+    window.__SOVIET_EDIT_WORKER_OPS__ = [];
+    const WorkerBase = window.Worker;
+    window.Worker = class TimedSovietEditWorker extends WorkerBase {
+      postMessage(message, ...rest) {
+        if (message?.rpc === 'pandolab-worker-rpc' && message?.type === 'request'
+          && ['boundary-prepare', 'boundary-move', 'territorial-edit',
+            'territorial-validation'].includes(message.operation)) {
+          window.__SOVIET_EDIT_WORKER_OPS__.push({
+            operation: message.operation, timeMs: performance.now(),
+          });
+        }
+        return super.postMessage(message, ...rest);
+      }
+    };
     new window.PerformanceObserver(list => {
       for (const row of list.getEntries()) {
         longTasks.push({ atMs: Math.round(row.startTime), durationMs: Math.round(row.duration) });
