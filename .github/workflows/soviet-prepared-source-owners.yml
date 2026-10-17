@@ -1,0 +1,55 @@
+name: Soviet prepared source retaining-owner isolation
+on:
+  push:
+    branches: [work/perf-prepared-owners-20261017]
+    paths:
+      - '.github/workflows/soviet-prepared-source-owners.yml'
+      - 'scripts/research/instrument-prepared-source-owners.mjs'
+      - 'tests/browser/soviet-prepared-source-owners.spec.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: soviet-prepared-owners-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  isolate-prepared-graph:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - name: Install pinned dependencies and validate isolated-only harness
+        run: |
+          pnpm install --frozen-lockfile --ignore-scripts
+          node --check scripts/research/instrument-prepared-source-owners.mjs
+          node --check tests/browser/soviet-prepared-source-owners.spec.mjs
+          pnpm exec eslint scripts/research/instrument-prepared-source-owners.mjs tests/browser/soviet-prepared-source-owners.spec.mjs
+          node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
+          git diff --exit-code -- assets/js/modules/country-shared-boundary-packet.js assets/js/modules/boundary-topology.js assets/js/modules/country-contact-core.js
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Expose closure roots only in this disposable runner
+        env:
+          PANDO_PREPARED_DIAGNOSTIC_ISOLATED: '1'
+        run: |
+          node scripts/research/instrument-prepared-source-owners.mjs
+          node --check assets/js/modules/country-shared-boundary-packet.js
+          node --check assets/js/modules/boundary-topology.js
+          node --check assets/js/modules/country-contact-core.js
+      - name: Measure three independent GC release orders after Soviet and modern return
+        env:
+          PANDO_PREPARED_DIAGNOSTIC_ISOLATED: '1'
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: pnpm exec playwright test tests/browser/soviet-prepared-source-owners.spec.mjs --workers=1 --retries=0 --trace off
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: soviet-prepared-owners-${{ github.sha }}
+          path: test-results/soviet-prepared-owners/
+          if-no-files-found: warn
+          retention-days: 14
