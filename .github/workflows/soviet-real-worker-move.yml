@@ -1,0 +1,42 @@
+name: Soviet edit Worker isolated clone and source reference gate
+on:
+  push:
+    branches: [work/perf-soviet-edit-acceptance-20261017]
+    paths:
+      - '.github/workflows/soviet-real-worker-move.yml'
+      - 'tests/browser/soviet-worker-move-source.spec.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: soviet-real-worker-move-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  real-soviet-worker-move:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: |
+          pnpm install --frozen-lockfile --ignore-scripts
+          node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
+          pnpm exec eslint tests/browser/soviet-worker-move-source.spec.mjs
+          node --test tests/unit/boundary-preparation.test.mjs tests/unit/country-contact-core.test.mjs
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Move real Soviet prepared coast vertices four times without mutating source
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: pnpm exec playwright test tests/browser/soviet-worker-move-source.spec.mjs --workers=1 --retries=0 --trace off
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: soviet-worker-move-${{ github.sha }}
+          path: test-results/soviet-worker-move/
+          retention-days: 14
+          if-no-files-found: warn
