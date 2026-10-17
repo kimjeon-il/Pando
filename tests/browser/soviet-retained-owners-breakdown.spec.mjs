@@ -31,13 +31,19 @@ async function graph(worker) {
     const state = boundaryState.__retainerTestOwners;
     const prepared = boundaryState.preparedStore.__retainerTestOwners;
     if (!state || !prepared) throw new Error('ISOLATED_RETAINER_HOOK_MISSING');
-    let contactSegments = 0, edgeContributionSlots = 0;
+    let contactSegments = 0, edgeContributionSlots = 0, singleEdgeContributions = 0;
     let edgeValuesAliasContributions = 0, edgeValuesCopied = 0;
     for (const contact of state.contacts.values()) contactSegments += contact.segments.length;
     for (const edge of state.edges.values()) {
-      edgeContributionSlots += edge.contributions.size;
-      if ([...edge.contributions.values()].includes(edge.value)) edgeValuesAliasContributions++;
-      else edgeValuesCopied++;
+      if (edge.contributions) {
+        edgeContributionSlots += edge.contributions.size;
+        if ([...edge.contributions.values()].includes(edge.value)) edgeValuesAliasContributions++;
+        else edgeValuesCopied++;
+      } else {
+        singleEdgeContributions++;
+        edgeContributionSlots++;
+        edgeValuesAliasContributions++;
+      }
     }
     const ids = new Map(latestMessage.features.map(feature => [String(feature.id), feature.geometry]));
     return {
@@ -45,7 +51,7 @@ async function graph(worker) {
       retainedCountries: prepared.byId.size,
       contactCount: state.contacts.size, contactSegmentCount: contactSegments,
       contactByOwnerCount: state.contactsByOwner.size,
-      edgeCount: state.edges.size, edgeContributionSlots,
+      edgeCount: state.edges.size, edgeContributionSlots, singleEdgeContributions,
       edgeValuesAliasContributions, edgeValuesCopied,
       upperIndexCount: prepared.spatialIndex.values().length,
       sourceSegments: [...prepared.byId.values()].reduce((sum, row) => sum + row.segments.length, 0),
@@ -102,8 +108,11 @@ async function release(worker, category) {
 
 test('isolated contact-edge, upper index and source geometry retaining roots in three GC release orders', async ({ browser }, info) => {
   test.setTimeout(1_800_000);
-  if (process.env.PANDO_RETENTION_DIAGNOSTIC_ISOLATED !== '1')
-    throw new Error('Refuse to destroy original Worker without disposable source injection');
+  // General browser smoke suites discover all *.spec.mjs files. This
+  // destructive diagnostic must be skipped unless isolated CI has installed
+  // the temporary closure-owner hooks in a disposable checkout.
+  test.skip(process.env.PANDO_RETENTION_DIAGNOSTIC_ISOLATED !== '1',
+    'Requires isolated disposable Worker with injected retaining-root hooks');
   const report = {
     schema: 'pando-shared-boundary-retainer-graph-v1',
     source: process.env.GITHUB_SHA || null,

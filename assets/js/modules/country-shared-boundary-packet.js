@@ -22,10 +22,21 @@ export function createCountrySharedBoundaryState() {
   const preparedStore = createPreparedBoundaryStore();
   const contacts = new Map(), contactsByOwner = new Map(), edges = new Map();
   let contactComputationCount = 0;
+  // Each key normally has one country-pair contributor. Keep that path
+  // Map-free; promote/demote only when coincident multi-owner borders require it.
   function updateEdge(key) {
     const record = edges.get(key);
-    if (!record.contributions.size) { edges.delete(key); return; }
-    record.value = mergeSharedBoundaryContributions([...record.contributions.values()]);
+    const contributions = record.contributions;
+    if (!contributions?.size) { edges.delete(key); return; }
+    if (contributions.size === 1) {
+      // A once-shared edge has become single-owner again. Release its Map.
+      const [contact, value] = contributions.entries().next().value;
+      record.value = value;
+      record.contact = contact;
+      record.contributions = null;
+      return;
+    }
+    record.value = mergeSharedBoundaryContributions([...contributions.values()]);
   }
   function removeContact(key) {
     const contact = contacts.get(key);
@@ -39,6 +50,11 @@ export function createCountrySharedBoundaryState() {
       const edgeKey = sharedSegmentKey(segment);
       const record = edges.get(edgeKey);
       if (!record) continue;
+      if (!record.contributions) {
+        // Most world edges have exactly one contact: no per-edge Map needed.
+        if (record.contact === key) edges.delete(edgeKey);
+        continue;
+      }
       record.contributions.delete(key);
       updateEdge(edgeKey);
     }
@@ -54,8 +70,21 @@ export function createCountrySharedBoundaryState() {
     }
     for (const segment of segments) {
       const edgeKey = sharedSegmentKey(segment);
-      if (!edges.has(edgeKey)) edges.set(edgeKey, { contributions: new Map(), value: segment });
-      edges.get(edgeKey).contributions.set(key, segment);
+      const existing = edges.get(edgeKey);
+      if (!existing) {
+        edges.set(edgeKey, { contact: key, value: segment });
+        continue;
+      }
+      if (!existing.contributions) {
+        if (existing.contact === key) {
+          existing.value = segment;
+          continue;
+        }
+        // Only actual multiple-contact collisions pay for a contribution Map.
+        existing.contributions = new Map([[existing.contact, existing.value]]);
+        existing.contact = null;
+      }
+      existing.contributions.set(key, segment);
       updateEdge(edgeKey);
     }
   }
