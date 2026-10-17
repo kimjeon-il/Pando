@@ -1,0 +1,37 @@
+name: Soviet singleton contact-edge topology contract
+on:
+  push:
+    branches: [work/perf-singleton-edges-20261017]
+    paths:
+      - '.github/workflows/soviet-singleton-edge-contract.yml'
+      - 'assets/js/modules/country-shared-boundary-packet.js'
+      - 'tests/unit/shared-edge-singleton.test.mjs'
+      - 'tests/browser/soviet-retained-owners-breakdown.spec.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: singleton-boundary-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  focused-edge-identity:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - name: Install JS test dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Verify edge singleton and multi-owner Map transitions
+        run: |
+          node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
+          pnpm exec eslint assets/js/modules/country-shared-boundary-packet.js tests/unit/shared-edge-singleton.test.mjs tests/browser/soviet-retained-owners-breakdown.spec.mjs
+          node --test tests/unit/shared-edge-singleton.test.mjs
+      - name: Verify unchanged country contact, cached-seed, and incremental editing contracts
+        run: |
+          node --test tests/unit/country-shared-boundary-state.test.mjs tests/unit/country-shared-boundary.test.mjs tests/unit/country-contact-legacy-parity.test.mjs tests/unit/boundary-preparation.test.mjs
