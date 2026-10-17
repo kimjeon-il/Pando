@@ -1,0 +1,67 @@
+name: Soviet singleton edges 12-cycle stability and GPU reuse
+on:
+  push:
+    branches: [work/perf-singleton-edges-20261017]
+    paths:
+      - '.github/workflows/soviet-singleton-edge-long-cycle.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: singleton-edge-long-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  long-cycle:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 38
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Actual Soviet selection and twelve 1989/current date returns
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+          PANDOLAB_EXPECT_MAIN_SHA: ${{ github.sha }}
+        run: pnpm exec playwright test tests/browser/soviet-main-long-cycle.spec.mjs --workers=1 --retries=0 --trace off
+      - name: Assert single contributor edge memory plateaus without new autosaves
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { readFileSync } from 'node:fs';
+          const data=JSON.parse(readFileSync('test-results/soviet-main-long-cycle/measurement.json','utf8'));
+          const {summary}=data;
+          assert.equal(data.cyclesCompleted,12);
+          assert.deepEqual(data.errors,[]);
+          assert.equal(data.initialAutosaves,data.finalAutosaves);
+          assert.ok(summary.eligibleSettledModernReturns>=8);
+          const before=summary.comparisons.borderJsMiB.first4Median;
+          const after=summary.comparisons.borderJsMiB.last4Median;
+          const idle=summary.finalIdle.borderJsMiB;
+          console.log('SOVIET_SINGLETON_EDGE_12CYCLE',JSON.stringify({
+            cycles:data.cyclesCompleted,first4BorderJsMiB:before,last4BorderJsMiB:after,
+            final30sBorderJsMiB:idle,final30sPssMiB:summary.finalIdle.pssMiB,
+            gpuStrokeMiB:summary.comparisons.strokeGpuMiB.last4Median,
+            workerWasmMiB:summary.comparisons.workerWasmMiB.last4Median}));
+          assert.ok(after-before<20,'Shared border JS must plateau across date returns');
+          assert.ok(idle<145,'Singleton optimization must not regress to pre-streamed 195MiB retention');
+          assert.equal(summary.comparisons.workerWasmMiB.first4Median,
+            summary.comparisons.workerWasmMiB.last4Median);
+          NODE
+      - name: Camera-only pan must cause no extra stroke GPU uploads
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: pnpm exec playwright test tests/browser/performance-observability.spec.mjs --grep '1989 Soviet Union pan' --workers=1 --retries=0 --trace off
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: soviet-singleton-edge-long-${{ github.sha }}
+          path: test-results/
+          retention-days: 14
+          if-no-files-found: warn
