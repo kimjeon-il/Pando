@@ -45,6 +45,7 @@
 | ID | 보고서 | 원문 수정일 | 상태 | 지도 반영 |
 | --- | --- | --- | --- | --- |
 | `PERF-P0-001` | [기준 코드·기존 계측 자산 통합 검토](development/testing/performance-baseline-consolidation-2026-10-17.md) | 2026-10-17 | `verified-source-and-focused-ci` | `not-applicable` |
+| `OBJ-095` | [국가별 원본 선분 링 메타데이터 공유 및 Worker 6.9MiB 절감](development/testing/soviet-prepared-source-row-compact-2026-10-17.md) | 2026-10-17 | `verified-focused-and-paired / long-cycle-pending` | `not-applicable` |
 | `OBJ-094` | [C++ 접촉 변환 캐시 수명 단축 및 Worker JS 23.8MiB 절감](development/testing/soviet-contact-wire-lifetime-2026-10-17.md) | 2026-10-17 | `verified-web-paired-and-12cycle` | `not-applicable` |
 | `OBJ-093` | [국가별 준비 자료와 C++ 전달 캐시 참조 소유권 교차 조사](development/testing/soviet-prepared-source-owners-2026-10-17.md) | 2026-10-17 | `verified-3-isolated-gc-orders` | `not-applicable` |
 | `OBJ-092` | [단일 접촉 공유 경계 레코드 압축 및 Worker 6MiB 절감](development/testing/soviet-singleton-edge-2026-10-17.md) | 2026-10-17 | `verified-web-paired-and-12cycle` | `not-applicable` |
