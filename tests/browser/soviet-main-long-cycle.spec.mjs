@@ -78,11 +78,12 @@ async function sample(page, cdp, probe, label) {
   };
 }
 function summarize(phases) {
-  const modern = phases.filter(row => /^modern-\d+$/.test(row.label));
+  const modern = phases.filter(row => /^modern-[1-9]\d*$/.test(row.label));
   const names = ['pssMiB', 'rendererPssMiB', 'mainJsMiB', 'workerJsMiB',
     'workerWasmMiB', 'borderJsMiB', 'borderWasmMiB', 'strokeGpuMiB'];
   return {
     totalCompletedModernReturns: modern.length,
+    coldStartup: phases.find(row => row.label === 'modern-0')?.values ?? null,
     comparisons: Object.fromEntries(names.map(name => {
       const first4 = median(modern.slice(0, 4).map(row => row.values[name]));
       const last4 = median(modern.slice(-4).map(row => row.values[name]));
@@ -175,6 +176,7 @@ test('12 repeated 1989 Soviet/current month round trips retain bounded worker st
     result.finalAutosaves = phases.at(-1).app.autosaves;
     expect(result.firstSovietGeometry).toEqual(result.lastSovietGeometry);
     expect(result.cyclesCompleted).toBe(CYCLES);
+    expect(result.summary.totalCompletedModernReturns).toBe(CYCLES);
     expect(errors).toEqual([]);
     expect(result.finalAutosaves).toBe(startAutosaves);
     expect(phases.every(row => row.chromium.available && row.workerMemory.count >= 5)).toBe(true);
