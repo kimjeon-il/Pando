@@ -1,49 +1,15 @@
 # M9.8 actual projection route preparation
 
-> 보고서 ID: `DEV-045` · 상태: `historical-record` · 지도 반영: `not-applicable` · 색인일: 2026-10-12  
-> 원문 최종 수정: 2026-10-07  
-> 원본: [앱 `docs/m98-projection-route-validation.md`](https://github.com/kimjeon-il/PandoEditor/blob/f535673993f45957b82d125ff766ed1e18233170/docs/m98-projection-route-validation.md)  
+> 보고서 ID: `DEV-045` · 상태: `historical-record` · 지도 반영: `not-applicable` · 당시 최종 수정: 2026-10-07
 
+## 당시 결과·검증 한계
 
-Fixed Web: `ebcfae4d27b29cbbea6416a7045a4806930204be`.
-Evidence: `D:/Codex/evidence/p1-p8-m98-20261006/`.
+- M9.8 투영 경로·팝업/포인터 검증의 당시 Windows 11/Qt 6.8.3/D3D11 자료.
+- 15개 1차 시나리오 종료와 무관하게 단일 Qt 집계가 2통과·1실패였으며 `empty-v1`/실제 데이터 fixture 4건 부재로 전체 수용 판정이 차단됐다.
+- dirty-source 체크포인트는 최종 소스의 3회 반복/12분 결과가 아니며, GPU·드라이버 등의 관측 누락은 0이나 통과로 처리하지 않는다.
 
-`m98-device-cf-v3-91` run1 really launched native PID20576 and exited1,
-Qt2pass/1fail/0skip at451891ms. All15 primary scenarios completed, but a
-repeat-cycle projection click failed: `projectionGlobeButton` was hidden.
-The journal retains the actual pointer and step failures. No completed
-measurement.json exists. Run2/PID16848 was explicitly interrupted to diagnose
-the failed route; run3 NOT RUN. `interruption.json` preserves that distinction.
+## 원본 증거
 
-The old measurement reused a general navigation helper that checked visible
-and used fixed50/100ms waits; it did not prove the popup was opened or that
-the preparation click's center was inside actual ancestor/window clipping.
-QML resets section onOpened and animates height170ms. Independent review
-confirmed the readiness gap, but the Basic-style failure's exact cause is
-not established: Basic has no default enter animation. No production popup,
-projection setter, timing threshold, input count or expected data changed.
+- [축약 전 상세 보고서·실측값·결과 (고정 Git 커밋)](https://github.com/kimjeon-il/Pando/blob/6b0c501dd09029ef237e90c1ef55fdb82bdf315f/reports/development/app/m98-projection-route-validation.md)
 
-The measurement now uses a separate actual-pointer route helper. One5-second
-deadline covers the whole preparation, including actual opened, root/target
-section, enabled/visible and clipped-center conditions. Each preparation
-click occurs once; no retry/direct setter/section mutation hides failure.
-Deadline expiry rejects even a late successful condition. The existing
-general helper remains unchanged. The final projection click stays inside
-the original measured input/frame association; its failure propagates.
-
-Actual Windows11/Qt6.8.3/D3D11 GTX1650 evidence:
-- `popup-route-red-93`: PID20872/exit0,Qt3/3,40 ordinary routes. It did **not**
-  reproduce the original451-second Basic failure; do not label it RED proof.
-- `popup-route-controlled-red-94`: PID19156/exit1,Qt2pass/1fail/0skip.
-  A test-only real QML400ms enter transition reproduces opened=false before
-  submenu selection. This is a controlled mechanism, not production styling.
-- `popup-route-controlled-green-95`: PID21936/exit0,Qt3/3,40/40/0mismatch/skip.
-- `popup-route-deadline-green-96`: PID21944/exit0,Qt3/3,40/40/0mismatch/skip;
-  includes the independent review's strict deadline correction.
-
-These were dirty-source checkpoints; receipts preserve binary/source/dirty
-identity. They do not certify three final-source15-scenario/12-minute runs.
-Those must be executed again after freezing the new source. Original
-incomplete/failing reports remain unchanged. Full acceptance remains BLOCKED
-by `empty-v1` and missing authentic four full-data fixtures; unobserved stale
-aggregate/GPU/driver/edit presentation metrics remain null.
+- 역사적 상태만 요약했으며 현재 브랜치의 회귀 검증·실기기 실행·배포를 새로 증명하지 않는다.
