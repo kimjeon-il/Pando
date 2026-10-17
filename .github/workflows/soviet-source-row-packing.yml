@@ -1,0 +1,117 @@
+name: OBJ-095 prepared source row packing and source-ref parity
+on:
+  push:
+    branches: [work/perf-source-row-owners-20261017]
+    paths:
+      - '.github/workflows/soviet-source-row-packing.yml'
+      - 'assets/js/modules/boundary-topology.js'
+      - 'assets/js/modules/country-contact-core.js'
+      - 'tests/unit/boundary-source-row-compact.test.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: soviet-source-rows-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  focused-contracts:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Verify shipped C++ WASM source and changed JS syntax
+        run: |
+          node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
+          node --check assets/js/modules/boundary-topology.js
+          node --check assets/js/modules/country-contact-core.js
+          node --check tests/unit/boundary-source-row-compact.test.mjs
+          pnpm exec eslint assets/js/modules/boundary-topology.js assets/js/modules/country-contact-core.js tests/unit/boundary-source-row-compact.test.mjs
+      - name: Check C++ contacts, full original source refs, packed index, cache seed and edit patch
+        run: |
+          node --test tests/unit/boundary-source-row-compact.test.mjs tests/unit/country-contact-core.test.mjs tests/unit/country-contact-legacy-parity.test.mjs tests/unit/country-shared-boundary-state.test.mjs tests/unit/country-shared-boundary.test.mjs tests/unit/boundary-spatial-index-packed.test.mjs tests/unit/shared-edge-singleton.test.mjs tests/unit/boundary-preparation.test.mjs tests/unit/p5-6-contribution-merge.test.mjs
+  paired-worker-memory:
+    needs: focused-contracts
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: candidate
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          path: baseline
+          ref: 0059af35094609390d8ce03f76339e5ef8c27948
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: candidate/.nvmrc
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+          run_install: false
+      - run: |
+          (cd baseline && pnpm install --frozen-lockfile --ignore-scripts)
+          (cd candidate && pnpm install --frozen-lockfile --ignore-scripts)
+          (cd candidate && pnpm exec playwright install --with-deps chromium)
+      - name: Measure OBJ-094 source, same Soviet-modern Worker memory
+        env:
+          PANDOLAB_INDEX_VARIANT: packed
+          PANDOLAB_EXPECT_COMMIT: 0059af35094609390d8ce03f76339e5ef8c27948
+          PANDOLAB_BROWSER_CHANNEL: chromium
+          PANDOLAB_TEST_PORT: '4221'
+        run: |
+          cd baseline
+          pnpm exec playwright test tests/browser/soviet-boundary-index-packed-memory.spec.mjs --workers=1 --retries=0 --trace off
+          cp test-results/soviet-boundary-index-packed/measurement.json ../baseline-source-rows.json
+      - name: Measure compact ring-owned source rows in same browser environment
+        env:
+          PANDOLAB_INDEX_VARIANT: packed
+          PANDOLAB_EXPECT_COMMIT: ${{ github.sha }}
+          PANDOLAB_BROWSER_CHANNEL: chromium
+          PANDOLAB_TEST_PORT: '4222'
+        run: |
+          cd candidate
+          pnpm exec playwright test tests/browser/soviet-boundary-index-packed-memory.spec.mjs --workers=1 --retries=0 --trace off
+          cp test-results/soviet-boundary-index-packed/measurement.json ../candidate-source-rows.json
+      - name: Assert identical source dimensions and record Worker V8 A/B
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { readFileSync, writeFileSync } from 'node:fs';
+          const read = file => JSON.parse(readFileSync(file,'utf8'));
+          const before=read('baseline-source-rows.json'),after=read('candidate-source-rows.json');
+          const a=before.measurements,b=after.measurements;
+          for(const key of ['countries','messageCountries','sourceSegments','sharedSegments','contacts','preparationCount',
+            'packedCountries','packedSourceSegments','postingCount']){
+            assert.equal(b.dimensions[key],a.dimensions[key],'Source contact parity '+key);
+          }
+          assert.equal(a.worker.complete && b.worker.complete,true);
+          assert.equal(a.worker.wasmLinearMiB,b.worker.wasmLinearMiB,'Unchanged C++/WASM');
+          const saved=Number((a.worker.jsMiB-b.worker.jsMiB).toFixed(2));
+          const report={schema:'pando-prepared-source-row-paired-v1',baseline:before,candidate:after,
+            savedBorderWorkerJsMiB:saved,percent: Number((saved*100/a.worker.jsMiB).toFixed(2)),
+            caveat:'Worker V8 used heap (GC) is comparable; whole Chromium PSS, optional Worker population, and one CPU timing sample are not uniquely attributable.'};
+          writeFileSync('candidate/source-row-paired.json',JSON.stringify(report,null,2)+'\n');
+          console.log('SOVIET_SOURCE_ROW_PAIRED', JSON.stringify({savedMiB:saved,baselineJsMiB:a.worker.jsMiB,
+            candidateJsMiB:b.worker.jsMiB,wasmMiB:b.worker.wasmLinearMiB,
+            pssMiB:[a.chromium.pssMiB,b.chromium.pssMiB],toModernMs:[a.toModernMs,b.toModernMs]}));
+          assert.ok(saved>=3,'Compact immutable prepared rows must measurably reduce Worker V8 retention');
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: soviet-source-row-pair-${{ github.sha }}
+          path: |
+            baseline-source-rows.json
+            candidate-source-rows.json
+            candidate/source-row-paired.json
+          if-no-files-found: warn
+          retention-days: 14
