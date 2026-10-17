@@ -40,7 +40,10 @@ test('manual modes and branch slugs reject unexpected strings',()=>{
   assert.throws(()=>classifyP3([],full,'other'),/P3_INVALID_SCOPE/);
   assert.equal(previewSlug('work/objects'),'work-objects');
   assert.equal(previewSlug('work/places'),'work-places');
-  assert.throws(()=>previewSlug('../../main'),/P3_UNSUPPORTED_PREVIEW_BRANCH/);
+  assert.equal(previewSlug('work/integration-objects-20261017'),'work-integration-objects-20261017');
+  assert.equal(previewSlug('work/feature-123'),'work-feature-123');
+  for (const invalid of ['../../main','main','work/','work/UPPER','work/../escape','work/nested/branch','work/.hidden'])
+    assert.throws(()=>previewSlug(invalid),/P3_UNSUPPORTED_PREVIEW_BRANCH/);
 });
 function fixture(t) {
   const base=mkdtempSync(join(tmpdir(),'pando-p3-stage-'));

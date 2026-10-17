@@ -3,7 +3,7 @@
   "schemaVersion": 1,
   "families": {
     "territorial": {
-      "inputFingerprint": "fba8685812acbc75c3a5acb3c239d6d04bdb38029e03f6266ee21e0b4f56ec67",
+      "inputFingerprint": "b8fed7381d88ee01eb63c9745e67026e350fcc398a6f941a7c052cfaf9e26799",
       "outputFingerprint": "9a1057adfc80136e955090afe7f3c56f64ce91b75098fe5b96f5b9d695ba2eb0",
       "inputs": {
         "assets/data/territorial-entities/source/countries/abw.json": "cf36df15d9694d1dd89d915374b4423f9be5eab501460beaf7538ab12e75e06a",
@@ -286,7 +286,7 @@
         "node": "24"
       },
       "dependencies": {
-        "wasm": "faf66eac182e776b603efe7b09956865fd03c0173fbc11153ad704a53574c490"
+        "wasm": "d6047c7880de05148322c57a969c4bfba04de1a057eecd86998547d54401a906"
       },
       "outputs": {
         "assets/data/territorial-entities/generated/v2/index.json": "78332ec4637dc468bdcdfb1fa901fdbf45f078792317bf1822a5f23e92b3649f",
@@ -584,10 +584,10 @@
           "--check"
         ]
       ],
-      "sourceSha": "863794ff5f7bcb448f0b02900f99b28d17bfbd16"
+      "sourceSha": "110baaed531555fbc210eaf486d90a3b56c63a1f"
     },
     "current-world": {
-      "inputFingerprint": "59eba02adcd5fbbc389d637a6c46399a1d841e7a66e03b6b8966e5e1569dfe71",
+      "inputFingerprint": "4303f5568b09cff907f8d2e85fee87f49550877f035f509fa6b898e50324624d",
       "outputFingerprint": "35ac523dc439d6427385bad9ee9289643d735dd7a57148ada39957e47879d32b",
       "inputs": {
         "assets/data/territorial-entities/source/countries/abw.json": "cf36df15d9694d1dd89d915374b4423f9be5eab501460beaf7538ab12e75e06a",
@@ -870,7 +870,7 @@
         "node": "24"
       },
       "dependencies": {
-        "wasm": "faf66eac182e776b603efe7b09956865fd03c0173fbc11153ad704a53574c490"
+        "wasm": "d6047c7880de05148322c57a969c4bfba04de1a057eecd86998547d54401a906"
       },
       "outputs": {
         "assets/data/territorial-entities/generated/current-world.geojson": "6d29c349478cb2a7899573544ba580da70bd902c12ee86a4a93662ca6e94ad72"
@@ -886,10 +886,10 @@
           "--check"
         ]
       ],
-      "sourceSha": "863794ff5f7bcb448f0b02900f99b28d17bfbd16"
+      "sourceSha": "110baaed531555fbc210eaf486d90a3b56c63a1f"
     },
     "historical-world": {
-      "inputFingerprint": "5f216f2322cdecf4513713f4c4fdc237d3447c13f121f072dd5cd8aa5216f9b1",
+      "inputFingerprint": "ed6a646dc06771bedeb5748ae4ff049d6ce0c3844f441e0af19351d20dd844ab",
       "outputFingerprint": "64ac03cddd00832f82bd0acbd588f8563ecadc8ffbb5002c7f0e5e26eee3aa35",
       "inputs": {
         "assets/data/historical-world/policy.json": "ffd3405989180ab1498045c49c438163e22a2a77a1e3d59ff1c7099cb6d3712f"
@@ -933,7 +933,7 @@
       "dependencies": {
         "territorial": "9a1057adfc80136e955090afe7f3c56f64ce91b75098fe5b96f5b9d695ba2eb0",
         "current-world": "35ac523dc439d6427385bad9ee9289643d735dd7a57148ada39957e47879d32b",
-        "wasm": "faf66eac182e776b603efe7b09956865fd03c0173fbc11153ad704a53574c490"
+        "wasm": "d6047c7880de05148322c57a969c4bfba04de1a057eecd86998547d54401a906"
       },
       "outputs": {
         "assets/data/historical-world/generated/v1/coverage-report.json": "3acc77a9a3e5cfba0ba4e6fd9c6e58b7bf3af0e964f2bedc26c7fb053119338b",
@@ -953,10 +953,10 @@
           "--check"
         ]
       ],
-      "sourceSha": "863794ff5f7bcb448f0b02900f99b28d17bfbd16"
+      "sourceSha": "110baaed531555fbc210eaf486d90a3b56c63a1f"
     },
     "world-mesh": {
-      "inputFingerprint": "94dff5ed3fa1529a15b0d3a108ce5f3875915b2a4122900f46c096e14503a8fa",
+      "inputFingerprint": "08c6ccd5e4e2a498475b243469312ef8850c798bdc63a693f4816f81b16182dd",
       "outputFingerprint": "704c58e121ed92aa3c876612d162ade4f520ae8f8d06d6988d1dd4dfb4c4c172",
       "inputs": {
         "assets/data/world/build-input.json": "a47c5f6db7e1ee62ca1162f0fbe9e2e8ba937bb41d79ebeebd3deaf89bd71fd3",
@@ -980,7 +980,7 @@
       },
       "dependencies": {
         "current-world": "35ac523dc439d6427385bad9ee9289643d735dd7a57148ada39957e47879d32b",
-        "wasm": "faf66eac182e776b603efe7b09956865fd03c0173fbc11153ad704a53574c490"
+        "wasm": "d6047c7880de05148322c57a969c4bfba04de1a057eecd86998547d54401a906"
       },
       "outputs": {
         "assets/data/world-mesh-v0.36.1.bin.gz": "4be87dae5827f8b56eae5df04ab6bf4c6046c3e42581b15263b16ad992ac1a53"
@@ -996,10 +996,10 @@
           "world-mesh"
         ]
       ],
-      "sourceSha": "863794ff5f7bcb448f0b02900f99b28d17bfbd16"
+      "sourceSha": "110baaed531555fbc210eaf486d90a3b56c63a1f"
     },
     "world-preview": {
-      "inputFingerprint": "e49ebe4a9c9d571a63cc995425e5367534c4ee6d0211bf0c5cf98a4d03d53a03",
+      "inputFingerprint": "98b3556242768ca1d89243194cf829e7abd41672b34b121ffa280d39265e5295",
       "outputFingerprint": "a9ef8116099e5962dcc09d1149f467b2f58959a8cc973a061d2790db80566792",
       "inputs": {
         "assets/data/country-label-anchors-v0.10.1.json": "caeee3f0d05265cc564f68ef092b25ea8c5c4d6f1c36e2beb35a239551751512",
@@ -1037,7 +1037,7 @@
       "dependencies": {
         "world-mesh": "704c58e121ed92aa3c876612d162ade4f520ae8f8d06d6988d1dd4dfb4c4c172",
         "current-world": "35ac523dc439d6427385bad9ee9289643d735dd7a57148ada39957e47879d32b",
-        "wasm": "faf66eac182e776b603efe7b09956865fd03c0173fbc11153ad704a53574c490"
+        "wasm": "d6047c7880de05148322c57a969c4bfba04de1a057eecd86998547d54401a906"
       },
       "outputs": {
         "assets/data/countries-canonical-v0.36.1.pcg.gz": "638c6f4868b9d270a62cd66ca13a18dc8a4215fa7c48ff9280a089e433f81dd1",
@@ -1056,7 +1056,7 @@
           "--check"
         ]
       ],
-      "sourceSha": "863794ff5f7bcb448f0b02900f99b28d17bfbd16"
+      "sourceSha": "110baaed531555fbc210eaf486d90a3b56c63a1f"
     },
     "world-bundle": {
       "inputFingerprint": "f917a6c128380ab1acbb9437de18c812d459610857a3796ed6a970ec25ed8fc4",
@@ -1106,7 +1106,7 @@
       "sourceSha": "0ca968e5adbb0f54250dd82320ce9f8dc138b5e0"
     },
     "shared-boundaries": {
-      "inputFingerprint": "8c451682c1c208687e0b9cf12f5e6e051ae0cc81044f5c515685d961c1f12822",
+      "inputFingerprint": "7caaf087bf5317bde2c6806d86c32a94d1980612b7158f11435978621ebadefe",
       "outputFingerprint": "2cae0566d314fece8cc0fd01115db6e27cb8b17e9acabb2bfa9e8895b059a9da",
       "inputs": {},
       "generatorHashes": {
@@ -1132,7 +1132,7 @@
       },
       "dependencies": {
         "world-bundle": "29773e5cc81520cb6cf1c01ffdf98c1b0c8cf7bc1d099d88014224b6c381c82e",
-        "wasm": "faf66eac182e776b603efe7b09956865fd03c0173fbc11153ad704a53574c490"
+        "wasm": "d6047c7880de05148322c57a969c4bfba04de1a057eecd86998547d54401a906"
       },
       "outputs": {
         "assets/data/countries-canonical-shared-v0.36.1.json.gz": "20a0f3bc89ffe1b370e3513a57b329bf84d4c9460571f5545da7c6809531fba0",
@@ -1149,11 +1149,11 @@
           "--check"
         ]
       ],
-      "sourceSha": "863794ff5f7bcb448f0b02900f99b28d17bfbd16"
+      "sourceSha": "110baaed531555fbc210eaf486d90a3b56c63a1f"
     },
     "prepared-mesh": {
-      "inputFingerprint": "3a60539de93f9149dc49da06f194def017692fb2b447105272deb9d8b59511a9",
-      "outputFingerprint": "5c63de7dabeb5bbca69298c388f62ab6d800f6ebdf79ced330cd80a6de63b643",
+      "inputFingerprint": "e2517f620774f1f3def4549cc12a60d5524e1591a72f0e3c0745a1415a532277",
+      "outputFingerprint": "188692ef1d44ac71440e55c143c29ccc9f4c180d5548c37ef4ce287d6421aa74",
       "inputs": {
         "assets/js/workers/gpu-mesh-core.js": "7b638743ead0d5c1fbc194eacacdd065e85b5db23973ea023df0bd83e4ecb442"
       },
@@ -1191,10 +1191,10 @@
         "historical-world": "64ac03cddd00832f82bd0acbd588f8563ecadc8ffbb5002c7f0e5e26eee3aa35",
         "territorial": "9a1057adfc80136e955090afe7f3c56f64ce91b75098fe5b96f5b9d695ba2eb0",
         "current-world": "35ac523dc439d6427385bad9ee9289643d735dd7a57148ada39957e47879d32b",
-        "wasm": "faf66eac182e776b603efe7b09956865fd03c0173fbc11153ad704a53574c490"
+        "wasm": "d6047c7880de05148322c57a969c4bfba04de1a057eecd86998547d54401a906"
       },
       "outputs": {
-        "assets/data/prepared-polygons/generated/v2/manifest.json": "634c0609e897263568dc9fa4d70d8a97d4e15583a3417bf8c725c19668a63f2e",
+        "assets/data/prepared-polygons/generated/v2/manifest.json": "8f4147c4cecf9cd88a036fc93733cb9ec070a51496ef7702e6dbcdfec7301c06",
         "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-0011571193c7f9380024db94fbc4b3430ec50f954c4013589956a5473260a08a.bin.gz": "0011571193c7f9380024db94fbc4b3430ec50f954c4013589956a5473260a08a",
         "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-004ae3688b11aa8574ee9982ce5d78d173b5f4cd65243d933aa915c88eee1a7c.bin.gz": "004ae3688b11aa8574ee9982ce5d78d173b5f4cd65243d933aa915c88eee1a7c",
         "assets/data/prepared-polygons/generated/v2/polygon-mesh-sha256-0085762491ab3e85151d90d3c1d6e7201267ed917743413009d7b4b58f748033.bin.gz": "0085762491ab3e85151d90d3c1d6e7201267ed917743413009d7b4b58f748033",
@@ -1815,10 +1815,10 @@
           "prepared-mesh"
         ]
       ],
-      "sourceSha": "863794ff5f7bcb448f0b02900f99b28d17bfbd16"
+      "sourceSha": "110baaed531555fbc210eaf486d90a3b56c63a1f"
     },
     "places": {
-      "inputFingerprint": "111d7ddb616ad9ea12c928a5008eeff50ba5e2e247d5c705e42b8f7a14c212aa",
+      "inputFingerprint": "d293c9148ccced1615e40c2aac79d180b617bb24beb512a5fbe3b68a9016a068",
       "outputFingerprint": "7469eca633fbb3669dd2ea9bd25066f06f82828b22320169f82dd181663c80d7",
       "inputs": {
         "reports/places/runtime-release-approvals-v1.json": "178f4166f2f897478b8d8a51ee0b4ca97c07de9285a5dff3a1a00093b1e95f69",
@@ -1860,7 +1860,7 @@
         "node": "24"
       },
       "dependencies": {
-        "wasm": "faf66eac182e776b603efe7b09956865fd03c0173fbc11153ad704a53574c490"
+        "wasm": "d6047c7880de05148322c57a969c4bfba04de1a057eecd86998547d54401a906"
       },
       "outputs": {
         "assets/data/places/manifest.json": "b9ad0bb6733a46a83a9c295eeceef79b626b21f213cb4e18ffd1205895a54829",
@@ -1879,7 +1879,7 @@
           "--check"
         ]
       ],
-      "sourceSha": "863794ff5f7bcb448f0b02900f99b28d17bfbd16"
+      "sourceSha": "110baaed531555fbc210eaf486d90a3b56c63a1f"
     },
     "native-assets": {
       "inputFingerprint": "086aca3dd171bb1e8e3d59ddfcbf291c33a3dba44dcc563837aa9a775b555747",
@@ -1950,8 +1950,8 @@
       "sourceSha": "48fb3c908f38a1d01eb2a682e9b64550258f6d02"
     },
     "build-metadata": {
-      "inputFingerprint": "a96c34172179a9325161ca3508c33b0bbda7871de439718dcab0c083750b60de",
-      "outputFingerprint": "ca2e78659cbc1cbfb8f206d37eac1258c18a0d99066965343db26810fa91fb22",
+      "inputFingerprint": "0bba651a2f67460cde893be7db17d90f465b6b1454b34ba4e348fdab5b8b5ce7",
+      "outputFingerprint": "113b67d211b4aa94396440f98fffb6b85106bf13561af5cb3527ce924448ddf5",
       "inputs": {
         "assets/js/app.js": "96dfad126802a4ccf74f83c8d2b52295ebde7deb8113275a01920de895818303",
         "assets/js/bootstrap.js": "45a53c9fdcbbdd914c7ed930569b8da7542b872a1ec3de6e8ed78c4bd57b81a8",
@@ -2052,7 +2052,7 @@
         "assets/js/modules/coordinate-bounds.js": "67e2598e59d6e5ff98d871566332286dc83d7e4f9fbc3dc1236c9cc9d08665e0",
         "assets/js/modules/core-document-client.js": "5cb89544f113befe2da73f96b864c3c51e2344b6b466785bf89eaa98e2cb5922",
         "assets/js/modules/core-document-read-model.js": "86a5d3573e65b69f283a118bc0aacbec33cded0fe05262d6e48e95e2f61918b7",
-        "assets/js/modules/core-document-runtime.js": "64dd6c3aa5987b0840010673ddfcf874c3e4f5b926518255301d97733af63d68",
+        "assets/js/modules/core-document-runtime.js": "28700f5b3b3034724fa0238775cdeec21d6afac4e9228bc368e50e389afb0b05",
         "assets/js/modules/core-object-ref.js": "1c88f1dbf15c6698165d2cd9ff97dc136b4105823dd115d4adce749c22376f26",
         "assets/js/modules/core-wasm-loader.js": "3c3dcfe789c2ead4f97e87c69c016e7ad9f040552d759ec81bc6a309f398a484",
         "assets/js/modules/core-worker-runtime.js": "9c778b9b26407b61a60dd46fb3f5a53fd4175a807fbc5a739d9456f59983e902",
@@ -2315,11 +2315,11 @@
         "node": "24"
       },
       "dependencies": {
-        "wasm": "faf66eac182e776b603efe7b09956865fd03c0173fbc11153ad704a53574c490",
+        "wasm": "d6047c7880de05148322c57a969c4bfba04de1a057eecd86998547d54401a906",
         "territorial": "9a1057adfc80136e955090afe7f3c56f64ce91b75098fe5b96f5b9d695ba2eb0",
         "historical-world": "64ac03cddd00832f82bd0acbd588f8563ecadc8ffbb5002c7f0e5e26eee3aa35",
         "world-bundle": "29773e5cc81520cb6cf1c01ffdf98c1b0c8cf7bc1d099d88014224b6c381c82e",
-        "prepared-mesh": "5c63de7dabeb5bbca69298c388f62ab6d800f6ebdf79ced330cd80a6de63b643",
+        "prepared-mesh": "188692ef1d44ac71440e55c143c29ccc9f4c180d5548c37ef4ce287d6421aa74",
         "shared-boundaries": "2cae0566d314fece8cc0fd01115db6e27cb8b17e9acabb2bfa9e8895b059a9da",
         "places": "7469eca633fbb3669dd2ea9bd25066f06f82828b22320169f82dd181663c80d7",
         "hydro": "0bbe01264b4fd53dc8b2bd15f562255eee54f27fbdaf69e3b01237b00d237afe",
@@ -2327,8 +2327,8 @@
       },
       "outputs": {
         "README.md": "8a9d40362af110dde1e0382da8686c873fe0a0a1fdbc499313517d33922f570a",
-        "assets/js/build-meta.js": "7dbeebbb9533754e9aecfdd54e250b67965fb8442df82ad9122cac1d9d158f05",
-        "index.html": "869aa39f74afd8efdbad1927ae429e193c4aeb3e89f9397b759fb1528db030ec"
+        "assets/js/build-meta.js": "af439abc3a9b183a108c5210f44d31b4188d7dbbbead3494c95d501678a7b56e",
+        "index.html": "fccd79b4c4d278a2757a47e8a6918a1b8cae6cebe17427326f76566475bd1015"
       },
       "consumers": [
         "assets/js/bootstrap.js",
@@ -2343,7 +2343,7 @@
           "--check"
         ]
       ],
-      "sourceSha": "9e301d4adc36a3f28e825be5bf113efc77b476c4"
+      "sourceSha": "110baaed531555fbc210eaf486d90a3b56c63a1f"
     }
   }
 }
