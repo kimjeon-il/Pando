@@ -16,6 +16,11 @@
 
 | ID | 보고서 | 원문 수정일 | 상태 | 지도 반영 |
 | --- | --- | --- | --- | --- |
+| `GEO-REVIEW-20261017` | [10월 17일 아침 보고서 검토 — 효력일 근거 보완·데이터 보류](geography/reviews/morning-2026-10-17.md) | 2026-10-17 회차 / 2026-10-16 UTC | `investigating` | `not-applied` |
+| `GEO-LIFE-005` | [아시아 국가 존속기간 — 이라크·요르단·레바논](geography/country-lifetime-asia-middle-east-2026-10-17.md) | 2026-10-17 | `investigating` | `not-applied` |
+| `GEO-LIFE-ROTATION` | [국가 존속기간 조사 지역 순환 진행기록](geography/country-lifetime-rotation-progress.md) | 2026-10-17 | `investigating` | `not-applied` |
+| `GEO-TIME-001` | [2025년 중앙아시아 국경 획정 사건](geography/historical-timeline-2025-central-asia-2026-10-17.md) | 2026-10-17 | `investigating` | `not-applied` |
+| `GEO-LIFE-004` | [유럽 국가 존속기간 공란 27개 — 1801년 이후 조사](geography/country-lifetime-europe-1801-plus-2026-10-15.md) | 2026-10-15 | `investigating` | `not-applied` |
 | `GEO-DEU-008` | [1914 German Empire coast vs provisional modern coastline — screen-space preliminary check](geography/germany/1914-screen-delta-precheck.md) | 2026-10-09 | `investigating` | `not-applied` |
 | `GEO-DEU-007` | [Official Schleswig-Holstein WMS period-map coast review — October 9, 2026](geography/germany/1914-sh-period-map-overlay-review.md) | 2026-10-09 | `investigating` | `not-applied` |
 | `GEO-009` | [현행 수계 데이터 최적화 — 1단계 (2026-10-09)](geography/hydro/active-hydro-optimization-stage1.md) | 2026-10-09 | `historical-record` | `unverified` |
@@ -97,27 +102,12 @@
 | `DEV-002` | [러시아 상세 형상 편집: 구현 및 검증 기록](development/testing/russia-edit-responsiveness.md) | 2026-09-16 | `historical-record` | `not-applicable` |
 | `DEV-001` | [검사·검증 현재 계약 검수 — 2026-10-06](development/testing/validation-audit.md) | 2026-10-06 | `historical-record` | `not-applicable` |
 
-## 과거 실행 기록
+## 과거 실행 기록 (통합)
 
-| ID | 보고서 | 원문 수정일 | 상태 | 지도 반영 |
-| --- | --- | --- | --- | --- |
-| `ARC-024` | [데이터 버전 관리 1단계 — 앱 GIS 자산 및 웹 출처 기준선](archive/data-versioning/app-data-versioning-phase1-inventory.md) | 2026-10-08 | `historical-record` | `unverified` |
-| `ARC-025` | [데이터 버전 관리 4단계 — 앱 출처·동기화 계약 개편](archive/data-versioning/app-data-versioning-phase4.md) | 2026-10-08 | `historical-record` | `unverified` |
-| `ARC-026` | [데이터 버전 관리 5단계 — 웹·앱 역사 라이브러리 출처·의미 교차검증](archive/data-versioning/app-data-versioning-phase5.md) | 2026-10-08 | `historical-record` | `unverified` |
-| `ARC-004` | [데이터 버전 관리 구조 개선 — 진행 기록](archive/data-versioning/progress.md) | 2026-10-09 | `historical-record` | `unverified` |
-| `ARC-011` | [데이터 버전 관리 1단계 — 웹 GIS 자산 및 참조 기준선](archive/data-versioning/web-data-versioning-phase1-inventory.md) | 2026-10-08 | `historical-record` | `unverified` |
-| `ARC-012` | [데이터 버전 관리 10단계 — Pages 전환·구버전 삭제·main 선별 병합 실행 준비](archive/data-versioning/web-data-versioning-phase10.md) | 2026-10-09 | `historical-record` | `unverified` |
-| `ARC-013` | [데이터 버전 관리 11단계 — 구버전 URL 보존 의무 해제 및 지형 v0.12.0 실제 삭제](archive/data-versioning/web-data-versioning-phase11.md) | 2026-10-09 | `historical-record` | `unverified` |
-| `ARC-014` | [데이터 버전 관리 2단계 — 웹 독립 데이터 번들 생성 경로](archive/data-versioning/web-data-versioning-phase2.md) | 2026-10-08 | `historical-record` | `unverified` |
-| `ARC-015` | [데이터 버전 관리 3단계 — 웹 런타임·캐시·검증기 전환](archive/data-versioning/web-data-versioning-phase3.md) | 2026-10-08 | `historical-record` | `unverified` |
-| `ARC-016` | [데이터 버전 관리 6단계 — GIS 구버전 자산 참조 감사·보관 대상 확정](archive/data-versioning/web-data-versioning-phase6.md) | 2026-10-08 | `historical-record` | `unverified` |
-| `ARC-017` | [데이터 버전 관리 7단계 — 공개 배포 URL·기존 앱 릴리스·전체 브랜치 보관 안전성](archive/data-versioning/web-data-versioning-phase7.md) | 2026-10-08 | `historical-record` | `unverified` |
-| `ARC-018` | [데이터 버전 관리 8단계 — 기존 URL 보존형 배포 전환 및 전체 브랜치 일괄 정리 사전검증](archive/data-versioning/web-data-versioning-phase8.md) | 2026-10-08 | `historical-record` | `unverified` |
-| `ARC-019` | [데이터 버전 관리 9단계 — GitHub Pages 게시 산출물 1GB 타당성 실검증](archive/data-versioning/web-data-versioning-phase9.md) | 2026-10-08 | `historical-record` | `unverified` |
-| `ARC-027` | [수계 v0.13.2 2파일 패키지 — 웹·앱 전체 브랜치 적용 기록](archive/hydro/app-hydro-two-file-branch-rollout-2026-10-09.md) | 2026-10-09 | `historical-record` | `unverified` |
-| `ARC-020` | [수계 v0.13.2 2파일 통합 및 v0.13.0/1 퇴역 — 최종 4단계 보고서](archive/hydro/hydro-v0132-retirement-stage4.md) | 2026-10-09 | `historical-record` | `unverified` |
-| `ARC-021` | [구형 수계 v0.12.2~v0.12.6 — 2단계 삭제 준비 조사](archive/hydro/legacy-hydro-stage2.md) | 2026-10-09 | `historical-record` | `unverified` |
-| `ARC-022` | [구형 수계 전체 정리 — 3단계 실행·복원·배포 검증](archive/hydro/legacy-hydro-stage3.md) | 2026-10-09 | `historical-record` | `unverified` |
+| 기록 ID | 보존한 요약 및 원문 | 상태 |
+| --- | --- | --- |
+| `ARC-004, 011~019, 024~026` | [웹·앱 데이터 버전 관리 13건](archive/data-versioning/README.md) | `historical-record` / `unverified` |
+| `ARC-020~022, 027` | [수계 구버전 정리 4건](archive/hydro/README.md) | `historical-record` / `unverified` |
 
 ## 2026-10-13 보고서 통합 정리 추가 자료
 
@@ -130,7 +120,7 @@
 | 네덜란드 간척·해안 | [현행 국가·수역 표현 조사](geography/netherlands/phase0-current-representation-inventory.json), [기존 검증 기록](geography/netherlands/phase0-canonical-audit.md) |
 | 세르비아 역사 경계 | [세르비아 1914년 QA](geography/serbia/serbia-1914-qa.md) |
 | 국가 색상 연구 | [근거 정리](research/country-default-colors.md), [연구 색상표](research/country-default-colors.json) |
-| 지명 조사 원문 | [감사 결과](places/place-data-audit.md), [검토 세부표](places/place-candidate-review.md), [출처 매니페스트](places/source-manifest.json) |
+| 지명 조사 원문 | [감사 결과](places/place-data-audit.md), [검토 요약](places/place-candidate-review.md), [ID별 근거 JSON](places/candidate-review-summary.json), [출처 매니페스트](places/source-manifest.json) |
 | 앱 UI·배포 기록 | [UI 통합 검증](development/app/common-ui-integration.md), [경계 분리 배포 근거](development/app/platform-boundaries-deployment.md) |
 | 앱 참조 이미지 | [앱 검증 증거](development/app/evidence/reference-image-web-parity/review.md) |
 | 역사 수계 조사 | [r152~r194 조사 데이터](hydro-names/reconstruction-2026-10-09/) |
@@ -140,147 +130,13 @@
 - [수계 보정](hydro-calibration/README.md), [연결성](hydro-connectivity/README.md), [v0.12.3](hydro-v0.12.3/README.md), [v0.12.4](hydro-v0.12.4/README.md), [v0.13.0](hydro-v0.13.0/README.md)의 보고서·도판은 증거 묶음의 상대 경로를 유지합니다.
 - [수계 지명 현황](hydro-names/current-web-2026-10-08/README.md)과 [수계 지명 재구성 배치](hydro-names/reconstruction-2026-10-09/)는 원본 출처·검토 자료와 함께 관리합니다.
 - [영토 객체 통합 검증](territorial-integration/final-gate.md)은 검사 결과와 함께 기존 위치에 둡니다.
-- [지명 검토 JSON](places/candidate-review-summary.json), [도시 좌표 교정](places/coordinate-corrections.json), [생성된 도시 후보 감사](places/place-data-audit.md), [생성된 ID별 검토](places/place-candidate-review.md)는 `reports/places/` 정본이며, 생성기와 검증기도 이 경로를 사용합니다.
+- [지명 검토 JSON](places/candidate-review-summary.json), [도시 좌표 교정](places/coordinate-corrections.json), [생성된 도시 후보 감사](places/place-data-audit.md), [생성된 검토 요약](places/place-candidate-review.md), [ID별 근거](places/candidate-review-summary.json)는 `reports/places/` 정본이며, 생성기와 검증기도 이 경로를 사용합니다.
 - [네덜란드 사건·출처 목록](../tools/historical-library/sources/netherlands/change-events.json), [독일 해안선 사건·출처 목록](../tools/historical-library/sources/german-coastline/change-events.json), 역사 도판·probe JSON은 기존 위치의 원본 증거입니다.
 - 앱의 [참조 이미지 검증 실행 증거](https://github.com/kimjeon-il/PandoEditor/tree/f535673993f45957b82d125ff766ed1e18233170/docs/evidence/reference-image-web-parity)는 앱 저장소에 남깁니다.
 
-## 하위 브랜치 상세 색인 보완 — 2026-10-14
+## 세부 조사·검증 원자료
 
-기존 통합 색인에 없는 `work/hydro-names`의 세부 보고서·원본 증거 링크만 보완했다. 아래 항목의 존재는 조사 완료, 지도 반영, 재검증 또는 배포를 뜻하지 않는다.
-
-### geography
-
-- [german-denmark-1914-north-schleswig-001-026.0619-hugum-stage4.hotspots.review.md](geography/germany/north-schleswig/german-denmark-1914-north-schleswig-001-026.0619-hugum-stage4.hotspots.review.md)
-- [german-denmark-1914-north-schleswig-001-026.0619-hugum-stage4.review.md](geography/germany/north-schleswig/german-denmark-1914-north-schleswig-001-026.0619-hugum-stage4.review.md)
-- [german-denmark-1914-north-schleswig-001-026.0717-hvidding-ufer-stage5.review.md](geography/germany/north-schleswig/german-denmark-1914-north-schleswig-001-026.0717-hvidding-ufer-stage5.review.md)
-- [german-denmark-1914-north-schleswig-001-026.0718-east-stage2.review.md](geography/germany/north-schleswig/german-denmark-1914-north-schleswig-001-026.0718-east-stage2.review.md)
-- [german-denmark-1914-north-schleswig-001-026.0718-west-stage1.review.md](geography/germany/north-schleswig/german-denmark-1914-north-schleswig-001-026.0718-west-stage1.review.md)
-- [german-denmark-1914-north-schleswig-001-026.0719-spandet-stage3.review.md](geography/germany/north-schleswig/german-denmark-1914-north-schleswig-001-026.0719-spandet-stage3.review.md)
-- [serbia-montenegro-1914-border-candidate-qa.md](geography/serbia/serbia-montenegro-1914-border-candidate-qa.md)
-- [serbia-montenegro-1914-map-crosscheck.md](geography/serbia/serbia-montenegro-1914-map-crosscheck.md)
-
-### hydro-names
-
-- [hydro-names/reconstruction-2026-10-09/batch-r01/README.md](hydro-names/reconstruction-2026-10-09/batch-r01/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r02/README.md](hydro-names/reconstruction-2026-10-09/batch-r02/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r02/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r02/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r03/README.md](hydro-names/reconstruction-2026-10-09/batch-r03/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r03/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r03/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r04/README.md](hydro-names/reconstruction-2026-10-09/batch-r04/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r04/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r04/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r05/README.md](hydro-names/reconstruction-2026-10-09/batch-r05/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r05/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r05/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r06/README.md](hydro-names/reconstruction-2026-10-09/batch-r06/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r06/research/canadian-lakes/README.md](hydro-names/reconstruction-2026-10-09/batch-r06/research/canadian-lakes/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r06/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r06/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r07/README.md](hydro-names/reconstruction-2026-10-09/batch-r07/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r07/research/western-rivers/README.md](hydro-names/reconstruction-2026-10-09/batch-r07/research/western-rivers/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r07/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r07/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r08/README.md](hydro-names/reconstruction-2026-10-09/batch-r08/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r08/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r08/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r09/README.md](hydro-names/reconstruction-2026-10-09/batch-r09/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r09/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r09/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r10/README.md](hydro-names/reconstruction-2026-10-09/batch-r10/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r10/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r10/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r11/README.md](hydro-names/reconstruction-2026-10-09/batch-r11/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r11/research/cold-deschambault/README.md](hydro-names/reconstruction-2026-10-09/batch-r11/research/cold-deschambault/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r11/research/dauphin/README.md](hydro-names/reconstruction-2026-10-09/batch-r11/research/dauphin/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r11/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r11/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r12/README.md](hydro-names/reconstruction-2026-10-09/batch-r12/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r12/research/mirond/README.md](hydro-names/reconstruction-2026-10-09/batch-r12/research/mirond/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r12/research/montreal-wapawekka/README.md](hydro-names/reconstruction-2026-10-09/batch-r12/research/montreal-wapawekka/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r12/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r12/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r13/README.md](hydro-names/reconstruction-2026-10-09/batch-r13/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r13/research/calcasieu/README.md](hydro-names/reconstruction-2026-10-09/batch-r13/research/calcasieu/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r13/research/maurepas-salvador/README.md](hydro-names/reconstruction-2026-10-09/batch-r13/research/maurepas-salvador/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r13/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r13/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r14/README.md](hydro-names/reconstruction-2026-10-09/batch-r14/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r14/research/timiskaming/README.md](hydro-names/reconstruction-2026-10-09/batch-r14/research/timiskaming/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r14/research/white-grand/README.md](hydro-names/reconstruction-2026-10-09/batch-r14/research/white-grand/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r14/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r14/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r15/README.md](hydro-names/reconstruction-2026-10-09/batch-r15/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r15/research/saskatchewan/README.md](hydro-names/reconstruction-2026-10-09/batch-r15/research/saskatchewan/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r15/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r15/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r16/README.md](hydro-names/reconstruction-2026-10-09/batch-r16/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r16/research/saskatchewan/README.md](hydro-names/reconstruction-2026-10-09/batch-r16/research/saskatchewan/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r16/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r16/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r17/README.md](hydro-names/reconstruction-2026-10-09/batch-r17/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r17/research/saskatchewan/README.md](hydro-names/reconstruction-2026-10-09/batch-r17/research/saskatchewan/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r17/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r17/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r18/README.md](hydro-names/reconstruction-2026-10-09/batch-r18/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r18/research/balkan/README.md](hydro-names/reconstruction-2026-10-09/batch-r18/research/balkan/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r18/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r18/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r19/README.md](hydro-names/reconstruction-2026-10-09/batch-r19/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r19/research/queensland/README.md](hydro-names/reconstruction-2026-10-09/batch-r19/research/queensland/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r19/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r19/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r20/README.md](hydro-names/reconstruction-2026-10-09/batch-r20/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r20/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r20/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r21/README.md](hydro-names/reconstruction-2026-10-09/batch-r21/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r21/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r21/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r22/README.md](hydro-names/reconstruction-2026-10-09/batch-r22/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r22/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r22/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r23/README.md](hydro-names/reconstruction-2026-10-09/batch-r23/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r23/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r23/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r24/README.md](hydro-names/reconstruction-2026-10-09/batch-r24/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r24/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r24/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r25/README.md](hydro-names/reconstruction-2026-10-09/batch-r25/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r25/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r25/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r26/README.md](hydro-names/reconstruction-2026-10-09/batch-r26/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r26/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r26/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r27/README.md](hydro-names/reconstruction-2026-10-09/batch-r27/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r27/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r27/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r28/README.md](hydro-names/reconstruction-2026-10-09/batch-r28/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r28/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r28/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r29/README.md](hydro-names/reconstruction-2026-10-09/batch-r29/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r29/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r29/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r30/README.md](hydro-names/reconstruction-2026-10-09/batch-r30/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r30/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r30/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r31/README.md](hydro-names/reconstruction-2026-10-09/batch-r31/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r31/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r31/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r32/README.md](hydro-names/reconstruction-2026-10-09/batch-r32/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r32/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r32/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r33/README.md](hydro-names/reconstruction-2026-10-09/batch-r33/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r33/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r33/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r34/README.md](hydro-names/reconstruction-2026-10-09/batch-r34/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r34/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r34/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r35/README.md](hydro-names/reconstruction-2026-10-09/batch-r35/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r35/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r35/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r36/README.md](hydro-names/reconstruction-2026-10-09/batch-r36/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r36/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r36/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r37/README.md](hydro-names/reconstruction-2026-10-09/batch-r37/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r37/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r37/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r38/README.md](hydro-names/reconstruction-2026-10-09/batch-r38/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r38/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r38/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r39/README.md](hydro-names/reconstruction-2026-10-09/batch-r39/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r39/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r39/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r40/README.md](hydro-names/reconstruction-2026-10-09/batch-r40/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r40/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r40/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r41/README.md](hydro-names/reconstruction-2026-10-09/batch-r41/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r41/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r41/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r42/README.md](hydro-names/reconstruction-2026-10-09/batch-r42/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r42/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r42/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r43/README.md](hydro-names/reconstruction-2026-10-09/batch-r43/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r43/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r43/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r44/README.md](hydro-names/reconstruction-2026-10-09/batch-r44/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r44/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r44/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r45/README.md](hydro-names/reconstruction-2026-10-09/batch-r45/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r45/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r45/review/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r46/README.md](hydro-names/reconstruction-2026-10-09/batch-r46/README.md)
-- [hydro-names/reconstruction-2026-10-09/batch-r46/review/README.md](hydro-names/reconstruction-2026-10-09/batch-r46/review/README.md)
-
-### research
-
-- [README_control.md](research/siachen/README_control.md)
-- [README_dem_sia_bilafond.md](research/siachen/README_dem_sia_bilafond.md)
-- [README_discrepancy.md](research/siachen/README_discrepancy.md)
-- [README_multidem_ridge.md](research/siachen/README_multidem_ridge.md)
-- [README_s2_km90.md](research/siachen/README_s2_km90.md)
-- [README_s2_optical.md](research/siachen/README_s2_optical.md)
-- [README_saltoro_terrain_continuity.md](research/siachen/README_saltoro_terrain_continuity.md)
-- [REVIEW_agpl_vs_glacier_2026-10-08.md](research/siachen/REVIEW_agpl_vs_glacier_2026-10-08.md)
-- [REVIEW_saltoro_crosssource_2026-10-08.md](research/siachen/REVIEW_saltoro_crosssource_2026-10-08.md)
-- [REVIEW_sentinel2_sia_bilafond_2026-10-08.md](research/siachen/REVIEW_sentinel2_sia_bilafond_2026-10-08.md)
-- [REVIEW_sia_bilafond_cop30_2026-10-08.md](research/siachen/REVIEW_sia_bilafond_cop30_2026-10-08.md)
+[독일제국 북슐레스비히](geography/germany/north-schleswig/), [수계 지명 조사 배치별 기록](hydro-names/reconstruction-2026-10-09/), [시아첸 연구·위성도판](research/siachen/)에 개별 파일이 보존되어 있음. 수계 배치별 `README.md`·`review/README.md`에서 출처 및 미완료 사항을 추적함. 파일 존재는 현재 반영·재검증을 의미하지 않음.
 
 ## 새 보고서 작성
 

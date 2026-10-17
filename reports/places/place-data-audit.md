@@ -177,7 +177,7 @@ Hanga Roa(7,322, PPLA2)는 유지된다. 반면 아래의 소규모 지역·섬 
 
 ### 다음 단계에서 필요한 판단
 
-2026-10-03의 ID별 확인 제외·보류·예외 검토와 별도 정제본은 [후속 후보 검토](place-candidate-review.md)에 기록한다.
+2026-10-03의 ID별 확인 제외·보류·예외 검토와 별도 정제본은 [후속 후보 검토 요약](place-candidate-review.md)과 [ID별 상세 판정 JSON](candidate-review-summary.json)에 기록한다.
 아래 원래 통계와 `candidate()`의 1차 정책은 그대로 유지한다.
 
 1. KR 강릉·지역 군 중심, CN 큰 PPLA3, IN Latur/Deoghar, US Cranston/Tigard 등의
