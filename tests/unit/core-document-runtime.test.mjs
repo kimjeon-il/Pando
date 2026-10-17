@@ -28,6 +28,9 @@ function fixture() {
     selectionCatalogLoad(domain,refs,expectedEpoch) { calls.push(['selectionCatalogLoad',domain,refs,expectedEpoch]);
       return {ok:true,changed:false,state:{epoch,timelineCursor:month},selection:this.selectionSnapshot(),delta:null}; }
     resolveWorld(month, expectedEpoch) { calls.push(['resolveWorld', month, expectedEpoch]); return { month, sourceEpoch: expectedEpoch, entities: [] }; }
+    setTimelineCursor(nextMonth, expectedEpoch) { calls.push(['setTimelineCursor', nextMonth, expectedEpoch]);month = nextMonth;
+      return { state: { epoch: ++epoch, timelineCursor: month }, selection: this.selectionSnapshot(),
+        world: { month, sourceEpoch: epoch, entities: [] } }; }
     delete() { calls.push(['delete']); }
   }
   const validateFlagDataUrl = value => { if (typeof value !== 'string') throw new TypeError('invalid string'); };
@@ -153,4 +156,39 @@ test('document world queries carry their operation epoch to C++ before projectin
     { month: '1914-07', sourceEpoch: 1, entities: [] });
   assert.deepEqual(f.calls.filter(row => row[0] === 'resolveWorld').at(-1), ['resolveWorld','1914-07',1]);
   await f.runtime.dispose();
+});
+
+test('cursor transition consumes the one C++ world packet without a follow-up resolve RPC', async () => {
+  const f = fixture();
+  await f.runtime.load({ storageJson: '{}' }, context());
+  const before = f.calls.filter(row => row[0] === 'resolveWorld').length;
+  const result = await f.runtime.setTimelineCursor({ month: '1989-06', expectedEpoch: 1 }, context());
+  assert.equal(result.state.timelineCursor, '1989-06');
+  assert.deepEqual(result.world, { month: '1989-06', sourceEpoch: 2, entities: [] });
+  assert.deepEqual(f.calls.filter(row => row[0] === 'setTimelineCursor'), [['setTimelineCursor', '1989-06', 1]]);
+  assert.equal(f.calls.filter(row => row[0] === 'resolveWorld').length, before);
+  await f.runtime.dispose();
+});
+
+test('cursor transition rejects missing, stale or malformed Core world without a second query', async () => {
+  for (const world of [
+    null,
+    { month: '1914-07', sourceEpoch: 1, entities: [] },
+    { month: '1914-06', sourceEpoch: 2, entities: [] },
+    { month: '1914-07', sourceEpoch: 2, entities: null },
+  ]) {
+    let secondaryQueries = 0;
+    const runtime = createDocumentSessionRuntime({
+      loadModule: async () => ({ DocumentSession: class {
+        setTimelineCursor() { return { state: { epoch: 2, timelineCursor: '1914-07' }, world }; }
+        resolveWorld() { secondaryQueries += 1; return { month: '1914-07', sourceEpoch: 2, entities: [] }; }
+        delete() {}
+      } }),
+      validateFlagDataUrl() {},
+    });
+    await assert.rejects(runtime.setTimelineCursor({ month: '1914-07', expectedEpoch: 1 }, context()),
+      { code: 'PL-CORE-DOCUMENT-ABI' });
+    assert.equal(secondaryQueries, 0);
+    await runtime.dispose();
+  }
 });
