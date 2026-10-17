@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/soviet-core-candidate-cpp.yml'
       - 'scripts/research/instrument-core-candidate-cpp.mjs'
+      - 'scripts/research/instrument-core-territorial-inner.mjs'
       - 'tests/browser/soviet-core-candidate-cpp.spec.mjs'
   workflow_dispatch:
 permissions:
@@ -35,13 +36,15 @@ jobs:
         run: |
           pnpm install --frozen-lockfile --ignore-scripts
           node --check scripts/research/instrument-core-candidate-cpp.mjs
+          node --check scripts/research/instrument-core-territorial-inner.mjs
           node --check tests/browser/soviet-core-candidate-cpp.spec.mjs
-          pnpm exec eslint scripts/research/instrument-core-candidate-cpp.mjs tests/browser/soviet-core-candidate-cpp.spec.mjs
+          pnpm exec eslint scripts/research/instrument-core-candidate-cpp.mjs scripts/research/instrument-core-territorial-inner.mjs tests/browser/soviet-core-candidate-cpp.spec.mjs
           node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
           git diff --exit-code -- shared/core/src/commandbatch.cpp shared/core/src/commands.cpp shared/wasm/session-bindings.cpp
       - name: Inject C++ times ONLY inside this disposable runner
         run: |
           node scripts/research/instrument-core-candidate-cpp.mjs
+          node scripts/research/instrument-core-territorial-inner.mjs
           node scripts/research/instrument-core-candidate-stages.mjs
           git diff --name-only -- shared/core/src shared/wasm assets/js/modules
       - uses: jwlawson/actions-setup-cmake@v2
