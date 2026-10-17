@@ -1,7 +1,8 @@
 name: P2 Source-matched generated artifacts
+# Source-matched generation is allowed only on dedicated work/* branches, never on main.
 on:
   push:
-    branches: [work/ui, work/objects, work/gis, work/places]
+    branches: ['work/**']
     paths:
       - 'shared/**'
       - 'assets/**'

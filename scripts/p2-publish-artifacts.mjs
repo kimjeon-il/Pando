@@ -11,7 +11,7 @@ import { artifactGraph, graphStatus, stageArtifacts, publishArtifacts, assertBra
 
 const git=(cwd,args)=>execFileSync('git',args,{cwd,maxBuffer:32*1024*1024,stdio:['ignore','pipe','pipe']}).toString('utf8').trim();
 const paths=(cwd,args)=>git(cwd,[...args,'-z']).split('\0').filter(Boolean);
-const WORK_BRANCHES=new Set(['work/ui','work/objects','work/gis','work/places']);
+const validWorkBranch = branch => /^work\/[a-z0-9][a-z0-9-]{0,63}$/.test(branch);
 
 function commitOutputs(cwd,changed,families,message) {
   if(!changed.length)return false;
@@ -31,7 +31,7 @@ export async function publishGeneratedArtifacts(cwd=root,{
   beforeFinalGuard=()=>{},
 }={}) {
   assert.ok(['auto','wasm','all','verify'].includes(scope),'P2_INVALID_SCOPE: '+scope);
-  assert.ok(WORK_BRANCHES.has(branch),'P2_WORK_BRANCH_REQUIRED: '+branch);
+  assert.ok(validWorkBranch(branch),'P2_WORK_BRANCH_REQUIRED: '+branch);
   assertBranchState(cwd,{expectedSourceSha,expectedRemoteSha:expectedSourceSha,branch});
   if(!/^[a-f0-9]{40}$/.test(baseSha)||/^0+$/.test(baseSha)) {
     try {baseSha=git(cwd,['rev-parse',expectedSourceSha+'^']);}
