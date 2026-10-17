@@ -1106,7 +1106,7 @@
       "sourceSha": "0ca968e5adbb0f54250dd82320ce9f8dc138b5e0"
     },
     "shared-boundaries": {
-      "inputFingerprint": "7b3ccfdbb2a8a15910c07ad887bc8bfbef2da95036890b3dede754526338a702",
+      "inputFingerprint": "2a20c35a4940ac35c50ed9317296170c691a75bbfc869afb53bf0d13593f3ad8",
       "outputFingerprint": "2cae0566d314fece8cc0fd01115db6e27cb8b17e9acabb2bfa9e8895b059a9da",
       "inputs": {},
       "generatorHashes": {
@@ -1115,7 +1115,7 @@
         "assets/js/modules/builtin-subunits.js": "1681be766cc7179185cf897e19299aa458a14adbc28ffcd9202e41346fa02673",
         "assets/js/modules/builtin-territory-policy.js": "ca5d8cb2fdcc4c7797bc9f114082f7824bcac630a4109b4fe0678fa9643e5dd7",
         "assets/js/modules/core-wasm-loader.js": "3c3dcfe789c2ead4f97e87c69c016e7ad9f040552d759ec81bc6a309f398a484",
-        "assets/js/modules/country-contact-core.js": "45ab7450daf84b5abf8ef3bfb42f29858974326147631ca6d1d96172c6753137",
+        "assets/js/modules/country-contact-core.js": "db53bbecf48b3ee20ef223a5d528670de95b9ec61692d9139303525b582c287a",
         "assets/js/modules/country-shared-boundary-cache.js": "f4d0d32a5b2a6f22df0cc2652c2cbccb6ee3cb89311f91a04039d37bd394c250",
         "assets/js/modules/geographic-boundary.js": "1f50db80d5981741233389248921c823343a60d03b59a987185c51fed4cbd9b3",
         "assets/js/modules/polygon-geometry.js": "e616c354e4ed58d3559564d3c39434d0ca701d9c2d6e88d28d57e1f159fa0f3e",
@@ -1149,7 +1149,7 @@
           "--check"
         ]
       ],
-      "sourceSha": "493f842e56360872e7befe20dffddd0d6dc2e2a6"
+      "sourceSha": "66dfc5ea5db0e23f05f9a4205c19851b27ad7923"
     },
     "prepared-mesh": {
       "inputFingerprint": "e2517f620774f1f3def4549cc12a60d5524e1591a72f0e3c0745a1415a532277",
@@ -1950,8 +1950,8 @@
       "sourceSha": "48fb3c908f38a1d01eb2a682e9b64550258f6d02"
     },
     "build-metadata": {
-      "inputFingerprint": "b8d169176d6420ec3c0feb0be39a9caf8820dfb7bd415723d3a29c99a310d822",
-      "outputFingerprint": "e15588a363c96ab9a39377bd90ba3323c81c523026c8a204d55ff8eae78c2001",
+      "inputFingerprint": "996b47346c8d992a97ccc646c8500a8a3aa7b10e0955145defaf8f886b92ef9a",
+      "outputFingerprint": "bd966d8606f453fcf7c1d83490647e1db9f085264b193988c5b91ec2237be630",
       "inputs": {
         "assets/js/app.js": "96dfad126802a4ccf74f83c8d2b52295ebde7deb8113275a01920de895818303",
         "assets/js/bootstrap.js": "45a53c9fdcbbdd914c7ed930569b8da7542b872a1ec3de6e8ed78c4bd57b81a8",
@@ -2056,7 +2056,7 @@
         "assets/js/modules/core-object-ref.js": "1c88f1dbf15c6698165d2cd9ff97dc136b4105823dd115d4adce749c22376f26",
         "assets/js/modules/core-wasm-loader.js": "3c3dcfe789c2ead4f97e87c69c016e7ad9f040552d759ec81bc6a309f398a484",
         "assets/js/modules/core-worker-runtime.js": "9c778b9b26407b61a60dd46fb3f5a53fd4175a807fbc5a739d9456f59983e902",
-        "assets/js/modules/country-contact-core.js": "45ab7450daf84b5abf8ef3bfb42f29858974326147631ca6d1d96172c6753137",
+        "assets/js/modules/country-contact-core.js": "db53bbecf48b3ee20ef223a5d528670de95b9ec61692d9139303525b582c287a",
         "assets/js/modules/country-default-colors.js": "95f93dc0c02cb2ccdd695fe4df13295acc77200e8791388481e086693870166b",
         "assets/js/modules/country-display.js": "d3b89d9adb8c48dd4180e502401ccc2fe6a72f4143a03e86e9e27e5dd56579fd",
         "assets/js/modules/country-feature.js": "b987afa9b6fed942fe890a5c05a2b6606bf80017f2f70bb71129f103ccd44bce",
@@ -2327,8 +2327,8 @@
       },
       "outputs": {
         "README.md": "8a9d40362af110dde1e0382da8686c873fe0a0a1fdbc499313517d33922f570a",
-        "assets/js/build-meta.js": "7b0bef46720c182dd8c7ee9f00b585efdc333c72148e90e38643bc48efd0a815",
-        "index.html": "a565e616360c8d2d5c4e84d78509fd95d069ea4d3d36ed921bce3be34ea4c759"
+        "assets/js/build-meta.js": "4e10afc950023e4cf0ce11c83c6c9aec37463077a2031742d095586fc9c8f66a",
+        "index.html": "4cdc12c69ddc0ed97186560b3a88cb1dfa13a5807bdd6edc8be1b9a2c8785ee6"
       },
       "consumers": [
         "assets/js/bootstrap.js",
@@ -2343,7 +2343,7 @@
           "--check"
         ]
       ],
-      "sourceSha": "288d4ee7c3a5a09cbef0f9b3850b377ba77548ed"
+      "sourceSha": "66dfc5ea5db0e23f05f9a4205c19851b27ad7923"
     }
   }
 }
