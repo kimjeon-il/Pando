@@ -1,0 +1,70 @@
+name: Soviet real coast edit CPU and reference acceptance
+on:
+  push:
+    branches: [work/perf-soviet-edit-acceptance-20261017]
+    paths:
+      - '.github/workflows/soviet-real-edit-acceptance.yml'
+      - 'tests/browser/soviet-real-edit-commit-cancel.spec.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: soviet-real-edit-acceptance-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  actual-soviet-edit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 42
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - name: Install pinned dependencies and check targeted source contracts
+        run: |
+          pnpm install --frozen-lockfile --ignore-scripts
+          node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
+          node --check tests/browser/soviet-real-edit-commit-cancel.spec.mjs
+          pnpm exec eslint tests/browser/soviet-real-edit-commit-cancel.spec.mjs
+          node --test tests/unit/boundary-source-row-compact.test.mjs tests/unit/country-shared-boundary-state.test.mjs tests/unit/boundary-preparation.test.mjs tests/unit/shared-edge-singleton.test.mjs
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Real 1989 Soviet coast drag, preview cancel/confirm, history and Worker reference identity
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: pnpm exec playwright test tests/browser/soviet-real-edit-commit-cancel.spec.mjs --workers=1 --retries=0 --trace off
+      - name: Accept only complete edit/undo/redo scenarios and original source-ref consistency
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { readFileSync } from 'node:fs';
+          const data=JSON.parse(readFileSync('test-results/soviet-real-edit/measurement.json','utf8'));
+          assert.deepEqual(data.errors,[]);
+          assert.equal(data.scenarios.length,3);
+          assert.equal(data.summary.cancelCount,2);
+          assert.equal(data.summary.confirmCount,1);
+          for(const stage of data.scenarios){
+            assert.ok(stage.timings.enterMs>0);
+            assert.ok(stage.timings.dragPreviewMs>0);
+            assert.equal(stage.source.available,true);
+            assert.ok(stage.source.sourceRefs.length>0);
+            assert.ok(stage.source.sourceRefs.every(row=>row.valid&&row.complete));
+          }
+          console.log('SOVIET_REAL_EDIT_ACCEPTANCE',JSON.stringify({
+            scenarios:data.scenarios.map(s=>({mode:s.mode,timings:s.timings,
+              sourceRows:s.source.sourceRows,refs:s.source.matchingRefs,
+              longTask:s.longTask})),
+            worker:data.snapshots.map(row=>({stage:row.label,sharedJsMiB:row.sharedJsMiB,
+              mapEditJsMiB:row.editJsMiB,workerCount:row.workerCount,pssMiB:row.pssMiB})),
+          }));
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: soviet-real-edit-acceptance-${{ github.sha }}
+          path: test-results/soviet-real-edit/
+          if-no-files-found: warn
+          retention-days: 14
