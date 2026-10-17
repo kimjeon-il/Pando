@@ -45,6 +45,7 @@
 | ID | 보고서 | 원문 수정일 | 상태 | 지도 반영 |
 | --- | --- | --- | --- | --- |
 | `PERF-P0-001` | [기준 코드·기존 계측 자산 통합 검토](development/testing/performance-baseline-consolidation-2026-10-17.md) | 2026-10-17 | `verified-source-and-focused-ci` | `not-applicable` |
+| `OBJ-097` | [소련 Core 후보 준비: 135초 WASM 동기 실행 미반환 및 C++ 함수별 계측](development/testing/soviet-core-candidate-bottleneck-2026-10-18.md) | 2026-10-18 | `worker-queue-excluded / C++-stage-probe` | `not-applicable` |
 | `OBJ-096` | [소련 실제 편집·취소·확정 게이트 및 Core 30초 병목 특정](development/testing/soviet-real-edit-cpu-reference-2026-10-17.md) | 2026-10-17 | `worker-move-verified / core-prepare-blocked` | `not-applicable` |
 | `OBJ-095` | [국가별 원본 선분 링 메타데이터 공유 및 Worker 6.9MiB 절감](development/testing/soviet-prepared-source-row-compact-2026-10-17.md) | 2026-10-17 | `verified-web-paired-and-12cycle` | `not-applicable` |
 | `OBJ-094` | [C++ 접촉 변환 캐시 수명 단축 및 Worker JS 23.8MiB 절감](development/testing/soviet-contact-wire-lifetime-2026-10-17.md) | 2026-10-17 | `verified-web-paired-and-12cycle` | `not-applicable` |
