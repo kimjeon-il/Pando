@@ -81,11 +81,15 @@ const patches = [
   },
 ];
 
+const cleanPaths = new Set();
 for (const [index, patch] of patches.entries()) {
   const original = await readFile(patch.path, 'utf8');
   assert.equal(original.split(patch.before).length, 2, 'Unexpected source anchor #'+index+' in '+patch.path);
-  assert.ok(!original.includes('OBJ097_CORE_STAGE'),
-    'Refusing to mutate product checkout with existing OBJ097 hooks: '+patch.path);
+  if (!cleanPaths.has(patch.path)) {
+    assert.ok(!original.includes('OBJ097_CORE_STAGE'),
+      'Refusing to mutate product checkout with existing OBJ097 hooks: '+patch.path);
+    cleanPaths.add(patch.path);
+  }
   const modified = original.replace(patch.before, patch.after);
   await writeFile(patch.path, modified);
   console.log('OBJ097_INSTRUMENTED', patch.path, index + 1);
