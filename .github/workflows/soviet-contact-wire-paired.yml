@@ -4,6 +4,8 @@ on:
     branches: [work/perf-contact-wire-lifetime-20261017]
     paths:
       - '.github/workflows/soviet-contact-wire-paired.yml'
+      - 'assets/js/modules/country-contact-core.js'
+      - 'tests/browser/soviet-contact-wire-reencode.spec.mjs'
   workflow_dispatch:
 permissions:
   contents: read
