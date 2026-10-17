@@ -11,7 +11,7 @@ import { artifactGraph, graphStatus, stageArtifacts, publishArtifacts, assertBra
 
 const git=(cwd,args)=>execFileSync('git',args,{cwd,maxBuffer:32*1024*1024,stdio:['ignore','pipe','pipe']}).toString('utf8').trim();
 const paths=(cwd,args)=>git(cwd,[...args,'-z']).split('\0').filter(Boolean);
-const WORK_BRANCHES=new Set(['work/ui','work/objects','work/gis','work/places']);
+const WORK_BRANCHES=new Set(['work/ui','work/objects','work/gis','work/places','work/integration-objects-20261017']);
 
 function commitOutputs(cwd,changed,families,message) {
   if(!changed.length)return false;
