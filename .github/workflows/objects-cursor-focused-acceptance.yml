@@ -10,6 +10,7 @@ on:
       - 'assets/js/modules/core-document-runtime.js'
       - 'tests/browser/historical-world-timeline.spec.mjs'
       - 'tests/browser/temporal-editing.spec.mjs'
+      - 'tests/unit/core-document-runtime.test.mjs'
       - 'tests/browser/soviet-initialization-memory.spec.mjs'
   workflow_dispatch:
 permissions:
