@@ -180,7 +180,7 @@ async function dragAndPreview(page, timings) {
   await expect.poll(() => page.evaluate(() => window.__SOVIET_EDIT_WORKER_OPS__
     ?.some(item => item.operation === 'boundary-move')), { timeout: 35_000 }).toBe(true);
   try {
-    await expect(page.locator('#modePrimaryBtn')).toContainText('변경 적용', { timeout: 85_000 });
+    await expect(page.locator('#modePrimaryBtn')).toContainText('변경 적용', { timeout: 52_000 });
   } catch (error) {
     timings.noPreview = await page.evaluate(() => ({
       mode: document.querySelector('#modePrimaryBtn')?.textContent?.trim(),
@@ -229,15 +229,21 @@ test('real Soviet coastal vertex preview cancel, confirm and Undo/Redo preserve 
     window.Worker = class TimedSovietEditWorker extends WorkerBase {
       constructor(...args) {
         super(...args);
-        if (!String(args[0]).includes('map-edit-worker')) return;
+        this.__sovietKind = String(args[0]).includes('map-edit-worker') ? 'map-edit'
+          : String(args[0]).includes('core-session-worker') ? 'core-session' : null;
+        if (!this.__sovietKind) return;
         this.addEventListener('message', event => {
           const message = event.data;
-          if (message?.rpc !== 'pandolab-worker-rpc'
-            || message?.type !== 'result' || !['boundary-prepare','boundary-move',
-              'territorial-edit','territorial-validation'].includes(message.operation)) return;
+          if (message?.rpc !== 'pandolab-worker-rpc' || message?.type !== 'result') return;
+          const operation = String(message.operation || '');
+          if (!operation.startsWith('core.document-')
+            && !['boundary-prepare', 'boundary-move', 'territorial-edit',
+              'territorial-validation'].includes(operation)) return;
           window.__SOVIET_EDIT_WORKER_OPS__.push({
-            phase: 'result', operation: message.operation, requestId: message.requestId,
-            ok: message.ok === true, error: String(message.error?.message || '').slice(0, 260),
+            phase: 'result', worker: this.__sovietKind, operation,
+            requestId: message.requestId, ok: message.ok === true,
+            error: String(message.error?.message || '').slice(0, 260),
+            errorCode: String(message.error?.code || '').slice(0, 100),
             resultFeatures: message.result?.features?.length || 0,
             resultChanged: message.result?.changed ?? null,
             previewBlocking: message.result?.preview?.validation?.blocking ?? null,
@@ -247,13 +253,15 @@ test('real Soviet coastal vertex preview cancel, confirm and Undo/Redo preserve 
         });
       }
       postMessage(message, ...rest) {
-        if (message?.rpc === 'pandolab-worker-rpc' && message?.type === 'request'
-          && ['boundary-prepare', 'boundary-move', 'territorial-edit',
-            'territorial-validation'].includes(message.operation)) {
-          window.__SOVIET_EDIT_WORKER_OPS__.push({
-            phase: 'request', operation: message.operation,
-            requestId: message.requestId, timeMs: performance.now(),
-          });
+        if (message?.rpc === 'pandolab-worker-rpc' && message?.type === 'request') {
+          const operation = String(message.operation || '');
+          if (operation.startsWith('core.document-')
+            || ['boundary-prepare','boundary-move','territorial-edit',
+              'territorial-validation'].includes(operation))
+            window.__SOVIET_EDIT_WORKER_OPS__.push({
+              phase: 'request', worker: this.__sovietKind, operation,
+              requestId: message.requestId, timeMs: performance.now(),
+            });
         }
         return super.postMessage(message, ...rest);
       }
