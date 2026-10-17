@@ -55,6 +55,7 @@ jobs:
         run: |
           cd baseline
           pnpm exec playwright test tests/browser/soviet-boundary-index-packed-memory.spec.mjs --workers=1 --retries=0 --trace off
+          cp test-results/soviet-boundary-index-packed/measurement.json ../baseline-packed.json
       - name: Candidate modern-world Worker V8 with transient wire arrays
         env:
           PANDOLAB_INDEX_VARIANT: packed
@@ -64,6 +65,7 @@ jobs:
         run: |
           cd candidate
           pnpm exec playwright test tests/browser/soviet-boundary-index-packed-memory.spec.mjs --workers=1 --retries=0 --trace off
+          cp test-results/soviet-boundary-index-packed/measurement.json ../candidate-packed.json
       - name: Original cache CPU repeated modern contact batch
         env:
           PANDOLAB_EXPECT_COMMIT: f2370babfccf3dd07dca26f11aeecab4434189ca
@@ -87,7 +89,8 @@ jobs:
           import assert from 'node:assert/strict';
           import { readFileSync,writeFileSync } from 'node:fs';
           const read = (dir,file) => JSON.parse(readFileSync(dir+'/test-results/'+file+'/measurement.json','utf8'));
-          const before=read('baseline','soviet-boundary-index-packed'),after=read('candidate','soviet-boundary-index-packed');
+          const before=JSON.parse(readFileSync('baseline-packed.json','utf8'));
+          const after=JSON.parse(readFileSync('candidate-packed.json','utf8'));
           const a=before.measurements,b=after.measurements;
           for(const field of ['countries','messageCountries','sourceSegments','sharedSegments','contacts',
             'packedCountries','packedSourceSegments','postingCount']) {
@@ -117,6 +120,8 @@ jobs:
         with:
           name: soviet-contact-wire-paired-${{ github.sha }}
           path: |
+            baseline-packed.json
+            candidate-packed.json
             baseline/test-results/soviet-boundary-index-packed/
             baseline/test-results/soviet-contact-wire/
             candidate/test-results/soviet-boundary-index-packed/
