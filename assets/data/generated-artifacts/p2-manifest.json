@@ -1106,16 +1106,16 @@
       "sourceSha": "0ca968e5adbb0f54250dd82320ce9f8dc138b5e0"
     },
     "shared-boundaries": {
-      "inputFingerprint": "2a20c35a4940ac35c50ed9317296170c691a75bbfc869afb53bf0d13593f3ad8",
+      "inputFingerprint": "e303ec9891e4a8777ef490af923516b9b38f41662a36c2b0e8495c34d6eb29ed",
       "outputFingerprint": "2cae0566d314fece8cc0fd01115db6e27cb8b17e9acabb2bfa9e8895b059a9da",
       "inputs": {},
       "generatorHashes": {
         "assets/js/modules/boundary-spatial-index.js": "9fe554b8c32276fe9aa5d11416ef052531e280b59f199f468488b2940f23bbee",
-        "assets/js/modules/boundary-topology.js": "39e6d570189d9d0070c584ffe48f4060fbb8b8e64295eef47384ce9a567e1c00",
+        "assets/js/modules/boundary-topology.js": "60958669cf43b3b52277e1533125aa3f26fd758ce6d5f372e217c559c5436348",
         "assets/js/modules/builtin-subunits.js": "1681be766cc7179185cf897e19299aa458a14adbc28ffcd9202e41346fa02673",
         "assets/js/modules/builtin-territory-policy.js": "ca5d8cb2fdcc4c7797bc9f114082f7824bcac630a4109b4fe0678fa9643e5dd7",
         "assets/js/modules/core-wasm-loader.js": "3c3dcfe789c2ead4f97e87c69c016e7ad9f040552d759ec81bc6a309f398a484",
-        "assets/js/modules/country-contact-core.js": "db53bbecf48b3ee20ef223a5d528670de95b9ec61692d9139303525b582c287a",
+        "assets/js/modules/country-contact-core.js": "b32c0ffb5c272054554b495d65b4b08b68ab8cefd321199d8319a71c67ec3f2f",
         "assets/js/modules/country-shared-boundary-cache.js": "f4d0d32a5b2a6f22df0cc2652c2cbccb6ee3cb89311f91a04039d37bd394c250",
         "assets/js/modules/geographic-boundary.js": "1f50db80d5981741233389248921c823343a60d03b59a987185c51fed4cbd9b3",
         "assets/js/modules/polygon-geometry.js": "e616c354e4ed58d3559564d3c39434d0ca701d9c2d6e88d28d57e1f159fa0f3e",
@@ -1149,7 +1149,7 @@
           "--check"
         ]
       ],
-      "sourceSha": "66dfc5ea5db0e23f05f9a4205c19851b27ad7923"
+      "sourceSha": "52e5c6542fde6338fe1d1dd63903c6974c735cce"
     },
     "prepared-mesh": {
       "inputFingerprint": "e2517f620774f1f3def4549cc12a60d5524e1591a72f0e3c0745a1415a532277",
@@ -1950,8 +1950,8 @@
       "sourceSha": "48fb3c908f38a1d01eb2a682e9b64550258f6d02"
     },
     "build-metadata": {
-      "inputFingerprint": "996b47346c8d992a97ccc646c8500a8a3aa7b10e0955145defaf8f886b92ef9a",
-      "outputFingerprint": "bd966d8606f453fcf7c1d83490647e1db9f085264b193988c5b91ec2237be630",
+      "inputFingerprint": "75e07cc66c0429cd6572fb2e323f9b04d403180990051f3f7d4ae816929fe38d",
+      "outputFingerprint": "7ea104bef3936ca3c60f7e239c7039d5afacc9cbfea89487330cd14d4939b1c5",
       "inputs": {
         "assets/js/app.js": "96dfad126802a4ccf74f83c8d2b52295ebde7deb8113275a01920de895818303",
         "assets/js/bootstrap.js": "45a53c9fdcbbdd914c7ed930569b8da7542b872a1ec3de6e8ed78c4bd57b81a8",
@@ -2039,7 +2039,7 @@
         "assets/js/modules/boundary-lines.js": "3ce20f207c206113af10b175fb64050923f97f08e047ed23164cd9cf6d55be6d",
         "assets/js/modules/boundary-preparation.js": "b320b6a4a2c431953001febed385397708c891160d58e08c79c86e7517e2b5ca",
         "assets/js/modules/boundary-spatial-index.js": "9fe554b8c32276fe9aa5d11416ef052531e280b59f199f468488b2940f23bbee",
-        "assets/js/modules/boundary-topology.js": "39e6d570189d9d0070c584ffe48f4060fbb8b8e64295eef47384ce9a567e1c00",
+        "assets/js/modules/boundary-topology.js": "60958669cf43b3b52277e1533125aa3f26fd758ce6d5f372e217c559c5436348",
         "assets/js/modules/browser-project-storage.js": "9d2d65a621ff8b0277fa107d91cc52237b5c7c9f587bc36610d7e767c80b06aa",
         "assets/js/modules/builtin-mesh-resource.js": "6bb159a94c44de2f35999e45f57483188f4b71f0899168f9901993f428000150",
         "assets/js/modules/builtin-subunits.js": "1681be766cc7179185cf897e19299aa458a14adbc28ffcd9202e41346fa02673",
@@ -2056,7 +2056,7 @@
         "assets/js/modules/core-object-ref.js": "1c88f1dbf15c6698165d2cd9ff97dc136b4105823dd115d4adce749c22376f26",
         "assets/js/modules/core-wasm-loader.js": "3c3dcfe789c2ead4f97e87c69c016e7ad9f040552d759ec81bc6a309f398a484",
         "assets/js/modules/core-worker-runtime.js": "9c778b9b26407b61a60dd46fb3f5a53fd4175a807fbc5a739d9456f59983e902",
-        "assets/js/modules/country-contact-core.js": "db53bbecf48b3ee20ef223a5d528670de95b9ec61692d9139303525b582c287a",
+        "assets/js/modules/country-contact-core.js": "b32c0ffb5c272054554b495d65b4b08b68ab8cefd321199d8319a71c67ec3f2f",
         "assets/js/modules/country-default-colors.js": "95f93dc0c02cb2ccdd695fe4df13295acc77200e8791388481e086693870166b",
         "assets/js/modules/country-display.js": "d3b89d9adb8c48dd4180e502401ccc2fe6a72f4143a03e86e9e27e5dd56579fd",
         "assets/js/modules/country-feature.js": "b987afa9b6fed942fe890a5c05a2b6606bf80017f2f70bb71129f103ccd44bce",
@@ -2327,8 +2327,8 @@
       },
       "outputs": {
         "README.md": "8a9d40362af110dde1e0382da8686c873fe0a0a1fdbc499313517d33922f570a",
-        "assets/js/build-meta.js": "4e10afc950023e4cf0ce11c83c6c9aec37463077a2031742d095586fc9c8f66a",
-        "index.html": "4cdc12c69ddc0ed97186560b3a88cb1dfa13a5807bdd6edc8be1b9a2c8785ee6"
+        "assets/js/build-meta.js": "a126733f2484ab27472c36d3b3f0927c89a49104acbb2be555c57e63c6658872",
+        "index.html": "79f9b0399ecc3e7b0a94ff3bfeb1f1fcf2f1a4d2777294ca01c627a2d7bb4f0c"
       },
       "consumers": [
         "assets/js/bootstrap.js",
@@ -2343,7 +2343,7 @@
           "--check"
         ]
       ],
-      "sourceSha": "66dfc5ea5db0e23f05f9a4205c19851b27ad7923"
+      "sourceSha": "52e5c6542fde6338fe1d1dd63903c6974c735cce"
     }
   }
 }
