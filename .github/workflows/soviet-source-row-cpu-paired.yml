@@ -1,0 +1,83 @@
+name: OBJ-095 prepared source row CPU parity on real adjacent countries
+on:
+  push:
+    branches: [work/perf-source-row-owners-20261017]
+    paths:
+      - '.github/workflows/soviet-source-row-cpu-paired.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: soviet-source-rows-cpu-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  source-reference-cpu:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: candidate
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          path: baseline
+          ref: 0059af35094609390d8ce03f76339e5ef8c27948
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: candidate/.nvmrc
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+          run_install: false
+      - run: |
+          (cd baseline && pnpm install --frozen-lockfile --ignore-scripts)
+          (cd candidate && pnpm install --frozen-lockfile --ignore-scripts)
+          (cd candidate && pnpm exec playwright install --with-deps chromium)
+      - name: Baseline five real Russia-China C++ boundary contact calls
+        env:
+          PANDOLAB_EXPECT_COMMIT: 0059af35094609390d8ce03f76339e5ef8c27948
+          PANDOLAB_BROWSER_CHANNEL: chromium
+          PANDOLAB_TEST_PORT: '4223'
+        run: |
+          cd baseline
+          pnpm exec playwright test tests/browser/soviet-contact-wire-reencode.spec.mjs --workers=1 --retries=0 --trace off
+          cp test-results/soviet-contact-wire/measurement.json ../baseline-source-cpu.json
+      - name: Candidate five real Russia-China C++ boundary contact calls
+        env:
+          PANDOLAB_EXPECT_COMMIT: ${{ github.sha }}
+          PANDOLAB_BROWSER_CHANNEL: chromium
+          PANDOLAB_TEST_PORT: '4224'
+        run: |
+          cd candidate
+          pnpm exec playwright test tests/browser/soviet-contact-wire-reencode.spec.mjs --workers=1 --retries=0 --trace off
+          cp test-results/soviet-contact-wire/measurement.json ../candidate-source-cpu.json
+      - name: Preserve CPU parity and candidacy evidence without inflating precision
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFileSync,writeFileSync} from 'node:fs';
+          const a=JSON.parse(readFileSync('baseline-source-cpu.json','utf8')).benchmark;
+          const b=JSON.parse(readFileSync('candidate-source-cpu.json','utf8')).benchmark;
+          assert.deepEqual(b.pair,a.pair);
+          assert.equal(b.sourceRows,a.sourceRows);
+          assert.ok(a.output.segments>0);
+          assert.deepEqual(b.output,a.output);
+          const ratio=Number((b.medianMs/a.medianMs).toFixed(3));
+          const data={schema:'pando-source-row-packing-cpu-paired-v1',baseline:a,candidate:b,ratio,
+            caveats:'Five calls for one genuine border pair in one hosted Chromium environment are only a directional latency check, not p95 proof.'};
+          writeFileSync('candidate/source-row-cpu-pair.json',JSON.stringify(data,null,2)+'\n');
+          console.log('OBJ095_CONTACT_CPU_PARITY',JSON.stringify({baselineMs:a.medianMs,candidateMs:b.medianMs,
+            ratio,sourceRows:b.sourceRows,segments:b.output.segments,refs:b.output.refs}));
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: soviet-source-row-cpu-${{ github.sha }}
+          path: |
+            baseline-source-cpu.json
+            candidate-source-cpu.json
+            candidate/source-row-cpu-pair.json
+          retention-days: 14
+          if-no-files-found: warn
