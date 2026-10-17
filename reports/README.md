@@ -40,8 +40,16 @@
 
 ## 개발·검증
 
+> OBJ 접두사는 객체 브랜치 원본의 DEV-082~088 번호가 기존 메인 보고서 번호와 충돌하여 통합 시 부여한 고유 색인입니다. 원본 소스와 검증 링크는 해당 보고서에 보존합니다.
+
 | ID | 보고서 | 원문 수정일 | 상태 | 지도 반영 |
 | --- | --- | --- | --- | --- |
+| `OBJ-088` | [공유 국경선 Worker 메모리 실제 유지 소유자 분석](development/testing/soviet-shared-border-retained-owners-2026-10-17.md) | 2026-10-17 | `verified-web-diagnostics` | `not-applicable` |
+| `OBJ-087` | [현행 main 동일 소스 소련 12회 왕복 메모리 검증](development/testing/soviet-main-12cycle-memory-2026-10-17.md) | 2026-10-17 | `verified-web-diagnostics` | `not-applicable` |
+| `OBJ-085` | [소련 미리보기 build 60초 지연 원인 추적](development/testing/soviet-preview-build-attribution-2026-10-17.md) | 2026-10-17 | `verified-web-diagnostics` | `not-applicable` |
+| `OBJ-084` | [소련 편집·시점 왕복 Worker/WASM 메모리 계측](development/testing/soviet-memory-retention-roundtrip-2026-10-17.md) | 2026-10-17 | `verified-web-diagnostics` | `not-applicable` |
+| `OBJ-083` | [객체 시점 resolveWorld 단일화 검증](development/testing/objects-timeline-cursor-reuse-2026-10-17.md) | 2026-10-17 | `verified-web-diagnostics` | `not-applicable` |
+| `OBJ-082` | [소련 시점 메모리 소유권 계측](development/testing/soviet-memory-owner-attribution-2026-10-16.md) | 2026-10-17 | `verified-web-diagnostics` | `not-applicable` |
 | `DEV-086` | [1989년 소련 편집 메모리·반복 회귀 검증](development/testing/soviet-memory-lifecycle-regression-2026-10-16.md) | 2026-10-16 | `verified-web-ci-with-observability-limits` | `not-applicable` |
 | `DEV-085` | [1989년 소련 대형 경계 편집 준비 지연 선분 생성 최적화](development/testing/soviet-boundary-preparation-2026-10-16.md) | 2026-10-16 | `verified-web-ci` | `not-applicable` |
 | `DEV-084` | [신규 WebView 전체 세계지도 물리 자료 로딩 경량화](development/testing/web-shell-physical-startup-2026-10-16.md) | 2026-10-16 | `verified-windows-paired-30s` | `not-applicable` |
