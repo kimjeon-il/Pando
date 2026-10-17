@@ -1,0 +1,93 @@
+name: Soviet singleton-edge retained Worker memory A/B
+on:
+  push:
+    branches: [work/perf-singleton-edges-20261017]
+    paths:
+      - '.github/workflows/soviet-singleton-edge-memory-ab.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: singleton-edge-paired-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  paired-worker:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 28
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          path: candidate
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          ref: 48fe06df9ec7ce47b4f0640d1f43817deb3a964a
+          path: baseline
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: candidate/.nvmrc
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+          run_install: false
+      - name: Install existing tests in both source checkouts
+        run: |
+          (cd baseline && pnpm install --frozen-lockfile --ignore-scripts)
+          (cd candidate && pnpm install --frozen-lockfile --ignore-scripts)
+          (cd candidate && pnpm exec playwright install --with-deps chromium)
+      - name: Current main prior to singleton contact edges
+        env:
+          PANDOLAB_INDEX_VARIANT: packed
+          PANDOLAB_EXPECT_COMMIT: 48fe06df9ec7ce47b4f0640d1f43817deb3a964a
+          PANDOLAB_BROWSER_CHANNEL: chromium
+          PANDOLAB_TEST_PORT: '4193'
+        run: |
+          cd baseline
+          pnpm exec playwright test tests/browser/soviet-boundary-index-packed-memory.spec.mjs --workers=1 --retries=0 --trace off
+      - name: Candidate compact contact edge records
+        env:
+          PANDOLAB_INDEX_VARIANT: packed
+          PANDOLAB_EXPECT_COMMIT: ${{ github.sha }}
+          PANDOLAB_BROWSER_CHANNEL: chromium
+          PANDOLAB_TEST_PORT: '4194'
+        run: |
+          cd candidate
+          pnpm exec playwright test tests/browser/soviet-boundary-index-packed-memory.spec.mjs --workers=1 --retries=0 --trace off
+      - name: Check real Worker improvement and preserve accounting boundaries
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { readFileSync,writeFileSync } from 'node:fs';
+          const read=dir=>JSON.parse(readFileSync(dir+'/test-results/soviet-boundary-index-packed/measurement.json','utf8'));
+          const before=read('baseline'),after=read('candidate'),a=before.measurements,b=after.measurements;
+          for (const field of ['countries','messageCountries','sourceSegments','sharedSegments','contacts',
+            'packedCountries','packedSourceSegments','postingCount'])
+            assert.equal(b.dimensions[field],a.dimensions[field],'changed reference input or topology: '+field);
+          assert.equal(a.worker.complete&&b.worker.complete,true);
+          assert.equal(a.worker.wasmLinearMiB,b.worker.wasmLinearMiB);
+          const saved=Number((a.worker.jsMiB-b.worker.jsMiB).toFixed(2));
+          const pct=Number((100*saved/a.worker.jsMiB).toFixed(2));
+          const result={schema:'pando-single-edge-memory-paired-v1',baseline:before,candidate:after,
+            savedBorderJsMiB:saved,percentBorderJsReduction:pct,
+            sameWorkerWasmPopulation:a.worker.totalWorkerWasmMiB===b.worker.totalWorkerWasmMiB,
+            limitations:'Only matched shared-border Worker CDP V8 heap is directly comparable; Chromium PSS includes other processes, and one timing pair does not establish speedup.'};
+          writeFileSync('candidate/test-results/soviet-boundary-index-packed/singleton-pair.json',JSON.stringify(result,null,2)+'\n');
+          console.log('SOVIET_SINGLETON_EDGE_PAIRED',JSON.stringify({
+            beforeJsMiB:a.worker.jsMiB,afterJsMiB:b.worker.jsMiB,savedMiB:saved,pct,
+            beforePssMiB:a.chromium.pssMiB,afterPssMiB:b.chromium.pssMiB,
+            beforeToModernMs:a.toModernMs,afterToModernMs:b.toModernMs,
+            borderWasmMiB:b.worker.wasmLinearMiB,
+            fullWorkerWasmMiB:[a.worker.totalWorkerWasmMiB,b.worker.totalWorkerWasmMiB],
+          }));
+          assert.ok(saved>=4,'Removing 68k redundant per-edge Maps should save >=4MiB Worker V8');
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: soviet-singleton-edge-pair-${{ github.sha }}
+          path: |
+            baseline/test-results/soviet-boundary-index-packed/
+            candidate/test-results/soviet-boundary-index-packed/
+          retention-days: 14
+          if-no-files-found: warn
