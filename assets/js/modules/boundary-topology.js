@@ -65,6 +65,8 @@ export function boundarySourceSegments(feature, fallbackId = 0, { compactPrepare
       // country/ring/winding metadata. Keep immutable per-edge identities and
       // original coordinate ARRAY references in ordinary JS objects.
       // Editing-domain callers still receive their original complete records.
+      // Keep inherited fields visible through property reads; consumers that
+      // persist a contact ref must snapshot those fields into own properties.
       const shared = compactPrepared
         ? { featureId: id, polygonIndex: polygon.polygonIndex, ringIndex, interiorSide } : null;
       for (let index = 0; index < limit; index++) {
