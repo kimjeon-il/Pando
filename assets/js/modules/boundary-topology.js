@@ -1,4 +1,4 @@
-import { buildRenderableBoundarySegments, buildRefinedBoundarySegments } from './geographic-boundary.js';
+import { createRenderableBoundarySegmentView, buildRefinedBoundarySegments } from './geographic-boundary.js';
 import './polygon-geometry.js';
 import { createBoundarySpatialIndex, segmentBounds, padBoundaryBounds } from './boundary-spatial-index.js';
 import { countryGeometrySignature } from './country-shared-boundary-cache.js';
@@ -85,7 +85,7 @@ export function prepareBoundaryFeature(feature) {
   // removes per-edge JS Map/Set/key retention while preserving ordered source refs.
   spatialIndex.loadPacked(segments, boxes);
   return { id: String(feature.id), feature, geometry: feature.geometry, segments, bounds, spatialIndex,
-    renderableSegments: buildRenderableBoundarySegments(feature.geometry) };
+    renderableSegments: createRenderableBoundarySegmentView(feature.geometry) };
 }
 
 /** The Worker owns this derived index; only a changed geometry is prepared. */
