@@ -1,0 +1,123 @@
+name: Shared-border transient C++ wire encoding paired A/B
+on:
+  push:
+    branches: [work/perf-contact-wire-lifetime-20261017]
+    paths:
+      - '.github/workflows/soviet-contact-wire-paired.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: soviet-contact-wire-pair-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  paired-worker:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 36
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: candidate
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          path: baseline
+          ref: f2370babfccf3dd07dca26f11aeecab4434189ca
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: candidate/.nvmrc
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+          run_install: false
+      - name: Install both source-matched JS runtimes and Chromium
+        run: |
+          (cd candidate && pnpm install --frozen-lockfile --ignore-scripts)
+          (cd baseline && pnpm install --frozen-lockfile --ignore-scripts)
+          (cd candidate && pnpm exec playwright install --with-deps chromium)
+      - name: Verify source-only candidate and C++ contact identity before browsers
+        run: |
+          cd candidate
+          node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
+          node --check assets/js/modules/country-contact-core.js
+          node --check tests/browser/soviet-contact-wire-reencode.spec.mjs
+          pnpm exec eslint assets/js/modules/country-contact-core.js tests/browser/soviet-contact-wire-reencode.spec.mjs
+          node --test tests/unit/country-shared-boundary-state.test.mjs tests/unit/country-contact-legacy-parity.test.mjs tests/unit/p5-6-contribution-merge.test.mjs tests/unit/shared-edge-singleton.test.mjs
+      - name: Baseline modern-world Worker V8 and original wire lifetime
+        env:
+          PANDOLAB_INDEX_VARIANT: packed
+          PANDOLAB_EXPECT_COMMIT: f2370babfccf3dd07dca26f11aeecab4434189ca
+          PANDOLAB_BROWSER_CHANNEL: chromium
+          PANDOLAB_TEST_PORT: '4195'
+        run: |
+          cd baseline
+          pnpm exec playwright test tests/browser/soviet-boundary-index-packed-memory.spec.mjs --workers=1 --retries=0 --trace off
+      - name: Candidate modern-world Worker V8 with transient wire arrays
+        env:
+          PANDOLAB_INDEX_VARIANT: packed
+          PANDOLAB_EXPECT_COMMIT: ${{ github.sha }}
+          PANDOLAB_BROWSER_CHANNEL: chromium
+          PANDOLAB_TEST_PORT: '4196'
+        run: |
+          cd candidate
+          pnpm exec playwright test tests/browser/soviet-boundary-index-packed-memory.spec.mjs --workers=1 --retries=0 --trace off
+      - name: Original cache CPU repeated modern contact batch
+        env:
+          PANDOLAB_EXPECT_COMMIT: f2370babfccf3dd07dca26f11aeecab4434189ca
+          PANDOLAB_BROWSER_CHANNEL: chromium
+          PANDOLAB_TEST_PORT: '4197'
+        run: |
+          cp candidate/tests/browser/soviet-contact-wire-reencode.spec.mjs baseline/tests/browser/soviet-contact-wire-reencode.spec.mjs
+          cd baseline
+          pnpm exec playwright test tests/browser/soviet-contact-wire-reencode.spec.mjs --workers=1 --retries=0 --trace off
+      - name: Transient wire CPU repeated modern contact batch
+        env:
+          PANDOLAB_EXPECT_COMMIT: ${{ github.sha }}
+          PANDOLAB_BROWSER_CHANNEL: chromium
+          PANDOLAB_TEST_PORT: '4198'
+        run: |
+          cd candidate
+          pnpm exec playwright test tests/browser/soviet-contact-wire-reencode.spec.mjs --workers=1 --retries=0 --trace off
+      - name: Verify same topology and record separate memory and CPU trade-off
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { readFileSync,writeFileSync } from 'node:fs';
+          const read = (dir,file) => JSON.parse(readFileSync(dir+'/test-results/'+file+'/measurement.json','utf8'));
+          const before=read('baseline','soviet-boundary-index-packed'),after=read('candidate','soviet-boundary-index-packed');
+          const a=before.measurements,b=after.measurements;
+          for(const field of ['countries','messageCountries','sourceSegments','sharedSegments','contacts',
+            'packedCountries','packedSourceSegments','postingCount']) {
+            assert.equal(b.dimensions[field],a.dimensions[field],'Changed source topology: '+field);
+          }
+          assert.equal(a.worker.complete&&b.worker.complete,true);
+          assert.equal(b.worker.wasmLinearMiB,a.worker.wasmLinearMiB);
+          const ca=read('baseline','soviet-contact-wire').benchmark;
+          const cb=read('candidate','soviet-contact-wire').benchmark;
+          assert.deepEqual(cb.pair,ca.pair);
+          assert.equal(cb.sourceRows,ca.sourceRows);
+          assert.deepEqual(cb.output,ca.output);
+          const saved=Number((a.worker.jsMiB-b.worker.jsMiB).toFixed(2));
+          const ratio=Number((cb.medianMs/Math.max(ca.medianMs,0.01)).toFixed(2));
+          const report={schema:'pando-contact-wire-lifetime-paired-v1',baseline:before,candidate:after,
+            cachedCpu:ca,transientCpu:cb,savedWorkerJsMiB:saved,medianCpuRatio:ratio,
+            limitations:'Worker V8 after GC is source-matched; process PSS includes other Chromium processes. Five repeated calls on one large country pair are a diagnostic, not a population-level p95 CPU guarantee.'};
+          writeFileSync('candidate/test-results/soviet-contact-wire/paired.json',JSON.stringify(report,null,2)+'\n');
+          console.log('CONTACT_WIRE_PAIRED',JSON.stringify({beforeWorkerJsMiB:a.worker.jsMiB,
+            afterWorkerJsMiB:b.worker.jsMiB,savedMiB:saved,beforePssMiB:a.chromium.pssMiB,
+            afterPssMiB:b.chromium.pssMiB,baselineCpuMs:ca.medianMs,candidateCpuMs:cb.medianMs,
+            ratio,benchmarkSourceRows:cb.sourceRows,toModernMs:[a.toModernMs,b.toModernMs]}));
+          assert.ok(saved>=10,'Transient wire representations should remove >=10MiB from stable Worker JS');
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: soviet-contact-wire-paired-${{ github.sha }}
+          path: |
+            baseline/test-results/soviet-boundary-index-packed/
+            baseline/test-results/soviet-contact-wire/
+            candidate/test-results/soviet-boundary-index-packed/
+            candidate/test-results/soviet-contact-wire/
+          retention-days: 14
+          if-no-files-found: warn
