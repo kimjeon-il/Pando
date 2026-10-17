@@ -1,0 +1,62 @@
+name: Transient country contact wire 12-cycle stability and pan reuse
+on:
+  push:
+    branches: [work/perf-contact-wire-lifetime-20261017]
+    paths:
+      - '.github/workflows/soviet-contact-wire-long-cycle.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: transient-wire-long-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  repeat-soviet-modern:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 38
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: 12 real Soviet and modern transitions with stable Worker collection
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+          PANDOLAB_EXPECT_MAIN_SHA: ${{ github.sha }}
+        run: pnpm exec playwright test tests/browser/soviet-main-long-cycle.spec.mjs --workers=1 --retries=0 --trace off
+      - name: Enforce stable prepared Worker memory and no spurious autosaves
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          const data=JSON.parse(readFileSync('test-results/soviet-main-long-cycle/measurement.json','utf8'));
+          const s=data.summary;
+          assert.equal(data.cyclesCompleted,12);
+          assert.deepEqual(data.errors,[]);
+          assert.equal(data.initialAutosaves,data.finalAutosaves);
+          assert.ok(s.eligibleSettledModernReturns>=8);
+          assert.equal(s.comparisons.workerWasmMiB.first4Median,s.comparisons.workerWasmMiB.last4Median);
+          const first=s.comparisons.borderJsMiB.first4Median,last=s.comparisons.borderJsMiB.last4Median;
+          const idle=s.finalIdle.borderJsMiB;
+          console.log('SOVIET_TRANSIENT_WIRE_12CYCLE',JSON.stringify({first4: first,last4:last,final30s:idle,
+            chromiumPssMiB:s.finalIdle.pssMiB,wasmMiB:s.comparisons.workerWasmMiB.last4Median}));
+          assert.ok(last-first<20,'Stable cached country source must plateau across twelve returns');
+          assert.ok(idle<125,'Transient wire arrays must avoid permanent source cache retention');
+          NODE
+      - name: Pure pan reuses Stroke and polygon GPU buffers
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: pnpm exec playwright test tests/browser/performance-observability.spec.mjs --grep '1989 Soviet Union pan' --workers=1 --retries=0 --trace off
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: soviet-transient-wire-long-${{ github.sha }}
+          path: test-results/
+          retention-days: 14
+          if-no-files-found: warn
