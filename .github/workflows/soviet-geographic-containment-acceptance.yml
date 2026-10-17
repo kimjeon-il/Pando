@@ -1,0 +1,85 @@
+name: OBJ-098 geographic containment candidate CPU and edit acceptance
+on:
+  push:
+    branches: [work/perf-geographic-containment-index-20261018]
+    paths:
+      - '.github/workflows/soviet-geographic-containment-acceptance.yml'
+      - 'tests/cpp/obj098-geographic-containment.cpp'
+      - 'shared/core/src/geometrypredicates.cpp'
+      - 'tests/browser/soviet-real-edit-commit-cancel.spec.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: obj098-geocontainment-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  native-differential:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - run: sudo apt-get update && sudo apt-get install -y cmake ninja-build libz-dev
+      - name: Build single C++ core source of truth
+        run: |
+          cmake -S . -B build-native/obj098-core -G Ninja -DCMAKE_BUILD_TYPE=Release -DPANDO_BUILD_VARIANT=core -DBUILD_TESTING=OFF
+          cmake --build build-native/obj098-core --target pandoeditor_core --parallel 2
+      - name: Build old exact predicate oracle from OBJ-097 base without product source changes
+        run: |
+          mkdir -p /tmp/obj098
+          {
+            printf '#define geometryContains geometryContainsLegacy\n'
+            printf '#define geometrySignificantOverlap geometrySignificantOverlapLegacy\n'
+            printf '#define planarArea planarAreaLegacy\n'
+            printf '#define significantArea significantAreaLegacy\n'
+            git show 8df349b988a41073eed4641823ca20fbcfd69347:shared/core/src/geometrypredicates.cpp
+          } > /tmp/obj098/legacy-geometrypredicates.cpp
+          g++ -std=c++17 -O2 -Ishared/core/include -c /tmp/obj098/legacy-geometrypredicates.cpp -o /tmp/obj098/legacy.o
+          g++ -std=c++17 -O2 -DPANDO_OBJ098_LEGACY_COMPARE=1 -Ishared/core/include tests/cpp/obj098-geographic-containment.cpp /tmp/obj098/legacy.o build-native/obj098-core/shared/core/libpandoeditor_core.a -lz -o /tmp/obj098/differential
+      - name: Compare real C++ old/new geometryContains for seam, polar, holes and randomized cases
+        run: |
+          timeout 250 /tmp/obj098/differential | tee /tmp/obj098/result.txt
+          grep -F 'OBJ098_PARITY ' /tmp/obj098/result.txt
+          grep -F 'OBJ098_LARGE_GEOGRAPHIC_CONTAINMENT_MS' /tmp/obj098/result.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: obj098-native-parity-${{ github.sha }}
+          path: /tmp/obj098/result.txt
+          if-no-files-found: warn
+          retention-days: 14
+  actual-soviet-browser:
+    needs: native-differential
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - name: Verify the original (noninstrumented) pinned C++ WASM has been published by P2
+        run: |
+          pnpm install --frozen-lockfile --ignore-scripts
+          node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
+          node --check tests/browser/soviet-real-edit-commit-cancel.spec.mjs
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Complete actual 1989 Soviet draggable coast, preview discard, Core confirm, Undo-Redo-Undo and retained source refs
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: pnpm exec playwright test tests/browser/soviet-real-edit-commit-cancel.spec.mjs --workers=1 --retries=0 --trace off
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: obj098-soviet-edit-${{ github.sha }}
+          path: test-results/soviet-real-edit/
+          if-no-files-found: warn
+          retention-days: 14
