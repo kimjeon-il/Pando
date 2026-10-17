@@ -1,0 +1,77 @@
+name: OBJ-098 isolated candidate WASM Soviet editing and source ownership
+on:
+  push:
+    branches: [work/perf-geographic-containment-index-20261018]
+    paths:
+      - '.github/workflows/soviet-geographic-containment-local-wasm.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: obj098-soviet-local-wasm-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  real-soviet-acceptance:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 38
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+          run_install: false
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: 3.31.6
+      - run: sudo apt-get update && sudo apt-get install -y ninja-build
+      - uses: actions/checkout@v4
+        with:
+          repository: emscripten-core/emsdk
+          ref: e4fe26ef59168ff44f4c23c466e497bf60b3411e
+          path: build-native/emsdk
+          persist-credentials: false
+      - name: Build changed actual C++ WASM only in this runner, do not commit generated source
+        shell: bash
+        run: |
+          set -euo pipefail
+          build-native/emsdk/emsdk install 4.0.20
+          build-native/emsdk/emsdk activate 4.0.20
+          source build-native/emsdk/emsdk_env.sh
+          emcc --version | sed -n '1p' | grep -F 4.0.20
+          port_file=build-native/emsdk/upstream/emscripten/tools/ports/zlib.py
+          original='https://github.com/madler/zlib/archive/refs/tags/v{VERSION}.tar.gz'
+          canonical='https://codeload.github.com/madler/zlib/tar.gz/refs/tags/v{VERSION}'
+          grep -Fq "$original" "$port_file"
+          sed -i "s|$original|$canonical|" "$port_file"
+          node --input-type=module <<'NODE'
+          import {readFileSync,writeFileSync} from 'node:fs';
+          const file='build-native/emsdk/upstream/emscripten/tools/ports/__init__.py';
+          const input=readFileSync(file,'utf8');
+          const old="    ext = url_filename.split('.', 1)[1]";
+          if(input.split(old).length!==2)throw Error('Unexpected pinned Emscripten port loader');
+          writeFileSync(file,input.replace(old,
+            "    ext = 'tar.gz' if name == 'zlib' and url.startswith('https://codeload.github.com/madler/zlib/tar.gz/refs/tags/v') else url_filename.split('.', 1)[1]"));
+          NODE
+          emcmake cmake --preset pando-wasm
+          cmake --build --preset pando-wasm
+          node tools/package-shared-core-assets.mjs --build-dir build-native/p1/pando-wasm/shared/wasm
+          node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
+          echo "OBJ098_BUILT_SOURCE_MATCHED_LOCAL_WASM"
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Actual Soviet coastline drag, preview discard and Core confirmation, Undo and Redo
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: pnpm exec playwright test tests/browser/soviet-real-edit-commit-cancel.spec.mjs --workers=1 --retries=0 --trace off
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: obj098-real-soviet-local-wasm-${{ github.sha }}
+          path: test-results/soviet-real-edit/
+          if-no-files-found: warn
+          retention-days: 14
