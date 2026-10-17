@@ -1,6 +1,6 @@
 # OBJ-090 — 공유 국경선 렌더링 선분 지연 생성 및 Worker 메모리 A/B
 
-> 2026-10-17 · 상태: verified-focused-and-paired / long-cycle-pending · 지도 반영: not-applicable
+> 2026-10-17 · 상태: verified-web-paired-and-12cycle · 지도 반영: not-applicable
 > 변경 전 기준 제품: `main` `6b0c501dd09029ef237e90c1ef55fdb82bdf315f` (OBJ-089 packed source index 적용)
 > 변경 브랜치: `work/perf-renderable-on-demand-20261017` · 제품 변경: **3개 JavaScript 모듈**, 원본 GIS/역사 경계·C++/WASM 변경 없음
 > 실측: [동일 러너 A/B #39030467405](https://github.com/kimjeon-il/Pando/actions/runs/39030467405) · [지리/접촉/편집 집중 검증 #39030167527](https://github.com/kimjeon-il/Pando/actions/runs/39030167527)
@@ -71,9 +71,25 @@
 
 ## 4. 최종 장기 게이트 및 다음 조사
 
-[12회 소련↔현대 왕복과 단순 지도 이동 GPU 재사용 검사](https://github.com/kimjeon-il/Pando/actions/runs/39030316892)를
-별도 자동 게이트로 실행 중이다. 최종 결과가 나오면 현대 유휴 초반/후반 중앙값, 마지막 30초 유휴량,
-GPU Stroke 추적 버퍼 및 단순 pan/zoom 업로드 변화를 본 문서에 반영한다.
+[12회 소련↔현대 왕복과 단순 지도 이동 GPU 재사용 검사](https://github.com/kimjeon-il/Pando/actions/runs/39030316892) **전체 성공**.
+
+| 동일 세계 현대 복귀·Worker GC 후 지표 | 초반 4회 중앙값 | 후반 4회 중앙값 | 변화 |
+| --- | ---: | ---: | ---: |
+| 공유 국경선 Worker JS | 133.55MiB | 133.59MiB | +0.04MiB |
+| 전체 Worker JS | 188.18MiB | 188.28MiB | +0.10MiB |
+| 전체 Worker WASM 선형 | 403.50MiB | 403.50MiB | 0 |
+| GPU Stroke 앱 추적 버퍼 | 29.03MiB | 41.32MiB | +12.29MiB (이후 수렴) |
+
+현대 복귀 **12/12회**, 유휴 판정 **12/12회** 완료. 마지막 30초 유휴 후 공유 국경선 Worker
+**133.60MiB**, Chromium PSS **1,831.82MiB**. 페이지 오류 0건, 전체 자동저장 0회,
+미리보기 Worker 0개, 국경선 Worker WASM **57.63MiB** 유지였다.
+일부 회차에서는 시스템 전체 PSS가 1,970~1,999MiB까지 상승했다가 다음 회차에 내려갔으므로
+이를 독립적인 Worker JS 누수나 GPU VRAM 사용량으로 분류하지 않는다.
+
+같은 게이트에서 **1989년 소련 선택 후 카메라만 이동**시켰을 때 GPU Stroke buildCount **9→9**,
+GPU Stroke 업로드 **16,030,056→16,030,056바이트**, 폴리곤 GPU 빌드 **33→33**,
+공유 국경선 requestId **3→3**으로 불변이었다.
+즉 일반 pan에서 새 선분을 생성하거나 GPU로 재업로드하는 회귀는 관측되지 않았다.
 
 본 작업은 61MiB 렌더링용 선분 유지 영역을 정리했으며,
 다음 단계는 [OBJ-088](soviet-shared-border-retained-owners-2026-10-17.md)의
