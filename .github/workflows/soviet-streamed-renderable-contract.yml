@@ -1,0 +1,37 @@
+name: Soviet streamed outline retention and output parity
+on:
+  push:
+    branches: [work/perf-renderable-on-demand-20261017]
+    paths:
+      - '.github/workflows/soviet-streamed-renderable-contract.yml'
+      - 'assets/js/modules/geographic-boundary.js'
+      - 'assets/js/modules/boundary-topology.js'
+      - 'assets/js/modules/country-shared-boundary-packet.js'
+      - 'tests/unit/renderable-boundary-stream.test.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: soviet-streamed-boundary-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  stream-parity:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Verify compiled WASM source match and stream parity
+        run: |
+          node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
+          pnpm exec eslint assets/js/modules/geographic-boundary.js assets/js/modules/boundary-topology.js assets/js/modules/country-shared-boundary-packet.js tests/unit/renderable-boundary-stream.test.mjs
+          node --test tests/unit/renderable-boundary-stream.test.mjs
+      - name: Verify stateful country contacts, outline clipping and edits
+        run: |
+          node --test tests/unit/country-shared-boundary-state.test.mjs tests/unit/country-shared-boundary.test.mjs tests/unit/boundary-preparation.test.mjs tests/unit/country-contact-legacy-parity.test.mjs tests/unit/gis-math-contract.test.mjs
