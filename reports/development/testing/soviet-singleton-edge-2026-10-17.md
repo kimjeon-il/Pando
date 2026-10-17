@@ -1,6 +1,6 @@
 # OBJ-092 — 단일 접촉 공유 국경선 edge 레코드 압축
 
-> 날짜: 2026-10-17 · 상태: `verified-focused-paired-and-p2 / long-cycle-pending`
+> 날짜: 2026-10-17 · 상태: `verified-focused-paired-and-12cycle`
 > 제품 기준: `main 48fe06df9ec7ce47b4f0640d1f43817deb3a964a` (OBJ-090 + OBJ-091 계측 통합)
 > 코드 변경: `assets/js/modules/country-shared-boundary-packet.js` (공유 경계 Worker의 `edges` 관리), 국가/역사 지형 원본·C++/WASM 변경 없음
 > 근거: [OBJ-091 실측](soviet-retained-owner-graph-2026-10-17.md) · [단위/접촉 CI #39032938617](https://github.com/kimjeon-il/Pando/actions/runs/39032938617) · [같은 러너 메모리 A/B #39032861530](https://github.com/kimjeon-il/Pando/actions/runs/39032861530)
@@ -51,8 +51,31 @@ Worker JS 감소는 같은 환경 GC 후 비교한 결과이며 PSS 0.75MiB 차�
 여러 국가가 동일 edge에 기여하면 Map을 생성하고, 제거 시 남은 실제 출처 참조
 및 변경 없는 경계의 객체 identity를 보존하는지 확인했다.
 
-12회 시점 왕복, WebGL pan 추가 업로드 0 검증은
-[장기 CI #39032977889](https://github.com/kimjeon-il/Pando/actions/runs/39032977889)에서 실행 중이다.
+[12회 소련↔현대 장기 회귀 #39032977889](https://github.com/kimjeon-il/Pando/actions/runs/39032977889)
+**전체 성공**: 현대 복귀 12/12회 유휴 판정도 12/12회 통과,
+페이지 오류 0, 전체 자동저장 증가 0, 프로젝트 미리보기 Worker 0개.
+
+| Worker 현대 복귀 GC 지표 | 초반 4회 중앙값 | 후반 4회 중앙값 | 변화 |
+| --- | ---: | ---: | ---: |
+| 공유 국경선 Worker JS | 128.19MiB | 128.23MiB | +0.04MiB |
+| 전체 Worker JS | 182.84MiB | 182.91MiB | +0.07MiB |
+| 전체 Worker WASM 선형 | 403.5MiB | 403.5MiB | 0 |
+| GPU Stroke 앱 추적 버퍼 | 29.03MiB | 41.32MiB | +12.29MiB (이후 수렴) |
+
+12회 완료 후 추가 30초 유휴에서는 공유 국경선 Worker JS **127.54MiB**,
+Chromium 전체 PSS **1,851.64MiB**로 측정됐다. 12회 복귀 후 즉시 PSS 중앙값은
+1,968.71→1,998.09MiB 상승했지만 마지막 30초 유휴에 감소했으며,
+이를 Worker JS 누수나 GPU VRAM 증분으로 배정할 근거는 없다.
+
+별도 카메라 pan에서 Stroke `buildCount=9→9`,
+Stroke GPU 업로드 `16,030,056→16,030,056`바이트,
+폴리곤 GPU 빌드 `33→33`, 국경 requestId `3→3`을 확인했다.
+추가 선분 생성/업로드 0 계약이 유지됐다.
+
+일반 브라우저 CI가 파괴적 OBJ-091 진단 파일을 자동 선택한 사례는
+`PANDO_RETENTION_DIAGNOSTIC_ISOLATED=1`에서만 실행하고,
+그 외의 정상 제품 회귀에서는 `test.skip`하도록 수정했다.
+이것은 **제품 결함이 아니라 CI 범위 설정 문제**였다.
 [P2 소스 일치 생성물 #39033212558](https://github.com/kimjeon-il/Pando/actions/runs/39033212558) 성공:
 10개 지리·세계·메시·공유 국경선·장소·네이티브 출력 계열 지문이 원래 main과 모두 같았고,
 빌드 메타데이터만 새 JS 소스 버전으로 갱신됐다. C++/WASM 바이너리 해시는 변하지 않았다.
