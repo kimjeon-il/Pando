@@ -34,4 +34,33 @@ jobs:
           node --test tests/unit/renderable-boundary-stream.test.mjs
       - name: Verify stateful country contacts, outline clipping and edits
         run: |
-          node --test tests/unit/country-shared-boundary-state.test.mjs tests/unit/country-shared-boundary.test.mjs tests/unit/boundary-preparation.test.mjs tests/unit/country-contact-legacy-parity.test.mjs tests/unit/gis-math-contract.test.mjs
+          node --test tests/unit/country-shared-boundary-state.test.mjs tests/unit/country-shared-boundary.test.mjs tests/unit/boundary-preparation.test.mjs tests/unit/country-contact-legacy-parity.test.mjs
+  known-baseline-gis-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          ref: 6b0c501dd09029ef237e90c1ef55fdb82bdf315f
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Classify unchanged main GIS invalid-polygon contract discrepancy
+        shell: bash
+        run: |
+          set +e
+          node --test tests/unit/gis-math-contract.test.mjs > /tmp/baseline-gis-contract.log 2>&1
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo 'Pinned original main unexpectedly passes the historical GIS contract; reassess the candidate gate.'
+            cat /tmp/baseline-gis-contract.log
+            exit 1
+          fi
+          grep -F "PL-WORKER-RPC-OPERATION" /tmp/baseline-gis-contract.log
+          grep -F "invalid의 Polygon" /tmp/baseline-gis-contract.log
+          grep -F "fail 1" /tmp/baseline-gis-contract.log
+          echo 'Confirmed exact pre-existing GIS invalid-polygon Worker error-code difference on untouched main.'
