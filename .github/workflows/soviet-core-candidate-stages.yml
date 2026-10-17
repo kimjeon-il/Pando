@@ -1,0 +1,56 @@
+name: OBJ-097 isolated Soviet Core prepare stage attribution
+on:
+  push:
+    branches: [work/perf-core-candidate-diagnostics-20261018]
+    paths:
+      - '.github/workflows/soviet-core-candidate-stages.yml'
+      - 'scripts/research/instrument-core-candidate-stages.mjs'
+      - 'tests/browser/soviet-core-candidate-stages.spec.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: obj097-core-candidate-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  isolate-core:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 19
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - name: Install pinned dependencies, validate reusable C++ WASM, and lint unmodified diagnosis
+        run: |
+          pnpm install --frozen-lockfile --ignore-scripts
+          node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
+          node --check scripts/research/instrument-core-candidate-stages.mjs
+          node --check tests/browser/soviet-core-candidate-stages.spec.mjs
+          pnpm exec eslint scripts/research/instrument-core-candidate-stages.mjs tests/browser/soviet-core-candidate-stages.spec.mjs
+          git diff --exit-code -- assets/js/modules/core-document-client.js assets/js/modules/core-document-runtime.js assets/js/modules/core-worker-runtime.js
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Instrument ONLY this disposable checkout; extend solely test Core prepare RPC lifetime
+        env:
+          PANDO_CORE_CANDIDATE_DIAGNOSTIC_ISOLATED: '1'
+        run: |
+          node scripts/research/instrument-core-candidate-stages.mjs
+          node --check assets/js/modules/core-document-client.js
+          node --check assets/js/modules/core-document-runtime.js
+          node --check assets/js/modules/core-worker-runtime.js
+          git diff --name-only -- assets/js/modules
+      - name: Real Soviet coastal drag and Core prepare queue/WASM stage sampling
+        env:
+          PANDO_CORE_CANDIDATE_DIAGNOSTIC_ISOLATED: '1'
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: pnpm exec playwright test tests/browser/soviet-core-candidate-stages.spec.mjs --workers=1 --retries=0 --trace off
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: obj097-soviet-core-prepare-stages-${{ github.sha }}
+          path: test-results/soviet-core-candidate-stages/
+          if-no-files-found: warn
+          retention-days: 14
