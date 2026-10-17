@@ -1,6 +1,6 @@
 # OBJ-097 — 1989 소련 실제 경계 확정의 Core 후보 준비 지연 귀속
 
-> 기록: 2026-10-18 (KST) · 상태: `worker-vs-wasm-confirmed / native-cxx-function-breakdown-in-progress`
+> 기록: 2026-10-18 (KST) · 상태: `C++-applyWebTerritorialEdit-block-confirmed / nested-source-stage-running`
 > 조사 브랜치: `work/perf-core-candidate-diagnostics-20261018`
 > 기준 제품: `work/perf-soviet-edit-acceptance-20261017` (`OBJ-092~095` 포함)
 > 지도 원본·제품 JS/C++/WASM·`main` **영구 변경 없음**.
@@ -65,7 +65,36 @@ C++ `prepareBatch` + 응답 처리)에서 상당한 시간이 쓰인다.
 `semanticallyEqual`, `calculateChangeImpact`, WASM `typedRequest`
 중 가장 큰 부분. C++ 내부 함수의 CPU 시간은 별도 컴파일 계측 필요.
 
-## 4. 추가 심층 계측
+## 4. 첫 C++ 심층 결과: 정확한 차단 함수
+
+[Disposable compiled WASM run #39073158556](https://github.com/kimjeon-il/Pando/actions/runs/39073158556)는
+GitHub Actions 호스팅 Chromium에서 **실제 Soviet 정점 이동**
+`[132.404714,45.146496]`을 반복했다.
+배포된 제품 자산 대신 Emscripten 4.0.20 동일 도구체인으로
+진단 함수 타이머만 추가한 임시 WASM을 사용했다.
+
+| C++ 구간 | 계측 완료값 | 판정 |
+| --- | ---: | --- |
+| `binding.decodeJsTerritorialRequest` | **30.7ms** | 성공 |
+| `batch.typedRequest` (위 입력 해석 포함) | **31.5ms** | 성공 |
+| `request.validateRequest` | **0.6ms** | 성공 |
+| **`request.applyWebTerritorialEdit`** | **135초 추가 관찰에도 종료 신호 없음** | **차단 함수 확인** |
+| `request.semanticEqual`, `request.reconcileProvenance` | 미도달 | 원인으로 확인되지 않음 |
+| `request.validatedCandidateState`, `batch.finalChangeImpact` | 미도달 | 원인으로 확인되지 않음 |
+
+이 결과는 입력 역직렬화(약 31ms)와 일반 명령 validation(0.6ms)이
+기존 30초 초과의 원인이 아님을 구분한다.
+`applyWebTerritorialEdit()` **내부**의 활성 세계 투영,
+현재월 source row 병합, 지오메트리 버전/타임라인 바인딩 처리,
+정규화·부모 포함관계 검사 중 어느 것이 느린지는
+아직 이 실행만으로 구분할 수 없다.
+
+이 결과가 수집된 테스트는 초과 관측 조건을 만족하지 못해 **실패 종료**했다.
+실제 변경 확정·Undo/Redo가 완료됐다고 해석하면 안 된다.
+
+## 5. 추가 심층 계측 — C++ 함수 내부 단계
+
+
 
 [OBJ-097 isolated compiled C++ profiling workflow](https://github.com/kimjeon-il/Pando/actions/workflows/soviet-core-candidate-cpp.yml)는
 출시 자산과 분리된 임시 Emscripten 4.0.20 빌드에서 함수별 경과시간을 기록한다.
@@ -78,7 +107,7 @@ C++ `prepareBatch` + 응답 처리)에서 상당한 시간이 쓰인다.
 세부 `applyWebTerritorialEdit`/의미 비교/후보 검증,
 최종 문서 검증, `calculateChangeImpact`, WASM 반환 변환.
 
-## 5. 추후 개선 판단 기준
+## 6. 추후 개선 판단 기준
 
 - 가장 긴 C++ 단계의 **실측**을 먼저 확보한다.
 - 원본 프로젝트 수정 전에는 C++ 정본의 의미·역사 타임라인·
