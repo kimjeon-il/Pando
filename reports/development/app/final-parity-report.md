@@ -1,66 +1,9 @@
-# M7.7 migration release gate — open
+# 2026-09-27 M7.7 이행 릴리스 게이트 기록
 
-> 보고서 ID: `DEV-029` · 상태: `historical-record` · 지도 반영: `not-applicable` · 색인일: 2026-10-12  
-> 원문 최종 수정: 2026-09-27  
-> 원본: [앱 `docs/final-parity-report.md`](https://github.com/kimjeon-il/PandoEditor/blob/f535673993f45957b82d125ff766ed1e18233170/docs/final-parity-report.md)  
+> ID: `DEV-029` · 과거 기록 · 작성 당시: 2026-09-27 · 현재 코드 재검증 아님
 
+- 웹↔구 Qt 앱 마이그레이션의 M3~M7, 저장 및 cross-cutting 소스 핀/드리프트 점검으로, 당시 `M7.7 release gate`는 **open**이었다.
+- 검사 대상 각 분야의 Windows/Android/전체 Oracle 결과는 `NOT RUN` 또는 `REVIEW`로 표시됐으며 단위 검사나 계약 파일 존재를 전체 동등성으로 판정하지 않았다.
+- 전체 CTest·sanitizer·실기기·리소스 패키징·성능 수용 기준은 미실행이었고, 해당 시점 `integration` 브랜치는 미병합이었다. 현재 통합본의 상태를 나타내는 문서는 아니다.
 
-Observed on 2026-09-26: `git ls-remote` reported
-`world-map/main@c0bd31d13dc8495593d78cf51f7cc195de7c9469`.
-This equals the M7.1–M7.5 pinned web commit. The M3/M4 baselines predate it;
-`docs/parity-manifest.json` records every changed path and original/head blob
-for the selected contract files. PandoEditor feature HEAD at the freeze was
-`7841cffc53c2044387075300df567327cecac752`; its private `main` identity
-could not be observed from this worktree.
-
-| Area | Web baseline | Drift status | Qt/Oracle | Windows | Android |
-|---|---|---|---|---|---|
-| M3 selection, properties, structure, presentation, interaction | 58e4087f | REVIEW; changed source/UI paths | NOT RUN; M3.5 standalone web/native Oracle missing | NOT RUN | NOT RUN |
-| M4 geometry | 58e4087f | REVIEW; country geometry and reference image paths changed | NOT RUN | NOT RUN | NOT RUN |
-| M5 content, hydro, display | c0bd31d1 | No newer web commit | NOT RUN | NOT RUN | NOT RUN |
-| M6 history and GIS | c0bd31d1 | No newer web commit | NOT RUN | NOT RUN | NOT RUN |
-| M7 projection, renderer, full world, quality, edit | c0bd31d1 | No newer web commit | NOT RUN; M7.3–M7.6 gate evidence missing | NOT RUN | NOT RUN |
-| Storage and cross-cutting UI/runtime | 58e4087f | REVIEW | NOT RUN | NOT RUN | NOT RUN |
-
-`REVIEW` means changed upstream files await behavior assessment. It is not a
-declaration that Qt is wrong or synchronized. A previous Oracle against its
-older pinned source cannot close the current-web drift by itself. The source
-classifier deliberately puts mixed application/bootstrap paths in the
-`crossCutting` bucket for explicit review. Any behavior change found there
-must be ported or listed as a known, approved difference before release.
-
-## Evidence tooling
-
-- `tools/check-upstream-drift.mjs` freezes the remote HEAD and classifies
-  changes from each domain baseline. It requires a local Git checkout of
-  world-map for preparation; committed `docs/parity-manifest.json` is
-  self-contained.
-- `tools/run-final-oracles.mjs` reports each registered CTest differential
-  suite with source SHA. Missing suites are `skipped`, not passed.
-- `tools/verify-release-assets.mjs` checks committed world data, corpus,
-  shaders, flags and licenses in the source tree. Windows deployed folders
-  and Android APK/AAB resources require separate physical package inspection.
-- `tools/collect-render-metrics.mjs` reduces actual device frame samples
-  without an invented frame or memory threshold.
-- `tools/evaluate-release-gate.mjs` reports all blockers in JSON and cannot
-  return PASS while drift review, fresh CTest, Release smoke, ASan/UBSan,
-  skipped Oracles, physical device evidence, deployed package checks or
-  accepted performance budgets are missing.
-
-## Known implementation boundaries
-
-- M7.3 GPU/CPU pixel, scene graph lifetime and physical backend evidence
-  remains open. Built-in hydro can still select the CPU fallback.
-- M7.4 terrain/hydro physical packages are optional and must report
-  unavailable explicitly; their packaging and access are unverified.
-- M7.5 progressive upload can expose partial new scenes; atomic visual
-  promotion is not established.
-- M7.6 large-world cross-domain edit, Undo/Redo, save/reopen and failure
-  injection have not been exercised. CPU fallback may rebuild projection;
-  incremental spatial publication stages the grid map.
-
-This report does **not** declare the web-to-Qt migration complete. Full CTest,
-sanitizers, final Oracles, release assets in deployed packages, measured
-budgets, visible Windows and physical Android validation are NOT RUN in this
-session, as requested for later Codex verification. `integration` remains
-unmerged.
+**원문·검증 세부 증거:** [정리 전 고정 Git 원문](https://github.com/kimjeon-il/Pando/blob/dfc44c909a02727b7c606215db7dacd2c83919ec/reports/development/app/final-parity-report.md). 이전 자료와의 비교는 고정 커밋 기준이며, 현재 기능·배포의 통과 판정을 대체하지 않는다.

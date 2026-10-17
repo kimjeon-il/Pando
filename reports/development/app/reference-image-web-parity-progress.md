@@ -1,64 +1,15 @@
 # Reference image web parity implementation ledger
 
-> 보고서 ID: `DEV-056` · 상태: `historical-record` · 지도 반영: `not-applicable` · 색인일: 2026-10-12  
-> 원문 최종 수정: 2026-10-08  
-> 원본: [앱 `docs/reference-image-web-parity-progress.md`](https://github.com/kimjeon-il/PandoEditor/blob/f535673993f45957b82d125ff766ed1e18233170/docs/reference-image-web-parity-progress.md)  
+> 보고서 ID: `DEV-056` · 상태: `historical-record` · 지도 반영: `not-applicable` · 당시 최종 수정: 2026-10-08
 
+## 당시 결론과 남은 제약
 
-App base: 3934077519bb716cbb45b683bbb63d85dcc8d5ee
-Web pin: ebcfae4d27b29cbbea6416a7045a4806930204be
+- 참조 이미지 보정, corner pin, Live Wire, 선 개선, 배치 설정, 정점 키 이동, Space 임시 pan의 7단계 구현 경과 기록.
+- Qt/JSEngine 호환 변환과 입력 라우팅의 RED→수정 과정에서 기존 실패를 보존했고, Windows 실제 창의 Space pan 기능 검사도 개별 성공으로 기록했다.
+- 후속 독립 감사에서는 UV 반전·warping 제약·Redo/history·중복 입력 모드 등 6개 중대한 이슈가 추가로 지적됐다. 과거 단계별 PASS를 전체 기능 parity 승인으로 간주하지 않는다.
 
-Approved sequence: 1 calibration UI; 2 corner pin/anchor; 3 live wire; 4 line refinement; 5 placement controls; 6 vertex keyboard movement; 7 Space pan.
+## 원본·재현 정보
 
-Ruling: Vendor exact pure Web modules with provenance and execute with Qt QJSEngine (already supplied by Qt Quick), rather than maintain a divergent second geographic solver. Native storage/UI remain canonical. The existing pixel-only warp supports existing placement records.
-Preflight: tasks 1/2 share normalized geographic mapping; tasks 3/4 consume that mapping and one revision-guarded draft interface; tasks 6/7 use existing map projection/input ownership.
-Tests remain focused as explicitly requested; no full CTest or M9.8 run.
-Task 1: in progress. Geographic calibration RED test added; execution pending.
+- [축약 전 보고서·테스트 명령·모든 근거 (고정 Git 커밋)](https://github.com/kimjeon-il/Pando/blob/6b0c501dd09029ef237e90c1ef55fdb82bdf315f/reports/development/app/reference-image-web-parity-progress.md)
 
-Task 1 evidence so far: reference_image_tests baseline/new RED: 8 passed, 1 failed (missing calibration API), then session RED: 8 passed, 2 failed. After JSON-to-JS array conversion and session implementation: 10 passed, 0 failed, 0 skipped; D:/build/reference-parity-session-green.txt. Actual window verification pending.
-Ruling: Qt 6.8 QJSEngine cannot parse object spread. Original Web module remains byte-identical; esbuild 0.25.10 produces a checked-in ES2016 runtime bundle. Qt and Node compare identical fixed-source cases. No browser APIs or network are exposed to the runtime.
-Ruling: Existing pixel calibration records remain untouched in controlPoints; new normalized geographic records use geographicPoints. This preserves existing local image data without changing project/GIS schemas.
-
-Task 1 expanded RED: 11 passed, 1 failed; failedUndoKeepsTheHistoryEntry reproduced history consumption on failed save. Native fixed-Web corpus (7 cases) passed. First actual-window run failed (missing test flag resources and popup item lookup); flags added without suppressing warnings; rerun pending.
-
-Task 1: complete. Native Qt rows12 passed/0 failed/0 skipped (10 functional slots); fixed Web corpus7 processed/0 mismatch. Final Windows D3D11 geographicCalibrationActualWindowFlow PASS (actual image/map clicks, Undo/Redo and calibrated red framebuffer pixel), menu regression desktop-1100 PASS. Initial menu assertion8 was updated to9 for the new explicit calibration action; prior action indexes and safety checks retained. Logs: D:/build/reference-parity-stage1-native.txt, reference-parity-stage1-window.txt (calibration PASS/menu expected-count FAIL), reference-parity-stage1-menu.txt (corrected menu PASS). Production changes were identical between final calibration and corrected-menu runs; only test expectation changed.
-Task 2: not started; tasks3–7: not started.
-
-Task 2 RED: missing setCornerQuad interface. Initial implementation13 Qt rows passed; stronger Web mode assertion then reproduced empty native anchor object treated as a real anchor (TPS instead of projective). D:/build/reference-stage2-mode-red.txt. Absent native anchor is now null. The actual corner/anchor window test is added. Project replacement cancellation observes instance value changes rather than every generic stateChanged notification.
-
-Task 2: complete. Native14 Qt rows passed/0 failed/0 skipped. Normal anchor translates the placement quad without enabling corner pin; corner-pin plus points/anchor uses the pinned TPS hard constraints. Degenerate/crossed quads reject without publication; gesture cancellation and reopen preserve quad/anchor. Windows D3D11 cornerPinAndAnchorActualWindowFlow:3 Qt rows passed/0 failed/0 skipped, actual corner drag→Undo/Redo→anchor click→globe frame. Logs D:/build/reference-stage2-normal-native.txt and reference-stage2-window-final.txt. First window run failed because helper functions were inside the background item rather than MapView; helpers moved to the correct owner and the same route reran. Source manifest2 Git blobs verified.
-Task 3: next; tasks4–7 not started.
-
-Task 3 RED: missing beginTrace production session,2 passed/1 failed. D:/build/reference-stage3-red.txt. Implementation uses original pinned Live Wire code in worker-owned QJSEngine and session/request guards; fixed-source expectation3 cases recorded before native execution. Build and focused tests pending.
-
-Task 3 first native run14 passed/2 failed, invalid-gradient-field. Cause: QList append overload flattened each UV pair into scalar elements at the native/JS boundary. Explicit QVariant pair ownership added; fixed-Web expected remains unchanged.
-
-Task 3 complete: reference-stage3-final-native.txt16 Qt rows passed/0 failed/0 skipped;7 calibration plus3 Live Wire fixed-Web cases processed/0 mismatch. Windows D3D11 reference-stage3-final-window.txt3 Qt rows passed/0 failed/0 skipped: actual map anchors, last anchor Undo, finish, apply, draft Undo/Redo, stale request rejection, cancel during worker, existing preview→confirm→project Undo. Earlier window run failed on an undefined calibration binding; guarded absent session state (no warning suppression). Pinned source mapping is reused, tracing requires ready calibration or corner pin exactly as Web. Four original Git blobs verified.
-
-Task 4 RED:2 Qt rows passed/1 failed, missing beginRefine session, D:/build/reference-stage4-red.txt. The original Web gradient/refiner functions and fixed expected3 cases are connected to the same revision guarded worker. Current draft is inverse mapped through the displayed mesh before calculation; apply alone mutates the draft.
-
-Task 4 complete: D:/build/reference-stage4-final-native.txt3 Qt rows passed/0 failed/0 skipped (3 fixed-Web refiner cases,0 mismatch, plus damaged image rejection). Windows D3D11 reference-stage4-final-window.txt3 Qt rows passed/0 failed/0 skipped: current draft→image pixels→refiner→geographic preview; cancel leaves draft untouched; apply has one draft Undo; project replacement cancels stale worker. Initial UI test tried to replace a project while content editing remained active, correctly rejected by existing open guard; revised test verifies that refusal is atomic, then follows explicit content cancellation before replacing. Five original Git blobs verified.
-
-Task 5 RED:2 passed/1 failed, imported opacity1 differs from pinned Web0.55; D:/build/reference-stage5-red.txt. Existing stored opacity is preserved. Rotation/reset call pinned production transform with the real native map host; flips follow Web GCP/anchor restrictions. Lock is excluded from placement history and blocks Undo/Redo. Completes both image-end and map-end GCP reposition UI.
-
-Task 5 stronger RED: historyNeverRestoresAnOldLock reproduced obsolete lock restoration when importing a second image while another was locked.2 passed/1 failed, D:/build/reference-stage5-lock-red.txt. Undo/Redo now carry current per-ID lock flags, matching Web. First general native run18 passed/0 failures and first window placement flow passed; final tests below strengthen asymmetric framebuffer and failed flip save coverage.
-
-Task 5 complete: D:/build/reference-stage5-final-native.txt5 Qt rows passed/0 failed/0 skipped (default55%, flip restrictions, per-ID lock preservation, failed flip/Undo save with intact history). Windows D3D11 reference-stage5-final-window.txt3 rows passed/0 failed/0 skipped: asymmetric white/black framebuffer flip, numeric35.5deg keyboard input, independent rotated corner screen coordinates, Web62% default reset dimensions, native reopen, lock guard, project bytes/Undo unchanged. Earlier native full focused executable18 rows passed; the three affected native slots reran after lock fix.
-
-Task 6 RED: actual Windows selected vertex did not move on ArrowRight (0px versus1px),2 rows passed/1 failed, D:/build/reference-stage6-red.txt. Native nudge uses current affine screen adapter and existing draft mutation; native focus/modal inspection blocks keyboard actions without creating QML draft data.
-
-Task 6 expanded screen oracle found an integration defect in tasks3/4: GeometryEditSession stores geographic coordinates, not projected overlay coordinates. The round-trip-only draft tests missed double projection. Diagnostic arrow delta6391px/8786.25px (D:/build/reference-stage6-diagnostic.txt). Reference draft export/import now preserves raw lon/lat; nudge projects the stored point once. Added independent actual draft-screen versus image-preview-screen comparisons to both task3/4 flows. Prior task3/4 tests are insufficient evidence for final coordinate placement; affected Windows flows will rerun.
-
-Task 6 test setup corrections: keep the selected vertex visible after zoom; a completely unchanged country draft correctly rejects no-op preview. The preview guard test now makes one real key edit before requesting preview, checks the nudge rejection, cancels preview and compares the retained draft. No production preview acceptance rule weakened. Reference sessions also include project revision and base-currentness.
-
-Task 6 complete: D:/build/reference-stage6-valid-preview-window.txt3 Qt rows passed/0 failed/0 skipped. Actual ArrowRight1px, ShiftUp10px, Undo, changed camera, text focus, visible unsaved modal, tracing calculation and formal preview guards. Related task3/4 flows reran on identical corrected production code with explicit displayed draft-versus-preview coordinates: reference-stage6-guards-window.txt both PASS (combined run4 passed/1 failed solely on old no-op keyboard preview setup). Final all-feature Windows pass still pending after task7/review.
-
-Task 7 RED: Space did not enable temporary pan in an actual edit window,2 passed/1 failed; D:/build/reference-stage7-red.txt. Temporary pointer routing is local view state only. It retains pointer ownership through release so key-up during a drag cannot append a draft point; focus/window/pointer cancellation clears the routing and camera interaction.
-
-Task 7 complete: D:/build/reference-stage7-window.txt3 Qt rows passed/0 failed/0 skipped, process exit0. Actual Windows D3D11: Space drag moves camera only, key-up during drag does not append a point, normal editing resumes, text focus/window deactivation/touch cancellation release pan. Image GCP/corner pointer handlers additionally suspend while temporary pan owns routing. Final full focused verification pending below.
-
-Independent review of 024ac632 found six Important integration issues: mirrored calibrated UV after placement flip; loss of displayed warp after constraint removal; hidden line Redo; stale line history across method/source reset; competing trace/calibration input modes; partial state mutation on rejected mixed gesture. RED logs D:/build/reference-review-gesture-red.txt (2 pass/1 fail), reference-review-line-red.txt (2 pass/1 fail), reference-review-mapping-red.txt (2 pass/2 fail). Candidate-state mutation, pinned warp-corner preservation, raw calibrated UV, mode cancellation and line-history publication/reset are corrected without changing the five original Git blobs or frozen expected corpus. Final corrected verification pending.
-
-Corrective focused execution: native4 slots/6 Qt rows passed,0 failed/skip, exit0 (reference-review-native-green.txt); Windows line-history1 slot/3 rows passed,0 failed/skip, exit0 (reference-review-line-green.txt). Reviewer reinspection confirms all six Important issues resolved, no remaining Critical/Important static finding. Test additionally retains pending Redo across method reset for final run. Reviewer withdrew the claimed new blend regression: baseline paints composition in its own transparent backing and geographic baseline uses normal material; non-normal map-frame blend parity remains unsupported/unverified. Large-image browser/Qt resampling and ICC, detailed seam/horizon visual fidelity and responsiveness remain unmeasured; no completion claim for those.
-
-FINAL verification of code184fccbc21995893ad4d1bd86592ca43cd227f08 against fixed Webebcfae4d27b29cbbea6416a7045a4806930204be: production pandoeditor + focused test builds exit0; native20 discovered functional slots/22 Qt rows PASS,0 failed/skip (37216ms); actual Windows selected9 functions/11 Qt rows PASS,0 failed/skip/missing (201887ms), including all7 approved flows and pending-Redo reset/menu regressions. Five pinned original files/13 frozen cases verified,0 mismatch, each exit0. Final raw evidence, binary/fixture hashes, reproduction commands and explicit NOT RUN/unsupported limits are in reference-image-web-parity-validation.md and docs/evidence/reference-image-web-parity. No full CTest/M9.8, main merge/deploy/packaging. Further commit contains documentation/evidence only.
+- 새 빌드/검증을 실행하지 않았으며 당시의 지표를 현재 동작의 근거로 대체하지 않는다.
