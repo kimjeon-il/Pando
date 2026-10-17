@@ -2,7 +2,7 @@ name: P2 Source-matched generated artifacts
 # Objects synchronization temporarily uses a guarded integration branch for matched WASM and data assets.
 on:
   push:
-    branches: [work/ui, work/objects, work/gis, work/places, work/integration-objects-20261017]
+    branches: ['work/**']
     paths:
       - 'shared/**'
       - 'assets/**'
