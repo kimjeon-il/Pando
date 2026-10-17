@@ -43,10 +43,12 @@ Windows의 Rust 저장·명령 계약 검증 및 Android APK **빌드**는 완�
 - 새 정본 모듈을 `index.html` 버전 고정 import map에 추가함.
   `91b6380` 변경으로 Linux 통합 계약 테스트
   [38879199833](https://github.com/kimjeon-il/Pando/actions/runs/38879199833) 성공.
-- 이 시점에는 변경 후 Windows WebView CI
-  [38879199695](https://github.com/kimjeon-il/Pando/actions/runs/38879199695) 결과 확인 중이다.
-  따라서 **부하 감소와 초기 로딩 시간 단축을 실측했다고 주장하지 않는다.**
-  물리 리소스 유휴 시작의 표시 성공·레이어별 정본 픽셀 동등성·RAM/VRAM·앱 재개 성능은 미검증이다.
+- 변경 후 Windows WebView CI
+  [38879199695](https://github.com/kimjeon-il/Pando/actions/runs/38879199695)에서 실행 검증을 통과했다.
+  당시에는 물리 로딩 순서 변경의 성능 효과를 확정할 수 없었으나,
+  이후 [38917373538](https://github.com/kimjeon-il/Pando/actions/runs/38917373538)의
+  동일 러너 A/B 실측으로 **초기화 시간 감소**를 재현했다.
+  개별 물리 레이어의 픽셀 정확도·GPU VRAM·앱 재개 성능은 별도 검증 대상이다.
 
 ## 2-3F Windows A/B 실측 결과 — 동일 러너 비교 (2026-10-16)
 
