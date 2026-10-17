@@ -1106,18 +1106,18 @@
       "sourceSha": "0ca968e5adbb0f54250dd82320ce9f8dc138b5e0"
     },
     "shared-boundaries": {
-      "inputFingerprint": "cccb78cf68695a3fdffe38157c8113a623b7d287952a27cf25f24a1d06db1210",
+      "inputFingerprint": "7b3ccfdbb2a8a15910c07ad887bc8bfbef2da95036890b3dede754526338a702",
       "outputFingerprint": "2cae0566d314fece8cc0fd01115db6e27cb8b17e9acabb2bfa9e8895b059a9da",
       "inputs": {},
       "generatorHashes": {
         "assets/js/modules/boundary-spatial-index.js": "9fe554b8c32276fe9aa5d11416ef052531e280b59f199f468488b2940f23bbee",
-        "assets/js/modules/boundary-topology.js": "4dd10bc6b73dc5f786932582dfe3abec93106743386604ca5fcfa1156818db69",
+        "assets/js/modules/boundary-topology.js": "39e6d570189d9d0070c584ffe48f4060fbb8b8e64295eef47384ce9a567e1c00",
         "assets/js/modules/builtin-subunits.js": "1681be766cc7179185cf897e19299aa458a14adbc28ffcd9202e41346fa02673",
         "assets/js/modules/builtin-territory-policy.js": "ca5d8cb2fdcc4c7797bc9f114082f7824bcac630a4109b4fe0678fa9643e5dd7",
         "assets/js/modules/core-wasm-loader.js": "3c3dcfe789c2ead4f97e87c69c016e7ad9f040552d759ec81bc6a309f398a484",
         "assets/js/modules/country-contact-core.js": "45ab7450daf84b5abf8ef3bfb42f29858974326147631ca6d1d96172c6753137",
         "assets/js/modules/country-shared-boundary-cache.js": "f4d0d32a5b2a6f22df0cc2652c2cbccb6ee3cb89311f91a04039d37bd394c250",
-        "assets/js/modules/geographic-boundary.js": "fc73a5adb7f085d8ececc2ac2a6a2ac83933bb8760f73fa614512ea63966cb29",
+        "assets/js/modules/geographic-boundary.js": "1f50db80d5981741233389248921c823343a60d03b59a987185c51fed4cbd9b3",
         "assets/js/modules/polygon-geometry.js": "e616c354e4ed58d3559564d3c39434d0ca701d9c2d6e88d28d57e1f159fa0f3e",
         "assets/js/modules/temporal.js": "ca5a04a919bc511de7f4ca10f5b2bee6c9b93eafd904cfa18e03a0c456ab1e33",
         "assets/js/modules/territorial-edit-plan.js": "290c3b01d3c4318c560706d49e58a88157339b4060ef145a8758fd2bef2f5f47",
@@ -1149,7 +1149,7 @@
           "--check"
         ]
       ],
-      "sourceSha": "e42cd616a7ee0bb7b62cf305e22c32c7de4d3b4e"
+      "sourceSha": "493f842e56360872e7befe20dffddd0d6dc2e2a6"
     },
     "prepared-mesh": {
       "inputFingerprint": "e2517f620774f1f3def4549cc12a60d5524e1591a72f0e3c0745a1415a532277",
@@ -1950,8 +1950,8 @@
       "sourceSha": "48fb3c908f38a1d01eb2a682e9b64550258f6d02"
     },
     "build-metadata": {
-      "inputFingerprint": "35fedcb96c6232d62625935cf95b129a5b5e8b5b6e9e98979ab8003c76361ee1",
-      "outputFingerprint": "bd7d7648d1ffd2741f1f95d92193abc511c7f5eeaae5e73844ed4c8fd912db58",
+      "inputFingerprint": "2fac77a24f23653aa076e5e3915bd79c735f1d729f7e81fa148f8b9f35a58b19",
+      "outputFingerprint": "c92e0821d9bf9d50a18c5cbafc8f9414e46cb7bed0c8fe0d7506ae485cb0d183",
       "inputs": {
         "assets/js/app.js": "96dfad126802a4ccf74f83c8d2b52295ebde7deb8113275a01920de895818303",
         "assets/js/bootstrap.js": "45a53c9fdcbbdd914c7ed930569b8da7542b872a1ec3de6e8ed78c4bd57b81a8",
@@ -2039,7 +2039,7 @@
         "assets/js/modules/boundary-lines.js": "3ce20f207c206113af10b175fb64050923f97f08e047ed23164cd9cf6d55be6d",
         "assets/js/modules/boundary-preparation.js": "b320b6a4a2c431953001febed385397708c891160d58e08c79c86e7517e2b5ca",
         "assets/js/modules/boundary-spatial-index.js": "9fe554b8c32276fe9aa5d11416ef052531e280b59f199f468488b2940f23bbee",
-        "assets/js/modules/boundary-topology.js": "4dd10bc6b73dc5f786932582dfe3abec93106743386604ca5fcfa1156818db69",
+        "assets/js/modules/boundary-topology.js": "39e6d570189d9d0070c584ffe48f4060fbb8b8e64295eef47384ce9a567e1c00",
         "assets/js/modules/browser-project-storage.js": "9d2d65a621ff8b0277fa107d91cc52237b5c7c9f587bc36610d7e767c80b06aa",
         "assets/js/modules/builtin-mesh-resource.js": "6bb159a94c44de2f35999e45f57483188f4b71f0899168f9901993f428000150",
         "assets/js/modules/builtin-subunits.js": "1681be766cc7179185cf897e19299aa458a14adbc28ffcd9202e41346fa02673",
@@ -2067,7 +2067,7 @@
         "assets/js/modules/country-mesh-quality-gate.js": "5310754e3c2679fb0e157829993bac191652fb279975c3dc65642952da10ad8c",
         "assets/js/modules/country-mesh-zoom-policy.js": "40fbaf0fecf8045157673889af674a19ecc21e02e7cebff88a53539cac1a39a3",
         "assets/js/modules/country-shared-boundary-cache.js": "f4d0d32a5b2a6f22df0cc2652c2cbccb6ee3cb89311f91a04039d37bd394c250",
-        "assets/js/modules/country-shared-boundary-packet.js": "693c18251dc6ca7f586861767f2910123a730be1b09b5e9fe9304b4c88c6ab57",
+        "assets/js/modules/country-shared-boundary-packet.js": "e2cd63a29a6e68b5616698df8caca47bf9bd2cea5987340bc1ee976912254fb1",
         "assets/js/modules/country-stroke-preparation.js": "99202e94f05813adf416cb76855df5c1335614f8add6f656807eba35c7279567",
         "assets/js/modules/custom-color-control.js": "13ab4bea9f9a78daf61fe16092a05a537cfa6bb0ae975dc80658db908bc7ff0e",
         "assets/js/modules/cut-preparation-cache.js": "38278991e38a0976e0337d805a0d44a611e453d80c2e91f8cb47780f8e8d1a11",
@@ -2086,7 +2086,7 @@
         "assets/js/modules/exchange-adapter-registry.js": "8415d2eb4680bf13e6130d81d60ba01bad9eedbc344801b06c81c47304778a66",
         "assets/js/modules/feedback-controller.js": "1763f5670d8acaf662e2e4b52553d966058fbd574cdf50a65c5cf32d61a21d13",
         "assets/js/modules/generic-feature-service.js": "b19c86b4756156d3695fcc9bce28abcc378a0931a9011bfc607f330f9d309a44",
-        "assets/js/modules/geographic-boundary.js": "fc73a5adb7f085d8ececc2ac2a6a2ac83933bb8760f73fa614512ea63966cb29",
+        "assets/js/modules/geographic-boundary.js": "1f50db80d5981741233389248921c823343a60d03b59a987185c51fed4cbd9b3",
         "assets/js/modules/geometry-metrics.js": "52b60e92cd70189dfd6a305fe288356943c315967b89f32a6d5a75ef949169f2",
         "assets/js/modules/geometry-preview.js": "c2dc482a2f3aeb28af0c53416046349cd1e25b112d33487d4ccd4a86a5c5cda6",
         "assets/js/modules/geometry-segment-index.js": "63680763f49fd03345b1503a135f17c8b66b538673d040dacd69f6a6b648aeb1",
@@ -2327,8 +2327,8 @@
       },
       "outputs": {
         "README.md": "8a9d40362af110dde1e0382da8686c873fe0a0a1fdbc499313517d33922f570a",
-        "assets/js/build-meta.js": "56e56a025799800796a8785cd0f900a5da424218d0dc73bd3ccc8cf04d7a143f",
-        "index.html": "f7778596da36da9943b5245c15ba5e29999dce81f8b85646cfaa8c0636f5d705"
+        "assets/js/build-meta.js": "f072a1cde4139d13e2176130712e65803d113da379c7ba47efe491915e542abe",
+        "index.html": "633ae8eff526a2a3304d397d2daf62b99a83bebecbdda1cef812e6f6a2b77c9b"
       },
       "consumers": [
         "assets/js/bootstrap.js",
@@ -2343,7 +2343,7 @@
           "--check"
         ]
       ],
-      "sourceSha": "e42cd616a7ee0bb7b62cf305e22c32c7de4d3b4e"
+      "sourceSha": "493f842e56360872e7befe20dffddd0d6dc2e2a6"
     }
   }
 }

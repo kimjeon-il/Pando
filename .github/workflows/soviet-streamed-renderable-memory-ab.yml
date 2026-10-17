@@ -1,0 +1,106 @@
+name: Soviet on-demand renderable memory paired A/B
+on:
+  push:
+    branches: [work/perf-renderable-on-demand-20261017]
+    paths:
+      - '.github/workflows/soviet-streamed-renderable-memory-ab.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: soviet-renderable-pair-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  paired-current-worker:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 32
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: candidate
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          path: baseline
+          ref: 6b0c501dd09029ef237e90c1ef55fdb82bdf315f
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: candidate/.nvmrc
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+          run_install: false
+      - name: Install pinned dependencies and Chromium once
+        run: |
+          (cd baseline && pnpm install --frozen-lockfile --ignore-scripts)
+          (cd candidate && pnpm install --frozen-lockfile --ignore-scripts)
+          (cd candidate && pnpm exec playwright install --with-deps chromium)
+      - name: Pinned main before on-demand outlines
+        env:
+          PANDOLAB_INDEX_VARIANT: packed
+          PANDOLAB_EXPECT_COMMIT: 6b0c501dd09029ef237e90c1ef55fdb82bdf315f
+          PANDOLAB_BROWSER_CHANNEL: chromium
+          PANDOLAB_TEST_PORT: '4191'
+        run: |
+          cd baseline
+          pnpm exec playwright test tests/browser/soviet-boundary-index-packed-memory.spec.mjs --workers=1 --retries=0 --trace off
+      - name: Candidate source with on-demand outlines
+        env:
+          PANDOLAB_INDEX_VARIANT: packed
+          PANDOLAB_EXPECT_COMMIT: ${{ github.sha }}
+          PANDOLAB_BROWSER_CHANNEL: chromium
+          PANDOLAB_TEST_PORT: '4192'
+        run: |
+          cd candidate
+          pnpm exec playwright test tests/browser/soviet-boundary-index-packed-memory.spec.mjs --workers=1 --retries=0 --trace off
+      - name: Compare identical modern-world result and retained Worker V8 memory
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { readFileSync, writeFileSync } from 'node:fs';
+          const read = root => JSON.parse(readFileSync(root + '/test-results/soviet-boundary-index-packed/measurement.json','utf8'));
+          const before=read('baseline'), after=read('candidate');
+          const a=before.measurements,b=after.measurements;
+          for (const field of ['countries','messageCountries','sourceSegments','sharedSegments','contacts',
+            'packedCountries','packedSourceSegments','postingCount']) {
+            assert.equal(b.dimensions[field], a.dimensions[field], 'Source and packet contract mismatch: ' + field);
+          }
+          assert.equal(before.variant,'packed');
+          assert.equal(after.variant,'packed');
+          assert.equal(a.worker.complete && b.worker.complete,true);
+          assert.equal(b.worker.wasmLinearMiB,a.worker.wasmLinearMiB,'Matched border Worker WASM allocation must not change');
+          // The optional map-edit Worker may be spawned on only one side.
+          // Its 16MiB WASM allocation and JS heap are not attributable to
+          // the shared-boundary Worker. Record the population difference.
+          const sameWorkerPopulation=a.worker.totalWorkerWasmMiB===b.worker.totalWorkerWasmMiB;
+          const saved=Number((a.worker.jsMiB-b.worker.jsMiB).toFixed(2));
+          const fraction=Number((100*saved/a.worker.jsMiB).toFixed(2));
+          const report={
+            schema:'pando-renderable-on-demand-paired-v1',
+            before,after,savedBorderWorkerJsMiB:saved,percentReduction:fraction,
+            sameWorkerPopulation,
+            notes:'Matched shared-boundary Worker V8 after GC is comparable. Whole Chromium PSS and total Worker V8/WASM depend on optional Worker population; timing noise is not a guaranteed speedup.',
+          };
+          writeFileSync('candidate/test-results/soviet-boundary-index-packed/streaming-pair.json',JSON.stringify(report,null,2)+'\n');
+          console.log('SOVIET_RENDERABLE_STREAMING_PAIRED',JSON.stringify({
+            baselineBorderJsMiB:a.worker.jsMiB,candidateBorderJsMiB:b.worker.jsMiB,savedMiB:saved,percent:fraction,
+            baselineChromiumPssMiB:a.chromium.pssMiB,candidateChromiumPssMiB:b.chromium.pssMiB,
+            baselineToModernMs:a.toModernMs,candidateToModernMs:b.toModernMs,
+            workerWasmMiB:b.worker.wasmLinearMiB,workerPopulationMatched:sameWorkerPopulation,
+            totalWorkerWasmMiB:[a.worker.totalWorkerWasmMiB,b.worker.totalWorkerWasmMiB],
+            sharedSegments:b.dimensions.sharedSegments,
+            contacts:b.dimensions.contacts,
+          }));
+          assert.ok(saved>=25,'Lazy source outlines must save at least 25MiB Worker JS on a cold modern return');
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: soviet-renderable-pair-${{ github.sha }}
+          path: |
+            baseline/test-results/soviet-boundary-index-packed/
+            candidate/test-results/soviet-boundary-index-packed/
+          if-no-files-found: warn
+          retention-days: 14

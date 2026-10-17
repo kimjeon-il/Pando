@@ -106,11 +106,41 @@ function appendGeometry(lines, geometry) {
   }
 }
 
+/** Visit display edges without materializing an array of every country's
+ * display segments. Same seam/closure/pole decisions as the public array API. */
+export function forEachRenderableBoundarySegment(value, visit) {
+  if (typeof visit !== 'function') throw new TypeError('Boundary segment visitor must be a function');
+  // appendGeometry and appendEdge only require push; route their output directly
+  // to the one packet that needs it, rather than retaining 500k JS tuples.
+  const sink = { push: visit };
+  if (value?.type === 'FeatureCollection') {
+    for (const feature of value.features || []) appendGeometry(sink, feature?.geometry);
+  } else appendGeometry(sink, value?.type === 'Feature' ? value.geometry : value);
+}
+
+/** Backwards-compatible small prepared-feature view. Iteration/length are
+ * available on demand; neither builds a retained per-country array. */
+export function createRenderableBoundarySegmentView(geometry) {
+  let count = null;
+  return {
+    get length() {
+      if (count === null) {
+        count = 0;
+        forEachRenderableBoundarySegment(geometry, () => { count++; });
+      }
+      return count;
+    },
+    [Symbol.iterator]() {
+      // Legacy consumers can still iterate, but only packet preparation uses
+      // the allocation-free visitor above. Do not keep this temporary array.
+      return buildRenderableBoundarySegments(geometry)[Symbol.iterator]();
+    },
+  };
+}
+
 export function buildRenderableBoundarySegments(value) {
   const lines = [];
-  if (value?.type === 'FeatureCollection') {
-    for (const feature of value.features || []) appendGeometry(lines, feature?.geometry);
-  } else appendGeometry(lines, value?.type === 'Feature' ? value.geometry : value);
+  forEachRenderableBoundarySegment(value, segment => lines.push(segment));
   return lines;
 }
 
