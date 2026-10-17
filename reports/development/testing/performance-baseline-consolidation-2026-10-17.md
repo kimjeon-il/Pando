@@ -51,7 +51,7 @@ node scripts/assemble-performance-evidence.mjs --source <full-40-hex-commit> \
   --out test-results/performance-baseline/evidence.json
 ```
   측정 파일이 하나뿐이라면 `--packed` 또는 `--long` 중 하나만 지정해 `partial`로 저장한다. 결측치는 명시적으로 `null`이다.
-- 공통 러너에는 새 대형 성능 벤치마크를 자동으로 중복 실행시키지 않았다. 메모리 12회는 필요 시 기존 검증 작업을 실행한다.
+- 공통 CI는 기존 Playwright **현대 복귀 1회 Worker 계측을 재사용**하고 측정 출처를 연결한 부분 보고서 `evidence.json`을 보존한다. `workflow_dispatch.long_cycle=true`를 선택할 때에만 기존 12회 왕복 테스트를 추가 실행하여 **같은 커밋의** 통합 보고서를 생성한다. GPU·VRAM 등 미측정값은 채우지 않는다.
 
 ## 이 단계의 종료 조건과 후속
 
