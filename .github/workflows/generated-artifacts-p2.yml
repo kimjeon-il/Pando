@@ -1,5 +1,5 @@
 name: P2 Source-matched generated artifacts
-# Objects synchronization temporarily uses a guarded integration branch for matched WASM and data assets.
+# Source-matched generation is allowed only on dedicated work/* branches, never on main.
 on:
   push:
     branches: ['work/**']
