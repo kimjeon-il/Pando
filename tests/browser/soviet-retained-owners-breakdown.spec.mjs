@@ -108,8 +108,11 @@ async function release(worker, category) {
 
 test('isolated contact-edge, upper index and source geometry retaining roots in three GC release orders', async ({ browser }, info) => {
   test.setTimeout(1_800_000);
-  if (process.env.PANDO_RETENTION_DIAGNOSTIC_ISOLATED !== '1')
-    throw new Error('Refuse to destroy original Worker without disposable source injection');
+  // General browser smoke suites discover all *.spec.mjs files. This
+  // destructive diagnostic must be skipped unless isolated CI has installed
+  // the temporary closure-owner hooks in a disposable checkout.
+  test.skip(process.env.PANDO_RETENTION_DIAGNOSTIC_ISOLATED !== '1',
+    'Requires isolated disposable Worker with injected retaining-root hooks');
   const report = {
     schema: 'pando-shared-boundary-retainer-graph-v1',
     source: process.env.GITHUB_SHA || null,
