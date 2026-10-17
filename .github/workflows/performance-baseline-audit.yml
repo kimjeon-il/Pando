@@ -15,6 +15,11 @@ on:
       - 'scripts/assemble-performance-evidence.mjs'
       - 'tests/unit/performance-baseline-contract.test.mjs'
   workflow_dispatch:
+    inputs:
+      long_cycle:
+        description: Also run the 12-return Soviet/modern long memory regression
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
@@ -44,3 +49,57 @@ jobs:
         run: |
           node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
           node --test tests/unit/core-document-runtime.test.mjs tests/unit/boundary-spatial-index-packed.test.mjs tests/unit/country-contact-legacy-parity.test.mjs tests/unit/country-shared-boundary-state.test.mjs
+  current-worker-evidence:
+    needs: reusable-metrics
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - name: Install existing browser-test dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Measure the real one-return Worker JS/WASM/PSS with source identity
+        env:
+          PANDOLAB_INDEX_VARIANT: packed
+          PANDOLAB_EXPECT_COMMIT: ${{ github.sha }}
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: pnpm exec playwright test tests/browser/soviet-boundary-index-packed-memory.spec.mjs --workers=1 --retries=0 --trace off
+      - name: Optional 12-cycle convergence and GPU tracked-buffer measurement
+        if: inputs.long_cycle == true
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+          PANDOLAB_EXPECT_MAIN_SHA: ${{ github.sha }}
+        run: pnpm exec playwright test tests/browser/soviet-main-long-cycle.spec.mjs --workers=1 --retries=0 --trace off
+      - name: Publish normalized source-bound evidence (not an acceptance budget)
+        shell: bash
+        env:
+          LONG_CYCLE: ${{ inputs.long_cycle }}
+        run: |
+          if [ "$LONG_CYCLE" = true ]; then
+            node scripts/assemble-performance-evidence.mjs --source "$GITHUB_SHA" \
+              --packed test-results/soviet-boundary-index-packed/measurement.json \
+              --long test-results/soviet-main-long-cycle/measurement.json \
+              --out test-results/performance-baseline/evidence.json
+          else
+            node scripts/assemble-performance-evidence.mjs --source "$GITHUB_SHA" \
+              --packed test-results/soviet-boundary-index-packed/measurement.json \
+              --out test-results/performance-baseline/evidence.json
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: perf-baseline-evidence-${{ github.sha }}
+          path: |
+            test-results/performance-baseline/
+            test-results/soviet-boundary-index-packed/
+            test-results/soviet-main-long-cycle/
+          if-no-files-found: warn
+          retention-days: 14
