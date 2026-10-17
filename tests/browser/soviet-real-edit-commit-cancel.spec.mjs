@@ -132,7 +132,14 @@ async function chooseDraggableHandle(page) {
         return diff;
       });
       const score = Math.min(...dists);
-      if (!best || score > best.score) best = { x, y, score, coordinate: [...coordinate], key: datum.nodeKey };
+      // Avoid large Arctic source arcs when a lower-latitude coastal vertex
+      // is actually visible; moving a pole-adjacent source by 20px may create
+      // an invalid topology rather than testing the core editing pipeline.
+      const temperate = coordinate[1] >= 35 && coordinate[1] <= 73;
+      const preference = temperate ? 1 : 0;
+      if (!best || preference > best.preference
+        || (preference === best.preference && score > best.score))
+        best = { x, y, score, preference, coordinate: [...coordinate], key: datum.nodeKey };
     }
     return best ? { ...best, visible, rendered: nodes.length } : { error: 'no clickable vertices', visible, rendered: nodes.length };
   });
@@ -158,6 +165,10 @@ async function dragAndPreview(page, timings) {
   // threshold. A distinct mouse gesture must send the production boundary-move
   // request before it can count as a geometry editing test.
   await page.mouse.move(x + 20, y - 14, { steps: 8 });
+  // Cross the browser's drag threshold, then settle near the original
+  // coordinate. This tests a small valid edit instead of deforming a dense
+  // historic coastline by multiple degrees.
+  await page.mouse.move(x + 1.5, y - 1.5, { steps: 8 });
   await page.mouse.up();
   timings.pointerAttempt = { x, y, coordinate: handle.coordinate, score: handle.score };
   timings.afterMouseUp = await page.evaluate(() => ({
@@ -168,7 +179,20 @@ async function dragAndPreview(page, timings) {
   }));
   await expect.poll(() => page.evaluate(() => window.__SOVIET_EDIT_WORKER_OPS__
     ?.some(item => item.operation === 'boundary-move')), { timeout: 35_000 }).toBe(true);
-  await expect(page.locator('#modePrimaryBtn')).toContainText('변경 적용', { timeout: 175_000 });
+  try {
+    await expect(page.locator('#modePrimaryBtn')).toContainText('변경 적용', { timeout: 85_000 });
+  } catch (error) {
+    timings.noPreview = await page.evaluate(() => ({
+      mode: document.querySelector('#modePrimaryBtn')?.textContent?.trim(),
+      modeLabel: document.querySelector('#modePrimaryBtn')?.getAttribute('aria-label'),
+      status: document.querySelector('#actionStatus')?.textContent?.trim(),
+      task: document.querySelector('#modeTaskInstruction')?.textContent?.trim(),
+      workerEvents: window.__SOVIET_EDIT_WORKER_OPS__?.slice(-30) || [],
+      previewSummary: document.querySelector('#geometryPreviewSummary')?.textContent?.slice(0, 500),
+    }));
+    console.log('SOVIET_REAL_EDIT_PREVIEW_FAILURE', JSON.stringify(timings.noPreview));
+    throw error;
+  }
   await expect(page.locator('#modePrimaryBtn')).toBeEnabled({ timeout: 80_000 });
   timings.dragPreviewMs = Date.now() - started;
   return handle;
@@ -203,12 +227,32 @@ test('real Soviet coastal vertex preview cancel, confirm and Undo/Redo preserve 
     window.__SOVIET_EDIT_WORKER_OPS__ = [];
     const WorkerBase = window.Worker;
     window.Worker = class TimedSovietEditWorker extends WorkerBase {
+      constructor(...args) {
+        super(...args);
+        if (!String(args[0]).includes('map-edit-worker')) return;
+        this.addEventListener('message', event => {
+          const message = event.data;
+          if (message?.rpc !== 'pandolab-worker-rpc'
+            || message?.type !== 'result' || !['boundary-prepare','boundary-move',
+              'territorial-edit','territorial-validation'].includes(message.operation)) return;
+          window.__SOVIET_EDIT_WORKER_OPS__.push({
+            phase: 'result', operation: message.operation, requestId: message.requestId,
+            ok: message.ok === true, error: String(message.error?.message || '').slice(0, 260),
+            resultFeatures: message.result?.features?.length || 0,
+            resultChanged: message.result?.changed ?? null,
+            previewBlocking: message.result?.preview?.validation?.blocking ?? null,
+            durationMs: message.timing?.durationMs ?? null,
+            timeMs: performance.now(),
+          });
+        });
+      }
       postMessage(message, ...rest) {
         if (message?.rpc === 'pandolab-worker-rpc' && message?.type === 'request'
           && ['boundary-prepare', 'boundary-move', 'territorial-edit',
             'territorial-validation'].includes(message.operation)) {
           window.__SOVIET_EDIT_WORKER_OPS__.push({
-            operation: message.operation, timeMs: performance.now(),
+            phase: 'request', operation: message.operation,
+            requestId: message.requestId, timeMs: performance.now(),
           });
         }
         return super.postMessage(message, ...rest);
