@@ -37,6 +37,7 @@
 
 | ID | 보고서 | 원문 수정일 | 상태 | 지도 반영 |
 | --- | --- | --- | --- | --- |
+| `DEV-085` | [1989년 소련 반복 편집 후 미리보기 Worker 60초 지연 원인](development/testing/soviet-preview-build-attribution-2026-10-17.md) | 2026-10-17 | `verified-web-diagnostics` | `not-applicable` |
 | `DEV-084` | [1989년 소련 편집·시점 왕복 Worker·WASM 메모리 잔류 계측](development/testing/soviet-memory-retention-roundtrip-2026-10-17.md) | 2026-10-17 | `verified-web-diagnostics` | `not-applicable` |
 | `DEV-083` | [객체 시점 계산 단일화 — 검증 및 기존 회귀 분리](development/testing/objects-timeline-cursor-reuse-2026-10-17.md) | 2026-10-17 | `verified-focused` | `not-applicable` |
 | `DEV-082` | [소련 시점 왕복 메모리 소유권 계측](development/testing/soviet-memory-owner-attribution-2026-10-16.md) | 2026-10-16 | `verified-web-diagnostics` | `not-applicable` |
