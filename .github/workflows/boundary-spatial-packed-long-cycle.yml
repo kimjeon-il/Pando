@@ -1,0 +1,35 @@
+name: Packed boundary 12-cycle regression
+on:
+  push:
+    branches: [work/perf-boundary-index-20261017]
+    paths:
+      - '.github/workflows/boundary-spatial-packed-long-cycle.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  long-cycle:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: 12 Soviet and modern timeline return cycles
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: pnpm exec playwright test tests/browser/soviet-main-long-cycle.spec.mjs --workers=1 --retries=0 --trace off
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: packed-soviet-long-cycle
+          path: test-results/soviet-main-long-cycle/
+          retention-days: 14
+          if-no-files-found: warn
