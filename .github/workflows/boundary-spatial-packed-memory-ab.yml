@@ -1,0 +1,99 @@
+name: Soviet packed boundary index paired memory A/B
+on:
+  push:
+    branches: [work/perf-boundary-index-20261017]
+    paths:
+      - '.github/workflows/boundary-spatial-packed-memory-ab.yml'
+      - 'tests/browser/soviet-boundary-index-packed-memory.spec.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: soviet-boundary-packed-ab-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  paired-worker-memory:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 34
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          path: candidate
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          ref: 78ab111e34966bc2573bfdd192c75954f322d771
+          path: baseline
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: candidate/.nvmrc
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+          run_install: false
+      - name: Install both pinned JS runtimes
+        run: |
+          (cd candidate && pnpm install --frozen-lockfile --ignore-scripts)
+          (cd baseline && pnpm install --frozen-lockfile --ignore-scripts)
+          (cd candidate && pnpm exec playwright install --with-deps chromium)
+      - name: Run exactly the same measurement on unchanged main
+        env:
+          PANDOLAB_INDEX_VARIANT: baseline
+          PANDOLAB_EXPECT_COMMIT: 78ab111e34966bc2573bfdd192c75954f322d771
+          PANDOLAB_BROWSER_CHANNEL: chromium
+          PANDOLAB_TEST_PORT: '4181'
+        run: |
+          cp candidate/tests/browser/soviet-boundary-index-packed-memory.spec.mjs baseline/tests/browser/soviet-boundary-index-packed-memory.spec.mjs
+          cd baseline
+          pnpm exec playwright test tests/browser/soviet-boundary-index-packed-memory.spec.mjs --workers=1 --retries=0 --trace off
+      - name: Run the same workload on the candidate
+        env:
+          PANDOLAB_INDEX_VARIANT: packed
+          PANDOLAB_EXPECT_COMMIT: ${{ github.sha }}
+          PANDOLAB_BROWSER_CHANNEL: chromium
+          PANDOLAB_TEST_PORT: '4182'
+        run: |
+          cd candidate
+          pnpm exec playwright test tests/browser/soviet-boundary-index-packed-memory.spec.mjs --workers=1 --retries=0 --trace off
+      - name: Verify structural parity and a measured Worker JS reduction
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+          const file = root => JSON.parse(readFileSync(root + '/test-results/soviet-boundary-index-packed/measurement.json', 'utf8'));
+          const baseline = file('baseline'), packed = file('candidate');
+          const a = baseline.measurements, b = packed.measurements;
+          for (const field of ['countries', 'messageCountries', 'sourceSegments', 'sharedSegments', 'contacts'])
+            assert.equal(b.dimensions[field], a.dimensions[field], 'source or contact parity: ' + field);
+          assert.equal(a.dimensions.packedCountries, 0);
+          assert.ok(b.dimensions.packedCountries > 0);
+          assert.ok(b.dimensions.packedSourceSegments > 100000);
+          assert.equal(a.worker.wasmLinearMiB, b.worker.wasmLinearMiB, 'WASM linear allocation should be unchanged');
+          assert.equal(a.worker.complete && b.worker.complete, true);
+          const savedMiB = Number((a.worker.jsMiB - b.worker.jsMiB).toFixed(2));
+          const percent = Number((100 * savedMiB / a.worker.jsMiB).toFixed(2));
+          const summary = {
+            schema: 'pando-boundary-index-same-run-ab-v1',
+            baseline: { sha: baseline.sourceCommit, ...a },
+            candidate: { sha: packed.sourceCommit, ...b },
+            savedWorkerJsMiB: savedMiB, percentWorkerJsReduction: percent,
+            memoryCaveats: 'Whole Chromium PSS includes other processes; JS heap and WASM linear storage are different accounting bases. One cold baseline/candidate pair does not prove performance on every device.',
+          };
+          mkdirSync('candidate/test-results/soviet-boundary-index-packed', { recursive: true });
+          writeFileSync('candidate/test-results/soviet-boundary-index-packed/paired-summary.json', JSON.stringify(summary, null, 2) + '\n');
+          console.log('PACKED_BOUNDARY_PAIRED_MEMORY', JSON.stringify({savedMiB, percent, baselineJsMiB: a.worker.jsMiB, packedJsMiB: b.worker.jsMiB,
+            baselinePssMiB: a.chromium.pssMiB, packedPssMiB: b.chromium.pssMiB,
+            toModernMs: [a.toModernMs, b.toModernMs], typedStorageMiB: b.dimensions.typedStorageMiB}));
+          assert.ok(savedMiB >= 30, 'Packed per-country source spatial index must save at least 30MiB of Worker V8 heap');
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: soviet-boundary-packed-paired-${{ github.sha }}
+          path: |
+            baseline/test-results/soviet-boundary-index-packed/
+            candidate/test-results/soviet-boundary-index-packed/
+          retention-days: 14
+          if-no-files-found: warn
