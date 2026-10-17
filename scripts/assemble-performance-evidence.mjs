@@ -37,6 +37,8 @@ export function assemblePerformanceEvidence({ manifest, packed = null, longCycle
   validatePerformanceManifest(manifest, { checkPaths: false });
   assert.ok(strictSha(sourceCommit), 'PERF_SOURCE_COMMIT_REQUIRED: do not use an unbound performance result');
   assert.ok(packed || longCycle, 'PERF_NO_SOURCE_EVIDENCE');
+  if (packed?.sourceCommit) assert.equal(packed.sourceCommit, sourceCommit, 'PERF_SOURCE_MISMATCH: packed');
+  if (longCycle?.testSha) assert.equal(longCycle.testSha, sourceCommit, 'PERF_SOURCE_MISMATCH: longCycle');
   const result = {
     schema: 'pando-performance-evidence-v1',
     sourceCommit,
