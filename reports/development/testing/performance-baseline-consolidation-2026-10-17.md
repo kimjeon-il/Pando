@@ -1,6 +1,6 @@
 # PERF-P0-001 — Pando 기준 코드와 기존 성능 계측 통합 조사
 
-> 2026-10-17 · 상태: source-audited / focused-gate-pending · 지도 반영: not-applicable
+> 2026-10-17 · 상태: verified-focused-ci-and-one-return · 지도 반영: not-applicable
 > 범위: 현재 웹 Pando, 객체/시점 C++·WASM, Worker V8/WASM, Chromium PSS, GPU 추적치 및 Windows WebView2 기존 증거
 > 검토 시점의 `main` 및 `work/objects`: **`2279b94f0713f08070a0c5e146be5566de35fc45` (ahead=0 / behind=0)**
 
@@ -52,6 +52,13 @@ node scripts/assemble-performance-evidence.mjs --source <full-40-hex-commit> \
 ```
   측정 파일이 하나뿐이라면 `--packed` 또는 `--long` 중 하나만 지정해 `partial`로 저장한다. 결측치는 명시적으로 `null`이다.
 - 공통 CI는 기존 Playwright **현대 복귀 1회 Worker 계측을 재사용**하고 측정 출처를 연결한 부분 보고서 `evidence.json`을 보존한다. `workflow_dispatch.long_cycle=true`를 선택할 때에만 기존 12회 왕복 테스트를 추가 실행하여 **같은 커밋의** 통합 보고서를 생성한다. GPU·VRAM 등 미측정값은 채우지 않는다.
+
+## 구현 및 실제 검증 결과
+
+- [공통 계측 검증 #39027309859](https://github.com/kimjeon-il/Pando/actions/runs/39027309859): 검증기/단위 계약 **12/12**, 기존 Core/인덱스 계약 **37/37** 성공, 실제 Chromium 1회 왕복도 성공. 소스 `5b07ce911033cc89fc1b2f15da053320e4cf8835`에 결속된 원시 JSON과 공통 `pando-performance-evidence-v1` JSON 아티팩트 저장.
+- 실제 동일 브랜치의 현대 1회 복귀: 공유 경계 Worker JS **194.67MiB**, Worker WASM 선형 **57.63MiB**, 전체 Worker JS **249.22MiB**, 전체 Chromium PSS **1,867.65MiB**. 원본 254개, 선분 544,163개, 접촉 339건, packed 원본 선분 540,989개 및 포스팅 562,927개 유지. 소련 진입 2,413ms / 현대 복귀 5,780ms. 이전 실행과 러너·캐시·부하가 달라 단일 수치끼리 성능 개선이라고 판정하지 않는다.
+- [P2 생성물 검증 #39027309880](https://github.com/kimjeon-il/Pando/actions/runs/39027309880), [P3 웹 회귀 #39027309879](https://github.com/kimjeon-il/Pando/actions/runs/39027309879) 성공. 제품 소스·WASM·세계 형상·발매 데이터는 변경되지 않았다.
+- 장기 12회 결과의 공통 정규화는 수동 `workflow_dispatch.long_cycle=true`를 지정하는 경우에만 수행한다. 이전 [12회 실제 검증 #39025645298](https://github.com/kimjeon-il/Pando/actions/runs/39025645298)은 그대로 기준 증거로 유지한다.
 
 ## 이 단계의 종료 조건과 후속
 
