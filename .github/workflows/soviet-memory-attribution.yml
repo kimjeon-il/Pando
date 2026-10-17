@@ -1,0 +1,48 @@
+name: Soviet memory attribution (all owners)
+on:
+  push:
+    branches: [work/objects]
+    paths:
+      - '.github/workflows/soviet-memory-attribution.yml'
+      - 'tests/browser/soviet-memory-attribution.spec.mjs'
+      - 'tests/browser/helpers/soviet-memory-attribution.mjs'
+      - 'tests/unit/soviet-memory-attribution.test.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  memory-owners:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 28
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - name: Install pinned test dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Check memory instrumentation contract and lint
+        run: |
+          pnpm exec eslint tests/browser/helpers/soviet-memory-attribution.mjs tests/browser/soviet-memory-attribution.spec.mjs tests/unit/soviet-memory-attribution.test.mjs
+          node --test tests/unit/soviet-memory-attribution.test.mjs
+      - name: Profile real Soviet selection, edit cancellation and three timeline round trips
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: pnpm exec playwright test tests/browser/soviet-memory-attribution.spec.mjs --workers=1 --retries=0 --trace off
+      - name: Preserve owner-attributed raw evidence (even on failure)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: soviet-memory-attribution-${{ github.sha }}
+          path: |
+            test-results/soviet-memory-attribution/
+            test-results/soviet-memory-attribution*/
+          if-no-files-found: warn
+          retention-days: 14
