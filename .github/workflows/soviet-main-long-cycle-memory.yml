@@ -17,13 +17,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-          fetch-depth: 2
+          fetch-depth: 3
       - name: Prove product source exactly equals pinned main
         env:
           MAIN_BASE: e85b3e158d5c02e4aa028283db5b83a1750f4b1a
         run: |
-          test "$(git rev-parse HEAD^)" = "$MAIN_BASE"
-          git diff --name-only HEAD^ HEAD | grep -Ev '^(\.github/workflows/soviet-main-long-cycle-memory\.yml|tests/browser/soviet-main-long-cycle\.spec\.mjs|tests/browser/helpers/soviet-memory-attribution\.mjs)$' > /tmp/non-test-change || true
+          git merge-base --is-ancestor "$MAIN_BASE" HEAD
+          git diff --name-only "$MAIN_BASE" HEAD | grep -Ev '^(\.github/workflows/soviet-main-long-cycle-memory\.yml|tests/browser/soviet-main-long-cycle\.spec\.mjs|tests/browser/helpers/soviet-memory-attribution\.mjs)$' > /tmp/non-test-change || true
           test ! -s /tmp/non-test-change || { cat /tmp/non-test-change; exit 1; }
       - uses: actions/setup-node@v4
         with:
