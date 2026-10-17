@@ -47,10 +47,16 @@ void applyProperties(ProjectDocument& document,const TimelineRecords& records,co
     }
 }
 }
-TimelineDocumentView timelineDocumentView(const ProjectDocument& source,const std::string& month) {
+TimelineDocumentView timelineDocumentView(const ProjectDocument& source,const std::string& month,const ResolvedWorld* resolved) {
     TimelineDocumentView result;
-    result.world=resolveWorld(source.timelineRecords,
-        {timelineEntityCatalog(source),[&](const GeometryRef& ref){return source.geometries.get(ref)!=nullptr;}},month);
+    if(resolved) {
+        if(resolved->month!=parseTemporal(month).canonical)
+            throw TimelineError("STALE_REVISION","Resolved timeline month differs from requested projection");
+        result.world=*resolved;
+    } else {
+        result.world=resolveWorld(source.timelineRecords,
+            {timelineEntityCatalog(source),[&](const GeometryRef& ref){return source.geometries.get(ref)!=nullptr;}},month);
+    }
     result.document=source;
     result.document.timelineRecords={};
     for(const auto& unit:source.units) {
