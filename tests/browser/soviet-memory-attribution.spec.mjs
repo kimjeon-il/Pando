@@ -22,6 +22,9 @@ async function waitForSettledWork(page) {
 }
 
 async function snapshot(page, cdp, workerProbe, label) {
+  await page.evaluate(phase => window.__PANDOLAB_PREVIEW_TRANSPORT_TRACE__?.push({
+    event: 'phase', phase, atMs: performance.now(),
+  }), label);
   // Worker and main V8 garbage collection requested at every comparable phase.
   const workerMemory = await workerProbe.sample({ collectGarbage: true });
   await cdp.send('HeapProfiler.collectGarbage');
@@ -90,6 +93,11 @@ async function snapshot(page, cdp, workerProbe, label) {
 test('measure main JS, each Worker JS/WASM, GPU caches and Chromium PSS across Soviet edit and time round trips', async ({ page }, testInfo) => {
   test.setTimeout(1_200_000);
   const errors = [];
+  const previewWarnings = [];
+  page.on('console', message => {
+    if (message.type() === 'warning' || message.type() === 'error')
+      previewWarnings.push({ type: message.type(), text: message.text().slice(0, 320) });
+  });
   const previewWorkerLifecycle = [];
   page.on('pageerror', error => errors.push(error.message));
   page.on('worker', worker => {
@@ -101,6 +109,41 @@ test('measure main JS, each Worker JS/WASM, GPU caches and Chromium PSS across S
       row.closedAt = new Date().toISOString();
       row.durationMs = Date.now() - start;
     });
+  });
+  await page.addInitScript(() => {
+    const OriginalWorker = globalThis.Worker;
+    const events = [];
+    globalThis.__PANDOLAB_PREVIEW_TRANSPORT_TRACE__ = events;
+    let nextWorkerId = 0;
+    const record = row => events.push({ ...row, atMs: performance.now() });
+    globalThis.Worker = class TrackedPreviewWorker extends OriginalWorker {
+      constructor(script, options) {
+        super(script, options);
+        if (!String(script).includes('/project-preview-worker.js')) return;
+        this.__previewTraceId = ++nextWorkerId;
+        record({ event: 'created', workerId: this.__previewTraceId });
+        this.addEventListener('message', message => {
+          const data = message.data;
+          // Retain scalar fields only, never the large cache or geometry.
+          record({ event: 'reply', workerId: this.__previewTraceId, requestId: data?.id ?? null,
+            ok: data?.ok ?? null, message: String(data?.message || '').slice(0, 180) });
+        });
+        this.addEventListener('error', message =>
+          record({ event: 'error', workerId: this.__previewTraceId, message: String(message.message || '').slice(0, 180) }));
+      }
+      postMessage(data, transfer) {
+        if (this.__previewTraceId) record({ event: 'request', workerId: this.__previewTraceId,
+          requestId: data?.id ?? null, type: data?.type ?? null,
+          entityCount: Array.isArray(data?.entities) ? data.entities.length : null,
+          sourceViewCount: Array.isArray(data?.source?.territorialViews) ? data.source.territorialViews.length : null,
+          cacheBytes: data?.cache?.compressed?.byteLength ?? null });
+        return super.postMessage(data, transfer);
+      }
+      terminate() {
+        if (this.__previewTraceId) record({ event: 'terminated', workerId: this.__previewTraceId });
+        return super.terminate();
+      }
+    };
   });
   await page.goto('/?perf=1&renderer=webgl2');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 120_000 });
@@ -125,13 +168,30 @@ test('measure main JS, each Worker JS/WASM, GPU caches and Chromium PSS across S
       chromiumPss: '/proc/smaps_rollup by process (Workers can share renderer process; not worker PSS)',
       gpu: 'application counters; excludes framebuffer stencil/staging and driver VRAM; not additive to PSS',
       gc: 'Worker and main V8 GC requested at every phase; OS memory return is not guaranteed' },
-    phases, durations: {}, errors, previewWorkerLifecycle };
+    phases, durations: {}, errors, previewWorkerLifecycle, previewWarnings, previewTransportTrace: [] };
   const report = async () => {
+    results.previewTransportTrace = await page.evaluate(() =>
+      globalThis.__PANDOLAB_PREVIEW_TRANSPORT_TRACE__ || []).catch(() => []);
+    const requests = results.previewTransportTrace.filter(row => row.event === 'request');
+    results.previewUnfinishedOnTermination = results.previewTransportTrace.filter(row =>
+      row.event === 'terminated').map(row => ({
+      workerId: row.workerId,
+      unfinished: requests.filter(request => request.workerId === row.workerId && request.atMs < row.atMs
+        && !results.previewTransportTrace.some(reply => reply.event === 'reply'
+          && reply.workerId === request.workerId && reply.requestId === request.requestId))
+        .map(request => ({ type: request.type, ageMs: Number((row.atMs - request.atMs).toFixed(1)) })),
+    }));
     results.summary = summarizeMemoryPhases(phases);
     await mkdir('test-results/soviet-memory-attribution', { recursive: true });
     const output = JSON.stringify(results, null, 2);
     await writeFile('test-results/soviet-memory-attribution/measurement.json', output);
     await testInfo.attach('soviet-memory-attribution.json', { body: Buffer.from(output), contentType: 'application/json' });
+    console.log('SOVIET_PREVIEW_TRANSPORT', JSON.stringify({
+      created: results.previewTransportTrace.filter(row => row.event === 'created').length,
+      requests: requests.map(row => ({ type: row.type, atMs: Math.round(row.atMs), workerId: row.workerId })),
+      unfinished: results.previewUnfinishedOnTermination,
+      warnings: results.previewWarnings.filter(row => row.text.includes('preview') || row.text.includes('미리보기')),
+    }));
     console.log('SOVIET_MEMORY_ATTRIBUTION', JSON.stringify({
       labels: phases.map(phase => phase.label), summary: results.summary,
       measuredWorkerWasmMiB: phases.map(phase => ({ label: phase.label,
