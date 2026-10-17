@@ -1,6 +1,6 @@
 # OBJ-097 — 1989 소련 실제 경계 확정의 Core 후보 준비 지연 귀속
 
-> 기록: 2026-10-18 (KST) · 상태: `C++-applyWebTerritorialEdit-block-confirmed / nested-source-stage-running`
+> 기록: 2026-10-18 (KST) · 상태: `verified-deep-cxx-parent-containment-bottleneck / product-unchanged`
 > 조사 브랜치: `work/perf-core-candidate-diagnostics-20261018`
 > 기준 제품: `work/perf-soviet-edit-acceptance-20261017` (`OBJ-092~095` 포함)
 > 지도 원본·제품 JS/C++/WASM·`main` **영구 변경 없음**.
@@ -61,9 +61,10 @@ UI는 `PL-TERRITORIAL-EDIT` 오류를 표시했다.
 C++ `prepareBatch` + 응답 처리)에서 상당한 시간이 쓰인다.
 실험상 Core 후보는 30초보다 훨씬 긴 시간에도 반환되지 않았다.
 
-**미확정:** C++ `applyWebTerritorialEdit`, `candidateState`,
-`semanticallyEqual`, `calculateChangeImpact`, WASM `typedRequest`
-중 가장 큰 부분. C++ 내부 함수의 CPU 시간은 별도 컴파일 계측 필요.
+**후속 C++ 계측 결과(아래 5절):** 지연은 `applyWebTerritorialEdit`의
+`validateTimelineParentChanges`가 호출하는 `geometryContains`에서
+재현됐다. `semanticallyEqual`, `calculateChangeImpact`는 이번
+실험에서 호출되지 않았으므로 현재 차단의 원인이 아니다.
 
 ## 4. 첫 C++ 심층 결과: 정확한 차단 함수
 
@@ -92,27 +93,88 @@ GitHub Actions 호스팅 Chromium에서 **실제 Soviet 정점 이동**
 이 결과가 수집된 테스트는 초과 관측 조건을 만족하지 못해 **실패 종료**했다.
 실제 변경 확정·Undo/Redo가 완료됐다고 해석하면 안 된다.
 
-## 5. 추가 심층 계측 — C++ 함수 내부 단계
+## 5. 최종 내부 원인: 소련과 구성 공화국의 지리적 포함관계 검사
 
+[OBJ-097 deep compiled WASM #39073832159](https://github.com/kimjeon-il/Pando/actions/runs/39073832159)
+(소련 `1989-06`, 실제 해안선 정점 `[132.404714,45.146496]`, 임시
+Emscripten 4.0.20 WASM)에서 다음과 같이 기록됐다.
 
+| 호출 단계 | 실제 계측 |
+| --- | ---: |
+| 명령 변환 `typedRequest` | 31.3ms (그중 개별 변환 31.0ms) |
+| `request.validateRequest` | 0.6ms |
+| `web.activeFrame` | 21.8ms |
+| `web.changedRows` | 0.4ms |
+| `web.candidateDocumentCopy` | 0.4ms |
+| `web.applyMonth` | 3.2ms |
+| `web.projectTimelineView` | 11.1ms |
+| `web.captureTimelinePropertyChanges` | 3.1ms |
+| `web.normalizeTimelineRecords` | 9.1ms |
+| **`containment.start` 아르메니아 SSR** | **47,012.5ms**, 완료 |
+| **`containment.start` 아제르바이잔 SSR** | **47,146.0ms**, 완료 |
+| `containment.start` 벨라루스 SSR | 시작 확인, 135초 관측 종료까지 미완료 |
+| `web.validateTimelineParentChanges` | 미완료 |
+| 최종 문서 검증 및 `calculateChangeImpact` | 미도달 |
 
-[OBJ-097 isolated compiled C++ profiling workflow](https://github.com/kimjeon-il/Pando/actions/workflows/soviet-core-candidate-cpp.yml)는
-출시 자산과 분리된 임시 Emscripten 4.0.20 빌드에서 함수별 경과시간을 기록한다.
-`shared/wasm/session-bindings.cpp`, `shared/core/src/commandbatch.cpp`,
-`shared/core/src/commands.cpp`에 **진단 전용 타이머**를 배치하며
-진단 후 checkout은 버린다. 정본 생성물 해시가 변경된 배포용 WASM은
-커밋하거나 게시하지 않는다.
+위 첫 묶음의 준비 단계들은 최초 로딩/소스 입장 시에도 일부 실행되므로,
+핵심 비교는 `territorial.edit` 요청 이후에 기록된 값이다.
+해당 요청에서 `applyMonth` 등은 밀리초 단위로 완료됐고
+`validateTimelineParentChanges`에 진입한 뒤
+`geometryContains(*outer,*inner)`가 각 구성 공화국에 대해 장시간 실행됐다.
 
-기록 대상: `typedRequest` 입력 복원, `prepareRequest` →
-세부 `applyWebTerritorialEdit`/의미 비교/후보 검증,
-최종 문서 검증, `calculateChangeImpact`, WASM 반환 변환.
+**직접 원인:**
+`shared/core/src/timeline-view.cpp`의 `validateTimelineParentChanges()`는
+변경된 부모 소련의 `geometryRef`가 이전과 다르므로 구성 공화국의
+부모–자식 포함관계 검증을 다시 수행한다.
+`shared/core/src/geometrypredicates.cpp`의 `geometryContains()`는
+날짜변경선/180° 분리 등에서 `geographicContains()`를 호출한다.
+그 안의 `edges(subject)`와 `periodicCuts(container,...)` 및
+`periodicLocation()`은 선분마다 상대 지오메트리의 경계를
+반복 탐색한다. 큰 소련 윤곽을 작은 구성 공화국별로
+반복하는 구조에는 **선분 후보 공간 인덱스가 없다.**
 
-## 6. 추후 개선 판단 기준
+이를 통해 기존 사용자 지연이 단순 Web Worker 대기나 WASM 로딩,
+전달 직렬화, 최종 `calculateChangeImpact`가 아니라
+**원본 소련의 타임라인 하위 단위 포함관계에 대한
+대형 지리적 폴리곤 술어의 반복 평가**임을 확인했다.
 
-- 가장 긴 C++ 단계의 **실측**을 먼저 확보한다.
-- 원본 프로젝트 수정 전에는 C++ 정본의 의미·역사 타임라인·
-  출처 참조·Undo/Redo 계약을 유지한다.
-- 단순히 제품의 30초 제한시간을 늘려 문제를 숨기지 않는다.
-- 원인 수정 후 **동일 소련 실제 UI 정점 이동 → 취소 / 변경 확정 →
-  Undo→Redo→Undo**를 다시 통과시키고 제품·Worker V8/WASM/PSS 및
-  물리적으로 계측되지 않은 VRAM을 구분한다.
+주의: 함수별 관측은 GitHub-hosted Chromium/SwiftShader 및
+진단용 C++ 타이머가 들어간 임시 WASM 기준이다.
+`geographicContains` 내부의 각 하위 함수별 사이클 점유,
+실제 전체 완료시간, Windows/Android 및 물리 GPU 결과까지
+추론하지 않는다. 135초 실험의 실패는 의도된 관측 한계
+`wasm-call-return` 미발생으로, 실제 미리보기/Undo 성공을 뜻하지 않는다.
+
+### 안전한 다음 최적화 지점
+
+1. `geometryContains`의 **완전 탐색 후보 선분**을 지리적 주기(±360°),
+   날짜변경선, hole, 폴리곤별 winding을 존중하는
+   **읽기 전용 공간 후보 인덱스**로 줄인다. 최종 교차 판정과
+   점 위치 분류의 기존 정밀도·포함 의미는 바꾸지 않는다.
+2. 한 `validateTimelineParentChanges` 호출 안에서 변경되지 않은
+   부모·자식 geometry 버전 관계는 보존하고, 참조당 반복 계산을
+   정확하게 제거하는 방식도 독립적으로 검증한다.
+   단, 단순한 bounding box 불포함/동일 버전만으로 부모 포함관계를
+   통과시키거나 안전 검사를 삭제하지 않는다.
+3. 같은 입력으로 **원형 소련+SSR**, 날짜변경선, 극지, 구멍,
+   다중폴리곤, 완전히 포함/경계 접촉/실제로 바깥으로 벗어나는
+   변경을 포함한 C++/WASM/브라우저 결과 동등성과 성능 A/B를
+   얻은 후에만 제품 코드에 반영한다.
+4. 그 다음 실제 UI **미리보기 취소 → 확정 → Undo→Redo→Undo**,
+   Worker 및 전체 Chromium 메모리 수렴성을 재검증한다.
+   **30초 RPC 제한을 늘리는 것은 최적화가 아니다.**
+
+이번 조사에서는 제품 C++/WASM/JS와 지도 데이터, `main`을
+수정하지 않았다. 보고서·CI·테스트용 임시 컴파일 스크립트만
+별도 브랜치에 보관했다.
+
+## 6. 최종 결론
+
+**원인 규명 완료, 제품 CPU 최적화 및 실제 Core 확정 회귀는 미완료.**
+
+`applyWebTerritorialEdit` 내부의 `validateTimelineParentChanges`가
+소련 구성 공화국 각각에 대해 수행하는 `geometryContains`의
+반복 지리적 포함관계 판정이 135초 이상의 지연을 유발한다.
+기존 30초 타임아웃을 늘릴 이유가 아니라,
+정확한 폴리곤 술어의 후보 탐색 비용을 줄일 이유가 확인됐다.
+
