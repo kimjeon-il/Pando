@@ -168,9 +168,13 @@ async function dragAndPreview(page, timings) {
   // Cross the browser's drag threshold, then settle near the original
   // coordinate. This tests a small valid edit instead of deforming a dense
   // historic coastline by multiple degrees.
-  await page.mouse.move(x + 1.5, y - 1.5, { steps: 8 });
+  // OBJ-098 acceptance: retain a meaningful final displacement after crossing
+  // the drag threshold. The older 1.5px move was frequently normalized to a
+  // Core no-op although map-edit moved a temporary vertex successfully.
+  await page.mouse.move(x + 16, y - 11, { steps: 6 });
   await page.mouse.up();
   timings.pointerAttempt = { x, y, coordinate: handle.coordinate, score: handle.score };
+  timings.heldSource = await fingerprint(page);
   timings.afterMouseUp = await page.evaluate(() => ({
     primary: document.querySelector('#modePrimaryBtn')?.textContent?.trim(),
     aria: document.querySelector('#modePrimaryBtn')?.getAttribute('aria-label'),
@@ -246,7 +250,12 @@ test('real Soviet coastal vertex preview cancel, confirm and Undo/Redo preserve 
             errorCode: String(message.error?.code || '').slice(0, 100),
             resultFeatures: message.result?.features?.length || 0,
             resultChanged: message.result?.changed ?? null,
+            candidateId: message.result?.candidateId ?? null,
+            resultStatus: message.result?.status || null,
             previewBlocking: message.result?.preview?.validation?.blocking ?? null,
+            previewBoundaryCount: message.result?.preview?.delta?.newBoundaries?.length ?? null,
+            resultGeometryBytes: message.result?.features?.[0]?.geometry
+              ? JSON.stringify(message.result.features[0].geometry).length : null,
             durationMs: message.timing?.durationMs ?? null,
             timeMs: performance.now(),
           });
