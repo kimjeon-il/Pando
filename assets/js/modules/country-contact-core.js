@@ -11,17 +11,14 @@ const invalid = detail => {
     { code: 'PL-COUNTRY-CONTACT' });
 };
 
-// Prepared source rows are immutable until the geometry revision changes.
-// Reuse their wire encoding for multi-pair patches without retaining removed
-// objects (WeakMap rather than a second mutable geometry cache).
-const wireRows=new WeakMap();
+// Encode each prepared feature once per synchronous C++ contact batch.
+// Persisting the encoding in a Worker-wide WeakMap held 519,900 nested arrays
+// (~23.81MiB in the isolated OBJ-093 Chromium attribution), although these
+// arrays are derivable from prepared.segments. The batch's unique features[]
+// list already prevents duplicate encodings within a call. Keep the source
+// rows and all source-ref identities; never retain their wire copy after use.
 function encodedRows(prepared) {
-  let rows=wireRows.get(prepared);
-  if (!rows) {
-    rows=prepared.segments.map(row=>[row.a,row.b,row.polygonIndex,row.ringIndex,row.segmentIndex]);
-    wireRows.set(prepared,rows);
-  }
-  return rows;
+  return prepared.segments.map(row=>[row.a,row.b,row.polygonIndex,row.ringIndex,row.segmentIndex]);
 }
 
 /** One C++ crossing for all touched pairs, retaining patch/cached identities. */
