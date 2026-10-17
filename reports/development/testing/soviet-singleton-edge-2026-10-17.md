@@ -1,6 +1,6 @@
 # OBJ-092 — 단일 접촉 공유 국경선 edge 레코드 압축
 
-> 날짜: 2026-10-17 · 상태: `verified-focused-and-paired / long-cycle-pending`
+> 날짜: 2026-10-17 · 상태: `verified-focused-paired-and-p2 / long-cycle-pending`
 > 제품 기준: `main 48fe06df9ec7ce47b4f0640d1f43817deb3a964a` (OBJ-090 + OBJ-091 계측 통합)
 > 코드 변경: `assets/js/modules/country-shared-boundary-packet.js` (공유 경계 Worker의 `edges` 관리), 국가/역사 지형 원본·C++/WASM 변경 없음
 > 근거: [OBJ-091 실측](soviet-retained-owner-graph-2026-10-17.md) · [단위/접촉 CI #39032938617](https://github.com/kimjeon-il/Pando/actions/runs/39032938617) · [같은 러너 메모리 A/B #39032861530](https://github.com/kimjeon-il/Pando/actions/runs/39032861530)
@@ -53,7 +53,9 @@ Worker JS 감소는 같은 환경 GC 후 비교한 결과이며 PSS 0.75MiB 차�
 
 12회 시점 왕복, WebGL pan 추가 업로드 0 검증은
 [장기 CI #39032977889](https://github.com/kimjeon-il/Pando/actions/runs/39032977889)에서 실행 중이다.
-P2의 소스 일치 산출물 게시도 최신 안정 커밋 기준으로 최종 확인한다.
+[P2 소스 일치 생성물 #39033212558](https://github.com/kimjeon-il/Pando/actions/runs/39033212558) 성공:
+10개 지리·세계·메시·공유 국경선·장소·네이티브 출력 계열 지문이 원래 main과 모두 같았고,
+빌드 메타데이터만 새 JS 소스 버전으로 갱신됐다. C++/WASM 바이너리 해시는 변하지 않았다.
 Android 실기기는 제외한다.
 
 **다음 우선 영역:** OBJ-091의 약 **79~87MiB** 국가별
