@@ -69,7 +69,7 @@ public:
     DocumentSessionOutcome applyPresentation(const PresentationAction&,std::uint32_t expectedEpoch);
     DocumentSessionOutcome presentationCatalogLoad(PresentationCatalog,std::uint32_t expectedEpoch);
     ResolvedWorld resolveWorld(const std::string& month) const;
-    bool setTimelineCursor(const std::string& month,std::uint32_t expectedEpoch);
+    bool setTimelineCursor(const std::string& month,std::uint32_t expectedEpoch,ResolvedWorld* resolvedForResponse=nullptr);
     SelectionState& selection() { return selection_; }
     const SelectionState& selection() const { return selection_; }
     DocumentSessionOutcome selectionCatalogLoad(const std::string& domain,const std::vector<SelectionCatalogEntry>&,std::uint32_t expectedEpoch);

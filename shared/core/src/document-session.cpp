@@ -371,13 +371,18 @@ DocumentSessionOutcome DocumentSession::presentationCatalogLoad(PresentationCata
     DocumentSessionOutcome outcome;outcome.result.status=CommandStatus::Applied;outcome.result.impact=std::move(impact);outcome.delta=std::move(delta);return outcome;
 }
 ResolvedWorld DocumentSession::resolveWorld(const std::string& month) const { requireLoaded();return project_.resolveWorld(month); }
-bool DocumentSession::setTimelineCursor(const std::string& month,std::uint32_t expectedEpoch) {
+bool DocumentSession::setTimelineCursor(const std::string& month,std::uint32_t expectedEpoch,ResolvedWorld* resolvedForResponse) {
     requireLoaded();if(expectedEpoch!=epoch_)throw std::invalid_argument("STALE_REVISION: session epoch changed");
     if(epoch_==std::numeric_limits<std::uint32_t>::max())throw std::overflow_error("CORE_SESSION_EPOCH_OVERFLOW");
+    // Resolve exactly once. The same temporal result prunes selection, builds
+    // the static view and forms the Worker response at the new session epoch.
     const auto world=project_.resolveWorld(month);auto nextSelection=selection_;
     nextSelection.prune([&](const SelectionRef& ref){return ref.domain=="territorial"?world.find(ref.id)!=nullptr:selectionRefExists(ref);});
+    // Construct the outbound copy before modifying Project, preserving the
+    // existing strong exception boundary if a large allocation fails.
+    if(resolvedForResponse)*resolvedForResponse=world;
     const bool cursorChanged=project_.timelineCursor()!=month;
-    if(!project_.setTimelineCursor(month))return false;
+    if(!project_.setTimelineCursor(month,true,&world))return false;
     clearPreview();sourceEpoch_=++epoch_;selection_=std::move(nextSelection);return cursorChanged;
 }
 void DocumentSession::requireEpoch(std::uint32_t expectedEpoch) const {
