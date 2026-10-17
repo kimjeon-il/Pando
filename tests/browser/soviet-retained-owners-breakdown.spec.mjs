@@ -31,13 +31,19 @@ async function graph(worker) {
     const state = boundaryState.__retainerTestOwners;
     const prepared = boundaryState.preparedStore.__retainerTestOwners;
     if (!state || !prepared) throw new Error('ISOLATED_RETAINER_HOOK_MISSING');
-    let contactSegments = 0, edgeContributionSlots = 0;
+    let contactSegments = 0, edgeContributionSlots = 0, singleEdgeContributions = 0;
     let edgeValuesAliasContributions = 0, edgeValuesCopied = 0;
     for (const contact of state.contacts.values()) contactSegments += contact.segments.length;
     for (const edge of state.edges.values()) {
-      edgeContributionSlots += edge.contributions.size;
-      if ([...edge.contributions.values()].includes(edge.value)) edgeValuesAliasContributions++;
-      else edgeValuesCopied++;
+      if (edge.contributions) {
+        edgeContributionSlots += edge.contributions.size;
+        if ([...edge.contributions.values()].includes(edge.value)) edgeValuesAliasContributions++;
+        else edgeValuesCopied++;
+      } else {
+        singleEdgeContributions++;
+        edgeContributionSlots++;
+        edgeValuesAliasContributions++;
+      }
     }
     const ids = new Map(latestMessage.features.map(feature => [String(feature.id), feature.geometry]));
     return {
@@ -45,7 +51,7 @@ async function graph(worker) {
       retainedCountries: prepared.byId.size,
       contactCount: state.contacts.size, contactSegmentCount: contactSegments,
       contactByOwnerCount: state.contactsByOwner.size,
-      edgeCount: state.edges.size, edgeContributionSlots,
+      edgeCount: state.edges.size, edgeContributionSlots, singleEdgeContributions,
       edgeValuesAliasContributions, edgeValuesCopied,
       upperIndexCount: prepared.spatialIndex.values().length,
       sourceSegments: [...prepared.byId.values()].reduce((sum, row) => sum + row.segments.length, 0),
