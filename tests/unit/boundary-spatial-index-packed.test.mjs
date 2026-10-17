@@ -84,3 +84,13 @@ test('packed queries work after many lookup epochs and preserve multi-box exact 
   assert.ok(index.query([0, 0, 0.25, 0.25]).includes(values[1]));
   assert.ok(!index.query([300, 91, 301, 92]).includes(values[1]));
 });
+
+test('packed construction requires matching source rows and never changes an active index', () => {
+  const index = createBoundarySpatialIndex();
+  assert.throws(() => index.loadPacked([{}], []), /same length/);
+  assert.deepEqual(index.values(), []);
+  index.insert('A', 'kept', [0, 0, 1, 1]);
+  assert.throws(() => index.loadPacked(['replacement'], [[[0, 0, 1, 1]]]), /fresh/);
+  assert.deepEqual(index.query([0.5, 0.5, 0.7, 0.7]), ['kept']);
+  assert.deepEqual(index.values(), ['kept']);
+});
