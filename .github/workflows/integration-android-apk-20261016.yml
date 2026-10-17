@@ -1,0 +1,82 @@
+name: Integrated Android arm64 debug APK (no device)
+on:
+  push:
+    branches: [work/integration-ui-objects-20261016]
+    paths:
+      - '.github/workflows/integration-android-apk-20261016.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  android-debug:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      PANDOLAB_SHELL_PROFILE: full-world
+      CARGO_TERM_COLOR: always
+      NDK_VERSION: '27.3.13750724'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Use the Android command-line tools preinstalled on Ubuntu
+        run: |
+          test -d /usr/local/lib/android/sdk/cmdline-tools
+          echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=/usr/local/lib/android/sdk" >> "$GITHUB_ENV"
+          manager="$(find /usr/local/lib/android/sdk/cmdline-tools -type f -name sdkmanager | sort -V | tail -n 1)"
+          test -x "$manager"
+          echo "$(dirname "$manager")" >> "$GITHUB_PATH"
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android
+      - name: Install pinned Android SDK and NDK
+        run: |
+          sdkmanager --install 'platforms;android-37.0' 'build-tools;37.0.0' "ndk;${NDK_VERSION}"
+          echo "NDK_HOME=${ANDROID_HOME}/ndk/${NDK_VERSION}" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_HOME=${ANDROID_HOME}/ndk/${NDK_VERSION}" >> "$GITHUB_ENV"
+      - name: Install JavaScript dependencies
+        run: |
+          pnpm install --frozen-lockfile --ignore-scripts
+          pnpm --dir apps/web-shell install --ignore-workspace --frozen-lockfile
+      - name: Validate native bridge and full-world asset plan
+        run: |
+          node --test apps/web-shell/tests/native-storage.test.mjs apps/web-shell/tests/full-world-probe.test.mjs apps/web-shell/tests/world-data-plan.test.mjs
+          node apps/web-shell/stage.mjs --profile=full-world
+          node --input-type=module -e "
+            import fs from 'node:fs';
+            import assert from 'node:assert/strict';
+            const s=JSON.parse(fs.readFileSync('apps/web-shell/dist/shell/stage-evidence.json','utf8'));
+            assert.equal(s.profile,'full-world');
+            assert.equal(s.worldData.countryCount,258);
+            assert.equal(s.worldData.worldFileCount,597);
+            assert.equal(s.worldData.physicalFileCount,13);
+            assert.equal(s.worldData.fileCount,610);
+            console.log('ANDROID_STAGE_PASS', JSON.stringify(s.worldData));
+          "
+      - name: Build arm64 Android debug APK from the common Web runtime
+        run: pnpm --dir apps/web-shell exec tauri android build --debug --apk --target aarch64
+      - name: Validate APK output exists
+        run: |
+          find apps/web-shell/src-tauri/gen/android/app/build/outputs/apk -type f -name '*.apk' -print
+          test -n "$(find apps/web-shell/src-tauri/gen/android/app/build/outputs/apk -type f -name '*.apk' -print -quit)"
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integrated-android-debug-${{ github.sha }}
+          path: |
+            apps/web-shell/dist/shell/stage-evidence.json
+            apps/web-shell/src-tauri/gen/android/app/build/outputs/apk/**/*.apk
+            apps/web-shell/src-tauri/gen/android/app/build/outputs/logs/
+          if-no-files-found: warn
+          retention-days: 7

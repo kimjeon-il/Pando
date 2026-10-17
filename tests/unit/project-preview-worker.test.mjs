@@ -56,3 +56,41 @@ test('preview Worker preserves canonical validator coordinates for topology repa
   assert.deepEqual(intersection.ids, ['crossing']);
   assert.deepEqual(intersection.point, [2, 2], 'repair must receive the actual crossing location');
 });
+
+
+test('preview key and cache validation do not initialize topology or a WASM heap',async t=>{
+  const script=new URL('../../assets/js/workers/project-preview-worker.js',import.meta.url).href;
+  const workerScript=[
+    "const {parentPort}=require('node:worker_threads');",
+    "const fs=require('node:fs'),vm=require('node:vm');",
+    "global.self=global;",
+    "self.location=new URL("+JSON.stringify(script)+");",
+    "global.importScripts=()=>{throw new Error('Unexpected heavyweight preview dependency');};",
+    "self.postMessage=data=>parentPort.postMessage(data);",
+    "vm.runInThisContext(fs.readFileSync(self.location,'utf8'),{",
+    "  filename:self.location.href,",
+    "  importModuleDynamically:async specifier=>{",
+    "    if(specifier.includes('core-wasm-loader'))throw new Error('WASM initialized by preview metadata');",
+    "    return import(new URL(specifier,self.location).href);",
+    "  },",
+    "});",
+    "parentPort.on('message',data=>self.onmessage({data}));",
+  ].join('\n');
+  const worker=new Worker(workerScript,{eval:true,execArgv:['--experimental-vm-modules']});
+  t.after(()=>worker.terminate());
+  const request=payload=>new Promise((resolve,reject)=>{
+    const onMessage=message=>{
+      if(message.id!==payload.id)return;
+      worker.off('message',onMessage);worker.off('error',onError);
+      if(message.ok)resolve(message.result);else reject(new Error(message.message));
+    };
+    const onError=error=>{worker.off('message',onMessage);worker.off('error',onError);reject(error);};
+    worker.on('message',onMessage);worker.on('error',onError);worker.postMessage(payload);
+  });
+  const baseline={sourceSha256:'test'};
+  const key=await request({id:1,type:'key',baseline,
+    source:{project:{format:'pandolab-autosave-full'},territorialViews:[]}});
+  assert.match(key,/^[a-f0-9]{64}$/);
+  const validation=await request({id:2,type:'validate',key,baseline,cache:null});
+  assert.equal(validation,null);
+});

@@ -1,0 +1,56 @@
+name: 1989 Soviet camera GPU reuse
+on:
+  push:
+    branches: [work/objects]
+    paths:
+      - '.github/workflows/soviet-pan-gpu-regression.yml'
+      - 'tests/browser/performance-observability.spec.mjs'
+      - 'tests/browser/soviet-web-render-profile.spec.mjs'
+      - 'assets/js/modules/gpu-map-renderer.js'
+      - 'assets/js/modules/rendering-domain.js'
+      - 'assets/js/modules/gpu-interaction-pass.js'
+      - 'assets/js/modules/gpu-scene-preparation.js'
+      - 'tests/unit/gpu-prepared-draw.test.mjs'
+      - 'assets/js/modules/gpu-polygon-overlay-pass.js'
+      - 'assets/js/modules/gpu-stroke-renderer.js'
+      - 'assets/js/modules/render-scene.js'
+      - 'assets/js/modules/map-render-coordinator.js'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  soviet-camera:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - name: Install existing browser-test dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Check selection geometry/ownership contracts
+        run: node --test tests/unit/selection-overlay-plan.test.mjs tests/unit/selection-entity-channels.test.mjs tests/unit/gpu-prepared-draw.test.mjs
+      - name: Check Soviet 1989 pure-pan GPU reuse
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: pnpm exec playwright test tests/browser/performance-observability.spec.mjs --grep '1989 Soviet Union pan' --workers=1 --retries=0 --trace off
+      - name: Profile Soviet scene and interaction work
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: pnpm exec playwright test tests/browser/soviet-web-render-profile.spec.mjs --workers=1 --retries=0 --trace off
+      - name: Preserve real browser diagnosis
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: soviet-pan-gpu-${{ github.sha }}
+          path: test-results/
+          if-no-files-found: warn
+          retention-days: 7

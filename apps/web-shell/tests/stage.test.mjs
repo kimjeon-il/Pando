@@ -36,6 +36,7 @@ test('stages the real frontend and exact WASM pair without any world data', asyn
   const html = await readFile(join(result.directory, 'index.html'), 'utf8');
   assert.match(html, /shell\/startup\.js/);
   assert.doesNotMatch(html, /src="assets\/js\/bootstrap\.js/);
+  assert.equal(result.profile, 'small-project');
   assert.equal(result.fixture.entityCount, 3);
   assert.ok(result.fixture.coordinateCount <= 100);
 });

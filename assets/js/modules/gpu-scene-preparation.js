@@ -141,8 +141,12 @@ export function prepareGpuInteractionPlan({ interaction, emphasis, mesh, overrid
       },
     };
   });
+  // A camera frame with no interaction fills needs neither water/border
+  // stencil masking nor a full-viewport fill framebuffer.
+  const hasFillItems = priorities.some(group => group.preview.length || group.draft.length
+    || group.generic.length || group.country.base.length || group.country.override.length);
   return {
-    priorities, genericKeys: generic.map(item => item.key), previewFillKeys: preview.map(packet => packet.key), draftFillKeys: draft.map(packet => packet.key),
+    priorities, hasFillItems, genericKeys: generic.map(item => item.key), previewFillKeys: preview.map(packet => packet.key), draftFillKeys: draft.map(packet => packet.key),
     previewStrokes: (interaction.previewPackets || []).filter(item => item.kind !== 'polygon').map(item => item.packet),
     draftStrokes: (interaction.draftPackets || []).filter(item => item.kind !== 'polygon').map(item => item.packet),
     fillReady: generic.every(item => polygonOverlayPass.hasResource(item.key))

@@ -69,14 +69,15 @@ export function createProjectPreviewCache({ storage, scheduler, getGeometry, get
     });
   }
 
-  async function restore(project) {
+  async function restore(project, preparedSource = null) {
     const requestedEpoch = epoch;
     const baseline = getBaseline();
     if (!project || !baseline?.sourceSha256) return null;
     try {
       const cache = await storage.readPreview();
       if (!cache || requestedEpoch !== epoch) return null;
-      const source=await getPreviewSource(project);
+      // Startup already inspected this exact saved project for its first paint.
+      const source=preparedSource || await getPreviewSource(project);
       if(requestedEpoch!==epoch)return null;
       const result = await run('validate', { source, baseline, cache });
       return requestedEpoch === epoch ? result : null;
@@ -88,35 +89,47 @@ export function createProjectPreviewCache({ storage, scheduler, getGeometry, get
     }
   }
 
-  async function ensure(project, expectedEpoch = epoch, preparedSource = null) {
+  async function ensure(project, expectedEpoch = epoch, preparedSource = null, checkpoint = null) {
     const baseline = getBaseline();
     if (!project || !baseline?.sourceSha256 || expectedEpoch !== epoch) return false;
     try {
       const source=preparedSource || await getPreviewSource(project);
-      if(expectedEpoch!==epoch || matchesDefaultPreview(source,baseline))return false;
+      if(expectedEpoch!==epoch || (!preparedSource && matchesDefaultPreview(source,baseline)))return false;
       const key = await run('key', { source, baseline });
       if (expectedEpoch !== epoch) return false;
       const existing = await storage.readPreview();
       if (expectedEpoch !== epoch) return false;
       if (existing?.geometryKey === key && existing?.baseSourceSha256 === baseline.sourceSha256
-        && await run('validate', { source, baseline, cache: existing })) return expectedEpoch === epoch;
+        && await run('validate', { key, baseline, cache: existing })) return expectedEpoch === epoch;
       if (expectedEpoch !== epoch) return false;
-      const geometry = await getGeometry();
+      // With an accepted autosave receipt, the caller can check its Core
+      // checkpoint without exporting the entire project a second time.
+      const geometry = await getGeometry(project, checkpoint);
       if (expectedEpoch !== epoch || !geometry?.entities?.length) return false;
       // A save can finish while a later edit is already in progress. Only
       // preview the persisted shape, never a newer unsaved state.
       const currentProject = geometry.project;
-      if (currentProject) {
+      if (currentProject && (currentProject !== project || !checkpoint)) {
         const currentSource=await getPreviewSource(currentProject);
         if(expectedEpoch!==epoch || await run('key',{source:currentSource,baseline})!==key)return false;
       }
-      const cache = await run('build', { source, baseline,
+      // The Worker computed this key above; do not serialize/clone the full
+      // inspected project again for validation or mesh generation.
+      const cache = await run('build', { key, baseline,
         entities: geometry.entities });
       if (expectedEpoch !== epoch) return false;
       const latest = await storage.readProject();
       if (expectedEpoch !== epoch || !latest) return false;
-      const latestSource=await getPreviewSource(latest);
-      if(expectedEpoch!==epoch || await run('key',{source:latestSource,baseline})!==key || expectedEpoch!==epoch)return false;
+      // A persisted Core receipt includes a fresh savedAt identity. Usually
+      // this is still the same device record; inspect a raced write only.
+      const sameSavedRevision = checkpoint && typeof project.savedAt === 'string'
+        && latest.savedAt === project.savedAt && latest.format === project.format
+        && latest.baseDataset === project.baseDataset;
+      if (!sameSavedRevision) {
+        const latestSource=await getPreviewSource(latest);
+        if(expectedEpoch!==epoch || await run('key',{source:latestSource,baseline})!==key)return false;
+      }
+      if(expectedEpoch!==epoch)return false;
       await storage.writePreview(cache);
       return expectedEpoch === epoch;
     } catch (error) {
@@ -127,9 +140,9 @@ export function createProjectPreviewCache({ storage, scheduler, getGeometry, get
     }
   }
 
-  function schedule(project) {
+  function schedule(project, checkpoint = null) {
     const baseline = getBaseline();
-    if (!project) return;
+    if (!project || !baseline?.sourceSha256) return;
     epoch += 1;
     if (inFlight) stopWorker();
     const requestedEpoch = epoch;
@@ -145,7 +158,7 @@ export function createProjectPreviewCache({ storage, scheduler, getGeometry, get
       scheduler.scheduleIdle('project-preview-cache',()=>{
         if(requestedEpoch!==epoch)return;
         let work;
-        work=ensure(project,requestedEpoch,source).finally(()=>{if(inFlight===work)inFlight=null;});
+        work=ensure(project,requestedEpoch,source,checkpoint).finally(()=>{if(inFlight===work)inFlight=null;});
         inFlight=work;
       },1500);
     })().catch(error=>{

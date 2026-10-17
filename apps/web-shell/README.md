@@ -1,8 +1,54 @@
 # PandoLab 시험용 WebView shell
 
-An isolated Tauri 2 prototype for Windows x64 and Android arm64. It embeds the
-existing Web frontend staged by `stage.mjs`; it does not package the world data.
+A Tauri 2 prototype for Windows x64 and Android arm64. It embeds the
+existing Web frontend staged by `stage.mjs`. The default smoke profile omits
+world data; the opt-in full-world profile packages the current manifest-pinned
+country, historical and prepared geometry assets.
 This does not replace or launch the Qt application.
+
+## Resource profiles (2-3A–C)
+
+The default **small-project** profile is the 15-coordinate offline smoke
+fixture. Its original tests, size restrictions and storage namespace remain
+unchanged.
+
+The opt-in **full-world** profile uses the *same* progressive Web startup as
+the public website (`assets/js/bootstrap.js`, `data-loader-worker.js`,
+the verified C++/WASM core, preview geometry and canonical GPU mesh).
+The original Web menu and DOM are packaged, not recreated for Tauri.
+The profile stages only the assets referenced by the current pinned world,
+historical-world, territorial-library and prepared-polygon manifests.
+Every pinned asset is checked for length and SHA-256 before packaging;
+unreferenced older versions are excluded.
+
+For Windows PowerShell (from the repository root):
+
+```powershell
+$env:PANDOLAB_SHELL_PROFILE = 'full-world'
+pnpm --dir apps/web-shell build:windows
+Remove-Item Env:PANDOLAB_SHELL_PROFILE
+```
+
+For Android, set the same environment variable before
+`pnpm --dir apps/web-shell build:android`. Alternatively
+`pnpm --dir apps/web-shell stage:world` creates a full-world staging
+snapshot **only**; subsequent Tauri builds restage using the environment
+variable, so it must also be set for the build.
+
+The full-world profile includes manifest-pinned local terrain-preview tiles, HydroRIVERS
+and built-in places, while retaining lazy Worker loading. Terrain and hydro
+manifest/Worker initialization in this shell profile begins only after the
+canonical country mesh is ready, scheduled at browser idle to avoid contending
+with the first editable map paint. The public Web startup remains unchanged.
+Official high-resolution
+online DEM tiles remain outside the offline distribution. WebGL/Android device performance and
+full-world Tauri runtime behavior are not yet certified (2-4).
+The automatic `verify-windows.ps1` small-fixture diagnostic is **not**
+a full-world acceptance test. The full-world-only `full-world-probe.js` records
+verified country count, canonical geometry/mesh, worker, WebGL and local-resource
+checks when launched with `--probe-auto`. Run `verify-world-windows.ps1` on a
+freshly built full-world Windows EXE for a separate acceptance report. This setting does not change the public
+GitHub Pages output or the legacy Qt application.
 
 The application identifier is `com.pandolab.webshell.prototype`. Fixed prototype
 files live below the OS application-data directory in `test-profile/`. Windows
@@ -62,8 +108,12 @@ The frontend invokes these commands through `window.__TAURI_INTERNALS__.invoke`:
 | `read_probe_file` | `{}` | `{contents, path}` |
 | `write_diagnostic_report` | `{report: object}` | `{path}` |
 | `finish_probe` | `{report: object}` | `{path}` |
-| `save_project_file` | `{contents: base64String}` | `{cancelled, path}` |
-| `open_project_file` | `{}` | `{cancelled, path, contents?: base64String}` |
+| `begin_document_write` | `{kind: 'project'/'gis-gpkg'/'gis-zip'}` | `{token}` |
+| `append_document_chunk` | `{token, contents: base64Chunk}` | `{}` |
+| `finish_document_write` | `{token}` | `{cancelled, path}` |
+| `begin_document_read` | `{kind: 'project'/'gis'}` | `{cancelled, files: [{token,path,bytes}]}` |
+| `read_document_chunk` | `{token}` | `{contents: base64Chunk, done}` |
+| `abort_document_transfer` | `{token}` | `boolean` |
 
 The diagnostic snapshot filename is `small-project.json`; the report filename is
 `diagnostic-report.json`. Both have a strict 1 MiB UTF-8 byte limit, checked before
@@ -73,7 +123,13 @@ before allocating an entire file. Import/export paths originate exclusively in
 the native file picker and cannot be supplied by JavaScript. Cancellation returns
 `cancelled: true`; file I/O and encoding failures reject the command. Current
 project import/export uses the production binary GeoPackage codec and a `.gpkg`
-picker filter. Its IPC payload is base64, with a 1 MiB decoded-byte limit.
+picker filter. Document I/O uses 256 KiB Base64 chunks over the native IPC,
+backed by a disk spool rather than whole-file Base64 values. Maximum total
+project/GIS document size is 256 MiB, with up to 16 GIS files per import.
+Small probe and diagnostic files retain the original 1 MiB bound. Android provider
+URIs that do not expose a file extension are rejected instead of being assigned
+a misleading GIS format. Full-project file sizes and provider-name recovery belong
+to the later full-world app expansion.
 
 Android pickers return `content://` URIs, which the filesystem plugin opens through
 the platform provider. Android export uses `ACTION_CREATE_DOCUMENT` and writes a

@@ -1,0 +1,101 @@
+name: Web UI and Objects integration checks
+on:
+  push:
+    branches: [work/integration-ui-objects-20261016]
+    paths:
+      - '.github/workflows/integration-ui-objects-20261016.yml'
+      - 'assets/js/**'
+      - 'assets/css/**'
+      - 'tests/browser/timeline-controls.spec.mjs'
+      - 'assets/data/**'
+      - 'apps/web-shell/**'
+      - 'index.html'
+      - 'reports/README.md'
+      - 'reports/development/testing/soviet-*'
+      - 'tests/unit/**'
+      - 'tests/browser/soviet-edit-entry-profile.spec.mjs'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  integration:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - name: Install pinned JS dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Verify preview calculation reuse and Worker lifecycle
+        run: |
+          pnpm exec eslint assets/js/modules/project-preview-cache.js assets/js/modules/persistence-service.js assets/js/modules/app-history-assembly.js assets/js/modules/app-progressive-startup.js assets/js/workers/project-preview-worker.js tests/unit/project-preview-cache.test.mjs tests/unit/project-preview-worker.test.mjs tests/unit/persistence-service.test.mjs
+          node --test tests/unit/project-preview-cache.test.mjs tests/unit/project-preview-worker.test.mjs tests/unit/persistence-service.test.mjs
+      - name: Verify scoped boundary preparation, cancellation and render packets
+        run: |
+          pnpm exec eslint assets/js/modules/boundary-preparation.js assets/js/modules/map-edit-preparation-operations.js assets/js/modules/app-geometry-preview.js tests/unit/boundary-preparation.test.mjs tests/unit/boundary-preparation-session.test.mjs tests/browser/soviet-edit-entry-profile.spec.mjs
+          node --test tests/unit/boundary-preparation.test.mjs tests/unit/boundary-preparation-session.test.mjs tests/unit/map-edit-worker-client.test.mjs tests/unit/editing-render-packet.test.mjs
+      - name: Verify generated browser and dataset metadata
+        run: |
+          node scripts/generate-build-metadata.mjs --check
+          node scripts/check-version.mjs
+      - name: Verify project schema and remote plan contracts
+        run: node --test tests/unit/versioning-source-schema.test.mjs tests/unit/p1-remote-scopes.test.mjs tests/unit/p4-python-isolation.test.mjs
+      - name: Verify WebView and file IO integration contracts
+        run: >
+          node --test
+          tests/unit/application-composition.test.mjs
+          tests/unit/gis-export-controller.test.mjs
+          tests/unit/project-save-picker.test.mjs
+          tests/unit/deferred-physical-startup.test.mjs
+          apps/web-shell/tests/world-data-plan.test.mjs
+          apps/web-shell/tests/stage-world.test.mjs
+          apps/web-shell/tests/full-world-probe.test.mjs
+          apps/web-shell/tests/native-storage.test.mjs
+      - name: Verify WebGL selection and GPU pass integration
+        run: >
+          node --test
+          tests/unit/gpu-prepared-draw.test.mjs
+          tests/unit/selection-overlay-plan.test.mjs
+          tests/unit/selection-entity-channels.test.mjs
+
+  mobile-ui-layout:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - name: Install pinned browser dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Confirm generated CSS matches canonical source
+        run: |
+          node scripts/build-ui-bundle.mjs
+          git diff --exit-code -- assets/css/ui.bundle.css assets/css/ui-modal.bundle.css
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Verify mobile timeline and map toolbar hit targets
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: >
+          pnpm exec playwright test tests/browser/timeline-controls.spec.mjs
+          --workers=1 --retries=0 --trace off
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-mobile-layout-${{ github.sha }}
+          path: test-results/
+          if-no-files-found: warn
+          retention-days: 7

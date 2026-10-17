@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createGisExportController } from '../../assets/js/modules/gis-export-controller.js';
 
-function fixture() {
+function fixture(downloadOverride = null) {
   const node = () => {
     const classes = new Set(['hidden']);
     const listeners = {};
@@ -46,7 +46,7 @@ function fixture() {
     document: { body: node() }, elements,
     ensureRuntime: async () => {}, requireReady: () => true,
     getFileSnapshot: () => ({ project:{title:'test'},spatialState:{territorialEntities:[]} }), getCounts: () => counts,
-    download: (...args) => downloads.push(args), setStatus() {}, reportError: error => errors.push(error),
+    download: downloadOverride || ((...args) => downloads.push(args)), setStatus() {}, reportError: error => errors.push(error),
   }).bind();
   return { controller, elements, inputs, summary, layers, calls, downloads, errors,
     counts: value => { counts = value; }, fail: () => { fail = true; },
@@ -117,4 +117,35 @@ test('export ignores repeated confirmation while pending and preserves errors fo
   assert.equal(f.elements.confirm.disabled, false);
   assert.equal(f.errors.length, 1);
   assert.equal(f.downloads.length, 0);
+});
+
+test('GIS export waits for native file delivery before closing the modal', async () => {
+  let deliver;
+  const pendingDelivery = new Promise(resolve => { deliver = resolve; });
+  const f = fixture(async () => pendingDelivery);
+  await f.controller.open();
+  const pending = f.controller.confirm();
+  await Promise.resolve();
+  await Promise.resolve();
+  assert.equal(f.elements.modal.classList.contains('hidden'), false);
+  deliver({ downloaded: false });
+  assert.equal(await pending, true);
+  assert.equal(f.elements.modal.classList.contains('hidden'), true);
+});
+
+test('cancelled native GIS picker retains export dialog without an error', async () => {
+  const f = fixture(async () => { throw Object.assign(new Error('cancelled'), { name: 'AbortError' }); });
+  await f.controller.open();
+  assert.equal(await f.controller.confirm(), false);
+  assert.equal(f.elements.modal.classList.contains('hidden'), false);
+  assert.equal(f.errors.length, 0);
+});
+
+test('native GIS write failure retains modal and reports an operation error', async () => {
+  const f = fixture(async () => { throw new Error('disk full'); });
+  await f.controller.open();
+  assert.equal(await f.controller.confirm(), false);
+  assert.equal(f.elements.modal.classList.contains('hidden'), false);
+  assert.equal(f.errors.length, 1);
+  assert.match(f.errors[0].message, /disk full/);
 });

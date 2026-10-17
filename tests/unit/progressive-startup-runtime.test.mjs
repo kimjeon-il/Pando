@@ -18,7 +18,7 @@ function deferred() {
 const square = size => ({ type: 'Polygon', coordinates: [[[0,0],[0,size],[size,size],[size,0],[0,0]]] });
 const collection = size => normalizeCountryCollection({ features: [{ id: 'A', geometry: square(size) }] });
 
-async function startupFixture(t, { pauseAt = null, restored = false, restoredDelta = false, onEditable = () => {}, startMonth = '', baselinePending = null } = {}) {
+async function startupFixture(t, { pauseAt = null, restored = false, restoredDelta = false, onEditable = () => {}, startMonth = '', baselinePending = null, viewRecord = null } = {}) {
   const noop = () => {};
   const geometry = deferred();
   const mesh = deferred();
@@ -84,11 +84,12 @@ async function startupFixture(t, { pauseAt = null, restored = false, restoredDel
     platformConfigurationB: { assertRuntimeCompatibility: noop },
     platformConfigurationA: { BASE_DATASET: 'fixture' },
     lifecycleUi: { projectUi: {
-      restoreAutosave: async () => ({ project }),
+      restoreAutosave: async () => ({ project, view: viewRecord }),
       syncHistory: noop,
       completeAutosaveRecovery: () => pause('recovery'),
     } },
     domains: {
+      commandOwner: owner.client,
       projectDomain: { snapshot:owner.project.snapshot,getGeneration:owner.project.getGeneration,
         state:owner.project.state,inspectImport:owner.project.inspectImport,
         prepareImport:owner.project.prepareImport,admitStorageBaseline:owner.project.admitStorageBaseline,admit:async (input,options) => {
@@ -102,7 +103,11 @@ async function startupFixture(t, { pauseAt = null, restored = false, restoredDel
       renderingDomain: { invalidateView: noop },
     },
     snapshots: { normalizeProjectObjects: noop, applySharedProjectFields: noop },
-    persistence: { applyAutosavedView: noop }, platform: { deepClone: structuredClone },
+    persistence: { applyAutosavedView: noop,
+      applyAutosavedTimeline: async view => {
+        calls.push(['restore-month', view?.lastViewedMonth || null]);
+        return view?.lastViewedMonth ? entityStore.setTimelineCursor(view.lastViewedMonth) : false;
+      } }, platform: { deepClone: structuredClone },
     geometryPreview: { boundarySelectionAnalysisCache: new Map() }, labelCacheCommands: {},
     spatialQuery: { mapEditClient: { stop: noop } }, mapView: { syncMapHostFromState: noop },
     projectSession: { saveState: {
@@ -277,3 +282,25 @@ for (const replacementStage of ['editable-listener', 'pending-mesh']) {
     assert.deepEqual(fixture.errors, []);
   });
 }
+
+test('progressive canonical admission restores the separately stored session cursor', async t => {
+  const f = await startupFixture(t, { startMonth: '2026-10', viewRecord: { lastViewedMonth: '2012-10' } });
+  await f.promote();
+  await f.editable.promise;
+  assert.equal(f.owner.client.state().timelineCursor, '2012-10');
+  assert.ok(f.calls.some(row => row[0] === 'restore-month' && row[1] === '2012-10'));
+  assert.deepEqual(f.errors, []);
+  f.mesh.resolve({}); await f.running;
+});
+
+test('user navigation during preview wins over an older saved cursor', async t => {
+  const f = await startupFixture(t, { startMonth: '2026-10', viewRecord: { lastViewedMonth: '2012-10' } });
+  await f.interactive.promise;
+  await f.entityStore.setTimelineCursor('2012-11');
+  f.geometry.resolve({ countries: collection(10), canonicalCountryStore: {} });
+  await f.editable.promise;
+  assert.equal(f.owner.client.state().timelineCursor, '2012-11');
+  assert.ok(f.calls.some(row => row[0] === 'restore-month' && row[1] === '2012-11'));
+  assert.deepEqual(f.errors, []);
+  f.mesh.resolve({}); await f.running;
+});
