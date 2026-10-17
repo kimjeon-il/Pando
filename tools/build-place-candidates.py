@@ -486,6 +486,7 @@ def refine_candidates(rows, source_records, reviews):
 
 
 def render_reviews(stats):
+    """Human-readable summary; per-ID evidence remains in reviewedRecords JSON."""
     parts = ["## 재생성 가능한 ID별 검토 결과", "",
              f"검토 원본: `{stats['source']['name']}` / SHA-256 `{stats['source']['sha256']}`.", "",
              table(["항목", "건수"], [("1차 후보 (변경 없음)", stats["baselineCount"]),
@@ -498,23 +499,18 @@ def render_reviews(stats):
              "`inclusion-review`는 필터 밖의 재검토 제안이며 정제본에 추가하지 않는다.", "",
              table(["country", "baseline", "refined", "excluded", "held"],
                    [(code, *[values[key] for key in ("baseline", "refined", "excluded", "held")])
-                    for code, values in stats["changedCountries"].items()])]
-    for action in sorted(REVIEW_ACTIONS):
-        parts += ["", f"### {action}", "",
-                  table(["ID", "국가", "원명", "코드 / 인구", "좌표 lat / lon", "1차 포함", "판단", "근거"],
-                        [(item["record"]["geonameId"], item["record"]["countryCode"], item["record"]["name"],
-                          f"{item['record']['featureCode']} / {item['record']['population']}",
-                          f"{item['record']['latitude']} / {item['record']['longitude']}",
-                          "yes" if item["inBaseline"] else "no", item["reason"],
-                          ", ".join(f"[{key}]({stats['evidenceSources'][key]['url']})" for key in item["evidence"]))
-                         for item in stats["reviewedRecords"] if item["action"] == action])]
-    parts += ["", "### 자료 확인 방식과 한계", "",
-              table(["근거", "확인일", "확인 방식", "판정에 사용한 사실"],
-                    [(f"[{key}]({source['url']})", source["checkedAt"], source["access"], source["finding"])
-                     for key, source in stats["evidenceSources"].items()]), "",
-              f"정제 파일: `.cache/{stats['refinedArtifact']['path']}`, SHA-256 `{stats['refinedArtifact']['sha256']}`.", ""]
+                    for code, values in stats["changedCountries"].items()]), "",
+             "### ID별 판정 근거 보존", "",
+             "개별 ID별 판정표는 Markdown에 중복 기재하지 않는다. 원본 ID·판정·근거와 "
+             "증거 출처는 `candidate-review-summary.json`의 "
+             "`reviewedRecords`/`evidenceSources` 및 `candidate-reviews.json`에 보존한다.", "",
+             table(["판정", "검토 ID"], [(action, stats["actions"].get(action, 0))
+                                      for action in sorted(REVIEW_ACTIONS)]), "",
+             f"증거 출처 수: {len(stats['evidenceSources'])}개. 개별 URL·접근일·판정에 쓴 사실은 JSON에 보존한다.", "",
+             f"검토 원장 SHA-256: `{stats['reviewLedgerSha256']}`.", "",
+             f"정제 파일: `.cache/{stats['refinedArtifact']['path']}`, "
+             f"SHA-256 `{stats['refinedArtifact']['sha256']}`.", ""]
     return "\n".join(parts)
-
 
 def review(cache, reviews_path, stats_path, report_path, overrides_path=None):
     """Re-read the pinned official snapshot, not an unverified candidate cache."""
