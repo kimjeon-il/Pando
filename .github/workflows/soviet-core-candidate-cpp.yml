@@ -1,0 +1,94 @@
+name: OBJ-097 deep C++ Soviet candidate timing (isolated WASM rebuild)
+on:
+  push:
+    branches: [work/perf-core-candidate-diagnostics-20261018]
+    paths:
+      - '.github/workflows/soviet-core-candidate-cpp.yml'
+      - 'scripts/research/instrument-core-candidate-cpp.mjs'
+      - 'tests/browser/soviet-core-candidate-cpp.spec.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: obj097-core-cxx-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  compiled-core-timing:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 48
+    env:
+      PANDO_CORE_CANDIDATE_DIAGNOSTIC_ISOLATED: '1'
+      EMCC_CORES: '1'
+      BINARYEN_CORES: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+          run_install: false
+      - name: Install test and inspect pinned sources before destructive temporary injection
+        run: |
+          pnpm install --frozen-lockfile --ignore-scripts
+          node --check scripts/research/instrument-core-candidate-cpp.mjs
+          node --check tests/browser/soviet-core-candidate-cpp.spec.mjs
+          pnpm exec eslint scripts/research/instrument-core-candidate-cpp.mjs tests/browser/soviet-core-candidate-cpp.spec.mjs
+          node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
+          git diff --exit-code -- shared/core/src/commandbatch.cpp shared/core/src/commands.cpp shared/wasm/session-bindings.cpp
+      - name: Inject C++ times ONLY inside this disposable runner
+        run: |
+          node scripts/research/instrument-core-candidate-cpp.mjs
+          node scripts/research/instrument-core-candidate-stages.mjs
+          git diff --name-only -- shared/core/src shared/wasm assets/js/modules
+      - uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: 3.31.6
+      - run: sudo apt-get update && sudo apt-get install -y ninja-build
+      - uses: actions/checkout@v4
+        with:
+          repository: emscripten-core/emsdk
+          ref: e4fe26ef59168ff44f4c23c466e497bf60b3411e
+          path: build-native/emsdk
+          persist-credentials: false
+      - name: Build isolated C++ profiling WASM using source-pinned Emscripten 4.0.20
+        shell: bash
+        run: |
+          set -euo pipefail
+          build-native/emsdk/emsdk install 4.0.20
+          build-native/emsdk/emsdk activate 4.0.20
+          source build-native/emsdk/emsdk_env.sh
+          emcc --version | sed -n '1p' | grep -F 4.0.20
+          port_file=build-native/emsdk/upstream/emscripten/tools/ports/zlib.py
+          original='https://github.com/madler/zlib/archive/refs/tags/v{VERSION}.tar.gz'
+          canonical='https://codeload.github.com/madler/zlib/tar.gz/refs/tags/v{VERSION}'
+          grep -Fq "$original" "$port_file"
+          sed -i "s|$original|$canonical|" "$port_file"
+          node --input-type=module <<'NODE'
+          import {readFileSync,writeFileSync} from 'node:fs';
+          const file='build-native/emsdk/upstream/emscripten/tools/ports/__init__.py';
+          const input=readFileSync(file,'utf8');
+          const old="    ext = url_filename.split('.', 1)[1]";
+          if(input.split(old).length!==2)throw Error('Unexpected pinned Emscripten port loader');
+          const next="    ext = 'tar.gz' if name == 'zlib' and url.startswith('https://codeload.github.com/madler/zlib/tar.gz/refs/tags/v') else url_filename.split('.', 1)[1]";
+          writeFileSync(file,input.replace(old,next));
+          NODE
+          emcmake cmake --preset pando-wasm
+          cmake --build --preset pando-wasm
+          node tools/package-shared-core-assets.mjs --build-dir build-native/p1/pando-wasm/shared/wasm
+          node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Run actual 1989 Soviet drag with instrumented C++ / same Worker and Core
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: pnpm exec playwright test tests/browser/soviet-core-candidate-cpp.spec.mjs --workers=1 --retries=0 --trace off
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: obj097-compiled-cxx-prepare-stages-${{ github.sha }}
+          path: test-results/soviet-core-candidate-stages/
+          if-no-files-found: warn
+          retention-days: 14
