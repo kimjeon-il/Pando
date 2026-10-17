@@ -7,6 +7,10 @@ on:
       - 'tests/browser/soviet-main-long-cycle.spec.mjs'
       - 'tests/browser/helpers/soviet-memory-attribution.mjs'
   workflow_dispatch:
+concurrency:
+  group: soviet-main-12cycle-integration
+  cancel-in-progress: true
+
 permissions:
   contents: read
 jobs:
@@ -17,7 +21,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-          fetch-depth: 3
+          fetch-depth: 10
       - name: Prove product source exactly equals pinned main
         env:
           MAIN_BASE: e85b3e158d5c02e4aa028283db5b83a1750f4b1a
