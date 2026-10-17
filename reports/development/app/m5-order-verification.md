@@ -1,98 +1,15 @@
 # M5 map draw and chooser order verification
 
-> 보고서 ID: `DEV-035` · 상태: `historical-record` · 지도 반영: `not-applicable` · 색인일: 2026-10-12  
-> 원문 최종 수정: 2026-09-25  
-> 원본: [앱 `docs/m5-order-verification.md`](https://github.com/kimjeon-il/PandoEditor/blob/f535673993f45957b82d125ff766ed1e18233170/docs/m5-order-verification.md)  
+> 보고서 ID: `DEV-035` · 상태: `historical-record` · 지도 반영: `not-applicable` · 당시 최종 수정: 2026-09-25
 
+## 당시에 확인한 핵심 사항
 
-Web source pin: `kimjeon-il/world-map` `c0bd31d13dc8495593d78cf51f7cc195de7c9469`.
-The executable Oracle checks the blob IDs of the pinned scene pass, picker,
-overlay-group and country-flag modules before running them. It records the raw
-web base-pass calls and compares the **visible** opaque overlap stack with the
-native `mapRenderOrder` probe. The web territorial stencil reserves a child's
-pixel before the later country call; the native painter therefore paints the
-country first. The chooser comparison calls the web `selectableVisualRank`
-function and compares its sorted candidates separately from the draw result.
+- 당시 고정 웹 `c0bd31d1`의 지도 draw/pass·picker·overlay와 native 렌더 순서를 비교했다. 불투명 중첩 55개 도메인/역할 조합 및 프리미티브 5개를 검사했다.
+- 실제 배포 웹 페이지의 DOM z-index는 배경 GPU 캔버스 1, 상호작용 SVG 4로 관찰됐으나, 그 배포본은 고정 비교 기준과 동일 커밋이 아니었다.
+- 국가 클릭 중 `PL-RUNTIME-001`이 발생해 선택 강조 스크린샷 대조는 하지 못했다. 투명 stencil, 실제 글리프/국기 픽셀·전체 hover 캐시 검증은 미완료.
 
-| Overlap | Visible top | Chooser first |
-| --- | --- | --- |
-| country / river | river | river |
-| country / lake | lake | lake |
-| country / religion | religion | religion |
-| country / ethnicity | ethnicity | ethnicity |
-| country / language | language | language |
-| country / subunit | subunit | subunit |
-| country / region | region | region |
-| country / generic | generic | generic |
-| country / place | place | place |
-| country / label | label | label |
-| river / lake | river | lake |
-| river / religion | river | religion |
-| river / ethnicity | river | ethnicity |
-| river / language | river | language |
-| river / subunit | river | subunit |
-| river / region | river | region |
-| river / generic | river | generic |
-| river / place | place | place |
-| river / label | label | label |
-| lake / religion | lake | religion |
-| lake / ethnicity | lake | ethnicity |
-| lake / language | lake | language |
-| lake / subunit | lake | subunit |
-| lake / region | lake | region |
-| lake / generic | lake | generic |
-| lake / place | place | place |
-| lake / label | label | label |
-| religion / ethnicity | ethnicity | religion |
-| religion / language | language | religion |
-| religion / subunit | religion | religion |
-| religion / region | religion | religion |
-| religion / generic | generic | religion |
-| religion / place | place | place |
-| religion / label | label | label |
-| ethnicity / language | language | ethnicity |
-| ethnicity / subunit | ethnicity | ethnicity |
-| ethnicity / region | ethnicity | ethnicity |
-| ethnicity / generic | generic | ethnicity |
-| ethnicity / place | place | place |
-| ethnicity / label | label | label |
-| language / subunit | language | language |
-| language / region | language | language |
-| language / generic | generic | language |
-| language / place | place | place |
-| language / label | label | label |
-| subunit / region | region | subunit |
-| subunit / generic | generic | subunit |
-| subunit / place | place | place |
-| subunit / label | label | label |
-| region / generic | generic | region |
-| region / place | place | place |
-| region / label | label | label |
-| generic / place | place | place |
-| generic / label | label | label |
-| place / label | label | same-ref |
-| lake / lake-boundary | lake-boundary | same-ref |
-| lake-boundary / river | river | lake-boundary |
-| river / country-boundary | country-boundary | river |
-| country-boundary / generic-line | generic-line | generic-line |
-| generic-line / place | place | place |
+## 검증 증거와 보존
 
-The fixed native country/child paint order is asserted in the core probe and
-by offscreen Qt pixels for nested country, subunit and region fills. Other
-offscreen renderer tests cover the overlay groups, water, points, selected
-outlines and holes. A 1100/360 px QML test checks that selected geometry is
-present in the painter and the label/flag delegate is above that painter, with
-the flag before the text in the delegate. The pinned flag function confirms
-that adding a flag decorates an already placed label without evicting its name.
+- [축약 전 상세 원문·수치·절차 (고정 Git 커밋)](https://github.com/kimjeon-il/Pando/blob/6b0c501dd09029ef237e90c1ef55fdb82bdf315f/reports/development/app/m5-order-verification.md)
 
-A live browser inspection of `https://kimjeon-il.github.io/world-map/` at
-zoom above 1.8 showed country flags next to name labels above the map canvas
-and river strokes. DOM computed z-index put the GPU canvas at 1 and the
-interaction SVG containing labels at 4. That deployed page is not the pinned
-commit, so this is a visual cross-check, not a pinned pixel golden. Clicking a
-country in that deployment produced `PL-RUNTIME-001` (`self.d3.geo.contains is
-not a function`); a selected-emphasis web screenshot could not be compared.
-The 55 domain/role combinations and five extra primitive overlaps use the real pinned pass and picker policy but do
-not claim browser screenshots for every pair. Translucent territorial stencil
-ownership, actual label glyph pixels, flag images and all-domain hover/render
-cache remain separate visual acceptance evidence.
+- 이 문서는 과거 실행 기록을 요약한 것으로, 현재 소스에 대한 재실행·검증·배포 결과가 아니다.
