@@ -182,3 +182,118 @@ test('isolated modern shared-border JS retaining roots in both release orders', 
   }
   expect(results.scenarios.length).toBe(2);
 });
+
+
+async function clearPreparedCategory(worker, category) {
+  return worker.evaluate(name => {
+    if (!boundaryState || queued || draining)
+      throw new Error('Cannot change prepared cache during boundary work');
+    const rows = boundaryState.preparedStore.values();
+    let referencesRemoved = 0;
+    if (name === 'all-state') {
+      boundaryState = null;
+      return { name, rows: rows.length, referencesRemoved: rows.length };
+    }
+    for (const row of rows) {
+      if (name === 'renderable') {
+        referencesRemoved += row.renderableSegments?.length || 0;
+        row.renderableSegments = [];
+      } else if (name === 'spatial-index') {
+        referencesRemoved += row.spatialIndex ? 1 : 0;
+        row.spatialIndex = null;
+      } else if (name === 'source-segments') {
+        referencesRemoved += row.segments?.length || 0;
+        row.segments = [];
+      } else if (name === 'source-geometry') {
+        referencesRemoved += row.feature ? 1 : 0;
+        row.feature = null;
+        row.geometry = null;
+      } else throw new Error('Invalid prepared category');
+    }
+    return { name, rows: rows.length, referencesRemoved };
+  }, category);
+}
+
+test('isolated derived geometry, per-feature spatial index and contact retention', async ({ browser }, info) => {
+  test.setTimeout(1_400_000);
+  const result = {
+    schema: 'pando-boundary-prepared-category-release-v1',
+    pinnedMainSha: process.env.PANDOLAB_EXPECT_MAIN_SHA || null,
+    limitation: 'Sequential release after GC is order-dependent, not a dominator heap snapshot. Categories can share objects.',
+    orders: [],
+  };
+  try {
+    for (const sequence of [
+      ['renderable', 'spatial-index', 'source-segments', 'source-geometry', 'all-state'],
+      ['source-segments', 'spatial-index', 'renderable', 'source-geometry', 'all-state'],
+    ]) {
+      const record = { sequence, samples: [], operations: [], errors: [] };
+      result.orders.push(record);
+      const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+      let cdp = null, probe = null;
+      try {
+        const page = await context.newPage();
+        page.on('pageerror', error => record.errors.push(error.message));
+        await page.goto('/?perf=1&renderer=webgl2');
+        await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 120_000 });
+        await expect.poll(() => page.evaluate(() => {
+          const gpu = window.__PANDOLAB_RENDER_DEBUG__?.snapshot()?.gpu;
+          return gpu?.renderer === 'webgl2' && gpu.canonicalMeshReady
+            && !gpu.countrySharedBoundaryReplacementPending;
+        }), { timeout: 90_000 }).toBe(true);
+        await page.locator('#flatBtn').evaluate(button => button.click());
+        const modern = await page.evaluate(() => window.PANDOLAB_BUILD_META?.historicalWorld?.sourceMonth);
+        await setMonth(page, '1989-06');
+        await settled(page, '1989-06', true);
+        await setMonth(page, modern);
+        await settled(page, modern, false);
+        const worker = page.workers().find(w => w.url().includes('/country-shared-boundary-worker.js'));
+        expect(worker).toBeTruthy();
+        await expect.poll(() => worker.evaluate(() =>
+          !queued && !draining && boundaryState?.stats().contactCount === 339),
+        { timeout: 90_000 }).toBe(true);
+        await delay(18_000);
+        cdp = await context.newCDPSession(page);
+        probe = await createWorkerMemoryProbe(cdp, { origin: new URL(page.url()).origin, timeoutMs: 24_000 });
+        record.dimensions = await dimensions(worker);
+        record.samples.push(await sample(cdp, probe, 'intact'));
+        record.operations.push(await detach(worker, 'latestMessage'));
+        record.samples.push(await sample(cdp, probe, 'after-latestMessage'));
+        for (const category of sequence) {
+          record.operations.push(await clearPreparedCategory(worker, category));
+          await delay(850);
+          record.samples.push(await sample(cdp, probe, 'after-' + category));
+        }
+        record.freed = record.samples.slice(1).map((row, index) => ({
+          step: row.label,
+          releasedMiB: delta(record.samples[index].borderJsMiB, row.borderJsMiB),
+        }));
+        record.totalReleasedMiB = delta(record.samples[0].borderJsMiB, record.samples.at(-1).borderJsMiB);
+        console.log('SOVIET_BORDER_DERIVED_RELEASE', JSON.stringify({
+          sequence, dimensions: record.dimensions,
+          operations: record.operations,
+          stages: record.samples.map(x => ({ name: x.label, jsMiB: x.borderJsMiB,
+            wasmMiB: x.borderWasmMiB })),
+          released: record.freed, totalReleasedMiB: record.totalReleasedMiB,
+        }));
+        expect(record.errors).toEqual([]);
+        expect(record.dimensions.preparedFeatures).toBe(254);
+        expect(record.samples.every(row => row.complete)).toBe(true);
+        expect(record.operations[0].dropped).toBe(true);
+        expect(record.samples.at(-1).borderJsMiB).toBeLessThan(10);
+        expect(record.samples.every(row => row.borderWasmMiB === record.samples[0].borderWasmMiB)).toBe(true);
+      } finally {
+        if (probe) await probe.dispose();
+        if (cdp) await cdp.detach();
+        await context.close();
+      }
+    }
+  } finally {
+    await mkdir('test-results/soviet-shared-border-owners', { recursive: true });
+    const raw = JSON.stringify(result, null, 2);
+    await writeFile('test-results/soviet-shared-border-owners/derived-ownership.json', raw);
+    await info.attach('soviet-shared-border-derived-ownership.json',
+      { body: Buffer.from(raw), contentType: 'application/json' });
+  }
+  expect(result.orders.length).toBe(2);
+});
