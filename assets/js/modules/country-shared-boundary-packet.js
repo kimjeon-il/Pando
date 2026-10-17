@@ -2,7 +2,7 @@ import { buildGpuStrokeInstances } from './gpu-stroke-geometry.js';
 import { boundaryInteriorComparison, createPreparedBoundaryStore,
   attachBoundarySegmentReferences, topologyNodeKey, mergeSharedBoundaryContributions } from './boundary-topology.js';
 import { createBoundarySpatialIndex, segmentBounds } from './boundary-spatial-index.js';
-import { MAX_BOUNDARY_EDGE_DEGREES } from './geographic-boundary.js';
+import { MAX_BOUNDARY_EDGE_DEGREES, forEachRenderableBoundarySegment } from './geographic-boundary.js';
 import { sharedCalculationCore } from './temporal.js';
 import { computeCountrySharedContacts } from './country-contact-core.js';
 
@@ -178,13 +178,15 @@ export function prepareCountrySharedBoundaryPacket(segments = [], features = [],
   const pendingOutlines = [];
   for (const id of [...outlineIds].sort()) {
     if (byId.get(id).boundaryRootId !== id) continue;
-    for (const [start, end] of store.get(id).renderableSegments) {
+    // Stream the geometry only for a root whose exterior needs clipping.
+    // View/camera updates reuse the prepared GPU packet and never visit it.
+    forEachRenderableBoundarySegment(store.get(id).geometry, ([start, end]) => {
       const row = { a: start, b: end };
       const bounds = segmentBounds(row).map((value, index) => value + (index < 2 ? -1e-7 : 1e-7));
       const blocked = excluded.query(bounds).filter(edge => edge.ownerIds.includes(id))
         .map(edge => [edge.a, edge.b]);
       pendingOutlines.push({ id, start, end, blocked });
-    }
+    });
   }
   const clipped = pendingOutlines.length
     ? sharedCalculationCore.boundarySubtractOverlapsBatch(
