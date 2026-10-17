@@ -1,6 +1,6 @@
 # OBJ-095 — 장기 보유 공유 국경 원본 선분의 링 메타데이터 압축
 
-> 조사·구현: 2026-10-17 · 상태: `verified-focused-source-matched-paired / 12-cycle-running` · 지도·GIS 원본 데이터 수정: 없음
+> 조사·구현: 2026-10-17 · 상태: `verified-web-paired-and-12cycle` · 지도·GIS 원본 데이터 수정: 없음
 > baseline: `work/perf-contact-wire-lifetime-20261017` `0059af35094609390d8ce03f76339e5ef8c27948` (OBJ-094)
 > candidate: `work/perf-source-row-owners-20261017`, 제품 소스: `assets/js/modules/boundary-topology.js`, `assets/js/modules/country-contact-core.js`
 > CI: [68개 집중 테스트 + 동일 러너 Worker 메모리 A/B #39038555583](https://github.com/kimjeon-il/Pando/actions/runs/39038555583) · [실제 인접 국가 CPU A/B #39038607376](https://github.com/kimjeon-il/Pando/actions/runs/39038607376) · [12회 왕복 및 순수 pan #39038672944](https://github.com/kimjeon-il/Pando/actions/runs/39038672944)
@@ -90,11 +90,36 @@ prototype 기반 조회 비용인지는 추가 계측해야 한다.
 
 ## 미완료 및 다음 단계
 
-[12회 왕복 및 pan 게이트 #39038672944](https://github.com/kimjeon-il/Pando/actions/runs/39038672944)는
-이 보고서를 최초 작성하는 시점에는 완료 결과가 아직 없으므로,
-최종 완료 판정과 `main` 병합의 증거로 아직 사용하지 않는다.
-제품 코드 수정이 없더라도 작업 브랜치 헤드/생성물 메타데이터가
-검증 커밋과 일치하는지 병합 전에 확인해야 한다.
+[12회 왕복 및 순수 pan 게이트 #39038672944](https://github.com/kimjeon-il/Pando/actions/runs/39038672944)가
+**모두 성공**했다. 실제 소련 선택 및 현대 복귀 **12/12회**,
+완전한 유휴 Worker 샘플 **12/12회**, 페이지 오류 0건,
+전체 자동저장 증가 0회, 미리보기 Worker 0개였다.
+
+| Worker / 브라우저 계측 | 초반 4회 현대 복귀 중앙값 | 후반 4회 중앙값 |
+| --- | ---: | ---: |
+| 공유 국경 Worker V8 JS | 113.22MiB | **96.84MiB** |
+| 전체 Worker JS | 167.83MiB | 151.52MiB |
+| 전체 Worker WASM 선형 | 403.50MiB | 403.50MiB |
+| Chromium 전체 PSS | 1823.28MiB | 1821.50MiB |
+
+마지막 **30초 유휴 + GC**에서 공유 국경 Worker V8 **96.84MiB**,
+전체 Chromium PSS **1805.45MiB**가 기록됐다.
+중간 시점의 Worker V8이 약 96.8/129.7MiB로 오가는 양상은
+GC·Worker 유지 시점의 차이에 부합하며, 이 12회에서 단조 증가 JS 누수
+근거는 없었다. PSS는 여러 Chromium 프로세스를 포함하며
+독립적인 공유 국경 Worker 물리 RAM이 아니다.
+
+실제 1989년 소련 선택 후 순수 카메라 이동에서 Stroke GPU
+buildCount **9→9**, 업로드 **16,030,056→16,030,056B**,
+폴리곤 GPU buildCount **33→33**, 공유 경계 requestId **3→3**으로
+불변이었다. 순수 pan에 의한 버퍼 추가 업로드 **0B**.
+
+[일반 P3 검증 #39038555574](https://github.com/kimjeon-il/Pando/actions/runs/39038555574)는
+통과했다. [이전 P2 #39038555571](https://github.com/kimjeon-il/Pando/actions/runs/39038555571)은
+테스트 실패가 아니라, 병렬 보고서/CI 커밋으로 작업 브랜치 HEAD가 이동해
+게시 전 안전 가드 `P2_REMOTE_BRANCH_CHANGED`가 적용되어 중단됐다.
+최종 제품 브랜치 헤드가 고정된 뒤 P2 소스 일치 생성물 게시를
+별도 확인해야 한다. `main` 병합은 아직 실행하지 않았다.
 
 추가 압축은 `endVertexIndex`를 링 길이에서 도출하거나
 source row 자체를 더 느슨한 자료구조로 바꾸는 방향이 가능하지만,
