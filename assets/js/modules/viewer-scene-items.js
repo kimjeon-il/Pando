@@ -114,7 +114,7 @@ export function buildViewerSceneItems({ documentModel, state, entityRepository, 
   const selectedFeature = selected && (result.searchItems.find(feature => feature.objectKey === selectedKey && feature.id === selected.id)
     || (selected.selectionRef && ['placeBuiltin','hydroBuiltin'].includes(selected.selectionRef.domain) ? selected : null));
   if (selectedFeature?.geometry) {
-    const style = resolveMapStrokeStyle(resolveMapInteractionStyle(), 'primary');
+    const style = resolveMapStrokeStyle(state.interactionStyle || resolveMapInteractionStyle(), 'primary');
     const geometry = selectedFeature.geometry;
     if (geometry.type === 'Point' || geometry.type === 'MultiPoint') {
       const coordinates = geometry.type === 'Point' ? [geometry.coordinates] : geometry.coordinates;

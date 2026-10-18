@@ -52,8 +52,9 @@ test('viewer searches published place bytes, admits C++ identity and resolves hi
   const before = f.documentModel.snapshot();
   await f.commandOwner.setTimelineCursor('1930-01');
   const found = await f.places.search('Leningrad');
-  const city = found.find(row => row.id === 'builtin:place:geonames:498817');
+  const city = found.records.find(row => row.id === 'builtin:place:geonames:498817');
   assert.ok(city);
+  assert.deepEqual(f.places.resolve(city.id),city);
   assert.equal(city.geometry.type, 'Point');
   assert.equal(city.properties.name, '레닌그라드');
   await f.commandOwner.selectionApply({ action: 'replace', ref: city.selectionRef, scope: 'labels' });
@@ -111,4 +112,17 @@ test('viewer reports a failed place viewport and retries without publishing part
   assert.equal(await f.places.prepare(f.frame, { zoom: 10, month: '2020-01' }), true);
   assert.ok(f.places.records().length > 0);
   assert.deepEqual(f.documentModel.snapshot(), before);
+});
+
+test('viewer defers place viewport work during camera interaction and publishes the latest view after settling', async t => {
+  const f = await fixture(t);
+  f.places.beginInteraction();
+  assert.equal(await f.places.prepare(f.frame, {zoom:10,month:'2020-01'}),false);
+  assert.equal(await f.places.prepare(f.frame, {zoom:12,month:'2020-01'}),false);
+  assert.equal(f.requests.length,0);
+  assert.equal(await f.places.settle(),true);
+  assert.equal(f.requests.length,1);
+  assert.equal(f.requests[0].payload.view.threshold,12);
+  assert.ok(f.places.records().length>0);
+  assert.deepEqual(f.errors,[]);
 });

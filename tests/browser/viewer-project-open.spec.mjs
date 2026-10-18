@@ -9,6 +9,7 @@ test.beforeAll(async () => {
 });
 
 test('viewer opens the real editor GeoPackage and keeps it through invalid files, picker cancellation and a stale read', async ({ page }) => {
+  page.setDefaultTimeout(15000);
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.goto('/');
@@ -20,13 +21,14 @@ test('viewer opens the real editor GeoPackage and keeps it through invalid files
   expect(loaded.territorialEntities).toEqual(first.project.territorialEntities);
   expect(loaded.geometries).toEqual(first.project.geometries);
   expect(loaded.timelineRecords).toEqual(first.project.timelineRecords);
-  await expect(page.getByLabel('지도 연월')).toHaveValue('1914-06');
-  await page.locator('#viewerSearchToggle').click();
+  await expect(page.getByLabel('연월 입력')).toHaveValue('1914-06');
+  await page.locator('#objectSearchBtn').click();
   await page.getByLabel('지도에서 찾기', { exact:true }).fill('파일 지도 A');
-  await page.locator('#viewerResults button').filter({ hasText: '파일 지도 A' }).first().click();
+  await page.locator('#objectSearchResults button').filter({ hasText: '파일 지도 A' }).first().click();
   await expect(page.locator('#viewerInfo')).toContainText('원본 메타데이터 보존');
-  await page.getByLabel('지도 연월').fill('1914-07');
-  await page.getByLabel('지도 연월').dispatchEvent('change');
+  await page.locator('#timelineMonthButton').click();
+  await page.getByLabel('연월 입력').fill('1914-07');
+  await page.getByLabel('연월 입력').press('Enter');
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_VIEWER__.documentState().timelineCursor)).toBe('1914-07');
 
   const before = await page.evaluate(() => ({ state: window.__PANDOLAB_VIEWER__.documentState(), project: window.__PANDOLAB_VIEWER__.documentSnapshot() }));

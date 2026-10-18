@@ -63,11 +63,15 @@ export function createViewerPlaces({ getSession, assetRevision, onChange, onErro
     },
     async search(query, { languages = DEFAULT_PLACE_LANGUAGES } = {}) {
       const owner = currentRuntime(), session = acceptedSession;
-      if (!owner || session.commandOwner.state().timelineCursor.startsWith('-')) return [];
+      if (!owner || session.commandOwner.state().timelineCursor.startsWith('-')) return {records:[],truncated:false};
       const result = await owner.search(query);
       if (getSession() !== session || disposed) throw stale();
-      return result.records.map(record => toFeature(record, session.commandOwner.state().timelineCursor, languages));
+      return {...result,records:result.records.map(record => toFeature(record, session.commandOwner.state().timelineCursor, languages))};
     },
+    resolve(id,languages){const record=currentRuntime()?.resolve(id);return record?toFeature(record,acceptedSession.commandOwner.state().timelineCursor,languages):null;},
+    cancelSearch(){currentRuntime()?.cancelSearch();},
+    beginInteraction(){currentRuntime()?.beginInteraction();},
+    settle(){return currentRuntime()?.settle() || Promise.resolve(false);},
     records: () => currentRuntime()?.snapshot().records || [],
     labels({ state, month, languages = DEFAULT_PLACE_LANGUAGES }) {
       const owner = currentRuntime();

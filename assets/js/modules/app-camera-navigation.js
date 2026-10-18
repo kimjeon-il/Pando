@@ -1,3 +1,4 @@
+import { panCameraView } from './camera-pan.js';
 /** CameraNavigation: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -12,25 +13,9 @@ export function createCameraNavigation() {
 
   function panMapViewBy(dx, dy) {
     const [dragX, dragY] = (0, dependencies.mapNavigation.normalizeMapSurfaceDragDelta)(dx, dy);
-    if (dragX === 0 && dragY === 0) return false;
-    if (dependencies.projectState.state.projection === 'globe') {
-      const previous = dependencies.projectState.state.view.globeRotation.slice();
-      const sensitivity = 0.22 / Math.max(0.75, Math.sqrt(dependencies.projectState.state.view.globeZoom));
-      dependencies.projectState.state.view.globeRotation[0] += dragX * sensitivity;
-      dependencies.projectState.state.view.globeRotation[1] -= dragY * sensitivity;
-      dependencies.projectState.state.view.globeRotation[1] = (0, dependencies.platform.clamp)(dependencies.projectState.state.view.globeRotation[1], -89, 89);
-      const changed = previous.some((value, index) => Math.abs(value - dependencies.projectState.state.view.globeRotation[index]) > 1e-9);
-      if (changed) dependencies.rendering.gpuMapRenderer.cancelCountryFocus();
-      return changed;
-    }
-    const previous = dependencies.projectState.state.view.flatCenter.slice();
-    const scale = dependencies.mapView.flatProjection.scale();
-    dependencies.projectState.state.view.flatCenter[0] -= dragX * 180 / (Math.PI * scale);
-    dependencies.projectState.state.view.flatCenter[1] += dragY * 180 / (Math.PI * scale);
-    dependencies.projectState.state.view.flatCenter[1] = (0, dependencies.platform.clamp)(dependencies.projectState.state.view.flatCenter[1], -dependencies.mapNavigation.FLAT_LATITUDE_LIMIT, dependencies.mapNavigation.FLAT_LATITUDE_LIMIT);
-    dependencies.projectState.state.view.flatCenter[0] = ((dependencies.projectState.state.view.flatCenter[0] + 540) % 360) - 180;
-    const changed = previous.some((value, index) => Math.abs(value - dependencies.projectState.state.view.flatCenter[index]) > 1e-9);
-    if (changed) dependencies.rendering.gpuMapRenderer.cancelCountryFocus();
+    const changed=panCameraView(dependencies.projectState.state.view,dependencies.projectState.state.projection,dragX,dragY,
+      {scale:dependencies.projectState.state.projection==='flat'?dependencies.mapView.flatProjection.scale():1,latitudeLimit:dependencies.mapNavigation.FLAT_LATITUDE_LIMIT});
+    if(changed)dependencies.rendering.gpuMapRenderer.cancelCountryFocus();
     return changed;
   }
 

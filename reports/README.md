@@ -40,6 +40,7 @@
 
 | ID | 보고서 | 원문 수정일 | 상태 | 지도 반영 |
 | --- | --- | --- | --- | --- |
+| `UI-VIEWING-REPAIR-20261018` | [웹 열람 UI 공유 누락 조사와 복원](development/testing/viewing-ui-reuse-repair-2026-10-18.md) | 2026-10-18 | `focused-local-verification` | `not-applicable` |
 | `DEV-QT-RETIRE-20261018` | [구 Qt 앱 전체 제거](development/testing/qt-app-retirement-2026-10-18.md) | 2026-10-18 | `verified-focused-runtime` | `not-applicable` |
 | `UI-PRODUCT-SPLIT-20261018` | [웹 열람·앱 편집 분리와 휴대폰 가로 화면](development/testing/web-app-product-split-2026-10-18.md) | 2026-10-18 | `focused-verified / native-device-unverified` | `not-applicable` |
 | `UI-PRODUCT-RELEASE-20261018` | [웹·앱 분리 배포 및 공개 사이트 검증](development/testing/web-app-product-release-2026-10-18.md) | 2026-10-18 | `pages-live-verified / native-device-unverified` | `not-applicable` |

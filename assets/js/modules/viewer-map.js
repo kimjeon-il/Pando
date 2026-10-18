@@ -1,3 +1,5 @@
+import { renderLabelText } from './label-text-presentation.js';
+import { panCameraView } from './camera-pan.js';
 import { createGpuMapRenderer } from './gpu-map-renderer.js';
 import { createMapVisualFrame } from './map-visual-frame.js';
 import { createRenderSceneBuilder } from './render-scene.js';
@@ -28,8 +30,12 @@ export function createViewerMap({ element, canvas, labelLayer, meta, languages, 
   let sceneRevision = 0, updateGeneration = 0;
   let sceneItems={polygons:[],strokes:[],points:[],labels:[],searchItems:[],visibleRootIds:[]};
   let visibleRootIds=new Set();
-  const boundsCache=new WeakMap(),hitTester=createRingHitTester(ring=>ring);
-  let lastFrame=null,lastLabels=[];
+  const boundsCache=new WeakMap(),centroidCache=new WeakMap(),hitTester=createRingHitTester(ring=>ring);
+  let lastFrame=null,lastLabels=[],moving=false,settleTimer=0;
+  const centroid=feature=>{
+    if(!centroidCache.has(feature.geometry))centroidCache.set(feature.geometry,d3.geo.centroid(feature));
+    return centroidCache.get(feature.geometry);
+  };
   const visibility = { countries:true,subunits:true,regions:true,rivers:true,lakes:true,genericFeatures:true,labels:true,distributions:true };
   const state = { size:{width:1,height:1}, layerVisibility:visibility, physicalSettings:{terrainVisible:false,terrainStyle:'political'},
     layerPresentation:normalizeLayerPresentation(),itemVisibility:{}, pendingCountryRenderIds:new Set(), hydroEdits:[],
@@ -77,7 +83,7 @@ export function createViewerMap({ element, canvas, labelLayer, meta, languages, 
         &&state.physicalSettings.hydroLayers?.[props.layer_id]!==false&&state.physicalSettings.hiddenHydroIds?.[id]!==true;
     },
     isLayerItemVisible:(group,id)=>state.itemVisibility[group]?.[String(id)]!==false,isMobile:()=>element.clientWidth<800,isSafeKoreanErrorMessage:()=>false,
-    mapWorkScheduler:{isInteractionActive:()=>false},prepareHydroFeature:feature=>feature,
+    mapWorkScheduler:{isInteractionActive:()=>moving},prepareHydroFeature:feature=>feature,
     queueMapResize:schedule,renderViewFrame:schedule,reportOperationError:onError,
     rendererUi:{createCanvas:()=>document.createElement('canvas'),getMapElement:()=>element,
       setEngineStatus:()=>{},onContextStateChange:schedule,requestHostRepaint:schedule},
@@ -129,7 +135,7 @@ export function createViewerMap({ element, canvas, labelLayer, meta, languages, 
         const flag=territorialLabelFlag(feature,flagOptions);
         if(!visible(feature)||!feature.geometry||(!nameVisible&&!flag)||project.itemVisibility?.countryLabels?.[feature.id]===false)continue;
         const settings=automaticLabelSettings('country',project.labelSettings[labelKey('territorial',feature.id)]);
-        const coordinate=settings.manualPosition||d3.geo.centroid(feature),point=frame.projectVisibleCoordinate(coordinate);
+        const coordinate=settings.manualPosition||centroid(feature),point=frame.projectVisibleCoordinate(coordinate);
         if(point)labels.push({...settings,id:feature.id,point,text:nameVisible?feature.properties.name||feature.id:'',style,sourceType:'territorial',source:feature,nameVisible,
           ...(!nameVisible?{width:flag.width,height:flag.height}:{})});
       }
@@ -145,8 +151,7 @@ export function createViewerMap({ element, canvas, labelLayer, meta, languages, 
       text.exit().remove();text.enter().append('text');
       d3.select(labelLayer).selectAll('text')
         .attr('x',row=>row.point[0]).attr('y',row=>row.point[1]).style('opacity',row=>row.style?.opacity??1)
-        .each(function(row){const lines=row.rows||[{text:row.text}],text=d3.select(this);text.text('');
-          lines.forEach((line,index)=>text.append('tspan').attr('x',row.point[0]).attr('dy',index===0?-(lines.length-1)*7:14).text(line.text));});
+        .each(function(row){renderLabelText(d3.select(this),row.rows||[{text:row.text}],{x:row.point[0]});});
       const flags=layoutTerritorialFlags(placed,flagOptions);
       const flagRows=placed.filter(row=>flags.has(row.id)).map(row=>({...row,flag:flags.get(row.id)}));
       const images=d3.select(labelLayer).selectAll('image').data(flagRows,row=>row.id);
@@ -183,19 +188,19 @@ export function createViewerMap({ element, canvas, labelLayer, meta, languages, 
     if(generation===updateGeneration&&built===false)throw new Error('지도 형상을 표시하지 못했습니다.');
     if(generation===updateGeneration)schedule();
   }
-  const zoomBy=factor=>{zoom=Math.max(1,Math.min(64,zoom*factor));schedule();};
+  const beginMotion=()=>{clearTimeout(settleTimer);if(!moving){moving=true;places.beginInteraction();renderer.setHydroInteractionActive(true);}};
+  const settleMotion=()=>{clearTimeout(settleTimer);settleTimer=setTimeout(()=>{if(pointers.size)return;moving=false;renderer.setHydroInteractionActive(false);places.settle().catch(onError);schedule();},120);};
+  const zoomBy=factor=>{beginMotion();settleMotion();zoom=Math.max(1,Math.min(64,zoom*factor));schedule();};
   const pointers=new Map();let dragDistance=0,pinchDistance=0;
-  element.addEventListener('pointerdown',event=>{pointers.set(event.pointerId,[event.clientX,event.clientY]);dragDistance=0;element.setPointerCapture(event.pointerId);});
+  element.addEventListener('pointerdown',event=>{beginMotion();pointers.set(event.pointerId,[event.clientX,event.clientY]);dragDistance=0;element.setPointerCapture(event.pointerId);});
   element.addEventListener('pointermove',event=>{
     const previous=pointers.get(event.pointerId);if(!previous)return;
     const dx=event.clientX-previous[0],dy=event.clientY-previous[1];pointers.set(event.pointerId,[event.clientX,event.clientY]);dragDistance+=Math.hypot(dx,dy);
     if(pointers.size===2){const [a,b]=[...pointers.values()],distance=Math.hypot(a[0]-b[0],a[1]-b[1]);if(pinchDistance)zoomBy(distance/pinchDistance);pinchDistance=distance;return;}
-    const degrees=180/(Math.PI*projection.scale());
-    if(projectionKind==='globe'){rotation=[rotation[0]+dx*degrees,Math.max(-90,Math.min(90,rotation[1]-dy*degrees)),0];}
-    else center=[center[0]-dx*degrees,Math.max(-85,Math.min(85,center[1]+dy*degrees))];schedule();
+    panCameraView({globeRotation:rotation,globeZoom:zoom,flatCenter:center},projectionKind,dx,dy,{scale:projection.scale()});schedule();
   });
   element.addEventListener('pointerup',event=>{
-    pointers.delete(event.pointerId);pinchDistance=0;
+    pointers.delete(event.pointerId);pinchDistance=0;settleMotion();
     if(dragDistance>5)return;
     const bounds=element.getBoundingClientRect(),point=[event.clientX-bounds.left,event.clientY-bounds.top];
     const label=lastLabels.find(row=>Math.abs(row.point[0]-point[0])<=row.width/2&&Math.abs(row.point[1]-point[1])<=row.height/2);
@@ -223,23 +228,37 @@ export function createViewerMap({ element, canvas, labelLayer, meta, languages, 
     const id=renderer.pick(point);
     if(id&&featureIndex.has(String(id)))onSelect(featureIndex.get(String(id)));
   });
-  element.addEventListener('pointercancel',event=>{pointers.delete(event.pointerId);pinchDistance=0;});
+  element.addEventListener('pointercancel',event=>{pointers.delete(event.pointerId);pinchDistance=0;settleMotion();});
   element.addEventListener('wheel',event=>{event.preventDefault();zoomBy(Math.exp(-event.deltaY*.001));},{passive:false});
   const observer=new ResizeObserver(schedule);observer.observe(element);
   return Object.freeze({
     async setSession(next,{view=null}={}){session=next;selected=view?.selected||null;const project=session.documentModel.snapshot();
-      state.layerPresentation=project.layerPresentation;state.itemVisibility=project.itemVisibility;
+      state.layerPresentation=view?.layerPresentation||project.layerPresentation;state.itemVisibility=project.itemVisibility;state.distributionSettings=view?.distributionSettings||project.distributionSettings;
       state.physicalSettings=view?.physicalSettings||{terrainVisible:false,terrainStyle:'political',...project.physicalSettings};
       Object.assign(visibility,view?.visibility||project.layerVisibility);await update();
       await Promise.all([hydro.load(),state.physicalSettings.terrainVisible?terrain.load():Promise.resolve()]);},
-    update,visibility,features:()=>entities,searchItems:()=>sceneItems.searchItems,searchPlaces:query=>places.search(query,{languages}),renderer,
-    capturePresentation:()=>({visibility:{...visibility},physicalSettings:structuredClone(state.physicalSettings),selected}),
+    resolvePlace:id=>places.resolve(id,languages),cancelSearch:()=>places.cancelSearch(),update,visibility,features:()=>entities,searchItems:()=>sceneItems.searchItems,searchPlaces:query=>places.search(query,{languages}),renderer,
+    selectedFeature:()=>selected,
+    capturePresentation:()=>({layerPresentation:structuredClone(state.layerPresentation),distributionSettings:structuredClone(state.distributionSettings),visibility:{...visibility},physicalSettings:structuredClone(state.physicalSettings),selected}),
     clear(){session=null;entities=[];rootFeatures=[];featureIndex=new Map();visibleRootIds=new Set();sceneItems={polygons:[],strokes:[],points:[],labels:[],searchItems:[],visibleRootIds:[]};
       renderer.resetProjectRenderState();schedule();},
-    setLayer(key,value){visibility[key]=value;buildScene();},
     async setTerrain(value){state.physicalSettings={...state.physicalSettings,terrainVisible:value!=='none',terrainStyle:value==='physical'?'physical':'political'};
       buildScene();renderer.invalidatePhysicalStyle('viewer-terrain');if(value!=='none')await terrain.load();},
     physicalSettings:()=>state.physicalSettings,
+    entityRepository:repository,
+    displayState:()=>({...session?.documentModel.snapshot(),...state,projection:projectionKind}),
+    setLanguages(next){languages=next;schedule();},
+    async applyPresentation(payload){
+      if(payload.action==='visibility')visibility[payload.key]=payload.visible;
+      else if(payload.action==='groupStyle')state.layerPresentation=normalizeLayerPresentation({...state.layerPresentation,styles:{...state.layerPresentation.styles,[payload.group]:{...state.layerPresentation.styles[payload.group],...payload.patch}}});
+      else {
+        const key={distributionRenderMode:'renderMode',distributionActiveLayer:'activeLayerId',distributionBoundaryVisible:'boundaryVisible'}[payload.action];
+        if(!key)throw new Error(`Unknown viewing action: ${payload.action}`);
+        state.distributionSettings={...state.distributionSettings,[key]:payload.value};
+      }
+      buildScene();renderer.invalidatePhysicalStyle('view-presentation');
+    },
+    refreshAppearance(interactionStyle){state.interactionStyle=interactionStyle;buildScene();renderer.invalidatePhysicalStyle('user-preferences');},
     setProjection(value){projectionKind=value;schedule();},zoomBy,
     fit(){zoom=1;center=[0,0];rotation=[-125,-20,0];schedule();},
     async select(feature,{focus=false}={}){
@@ -253,8 +272,8 @@ export function createViewerMap({ element, canvas, labelLayer, meta, languages, 
       const result=await owner.commandOwner.selectionApply({action:'replace',ref});
       if(owner!==session)return false;
       selected=result.selection.primary?feature:null;
-      if(focus&&feature.geometry){const coord=d3.geo.centroid(feature);rotation=[-coord[0],-coord[1],0];center=coord;zoom=Math.max(zoom,3);}buildScene();return true;
+      if(focus&&feature.geometry){const coord=centroid(feature);rotation=[-coord[0],-coord[1],0];center=coord;zoom=Math.max(zoom,3);}buildScene();return true;
     },
-    dispose(){disposed=true;places.dispose();observer.disconnect();cancelAnimationFrame(scheduled);renderer.dispose();uploadScheduler.dispose();},
+    dispose(){disposed=true;clearTimeout(settleTimer);places.dispose();observer.disconnect();cancelAnimationFrame(scheduled);renderer.dispose();uploadScheduler.dispose();},
   });
 }

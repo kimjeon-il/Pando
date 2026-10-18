@@ -123,3 +123,13 @@ test('distributions honor month-end validity, current territorial geometry, acti
   scene = await f.build('1914-07');
   assert.deepEqual(scene.polygons.filter(item => item.key.startsWith('distribution-entry:')).map(item => item.key), [`distribution-entry:${ids.other}:fill`]);
 });
+
+test('viewing selection uses the shared appearance style without writing the project',async t=>{
+ const f=await fixture(t);
+ const {resolveMapInteractionStyle}=await import('../../assets/js/modules/map-interaction-style.js');
+ f.state.interactionStyle=resolveMapInteractionStyle({theme:'light',selectionColor:'#7856d6',antiAlias:false});
+ const selected=(await f.build()).searchItems.find(feature=>feature.id===ids.line);
+ const scene=await f.build('1914-06',selected);
+ assert.equal(scene.strokes.find(stroke=>stroke.key==='viewer-selection').style.color,'#7856d6');
+ assert.equal(f.core.client.state().canUndo,false);
+});

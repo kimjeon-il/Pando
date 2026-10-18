@@ -7,144 +7,161 @@
   <meta name="description" content="세계지도와 프로젝트를 탐색하는 판도연구소">
   <title>판도연구소</title>
   <link rel="icon" href="data:,">
-  <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2?v=0.36.0-build-20261018-product-split" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2?v=0.36.0-build-20261018-viewing-fixes" as="font" type="font/woff2" crossorigin>
 
   <script id="pandolab-module-import-map" type="importmap">
 {
   "imports": {
-    "./assets/js/build-meta.js": "./assets/js/build-meta.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/accent-presets.js": "./assets/js/modules/accent-presets.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/boundary-spatial-index.js": "./assets/js/modules/boundary-spatial-index.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/boundary-topology.js": "./assets/js/modules/boundary-topology.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/builtin-mesh-resource.js": "./assets/js/modules/builtin-mesh-resource.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/canonical-country-packet.js": "./assets/js/modules/canonical-country-packet.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/color-adapter.js": "./assets/js/modules/color-adapter.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/coordinate-bounds.js": "./assets/js/modules/coordinate-bounds.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/core-document-client.js": "./assets/js/modules/core-document-client.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/core-document-read-model.js": "./assets/js/modules/core-document-read-model.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/core-document-runtime.js": "./assets/js/modules/core-document-runtime.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/core-wasm-loader.js": "./assets/js/modules/core-wasm-loader.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/core-worker-runtime.js": "./assets/js/modules/core-worker-runtime.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/country-contact-core.js": "./assets/js/modules/country-contact-core.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/country-default-colors.js": "./assets/js/modules/country-default-colors.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/country-flags.js": "./assets/js/modules/country-flags.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/country-mesh-codec.js": "./assets/js/modules/country-mesh-codec.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/country-mesh-preparation.js": "./assets/js/modules/country-mesh-preparation.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/country-mesh-quality-gate.js": "./assets/js/modules/country-mesh-quality-gate.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/country-mesh-zoom-policy.js": "./assets/js/modules/country-mesh-zoom-policy.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/country-shared-boundary-cache.js": "./assets/js/modules/country-shared-boundary-cache.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/country-shared-boundary-packet.js": "./assets/js/modules/country-shared-boundary-packet.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/country-stroke-preparation.js": "./assets/js/modules/country-stroke-preparation.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/distribution-model.js": "./assets/js/modules/distribution-model.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/document-session.js": "./assets/js/modules/document-session.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/geographic-boundary.js": "./assets/js/modules/geographic-boundary.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/geometry-screen-hit.js": "./assets/js/modules/geometry-screen-hit.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/geometry-version-store.js": "./assets/js/modules/geometry-version-store.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/geometry-versions.js": "./assets/js/modules/geometry-versions.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/gpu-base-scene-pass.js": "./assets/js/modules/gpu-base-scene-pass.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/gpu-blend-utils.js": "./assets/js/modules/gpu-blend-utils.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/gpu-canvas-worker.js": "./assets/js/modules/gpu-canvas-worker.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/gpu-country-ranges.js": "./assets/js/modules/gpu-country-ranges.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/gpu-hydro-preparation.js": "./assets/js/modules/gpu-hydro-preparation.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/gpu-interaction-pass.js": "./assets/js/modules/gpu-interaction-pass.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/gpu-map-renderer.js": "./assets/js/modules/gpu-map-renderer.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/gpu-mesh-worker-jobs.js": "./assets/js/modules/gpu-mesh-worker-jobs.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/gpu-polygon-overlay-pass.js": "./assets/js/modules/gpu-polygon-overlay-pass.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/gpu-resource-budget.js": "./assets/js/modules/gpu-resource-budget.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/gpu-resource-lifecycle.js": "./assets/js/modules/gpu-resource-lifecycle.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/gpu-scene-preparation.js": "./assets/js/modules/gpu-scene-preparation.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/gpu-shader-utils.js": "./assets/js/modules/gpu-shader-utils.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/gpu-stroke-geometry.js": "./assets/js/modules/gpu-stroke-geometry.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/gpu-stroke-renderer.js": "./assets/js/modules/gpu-stroke-renderer.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/gpu-terrain-preparation.js": "./assets/js/modules/gpu-terrain-preparation.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/gpu-upload-scheduler.js": "./assets/js/modules/gpu-upload-scheduler.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/gpu-view-uniforms.js": "./assets/js/modules/gpu-view-uniforms.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/gpu-worker-channels.js": "./assets/js/modules/gpu-worker-channels.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/hydro-tile-window.js": "./assets/js/modules/hydro-tile-window.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/hydro-view-requests.js": "./assets/js/modules/hydro-view-requests.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/label-layout.js": "./assets/js/modules/label-layout.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/layer-presentation.js": "./assets/js/modules/layer-presentation.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/map-display-catalog.js": "./assets/js/modules/map-display-catalog.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/map-interaction-style.js": "./assets/js/modules/map-interaction-style.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/map-theme.js": "./assets/js/modules/map-theme.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/map-visual-frame.js": "./assets/js/modules/map-visual-frame.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/mesh-spatial-blocks.js": "./assets/js/modules/mesh-spatial-blocks.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/physical-layer-service.js": "./assets/js/modules/physical-layer-service.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/place-codec.js": "./assets/js/modules/place-codec.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/place-contract.js": "./assets/js/modules/place-contract.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/place-name-display.js": "./assets/js/modules/place-name-display.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/place-runtime.js": "./assets/js/modules/place-runtime.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/place-worker-store.js": "./assets/js/modules/place-worker-store.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/polygon-geometry.js": "./assets/js/modules/polygon-geometry.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/polygon-mesh-codec.js": "./assets/js/modules/polygon-mesh-codec.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/prepared-polygon-mesh.js": "./assets/js/modules/prepared-polygon-mesh.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/product-mode-policy.js": "./assets/js/modules/product-mode-policy.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/project-package-assets.js": "./assets/js/modules/project-package-assets.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/reliability-core.js": "./assets/js/modules/reliability-core.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/render-device.js": "./assets/js/modules/render-device.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/render-lod.js": "./assets/js/modules/render-lod.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/render-scene.js": "./assets/js/modules/render-scene.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/ring-hit-test.js": "./assets/js/modules/ring-hit-test.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/scene-color-cache.js": "./assets/js/modules/scene-color-cache.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/selection-stroke-geometry.js": "./assets/js/modules/selection-stroke-geometry.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/startup-readiness.js": "./assets/js/modules/startup-readiness.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/stored-asset-loader.js": "./assets/js/modules/stored-asset-loader.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/surface-controller.js": "./assets/js/modules/surface-controller.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/temporal.js": "./assets/js/modules/temporal.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/terrain-dem-shaders.js": "./assets/js/modules/terrain-dem-shaders.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/terrain-manifest.js": "./assets/js/modules/terrain-manifest.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/territorial-edit-plan.js": "./assets/js/modules/territorial-edit-plan.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/territorial-entity-repository.js": "./assets/js/modules/territorial-entity-repository.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/territorial-fill-style.js": "./assets/js/modules/territorial-fill-style.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/territorial-label-flags.js": "./assets/js/modules/territorial-label-flags.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/territorial-units.js": "./assets/js/modules/territorial-units.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/timeline-resolver.js": "./assets/js/modules/timeline-resolver.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/user-preferences.js": "./assets/js/modules/user-preferences.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/version-contract.js": "./assets/js/modules/version-contract.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/viewer-composition.js": "./assets/js/modules/viewer-composition.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/viewer-map.js": "./assets/js/modules/viewer-map.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/viewer-places.js": "./assets/js/modules/viewer-places.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/viewer-project-reader.js": "./assets/js/modules/viewer-project-reader.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/viewer-scene-items.js": "./assets/js/modules/viewer-scene-items.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/viewer-session.js": "./assets/js/modules/viewer-session.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/worker-job-scheduler.js": "./assets/js/modules/worker-job-scheduler.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/worker-rpc.js": "./assets/js/modules/worker-rpc.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/workspace-layout.js": "./assets/js/modules/workspace-layout.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/modules/world-bundle-manifest.js": "./assets/js/modules/world-bundle-manifest.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/vendor/d3.min.js": "./assets/js/vendor/d3.min.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/vendor/earcut.min.js": "./assets/js/vendor/earcut.min.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/vendor/fflate/fflate.min.js": "./assets/js/vendor/fflate/fflate.min.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/vendor/sql/sql-wasm.js": "./assets/js/vendor/sql/sql-wasm.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/viewer.js": "./assets/js/viewer.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/workers/canvas-render-worker.js": "./assets/js/workers/canvas-render-worker.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/workers/canvas-scene-composition-core.js": "./assets/js/workers/canvas-scene-composition-core.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/workers/canvas-terrain-dem-core.js": "./assets/js/workers/canvas-terrain-dem-core.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/workers/core-viewer-session-worker.js": "./assets/js/workers/core-viewer-session-worker.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/workers/country-shared-boundary-worker.js": "./assets/js/workers/country-shared-boundary-worker.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/workers/data-loader-worker.js": "./assets/js/workers/data-loader-worker.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/workers/geographic-boundary-core.js": "./assets/js/workers/geographic-boundary-core.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/workers/gpkg-read-core.js": "./assets/js/workers/gpkg-read-core.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/workers/gpu-mesh-core.js": "./assets/js/workers/gpu-mesh-core.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/workers/gpu-mesh-worker.js": "./assets/js/workers/gpu-mesh-worker.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/workers/hydro-shard-store.js": "./assets/js/workers/hydro-shard-store.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/workers/hydro-tile-worker.js": "./assets/js/workers/hydro-tile-worker.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/workers/place-worker.js": "./assets/js/workers/place-worker.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/workers/project-read-worker.js": "./assets/js/workers/project-read-worker.js?v=0.36.0-build-20261018-product-split",
-    "./assets/js/workers/worker-rpc-host.js": "./assets/js/workers/worker-rpc-host.js?v=0.36.0-build-20261018-product-split"
+    "./assets/js/build-meta.js": "./assets/js/build-meta.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/accent-presets.js": "./assets/js/modules/accent-presets.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/app-accent.js": "./assets/js/modules/app-accent.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/app-map-settings.js": "./assets/js/modules/app-map-settings.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/boundary-spatial-index.js": "./assets/js/modules/boundary-spatial-index.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/boundary-topology.js": "./assets/js/modules/boundary-topology.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/builtin-mesh-resource.js": "./assets/js/modules/builtin-mesh-resource.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/camera-pan.js": "./assets/js/modules/camera-pan.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/canonical-country-packet.js": "./assets/js/modules/canonical-country-packet.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/color-adapter.js": "./assets/js/modules/color-adapter.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/coordinate-bounds.js": "./assets/js/modules/coordinate-bounds.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/core-document-client.js": "./assets/js/modules/core-document-client.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/core-document-read-model.js": "./assets/js/modules/core-document-read-model.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/core-document-runtime.js": "./assets/js/modules/core-document-runtime.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/core-wasm-loader.js": "./assets/js/modules/core-wasm-loader.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/core-worker-runtime.js": "./assets/js/modules/core-worker-runtime.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/country-contact-core.js": "./assets/js/modules/country-contact-core.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/country-default-colors.js": "./assets/js/modules/country-default-colors.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/country-flags.js": "./assets/js/modules/country-flags.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/country-mesh-codec.js": "./assets/js/modules/country-mesh-codec.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/country-mesh-preparation.js": "./assets/js/modules/country-mesh-preparation.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/country-mesh-quality-gate.js": "./assets/js/modules/country-mesh-quality-gate.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/country-mesh-zoom-policy.js": "./assets/js/modules/country-mesh-zoom-policy.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/country-shared-boundary-cache.js": "./assets/js/modules/country-shared-boundary-cache.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/country-shared-boundary-packet.js": "./assets/js/modules/country-shared-boundary-packet.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/country-stroke-preparation.js": "./assets/js/modules/country-stroke-preparation.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/distribution-model.js": "./assets/js/modules/distribution-model.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/document-session.js": "./assets/js/modules/document-session.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/empty-state.js": "./assets/js/modules/empty-state.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/geographic-boundary.js": "./assets/js/modules/geographic-boundary.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/geometry-screen-hit.js": "./assets/js/modules/geometry-screen-hit.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/geometry-version-store.js": "./assets/js/modules/geometry-version-store.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/geometry-versions.js": "./assets/js/modules/geometry-versions.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/gpu-base-scene-pass.js": "./assets/js/modules/gpu-base-scene-pass.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/gpu-blend-utils.js": "./assets/js/modules/gpu-blend-utils.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/gpu-canvas-worker.js": "./assets/js/modules/gpu-canvas-worker.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/gpu-country-ranges.js": "./assets/js/modules/gpu-country-ranges.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/gpu-hydro-preparation.js": "./assets/js/modules/gpu-hydro-preparation.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/gpu-interaction-pass.js": "./assets/js/modules/gpu-interaction-pass.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/gpu-map-renderer.js": "./assets/js/modules/gpu-map-renderer.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/gpu-mesh-worker-jobs.js": "./assets/js/modules/gpu-mesh-worker-jobs.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/gpu-polygon-overlay-pass.js": "./assets/js/modules/gpu-polygon-overlay-pass.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/gpu-resource-budget.js": "./assets/js/modules/gpu-resource-budget.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/gpu-resource-lifecycle.js": "./assets/js/modules/gpu-resource-lifecycle.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/gpu-scene-preparation.js": "./assets/js/modules/gpu-scene-preparation.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/gpu-shader-utils.js": "./assets/js/modules/gpu-shader-utils.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/gpu-stroke-geometry.js": "./assets/js/modules/gpu-stroke-geometry.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/gpu-stroke-renderer.js": "./assets/js/modules/gpu-stroke-renderer.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/gpu-terrain-preparation.js": "./assets/js/modules/gpu-terrain-preparation.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/gpu-upload-scheduler.js": "./assets/js/modules/gpu-upload-scheduler.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/gpu-view-uniforms.js": "./assets/js/modules/gpu-view-uniforms.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/gpu-worker-channels.js": "./assets/js/modules/gpu-worker-channels.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/hydro-tile-window.js": "./assets/js/modules/hydro-tile-window.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/hydro-view-requests.js": "./assets/js/modules/hydro-view-requests.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/icon-utils.js": "./assets/js/modules/icon-utils.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/label-layout.js": "./assets/js/modules/label-layout.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/label-text-presentation.js": "./assets/js/modules/label-text-presentation.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/layer-presentation.js": "./assets/js/modules/layer-presentation.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/map-display-catalog.js": "./assets/js/modules/map-display-catalog.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/map-interaction-style.js": "./assets/js/modules/map-interaction-style.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/map-theme.js": "./assets/js/modules/map-theme.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/map-visual-frame.js": "./assets/js/modules/map-visual-frame.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/menu-presentation.js": "./assets/js/modules/menu-presentation.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/mesh-spatial-blocks.js": "./assets/js/modules/mesh-spatial-blocks.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/mobile-sheet-presentation.js": "./assets/js/modules/mobile-sheet-presentation.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/object-property-presentation.js": "./assets/js/modules/object-property-presentation.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/object-search-controller.js": "./assets/js/modules/object-search-controller.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/object-search-model.js": "./assets/js/modules/object-search-model.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/object-selection-controller.js": "./assets/js/modules/object-selection-controller.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/physical-layer-service.js": "./assets/js/modules/physical-layer-service.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/place-codec.js": "./assets/js/modules/place-codec.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/place-contract.js": "./assets/js/modules/place-contract.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/place-name-display.js": "./assets/js/modules/place-name-display.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/place-runtime.js": "./assets/js/modules/place-runtime.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/place-worker-store.js": "./assets/js/modules/place-worker-store.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/polygon-geometry.js": "./assets/js/modules/polygon-geometry.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/polygon-mesh-codec.js": "./assets/js/modules/polygon-mesh-codec.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/preferences-dialog.js": "./assets/js/modules/preferences-dialog.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/prepared-polygon-mesh.js": "./assets/js/modules/prepared-polygon-mesh.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/product-mode-policy.js": "./assets/js/modules/product-mode-policy.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/project-package-assets.js": "./assets/js/modules/project-package-assets.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/reliability-core.js": "./assets/js/modules/reliability-core.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/render-device.js": "./assets/js/modules/render-device.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/render-lod.js": "./assets/js/modules/render-lod.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/render-scene.js": "./assets/js/modules/render-scene.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/ring-hit-test.js": "./assets/js/modules/ring-hit-test.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/scene-color-cache.js": "./assets/js/modules/scene-color-cache.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/search-toolbar-presentation.js": "./assets/js/modules/search-toolbar-presentation.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/selection-stroke-geometry.js": "./assets/js/modules/selection-stroke-geometry.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/startup-readiness.js": "./assets/js/modules/startup-readiness.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/stored-asset-loader.js": "./assets/js/modules/stored-asset-loader.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/surface-controller.js": "./assets/js/modules/surface-controller.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/temporal.js": "./assets/js/modules/temporal.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/terrain-dem-shaders.js": "./assets/js/modules/terrain-dem-shaders.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/terrain-manifest.js": "./assets/js/modules/terrain-manifest.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/territorial-edit-plan.js": "./assets/js/modules/territorial-edit-plan.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/territorial-entity-repository.js": "./assets/js/modules/territorial-entity-repository.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/territorial-fill-style.js": "./assets/js/modules/territorial-fill-style.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/territorial-label-flags.js": "./assets/js/modules/territorial-label-flags.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/territorial-units.js": "./assets/js/modules/territorial-units.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/timeline-controls.js": "./assets/js/modules/timeline-controls.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/timeline-resolver.js": "./assets/js/modules/timeline-resolver.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/user-preferences.js": "./assets/js/modules/user-preferences.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/version-contract.js": "./assets/js/modules/version-contract.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/viewer-composition.js": "./assets/js/modules/viewer-composition.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/viewer-map.js": "./assets/js/modules/viewer-map.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/viewer-places.js": "./assets/js/modules/viewer-places.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/viewer-project-reader.js": "./assets/js/modules/viewer-project-reader.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/viewer-scene-items.js": "./assets/js/modules/viewer-scene-items.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/viewer-session.js": "./assets/js/modules/viewer-session.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/worker-job-scheduler.js": "./assets/js/modules/worker-job-scheduler.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/worker-rpc.js": "./assets/js/modules/worker-rpc.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/workspace-layout.js": "./assets/js/modules/workspace-layout.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/modules/world-bundle-manifest.js": "./assets/js/modules/world-bundle-manifest.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/vendor/d3.min.js": "./assets/js/vendor/d3.min.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/vendor/earcut.min.js": "./assets/js/vendor/earcut.min.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/vendor/fflate/fflate.min.js": "./assets/js/vendor/fflate/fflate.min.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/vendor/sql/sql-wasm.js": "./assets/js/vendor/sql/sql-wasm.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/viewer.js": "./assets/js/viewer.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/workers/canvas-render-worker.js": "./assets/js/workers/canvas-render-worker.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/workers/canvas-scene-composition-core.js": "./assets/js/workers/canvas-scene-composition-core.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/workers/canvas-terrain-dem-core.js": "./assets/js/workers/canvas-terrain-dem-core.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/workers/core-viewer-session-worker.js": "./assets/js/workers/core-viewer-session-worker.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/workers/country-shared-boundary-worker.js": "./assets/js/workers/country-shared-boundary-worker.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/workers/data-loader-worker.js": "./assets/js/workers/data-loader-worker.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/workers/geographic-boundary-core.js": "./assets/js/workers/geographic-boundary-core.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/workers/gpkg-read-core.js": "./assets/js/workers/gpkg-read-core.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/workers/gpu-mesh-core.js": "./assets/js/workers/gpu-mesh-core.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/workers/gpu-mesh-worker.js": "./assets/js/workers/gpu-mesh-worker.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/workers/hydro-shard-store.js": "./assets/js/workers/hydro-shard-store.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/workers/hydro-tile-worker.js": "./assets/js/workers/hydro-tile-worker.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/workers/place-worker.js": "./assets/js/workers/place-worker.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/workers/project-read-worker.js": "./assets/js/workers/project-read-worker.js?v=0.36.0-build-20261018-viewing-fixes",
+    "./assets/js/workers/worker-rpc-host.js": "./assets/js/workers/worker-rpc-host.js?v=0.36.0-build-20261018-viewing-fixes"
   }
 }
   </script>
   <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var a=Number(p.version)===2&&p.appearance||{};var t=a.theme;document.documentElement.dataset.theme=t==='light'||t==='dark'?t:'light';document.documentElement.dataset.statusBarVisible=String(a.statusBarVisible!==false);}catch(_){document.documentElement.dataset.theme='light';document.documentElement.dataset.statusBarVisible='true';}}());</script>
-  <link rel="stylesheet" href="assets/css/app.css?v=0.36.0-build-20261018-product-split">
-  <link rel="stylesheet" href="assets/css/ui-viewer.bundle.css?v=0.36.0-build-20261018-product-split" data-pandolab-ui="ui-bundle">
-  <link rel="stylesheet" href="assets/css/viewer.css?v=0.36.0-build-20261018-product-split">
-  <script src="assets/js/build-meta.js?v=0.36.0-build-20261018-product-split"></script>
-  <script src="assets/js/vendor/d3.min.js?v=0.36.0-build-20261018-product-split"></script>
-  <script type="module" src="assets/js/viewer.js?v=0.36.0-build-20261018-product-split"></script>
+  <link rel="stylesheet" href="assets/css/app.css?v=0.36.0-build-20261018-viewing-fixes">
+  <link rel="stylesheet" href="assets/css/ui-viewer.bundle.css?v=0.36.0-build-20261018-viewing-fixes" data-pandolab-ui="ui-bundle">
+  <link rel="stylesheet" href="assets/css/viewer.css?v=0.36.0-build-20261018-viewing-fixes">
+  <script src="assets/js/build-meta.js?v=0.36.0-build-20261018-viewing-fixes"></script>
+  <script src="assets/js/vendor/d3.min.js?v=0.36.0-build-20261018-viewing-fixes"></script>
+  <script type="module" src="assets/js/viewer.js?v=0.36.0-build-20261018-viewing-fixes"></script>
 </head>
 <body>
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
     <symbol id="icon-folder-open" viewBox="0 0 24 24"><path d="M3 19V5h6l2 3h9v3M3 19l3-8h16l-3 8Z"/></symbol>
+<symbol id="icon-territory" viewBox="0 0 24 24"><path d="m5 6 5-2 3 3 5-1 2 5-3 3 1 5-6 1-3-3-5 1-1-6 2-6Z"/></symbol>
+<symbol id="icon-focus-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="1.5"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></symbol>
     <symbol id="icon-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
     <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16 16 5 5"/></symbol>
     <symbol id="icon-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></symbol>
@@ -162,6 +179,11 @@
     <symbol id="icon-chevron-left" viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></symbol>
     <symbol id="icon-chevron-right" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
     <symbol id="icon-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5 12 5s9.5 7 9.5 7-3.5 7-9.5 7S2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="icon-type" viewBox="0 0 24 24"><path d="M5 6V4h14v2M12 4v16M8 20h8"/></symbol>
+    <symbol id="icon-map" viewBox="0 0 24 24"><path d="m4 6 5-2 6 2 5-2v14l-5 2-6-2-5 2V6ZM9 4v14M15 6v14"/></symbol>
+    <symbol id="icon-language" viewBox="0 0 24 24"><path d="M4 5h11a3 3 0 0 1 3 3v2a3 3 0 0 1-3 3H9l-4 3v-3H4a3 3 0 0 1-3-3V8a3 3 0 0 1 3-3Z"/><path d="M10 16h5l4 3v-3h1a3 3 0 0 0 3-3v-2"/></symbol>
+    <symbol id="icon-tune" viewBox="0 0 24 24"><path d="M4 6h5M13 6h7M9 3v6M4 12h10M18 12h2M14 9v6M4 18h3M11 18h9M7 15v6"/></symbol>
+    <symbol id="icon-gear" viewBox="0 0 24 24"><path d="m10 3-.5 2-2 .9-1.8-.6-2 3.4L5 10v2l-1.3 1.3 2 3.4 1.8-.6 2 .9.5 2h4l.5-2 2-.9 1.8.6 2-3.4L19 12v-2l1.3-1.3-2-3.4-1.8.6-2-.9L14 3Z"/><circle cx="12" cy="11" r="3"/></symbol>
   </svg>
   <div id="viewer" class="app-root viewer-root" data-layout="wide">
     <header class="topbar">
@@ -169,34 +191,23 @@
         <div class="topbar-file-actions">
           <button id="viewerFileToggle" class="ui-button file-menu-btn topbar-command topbar-text-command" type="button" aria-label="파일 메뉴 열기" aria-haspopup="menu" aria-controls="viewerFileMenu" aria-expanded="false">파일</button>
         </div>
-        <button id="viewerDisplayToggle" class="ui-button topbar-command topbar-text-command map-display-command" type="button" aria-controls="viewerDisplayPanel" aria-expanded="false">보기</button>
+        <button id="mapDisplayBtn" class="ui-button topbar-command topbar-text-command map-display-command" type="button" aria-controls="mapDisplaySurface" aria-expanded="false">보기</button>
+        <button id="preferencesBtn" class="ui-button topbar-command topbar-text-command" type="button" aria-haspopup="dialog">설정</button>
       </div>
     </header>
     <div id="viewerWorkspace" class="workspace">
       <main class="map-wrap" aria-label="지도 작업 공간">
+        <div class="ui-toolbar ui-floating-surface ui-floating-toolbar mobile-menu-toolbar">
+          <button id="mobileMenuBtn" class="ui-button icon-btn mobile-menu-trigger" type="button" aria-label="메뉴 열기" aria-haspopup="menu" aria-controls="mobileGlobalMenu" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+        </div>
         <div id="map" class="map-stage" aria-label="지도" tabindex="0">
           <canvas id="viewerCanvas" class="gpu-map-canvas"></canvas>
-          <svg id="viewerLabels" class="map-label-svg labels-layer country-label" aria-hidden="true"></svg>
+          <svg id="viewerLabels" class="map-overlay-svg labels-layer country-label" aria-hidden="true"></svg>
         </div>
         <div class="ui-toolbar ui-floating-surface ui-floating-toolbar map-command-toolbar" aria-label="지도 명령">
           <div class="map-command-search">
-            <button id="viewerSearchToggle" class="ui-button icon-btn object-search-command" type="button" aria-label="검색" aria-controls="viewerSearchPanel" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-search"/></svg></button>
-      <aside id="viewerSearchPanel" class="workspace-surface surface-search ui-sheet surface-open search-toolbar-desktop" aria-labelledby="viewerSearchTitle" hidden>
-        <header class="surface-header">
-          <div class="surface-header-title"><strong id="viewerSearchTitle">검색</strong></div>
-          <div class="surface-header-actions"></div>
-        </header>
-        <div class="surface-body surface-body-delegated">
-          <section class="panel-section ui-panel--dense object-search-section">
-            <div class="ui-search-field object-search">
-              <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-search"/></svg>
-              <input id="viewerSearch" type="search" placeholder="지도에서 찾기" autocomplete="off" aria-label="지도에서 찾기">
-              <button id="viewerSearchClose" class="ui-button icon-btn sheet-close-btn" type="button" aria-label="검색 창 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
-            </div>
-            <div id="viewerResults" class="object-search-results ui-scroll-surface ui-floating-surface" role="listbox" aria-label="검색 결과"></div>
-          </section>
-        </div>
-      </aside>
+            <button id="objectSearchBtn" class="ui-button icon-btn object-search-command" type="button" aria-label="검색" aria-controls="objectSearchSurface" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-search"/></svg></button>
+
           </div>
           <button id="viewerFit" class="ui-button icon-btn reset-view-command" type="button" aria-label="전체 지도 보기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-fit-map"/></svg></button>
         </div>
@@ -204,80 +215,210 @@
           <button id="viewerZoomIn" class="ui-button icon-btn" type="button" aria-label="확대"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
           <button id="viewerZoomOut" class="ui-button icon-btn" type="button" aria-label="축소"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button>
         </div>
-        <footer class="map-bottom-status">
+        <footer id="mapBottomStatus" class="map-bottom-status">
           <div class="status-inner">
             <span id="viewerStatus" class="status-group status-primary" role="status" aria-live="polite">지도를 준비하고 있습니다…</span>
-            <div class="status-group timeline-status" aria-label="지도 시점">
-              <span class="timeline-month-control"><input id="viewerMonth" class="timeline-month-input" aria-label="지도 연월" type="month"></span>
+            <div class="status-group timeline-status" aria-label="시점 이동">
+              <button id="timelinePreviousYear" class="ui-button ghost timeline-step" type="button" aria-label="1년 이전" data-tooltip="1년 이전">«</button>
+              <button id="timelinePreviousMonth" class="ui-button ghost timeline-step" type="button" aria-label="1개월 이전" data-tooltip="1개월 이전">‹</button>
+              <span class="timeline-month-control">
+                <button id="timelineMonthButton" class="ui-button timeline-month-button" type="button" aria-label="시점 직접 입력" data-tooltip="시점 직접 입력">
+                  <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/></svg>
+                  <span id="timelineMonthButtonText">현재 시점</span>
+                </button>
+                <input id="timelineMonthInput" class="timeline-month-input" type="text" inputmode="text" enterkeyhint="done" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="연월 입력" aria-describedby="timelineMonthError" placeholder="YYYY-MM" hidden />
+              </span>
+              <button id="timelineNextMonth" class="ui-button ghost timeline-step" type="button" aria-label="1개월 이후" data-tooltip="1개월 이후">›</button>
+              <button id="timelineNextYear" class="ui-button ghost timeline-step" type="button" aria-label="1년 이후" data-tooltip="1년 이후">»</button>
+              <span id="timelineMonthLabel" hidden>현재 월</span>
+              <span id="timelineMonthError" class="timeline-month-error" role="status" hidden></span>
             </div>
           </div>
         </footer>
       </main>
 
-      <aside id="viewerDisplayPanel" class="workspace-surface surface-display ui-sheet surface-open" aria-labelledby="viewerDisplayTitle" hidden>
+      <aside id="objectSearchSurface" class="workspace-surface surface-search ui-sheet" aria-labelledby="searchSheetTitle" data-od-id="object-search-surface">
         <header class="surface-header">
-          <div class="surface-header-title"><strong id="viewerDisplayTitle">보기</strong></div>
-          <div class="surface-header-actions"><button id="viewerDisplayClose" class="ui-button icon-btn sheet-close-btn" type="button" aria-label="보기 창 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button></div>
+          <button class="ui-button sheet-drag-handle" type="button" role="slider" data-sheet-handle="objectSearchSurface" aria-label="검색 창 높이 조절" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="2" aria-valuenow="1" aria-valuetext="중간 높이"><span aria-hidden="true"></span></button>
+          <div class="surface-header-title"><strong id="searchSheetTitle">검색</strong></div>
+          <div class="surface-header-actions"><button id="objectSearchCloseBtn" class="ui-button icon-btn sheet-close-btn" type="button" aria-label="검색 창 닫기" data-tooltip="검색 창 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button></div>
         </header>
         <div class="surface-body surface-body-delegated">
-          <section class="panel-section ui-panel--dense map-view-panel-section ui-scroll-surface">
-            <div class="map-view-settings view-menu-root">
-              <section class="layer-style-editor map-projection-settings" aria-labelledby="viewerProjectionTitle">
-                <strong id="viewerProjectionTitle">투영법</strong>
-                <div class="map-view-projection-slot">
-                  <div class="ui-segmented projection-control" role="group" aria-label="투영법">
-                    <button id="viewerGlobe" class="ui-button ui-segment-option projection-btn active" type="button" aria-label="지구본 투영" aria-pressed="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-globe"/></svg><span>지구본</span></button>
-                    <button id="viewerFlat" class="ui-button ui-segment-option projection-btn" type="button" aria-label="평면지도 투영" aria-pressed="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-projection-flat"/></svg><span>평면지도</span></button>
-                  </div>
+        <section id="objectSearchSection" class="panel-section ui-panel--dense object-search-section is-hydrating" aria-busy="true">
+          <div class="ui-search-field object-search">
+            <svg class="ui-icon object-search-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-search"/></svg>
+            <input id="objectSearchInput" type="search" placeholder="지도에서 찾기" autocomplete="off" aria-label="지도에서 찾기" disabled />
+            <button id="objectSearchClearBtn" class="ui-button ui-icon-button ui-search-clear hidden" type="button" aria-label="검색어 지우기" data-tooltip="검색어 지우기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
+          </div>
+          <div id="objectSearchResults" class="object-search-results ui-scroll-surface hidden" role="listbox" aria-label="검색 결과"></div>
+        </section>
+        </div>
+      </aside>
+
+      <aside id="mapDisplaySurface" class="workspace-surface surface-display ui-sheet" aria-labelledby="displaySheetTitle" data-od-id="map-display-surface">
+        <header class="surface-header">
+          <button class="ui-button sheet-drag-handle" type="button" role="slider" data-sheet-handle="mapDisplaySurface" aria-label="보기 창 높이 조절" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="2" aria-valuenow="1" aria-valuetext="중간 높이"><span aria-hidden="true"></span></button>
+          <div class="surface-header-title"><strong id="displaySheetTitle">보기</strong></div>
+          <div class="surface-header-actions"><button id="mapDisplayCloseBtn" class="ui-button icon-btn sheet-close-btn" type="button" aria-label="보기 창 닫기" data-tooltip="보기 창 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button></div>
+        </header>
+        <div class="surface-body surface-body-delegated">
+        <section id="mapViewSection" class="panel-section ui-panel--dense map-view-panel-section ui-scroll-surface">
+          <div class="map-view-settings view-menu-root">
+            <section class="layer-style-editor map-projection-settings" aria-labelledby="mapProjectionSettingsTitle">
+              <button id="mapProjectionMenuTrigger" class="ui-button view-menu-parent view-menu-projection-trigger" type="button" aria-label="투영법 펼치기" aria-controls="mapViewProjectionSlot" aria-expanded="false" aria-haspopup="true"><span class="view-menu-leading"><svg class="ui-icon view-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-globe"/></svg><span>투영법</span></span><svg class="ui-icon view-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+              <strong id="mapProjectionSettingsTitle">투영법</strong>
+              <div id="mapViewProjectionSlot" class="map-view-projection-slot">
+                <div id="projectionControl" class="ui-segmented projection-control" role="group" aria-label="투영법">
+                  <button id="globeBtn" class="ui-button ui-segment-option projection-btn active" type="button" aria-label="지구본 투영" aria-pressed="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-globe"/></svg><span>지구본</span></button>
+                  <button id="flatBtn" class="ui-button ui-segment-option projection-btn" type="button" aria-label="평면지도 투영" aria-pressed="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-projection-flat"/></svg><span>평면지도</span></button>
+                </div>
+              </div>
+            </section>
+            <span class="ui-menu-separator view-menu-separator" role="separator"></span>
+            <section class="layer-style-editor map-name-settings map-display-list" aria-labelledby="mapNameSettingsTitle">
+              <strong id="mapNameSettingsTitle">객체</strong>
+              <section class="layer-type-settings" data-map-display-group="general" aria-label="일반 객체 표시 설정">
+                <div class="layer-type-settings-heading map-display-row"><button class="ui-button map-display-detail-trigger view-menu-parent" type="button" data-map-display-row="general" aria-label="일반 객체 표시 설정 펼치기" aria-controls="generalDisplayOptions" aria-expanded="false" aria-haspopup="true"><span class="view-menu-leading"><svg class="ui-icon view-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-country"/></svg><span>일반</span></span><svg class="ui-icon view-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button></div>
+                <div id="generalDisplayOptions" class="layer-inline-style-panel map-display-details" role="group" aria-label="일반 객체 표시 설정" hidden>
+                  <section class="layer-type-settings" data-map-display-group="countries" aria-label="상위 객체 표시 설정">
+                    <div class="layer-type-settings-heading map-display-row"><button class="ui-button map-display-detail-trigger view-menu-parent" type="button" data-map-display-row="countries" data-map-display-parent="general" aria-label="상위 객체 표시 설정 펼치기" aria-controls="layerStylePanel-countries" aria-expanded="false" aria-haspopup="true"><span class="view-menu-leading"><svg class="ui-icon view-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-country"/></svg><span>상위 객체</span></span><svg class="ui-icon view-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button><label class="ui-choice-row ui-toggle"><input id="countriesVisible" data-layer-visibility="countries" type="checkbox" checked aria-label="상위 객체 표시" /><span>표시</span></label></div>
+                    <div id="layerStylePanel-countries" class="layer-inline-style-panel map-display-details" data-layer-style-panel="countries" role="group" aria-label="상위 객체 표시 설정" hidden>
+                      <label class="ui-choice-row ui-toggle" data-territorial-symbol-row><input id="basemapLabelsVisible" data-territorial-symbol="basemapLabels" type="checkbox" checked aria-label="상위 객체 이름" /><span>이름</span></label>
+                      <label class="ui-choice-row ui-toggle" data-territorial-symbol-row><input id="countryFlagsVisible" data-territorial-symbol="countryFlags" type="checkbox" checked aria-label="상위 객체 깃발" /><span>깃발</span></label>
+                    </div>
+                  </section>
+                  <section class="layer-type-settings" data-map-display-group="subunits" aria-label="하위 객체 표시 설정">
+                    <div class="layer-type-settings-heading map-display-row"><button class="ui-button map-display-detail-trigger view-menu-parent" type="button" data-map-display-row="subunits" data-map-display-parent="general" aria-label="하위 객체 표시 설정 펼치기" aria-controls="layerStylePanel-subunits" aria-expanded="false" aria-haspopup="true"><span class="view-menu-leading"><svg class="ui-icon view-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-subunits"/></svg><span>하위 객체</span></span><svg class="ui-icon view-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button><label class="ui-choice-row ui-toggle"><input id="subunitsVisible" data-layer-visibility="subunits" type="checkbox" checked aria-label="하위 객체 표시" /><span>표시</span></label></div>
+                    <div id="layerStylePanel-subunits" class="layer-inline-style-panel map-display-details" data-layer-style-panel="subunits" role="group" aria-label="하위 객체 표시 설정" hidden>
+                      <label class="ui-choice-row ui-toggle" data-territorial-symbol-row><input id="subunitLabelsVisible" data-territorial-symbol="subunitLabels" type="checkbox" checked aria-label="하위 객체 이름" /><span>이름</span></label>
+                      <label class="ui-choice-row ui-toggle" data-territorial-symbol-row><input id="subunitFlagsVisible" data-territorial-symbol="subunitFlags" type="checkbox" checked aria-label="하위 객체 깃발" /><span>깃발</span></label>
+                    </div>
+                  </section>
                 </div>
               </section>
+              <section class="layer-type-settings" data-map-display-group="regions" aria-label="지방 표시 설정">
+                <div class="layer-type-settings-heading map-display-row"><button class="ui-button map-display-detail-trigger view-menu-parent" type="button" data-map-display-row="regions" aria-label="지방 표시 설정 펼치기" aria-controls="layerStylePanel-regions" aria-expanded="false" aria-haspopup="true"><span class="view-menu-leading"><svg class="ui-icon view-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-region"/></svg><span>지방</span></span><svg class="ui-icon view-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button><label class="ui-choice-row ui-toggle"><input id="regionsVisible" data-layer-visibility="regions" type="checkbox" checked aria-label="지방 레이어 표시" /><span>표시</span></label></div>
+                <div id="layerStylePanel-regions" class="layer-inline-style-panel map-display-details" data-layer-style-panel="regions" role="group" aria-label="지방 표시 설정" hidden>
+                  <label class="ui-choice-row ui-toggle" data-territorial-symbol-row><input id="regionLabelsVisible" data-territorial-symbol="regionLabels" type="checkbox" checked aria-label="지방 이름" /><span>이름</span></label>
+                  <label class="ui-choice-row ui-toggle" data-territorial-symbol-row><input id="regionFlagsVisible" data-territorial-symbol="regionFlags" type="checkbox" checked aria-label="지방 깃발" /><span>깃발</span></label>
+                </div>
+              </section>
+              <section class="layer-type-settings" data-map-display-group="labels" aria-label="지명 표시 설정">
+                <div class="layer-type-settings-heading map-display-row"><button class="ui-button map-display-detail-trigger view-menu-parent" type="button" data-map-display-row="labels" aria-label="지명 표시 설정 펼치기" aria-controls="layerStylePanel-labels" aria-expanded="false" aria-haspopup="true"><span class="view-menu-leading"><svg class="ui-icon view-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-place"/></svg><span>지명</span></span><svg class="ui-icon view-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button><label class="ui-choice-row ui-toggle"><input id="labelsVisible" data-layer-visibility="labels" type="checkbox" checked aria-label="지명 표시" /><span>표시</span></label></div>
+                <div id="layerStylePanel-labels" class="layer-inline-style-panel map-display-details" data-layer-style-panel="labels" role="group" aria-label="지명 표기 언어" hidden>
+                  <label class="ui-choice-row ui-toggle"><input type="checkbox" data-place-language="ko" aria-label="지명 한국어 표시" checked /><span>한국어</span></label>
+                  <label class="ui-choice-row ui-toggle"><input type="checkbox" data-place-language="en" aria-label="지명 영어 표시" /><span>영어</span></label>
+                  <label class="ui-choice-row ui-toggle"><input type="checkbox" data-place-language="native" aria-label="지명 원어 표시" /><span>원어</span></label>
+                </div>
+              </section>
+              <section class="layer-type-settings" data-map-display-group="rivers" aria-label="강 표시 설정">
+                <div class="layer-type-settings-heading map-display-row"><button class="ui-button map-display-detail-trigger view-menu-parent" type="button" data-map-display-row="rivers" aria-label="강 표시 설정 펼치기" aria-controls="layerStylePanel-rivers" aria-expanded="false" aria-haspopup="true"><span class="view-menu-leading"><svg class="ui-icon view-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-river"/></svg><span>강</span></span><svg class="ui-icon view-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button><label class="ui-choice-row ui-toggle"><input id="riversVisible" data-layer-visibility="rivers" type="checkbox" checked aria-label="강 레이어 표시" /><span>표시</span></label></div>
+                <div id="layerStylePanel-rivers" class="layer-inline-style-panel map-display-details" data-layer-style-panel="rivers" role="group" aria-label="강 표시 설정" hidden></div>
+              </section>
+              <section class="layer-type-settings" data-map-display-group="lakes" aria-label="호수 표시 설정">
+                <div class="layer-type-settings-heading map-display-row"><button class="ui-button map-display-detail-trigger view-menu-parent" type="button" data-map-display-row="lakes" aria-label="호수 표시 설정 펼치기" aria-controls="layerStylePanel-lakes" aria-expanded="false" aria-haspopup="true"><span class="view-menu-leading"><svg class="ui-icon view-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-lake"/></svg><span>호수</span></span><svg class="ui-icon view-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button><label class="ui-choice-row ui-toggle"><input id="lakesVisible" data-layer-visibility="lakes" type="checkbox" checked aria-label="호수 레이어 표시" /><span>표시</span></label></div>
+                <div id="layerStylePanel-lakes" class="layer-inline-style-panel map-display-details" data-layer-style-panel="lakes" role="group" aria-label="호수 표시 설정" hidden></div>
+              </section>
+              <section class="layer-type-settings" data-map-display-group="genericFeatures" aria-label="기타 객체 표시 설정">
+                <div class="layer-type-settings-heading map-display-row"><button class="ui-button map-display-detail-trigger view-menu-parent" type="button" data-map-display-row="genericFeatures" aria-label="기타 객체 표시 설정 펼치기" aria-controls="layerStylePanel-genericFeatures" aria-expanded="false" aria-haspopup="true"><span class="view-menu-leading"><svg class="ui-icon view-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-type"/></svg><span>기타 객체</span></span><svg class="ui-icon view-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button><label class="ui-choice-row ui-toggle"><input id="genericFeaturesVisible" data-layer-visibility="genericFeatures" type="checkbox" checked aria-label="기타 객체 레이어 표시" /><span>표시</span></label></div>
+                <div id="layerStylePanel-genericFeatures" class="layer-inline-style-panel map-display-details" data-layer-style-panel="genericFeatures" role="group" aria-label="기타 객체 표시 설정" hidden></div>
+              </section>
+              <section class="layer-type-settings terrain-display-settings" data-map-display-group="terrain" aria-label="지형 표시 설정">
+                <div class="layer-type-settings-heading map-display-row"><button class="ui-button map-display-detail-trigger view-menu-parent" type="button" data-map-display-row="terrain" aria-label="지형 표시 설정 펼치기" aria-controls="terrainDisplayOptions" aria-expanded="false" aria-haspopup="true"><span class="view-menu-leading"><svg class="ui-icon view-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-map"/></svg><span>지형</span></span><svg class="ui-icon view-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button></div>
+              <div id="terrainDisplayOptions" class="terrain-display-options map-display-details" hidden>
+                <div class="terrain-mode-options" role="radiogroup" aria-label="지형 표현 방식">
+                  <label class="ui-choice-row terrain-mode-option" for="terrainNoneRadio"><input id="terrainNoneRadio" type="radio" name="terrainStyle" value="none" /><span>없음</span></label>
+                  <label class="ui-choice-row terrain-mode-option" for="terrainPoliticalRadio"><input id="terrainPoliticalRadio" type="radio" name="terrainStyle" value="political" /><span>흑백</span></label>
+                  <label class="ui-choice-row terrain-mode-option" for="terrainPhysicalRadio"><input id="terrainPhysicalRadio" type="radio" name="terrainStyle" value="physical" checked /><span>색채</span></label>
+                </div>
+              </div>
+              </section>
+            </section>
+            <section id="distributionMenuGroup" class="layer-style-editor distribution-menu-group hidden" aria-labelledby="distributionViewSettingsTitle">
               <span class="ui-menu-separator view-menu-separator" role="separator"></span>
-              <section class="layer-style-editor map-name-settings" aria-label="객체 표시">
-                  <details class="layer-type-settings">
-                    <summary class="ui-button view-menu-parent">지형</summary>
-                    <div class="terrain-mode-options" role="radiogroup" aria-label="지형 표현 방식">
-                      <label class="ui-choice-row terrain-mode-option"><input type="radio" name="viewerTerrain" value="none" checked /><span>없음</span></label>
-                      <label class="ui-choice-row terrain-mode-option"><input type="radio" name="viewerTerrain" value="political" /><span>흑백</span></label>
-                      <label class="ui-choice-row terrain-mode-option"><input type="radio" name="viewerTerrain" value="physical" /><span>색채</span></label>
-                    </div>
-                  </details>
-                <strong>객체</strong>
-                <div id="viewerLayers" class="map-display-list">
-                  <details class="layer-type-settings" data-map-display-group="general">
-                    <summary class="ui-button view-menu-parent"><span class="view-menu-leading"><svg class="ui-icon view-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-country"/></svg><span>일반</span></span><svg class="ui-icon view-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></summary>
-                    <div class="layer-inline-style-panel map-display-details" role="group" aria-label="일반 객체 표시 설정">
-                      <div class="layer-type-settings-heading map-display-row"><label class="ui-choice-row ui-toggle"><span class="view-menu-leading"><svg class="ui-icon view-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-country"/></svg><span>상위 객체</span></span><input data-viewer-layer="countries" value="countries" type="checkbox" checked aria-label="상위 객체 표시"></label></div>
-                      <div class="layer-type-settings-heading map-display-row"><label class="ui-choice-row ui-toggle"><span class="view-menu-leading"><svg class="ui-icon view-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-subunits"/></svg><span>하위 객체</span></span><input data-viewer-layer="subunits" value="subunits" type="checkbox" checked aria-label="하위 객체 표시"></label></div>
-                    </div>
-                  </details>
-                  <div class="layer-type-settings-heading map-display-row"><label class="ui-choice-row ui-toggle"><span class="view-menu-leading"><svg class="ui-icon view-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-region"/></svg><span>지방</span></span><input data-viewer-layer="regions" value="regions" type="checkbox" checked aria-label="지방 표시"></label></div>
-                  <div class="layer-type-settings-heading map-display-row"><label class="ui-choice-row ui-toggle"><span class="view-menu-leading"><svg class="ui-icon view-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-place"/></svg><span>지명</span></span><input data-viewer-layer="labels" value="labels" type="checkbox" checked aria-label="지명 표시"></label></div>
-                  <div class="layer-type-settings-heading map-display-row"><label class="ui-choice-row ui-toggle"><span class="view-menu-leading"><svg class="ui-icon view-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-river"/></svg><span>강</span></span><input data-viewer-layer="rivers" value="rivers" type="checkbox" checked aria-label="강 표시"></label></div>
-                  <div class="layer-type-settings-heading map-display-row"><label class="ui-choice-row ui-toggle"><span class="view-menu-leading"><svg class="ui-icon view-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-lake"/></svg><span>호수</span></span><input data-viewer-layer="lakes" value="lakes" type="checkbox" checked aria-label="호수 표시"></label></div>
-                  <div class="layer-type-settings-heading map-display-row"><label class="ui-choice-row ui-toggle"><span class="view-menu-leading"><svg class="ui-icon view-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-shape"/></svg><span>기타 객체</span></span><input data-viewer-layer="genericFeatures" value="genericFeatures" type="checkbox" checked aria-label="기타 객체 표시"></label></div>
-                  <span class="ui-menu-separator view-menu-separator" role="separator"></span>
-                  <div class="layer-type-settings-heading map-display-row"><label class="ui-choice-row ui-toggle"><span class="view-menu-leading"><svg class="ui-icon view-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-area-draw"/></svg><span>분포</span></span><input data-viewer-layer="distributions" value="distributions" type="checkbox" checked aria-label="분포 표시"></label></div>
-                </div>
-              </section>
-            </div>
+              <button id="distributionMenuTrigger" class="ui-button view-menu-parent view-menu-distribution-trigger" type="button" aria-label="분포 설정 펼치기" aria-controls="distributionViewSettings" aria-expanded="false" aria-haspopup="true"><span class="view-menu-leading"><svg class="ui-icon view-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-language"/></svg><span>분포</span></span><svg class="ui-icon view-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+              <section id="distributionViewSettings" class="distribution-view-settings" aria-labelledby="distributionViewSettingsTitle">
+              <strong id="distributionViewSettingsTitle">분포</strong>
+              <label class="ui-choice-row ui-toggle"><input id="distributionsVisible" data-layer-visibility="distributions" type="checkbox" checked aria-label="분포 표시" /><span>표시</span></label>
+              <div id="layerStylePanel-distributions" class="layer-inline-style-panel" data-layer-style-panel="distributions"></div>
+              <span class="ui-menu-separator view-menu-separator" role="separator"></span>
+              <div class="ui-field field-group" role="radiogroup" aria-label="표시 기준" aria-describedby="distributionLayerModeHint">
+                <label class="ui-choice-row"><input id="distributionOverlapRadio" type="radio" name="distributionLayerMode" value="overlap" checked /><span class="ui-choice-copy"><strong>여러 분포 겹쳐 보기</strong></span></label>
+                <label class="ui-choice-row"><input id="distributionSingleRadio" type="radio" name="distributionLayerMode" value="single" /><span class="ui-choice-copy"><strong>분포 하나만 보기</strong></span></label>
+              </div>
+              <select id="distributionLayerModeInput" data-native-select hidden><option value="overlap">여러 분포 겹쳐 보기</option><option value="single">분포 하나만 보기</option></select>
+              <label class="ui-field field-group" for="distributionActiveLayerInput"><span>표시 대상</span><select id="distributionActiveLayerInput"></select></label>
+              <div id="distributionLegend" class="distribution-legend" aria-label="분포 범례"></div>
+              <small id="distributionLayerModeHint" class="layer-setting-hint"></small>
+              <label class="ui-choice-row ui-toggle"><input id="distributionBoundaryVisibleInput" type="checkbox" checked aria-label="분포 경계 표시" /><span>분포 경계</span></label>
+            </section>
+            </section>
+          </div>
+          </section>
+        </div>
+
+      </aside>
+      <aside id="viewerInfoPanel" class="sidebar editor-drawer editor-panel workspace-surface surface-editor ui-sheet" aria-labelledby="viewerInfoTitle" hidden>
+        <header class="surface-header"><button class="ui-button sheet-drag-handle" type="button" role="slider" data-sheet-handle="viewerInfoPanel" aria-label="정보 창 높이 조절" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="2" aria-valuenow="1" aria-valuetext="중간 높이"><span aria-hidden="true"></span></button>
+          <div class="surface-header-title"><strong id="viewerInfoTitle">정보</strong></div>
+          <div class="surface-header-actions"></div>
+        </header>
+        <div class="surface-body editor-scroll-body ui-scroll-surface">
+          <section id="viewerInfo" class="editor-view" aria-live="polite">
+            <section id="editorObjectHeader" class="editor-object-header" data-editor-context>
+              <div class="editor-object-context-main"><div id="editorObjectHeading" class="editor-object-heading" aria-label=""><h2 id="propertyTitle"></h2><div class="editor-object-meta"><span id="propertyTypeLabel" class="editor-object-type-label"></span></div></div><button id="viewerInfoClose" class="ui-button icon-btn editor-object-command" type="button" aria-label="정보 창 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button></div>
+            </section>
+            <section class="editor-section editor-info-section editor-section-primary" aria-label="정보"><div id="viewerInfoRows" class="ui-info-list editor-info-list editor-meta-list"></div></section>
           </section>
         </div>
       </aside>
-      <aside id="viewerInfoPanel" class="sidebar editor-drawer editor-panel workspace-surface ui-sheet" aria-labelledby="viewerInfoTitle" hidden>
-        <header class="surface-header">
-          <div class="surface-header-title"><strong id="viewerInfoTitle">정보</strong></div>
-          <div class="surface-header-actions"><button id="viewerInfoClose" class="ui-button icon-btn sheet-close-btn" type="button" aria-label="정보 창 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button></div>
-        </header>
-        <div class="surface-body editor-scroll-body ui-scroll-surface">
-          <section id="viewerInfo" class="editor-view" aria-live="polite"></section>
-        </div>
-      </aside>
     </div>
+    <nav id="mobileGlobalMenu" class="ui-menu ui-popover ui-floating-surface ui-menu-list mobile-global-menu" role="menu" aria-label="모바일 메뉴" hidden>
+        <button id="mobileMenuFileBtn" class="ui-button ui-menu-item" type="button" role="menuitem" aria-haspopup="menu"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-folder-open"/></svg><span>파일</span><svg class="ui-icon ui-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
+        <button id="mobileDisplayBtn" class="ui-button ui-menu-item" type="button" role="menuitem" aria-controls="mapDisplaySurface" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-tune"/></svg><span>보기</span></button>
+        <button id="mobilePreferencesBtn" class="ui-button ui-menu-item" type="button" role="menuitem"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-gear"/></svg><span>설정</span></button>
+      </nav>
     <div id="viewerFileMenu" class="top-actions ui-menu ui-menu-surface ui-menu-list" role="menu" aria-label="파일" hidden>
       <button id="viewerOpen" class="ui-button btn ghost file-menu-item ui-menu-item" type="button" role="menuitem"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-folder-open"/></svg><span>프로젝트 불러오기</span></button>
       <button id="viewerBuiltin" class="ui-button btn ghost file-menu-item ui-menu-item" type="button" role="menuitem"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-library"/></svg><span>내장 지도</span></button>
     </div>
     <input id="viewerFile" type="file" accept=".gpkg" hidden>
+  </div>
+  <div id="preferencesModal" class="ui-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="preferencesTitle">
+    <div class="ui-dialog-backdrop"></div>
+    <section class="ui-dialog-card preferences-card">
+      <header class="ui-dialog-header"><div><h2 id="preferencesTitle">환경설정</h2></div></header>
+      <div class="preferences-fields">
+        <section class="preferences-section" aria-labelledby="preferencesAppearanceTitle">
+          <h3 id="preferencesAppearanceTitle">화면</h3>
+          <div class="preferences-appearance-grid">
+          <div class="preferences-theme" role="group" aria-labelledby="preferencesThemeTitle">
+            <strong id="preferencesThemeTitle">테마</strong>
+            <input id="preferencesThemeInput" type="hidden" value="system" />
+            <div class="preferences-theme-swatches">
+              <button type="button" class="ui-button preferences-accent-chip preferences-theme-chip" data-preference-theme="light" aria-label="밝은 테마" aria-pressed="false"></button>
+              <button type="button" class="ui-button preferences-accent-chip preferences-theme-chip" data-preference-theme="dark" aria-label="어두운 테마" aria-pressed="false"></button>
+              <button type="button" class="ui-button preferences-accent-chip preferences-theme-chip" data-preference-theme="system" aria-label="시스템 설정" aria-pressed="true"></button>
+            </div>
+          </div>
+          <div class="preferences-accent" role="group" aria-labelledby="preferencesAccentTitle">
+            <strong id="preferencesAccentTitle">강조색</strong>
+            <div class="preferences-accent-swatches">
+              <button type="button" class="ui-button preferences-accent-chip" data-preference-accent="red" aria-label="빨강" aria-pressed="false"></button>
+              <button type="button" class="ui-button preferences-accent-chip" data-preference-accent="orange" aria-label="주황" aria-pressed="false"></button>
+              <button type="button" class="ui-button preferences-accent-chip" data-preference-accent="green" aria-label="초록" aria-pressed="false"></button>
+              <button type="button" class="ui-button preferences-accent-chip" data-preference-accent="teal" aria-label="청록" aria-pressed="false"></button>
+              <button type="button" class="ui-button preferences-accent-chip" data-preference-accent="blue" aria-label="파랑" aria-pressed="true"></button>
+              <button type="button" class="ui-button preferences-accent-chip" data-preference-accent="purple" aria-label="보라" aria-pressed="false"></button>
+              <button type="button" class="ui-button preferences-accent-chip" data-preference-accent="pink" aria-label="분홍" aria-pressed="false"></button>
+            </div>
+          </div>
+          </div>
+          <div class="preferences-display"><label class="ui-choice-row ui-toggle"><input id="preferencesStatusBarVisibleInput" type="checkbox" checked /><span>하단 상태표시줄 표시</span></label><label class="ui-choice-row ui-toggle"><input id="preferencesSmoothLinesInput" type="checkbox" checked /><span>경계선 부드럽게</span></label></div>
+        </section>
+      </div>
+      <div class="ui-dialog-actions"><button id="preferencesResetBtn" class="ui-button btn ghost" type="button">기본값 복원</button><span class="preferences-actions-spacer"></span><button id="preferencesCancelBtn" class="ui-button btn ghost" type="button">취소</button><button id="preferencesApplyBtn" class="ui-button btn" type="button">적용</button></div>
+    </section>
   </div>
 </body>
 </html>
