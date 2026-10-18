@@ -326,7 +326,11 @@ test('reference image list controls and task tabs preserve selection and stored 
   )).toBe(false);
   await expect(first.locator('.reference-image-list-row .reference-image-visibility use')).toHaveAttribute('href', '#icon-eye-off');
 
+  await page.locator('[data-ref-tab="match"]').click();
+  await page.locator('[data-ref-action="gcp"]').click();
+  await expect(page.locator('#map')).toHaveClass(/is-reference-gcp-mode/);
   await first.locator('[data-ref-list-action="locked"]').click();
+  await expect(page.locator('#map')).toHaveClass(/is-reference-gcp-mode/);
   await expect.poll(() => page.evaluate(() =>
     window.__PANDOLAB_REFERENCE_IMAGES__.list().find(item => item.name === 'first.png')?.locked,
   )).toBe(true);
@@ -335,6 +339,8 @@ test('reference image list controls and task tabs preserve selection and stored 
   await expect.poll(() => page.evaluate(() =>
     window.__PANDOLAB_REFERENCE_IMAGES__.list().find(item => item.name === 'first.png')?.locked,
   )).toBe(false);
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#map')).not.toHaveClass(/is-reference-gcp-mode/);
 
   await first.locator('[data-ref-list-action="forward"]').click();
   await expect.poll(() => page.evaluate(() =>
