@@ -619,7 +619,13 @@ test('reference images support placement, ordering, georeferencing and persisten
   await expect.poll(async () => (await readReferenceStore(page)).find(item => item.name === '<Base "reference">').controlPoints[0].coordinate).not.toEqual(pointBeforeDirectEdit.coordinate);
   await expect(page.locator('.reference-image-editing-summary')).toBeHidden();
   await expect(page.locator('[data-ref-action="gcp-edit"]')).toHaveAttribute('aria-pressed', 'true');
-  await page.locator('[data-ref-action="gcp-edit"]').click();
+  const directEditButton = page.locator('[data-ref-action="gcp-edit"]');
+  await directEditButton.scrollIntoViewIfNeeded();
+  await expect.poll(() => directEditButton.evaluate(button => {
+    const rect = button.getBoundingClientRect();
+    return button.contains(document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2));
+  }), { message: 'The active point-edit control remains clickable in the task area.' }).toBe(true);
+  await directEditButton.click();
   await expect(page.locator('.reference-image-toolbar [data-ref-action="undo"]')).toBeVisible();
   await page.locator('.reference-image-toolbar [data-ref-action="undo"]').click();
   await expect.poll(async () => (await readReferenceStore(page)).find(item => item.name === '<Base "reference">').controlPoints[0].coordinate).toEqual(pointBeforeDirectEdit.coordinate);

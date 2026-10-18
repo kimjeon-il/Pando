@@ -3,6 +3,8 @@ import test from 'node:test';
 import { createSurfaceController } from '../../assets/js/modules/surface-controller.js';
 import { installReferenceImageSurface } from '../../assets/js/modules/reference-image-surface.js';
 import { setReferenceImageSurfaceEditing } from '../../assets/js/modules/reference-image-surface-port.js';
+import { installReferenceImageLineRefiner } from '../../assets/js/modules/reference-image-line-refine-controller.js';
+import { installReferenceImageLiveWire } from '../../assets/js/modules/reference-image-live-wire-controller.js';
 
 class Element {
   constructor(document) {
@@ -27,6 +29,8 @@ class Element {
   set className(value) { this.classList.add(...value.split(' ')); }
   set textContent(value) { this.text = value; this.textWrites += 1; }
   get textContent() { return this.text; }
+  get parentElement() { return this.parent; }
+  get previousElementSibling() { return this.parent?.children[this.parent.children.indexOf(this) - 1] || null; }
   setAttribute(key, value) { this.attributes.set(key, value); }
   getAttribute(key) { return this.attributes.get(key); }
   removeAttribute(key) { this.attributes.delete(key); }
@@ -37,6 +41,7 @@ class Element {
       this.children.push(child);
     }
   }
+  appendChild(child) { this.append(child); return child; }
   prepend(child) { this.append(child); this.children.unshift(this.children.pop()); }
   remove() {
     if (this.parent) this.parent.children = this.parent.children.filter(item => item !== this);
@@ -47,7 +52,8 @@ class Element {
     this.append(...children);
   }
   matches(selector) {
-    if (selector.startsWith('.')) return this.classList.contains(selector.slice(1));
+    if (selector.includes(',')) return selector.split(',').some(part => this.matches(part.trim()));
+    if (selector.startsWith('.')) return selector.slice(1).split('.').every(name => this.classList.contains(name));
     const attribute = selector.match(/^\[data-([\w-]+)(?:="([^"]*)")?\]$/);
     if (!attribute) return false;
     const key = attribute[1].replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
@@ -379,13 +385,111 @@ test('mobile workflow actions replace generic completion while preserving naviga
   assert.equal(summary.hidden, false);
   assert.equal(workflowActions.hidden, true);
   assert.equal(workflowActions.children.length, 0);
-  assert.equal(finish.hidden, false);
-  assert.equal(cancel.hidden, false);
+  assert.equal(finish.hidden, true);
+  assert.equal(cancel.hidden, true);
   assert.equal(summary.children[1], navigation);
   assert.equal(summary.children[2], undo);
   assert.equal(summary.children[3], redo);
   setReferenceImageSurfaceEditing(false);
   assert.equal(auxiliaryStarts, 1);
   assert.equal(summary.hidden, true);
+  assert.equal(finish.hidden, false);
+  assert.equal(cancel.hidden, false);
+
+  setReferenceImageSurfaceEditing(true, '보조 도구 조작 중');
+  adapter.setEditing(true, '이미지를 드래그해 배치하세요.');
+  assert.equal(summary.hidden, false);
+  assert.equal(finish.hidden, false, 'direct placement editing restores its own completion action');
+  assert.equal(cancel.hidden, false);
+  adapter.setWorkflow(workflow);
+  assert.equal(finish.hidden, true);
+  assert.equal(cancel.hidden, true);
+  adapter.setWorkflow(null);
+  assert.equal(finish.hidden, false, 'clearing a workflow does not retain the previous auxiliary projection');
+  assert.equal(cancel.hidden, false);
   adapter.destroy();
 });
+
+for (const [name, install, actionKey, actionNames] of [
+  ['line refiner', installReferenceImageLineRefiner, 'refLineAction', ['start', 'apply', 'redraw', 'cancel']],
+  ['live wire', installReferenceImageLiveWire, 'refLiveWireAction', ['start', 'finish', 'undo', 'apply', 'redraw', 'cancel']],
+]) {
+  test(`inactive ${name} rendering preserves the surface's workflow and auxiliary completion buttons`, async t => {
+    const f = fixture();
+    const document = f.panel.ownerDocument;
+    const adapter = installReferenceImageSurface({ ...f, workspaceSurfaces: f.workspace });
+    adapter.open();
+    f.editor.dataset.refEditor = '';
+    const calibration = document.createElement();
+    calibration.className = 'reference-image-calibration-actions';
+    const row = document.createElement();
+    row.dataset[actionKey === 'refLineAction' ? 'refLineActions' : 'refLiveWireActions'] = '';
+    for (const action of actionNames) {
+      const button = document.createElement();
+      button.dataset[actionKey] = action;
+      row.append(button);
+    }
+    f.editor.append(calibration, row);
+
+    document.documentElement = { dataset: {} };
+    document.getElementById = id => id === 'map' ? f.mapElement : null;
+    document.querySelector = selector => selector === '.reference-image-panel' ? f.panel : null;
+    const createElement = document.createElement;
+    document.createElement = tag => {
+      const element = createElement();
+      if (tag === 'canvas') element.getContext = () => ({ clearRect() {} });
+      return element;
+    };
+    const observers = [];
+    class MutationObserver {
+      constructor(callback) { this.callback = callback; observers.push(this); }
+      observe() {}
+      disconnect() {}
+    }
+    const globals = {
+      document,
+      MutationObserver,
+      ResizeObserver: class { observe() {} disconnect() {} },
+      addEventListener() {}, removeEventListener() {},
+    };
+    const savedGlobals = new Map(Object.keys(globals).map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)]));
+    for (const [key, value] of Object.entries(globals)) globalThis[key] = value;
+    let controller;
+    t.after(() => {
+      controller?.destroy();
+      adapter.destroy();
+      for (const [key, descriptor] of savedGlobals) {
+        if (descriptor) Object.defineProperty(globalThis, key, descriptor);
+        else delete globalThis[key];
+      }
+    });
+
+    const workflow = {
+      id: 'gcp', title: '기준점 추가', steps: ['이미지점', '지도점'], step: 0,
+      instruction: '이미지에서 맞출 지점을 선택하세요.',
+      actions: [{ action: 'gcp-cancel', label: '기준점 추가 취소' }],
+    };
+    adapter.setEditing(true, workflow.instruction);
+    adapter.setWorkflow(workflow);
+    controller = install();
+    assert.ok(controller);
+    await Promise.resolve();
+    const summary = f.panel.querySelector('.reference-image-editing-summary');
+    const genericActions = summary.querySelectorAll('[data-ref-action="finish"], [data-ref-action="cancel"]');
+    assert.equal(controller.active(), false);
+    assert.equal(genericActions.length, 2);
+    assert.ok(genericActions.every(button => button.hidden), 'an idle auxiliary renderer must preserve workflow completion ownership');
+    assert.equal(summary.querySelector('[data-ref-workflow-actions]').hidden, false);
+
+    adapter.setWorkflow(null);
+    setReferenceImageSurfaceEditing(true, '보조 도구 조작 중');
+    for (const observer of observers) observer.callback();
+    await Promise.resolve();
+    assert.ok(genericActions.every(button => button.hidden), 'an idle renderer must preserve another auxiliary tool\'s completion ownership');
+    setReferenceImageSurfaceEditing(false);
+    adapter.setEditing(true, '이미지를 드래그해 배치하세요.');
+    for (const observer of observers) observer.callback();
+    await Promise.resolve();
+    assert.ok(genericActions.every(button => !button.hidden));
+  });
+}

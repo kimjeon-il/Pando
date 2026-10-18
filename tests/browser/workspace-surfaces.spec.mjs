@@ -68,11 +68,12 @@ test('display and create reuse their DOM when switching between menu and sheet l
   });
 
   await page.locator('#mapDisplayBtn').click();
+  await expect(page.locator('#mapDisplaySurface')).toBeVisible();
   await expect(page.locator('#mapDisplaySurface')).toHaveClass(/view-menu-desktop/);
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.locator('#mobileMenuBtn').click();
-  await expect(page.locator('#mobileGlobalMenu')).toBeVisible();
-  await page.locator('#mobileDisplayBtn').click();
+  // The open surface follows the layout change; toggling again would close it.
+  await expect(page.locator('#app')).toHaveAttribute('data-layout', 'mobile');
+  await expect(page.locator('#mobileDisplayBtn')).toHaveAttribute('aria-expanded', 'true');
   await expect(page.locator('#mapDisplaySurface')).toBeVisible();
   await expect(page.locator('#mapDisplaySurface')).not.toHaveClass(/view-menu-desktop/);
   await expect(page.locator('#mapDisplaySurface')).toHaveCount(1);
