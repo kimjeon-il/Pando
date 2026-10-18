@@ -1,4 +1,4 @@
-import { referenceImageKeyBlocked } from './reference-image-input.js';
+import { referenceImageKeyBlocked, referenceImageNavigationHeld } from './reference-image-input.js';
 import { referenceImageEventTargetsMap } from './reference-image-pointer-target.js';
 import { setReferenceImageSurfaceEditing } from './reference-image-surface-port.js';
 import { buildReferenceImageMesh } from './reference-image-georef.js';
@@ -687,7 +687,7 @@ export function installReferenceImageLiveWire() {
 
 
   function interceptMapEvent(event) {
-    if (!state || !['armed', 'tracking'].includes(state.phase)) return false;
+    if (!state || !['armed', 'tracking'].includes(state.phase) || referenceImageNavigationHeld()) return false;
     if (!referenceImageEventTargetsMap(event, mapElement)) return false;
     event.preventDefault();
     event.stopImmediatePropagation();
@@ -713,13 +713,15 @@ export function installReferenceImageLiveWire() {
   }
 
   function onPointerMove(event) {
-    if (!state || state.phase !== 'tracking' || !referenceImageEventTargetsMap(event, mapElement)) return;
+    if (!state || state.phase !== 'tracking' || referenceImageNavigationHeld()
+      || !referenceImageEventTargetsMap(event, mapElement)) return;
     if (!interceptMapEvent(event)) return;
     schedulePreview(canvasPoint(event, mapElement));
   }
 
   function onDoubleClick(event) {
-    if (!state || state.phase !== 'tracking' || !referenceImageEventTargetsMap(event, mapElement)) return;
+    if (!state || state.phase !== 'tracking' || referenceImageNavigationHeld()
+      || !referenceImageEventTargetsMap(event, mapElement)) return;
     event.preventDefault();
     event.stopImmediatePropagation();
     const screen = canvasPoint(event, mapElement);
