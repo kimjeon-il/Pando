@@ -116,7 +116,7 @@
       "schemaVersion": 1,
       "lineageId": "asm",
       "names": {
-        "ko": "아메리칸사모아"
+        "ko": "미국령 사모아"
       },
       "relations": [],
       "entityRefs": [
@@ -802,7 +802,7 @@
       "schemaVersion": 1,
       "lineageId": "esb",
       "names": {
-        "ko": "데켈리아 지역"
+        "ko": "데켈리아"
       },
       "relations": [],
       "entityRefs": [
@@ -2140,7 +2140,7 @@
       "schemaVersion": 1,
       "lineageId": "pyf",
       "names": {
-        "ko": "프랑스령폴리네시아"
+        "ko": "프랑스령 폴리네시아"
       },
       "relations": [],
       "entityRefs": [
@@ -2696,7 +2696,7 @@
       "schemaVersion": 1,
       "lineageId": "umi",
       "names": {
-        "ko": "미국령군소제도"
+        "ko": "미국령 군소제도"
       },
       "relations": [],
       "entityRefs": [
@@ -2785,7 +2785,7 @@
       "schemaVersion": 1,
       "lineageId": "vgb",
       "names": {
-        "ko": "영국령버진아일랜드"
+        "ko": "영국령 버진아일랜드"
       },
       "relations": [],
       "entityRefs": [
@@ -2796,7 +2796,7 @@
       "schemaVersion": 1,
       "lineageId": "vir",
       "names": {
-        "ko": "미국령버진아일랜드"
+        "ko": "미국령 버진아일랜드"
       },
       "relations": [],
       "entityRefs": [
@@ -3491,7 +3491,7 @@
       "entityId": "state:ASM",
       "entityKind": "general",
       "names": {
-        "ko": "아메리칸사모아"
+        "ko": "미국령 사모아"
       },
       "alternateNames": [],
       "lifetime": {
@@ -3526,9 +3526,9 @@
       "file": "state-ASM.json.gz",
       "validFrom": null,
       "validTo": null,
-      "compressedBytes": 1237,
-      "decodedBytes": 6857,
-      "sha256": "c470779f040f618b1d5546c0ec875454ea96f23376e7f0a644af5bf54c8fcad4",
+      "compressedBytes": 1236,
+      "decodedBytes": 6853,
+      "sha256": "7e4ffc58022d2c739989fb9b5a63d9152b5b1ba6c9ecbe0c2ba9ca1c43e8d834",
       "bbox": [
         -171.086537,
         -14.532892,
@@ -6775,7 +6775,7 @@
       "entityId": "state:ESB",
       "entityKind": "general",
       "names": {
-        "ko": "데켈리아 지역"
+        "ko": "데켈리아"
       },
       "alternateNames": [],
       "lifetime": {
@@ -6809,9 +6809,9 @@
       "file": "state-ESB.json.gz",
       "validFrom": null,
       "validTo": null,
-      "compressedBytes": 1449,
-      "decodedBytes": 9429,
-      "sha256": "130d6fa5bc8c11b8c58e30cf4eb6ba2ab16a5d6be8b28cb5aa08a74fd383997a",
+      "compressedBytes": 1437,
+      "decodedBytes": 9415,
+      "sha256": "2b98d93296212e443700c704d1800e22cc866ecc733539ea0e2e22c8f13d68e8",
       "bbox": [
         33.674099,
         34.937893,
@@ -13803,7 +13803,7 @@
       "entityId": "state:PYF",
       "entityKind": "general",
       "names": {
-        "ko": "프랑스령폴리네시아"
+        "ko": "프랑스령 폴리네시아"
       },
       "alternateNames": [],
       "lifetime": {
@@ -13838,9 +13838,9 @@
       "file": "state-PYF.json.gz",
       "validFrom": null,
       "validTo": null,
-      "compressedBytes": 10181,
-      "decodedBytes": 98226,
-      "sha256": "bde2090df7c38ee9342a21271a3da99b2f10e4cca960e66bb8e3e8d9a41e74e1",
+      "compressedBytes": 10183,
+      "decodedBytes": 98228,
+      "sha256": "a6bd4477cfe624744231ddfe8d92415e3b5a170d42014ea0b9d58926b9f0dc37",
       "bbox": [
         -154.536977,
         -27.641209,
@@ -18517,7 +18517,7 @@
       "entityId": "state:UMI",
       "entityKind": "general",
       "names": {
-        "ko": "미국령군소제도"
+        "ko": "미국령 군소제도"
       },
       "alternateNames": [],
       "lifetime": {
@@ -18552,9 +18552,9 @@
       "file": "state-UMI.json.gz",
       "validFrom": null,
       "validTo": null,
-      "compressedBytes": 1699,
-      "decodedBytes": 12478,
-      "sha256": "7e9c4cd0785ed8f9f40de1d7768e5bde6b19f317f2f1a116b56f9668300d0d39",
+      "compressedBytes": 1700,
+      "decodedBytes": 12480,
+      "sha256": "80868647f2cbf067a1aed1bb61bcfdb79935cedb370f70315b659545739aa8fe",
       "bbox": [
         -177.389597,
         -0.388767,
@@ -18984,7 +18984,7 @@
       "entityId": "state:VGB",
       "entityKind": "general",
       "names": {
-        "ko": "영국령버진아일랜드"
+        "ko": "영국령 버진아일랜드"
       },
       "alternateNames": [],
       "lifetime": {
@@ -19020,8 +19020,8 @@
       "validFrom": null,
       "validTo": null,
       "compressedBytes": 1524,
-      "decodedBytes": 9578,
-      "sha256": "dc75c8bd9be17c0120c3f5d36c74b9a6da26da28226f4debc116d93f7d0e2889",
+      "decodedBytes": 9580,
+      "sha256": "147c17a6d3b58d8a4fa908f43dcba5db8ca0415e14f28a84cb258eb56eac8d7b",
       "bbox": [
         -64.773997,
         18.334662,
@@ -19035,7 +19035,7 @@
       "entityId": "state:VIR",
       "entityKind": "general",
       "names": {
-        "ko": "미국령버진아일랜드"
+        "ko": "미국령 버진아일랜드"
       },
       "alternateNames": [],
       "lifetime": {
@@ -19071,8 +19071,8 @@
       "validFrom": null,
       "validTo": null,
       "compressedBytes": 1329,
-      "decodedBytes": 7509,
-      "sha256": "076eaaa075adaa43d2d9b81ad5558d70626983be3781af77391cf00a7df5be1a",
+      "decodedBytes": 7511,
+      "sha256": "8ea724064801527afa6266dd9c12f41ce5b707fd0c946c1c654447fb690bff3a",
       "bbox": [
         -65.041493,
         17.682766,

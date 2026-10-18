@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "lineageId": "vir",
   "names": {
-    "ko": "미국령버진아일랜드"
+    "ko": "미국령 버진아일랜드"
   },
   "entities": [
     {
@@ -340,12 +340,12 @@
         "license": "Public domain",
         "featureId": "VIR",
         "featureProperties": {
-          "name": "미국령버진아일랜드"
+          "name": "미국령 버진아일랜드"
         },
         "geometrySha256": "d61bdc11c5e44913b4790a610cdd2a3b41a84772101adafeb5d18f616e39a02b"
       },
       "names": {
-        "ko": "미국령버진아일랜드"
+        "ko": "미국령 버진아일랜드"
       }
     }
   ],

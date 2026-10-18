@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "lineageId": "asm",
   "names": {
-    "ko": "아메리칸사모아"
+    "ko": "미국령 사모아"
   },
   "entities": [
     {
@@ -308,12 +308,12 @@
         "license": "Public domain",
         "featureId": "ASM",
         "featureProperties": {
-          "name": "아메리칸사모아"
+          "name": "미국령 사모아"
         },
         "geometrySha256": "609df2f4d6a1eb175b8873d92b990e7cbd62bf049c0e62f87650745251fecb7d"
       },
       "names": {
-        "ko": "아메리칸사모아"
+        "ko": "미국령 사모아"
       }
     }
   ],
