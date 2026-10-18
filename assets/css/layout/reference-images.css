@@ -32,7 +32,7 @@
 .app-root:not([data-layout="mobile"]) .workspace.reference-image-docked {
   --reference-dock-active-width: min(
     var(--reference-dock-width, var(--ui-reference-panel-width)),
-    calc(100% - 320px)
+    calc(100% - var(--ui-reference-map-min-width))
   );
 }
 
@@ -88,7 +88,7 @@
   top: 0;
   bottom: 0;
   left: 0;
-  width: 8px;
+  width: var(--ui-reference-resize-handle-width);
   display: block;
   cursor: ew-resize;
   touch-action: none;
@@ -355,7 +355,7 @@
 
 .app-root[data-layout="mobile"] .reference-image-panel.reference-image-editing {
   height: auto;
-  min-height: min(164px, calc(100dvh - var(--ui-shell-topbar-height) - var(--mobile-nav-height)));
+  min-height: min(var(--ui-reference-mobile-compact-min-height), calc(100dvh - var(--ui-shell-topbar-height) - var(--mobile-nav-height)));
 }
 
 .app-root[data-layout="mobile"] .reference-image-editing-summary {
