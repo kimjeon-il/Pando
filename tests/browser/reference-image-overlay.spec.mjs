@@ -307,6 +307,73 @@ test('reference image bottom sheet collapses without closing on mobile', async (
   expect(errors).toEqual([]);
 });
 
+test('reference image list controls and task tabs preserve selection and stored appearance', async ({ page }) => {
+  test.setTimeout(120_000);
+  const errors = await openApp(page);
+  await clearReferenceStore(page);
+  await page.reload();
+  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
+  await expect(page.locator('#referenceImageBtn')).toBeVisible();
+  await page.locator('#referenceImageBtn').click();
+  await addImage(page, 'first.png');
+  await addImage(page, 'second.png');
+  await expect(page.locator('.reference-image-list-row')).toHaveCount(2);
+
+  const first = page.locator('.reference-image-list-item').filter({ hasText: 'first.png' });
+  await first.locator('[data-ref-list-action="visible"]').click();
+  await expect.poll(() => page.evaluate(() =>
+    window.__PANDOLAB_REFERENCE_IMAGES__.list().find(item => item.name === 'first.png')?.visible,
+  )).toBe(false);
+  await expect(first.locator('.reference-image-list-row .reference-image-visibility use')).toHaveAttribute('href', '#icon-eye-off');
+
+  await first.locator('[data-ref-list-action="locked"]').click();
+  await expect.poll(() => page.evaluate(() =>
+    window.__PANDOLAB_REFERENCE_IMAGES__.list().find(item => item.name === 'first.png')?.locked,
+  )).toBe(true);
+  await expect(first.locator('.reference-image-list-row small')).toContainText('잠김');
+  await first.locator('[data-ref-list-action="locked"]').click();
+  await expect.poll(() => page.evaluate(() =>
+    window.__PANDOLAB_REFERENCE_IMAGES__.list().find(item => item.name === 'first.png')?.locked,
+  )).toBe(false);
+
+  await first.locator('[data-ref-list-action="forward"]').click();
+  await expect.poll(() => page.evaluate(() =>
+    window.__PANDOLAB_REFERENCE_IMAGES__.list().map(item => item.name),
+  )).toEqual(['second.png', 'first.png']);
+  await first.locator('.reference-image-list-row').click();
+  await expect(page.locator('[data-ref-field="name"]')).toHaveValue('first.png');
+
+  await page.locator('[data-ref-tab="match"]').click();
+  await expect(page.locator('[data-ref-tab="match"]')).toHaveAttribute('aria-selected', 'true');
+  await expect(page.locator('[data-ref-section="placement"]')).toBeHidden();
+  await expect(page.locator('[data-ref-action="gcp"]')).toBeVisible();
+  await expect(page.locator('[data-ref-field="opacity"]')).toBeVisible();
+
+  await page.locator('[data-ref-tab="match"]').focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(page.locator('[data-ref-tab="display"]')).toHaveAttribute('aria-selected', 'true');
+  await expect(page.locator('[data-ref-section="match"]')).toBeHidden();
+  await expect(page.locator('[data-ref-field="blend"]')).toBeVisible();
+  await page.locator('[data-ref-field="blend"]').selectOption('multiply');
+  await page.locator('[data-ref-field="opacity"]').fill('0.37');
+  await expect.poll(() => page.evaluate(() => {
+    const item = window.__PANDOLAB_REFERENCE_IMAGES__.list().find(record => record.name === 'first.png');
+    return { blend: item?.blendMode, opacity: item?.opacity };
+  })).toEqual({ blend: 'multiply', opacity: 0.37 });
+
+  await expect.poll(async () => page.evaluate(async () => {
+    const store = await import('/assets/js/modules/reference-image-store.js');
+    const item = (await store.listStoredReferenceImages()).find(record => record.name === 'first.png');
+    return { blend: item?.blendMode, opacity: item?.opacity, visible: item?.visible, locked: item?.locked };
+  })).toEqual({ blend: 'multiply', opacity: 0.37, visible: false, locked: false });
+  await page.reload();
+  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
+  await expect.poll(() => page.evaluate(() =>
+    window.__PANDOLAB_REFERENCE_IMAGES__?.list().find(item => item.name === 'first.png')?.opacity,
+  )).toBe(0.37);
+  expect(errors).toEqual([]);
+});
+
 test('reference images support placement, ordering, georeferencing and persistence without blocking normal map input', async ({ page }) => {
   test.setTimeout(180_000);
   const errors = await openApp(page);
