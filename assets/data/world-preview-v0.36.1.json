@@ -1,7 +1,7 @@
 {
   "version": "0.36.1",
   "source": "territorial-entities/generated/current-world.geojson",
-  "sourceSha256": "6d29c349478cb2a7899573544ba580da70bd902c12ee86a4a93662ca6e94ad72",
+  "sourceSha256": "52590ce133a779fc678496844c844137aeaa0dca41ceca1621cd7c50169f5efb",
   "defaultClassification": {
     "countries": {
       "IDN": "9g6r:voqbzb",
@@ -463,26 +463,26 @@
   },
   "previewDerivation": "canonical-topology-simplified",
   "previewSourceScale": "derived",
-  "previewSourceSha256": "6d29c349478cb2a7899573544ba580da70bd902c12ee86a4a93662ca6e94ad72",
-  "canonicalSourceSha256": "6d29c349478cb2a7899573544ba580da70bd902c12ee86a4a93662ca6e94ad72",
+  "previewSourceSha256": "52590ce133a779fc678496844c844137aeaa0dca41ceca1621cd7c50169f5efb",
+  "canonicalSourceSha256": "52590ce133a779fc678496844c844137aeaa0dca41ceca1621cd7c50169f5efb",
   "simplificationQuantile": 0.16,
   "countries": 258,
   "coordinateCount": 105880,
   "globalAreaError": 0.00019908,
   "meshAlgorithmRevision": 5,
   "meshVertices": 125464,
-  "countriesCompressedBytes": 917486,
+  "countriesCompressedBytes": 917463,
   "meshCompressedBytes": 1734093,
-  "combinedCompressedBytes": 2651579,
-  "countriesSha256": "b8877a6f3f3bbe9ff78c8007ce163e1adde2e80c1d0daa3b920423070b412252",
+  "combinedCompressedBytes": 2651556,
+  "countriesSha256": "1ee545410a2a654b5b333e9d8d19b4a0f914334d0759a3e7f2cdc3bc9c4f3ad0",
   "meshSha256": "766f8107bfa250e6c22acff3e191ba30b0d3a2bb1252b1ce009e7f89ff37e583",
   "assets": {
     "previewCountries": {
       "url": "countries-preview-v0.36.1.geojson.gz",
       "encoding": "gzip",
-      "compressedBytes": 917486,
-      "decodedBytes": 2438859,
-      "sha256": "b8877a6f3f3bbe9ff78c8007ce163e1adde2e80c1d0daa3b920423070b412252"
+      "compressedBytes": 917463,
+      "decodedBytes": 2438854,
+      "sha256": "1ee545410a2a654b5b333e9d8d19b4a0f914334d0759a3e7f2cdc3bc9c4f3ad0"
     },
     "previewMesh": {
       "url": "world-mesh-preview-v0.36.1.bin.gz",
@@ -515,9 +515,9 @@
     "canonicalCountryPacket": {
       "url": "countries-canonical-v0.36.1.pcg.gz",
       "encoding": "gzip",
-      "compressedBytes": 5122041,
-      "decodedBytes": 8826208,
-      "sha256": "638c6f4868b9d270a62cd66ca13a18dc8a4215fa7c48ff9280a089e433f81dd1",
+      "compressedBytes": 5122020,
+      "decodedBytes": 8826200,
+      "sha256": "d7d25bb4c04a1eb9d29e214ec3333e09051bcab00d725d5ee78ab15836bd7325",
       "header": [
         826753872,
         1,
@@ -525,20 +525,20 @@
         4274,
         4291,
         548454,
-        13232,
+        13227,
         258,
         259,
         4275,
         4292,
         516,
         80,
-        13312,
-        13572,
-        14608,
-        31708,
-        48876,
-        50944,
-        8826208
+        13307,
+        13568,
+        14604,
+        31704,
+        48872,
+        50936,
+        8826200
       ]
     },
     "canonicalMesh": {

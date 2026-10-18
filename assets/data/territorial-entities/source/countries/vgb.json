@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "lineageId": "vgb",
   "names": {
-    "ko": "영국령버진아일랜드"
+    "ko": "영국령 버진아일랜드"
   },
   "entities": [
     {
@@ -440,12 +440,12 @@
         "license": "Public domain",
         "featureId": "VGB",
         "featureProperties": {
-          "name": "영국령버진아일랜드"
+          "name": "영국령 버진아일랜드"
         },
         "geometrySha256": "0c70d7eba5c810148cd7ca2eddea9a0e4421f78a835c9bea7fcbd98fc212cab0"
       },
       "names": {
-        "ko": "영국령버진아일랜드"
+        "ko": "영국령 버진아일랜드"
       }
     }
   ],

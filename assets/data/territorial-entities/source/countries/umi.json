@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "lineageId": "umi",
   "names": {
-    "ko": "미국령군소제도"
+    "ko": "미국령 군소제도"
   },
   "entities": [
     {
@@ -584,12 +584,12 @@
         "license": "Public domain",
         "featureId": "UMI",
         "featureProperties": {
-          "name": "미국령군소제도"
+          "name": "미국령 군소제도"
         },
         "geometrySha256": "93e4e6e544f77fbf05e55f6b8e8b2468b29644e9bdacb3e9900420fd3f839702"
       },
       "names": {
-        "ko": "미국령군소제도"
+        "ko": "미국령 군소제도"
       }
     }
   ],
