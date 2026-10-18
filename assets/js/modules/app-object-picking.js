@@ -1,3 +1,4 @@
+import { projectedPointDistance, projectedLineDistance as screenLineDistance, geometryHitsScreenPoint as screenGeometryHit } from './geometry-screen-hit.js';
 import { layerObjectRank, territorialSymbolGroup } from './layer-presentation.js';
 import { createTerritorialFeature } from './territorial-units.js';
 /** ObjectPicking: extracted application responsibility.
@@ -23,59 +24,18 @@ export function createObjectPicking() {
     return createTerritorialFeature({ id, entityKind: 'general', name, geometry });
   }
 
-  function projectedPointDistance(left, right) {
-    return Math.hypot(Number(left?.[0]) - Number(right?.[0]), Number(left?.[1]) - Number(right?.[1]));
-  }
-
-  function pointSegmentDistance(point, start, end) {
-    const dx = end[0] - start[0];
-    const dy = end[1] - start[1];
-    if (!dx && !dy) return projectedPointDistance(point, start);
-    const t = (0, dependencies.platform.clamp)(((point[0] - start[0]) * dx + (point[1] - start[1]) * dy) / (dx * dx + dy * dy), 0, 1);
-    return Math.hypot(point[0] - (start[0] + t * dx), point[1] - (start[1] + t * dy));
-  }
-
   function projectedLineDistance(geometry, screenPoint) {
-    if (!geometry) return Infinity;
-    const lines = geometry.type === 'LineString' ? [geometry.coordinates]
-      : geometry.type === 'MultiLineString' ? geometry.coordinates
-        : geometry.type === 'Polygon' ? geometry.coordinates
-          : geometry.type === 'MultiPolygon' ? geometry.coordinates.flat()
-            : [];
-    let minimum = Infinity;
-    for (const line of lines) {
-      let previous = null;
-      for (const coordinate of line || []) {
-        const projected = (0, dependencies.mapView.activeProjection)()(coordinate);
-        if (previous && projected) minimum = Math.min(minimum, pointSegmentDistance(screenPoint, previous, projected));
-        previous = projected;
-      }
-    }
-    return minimum;
+    return screenLineDistance(geometry, screenPoint, (0, dependencies.mapView.activeProjection)());
   }
 
   function geometryHitsScreenPoint(geometry, coord, screenPoint, tolerance = 8) {
-    if (!geometry) return false;
-    let bounds = dependencies.spatialRecords.geometryBoundsCache.get(geometry);
-    if (!bounds) {
-      bounds = (0, dependencies.cutGeometry.coordinateBounds)(geometry.coordinates);
-      dependencies.spatialRecords.geometryBoundsCache.set(geometry, bounds);
-    }
-    const longitudeSpan = Number(bounds?.[2]) - Number(bounds?.[0]);
-    const geographicTolerance = Math.max(0.15, 4 / Math.max(1, (0, dependencies.labelPresentation.currentMapZoom)()));
-    if (bounds?.every(Number.isFinite) && longitudeSpan < 350 && (coord[0] < bounds[0] - geographicTolerance || coord[0] > bounds[2] + geographicTolerance || coord[1] < bounds[1] - geographicTolerance || coord[1] > bounds[3] + geographicTolerance)) return false;
-    if (geometry.type === 'Point') {
-      const projected = (0, dependencies.mapView.activeProjection)()(geometry.coordinates);
-      return !!projected && projectedPointDistance(projected, screenPoint) <= tolerance;
-    }
-    if (geometry.type === 'MultiPoint') return geometry.coordinates.some(point => {
-      const projected = (0, dependencies.mapView.activeProjection)()(point);
-      return !!projected && projectedPointDistance(projected, screenPoint) <= tolerance;
+    return screenGeometryHit(geometry, coord, screenPoint, tolerance, {
+      project: (0, dependencies.mapView.activeProjection)(),
+      contains: dependencies.landRelations.pointInCountryFeature,
+      coordinateBounds: dependencies.cutGeometry.coordinateBounds,
+      zoom: (0, dependencies.labelPresentation.currentMapZoom)(),
+      boundsCache: dependencies.spatialRecords.geometryBoundsCache,
     });
-    if (geometry.type.includes('Polygon')) {
-      if ((0, dependencies.landRelations.pointInCountryFeature)(coord, { type: 'Feature', properties: {}, geometry })) return true;
-    }
-    return projectedLineDistance(geometry, screenPoint) <= tolerance;
   }
 
   function objectRefSelectable(value) {

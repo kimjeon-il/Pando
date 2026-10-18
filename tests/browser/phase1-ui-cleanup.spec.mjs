@@ -1,8 +1,9 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { test, expect } from '@playwright/test';
 
 test.describe('phase 1 residual UI cleanup', () => {
   test('removes obsolete editor surfaces while keeping the map status overlay', async ({ page }) => {
-    await page.goto('/');
+    await gotoEditor(page, '/');
     await page.waitForFunction(() => document.documentElement.dataset.pandolabUiCleanupPhase1 === 'done');
 
     await expect(page.locator('.map-bottom-status')).toHaveCount(1);
@@ -17,7 +18,7 @@ test.describe('phase 1 residual UI cleanup', () => {
   });
 
   test('historical library uses wide two-pane desktop and near-fullscreen mobile', async ({ page }) => {
-    await page.goto('/');
+    await gotoEditor(page, '/');
     await page.waitForFunction(() => document.documentElement.dataset.pandolabUiCleanupPhase1 === 'done');
     await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
     await page.locator('#createMenuBtn').click();
@@ -49,7 +50,7 @@ test('GIS importer layout is available without the Phase 1 stylesheet', async ({
       contentType: 'text/css',
       body: '',
     }));
-    await page.goto('/');
+    await gotoEditor(page, '/');
     await page.locator('#mobileFileBtn').click();
     const chooser = page.waitForEvent('filechooser');
     await page.locator('#openGisBtn').click();
@@ -82,7 +83,7 @@ test('GIS importer layout is available without the Phase 1 stylesheet', async ({
   });
 
   test('file menu does not use the page-wide modal backdrop', async ({ page }) => {
-    await page.goto('/');
+    await gotoEditor(page, '/');
     await page.waitForFunction(() => document.documentElement.dataset.pandolabUiCleanupPhase1 === 'done');
     await page.locator('#mobileFileBtn').click();
     const backdrop = page.locator('.mobile-backdrop');

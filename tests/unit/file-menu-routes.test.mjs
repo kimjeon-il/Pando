@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { createGisFileController } from '../../assets/js/modules/gis-file-controller.js';
 
 test('topbar separates history, file, view, settings and help commands', () => {
-  const html = readFileSync(new URL('../../index.html', import.meta.url), 'utf8');
+  const html = readFileSync(new URL('../../apps/web-shell/editor.html', import.meta.url), 'utf8');
   const tokens = readFileSync(new URL('../../assets/css/tokens/design-tokens.css', import.meta.url), 'utf8');
   const menuCss = readFileSync(new URL('../../assets/css/components/menus.css', import.meta.url), 'utf8');
   const fileBindings = readFileSync(new URL('../../assets/js/modules/app-file-bindings.js', import.meta.url), 'utf8');

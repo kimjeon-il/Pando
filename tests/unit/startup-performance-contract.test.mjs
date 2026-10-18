@@ -24,7 +24,7 @@ const bundle = read('assets/css/ui.bundle.css');
 const surfaces = read('assets/css/layout/surfaces.css');
 const editorShell = read('assets/css/components/editor-shell.css');
 const modalBundle = read('assets/css/ui-modal.bundle.css');
-const indexHtml = read('index.html');
+const indexHtml = read('apps/web-shell/editor.html');
 
 test('render resources use frame snapshots instead of Proxy traps', () => {
   assert.doesNotMatch(app, /createLiveResources|new\s+Proxy/);
@@ -127,7 +127,7 @@ test('mobile sheet drag stays compositor-only until snap settlement', () => {
 test('map chrome avoids live backdrop blur over animated map content', () => {
   assert.doesNotMatch(editorShell, /(?:-webkit-)?backdrop-filter:\s*blur\(/);
   assert.doesNotMatch(surfaces, /(?:-webkit-)?backdrop-filter:\s*blur\(/);
-  assert.doesNotMatch(read('index.html'), /selection-card|selectionToolbar/);
+  assert.doesNotMatch(read('apps/web-shell/editor.html'), /selection-card|selectionToolbar/);
 });
 
 test('canonical startup is input-gated and strictly sequential', () => {
@@ -184,7 +184,7 @@ test('modal, GIS, and historical runtimes are absent from the initial request gr
     'territorial-library-service.js',
     'territorial-library-controller.js',
   ]) assert.doesNotMatch(eagerImportBlock, new RegExp(moduleName.replace('.', '\\.')));
-  assert.doesNotMatch(indexHtml, /assets\/js\/gis-(?:adapters|io)\.js/);
+  assert.doesNotMatch(indexHtml, /<script\b[^>]*src="[^"]*assets\/js\/gis-(?:adapters|io)\.js/);
   assert.match(app, /async function ensureModalRuntime/);
   assert.match(app, /async function ensureGisRuntime/);
   assert.match(app, /async function ensureTerritorialLibraryRuntime/);

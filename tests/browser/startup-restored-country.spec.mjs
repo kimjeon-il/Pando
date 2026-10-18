@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 
 test.use({ trace: 'off', launchOptions: {
@@ -43,7 +44,7 @@ async function readPreviewCache(page) {
 
 test('a saved built-in classification and color use the shipped preview before canonical data', async ({ page }) => {
   test.setTimeout(120_000);
-  await page.goto('/?renderer=canvas', { waitUntil: 'domcontentloaded' });
+  await gotoEditor(page, '/?renderer=canvas', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.setColor('DEU', '#476FAE'));
   await expect.poll(async () => (await readAutosave(page))?.entityDelta?.changed.find(entity => entity.id === 'DEU')?.properties.style.color, { timeout: 15_000 }).toBe('#476fae');
@@ -70,7 +71,7 @@ test('an autosaved country change waits for its restored geometry before the fir
   page.on('console', message => {
     if (message.type() === 'error') console.log('startup console error:', message.text());
   });
-  await page.goto('/?renderer=canvas', { waitUntil: 'domcontentloaded' });
+  await gotoEditor(page, '/?renderer=canvas', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 120_000 });
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.setColor('DEU', '#476FAE'));
   await expect.poll(async () => (await readAutosave(page))?.entityDelta?.changed.find(entity => entity.id === 'DEU')?.properties.style.color, { timeout: 15_000 }).toBe('#476fae');

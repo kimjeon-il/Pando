@@ -82,10 +82,14 @@ async function stageOwnedPrototype({ root, profile }) {
   }
   await emit(manifestPath, manifestBytes, manifestPath);
   for (const tree of ['assets/js', 'assets/css', 'assets/fonts', 'assets/vendor']) await copyTree(tree);
-  const html = await readFile(join(root, 'index.html'), 'utf8');
+  const html = await readFile(join(root, 'apps/web-shell/editor.html'), 'utf8');
+  const productBase = '<base href="../../" data-product-base="editor" />';
+  if (html.split(productBase).length !== 2 || (html.match(/<base\b/g) || []).length !== 1)
+    throw new Error('The editor entry requires its explicit product base.');
   const bootstrap = /<script\s+src="assets\/js\/bootstrap\.js[^"]*"\s+defer><\/script>/;
   if (!bootstrap.test(html)) throw new Error('The current frontend bootstrap entry was not found.');
-  await emit('index.html', html.replace(bootstrap, '<script type="module" src="shell/startup.js"></script>'), 'index.html (shell entry only)');
+  await emit('index.html', html.replace(productBase, '<base href="./" data-product-base="editor" />')
+    .replace(bootstrap, '<script type="module" src="shell/startup.js"></script>'), 'apps/web-shell/editor.html (shell entry only)');
   for (const file of ['startup.js', 'runtime-profile.js', 'diagnostics.js', 'native-storage.js', 'network-guard.js', 'full-world-probe.js', 'fixture-limits.js', 'diagnostics.css']) {
     if (await exists(join(here, file))) await emit(`shell/${file}`, await readFile(join(here, file)), `apps/web-shell/${file}`);
   }

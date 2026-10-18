@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { selectUiOption } from './helpers/ui-select.mjs';
@@ -10,7 +11,7 @@ async function openApp(page) {
   page.on('console', message => {
     if (message.type() === 'error') errors.push(message.text());
   });
-  await page.goto('/?demTerrain=raster');
+  await gotoEditor(page, '/?demTerrain=raster');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   // startup-readiness.canMutateProject allows these two states; distribution
   // editing does not depend on the optional enhanced mesh finishing first.

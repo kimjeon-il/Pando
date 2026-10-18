@@ -4,6 +4,7 @@ import { loadVerifiedCore } from '../modules/core-wasm-loader.js';
 import { validateWebFlagDataUrl } from '../modules/country-flags.js';
 
 const runtime = createCoreWorkerRuntime({
+  productMode: 'editor',
   loadModule: () => loadVerifiedCore({ baseUrl: new URL('../../wasm/', import.meta.url) }),
   validateFlagDataUrl: validateWebFlagDataUrl,
 });

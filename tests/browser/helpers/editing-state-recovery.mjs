@@ -1,3 +1,4 @@
+import { gotoEditor } from './editor-entry.mjs';
 import {expect} from '@playwright/test';
 import {readFileSync} from 'node:fs';
 
@@ -5,7 +6,7 @@ export async function verifyEditingRecovery(page, {url, domainSource, afterBoot 
  page.setDefaultTimeout(15000);
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.route('**/modules/app-domain-assembly.js*',async route=>{const source=domainSource || await (await route.fetch()).text();await route.fulfill({contentType:'text/javascript',body:source.replace('dependencies = ports;','dependencies = ports; window.__editingTest = ports; window.__editingTestDomains = () => ({projectDomain,editingDomain});')});});
- await page.goto(url);await expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{timeout:90000});
+ await gotoEditor(page, url);await expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{timeout:90000});
  await afterBoot();
  const seed=JSON.parse(readFileSync(new URL('../../fixtures/timeline-exchange/static.json',import.meta.url),'utf8'));
  const polygons=[[[6,48],[6,56],[16,56],[16,54],[16,52],[16,50],[16,48],[6,48]],[[16,48],[16,50],[16,52],[16,54],[16,56],[22,56],[22,48],[16,48]]];

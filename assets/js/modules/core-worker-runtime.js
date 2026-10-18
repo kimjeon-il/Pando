@@ -1,4 +1,5 @@
 import { createDocumentSessionRuntime } from './core-document-runtime.js';
+import { createProductModePolicy } from './product-mode-policy.js';
 
 const fail = (code, message) => { throw Object.assign(new Error(message), { code }); };
 const documentMethods = Object.freeze({
@@ -21,7 +22,8 @@ const documentMethods = Object.freeze({
 });
 
 /** The single persistent C++ Project owns document, queries, selection and draft. */
-export function createCoreWorkerRuntime({ loadModule, validateFlagDataUrl }) {
+export function createCoreWorkerRuntime({ loadModule, validateFlagDataUrl, productMode = 'editor' }) {
+  const policy = createProductModePolicy(productMode);
   let modulePromise = null;
   const loadOnce = () => modulePromise ||= Promise.resolve().then(loadModule);
   const document = createDocumentSessionRuntime({ loadModule: loadOnce, validateFlagDataUrl });
@@ -29,6 +31,7 @@ export function createCoreWorkerRuntime({ loadModule, validateFlagDataUrl }) {
   let queue = Promise.resolve();
   function dispatch(operation, payload, context) {
     const result = queue.then(async () => {
+      policy.assertOperation(operation);
       context.throwIfCancelled();
       const method = documentMethods[operation];
       if (!method) fail('PL-CORE-OPERATION', `Unknown core operation: ${operation}`);
@@ -42,5 +45,5 @@ export function createCoreWorkerRuntime({ loadModule, validateFlagDataUrl }) {
     return result;
   }
   async function dispose() { await queue;loaded=false;await document.dispose(); }
-  return Object.freeze({ dispatch, dispose, operations: Object.freeze(Object.keys(documentMethods)) });
+  return Object.freeze({ productMode: policy.productMode, dispatch, dispose, operations: Object.freeze(Object.keys(documentMethods)) });
 }

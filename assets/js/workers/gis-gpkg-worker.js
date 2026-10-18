@@ -36,15 +36,6 @@ function base64ToBytes(value) {
   return bytes;
 }
 
-function bytesToBase64(bytes) {
-  let binary = '';
-  const chunk = 0x8000;
-  for (let i = 0; i < bytes.length; i += chunk) {
-    binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
-  }
-  return btoa(binary);
-}
-
 function geometryBounds(geometry) {
   const bounds = [Infinity, Infinity, -Infinity, -Infinity];
   const visit = value => {
@@ -297,43 +288,6 @@ async function writeGeoPackage(buffer, projectState, options = {}) {
   }
 }
 
-function tableExists(db, tableName) {
-  const statement = db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name=? LIMIT 1");
-  statement.bind([tableName]);
-  const exists = statement.step();
-  statement.free();
-  return exists;
-}
-
-async function readAtlasTables(buffer) {
-  const SQL = await getSql();
-  const db = new SQL.Database(new Uint8Array(buffer));
-  try {
-    const result = { projectState: null, countryAssets: [], sourceInfo: null };
-    if (tableExists(db, 'pandolab_project_settings')) {
-      const rows = db.exec("SELECT json_value FROM pandolab_project_settings WHERE setting_key='project_state' LIMIT 1");
-      if (rows[0]?.values?.[0]?.[0]) {
-        result.projectState = JSON.parse(rows[0].values[0][0]);
-      }
-    }
-    if (tableExists(db, 'pandolab_country_assets')) {
-      const statement = db.prepare('SELECT country_id, mime_type, image_data FROM pandolab_country_assets');
-      while (statement.step()) {
-        const row = statement.get();
-        result.countryAssets.push({ countryId: String(row[0]), mimeType: String(row[1]), base64: bytesToBase64(new Uint8Array(row[2])) });
-      }
-      statement.free();
-    }
-    if (tableExists(db, 'pandolab_source_info')) {
-      const rows = db.exec("SELECT json_value FROM pandolab_source_info WHERE info_key='source' LIMIT 1");
-      if (rows[0]?.values?.[0]?.[0]) result.sourceInfo = JSON.parse(rows[0].values[0][0]);
-    }
-    return result;
-  } finally {
-    db.close();
-  }
-}
-
 self.onmessage = async event => {
   const { id, action, buffer, projectState, exportMode, selectedLayers,spatialState } = event.data || {};
   try {
@@ -343,7 +297,8 @@ self.onmessage = async event => {
       return;
     }
     if (action === 'read') {
-      const metadata = await readAtlasTables(buffer);
+      const { readAtlasTables } = await import('./gpkg-read-core.js');
+      const metadata = await readAtlasTables(buffer, getSql);
       self.postMessage({ id, ok: true, metadata });
       return;
     }

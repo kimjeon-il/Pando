@@ -13,7 +13,7 @@ export function createRingHitTester(normalizeRing) {
     preparationCount += 1;
     return ring;
   }
-  return {
+  const tester = {
     contains(point, raw) {
       const ring = prepared(raw);
       let inside = false;
@@ -34,4 +34,11 @@ export function createRingHitTester(normalizeRing) {
     clear() { cache = new WeakMap(); },
     stats: () => ({ preparationCount }),
   };
+  tester.containsGeometry = (point, geometry) => {
+    const polygons = geometry?.type === 'Polygon' ? [geometry.coordinates]
+      : geometry?.type === 'MultiPolygon' ? geometry.coordinates : [];
+    return polygons.some(polygon => polygon.length && tester.contains(point, polygon[0])
+      && !polygon.slice(1).some(ring => tester.contains(point, ring)));
+  };
+  return tester;
 }

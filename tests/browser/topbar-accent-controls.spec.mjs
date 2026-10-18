@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 
 const commandStyle = locator => locator.evaluate(element => {
@@ -7,7 +8,7 @@ const commandStyle = locator => locator.evaluate(element => {
 
 test('file uses the same topbar command states and accent actions keep white text', async ({ page }) => {
   await page.setViewportSize({ width: 1366, height: 900 });
-  await page.goto('/');
+  await gotoEditor(page, '/');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 60_000 });
 
   const file = page.locator('#mobileFileBtn');

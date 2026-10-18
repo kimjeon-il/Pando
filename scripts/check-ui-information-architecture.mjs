@@ -10,7 +10,7 @@ import { uiSourcePath } from './lib/ui-source-catalog.mjs';
 
 const root = process.cwd();
 const read = relativePath => fs.readFileSync(path.join(root, relativePath), 'utf8');
-const html = read('index.html');
+const html = read('apps/web-shell/editor.html');
 const contentCss = read(uiSourcePath('content'));
 const uiTokens = read(uiSourcePath('tokens'));
 const surfaceController = read('assets/js/modules/surface-controller.js');

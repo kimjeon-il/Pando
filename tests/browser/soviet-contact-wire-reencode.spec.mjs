@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 /* global boundaryState: readonly, latestMessage: readonly, queued: readonly, draining: readonly */
 import { expect, test } from '@playwright/test';
 import { mkdir, writeFile } from 'node:fs/promises';
@@ -23,7 +24,7 @@ test('benchmark repeated C++ contact source encoding on real prepared modern nei
   test.setTimeout(500_000);
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
-  await page.goto('/?perf=1&renderer=webgl2');
+  await gotoEditor(page, '/?perf=1&renderer=webgl2');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 120_000 });
   await expect.poll(() => page.evaluate(() => {
     const gpu = window.__PANDOLAB_RENDER_DEBUG__?.snapshot()?.gpu;
