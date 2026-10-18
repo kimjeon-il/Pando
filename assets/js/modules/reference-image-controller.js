@@ -128,6 +128,7 @@ export function installReferenceImageController({
   };
   const pendingPersistTimers = new Map();
   let selectedId = '';
+  let activeTab = 'placement';
   let disposed = false;
   let session = 0;
   let continuousBefore = null;
@@ -286,6 +287,7 @@ export function installReferenceImageController({
       selectedControlPointId: state.selectedControlPointId,
       placementRotation: referenceImagePlacementRotation(record, mapHost()),
       linearDraft: linearDraft?.recordId === record.id ? linearDraft : null,
+      activeTab,
     });
     interaction?.syncSurface();
     if (linearDraft) surface?.setEditing(true, linearDraft.phase === 'image'
@@ -544,7 +546,63 @@ export function installReferenceImageController({
     renderer.requestRender();
   }
 
+  function setEditorTab(next, { focus = false } = {}) {
+    if (!['placement', 'match', 'display'].includes(next)) return false;
+    activeTab = next;
+    for (const tab of editorElement.querySelectorAll('[data-ref-tab]')) {
+      const selectedTab = tab.dataset.refTab === activeTab;
+      tab.classList.toggle('is-active', selectedTab);
+      tab.setAttribute('aria-selected', String(selectedTab));
+      tab.tabIndex = selectedTab ? 0 : -1;
+      if (selectedTab && focus) tab.focus({ preventScroll: true });
+    }
+    for (const section of editorElement.querySelectorAll('[data-ref-section]')) {
+      section.hidden = section.dataset.refSection !== activeTab;
+    }
+    return true;
+  }
+
+  function onEditorTabKeydown(event) {
+    const tab = event.target.closest?.('[data-ref-tab]');
+    if (!tab) return;
+    const order = ['placement', 'match', 'display'];
+    const current = order.indexOf(tab.dataset.refTab);
+    const next = event.key === 'Home' ? order[0] : event.key === 'End' ? order.at(-1)
+      : event.key === 'ArrowRight' ? order[(current + 1) % order.length]
+        : event.key === 'ArrowLeft' ? order[(current + order.length - 1) % order.length] : null;
+    if (!next) return;
+    event.preventDefault();
+    setEditorTab(next, { focus: true });
+  }
+
+  function onListAction(button) {
+    if (button.disabled || storageState !== 'ready' || isBlocked()) return;
+    const record = records.find(item => item.id === button.dataset.refRecordId);
+    if (!record) return;
+    const action = button.dataset.refListAction;
+    if (action === 'forward' || action === 'backward') {
+      moveRecord(record, action === 'forward' ? 1 : -1);
+      return;
+    }
+    if (action === 'visible') {
+      history.push(records);
+      record.visible = !record.visible;
+    } else if (action === 'locked') {
+      record.locked = !record.locked;
+      if (record.locked) {
+        if (linearDraft?.recordId === record.id) cancelLinearDraft({ render: false });
+        interaction?.handleRecordLocked(record);
+      }
+    } else return;
+    void persist(record);
+    refreshUi();
+  }
+
   async function onPanelClick(event) {
+    const listButton = event.target.closest('[data-ref-list-action]');
+    if (listButton) { onListAction(listButton); return; }
+    const tabButton = event.target.closest('[data-ref-tab]');
+    if (tabButton) { setEditorTab(tabButton.dataset.refTab); return; }
     const button = event.target.closest('[data-ref-action]');
     const action = button?.dataset.refAction;
     if (button?.disabled || isBlocked()) return;
@@ -824,6 +882,7 @@ export function installReferenceImageController({
   panel.addEventListener('click', onPanelClickEvent);
   editorElement.addEventListener('input', onEditorInput);
   editorElement.addEventListener('change', onEditorInput);
+  editorElement.addEventListener('keydown', onEditorTabKeydown);
   fileInput.addEventListener('change', onFileChange);
 
   async function restoreStoredImages() {
@@ -1250,6 +1309,7 @@ export function installReferenceImageController({
       panel.removeEventListener('click', onPanelClickEvent);
       editorElement.removeEventListener('input', onEditorInput);
       editorElement.removeEventListener('change', onEditorInput);
+      editorElement.removeEventListener('keydown', onEditorTabKeydown);
       fileInput.removeEventListener('change', onFileChange);
       objectUrls.forEach(url => URL.revokeObjectURL(url));
       renderer.destroy();
