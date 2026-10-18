@@ -7,13 +7,11 @@
 | 계열 | 실행 경로 | 도구 |
 | --- | --- | --- |
 | 공통 C++ → WASM | `pando-wasm` → `tools/package-shared-core-assets.mjs` | 원격 Emscripten, CMake; 게시용 Node |
-| 네이티브 C++/Qt | `pando-native-core`, `pando-native-qt-ci-linux/windows` | CMake, C++, Qt, zlib; 제품 빌드에 Node/pnpm/Python 불필요 |
 | 영토·현재 세계·역사 세계 | 그래프에 연결한 기존 생성기 | Node 및 동일 C++ WASM |
 | 국가 메시·미리보기·공유 경계·준비 메시 | 기존 생성기와 바이트/디코더 검증 | Node, 필요한 웹 패키지 |
-| 지명·네이티브 자산 | 기존 생성기·미러 도구 | Node; 같은 형식의 웹/앱 출력은 바이트 비교 |
+| 지명 | 기존 생성기 | Node; 웹 산출물을 앱에서 staging |
 | 수계·지형 원본 가공 | 명시적인 GIS 데이터 작업 | 원본 출처·버전·해시 필요; 일반 개발에서 Python 설치/다운로드 없음 |
 
-제품용 Qt geometry/reference JS 번들과 생성 경로는 제거했다. 과거 오라클 재현용 도구는 일반 앱 빌드와 분리한다.
 
 ## 계획과 실행
 
@@ -44,7 +42,7 @@ gh workflow run generated-artifacts-p2.yml --ref work/objects -f scope=auto
 2. 검증한 WASM을 로컬 커밋한다. 원격에는 아직 반영하지 않는다.
 3. 추적된 소스만 `build-native/p2/`의 임시 출력 위치에 복사한다. 선택한 기존 생성기와 검증기를 실행하고 선언된 출력 밖의 변경을 거부한다.
 4. 모든 선택 출력 검증 후 게시한다. 중간 실패 시 백업 바이트를 복원한다. manifest는 마지막에 게시한다.
-5. 웹 출력을 로컬 커밋한 뒤 그 실제 SHA로 네이티브 자산의 출처를 기록한다. 네이티브 검증 후 로컬 커밋한다.
+5. 검증된 웹 출력을 한 번의 원자적 staging으로 반영하고 로컬 커밋한다. 별도 앱 미러 단계는 없다.
 6. 시작 이후 원격 브랜치가 바뀌지 않았는지 다시 확인하고 최종 결과를 일반 fast-forward push 한 번으로 반영한다. 강제 push, stash, reset, clean은 사용하지 않는다.
 7. 실제 최종 결과 SHA의 커밋된 바이트와 입력 지문을 evidence artifact에 연결한다. 바이트와 지문이 같으면 재생성·복사·커밋하지 않는다.
 

@@ -12,7 +12,7 @@ function close(actual, expected, path = '') {
 }
 
 test('shared native and Web calibration retain frozen pre-port geometry fixtures', () => {
-  const cases = JSON.parse(readFileSync(new URL('../../native/tests/fixtures/reference-calibration.json', import.meta.url)));
+  const cases = JSON.parse(readFileSync(new URL('../../tests/fixtures/shared-core/reference-calibration.json', import.meta.url)));
   for (const { input, expected } of cases) {
     const snapshot = structuredClone(input);
     const actual = calculateReferenceImage('calibration', input);
@@ -67,7 +67,7 @@ test('immutable mesh layout reuse never reuses coordinates from another warp', (
 });
 
 test('disabled linear constraints do not change the calibration result', () => {
-  const cases = JSON.parse(readFileSync(new URL('../../native/tests/fixtures/reference-calibration.json', import.meta.url)));
+  const cases = JSON.parse(readFileSync(new URL('../../tests/fixtures/shared-core/reference-calibration.json', import.meta.url)));
   for(const {input} of cases) {
     const plain = {...input,linearConstraints:[]};
     const disabled = {...plain,linearConstraints:[{id:'ignored',enabled:false,image:[[0,0],[1,1]],coordinates:[[0,0],[5,5]]}]};

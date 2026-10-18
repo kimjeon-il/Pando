@@ -62,7 +62,7 @@ export async function currentSelectionTrace(corpus) {
 
 const publicSelectionObservation = ({ keys, primaryKey, revision }) => ({ keys, primaryKey, revision });
 
-export async function verifyPlatformPortability(nativeProbe = null) {
+export async function verifyPlatformPortability() {
   const manifest = JSON.parse(readFileSync(new URL('manifest.json', directory)));
   for (const [name, expected] of Object.entries(manifest.sha256)) {
     assert.equal(sha256(readFileSync(new URL(name, directory))), expected, `Fixture hash: ${name}`);
@@ -74,19 +74,13 @@ export async function verifyPlatformPortability(nativeProbe = null) {
   const current = await currentSelectionTrace(corpus);
   assert.deepEqual(baseline, corpus.expected, 'Frozen baseline versus independently specified selection results');
   assert.deepEqual(current, baseline.map(publicSelectionObservation), 'Current Web Core projection versus frozen selection results');
-  let native = null;
-  if (nativeProbe) {
-    const observed = JSON.parse(execFileSync(nativeProbe, [], { input: JSON.stringify(corpus), encoding: 'utf8' }));
-    assert.deepEqual(observed, corpus.expected, 'Native order, primary, revisions and anchors');
-    native = { steps: observed.length, binarySha256: sha256(readFileSync(nativeProbe)) };
-  }
   return { webBaseline: manifest.webBaseline, appBaseline: manifest.appBaseline,
     fixtureSha256: manifest.sha256, expected: manifest.steps, webProcessed: current.length,
-    native, mismatches: 0, crossPlatformVerified: native !== null };
+    mismatches: 0, crossPlatformVerified: false };
 }
 
 if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {
-  const report = await verifyPlatformPortability(process.argv[2]);
+  const report = await verifyPlatformPortability();
   report.webHead = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: fileURLToPath(new URL('..', import.meta.url)), encoding: 'utf8' }).trim();
   console.log(JSON.stringify(report, null, 2));
 }

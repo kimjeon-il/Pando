@@ -51,41 +51,34 @@ const infrastructure = p => [
 export function classifyPaths(paths, capability = {}, manual = 'auto') {
   const available = {
     core: capability.core ?? has('shared/CMakeLists.txt'),
-    native: capability.native ?? has('native/CMakeLists.txt'),
     gisTools: capability.gisTools ?? has('tools/cpp/CMakeLists.txt'),
     web: capability.web ?? has('assets/js/modules/temporal.js'),
   };
   const out = { ui:false, objects:false, gis:false, places:false,
-    core:false, native:false, wasm:false, qt:false, gisTools:false, python:false,
+    core:false, wasm:false, gisTools:false, python:false,
     infra:false, files:paths.length };
   const mark = flag => { out[flag]=true; };
   if (manual !== 'auto') {
-    if (!['all','ui','objects','gis','places','core','native','wasm'].includes(manual))
+    if (!['all','ui','objects','gis','places','core','wasm'].includes(manual))
       throw Error('P1_INVALID_SCOPE: ' + manual);
     if (manual === 'all') {
-      for (const key of ['ui','objects','gis','places','core','native','wasm','qt','gisTools','python']) mark(key);
+      for (const key of ['ui','objects','gis','places','core','wasm','gisTools','python']) mark(key);
     } else if (manual === 'ui') mark('ui');
     else if (manual === 'objects') { mark('objects'); mark('core'); }
     else if (manual === 'gis') { mark('gis'); mark('gisTools'); mark('python'); }
     else if (manual === 'places') mark('places');
     else if (manual === 'core') { mark('core'); mark('wasm'); }
-    else if (manual === 'native') { mark('native'); mark('qt'); }
     else mark('wasm');
   } else {
     for (const path of paths.map(p=>p.replaceAll('\\','/'))) {
       if (path.endsWith('.md')) continue;
       if (infrastructure(path)) {
         out.infra=true;
-        for (const key of ['ui','objects','gis','places','core','native','wasm','gisTools']) mark(key);
+        for (const key of ['ui','objects','gis','places','core','wasm','gisTools']) mark(key);
       }
-      if (/^shared\//.test(path)) { mark('core'); mark('wasm'); mark('native'); }
-      if (/^native\//.test(path)) {
-        mark('native');
-        if (/^native\/(app|ui|renderer|resources)\//.test(path)) mark('qt');
-      }
-      if (path==='cmake/P2NativeBuildReceipt.cmake') mark('native');
+      if (/^shared\//.test(path)) { mark('core'); mark('wasm'); }
       if (/^tools\/cpp\//.test(path)) {mark('gis');mark('gisTools');}
-      if (/^(assets\/css\/|index\.html$|assets\/js\/|playwright\.|tests\/browser\/)/.test(path)) mark('ui');
+      if (/^(apps\/web-shell\/|assets\/css\/|index\.html$|assets\/js\/|playwright\.|tests\/browser\/)/.test(path)) mark('ui');
       if (/^(assets\/js\/modules\/(project|object|timeline|temporal|territorial|editing|distribution|generic)|contracts\/objects\/|tests\/unit\/(project|object|timeline|temporal|territorial))/.test(path)) mark('objects');
       // Python research edits are handled by the independent GIS Python CI.
       if (!path.endsWith('.py') && /^(assets\/data\/(territorial|hydro|terrain|historical|world)|tools\/(build-(world|terrain|country|territorial|historical|hydro)|.*(gis|hydro|terrain))|tests\/python\/)/.test(path)) mark('gis');
@@ -97,9 +90,7 @@ export function classifyPaths(paths, capability = {}, manual = 'auto') {
     }
   }
   out.core &&= available.core;
-  out.native &&= available.native;
   out.wasm &&= available.core;
-  out.qt &&= available.native;
   out.gisTools &&= available.gisTools;
   out.ui &&= available.web;
   out.objects &&= available.web;
@@ -118,10 +109,10 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     paths:change.paths,branch:process.env.GITHUB_REF_NAME || 'local'};
   if (process.argv.includes('--github-output')) {
     if (!process.env.GITHUB_OUTPUT) throw Error('GITHUB_OUTPUT required');
-    const pairs = {web:plan.web,core:plan.core,native:plan.native,wasm:plan.wasm,
-      qt:plan.qt,gis_tools:plan.gisTools,python:plan.python,
+    const pairs = {web:plan.web,core:plan.core,wasm:plan.wasm,
+      gis_tools:plan.gisTools,python:plan.python,
       ui:plan.ui,objects:plan.objects,gis:plan.gis,places:plan.places,
-      cmake_version:pin.cmake,qt_version:pin.qt,emscripten_version:pin.emscripten,
+      cmake_version:pin.cmake,emscripten_version:pin.emscripten,
       emsdk_ref:pin.emsdkCommit};
     appendFileSync(process.env.GITHUB_OUTPUT,
       Object.entries(pairs).map(([k,v])=>k+'='+String(v)).join('\n')+'\n');

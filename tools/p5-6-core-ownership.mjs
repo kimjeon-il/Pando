@@ -37,8 +37,6 @@ export const calculations=Object.freeze([
     forbidden:[/\bfunction connectBoundarySegments\s*\(/]},
 ]);
 
-const QtSpherical='native/app/splitgeometrynormalizer.cpp';
-const NativeBoundary='native/engine/src/sharedboundary.cpp';
 const WASM='shared/wasm/boundary-bindings.cpp';
 
 export function inspectOwnership(load=path=>readFileSync(resolve(root,path),'utf8')) {
@@ -52,14 +50,10 @@ export function inspectOwnership(load=path=>readFileSync(resolve(root,path),'utf
     return {area:rule.area,cpp:{path:rule.cpp,sha256:hash(native)},
       web:{path:rule.web,sha256:hash(web)},api:rule.api};
   });
-  const qt=load(QtSpherical),engine=load(NativeBoundary),wasm=load(WASM);
-  assert.match(qt,/pandoeditor::sphericalRingSignedArea\(/,'Qt must use shared spherical C++');
-  assert.match(engine,/#include <pandoeditor\/boundarysplit\.h>/,'native engine must link shared split kernel');
+  const wasm=load(WASM);
   assert.match(wasm,/boundaryAssembleStrokePacket/,'Web WASM must expose shared packet construction');
   return {
     schema:'p5-6-core-calculation-ownership-v1',verifiedAreas:entries.length,entries,
-    nativeQt:{path:QtSpherical,sha256:hash(qt)},
-    nativeBoundary:{path:NativeBoundary,sha256:hash(engine)},
     webWasm:{path:WASM,sha256:hash(wasm)},
     retainedJsRoles:['browser UI/HTML/CSS','Worker identity and incremental cache state',
       'GPU buffer allocation and renderer integration','source-ref reattachment and browser projection'],

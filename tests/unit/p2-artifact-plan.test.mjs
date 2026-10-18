@@ -70,7 +70,7 @@ test('publishing is limited to declared generated artifacts, not source or test 
   assertSafeGeneratedPaths(['assets/wasm/pandoeditor-core.js'],{wasm:true});
   assert.throws(()=>assertSafeGeneratedPaths(['shared/core/src/project.cpp'],{wasm:true}),/P2_UNEXPECTED_GENERATED_FILE/);
   assert.throws(()=>assertSafeGeneratedPaths(['assets/wasm/pandoeditor-core.wasm'],{wasm:false}),/P2_UNEXPECTED_GENERATED_FILE/);
-  assert.throws(()=>assertSafeGeneratedPaths(['native/assets/geometry/cut/original/a.js'],{geometry:true}),/P2_UNEXPECTED_GENERATED_FILE/);
+  assert.throws(()=>assertSafeGeneratedPaths(['tests/fixtures/geometry/cut-corpus.json'],{geometry:true}),/P2_UNEXPECTED_GENERATED_FILE/);
 });
 
 test('current output verification fails closed for any selected artifact',()=>{
@@ -174,22 +174,18 @@ test('remote movement aborts publication and partial write failure restores all 
   assert.equal(f.get('out/a.txt').toString(),'source-a generated');
 });
 
-test('native consumers wait for a real Web source commit; a changed source SHA is rejected',t=>{
+test('a changed source SHA is rejected before publication',t=>{
   const f=graphFixture(t);
-  f.families.push({id:'mirror',dependencies:['a'],inputs:[],outputs:['out/native.txt'],generate:[],validate:[],afterWebCommit:true});f.config();
-  assert.deepEqual(graphStatus(f.root).deferredFamilies,['mirror']);
+  f.put('input/a.txt','changed source');
   const changed=f.commit();assert.notEqual(changed,f.head);
   assert.throws(()=>assertBranchState(f.root,{expectedSourceSha:f.head}),/P2_LOCAL_SOURCE_CHANGED/);
 });
 
-function remoteFixture(t,{native=false,failNative=false}={}) {
+function remoteFixture(t,{failValidation=false}={}) {
   const f=graphFixture(t);
-  if(native) {
-    f.put('out/mirror.txt','old');
-    f.families.push({id:'mirror',dependencies:['a'],inputs:['out/a.txt'],outputs:['out/mirror.txt'],tools:['node'],
-      generate:[['node','tools/generate.mjs','mirror','out/a.txt']],
-      validate:failNative?[['node','tools/fail.mjs']]:[['node','tools/check.mjs','out/mirror.txt']],afterWebCommit:true});
-    if(failNative)f.put('tools/fail.mjs',"throw Error('native validation failed');\n");
+  if(failValidation) {
+    f.families[1].validate=[['node','tools/fail.mjs']];
+    f.put('tools/fail.mjs',"throw Error('Web validation failed');\n");
     f.config();f.commit();
   }
   const remote=join(f.root,'build-native/p2/remote.git');
@@ -200,34 +196,38 @@ function remoteFixture(t,{native=false,failNative=false}={}) {
   return {...f,remote,source:f.git('rev-parse','HEAD'),remoteHead:()=>f.git('ls-remote','origin','refs/heads/work/objects').split(/\s/)[0]};
 }
 
-test('publication commits WASM then Web before native provenance and writes the remote once at the final SHA',async t=>{
-  const f=remoteFixture(t,{native:true});
+test('publication commits WASM then Web and writes the remote once at the final SHA',async t=>{
+  const f=remoteFixture(t);
   f.put('assets/wasm/pandoeditor-core.js','export default()=>({regenerated:true});\n');
   const manifest=JSON.parse(f.get('assets/wasm/pandoeditor-core.manifest.json'));
   manifest.assets.js.sha256=digest(f.get('assets/wasm/pandoeditor-core.js'));
   f.put('assets/wasm/pandoeditor-core.manifest.json',JSON.stringify(manifest));
   const result=await publishGeneratedArtifacts(f.root,{expectedSourceSha:f.source,branch:'work/objects',wasmBuilt:true,
     beforeFinalGuard:()=>assert.equal(f.remoteHead(),f.source,'intermediate commits must remain local')});
-  assert.deepEqual(result.commits.map(c=>c.phase),['wasm','web','native']);
+  assert.deepEqual(result.commits.map(c=>c.phase),['wasm','web']);
   assert.equal(f.remoteHead(),result.resultSha);
   const receipt=JSON.parse(f.get(RECEIPT_PATH));
-  assert.equal(receipt.families.mirror.sourceSha,result.commits[1].sha);
+  for(const id of ['a','b','c'])assert.equal(receipt.families[id].sourceSha,result.commits[0].sha);
   const updates=f.git('--git-dir',f.remote,'reflog','show','--format=%H','refs/heads/work/objects').split('\n');
   assert.equal(updates.length,2,'one initial fixture push and one final publication');
   assert.equal(JSON.parse(f.get(result.evidenceFile)).resultSha,result.resultSha);
 });
 
-test('native validation failure keeps even successful Web commits off the remote',async t=>{
-  const f=remoteFixture(t,{native:true,failNative:true});
-  await assert.rejects(publishGeneratedArtifacts(f.root,{expectedSourceSha:f.source,branch:'work/objects'}),/Command failed/);
-  assert.notEqual(f.git('rev-parse','HEAD'),f.source,'Web was committed locally before native validation');
-  assert.equal(f.remoteHead(),f.source,'failed native outputs cannot publish the intermediate Web commit');
+test('Web validation failure keeps a successful local WASM commit off the remote',async t=>{
+  const f=remoteFixture(t,{failValidation:true});
+  f.put('assets/wasm/pandoeditor-core.js','export default()=>({regenerated:true});\n');
+  const manifest=JSON.parse(f.get('assets/wasm/pandoeditor-core.manifest.json'));
+  manifest.assets.js.sha256=digest(f.get('assets/wasm/pandoeditor-core.js'));
+  f.put('assets/wasm/pandoeditor-core.manifest.json',JSON.stringify(manifest));
+  await assert.rejects(publishGeneratedArtifacts(f.root,{expectedSourceSha:f.source,branch:'work/objects',wasmBuilt:true}),/Command failed/);
+  assert.notEqual(f.git('rev-parse','HEAD'),f.source,'WASM was committed locally before Web validation');
+  assert.equal(f.remoteHead(),f.source,'failed Web outputs cannot publish the intermediate WASM commit');
+  for(const id of ['a','b','c'])assert.equal(f.get('out/'+id+'.txt').toString(),'old');
 });
 
 test('wasm-only publication does not generate or claim unrecorded data families',async t=>{
   const f=remoteFixture(t);
   assert.deepEqual(plan(f.root,{manual:'wasm'}).selectedFamilies,[]);
-  assert.deepEqual(plan(f.root,{manual:'wasm'}).deferredFamilies,[]);
   const result=await publishGeneratedArtifacts(f.root,{scope:'wasm',expectedSourceSha:f.source,branch:'work/objects',wasmBuilt:true});
   assert.equal(result.pushed,false);assert.equal(f.get('out/a.txt').toString(),'old');
   const evidence=JSON.parse(f.get(result.evidenceFile));

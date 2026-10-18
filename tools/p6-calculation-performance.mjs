@@ -28,11 +28,11 @@ if(process.argv.includes('--sample-root')) {
   const polygonCases=[['union',[geometry('ARM'),geometry('TUR')]],['difference',[geometry('RUS'),[[[[25,50],[45,50],[45,65],[25,65],[25,50]]]]]]];
   await load('assets/js/modules/polygon-geometry.js');
   const cut=await load('assets/js/modules/cut-worker-preparation.js');
-  const cutCases=JSON.parse(read('native/tests/fixtures/web-m97/cut-corpus.json')).map(row=>row.payload);
+  const cutCases=JSON.parse(read('tests/fixtures/shared-core/web-m97/cut-corpus.json')).map(row=>row.payload);
   const river=await load('assets/js/modules/river-territory-partition.js');
-  const riverCases=JSON.parse(read('native/tests/fixtures/web-m972-river/synthetic-cases.json'));
+  const riverCases=JSON.parse(read('tests/fixtures/shared-core/web-m972-river/synthetic-cases.json'));
   const reference=await load('assets/js/modules/reference-image-georef.js');
-  const refCases=JSON.parse(read('native/tests/fixtures/reference-calibration.json'));
+  const refCases=JSON.parse(read('tests/fixtures/shared-core/reference-calibration.json'));
   const operations={
     cut(){for(const input of cutCases){const result=cut.prepareCutInWorker(input,globalThis.PandoLabPolygonGeometry,globalThis.d3,globalThis.polygonClipping);assert.equal(typeof result.valid,'boolean');}},
     polygon(){for(const [method,operands] of polygonCases)assert.ok(Array.isArray(globalThis.polygonClipping[method](...operands)));},
@@ -54,7 +54,7 @@ if(process.argv.includes('--sample-root')) {
   const summarize=()=>Object.fromEntries(Object.keys(rounds[0].baseline).map(name=>{const b=rounds.map(r=>r.baseline[name]),c=rounds.map(r=>r.candidate[name]);const status=Math.min(...c)>Math.max(...b)?'regression':median(c)>median(b)?'uncertain':'no-regression';return[name,{baselineMedian:median(b),candidateMedian:median(c),baselineRange:[Math.min(...b),Math.max(...b)],candidateRange:[Math.min(...c),Math.max(...c)],status}];}));
   measure();let metrics=summarize();
   if(Object.values(metrics).some(m=>m.status==='uncertain')){measure();metrics=summarize();}
-  const report={operations:selected,schema:'pando-p6-calculation-performance-v1',baselineSha,candidateSha:git(candidate,'rev-parse','HEAD'),candidateDirtyDiffSha256:createHash('sha256').update(git(candidate,'diff','--binary','HEAD','--','assets/js','shared','native')).digest('hex'),node:process.version,cpu:os.cpus()[0]?.model,platform:process.platform,scope:'Node calculation adapters, same inputs and warm cache; no browser, Qt, frame or device claim',inputSha:git(candidate,'rev-parse','HEAD:assets/data/countries-ne-5.1.1.geojson'),rounds,metrics};
+  const report={operations:selected,schema:'pando-p6-calculation-performance-v1',baselineSha,candidateSha:git(candidate,'rev-parse','HEAD'),candidateDirtyDiffSha256:createHash('sha256').update(git(candidate,'diff','--binary','HEAD','--','assets/js','shared')).digest('hex'),node:process.version,cpu:os.cpus()[0]?.model,platform:process.platform,scope:'Node calculation adapters, same inputs and warm cache; no browser, Qt, frame or device claim',inputSha:git(candidate,'rev-parse','HEAD:assets/data/countries-ne-5.1.1.geojson'),rounds,metrics};
   const output=arg('--output');if(output)writeFileSync(output,JSON.stringify(report,null,2)+'\n');
   console.log(JSON.stringify(metrics,null,2));
   if(Object.values(metrics).some(m=>m.status!=='no-regression'))process.exitCode=1;

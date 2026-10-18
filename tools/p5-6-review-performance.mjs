@@ -47,7 +47,7 @@ export function reviewBorderPerformance(raw) {
     cases:qualities,
     limitations:[
       'Node forced-GC transient heap/RSS deltas are diagnostics, not peak memory budgets',
-      'Native Qt CTest validates algorithms/ownership; this CPU benchmark is run in Web Node/WASM',
+      'Shared C++ CTest validates algorithms/ownership; this CPU benchmark is run in Web Node/WASM',
       'Real GPU/Android FPS, first meaningful paint, map input latency and device performance are separate acceptance items'
     ],
   };

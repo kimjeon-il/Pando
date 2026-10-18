@@ -17,7 +17,6 @@ class ReportPathsTests(unittest.TestCase):
     def test_existing_pando_uses_original_paths_for_inputs_and_outputs(self):
         self.assertEqual(self.module.report_path('docs/place-data-audit.md', self.root), self.root / 'docs/place-data-audit.md')
         self.assertEqual(self.module.report_path('assets/data/research/siachen', self.root), self.root / 'assets/data/research/siachen')
-        self.assertEqual(self.module.report_path('native/tools/historical-library/land-borders', self.root), self.root / 'native/tools/historical-library/land-borders')
 
     def test_migrated_tree_uses_canonical_reports_even_for_new_outputs(self):
         marker = self.root / 'reports/places/source-manifest.json'
@@ -25,7 +24,6 @@ class ReportPathsTests(unittest.TestCase):
         marker.write_text('{}')
         self.assertEqual(self.module.report_path('docs/place-data-audit.md', self.root), self.root / 'reports/places/place-data-audit.md')
         self.assertEqual(self.module.report_path('assets/data/research/siachen/new-output.json', self.root), self.root / 'reports/research/siachen/new-output.json')
-        self.assertEqual(self.module.report_path('native/tools/historical-library/land-borders', self.root), self.root / 'reports/geography/germany/north-schleswig')
 
     def test_unrelated_geometry_path_is_preserved(self):
         marker = self.root / 'reports/places/source-manifest.json'

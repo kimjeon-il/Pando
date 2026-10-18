@@ -1,7 +1,7 @@
 # 지명 웹·앱 동기화용 계약 v2
 
 웹의 `work/places` 브랜치는 지명 검수 원본과 실행용
-데이터 계약의 소유자이다. 앱은 별도의 Qt/C++ 구현을 유지하지만,
+데이터 계약의 소유자이다. 앱은 `apps/web-shell`에서 같은 웹 구현을 사용하며,
 데이터 의미·직렬화·언어별 표시 규칙은 동일한 결과를 만들어야 한다.
 
 ## 명칭 선별 기준 (1차 9개·2차 한국 3개 검토, 나머지 미검수)
@@ -65,14 +65,14 @@
 
 ## 범위별 정본 및 책임
 
-| 영역 | 웹 정본 | 향후 앱 대응 |
+| 영역 | 웹 정본 | 앱 대응 |
 | --- | --- | --- |
 | 검수·출처·시대별 대표명·허용 예외 | `reports/places/tier1-major-cities-*.json` | 각 시점 ko/en 각 1개, 원어 1개 원칙·다언어 예외 최대 3개 |
-| ID·언어 토글·역사명 | `assets/js/modules/place-contract.js` | PlaceRecord / 순수 이름 선택기 |
-| PLAC 바이너리 v2 | `assets/js/modules/place-codec.js` | PlaceRuntimeStore 디코더 |
-| viewport·검색·캐시 | `place-worker-store.js`, `place-runtime.js` | 앱 store/provider |
-| 사용자 설정/체크박스 | `user-preferences.js`, `app-map-settings.js` | 앱 환경설정/UI |
-| 라벨 충돌/표시 | `label-layout.js`, `rendering-domain.js` | Qt 라벨 엔진·서체 계측 |
+| ID·언어 토글·역사명 | `assets/js/modules/place-contract.js` | 동일 place-contract |
+| PLAC 바이너리 v2 | `assets/js/modules/place-codec.js` | 동일 place-codec |
+| viewport·검색·캐시 | `place-worker-store.js`, `place-runtime.js` | 동일 Worker/store |
+| 사용자 설정/체크박스 | `user-preferences.js`, `app-map-settings.js` | 동일 웹 UI·앱 저장 어댑터 |
+| 라벨 충돌/표시 | `label-layout.js`, `rendering-domain.js` | 동일 웹 라벨 레이아웃 |
 
 `assets/js/modules/place-contract.js`는 표시 이름과 바이너리 포맷의
 **단일 코드 정본**이다. UI와 환경설정에서 같은 언어 정규화/토글 함수를 사용한다.
@@ -98,7 +98,7 @@
 검수 원본의 대표명·좌표·역사 명칭이 어긋나면 검사에 실패한다.
 
 라벨 충돌상자는 웹 CSS 픽셀의 보수적 추정이다.
-Qt 글꼴 실측치까지 같다는 뜻이 아니므로 시각적 기하 오차는 별도 검사한다.
+각 WebView의 글꼴 실측치까지 같다는 뜻이 아니므로 시각적 기하 오차는 별도 검사한다.
 
 ## 웹에서 변경 시
 
@@ -120,7 +120,7 @@ node --test tests/unit/place-codec.test.mjs tests/unit/place-names.test.mjs test
    기대값을 재생성하지 않는다.
 4. 앱 사용자 설정과 렌더링 adapter를 독립 구현하되 언어 선택·중복·
    최소 1개 활성의 의미는 순수 계약대로 유지한다.
-5. Qt 충돌상자는 실제 폰트 측정과 웹 예상값 차이를 명시적으로 보고한다.
+5. WebView 충돌상자는 실제 폰트 측정과 웹 예상값 차이를 명시적으로 보고한다.
 
 현재 앱의 `tools/place-runtime-contract/`는 과거 **고정 웹 소스 v1**의
 검증 자료이므로 그 원본을 덮어쓰지 않는다. 이번에는 **앱 브랜치를 만들거나

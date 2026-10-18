@@ -12,7 +12,7 @@ def report_path(legacy, root=REPO):
     legacy = str(legacy)
     target = MAPPING['files'].get(legacy, legacy)
     for old, new in MAPPING['directories'].items():
-        recursive = old in ('assets/data/research/siachen', 'native/reports/places')
+        recursive = old == 'assets/data/research/siachen'
         if legacy == old or (recursive and legacy.startswith(old + '/')):
             target = MAPPING['files'].get(legacy, new + legacy[len(old):])
             break
@@ -23,7 +23,5 @@ def report_path(legacy, root=REPO):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('path')
-    parser.add_argument('--native', action='store_true')
     args = parser.parse_args()
-    legacy = ('native/' if args.native else '') + args.path
-    print(report_path(legacy))
+    print(report_path(args.path))

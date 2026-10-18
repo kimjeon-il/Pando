@@ -6,7 +6,6 @@ on:
     paths:
       - 'shared/**'
       - 'assets/**'
-      - 'native/**'
       - 'tools/**'
       - 'scripts/p2-*.mjs'
       - 'scripts/lib/p2-*.mjs'
@@ -16,7 +15,6 @@ on:
       - '.gitattributes'
       - 'tests/unit/**'
       - 'reports/places/*.json'
-      - 'cmake/P2NativeBuildReceipt.cmake'
       - 'CMakeLists.txt'
       - 'CMakePresets.json'
       - 'config/**'
@@ -51,7 +49,6 @@ jobs:
     outputs:
       wasm: ${{ steps.scopes.outputs.wasm }}
       selected_families: ${{ steps.scopes.outputs.selected_families }}
-      deferred_families: ${{ steps.scopes.outputs.deferred_families }}
       blocked_families: ${{ steps.scopes.outputs.blocked_families }}
       pnpm_version: ${{ steps.scopes.outputs.pnpm_version }}
       cmake_version: ${{ steps.scopes.outputs.cmake_version }}
@@ -79,7 +76,7 @@ jobs:
     needs: plan
     if: >-
       needs.plan.outputs.wasm == 'true' || needs.plan.outputs.selected_families != '[]' ||
-      needs.plan.outputs.deferred_families != '[]' || needs.plan.outputs.blocked_families != '[]' ||
+      needs.plan.outputs.blocked_families != '[]' ||
       inputs.scope == 'verify' || inputs.verification == 'full'
     runs-on: ubuntu-24.04
     timeout-minutes: 90
@@ -102,12 +99,12 @@ jobs:
           node-version-file: '.nvmrc'
       - name: Install pinned package manager only for selected data-family owners
         uses: pnpm/action-setup@v4
-        if: needs.plan.outputs.selected_families != '[]' || needs.plan.outputs.deferred_families != '[]' || inputs.scope == 'verify' || inputs.verification == 'full'
+        if: needs.plan.outputs.selected_families != '[]' || inputs.scope == 'verify' || inputs.verification == 'full'
         with:
           version: ${{ needs.plan.outputs.pnpm_version }}
           run_install: false
       - name: Install frozen dependencies for current data generators
-        if: needs.plan.outputs.selected_families != '[]' || needs.plan.outputs.deferred_families != '[]' || inputs.scope == 'verify' || inputs.verification == 'full'
+        if: needs.plan.outputs.selected_families != '[]' || inputs.scope == 'verify' || inputs.verification == 'full'
         run: pnpm install --frozen-lockfile --ignore-scripts
       - uses: jwlawson/actions-setup-cmake@v2
         if: needs.plan.outputs.wasm == 'true'

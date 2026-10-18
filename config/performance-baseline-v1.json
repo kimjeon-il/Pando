@@ -158,6 +158,6 @@
     "gpuTracked": "Application tracked resources; not total GPU VRAM.",
     "missingData": "null, never zero",
     "thresholdsApproved": false,
-    "note": "The native/docs/performance-budget.json status remains UNSET; reference observations are not acceptance budgets."
+    "note": "The config/performance-budget.json status remains UNSET; reference observations are not acceptance budgets."
   }
 }

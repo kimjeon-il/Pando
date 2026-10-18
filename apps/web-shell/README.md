@@ -1,10 +1,10 @@
-# PandoLab 시험용 WebView shell
+# PandoLab Windows·Android 앱
 
-A Tauri 2 prototype for Windows x64 and Android arm64. It embeds the
+The Tauri 2 application for Windows x64 and Android arm64. It embeds the
 existing Web frontend staged by `stage.mjs`. The default smoke profile omits
 world data; the opt-in full-world profile packages the current manifest-pinned
 country, historical and prepared geometry assets.
-This does not replace or launch the Qt application.
+This is the sole app execution and development entrypoint.
 
 ## Resource profiles (2-3A–C)
 
@@ -48,12 +48,12 @@ a full-world acceptance test. The full-world-only `full-world-probe.js` records
 verified country count, canonical geometry/mesh, worker, WebGL and local-resource
 checks when launched with `--probe-auto`. Run `verify-world-windows.ps1` on a
 freshly built full-world Windows EXE for a separate acceptance report. This setting does not change the public
-GitHub Pages output or the legacy Qt application.
+GitHub Pages output.
 
 The application identifier is `com.pandolab.webshell.prototype`. Fixed prototype
 files live below the OS application-data directory in `test-profile/`. Windows
 WebView2 also uses a dedicated `test-profile/webview2` directory, so its browser
-storage is separate from normal browser sessions and the Qt application.
+storage is separate from normal browser sessions.
 
 ## Build
 
@@ -69,7 +69,7 @@ pnpm --dir apps/web-shell build:android
 
 The tested Windows prototype uses Rust's `x86_64-pc-windows-gnu` target, existing
 MinGW GCC 13.1, user-scoped binutils 2.47, and installed WebView2. The helper above
-sets these paths without changing the Qt installation or machine-wide settings.
+sets these paths without changing the existing SDK installation or machine-wide settings.
 This GNU route is a prototype workaround; Tauri's documented Windows toolchain
 uses MSVC. Older MinGW binutils cannot read the current Rust symbol directives.
 The Windows GNU build also explicitly disables implicit exports on its unused

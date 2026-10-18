@@ -1,5 +1,5 @@
 // P2's existing publication transaction: compile/ABI checks run in the workflow,
-// then locally commit WASM -> Web -> native outputs before one guarded push.
+// then locally commit WASM and Web outputs before one guarded push.
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { appendFileSync } from 'node:fs';
@@ -55,22 +55,16 @@ export async function publishGeneratedArtifacts(cwd=root,{
       commits.push({phase:'wasm',sha:git(cwd,['rev-parse','HEAD'])});
     assert.equal(git(cwd,['status','--porcelain=v1','--untracked-files=all']),'','P2_DIRTY_SOURCE_CHECKOUT');
     if(scope!=='wasm') {
-      // Native provenance names the actual committed Web bytes. At most one Web
-      // phase and one native phase are necessary; never retry generators forever.
-      for(let phase=0;phase<2;++phase) {
-        const selection=graphStatus(cwd,{force:scope==='all'&&phase===0});
-        assert.deepEqual(selection.blockedFamilies,[],'P2_BLOCKED_GENERATION');
-        const families=selection.selectedFamilies;
-        if(!families.length) {
-          assert.deepEqual(selection.deferredFamilies,[],'P2_UNRESOLVED_DEFERRED_FAMILIES');break;
-        }
-        const sourceSha=git(cwd,['rev-parse','HEAD']),stageDir=stagePrefix+'-'+phase;
+      const selection=graphStatus(cwd,{force:scope==='all'});
+      assert.deepEqual(selection.blockedFamilies,[],'P2_BLOCKED_GENERATION');
+      const families=selection.selectedFamilies;
+      if(families.length) {
+        const sourceSha=git(cwd,['rev-parse','HEAD']),stageDir=stagePrefix+'-web';
         await stageArtifacts(cwd,{families,expectedSourceSha:sourceSha,stageDir});
         const publication=publishArtifacts(cwd,{stageDir,expectedSourceSha:sourceSha,
           expectedRemoteSha:expectedSourceSha,branch});
         if(commitOutputs(cwd,publication.changedPaths,families,'build(p2): publish verified '+families.join(', ')))
-          commits.push({phase:families.some(id=>selection.graph.find(f=>f.id===id).afterWebCommit)?'native':'web',
-            sha:git(cwd,['rev-parse','HEAD']),families});
+          commits.push({phase:'web',sha:git(cwd,['rev-parse','HEAD']),families});
       }
       assertArtifactsCurrent(graphStatus(cwd).statuses,dataFamilies);
     }

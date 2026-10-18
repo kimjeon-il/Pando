@@ -1,0 +1,50 @@
+{
+  "sourceCommit": "c3c18d167dae2dd9639844e5174dd68f745c6832",
+  "assets": [
+    {
+      "path": "terrain/v0.13.0/0/0-0.webp",
+      "bytes": 791060,
+      "sha256": "eccbdfea15371f054fdefac4774442b1519151b1dda638a01bdb1974bde5de9f"
+    },
+    {
+      "path": "terrain/v0.13.0/0/1-0.webp",
+      "bytes": 259692,
+      "sha256": "740703c6d665ef734257c0d7b6accfef62d56e9eacbc9004ebed31e791afcd7a"
+    },
+    {
+      "path": "terrain/v0.13.0/1/0-0.webp",
+      "bytes": 1205224,
+      "sha256": "a049d24193763fd34ca350bcece9f8974255035c8e817f14999c837abec77611"
+    },
+    {
+      "path": "terrain/v0.13.0/1/0-1.webp",
+      "bytes": 322782,
+      "sha256": "7c7373363b814aa21128e8daf5230c25a3cfd5ec8110a0a67e2e14548b56693c"
+    },
+    {
+      "path": "terrain/v0.13.0/1/1-0.webp",
+      "bytes": 1178724,
+      "sha256": "f2a97ca3cd63324fc67d34e4b821210374f618297f33058a3a3168f4ca875270"
+    },
+    {
+      "path": "terrain/v0.13.0/1/1-1.webp",
+      "bytes": 308026,
+      "sha256": "5f34a8783ed2ced12326e11acc9eb69df2fc179dac701ecc9735c574c8241b78"
+    },
+    {
+      "path": "terrain/v0.13.0/1/2-0.webp",
+      "bytes": 786456,
+      "sha256": "afe53edb5fa709bfa978a5ee9c3849ad63d4d36f2616230629ae76e939ab024b"
+    },
+    {
+      "path": "terrain/v0.13.0/1/2-1.webp",
+      "bytes": 192314,
+      "sha256": "61fb8722e535953c77b9c4cb14e3568035fc1abce69f66944dd9f5ae0c23ed02"
+    },
+    {
+      "path": "terrain/v0.13.3/tint.webp",
+      "bytes": 2433794,
+      "sha256": "1ae4c70e05494917c11d3c6b32869db61bf4f9e7e4b0239f9b4bd2b9bec582f3"
+    }
+  ]
+}

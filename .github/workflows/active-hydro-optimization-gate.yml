@@ -1,4 +1,4 @@
-name: Current Hydro Runtime and Native Contract
+name: Current Hydro Runtime Contract
 
 on:
   push:
@@ -10,9 +10,6 @@ on:
       - 'assets/js/workers/hydro-tile-worker.js'
       - 'assets/js/workers/hydro-shard-store.js'
       - 'assets/data/hydro/**'
-      - 'native/assets/world/manifest.json'
-      - 'native/assets/world/hydro/**'
-      - 'native/tools/lib/world-dataset-contract.mjs'
       - '.github/workflows/active-hydro-optimization-gate.yml'
   workflow_dispatch:
 
@@ -37,15 +34,12 @@ jobs:
             /assets/js/workers/hydro-tile-worker.js
             /assets/js/workers/hydro-shard-store.js
             /assets/data/hydro/
-            /native/assets/world/manifest.json
-            /native/assets/world/hydro/
-            /native/tools/lib/world-dataset-contract.mjs
       - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
       - name: Verify current package and Worker contracts
         run: node --test tests/unit/current-hydro-layout.test.mjs tests/unit/hydro-packfile.test.mjs
-      - name: Verify current Web and native bytes and real Worker reads
+      - name: Verify current Web bytes and real Worker reads
         run: >-
           node tools/check-current-hydro-layout.mjs --root . --allow-retired false
           --out build-native/active-hydro-optimization.json

@@ -26,7 +26,8 @@ export default [
   { ignores: ['node_modules/**', 'playwright-report/**', 'test-results/**', 'assets/js/vendor/**',
     // Immutable Git blob test inputs are admitted by web-oracle.mjs and its
     // provenance/import-closure tests; they are not active application source.
-    'tests/fixtures/portability/web-9300609-oracle/**'] },
+    'tests/fixtures/portability/web-9300609-oracle/**',
+    'tests/fixtures/shared-core/web-m97/lifecycle-source/**'] },
   js.configs.recommended,
   {
     files: ['assets/js/**/*.js', 'apps/web-shell/*.js'],

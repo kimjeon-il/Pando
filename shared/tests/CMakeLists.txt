@@ -187,7 +187,7 @@ target_link_libraries(cut_geometry_probe PRIVATE Pandoeditor::Core)
 
 add_executable(reference_image_core_tests reference-image-tests.cpp)
 target_link_libraries(reference_image_core_tests PRIVATE Pandoeditor::Core)
-target_compile_definitions(reference_image_core_tests PRIVATE PANDO_REFERENCE_FIXTURE_ROOT="${CMAKE_CURRENT_SOURCE_DIR}/../../native/tests/fixtures")
+target_compile_definitions(reference_image_core_tests PRIVATE PANDO_REFERENCE_FIXTURE_ROOT="${CMAKE_CURRENT_SOURCE_DIR}/../../tests/fixtures/shared-core")
 add_test(NAME reference_image_core_tests COMMAND reference_image_core_tests)
 set_tests_properties(reference_image_core_tests PROPERTIES TIMEOUT 20)
 

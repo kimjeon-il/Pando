@@ -8,35 +8,24 @@ import { classifyP3, scheduleP3, previewSlug } from '../../scripts/p3-plan-remot
 import { stagePreview } from '../../scripts/p3-stage-preview.mjs';
 import { createRuntimePerformanceMetrics } from '../../assets/js/modules/runtime-performance-metrics.js';
 
-const full={native:true,web:true},webOnly={native:false,web:true};
-test('Web-only changes select preview and browser, not Qt compiler',()=>{
-  assert.deepEqual(['preview','browser','qt'].map(k=>classifyP3(['assets/css/ui.css'],full)[k]),
-    [true,true,false]);
-  assert.equal(classifyP3(['assets/data/places/index.json'],webOnly).qt,false);
+const full={web:true};
+test('Web-only changes select preview and browser, without application compilation',()=>{
+  assert.deepEqual(['preview','browser'].map(k=>classifyP3(['assets/css/ui.css'],full)[k]),
+    [true,true]);
 });
-test('native source changes select only platform build when Web is unchanged',()=>{
-  const p=classifyP3(['native/app/editorcontroller.cpp'],full);
-  assert.equal(p.qt,true);assert.equal(p.preview,false);assert.equal(p.browser,false);
-  const noCxx=classifyP3(['native/app/editorcontroller.cpp'],webOnly);
-  assert.equal(noCxx.qt,false);
-});
-test('shared C++ changes select Web safety and Qt when native is present',()=>{
+test('shared C++ changes select Web safety checks',()=>{
   const p=classifyP3(['shared/core/src/project.cpp'],full);
-  assert.equal(p.qt,true);assert.equal(p.browser,true);assert.equal(p.preview,true);
+  assert.equal(p.browser,true);assert.equal(p.preview,true);
 });
 test('infrastructure first install schedules all available checks, reports-only skips all',()=>{
   const p=classifyP3(['.github/workflows/remote-preview-p3.yml'],full);
-  assert.equal(p.qt,true);assert.equal(p.browser,true);
-  assert.equal(classifyP3(['reports/development/testing/a.md'],full).qt,false);
+  assert.equal(p.browser,true);
   assert.equal(classifyP3(['reports/development/testing/a.md'],full).preview,false);
 });
 test('manual modes and branch slugs reject unexpected strings',()=>{
-  assert.equal(classifyP3([],full,'all').qt,true);
   const acceptance=classifyP3([],full,'acceptance');
-  for(const key of ['preview','browser','qt','contracts'])assert.equal(acceptance[key],true,key);
-  assert.equal(classifyP3([],full,'qt').preview,false);
-  assert.equal(classifyP3([],full,'off').qt,false);
-  assert.equal(classifyP3([],webOnly,'qt').qt,false);
+  for(const key of ['preview','browser','contracts'])assert.equal(acceptance[key],true,key);
+  assert.throws(()=>classifyP3([],full,'qt'),/P3_INVALID_SCOPE/);
   assert.throws(()=>classifyP3([],full,'other'),/P3_INVALID_SCOPE/);
   assert.equal(previewSlug('work/objects'),'work-objects');
   assert.equal(previewSlug('work/places'),'work-places');
@@ -110,30 +99,18 @@ test('P3 startup telemetry preserves late interactive, editable and ready milest
 });
 
 
-test('native documentation changes do not rebuild the app',()=>{
-  const result=classifyP3(['native/docs/build.md','shared/README.md'],full);
-  for(const key of ['preview','browser','qt'])assert.equal(result[key],false,key);
+test('app documentation changes do not rebuild the app',()=>{
+  const result=classifyP3(['apps/web-shell/README.md','shared/README.md'],full);
+  for(const key of ['preview','browser'])assert.equal(result[key],false,key);
 });
 
 test('source push waits for artifacts; result SHA dispatch verifies once',()=>{
   const affected=classifyP3(['shared/core/src/polygonclipping.cpp'],full);
-  const artifactState={statuses:{wasm:{needed:true}},selectedFamilies:['world-mesh'],deferredFamilies:[],blockedFamilies:[]};
+  const artifactState={statuses:{wasm:{needed:true}},selectedFamilies:['world-mesh'],blockedFamilies:[]};
   const pending=scheduleP3(affected,{event:'push',artifactState});
-  for(const key of ['preview','browser','qt'])assert.equal(pending[key],false,key);
+  for(const key of ['preview','browser'])assert.equal(pending[key],false,key);
   assert.equal(pending.deferredToArtifacts,true);
   const dispatched=scheduleP3(affected,{event:'workflow_dispatch',artifactState});
-  for(const key of ['preview','browser','qt'])assert.equal(dispatched[key],true,key);
+  for(const key of ['preview','browser'])assert.equal(dispatched[key],true,key);
   artifactState.statuses.wasm.needed=false;artifactState.selectedFamilies=[];
-  assert.equal(scheduleP3(affected,{event:'push',artifactState}).qt,true);
-});
-
-test('hydro changes reuse the Qt build and unrelated app changes omit hydro tests',()=>{
-  const hydro=classifyP3(['native/app/hydroassetreader.cpp'],full);
-  assert.equal(hydro.hydro,true);assert.equal(hydro.qt,true);
-  assert.equal(classifyP3(['native/app/referenceimagelibrary.cpp'],full).hydro,false);
-  for(const file of ['assets/css/a.css','native/app/editorcontroller.cpp','shared/core/src/geometry.cpp','assets/data/hydro/current/manifest.json','docs/build.md','assets/wasm/pandoeditor-core.wasm']) {
-    const result=classifyP3([file],full);
-    assert.equal(typeof result.qt,'boolean');
-    assert.equal(typeof result.contracts,'boolean');
-  }
 });

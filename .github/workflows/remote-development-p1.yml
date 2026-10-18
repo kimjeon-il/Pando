@@ -1,5 +1,4 @@
 name: P1 Remote development (scoped)
-# P5-6 verification receipt: rerun scoped Web + native CI against the integrated main source tree 691ec5d; comment-only change.
 
 on:
   push:
@@ -8,7 +7,6 @@ on:
       - '.github/workflows/remote-development-p1.yml'
       - 'CMakeLists.txt'
       - 'CMakePresets.json'
-      - 'cmake/P2NativeBuildReceipt.cmake'
       - '.nvmrc'
       - '.python-version'
       - 'config/toolchain-versions.json'
@@ -17,7 +15,6 @@ on:
       - 'tests/unit/p4-python-isolation.test.mjs'
       - 'tests/unit/versioning-source-schema.test.mjs'
       - 'shared/**'
-      - 'native/**'
       - 'tools/**'
       - 'scripts/**'
       - 'assets/js/**'
@@ -38,7 +35,7 @@ on:
         required: false
         default: auto
         type: choice
-        options: [auto, ui, objects, gis, places, core, native, wasm, all]
+        options: [auto, ui, objects, gis, places, core, wasm, all]
 
 permissions:
   contents: read
@@ -54,16 +51,13 @@ jobs:
     outputs:
       web: ${{ steps.scope.outputs.web }}
       core: ${{ steps.scope.outputs.core }}
-      native: ${{ steps.scope.outputs.native }}
       wasm: ${{ steps.scope.outputs.wasm }}
-      qt: ${{ steps.scope.outputs.qt }}
       gis_tools: ${{ steps.scope.outputs.gis_tools }}
       ui: ${{ steps.scope.outputs.ui }}
       objects: ${{ steps.scope.outputs.objects }}
       gis: ${{ steps.scope.outputs.gis }}
       places: ${{ steps.scope.outputs.places }}
       cmake_version: ${{ steps.scope.outputs.cmake_version }}
-      qt_version: ${{ steps.scope.outputs.qt_version }}
       emscripten_version: ${{ steps.scope.outputs.emscripten_version }}
       emsdk_ref: ${{ steps.scope.outputs.emsdk_ref }}
     steps:
@@ -139,34 +133,6 @@ jobs:
           cmake --build --preset pando-core
           ctest --preset pando-core
 
-  native-engine:
-    needs: plan
-    if: needs.plan.outputs.native == 'true'
-    runs-on: ubuntu-24.04
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: jwlawson/actions-setup-cmake@v2
-        with:
-          cmake-version: ${{ needs.plan.outputs.cmake_version }}
-      - name: Install native C++ dependencies without Node or Python
-        run: sudo apt-get update && sudo apt-get install -y ninja-build zlib1g-dev
-      - name: Build standalone native map engine
-        run: |
-          cmake --preset pando-native-core
-          cmake --build --preset pando-native-core
-      - name: Record exact source and compiled C++ archives
-        run: |
-          cmake "-DPANDO_P2_BUILD_DIR=$PWD/build-native/p1/pando-native-core" "-DPANDO_P2_OUTPUT=$PWD/build-native/p1/native-archive-receipt.json" -P cmake/P2NativeBuildReceipt.cmake
-      - uses: actions/upload-artifact@v4
-        with:
-          name: p2-native-cpp-${{ github.sha }}
-          path: build-native/p1/native-archive-receipt.json
-          if-no-files-found: error
-          retention-days: 7
-
   gis-cpp-tools:
     needs: plan
     if: needs.plan.outputs.gis_tools == 'true'
@@ -230,31 +196,3 @@ jobs:
             build-native/p1/pando-wasm/shared/wasm/pandoeditor-core.wasm
           if-no-files-found: error
           retention-days: 7
-
-  qt-app:
-    needs: plan
-    # P3 owns automatic Windows/Linux Qt builds and CTest.
-    if: github.event_name == 'workflow_dispatch' && needs.plan.outputs.qt == 'true'
-    runs-on: ubuntu-24.04
-    timeout-minutes: 35
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: jwlawson/actions-setup-cmake@v2
-        with:
-          cmake-version: ${{ needs.plan.outputs.cmake_version }}
-      - name: Install Qt build prerequisites
-        run: sudo apt-get update && sudo apt-get install -y ninja-build zlib1g-dev libegl1-mesa-dev libxkbcommon-x11-0 libxcb-cursor0 fonts-noto-cjk
-      - uses: jurplel/install-qt-action@v4
-        with:
-          version: ${{ needs.plan.outputs.qt_version }}
-          modules: qtshadertools qtimageformats
-          cache: true
-      - name: Configure and build Qt application from the common CMake entry
-        env:
-          QT_QPA_PLATFORM: offscreen
-          QT_QUICK_BACKEND: software
-        run: |
-          cmake --preset pando-native-qt
-          cmake --build --preset pando-native-qt
