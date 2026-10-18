@@ -104,7 +104,7 @@ export function createMapInputPresentation({
       beginExternalGesture: (point, event) => getInputSnapshot().projectReplacing ? null : beginReferenceImageGesture(point, event, { spacePan: getInputSnapshot().spacePanActive }),
       interactiveTarget: (target, event) => {
         if (getInputSnapshot().projectReplacing) return true;
-        if (target?.closest?.('button,input,select,textarea,a,[contenteditable="true"],.editor-drawer,.reference-image-panel')) return true;
+        if (target?.closest?.('button,input,select,textarea,a,[contenteditable="true"],.editor-drawer,.reference-image-panel,.reference-image-workflow-guide')) return true;
         if (referenceImageInputActive()) return false;
         if (target?.closest?.('.map-overlay-layer')) return true;
         if (event?.button === 1) return false;

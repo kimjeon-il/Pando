@@ -492,3 +492,81 @@
     flex: 0 0 auto;
   }
 }
+
+/* P4: shared workflow steps, with a compact guide above the map status bar. */
+.reference-image-workflow-guide {
+  position: absolute;
+  z-index: 9;
+  inset-block-end: calc(var(--ui-map-bottom-occupied-height) + var(--ui-map-edge));
+  inset-inline-start: calc(var(--map-safe-left, var(--ui-space-0)) + var(--ui-map-edge));
+  width: max-content;
+  max-width: min(
+    var(--ui-reference-panel-max-width),
+    calc(100% - var(--map-safe-left, var(--ui-space-0)) - var(--map-safe-right, var(--ui-space-0)) - (var(--ui-map-edge) * 2))
+  );
+  max-height: min(
+    50%,
+    calc(100% - var(--ui-map-bottom-occupied-height) - (var(--ui-map-edge) * 2) - (var(--ui-control-height) * 2) - var(--ui-space-4) - var(--ui-space-2))
+  );
+  display: grid;
+  min-width: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  pointer-events: auto;
+  cursor: default;
+}
+
+.reference-image-workflow,
+.reference-image-workflow-status {
+  display: grid;
+  min-width: 0;
+}
+
+.reference-image-workflow-heading,
+.reference-image-workflow > .reference-image-section-header,
+.reference-image-workflow-steps,
+.reference-image-workflow-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.reference-image-workflow-heading {
+  justify-content: space-between;
+}
+
+.reference-image-workflow-steps > li {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.reference-image-workflow-actions > .ui-button,
+.reference-image-workflow > .reference-image-section-actions > .ui-button {
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.reference-image-editing-summary > .reference-image-workflow-actions {
+  flex: 1 0 100%;
+  width: 100%;
+}
+
+.reference-image-workflow[hidden],
+.reference-image-workflow [hidden],
+.reference-image-workflow-guide[hidden],
+.reference-image-workflow-guide [hidden],
+.reference-image-workflow-actions[hidden],
+.reference-image-workflow-actions > [hidden],
+.reference-image-editing-summary > button[hidden],
+.reference-image-workflow-detail:empty,
+.app-root[data-layout="mobile"] .reference-image-workflow-guide {
+  display: none;
+}
+
+.app-root[data-layout="mobile"] .reference-image-workflow-actions > .ui-button {
+  flex: 1 1 auto;
+}

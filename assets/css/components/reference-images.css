@@ -451,3 +451,89 @@
 }
 
 .reference-image-input-explanation { margin: 0; }
+
+/* P4: one visual language for panel workflows and the map guide. */
+.reference-image-workflow,
+.reference-image-workflow-guide {
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-3);
+  border: var(--ui-border-width) solid var(--border);
+  border-radius: var(--ui-radius-control);
+  background: var(--surface-subtle);
+  color: var(--text);
+  line-height: var(--ui-line-normal);
+  overflow-wrap: anywhere;
+}
+
+.reference-image-workflow-guide {
+  border-color: var(--overlay-border);
+  background: var(--surface-elevated);
+  box-shadow: var(--control-shadow);
+}
+
+.reference-image-workflow-status,
+.reference-image-workflow-heading,
+.reference-image-workflow-actions {
+  gap: var(--ui-space-2);
+}
+
+.reference-image-workflow-heading > strong {
+  color: var(--text-strong);
+  font-size: var(--ui-font-section);
+  font-weight: var(--ui-weight-semibold);
+}
+
+.reference-image-workflow-heading > span {
+  color: var(--muted);
+  font-size: var(--ui-font-caption);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.reference-image-workflow-steps {
+  gap: var(--ui-space-1);
+  margin: var(--ui-space-0);
+  padding: var(--ui-space-0);
+  list-style: none;
+}
+
+.reference-image-workflow-guide .reference-image-workflow-steps {
+  list-style: decimal inside;
+}
+
+.reference-image-workflow-steps > li {
+  padding: var(--ui-space-1) var(--ui-space-2);
+  border: var(--ui-border-width) solid transparent;
+  border-radius: var(--ui-radius-control);
+  background: var(--surface-card);
+  color: var(--muted);
+  font-size: var(--ui-font-caption);
+}
+
+.reference-image-workflow-steps > li.is-complete {
+  color: var(--text-soft);
+  border-color: var(--border);
+}
+
+.reference-image-workflow-steps > li[aria-current="step"] {
+  border-color: var(--accent-border);
+  background: var(--selection-soft-bg);
+  color: var(--text-strong);
+  font-weight: var(--ui-weight-semibold);
+}
+
+.reference-image-workflow-instruction,
+.reference-image-workflow-detail {
+  margin: var(--ui-space-0);
+}
+
+.reference-image-workflow-instruction {
+  color: var(--text-strong);
+  font-size: var(--ui-font-body);
+  font-weight: var(--ui-weight-medium);
+}
+
+.reference-image-workflow-detail {
+  color: var(--muted);
+  font-size: var(--ui-font-caption);
+}
