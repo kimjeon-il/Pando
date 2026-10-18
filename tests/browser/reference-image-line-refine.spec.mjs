@@ -95,12 +95,13 @@ test('line refinement accepts a current corner-pin mapping and supports cancel/a
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGES__?.list().length || 0)).toBe(1);
 
   const start = page.locator('[data-ref-line-action="start"]');
+  await page.locator('[data-ref-tab="match"]').click();
   await expect(start).toBeVisible();
   await expect(start).toBeDisabled();
 
   await expect.poll(async () => !!(await readStoredRecord(page))).toBe(true);
   const geometry = await referenceScreenGeometry(page);
-
+  await page.locator('[data-ref-tab="placement"]').click();
   await page.locator('[data-ref-action="free-transform"]').click();
   await expect(page.locator('#map')).toHaveClass(/is-reference-free-transform-mode/);
   const corner = geometry.corners[1];
@@ -117,6 +118,7 @@ test('line refinement accepts a current corner-pin mapping and supports cancel/a
     return { cornerPin: !!item?.cornerPinEnabled, ready: !!item?.mappingReady };
   })).toEqual({ cornerPin: true, ready: true });
   await page.keyboard.press('Escape');
+  await page.locator('[data-ref-tab="match"]').click();
   await expect(start).toBeEnabled();
 
   const lock = page.locator('[data-ref-field="locked"]');
