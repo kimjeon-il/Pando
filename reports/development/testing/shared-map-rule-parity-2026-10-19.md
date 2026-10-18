@@ -1,6 +1,6 @@
 # 웹·앱 호버 깃발과 경계 규칙 재점검
 
-> 보고서 ID: `UI-MAP-PARITY-20261019` · 상태: `focused-verified / release-pending / native-unverified` · 지도 반영: `not-applicable` · 색인일: 2026-10-19
+> 보고서 ID: `UI-MAP-PARITY-20261019` · 상태: `focused-verified / published / native-unverified` · 지도 반영: `not-applicable` · 색인일: 2026-10-19
 > 원문 최종 수정: 2026-10-19
 > 조사 기준: 웹·앱 `7494839087370b2508e199f3c95a7aaea23b343f` 및 아래 수정본
 > 원본·출처: 현재 소스, 실제 Core가 작성한 합성 GPKG, 관련 단위·브라우저 검사
@@ -39,8 +39,19 @@
 
 ## 미검증 및 배포
 
-최종 실제 포인터·깃발·문서 불변·부모/자식/권역 경계·분포·일반 객체 비교 1/1 통과. 배포 증거는 완료 후 추가한다. 이번 후속 수정에서 Windows·Android 네이티브 패키지를 빌드하거나 실기기에서 실행하지 않았다. 브라우저 앱 검사를 네이티브 검증으로 표시하지 않는다. 기존 배포 지시에 따라 검증 후 웹을 게시하며 push·workflow·공개 응답·실제 호버를 구분한다.
+최종 실제 포인터·깃발·문서 불변·부모/자식/권역 경계·분포·일반 객체 비교 1/1 통과. 직접 조회·라벨 입력 소비자 검사도 8/8 통과했다. 이번 후속 수정에서 Windows·Android 네이티브 패키지를 빌드하거나 실기기에서 실행하지 않았다. 브라우저 앱 검사를 네이티브 검증으로 표시하지 않는다. 기존 배포 지시에 따라 검증 후 웹을 게시하며 push·workflow·공개 응답·실제 호버를 구분한다.
 
 ## 판본
 
 [이전 통합 보고서](shared-output-refactor-2026-10-19.md)의 후속이다. 이전 보고서에서 선택·호버가 모두 같은 경로라는 표현에는 위 우회가 누락되어 있었다. 이 보고서의 항목별 결과로 정정한다.
+
+## 배포 완료 증거
+
+- 제품 커밋: `83dfdf70f40effa48634dfed566ed6dbba1ae1f7`, `work/ui` → `main` fast-forward 및 양쪽 원격 push 완료.
+- 빌드: `0.36.0-build-20261019-hover-boundary`, 데이터 revision은 변경하지 않았다.
+- [Pages workflow 39172296884](https://github.com/kimjeon-il/Pando/actions/runs/39172296884), [UI CI 39172296856](https://github.com/kimjeon-il/Pando/actions/runs/39172296856) 모두 해당 제품 SHA에서 성공했다.
+- 로컬·CI staging 모두 2,233개 파일 / 431,894,578 bytes. 전체 파일의 경로·크기·SHA-256이 일치했고 앱 소스 104개와 shared 소스 173개를 제외했다. 편집 전용 자원은 제품 의존성 검사에서 거절된다.
+- 공개 사이트의 시작 HTML·메타데이터·공통 모듈·Worker 등 15개 URL에서 HTTP 200과 제품 커밋의 SHA-256 일치를 확인했다.
+- 공개 사이트 1440×900에서 실제 포인터로 알제리 라벨을 호버했다. 검정 툴팁의 이름 옆에 국기가 표시되고 이미지 로드가 완료됨을 확인했다. 문서는 변하지 않았고 pageerror는 없었다. `live-hover-flag.png`, `live-hover.json`, `live-hashes.json`을 원시 증거 폴더에 남겼다.
+- 최초 공개 확인에서 특정 국가 ID를 그대로 DOM selector로 가정한 준비 오류는 실제 화면의 표시 이름으로 대상을 찾아 해결했다. 이 오류를 제품 수정으로 집계하지 않았다.
+- 이 배포 증거 보완은 보고서만 변경한다. 공개 제품 소스 SHA는 위 커밋이며, 이후 UI 브랜치의 문서 보완 커밋과 구분한다.
