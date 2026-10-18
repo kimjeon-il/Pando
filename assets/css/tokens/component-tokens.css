@@ -51,6 +51,8 @@
   --notification-close-width: 30px;
   --notification-close-min-width: 30px;
   --notification-close-height: 30px;
+  --ui-tooltip-background: #000;
+  --ui-tooltip-color: #fff;
   --ui-tooltip-max-width: min(280px, calc(100vw - var(--ui-space-4) * 2));
   --disclosure-icon-width: 18px;
   --disclosure-icon-height: 18px;

@@ -91,7 +91,7 @@ if (!uiRuntimeSource.includes('installObjectRegistryPresenter();')) {
   fail('object registry presenter is not installed by the canonical UI runtime');
 }
 
-const appSource = readApplicationOwners('runtime-dependencies', 'object-presentation');
+const appSource = readApplicationOwners('object-presentation');
 for (const marker of [
   'Object.values(MAP_OBJECT_TYPES)',
   'Object.values(MAP_OBJECT_TYPES)',
