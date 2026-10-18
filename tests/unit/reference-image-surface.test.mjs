@@ -40,9 +40,18 @@ class Element {
 }
 
 function fixture() {
-  const document = { elements: [], activeElement: null, querySelector: () => null };
+  let workspaceElement;
+  const document = {
+    elements: [], activeElement: null,
+    querySelector: selector => selector === '.workspace' ? workspaceElement : null,
+  };
   document.createElement = () => new Element(document);
   document.body = document.createElement();
+  workspaceElement = document.createElement();
+  workspaceElement.className = 'workspace';
+  const styleValues = new Map();
+  workspaceElement.style = { setProperty: (key, value) => styleValues.set(key, value) };
+  workspaceElement.getBoundingClientRect = () => ({ left: 0, right: 1200, width: 1200 });
   const panel = document.createElement();
   const launcher = document.createElement();
   const header = document.createElement();
@@ -65,7 +74,15 @@ function fixture() {
     setMobileSheetHeight(_panel, value) { heights.push(value); },
     setReferenceImageGestureActive() {},
   };
-  return { panel, launcher, editor, workspace, controller, heights, sync, setLayout(value) { layout = value; } };
+  return {
+    panel, launcher, editor, workspace, workspaceElement, styleValues,
+    controller, heights, sync,
+    setLayout(value) {
+      const previous = layout;
+      layout = value;
+      controller.syncLayout(previous);
+    },
+  };
 }
 
 test('late image surface registration reuses controls and closes once even with a reentrant mode callback', () => {
@@ -104,4 +121,81 @@ test('repeated mode synchronization does not rewrite the live status node', () =
   assert.equal(hint.textWrites, writes);
   assert.equal(summary.children[1].classList.contains('btn'), true);
   assert.equal(summary.children[2].classList.contains('btn'), true);
+});
+
+
+test('desktop reference dock collapses without closing or cancelling the active mode', () => {
+  const f = fixture();
+  f.workspace.openSurface('reference');
+  let closed = 0;
+  const adapter = installReferenceImageSurface({
+    ...f, workspaceSurfaces: f.workspace, onClose: () => { closed += 1; },
+  });
+  f.setLayout('wide');
+  f.sync();
+  assert.equal(f.workspaceElement.classList.contains('reference-image-docked'), true);
+
+  adapter.setEditing(true, '이미지점 선택 중');
+  const toggle = f.panel.querySelector('.reference-image-panel-header')
+    .querySelector('.reference-image-collapse-button');
+  const click = () => toggle.listeners.get('click')({ preventDefault() {}, stopPropagation() {} });
+  click();
+  assert.equal(f.panel.hidden, false);
+  assert.equal(f.panel.classList.contains('reference-image-collapsed'), true);
+  assert.equal(f.panel.classList.contains('reference-image-editing-active'), true);
+  assert.equal(f.workspaceElement.classList.contains('reference-image-dock-collapsed'), true);
+  assert.equal(f.panel.querySelector('.reference-image-body').inert, true);
+  assert.equal(closed, 0);
+
+  click();
+  assert.equal(f.panel.classList.contains('reference-image-collapsed'), false);
+  assert.equal(f.panel.classList.contains('reference-image-editing-active'), true);
+  assert.equal(f.workspaceElement.classList.contains('reference-image-dock-collapsed'), false);
+  assert.equal(f.panel.querySelector('.reference-image-body').inert, false);
+
+  const resize = f.panel.querySelector('.reference-image-resize-handle');
+  resize.listeners.get('keydown')({ key: 'ArrowLeft', preventDefault() {} });
+  assert.equal(f.styleValues.get('--reference-dock-width'), '352px');
+  assert.equal(resize.getAttribute('aria-valuenow'), '352');
+
+  f.workspace.closeSurface('reference');
+  assert.equal(closed, 1);
+  assert.equal(f.workspaceElement.classList.contains('reference-image-docked'), false);
+});
+
+test('mobile reference sheet collapse and edit expansion keep the panel open', () => {
+  const f = fixture();
+  f.workspace.openSurface('reference');
+  let closed = 0;
+  const adapter = installReferenceImageSurface({
+    ...f, workspaceSurfaces: f.workspace, onClose: () => { closed += 1; },
+  });
+  const toggle = f.panel.querySelector('.reference-image-panel-header')
+    .querySelector('.reference-image-collapse-button');
+  const click = () => toggle.listeners.get('click')({ preventDefault() {}, stopPropagation() {} });
+  const body = f.panel.querySelector('.reference-image-body');
+  const summary = f.panel.querySelector('.reference-image-editing-summary');
+  adapter.setEditing(true, '기준점 지정 중');
+  assert.equal(body.inert, true);
+  assert.equal(summary.hidden, false);
+  assert.equal(toggle.getAttribute('aria-expanded'), 'false');
+
+  click();
+  assert.equal(body.inert, false);
+  assert.equal(summary.hidden, true);
+  assert.equal(toggle.getAttribute('aria-expanded'), 'true');
+  click();
+  assert.equal(body.inert, true);
+  assert.equal(summary.hidden, false);
+  assert.equal(f.panel.hidden, false);
+  assert.equal(closed, 0);
+
+  adapter.setEditing(false);
+  click();
+  assert.equal(f.panel.classList.contains('reference-image-collapsed'), true);
+  assert.equal(f.heights.at(-1), 0);
+  click();
+  assert.equal(f.panel.classList.contains('reference-image-collapsed'), false);
+  assert.equal(f.heights.at(-1), 1);
+  assert.equal(closed, 0);
 });
