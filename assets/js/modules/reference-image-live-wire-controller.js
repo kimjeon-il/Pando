@@ -318,13 +318,10 @@ export function installReferenceImageLiveWire() {
     const cancel = row.querySelector('[data-ref-live-wire-action="cancel"]');
     const active = !!state && state.recordId === recordId;
     const summary = panel.querySelector('.reference-image-editing-summary');
-    const genericSummaryActions = summary?.querySelectorAll('[data-ref-action="finish"], [data-ref-action="cancel"]') || [];
     const compactSummaryActive = active && summary && !summary.hidden;
     if (compactSummaryActive) {
-      genericSummaryActions.forEach(button => { button.hidden = true; });
       if (row.parentElement !== summary) summary.appendChild(row);
     } else {
-      genericSummaryActions.forEach(button => { button.hidden = false; });
       const lineActions = editor.querySelector('[data-ref-line-actions]');
       const calibrationActions = editor.querySelector('.reference-image-calibration-actions');
       if (lineActions && row.previousElementSibling !== lineActions) lineActions.insertAdjacentElement('afterend', row);
@@ -798,6 +795,8 @@ export function installReferenceImageLiveWire() {
   observer.observe(panel, { attributes: true, attributeFilter: ['hidden'] });
   observer.observe(editor, { childList: true, attributes: true, attributeFilter: ['hidden'] });
   observer.observe(mapElement, { attributes: true, attributeFilter: ['class'] });
+  const editingSummary = panel.querySelector('.reference-image-editing-summary');
+  if (editingSummary) observer.observe(editingSummary, { attributes: true, attributeFilter: ['hidden'] });
   const resizeObserver = new ResizeObserver(requestRender);
   resizeObserver.observe(mapElement);
 

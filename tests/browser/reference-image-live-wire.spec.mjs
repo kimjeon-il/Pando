@@ -1,5 +1,10 @@
 import { expect, test } from '@playwright/test';
-import { readFileSync } from 'node:fs';
+import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
+
+test.beforeEach(async ({ page }) => {
+  // Keep the real image, mapping and persistence paths on the current tiny project fixture.
+  await page.addInitScript(value => localStorage.setItem('pandolab-editor-project', JSON.stringify(value)), staticAutosaveProject());
+});
 
 const EDGE_PNG = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAoUlEQVR4nO3QQRHAQAyAwGs1xL+tyGll7D3AAAzPzHwHsrtSf15qv4AG6ABNA3SApgE6QNMAHaBpgA7QNEAHaBqgAzQN0AGaBugATQN0gKYBOkDTAB2gaYAO0DRAB2gaoAM0DdABmgboAE0DdICmATpA0wAdoGmADtA0QAdoGqADNA3QAZoG6ABNA3SApgE6QNMAHaBpgA7QNEAHaBqgAzQ/A0IEQI9OdPoAAAAASUVORK5CYII=',
@@ -216,10 +221,6 @@ test('live-wire accepts a current corner-pin mapping and traces/applies an edge 
 
 test('linear constraint preview leaves storage unchanged until one apply', async ({ page }) => {
   test.setTimeout(240_000);
-  // The current checkout's content-addressed copy differs from its pinned
-  // original; use the byte-identical pinned source for this UI-focused case.
-  await page.context().route('**/country-label-anchors-sha256-caeee3f0d05265cc564f68ef092b25ea8c5c4d6f1c36e2beb35a239551751512.json', route =>
-    route.fulfill({ contentType: 'application/json', body: readFileSync('assets/data/country-label-anchors-v0.10.1.json') }));
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/');await waitForReady(page);await clearReferenceStore(page);await page.reload();await waitForReady(page);
   await page.locator('.reference-image-launcher').click();
