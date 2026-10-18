@@ -44,7 +44,6 @@ jobs:
             /assets/data/world/current.json
             /assets/data/world/build-input.json
             /assets/data/world-preview-v0.36.0.json
-            /native/assets/world/manifest.json
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
@@ -59,7 +58,6 @@ jobs:
           const bundle=json('assets/data/world/current.json');
           const seed=json('assets/data/world/build-input.json');
           const active=json('assets/data/world-preview-v0.36.0.json');
-          const native=json('native/assets/world/manifest.json');
           assert.equal(seed.legacyPreviewManifest,'world-preview-v0.36.0.json');
           assert.equal(active.version,'0.36.0');
           const required=new Set([
@@ -75,7 +73,6 @@ jobs:
           for(const entry of Object.values(bundle.assets||{}))required.add('assets/data/'+entry.url);
           required.add('assets/data/'+bundle.source.url);
           for(const entry of Object.values(active.assets||{}))required.add('assets/data/'+entry.url);
-          for(const entry of Object.values(native))if(entry?.source?.path)required.add(entry.source.path);
           for(const path of required)assert(tracked.has(path),'Missing active/pinned Git path: '+path);
           const retired=[];
           for(const v of ['0.30.0','0.31.0','0.32.0','0.34.0'])for(const stem of [
@@ -83,7 +80,7 @@ jobs:
             ['world-mesh-preview','.bin.gz'],['countries-canonical','.pcg.gz']
           ]){const path='assets/data/'+stem[0]+'-v'+v+stem[1];if(tracked.has(path))retired.push(path)}
           assert.deepEqual(retired,[],'Historical bundles must not leak into publication');
-          console.log('Active/native pin integrity passed: '+required.size+' paths; all four retired version groups absent');
+          console.log('Active pin integrity passed: '+required.size+' paths; all four retired version groups absent');
           NODE
       - name: Verify original current preview geometry and mesh assertions
         run: node --test tests/unit/renderable-outline.test.mjs tests/unit/mesh-geometry-assets.test.mjs

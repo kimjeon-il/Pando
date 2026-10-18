@@ -28,11 +28,7 @@ common temporal contract hash는
 `cccbaf0a72ce81f6c3dec6a26909d82b6dbc65d7b4297309ebe3547bfd90ab95`다.
 fixture는 기존 `tests/fixtures/timeline-exchange`와 expected를 사용한다.
 
-```powershell
-$env:PATH = 'C:/Users/taeeu/Qt/6.8.3/mingw_64/bin;C:/Users/taeeu/Qt/Tools/mingw1310_64/bin;' + $env:PATH
-$env:QT_QPA_PLATFORM = 'offscreen'
-node tools/check-timeline-exchange.mjs D:/build/Pandoeditor-country-lineage/timeline_project_tests.exe test-results/country-lineage-storage/exchange
-```
+
 
 App delta는 baseline 미제공 시 `BASE_DATA_REQUIRED`다. App catalog UI 개편과 전체 성능
 비교는 이번 실행 범위가 아니다. 수정 브랜치만 푸시하며 main·배포·패키징은 하지 않는다.
@@ -299,51 +295,3 @@ fixture 검사에 포함된다. 앱 파일 경계의 모든 잘못된 JSON 타�
 delta baseline 입력은 편집기를 떠나기 전에 심어 beforeunload 정상 저장에 덮였으므로,
 편집기를 종료한 동일 origin의 정적 페이지에서 심고 production 시작 경로로 재검사했다.
 제품 코드나 기대되는 실패 보장을 바꿔 통과시키지 않았다.
-
-### 남은 앱 파일 경계 차이 — 웹/앱 동등성 확정 아님
-
-정상 고정 파일 교환 6건은 동일한 expected 값과 일치한다. 다음 입력은 양쪽 모두
-거부하고 앱 출력 파일도 게시하지 않지만, 실제 파일 decode의 오류 범주가 다르다.
-`app/projectcodec.cpp`의 timeline endpoint parser가 record normalizer 전에
-`parseTemporal` 오류를 내보낸다. 공통 문서나 fixture 기대값을 수정하지 않았다.
-
-| calendar 입력 변경 | 웹 record/storage 기대·실제 | 앱 파일 코덱 실제 |
-| --- | --- | --- |
-| life:A.validFrom = `0000-02` | `TIMELINE_INTERVAL` | `INVALID_DATE: year zero` |
-| B:new.validFrom = `1900-02-29` | `TIMELINE_INTERVAL` | `INVALID_DATE: day` |
-
-새 CLI는 이 차이를 숨기지 않고 두 건을 실패로 기록하고 exit 1을 반환한다.
-양끝 중복은 `TIMELINE_OVERLAP`, 윤일 누락은 `TIMELINE_GAP`으로 양쪽이 일치한다.
-현재 웹 성공과 native normalizer parity만으로 파일 경계의 범주까지 같다고 보고하지
-않는다. **웹 검증 보강 완료, 앱 날짜 오류 코드 교차검증 두 건 실패,
-최종 독립 앱 작업자 교차검증 미실행**으로 구분한다. 앱 수정은 앱 작업자가 담당한다.
-
-### 후보 고정과 인계
-
-문서 자체의 commit SHA를 문서에 넣는 자기참조를 피하기 위해, 문서/코드/fixture를
-커밋한 뒤 정확한 후보를 `test-results/timeline-t22-followup/manifest-<WEB_CANDIDATE_SHA>.json`
-에 기록한다. 산출물에는 WEB_BASE_SHA, WEB_CANDIDATE_SHA, APP_REFERENCE_SHA,
-두 저장소의 계약/스키마/사용 fixture/expected 파일 경로와 SHA-256, 명령별 실제
-결과와 로그 해시를 포함한다. Git blob hash와 실제 읽은 Windows checkout byte hash
-(CRLF 가능)를 구분한다. 기존 앱 provenance.json도 이전 기준의 증거로만 해시한다.
-후보 동결 뒤 관련 코드/fixture는 바꾸지 않으며, 후속 변경에는 새 SHA·결과가 필요하다.
-동결 후 집중 검사와 branch의 Application Architecture 실행은 이 산출물에 추가한다.
-
-앱 작업자는 WEB_CANDIDATE_SHA를 checkout한 뒤 아래 명령을 그대로 실행한다.
-Qt/MinGW runtime PATH와 해당 APP_REFERENCE_SHA에서 빌드한 binary를 사용한다.
-아래 예의 `$webRoot`는 고정 후보 checkout을 가리켜야 한다.
-
-```powershell
-$webRoot = 'C:/Users/taeeu/.codex/worktrees/timeline-t22-followup/Pandoeditor(Web)'
-$appRoot = 'D:/dev/Pandoeditor(App)'
-$appBuild = 'D:/build/Pandoeditor-t22-54aa51d'
-$env:PATH = 'C:/Users/taeeu/Qt/6.8.3/mingw_64/bin;C:/Users/taeeu/Qt/Tools/mingw1310_64/bin;' + $env:PATH
-node "$appRoot/tools/timeline-records-parity.mjs" "$appBuild/core/timeline_records_tests.exe" "$webRoot/assets/js/modules/timeline-records.js"
-node "$appRoot/tools/timeline-storage-parity.mjs" "$appBuild/core/timeline_storage_tests.exe" "$webRoot/assets/js/modules/timeline-storage.js"
-node "$appRoot/tools/timeline-exchange-oracle.mjs" "$appBuild/timeline_project_tests.exe" $webRoot "$webRoot/test-results/timeline-final-app/existing"
-Set-Location -LiteralPath $webRoot
-node tools/check-timeline-exchange.mjs "$appBuild/timeline_project_tests.exe" test-results/timeline-final-app/fixed
-```
-
-마지막 명령의 오류 코드 두 건을 성공으로 처리하거나 현재 앱 값에 기대값을 맞추지
-않는다. 앱을 보정한 뒤에는 APP_REFERENCE_SHA도 새로 고정해 새 검증 쌍을 남겨야 한다.

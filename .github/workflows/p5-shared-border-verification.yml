@@ -32,7 +32,6 @@ on:
       - 'assets/wasm/pandoeditor-core.manifest.json'
       - 'assets/js/modules/boundary-lines.js'
       - 'assets/js/modules/geographic-boundary.js'
-      - 'native/engine/src/renderpacket.cpp'
       - 'tests/unit/boundary-display-refinement.test.mjs'
       - 'assets/js/modules/boundary-topology.js'
       - 'assets/js/modules/country-contact-core.js'
@@ -53,7 +52,6 @@ on:
       - 'tests/unit/boundary-lines.test.mjs'
       - 'tests/unit/country-shared-boundary-generator.test.mjs'
       - 'tests/unit/boundary-topology-split.test.mjs'
-      - 'native/engine/src/sharedboundary.cpp'
       - 'CMakePresets.json'
   workflow_dispatch:
 permissions:

@@ -35,7 +35,7 @@ test('all retained performance suites and historical references exist, budgets r
   const result = validatePerformanceManifest(manifest);
   assert.equal(result.frozenCommit, '2279b94f0713f08070a0c5e146be5566de35fc45');
   assert.equal(result.measurementBudgetApproved, false);
-  const actualBudget = JSON.parse(readFileSync(new URL('../../native/docs/performance-budget.json', import.meta.url), 'utf8'));
+  const actualBudget = JSON.parse(readFileSync(new URL('../../config/performance-budget.json', import.meta.url), 'utf8'));
   assert.equal(actualBudget.status, 'UNSET');
   assert.equal(actualBudget.thresholds, null);
   assert.ok(result.suiteCount >= 9);

@@ -105,20 +105,11 @@ export function artifactGraph(root) {
       } else f.outputs.push(...Object.values(seed.sharedBoundaries).map(p=>'assets/data/'+p));
     }
     if(f.resolve==='hydro'||f.resolve==='terrain') {
-      const native=json(root,'native/assets/world/manifest.json');
-      const manifest=native[f.resolve].source.path;
+      const manifest=f.resolve==='hydro'?'assets/data/hydro/v0.13.2/manifest.json':'assets/data/terrain-preview/v0.13.3-p1/manifest.json';
       f.outputs.push(dirname(manifest).replaceAll('\\','/')+'/');
       f.provenance=provenance(json(root,manifest).sources);
     }
-    if(f.id==='native-assets') {
-      const native=json(root,'native/assets/world/manifest.json');
-      const web=json(root,'assets/data/world/current.json');
-      // Include existing content-addressed and versioned current consumers.
-      for(const key of ['countryPreview','previewMesh','countryCanonical','canonicalMesh','labelAnchors'])
-        f.outputs.push('native/assets/world/'+native[key].path);
-      for(const asset of Object.values(web.assets))f.outputs.push('native/assets/world/'+asset.url);
-      for(const key of ['hydro','terrain'])f.outputs.push('native/assets/world/'+dirname(native[key].path).replaceAll('\\','/')+'/');
-    }
+
     f.outputs=[...new Set(f.outputs)].sort();
     f.sources=moduleClosure(root,[...f.generate,...f.validate].filter(c=>c[0]==='node').map(c=>c[1]));
     return f;
@@ -169,13 +160,11 @@ export function graphStatus(root,{wasm=null,requested=[],force=false}={}) {
     }
     if(f.blockedReason)blocked.push(f.blockedReason);
     const manualAllowed=!f.manual||requested.includes(f.id);
-    const deferred=!!(f.afterWebCommit&&dependencyChanged.length);
-    statuses[f.id]={needed:reasons.length>0,selected:!!(wanted&&manualAllowed&&!deferred&&!blocked.length),deferred:!!(wanted&&manualAllowed&&deferred),
+    statuses[f.id]={needed:reasons.length>0,selected:!!(wanted&&manualAllowed&&!blocked.length),
       blocked:wanted&&manualAllowed?blocked:[],reasons,inputFingerprint,outputFingerprint,
       inputs,generatorHashes,tools,dependencies,outputs,consumers:f.consumers||[],provenance:f.provenance||[],validation:f.validate};
   }
   return {graph,statuses,selectedFamilies:graph.filter(f=>statuses[f.id].selected).map(f=>f.id),
-    deferredFamilies:graph.filter(f=>statuses[f.id].deferred).map(f=>f.id),
     blockedFamilies:graph.filter(f=>statuses[f.id].blocked.length).map(f=>({id:f.id,reasons:statuses[f.id].blocked}))};
 }
 
@@ -197,7 +186,6 @@ export async function stageArtifacts(root,{families,expectedSourceSha,stageDir,r
   const initial=graphStatus(root,{requested:families}),byId=new Map(initial.graph.map(f=>[f.id,f]));
   for(const id of families) {
     assert.ok(!initial.statuses[id].blocked.length,'P2_BLOCKED: '+id+' '+initial.statuses[id].blocked.join('; '));
-    assert.ok(!initial.statuses[id].deferred,'P2_WEB_COMMIT_REQUIRED: '+id);
     for(const dep of byId.get(id).dependencies)if(dep!=='wasm'&&!byId.get(dep).manual&&initial.statuses[dep].needed)
       assert.ok(families.includes(dep),'P2_STALE_DEPENDENCY: '+id+' -> '+dep);
   }
@@ -229,13 +217,12 @@ export async function stageArtifacts(root,{families,expectedSourceSha,stageDir,r
   for(const id of families) {
     const current=status.statuses[id],old=receipt.families[id];
     if(old?.inputFingerprint===current.inputFingerprint&&old?.outputFingerprint===current.outputFingerprint)continue;
-    receipt.families[id]={...current,selected:undefined,deferred:undefined,blocked:undefined,reasons:undefined,needed:undefined,sourceSha:expectedSourceSha};
+    receipt.families[id]={...current,selected:undefined,blocked:undefined,reasons:undefined,needed:undefined,sourceSha:expectedSourceSha};
   }
   writeJson(checkout,RECEIPT_PATH,receipt);
   if(sha(readFileSync(safePath(checkout,RECEIPT_PATH)))!==before[RECEIPT_PATH])changedPaths.push(RECEIPT_PATH);
   const publication={schema:'pandolab-p2-stage',schemaVersion:1,sourceSha:expectedSourceSha,families,
-    paths:[...new Set(changedPaths)].sort(),before:hashes(root,[...new Set(changedPaths)]),after:hashes(checkout,[...new Set(changedPaths)]),
-    deferredFamilies:initial.deferredFamilies};
+    paths:[...new Set(changedPaths)].sort(),before:hashes(root,[...new Set(changedPaths)]),after:hashes(checkout,[...new Set(changedPaths)])};
   writeJson(stage,'stage.json',publication);return publication;
 }
 function filesInCheckout(root) {return readdirSync(root).sort().flatMap(name=>files(root,name));}
@@ -285,7 +272,7 @@ export function publishArtifacts(root,{stageDir,expectedSourceSha,expectedRemote
     assert.deepEqual(hashes(root,paths),publication.after,'P2_PUBLISHED_BYTES_CHANGED');
     unlinkSync(safePath(stage,'publish-journal.json'));
     writeJson(stage,'published.json',{...publication,published:true});
-    return {changedPaths:paths,sourceSha:expectedSourceSha,deferredFamilies:publication.deferredFamilies};
+    return {changedPaths:paths,sourceSha:expectedSourceSha};
   } catch(error) {
     for(const p of written.reverse()) {
       const target=safePath(root,p);

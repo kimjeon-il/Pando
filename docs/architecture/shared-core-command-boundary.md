@@ -1,20 +1,19 @@
 # Shared Core command boundary
 
 현재 문서·검증·명령·이력의 소유자는 `shared/core`의 `DocumentSession`과
-`Project`다. 앱은 네이티브 라이브러리로, 웹은 전용 Worker의 WASM으로 같은
-C++ 소스를 실행한다. 이전 JavaScript pipeline과 transaction runner는 제거했다.
+`Project`다. 웹과 앱은 전용 Worker의 WASM으로 같은 C++ 소스를 실행한다. 이전 JavaScript pipeline과 transaction runner는 제거했다.
 이번 이전의 기준은 현재 웹 동작이며, 원본 `9300609` 검증 자료는 별도로 보존한다.
 
 ## 입력과 조회
 
 UI는 기존 object adapter, 기능 서비스, 편집 workflow에서 입력을 수집한다.
 웹 `ProjectDomain`은 application 명령을 순서대로 처리하고 Core에 전달한다.
-앱 `EditorController`는 QML 입력과 기존 계산 결과를 typed Core 요청으로 변환한다.
+앱은 `apps/web-shell`의 웹 입력·Worker 경로와 플랫폼 저장 어댑터를 사용한다.
 서비스·UI·렌더러는 문서, revision, 이력 또는 dirty를 직접 수정하지 않는다.
 
 `TerritorialEntityStore`와 Repository는 승인된 읽기 모델과 현재 월의
 `ResolvedWorld`를 조회한다. 객체 ID, source ID, FID와 표시 ID는 명시적인
-변환 경계에서 구분한다. 카메라·입력·DOM/QML·파일 접근과 GPU 자원은 플랫폼
+변환 경계에서 구분한다. 카메라·입력·DOM·파일 접근과 GPU 자원은 플랫폼
 소유자가 계속 관리한다.
 
 ## 변경과 확정
@@ -23,7 +22,7 @@ Core가 검증과 후보 상태를 만들고, 최종 후보를 검증한 뒤 하
 확정한다. no-op, 잠금, 잘못된 참조, 실패 및 취소는 각 기능의 현재 계약을 따른다.
 프로젝트 이력과 geometry 초안 이력은 서로 별개다.
 
-geometry 계산은 기존 JavaScript/네이티브 계산 모듈을 사용한다. 계산 결과는
+geometry 계산은 기존 JavaScript/WASM 계산 모듈을 사용한다. 계산 결과는
 Core 후보로 준비하며 미리보기는 승인 전까지 문서와 이력을 바꾸지 않는다.
 문서·월·프로젝트·자료가 바뀐 결과는 폐기한다. 관련 없는 표시 변경은 준비된
 후보를 Core에서 재기반하며, 확정 결과에도 현재 표시 상태를 보존한다.

@@ -1,6 +1,4 @@
-name: P3 Remote preview and Qt verification
-# P5-6 verification receipt: rerun scoped Web + native CI against the integrated main source tree 691ec5d; comment-only change.
-# P5-4 verification receipt: force both native Qt CI presets on this push; application sources remain unchanged.
+name: P3 Remote preview and Web verification
 on:
   push:
     branches: ['work/**']
@@ -20,7 +18,6 @@ on:
       - 'assets/**'
       - 'contracts/**'
       - 'shared/**'
-      - 'native/**'
       - 'cmake/**'
       - 'CMakeLists.txt'
       - 'CMakePresets.json'
@@ -46,38 +43,10 @@ on:
         type: string
         required: false
       retry_failed:
-        description: Resume P9 using completed evidence; select browser or Qt scope for remaining work
+        description: Resume browser and calculation acceptance using completed evidence
         type: boolean
         required: false
         default: false
-      native_tests:
-        description: Optional comma-separated Qt CTest/target names for a focused native run
-        type: string
-        required: false
-      native_app:
-        description: Build/capture the app; disable only when reusing an unchanged app build
-        type: boolean
-        required: false
-        default: true
-      native_platform:
-        description: Qt platform for a focused run
-        type: choice
-        required: false
-        default: all
-        options: [all, linux, windows]
-      native_p9:
-        description: Build only the fixed Windows Qt performance pair for actual-device measurement
-        type: boolean
-        required: false
-        default: false
-      native_p9_baseline_receipt:
-        description: Optional source-bound baseline artifact receipt path; verify and reuse without rebuilding it
-        type: string
-        required: false
-      native_tests_windows:
-        description: Optional Windows override for native_tests when completed OS evidence differs
-        type: string
-        required: false
       browser_tests:
         description: Optional Playwright grep for remaining browser acceptance cases
         type: string
@@ -92,11 +61,11 @@ on:
         type: choice
         required: false
         default: auto
-        options: [auto, preview, browser, qt, all, acceptance]
+        options: [auto, all, acceptance, preview, browser, off]
 permissions:
   contents: read
 concurrency:
-  group: p3-preview-${{ github.event.pull_request.number || github.ref }}${{ inputs.native_tests && '-focused-native' || '' }}
+  group: p3-preview-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -106,8 +75,6 @@ jobs:
     outputs:
       preview: ${{ steps.scope.outputs.preview }}
       browser: ${{ steps.scope.outputs.browser }}
-      qt: ${{ steps.scope.outputs.qt }}
-      hydro: ${{ steps.scope.outputs.hydro }}
       contracts: ${{ steps.scope.outputs.contracts }}
       ui: ${{ steps.scope.outputs.ui }}
       objects: ${{ steps.scope.outputs.objects }}
@@ -313,285 +280,6 @@ jobs:
             test-results/p3-browser.log
             playwright-report
           if-no-files-found: warn
-          retention-days: 10
-
-  qt-build-and-ctest:
-    needs: plan
-    if: needs.plan.outputs.qt == 'true' && !inputs.native_p9
-    strategy:
-      fail-fast: false
-      matrix:
-        include: ${{ fromJSON(inputs.native_platform == 'linux' && '[{"os":"ubuntu-24.04","os_id":"linux","preset":"pando-native-qt-ci-linux","qt_arch":"linux_gcc_64"}]' || inputs.native_platform == 'windows' && '[{"os":"windows-2022","os_id":"windows","preset":"pando-native-qt-ci-windows","qt_arch":"win64_msvc2022_64"}]' || '[{"os":"ubuntu-24.04","os_id":"linux","preset":"pando-native-qt-ci-linux","qt_arch":"linux_gcc_64"},{"os":"windows-2022","os_id":"windows","preset":"pando-native-qt-ci-windows","qt_arch":"win64_msvc2022_64"}]') }}
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 75
-    env:
-      PANDO_P3_QT_PRESET: ${{ matrix.preset }}
-      PANDO_P9_RETRY: ${{ inputs.retry_failed }}
-      PANDO_NATIVE_TESTS: ${{ matrix.os_id == 'windows' && inputs.native_tests_windows || inputs.native_tests }}
-      PANDO_NATIVE_APP: ${{ github.event_name != 'workflow_dispatch' || inputs.native_app }}
-      QT_QPA_PLATFORM: offscreen
-      QT_QUICK_BACKEND: software
-    steps:
-      - name: Retain exact checked-out source data
-        shell: bash
-        run: git config --global core.autocrlf false
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.source_sha || github.sha }}
-          persist-credentials: false
-      - uses: jwlawson/actions-setup-cmake@v2
-        with:
-          cmake-version: '3.31.6'
-      - name: Install Linux Qt/native build and display dependencies
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ninja-build zlib1g-dev libegl1-mesa-dev libxkbcommon-x11-0 libxcb-cursor0 xvfb xauth xdotool imagemagick fonts-noto-cjk
-      - uses: jurplel/install-qt-action@v4
-        with:
-          version: '6.8.3'
-          arch: ${{ matrix.qt_arch }}
-          modules: qtshadertools qtimageformats
-          cache: true
-      - name: Install Windows zlib from vcpkg
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: vcpkg install zlib:x64-windows
-      - name: Prepare executable tool guard after SDK installation
-        shell: pwsh
-        run: |
-          cmake -S tools/native-build-guard -B build-native/p6-tool-guard
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          cmake --build build-native/p6-tool-guard --config Release --parallel 2
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          $guard = (Resolve-Path build-native/p6-tool-guard/bin).Path
-          $guard | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-          "PANDO_DENIED_TOOL_LOG=$env:RUNNER_TEMP/pando-forbidden-native-tools.log" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          $world = Get-Content native/assets/world/manifest.json -Raw | ConvertFrom-Json
-          $fullHydro = (Resolve-Path (Join-Path native/assets/world $world.hydro.path)).Path
-          "PANDOEDITOR_HYDRO_FULL_MANIFEST=$fullHydro" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-      - name: Confirm product build cannot invoke Node, pnpm or Python
-        shell: pwsh
-        run: |
-          $guard = (Resolve-Path build-native/p6-tool-guard/bin).Path
-          foreach ($tool in @('node', 'pnpm', 'python', 'python3')) {
-            $resolved = (Get-Command $tool -CommandType Application | Select-Object -First 1).Source
-            if (-not $resolved.StartsWith($guard)) { throw "Tool guard did not own $tool" }
-            & $resolved --version
-            if ($LASTEXITCODE -ne 97) { throw "Tool guard failed for $tool" }
-          }
-          # These four deliberate probes are not product-build invocations.
-          [System.IO.File]::WriteAllText($env:PANDO_DENIED_TOOL_LOG, '')
-          exit 0
-      - name: Configure pinned Linux Qt app and selected CTests
-        if: runner.os == 'Linux'
-        shell: bash
-        run: cmake --preset "$PANDO_P3_QT_PRESET"
-      - name: Configure pinned Windows Qt app and selected CTests
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          cmake --preset $env:PANDO_P3_QT_PRESET "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
-          exit $LASTEXITCODE
-      - name: Build Linux app and selected Qt/native test targets
-        id: build_linux
-        if: runner.os == 'Linux'
-        shell: bash
-        run: |
-          set -o pipefail
-          selection=()
-          if [ -n "$PANDO_NATIVE_TESTS" ]; then
-            [[ "$PANDO_NATIVE_TESTS" =~ ^[a-zA-Z0-9_]+(,[a-zA-Z0-9_]+)*$ ]]
-            IFS=, read -ra selected <<< "$PANDO_NATIVE_TESTS"
-            selection=(--target "${selected[@]}")
-            if [ "$PANDO_NATIVE_APP" = true ]; then selection+=(pandoeditor); fi
-          elif [ "$PANDO_NATIVE_APP" != true ]; then
-            echo 'native_app=false requires an explicit native_tests list' >&2; exit 1
-          fi
-          cmake --build --preset "$PANDO_P3_QT_PRESET" "${selection[@]}" 2>&1 | tee p3-qt-build.log
-      - name: Build Windows app and selected Qt/native test targets
-        id: build_windows
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $selection = @()
-          if ($env:PANDO_NATIVE_TESTS) {
-            if ($env:PANDO_NATIVE_TESTS -notmatch '^[a-zA-Z0-9_]+(,[a-zA-Z0-9_]+)*$') { throw 'Invalid native test target list' }
-            $selection = @('--target') + $env:PANDO_NATIVE_TESTS.Split(',')
-            if ($env:PANDO_NATIVE_APP -eq 'true') { $selection += 'pandoeditor' }
-          } elseif ($env:PANDO_NATIVE_APP -ne 'true') {
-            throw 'native_app=false requires an explicit native_tests list'
-          }
-          cmake --build --preset $env:PANDO_P3_QT_PRESET @selection 2>&1 | Tee-Object p3-qt-build.log
-          exit $LASTEXITCODE
-      - name: Run focused Qt CTest and core state checks (Linux)
-        if: runner.os == 'Linux'
-        shell: bash
-        run: |
-          set -o pipefail
-          selection=()
-          if [ "$PANDO_P9_RETRY" = true ]; then selection=(-R '^(geometry_calculator_tests|cut_geometry_calculator_tests|split_geometry_normalizer_tests|split_geometry_lifecycle_tests|river_partition_tests|river_area_tests|reference_image_tests|reference_auto_georef_tests)$'); fi
-          if [ -n "$PANDO_NATIVE_TESTS" ]; then selection=(-R "^(${PANDO_NATIVE_TESTS//,/|})$"); fi
-          ctest --preset "$PANDO_P3_QT_PRESET" "${selection[@]}" --no-tests=error 2>&1 | tee p3-ctest.log
-      - name: Run focused Qt CTest and preserve Windows failure diagnostics
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $selection = @()
-          if ($env:PANDO_P9_RETRY -eq 'true') { $selection = @('-R', '^(geometry_calculator_tests|cut_geometry_calculator_tests|split_geometry_normalizer_tests|split_geometry_lifecycle_tests|river_partition_tests|river_area_tests|reference_image_tests|reference_auto_georef_tests)$') }
-          if ($env:PANDO_NATIVE_TESTS) { $selection = @('-R', ('^(' + $env:PANDO_NATIVE_TESTS.Replace(',', '|') + ')$')) }
-          ctest --preset $env:PANDO_P3_QT_PRESET @selection --no-tests=error 2>&1 | Tee-Object p3-ctest.log
-          $ctestExit = $LASTEXITCODE
-          # QtTest writes persistent logs on both platforms, including Windows
-          # executables whose stdout is unavailable to CTest. Never rerun an unrelated test.
-          Get-ChildItem "build-native/p3/$env:PANDO_P3_QT_PRESET/*_tests.txt" | ForEach-Object {
-            Get-Content $_.FullName | Select-String -Pattern "FAIL!|QFATAL|Totals:" -Context 0,2
-          }
-          exit $ctestExit
-      - name: Verify affected native hydro consumers in the existing Qt build
-        if: ${{ !cancelled() && (steps.build_linux.outcome == 'success' || steps.build_windows.outcome == 'success') && needs.plan.outputs.hydro == 'true' && env.PANDO_NATIVE_TESTS == '' && (!inputs.retry_failed || runner.os == 'Windows') }}
-        shell: pwsh
-        run: |
-          $manifest = Get-Content native/assets/world/manifest.json -Raw | ConvertFrom-Json
-          $env:PANDOEDITOR_HYDRO_FULL_MANIFEST = (Resolve-Path (Join-Path native/assets/world $manifest.hydro.path)).Path
-          $targets = @('hydro_manifest_tests', 'hydro_runtime_tests', 'hydro_full_dataset_tests', 'physical_data_store_tests')
-          if ('${{ inputs.scope }}' -ne 'acceptance' -and !$env:PANDO_NATIVE_TESTS.Split(',').Contains('river_selection_controller_tests')) { $targets += 'river_selection_controller_tests' }
-          cmake --build --preset $env:PANDO_P3_QT_PRESET --target @targets
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          $pattern = '^(' + ($targets -join '|') + ')$'
-          ctest --test-dir "build-native/p3/$env:PANDO_P3_QT_PRESET" -C Release -R $pattern --output-on-failure
-          exit $LASTEXITCODE
-      - name: Verify affected native commands, persistence and Undo/Redo
-        if: ${{ !cancelled() && (steps.build_linux.outcome == 'success' || steps.build_windows.outcome == 'success') && inputs.scope == 'acceptance' }}
-        shell: pwsh
-        run: |
-          cmake --build --preset $env:PANDO_P3_QT_PRESET --target project_codec_tests territorial_geometry_tests territorial_geometry_preview_tests split_selection_controller_tests river_selection_controller_tests timeline_editor_persistence_tests
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          ctest --test-dir "build-native/p3/$env:PANDO_P3_QT_PRESET" -C Release -R '^(project_codec_tests|territorial_geometry_tests|territorial_geometry_preview_tests|split_selection_controller_tests|river_selection_controller_tests|timeline_editor_persistence_tests)$' --output-on-failure
-          exit $LASTEXITCODE
-      - name: Build and CTest the shared C++ normalization through Qt
-        if: ${{ !cancelled() && (steps.build_linux.outcome == 'success' || steps.build_windows.outcome == 'success') && inputs.native_tests == '' }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          cmake --build --preset "$PANDO_P3_QT_PRESET" --target split_geometry_normalizer_tests 2>&1 | tee p3-p5-qt-area-build.log
-          ctest --test-dir "build-native/p3/$PANDO_P3_QT_PRESET" -C Release -R p5_spherical_area_qt_bridge --output-on-failure 2>&1 | tee p3-p5-qt-area-ctest.log
-      - name: Reject any hidden product interpreter invocation
-        if: always()
-        shell: pwsh
-        run: |
-          if (Test-Path $env:PANDO_DENIED_TOOL_LOG) {
-            $attempts = Get-Content -Raw $env:PANDO_DENIED_TOOL_LOG
-            if ($attempts) { throw "Native product build invoked forbidden tools: $attempts" }
-          }
-      - name: Capture a real nonblank Qt Quick application window under Linux Xvfb
-        if: ${{ !cancelled() && runner.os == 'Linux' && steps.build_linux.outcome == 'success' && (github.event_name != 'workflow_dispatch' || inputs.native_app) }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          app="$PWD/build-native/p3/pando-native-qt-ci-linux/native/app/pandoeditor"
-          bash native/tools/p3-capture-smoke.sh \
-            "$app" "$PWD/test-results/p3-qt/native-smoke.log" \
-            "$PWD/test-results/p3-qt/native-window.png"
-      - name: Record Qt binary identity for this platform
-        shell: bash
-        if: ${{ !cancelled() && (steps.build_linux.outcome == 'success' || steps.build_windows.outcome == 'success') && (github.event_name != 'workflow_dispatch' || inputs.native_app) }}
-        env:
-          P3_OS: ${{ matrix.os_id }}
-        run: |
-          mkdir -p test-results/p3-qt
-          if [ "$P3_OS" = windows ]; then
-            find build-native/p3/pando-native-qt-ci-windows -type f -name pandoeditor.exe -print | head -1 > test-results/p3-qt/binary-path.txt
-          else
-            find build-native/p3/pando-native-qt-ci-linux -type f -name pandoeditor -print | head -1 > test-results/p3-qt/binary-path.txt
-          fi
-          test -s test-results/p3-qt/binary-path.txt
-          while IFS= read -r bin; do
-            cp "$bin" "test-results/p3-qt/pandoeditor-$P3_OS$(echo "$bin" | grep -q '.exe$' && printf '.exe' || true)"
-            sha256sum "$bin" > test-results/p3-qt/binary-sha256.txt
-          done < test-results/p3-qt/binary-path.txt
-      - name: Archive binaries, Qt screenshots, CTest logs and failure receipts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: p3-qt-${{ matrix.os_id }}-${{ inputs.source_sha || github.sha }}
-          path: |
-            p3-qt-build.log
-            p3-ctest.log
-            build-native/p3/${{ matrix.preset }}/*_tests.txt
-            p3-p5-qt-area-build.log
-            p3-p5-qt-area-ctest.log
-            test-results/p3-qt
-            build-native/p3/${{ matrix.preset }}/native/build-provenance.json
-            build-native/p3/${{ matrix.preset }}/Testing/Temporary/LastTest.log
-          if-no-files-found: warn
-          retention-days: 10
-
-  qt-p9-pair:
-    needs: plan
-    if: inputs.native_p9 && inputs.scope == 'qt'
-    runs-on: windows-2022
-    strategy:
-      fail-fast: false
-      matrix:
-        part: [baseline, candidate]
-    timeout-minutes: 60
-    permissions:
-      contents: read
-      actions: read
-    steps:
-      - name: Preserve exact source bytes for paired measurement identities
-        shell: bash
-        run: git config --global core.autocrlf false
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.source_sha || github.sha }}
-          persist-credentials: false
-      - uses: actions/checkout@v4
-        with:
-          ref: 8e22982616e3c9ba43eeb84baec17cd886267cfa
-          path: build-native/p9/baseline
-          persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-      - uses: pnpm/action-setup@v4
-        if: matrix.part == 'baseline' && inputs.native_p9_baseline_receipt == ''
-      - name: Prepare only the baseline's retired JS build dependency
-        if: matrix.part == 'baseline' && inputs.native_p9_baseline_receipt == ''
-        shell: pwsh
-        run: |
-          pnpm --dir build-native/p9/baseline install --frozen-lockfile --ignore-scripts
-          exit $LASTEXITCODE
-      - uses: jwlawson/actions-setup-cmake@v2
-        with:
-          cmake-version: '3.31.6'
-      - uses: jurplel/install-qt-action@v4
-        with:
-          version: '6.8.3'
-          arch: win64_msvc2022_64
-          modules: qtshadertools qtimageformats
-          cache: true
-      - name: Install matching Windows zlib
-        shell: pwsh
-        run: vcpkg install zlib:x64-windows
-      - name: Build the same measurement overlay on baseline and candidate
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ github.token }}
-          BASELINE_RECEIPT: ${{ inputs.native_p9_baseline_receipt }}
-          BUILD_SIDE: ${{ matrix.part }}
-        run: ./scripts/p9-build-native-pair.ps1 -BaselineRoot build-native/p9/baseline -OutputDirectory build-native/p9/qt-runtime -BaselineArtifactReceipt "$env:BASELINE_RECEIPT" -BuildSide "$env:BUILD_SIDE"
-      - name: Archive the test executables, matching runtime and source identities
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: p9-windows-qt-${{ matrix.part }}-${{ inputs.source_sha || github.sha }}
-          path: |
-            build-native/p9/qt-runtime
-            build-native/p9/qt-pair-*.log
-          if-no-files-found: error
-          compression-level: 0
           retention-days: 10
 
   calculation-performance:

@@ -1,6 +1,6 @@
 # DEM 기반 지형 표시와 경량 대체 자료
 
-웹 루트와 `native/`는 DEM `0.13.3`을 주 지형 자료로 사용한다. 대체 자료는
+웹과 `apps/web-shell`은 DEM `0.13.3`을 주 지형 자료로 사용한다. 대체 자료는
 `assets/data/terrain-preview/v0.13.3-p1/`의 LOD 0·1 타일 8개와 manifest다.
 총 크기는 **3,365,441 bytes**이며 32,000,000 bytes 한도를 적용한다.
 
@@ -12,8 +12,8 @@
 - 미리보기 원본 커밋: `e07ca47faa2c586751a7bebdf5f6eba479102976`.
 - 미리보기 manifest SHA-256: `05e3a657287151c29c338caaec9c5d7cd22d4144d7e2db8ecad536742fe6fee8`.
 
-로컬 GeoTIFF는 생성 입력으로 사용하지 않는다. 생성기는 native의 고정 DEM
-inventory에 있는 파일 크기와 SHA-256을 먼저 확인한다. LOD 전체에서 육지
+로컬 GeoTIFF는 생성 입력으로 사용하지 않는다. 생성기는 `contracts/terrain/preview-dem-source.json`과
+`preview-dem-inventory.json`에 고정한 파일 크기와 SHA-256을 먼저 확인한다. LOD 전체에서 육지
 마스크를 한 번 래스터화한 뒤 타일로 잘라, 1px gutter와 날짜변경선에서 같은
 픽셀을 사용한다. 고도 값을 일반 이미지 색상처럼 축소하지 않는다.
 
@@ -28,7 +28,7 @@ inventory에 있는 파일 크기와 SHA-256을 먼저 확인한다. LOD 전체�
 | 웹 WebGL | 기존 DEM·tint·현재 장면 육지 마스크 | 기존 실패 경계에서 새 미리보기로 전환 |
 | Canvas Worker | 미리보기 먼저, 이후 화면에 필요한 DEM | 고도에서 정착 음영을 계산해 메모리 타일 생성; 현재 장면의 육지 범위로 tint를 합성 |
 | Worker 없는 Canvas | 미리보기 LOD 0, 이어 LOD 1 | DEM 상세 생성 없이 확대·회전해서 표시 |
-| 앱 Qt | 기존 DEM provider와 렌더 소유자 | DEM base+tint가 준비되지 않거나 디코드 실패 시 내장 미리보기 provider |
+| WebView 앱 | 동일 웹 렌더러·DEM 경로 | 앱 staging에 포함된 동일 미리보기 |
 
 Canvas Worker는 상세 타일이 준비되기 전까지 미리보기를 유지한다. 상세
 decoded cache는 96MiB로 제한하고, 현재 화면 타일이 한도를 넘으면 적절한
@@ -38,10 +38,7 @@ Canvas 정착 음영은 기존 DEM shader의 cell-center 중앙 차분식과 극
 사용한다. WebGL의 화면 내 bilinear sampling과 Canvas의 생성 타일 sampling은
 플랫폼별 표시 구현으로 유지한다.
 
-앱은 **같은 웹 타일 파일을 CMake Qt 리소스에 직접 포함**한다. 별도의 앱용
-이미지 사본을 생성하지 않는다. 앱 manifest의 고정 사본과 physical inventory는
-`tools/sync-native-terrain-preview.mjs --check`로 검증한다. 원본 앱 백업 저장소는
-수정하지 않는다. Qt 실행에는 해당 toolchain의 `qtimageformats`가 필요하다.
+앱은 같은 웹 자료와 렌더러를 staging한다. 별도의 앱용 이미지 사본·미러를 생성하지 않는다.
 
 ## 재실행
 
@@ -51,7 +48,6 @@ Python에 Pillow 12.3.0과 NumPy 2.3.5를 설치한 뒤 저장소 루트에서 �
 python tools/build-terrain-preview.py --check
 python tools/build-terrain-preview.py --rebuild-check
 python -m unittest tests.python.test_build_terrain_preview
-node tools/sync-native-terrain-preview.mjs --check
 node tools/check-terrain-preview.mjs --out terrain-preview-evidence.json
 node --test tests/unit/terrain-preview-audit.test.mjs tests/unit/terrain-manifest.test.mjs tests/unit/canvas-terrain-dem-core.test.mjs tests/unit/physical-layer-service.test.mjs
 pnpm exec playwright test tests/browser/terrain-preview.spec.mjs
@@ -62,14 +58,9 @@ pnpm exec playwright test tests/browser/terrain-preview.spec.mjs
 않으며 `--output`으로 빈 출력 위치를 명시한다. 승인된 pin과 기대 해시는 자동
 갱신하지 않는다.
 
-앱의 집중 검사는 `terrain_dem_provider_tests`, `terrain_lod_demand_tests`,
-`terrain_render_protection_tests`, `terrain_resource_cache_tests`,
-`physical_data_store_tests`와 실제 Windows Qt 화면 테스트
-`terrain_controller_display_tests bundledPreviewSurvivesDemFailure`다.
-실제 화면 테스트는 고정된 실패 proxy와 내장 미리보기를 사용한다.
+앱의 staging·저장 연결 검사는 `apps/web-shell/tests/`에서 수행한다.
 
 `terrain-preview-gate.yml`은 재생성·출처·폐기 자산·브라우저 표시를 확인한다.
-Pages 필수 자산 검사도 새 manifest를 사용한다. `check-retired-terrain.mjs`와
-기존 v0.12.6 fixture·보고서는 과거 증거이며 현행 배포 판정에 사용하지 않는다.
+Pages 필수 자산 검사도 새 manifest를 사용한다. 기존 v0.12.6 자료는 과거 증거이며 현행 배포 판정에 사용하지 않는다.
 `v0.12.6` raster 원본은 Git 이력으로 복원 가능하다. 전환 후 과거 공개 URL은
 보장하지 않는다. 이 변경의 구현 검증은 배포 성공을 뜻하지 않는다.

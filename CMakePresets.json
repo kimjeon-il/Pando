@@ -24,24 +24,6 @@
       }
     },
     {
-      "name": "pando-native-core",
-      "inherits": "pando-base",
-      "cacheVariables": {
-        "PANDO_BUILD_VARIANT": "native",
-        "PANDOEDITOR_BUILD_APP": "OFF",
-        "BUILD_TESTING": "OFF"
-      }
-    },
-    {
-      "name": "pando-native-qt",
-      "inherits": "pando-base",
-      "cacheVariables": {
-        "PANDO_BUILD_VARIANT": "native",
-        "PANDOEDITOR_BUILD_APP": "ON",
-        "BUILD_TESTING": "OFF"
-      }
-    },
-    {
       "name": "pando-wasm",
       "inherits": "pando-base",
       "cacheVariables": {
@@ -58,28 +40,6 @@
         "PANDO_BUILD_TERRITORIAL_RECIPE": "OFF",
         "BUILD_TESTING": "ON"
       }
-    },
-    {
-      "name": "pando-native-qt-ci-linux",
-      "inherits": "pando-base",
-      "binaryDir": "${sourceDir}/build-native/p3/pando-native-qt-ci-linux",
-      "cacheVariables": {
-        "PANDO_BUILD_VARIANT": "native",
-        "PANDOEDITOR_BUILD_APP": "ON",
-        "BUILD_TESTING": "ON"
-      }
-    },
-    {
-      "name": "pando-native-qt-ci-windows",
-      "inherits": "pando-base",
-      "binaryDir": "${sourceDir}/build-native/p3/pando-native-qt-ci-windows",
-      "cacheVariables": {
-        "PANDO_BUILD_VARIANT": "native",
-        "PANDOEDITOR_BUILD_APP": "ON",
-        "BUILD_TESTING": "ON"
-      },
-      "generator": "Visual Studio 17 2022",
-      "architecture": "x64"
     }
   ],
   "buildPresets": [
@@ -90,22 +50,6 @@
         "project_codec_tests",
         "document_session_tests",
         "geometry_draft_tests"
-      ],
-      "jobs": 2
-    },
-    {
-      "name": "pando-native-core",
-      "configurePreset": "pando-native-core",
-      "targets": [
-        "pandoeditor_map_engine"
-      ],
-      "jobs": 2
-    },
-    {
-      "name": "pando-native-qt",
-      "configurePreset": "pando-native-qt",
-      "targets": [
-        "pandoeditor"
       ],
       "jobs": 2
     },
@@ -122,49 +66,6 @@
       "configurePreset": "pando-gis-tools",
       "targets": [
         "pando-spherical-polygon-tests"
-      ],
-      "jobs": 2
-    },
-    {
-      "name": "pando-native-qt-ci-linux",
-      "configurePreset": "pando-native-qt-ci-linux",
-      "targets": [
-        "pandoeditor",
-        "temporal_tests",
-        "m72_mapprojection_lifetime_tests",
-        "interaction_style_policy_tests",
-        "m976_shared_boundary_engine_tests",
-        "native_performance_structure_tests",
-        "geometry_calculator_tests",
-        "cut_geometry_calculator_tests",
-        "split_geometry_normalizer_tests",
-        "split_geometry_lifecycle_tests",
-        "river_partition_tests",
-        "river_area_tests",
-        "reference_image_tests",
-        "reference_auto_georef_tests"
-      ],
-      "jobs": 2
-    },
-    {
-      "name": "pando-native-qt-ci-windows",
-      "configurePreset": "pando-native-qt-ci-windows",
-      "configuration": "Release",
-      "targets": [
-        "pandoeditor",
-        "temporal_tests",
-        "m72_mapprojection_lifetime_tests",
-        "interaction_style_policy_tests",
-        "m976_shared_boundary_engine_tests",
-        "native_performance_structure_tests",
-        "geometry_calculator_tests",
-        "cut_geometry_calculator_tests",
-        "split_geometry_normalizer_tests",
-        "split_geometry_lifecycle_tests",
-        "river_partition_tests",
-        "river_area_tests",
-        "reference_image_tests",
-        "reference_auto_georef_tests"
       ],
       "jobs": 2
     }
@@ -191,31 +92,6 @@
       "filter": {
         "include": {
           "name": "^spherical-polygon-normalization$"
-        }
-      }
-    },
-    {
-      "name": "pando-native-qt-ci-linux",
-      "configurePreset": "pando-native-qt-ci-linux",
-      "output": {
-        "outputOnFailure": true
-      },
-      "filter": {
-        "include": {
-          "name": "^(temporal_tests|m72_mapprojection_lifetime_tests|interaction_style_policy_tests|m976_shared_boundary_engine_tests|native_performance_structure_tests|geometry_calculator_tests|cut_geometry_calculator_tests|split_geometry_normalizer_tests|split_geometry_lifecycle_tests|river_partition_tests|river_area_tests|reference_image_tests|reference_auto_georef_tests)$"
-        }
-      }
-    },
-    {
-      "name": "pando-native-qt-ci-windows",
-      "configurePreset": "pando-native-qt-ci-windows",
-      "configuration": "Release",
-      "output": {
-        "outputOnFailure": true
-      },
-      "filter": {
-        "include": {
-          "name": "^(temporal_tests|m72_mapprojection_lifetime_tests|interaction_style_policy_tests|m976_shared_boundary_engine_tests|native_performance_structure_tests|geometry_calculator_tests|cut_geometry_calculator_tests|split_geometry_normalizer_tests|split_geometry_lifecycle_tests|river_partition_tests|river_area_tests|reference_image_tests|reference_auto_georef_tests)$"
         }
       }
     }

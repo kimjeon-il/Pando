@@ -105,7 +105,6 @@ export function plan(rootDir=root,{changes=[],manual='auto',families=[]}={}) {
   const graph=graphStatus(rootDir,{wasm:statuses.wasm,requested:families,force:manual==='all'});
   return {statuses:{...statuses,...graph.statuses},...jobs,
     selectedFamilies:manual==='wasm'||manual==='verify'?[]:graph.selectedFamilies,
-    deferredFamilies:manual==='wasm'||manual==='verify'?[]:graph.deferredFamilies,
     blockedFamilies:manual==='wasm'?[]:graph.blockedFamilies};
 }
 
@@ -141,7 +140,6 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
       appendFileSync(process.env.GITHUB_OUTPUT,[
         'wasm='+String(result.wasm),
         'selected_families='+JSON.stringify(result.selectedFamilies),
-        'deferred_families='+JSON.stringify(result.deferredFamilies),
         'blocked_families='+JSON.stringify(result.blockedFamilies),
         'pnpm_version='+pins.pnpm,
         'cmake_version='+pins.cmake,
@@ -151,7 +149,7 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
     }
     console.log(JSON.stringify({scope:process.env.PANDO_P2_SCOPE||'auto',
       status:result.statuses,selected:{wasm:result.wasm,families:result.selectedFamilies,
-        bootstrap:result.bootstrap},deferred:result.deferredFamilies,blocked:result.blockedFamilies,
+        bootstrap:result.bootstrap},blocked:result.blockedFamilies,
       changedPaths:difference.paths,diffFallback:difference.fallback},null,2));
   }
 }

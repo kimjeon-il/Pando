@@ -1,20 +1,19 @@
 #!/usr/bin/env node
-// Read-only validation of the current native/Web hydro contract and real Worker.
+// Read-only validation of the current Web hydro package and real Worker.
 import {createHash,webcrypto} from 'node:crypto';
 import {readFileSync,readdirSync,lstatSync,existsSync,mkdirSync,writeFileSync} from 'node:fs';
 import {dirname,join,resolve,relative,isAbsolute,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {gunzipSync} from 'node:zlib';
 import vm from 'node:vm';
-import {validateWorldDataset} from '../native/tools/lib/world-dataset-contract.mjs';
 
 const DATA='assets/data/hydro';
+export const CURRENT_MANIFEST=DATA+'/v0.13.2/manifest.json';
 // These releases were explicitly retired from the deployed runtime. This list
 // is a retirement policy, not a declaration of the current release or shard count.
 const RETIRED=['v0.13.0','v0.13.1'];
 const ensure=(ok,message)=>{if(!ok)throw Error(message);};
 const hash=buffer=>createHash('sha256').update(buffer).digest('hex');
-const gitBlob=buffer=>createHash('sha1').update(Buffer.from('blob '+buffer.length+'\0')).update(buffer).digest('hex');
 const validHash=value=>typeof value==='string'&&/^[0-9a-f]{64}$/.test(value);
 function inside(root,path) {
   ensure(typeof path==='string'&&path&&!path.includes('\\')&&!isAbsolute(path),'Unsafe hydro path: '+path);
@@ -27,6 +26,7 @@ function inside(root,path) {
 
 export function manifestRoles(manifest) {
   ensure(manifest&&typeof manifest.version==='string'&&typeof manifest.schema==='string','Missing hydro identity');
+  ensure(manifest.schema==='pandolab-water-shards-v5','Invalid current hydro schema');
   const container=manifest.container;
   ensure(container&&typeof container.url==='string'&&container.url&&
     Number.isSafeInteger(container.bytes)&&container.bytes>0&&validHash(container.sha256),'Invalid hydro container');
@@ -88,9 +88,7 @@ async function verifyWorker(root,manifest,packed,{supportsRange}) {
 
 export async function auditLayout(root,{allowRetired=false}={}) {
   root=resolve(root);
-  const world=validateWorldDataset(JSON.parse(readFileSync(inside(root,'native/assets/world/manifest.json'),'utf8')));
-  const pin=world.hydro,webPath=pin.source.path;
-  ensure(webPath.startsWith(DATA+'/'),'Native hydro source is outside the canonical Web hydro directory');
+  const webPath=CURRENT_MANIFEST;
   const manifestPath=inside(root,webPath),dir=dirname(manifestPath);
   const manifestBuffer=readFileSync(manifestPath),manifest=JSON.parse(manifestBuffer);
   const roles=manifestRoles(manifest),packed=readFileSync(inside(dir,manifest.container.url));
@@ -102,11 +100,6 @@ export async function auditLayout(root,{allowRetired=false}={}) {
     ensure(hash(bytes)===segment.sha256,'Hydro segment SHA-256 differs: '+segment.role);
     if(['index','metadata-core','metadata-detail'].includes(segment.role))ensure(gunzipSync(bytes).length>0,'Empty/invalid gzip: '+segment.role);
   }
-  ensure(pin.version===manifest.version&&pin.sha256===hash(manifestBuffer)&&pin.gitBlobSha===gitBlob(manifestBuffer)&&pin.bytes===manifestBuffer.length,
-    'Native app hydro pin differs from current Web package');
-  const nativeManifest=inside(root,'native/assets/world/'+pin.path);
-  ensure(readFileSync(nativeManifest).equals(manifestBuffer),'Native hydro manifest bytes differ from Web');
-  ensure(readFileSync(inside(dirname(nativeManifest),manifest.container.url)).equals(packed),'Native hydro container bytes differ from Web');
   const old=RETIRED.filter(v=>resolve(root,DATA,v)!==dir).flatMap(v=>listFiles(join(root,DATA,v),join(root,DATA)));
   if(!allowRetired)ensure(old.length===0,'Retired production hydro files remain: '+old.slice(0,12).join(', '));
   const before=hash(packed),range=await verifyWorker(root,manifest,packed,{supportsRange:true}),whole=await verifyWorker(root,manifest,packed,{supportsRange:false});
@@ -114,7 +107,7 @@ export async function auditLayout(root,{allowRetired=false}={}) {
   return {schema:'pandolab-current-hydro-audit',version:3,passed:true,productionVersion:manifest.version,
     manifestPath:webPath,activeFiles:current.length,activeFilePaths:current,packedContainerBytes:packed.length,
     packedContainerSha256:hash(packed),manifestBytes:manifestBuffer.length,manifestSha256:hash(manifestBuffer),
-    roles,previousFiles:old,previousFileCount:old.length,nativePinsVerified:1,strictRetirement:!allowRetired,
+    roles,previousFiles:old,previousFileCount:old.length,strictRetirement:!allowRetired,
     runtime:{range,whole},note:'Read-only manifest, exact bytes and current Worker validation; no data generation.'};
 }
 const invoked=process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url);
@@ -125,5 +118,5 @@ if(invoked)try{
   const result=await auditLayout(flags.get('--root')||'.',{allowRetired:flags.get('--allow-retired')==='true'});
   if(flags.has('--out')){const out=resolve(flags.get('--out'));mkdirSync(dirname(out),{recursive:true});writeFileSync(out,JSON.stringify(result,null,2)+'\n');}
   console.log(JSON.stringify({passed:result.passed,productionVersion:result.productionVersion,retiredFiles:result.previousFileCount,
-    segmentCount:result.roles.length,nativePinsVerified:result.nativePinsVerified,runtime:result.runtime},null,2));
+    segmentCount:result.roles.length,runtime:result.runtime},null,2));
 }catch(error){console.error('Current hydro gate failed: '+(error.stack||error));process.exitCode=1;}

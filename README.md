@@ -2,7 +2,7 @@
 
 국가와 국경을 만드는 세계지도 편집기입니다. Natural Earth 5.1.1의 1:10m 국가 데이터와 지형 음영, HydroRIVERS 강·Natural Earth 호수를 사용하며, 빌드 과정 없이 정적 서버나 GitHub Pages에서 실행됩니다.
 
-이 저장소는 웹(루트)과 [Qt 앱](native/README.md), [조사·검증 보고서](reports/README.md)를 함께 관리합니다. 앱 소스·테스트·빌드는 `native/`에서 실행하며, 두 구현의 parity 검증은 같은 Git 커밋을 기준으로 합니다.
+이 저장소는 웹(루트), [Windows·Android 앱](apps/web-shell/README.md), [공통 C++ 코어](shared/README.md), [조사·검증 보고서](reports/README.md)를 함께 관리합니다. 앱 실행·개발 기준은 `apps/web-shell`이며, 웹 화면·Worker·WASM·자료를 같은 커밋에서 사용합니다.
 
 v0.34.0부터 분포는 고정된 언어·민족·종교 분류 대신 이름·단위·숫자값으로 관리합니다. 소수·0·음수를 저장할 수 있고, 분포별 자동 또는 직접 지정한 값 범위로 색 농도를 정합니다. 보기 메뉴에서는 모든 분포를 겹쳐 보거나 한 분포만 표시할 수 있습니다.
 
@@ -46,7 +46,7 @@ pnpm.cmd test:python
 
 ## GitHub Pages 배포
 
-`main`의 웹 파일만 [Web-only GitHub Pages](.github/workflows/web-pages.yml)가 GitHub Actions artifact로 게시합니다. `native/`의 앱 소스는 게시 파일에서 제외합니다. Pages 설정의 게시 방식은 **GitHub Actions**입니다.
+`main`의 웹 파일만 [Web-only GitHub Pages](.github/workflows/web-pages.yml)가 GitHub Actions artifact로 게시합니다. 앱 소스와 C++ 소스는 게시 파일에서 제외합니다. Pages 설정의 게시 방식은 **GitHub Actions**입니다.
 
 모든 경로는 저장소 하위 URL에서도 동작하도록 상대경로로 구성되어 있습니다. `.nojekyll`도 포함되어 있습니다.
 

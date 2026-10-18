@@ -5,14 +5,11 @@ import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join,dirname} from 'node:path';
 import {gzipSync} from 'node:zlib';
-import {manifestRoles,auditLayout} from '../../tools/check-current-hydro-layout.mjs';
+import {CURRENT_MANIFEST,manifestRoles,auditLayout} from '../../tools/check-current-hydro-layout.mjs';
 
 const hash=x=>createHash('sha256').update(x).digest('hex');
-const gitHash=x=>createHash('sha1').update(Buffer.from('blob '+x.length+'\0')).update(x).digest('hex');
-const nativeTemplate=JSON.parse(readFileSync(new URL('../../native/assets/world/manifest.json',import.meta.url)));
-const activeTemplate=JSON.parse(readFileSync(new URL('../../'+nativeTemplate.hydro.source.path,import.meta.url)));
-const main='assets/data/hydro/test-release/';
-const native='native/assets/world/hydro/test-release/';
+const activeTemplate=JSON.parse(readFileSync(new URL('../../'+CURRENT_MANIFEST,import.meta.url)));
+const main=CURRENT_MANIFEST.slice(0,CURRENT_MANIFEST.lastIndexOf('/')+1);
 function makeFixture(shardCount=4){
   const root=mkdtempSync(join(tmpdir(),'hydro-current-contract-'));
   const write=(p,data)=>{
@@ -37,15 +34,10 @@ function makeFixture(shardCount=4){
       roles:['index','metadata-core','metadata-detail',...Array.from({length:shardCount},(_,i)=>'shard-'+i)]}
   };
   const manifestBytes=Buffer.from(JSON.stringify(manifest)+'\n');
-  for(const dir of [main,native]){write(dir+manifest.container.url,blob);write(dir+'manifest.json',manifestBytes);}
+  write(main+manifest.container.url,blob);write(CURRENT_MANIFEST,manifestBytes);
   for(const file of ['hydro-shard-store.js','hydro-tile-worker.js'])write('assets/js/workers/'+file,
     readFileSync(new URL('../../assets/js/workers/'+file,import.meta.url)));
-  const pin={...nativeTemplate.hydro,path:'hydro/test-release/manifest.json',version:manifest.version,
-    bytes:manifestBytes.length,sha256:hash(manifestBytes),gitBlobSha:gitHash(manifestBytes),
-    source:{...nativeTemplate.hydro.source,path:main+'manifest.json'}};
-  const app={...structuredClone(nativeTemplate),hydro:pin};
-  write('native/assets/world/manifest.json',JSON.stringify(app));
-  return {root,manifest,blob,manifestBytes,pin,app,write};
+  return {root,manifest,blob,manifestBytes,write};
 }
 async function fixture(run,shardCount){const f=makeFixture(shardCount);try{return await run(f);}finally{rmSync(f.root,{recursive:true,force:true});}}
 
@@ -57,22 +49,21 @@ test('declared shard count and offsets determine every container role',async()=>
   },count);
 });
 
-test('current native manifest selects the package and real Worker accepts exact mirrored bytes',()=>fixture(async f=>{
+test('current Web package and real Worker validate exact bytes without an app mirror',()=>fixture(async f=>{
   const result=await auditLayout(f.root);
   assert.equal(result.passed,true);
   assert.equal(result.manifestPath,main+'manifest.json');
   assert.equal(result.activeFiles,2);
   assert.equal(result.previousFileCount,0);
-  assert.equal(result.nativePinsVerified,1);
   assert.equal(result.roles.length,f.manifest.shards.length+3);
   assert.equal(result.runtime.range.ready,true);
   assert.equal(result.runtime.whole.requests.length,1);
   assert.deepEqual(readFileSync(join(f.root,main+f.manifest.container.url)),f.blob);
 }));
 
-test('obsolete native schema is rejected by the canonical native contract',()=>fixture(async f=>{
-  f.write('native/assets/world/manifest.json',JSON.stringify({...f.app,version:1}));
-  await assert.rejects(auditLayout(f.root),/version|schema/i);
+test('current hydro package rejects an invalid manifest schema',()=>fixture(async f=>{
+  f.write(CURRENT_MANIFEST,JSON.stringify({...f.manifest,schema:'obsolete'}));
+  await assert.rejects(auditLayout(f.root),/Invalid current hydro schema/);
 }));
 
 test('retired production files fail strict mode but explicit preflight reports them',()=>fixture(async f=>{
@@ -106,11 +97,8 @@ test('overlap, gap, missing piece and unsafe URL are rejected',()=>fixture(f=>{
   assert.throws(()=>manifestRoles(changed),/overlapping or missing/);
 }));
 
-test('native pin and actual mirrored payload cannot drift from current Web bytes',()=>fixture(async f=>{
-  f.write('native/assets/world/manifest.json',JSON.stringify({...f.app,hydro:{...f.pin,gitBlobSha:'0'.repeat(40)}}));
-  await assert.rejects(auditLayout(f.root),/Native app hydro pin/);
-  f.write('native/assets/world/manifest.json',JSON.stringify(f.app));
-  const changed=Buffer.from(f.blob);changed[0]^=1;
-  f.write(native+f.manifest.container.url,changed);
-  await assert.rejects(auditLayout(f.root),/Native hydro container bytes differ/);
+test('segment pins detect changed payload identity independently of the container hash',()=>fixture(async f=>{
+  const changed=structuredClone(f.manifest);changed.index.sha256='0'.repeat(64);
+  f.write(CURRENT_MANIFEST,JSON.stringify(changed));
+  await assert.rejects(auditLayout(f.root),/Hydro segment SHA-256 differs: index/);
 }));

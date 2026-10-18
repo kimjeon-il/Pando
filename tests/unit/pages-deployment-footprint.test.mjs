@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {normalizeGitTree} from '../../tools/plan-gis-archive-rollout.mjs';
-import {pinnedLegacyPaths,validateArchiveLock,buildPublicationProfile,finalStage9Plan} from '../../tools/plan-pages-deployment-footprint.mjs';
+import {normalizeGitTree} from '../../tools/lib/git-tree.mjs';
+import {pinnedWorldPaths,validateArchiveLock,buildPublicationProfile,finalStage9Plan} from '../../tools/plan-pages-deployment-footprint.mjs';
 
 const sha=n=>String(n).repeat(40).slice(0,40);
 function sample(){
@@ -44,28 +44,25 @@ function sample(){
     'assets/data/countries-canonical-v0.33.0.pcg.gz'];
   return {tree,lock,required,old};
 }
-test('old app v1 and GIS v2 source path pin the correct Web blobs',()=>{
-  const legacy={version:'0.36.0',source:'territorial-entities/generated/current-world.geojson',
+test('current preview and world bundle pin every source and asset URL',()=>{
+  const preview={version:'0.36.0',source:'territorial-entities/generated/current-world.geojson',
     assets:{previewCountries:{url:'countries-preview-v0.36.0.geojson.gz'}}};
-  const v1={schema:'pandoeditor-world-dataset',version:1,countryPreview:{
-    path:'countries-preview-v0.33.0.geojson.gz',gitBlobSha:sha(2)}};
-  const v2={schema:'pandoeditor-world-dataset',version:2,countryCanonical:{
-    path:'source/c.bin',source:{path:'assets/data/countries-canonical-v0.33.0.pcg.gz'},
-    gitBlobSha:sha(3)}};
-  const a=pinnedLegacyPaths(legacy,v1),b=pinnedLegacyPaths(legacy,v2);
-  assert.ok(a.includes('assets/data/countries-preview-v0.33.0.geojson.gz'));
-  assert.ok(b.includes('assets/data/countries-canonical-v0.33.0.pcg.gz'));
-  assert.ok(b.includes('assets/data/territorial-entities/generated/current-world.geojson'));
-  assert.ok(a.includes('.nojekyll'));
-  assert.equal(b.includes('assets/data/source/c.bin'),false);
+  const bundle={schema:'pandolab-world-bundle',schemaVersion:1,
+    source:{url:'territorial-entities/generated/current-world.geojson'},
+    assets:{canonicalCountryPacket:{url:'world/objects/countries-canonical-sha256-hash.pcg.gz'}}};
+  const paths=pinnedWorldPaths(preview,bundle);
+  for(const path of ['.nojekyll','assets/data/world/current.json',
+    'assets/data/countries-preview-v0.36.0.geojson.gz',
+    'assets/data/world/objects/countries-canonical-sha256-hash.pcg.gz',
+    'assets/data/territorial-entities/generated/current-world.geojson'])assert.ok(paths.includes(path),path);
 });
-test('reject untrusted manifest path traversal and missing native hashes',()=>{
-  const good={schema:'pandoeditor-world-dataset',version:2,countryPreview:{
-    path:'preview.bin',gitBlobSha:sha(1)}};
-  const bad={version:'0.36.0',assets:{test:{url:'../../secrets'}}};
-  assert.throws(()=>pinnedLegacyPaths(bad,good),/Invalid tracked/);
-  assert.throws(()=>pinnedLegacyPaths({version:'0.36.0',assets:{test:{url:'safe.bin'}}},
-    {...good,countryPreview:{path:'preview.bin'}}),/Missing native provenance/);
+test('reject untrusted manifest paths and incomplete current world bundles',()=>{
+  const preview={version:'0.36.0',assets:{test:{url:'safe.bin'}}};
+  const bundle={schema:'pandolab-world-bundle',schemaVersion:1,
+    source:{url:'source.geojson'},assets:{test:{url:'world/objects/safe.bin'}}};
+  assert.throws(()=>pinnedWorldPaths({...preview,assets:{test:{url:'../../secrets'}}},bundle),/Invalid tracked/);
+  assert.throws(()=>pinnedWorldPaths(preview,{...bundle,source:{url:'../../secrets'}}),/Invalid tracked/);
+  assert.throws(()=>pinnedWorldPaths(preview,{...bundle,source:null}),/Invalid current world bundle/);
 });
 test('profile includes old URLs, GDAL engine and all generated library files',()=>{
   const {tree,lock,required}=sample();
@@ -80,20 +77,20 @@ test('profile includes old URLs, GDAL engine and all generated library files',()
   assert.equal(r.diagnosticOnlyAlternatives[0].wouldKeepAllCriticalWebFunctions,true);
   assert.equal(r.diagnosticOnlyAlternatives[1].wouldBreakGISImport,true);
 });
-test('failure to include any hard pinned world/native path stops publication',()=>{
+test('failure to include any hard pinned world path stops publication',()=>{
   const {tree,lock,required}=sample();
   tree.delete('assets/data/countries-canonical-v0.33.0.pcg.gz');
-  assert.throws(()=>buildPublicationProfile(tree,lock,required),/Missing verified-world-and-native-pin/);
+  assert.throws(()=>buildPublicationProfile(tree,lock,required),/Missing verified-world-pin/);
 });
 test('missing GDAL WebAssembly blocks a claim of full GIS import',()=>{
   const {tree,lock,required}=sample();
   tree.delete('assets/js/vendor/gdal/gdal3WebAssembly.wasm');
-  assert.throws(()=>buildPublicationProfile(tree,lock,required),/Mandatory Web\/native runtime/);
+  assert.throws(()=>buildPublicationProfile(tree,lock,required),/Mandatory Web runtime/);
 });
 test('missing terrain or historical catalog index blocks artifact',()=>{
   const {tree,lock,required}=sample();
   tree.delete('assets/data/territorial-entities/generated/v2/index.json');
-  assert.throws(()=>buildPublicationProfile(tree,lock,required),/Mandatory Web\/native runtime/);
+  assert.throws(()=>buildPublicationProfile(tree,lock,required),/Mandatory Web runtime/);
 });
 test('size gate uses *uncompressed listed files*, never packed tar.gz size',()=>{
   const {tree,lock,required}=sample();

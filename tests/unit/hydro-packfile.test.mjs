@@ -8,11 +8,11 @@ import { gunzipSync } from 'node:zlib';
 const base = new URL('../../assets/js/workers/', import.meta.url);
 const storeSource = readFileSync(new URL('hydro-shard-store.js', base), 'utf8');
 const workerSource = readFileSync(new URL('hydro-tile-worker.js', base), 'utf8');
-const native = JSON.parse(readFileSync(new URL('../../native/assets/world/manifest.json', import.meta.url)));
-const manifestUrl = new URL('../../' + native.hydro.source.path, import.meta.url);
+const manifestPath = 'assets/data/hydro/v0.13.2/manifest.json';
+const manifestUrl = new URL('../../' + manifestPath, import.meta.url);
 const manifest = JSON.parse(readFileSync(manifestUrl, 'utf8'));
 const bundle = new Uint8Array(readFileSync(new URL(manifest.container.url, manifestUrl)));
-const baseUrl = new URL(native.hydro.source.path.replace(/[^/]+$/, ''), 'https://example.invalid/Pando/').href;
+const baseUrl = new URL(manifestPath.replace(/[^/]+$/, ''), 'https://example.invalid/Pando/').href;
 const rangeFor = spec => `bytes=${spec.offset}-${spec.offset + spec.bytes - 1}`;
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 
@@ -51,7 +51,6 @@ function loadWorker({ supportsRange = true } = {}) {
 }
 
 test('bundle contains exact individually hashed declared fragments with no gaps', () => {
-  assert.equal(manifest.version, native.hydro.version);
   assert.equal(manifest.container.bytes, bundle.length);
   assert.equal(sha256(bundle), manifest.container.sha256);
   const fragments = [manifest.index, manifest.metadata.core, manifest.metadata.detail, ...manifest.shards].sort((a,b)=>a.offset-b.offset);
