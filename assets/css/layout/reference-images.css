@@ -474,7 +474,21 @@
   .reference-image-list {
     max-height: var(--ui-reference-list-max-height-mobile);
   }
+
+  /* Short bottom sheets cannot reserve fixed heights for both shared controls
+     and tool content. Scroll the sheet as a whole to keep every tool clickable. */
   .app-root[data-layout="mobile"] .surface-body.reference-image-body {
-    overflow: hidden;
+    display: block;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .app-root[data-layout="mobile"] .reference-image-editor,
+  .app-root[data-layout="mobile"] .reference-image-tabpanels {
+    overflow: visible;
+  }
+
+  .app-root[data-layout="mobile"] .reference-image-tabpanels {
+    flex: 0 0 auto;
   }
 }
