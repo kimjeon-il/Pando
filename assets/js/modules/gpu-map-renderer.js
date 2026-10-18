@@ -455,6 +455,7 @@ export function createGpuMapRenderer(deps) {
     let meshCountryIds = [];
     let countryBoundaryWorker = null;
     let countryBoundaryRequestId = 0;
+    let countryBoundaryIncludesOutlines = null;
     let countrySharedBoundary = null;
     // This candidate is not visible until its complete GPU stroke resources exist.
     // Keep the last presented packet active during Worker and upload latency.
@@ -471,7 +472,10 @@ export function createGpuMapRenderer(deps) {
         if (canvasWorker) postCanvasWorkerMessage({ type: 'country-shared-boundary', packet: null,
           geometryRevision: geometryRevisionTracker.committedRevision(), projectGeneration });
       }
-      if (terminate) { countryBoundaryWorker?.terminate(); countryBoundaryWorker = null; }
+      if (terminate) {
+        countryBoundaryWorker?.terminate(); countryBoundaryWorker = null;
+        countryBoundaryIncludesOutlines = null;
+      }
     }
     function publishCountrySharedBoundary(packet) {
       if (pendingCountrySharedBoundary !== packet) return false;
@@ -490,15 +494,10 @@ export function createGpuMapRenderer(deps) {
       const packet = pendingCountrySharedBoundary;
       if (!packet) return false;
       if (isWebGlRenderer()) {
-        // Prewarm BOTH border presentation modes before promotion. Terrain
-        // style toggles must not publish a packet whose solid shared strokes
-        // still need a separate GPU upload.
-        const batches = [
-          ...globalThis.PandoLabCanvasSceneComposition.countryBoundaryBatches(
-            packet, mapTheme(), true, countryBoundaryStyleById),
-          ...globalThis.PandoLabCanvasSceneComposition.countryBoundaryBatches(
-            packet, mapTheme(), false, countryBoundaryStyleById),
-        ];
+        // Admit only the active map mode's strokes. Hidden coast outlines
+        // must not delay the first terrain frame or consume upload budget.
+        const batches = globalThis.PandoLabCanvasSceneComposition.countryBoundaryBatches(
+          packet, mapTheme(), shouldShowSharedCountryBorders(state.physicalSettings), countryBoundaryStyleById);
         const unique = [...new Map(batches.map(batch => [batch.key, batch])).values()];
         for (const batch of unique) strokeRenderer.ensureResource(batch);
         if (unique.some(batch => !strokeRenderer.hasResource(batch.key))) return false;
@@ -554,8 +553,10 @@ export function createGpuMapRenderer(deps) {
       baselineCache = baselineCache && boundaryFeatures.every(feature => feature.properties.parentId
         ? feature.boundaryPristine === true : meshCountryIds.includes(String(feature.id)));
       resetCountrySharedBoundary({ preservePresented: true });
+      countryBoundaryIncludesOutlines = !shouldShowSharedCountryBorders(state.physicalSettings);
       countryBoundaryWorker.postMessage({ type: replace ? 'replace' : 'patch',
         requestId: countryBoundaryRequestId, projectGeneration,
+        includeOutlines: countryBoundaryIncludesOutlines,
         geometryRevision: geometryRevisionTracker.committedRevision(), quality: activeMeshQuality,
         cacheUrl: replace && sharedBoundaryCacheUrls?.[activeMeshQuality]
           ? new URL(sharedBoundaryCacheUrls[activeMeshQuality], PHYSICAL_DATA_BASE_URL).href : null,
@@ -3165,6 +3166,11 @@ export function createGpuMapRenderer(deps) {
       countryPaletteRevision += 1;
       if (shouldShowSharedCountryBorders(state.physicalSettings)
         && !countryBoundaryWorker && !countrySharedBoundary) prepareCountrySharedBoundary({ replace: true });
+      else if (!shouldShowSharedCountryBorders(state.physicalSettings) && countryBoundaryIncludesOutlines === false) {
+        // Reuse the Worker's prepared topology. Request coast outlines only
+        // when switching into a map mode that displays them.
+        prepareCountrySharedBoundary({ features: [] });
+      }
       invalidatePhysicalScene(reason);
       return true;
     }
@@ -3279,6 +3285,7 @@ export function createGpuMapRenderer(deps) {
     }
 
     function prewarmCountryStrokeResources() {
+      if (shouldShowSharedCountryBorders(state.physicalSettings)) return false;
       if (!strokeRenderer.isAvailable?.() || !mesh) return false;
       if (meshQuality === 'canonical' && !canonicalMeshReady) return false;
       const packets = new Map();
@@ -3291,9 +3298,9 @@ export function createGpuMapRenderer(deps) {
 
     function drawCountryBoundaryStrokes(dynamicResources, baseBoundaryDraw, overrideBoundaryDraw) {
       const sharedOnly = shouldShowSharedCountryBorders(state.physicalSettings);
-      // At first load or after a hard reset, retain a visible boundary while
-      // the shared-only packet is still being calculated.
-      if ((!sharedOnly || !countrySharedBoundary) && state.layerVisibility.countries) {
+      // Terrain waits for shared land borders; it never paints coast outlines
+      // temporarily while their replacement is being prepared.
+      if (!sharedOnly && state.layerVisibility.countries) {
         const excluded = countrySharedBoundary?.outlineOwnerIds || [];
         drawProgram(lineProgram, lineVao, lineIndexBuffer, mesh.lineIndices.length, gl.LINES, null, paletteTexture, null, null,
           excludeCountryBoundaryOwners(baseBoundaryDraw.ranges, mesh, excluded));
@@ -3620,7 +3627,7 @@ export function createGpuMapRenderer(deps) {
         target.strokeStyle = theme.border;
         target.lineJoin = 'round';
         target.lineWidth = theme.strokes.country.width;
-        if (!shouldShowSharedCountryBorders(state.physicalSettings) || !countrySharedBoundary) for (const feature of features) {
+        if (!shouldShowSharedCountryBorders(state.physicalSettings)) for (const feature of features) {
           const id = String(feature?.id || '');
           if (!countryBoundaryStyleById(id) || countrySharedBoundary?.outlineOwnerIds.includes(id)) continue;
           target.beginPath(); path(countryOutlineFeature(feature)); target.stroke();
