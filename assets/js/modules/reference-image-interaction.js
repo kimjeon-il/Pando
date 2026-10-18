@@ -666,6 +666,26 @@ export function createReferenceImageInteraction({
     return { kind: 'navigate' };
   }
 
+  // Pointer affordances use the same hit tests as gesture ownership. Only
+  // the selected image can supply an editable handle, even if images overlap.
+  function hitType(point) {
+    const record = selected();
+    if (!record || record.locked || !record.visible) return '';
+    const host = getMapHost();
+    if (controlPointEditingId === record.id) {
+      return renderer.hitTestControlPoint(record, point) ? 'point' : '';
+    }
+    if (freeTransformEditingId === record.id) {
+      const sourceQuad = record.cornerPinEnabled ? record.mapQuad : getCurrentWarpQuad(record) || record.mapQuad;
+      const hitRecord = sourceQuad === record.mapQuad ? record : { ...record, mapQuad: sourceQuad };
+      return referenceImageFreeTransformHit(hitRecord, point, host) ? 'corner' : '';
+    }
+    if (placementEditingId === record.id && !record.warp?.ok) {
+      return referenceImagePlacementHit(record, point, host)?.type || '';
+    }
+    return '';
+  }
+
   function clearSelectedControlPoint() {
     if (!selectedControlPointId) return false;
     selectedControlPointId = '';
@@ -741,6 +761,7 @@ export function createReferenceImageInteraction({
     startControlPointEditing,
     stopControlPointEditing,
     beginGesture,
+    hitType,
     clearSelectedControlPoint,
     deleteSelectedControlPoint,
     handleRecordLocked,

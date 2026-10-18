@@ -1,4 +1,4 @@
-import { referenceImageKeyBlocked } from './reference-image-input.js';
+import { referenceImageKeyBlocked, referenceImageNavigationHeld } from './reference-image-input.js';
 import { referenceImageEventTargetsMap } from './reference-image-pointer-target.js';
 import { setReferenceImageSurfaceEditing } from './reference-image-surface-port.js';
 import { buildReferenceImageMesh } from './reference-image-georef.js';
@@ -502,7 +502,7 @@ export function installReferenceImageLineRefiner() {
 
 
   function intercept(event) {
-    if (!state || !['armed', 'drawing'].includes(state.phase)) return false;
+    if (!state || !['armed', 'drawing'].includes(state.phase) || referenceImageNavigationHeld()) return false;
     if (!referenceImageEventTargetsMap(event, mapElement)) return false;
     event.preventDefault();
     event.stopImmediatePropagation();
@@ -536,6 +536,11 @@ export function installReferenceImageLineRefiner() {
 
   function onPointerUp(event) {
     if (!state || state.phase !== 'drawing' || event.pointerId !== state.pointerId) return;
+    if (referenceImageNavigationHeld()) {
+      try { mapElement.releasePointerCapture?.(event.pointerId); } catch (_) {}
+      redraw();
+      return;
+    }
     if (!intercept(event)) return;
     try { mapElement.releasePointerCapture?.(event.pointerId); } catch (_) {}
     void finishDrawing(event);
@@ -543,7 +548,8 @@ export function installReferenceImageLineRefiner() {
 
   function onPointerCancel(event) {
     if (!state || state.phase !== 'drawing' || event.pointerId !== state.pointerId) return;
-    if (!intercept(event)) return;
+    // Cancellation must unwind the unfinished trace even while Space is held.
+    if (!referenceImageNavigationHeld() && !intercept(event)) return;
     redraw();
   }
 
