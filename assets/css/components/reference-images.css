@@ -426,3 +426,28 @@
   border-top: var(--ui-border-width) solid var(--border);
   padding-block: var(--ui-space-2);
 }
+
+/* P3: a persistent map-versus-image toggle also appears in the mobile tool strip. */
+.reference-image-navigation-control {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--ui-space-2);
+}
+
+.reference-image-navigation-control > small,
+.reference-image-input-explanation {
+  flex: 1 1 auto;
+  color: var(--muted);
+  font-size: var(--ui-font-caption);
+  line-height: var(--ui-line-normal);
+}
+
+.reference-image-navigation-control > .reference-image-navigation-button[aria-pressed="true"],
+.reference-image-editing-summary [data-ref-action="navigation-toggle"][aria-pressed="true"] {
+  border-color: var(--accent-border);
+  background: var(--selection-soft-bg);
+  color: var(--text-strong);
+}
+
+.reference-image-input-explanation { margin: 0; }

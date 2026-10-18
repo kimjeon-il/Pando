@@ -156,6 +156,7 @@ export function referenceImageEditorMarkup({
   placementRotation = 0,
   linearDraft = null,
   activeTab = 'placement',
+  navigationOverride = false,
 } = {}) {
   const diagnostics = warp?.ok ? warp.diagnostics : null;
   const residuals = diagnosticResiduals(diagnostics);
@@ -264,6 +265,22 @@ export function referenceImageEditorMarkup({
         <input data-ref-field="opacity" type="range" min="0" max="1" step="0.01" value="${record.opacity}" />
         <output>${Math.round(record.opacity * 100)}%</output>
       </label>
+      <div class="reference-image-navigation-control" role="group" aria-label="지도와 이미지 조작 구분">
+        <button type="button" class="ui-button btn ghost reference-image-navigation-button"
+          data-ref-action="navigation-toggle" aria-pressed="${navigationOverride}">
+          ${navigationOverride ? '이미지 조작으로 복귀' : '지도 이동'}
+        </button>
+        <small>${navigationOverride
+          ? '이미지 편집을 유지하고 지도를 이동합니다.'
+          : '이미지 편집 중 Space를 누르면 지도를 이동합니다.'}</small>
+      </div>
+      ${record.locked
+        ? '<p class="reference-image-input-explanation">잠금이 설정되어 이미지 편집이 제한됩니다.</p>'
+        : warp?.ok
+          ? '<p class="reference-image-input-explanation">기준점 보정이 적용되어 기본 위치 이동 대신 기준점으로 조정합니다.</p>'
+          : record.anchor
+            ? '<p class="reference-image-input-explanation">고정점이 있어 이미지 본문 이동이 제한됩니다. 크기와 회전은 가능합니다.</p>'
+            : ''}
     </div>
     ${referenceImageTabMarkup(activeTab)}
     <div class="reference-image-tabpanels">

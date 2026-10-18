@@ -20,7 +20,7 @@ import { createReferenceImageInteraction } from './reference-image-interaction.j
 import { createReferenceImageCanvasRenderer } from './reference-image-renderer.js';
 import { getReferenceImageLiveWireField, traceReferenceImageLinearAnchors } from './reference-image-live-wire.js';
 import { buildReferenceImageSourceMapping } from './reference-image-source-mapping.js';
-import { referenceImageKeyBlocked, registerReferenceImageInput } from './reference-image-input.js';
+import { referenceImageKeyBlocked, referenceImageNavigationHeld, registerReferenceImageInput } from './reference-image-input.js';
 import { applyReferenceImageEdit, copyReferenceImageRecords, createReferenceImageHistory } from './reference-image-edit-session.js';
 import {
   buildReferenceImagePlaceSeeds,
@@ -129,6 +129,7 @@ export function installReferenceImageController({
   const pendingPersistTimers = new Map();
   let selectedId = '';
   let activeTab = 'placement';
+  let navigationOverride = false;
   let disposed = false;
   let session = 0;
   let continuousBefore = null;
@@ -156,9 +157,9 @@ export function installReferenceImageController({
       : records,
     getLinearDraft: () => linearDraft,
     getSelectedId: () => selectedId,
-    getPlacementEditingId: () => interactionState().placementEditingId,
-    getFreeTransformEditingId: () => interactionState().freeTransformEditingId,
-    getControlPointEditingId: () => interactionState().controlPointEditingId,
+    getPlacementEditingId: () => navigationOverride ? '' : interactionState().placementEditingId,
+    getFreeTransformEditingId: () => navigationOverride ? '' : interactionState().freeTransformEditingId,
+    getControlPointEditingId: () => navigationOverride ? '' : interactionState().controlPointEditingId,
     getSelectedControlPointId: () => interactionState().selectedControlPointId,
     isPanelHidden: () => panel.hidden,
   });
@@ -260,6 +261,44 @@ export function installReferenceImageController({
     renderReferenceImageList(listElement, records, selectedId);
   }
 
+  function syncNavigationUi() {
+    mapElement.classList.toggle('is-reference-map-pan-mode', !panel.hidden && navigationOverride);
+    if (navigationOverride || panel.hidden) delete mapElement.dataset.referencePointer;
+    for (const button of panel.querySelectorAll('[data-ref-action="navigation-toggle"]')) {
+      const active = !interaction?.isActive() && !linearDraft ? true : navigationOverride;
+      button.setAttribute('aria-pressed', String(active));
+      button.textContent = navigationOverride ? '이미지 조작으로 복귀' : '지도 이동';
+      button.setAttribute('aria-label', navigationOverride
+        ? '이전 이미지 조작으로 복귀' : '이미지 조작을 유지한 채 지도 이동');
+    }
+  }
+
+  function setNavigationOverride(active) {
+    if (navigationOverride === (active === true)) return;
+    navigationOverride = active === true;
+    renderEditor();
+    if (navigationOverride && (interaction?.isActive() || linearDraft)) {
+      surface?.setEditing(true, '지도 이동 중 · 이미지 편집 단계는 유지됩니다. 다시 누르면 조작을 계속합니다.');
+    }
+    renderer.requestRender();
+  }
+
+  function onMapPointerHover(event) {
+    if (panel.hidden || referenceImageNavigationHeld() || event.pointerType === 'touch') {
+      delete mapElement.dataset.referencePointer;
+      return;
+    }
+    const bounds = mapElement.getBoundingClientRect();
+    const point = [event.clientX - bounds.left, event.clientY - bounds.top];
+    const hit = interaction?.hitType(point) || '';
+    if (hit) mapElement.dataset.referencePointer = hit;
+    else delete mapElement.dataset.referencePointer;
+  }
+
+  function onMapPointerLeave() {
+    delete mapElement.dataset.referencePointer;
+  }
+
   function renderEditor() {
     renderStorageStatus();
     const historyLocked = records.some(record => record.locked);
@@ -269,6 +308,7 @@ export function installReferenceImageController({
     editorElement.hidden = !record;
     if (!record) {
       editorElement.replaceChildren();
+      syncNavigationUi();
       return;
     }
     const state = interactionState();
@@ -288,8 +328,10 @@ export function installReferenceImageController({
       placementRotation: referenceImagePlacementRotation(record, mapHost()),
       linearDraft: linearDraft?.recordId === record.id ? linearDraft : null,
       activeTab,
+      navigationOverride,
     });
     interaction?.syncSurface();
+    syncNavigationUi();
     if (linearDraft) surface?.setEditing(true, linearDraft.phase === 'image'
       ? '이미지에서 선을 따라 점을 찍으세요.'
       : linearDraft.phase === 'map' ? '지도에서 대응 선을 찍으세요.' : '변형 이미지를 확인하세요.');
@@ -374,6 +416,9 @@ export function installReferenceImageController({
   function cancelInteraction() {
     cancelLinearDraft({ render: false });
     interaction?.cancelAll();
+    navigationOverride = false;
+    syncNavigationUi();
+    renderer.requestRender();
   }
 
   function restoreHistory(direction) {
@@ -634,6 +679,16 @@ export function installReferenceImageController({
       return;
     }
     if (!record) return;
+    if (action === 'navigation-toggle') {
+      setNavigationOverride(!navigationOverride);
+      return;
+    }
+    if (navigationOverride && ['placement', 'free-transform', 'anchor', 'gcp', 'gcp-edit',
+      'edit-image', 'edit-coordinate', 'linear-river', 'linear-coastline'].includes(action)) {
+      navigationOverride = false;
+      syncNavigationUi();
+      renderer.requestRender();
+    }
     if (action === 'linear-cancel') { cancelLinearDraft(); return; }
     if (record.locked && !['bring-forward', 'send-backward', 'cancel-auto-georef'].includes(action)) return;
     if (action === 'linear-river' || action === 'linear-coastline') {
@@ -810,7 +865,8 @@ export function installReferenceImageController({
     if (panel.hidden || isBlocked() || referenceImageKeyBlocked(event)) return false;
     if (event.key === 'Enter' && event.target?.closest('button,[role="button"]')) return false;
     if (event.key === 'Escape') {
-      if (linearDraft || interaction?.isActive()) cancelInteraction();
+      if (navigationOverride) setNavigationOverride(false);
+      else if (linearDraft || interaction?.isActive()) cancelInteraction();
       else surface.close({ restoreFocus: true });
       return true;
     }
@@ -865,10 +921,20 @@ export function installReferenceImageController({
     storageError = error.message;
     renderStorageStatus();
   }); };
-  surface = installReferenceImageSurface({ panel, launcher, workspaceSurfaces, onClose: cancelInteraction, onOpen: () => renderer.requestRender() });
+  surface = installReferenceImageSurface({
+    panel, launcher, workspaceSurfaces,
+    onClose: cancelInteraction,
+    onOpen: () => { syncNavigationUi(); renderer.requestRender(); },
+  });
   const unregisterInput = registerReferenceImageInput({
-    begin: (point, event, context) => linearDraft ? linearGesture(point, event, context) : interaction.beginGesture(point, event, context),
-    active: () => !!linearDraft || interaction.isActive(),
+    begin: (point, event, context) => {
+      if (panel.hidden) return null;
+      if (referenceImageNavigationHeld()) return { kind: 'navigate' };
+      return linearDraft ? linearGesture(point, event, context) : interaction.beginGesture(point, event, context);
+    },
+    active: () => !!linearDraft || interaction.isActive() || navigationOverride,
+    surfaceOpen: () => !panel.hidden,
+    mapNavigationActive: () => !panel.hidden && navigationOverride,
     key: onKeyDown,
     cancel: cancelInteraction,
     reset: resetSession,
@@ -880,6 +946,8 @@ export function installReferenceImageController({
   };
   panel.addEventListener('keydown', stopPanelKeys);
   panel.addEventListener('click', onPanelClickEvent);
+  mapElement.addEventListener('pointermove', onMapPointerHover, { passive: true });
+  mapElement.addEventListener('pointerleave', onMapPointerLeave);
   editorElement.addEventListener('input', onEditorInput);
   editorElement.addEventListener('change', onEditorInput);
   editorElement.addEventListener('keydown', onEditorTabKeydown);
@@ -1307,6 +1375,10 @@ export function installReferenceImageController({
       else for (const id of [...pendingPersistTimers.keys()]) clearScheduledPersist(id);
       panel.removeEventListener('keydown', stopPanelKeys);
       panel.removeEventListener('click', onPanelClickEvent);
+      mapElement.removeEventListener('pointermove', onMapPointerHover);
+      mapElement.removeEventListener('pointerleave', onMapPointerLeave);
+      mapElement.classList.remove('is-reference-map-pan-mode', 'is-reference-space-pan');
+      delete mapElement.dataset.referencePointer;
       editorElement.removeEventListener('input', onEditorInput);
       editorElement.removeEventListener('change', onEditorInput);
       editorElement.removeEventListener('keydown', onEditorTabKeydown);
