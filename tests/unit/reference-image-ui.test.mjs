@@ -263,3 +263,23 @@ test('OCR automatic georeferencing preview identifies the method and place match
   assert.match(markup, /RMS<\/small><strong>1\.8 km<\/strong>/);
   assert.match(markup, /data-ref-action="apply-auto-georef"/);
 });
+
+test('map-navigation toggle is independent of image calibration and explains edit limits', () => {
+  const ordinary = referenceImageEditorMarkup({ ...options, record: record(), navigationOverride: false });
+  const navigation = referenceImageEditorMarkup({ ...options, record: record(), navigationOverride: true });
+  assert.match(ordinary, /data-ref-action="navigation-toggle" aria-pressed="false"/);
+  assert.match(ordinary, /이미지 편집 중 Space를 누르면 지도를 이동합니다/);
+  assert.match(navigation, /data-ref-action="navigation-toggle" aria-pressed="true"/);
+  assert.match(navigation, /이미지 조작으로 복귀/);
+
+  const anchored = referenceImageEditorMarkup({
+    ...options, record: record({ anchor: { image: [0.5, 0.5], coordinate: [10, 20] } }),
+  });
+  assert.match(anchored, /고정점이 있어 이미지 본문 이동이 제한됩니다/);
+  const locked = referenceImageEditorMarkup({ ...options, record: record({ locked: true }) });
+  assert.match(locked, /잠금이 설정되어 이미지 편집이 제한됩니다/);
+  const calibrated = referenceImageEditorMarkup({
+    ...options, record: record(), warp: { ok: true, mode: 'similarity', minimumPoints: 2 },
+  });
+  assert.match(calibrated, /기준점 보정이 적용되어 기본 위치 이동 대신 기준점으로 조정합니다/);
+});

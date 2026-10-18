@@ -384,6 +384,131 @@ test('reference image list controls and task tabs preserve selection and stored 
   expect(errors).toEqual([]);
 });
 
+test('explicit map navigation, Space and overlapping images keep each input owner separate', async ({ page }) => {
+  test.setTimeout(180_000);
+  const errors = await openApp(page);
+  await clearReferenceStore(page);
+  await page.reload();
+  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
+  await page.locator('#referenceImageBtn').click();
+  await addImage(page, 'underlay.png');
+  await addImage(page, 'overlay.png');
+  await page.locator('.reference-image-list-row').filter({ hasText: 'underlay.png' }).click();
+  await page.locator('[data-ref-tab="placement"]').click();
+  await page.locator('[data-ref-action="placement"]').click();
+  await expect(page.locator('#map')).toHaveClass(/is-reference-placement-mode/);
+  const before = await readReferenceStore(page);
+  const firstId = before.find(item => item.name === 'underlay.png').id;
+  const secondId = before.find(item => item.name === 'overlay.png').id;
+  const firstMapQuad = before.find(item => item.id === firstId).mapQuad;
+  const upperMapQuad = before.find(item => item.id === secondId).mapQuad;
+  const center = (await referenceScreenGeometry(page, 'underlay.png')).center;
+  await page.mouse.move(center.x, center.y);
+  await expect(page.locator('#map')).toHaveAttribute('data-reference-pointer', 'move');
+
+  const mapMode = page.locator('.reference-image-selected-card [data-ref-action="navigation-toggle"]');
+  await mapMode.click();
+  await expect(mapMode).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('#map')).toHaveClass(/is-reference-map-pan-mode/);
+  await expect(page.locator('[data-ref-action="placement"]')).toHaveAttribute('aria-pressed', 'true');
+  const cameraBefore = await page.evaluate(() => JSON.stringify(window.__PANDOLAB_VIEW_STATE__));
+  await page.mouse.move(center.x, center.y);
+  await page.mouse.down();
+  await page.mouse.move(center.x + 50, center.y + 20, { steps: 5 });
+  await page.mouse.up();
+  await expect.poll(() => page.evaluate(() => JSON.stringify(window.__PANDOLAB_VIEW_STATE__))).not.toBe(cameraBefore);
+  expect((await readReferenceStore(page)).find(item => item.id === firstId).mapQuad).toEqual(firstMapQuad);
+  expect((await readReferenceStore(page)).find(item => item.id === secondId).mapQuad).toEqual(upperMapQuad);
+
+  await mapMode.click();
+  await expect(page.locator('#map')).not.toHaveClass(/is-reference-map-pan-mode/);
+  await expect(page.locator('#map')).toHaveClass(/is-reference-placement-mode/);
+  const imageCenter = (await referenceScreenGeometry(page, 'underlay.png')).center;
+  await page.mouse.move(imageCenter.x, imageCenter.y);
+  await page.mouse.down();
+  await page.mouse.move(imageCenter.x + 34, imageCenter.y + 18, { steps: 4 });
+  await page.mouse.up();
+  await expect.poll(async () => {
+    const current = (await readReferenceStore(page)).find(item => item.id === firstId)?.mapQuad;
+    return JSON.stringify(current) !== JSON.stringify(firstMapQuad);
+  }).toBe(true);
+  expect((await readReferenceStore(page)).find(item => item.id === secondId).mapQuad).toEqual(upperMapQuad);
+  const editedQuad = (await readReferenceStore(page)).find(item => item.id === firstId).mapQuad;
+
+  await page.locator('#map').focus();
+  await page.keyboard.down('Space');
+  await expect(page.locator('#map')).toHaveClass(/is-reference-space-pan/);
+  const spaceCenter = (await referenceScreenGeometry(page, 'underlay.png')).center;
+  const viewBeforeSpace = await page.evaluate(() => JSON.stringify(window.__PANDOLAB_VIEW_STATE__));
+  await page.mouse.move(spaceCenter.x, spaceCenter.y);
+  await page.mouse.down();
+  await page.mouse.move(spaceCenter.x - 45, spaceCenter.y + 18, { steps: 5 });
+  await page.mouse.up();
+  await page.keyboard.up('Space');
+  await expect(page.locator('#map')).not.toHaveClass(/is-reference-space-pan/);
+  await expect.poll(() => page.evaluate(() => JSON.stringify(window.__PANDOLAB_VIEW_STATE__))).not.toBe(viewBeforeSpace);
+  expect((await readReferenceStore(page)).find(item => item.id === firstId).mapQuad).toEqual(editedQuad);
+  expect((await readReferenceStore(page)).find(item => item.id === secondId).mapQuad).toEqual(upperMapQuad);
+  await page.locator('.reference-image-toolbar [data-ref-action="undo"]').click();
+  await expect.poll(async () => (await readReferenceStore(page)).find(item => item.id === firstId).mapQuad).toEqual(firstMapQuad);
+  expect(errors).toEqual([]);
+});
+
+test('mobile navigation button preserves GCP phase and two-finger pinch cancels an image drag', async ({ page }) => {
+  test.setTimeout(180_000);
+  const errors = await openApp(page);
+  await clearReferenceStore(page);
+  await page.reload();
+  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator('#app')).toHaveAttribute('data-layout', 'mobile');
+  await page.locator('#referenceImageBtn').click();
+  await addImage(page, 'touch-input.png');
+  await page.locator('[data-ref-tab="match"]').click();
+  await page.locator('[data-ref-action="gcp"]').click();
+  const summaryMode = page.locator('.reference-image-editing-summary [data-ref-action="navigation-toggle"]');
+  await expect(summaryMode).toBeVisible();
+  const first = await referenceScreenPointForUv(page, 'touch-input.png', [0.5, 0.5]);
+  await page.mouse.click(first.x, first.y);
+  await expect(page.locator('.reference-image-editing-summary > span')).toContainText('실제 지도 위치');
+  await summaryMode.click();
+  await expect(page.locator('#map')).toHaveClass(/is-reference-gcp-mode/);
+  await expect(page.locator('#map')).toHaveClass(/is-reference-map-pan-mode/);
+  await summaryMode.click();
+  await expect(page.locator('#map')).not.toHaveClass(/is-reference-map-pan-mode/);
+  await expect(page.locator('.reference-image-editing-summary > span')).toContainText('실제 지도 위치');
+
+  // Finish the temporary point workflow, then exercise the map's pointer
+  // controller with two synthetic touch pointers on the selected image.
+  await page.keyboard.press('Escape');
+  await page.locator('[data-ref-tab="placement"]').click();
+  await page.locator('[data-ref-action="placement"]').click();
+  const before = (await readReferenceStore(page))[0].mapQuad;
+  const gestureResult = await page.evaluate(async () => {
+    const map = document.getElementById('map');
+    const store = await import('/assets/js/modules/reference-image-store.js');
+    const { referenceImagePlacementPointAtUv } = await import('/assets/js/modules/reference-image-transform.js');
+    const record = (await store.listStoredReferenceImages())[0];
+    const center = referenceImagePlacementPointAtUv(record, [0.5, 0.5], window.__PANDOLAB_MAP_HOST__);
+    const rect = map.getBoundingClientRect();
+    const touch = (type, id, x, y) => map.dispatchEvent(new PointerEvent(type, {
+      bubbles: true, cancelable: true, pointerId: id, pointerType: 'touch', button: 0,
+      clientX: rect.left + x, clientY: rect.top + y,
+    }));
+    const beforeZoom = window.__PANDOLAB_MAP_HOST__.getViewState?.();
+    touch('pointerdown', 701, center[0], center[1]);
+    touch('pointermove', 701, center[0] + 18, center[1] + 10);
+    touch('pointerdown', 702, center[0] + 35, center[1] + 2);
+    touch('pointermove', 702, center[0] + 60, center[1] + 14);
+    touch('pointerup', 702, center[0] + 60, center[1] + 14);
+    touch('pointerup', 701, center[0] + 18, center[1] + 10);
+    return { beforeZoom, afterZoom: window.__PANDOLAB_MAP_HOST__.getViewState?.() };
+  });
+  expect(gestureResult.afterZoom).not.toEqual(gestureResult.beforeZoom);
+  expect((await readReferenceStore(page))[0].mapQuad).toEqual(before);
+  expect(errors).toEqual([]);
+});
+
 test('reference images support placement, ordering, georeferencing and persistence without blocking normal map input', async ({ page }) => {
   test.setTimeout(180_000);
   const errors = await openApp(page);
