@@ -1,0 +1,51 @@
+name: OBJ-098 periodic envelope native predicate parity
+on:
+  push:
+    branches: [work/perf-obj098-valid-coast-20261018]
+    paths:
+      - '.github/workflows/obj098-periodic-envelope-parity.yml'
+      - 'shared/core/src/geometrypredicates.cpp'
+      - 'tests/cpp/obj098-geographic-containment.cpp'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native-differential:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - run: sudo apt-get update && sudo apt-get install -y ninja-build cmake libz-dev
+      - name: Compile candidate native C++ shared Core
+        run: |
+          cmake -S . -B build-native/obj098-envelope-core -G Ninja -DCMAKE_BUILD_TYPE=Release -DPANDO_BUILD_VARIANT=core -DBUILD_TESTING=OFF
+          cmake --build build-native/obj098-envelope-core --target pandoeditor_core --parallel 2
+      - name: Build true original unaccelerated comparison oracle
+        run: |
+          mkdir -p /tmp/obj098
+          {
+            printf '#define geometryContains geometryContainsLegacy\n'
+            printf '#define geometrySignificantOverlap geometrySignificantOverlapLegacy\n'
+            printf '#define planarArea planarAreaLegacy\n'
+            printf '#define significantArea significantAreaLegacy\n'
+            git show 8df349b988a41073eed4641823ca20fbcfd69347:shared/core/src/geometrypredicates.cpp
+          } > /tmp/obj098/original.cpp
+          g++ -std=c++17 -O2 -Ishared/core/include -c /tmp/obj098/original.cpp -o /tmp/obj098/original.o
+          g++ -std=c++17 -O2 -DPANDO_OBJ098_LEGACY_COMPARE=1 -Ishared/core/include \
+            tests/cpp/obj098-geographic-containment.cpp /tmp/obj098/original.o \
+            build-native/obj098-envelope-core/shared/core/libpandoeditor_core.a -lz -o /tmp/obj098/verify
+      - name: Cross-check 190 geographic/polar/dateline/hole and reproducible random cases
+        run: |
+          timeout 260 /tmp/obj098/verify | tee /tmp/obj098/verification.jsonl
+          grep -F 'OBJ098_PARITY 190 ' /tmp/obj098/verification.jsonl
+          grep -F 'OBJ098_LARGE_GEOGRAPHIC_CONTAINMENT_MS ' /tmp/obj098/verification.jsonl
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: obj098-periodic-envelope-native-${{ github.sha }}
+          path: /tmp/obj098/verification.jsonl
+          retention-days: 14
+          if-no-files-found: warn
