@@ -8,7 +8,8 @@ import {createPhysicalSourceConfiguration,HYDRO_LAYER_META,HYDRO_TOOL_CONFIG,TER
 import {createMapOverlayLayers} from './map-workspace-host.js';
 import './polygon-clipping-core.js';
 import {MAP_OBJECT_CATEGORIES,MAP_OBJECT_TYPES} from './map-object-categories.js';
-import {DISTRIBUTION_MODES,DISTRIBUTION_RENDER_MODES} from './distribution-model.js';
+import {DISTRIBUTION_MODES,DISTRIBUTION_RENDER_MODES,distributionEntriesForLayer} from './distribution-model.js';
+import {buildSelectionBoundarySegments} from './selection-stroke-geometry.js';
 import {BASE_DATASET} from './initial-document.js';
 import {createMapObjectSpatialIndex} from './map-object-spatial-index.js';
 import { createObjectQuery } from './object-query.js';
@@ -41,7 +42,7 @@ import { createRingHitTester } from './ring-hit-test.js';
 import { layoutTerritorialFlags } from './territorial-label-flags.js';
 
 /** Viewer presentation adapter to the same GPU/Canvas renderer used by the editor. */
-export function createViewerMap({ owners,element, canvas, labelLayer, meta, projectDomain, documentSession, getPreferences, onError, onPlacesSettled, onStatus,closeActiveOverlay,isMobile }) {
+export function createViewerMap({ owners,element, canvas, labelLayer, meta, projectDomain, documentSession, getPreferences, onError, onPlacesSettled, onStatus,isSafeKoreanErrorMessage,isMobile }) {
   const d3 = globalThis.d3;
   if (!d3) throw new Error('지도 투영 라이브러리를 불러오지 못했습니다.');
   let renderingDomain=null;
@@ -86,9 +87,9 @@ export function createViewerMap({ owners,element, canvas, labelLayer, meta, proj
       hydroEditorName:objectPresentation.hydroEditorName,hydroFallbackName:value=>objectPresentation.hydroFallbackName(value),hydroCategoryLabel:value=>objectPresentation.hydroCategoryLabel(value),
 },
     distributionPresentation:{distributionColor:layer=>objectPresentation.distributionColor(layer)},
-    distributionServices:{distributionEntriesForLayer:(entries,id)=>entries.filter(entry=>entry.layerId===id)},
+    distributionServices:{distributionEntriesForLayer},
     selectionServices:{normalizeObjectRef},objectLookup:{distributionLayerById:id=>state.distributionLayers.find(layer=>String(layer.id)===String(id))},
-    layerPresentation:{ASSET_REVISION:meta.assetRevision,layerGroupNames:{distributions:'분포'}}};
+    layerPresentation:{ASSET_REVISION:meta.assetRevision,isLayerItemVisible:objectCatalog.isLayerItemVisible,layerGroupNames:{distributions:'분포'}}};
   objectPresentation.connect(readPorts);objectPresentation.initializeObjectPresentationModel();
   Object.assign(readPorts.colorModel,{territorialEntityColor:objectPresentation.territorialEntityColor,genericFeatureColor:objectPresentation.genericFeatureColor});
   const objectQuery=createObjectQuery(readPorts);
@@ -118,7 +119,7 @@ export function createViewerMap({ owners,element, canvas, labelLayer, meta, proj
     countries:builtinSession,builtinCountries:builtinSession,countryLabelModel:labelOwner,
     territorialModel:{entityRepository:repository},hydroPresentation:readPorts.hydroPresentation,hydroModel:{hydroFeatureById:hydroById},
     physicalResources,physicalServices:{isHydroFeatureVisible:physicalSettings.isHydroFeatureVisible},surfaces:{isMobile},
-    readinessUi:{isSafeKoreanErrorMessage:()=>false},mapHostViewB:{queueMapResize:()=>{if(renderingDomain)renderingDomain.invalidateViewport();}},
+    readinessUi:{isSafeKoreanErrorMessage},mapHostViewB:{queueMapResize:()=>{if(renderingDomain)renderingDomain.invalidateViewport();}},
     mapView:{get mapHost(){return mapHost.mapHost;}},domains:{get renderingDomain(){return renderingDomain;}},
     renderQuality,renderScene:{get currentRenderQuality(){return renderQuality.currentRenderQuality;}},
     feedback:{reportOperationError:onError,setActionStatus:onStatus}});
@@ -136,7 +137,7 @@ export function createViewerMap({ owners,element, canvas, labelLayer, meta, proj
     domains:{projectDomain},renderQuality,renderFactories:{createMapVisualFrame}});
   mapHost.initializeResolutionQuery();
 
-  navigation.connect({projectState:{state},platform:{d3,clamp},surfaces:{isMobile},countries:{validLabelAnchor:coord=>Array.isArray(coord)&&coord.length===2&&coord.every(Number.isFinite)},
+  navigation.connect({projectState:{state},platform:{d3,clamp},surfaces:{isMobile},countries:{validLabelAnchor:countryIndex.validLabelAnchor},
     mapNavigation:{normalizeMapSurfaceDragDelta,equirectangularCenterForAnchor,FLAT_LATITUDE_LIMIT,ZOOM_LIMITS},
     mapView:{get flatProjection(){return mapProjection.flatProjection;},get path(){return mapProjection.path;},updateProjection:()=>mapProjection.updateProjection(),
       activeProjection:()=>mapProjection.activeProjection(),screenToGeo:point=>mapProjection.screenToGeo(point),projectionLayoutMetrics:()=>mapProjection.projectionLayoutMetrics(),syncMapHostFromState:schedule},
@@ -146,7 +147,7 @@ export function createViewerMap({ owners,element, canvas, labelLayer, meta, proj
   spatialIndex.connect({projectState:{state,mapWorkScheduler},territorialModel:{entityRepository:repository},cutGeometry:{coordinateBounds},
     mapView:mapProjection,spatialFactories:{createMapObjectSpatialIndex},domains:{get renderingDomain(){return renderingDomain;}},surfaces:{isMobile},rendering:{get selectionPerformanceMetrics(){return selectionPerformanceMetrics;}}});
   spatialIndex.initializeGeometryBoundsCache();spatialIndex.initializeMapObjectSpatialIndex();spatialIndex.initializeViewportCullingMetrics();
-  Object.assign(readPorts,{navigation,objectModelB:{territorialScope},countries:{validLabelAnchor:coord=>Array.isArray(coord)&&coord.length>=2&&coord.every(Number.isFinite)},surfaces:{isMobile},feedback:{setActionStatus:onStatus}});
+  Object.assign(readPorts,{navigation,objectModelB:{territorialScope},countries:{validLabelAnchor:countryIndex.validLabelAnchor},surfaces:{isMobile},feedback:{setActionStatus:onStatus}});
   const countryPorts={projectState:{state,mapWorkScheduler},platform:{d3,deepClone:structuredClone,runtimeAssetUrl},
     countries:{builtinTerritorialScene:builtinSession.builtinTerritorialScene,territorialLabelFeatureById:builtinSession.territorialLabelFeatureById,
       PRISTINE_LABEL_ANCHORS:builtinSession.PRISTINE_LABEL_ANCHORS},
@@ -167,15 +168,15 @@ export function createViewerMap({ owners,element, canvas, labelLayer, meta, proj
   labelOwner.connect(labelPorts);labelOwner.initializeCountryOutlineCache();labelOwner.initializeLabelLayoutMetrics();labelOwner.initializeTerritorialLabelScreenAreas();
   const places=labelOwner.builtinPlaces;
   const svg=d3.select(labelLayer).attr('class','map-svg map-overlay-svg');
-  const {interactionSvg,territorialLabelLayer,labelLayer:userLabelLayer,hydroLakeLayer,hydroRiverLayer,hydroEditLayer,territorialUnitLayer,genericFeatureLayer,distributionLayer,hoverLayer,selectionLayer}=createMapOverlayLayers({map:d3.select(element),svg,productMode:'viewer'});
+  const {interactionSvg,territorialLabelLayer,labelLayer:userLabelLayer,hydroLakeLayer,hydroRiverLayer,hydroEditLayer,territorialUnitLayer,territorialBoundaryLayer,genericFeatureLayer,distributionLayer,hoverLayer,selectionLayer}=createMapOverlayLayers({map:d3.select(element),svg,productMode:'viewer'});
 
   const packets={currentGpuInteractionFillItems:[],currentGpuPreviewPackets:[],currentGpuEditPreviewPackets:[],currentGpuDraftPackets:[]};
 
   gpuScene.connect({projectState:{state},renderScene:{createRenderSceneBuilder,OVERLAY_GROUPS,get currentRenderQuality(){return renderQuality.currentRenderQuality;}},
     platform:{runtimeAssetUrl},countries:{get countryLandRevision(){return updateGeneration;}},mapLayout:{get viewRevision(){return mapHost.viewRevision;}},
     rendering:{gpuMapRenderer:renderer},mapLayers:{svg:d3.select(labelLayer)},mapHostViewB:{interactionSvg},interactionPresentation:packets,
-    interactionStateCommands:{replaceGpuInteractionFillItems:items=>{packets.currentGpuInteractionFillItems=items;},replaceGpuEditPreviewPackets:items=>{packets.currentGpuEditPreviewPackets=items;}},
-    domains:{get renderingDomain(){return renderingDomain;}},feedback:{reportOperationError:onError},
+    interactionStateCommands:{replaceGpuInteractionFillItems:items=>{packets.currentGpuInteractionFillItems=items;},replaceGpuEditPreviewPackets:items=>{packets.currentGpuEditPreviewPackets=items;},setHoverHit:hit=>{state.hoverHit=hit;}},
+    domains:{projectDomain,get selectionDomain(){return session.selectionDomain;},get renderingDomain(){return renderingDomain;}},surfaces:{isMobile},feedback:{reportOperationError:onError},
     selectionServices:{normalizeObjectRef},objectModelB:{territorialScope},presentation:objectPresentation,
     hydroModel:{hydroFeatureById:hydroById},territorialModel:{DISTRIBUTION_MODES},distributionServices:readPorts.distributionServices});
   gpuScene.initializeSelectionPass();gpuScene.initializeRenderSceneBuilder();gpuScene.initializeGpuSceneDomains();gpuScene.initializeGpuSceneResourceObjectKeys();
@@ -184,37 +185,36 @@ export function createViewerMap({ owners,element, canvas, labelLayer, meta, proj
   const commonResources={getState:()=>state,d3,svg:svg.node(),layerStyle,normalizeObjectRef,
     isLayerItemVisible:objectCatalog.isLayerItemVisible,selectionHas:selectionProxy.has,selectionSnapshot:()=>selectionProxy.snapshot().selection,
     visibleMapObjectCandidates:spatialIndex.visibleMapObjectCandidates,geometryMayIntersectViewport:spatialIndex.geometryMayIntersectViewport,
-    viewportCullingMetrics:spatialIndex.viewportCullingMetrics,mapClickBlocked:()=>state.projectReplacing,
-    handleObjectSelectionAt:selectAt,setMapHover:(_type,_id,feature,ref)=>{selectionProxy.setHover(feature?ref:null,{source:'map'}).catch(onError);},
+    viewportCullingMetrics:spatialIndex.viewportCullingMetrics,mapClickBlocked:pointerTargets.mapClickBlocked,
+    handleObjectSelectionAt:selectAt,setMapHover:gpuScene.setMapHover,
     selectionGeometryRevision:gpuScene.selectionGeometryRevision,gpuSceneOrder:gpuScene.gpuSceneOrder,replaceGpuSceneDomain:gpuScene.replaceGpuSceneDomain,buildRenderableStrokeFeature};
   const mapDisplay=createMapDisplayClient({getEntities:territorialScope.displayEntities,getRevision:()=>updateGeneration});
   renderingDomain=createRenderingDomain({gpuMapRenderer:renderer,sceneBuilder:gpuScene.renderSceneBuilder,projectDomain,selectionDomain:selectionProxy,
     domLayers:()=>({svg:labelLayer,interactionSvg,gpuCanvas:canvas}),prepareMapDisplay:mapDisplay.prepare,disposeMapDisplay:mapDisplay.dispose,
-    onMapDisplayReady:()=>renderingDomain.invalidateTerritorialPatch('display-ready'),
     labelResources:{...commonResources,svg,territorialLabelLayer,labelLayer:userLabelLayer,isMobile,
       automaticLabelSettings,labelSettings:(state,domain,id)=>state.labelSettings[labelKey(domain,id)]||{},
-      countryName:objectPresentation.territorialEntityName,getTerritorialLabelRef:id=>builtinSession.builtinTerritorialScene().labelRefs.get(String(id)),
+      countryName:objectPresentation.territorialEntityName,getTerritorialLabelRef:objectPicking.getTerritorialLabelRef,
       countryLabelAnchors:()=>countryIndex.countryLabelAnchors,labelKey,labelById,
       preparePlaces:()=>{labelOwner.preparePlaces().catch(onError);},beginPlaceInteraction:()=>{places.beginInteraction();onPlacesSettled('cancel');},
       handleMapClick:(point,options)=>objectPicking.handleMapClick(point,options)},
-    countryResources:{...commonResources,mapTheme:theme,getEntity:repository.get,countryOutlineFeature:feature=>feature,
+    countryResources:{...commonResources,mapTheme:theme,getEntity:repository.get,countryOutlineFeature:labelOwner.countryOutlineFeature,
       gpuMapRenderer:renderer,syncGpuRenderScene:gpuScene.syncGpuRenderScene},
     hydroResources:{...commonResources,hydroLakeLayer,hydroRiverLayer,hydroEditLayer,gpuMapRenderer:renderer,
-      isHydroFeatureVisible:physicalSettings.isHydroFeatureVisible,hydroDisplayColor:physicalSettings.hydroDisplayColor,hydroEditColor:physicalResources.hydroEditColor},
+      isHydroFeatureVisible:physicalSettings.isHydroFeatureVisible,hydroDisplayColor:physicalSettings.hydroDisplayColor,hydroEditColor:physicalResources.hydroEditColor,hydroRenderGroups:physicalResources.hydroRenderGroups},
     territorialResources:{...commonResources,territorialUnitLayer,displayEntities:territorialScope.displayEntities,entityRepository:repository,isNativeBuiltinSubunit:builtinSession.isNativeBuiltinSubunit,syncBuiltinPalette:builtinSession.syncBuiltinPalette},
     genericResources:{...commonResources,genericFeatureLayer,genericFeatureDisplayFeature:objectPresentation.genericFeatureDisplayFeature,genericFeatureColor:objectPresentation.genericFeatureColor},
     distributionResources:{...commonResources,distributionLayer,territorialEntityRepository:repository,featureFromGeometry:gpuScene.featureFromGeometry,
       geometryBounds:spatialIndex.geometryBounds,distributionColor:objectPresentation.distributionColor,DISTRIBUTION_MODES,DISTRIBUTION_RENDER_MODES,
       getCountryGeometryRevision:()=>updateGeneration,getDistributionVisibilityRevision:()=>state.objectPresentationRevision},
-    territorialBoundaryResources:{...commonResources,getCountryLandRevision:()=>updateGeneration,getTerritorialGeometryRevision:()=>updateGeneration,
+    territorialBoundaryResources:{...commonResources,territorialBoundaryLayer,getCountryLandRevision:()=>updateGeneration,getTerritorialGeometryRevision:()=>updateGeneration,
       geometryToken:geometryRevisionKey,territorialEntityColor:objectPresentation.territorialEntityColor,mapTheme:theme},
     selectionResources:{...commonResources,selectionLayer,hoverLayer,document,isMobile,gpuMapRenderer:renderer,
       resolvedInteractionStyle:()=>state.interactionStyle||resolveMapInteractionStyle(),territorialEntityById:repository.get,
-      territorialDisplayFeature:territorialScope.displayFeature,countryOutlineFeature:feature=>feature,
-      mapFeatureForObjectRef:gpuScene.mapFeatureForObjectRef,objectRefVisible:ref=>objectQuery.objectRefExists(ref),
+      territorialDisplayFeature:territorialScope.displayFeature,countryOutlineFeature:labelOwner.countryOutlineFeature,
+      mapFeatureForObjectRef:gpuScene.mapFeatureForObjectRef,objectRefVisible:objectQuery.objectRefVisible,buildSelectionBoundarySegments,
       buildGpuInteractionFillItems:gpuScene.buildGpuInteractionFillItems,syncGpuInteractionState:gpuScene.syncGpuInteractionState,
       setCurrentSelectionPacket:packet=>{gpuScene.currentSelectionPacket=packet;},getCurrentSelectionPacket:()=>gpuScene.currentSelectionPacket,
-      getCountryLandRevision:()=>updateGeneration,getStateRevision:()=>state.objectPresentationRevision,getViewRevision:()=>mapHost.viewRevision,getProjection:()=>state.projection},
+      getCountryLandRevision:()=>updateGeneration,getStateRevision:()=>state.objectPresentationRevision,getTerritorialBoundaryRevision:()=>renderingDomain.getTerritorialBoundaryStats().revision,getViewRevision:()=>mapHost.viewRevision,getProjection:()=>state.projection},
     interactionResources:{applyGpuInteractionCoverage:gpuScene.applyGpuInteractionCoverage},
     prepareView:options=>{
       state.size={width:Math.max(1,element.clientWidth),height:Math.max(1,element.clientHeight)};
@@ -300,7 +300,7 @@ export function createViewerMap({ owners,element, canvas, labelLayer, meta, proj
     },
     refreshAppearance(interactionStyle){state.interactionStyle=interactionStyle;buildScene();renderer.invalidatePhysicalStyle('user-preferences');},
 
-    fit:()=>navigation.resetView(),
+
     navigation,mapProjection,projectSession,renderingDomain,
     dispose(){disposed=true;entityStore.dispose();renderQuality.cancelGpuMeshRebuild();inputPresentation.dispose();pointerTargets.cancelCountryHoverPick();places.dispose();countryIndex.resetCountryLabelAnchorRuntime();observer.disconnect();renderingDomain.dispose();gpuScene.renderSceneBuilder.clear();},
   });

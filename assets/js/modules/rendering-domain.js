@@ -147,7 +147,7 @@ export function createRenderingDomain({
   const pendingHighlights = new Map();
   const content=createMapContentPresentation({countries,hydro,territorial,generic,distribution,territorialBoundary,base,projected,
     active,requireFrame,framePath,commitViewAttachedLayers:(...args)=>commitViewAttachedLayers(...args),
-    prepareMapDisplay,onMapDisplayReady,reportDiagnostic,isDisposed:()=>disposed});
+    prepareMapDisplay,onMapDisplayReady:handleMapDisplayReady,reportDiagnostic,isDisposed:()=>disposed});
   const {renderCountries,renderHydro,renderHydroEdits,renderTerritorialUnits,renderGenericFeatures,renderDistributions,
     renderBase,syncBaseView,renderProjectedOverlays,buildDistributionRenderRows,getTerritorialBoundaryStats}=content;
   const resetTerritorialBoundaryCache=()=>{pendingHighlights.clear();content.resetTerritorialBoundaryCache();};
@@ -266,6 +266,15 @@ export function createRenderingDomain({
     MAP_RENDER_DIRTY.LABEL_LAYOUT | MAP_RENDER_DIRTY.LABEL_POSITIONS | MAP_RENDER_DIRTY.VIEW_PRESENTATION,
     reason || 'labels',
   );
+  function handleMapDisplayReady(result = {}) {
+    if (disposed) return;
+    if (result.kind === 'highlight') invalidateSelection('highlight-ready');
+    else {
+      invalidateTerritorialPatch('map-display-ready');
+      invalidateGpuInteraction('map-display-ready');
+    }
+    onMapDisplayReady(result);
+  }
   const beginInteraction = reason => {
     active();
     placeInteractionActive = true;
@@ -704,7 +713,7 @@ export function createRenderingDomain({
         pending.then(response => {
           if (disposed || pendingHighlights.get(revision) !== pending) return;
           setLimitedSelectionCache(selectionBoundaryGeometryCache, revision, response.result.feature);
-          onMapDisplayReady({ kind: 'highlight' });
+          handleMapDisplayReady({ kind: 'highlight' });
         }).catch(error => {
           if (!error?.cancelled) selection.publishMetrics?.({ highlightPreparationError: String(error?.message || error) });
         }).finally(() => pendingHighlights.delete(revision));

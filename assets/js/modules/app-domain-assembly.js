@@ -239,8 +239,8 @@ export function createDomainAssembly() {
         editingDomain?.refreshEditingPresentation('selection-edit-target');
         selectionUiController?.sync?.(snapshot);
       },
-      onHoverChanged: snapshot => dependencies.platformConfigurationB.tooltipController.setMapHover(getTerritorialView(snapshot.hover)),
-      requestRender: reason => renderingDomain?.invalidateSelectionOverlay?.(reason) || false,
+      onHoverChanged: snapshot => dependencies.platformConfigurationB.tooltipController.setMapHover(snapshot.hover ? dependencies.objectOperationsA.objectDisplayInfo(snapshot.hover) : null),
+      requestRender: reason => renderingDomain ? renderingDomain.invalidateSelection(reason) : false,
     });
 
     objectPropertyController = (0, dependencies.uiFactoriesB.createObjectPropertyController)({
@@ -306,11 +306,12 @@ export function createDomainAssembly() {
       if (ref?.domain !== 'territorial') return null;
       const feature = territorialEntityRepository.get(ref.id);
       if (!feature || ref.type !== 'entity') return null;
-      const displayName = dependencies.objectPresentation.territorialEntityName(feature);
+      const info = dependencies.objectOperationsA.objectDisplayInfo(ref);
+      const displayName = info.name;
       const statusName = displayName;
       return { ref, id: String(feature.id), feature, properties: feature.properties, displayName, name: displayName,
         statusName,
-        flagUrl: dependencies.territorialServicesA.effectiveTerritorialFlagUrl(feature, { assetRevision: dependencies.layerPresentation.ASSET_REVISION }),
+        flagUrl: info.flagUrl,
         hasFlagOverride: Object.hasOwn(feature.properties?.metadata || {}, 'flagDataUrl') };
     };
     territorialPropertyController = (0, dependencies.uiFactoriesA.createTerritorialPropertyController)({
@@ -784,14 +785,6 @@ export function createDomainAssembly() {
       getRevision:()=>dependencies.projectState.state.stateRevision});
     renderingDomain = (0, dependencies.domainFactories.createRenderingDomain)({
       prepareMapDisplay:mapDisplay.prepare,disposeMapDisplay:mapDisplay.dispose,
-      onMapDisplayReady: result => {
-        if (result?.kind === 'highlight') {
-          renderingDomain?.invalidateSelectionOverlay?.('highlight-ready');
-          return;
-        }
-        renderingDomain?.invalidateTerritorialPatch?.('edit-display-ready');
-        renderingDomain?.invalidateGpuInteraction?.('edit-display-ready');
-      },
       context: domainContext,
       gpuMapRenderer: dependencies.rendering.gpuMapRenderer,
       sceneBuilder: dependencies.gpuRenderingA.renderSceneBuilder,

@@ -15,10 +15,10 @@ export function createObjectCommands() {
   function connect(ports) {
     if (dependencies) throw new Error('object-commands already connected');
     dependencies = ports;
-    ({objectForRef,isObjectAvailable,territorialEntityForRef,layerItemObjectRef,objectRefExists,objectDisplayInfo,focusObjectRef,layerGroupForObjectRef}=createObjectQuery({...ports,objectLookup:{distributionLayerById:ports.propertyEditingA.distributionLayerById}}));
+    ({objectForRef,isObjectAvailable,territorialEntityForRef,layerItemObjectRef,objectRefExists,objectRefVisible,objectDisplayInfo,focusObjectRef}=createObjectQuery({...ports,objectLookup:{distributionLayerById:ports.propertyEditingA.distributionLayerById}}));
   }
 
-  let objectForRef,isObjectAvailable,territorialEntityForRef,layerItemObjectRef,objectRefExists,objectDisplayInfo,focusObjectRef,layerGroupForObjectRef;
+  let objectForRef,isObjectAvailable,territorialEntityForRef,layerItemObjectRef,objectRefExists,objectRefVisible,objectDisplayInfo,focusObjectRef;
 
   function objectBatchCapabilities(value) {
     const ref = (0, dependencies.selectionServices.normalizeObjectRef)(value);
@@ -67,17 +67,6 @@ export function createObjectCommands() {
     if (ref.domain === 'generic') return dependencies.projectState.state.genericFeatures.find(item => String(item.id) === ref.id)?.properties?.locked === true;
     if (ref.domain === 'hydro') return (0, dependencies.hydroPresentation.hydroEditById)(ref.id)?.properties?.locked === true;
     return false;
-  }
-
-  function objectRefVisible(value) {
-    const ref = (0, dependencies.selectionServices.normalizeObjectRef)(value);
-    if (ref?.domain === 'hydro' && !(0, dependencies.hydroPresentation.hydroEditById)(ref.id)) {
-      const feature = (0, dependencies.hydroModel.hydroFeatureById)(ref.id);
-      const id = String(feature?.properties?.pandolab_id || feature?.id || ref.id);
-      return dependencies.projectState.state.physicalSettings.hiddenHydroIds?.[id] !== true;
-    }
-    const group = layerGroupForObjectRef(ref);
-    return !!(ref && group && (0, dependencies.layerPresentation.isLayerItemVisible)(group, ref.id));
   }
 
   function syncBatchActionAvailability(selection = dependencies.domains.selectionDomain.snapshot().selection) {
