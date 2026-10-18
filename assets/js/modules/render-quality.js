@@ -57,6 +57,13 @@ export function createRenderQuality({beforeMeshRebuild=null}={}) {
     return dependencies.preferences.resolvedInteractionStyle;
   }
 
+  function applyMapAppearanceChange({ reason = 'user-preferences', rerender = true } = {}) {
+    syncResolvedInteractionStyle({ redraw: rerender });
+    dependencies.rendering.gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, reason);
+    dependencies.rendering.gpuMapRenderer.invalidatePhysicalStyle(reason);
+    if (rerender) dependencies.domains.renderingDomain.invalidateBaseScene(reason);
+  }
+
   async function prepareCanonicalMesh({features=null,mesh=null,slotIds=[],dirtyIds=[],projectGeneration=dependencies.rendering.gpuMapRenderer.getProjectGeneration(),reason='canonical-mesh'}={}){
     const renderer=dependencies.rendering.gpuMapRenderer,revision=++meshRequestRevision;
     const current=()=>revision===meshRequestRevision&&renderer.getProjectGeneration()===projectGeneration;
@@ -112,7 +119,7 @@ export function createRenderQuality({beforeMeshRebuild=null}={}) {
   return Object.freeze({
     connect,
     initializeRenderQualityController,
-    initializeGpuRebuildTimer,prepareCanonicalMesh,
+    initializeGpuRebuildTimer,prepareCanonicalMesh,applyMapAppearanceChange,
     get applyAdaptiveRenderQuality() { return applyAdaptiveRenderQuality; },
     get cancelGpuMeshRebuild() { return cancelGpuMeshRebuild; },
     get currentRenderQuality() { return currentRenderQuality; },

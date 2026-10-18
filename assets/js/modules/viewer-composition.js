@@ -3,6 +3,7 @@ import {createApplicationLifecycle} from './application-lifecycle.js';
 import {createPreferencePresentation} from './preference-presentation.js';
 import {createMapOwners} from './map-owner-composition.js';
 import {saveUserPreferences} from './user-preferences.js';
+import {createDiagnosticLog} from './reliability-core.js';
 import {createNavigationBindings} from './navigation-bindings.js';
 import {createSelectController} from './select-controller.js';
 import {ZOOM_LIMITS,FLAT_LATITUDE_LIMIT} from './camera-navigation.js';
@@ -30,7 +31,8 @@ export async function composeViewer({ productMode, meta }) {
   if(productMode!=='viewer'||!meta?.assetRevision)throw new Error('실행 설정이 올바르지 않습니다.');
   const get=id=>document.getElementById(id),status=get('viewerStatus');
   let map,previousView,display;
-  const preferencePresentation=createPreferencePresentation({document,window,onChange:({interactionStyle})=>{if(map)map.refreshAppearance(interactionStyle);}});
+  const preferencePresentation=createPreferencePresentation({document,window,onChange:change=>{if(map)map.refreshAppearance(change);}});
+  const diagnostics=createDiagnosticLog({limit:250});
   const tooltipController=createTooltipController({document,window,tooltip:get('uiTooltip'),clamp:(value,min,max)=>Math.max(min,Math.min(max,value))});
   tooltipController.bind();
   const owners=createMapOwners({productMode,isObjectAvailable:(group,id)=>map.objectQuery.isObjectAvailable(map.objectQuery.layerItemObjectRef(group,id)),closeActiveOverlay:()=>surfaces.closeMobileSheets()});
@@ -58,11 +60,10 @@ export async function composeViewer({ productMode, meta }) {
   const activeSession=Object.freeze({...documentSession,projectDomain,selectionDomain,selectionUiController});
   surfaces.connect({platform:{$:id=>get(id==='app'?'viewer':id)},projectState:{get state(){return map.viewState;}},
     uiFactoriesB:{createSurfaceController},domains:{get objectSearchController(){return searchController;}},
-    mapHostViewB:{queueMapResize:()=>{map.mapProjection.refreshMapLayoutMetrics('panel-layout');map.renderingDomain.invalidateViewport();}},
+    mapHostViewB:{queueMapResize:()=>{owners.mapHost.queueMapResize('panel-layout');}},
     platformConfigurationB:{selectController},get mapNavigation(){return map.navigation;}});
   surfaces.initializeWorkspaceSurfaces();
-  map=createViewerMap({owners,element:get('map'),canvas:get('viewerCanvas'),labelLayer:get('viewerLabels'),meta,projectDomain,documentSession:activeSession,isMobile:()=>surfaces.isMobile(),onStatus:notifications.setActionStatus,isSafeKoreanErrorMessage:notifications.isSafeKoreanErrorMessage,getPreferences:()=>preferencePresentation.current,onPlacesSettled:action=>{if(action==='cancel')searchController.cancelSearch();else searchController.render(true);},onError:report});
-  map.refreshAppearance(preferencePresentation.interactionStyle);
+  map=createViewerMap({owners,element:get('map'),canvas:get('viewerCanvas'),labelLayer:get('viewerLabels'),meta,projectDomain,documentSession:activeSession,isMobile:()=>surfaces.isMobile(),diagnostics,getInteractionStyle:()=>preferencePresentation.interactionStyle,onStatus:notifications.setActionStatus,isSafeKoreanErrorMessage:notifications.isSafeKoreanErrorMessage,getPreferences:()=>preferencePresentation.current,onPlacesSettled:action=>{if(action==='cancel')searchController.cancelSearch();else searchController.render(true);},onError:report});
   const searchController=createAppObjectSearchController({window,document,getElement:get,state:map.viewState,
     objectSearchGroupKeys:map.objectPresentation.LAYER_SEARCH_GROUP_KEYS,listObjectSearchItems:map.objectCatalog.listObjectSearchItems,
     layerItemObjectRef:map.objectQuery.layerItemObjectRef,selectionDomain,
@@ -73,6 +74,7 @@ export async function composeViewer({ productMode, meta }) {
     selectObjectSearchItem:map.navigation.selectObjectSearchItem,focusObjectRef:map.objectQuery.focusObjectRef,
     closeSearchAfterSingleSelection:()=>surfaces.closeSurface('search')});
   searchController.bind();surfaces.applyLayoutMode({initial:true});
+  map.refreshAppearance({rerender:false});
   const search=()=>{map.objectCatalog.invalidateObjectPresentation();searchController.cancelSearch();searchController.render(true);};
   const disposeTimeline=installTimelineControls({document,window,getMonth:()=>activeSession?.commandOwner.state().timelineCursor,
     setMonth:async month=>{
@@ -104,14 +106,13 @@ export async function composeViewer({ productMode, meta }) {
   display.connect({
     platform:{$:id=>get(id==='app'?'viewer':id),deepClone:structuredClone,clamp:(value,min,max)=>Math.max(min,Math.min(max,value))},
     mapView:{...map.mapProjection,syncMapHostFromState:()=>map.renderingDomain.invalidateView()},mapNavigation:{ZOOM_LIMITS,FLAT_LATITUDE_LIMIT},
-    navigation:map.navigation,projectSession:map.projectSession,domains:{renderingDomain:map.renderingDomain},feedback:{reportOperationError:report},
+    navigation:map.navigation,projectSession:map.projectSession,domains:{renderingDomain:map.renderingDomain,objectSearchController:searchController},rendering:{gpuMapRenderer:map.renderer},objectDisplay:map.objectCatalog,distributionPresentation:map.distributionPresentation,feedback:{reportOperationError:report},
     projectState:{get state(){return map.displayState();}},
-    objectModelA:{expandedMapDisplayGroups:new Set()},territorialModel:{entityRepository:map.entityRepository},
+    objectModelA:{expandedMapDisplayGroups:map.objectPresentation.expandedMapDisplayGroups},territorialModel:{entityRepository:map.entityRepository},
     applicationServicesB:{layerStyle},applicationConstantsA:{DISTRIBUTION_RENDER_MODES},
     preferences:{saveUserPreferences,get userPreferences(){return preferencePresentation.current;},setUserPreferences:value=>{preferencePresentation.current=value;}},
     readinessUi:{syncStatusBar:selectionUiController.sync},
-    hydroModel:{syncRangeProgress:input=>input.style.setProperty('--range-progress',`${input.value}%`),
-      syncPhysicalControls:()=>{const physical=map.physicalSettings();for(const input of document.querySelectorAll('[name="terrainStyle"]'))input.checked=input.value===(physical.terrainVisible?physical.terrainStyle:'none');}},
+    hydroModel:owners.hydroSettings,
     workspaceUiA:surfaces,
   });
   display.initializeLAYER_STYLE_TARGETS();
@@ -125,7 +126,7 @@ export async function composeViewer({ productMode, meta }) {
     applyPreferences:value=>preferencePresentation.apply(value,{persist:false}),beforeOpen:()=>surfaces.closeFileMenu()});
   globalThis.__PANDOLAB_VIEWER__=Object.freeze({productMode,documentState:()=>activeSession?.commandOwner.state(),
     documentSnapshot:()=>activeSession?.documentModel.snapshot(),selectionSnapshot:()=>activeSession?.selectionDomain.snapshot().selection,
-    presentationState:()=>map.capturePresentation(),rendererStats:()=>map.renderer.getStats(),openFile:file=>open(()=>readProjectFile(file))});
+    presentationState:()=>map.capturePresentation(),diagnostics:diagnostics.snapshot,rendererStats:()=>map.renderer.getStats(),openFile:file=>open(()=>readProjectFile(file))});
   const lifecycle=createApplicationLifecycle({window,startup:()=>open(()=>map.prepareBuiltinProject(),{source:'builtin'}),
     getDisposables:()=>[{dispose:disposeTimeline},preferencePresentation,surfaces,notifications,searchController,map,selectionUiController,selectionDomain,projectDomain,documentSession.commandOwner],
     onError:error=>{status.textContent='지도를 열지 못했습니다.';report(error,'지도를 열지 못했습니다.','PL-MAP-START');},reportDisposeError:error=>console.error('[PL-DISPOSE]',error)});

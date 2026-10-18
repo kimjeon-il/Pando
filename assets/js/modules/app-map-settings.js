@@ -37,6 +37,7 @@ export function createMapSettings({ viewPresentation = null,afterProjectionChang
   }
 
   async function executePresentation(payload) {
+    if (viewPresentation) return viewPresentation.applyPresentation(payload);
     const project = requireProjectOwner();
     const generation = project.getGeneration();
     const result = await project.executeCommand({ commandId: 'presentation.apply', targets: [], payload: structuredClone(payload) });
@@ -100,7 +101,6 @@ export function createMapSettings({ viewPresentation = null,afterProjectionChang
   }
 
   async function setLayerVisibility(key, visible) {
-    if(viewPresentation){await viewPresentation.applyPresentation({action:'visibility',key,visible});renderMapDisplaySettings();return true;}
     if (!await executePresentation({ action: 'visibility', key, visible })) return false;
     if (!isDesktopViewMenu() && !SYMBOL_VISIBILITY_KEYS.has(key) && key !== 'labels') {
       if (visible) dependencies.objectModelA.expandedMapDisplayGroups.add(key);
@@ -141,7 +141,6 @@ export function createMapSettings({ viewPresentation = null,afterProjectionChang
   }
 
   async function updateLayerPresentationStyle(group, patch) {
-    if(viewPresentation){await viewPresentation.applyPresentation({action:'groupStyle',group,patch});renderMapDisplaySettings();return true;}
     const target = LAYER_STYLE_TARGETS[group];
     if (!target) return false;
     if (!await executePresentation({ action: 'groupStyle', group: target.presentationGroup, patch })) return false;
@@ -157,8 +156,8 @@ export function createMapSettings({ viewPresentation = null,afterProjectionChang
   }
 
   async function setTerrainMode(mode) {
-    if(viewPresentation){await viewPresentation.setTerrain(mode);renderMapDisplaySettings();return true;}
-    if (!await executePresentation({ action: 'terrainMode', mode })) return false;
+    const physicalSettings = dependencies.hydroModel.terrainModeSettings(mode);
+    if (!await executePresentation({ action: 'terrainMode', mode, physicalSettings })) return false;
     dependencies.rendering.gpuMapRenderer.invalidatePhysicalStyle('terrain-mode');
     (0, dependencies.hydroModel.syncPhysicalControls)();
     syncMapDisplayDisclosures();
@@ -168,7 +167,6 @@ export function createMapSettings({ viewPresentation = null,afterProjectionChang
   }
 
   async function setDistributionControl(action, value, reason) {
-    if(viewPresentation){await viewPresentation.applyPresentation({action,value});renderMapDisplaySettings();return true;}
     if (!await executePresentation({ action, value })) return false;
     if (action === 'distributionActiveLayer') dependencies.distributionPresentation.bumpVisibilityRevision();
     syncDistributionPresentationControls();

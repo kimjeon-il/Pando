@@ -77,9 +77,7 @@ export function createEnvironment() {
 
   function onPreferenceChange({reason,rerender}){
     if(!dependencies.mapLayers.svg)return;
-    dependencies.preferences.syncResolvedInteractionStyle({redraw:rerender});
-    dependencies.rendering.gpuMapRenderer.invalidateCountryPalette({base:true,emphasis:true},reason);
-    dependencies.rendering.gpuMapRenderer.invalidatePhysicalStyle(reason);
+    dependencies.preferences.applyMapAppearanceChange({reason,rerender});
     if (dependencies.projectState.state?.selected?.domain === 'territorial' && (dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.selected?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.selected?.id)?.properties.parentId)) {
       const id = String(dependencies.projectState.state.selected.id);
       const feature = dependencies.territorialModel.entityRepository.get(id);
@@ -93,7 +91,6 @@ export function createEnvironment() {
     }
     dependencies.objectDisplay.invalidateObjectPresentation();
     dependencies.domains.objectSearchController?.render();
-    if(rerender)dependencies.domains.renderingDomain.invalidateBaseScene(reason);
   }
 
   function runtimeAssetUrl(relativePath) {

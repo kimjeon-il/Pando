@@ -3,7 +3,7 @@ import { mapVisualRank } from './layer-presentation.js';
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createMapHost() {
+export function createMapHost({productMode='editor'}={}) {
   let dependencies;
   let svg;
   let interactionSvg;
@@ -207,6 +207,42 @@ export function createMapHost() {
     }
   }
 
+  function attachMapOutput({overlaySvg,gpuCanvas}) {
+    svg = overlaySvg;
+    mapHost?.destroy?.();
+    mapHost = createPreferredMapHost((0, dependencies.platform.$)('map'));
+    dependencies.rendering.gpuMapRenderer.attach(gpuCanvas);
+    const handleSelectionRenderError = ({ stage = 'selection-overlay-render', channel = '', error } = {}) => {
+      if (dependencies.domains.renderingDomain?.recordSelectionRenderError) {
+        dependencies.domains.renderingDomain.recordSelectionRenderError({ stage, error });
+      } else {
+        dependencies.readiness.reliabilityDiagnostic.push({
+          category: 'render',
+          operation: 'selection-overlay-render',
+          result: 'recovered',
+          channel,
+          technicalMessage: String(error?.message || error || stage),
+          stack: error?.stack || '',
+        });
+      }
+    };
+    dependencies.mapHostCommands.installSelectionPass((0, dependencies.renderFactories.createSelectionPass)({
+      onRenderError: handleSelectionRenderError,
+    }));
+    dependencies.rendering.gpuMapRenderer.setSelectionPass?.(dependencies.gpuRenderingA.selectionPass);
+    (0, dependencies.preferences.syncResolvedInteractionStyle)();
+  }
+
+  function stopMapResizeObserver() {
+    mapResizeObserver?.disconnect();
+    window.visualViewport?.removeEventListener('resize', handleVisualViewportResize);
+    if (mapResizeFrame) cancelAnimationFrame(mapResizeFrame);
+    mapResizeFrame = 0;
+    resolutionQuery?.removeEventListener('change', watchDevicePixelRatio);
+    resolutionQuery = null;
+    mapHost?.destroy?.();
+  }
+
   function initSvg() {
     const mapEl = (0, dependencies.platform.$)('map');
     const map = dependencies.platform.d3.select(mapEl);
@@ -227,32 +263,11 @@ export function createMapHost() {
     oceanLayer = baseRoot.append('circle').attr('class', 'map-ocean map-ocean-globe');
     shadowLayer = baseRoot.append('circle').attr('class', 'globe-shadow');
 
-    mapHost = createPreferredMapHost(mapEl);
     const gpuCanvas = document.createElement('canvas');
     gpuCanvas.className = 'gpu-map-canvas';
     mapEl.appendChild(gpuCanvas);
-    dependencies.rendering.gpuMapRenderer.attach(gpuCanvas);
-
     svg = map.append('svg').attr('class', 'map-svg map-overlay-svg');
-    const handleSelectionRenderError = ({ stage = 'selection-overlay-render', channel = '', error } = {}) => {
-      if (dependencies.domains.renderingDomain?.recordSelectionRenderError) {
-        dependencies.domains.renderingDomain.recordSelectionRenderError({ stage, error });
-      } else {
-        dependencies.readiness.reliabilityDiagnostic.push({
-          category: 'render',
-          operation: 'selection-overlay-render',
-          result: 'recovered',
-          channel,
-          technicalMessage: String(error?.message || error || stage),
-          stack: error?.stack || '',
-        });
-      }
-    };
-    dependencies.mapHostCommands.installSelectionPass((0, dependencies.renderFactories.createSelectionPass)({
-      onRenderError: handleSelectionRenderError,
-    }));
-    dependencies.rendering.gpuMapRenderer.setSelectionPass?.(dependencies.gpuRenderingA.selectionPass);
-    (0, dependencies.preferences.syncResolvedInteractionStyle)();
+    attachMapOutput({overlaySvg:svg,gpuCanvas});
     ({interactionSvg,mapInteractionLayer,countryLayer,hydroLakeLayer,hydroRiverLayer,hydroEditLayer,boundaryEditLayer,overlayStackLayer,territorialBoundaryLayer,territorialUnitLayer,distributionLayer,genericFeatureLayer,hoverLayer,selectionLayer,previewLayer,validationLayer,vertexLayer,draftLayer,snapLayer,territorialOperationLayer,territorialLabelLayer,labelLayer}=createMapOverlayLayers({map,svg}));
 
     dependencies.mapHostCommands.installMapInputController(dependencies.lifecycleUi.mapInputPresentation.bindSvg(svg));
@@ -281,16 +296,19 @@ export function createMapHost() {
     queueMapResize('dpr-change');
   }
 
+  function handleVisualViewportResize() {
+    (0, dependencies.workspaceUiB.refreshMapSheetMetrics)();
+    queueMapResize('visual-viewport-resize');
+  }
+
   function startMapResizeObserver() {
     mapResizeObserver?.disconnect?.();
+    window.visualViewport?.removeEventListener('resize', handleVisualViewportResize);
     if (typeof ResizeObserver === 'function') {
       mapResizeObserver = new ResizeObserver(() => queueMapResize('resize-observer'));
       mapResizeObserver.observe((0, dependencies.platform.$)('map'));
     }
-    window.visualViewport?.addEventListener?.('resize', () => {
-      (0, dependencies.workspaceUiB.refreshMapSheetMetrics)();
-      queueMapResize('visual-viewport-resize');
-    });
+    window.visualViewport?.addEventListener('resize', handleVisualViewportResize);
     watchDevicePixelRatio();
   }
 
@@ -301,7 +319,7 @@ export function createMapHost() {
     const { width, height } = layout;
     const signature = layout.projectionSignature;
     if (signature === mapResizeSignature) {
-      (0, dependencies.taskPresentation.syncMapHudBounds)();
+      if (productMode === 'editor') (0, dependencies.taskPresentation.syncMapHudBounds)();
       return false;
     }
     mapResizeSignature = signature;
@@ -320,7 +338,7 @@ export function createMapHost() {
     mapHost?.resize?.();
     dependencies.rendering.gpuMapRenderer.resize();
     dependencies.domains.renderingDomain?.invalidateViewport?.('resize');
-    (0, dependencies.taskPresentation.syncMapHudBounds)();
+    if (productMode === 'editor') (0, dependencies.taskPresentation.syncMapHudBounds)();
     requestAnimationFrame(() => dependencies.rendering.gpuMapRenderer.verifyLayout());
     return true;
   }
@@ -362,7 +380,7 @@ export function createMapHost() {
   }
 
   return Object.freeze({
-    connect,
+    connect,attachMapOutput,stopMapResizeObserver,
     prepareVisualFrame,
     initializeSvg,
     initializeValidationLayer,

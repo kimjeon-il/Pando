@@ -331,6 +331,7 @@ function createMapResourcePorts(providers) {
       get saveUserPreferences() { return providers.runtime.saveUserPreferences; },
       setUserPreferences: value => { providers.environment.userPreferences = value; },
       get syncResolvedInteractionStyle() { return providers.renderQuality.syncResolvedInteractionStyle; },
+      get applyMapAppearanceChange() { return providers.renderQuality.applyMapAppearanceChange; },
       get systemTheme() { return providers.environment.systemTheme; },
       get userPreferences() { return providers.environment.userPreferences; },
     }),

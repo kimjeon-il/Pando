@@ -59,6 +59,12 @@ export function createHydroSettings() {
     input.style.setProperty('--ui-range-progress', `${progress}%`);
   }
 
+  function terrainModeSettings(mode) {
+    if (!['none', 'physical', 'political'].includes(mode)) throw new TypeError(`Unknown terrain mode: ${mode}`);
+    const settings = dependencies.projectState.state.physicalSettings;
+    return { ...settings, terrainVisible: mode !== 'none', ...(mode === 'none' ? {} : { terrainStyle: mode }) };
+  }
+
   function syncPhysicalControls() {
     const terrainVisible = dependencies.projectState.state.physicalSettings.terrainVisible !== false;
     if ((0, dependencies.platform.$)('terrainNoneRadio')) (0, dependencies.platform.$)('terrainNoneRadio').checked = !terrainVisible;
@@ -192,6 +198,7 @@ export function createHydroSettings() {
     get normalizeHydroEditCollection() { return normalizeHydroEditCollection; },
     get normalizePhysicalSettings() { return normalizePhysicalSettings; },
     get syncPhysicalControls() { return syncPhysicalControls; },
+    terrainModeSettings,
     get syncRangeProgress() { return syncRangeProgress; },
   });
 }
