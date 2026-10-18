@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import vm from 'node:vm';
-import { createPointerTargets } from '../../assets/js/modules/app-pointer-targets.js';
-import { createGpuScene } from '../../assets/js/modules/app-gpu-scene.js';
+import { createPointerTargets } from '../../assets/js/modules/pointer-targets.js';
+import { createGpuScene } from '../../assets/js/modules/gpu-scene.js';
 import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
 
 const ref = id => normalizeObjectRef({ domain: 'territorial', type: 'entity', id });
@@ -28,7 +28,7 @@ function pointers(t) {
   const state = { tool: 'select', mapMoving: false }, layout = { viewRevision: 1 }, draft = { dragging: false };
   t.mock.method(globalThis,'setTimeout',(callback,delay) => { assert.equal(delay,50);const token={};timers.set(token,callback);return token; });
   t.mock.method(globalThis,'clearTimeout',token => timers.delete(token));
-  const owner = createPointerTargets();
+  const owner = createPointerTargets({isDraggingDraft:()=>draft.dragging});
   owner.connect({ domains: { selectionDomain: queue, projectDomain: { getGeneration: () => generation } },
     projectState: { state }, mapLayout: layout, draftPresentation: { editingDraftSnapshot: () => draft },
     objectPicking: { territorialObjectsAt: () => { if(pickingFailure)throw pickingFailure;return picked ? [picked] : []; } },
@@ -131,7 +131,7 @@ test('missing Core hover dependencies fail through the responsible operation and
 });
 
 function labelHandlers() {
-  const source=readFileSync(new URL('../../assets/js/modules/rendering-domain.js',import.meta.url),'utf8');
+  const source=readFileSync(new URL('../../assets/js/modules/label-presentation.js',import.meta.url),'utf8');
   const start=source.indexOf("    enter.on('mouseenter.hover'",source.indexOf('  const renderUserLabels ='));
   const end=source.indexOf("    enter.append('circle')",start),handlers={},queue=acknowledgements(),diagnostics=[];
   const enter={on(type,handler){handlers[type]=handler;return enter;}};

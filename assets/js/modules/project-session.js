@@ -1,20 +1,22 @@
+import { createMapWorkScheduler } from './map-work-scheduler.js';
 import { createEmptyTerritorialState } from './territorial-entity-store.js';
 import { createInitialDocument } from './initial-document.js';
-import { TERRAIN_RASTER_VERSION } from './terrain-manifest.js';
 const readonlyIds=ids => Object.freeze({ get size() { return ids.length; },has: id => ids.includes(id),
   [Symbol.iterator]: () => ids[Symbol.iterator]() });
 /** ProjectSession: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createProjectSession() {
+export function createProjectSession({productMode='editor'}={}) {
+  if(!['viewer','editor'].includes(productMode))throw new TypeError('Project session requires immutable product mode.');
+  const viewingFields=new Set(['layerVisibility','layerPresentation','itemVisibility','physicalSettings','distributionSettings']);
+  let viewingPresentation=null,documentProjection=null;
   let dependencies;
   let mapWorkScheduler;
   let DEFAULT_LAYER_VISIBILITY;
   let state;
   let atomicMapStateController;
   let saveState;
-  let objectChooserCandidates;
   let projectionInstalled=false;
   function connect(ports) {
     if (dependencies) throw new Error('project-session already connected');
@@ -31,40 +33,7 @@ export function createProjectSession() {
   }
 
   function initializeMapWorkScheduler() {
-    (mapWorkScheduler = (() => {
-      let interactionActive = false;
-      const jobs = new Map();
-      function cancel(key) {
-        const job = jobs.get(key);
-        if (!job) return;
-        clearTimeout(job.timer);
-        if (job.idleId && typeof cancelIdleCallback === 'function') cancelIdleCallback(job.idleId);
-        jobs.delete(key);
-      }
-      function scheduleIdle(key, task, delay = 0) {
-        cancel(key);
-        const job = { task, delay, timer: 0, idleId: 0 };
-        const queue = () => {
-          if (interactionActive) {
-            job.timer = setTimeout(queue, 180);
-            return;
-          }
-          const run = () => {
-            if (jobs.get(key) !== job || interactionActive) return queue();
-            jobs.delete(key);
-            task();
-          };
-          if (typeof requestIdleCallback === 'function') job.idleId = requestIdleCallback(run, { timeout: 1800 });
-          else job.timer = setTimeout(run, 0);
-        };
-        job.timer = setTimeout(queue, delay);
-        jobs.set(key, job);
-      }
-      function setInteractionActive(active) {
-        interactionActive = !!active;
-      }
-      return { scheduleIdle, cancel, setInteractionActive, isInteractionActive: () => interactionActive };
-    })());
+    mapWorkScheduler=createMapWorkScheduler();
 
     (DEFAULT_LAYER_VISIBILITY = Object.freeze({
       countries: true,
@@ -172,7 +141,7 @@ export function createProjectSession() {
       historyDirtyEntityIds: readonlyIds(Object.freeze([])),
       pendingCountryRenderIds: new Set(),
       autosaveMode: 'delta',
-      geometryPreview: (0, dependencies.applicationFactories.createGeometryPreviewState)(),
+      geometryPreview: productMode==='editor'?(0, dependencies.applicationFactories.createGeometryPreviewState)():null,
       modeProcessing: false,
       modeTaskMinimized: false,
       audit: { status: 'idle', revision: 0, report: null, selectedIssueId: null },
@@ -199,23 +168,29 @@ export function createProjectSession() {
       },
     }));
 
-    (saveState = (0, dependencies.uiFactoriesB.createSaveStateController)({
+    if(productMode==='editor')(saveState = (0, dependencies.uiFactoriesB.createSaveStateController)({
       getDocumentState: () => dependencies.domains.commandOwner?.state() ?? null,
       onChange: (...args) => dependencies.lifecycleUi.projectUi.syncSaveStatus(...args) }));
 
-    (objectChooserCandidates = []);
   }
+
+  function setViewingPresentation(patch={}, {reset=false}={}){
+    if(productMode!=='viewer')throw new Error('Viewing presentation overrides are not registered in the editor.');
+    if(!documentProjection)throw new Error('The accepted document projection is required.');
+    for(const field of Object.keys(patch))if(!viewingFields.has(field))throw new TypeError(`Unknown viewing state: ${field}`);
+    if(reset||!viewingPresentation)viewingPresentation=Object.fromEntries([...viewingFields].map(field=>[field,structuredClone(documentProjection.snapshot()[field])]));
+    for(const [field,value] of Object.entries(patch))viewingPresentation[field]=structuredClone(value);
+    viewingPresentation.layerVisibility=normalizeLayerVisibility(viewingPresentation.layerVisibility);
+    return viewingPresentation;
+  }
+  const captureViewingPresentation=()=>structuredClone(viewingPresentation);
 
   // A detached, empty startup input. C++ validates and owns it before any
   // preview/canonical source or editable UI is admitted.
   function initialDocument() {
     return createInitialDocument({ appVersion: dependencies.platformConfigurationA.APP_VERSION,
       baseDataset: dependencies.platformConfigurationA.BASE_DATASET, state,
-      physicalSourceInfo: {
-        terrain: { dataset: dependencies.platformConfigurationB.TERRAIN_DATASET,version: TERRAIN_RASTER_VERSION },
-        hydro: { dataset: dependencies.platformConfigurationA.HYDRO_DATASET,version: dependencies.platformConfigurationA.APP_VERSION,
-          coordinatePolicy: 'selected source coordinates retained without simplification',selection: {} },
-      } });
+    });
   }
 
   function installDocumentProjection({ documentModel,commandOwner,entityStore }) {
@@ -236,9 +211,11 @@ export function createProjectSession() {
       if(ids!==dirtyIdsSource) { dirtyIdsSource=ids;dirtyIdsProjection=readonlyIds(ids); }
       return dirtyIdsProjection;
     };
+    documentProjection=documentModel;
+    if(productMode==='viewer')setViewingPresentation({}, {reset:true});
     const properties=Object.fromEntries(['sourceInfo','labels','labelSettings','genericFeatures','hydroEdits','distributionLayers',
       'distributionEntries','distributionSettings','physicalSettings','layerVisibility','itemVisibility','layerPresentation','timelineRecords']
-      .map(name => [name,{ enumerable: true,get: () => documentModel.snapshot()[name] }]));
+      .map(name => [name,{ enumerable: true,get: () => productMode==='viewer'&&viewingFields.has(name)?viewingPresentation[name]:documentModel.snapshot()[name] }]));
     Object.assign(properties,{ territorialEntities: { enumerable: true,get: entityStore.snapshot },geometries: { enumerable: true,get: () => geometries },
       stateRevision: { enumerable: true,get: () => coreState().stateRevision },timelineCursor: { enumerable: true,get: () => coreState().timelineCursor },
       historyDirtyEntityIds: { enumerable: true,get: historyDirtyEntityIds } });
@@ -251,11 +228,10 @@ export function createProjectSession() {
     initializeMapWorkScheduler,
     initialDocument,
     installDocumentProjection,
+    ...(productMode==='viewer'?{setViewingPresentation,captureViewingPresentation}:{}),
     get atomicMapStateController() { return atomicMapStateController; },
     get mapWorkScheduler() { return mapWorkScheduler; },
     get normalizeLayerVisibility() { return normalizeLayerVisibility; },
-    get objectChooserCandidates() { return objectChooserCandidates; },
-    set objectChooserCandidates(value) { objectChooserCandidates = value; },
     get saveState() { return saveState; },
     get state() { return state; },
   });

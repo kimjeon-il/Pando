@@ -5,9 +5,9 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 const read = relativePath => readFileSync(new URL(`../../${relativePath}`, import.meta.url), 'utf8');
-const app = readApplicationOwners('runtime-dependencies', 'domain-assembly', 'territorial-labels', 'render-quality', 'gpu-scene', 'workspace-surfaces', 'map-host');
-const rendering = read('assets/js/modules/rendering-domain.js');
-const gpuScene = read('assets/js/modules/app-gpu-scene.js');
+const app = read('assets/js/modules/mobile-sheet-presentation.js')+readFileSync(new URL('../../assets/js/modules/app-runtime-dependencies.js',import.meta.url),'utf8')+readApplicationOwners('domain-assembly', 'territorial-labels', 'render-quality', 'gpu-scene', 'workspace-surfaces', 'map-host');
+const rendering = read('assets/js/modules/map-content-presentation.js')+read('assets/js/modules/rendering-domain.js');
+const gpuScene = read('assets/js/modules/gpu-scene.js');
 const coordinator = read('assets/js/modules/map-render-coordinator.js');
 const gpuRenderer = read('assets/js/modules/gpu-map-renderer.js');
 const terrainPreparation = read('assets/js/modules/gpu-terrain-preparation.js');

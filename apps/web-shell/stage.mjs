@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
 import { tinyFixture, SOURCE_MONTH } from './fixture.mjs';
 import { installNetworkGuard } from './network-guard.js';
-import { buildFullWorldAssetPlan } from './world-data-plan.mjs';
+import { loadFullWorldAssetPlan } from './world-data-plan.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repository = resolve(here, '../..');
@@ -115,22 +115,8 @@ async function stageOwnedPrototype({ root, profile }) {
       mode: profile, historicalWorld, countriesUrl: './fixture-countries.json',
     }));
   } else {
-    const metaSource = await readFile(join(root, 'assets/js/build-meta.js'), 'utf8');
-    const metaLiteral = metaSource.match(/Object\.freeze\((\{[\s\S]*\})\);\s*$/)?.[1];
-    if (!metaLiteral) throw new Error('Current published build metadata is required for the full world.');
-    const meta = JSON.parse(metaLiteral);
-    const loadManifest = async path => JSON.parse(await readFile(join(root, path), 'utf8'));
-    const plan = buildFullWorldAssetPlan({
-      meta,
-      world: await loadManifest('assets/data/world/current.json'),
-      historical: await loadManifest('assets/data/historical-world/generated/v1/manifest.json'),
-      library: await loadManifest('assets/data/territorial-entities/generated/v2/index.json'),
-      prepared: await loadManifest('assets/data/prepared-polygons/generated/v2/manifest.json'),
-      terrain: await loadManifest('assets/data/terrain-preview/v0.13.3-p1/manifest.json'),
-      hydro: await loadManifest('assets/data/hydro/v0.13.2/manifest.json'),
-      places: await loadManifest('assets/data/places/manifest.json'),
-    });
-    const dataRoot = await realpath(resolve(root, 'assets/data'));
+     const {plan,meta}=await loadFullWorldAssetPlan(path=>readFile(join(root,path),'utf8'));
+   const dataRoot = await realpath(resolve(root, 'assets/data'));
     let packagedBytes = 0;
     for (const item of plan.entries) {
       const actual = await realpath(resolve(root, item.path));

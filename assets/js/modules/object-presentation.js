@@ -1,3 +1,8 @@
+export function hydroEditorName(value, fallback) {
+    const name = String(value || '').trim();
+    if (/^미명명 수계(?:\s+\d+)?$/.test(name)) return fallback;
+    return name || fallback;
+  }
 import { resolveTerritorialColor } from './color-adapter.js';
 /** ObjectPresentation: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
@@ -169,6 +174,7 @@ export function createObjectPresentation() {
 
   return Object.freeze({
     connect,
+    hydroEditorName,
     initializeTerritorialScope,
     initializeObjectPresentationModel,
     get LAYER_GROUP_KEYS() { return LAYER_GROUP_KEYS; },

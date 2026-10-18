@@ -1,27 +1,19 @@
 import { projectedPointDistance, projectedLineDistance as screenLineDistance, geometryHitsScreenPoint as screenGeometryHit } from './geometry-screen-hit.js';
 import { layerObjectRank, territorialSymbolGroup } from './layer-presentation.js';
-import { createTerritorialFeature } from './territorial-units.js';
 /** ObjectPicking: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createObjectPicking() {
+export function createObjectPicking({handleEditingClick=null,onBackgroundClear=null,openEditor=false,performanceRecorder=null,closeActiveOverlay=null}={}) {
   let dependencies;
   let objectPickRevision = 0;
   let objectChooserPresentationRevision = 0;
+  let chooserCandidates=[];
   let objectChooserIntentMode = 'replace';
 
   function connect(ports) {
     if (dependencies) throw new Error('object-picking already connected');
     dependencies = ports;
-  }
-
-  function createCountryFeature(name, rawRing, geometryOverride = null) {
-    const id = (0, dependencies.surfaces.uid)('USR');
-    const geometry = geometryOverride
-      ? (0, dependencies.platform.deepClone)(geometryOverride)
-      : { type: 'Polygon', coordinates: [(0, dependencies.applicationServicesB.orientRing)(rawRing, true)] };
-    return createTerritorialFeature({ id, entityKind: 'general', name, geometry });
   }
 
   function projectedLineDistance(geometry, screenPoint) {
@@ -40,7 +32,7 @@ export function createObjectPicking() {
 
   function objectRefSelectable(value) {
     const ref = (0, dependencies.selectionServices.normalizeObjectRef)(value);
-    if (!ref || !(0, dependencies.objectLookup.objectRefExists)(ref)) return false;
+    if (!ref || !dependencies.objectLookup.objectRefExists(ref) || !dependencies.objectLookup.isObjectAvailable(ref)) return false;
     if (ref.domain === 'territorial') {
       const group = territorialSymbolGroup(dependencies.territorialModel.entityRepository.get(ref.id));
       return dependencies.projectState.state.layerVisibility[group] !== false && (0, dependencies.layerPresentation.isLayerItemVisible)(group, ref.id);
@@ -111,7 +103,7 @@ export function createObjectPicking() {
     territorialObjectsAt(screenPoint, coord, indexed).forEach(item => add(item.ref));
     for (const entry of indexed) {
       if (entry.domain === 'label') {
-        if (!dependencies.projectState.state.layerVisibility.labels || !(0, dependencies.layerPresentation.isLayerItemVisible)('labels', entry.id)) continue;
+        if (dependencies.projectState.state.layerVisibility.labels===false || !(0, dependencies.layerPresentation.isLayerItemVisible)('labels', entry.id)) continue;
         const label = dependencies.projectState.state.labels.find(item => String(item.id) === entry.id);
         const projected = label ? (0, dependencies.mapView.activeProjection)()(label.coordinates) : null;
         dependencies.rendering.selectionPerformanceMetrics.exactHitTestCount += 1;
@@ -119,7 +111,7 @@ export function createObjectPicking() {
         continue;
       }
       if (entry.domain === 'generic') {
-        if (!dependencies.projectState.state.layerVisibility.genericFeatures || !(0, dependencies.layerPresentation.isLayerItemVisible)('genericFeatures', entry.id)) continue;
+        if (dependencies.projectState.state.layerVisibility.genericFeatures===false || !(0, dependencies.layerPresentation.isLayerItemVisible)('genericFeatures', entry.id)) continue;
         const feature = dependencies.projectState.state.genericFeatures.find(item => String(item.id) === entry.id);
         dependencies.rendering.selectionPerformanceMetrics.exactHitTestCount += 1;
         if (feature && geometryHitsScreenPoint(feature.geometry, coord, screenPoint, (0, dependencies.surfaces.isMobile)() ? 14 : 8)) add({ domain: 'generic', type: 'feature', id: feature.id });
@@ -152,7 +144,7 @@ export function createObjectPicking() {
     if (!chooser) return;
     chooser.classList.add('hidden');
     chooser.removeAttribute('style');
-    dependencies.surfaceCommands.replaceObjectChooserCandidates([]);
+    chooserCandidates=[];
     if (restoreFocus) (0, dependencies.platform.$)('map')?.focus();
   }
 
@@ -160,9 +152,9 @@ export function createObjectPicking() {
     const chooser = (0, dependencies.platform.$)('objectChooser');
     const list = (0, dependencies.platform.$)('objectChooserList');
     if (!chooser || !list || candidates.length < 2) return closeObjectChooser();
-    if ((0, dependencies.surfaces.isMobile)() && dependencies.workspaceUiB.surfaceController.activeMobileSheet) (0, dependencies.workspaceUiA.closeActiveMobileSheet)();
+    if(dependencies.surfaces.isMobile()&&closeActiveOverlay)closeActiveOverlay();
     objectChooserIntentMode = intentMode === 'toggle' ? 'toggle' : 'replace';
-    dependencies.surfaceCommands.replaceObjectChooserCandidates(candidates.slice());
+    chooserCandidates=candidates.slice();
     list.replaceChildren(...candidates.map((ref, index) => {
       const info = (0, dependencies.objectOperationsA.objectDisplayInfo)(ref);
       const button = document.createElement('button');
@@ -201,10 +193,10 @@ export function createObjectPicking() {
   }
 
   async function chooseObjectCandidate(index, { toggle = false } = {}) {
-    const ref = dependencies.projectSession.objectChooserCandidates[Number(index)];
+    const ref = chooserCandidates[Number(index)];
     if (!objectRefSelectable(ref)) return false;
     const mode = toggle || objectChooserIntentMode === 'toggle' ? 'toggle' : 'replace';
-    await dependencies.domains.selectionUiController.applyIntent(ref, { mode, scope: 'map' });
+    await dependencies.domains.selectionUiController.applyIntent(ref, { mode, scope: 'map',openEditor });
     return true;
   }
 
@@ -216,7 +208,7 @@ export function createObjectPicking() {
     const intentMode = source.ctrlKey || source.metaKey ? 'toggle' : 'replace';
     closeObjectChooser({ cancelPending: false });
     const inputStartedAt = performance.now();
-    const performanceBefore = (0, dependencies.renderServices.selectionPerformanceCounterSnapshot)();
+    const performanceBefore = performanceRecorder ? performanceRecorder.snapshot() : null;
     Object.assign(dependencies.rendering.selectionPerformanceMetrics, {
       handlerMs: 0, indexQueryMs: 0, indexedCandidateCount: 0, exactHitTestCount: 0,
       gpuPickMs: 0, pickCacheHit: false, direct: false,
@@ -227,7 +219,7 @@ export function createObjectPicking() {
       closeObjectChooser();
       await dependencies.domains.selectionUiController.clear({ reason: 'map-background-selection-clear' });
       if(projectGeneration!==dependencies.domains.projectDomain.getGeneration())return false;
-      (0, dependencies.workspaceUiA.closeSurface)('editor', { restoreFocus: false });
+      if(onBackgroundClear)onBackgroundClear();
       return false;
     }
     const candidates = (await selectableObjectsAt(screenPoint, coord, { seedRefs: [normalizedHit] })).filter(objectRefSelectable);
@@ -239,7 +231,7 @@ export function createObjectPicking() {
       closeObjectChooser({ cancelPending: false });
       await dependencies.domains.selectionUiController.clear({ reason: 'map-background-selection-clear' });
       if(projectGeneration!==dependencies.domains.projectDomain.getGeneration())return false;
-      (0, dependencies.workspaceUiA.closeSurface)('editor', { restoreFocus: false });
+      if(onBackgroundClear)onBackgroundClear();
       return false;
     }
     if (candidates.length > 1) {
@@ -247,12 +239,10 @@ export function createObjectPicking() {
       return true;
     }
     const target = candidates[0];
-    await dependencies.domains.selectionUiController.applyIntent(target, { mode: intentMode, scope: 'map' });
+    await dependencies.domains.selectionUiController.applyIntent(target, { mode: intentMode, scope: 'map',openEditor });
     if(projectGeneration!==dependencies.domains.projectDomain.getGeneration() || pickViewRevision!==dependencies.mapLayout.viewRevision)return false;
     dependencies.rendering.selectionPerformanceMetrics.handlerMs = performance.now() - inputStartedAt;
-    requestAnimationFrame(() => {
-      (0, dependencies.renderServices.publishSelectionPerformanceSample)(inputStartedAt, performanceBefore, `map:${target.key}`);
-    });
+    if(performanceRecorder)requestAnimationFrame(()=>performanceRecorder.publish(inputStartedAt,performanceBefore,`map:${target.key}`));
     return true;
   }
 
@@ -277,82 +267,55 @@ export function createObjectPicking() {
       const event = dependencies.platform.d3.event;
       const source = event?.sourceEvent || event || {};
       return await dependencies.domains.selectionUiController.applyIntent(ref, {
-        mode: source.ctrlKey || source.metaKey ? 'toggle' : 'replace', scope: 'map',
+        mode: source.ctrlKey || source.metaKey ? 'toggle' : 'replace', scope: 'map',openEditor,
       });
     }
-    const rawCoord = (0, dependencies.mapView.screenToGeo)(screenPoint);
-    if (!rawCoord) return;
-    const pointerType = dependencies.platform.d3.event?.pointerType === 'touch' || dependencies.platform.d3.event?.changedTouches ? 'touch' : 'mouse';
-    const coord = rawCoord;
-    if (dependencies.projectState.state.labelPlacementMode) {
-      await (0, dependencies.genericEditingA.addLabelAt)(coord);
-      return;
-    }
-    if (dependencies.projectState.state.tool === 'select' && !dependencies.projectState.state.labelPlacementMode) return await handleObjectSelectionAt(screenPoint);
-    const territoryCountryPicking = (0, dependencies.territorySelectionB.territorySelectionCountryPickingActive)();
-    const needsCountryHit = (dependencies.projectState.state.tool === 'select' && !dependencies.projectState.state.labelPlacementMode) ||
-      territoryCountryPicking ||
-      (dependencies.projectState.state.tool === 'territorial-border' && dependencies.projectState.state.boundaryEditPhase === 'selecting') ||
-      (dependencies.projectState.state.tool === 'merge-country' && !!dependencies.projectState.state.mergeSourceCountryId);
-    const clickedCountry = needsCountryHit && dependencies.projectState.state.layerVisibility.countries
-      ? (0, dependencies.pointerInteractionA.countryAtScreenPoint)(screenPoint, coord)
-      : null;
-    if (territoryCountryPicking) {
-      if (clickedCountry) await dependencies.territorySelectionC.toggleTerritorySelectionSourceCountry(clickedCountry.id);
-      else (0, dependencies.feedback.setActionStatus)((0, dependencies.territorySelectionB.territorySelectionCountryInstruction)(), 'error', 2600);
-      return;
-    }
-    if (dependencies.projectState.state.tool === 'merge-country' && dependencies.projectState.state.mergeSourceCountryId) {
-      if (clickedCountry) (0, dependencies.countryEditingC.toggleMergeTarget)(clickedCountry.id);
-      else (0, dependencies.feedback.setActionStatus)('합병 대상을 선택할 수 없습니다. 국가 영토 안쪽을 선택하세요.', 'error', 2600);
-      return;
-    }
-    if (dependencies.projectState.state.tool === 'territorial-border' && dependencies.projectState.state.boundaryEditPhase === 'selecting') {
-      if (clickedCountry) await dependencies.countryEditingC.toggleBoundaryEditCountry(clickedCountry.id);
-      else (0, dependencies.feedback.setActionStatus)('접경국을 선택할 수 없습니다. 국가 영토 안쪽을 선택하세요.', 'error', 2600);
-      return;
-    }
-    if (dependencies.projectState.state.tool === 'select' && !dependencies.projectState.state.labelPlacementMode && clickedCountry) return;
-    const territorySession = dependencies.projectState.state.territorySelectionSession;
-    if (territorySession) {
-      if (territorySession.stage !== 'selection' || territorySession.activePhase !== 'drawing'
-        || !['line', 'polygon'].includes(territorySession.activeMethod)) return;
-      if ((0, dependencies.draftPresentation.editingDraftSnapshot)().inputPhase !== 'draw') return;
-      await dependencies.domains.editingDomain?.appendDraftScreenPoint?.(screenPoint, pointerType, { dedupe: true });
-      return;
-    }
-    if ((0, dependencies.surfaces.isGenericFeatureDraftTool)(dependencies.projectState.state.tool)) {
-      if ((0, dependencies.draftPresentation.editingDraftSnapshot)().inputPhase !== 'draw') return;
-      await dependencies.domains.editingDomain?.appendDraftScreenPoint?.(screenPoint, pointerType);
-      return;
-    }
-    if (dependencies.projectState.state.tool === 'point') {
-      const generation = dependencies.domains.projectDomain.getGeneration();
-      const feature = {
-        type: 'Feature', id: (0, dependencies.surfaces.uid)('point'),
-        geometry: { type: 'Point', coordinates: coord },
-        properties: { name: '', color: dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR, schemaVersion: dependencies.applicationConstantsA.GENERIC_FEATURE_SCHEMA_VERSION },
-      };
-      await dependencies.objectModelA.genericFeatureService.add(feature);
-      if (dependencies.projectState.state.projectReplacing || generation !== dependencies.domains.projectDomain.getGeneration()) return false;
-      await dependencies.domains.editingDomain.setTool('select');
-      await (0, dependencies.propertyEditingA.applyGenericSelectionIntent)(String(feature.id));
-      (0, dependencies.feedback.setActionStatus)('점 기타 객체를 추가했습니다.', 'success');
-      return;
-    }
-    if (dependencies.projectState.state.tool === 'select') await dependencies.domains.selectionUiController.clear({ reason: 'map-background-selection-clear' });
+    if(dependencies.projectState.state.tool==='select'&&!dependencies.projectState.state.labelPlacementMode)return await handleObjectSelectionAt(screenPoint);
+    if(handleEditingClick)return await handleEditingClick(screenPoint);
     } catch (error) {
       dependencies.feedback.reportOperationError(error, '지도 작업을 적용하지 못했습니다.', 'PL-MAP-CLICK-001', 4200);
       return false;
     }
   }
 
+  function bindChooser(){
+    (0, dependencies.platform.$)('objectChooserCloseBtn')?.addEventListener('click', () => (0, closeObjectChooser)({ restoreFocus: true }));
+    (0, dependencies.platform.$)('objectChooserList')?.addEventListener('click', async event => {
+      const button = event.target.closest('[data-object-chooser-index]');
+      if (!button) return;
+      try { await chooseObjectCandidate(button.dataset.objectChooserIndex,{ toggle: event.ctrlKey || event.metaKey }); }
+      catch(error) { dependencies.feedback.reportOperationError(error,'겹친 객체를 선택하지 못했습니다.','PL-SELECTION-CHOOSER-001',4200); }
+    });
+    (0, dependencies.platform.$)('objectChooserList')?.addEventListener('keydown', event => {
+      const items = [...event.currentTarget.querySelectorAll('[data-object-chooser-index]')];
+      const current = items.indexOf(document.activeElement);
+      const delta = event.key === 'ArrowDown' ? 1 : event.key === 'ArrowUp' ? -1 : 0;
+      event.stopPropagation();
+      if (event.key === 'Delete' || event.key === 'Backspace') {
+        event.preventDefault();
+        return;
+      }
+      if (event.key === 'Home' || event.key === 'End') {
+        event.preventDefault();
+        items[event.key === 'Home' ? 0 : items.length - 1]?.focus();
+        return;
+      }
+      if (delta) {
+        event.preventDefault();
+        items[(current + delta + items.length) % items.length]?.focus();
+      }
+    });
+
+    document.addEventListener('keydown',event=>{if(event.key==='Escape')closeObjectChooser({restoreFocus:true});});
+    document.addEventListener('pointerdown',event=>{if(!event.target.closest('#objectChooser,#map'))closeObjectChooser();});
+  }
   return Object.freeze({
     connect,
 
     get closeObjectChooser() { return closeObjectChooser; },
     get chooseObjectCandidate() { return chooseObjectCandidate; },
-    get createCountryFeature() { return createCountryFeature; },
+    selectableObjectsAt,
+    bindChooser,
     get territorialObjectsAt() { return territorialObjectsAt; },
     get geometryHitsScreenPoint() { return geometryHitsScreenPoint; },
     get handleMapClick() { return handleMapClick; },

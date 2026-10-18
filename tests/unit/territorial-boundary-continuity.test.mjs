@@ -37,7 +37,7 @@ async function harness(t) {
     prepareView: ({ frameId }) => createMapVisualFrame({ frameId, projectGeneration: generation,
       viewState: { projection: 'flat', size: { width: 800, height: 600 }, scale: 100, dpr: 1 }, projectPath: () => 'snapshot-path' }),
     requestFrame: callback => { scheduled.push(callback); return scheduled.length; },
-    prepareEditDisplay: (payload, options) => {
+    prepareMapDisplay: (payload, options) => {
       let resolve, reject;
       const promise = new Promise((yes, no) => { resolve = yes; reject = no; });
       const rows = repo.list();
@@ -46,7 +46,7 @@ async function harness(t) {
       requests.push({ payload, options, resolve, reject, segments });
       return promise;
     },
-    onEditDisplayReady: () => { readyCount++; },
+    onMapDisplayReady: () => { readyCount++; },
     reportDiagnostic: entry => diagnostics.push(entry),
     projectDomain: { getGeneration: () => generation },
     countryResources: { mapTheme: () => ({ border: '#ffffff' }) },

@@ -56,18 +56,8 @@ jobs:
         run: |
           node apps/web-shell/stage.mjs --profile=full-world
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          $stage = Get-Content apps/web-shell/dist/shell/stage-evidence.json -Raw | ConvertFrom-Json
-          if ($stage.profile -ne 'full-world' -or $stage.worldData.countryCount -ne 258 -or
-              $stage.worldData.modelEntityCount -ne 254 -or
-              $stage.worldData.rootCount -ne 207 -or
-              $stage.worldData.mergedSourceCount -ne 4 -or
-              $stage.worldData.fileCount -ne 597) {
-            throw 'Full-world package must contain 258 source polygons, 254 editable entities, and 597 pinned files.'
-          }
-          if ($stage.files.Where({ $_.path -match '^assets/data/(?:hydro|terrain|places)/' }).Count -ne 0) {
-            throw 'Physical data unexpectedly entered the scoped full-world stage.'
-          }
-          Write-Output "Verified $($stage.worldData.fileCount) pinned world files ($($stage.worldData.bytes) bytes)."
+          node apps/web-shell/check-stage.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Build full-world Windows Tauri app using native MSVC
         shell: pwsh
         run: |

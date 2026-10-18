@@ -68,36 +68,6 @@ export function createTerritorialLabels({ builtinPlacesEnabled = true } = {}) {
     return outline;
   }
 
-  function applyUserPreferences(nextPreferences, { persist = true, rerender = true } = {}) {
-    const previousTheme = (0, dependencies.preferences.effectiveTheme)(dependencies.preferences.userPreferences, dependencies.preferences.systemTheme === 'dark');
-    const previousAccent = dependencies.preferences.resolvedAccentColor;
-    const previousSmoothLines = dependencies.preferences.userPreferences.appearance?.smoothLines !== false;
-    dependencies.preferences.setUserPreferences(persist ? (0, dependencies.preferences.saveUserPreferences)(nextPreferences) : nextPreferences);
-    const resolvedTheme = (0, dependencies.preferences.effectiveTheme)(dependencies.preferences.userPreferences, dependencies.preferences.systemTheme === 'dark');
-    const statusBarVisible = dependencies.preferences.userPreferences.appearance?.statusBarVisible !== false;
-    document.documentElement.dataset.theme = resolvedTheme;
-    document.documentElement.dataset.statusBarVisible = String(statusBarVisible);
-    document.documentElement.dataset.smoothLines = String(dependencies.preferences.userPreferences.appearance?.smoothLines !== false);
-    const statusBar = (0, dependencies.platform.$)('mapBottomStatus');
-    if (statusBar) statusBar.hidden = !statusBarVisible;
-    dependencies.preferences.setResolvedAccentColor((0, dependencies.preferences.applyAppAccent)(document, dependencies.preferences.userPreferences.appearance.accentPreset));
-    (0, dependencies.preferences.applyMapLabelPreferences)();
-    window.__PANDOLAB_THEME__ = resolvedTheme;
-    const themeChanged = previousTheme !== resolvedTheme;
-    const smoothLinesChanged = previousSmoothLines !== (dependencies.preferences.userPreferences.appearance?.smoothLines !== false);
-    if (themeChanged || smoothLinesChanged || previousAccent !== dependencies.preferences.resolvedAccentColor) (0, dependencies.preferences.syncResolvedInteractionStyle)({ redraw: rerender });
-    if (themeChanged) {
-      dependencies.rendering.gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'user-preferences');
-      dependencies.rendering.gpuMapRenderer.invalidatePhysicalStyle('user-preferences');
-    }
-    if ((themeChanged || smoothLinesChanged) && rerender && dependencies.mapLayers.svg) {
-      (0, dependencies.layerPresentation.invalidateObjectPresentation)();
-      dependencies.domains.objectSearchController?.render();
-      dependencies.domains.renderingDomain?.invalidateBaseScene?.('user-preferences');
-    }
-    return dependencies.preferences.userPreferences;
-  }
-
   function territorialLabelScreenMetrics(feature, fontSize, projectedExtent, labelFeature, frame) {
     let width = Number(projectedExtent?.width);
     let height = Number(projectedExtent?.height);
@@ -334,7 +304,6 @@ export function createTerritorialLabels({ builtinPlacesEnabled = true } = {}) {
     initializeCountryOutlineCache,
     initializeLabelLayoutMetrics,
     initializeTerritorialLabelScreenAreas,
-    get applyUserPreferences() { return applyUserPreferences; },
     get countryOutlineCache() { return countryOutlineCache; },
     get countryOutlineFeature() { return countryOutlineFeature; },
     get currentMapZoom() { return currentMapZoom; },

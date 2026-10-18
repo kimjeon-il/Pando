@@ -222,7 +222,7 @@
       "reason": "Reads detached validated identities; derives spatial Features from canonical records."
     },
     {
-      "file": "assets/js/modules/app-builtin-session.js",
+      "file": "assets/js/modules/builtin-session.js",
       "functions": [
         "prepareProjectBaseline"
       ],
@@ -280,7 +280,7 @@
       "reason": "Derives static spatial views from validated detached records; complex files retain canonical JSON only."
     },
     {
-      "file": "assets/js/modules/app-project-session.js",
+      "file": "assets/js/modules/project-session.js",
       "functions": [
         "installDocumentProjection"
       ],

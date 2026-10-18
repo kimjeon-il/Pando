@@ -273,27 +273,10 @@ export function createSpatialIndex() {
     });
   }
 
-  function initializeApplyingMapEditWorkerResult() {
-    (applyingMapEditWorkerResult = false);
-
-    (mapEditClient = (0, dependencies.spatialFactories.createMapEditWorkerClient)({
-      createWorker: () => new Worker((0, dependencies.platform.runtimeAssetUrl)('workers/map-edit-worker.js'), { name: 'pandolab-map-edit' }),
-      getEntities: () => dependencies.territorialModel.entityRepository.list(),
-      getFeatureById: dependencies.territorialModel.entityRepository.get,
-      getBoundaryFeatures: () => [
-        ...dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' }).map(feature => ({ ...feature,
-          boundaryLocked: feature.properties.locked === true })),
-        ...dependencies.territorialModel.entityRepository.list({ kind: 'general' }).filter(entity => !!entity.properties.parentId),
-      ],
-      getEditSources: () => [
-        ...dependencies.territorialModel.entityRepository.list().map(feature => ({
-          kind: 'territorial', feature,
-        })),
-        ...dependencies.projectState.state.genericFeatures.map(feature => ({ kind: 'generic', feature })),
-        ...dependencies.projectState.state.hydroEdits.map(feature => ({ kind: 'hydro', feature })),
-      ],
-      getTargetRevision: () => dependencies.projectState.state.stateRevision,
-    }));
+  function installMapEditClient(client) {
+    if(mapEditClient)throw new Error('The map editing client is already registered.');
+    if(!client||typeof client.execute!=='function')throw new TypeError('A map editing client is required.');
+    applyingMapEditWorkerResult=false;mapEditClient=client;
   }
 
   return Object.freeze({
@@ -301,7 +284,7 @@ export function createSpatialIndex() {
     initializeGeometryBoundsCache,
     initializeMapObjectSpatialIndex,
     initializeViewportCullingMetrics,
-    initializeApplyingMapEditWorkerResult,
+    installMapEditClient,
     get applyingMapEditWorkerResult() { return applyingMapEditWorkerResult; },
     set applyingMapEditWorkerResult(value) { applyingMapEditWorkerResult = value; },
     get geometryBounds() { return geometryBounds; },

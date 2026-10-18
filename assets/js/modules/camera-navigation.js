@@ -1,9 +1,11 @@
+export const ZOOM_LIMITS=Object.freeze({globe:Object.freeze({min:.72,max:32}),flat:Object.freeze({min:.75,max:64})});
+export const FLAT_LATITUDE_LIMIT=89.999;
 import { panCameraView } from './camera-pan.js';
 /** CameraNavigation: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createCameraNavigation() {
+export function createCameraNavigation({ persistView = null } = {}) {
   let dependencies;
 
   function connect(ports) {
@@ -11,6 +13,12 @@ export function createCameraNavigation() {
     dependencies = ports;
   }
 
+  function clampViewZooms(view){
+    if(!view)return view;
+    view.globeZoom=dependencies.platform.clamp(Number(view.globeZoom)||1,ZOOM_LIMITS.globe.min,ZOOM_LIMITS.globe.max);
+    view.flatZoom=dependencies.platform.clamp(Number(view.flatZoom)||1,ZOOM_LIMITS.flat.min,ZOOM_LIMITS.flat.max);
+    return view;
+  }
   function panMapViewBy(dx, dy) {
     const [dragX, dragY] = (0, dependencies.mapNavigation.normalizeMapSurfaceDragDelta)(dx, dy);
     const changed=panCameraView(dependencies.projectState.state.view,dependencies.projectState.state.projection,dragX,dragY,
@@ -111,7 +119,7 @@ export function createCameraNavigation() {
     dependencies.rendering.gpuMapRenderer.cancelCountryFocus();
     if (settle) dependencies.domains.renderingDomain?.endInteraction?.('zoom-control-settle');
     else dependencies.domains.renderingDomain?.invalidateView?.('zoom-control-interaction');
-    if (persist) dependencies.domains.projectDomain.queueViewAutosave();
+    if (persist) if (persistView) persistView();
     return true;
   }
 
@@ -166,7 +174,7 @@ export function createCameraNavigation() {
     alignGeographicAnchor(anchor, viewportCenter);
     (0, dependencies.mapView.syncMapHostFromState)();
     dependencies.domains.renderingDomain?.invalidateView?.('focus-country');
-    dependencies.domains.projectDomain.queueViewAutosave();
+    if (persistView) persistView();
   }
 
   function focusCoordinate(coord, zoom = null) {
@@ -181,7 +189,7 @@ export function createCameraNavigation() {
     }
     (0, dependencies.mapView.syncMapHostFromState)();
     dependencies.domains.renderingDomain?.invalidateView?.('focus-coordinate');
-    dependencies.domains.projectDomain.queueViewAutosave();
+    if (persistView) persistView();
   }
 
   function selectObjectSearchItem(group, id, { mode = 'replace', range = false, orderedRefs = [] } = {}) {
@@ -214,7 +222,7 @@ export function createCameraNavigation() {
     }
     (0, dependencies.mapView.syncMapHostFromState)();
     dependencies.domains.renderingDomain?.endInteraction?.('world-view-settle');
-    dependencies.domains.projectDomain.queueViewAutosave();
+    if (persistView) persistView();
   }
 
   function bindHoldZoom(button, factor) {
@@ -227,7 +235,7 @@ export function createCameraNavigation() {
       clearTimeout(timer); clearInterval(repeater); timer = repeater = null;
       if (repeated) {
         dependencies.domains.renderingDomain?.endInteraction?.('zoom-control-hold-settle');
-        dependencies.domains.projectDomain.queueViewAutosave();
+        if (persistView) persistView();
         suppressNextClick = true;
       }
       repeated = false;
@@ -262,6 +270,7 @@ export function createCameraNavigation() {
 
   return Object.freeze({
     connect,
+    clampViewZooms,
 
     get bindHoldZoom() { return bindHoldZoom; },
     get panMapViewBy() { return panMapViewBy; },

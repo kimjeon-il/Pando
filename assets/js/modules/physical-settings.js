@@ -1,3 +1,8 @@
+export function hydroLineParts(geometry) {
+    if (geometry?.type === 'LineString') return [geometry.coordinates || []];
+    if (geometry?.type === 'MultiLineString') return geometry.coordinates || [];
+    return [];
+  }
 /** HydroSettings: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -171,6 +176,7 @@ export function createHydroSettings() {
 
   return Object.freeze({
     connect,
+    hydroLineParts,
 
     get activeLayerFolderKeys() { return activeLayerFolderKeys; },
     get allBuiltInHydroFeatures() { return allBuiltInHydroFeatures; },

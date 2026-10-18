@@ -3,17 +3,15 @@ import { buildTerritorialInternalBoundarySegments } from './boundary-topology.js
 import { excludeAncestorHighlightBoundary } from './territorial-highlight-boundary.js';
 import { geometryRevisionKey } from './geometry-versions.js';
 
-export function createEditDisplayPreparation() {
+export function createMapDisplayPreparation() {
   const groups = new Map();
   const signature = features => features.map(feature => [feature.id, geometryRevisionKey(feature.geometry), feature.properties?.entityKind,
     feature.properties?.parentId, undefined].join(':')).sort().join('|');
   return {
-    async prepare(request, countries, units, checkpoint = async () => {}, sourceByKey = () => null) {
+    async prepare(request, countries, units, checkpoint = async () => {}) {
       if (request.kind === 'highlight') {
-        const feature = request.featureKey ? sourceByKey(request.featureKey) : request.feature;
-        const owners = request.occluders ? request.occluders.map(owner => owner.feature || sourceByKey(owner.key)) : request.occluderKeys ? request.occluderKeys.map(sourceByKey)
-          : request.occluderFeatures || (request.ancestorIds || []).map(id =>
-            countries.find(feature => String(feature.id) === id) || units.find(feature => String(feature.id) === id));
+        const feature=request.feature;
+        const owners=request.occluders.map(owner=>owner.feature);
         if (!feature || owners.some(owner => !owner)) throw new Error('강조 원본을 다시 준비하세요.');
         await checkpoint();
         return { feature: excludeAncestorHighlightBoundary(feature, owners) };

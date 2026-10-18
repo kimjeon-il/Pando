@@ -1,14 +1,14 @@
-import { applyInteractionCssProperties } from './map-interaction-style.js';
 /** RenderQuality: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createRenderQuality() {
+export function createRenderQuality({beforeMeshRebuild=null}={}) {
   let dependencies;
   let renderQualityController;
   let currentRenderQuality;
   let renderQualityApplyQueued;
   let gpuRebuildTimer;
+  let meshRequestRevision=0;
   function connect(ports) {
     if (dependencies) throw new Error('render-quality already connected');
     dependencies = ports;
@@ -48,16 +48,27 @@ export function createRenderQuality() {
   }
 
   function syncResolvedInteractionStyle({ redraw = false } = {}) {
-    dependencies.preferenceCommands.setResolvedInteractionStyle((0, dependencies.platformConfigurationB.resolveCurrentInteractionStyle)());
     (0, dependencies.selectionServices.setSelectionInteractionStyle)(dependencies.preferences.resolvedInteractionStyle);
     dependencies.gpuRenderingA.selectionPass?.updateStyle?.(dependencies.preferences.resolvedInteractionStyle);
     dependencies.rendering.gpuMapRenderer.setInteractionStyle?.(dependencies.preferences.resolvedInteractionStyle);
-    applyInteractionCssProperties(dependencies.preferences.resolvedInteractionStyle);
-    window.__PANDOLAB_INTERACTION_STYLE__ = dependencies.preferences.resolvedInteractionStyle;
     if (redraw) {
       dependencies.domains.renderingDomain?.invalidateSelectionStyle?.('selection-style');
     }
     return dependencies.preferences.resolvedInteractionStyle;
+  }
+
+  async function prepareCanonicalMesh({features=null,mesh=null,slotIds=[],dirtyIds=[],projectGeneration=dependencies.rendering.gpuMapRenderer.getProjectGeneration(),reason='canonical-mesh'}={}){
+    const renderer=dependencies.rendering.gpuMapRenderer,revision=++meshRequestRevision;
+    const current=()=>revision===meshRequestRevision&&renderer.getProjectGeneration()===projectGeneration;
+    if(!current())return false;
+    const applied=mesh?await renderer.replaceBuiltInMesh({meshBuffer:mesh.meshBuffer,preparedStroke:mesh.preparedStroke,spatialBlocks:mesh.spatialBlocks,
+      builtinIdentity:mesh.identity,features:slotIds.map(id=>({id})),quality:'canonical',countryPatchIds:[...dirtyIds],projectGeneration,
+      onStaged:()=>{if(current()){renderer.syncCountryMeshQuality();dependencies.domains.renderingDomain.invalidateProject('canonical-staging-ready');}}}):
+      await renderer.rebuildFromCountries(features||dependencies.countries.builtinTerritorialScene({canonical:true}).collection.features,{projectGeneration,reason});
+    if(!current()||applied===false)return false;
+    renderer.syncCountryMeshQuality();dependencies.projectState.state.countryVisualPhase='canonical';
+    applyAdaptiveRenderQuality({refreshScene:false,reason:'canonical-ready'});
+    dependencies.domains.renderingDomain.invalidateProject(reason);return true;
   }
 
   function cancelGpuMeshRebuild() {
@@ -74,10 +85,10 @@ export function createRenderQuality() {
       gpuRebuildTimer = null;
       if (Number.isFinite(requestedGeneration)
           && dependencies.rendering.gpuMapRenderer.getProjectGeneration?.() !== requestedGeneration) return;
-      dependencies.spatialQuery.mapEditClient.rebase();
-      dependencies.rendering.gpuMapRenderer.rebuildFromCountries((0, dependencies.countries.builtinTerritorialScene)({ canonical: true }).collection.features, {
-        projectGeneration: requestedGeneration,
-      });
+      Promise.resolve().then(async()=>{
+        if(beforeMeshRebuild)await beforeMeshRebuild();
+        await prepareCanonicalMesh({projectGeneration:requestedGeneration});
+      }).catch(error=>dependencies.feedback.reportOperationError(error,'지도 형상을 다시 준비하지 못했습니다.','PL-MAP-MESH-001',4200));
     }, delay);
   }
 
@@ -101,7 +112,7 @@ export function createRenderQuality() {
   return Object.freeze({
     connect,
     initializeRenderQualityController,
-    initializeGpuRebuildTimer,
+    initializeGpuRebuildTimer,prepareCanonicalMesh,
     get applyAdaptiveRenderQuality() { return applyAdaptiveRenderQuality; },
     get cancelGpuMeshRebuild() { return cancelGpuMeshRebuild; },
     get currentRenderQuality() { return currentRenderQuality; },
