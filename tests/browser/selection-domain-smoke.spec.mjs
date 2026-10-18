@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 
 test.use({ trace: 'off' });
@@ -11,7 +12,7 @@ test('selection domain drives country editing, multi-selection, and independent 
   });
 
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/?demTerrain=raster');
+  await gotoEditor(page, '/?demTerrain=raster');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await expect.poll(() => page.evaluate(() => typeof window.PANDOLAB_TERRITORIAL?.select === 'function')).toBe(true);

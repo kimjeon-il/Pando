@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { readFile, writeFile } from 'node:fs/promises';
 import { productionGeoPackage,coreFileProjection } from '../helpers/production-geopackage.mjs';
@@ -13,7 +14,7 @@ test('editor derives live hierarchy in Relations, focuses only via GPS and prese
   // This UI regression runs on the production Canvas path by default. GPU
   // resource and terrain regressions have their own focused browser checks.
   const renderer = process.env.PANDOLAB_INFO_RENDERER || 'canvas';
-  await page.goto(`/?debug=1&renderer=${renderer}&demTerrain=raster`);
+  await gotoEditor(page, `/?debug=1&renderer=${renderer}&demTerrain=raster`);
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   const project = JSON.parse(await readFile(new URL('../fixtures/timeline-exchange/static.json', import.meta.url), 'utf8'));
   const extra = structuredClone(project.territorialEntities[2]);

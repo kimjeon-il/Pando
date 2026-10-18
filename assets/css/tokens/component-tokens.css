@@ -1,6 +1,8 @@
 /* Canonical tokens / component-tokens. */
 
 :root {
+  --ui-phone-landscape-panel-max-width: 320px;
+  --ui-phone-landscape-nav-label-size: 0.625rem;
   --action-status-min-width: 112px;
   --action-status-max-width: 460px;
   --status-dot-width: 7px;

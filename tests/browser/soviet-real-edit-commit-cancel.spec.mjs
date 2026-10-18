@@ -1,3 +1,4 @@
+import { gotoEditor } from './helpers/editor-entry.mjs';
 /* global boundaryState: readonly */
 import { expect, test } from '@playwright/test';
 import { mkdir, writeFile } from 'node:fs/promises';
@@ -319,7 +320,7 @@ test('real Soviet coastal vertex preview cancel, confirm and Undo/Redo preserve 
     caveat: 'The operation wall clocks include Worker/core/transport/UI waits; longtask durations isolate observable main-thread blocks. Chromium SwiftShader is not a physical GPU. All edits occur in a disposable browser context.',
     errors: pageErrors, scenarios, snapshots };
   try {
-    await page.goto('/?perf=1&renderer=webgl2');
+    await gotoEditor(page, '/?perf=1&renderer=webgl2');
     await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 130_000 });
     await expect.poll(() => {
       return page.evaluate(() => {

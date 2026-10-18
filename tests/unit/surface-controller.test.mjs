@@ -264,3 +264,23 @@ test('an active editor surface follows the responsive transition to mobile', () 
     createOpen: false, searchOpen: false, displayOpen: false, editorOpen: true, activeMobileSheet: 'edit',
   });
 });
+
+test('phone landscape keeps one explicit panel and preserves the active panel across rotation', () => {
+  const { controller, elements, setLayout } = fixture('phone-landscape');
+  assert.equal(controller.open('editor', { automatic: true }), false);
+  for (const surface of ['editor', 'search', 'display', 'create', 'reference']) {
+    controller.open(surface);
+    controller.render();
+    assert.equal(['editor', 'search', 'display', 'create', 'reference'].filter(key => controller.isOpen(key)).length, 1);
+  }
+  assert.equal(elements.referenceImageSurface.inert, false);
+  assert.equal(elements.editorSurface.inert, true);
+  setLayout('mobile');
+  controller.syncLayout('phone-landscape');
+  assert.equal(controller.render().activeMobileSheet, 'reference');
+  setLayout('phone-landscape');
+  controller.syncLayout('mobile');
+  assert.equal(controller.render().activeMobileSheet, 'reference');
+  controller.close('reference');
+  assert.equal(controller.render().activeMobileSheet, null);
+});

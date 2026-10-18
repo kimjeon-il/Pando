@@ -1,4 +1,5 @@
 import { TERRITORIAL_SYMBOL_KEYS } from './layer-presentation.js';
+import { MAP_DISPLAY_TARGETS } from './map-display-catalog.js';
 import { PLACE_LANGUAGES, togglePlaceLanguage } from './place-contract.js';
 import { distributionValueRange } from './distribution-model.js';
 import { clearMenuPosition, createMenuPositionScheduler, exitMenuOnTab, positionRootMenu, positionSubmenu } from './menu-presentation.js';
@@ -870,16 +871,7 @@ export function createMapSettings() {
   }
 
   function initializeLAYER_STYLE_TARGETS() {
-    (LAYER_STYLE_TARGETS = Object.freeze({
-      countries: { presentationGroup: 'countries', label: '상위 객체', color: true, opacity: true, boundary: true, boundaryLabel: '경계' },
-      subunits: { presentationGroup: 'subunits', label: '하위 객체', color: true, opacity: true, boundary: true, boundaryLabel: '경계' },
-      regions: { presentationGroup: 'regions', label: '독립 권역', color: true, opacity: true, boundary: true, boundaryLabel: '경계' },
-      distributions: { presentationGroup: 'distributions', label: '분포', opacity: true, blendMode: true },
-      rivers: { presentationGroup: 'rivers', label: '강', opacity: true },
-      lakes: { presentationGroup: 'lakes', label: '호수', opacity: true },
-      genericFeatures: { presentationGroup: 'genericFeatures', label: '기타 객체', opacity: true, opacityLabel: '전체 투명도' },
-      labels: { presentationGroup: 'labels', label: '지명' },
-    }));
+    (LAYER_STYLE_TARGETS = MAP_DISPLAY_TARGETS);
 
     (desktopViewMenuPositioner = createMenuPositionScheduler(positionDesktopViewMenus));
   }

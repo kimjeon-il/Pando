@@ -5,7 +5,7 @@ import { collectCssRules } from './lib/css-analysis.mjs';
 
 const root = process.cwd();
 const cssRoot = path.join(root, 'assets', 'css');
-const htmlPath = path.join(root, 'index.html');
+const htmlPath = path.join(root, 'apps/web-shell/editor.html');
 const policyDocPath = path.join(root, 'docs', 'architecture', 'ui-architecture.md');
 const html = fs.readFileSync(htmlPath, 'utf8');
 const failures = [];
@@ -18,7 +18,11 @@ const legacyCssBudgets = new Map([
   ['app.css', 178186],
   ['ui.bundle.css', Number.MAX_SAFE_INTEGER],
   ['ui-modal.bundle.css', Number.MAX_SAFE_INTEGER],
+  ['ui-viewer.bundle.css', Number.MAX_SAFE_INTEGER],
 ]);
+// The product entry may position existing shared components only inside its
+// immutable product root. Other new root stylesheets remain forbidden.
+const productEntryCssBudgets = new Map([['viewer.css', 8192]]);
 
 const retiredUiArtifacts = Object.freeze([
   'assets/css/phase1-ui-cleanup.css',
@@ -144,6 +148,14 @@ for (const relativePath of cssFiles) {
   const source = fs.readFileSync(absolute, 'utf8');
 
   if (segments.length === 1) {
+    if (productEntryCssBudgets.has(normalized)) {
+      if (fs.statSync(absolute).size > productEntryCssBudgets.get(normalized)) failures.push(`viewer placement stylesheet exceeds its budget: ${normalized}`);
+      for (const rule of collectCssRules(source, { filePath: absolute })) {
+        if (rule.selectors.some(selector => !selector.trim().startsWith('.viewer-root')))
+          failures.push(`viewer placement must remain scoped to its product root: ${rule.prelude}`);
+      }
+      continue;
+    }
     if (!legacyCssBudgets.has(normalized)) {
       failures.push(`new root-level CSS is forbidden; place it in a UI layer directory: ${normalized}`);
       continue;

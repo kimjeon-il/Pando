@@ -1,4 +1,6 @@
-import { resolveMapStrokeStyle, applyInteractionCssProperties } from './map-interaction-style.js';
+import { resolveMapTheme } from './map-theme.js';
+import { HYDRO_DATA_VERSION } from './physical-layer-service.js';
+import { applyInteractionCssProperties } from './map-interaction-style.js';
 import { countryDefaultColor } from './color-adapter.js';
 const terrainAssetRevision = new URL(import.meta.url).searchParams.get('v') || globalThis.PANDOLAB_BUILD_META?.assetRevision || '';
 const { TERRAIN_DEM_VERSION, TERRAIN_RASTER_DATASET, selectTerrainManifestUrls, terrainRasterManifestUrl } =
@@ -14,7 +16,6 @@ export function createEnvironment() {
   let dependencies;
   let d3;
   let APP_VERSION;
-  let HYDRO_DATA_VERSION;
   let FLAT_PROJECTION_KIND;
   let FLAT_LATITUDE_LIMIT;
   let ASSET_REVISION;
@@ -36,8 +37,6 @@ export function createEnvironment() {
   let AUTOSAVE_RECORD_KEY;
   let AUTOSAVE_VIEW_KEY;
   let BASE_DATASET;
-  let DARK_DEFAULT_COLOR;
-  let LIGHT_DEFAULT_COLOR;
   let DEFAULT_GENERIC_FEATURE_COLOR;
   let COLOR_PRESETS;
   let COLOR_PALETTE_TONES;
@@ -50,7 +49,6 @@ export function createEnvironment() {
   let TERRAIN_OCEAN_REPRESENTATIVE;
   let MAX_HISTORY;
   let CUT_ENDPOINT_SNAP_DISTANCE;
-  let LAYOUT_QUERIES;
   let systemThemeQuery;
   let systemTheme;
   let userPreferences;
@@ -109,35 +107,8 @@ export function createEnvironment() {
   }
 
   function mapTheme() {
-    const terrainVisible = dependencies.projectState.state?.physicalSettings?.terrainVisible !== false;
-    const terrainStyle = dependencies.projectState.state?.physicalSettings?.terrainStyle || 'political';
-    const terrainFillAlpha = terrainVisible
-      ? (terrainStyle === 'physical' ? 0.22 : 0.68)
-      : null;
-    const countryStyle = dependencies.projectState.state?.layerPresentation ? (0, dependencies.applicationServicesB.layerStyle)(dependencies.projectState.state.layerPresentation, 'countries') : { opacity: 1, boundaryVisible: true, boundaryWidth: 1 };
-    const riverStyle = dependencies.projectState.state?.layerPresentation ? (0, dependencies.applicationServicesB.layerStyle)(dependencies.projectState.state.layerPresentation, 'rivers') : { opacity: 1, boundaryVisible: true, boundaryWidth: 1 };
-    const lakeStyle = dependencies.projectState.state?.layerPresentation ? (0, dependencies.applicationServicesB.layerStyle)(dependencies.projectState.state.layerPresentation, 'lakes') : { opacity: 1, boundaryVisible: true, boundaryWidth: 1 };
-    const base = (document.documentElement.dataset.theme || window.__PANDOLAB_THEME__ || systemTheme) === 'light'
-      ? { defaultLand: LIGHT_DEFAULT_COLOR, countryColorAlpha: terrainFillAlpha ?? 1, border: '#ffffff', borderGpu: [1, 1, 1], borderAlpha: 1, ocean: '#ffffff', oceanGpu: [1, 1, 1] }
-      : { defaultLand: DARK_DEFAULT_COLOR, countryColorAlpha: terrainFillAlpha ?? 0.74, border: '#323c46', borderGpu: [0.196, 0.235, 0.275], borderAlpha: 0.92, ocean: '#0d2837', oceanGpu: [0.051, 0.157, 0.216] };
-    base.terrainColorAlpha = terrainFillAlpha ?? 1;
-    base.baseLandAlpha = terrainVisible ? 1 : base.countryColorAlpha;
-    const countryInkAlpha = base.borderAlpha;
-    base.borderAlpha = countryStyle.boundaryVisible ? countryInkAlpha * countryStyle.opacity : 0;
-    base.borderWidth = countryStyle.boundaryWidth;
-    base.riverOpacity = riverStyle.opacity;
-    base.riverWidth = riverStyle.boundaryWidth;
-    base.lakeOpacity = lakeStyle.opacity;
-    base.lakeBoundaryVisible = lakeStyle.boundaryVisible;
-    base.lakeBoundaryWidth = lakeStyle.boundaryWidth;
-    base.strokes = Object.freeze(Object.fromEntries(['country', 'country-internal', 'river', 'hydro-boundary']
-      .map(role => [role, resolveMapStrokeStyle({ theme: { ...base, borderAlpha: countryStyle.boundaryVisible ? countryInkAlpha : 0 } }, role)])));
-    // Shared batches apply the effective per-owner opacity once. Native borders
-    // use borderAlpha, whose country layer opacity is already resolved.
-    delete base.borderWidth;
-    delete base.riverWidth;
-    delete base.lakeBoundaryWidth;
-    return base;
+    return resolveMapTheme({ state: dependencies.projectState.state,
+      theme: document.documentElement.dataset.theme || window.__PANDOLAB_THEME__ || systemTheme });
   }
 
   function defaultCountryColor(feature) {
@@ -212,8 +183,6 @@ export function createEnvironment() {
   function initializeTerritorialGeometry() {
     (APP_VERSION = String(globalThis.PANDOLAB_BUILD_META?.appVersion || ''));
 
-    (HYDRO_DATA_VERSION = '0.13.2');
-
     (FLAT_PROJECTION_KIND = 'equirectangular');
 
     (FLAT_LATITUDE_LIMIT = 89.999);
@@ -272,9 +241,6 @@ export function createEnvironment() {
 
     (BASE_DATASET = 'Natural Earth 5.1.1 · Admin 0 Countries · 1:10m · de facto');
 
-    (DARK_DEFAULT_COLOR = '#63758a');
-
-    (LIGHT_DEFAULT_COLOR = '#cccccc');
 
     (DEFAULT_GENERIC_FEATURE_COLOR = '#8c68d8');
 
@@ -340,10 +306,6 @@ export function createEnvironment() {
 
     (CUT_ENDPOINT_SNAP_DISTANCE = Object.freeze({ mouse: 10, touch: 18 }));
 
-    (LAYOUT_QUERIES = {
-      mobile: window.matchMedia('(max-width: 799px)'),
-      compact: window.matchMedia('(min-width: 800px) and (max-width: 1359px)'),
-    });
 
     (systemThemeQuery = window.matchMedia('(prefers-color-scheme: dark)'));
 
@@ -465,7 +427,6 @@ export function createEnvironment() {
     get HYDRO_DATA_VERSION() { return HYDRO_DATA_VERSION; },
     get HYDRO_LAYER_META() { return HYDRO_LAYER_META; },
     get HYDRO_TOOL_CONFIG() { return HYDRO_TOOL_CONFIG; },
-    get LAYOUT_QUERIES() { return LAYOUT_QUERIES; },
     get MAX_HISTORY() { return MAX_HISTORY; },
     get PHYSICAL_DATASET() { return PHYSICAL_DATASET; },
     get PHYSICAL_DATA_BASE_URL() { return PHYSICAL_DATA_BASE_URL; },
