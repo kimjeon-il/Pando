@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   pull_request:
     paths:
-      - 'assets/js/modules/app-camera-navigation.js'
+      - 'assets/js/modules/camera-navigation.js'
       - 'assets/js/modules/app-capability-ports-object-editing.js'
       - 'assets/js/modules/app-project-snapshots.js'
       - 'assets/js/modules/app-object-commands.js'
@@ -75,7 +75,7 @@ jobs:
       - name: Lint place runtime
         run: >-
           pnpm exec eslint
-          assets/js/modules/app-camera-navigation.js
+          assets/js/modules/camera-navigation.js
           assets/js/modules/app-capability-ports-object-editing.js
           assets/js/modules/app-project-snapshots.js
           assets/js/modules/app-object-commands.js

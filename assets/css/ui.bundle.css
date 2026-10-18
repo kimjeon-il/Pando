@@ -314,6 +314,8 @@
   --notification-close-width: 30px;
   --notification-close-min-width: 30px;
   --notification-close-height: 30px;
+  --ui-tooltip-background: #000;
+  --ui-tooltip-color: #fff;
   --ui-tooltip-max-width: min(280px, calc(100vw - var(--ui-space-4) * 2));
   --disclosure-icon-width: 18px;
   --disclosure-icon-height: 18px;
@@ -1161,8 +1163,8 @@ label:has(> input[type="radio"]) {
   padding: var(--ui-space-1-5) var(--ui-space-2);
   border: 1px solid var(--overlay-border);
   border-radius: var(--ui-radius-control);
-  background: #000;
-  color: #fff;
+  background: var(--ui-tooltip-background);
+  color: var(--ui-tooltip-color);
   font-size: var(--ui-font-caption);
   line-height: var(--ui-line-normal);
   box-shadow: var(--control-shadow);
