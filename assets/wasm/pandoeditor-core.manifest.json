@@ -1,7 +1,7 @@
 {
   "schema": "pandoeditor-core-wasm",
   "abiVersion": 1,
-  "sourceSha256": "e41e89fcb47d6e67f7b65b2a501e222d1eb20fc85799756df7be6c78725c9df0",
+  "sourceSha256": "5e05e60aa9a8a8209afdfb0bc03fd5503258cbeb34a6f78147d574c59d76564f",
   "compiler": {
     "name": "emscripten",
     "version": "4.0.20"
@@ -317,7 +317,7 @@
     },
     {
       "path": "shared/core/src/geometrypredicates.cpp",
-      "sha256": "6b71db0938783ff9daff4b5a52c3e296b961d243ce0626589d6207a27bbcb103"
+      "sha256": "20502db7d611a7156ec8f2ef79acf7c73f53709297352bb47a8e74a6b5b1cc54"
     },
     {
       "path": "shared/core/src/geometryprovenance.cpp",
@@ -489,7 +489,7 @@
     },
     {
       "path": "shared/tests/CMakeLists.txt",
-      "sha256": "2eefb88fdaf5c818e30ab5faae40c175814c5b6b99cc025bf94c42cfa934add1"
+      "sha256": "ebf8bde75037478ada2b4d52a58bcc83bcbf20abdbfd9ceec2f1bca985ea5f40"
     },
     {
       "path": "shared/tests/boundary-chain-tests.cpp",
@@ -635,7 +635,7 @@
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "77a2c521d6d4f1d91e01c014069819448050830bb38f68c052db569c2915700b"
+      "sha256": "8047187f71bd191ed08c6e89313a5cf7f712f1a58ed25607c431fd35bfcc7a4f"
     }
   }
 }
