@@ -5,21 +5,23 @@ import { gunzipSync } from 'node:zlib';
 
 import { normalizeCountryFeature } from '../../assets/js/modules/country-feature.js';
 import {readTerritorialSources} from '../../tools/territorial-entity-sources.mjs';
+import { createCanonicalCountryStore } from '../../assets/js/modules/canonical-country-packet.js';
 
 const data = new URL('../../assets/data/', import.meta.url);
-const version = JSON.parse(fs.readFileSync(new URL('../../package.json', import.meta.url))).version;
 const canonical = JSON.parse(fs.readFileSync(new URL('countries-ne-5.1.1.geojson', data)));
-const preview = JSON.parse(gunzipSync(fs.readFileSync(new URL(`countries-preview-v${version}.geojson.gz`, data))));
+const worldBundle = JSON.parse(fs.readFileSync(new URL('world/current.json', data)));
+const preview = JSON.parse(gunzipSync(fs.readFileSync(new URL(worldBundle.assets.previewCountries.url, data))));
 
-test('default compound geographic names are compact in source, preview and current library', () => {
+test('canonical geographic names are consistent in source, preview and current library', () => {
   const library = readTerritorialSources();
   for (const [id, name] of [
     ['MHL', '마셜제도'], ['TCA', '터크스케이커스제도'], ['HMD', '허드맥도널드제도'],
-    ['SGS', '사우스조지아사우스샌드위치제도'], ['UMI', '미국령군소제도'],
+    ['SGS', '사우스조지아사우스샌드위치제도'], ['UMI', '미국령 군소제도'],
     ['BJN', '바호누에보환초'], ['SER', '세라니야환초'], ['SCR', '스카버러암초'],
     ['KAS', '시아첸빙하'], ['SPI', '남부파타고니아빙원'],
     ['BIH', '보스니아헤르체고비나'], ['GNQ', '적도기니'], ['BRT', '비르타윌'],
-    ['TUR', '튀르키예'], ['ESP', '에스파냐'],
+    ['TUR', '튀르키예'], ['ESP', '에스파냐'], ['ASM', '미국령 사모아'],
+    ['PYF', '프랑스령 폴리네시아'], ['VIR', '미국령 버진아일랜드'], ['VGB', '영국령 버진아일랜드'],
   ]) {
     for (const collection of [canonical, preview]) {
       const feature = collection.features.find(item => item.id === id);
@@ -28,6 +30,53 @@ test('default compound geographic names are compact in source, preview and curre
     }
     assert.equal(library.find(item => item.metadata.sourceFeatureId === id).names.ko, name, `${id} library`);
   }
+});
+
+test('Dhekelia uses its canonical name in source, lineage, library chunks and active world assets', () => {
+  const source = JSON.parse(fs.readFileSync(new URL('territorial-entities/source/countries/esb.json', data)));
+  assert.equal(source.names.ko, '데켈리아');
+  assert.equal(source.entities[0].entityId, 'state:ESB');
+  assert.equal(source.entities[0].names.ko, '데켈리아');
+  assert.equal(source.entities[0].sourceInfo.featureProperties.name, '데켈리아');
+  const index = JSON.parse(fs.readFileSync(new URL('territorial-entities/generated/v2/index.json', data)));
+  assert.equal(index.lineages.find(row => row.lineageId === 'esb').names.ko, '데켈리아');
+  const entry = index.entities.find(row => row.entityId === 'state:ESB');
+  assert.equal(entry.names.ko, '데켈리아');
+  const chunk = JSON.parse(gunzipSync(fs.readFileSync(new URL(`territorial-entities/generated/v2/${entry.file}`, data))));
+  assert.equal(chunk.names.ko, '데켈리아');
+  assert.equal(chunk.sourceInfo.featureProperties.name, '데켈리아');
+  const world = JSON.parse(fs.readFileSync(new URL('world/current.json', data)));
+  const current = JSON.parse(fs.readFileSync(new URL(world.source.url, data)));
+  const activePreview = JSON.parse(gunzipSync(fs.readFileSync(new URL(world.assets.previewCountries.url, data))));
+  for (const collection of [canonical, current, activePreview]) {
+    assert.equal(collection.features.find(feature => feature.id === 'ESB').properties.name, '데켈리아');
+  }
+  const bytes = gunzipSync(fs.readFileSync(new URL(world.assets.canonicalCountryPacket.url, data)));
+  const buffer = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+  assert.equal(createCanonicalCountryStore(buffer).materializeFeature('ESB').properties.name, '데켈리아');
+  const historical = gunzipSync(fs.readFileSync(new URL('historical-world/generated/v1/world-project.json.gz', data))).toString();
+  assert.doesNotMatch(historical, /데켈리아 지역/u);
+  assert.match(historical, /데켈리아/u);
+});
+
+test('territorial prefixes are spaced in canonical lineage, entity and source names', () => {
+  const index = JSON.parse(fs.readFileSync(new URL('territorial-entities/generated/v2/index.json', data)));
+  for (const [id, name] of [
+    ['ASM', '미국령 사모아'], ['PYF', '프랑스령 폴리네시아'], ['UMI', '미국령 군소제도'],
+    ['VIR', '미국령 버진아일랜드'], ['VGB', '영국령 버진아일랜드'],
+  ]) {
+    const source = JSON.parse(fs.readFileSync(new URL(`territorial-entities/source/countries/${id.toLowerCase()}.json`, data)));
+    assert.equal(source.names.ko, name, `${id} lineage`);
+    assert.equal(source.entities[0].names.ko, name, `${id} entity`);
+    assert.equal(source.entities[0].sourceInfo.featureProperties.name, name, `${id} source metadata`);
+    assert.equal(index.lineages.find(row => row.lineageId === source.lineageId).names.ko, name);
+    const entry = index.entities.find(row => row.entityId === `state:${id}`);
+    assert.equal(entry.names.ko, name);
+    const chunk = JSON.parse(gunzipSync(fs.readFileSync(new URL(`territorial-entities/generated/v2/${entry.file}`, data))));
+    assert.equal(chunk.names.ko, name);
+    assert.equal(chunk.sourceInfo.featureProperties.name, name);
+  }
+  for (const entity of readTerritorialSources()) assert.doesNotMatch(entity.names.ko, /령\S/u);
 });
 
 test('GIS and user-assigned names are literal even when they resemble retired display defaults', () => {
