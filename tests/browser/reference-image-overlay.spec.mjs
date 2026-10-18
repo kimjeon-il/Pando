@@ -222,16 +222,72 @@ test('reference image toolbar button is present before enhanced startup', async 
   await expect(page.locator('#referenceImageBtn use')).toHaveAttribute('href', '#icon-reference-image');
 });
 
-test('reference image panel opens above the desktop command toolbar', async ({ page }) => {
+test('reference image surface docks beside the desktop map, resizes and collapses without covering it', async ({ page }) => {
   const errors = await openApp(page);
+  const originalWidth = (await page.locator('#map').boundingBox()).width;
   await page.locator('#referenceImageBtn').click();
-  await expect(page.locator('#referenceImageSurface')).toBeVisible();
-  const bounds = await page.evaluate(() => {
-    const panel = document.querySelector('#referenceImageSurface').getBoundingClientRect();
-    const toolbar = document.querySelector('.map-command-toolbar').getBoundingClientRect();
-    return { panelBottom: panel.bottom, toolbarTop: toolbar.top };
+  const panel = page.locator('#referenceImageSurface');
+  await expect(panel).toBeVisible();
+  const bounds = async () => page.evaluate(() => {
+    const box = selector => {
+      const rect = document.querySelector(selector).getBoundingClientRect();
+      return { left: rect.left, right: rect.right, width: rect.width, height: rect.height };
+    };
+    return { workspace: box('.workspace'), map: box('#map'), panel: box('#referenceImageSurface') };
   });
-  expect(bounds.panelBottom).toBeLessThan(bounds.toolbarTop);
+  const docked = await bounds();
+  expect(docked.map.width).toBeLessThan(originalWidth - 300);
+  expect(docked.map.right).toBeCloseTo(docked.panel.left, 0);
+  expect(docked.panel.right).toBeCloseTo(docked.workspace.right, 0);
+  expect(docked.panel.width).toBeCloseTo(340, 0);
+
+  const toggle = page.locator('.reference-image-collapse-button');
+  await expect(toggle).toBeVisible();
+  await page.locator('.reference-image-panel-header strong').waitFor({ state: 'visible' });
+  await toggle.click();
+  await expect(panel).toHaveClass(/reference-image-collapsed/);
+  const folded = await bounds();
+  expect(folded.map.right).toBeCloseTo(folded.panel.left, 0);
+  expect(folded.panel.width).toBeCloseTo(64, 0);
+  expect(folded.map.width).toBeGreaterThan(docked.map.width + 200);
+  await toggle.click();
+  await expect(panel).not.toHaveClass(/reference-image-collapsed/);
+
+  const start = await bounds();
+  const handle = page.locator('.reference-image-resize-handle');
+  await expect(handle).toBeVisible();
+  await page.mouse.move(start.panel.left + 4, 160);
+  await page.mouse.down();
+  await page.mouse.move(start.panel.left - 56, 160, { steps: 5 });
+  await page.mouse.up();
+  await expect.poll(async () => (await bounds()).panel.width).toBeGreaterThan(start.panel.width + 40);
+  const resized = await bounds();
+  expect(resized.map.right).toBeCloseTo(resized.panel.left, 0);
+
+  await page.locator('.reference-image-panel-header [data-ref-action="close"]').click();
+  await expect(panel).toBeHidden();
+  await expect.poll(async () => (await page.locator('#map').boundingBox()).width).toBeCloseTo(originalWidth, 0);
+  expect(errors).toEqual([]);
+});
+
+test('reference image bottom sheet collapses without closing on mobile', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const errors = await openApp(page);
+  const originalWidth = (await page.locator('#map').boundingBox()).width;
+  await page.locator('#referenceImageBtn').click();
+  const panel = page.locator('#referenceImageSurface');
+  await expect(panel).toBeVisible();
+  await expect(panel).toHaveAttribute('data-sheet-snap', '1');
+  await expect(panel.locator('.reference-image-panel-header')).toBeVisible();
+  const toggle = panel.locator('.reference-image-collapse-button');
+  await toggle.click();
+  await expect(panel).toHaveClass(/reference-image-collapsed/);
+  await expect(panel).toHaveAttribute('data-sheet-snap', '0');
+  await expect(panel).toBeVisible();
+  await toggle.click();
+  await expect(panel).not.toHaveClass(/reference-image-collapsed/);
+  await expect(panel).toHaveAttribute('data-sheet-snap', '1');
+  expect((await page.locator('#map').boundingBox()).width).toBeCloseTo(originalWidth, 0);
   expect(errors).toEqual([]);
 });
 
