@@ -9,7 +9,7 @@ on:
       - 'assets/js/modules/app-project-snapshots.js'
       - 'assets/js/modules/app-object-commands.js'
       - 'assets/js/modules/app-capability-ports-project-io.js'
-      - 'assets/js/modules/layer-tree-controller.js'
+      - 'assets/js/modules/object-search-controller.js'
       - 'assets/js/modules/place-*.js'
       - 'assets/js/modules/label-layout.js'
       - 'assets/js/modules/user-preferences.js'
@@ -26,7 +26,7 @@ on:
       - 'assets/js/workers/worker-rpc-host.js'
       - 'tests/helpers/place-*.mjs'
       - 'tests/unit/camera-navigation.test.mjs'
-      - 'tests/unit/layer-tree-controller.test.mjs'
+      - 'tests/unit/object-search-controller.test.mjs'
       - 'tests/unit/place-*.test.mjs'
       - 'tests/unit/project-state.test.mjs'
       - 'tests/unit/place-interaction-runtime.test.mjs'
@@ -80,7 +80,7 @@ jobs:
           assets/js/modules/app-project-snapshots.js
           assets/js/modules/app-object-commands.js
           assets/js/modules/app-capability-ports-project-io.js
-          assets/js/modules/layer-tree-controller.js
+          assets/js/modules/object-search-controller.js
           assets/js/modules/place-contract.js
           assets/js/modules/place-codec.js
           assets/js/modules/place-runtime.js
@@ -91,7 +91,7 @@ jobs:
           assets/js/workers/worker-rpc-host.js
           tests/helpers/place-synthetic.mjs
           tests/unit/camera-navigation.test.mjs
-          tests/unit/layer-tree-controller.test.mjs
+          tests/unit/object-search-controller.test.mjs
           tests/unit/place-codec.test.mjs
           tests/unit/place-label-workflow.test.mjs
           tests/unit/place-layout.test.mjs
@@ -110,7 +110,7 @@ jobs:
         run: >-
           node --test
           tests/unit/camera-navigation.test.mjs
-          tests/unit/layer-tree-controller.test.mjs
+          tests/unit/object-search-controller.test.mjs
           tests/unit/place-codec.test.mjs
           tests/unit/place-label-workflow.test.mjs
           tests/unit/place-layout.test.mjs

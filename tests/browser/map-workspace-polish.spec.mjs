@@ -14,8 +14,8 @@ async function openApp(page, viewport) {
 }
 
 async function searchFor(page, query) {
-  await page.locator('#layerSearchInput').fill(query);
-  const result = page.locator('#layerSearchResults .layer-search-result').first();
+  await page.locator('#objectSearchInput').fill(query);
+  const result = page.locator('#objectSearchResults .object-search-result').first();
   await expect(result).toBeVisible();
   await expect(result).toContainText(query);
   return result;
@@ -72,7 +72,7 @@ test('task workspace and toolbar search preserve their DOM and camera across lay
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/?renderer=canvas&debug=1');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
-  const inputNode = await page.locator('#layerSearchInput').elementHandle();
+  const inputNode = await page.locator('#objectSearchInput').elementHandle();
   const taskNode = await page.locator('#modeEditingContext').elementHandle();
   for (const viewport of [
     { width: 1440, height: 900 }, { width: 1024, height: 800 },
@@ -91,13 +91,13 @@ test('task workspace and toolbar search preserve their DOM and camera across lay
       await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
     }
     await page.locator(mobile ? '#mobileSearchBtn' : '#objectSearchBtn').click();
-    await expect(page.locator('#layerSearchInput')).toBeFocused();
-    expect(await page.locator('#layerSearchInput').evaluate((node, original) => node === original, inputNode)).toBe(true);
+    await expect(page.locator('#objectSearchInput')).toBeFocused();
+    expect(await page.locator('#objectSearchInput').evaluate((node, original) => node === original, inputNode)).toBe(true);
     if (!mobile) {
       await expect(page.locator('#objectSearchSurface > .surface-header')).toBeHidden();
       const geometry = await page.evaluate(() => {
         const bar = document.querySelector('.map-command-toolbar').getBoundingClientRect();
-        const input = document.querySelector('#layerSearchInput').getBoundingClientRect();
+        const input = document.querySelector('#objectSearchInput').getBoundingClientRect();
         const status = document.querySelector('#mapBottomStatus').getBoundingClientRect();
         return { barTop: bar.top, barBottom: bar.bottom, inputTop: input.top, inputBottom: input.bottom, statusTop: status.top };
       });
@@ -105,10 +105,10 @@ test('task workspace and toolbar search preserve their DOM and camera across lay
       expect(geometry.inputBottom).toBeLessThanOrEqual(geometry.barBottom);
       expect(geometry.barBottom).toBeLessThan(geometry.statusTop);
     }
-    await page.locator('#layerSearchInput').fill('독일');
-    const germany = page.locator('#layerSearchResults .layer-search-result-select[data-item-id="DEU"]');
+    await page.locator('#objectSearchInput').fill('독일');
+    const germany = page.locator('#objectSearchResults .object-search-result-select[data-item-id="DEU"]');
     await expect(germany).toBeVisible();
-    await expect(germany.locator('.layer-search-result-flag')).toBeVisible();
+    await expect(germany.locator('.object-search-result-flag')).toBeVisible();
     const beforeSelect = await cameraSnapshot(page);
     await germany.click();
     await expect(page.locator('#objectSearchSurface')).toBeHidden();
@@ -158,11 +158,11 @@ test('task workspace and toolbar search preserve their DOM and camera across lay
   }
   await page.setViewportSize({ width: 1024, height: 500 });
   await page.locator('#objectSearchBtn').click();
-  await page.locator('#layerSearchInput').fill('강');
-  await expect(page.locator('#layerSearchResults .layer-search-result').first()).toBeVisible();
+  await page.locator('#objectSearchInput').fill('강');
+  await expect(page.locator('#objectSearchResults .object-search-result').first()).toBeVisible();
   const lowGeometry = await page.evaluate(() => {
-    const results = document.querySelector('#layerSearchResults').getBoundingClientRect();
-    const input = document.querySelector('#layerSearchInput').getBoundingClientRect();
+    const results = document.querySelector('#objectSearchResults').getBoundingClientRect();
+    const input = document.querySelector('#objectSearchInput').getBoundingClientRect();
     const topbar = document.querySelector('.topbar').getBoundingClientRect();
     return { top: results.top, bottom: results.bottom, inputTop: input.top, topbarBottom: topbar.bottom };
   });
@@ -171,9 +171,9 @@ test('task workspace and toolbar search preserve their DOM and camera across lay
   await page.keyboard.press('Escape');
   await expect(page.locator('#objectSearchBtn')).toBeFocused();
   await page.locator('#objectSearchBtn').click();
-  await page.locator('#layerSearchClearBtn').click();
-  await expect(page.locator('#layerSearchInput')).toHaveValue('');
-  await expect(page.locator('#layerSearchInput')).toBeFocused();
+  await page.locator('#objectSearchClearBtn').click();
+  await expect(page.locator('#objectSearchInput')).toHaveValue('');
+  await expect(page.locator('#objectSearchInput')).toBeFocused();
   await page.keyboard.press('Shift+Tab');
   await expect(page.locator('#objectSearchSurface')).toBeHidden();
   expect(errors).toEqual([]);

@@ -108,7 +108,7 @@ export function createBuiltinSession({ historicalWorldLoader = null } = {}) {
     const labelRefs = new Map(features.map(feature => [String(feature.id), { domain: 'territorial', type: 'entity', id: String(feature.id) }]));
     const units = new Map();
     for (const unit of entities.filter(entity => entity.properties.entityKind === 'regional' || !!entity.properties.parentId)) {
-      const sourceId = (0, dependencies.objectCatalog.builtinSubunitSourceId)(unit);
+      const sourceId = (0, dependencies.objectDefinitions.builtinSubunitSourceId)(unit);
       const id = territorialSceneDisplayId(unit, countryIds);
       const feature = { type: 'Feature', id, properties: unit.properties, geometry: unit.geometry,
         boundaryRootId: territorialRootId(unit, entityId => dependencies.territorialModel.entityRepository.get(entityId)) };
@@ -150,7 +150,7 @@ export function createBuiltinSession({ historicalWorldLoader = null } = {}) {
   }
 
   function isNativeBuiltinSubunit(unit) {
-    const sourceId = (0, dependencies.objectCatalog.builtinSubunitSourceId)(unit);
+    const sourceId = (0, dependencies.objectDefinitions.builtinSubunitSourceId)(unit);
     return !!sourceId && builtinTerritorialScene().nativeUnits.get(sourceId)?.id === unit.id;
   }
 

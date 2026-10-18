@@ -1,22 +1,22 @@
 /* Canonical components / map-search. */
 
-.layer-search input::placeholder {
-  color: var(--layer-search-color);
+.object-search input::placeholder {
+  color: var(--object-search-color);
 }
 
 @media (prefers-color-scheme: light) {
-  .layer-search {
-    background: var(--layer-search-background);
+  .object-search {
+    background: var(--object-search-background);
   }
 }
 
 @media (prefers-color-scheme: light) {
-  .layer-search input::placeholder {
-    color: var(--layer-search-color-media-prefers-color-scheme-light);
+  .object-search input::placeholder {
+    color: var(--object-search-color-media-prefers-color-scheme-light);
   }
 }
 
-.layer-search {
+.object-search {
   min-height: var(--ui-control-height);
   border-color: var(--component-field-border);
   border-radius: var(--ui-radius-control);
@@ -25,7 +25,7 @@
   margin: 0 var(--ui-surface-content-rail-x) var(--ui-space-2);
 }
 
-.layer-search input {
+.object-search input {
   height: calc(var(--ui-control-height) - var(--ui-space-0-5));
   min-height: 0;
   font: inherit;
@@ -33,7 +33,7 @@
   font-weight: var(--ui-weight-regular);
 }
 
-.layer-search-icon {
+.object-search-icon {
   width: var(--ui-icon-size);
   height: var(--ui-icon-size);
   justify-self: center;
@@ -41,7 +41,7 @@
   pointer-events: none;
 }
 
-.layer-search-result.is-multi-selected:not(.is-primary-selected) {
+.object-search-result.is-multi-selected:not(.is-primary-selected) {
   border-color: var(--selection-soft-border);
   background: var(--selection-soft-bg);
   color: var(--selection-soft-fg);
@@ -58,7 +58,7 @@
   -webkit-overflow-scrolling: touch;
 }
 
-.layer-search-results {
+.object-search-results {
   flex: 1 1 auto;
   min-height: 0;
   display: grid;
@@ -73,7 +73,7 @@
   padding-inline-start: var(--ui-surface-content-rail-x);
 }
 
-.layer-search-result {
+.object-search-result {
   width: 100%;
   min-height: var(--ui-tree-row-height);
   display: grid;
@@ -85,13 +85,13 @@
   cursor: pointer;
 }
 
-.layer-search-result > span {
+.object-search-result > span {
   grid-row: 2;
   color: var(--muted);
   font-size: var(--ui-font-caption);
 }
 
-.layer-search-result > strong {
+.object-search-result > strong {
   grid-row: 1;
   min-width: 0;
   overflow: hidden;
@@ -99,11 +99,11 @@
   white-space: nowrap;
 }
 
-.layer-search-result:is(.is-selected:not(.is-multi-selected), .is-primary-selected) > span {
+.object-search-result:is(.is-selected:not(.is-multi-selected), .is-primary-selected) > span {
   color: var(--selection-strong-muted);
 }
 
-.layer-search-result.is-multi-selected:not(.is-primary-selected) > span {
+.object-search-result.is-multi-selected:not(.is-primary-selected) > span {
   color: var(--text-soft);
 }
 
@@ -169,11 +169,11 @@
   padding: 0;
 }
 
-.search-toolbar-desktop .object-search-section .layer-search {
+.search-toolbar-desktop .object-search-section .object-search {
   margin: 0;
 }
 
-.search-toolbar-desktop .object-search-section .layer-search-results {
+.search-toolbar-desktop .object-search-section .object-search-results {
   position: absolute;
   bottom: calc(100% + var(--ui-menu-trigger-gap));
   left: 0;
@@ -212,7 +212,7 @@
   overflow: hidden;
 }
 
-.object-search-section .layer-search {
+.object-search-section .object-search {
   margin-block-start: var(--ui-space-3);
 }
 
@@ -257,7 +257,7 @@
 }
 
 @media (max-width: 799px) {
-  .app-root[data-layout="mobile"] :is(.surface-search, .surface-display) .layer-search-results {
+  .app-root[data-layout="mobile"] :is(.surface-search, .surface-display) .object-search-results {
     padding-bottom: var(--ui-space-3);
   }
 }

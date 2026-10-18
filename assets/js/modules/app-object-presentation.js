@@ -96,16 +96,16 @@ export function createObjectPresentation() {
   function syncMapObjectCategoryLabels() {
     const buildContent = (0, dependencies.platform.$)('createBuildPanel');
     if (buildContent) {
-      dependencies.objectCatalog.MAP_OBJECT_CATEGORY_ORDER.forEach(categoryKey => {
+      dependencies.objectDefinitions.MAP_OBJECT_CATEGORY_ORDER.forEach(categoryKey => {
         const categoryNode = buildContent.querySelector(`.ui-menu-group[data-map-category="${categoryKey}"]`);
-        const category = dependencies.objectCatalog.MAP_OBJECT_CATEGORIES[categoryKey];
+        const category = dependencies.objectDefinitions.MAP_OBJECT_CATEGORIES[categoryKey];
         if (!categoryNode || !category) return;
         categoryNode.setAttribute('role', 'group');
         categoryNode.setAttribute('aria-label', category.label);
         category.createItems.forEach(type => {
           const item = categoryNode.querySelector(`[data-map-object-type="${type}"]`);
           if (!item) return;
-          const metadata = dependencies.objectCatalog.MAP_OBJECT_TYPES[type];
+          const metadata = dependencies.objectDefinitions.MAP_OBJECT_TYPES[type];
           const label = item.querySelector('span');
           const icon = item.querySelector('.ui-icon use');
           if (metadata) {
@@ -144,17 +144,17 @@ export function createObjectPresentation() {
 
   function initializeObjectPresentationModel() {
     (LAYER_GROUP_KEYS = Object.freeze([...new Set([
-      ...dependencies.objectCatalog.MAP_OBJECT_CATEGORIES.territorial.layerGroups,
-      ...dependencies.objectCatalog.MAP_OBJECT_CATEGORIES.distribution.layerGroups,
+      ...dependencies.objectDefinitions.MAP_OBJECT_CATEGORIES.territorial.layerGroups,
+      ...dependencies.objectDefinitions.MAP_OBJECT_CATEGORIES.distribution.layerGroups,
       'hydro',
       'genericFeatures',
-      ...dependencies.objectCatalog.MAP_OBJECT_CATEGORIES.features.viewGroups,
+      ...dependencies.objectDefinitions.MAP_OBJECT_CATEGORIES.features.viewGroups,
     ])]));
 
     (LAYER_SEARCH_GROUP_KEYS = LAYER_GROUP_KEYS.filter(group => group !== 'countryLabels'));
 
     (layerGroupNames = Object.freeze({
-      ...Object.fromEntries(Object.values(dependencies.objectCatalog.MAP_OBJECT_TYPES)
+      ...Object.fromEntries(Object.values(dependencies.objectDefinitions.MAP_OBJECT_TYPES)
         .filter(type => type.layerGroup)
         .map(type => [type.layerGroup, type.label])),
       distributions: '분포',

@@ -134,8 +134,8 @@ export function createPhysicalResources({ enabled = true } = {}) {
       onLoading: () => {
         dependencies.projectState.state.physicalLoadState.terrain = 'loading';
         dependencies.projectState.state.physicalLoadState.terrainManifest = 'loading';
-        (0, dependencies.layerPresentation.markLayerTreeDirty)();
-        dependencies.domains.layerTreeController?.render();
+        (0, dependencies.layerPresentation.invalidateObjectPresentation)();
+        dependencies.domains.objectSearchController?.render();
       },
       onRetry: (_operation, attempt) => dependencies.operationFeedback.reliabilityDiagnostic.push({
         category: 'asset', operation: 'terrain-manifest', result: `retry-${attempt}`,
@@ -148,16 +148,16 @@ export function createPhysicalResources({ enabled = true } = {}) {
           source: context.usedFallback ? 'fallback' : dependencies.physicalConfig.TERRAIN_SOURCE_CHOICE,
           fallbackReason: context.fallbackReason,
         });
-        (0, dependencies.layerPresentation.markLayerTreeDirty)();
-        dependencies.domains.layerTreeController?.render();
+        (0, dependencies.layerPresentation.invalidateObjectPresentation)();
+        dependencies.domains.objectSearchController?.render();
         dependencies.domains.renderingDomain?.invalidateBaseScene?.('terrain-manifest-ready');
       },
       onFailure: error => {
         dependencies.projectState.state.physicalLoadState.terrainManifest = 'error';
         dependencies.projectState.state.physicalLoadState.terrain = 'error';
         dependencies.operationFeedback.reliabilityDiagnostic.push({ category: 'asset', operation: 'terrain-manifest', result: 'failed', errorCode: 'PL-TERRAIN-001' });
-        (0, dependencies.layerPresentation.markLayerTreeDirty)();
-        dependencies.domains.layerTreeController?.render();
+        (0, dependencies.layerPresentation.invalidateObjectPresentation)();
+        dependencies.domains.objectSearchController?.render();
         console.warn('Terrain load failed', error);
         (0, dependencies.feedback.reportOperationError)(error, '지형 데이터를 불러오지 못했습니다. 국가 지도는 계속 사용할 수 있습니다. 잠시 후 다시 시도하세요.', 'PL-TERRAIN-001', 0);
       },
@@ -177,8 +177,8 @@ export function createPhysicalResources({ enabled = true } = {}) {
         dependencies.projectState.state.physicalLoadState.hydroManifest = 'loading';
         dependencies.projectState.state.physicalLoadState.hydroWorker = 'starting';
         dependencies.projectState.state.physicalLoadState.hydroView = 'idle';
-        (0, dependencies.layerPresentation.markLayerTreeDirty)();
-        dependencies.domains.layerTreeController?.render();
+        (0, dependencies.layerPresentation.invalidateObjectPresentation)();
+        dependencies.domains.objectSearchController?.render();
       },
       onRetry: (_operation, attempt) => dependencies.operationFeedback.reliabilityDiagnostic.push({
         category: 'asset', operation: 'hydro-manifest', result: `retry-${attempt}`,
@@ -197,8 +197,8 @@ export function createPhysicalResources({ enabled = true } = {}) {
         await admitHydroFeatures();
         dependencies.projectState.state.physicalLoadState.hydroWorker = 'ready';
         dependencies.projectState.state.physicalLoadState.hydro = 'ready';
-        (0, dependencies.layerPresentation.markLayerTreeDirty)();
-        dependencies.domains.layerTreeController?.render();
+        (0, dependencies.layerPresentation.invalidateObjectPresentation)();
+        dependencies.domains.objectSearchController?.render();
         dependencies.domains.renderingDomain?.invalidateOverlayGeometry('hydro', 'hydro-ready');
         return true;
       },
@@ -207,8 +207,8 @@ export function createPhysicalResources({ enabled = true } = {}) {
         dependencies.projectState.state.physicalLoadState.hydroWorker = 'error';
         dependencies.projectState.state.physicalLoadState.hydro = 'error';
         dependencies.operationFeedback.reliabilityDiagnostic.push({ category: 'asset', operation: 'hydro-init', result: 'failed', errorCode: 'PL-WATER-001' });
-        (0, dependencies.layerPresentation.markLayerTreeDirty)();
-        dependencies.domains.layerTreeController?.render();
+        (0, dependencies.layerPresentation.invalidateObjectPresentation)();
+        dependencies.domains.objectSearchController?.render();
         console.warn('Hydro load failed', error);
         (0, dependencies.feedback.reportOperationError)(error, '강·호수 목록을 불러오지 못했습니다. 국가 지도는 계속 사용할 수 있습니다. 페이지를 새로고침하거나 잠시 후 다시 시도하세요.', 'PL-WATER-001', 0);
       },

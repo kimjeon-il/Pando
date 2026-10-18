@@ -89,7 +89,7 @@
     editableMs: null,
     readyMs: null,
     layerHydrationStartedMs: null,
-    layerTreeRenderedMs: null,
+    objectSearchRenderedMs: null,
     layerReadyMs: null,
     geometryError: '',
     meshError: '',

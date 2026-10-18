@@ -37,7 +37,7 @@ const entityStore = createTerritorialEntityStore({ documentModel:testCoreProject
     objectPresentation: { territorialEntityName: feature => feature.properties.name, territorialRootName: () => 'B' },
     projectRestore: { openConfirmModal: options => { confirm = options; } },
     spatialQuery: { markCountryGeometriesChanged: ids => patches.push([...ids]) },
-    feedback: { setActionStatus() {}, reportOperationError(error, message, code) { diagnostics.push({error,message,code}); } }, layers: { markLayerTreeDirty() {} }, domainControllers: { objectPropertyController: { show() {} } },
+    feedback: { setActionStatus() {}, reportOperationError(error, message, code) { diagnostics.push({error,message,code}); } }, objectDisplay: { invalidateObjectPresentation() {} }, domainControllers: { objectPropertyController: { show() {} } },
     domains: { selectionDomain,
       renderingDomain: { invalidateCountryPatch(){},invalidateOverlayGeometry(){},invalidateSelection(){},invalidateLabels(){},
         invalidateTerritorialPatch() { if (fail) throw Error('apply failed'); } },

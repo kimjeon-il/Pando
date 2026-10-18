@@ -131,7 +131,7 @@ export function createLibraryAssembly() {
       counts: { added: prepared.length, subtracted: donorIds.size, deleted },
       countryPatchPresentation: preserveExistingScene ? 'preserve-existing-scene' : 'replace-scene',
     });
-    (0, dependencies.layers.markLayerTreeDirty)();
+    (0, dependencies.objectDisplay.invalidateObjectPresentation)();
     (0, dependencies.spatialRecords.scheduleMapObjectSpatialIndexRebuild)();
     if (!preserveExistingScene) dependencies.domains.renderingDomain?.invalidateProject?.('territorial-library-import');
     dependencies.projectSession.saveState.markNewProject('content:0');

@@ -1,6 +1,6 @@
 import { MAP_HOST_KINDS, createMapHostEventHub, normalizeMapProjectionKind } from './map-host.js';
 
-export function createLegacyMapHost({
+export function createMapSurfaceHost({
   getProjectionKind,
   setProjectionKind,
   getViewState,

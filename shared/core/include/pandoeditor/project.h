@@ -26,9 +26,9 @@ public:
     const std::set<std::string>& inactiveEntityIds() const noexcept;
     const ProjectDocument& document() const noexcept;
     const DocumentIndex& index() const noexcept;
-    const std::vector<Layer>& layers() const noexcept;
+    const std::vector<UserLayer>& userLayers() const noexcept;
     const CountryView* country(const std::string&) const;
-    const Layer* layer(const std::string&) const;
+    const UserLayer* userLayer(const std::string&) const;
     bool matches(const Project&) const noexcept;
 private:
     friend class Project;
@@ -75,12 +75,12 @@ public:
     const ProjectDocument& viewDocument() const noexcept;
     const std::set<std::string>& inactiveEntityIds() const noexcept;
     const std::vector<CountryView>& countries() const noexcept;
-    const std::vector<Layer>& layers() const noexcept;
+    const std::vector<UserLayer>& userLayers() const noexcept;
     const DocumentIndex& index() const noexcept;
     const DocumentIndex& viewIndex() const noexcept;
     bool hasActiveObject(const ObjectRef&) const noexcept;
     const CountryView* country(const std::string& id) const;
-    const Layer* layer(const std::string& id) const;
+    const UserLayer* userLayer(const std::string& id) const;
     const ObjectPropertyView* propertyView(const ObjectRef&) const;
     bool editable(const std::string& id) const;
     std::string pick(Point point) const;
@@ -88,14 +88,14 @@ public:
     bool renameCountry(const std::string& id, const std::string& name);
     bool setMemo(const std::string& id, const std::string& memo);
     bool setCountryOpacity(const std::string& id, double opacity);
-    bool moveCountry(const std::string& id, const std::string& layerId);
-    bool addLayer(const std::string& id, const std::string& name);
-    bool removeLayer(const std::string& id);
-    bool renameLayer(const std::string& id, const std::string& name);
-    bool setLayerVisible(const std::string& id, bool visible);
-    bool setLayerLocked(const std::string& id, bool locked);
-    bool setLayerOpacity(const std::string& id, double opacity);
-    bool moveLayer(const std::string& id, int delta);
+    bool moveCountryToUserLayer(const std::string& id, const std::string& layerId);
+    bool addUserLayer(const std::string& id, const std::string& name);
+    bool removeUserLayer(const std::string& id);
+    bool renameUserLayer(const std::string& id, const std::string& name);
+    bool setUserLayerVisible(const std::string& id, bool visible);
+    bool setUserLayerLocked(const std::string& id, bool locked);
+    bool setUserLayerOpacity(const std::string& id, double opacity);
+    bool moveUserLayer(const std::string& id, int delta);
     bool undo();
     bool redo();
     ProjectSnapshot historySnapshot(bool forward,HistoryRestorePolicy policy=HistoryRestorePolicy::NativeCountryOverrides) const;
@@ -120,7 +120,7 @@ private:
     void admitTerritorialDirtyIds(const std::function<std::vector<std::string>(const ProjectDocument&)>&);
     bool execute(std::string commandId, CommandArguments args);
     bool changeCountry(const std::string& id, CountryProperties next);
-    bool changeLayer(Layer next);
+    bool changeUserLayer(UserLayer next);
     void apply(const ChangeSet& change);
     ProjectSnapshot commitSnapshot(const ChangeSet&) const;
     void apply(const ChangeSet&,const ProjectSnapshot&);

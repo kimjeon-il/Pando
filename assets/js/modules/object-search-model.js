@@ -4,7 +4,7 @@ const TYPE_LABELS = Object.freeze({
 });
 
 /** Presentation only: membership never depends on geometry, visibility or loading success. */
-export function createLayerListModel({ items, groups, itemRef, compare }) {
+export function createObjectSearchModel({ items, groups, itemRef, compare }) {
   const bundles = [
     { kind: 'bundle', key: 'bundle:polities', id: 'polities', name: '정치체', icon: 'country', items: [] },
     { kind: 'bundle', key: 'bundle:landforms', id: 'landforms', name: '지형지물', icon: 'river', items: [] },
@@ -55,7 +55,7 @@ export function createLayerListModel({ items, groups, itemRef, compare }) {
   return { bundles: bundles.filter(bundle => bundle.items.length), objects, order, parentKeys, children };
 }
 
-export function visibleLayerRows(model, folders = {}, search = '', expanded = new Set()) {
+export function visibleObjectSearchRows(model, folders = {}, search = '', expanded = new Set()) {
   const query = search.trim().toLocaleLowerCase('ko');
   if (query) return [...model.bundles.flatMap(bundle => bundle.items), ...model.objects]
     .filter(item => `${item.name} ${item.typeLabel} ${item.searchText || ''} ${item.id}`.toLocaleLowerCase('ko').includes(query))

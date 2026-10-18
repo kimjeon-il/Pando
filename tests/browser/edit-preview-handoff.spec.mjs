@@ -635,8 +635,8 @@ for (const renderer of ['webgl2', 'canvas']) {
     await loadProjectFile(page, project, kind);
     await page.locator('#terrainNoneRadio').evaluate(input => input.click());
     await page.locator('#objectSearchBtn').click();
-    await page.locator('#layerSearchInput').fill(`M2 ${kind}`);
-    await page.locator('#layerSearchResults .layer-search-result-select').first().click();
+    await page.locator('#objectSearchInput').fill(`M2 ${kind}`);
+    await page.locator('#objectSearchResults .object-search-result-select').first().click();
     await focusSelectedObject(page, renderer);
     await expect.poll(() => page.evaluate(() => window.__m2State().selected)).toMatchObject({
       domain: 'hydro', type: kind, id: project.hydroEdits[0].id,
@@ -687,8 +687,8 @@ for (const renderer of ['webgl2', 'canvas']) {
     // History restoration clears selection in the current application contract.
     // Select the restored object through the same UI before testing a no-op.
     await page.locator('#objectSearchBtn').click();
-    await page.locator('#layerSearchInput').fill(`M2 ${kind}`);
-    await page.locator('#layerSearchResults .layer-search-result-select').first().click();
+    await page.locator('#objectSearchInput').fill(`M2 ${kind}`);
+    await page.locator('#objectSearchResults .object-search-result-select').first().click();
     await focusSelectedObject(page, renderer);
     const unchanged = await page.evaluate(() => window.__m2CommandState());
     const originalHandle = page.locator('.vertex-handle:not(.country-vertex)').first();
@@ -699,8 +699,8 @@ for (const renderer of ['webgl2', 'canvas']) {
     await expect.poll(geometry, { timeout: 60_000 }).toEqual(after.feature.geometry);
     if (kind === 'lake') {
       await page.locator('#objectSearchBtn').click();
-      await page.locator('#layerSearchInput').fill(`M2 ${kind}`);
-      await page.locator('#layerSearchResults .layer-search-result-select').first().click();
+      await page.locator('#objectSearchInput').fill(`M2 ${kind}`);
+      await page.locator('#objectSearchResults .object-search-result-select').first().click();
       await focusSelectedObject(page, renderer);
       const valid = await geometry(), history = await page.evaluate(() => window.__m2CommandState());
       const handle = page.locator('.vertex-handle:not(.country-vertex)').first();

@@ -258,7 +258,7 @@ export function createMapRenderCoordinator({
         callRenderer('viewPresentation', rendererTimes, viewState, viewFrameResult);
       }
 
-      if (mask & MAP_RENDER_DIRTY.LAYER_TREE) callRenderer('layerTree', rendererTimes);
+      if (mask & MAP_RENDER_DIRTY.LAYER_TREE) callRenderer('objectSearch', rendererTimes);
       metrics.lastRenderMs = Math.max(0, now() - startedAt);
       metrics.lastMode = full ? 'full' : 'partial';
       metrics.lastRequestedMask = requestedMask;

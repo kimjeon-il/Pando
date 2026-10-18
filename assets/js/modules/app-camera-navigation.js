@@ -10,7 +10,7 @@ export function createCameraNavigation() {
     dependencies = ports;
   }
 
-  function dragLegacyMapViewBy(dx, dy) {
+  function panMapViewBy(dx, dy) {
     const [dragX, dragY] = (0, dependencies.mapNavigation.normalizeMapSurfaceDragDelta)(dx, dy);
     if (dragX === 0 && dragY === 0) return false;
     if (dependencies.projectState.state.projection === 'globe') {
@@ -38,7 +38,7 @@ export function createCameraNavigation() {
     if (dependencies.mapView.mapHost?.isReady?.() && typeof dependencies.mapView.mapHost.dragBy === 'function') {
       return dependencies.mapView.mapHost.dragBy(dx, dy, { animate: false });
     }
-    return dragLegacyMapViewBy(dx, dy);
+    return panMapViewBy(dx, dy);
   }
 
   function wrappedLongitudeDelta(value) {
@@ -199,7 +199,7 @@ export function createCameraNavigation() {
     dependencies.domains.projectDomain.queueViewAutosave();
   }
 
-  function selectLayerTreeItem(group, id, { mode = 'replace', range = false, orderedRefs = [] } = {}) {
+  function selectObjectSearchItem(group, id, { mode = 'replace', range = false, orderedRefs = [] } = {}) {
     const key = String(id);
     if (group === 'hydro' && dependencies.physicalData.HYDRO_LAYER_META[key]) {
         if (!dependencies.projectState.state.hydroManifest) (0, dependencies.physicalData.loadHydroData)(true);
@@ -279,12 +279,12 @@ export function createCameraNavigation() {
     connect,
 
     get bindHoldZoom() { return bindHoldZoom; },
-    get dragLegacyMapViewBy() { return dragLegacyMapViewBy; },
+    get panMapViewBy() { return panMapViewBy; },
     get dragMapBy() { return dragMapBy; },
     get focusCoordinate() { return focusCoordinate; },
     get fitMapToFeature() { return fitMapToFeature; },
     get resetView() { return resetView; },
-    get selectLayerTreeItem() { return selectLayerTreeItem; },
+    get selectObjectSearchItem() { return selectObjectSearchItem; },
     get transformMapView() { return transformMapView; },
     get wrappedLongitudeDelta() { return wrappedLongitudeDelta; },
     get zoomBy() { return zoomBy; },

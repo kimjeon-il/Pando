@@ -126,8 +126,8 @@ export function createPropertySelection() {
       await refreshSelectedDistribution(layer.id);
       return false;
     }
-    if (field === 'locked') dependencies.domains.layerTreeController?.syncLocks([{ domain: 'distribution', type: 'distribution', id: layer.id }]);
-    else (0, dependencies.layers.markLayerTreeDirty)();
+    if (field === 'locked') dependencies.domains.objectSearchController?.syncLocks([{ domain: 'distribution', type: 'distribution', id: layer.id }]);
+    else (0, dependencies.objectDisplay.invalidateObjectPresentation)();
     await refreshSelectedDistribution(layer.id);
     (0, dependencies.feedback.setActionStatus)('분포 정보를 변경했습니다.', 'success');
     return true;
@@ -146,8 +146,8 @@ export function createPropertySelection() {
     });
     if (!currentProject(generation)) return false;
 
-    (0, dependencies.layers.markLayerTreeDirty)();
-    dependencies.domains.layerTreeController?.render(true);
+    (0, dependencies.objectDisplay.invalidateObjectPresentation)();
+    dependencies.domains.objectSearchController?.render(true);
     await applyDistributionSelectionIntent(layer.id);
     (0, dependencies.feedback.setActionStatus)(`${layer.name} 분포를 추가했습니다. 값을 이어서 입력하세요.`, 'success', 3600);
     return true;
@@ -234,7 +234,7 @@ export function createPropertySelection() {
       const result = await dependencies.objectModelA.distributionService.deleteLayer(layer.id);
       if (!currentProject(generation)) return false;
       if (!result.ok) return false;
-      (0, dependencies.layers.markLayerTreeDirty)();
+      (0, dependencies.objectDisplay.invalidateObjectPresentation)();
       if (dependencies.projectState.state.selected?.domain === 'distribution'
         && String(dependencies.projectState.state.selected.id) === String(layer.id))
         dependencies.domains.selectionUiController.clear({ reason: 'distribution-delete-selection-clear' });
@@ -264,7 +264,7 @@ export function createPropertySelection() {
     if(!result.ok)throw Object.assign(new Error(result.error.message),{code:result.error.code});
     if(generation!==dependencies.domains.projectDomain.getGeneration()||dependencies.projectState.state.projectReplacing)return false;
     dependencies.distributionPresentation.bumpVisibilityRevision();
-    (0, dependencies.layers.markLayerTreeDirty)();
+    (0, dependencies.objectDisplay.invalidateObjectPresentation)();
     dependencies.domains.renderingDomain?.invalidateOverlayStyle?.('distribution-layer-visibility');
     return true;
   }
@@ -291,7 +291,7 @@ export function createPropertySelection() {
     if (!currentProject(generation)) return false;
     if (!result.ok) return false;
     if (!result.changed) return true;
-    dependencies.domains.layerTreeController?.syncLocks([{ domain: 'territorial', type: 'entity', id: key }]);
+    dependencies.domains.objectSearchController?.syncLocks([{ domain: 'territorial', type: 'entity', id: key }]);
     if (dependencies.projectState.state.selected?.domain === 'territorial' && String(dependencies.projectState.state.selected.id) === key) dependencies.domains.selectionUiController.presentPrimary({ refreshOnly: true });
     dependencies.objectOperationsB.syncBatchActionAvailability();
     return true;
@@ -343,7 +343,7 @@ export function createPropertySelection() {
     if(!result.ok)throw Object.assign(new Error(result.error.message),{ code: result.error.code });
     if(generation!==dependencies.domains.projectDomain.getGeneration() || dependencies.projectState.state.projectReplacing)return false;
     dependencies.rendering.gpuMapRenderer.invalidateHydroVisibility();
-    (0, dependencies.layers.markLayerTreeDirty)();
+    (0, dependencies.objectDisplay.invalidateObjectPresentation)();
     await applyHydroSelectionIntent(String(copy.id));
     dependencies.domains.renderingDomain?.invalidateHydroPatch?.('hydro-edit-copy');
     (0, dependencies.feedback.setActionStatus)(`${source.properties?.name || (category === 'lake' ? '호수' : '강')} 편집 복사본을 만들었습니다.`, 'success', 3600);

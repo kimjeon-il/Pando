@@ -149,7 +149,7 @@ test('adjacent countries share prepared boundaries and list hover never adds a s
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   await page.locator('#objectSearchBtn').click();
   for (const [name, id] of [['프랑스', 'FRA'], ['오스트리아', 'AUT']]) {
-    await page.locator('#layerSearchInput').fill(name);
+    await page.locator('#objectSearchInput').fill(name);
     const row = page.locator(`[data-object-search-select="countries"][data-item-id="${id}"]`);
     await row.click({ modifiers: ['Control'] });
   }
@@ -286,7 +286,7 @@ for (const renderer of ['webgl2', 'webgl1', 'canvas']) test(`Russia parent-child
   const single = await pixels();
   expect(single[3]).toBe(255);
   await page.locator('#objectSearchBtn').click();
-  await page.locator('#layerSearchInput').fill('러시아');
+  await page.locator('#objectSearchInput').fill('러시아');
   await page.locator('[data-object-search-select="countries"][data-item-id="RUS"]').click({ modifiers: ['Control'] });
   if (renderer !== 'canvas') await withPollTimingDiagnostics(page, test.info(), { label: `russia-secondary-${renderer}` }, timing =>
     expect.poll(() => timing.call(evaluate => evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.drawCoverage?.secondary?.drawSucceeded)), { timeout: 90000 }).toBe(true));
@@ -295,7 +295,7 @@ for (const renderer of ['webgl2', 'webgl1', 'canvas']) test(`Russia parent-child
   for (let i = 0; i < 4; i++) expect(Math.abs(single[i] - overlap[i])).toBeLessThanOrEqual(2);
   const before = await page.evaluate(() => ({ preparations: window.__highlightPreparations, builds: window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.bufferBuildCount }));
   await page.locator('[data-object-search-select="countries"][data-item-id="RUS"]').hover();
-  await page.locator('#layerSearchInput').hover();
+  await page.locator('#objectSearchInput').hover();
   await page.locator('[data-object-search-select="countries"][data-item-id="RUS"]').hover();
   const after = await page.evaluate(() => ({ preparations: window.__highlightPreparations, builds: window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.bufferBuildCount }));
   expect(after).toEqual(before);
@@ -336,7 +336,7 @@ test('custom color, zero fill and disabled selected outlines preserve unselected
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90000 });
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   await page.locator('#objectSearchBtn').click();
-  await page.locator('#layerSearchInput').fill('프랑스');
+  await page.locator('#objectSearchInput').fill('프랑스');
   await page.locator('[data-object-search-select="countries"][data-item-id="FRA"]').hover();
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.drawCoverage?.hover?.renderedKeys || []), { timeout: 30000 }).toContain('territorial:entity:FRA');
   const style = await page.evaluate(() => window.__PANDOLAB_INTERACTION_STYLE__);
@@ -345,7 +345,7 @@ test('custom color, zero fill and disabled selected outlines preserve unselected
   expect(style.selection.primary.fillAlpha).toBe(0); expect(style.hover.fillAlpha).toBe(0);
   expect(await page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.drawCoverage.primary.renderedKeys)).toEqual([]);
   await expect(page.locator('.map-selection-fill, .map-hover-fill')).toHaveCount(0);
-  await page.locator('#layerSearchInput').hover();
+  await page.locator('#objectSearchInput').hover();
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.drawCoverage.hover.renderedKeys)).toEqual([]);
 });
 

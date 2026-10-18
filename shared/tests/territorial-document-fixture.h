@@ -10,7 +10,7 @@ struct TerritorialDocumentFixture {
 };
 inline pandoeditor::ProjectDocument makeTerritorialDocument(
     std::vector<TerritorialDocumentFixture> rows,
-    std::vector<pandoeditor::Layer> layers={{"countries","Countries"}}) {
+    std::vector<pandoeditor::UserLayer> layers={{"countries","Countries"}}) {
     pandoeditor::ProjectDocument document;
     std::random_device random;
     for(int i=0;i<32;++i)document.documentId+="0123456789abcdef"[random()%16];

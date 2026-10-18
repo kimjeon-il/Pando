@@ -30,15 +30,15 @@ export function createEditorBindings() {
     dependencies.lifecycleUi.propertyEditorUi.bind();
     (0, dependencies.fileBindings.bindFileAndGisUI)();
     (0, dependencies.globalInput.bindGlobalInputUI)();
-    (0, dependencies.platformConfigurationB.syncSearchClearButton)((0, dependencies.platform.$)('layerSearchInput'), (0, dependencies.platform.$)('layerSearchClearBtn'));
+    (0, dependencies.platformConfigurationB.syncSearchClearButton)((0, dependencies.platform.$)('objectSearchInput'), (0, dependencies.platform.$)('objectSearchClearBtn'));
     (0, dependencies.colorPicker.syncColorPicker)('multiProperties', { value: (0, dependencies.platform.$)('multiPropertiesColorInput')?.value, defaultColor: '#3f6fae', isDefault: false });
     dependencies.lifecycleUi.projectUi.syncSaveStatus(dependencies.projectSession.saveState.snapshot());
   }
 
   function syncProjectControls() {
     (0, dependencies.mapSettingsUi.renderMapDisplaySettings)();
-    if ((0, dependencies.platform.$)('layerSearchInput')) (0, dependencies.platform.$)('layerSearchInput').value = dependencies.projectState.state.layerSearch;
-    dependencies.domains.layerTreeController?.render(true);
+    if ((0, dependencies.platform.$)('objectSearchInput')) (0, dependencies.platform.$)('objectSearchInput').value = dependencies.projectState.state.objectSearch;
+    dependencies.domains.objectSearchController?.render(true);
     (0, dependencies.mapSettingsUi.syncProjectionButtons)();
     (0, dependencies.readinessUi.syncCanonicalControls)();
   }

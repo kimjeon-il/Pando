@@ -31,8 +31,8 @@ test('restored generic geometry ignores source ownership metadata', async ({ pag
   await page.goto('/');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 30_000 });
   await page.locator('#objectSearchBtn').click();
-  await page.locator('#layerSearchInput').fill('독립 형상 검증');
-  await page.locator('#layerSearchResults .layer-search-result').click();
+  await page.locator('#objectSearchInput').fill('독립 형상 검증');
+  await page.locator('#objectSearchResults .object-search-result').click();
   await expect(page.locator('#genericFeatureProperties')).toBeVisible();
   const shape = page.locator('path.generic-feature-shape');
   await expect(shape).toHaveCount(1);

@@ -118,7 +118,7 @@ export function createTerritorialDrafts() {
             dependencies.projectState.state.boundaryPreparation?.cancel();dependencies.projectState.state.boundaryPreparation=null;
           }
           await dependencies.domains.editingDomain.clearDraft({reason:'territorial-edit-applied',render:false});
-          await dependencies.domains.editingDomain.setTool('select',{announce:false});dependencies.layers.markLayerTreeDirty();
+          await dependencies.domains.editingDomain.setTool('select',{announce:false});dependencies.objectDisplay.invalidateObjectPresentation();
           await dependencies.domains.selectionUiController.applyIntent({domain:'territorial',type:'entity',id:String(selectedId)},{refreshOnly:true,openEditor:false});
         },
         invalidateAfterApply: () => {
@@ -464,7 +464,7 @@ export function createTerritorialDrafts() {
       return dependencies.geometryOperations.beginLocalGeometryPreview({operation:'redraw-region',preparedCommand:prepared,
         applyAccepted:async()=>{
           await dependencies.domains.editingDomain.clearDraft({reason:'region-redrawn',render:false});await dependencies.domains.editingDomain.setTool('select',{announce:false});
-          dependencies.layers.markLayerTreeDirty();await dependencies.domains.selectionUiController.applyIntent({domain:'territorial',type:'entity',id:String(source.id)},{refreshOnly:true,openEditor:false});
+          dependencies.objectDisplay.invalidateObjectPresentation();await dependencies.domains.selectionUiController.applyIntent({domain:'territorial',type:'entity',id:String(source.id)},{refreshOnly:true,openEditor:false});
         },
         invalidateAfterApply: () => dependencies.domains.renderingDomain?.invalidateTerritorialPatch?.('region-redraw-applied'),
       });
@@ -537,7 +537,7 @@ export function createTerritorialDrafts() {
       return dependencies.geometryOperations.beginLocalGeometryPreview({operation:'territorial-create',preparedCommand:prepared,transferredGeometry:geometry,shouldKeepResult,
         applyAccepted:async()=>{
           await dependencies.domains.editingDomain.clearDraft({reason:'territorial-created',render:false});await dependencies.domains.editingDomain.setTool('select',{announce:false});
-          dependencies.layers.markLayerTreeDirty();await dependencies.domains.selectionUiController.applyIntent({domain:'territorial',type:'entity',id:String(region.id)},{refreshOnly:true,openEditor:false});
+          dependencies.objectDisplay.invalidateObjectPresentation();await dependencies.domains.selectionUiController.applyIntent({domain:'territorial',type:'entity',id:String(region.id)},{refreshOnly:true,openEditor:false});
         },
         invalidateAfterApply: () => dependencies.domains.renderingDomain?.invalidateTerritorialPatch?.('territorial-region-created'),
         successMessage: `${typeLabel}을 만들었습니다.`,
