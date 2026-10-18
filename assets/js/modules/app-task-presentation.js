@@ -1,4 +1,4 @@
-import { taskStagePresentation, taskTargetRefs, taskWorkflowPresentation } from './app-task-stage-model.js';
+import { editingContextPresentation, taskStagePresentation, taskTargetRefs, taskWorkflowPresentation } from './app-task-stage-model.js';
 import { lineDistanceKm } from './geometry-metrics.js';
 
 /** Task surface presentation. Territory selection is rendered from one shared model. */
@@ -207,15 +207,18 @@ export function createTaskPresentation() {
     const editing = mapModeContextActive();
     dependencies.surfaceCommands.setMapModeContextActive(editing);
     if (!editing) dependencies.projectState.state.modeTaskMinimized = false;
+    dependencies.platform.$('modeMapSummary')?.classList.toggle('hidden', !editing);
     const context = (0, dependencies.platform.$)('modeEditingContext');
     const content = (0, dependencies.platform.$)('modeTaskWindowContent');
     const minimize = (0, dependencies.platform.$)('modeTaskMinimizeBtn');
     context?.classList.toggle('hidden', !editing);
-    context?.classList.toggle('is-minimized', false);
-    if (content) content.hidden = false;
+    const minimized = editing && dependencies.projectState.state.modeTaskMinimized;
+    context?.classList.toggle('is-minimized', minimized);
+    if (content) content.hidden = minimized;
     if (minimize) {
-      minimize.hidden = true;
-      minimize.setAttribute('aria-expanded', 'true');
+      minimize.hidden = !editing;
+      minimize.setAttribute('aria-expanded', String(!minimized));
+      minimize.setAttribute('aria-label', minimized ? '편집 상세 펼치기' : '편집 상세 접기');
     }
     dependencies.workspaceUiB.editorWorkspacePresentation.sync({ active: editing });
     dependencies.domainControllers.syncTerritorialEditorInteraction();
@@ -224,7 +227,7 @@ export function createTaskPresentation() {
 
   function toggleMapTaskWindow() {
     if (!mapModeContextActive()) return;
-    dependencies.projectState.state.modeTaskMinimized = false;
+    dependencies.projectState.state.modeTaskMinimized = !dependencies.projectState.state.modeTaskMinimized;
     syncMapContextSurfaces();
   }
 
@@ -464,7 +467,7 @@ export function createTaskPresentation() {
     if (statusNode) {
       statusNode.dataset.taskState = status;
       if (statusNode.textContent !== label) statusNode.textContent = label;
-      statusNode.classList.add('hidden');
+      statusNode.classList.remove('hidden');
       for (const value of ['preparing', 'needs-target', 'editable', 'invalid']) statusNode.classList.toggle(`is-${value}`, value === status);
     }
     if (taskRoot) taskRoot.dataset.taskState = status;
@@ -485,6 +488,27 @@ export function createTaskPresentation() {
     }
     dependencies.platform.$('modeTaskFeedback')?.classList.toggle('workflow-feedback-idle', !feedbackVisible && !candidate && !instructionError && !instructionFeedback);
     syncTaskActionDescription();
+  }
+
+  function syncEditingContext() {
+    const state = dependencies.projectState.state;
+    const targets = currentTaskTargets().map(displayObject);
+    const preview = state.geometryPreview.session;
+    const impact = (preview?.affectedIds || []).map(id => ({name: countryDisplay(id)?.name || territorialUnitDisplay(id) || id}));
+    const context = editingContextPresentation({state,draft: dependencies.draftPresentation.editingDraftSnapshot(),month: dependencies.domains.projectDomain.state()?.timelineCursor,targets});
+    for (const [id,value] of [['modeTaskTargetSummary',context.targetSummary],['modeTaskEditingStage',context.stage],['modeTaskViewTime','보기: '+context.view],['modeTaskPeriod','변경 기간: '+context.period],['modeTaskInput',context.instruction]]) {
+      const element=dependencies.platform.$(id);if(element && element.textContent!==value)element.textContent=value;
+    }
+    const mapSummary=dependencies.platform.$('modeMapSummary');
+    if(mapSummary)mapSummary.textContent=[dependencies.platform.$('modeTaskName')?.textContent,context.targetSummary,context.stage].filter(Boolean).join(' · ');
+    const list=dependencies.platform.$('modeTaskAffectedList');
+    const summary=dependencies.platform.$('modeTaskAffectedSummary');
+    if (list && summary) {
+      const names=impact.map(row=>row.name);
+      summary.textContent=preview?'영향 대상 '+names.length+'개':'작업 대상 '+targets.length+'개';
+      const value=(preview?names:targets.map(row=>row.name)).join(', ');
+      if(list.textContent!==value)list.textContent=value;
+    }
   }
 
   function currentTaskTargets() {
@@ -680,14 +704,15 @@ export function createTaskPresentation() {
         disabled ||= (genericSplitMode || unitSplitMode) && !hydroReview && !cutLineReady;
         disabled ||= unitRedrawMode && draft.coords.length < 3;
         disabled ||= boundaryPending || (boundarySelectMode && !boundaryReady && !boundaryFailed);
+        disabled ||= (boundaryEditMode || state.tool === 'country-coast') && !previewMode && !dependencies.domains.editingDomain.snapshot().boundaryDraft?.moveCount;
         disabled ||= previewMode && state.geometryPreview.session.validation?.blocking === true;
         if (hydroReview) label = '생성';
-        else if (previewMode) label = '변경 적용';
+        else if (previewMode) label = ['territorial-border','country-coast'].includes(state.tool) ? '경계 변경 적용' : '변경 적용';
         else if (boundarySelectMode) label = `국경 편집 (${state.boundaryEditEntityIds.length})`;
-        else if (boundaryEditMode || state.tool === 'country-coast') label = '수정 완료';
+        else if (boundaryEditMode || state.tool === 'country-coast') label = state.boundaryPreparation?.calculationFailed ? '다시 계산' : '변경 미리보기';
         else if (terrainMode) label = '그리기 완료';
-        else if (mergeTargetMode) label = `합병 (${state.mergeTargetCountryIds.length})`;
-        else if (genericMergeMode || unitMergeMode) label = '영역 합치기';
+        else if (mergeTargetMode) label = `합병 미리보기 (${state.mergeTargetCountryIds.length})`;
+        else if (genericMergeMode || unitMergeMode) label = '합병 미리보기';
         else if (genericSplitMode || unitSplitMode) label = '영역 나누기';
         else if (unitRedrawMode) label = '영역 다시 지정';
       }
@@ -702,12 +727,17 @@ export function createTaskPresentation() {
 
     const cancel = (0, dependencies.platform.$)('modeCancelBtn');
     if (cancel) {
-      const back = !!selection && selection.stage !== 'setup';
-      setButtonLabel(cancel, back ? '뒤로' : '취소');
-      (0, dependencies.platform.$)('modeCancelIcon')?.setAttribute('href', back ? '#icon-chevron-left' : '#icon-close');
-      cancel.setAttribute('aria-label', back ? '이전 단계' : '작업 취소');
+      setButtonLabel(cancel, '편집 취소');
+      (0, dependencies.platform.$)('modeCancelIcon')?.setAttribute('href', '#icon-close');
+      cancel.setAttribute('aria-label', '편집 취소');
       cancel.disabled = !!state.modeProcessing;
     }
+    const returnButton = dependencies.platform.$('modeReturnBtn');
+    if (returnButton) {
+      returnButton.hidden = !(selection ? selection.stage === 'review' : previewMode);
+      returnButton.disabled = !!busy;
+    }
+    syncEditingContext();
     syncTaskStatus({
       state, selection, selectionModel, draft, toolbar, primary, boundaryAnalysis,
       boundaryPending, boundaryFailed, calculating, busy, cutLineMode, cutLineReady,
@@ -733,8 +763,7 @@ export function createTaskPresentation() {
       return true;
     }
     if (dependencies.projectState.state.tool === 'territorial-border' && dependencies.projectState.state.boundaryEditPhase === 'selecting') return (0, dependencies.countryEditingA.beginTerritorialBorderEditing)();
-    if (dependencies.projectState.state.tool === 'territorial-border') return (0, dependencies.countryEditingB.finishTerritorialBorderEdit)();
-    if (dependencies.projectState.state.tool === 'country-coast') return (0, dependencies.countryEditingB.finishCountryCoastEdit)();
+    if (['territorial-border','country-coast'].includes(dependencies.projectState.state.tool)) return dependencies.domains.editingDomain.previewBoundaryDraft();
     if (dependencies.projectState.state.tool === 'merge-generic-feature') return (0, dependencies.genericEditingA.completeGenericFeatureMerge)();
     if (dependencies.projectState.state.tool === 'merge-territorial-unit') return (0, dependencies.territorialEditingA.completeTerritorialUnitMerge)();
     if (dependencies.projectState.state.tool === 'merge-country') return (0, dependencies.countryCommitFlow.completeCountryMerge)();
@@ -760,6 +789,30 @@ export function createTaskPresentation() {
     }
   }
 
+  async function cancelCurrentEditing() {
+    if (dependencies.projectState.state.modeProcessing) return false;
+    return await dependencies.genericEditingB.requestDraftDiscard(async () => {
+      if (dependencies.projectState.state.geometryPreview.session) await dependencies.geometryOperations.discardActiveGeometryPreview({ announce: false });
+      if (dependencies.projectState.state.labelPlacementMode || dependencies.projectState.state.tool === 'label') await dependencies.countryEditingB.exitLabelMode();
+      else if (dependencies.surfaces.isGenericFeatureDraftTool(dependencies.projectState.state.tool)) await dependencies.genericEditingA.cancelDraft(true);
+      else await dependencies.countryEditingA.cancelActiveMode();
+    });
+  }
+
+  async function returnToEditing() {
+    if (dependencies.projectState.state.modeProcessing) return false;
+    const selection = dependencies.projectState.state.territorySelectionSession;
+    if (selection?.stage === 'review') {
+      return await dependencies.territorySelectionB.territorySelectionBack();
+    }
+    const restored = await dependencies.geometryOperations.discardActiveGeometryPreview({ announce: false });
+    if (restored) {
+      updateModeButtons();
+      dependencies.feedback.setActionStatus('입력을 유지하고 수정으로 돌아왔습니다.', 'success', 2600);
+    }
+    return restored;
+  }
+
   function completeCurrentDraft() {
     if ((0, dependencies.platform.$)('modeDraftDoneBtn')?.disabled) return false;
     const current = dependencies.projectState.state.territorySelectionSession;
@@ -782,6 +835,9 @@ export function createTaskPresentation() {
   return Object.freeze({
     connect,
     get runModePrimaryAction() { return runModePrimaryAction; },
+    get syncEditingContext() { return syncEditingContext; },
+    get cancelCurrentEditing() { return cancelCurrentEditing; },
+    get returnToEditing() { return returnToEditing; },
     get completeCurrentDraft() { return completeCurrentDraft; },
     get setModeBanner() { return setModeBanner; },
     get syncCountryActionButtons() { return syncCountryActionButtons; },

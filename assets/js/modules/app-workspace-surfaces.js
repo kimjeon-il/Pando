@@ -683,7 +683,6 @@ export function createWorkspaceSurfaces() {
       document,
       panel: (0, dependencies.platform.$)('editorSurface'), task: (0, dependencies.platform.$)('modeEditingContext'),
       dockSlot: (0, dependencies.platform.$)('editorTaskSlot'), floatingSlot: (0, dependencies.platform.$)('mapTopContextSlot'),
-      content: (0, dependencies.platform.$)('modeTaskWindowContent'), minimize: (0, dependencies.platform.$)('modeTaskMinimizeBtn'),
       isEditorOpen: () => surfaceController.isOpen('editor'),
       openEditor: () => {
         if (!surfaceController.isOpen('create')) openSurface('editor');

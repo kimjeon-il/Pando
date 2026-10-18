@@ -13,7 +13,7 @@ struct DocumentSessionState {
     std::uint32_t epoch=0,stateRevision=0;
     std::uint64_t revision=0,checkpoint=0;
     bool dirty=false,canUndo=false,canRedo=false;
-    std::string timelineCursor;
+    std::string timelineCursor,undoCommandId,redoCommandId;
     std::uint64_t presentationRevision=0,presentationCheckpoint=0;
     bool documentDirty=false,presentationDirty=false;
     bool timelineEditsEnabled=false;

@@ -527,6 +527,7 @@ export function createDomainAssembly() {
         },
       },
       geometryEditing: {
+        boundaryDraftActive: () => dependencies.projectState.state.tool === 'country-coast' || dependencies.projectState.state.tool === 'territorial-border' && dependencies.projectState.state.boundaryEditPhase === 'editing',
         resolveObjectFeature: targetRef => {
           if (targetRef?.domain === 'hydro') return dependencies.projectState.state.hydroEdits.find(item => String(item.id) === String(targetRef.id)) || null;
           return null;
@@ -643,45 +644,43 @@ export function createDomainAssembly() {
           session.changed = !(0, dependencies.geometryPreview.coordNear)(session.startCoordinate, coordinate, 1e-9);
           session.coordinate = coordinate.slice();
           const same = value => dependencies.geometryPreview.coordNear(value, session.startCoordinate, 1e-9);
-          const segments = session.node.segments.map(segment => ({
+          const segments = session.previewSegments.map(segment => ({
             start: same(segment.start) ? coordinate : segment.start,
             end: same(segment.end) ? coordinate : segment.end,
           }));
           (0, dependencies.gpuRenderingB.updateActiveEditPreview)(segments);
         },
-        commitBoundaryGesture: async session => {
-          if (!session.changed) return false;
-          const preparation = session.preparation;
+        previewBoundaryDraft: async ({moves,preparation,borderMode,current: draftCurrent}) => {
+          preparation.calculationFailed = false;
+
           if (!preparation.current() || preparation.status !== 'ready') return false;
-          let accepted = false;
-          const current = () => preparation.current() && (accepted
-            ? dependencies.geometryOperations.editPreviewController.snapshot().lastSessionId
-            : dependencies.geometryOperations.editPreviewController.snapshot().id) === session.previewId;
+          const current = () => preparation.current() && draftCurrent();
+          const affectedIds = new Set(moves.flatMap(move=>[...move.affectedIds]));
           preparation.status = 'moving';
           (0, dependencies.taskUi.updateModeButtons)();
           try {
             const response = await dependencies.spatialQuery.mapEditClient.execute('boundary-move', { payload: {
-              preparationId: preparation.result.preparationId, nodeKey: session.node.nodeKey, coordinate: session.coordinate,
+              preparationId: preparation.result.preparationId, moves: moves.map(move=>({nodeKey:move.node.nodeKey,coordinate:move.coordinate})),
             } }, { jobKey: 'boundary-move' });
             if (!current()) return false;
-            session.features = new Map(response.result.features.map(feature => [String(feature.id), feature]));
+            const features = new Map(response.result.features.map(feature => [String(feature.id), feature]));
             const unitTarget = territorialEntityRepository.get(dependencies.projectState.state.boundaryEditSeedEntityId);
             let ready;
-            if (session.borderMode && !(unitTarget?.properties?.entityKind === 'general' && !unitTarget?.properties?.parentId)) {
+            if (borderMode && !(unitTarget?.properties?.entityKind === 'general' && !unitTarget?.properties?.parentId)) {
               ready = await (0, dependencies.territorialEditingB.previewTerritorialEdit)({ operation: 'boundary', targetId: unitTarget.id,
-                parentId: unitTarget.properties.parentId, featurePatches: [...session.features.values()],
+                parentId: unitTarget.properties.parentId, featurePatches: [...features.values()],
               }, { selectedId: unitTarget.id, shouldKeepResult: () => current() && dependencies.projectState.state.tool === 'territorial-border'
                 && String(dependencies.projectState.state.boundaryEditSeedEntityId) === String(unitTarget.id) });
-            } else if (!session.borderMode) {
-              const countryId = [...session.affectedIds][0];
+            } else if (!borderMode) {
+              const countryId = [...affectedIds][0];
               ready = await (0, dependencies.territorialEditingB.previewTerritorialEdit)({
-                operation: 'coast', targetId: countryId, draft: session.features.get(countryId)?.geometry,
+                operation: 'coast', targetId: countryId, draft: features.get(countryId)?.geometry,
               }, { selectedId: dependencies.projectState.state.coastEditReturnSelection?.id || countryId,
                 shouldKeepResult: () => current() && dependencies.projectState.state.tool === 'country-coast' && String(dependencies.projectState.state.coastEditCountryId) === String(countryId) });
             } else {
-              const ids = [...session.affectedIds];
+              const ids = [...affectedIds];
               ready = await (0, dependencies.territorialEditingB.previewTerritorialEdit)({ operation: 'country-boundary', targetId: ids[0],
-                featurePatches: [...session.features.values()],
+                featurePatches: [...features.values()],
               }, { selectedId: ids[0], shouldKeepResult: () => current() && dependencies.projectState.state.tool === 'territorial-border' });
             }
             if (!ready || !current()) return false;
@@ -690,13 +689,11 @@ export function createDomainAssembly() {
               await dependencies.geometryOperations.discardActiveGeometryPreview({ announce: false });
               return false;
             }
-            accepted = dependencies.geometryOperations.editPreviewController.handoff(session.previewId, {
-              kind: 'geometry-preview', sessionId: result.sessionId, revision: result.revision,
-            });
-            return accepted;
+            return true;
           } catch (error) {
             if (current() && !error.cancelled && error.name !== 'AbortError') {
-              preparation.status = 'error';
+              preparation.status = 'ready';
+              preparation.calculationFailed = true;
               preparation.message = error.message || '경계 이동을 계산하지 못했습니다. 다시 시도하세요.';
               (0, dependencies.feedback.reportOperationError)(error, preparation.message, 'PL-BOUNDARY-MOVE', 3800);
             }
@@ -731,7 +728,7 @@ export function createDomainAssembly() {
             })));
           }
           return {
-            boundaryEdit: dependencies.projectState.state.boundaryPreparation?.status === 'ready' ? dependencies.projectState.state.boundaryPreparation.packet : null,
+            boundaryEdit: !(previewVisible && previewDelta) && ['ready','moving'].includes(dependencies.projectState.state.boundaryPreparation?.status) ? dependencies.projectState.state.boundaryPreparation.packet : null,
             preview: previewVisible && previewDelta ? { sessionId: geometryPreview.sessionId, revision: geometryPreview.revision,
               status: geometryPreview.status, delta: {
               removedGeometry: freezeEditingGeometry(previewDelta.removedGeometry),
@@ -1206,7 +1203,7 @@ export function createDomainAssembly() {
     const canPublish = () => {
       const current = dependencies.projectState.state;
       return !(current.projectReplacing || current.modeProcessing || current.geometryPreview?.session
-        || current.territorySelectionSession || editingDomain?.draftInputActive?.());
+        || current.territorySelectionSession || editingDomain?.snapshot().selectionDraft || editingDomain?.snapshot().boundaryDraft || editingDomain?.draftInputActive?.());
     };
     if (!canPublish()) {
       throw Object.assign(new Error('편집을 확정하거나 취소한 뒤 시간대를 이동하세요.'), { code: 'TIMELINE_DRAFT_ACTIVE' });

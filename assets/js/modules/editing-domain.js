@@ -164,6 +164,18 @@ export function createEditingDomain({
   let draftStroke = createDraftStrokeState();
   let activeSnap = null;
   let activeGesture = null;
+  let selectionHistory = [];
+  let selectionCursor = 0;
+  const selectionDraftActive = () => ['merge-country', 'merge-territorial-unit', 'merge-generic-feature'].includes(activeTool);
+  const recordSelectionChange = ({ undo, redo }) => {
+    if (!selectionDraftActive()) throw new Error('Selection history requires an active merge draft.');
+    selectionHistory = selectionHistory.slice(0, selectionCursor);
+    selectionHistory.push({ undo, redo });
+    selectionCursor++;
+    emit('selection-draft-change');
+  };
+  let boundaryHistory = [];
+  let boundaryCursor = 0;
   let gestureSequence = 0;
   let pendingMove = null;
   let pendingMoveFrame = 0;
@@ -185,11 +197,28 @@ export function createEditingDomain({
   const draftInputActive = () => !!toolConfig();
   const requestEditingRender = reason => context?.requestRender?.({ kind: 'editing-overlays', reason: String(reason || 'editing-change') });
 
+  const boundaryDraftActive = () => ['territorial-border','country-coast'].includes(activeTool) && geometry.boundaryDraftActive();
+  const boundaryMoves = () => {
+    const moves = new Map();
+    for (const session of boundaryHistory.slice(0,boundaryCursor)) moves.set(session.node.nodeKey,session);
+    return [...moves.values()].filter(session=>!coordinateNear(session.node.coordinate,session.coordinate));
+  };
+  const boundaryCoordinate = value => boundaryMoves().find(session=>coordinateNear(session.node.coordinate,value))?.coordinate || value;
+  const previewBoundaryDraft = async () => {
+    if (!boundaryDraftActive() || activeGesture) return false;
+    const moves=boundaryMoves(); if(!moves.length)return false;
+    const history=boundaryHistory,cursor=boundaryCursor,generation=projectGeneration;
+    return geometry.previewBoundaryDraft({moves,preparation:moves[0].preparation,borderMode:activeTool==='territorial-border',
+      current:()=>history===boundaryHistory && cursor===boundaryCursor && generation===projectGeneration});
+  };
   const buildSnapshot = reason => {
     const draftActive = draftInputActive();
     return Object.freeze({
       revision,
       projectGeneration,
+      gestureActive: !!activeGesture,
+      ...(selectionDraftActive() ? {selectionDraft: Object.freeze({historyCount: selectionCursor, futureCount: selectionHistory.length - selectionCursor})} : {}),
+      ...(boundaryDraftActive() ? {boundaryDraft:Object.freeze({historyCount:boundaryCursor,futureCount:boundaryHistory.length-boundaryCursor,moveCount:boundaryMoves().length})} : {}),
       phase,
       activeTool,
       reason: String(reason || ''),
@@ -329,11 +358,25 @@ export function createEditingDomain({
   });
 
   const performDraftUndo = () => {
+    if (selectionDraftActive()) {
+      if (!selectionCursor) return false;
+      selectionHistory[--selectionCursor].undo();
+      emit('selection-draft-undo');
+      return true;
+    }
+    if(boundaryDraftActive()){if(activeGesture || !boundaryCursor)return false;boundaryCursor--;emit('boundary-draft-undo');return true;}
     if (!draftInputActive() || draftStroke.active) return false;
     return applyDraft('undo',{}, { coordinateMutation: true,buildPreview: true });
   };
 
   const performDraftRedo = () => {
+    if (selectionDraftActive()) {
+      if (selectionCursor === selectionHistory.length) return false;
+      selectionHistory[selectionCursor++].redo();
+      emit('selection-draft-redo');
+      return true;
+    }
+    if(boundaryDraftActive()){if(activeGesture || boundaryCursor===boundaryHistory.length)return false;boundaryCursor++;emit('boundary-draft-redo');return true;}
     if (!draftInputActive() || draftStroke.active) return false;
     return applyDraft('redo',{}, { coordinateMutation: true,buildPreview: true });
   };
@@ -534,6 +577,8 @@ export function createEditingDomain({
     if (tool.getGeometryPreviewSession?.() && activeTool !== name) await tool.discardGeometryPreview({ announce: false });
     if (!current()) return false;
     const changedTool = activeTool !== name;
+    selectionHistory = []; selectionCursor = 0;
+    if(changedTool || boundaryDraftActive()){boundaryHistory=[];boundaryCursor=0;}
     if (changedTool) await clearDraft({ reason: 'tool-draft-reset', render: false });
     if (!current()) return false;
     await tool.clearHover?.();
@@ -586,7 +631,12 @@ export function createEditingDomain({
     } else {
       let began;
       if (event.type === 'boundary-vertex-drag-start') {
-        began = geometry.beginBoundaryGesture?.(event);
+        began = geometry.beginBoundaryGesture(event);
+        if (began) {
+          began.startCoordinate=cloneCoordinate(boundaryCoordinate(began.node.coordinate));began.coordinate=began.startCoordinate;
+          began.previewSegments=began.node.segments.map(segment=>({...segment,start:boundaryCoordinate(segment.start),end:boundaryCoordinate(segment.end)}));
+          geometry.moveBoundaryGesture(began,began.startCoordinate);
+        }
         if (began && typeof began === 'object') activeGesture.session = { kind: 'boundary', ...began };
       } else if (typeof geometry.beginObjectGesture === 'function') {
         began = geometry.beginObjectGesture(event);
@@ -706,9 +756,9 @@ export function createEditingDomain({
           }),
         });
       } else if (gesture.session?.kind === 'boundary') {
-        result = await applyGeometryPatch('country', {
-          commit: () => geometry.commitBoundaryGesture?.({ ...gesture.session, previewId }, event),
-        });
+        if(gesture.session.changed){boundaryHistory=boundaryHistory.slice(0,boundaryCursor);boundaryHistory.push(gesture.session);boundaryCursor++;}
+        if(previewId)previewController.clear(previewId);
+        result=true;
       } else result = await geometry.endGesture?.(gesture, event);
     } catch (error) {
       if (previewId) previewController.clear(previewId);
@@ -827,7 +877,11 @@ export function createEditingDomain({
         canCommit: assessment ? assessment.valid === true : draftIssues.length === 0,
       } : { active: false },
       objectVertices,
-      boundaryEdit: supplemental.boundaryEdit,
+      boundaryEdit: supplemental.boundaryEdit && boundaryMoves().length ? {
+        ...supplemental.boundaryEdit, draft: true,
+        handles:supplemental.boundaryEdit.handles.map(handle=>({...handle,coordinate:boundaryCoordinate(handle.coordinate)})),
+        segments:supplemental.boundaryEdit.segments.map(segment=>({...segment,start:boundaryCoordinate(segment.start),end:boundaryCoordinate(segment.end)})),
+      } : supplemental.boundaryEdit,
       territoryOperation: supplemental.territoryOperation,
       snap: activeSnap,
       preview: supplemental.preview || previewController?.packet?.() || null,
@@ -846,6 +900,8 @@ export function createEditingDomain({
   };
 
   const resetProject = async generation => {
+    selectionHistory = []; selectionCursor = 0;
+    boundaryHistory=[];boundaryCursor=0;
     await cancelActiveGesture('project-reset', { emitChange: false });
     projectGeneration = Number(generation || 0);
     activeGesture = null;
@@ -862,6 +918,7 @@ export function createEditingDomain({
     return true;
   };
   const dispose = () => {
+    selectionHistory = []; boundaryHistory = [];
     if (pendingMoveFrame) services.cancelFrame(pendingMoveFrame);
     pendingMoveFrame = 0;
     pendingMove = null;
@@ -904,9 +961,9 @@ export function createEditingDomain({
     },
     startDraft, replaceDraftCoordinates, clearDraftHover,
     acceptCoreDraftSnapshot,
-    cancelActiveGesture, resetProject,
+    cancelActiveGesture, resetProject, previewBoundaryDraft,
     dispose, draftInputActive, appendDraftScreenPoint,
-    performDraftUndo, performDraftRedo, removeLastDraftPoint, deleteSelectedDraftPoint,
+    recordSelectionChange, performDraftUndo, performDraftRedo, removeLastDraftPoint, deleteSelectedDraftPoint,
     moveSelectedDraftPointByPixels, redrawDraft, setDraftVertexInsertMode,
     clearDraft,
     commitImport,

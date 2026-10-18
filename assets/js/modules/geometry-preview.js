@@ -52,6 +52,7 @@ export function beginGeometryPreview(state, raw = {}) {
     removedIds: [...new Set((raw.removedIds || []).map(String))],
     delta: clone(raw.delta || null),
     metrics: clone(raw.metrics || null),
+    temporalImpact: clone(raw.temporalImpact || []),
     validation: clone(raw.validation || { issues: [], blocking: false }),
     status: raw.status || 'ready',
     revision: state.revision,

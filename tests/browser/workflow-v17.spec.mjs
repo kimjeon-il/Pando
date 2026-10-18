@@ -11,7 +11,7 @@ async function boot(page) {
 
 async function pickCountry(page, id) {
   const map = await page.locator('#map').boundingBox();
-  const point = await page.evaluate(id => window.__PANDOLAB_VIEW_DEBUG__.geoToScreen(window.__PANDOLAB_VIEW_DEBUG__.countryLabelAnchor(id)), id);
+  const point = await page.evaluate(id => window.__PANDOLAB_VIEW_DEBUG__.geoToScreen(({POL:[19,52],CZE:[15,49.8],AUT:[14,47.5]})[id]), id);
   await page.locator('#map .map-svg').dispatchEvent('click', { clientX: map.x + point[0], clientY: map.y + point[1], button: 0 });
 }
 
@@ -56,7 +56,7 @@ async function drawCoordinates(page, coordinates) {
   await page.mouse.up();
 }
 
-test('annex setup hides selection-stage visuals and restores the exact draft on return', async ({ page }) => {
+test('annex discard confirmation preserves the exact draft when continuing', async ({ page }) => {
   test.setTimeout(180_000);
   await page.setViewportSize({ width: 1440, height: 900 });
   const errors = await boot(page);
@@ -84,18 +84,8 @@ test('annex setup hides selection-stage visuals and restores the exact draft on 
   await expect(page.locator('#modeTaskDisabledReason')).toContainText(issueText);
 
   await page.locator('#modeCancelBtn').click();
-  await expect(page.locator('#modeTaskStep')).toHaveText('1 / 3');
-  for (const selector of [
-    'g.draft-vertex', 'path.draft-packet-shape', 'path.draft-segment-hit',
-    'g.draft-issue-marker', 'circle.draft-snap-point', 'g.draft-insert-handle',
-    'path.draft-split-preview', 'path.territory-component', 'path.territory-candidate',
-    'path.river-partition-emphasis', '.geometry-preview-fill',
-  ]) await expect(page.locator(selector)).toHaveCount(0);
-  await expect(page.locator('#modeTaskDisabledReason')).toBeHidden();
-  await expect(page.locator('#modeTaskInstruction')).not.toContainText(issueText);
-  await expect(page.locator('#modeTaskObjects')).toContainText('독일');
-
-  await page.locator('#modePrimaryBtn').click();
+  await expect(page.locator('#confirmModal')).toBeVisible();
+  await page.locator('#confirmModalCancelBtn').click();
   await expect(page.locator('#modeTaskStep')).toHaveText('2 / 3');
   await expect(vertices).toHaveCount(coordinates.length);
   expect(await vertices.evaluateAll(nodes => nodes.map(node => node.__data__.coordinate))).toEqual(coordinates);

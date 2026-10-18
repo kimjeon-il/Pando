@@ -48,6 +48,8 @@ test('confirm modal controller owns focus, choice, and confirm lifecycle', async
   controller.open({ title: '삭제', choices: [{ value: 'merge' }], impacts: ['1개 삭제'], onConfirm: value => { confirmed = value; } });
   assert.equal(controller.isOpen(), true);
   assert.equal(elements.ok.focused, true);
+  elements.modal.dispatch('keydown',{key:'Escape',repeat:true,preventDefault(){},stopPropagation(){}});
+  assert.equal(controller.isOpen(),true,'held Escape must not close the newly opened confirmation');
   await elements.ok.dispatch('click');
   assert.equal(confirmed, 'merge');
   assert.equal(controller.isOpen(), false);

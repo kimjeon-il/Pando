@@ -101,7 +101,7 @@ export function installDiagnostics(runtime) {
   const panel = document.createElement('aside');
   panel.id = 'shellDiagnostics';
   panel.setAttribute('aria-label', '데스크톱 시제품 검증');
-  panel.innerHTML = '<strong>실제 웹 엔진 · 소형 지도</strong><p class="shell-scope">국가 2개 · 하위 객체 1개 · 원본 세계 자료 제외</p><dl></dl><div class="shell-actions"></div><p class="shell-result" role="status" aria-live="polite">검증 대기</p>';
+  panel.innerHTML = '<details open><summary>데스크톱 시제품 검증</summary><strong>실제 웹 엔진 · 소형 지도</strong><p class="shell-scope">국가 2개 · 하위 객체 1개 · 원본 세계 자료 제외</p><dl></dl><div class="shell-actions"></div><p class="shell-result" role="status" aria-live="polite">검증 대기</p></details>';
   document.body.append(panel);
   const list = panel.querySelector('dl');
   const detail = panel.querySelector('.shell-result');

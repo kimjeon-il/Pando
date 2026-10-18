@@ -93,7 +93,7 @@ test('measure instrumented C++ Soviet core candidate decoding, validation and im
     await page.locator('#actionsTabBtn').evaluate(button => button.click());
     await expect(page.locator('#editEntityCoastBtn')).toBeEnabled({ timeout: 55_000 });
     await page.locator('#editEntityCoastBtn').evaluate(button => button.click());
-    await expect(page.locator('#modePrimaryBtn')).toHaveAttribute('aria-label', '수정 완료', { timeout: 150_000 });
+    await expect(page.locator('#modePrimaryBtn')).toHaveAttribute('aria-label', '변경 미리보기', { timeout: 150_000 });
     const candidates = page.locator('.country-vertex:not(.fixed-boundary-vertex)');
     await expect.poll(() => candidates.count(), { timeout: 75_000 }).toBeGreaterThan(0);
     const selected = await candidates.evaluateAll(nodes => {
@@ -121,6 +121,7 @@ test('measure instrumented C++ Soviet core candidate decoding, validation and im
     await page.mouse.move(selected.x+20, selected.y-14, { steps: 8 });
     await page.mouse.move(selected.x+1.5, selected.y-1.5, { steps: 8 });
     await page.mouse.up();
+    await page.locator('#modePrimaryBtn').click();
 
     await expect.poll(() => page.evaluate(() => window.__OBJ097_EVENTS__.some(e =>
       e.operation === 'core.document-prepare' && e.phase === 'rpc-request')), {

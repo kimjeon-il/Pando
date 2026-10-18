@@ -1042,7 +1042,7 @@
 }
 
 .editor-panel[data-editor-content="task"] .mode-task-minimize-btn {
-  display: none;
+  display: inline-flex;
 }
 
 .mode-task-window {
@@ -1332,3 +1332,13 @@
 .editor-relation-add > .ui-button { flex: 0 0 auto; min-width: var(--ui-touch-height); white-space: nowrap; }
 .editor-relation-remove { flex: 0 0 auto; }
 .editor-relation-remove:hover:not(:disabled) { color: var(--danger-text); }
+
+/* Editing context remains readable when the task details are collapsed. */
+.mode-task-context-summary { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ui-space-2); padding: var(--ui-space-2) var(--ui-space-3); }
+.mode-task-context-summary strong { flex: 1; overflow-wrap: anywhere; }
+.mode-edit-context { padding: var(--ui-space-2) 0; font-size: var(--ui-font-sm); line-height: 1.5; }
+.mode-edit-context p { margin: var(--ui-space-1) 0; overflow-wrap: anywhere; }
+.mode-edit-context summary { cursor: pointer; }
+.mode-task-window-content[hidden] { display: none; }
+
+.mode-map-summary { max-width: min(90vw, 40rem); padding: var(--ui-space-2) var(--ui-space-3); overflow-wrap: anywhere; font-size: var(--ui-font-sm); pointer-events: none; }

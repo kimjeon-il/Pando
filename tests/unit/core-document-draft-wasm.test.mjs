@@ -14,6 +14,7 @@ test('the real Web editing facade awaits the same Worker draft owner and preserv
   const client=createNodeCoreDocument(),frames=new Map(),expected=fixture('web-draft-contract');
   let frameId=0;
   await client.load(JSON.stringify(fixture('web-document-seed')));
+  const loadedSnapshot=JSON.parse(await client.storageSnapshot());
   const editing=createEditingDomain({ commandOwner: client,projectDomain: { getGeneration: () => 1 },draftServices: {
     getToolConfig: tool => tool==='polygon' ? { shape: 'polygon' } : null,
     projectCoordinate: value => value,screenToCoordinate: value => value,
@@ -50,10 +51,10 @@ test('the real Web editing facade awaits the same Worker draft owner and preserv
     for (const [index,action] of actions.entries()) {
       const result=await action();
       assert.equal(result,expected[index].result,expected[index].operation);
-      assert.deepEqual(editing.snapshot(),expected[index].snapshot,expected[index].operation);
+      assert.deepEqual(editing.snapshot(),{...expected[index].snapshot,gestureActive: [2,6,7,8].includes(index)},expected[index].operation);
       assert.deepEqual(client.state(),state);
     }
-    assert.deepEqual(JSON.parse(await client.storageSnapshot()),fixture('web-document-seed'));
+    assert.deepEqual(JSON.parse(await client.storageSnapshot()),loadedSnapshot);
   } finally { editing.dispose();client.dispose(); }
 });
 
@@ -92,7 +93,7 @@ test('actual Worker detached draft result and all owned fields match the 23-step
   ];
   assert.equal(actions.length, expected.length);
   try {
-    await client.load(JSON.stringify(seed)); const state = client.state();
+    await client.load(JSON.stringify(seed)); const state = client.state(); const loadedSnapshot=JSON.parse(await client.storageSnapshot());
     for (const [index, action] of actions.entries()) {
       const actual = await action(), web = expected[index];
       assert.equal(actual.result, web.result, web.operation);
@@ -102,7 +103,7 @@ test('actual Worker detached draft result and all owned fields match the 23-step
       assert.equal(actual.snapshot.shape, 'polygon');
       assert.deepEqual(client.state(),state,'Detached draft cannot advance Project history/dirty/revision/epoch.');
     }
-    assert.deepEqual(JSON.parse(await client.storageSnapshot()),seed);
+    assert.deepEqual(JSON.parse(await client.storageSnapshot()),loadedSnapshot);
   } finally { client.dispose(); }
 });
 

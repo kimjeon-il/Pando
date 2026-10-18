@@ -987,10 +987,10 @@ export function createRenderingDomain({
     const projection = frameContext?.projectionRevision;
     if (!editingChannelChanged('boundary', editing.boundaryEditLayer, boundary, view, projection, JSON.stringify(editing.getInteractionStyle?.()))) return true;
     const visibleSegments = queryBoundaryDisplay(boundary?.displayIndex?.segments, boundaryViewBounds(frameContext), boundary?.segments || []);
-    const data = (editing.getInteractionStyle?.()?.selection?.outlineVisible === false ? ['coast', 'shared'] : []).map(kind => {
+    const data = (boundary?.draft || editing.getInteractionStyle?.()?.selection?.outlineVisible === false ? ['coast', 'shared'] : []).map(kind => {
       const segments = visibleSegments.filter(segment => (segment.kind === 'coast' ? 'coast' : 'shared') === kind);
       return segments.length ? {
-        key: `${boundary?.preparationId || packet?.revision || 0}:${kind}:${view ?? 0}:${projection ?? 0}`,
+        key: `${boundary?.preparationId || 0}:${boundary?.draft ? packet.revision : 0}:${kind}:${view ?? 0}:${projection ?? 0}`,
         kind,
         style: resolveMapStrokeStyle(editing.getInteractionStyle?.() || resolveMapInteractionStyle(), 'edit-target', { directManipulation: true, boundaryKind: kind }),
         geometry: { type: 'MultiLineString', coordinates: segments.map(segment => [segment.start, segment.end]) },

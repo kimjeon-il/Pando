@@ -17,6 +17,8 @@ export const LIFECYCLE_UI_OWNER_PORTS = Object.freeze({
     "workspaceUiB"
   ],
   "globalInputBindings": [
+    "territorySelectionB",
+    "taskPresentation",
     "colorPicker",
     "countryEditingA",
     "countryEditingB",
@@ -211,6 +213,7 @@ export const LIFECYCLE_UI_OWNER_PORTS = Object.freeze({
     "workspaceUiB"
   ],
   "lifecycleAssembly": [
+    "territorySelectionB",
     "territorialEditingB",
     "applicationConstantsA",
     "applicationFactories",

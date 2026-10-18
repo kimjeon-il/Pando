@@ -114,19 +114,13 @@ export function createToolBindings() {
       try { await dependencies.domains.editingDomain.deleteSelectedDraftPoint(); }
       catch (error) { dependencies.feedback.reportOperationError(error,'작성 중인 꼭짓점을 삭제하지 못했습니다.','PL-DRAFT-DELETE-001',4200); }
     });
+    listen((0, dependencies.platform.$)('modeReturnBtn'), 'click', async () => {
+      try { await dependencies.taskPresentation.returnToEditing(); }
+      catch (error) { dependencies.feedback.reportOperationError(error,'수정 단계로 돌아가지 못했습니다.','PL-EDIT-RETURN',4200); }
+    });
     listen((0, dependencies.platform.$)('modeCancelBtn'), 'click', async () => {
-      const selection = dependencies.projectState.state.territorySelectionSession;
-      if (selection) {
-        if (selection.stage !== 'setup') await dependencies.territorySelectionB.territorySelectionBack();
-        else await dependencies.countryEditingA.cancelActiveMode();
-        return;
-      }
-      await dependencies.genericEditingB.requestDraftDiscard(async () => {
-        if (dependencies.projectState.state.geometryPreview.session) await dependencies.geometryOperations.discardActiveGeometryPreview();
-        else if (dependencies.projectState.state.labelPlacementMode || dependencies.projectState.state.tool === 'label') await dependencies.countryEditingB.exitLabelMode();
-        else if ((0, dependencies.surfaces.isGenericFeatureDraftTool)(dependencies.projectState.state.tool)) await dependencies.genericEditingA.cancelDraft(true);
-        else await dependencies.countryEditingA.cancelActiveMode();
-      });
+      try { await dependencies.taskPresentation.cancelCurrentEditing(); }
+      catch (error) { dependencies.feedback.reportOperationError(error,'편집을 취소하지 못했습니다.','PL-EDIT-CANCEL',4200); }
     });
     listen((0, dependencies.platform.$)('resetViewBtn'), 'click', dependencies.navigation.resetView);
   }
