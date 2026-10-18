@@ -1,7 +1,7 @@
 import { createMapVisualFrame, isMapVisualFrame } from './map-visual-frame.js';
 import { placeLabelDimensions } from './label-layout.js';
 import { createPlaceRuntime } from './place-runtime.js';
-import { isBuiltinPlaceId, PLACE_LIMITS } from './place-contract.js';
+import { isBuiltinPlaceId } from './place-contract.js';
 import { resolvePlaceLabelRows } from './place-name-display.js';
 import { temporalMonthEnd } from './temporal.js';
 import { territorialLabelFlag } from './territorial-label-flags.js';
@@ -260,25 +260,16 @@ export function createTerritorialLabels({ builtinPlacesEnabled = true } = {}) {
         selected,
       });
     }
-    const labelDensity = Math.max(0.25, Math.min(1, Number(dependencies.renderScene.currentRenderQuality.labelDensity) || 1));
-    const viewportArea = frameContext.cssViewport[0] * frameContext.cssViewport[1];
-    const backgroundLimit = labelDensity >= 0.99
-      ? PLACE_LIMITS.layoutCandidates
-      : Math.max(labelDensity < 0.6 ? 42 : 72, Math.floor(viewportArea / 8_500 * labelDensity));
-    const protectedCandidates = candidates.filter(candidate => candidate.selected || candidate.pinned);
-    const protectedCandidateKeys = new Set(protectedCandidates.map(candidate => candidate.key));
-    const backgroundCandidates = candidates.filter(candidate => !protectedCandidateKeys.has(candidate.key))
-      .sort((left, right) => Number(right.priority || 0) - Number(left.priority || 0));
-    const qualityCandidates = Number.isFinite(backgroundLimit)
-      ? [...protectedCandidates, ...backgroundCandidates.slice(0, backgroundLimit)]
-      : candidates;
+    // Visibility follows zoom, viewport and collision rules. GPU quality must
+    // never let territorial names consume a reduced budget ahead of places.
+    // layoutLabels still owns the fixed safety cap and protected priorities.
     const nextLabelLayoutMetrics = {
       qualityTier: dependencies.renderScene.currentRenderQuality.tier,
-      qualityCandidateCount: qualityCandidates.length,
-      qualityCulledCount: Math.max(0, candidates.length - qualityCandidates.length),
+      qualityCandidateCount: candidates.length,
+      qualityCulledCount: 0,
     };
     const safe = frameContext.safeInset;
-    const placed = (0, dependencies.labelPresentation.layoutLabels)(qualityCandidates, {
+    const placed = (0, dependencies.labelPresentation.layoutLabels)(candidates, {
       zoom,
       padding: (0, dependencies.surfaces.isMobile)() ? 5 : 3,
       bounds: {
