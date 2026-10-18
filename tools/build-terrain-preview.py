@@ -27,7 +27,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DEM_MANIFEST = ROOT / "contracts/terrain/preview-dem-source.json"
 DEM_INVENTORY = ROOT / "contracts/terrain/preview-dem-inventory.json"
 LAND_MASK = ROOT / "assets/data/countries-ne-5.1.1.geojson"
-LAND_MASK_SHA256 = "6d29c349478cb2a7899573544ba580da70bd902c12ee86a4a93662ca6e94ad72"
+LAND_MASK_SHA256 = "52590ce133a779fc678496844c844137aeaa0dca41ceca1621cd7c50169f5efb"
 
 
 def sha256(data: bytes) -> str:
