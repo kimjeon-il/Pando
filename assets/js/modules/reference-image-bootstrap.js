@@ -26,9 +26,11 @@ function ensureStylesheet(relativePath, revision) {
 
 function moveControlsToMapUi() {
   const mapElement = document.getElementById('map');
-  const overlayLayer = mapElement?.closest('.map-wrap')?.querySelector('.map-overlay-layer');
+  const mapWrap = mapElement?.closest('.map-wrap');
+  const overlayLayer = mapWrap?.querySelector('.map-overlay-layer');
+  const workspace = mapWrap?.closest('.workspace');
   const commandToolbar = overlayLayer?.querySelector('.map-command-toolbar');
-  if (!mapElement || !overlayLayer) return;
+  if (!mapElement || !overlayLayer || !workspace) return;
   const launcher = overlayLayer.querySelector('#referenceImageBtn');
   const panel = mapElement.querySelector(':scope > .reference-image-panel');
   if (launcher && commandToolbar && !commandToolbar.contains(launcher)) {
@@ -36,7 +38,8 @@ function moveControlsToMapUi() {
     if (resetViewButton) resetViewButton.before(launcher);
     else commandToolbar.appendChild(launcher);
   }
-  if (panel) overlayLayer.appendChild(panel);
+  // Keep the panel outside the map viewport: the dock reserves real map width.
+  if (panel) workspace.appendChild(panel);
 }
 
 export async function installReferenceImageFeature({ revision = '', workspaceSurfaces, confirm, getGeneration, isBlocked, searchPlaces = null, getPlaces = null, preparePlaces = null } = {}) {
