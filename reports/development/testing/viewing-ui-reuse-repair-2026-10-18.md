@@ -61,3 +61,7 @@ GIS·지도 자료·C++/WASM 변경 없음. 미완성 프로젝트 설정·편�
 - [배포된 PC 보기 화면](../../images/viewer-editor/viewing-fixed-desktop.png), [배포된 휴대폰 가로 설정](../../images/viewer-editor/viewing-fixed-mobile-settings.png).
 - 실제 실행 근거 원자료: 작업 트리 `.superpowers/viewing-repair-live.json`; CI manifest는 workflow artifact `pages-evidence-4273bca1298c42fcb5a1bca8570b7b26387f3de8`.
 - 이 후속 증거는 work/ui 보고서 커밋으로 기록한다. 배포된 제품 소스 SHA는 위 4273bca1이며, 보고서 커밋 자체를 새 배포 성공으로 표시하지 않는다.
+
+## 후속 공유 기준 조사
+
+출력/등록 차이 외 모든 열람 책임을 같은 구현으로 공유한다는 후속 기준은 [UI-SHARING-AUDIT-20261018](shared-output-audit-2026-10-18.md)에서 다시 조사했다. 이 문서의 배포/기능 검사 결과는 유지하며, 잔존 viewer adapter를 제품별 연결로 허용한 설명은 후속 보고서의 통합 대상 판정으로 대체한다.
