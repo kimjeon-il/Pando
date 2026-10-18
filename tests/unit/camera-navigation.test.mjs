@@ -35,15 +35,14 @@ test('continuous zoom can defer Worker settle and view persistence until the ges
 test('world reset cancels an outstanding focus before settling the current view', () => {
   const events = [];
   const state = { projection: 'globe', view: { globeZoom: 5 } };
-  const owner = createCameraNavigation();
+  const owner = createCameraNavigation({ persistView: () => events.push('persist') });
   owner.connect({ projectState: { state },
     rendering: { gpuMapRenderer: { cancelCountryFocus: () => events.push('cancel') } },
     mapView: { syncMapHostFromState: () => events.push(state.view.globeZoom) },
-    domains: { renderingDomain: { endInteraction: () => events.push('settle') },
-      projectDomain: { queueViewAutosave: () => {} } },
+    domains: { renderingDomain: { endInteraction: () => events.push('settle') } },
   });
   owner.resetView();
-  assert.deepEqual(events, ['cancel', 1, 'settle']);
+  assert.deepEqual(events, ['cancel', 1, 'settle', 'persist']);
 });
 
 function focusNavigationFixture({ host = false } = {}) {

@@ -351,7 +351,6 @@
   --gis-import-dialog-width: min(640px, calc(100vw - (var(--ui-dialog-edge) * 2)));
   --gis-import-dialog-max-width: 640px;
   --gis-import-form-min-height: 260px;
-  --map-view-toolbar-bottom: calc(112px + env(safe-area-inset-bottom));
   --ui-custom-color-plane-height: clamp(120px, 22dvh, 180px);
   --ui-custom-color-plane-background: linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, transparent), var(--color-hue, red);
   --ui-custom-color-plane-outline-offset: 3px;
@@ -5801,13 +5800,6 @@ body.file-menu-open .app-root .topbar {
   background: var(--surface-card);
 }
 
-.map-view-toolbar {
-  top: var(--ui-map-edge);
-  left: auto;
-  right: calc(var(--map-safe-right) + var(--ui-map-edge));
-  transition: left 170ms ease, right 170ms ease, opacity 170ms ease;
-}
-
 .mode-task-stage {
   min-width: 0;
   overflow: hidden;
@@ -6456,12 +6448,6 @@ body.file-menu-open .app-root .topbar {
   --map-safe-right: 0px;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .map-view-toolbar {
-    transition-duration: 0.01ms;
-  }
-}
-
 .editor-object-command {
   color: var(--text-soft);
 }
@@ -6796,13 +6782,6 @@ body.file-menu-open .app-root .topbar {
   }
 }
 
-.map-view-toolbar {
-  width: max-content;
-  max-width: calc(100% - var(--map-safe-left, 0) - var(--map-safe-right, 0) - (var(--ui-map-edge) * 2));
-  align-self: start;
-  justify-self: end;
-}
-
 .editor-section-title {
   margin-bottom: var(--ui-space-1);
 }
@@ -6904,22 +6883,6 @@ body.file-menu-open .app-root .topbar {
   [data-layout="wide"] .editor-action-row:focus-visible {
     background: var(--surface-hover);
     color: var(--text-strong);
-  }
-}
-
-@media (min-width: 800px) {
-  [data-layout="wide"] .map-view-toolbar {
-    padding: var(--ui-space-1);
-    border: 1px solid var(--toolbar-border);
-    border-radius: var(--design-radius-lg);
-    background: var(--toolbar-bg);
-    box-shadow: var(--design-toolbar-shadow);
-  }
-}
-
-@media (min-width: 800px) {
-  [data-layout="wide"] .map-view-toolbar .icon-btn {
-    border-radius: var(--design-radius-md);
   }
 }
 
@@ -7150,7 +7113,6 @@ body .app-root[data-layout="phone-landscape"] .mobile-global-menu { display: gri
   transform: none;
 }
 .app-root[data-layout="phone-landscape"] .map-command-toolbar :is(.create-menu-command, .map-command-search) { display: none; }
-.app-root[data-layout="phone-landscape"] .map-view-toolbar { right: calc(var(--map-safe-right) + var(--ui-space-2)); }
 .app-root[data-layout="phone-landscape"] .map-top-context-slot { left: calc(var(--phone-nav-width) + var(--ui-space-2)); right: calc(var(--map-safe-right) + var(--ui-space-2)); }
 .app-root[data-layout="phone-landscape"] .status-inner { left: var(--phone-nav-width); right: var(--map-safe-right); }
 .app-root[data-layout="phone-landscape"] :is(.status-view, .status-primary, .project-save-status-text) { display: none; }
@@ -10059,26 +10021,9 @@ html.keyboard-navigation .map-display-detail-trigger:focus-visible {
   height: 100%;
 }
 
-.map-view-toolbar .icon-btn {
-  flex: 0 0 var(--ui-control-height);
-}
-
 .app-root[data-layout="mobile"] {
   --mobile-nav-height: calc(var(--ui-mobile-bottom-nav-height) + env(safe-area-inset-bottom));
   --ui-map-bottom-occupied-height: calc(var(--mobile-nav-height) + var(--ui-shell-statusbar-height));
-}
-
-.app-root[data-layout="mobile"] .map-view-toolbar {
-  display: grid;
-  position: absolute;
-  z-index: 18;
-}
-
-.app-root[data-layout="mobile"] .map-view-toolbar button {
-  display: grid;
-  place-items: center;
-  padding: 0;
-  border-radius: var(--ui-radius-control);
 }
 
 .projection-control {
@@ -10086,10 +10031,6 @@ html.keyboard-navigation .map-display-detail-trigger:focus-visible {
   height: var(--ui-control-height);
   padding: var(--ui-border-width);
   gap: 0;
-}
-
-.map-view-toolbar .projection-btn {
-  border-radius: var(--ui-radius-control);
 }
 
 .reset-view-command {
@@ -10110,40 +10051,13 @@ html.keyboard-navigation .map-display-detail-trigger:focus-visible {
   padding: var(--ui-toolbar-padding);
 }
 
-.app-root[data-layout="mobile"] .map-view-toolbar button {
-  width: var(--ui-icon-control-mobile-size);
-  min-width: var(--ui-icon-control-mobile-size);
-  height: var(--ui-icon-control-mobile-size);
-}
-
 .app-root[data-layout="mobile"] .projection-control {
   height: var(--ui-icon-control-mobile-size);
   padding: var(--ui-segment-padding);
 }
 
-.app-root[data-layout="mobile"] .map-view-toolbar {
-  width: calc(var(--ui-icon-control-mobile-size) + var(--ui-toolbar-padding) + var(--ui-toolbar-padding) + var(--ui-space-0-5));
-  grid-template-columns: var(--ui-icon-control-mobile-size);
-  grid-template-rows: repeat(3, var(--ui-icon-control-mobile-size));
-  gap: var(--ui-toolbar-gap);
-  padding: var(--ui-toolbar-padding);
-}
-
-.app-root[data-layout="mobile"] .map-view-toolbar .ui-icon {
-  width: var(--ui-icon-size);
-  height: var(--ui-icon-size);
-}
-
 .app-root[data-layout="mobile"] .ui-floating-toolbar:has(.workspace-surface) {
   backdrop-filter: none;
-}
-
-.app-root[data-layout="mobile"] .map-view-toolbar {
-  top: auto;
-  left: auto;
-  right: calc(var(--map-safe-right, 0) + var(--ui-popover-screen-edge));
-  bottom: var(--map-view-toolbar-bottom);
-  transform: none;
 }
 
 .map-overlay-layer {

@@ -119,13 +119,6 @@
   background: var(--surface-card);
 }
 
-.map-view-toolbar {
-  top: var(--ui-map-edge);
-  left: auto;
-  right: calc(var(--map-safe-right) + var(--ui-map-edge));
-  transition: left 170ms ease, right 170ms ease, opacity 170ms ease;
-}
-
 .mode-task-stage {
   min-width: 0;
   overflow: hidden;
@@ -774,12 +767,6 @@
   --map-safe-right: 0px;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .map-view-toolbar {
-    transition-duration: 0.01ms;
-  }
-}
-
 .editor-object-command {
   color: var(--text-soft);
 }
@@ -1114,13 +1101,6 @@
   }
 }
 
-.map-view-toolbar {
-  width: max-content;
-  max-width: calc(100% - var(--map-safe-left, 0) - var(--map-safe-right, 0) - (var(--ui-map-edge) * 2));
-  align-self: start;
-  justify-self: end;
-}
-
 .editor-section-title {
   margin-bottom: var(--ui-space-1);
 }
@@ -1222,22 +1202,6 @@
   [data-layout="wide"] .editor-action-row:focus-visible {
     background: var(--surface-hover);
     color: var(--text-strong);
-  }
-}
-
-@media (min-width: 800px) {
-  [data-layout="wide"] .map-view-toolbar {
-    padding: var(--ui-space-1);
-    border: 1px solid var(--toolbar-border);
-    border-radius: var(--design-radius-lg);
-    background: var(--toolbar-bg);
-    box-shadow: var(--design-toolbar-shadow);
-  }
-}
-
-@media (min-width: 800px) {
-  [data-layout="wide"] .map-view-toolbar .icon-btn {
-    border-radius: var(--design-radius-md);
   }
 }
 
@@ -1468,7 +1432,6 @@ body .app-root[data-layout="phone-landscape"] .mobile-global-menu { display: gri
   transform: none;
 }
 .app-root[data-layout="phone-landscape"] .map-command-toolbar :is(.create-menu-command, .map-command-search) { display: none; }
-.app-root[data-layout="phone-landscape"] .map-view-toolbar { right: calc(var(--map-safe-right) + var(--ui-space-2)); }
 .app-root[data-layout="phone-landscape"] .map-top-context-slot { left: calc(var(--phone-nav-width) + var(--ui-space-2)); right: calc(var(--map-safe-right) + var(--ui-space-2)); }
 .app-root[data-layout="phone-landscape"] .status-inner { left: var(--phone-nav-width); right: var(--map-safe-right); }
 .app-root[data-layout="phone-landscape"] :is(.status-view, .status-primary, .project-save-status-text) { display: none; }

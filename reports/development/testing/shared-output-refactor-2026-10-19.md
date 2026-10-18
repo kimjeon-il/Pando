@@ -77,3 +77,13 @@ Android `adb devices -l` 결과 연결 기기가 없었다. 휴대폰의 양쪽 
 - 그 뒤 CI의 정보 편집 브라우저 검사가 직접 프로젝트 열기 후 제거된 GIS 복원 확인창을 기다리는 것을 발견했다. 현재 프로젝트 열기 호출자를 검색해 정보 편집·편집 미리보기 handoff·GIS 교환 roundtrip 검사 3곳을 `project-load` 완료 이벤트와 작업 상태를 기다리도록 갱신했다. GIS 자료 추가 가져오기 검사는 유지하고, 기존 객체·속성·형상·이력 검증을 삭제하지 않았다. 실제 정보 편집·계층·GPS 초점·기간 검증·Undo/Redo 브라우저 흐름은 1/1(31.5초) 통과했고 변경된 3개 검사 ESLint도 통과했다. 나머지 두 브라우저 시나리오 전체를 추가로 실행했다고 주장하지 않는다.
 
 원시 검증 근거는 상설 UI 워크트리 `.superpowers/sdd/shared-output-refactor/`의 `live-browser.json`, `live-hashes.json`, `live-shared-output.png`, `main-stage.log`, `registry-final.log`, `surface-final.log`, `runtime-after-merge.log`에 보존한다. 이후 문서·토큰 규칙 후속 커밋의 게시 여부는 최종 workflow와 공개 파일을 다시 확인한다. 이 보고서는 네이티브 실기기 검증이나 정량 성능 개선을 주장하지 않는다.
+
+## 추가 발견: 웹 확대·축소 툴바 회귀 수정
+
+기준 소스 `ab0e539c2dbd8cd8f2a49308d27db41ce4733acd`에서 앱은 이미 확대·축소 툴바를 제거하고 부재를 검사했지만, 웹 별도 템플릿에는 `zoomInBtn`·`zoomOutBtn`과 전용 이벤트 연결이 남아 있었다. 공통화 과정에서 웹의 이 차이를 제거하지 못한 누락이다.
+
+웹 툴바 마크업과 연결을 제거했다. 유일한 호출자가 사라진 `bindHoldZoom`, 양 제품에서 더 이상 출력하지 않는 툴바 CSS·토큰, 앱 작업 안내의 해당 툴바 회피 계산도 함께 삭제했다. 공통 카메라의 휠·핀치 입력과 전체 지도 보기 동작은 유지한다. 생성 HTML/CSS는 원본에서 재생성했으며 캐시 갱신을 위해 빌드 ID를 `0.36.0-build-20261019-view-controls`로 바꿨다. 상설 UI의 별도 미완성 변경은 배포에 섞지 않는다.
+
+검증용 clean export에서 공통 HTML·카메라·초점 검사 15/15, 웹 자산 closure 검사 4/4, 변경 파일 ESLint와 UI spacing/components/architecture/layering 검사가 통과했다. 실제 브라우저 1/1(36.9초)에서 웹 데스크톱과 640×360 화면에 툴바가 없고, 휠 확대·축소에 따라 실제 지도 이름 사이 거리가 변하며 전체 지도 보기로 복원됨을 확인했다. 이름은 실제 공통 interaction SVG의 출력으로 측정했고, centroid 캐시 및 지도 위 이름 순서 검사를 유지했다. 테스트의 필수 조회 포트 대역과 카메라 저장 콜백도 현재 계약으로 맞췄다.
+
+배포 결과와 공개 화면·파일 바이트 검증은 같은 원시 근거 폴더의 `zoom-removal-release.json`, `zoom-removal-live.json`, `zoom-removal-live-desktop.png`, `zoom-removal-live-mobile.png`에 기록한다. 이 수정으로 네이티브 기기 회전을 추가 검증했다고 주장하지 않는다.
