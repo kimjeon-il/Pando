@@ -155,8 +155,22 @@ async function openCoast(page, timings) {
   timings.enterMs = Date.now() - before;
 }
 async function dragAndPreview(page, timings) {
+  const seed = await chooseDraggableHandle(page);
+  expect(seed.error || '', JSON.stringify(seed)).toBe('');
+  const priorView = await page.evaluate(() => window.__PANDOLAB_MAP_HOST__.getViewState());
+  // At fit-to-USSR scale, one CSS pixel can shift a coastal vertex farther
+  // than its neighboring segments and correctly trigger self-intersection.
+  // Zoom on the real handle before performing an otherwise identical UI drag.
+  await page.mouse.move(seed.x, seed.y);
+  await page.mouse.wheel(0, -1100);
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_MAP_HOST__.getViewState().flatZoom),
+    { timeout: 60_000 }).not.toBe(priorView.flatZoom);
+  await page.waitForTimeout(550);
   const handle = await chooseDraggableHandle(page);
   expect(handle.error || '', JSON.stringify(handle)).toBe('');
+  const afterView = await page.evaluate(() => window.__PANDOLAB_MAP_HOST__.getViewState());
+  timings.zoom = { before: priorView.flatZoom, after: afterView.flatZoom,
+    originalCoordinate: seed.coordinate, finalCoordinate: handle.coordinate };
   const { x, y } = handle;
   const started = Date.now();
   await page.mouse.move(x, y);
@@ -174,7 +188,7 @@ async function dragAndPreview(page, timings) {
   // OBJ-098 acceptance: retain a meaningful final displacement after crossing
   // the drag threshold. The older 1.5px move was frequently normalized to a
   // Core no-op although map-edit moved a temporary vertex successfully.
-  await page.mouse.move(x + 6, y + 4, { steps: 6 });
+  await page.mouse.move(x + 2, y + 1.5, { steps: 6 });
   await page.mouse.up();
   timings.pointerAttempt = { x, y, coordinate: handle.coordinate, score: handle.score };
   timings.heldSource = await fingerprint(page);
