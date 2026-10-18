@@ -84,8 +84,8 @@ async function pinchReferenceMap(page, uv) {
     }));
     event('pointerdown', 901, 0, 0);
     event('pointerdown', 902, 30, 0);
-    event('pointermove', 902, 72, 14);
-    event('pointerup', 902, 72, 14);
+    event('pointermove', 902, 38, 5);
+    event('pointerup', 902, 38, 5);
     event('pointerup', 901, 0, 0);
     return before;
   }, point);
