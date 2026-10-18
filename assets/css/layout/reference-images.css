@@ -285,10 +285,10 @@
 
   .reference-image-panel .ui-button,
   .reference-image-toggle-row label {
-    min-height: var(--ui-v2-control-mobile-height);
+    min-height: var(--ui-touch-height);
   }
 
-  .reference-image-panel .icon-btn { min-width: var(--ui-v2-control-mobile-height); }
+  .reference-image-panel .icon-btn { min-width: var(--ui-touch-height); }
 }
 
 .surface-reference.reference-image-editing {
@@ -301,7 +301,7 @@
 
 [data-layout="mobile"] .surface-reference.reference-image-editing {
   height: auto;
-  min-height: var(--ui-v2-control-mobile-height);
+  min-height: var(--ui-touch-height);
 }
 /* Mobile continues to use the common bottom-sheet snap controller. */
 .app-root[data-layout="mobile"] .reference-image-panel {
@@ -328,6 +328,7 @@
 
 .app-root[data-layout="mobile"] .reference-image-panel-header > .sheet-drag-handle {
   grid-column: 1;
+  width: 100%;
 }
 
 .app-root[data-layout="mobile"] .reference-image-panel-header > div {
@@ -458,6 +459,17 @@
   min-width: 0;
 }
 
+/* A workflow adds another shared card. Scroll the desktop editor as a whole
+   instead of shrinking its task viewport to zero below those fixed rows. */
+.app-root:not([data-layout="mobile"]) .reference-image-editor:has(> .reference-image-workflow) {
+  overflow-y: auto;
+}
+
+.app-root:not([data-layout="mobile"]) .reference-image-editor:has(> .reference-image-workflow) > .reference-image-tabpanels {
+  flex: 0 0 auto;
+  overflow: visible;
+}
+
 .reference-image-hint {
   flex: 0 0 auto;
 }
@@ -550,9 +562,14 @@
   overflow-wrap: anywhere;
 }
 
-.reference-image-editing-summary > .reference-image-workflow-actions {
+.reference-image-editing-summary > .reference-image-workflow-actions,
+.reference-image-editing-summary > .reference-image-calibration-actions {
   flex: 1 0 100%;
   width: 100%;
+}
+
+.app-root[data-layout="mobile"] .reference-image-editing-summary > .reference-image-calibration-actions > .ui-button {
+  min-width: var(--ui-touch-height);
 }
 
 .reference-image-workflow[hidden],

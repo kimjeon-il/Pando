@@ -79,6 +79,7 @@ export function installReferenceImageSurface({ panel, launcher, mapElement, work
   let resizePointerId = null;
   let previousOpen = false;
   let editing = false;
+  let auxiliaryEditing = false;
   let editingText = '';
   // A rendering projection supplied by the controller; tool state remains there.
   let workflow = null;
@@ -177,7 +178,6 @@ export function installReferenceImageSurface({ panel, launcher, mapElement, work
 
   function setWorkflow(next) {
     workflow = next;
-    for (const button of defaultCompletionButtons) button.hidden = !!workflow;
     compactActions.hidden = !workflow;
     if (!workflow) {
       compactActions.replaceChildren();
@@ -279,6 +279,7 @@ export function installReferenceImageSurface({ panel, launcher, mapElement, work
     toggleCollapsed();
   }
   function sync() {
+    for (const button of defaultCompletionButtons) button.hidden = !!workflow || auxiliaryEditing;
     const open = workspaceSurfaces.surfaceController.isOpen('reference');
     if (!open) {
       collapsed = false;
@@ -313,8 +314,11 @@ export function installReferenceImageSurface({ panel, launcher, mapElement, work
   const unregister = workspaceSurfaces.registerReferenceImageSurface({ panel, sync });
   const toggle = () => workspaceSurfaces.toggleSurface('reference', launcher);
   launcher.addEventListener('click', toggle);
-  function setEditing(active, text = '') {
+  function setEditing(active, text = '', { auxiliary = false } = {}) {
     const next = active === true;
+    // This is the controller's UI projection; auxiliary tools own their state
+    // and completion actions, while the surface owns these shared buttons.
+    auxiliaryEditing = next && auxiliary;
     if (next && !editing) {
       const currentSnap = Number(panel.dataset.sheetSnap ?? 1);
       if (currentSnap > 0) savedSnap = currentSnap;
@@ -332,7 +336,7 @@ export function installReferenceImageSurface({ panel, launcher, mapElement, work
   }
   const unregisterSurfaceEditing = registerReferenceImageSurfaceEditing((active, text) => {
     if (active === true) onAuxiliaryEditingStart();
-    setEditing(active, text);
+    setEditing(active, text, { auxiliary: true });
   });
   collapseButton.addEventListener('click', onCollapseClick);
   resizeHandle.addEventListener('pointerdown', onResizePointerDown);
