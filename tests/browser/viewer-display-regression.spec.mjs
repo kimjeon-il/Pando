@@ -63,6 +63,7 @@ test('viewing preferences preview, cancel and persist without document changes',
  const stored=await page.evaluate(()=>JSON.parse(localStorage.getItem('pandolab-user-preferences')));
  expect(stored.appearance).toEqual({theme:'dark',accentPreset:'purple',statusBarVisible:false,smoothLines:false});
  await page.reload();
+ await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:120000});
  await expect(page.getByRole('button',{name:'설정',exact:true})).toBeVisible();
  await expect(page.locator('html')).toHaveAttribute('data-theme','dark');
  await page.setViewportSize({width:640,height:360});

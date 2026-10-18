@@ -35,7 +35,7 @@ export function createMapOwners({productMode,platform={},editing=null,isObjectAv
   const territorialLabels=createTerritorialLabels({builtinPlacesEnabled:platform.builtinPlacesEnabled});
   const physicalResources=createPhysicalResources({enabled:platform.physicalResourcesEnabled});
   const gpuScene=createGpuScene({getEditPreview:editing?.getEditPreview});
-  const mapHost=createMapHost();
+  const mapHost=createMapHost({productMode});
   const objectPicking=createObjectPicking({openEditor:productMode==='editor',handleEditingClick:editing?.handleMapClick,onBackgroundClear:editing?.onBackgroundClear,performanceRecorder:editing?.performanceRecorder,closeActiveOverlay});
   return Object.freeze({builtinSession,workspaceSurfaces,projectSession,renderQuality,pointerTargets,cameraNavigation,countryIndex,spatialIndex,mapProjection,objectPresentation,hydroSettings,objectCatalog,territorialLabels,physicalResources,gpuScene,mapHost,objectPicking});
 }
