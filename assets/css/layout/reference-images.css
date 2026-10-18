@@ -28,30 +28,115 @@
 .reference-image-editing-summary[hidden] { display: none; }
 .reference-image-editing-summary > span { flex: 1; min-width: 0; }
 
-@media (min-width: 800px) {
-  .reference-image-panel {
-    --ui-reference-toolbar-outer-height: calc(
-      var(--ui-control-height) +
-      (var(--ui-space-1) * 2) +
-      (var(--ui-border-width) * 2)
-    );
-    --ui-reference-panel-bottom: calc(
-      var(--ui-map-bottom-occupied-height) +
-      var(--ui-map-edge) +
-      var(--ui-reference-toolbar-outer-height) +
-      var(--ui-menu-trigger-gap)
-    );
-    top: auto;
-    right: auto;
-    bottom: var(--ui-reference-panel-bottom);
-    left: 50%;
-    transform: translateX(-50%);
-    width: min(var(--ui-reference-panel-width), calc(100% - var(--ui-map-edge) * 2));
-    max-height: min(
-      var(--ui-reference-panel-max-height),
-      calc(100% - var(--ui-reference-panel-bottom) - var(--ui-map-edge))
-    );
-  }
+/* The reference surface is a workspace sibling of the map, never a map overlay. */
+.app-root:not([data-layout="mobile"]) .workspace.reference-image-docked {
+  --reference-dock-active-width: min(
+    var(--reference-dock-width, var(--ui-reference-panel-width)),
+    calc(100% - 320px)
+  );
+}
+
+.app-root:not([data-layout="mobile"]) .workspace.reference-image-docked.reference-image-dock-collapsed {
+  --reference-dock-active-width: var(--ui-reference-panel-collapsed-width);
+}
+
+.app-root:not([data-layout="mobile"]) .workspace.reference-image-docked > .map-wrap {
+  right: var(--reference-dock-active-width);
+  width: calc(100% - var(--reference-dock-active-width));
+}
+
+.app-root:not([data-layout="mobile"]) .reference-image-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: auto;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  width: var(--reference-dock-active-width, var(--ui-reference-panel-width));
+  height: 100%;
+  max-height: none;
+  transform: none;
+  border-radius: 0;
+  border-top: 0;
+  border-right: 0;
+  border-bottom: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.app-root:not([data-layout="mobile"]) .reference-image-panel-header {
+  display: flex;
+}
+
+.reference-image-panel-header > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.reference-image-panel-header strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reference-image-panel-header > .reference-image-collapse-button {
+  flex: 0 0 auto;
+}
+
+.reference-image-resize-handle {
+  display: none;
+}
+
+.app-root:not([data-layout="mobile"]) .reference-image-panel:not(.reference-image-collapsed) > .reference-image-resize-handle {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 8px;
+  display: block;
+  cursor: ew-resize;
+  touch-action: none;
+}
+
+.reference-image-resize-handle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.reference-image-panel.reference-image-collapsed > .reference-image-body {
+  display: none;
+}
+
+.reference-image-panel.reference-image-collapsed:not(.reference-image-editing) > .reference-image-editing-summary {
+  display: none;
+}
+
+.app-root:not([data-layout="mobile"]) .reference-image-panel.reference-image-collapsed .reference-image-panel-header {
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: var(--ui-space-2) var(--ui-space-1);
+  gap: var(--ui-space-2);
+}
+
+.app-root:not([data-layout="mobile"]) .reference-image-panel.reference-image-collapsed .reference-image-panel-header > div {
+  flex: 0 0 auto;
+  order: 3;
+}
+
+.app-root:not([data-layout="mobile"]) .reference-image-panel.reference-image-collapsed .reference-image-panel-header strong {
+  writing-mode: vertical-rl;
+  white-space: nowrap;
+}
+
+.app-root:not([data-layout="mobile"]) .reference-image-panel.reference-image-collapsed .reference-image-collapse-button {
+  order: 1;
+}
+
+.app-root:not([data-layout="mobile"]) .reference-image-panel.reference-image-collapsed [data-ref-action="close"] {
+  order: 2;
 }
 
 .reference-image-panel-header,
@@ -229,21 +314,72 @@
   height: auto;
   min-height: var(--ui-v2-control-mobile-height);
 }
-[data-layout="mobile"] .surface-reference.reference-image-editing > .surface-header,
-[data-layout="mobile"] .surface-reference.reference-image-editing > .surface-body { display: none; }
-[data-layout="mobile"] .reference-image-panel-header > div,
-[data-layout="mobile"] .reference-image-panel-header > [data-ref-action="close"] { display: none; }
-
-
-
-@media (min-width: 800px) {
-  .reference-image-panel-header {
-    display: none;
-  }
-
-  .surface-reference.reference-image-editing-active {
-    left: auto;
-    right: calc(var(--map-safe-right, var(--ui-space-0)) + var(--ui-map-edge));
-    transform: none;
-  }
+/* Mobile continues to use the common bottom-sheet snap controller. */
+.app-root[data-layout="mobile"] .reference-image-panel {
+  position: fixed;
+  inset-block-start: auto;
+  inset-inline-end: 0;
+  top: auto;
+  right: 0;
+  bottom: var(--mobile-nav-height);
+  left: 0;
+  width: 100%;
+  height: var(--sheet-height, var(--design-sheet-snap-half));
+  max-height: calc(100dvh - var(--ui-shell-topbar-height) - var(--mobile-nav-height));
 }
+
+.app-root[data-layout="mobile"] .reference-image-panel > .reference-image-panel-header {
+  display: grid;
+  grid-template-columns: var(--ui-touch-height) minmax(0, 1fr) auto auto;
+  grid-template-rows: minmax(var(--ui-touch-height), auto);
+  align-items: center;
+  gap: var(--ui-space-1);
+  cursor: default;
+}
+
+.app-root[data-layout="mobile"] .reference-image-panel-header > .sheet-drag-handle {
+  grid-column: 1;
+}
+
+.app-root[data-layout="mobile"] .reference-image-panel-header > div {
+  grid-column: 2;
+}
+
+.app-root[data-layout="mobile"] .reference-image-panel-header > .reference-image-collapse-button {
+  grid-column: 3;
+}
+
+.app-root[data-layout="mobile"] .reference-image-panel-header > [data-ref-action="close"] {
+  display: inline-grid;
+  grid-column: 4;
+  pointer-events: auto;
+}
+
+.app-root[data-layout="mobile"] .reference-image-panel.reference-image-editing > .surface-header {
+  display: grid;
+  pointer-events: auto;
+}
+
+.app-root[data-layout="mobile"] .reference-image-panel.reference-image-editing > .surface-body {
+  display: none;
+}
+
+.app-root[data-layout="mobile"] .reference-image-panel.reference-image-editing {
+  height: auto;
+  min-height: min(164px, calc(100dvh - var(--ui-shell-topbar-height) - var(--mobile-nav-height)));
+}
+
+.app-root[data-layout="mobile"] .reference-image-editing-summary {
+  flex-wrap: wrap;
+  pointer-events: auto;
+}
+
+.app-root[data-layout="mobile"] .reference-image-editing-summary > span {
+  flex: 1 0 100%;
+}
+
+.app-root[data-layout="mobile"] .reference-image-editing-summary > button {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
