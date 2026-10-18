@@ -2,7 +2,7 @@ import '../helpers/spherical-core.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { buildBoundaryTopology, moveTopologyNode, planCoastEdit, planSharedBoundaryEdit, topologyNodeKey } from '../../assets/js/modules/boundary-topology.js';
+import { buildBoundaryTopology, moveTopologyNodes, planCoastEdit, planSharedBoundaryEdit, topologyNodeKey } from '../../assets/js/modules/boundary-topology.js';
 import { geometryAreaKm2, lineDistanceKm, percentChange } from '../../assets/js/modules/geometry-metrics.js';
 import { beginGeometryPreview, clearGeometryPreview, createGeometryPreviewState, previewIsCurrent } from '../../assets/js/modules/geometry-preview.js';
 import { resolveSnap, snapThreshold } from '../../assets/js/modules/geometry-snap.js';
@@ -52,7 +52,7 @@ test('topology materializes a vertex into the opposite owner and moves both coun
   assert.equal(node.kind, 'shared');
   assert.ok(node.virtualRefs.some(ref => ref.featureId === 'RIGHT'));
   const map = new Map([['LEFT', clone(left)], ['RIGHT', clone(right)]]);
-  const changed = moveTopologyNode(map, node, [1.1, 0.5]);
+  const changed = moveTopologyNodes(map, [{node,coordinate:[1.1, 0.5]}]);
   assert.deepEqual(changed, new Set(['RIGHT', 'LEFT']));
   assert.ok(map.get('RIGHT').geometry.coordinates[0].some(point => point[0] === 1.1 && point[1] === 0.5));
   assert.ok(map.get('LEFT').geometry.coordinates[0].some(point => point[0] === 1.1 && point[1] === 0.5));
@@ -66,7 +66,7 @@ test('a multi-owner boundary node moves every country that shares the junction',
   const node = topology.nodes.get(topologyNodeKey([1, 1]));
   assert.equal(node.kind, 'multi-owner');
   const map = new Map([['LEFT', clone(left)], ['RIGHT', clone(right)], ['TOP', clone(top)]]);
-  assert.deepEqual(moveTopologyNode(map, node, [1, 1.1]), new Set(['LEFT', 'RIGHT', 'TOP']));
+  assert.deepEqual(moveTopologyNodes(map, [{node,coordinate:[1, 1.1]}]), new Set(['LEFT', 'RIGHT', 'TOP']));
 });
 
 test('shared-boundary edit plan exposes only internal borders and fixes an unselected third-country junction', () => {
