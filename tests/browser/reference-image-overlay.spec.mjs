@@ -355,7 +355,11 @@ test('reference image list controls and task tabs preserve selection and stored 
   await expect(page.locator('[data-ref-section="match"]')).toBeHidden();
   await expect(page.locator('[data-ref-field="blend"]')).toBeVisible();
   await page.locator('[data-ref-field="blend"]').selectOption('multiply');
-  await page.locator('[data-ref-field="opacity"]').fill('0.37');
+  await page.locator('[data-ref-field="opacity"]').evaluate(input => {
+    input.value = '0.37';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+  });
   await expect.poll(() => page.evaluate(() => {
     const item = window.__PANDOLAB_REFERENCE_IMAGES__.list().find(record => record.name === 'first.png');
     return { blend: item?.blendMode, opacity: item?.opacity };
