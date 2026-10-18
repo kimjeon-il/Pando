@@ -7,6 +7,10 @@ import {readTerritorialSources} from '../../tools/territorial-entity-sources.mjs
 const baseline=JSON.parse(fs.readFileSync(new URL('../fixtures/country-lineage-baseline.json',import.meta.url),'utf8'));
 const sha=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const merged={'state:IDN':'state:indonesia','state:UKR':'state:ukraine','state:SDN':'state:sudan'};
+const approvedNames=new Map([
+ ['state:ESB','데켈리아'],['state:ASM','미국령 사모아'],['state:PYF','프랑스령 폴리네시아'],
+ ['state:UMI','미국령 군소제도'],['state:VGB','영국령 버진아일랜드'],['state:VIR','미국령 버진아일랜드'],
+]);
 const extended=new Map([
  ['state:UKR',{from:'2014-03-18',to:'2026-10-05',id:'state:UKR:2014-03-18-post-crimea-r1'}],
  ['state:SDN',{from:'2011-07-09',to:'2026-10-05',id:'state:SDN:2011-07-09-post-secession-r1'}],
@@ -23,8 +27,16 @@ test('281 identities preserve all original coordinates and 294 validated territo
   const prior=baseline.entities[e.entityId];assert.ok(prior,e.entityId);
   assert.equal(e.lineageId,baseline.membership[e.entityId]);
   assert.equal(e.parentEntityId,prior.parentEntityId);
-  assert.equal(sha(e.sourceInfo),prior.sourceInfoHash);
-  assert.deepEqual(e.names,prior.names);
+  if(approvedNames.has(e.entityId)){
+   assert.deepEqual(e.names,{...prior.names,ko:approvedNames.get(e.entityId)});
+   assert.equal(e.sourceInfo.featureProperties.name,approvedNames.get(e.entityId));
+   // Keep the frozen baseline intact and prove the approved rename is the
+   // only source-metadata change; geometry and identity checks below still apply.
+   assert.equal(sha({...e.sourceInfo,featureProperties:{...e.sourceInfo.featureProperties,name:prior.names.ko}}),prior.sourceInfoHash);
+  }else{
+   assert.equal(sha(e.sourceInfo),prior.sourceInfoHash);
+   assert.deepEqual(e.names,prior.names);
+  }
   assert.deepEqual(e.alternateNames,[...new Set([...prior.alternateNames,...(!Object.values(prior.names).includes(prior.canonicalName)?[prior.canonicalName]:[])])]);
   if(e.entityId==='state:IDN'){
    const mask=JSON.parse(fs.readFileSync(new URL('../../tools/historical-library/sources/indonesia/west-new-guinea-component-mask-v5.1.1.json',import.meta.url),'utf8'));
