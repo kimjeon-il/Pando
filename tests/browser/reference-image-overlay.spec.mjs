@@ -271,8 +271,9 @@ test('reference image surface docks beside the desktop map, resizes and collapse
 });
 
 test('reference image bottom sheet collapses without closing on mobile', async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
   const errors = await openApp(page);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator('#app')).toHaveAttribute('data-layout', 'mobile');
   const originalWidth = (await page.locator('#map').boundingBox()).width;
   await page.locator('#referenceImageBtn').click();
   const panel = page.locator('#referenceImageSurface');
@@ -288,6 +289,20 @@ test('reference image bottom sheet collapses without closing on mobile', async (
   await expect(panel).not.toHaveClass(/reference-image-collapsed/);
   await expect(panel).toHaveAttribute('data-sheet-snap', '1');
   expect((await page.locator('#map').boundingBox()).width).toBeCloseTo(originalWidth, 0);
+
+  // A calibration gesture must survive compacting and re-expanding the sheet.
+  await addImage(page, 'mobile-calibration.png');
+  await panel.locator('[data-ref-action="gcp"]').click();
+  await expect(page.locator('#map')).toHaveClass(/is-reference-gcp-mode/);
+  const guidance = panel.locator('.reference-image-editing-summary > span');
+  await expect(guidance).toContainText('이미지에서');
+  const first = await referenceScreenPointForUv(page, 'mobile-calibration.png', [0.5, 0.5]);
+  await page.mouse.click(first.x, first.y);
+  await expect(guidance).toContainText('실제 지도 위치');
+  await toggle.click();
+  await expect(page.locator('#map')).toHaveClass(/is-reference-gcp-mode/);
+  await toggle.click();
+  await expect(guidance).toContainText('실제 지도 위치');
   expect(errors).toEqual([]);
 });
 
