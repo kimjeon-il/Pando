@@ -108,9 +108,13 @@ async function snapshot(page, probe, label) {
     workerCount: next.count, pssMiB: pss.pssMiB };
 }
 async function chooseDraggableHandle(page) {
+  // Verified real Soviet polygon-6 Sea of Okhotsk coastline. This convex
+  // seaward vertex is distinct from the China/Russian SSR land-border
+  // vertex at [132.404714,45.146496], which correctly fails containment.
+  const preferred = [152.020298,58.875037];
   const candidates = page.locator('.country-vertex:not(.fixed-boundary-vertex)');
   await expect.poll(() => candidates.count(), { timeout: 130_000 }).toBeGreaterThan(0);
-  return candidates.evaluateAll(nodes => {
+  return candidates.evaluateAll((nodes, preferred) => {
     const viewport = document.querySelector('#map')?.getBoundingClientRect();
     let best = null, visible = 0;
     if (!viewport) return { error: 'missing map container' };
@@ -124,6 +128,7 @@ async function chooseDraggableHandle(page) {
       const datum = node.__data__;
       const coordinate = datum?.coordinate;
       if (!coordinate || !Array.isArray(datum.segments)) continue;
+      if (Math.hypot(coordinate[0] - preferred[0], coordinate[1] - preferred[1]) > 1e-7) continue;
       // Prefer a well-separated vertex, reducing overlap/snap risk in huge polygon rings.
       const dists = datum.segments.map(edge => {
         const other = edge.start[0] === coordinate[0] && edge.start[1] === coordinate[1]
@@ -142,7 +147,7 @@ async function chooseDraggableHandle(page) {
         best = { x, y, score, preference, coordinate: [...coordinate], key: datum.nodeKey };
     }
     return best ? { ...best, visible, rendered: nodes.length } : { error: 'no clickable vertices', visible, rendered: nodes.length };
-  });
+  }, preferred);
 }
 async function openCoast(page, timings) {
   await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select(id), ENTITY);
@@ -165,6 +170,10 @@ async function dragAndPreview(page, timings) {
   await page.mouse.wheel(0, -1100);
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_MAP_HOST__.getViewState().flatZoom),
     { timeout: 60_000 }).not.toBe(priorView.flatZoom);
+  const firstZoom = await page.evaluate(() => window.__PANDOLAB_MAP_HOST__.getViewState().flatZoom);
+  await page.mouse.wheel(0, -1100);
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_MAP_HOST__.getViewState().flatZoom),
+    { timeout: 60_000 }).not.toBe(firstZoom);
   await page.waitForTimeout(550);
   const handle = await chooseDraggableHandle(page);
   expect(handle.error || '', JSON.stringify(handle)).toBe('');
@@ -181,14 +190,14 @@ async function dragAndPreview(page, timings) {
   // For the Far Eastern Soviet coastline, test a seaward (east/south)
   // expansion rather than an inland displacement that would exclude the
   // unchanged Russian SSR (correctly rejected as GEOMETRY_OUTSIDE_PARENT).
-  await page.mouse.move(x + 20, y + 14, { steps: 8 });
+  await page.mouse.move(x + 10, y + 16, { steps: 8 });
   // Cross the browser's drag threshold, then settle near the original
   // coordinate. This tests a small valid edit instead of deforming a dense
   // historic coastline by multiple degrees.
   // OBJ-098 acceptance: retain a meaningful final displacement after crossing
   // the drag threshold. The older 1.5px move was frequently normalized to a
   // Core no-op although map-edit moved a temporary vertex successfully.
-  await page.mouse.move(x + 2, y + 1.5, { steps: 6 });
+  await page.mouse.move(x + 0.2, y + 1.8, { steps: 6 });
   await page.mouse.up();
   timings.pointerAttempt = { x, y, coordinate: handle.coordinate, score: handle.score };
   timings.heldSource = await fingerprint(page);
