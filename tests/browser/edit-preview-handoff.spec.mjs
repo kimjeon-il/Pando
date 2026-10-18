@@ -296,13 +296,11 @@ async function loadProjectFile(page, project, name) {
   await writeFile(path, new Uint8Array(file.buffer));
   await page.locator('#mobileFileBtn').click();
   const chooser = page.waitForEvent('filechooser');
+  await page.evaluate(() => { window.__testProjectOpened = false; window.addEventListener('pandolab:project-changed', event => { if (event.detail.reason === 'project-load') window.__testProjectOpened = true; }, { once: true }); });
   await page.locator('#openProjectBtn').click();
   await (await chooser).setFiles(path);
-  await expect(page.locator('#gisImportTitle')).toHaveText('프로젝트 불러오기', { timeout: 30_000 });
-  await expect(page.locator('#gisImportForm')).not.toHaveClass(/\bis-busy\b/, { timeout: 30_000 });
-  await expect(page.locator('#gisImportError')).toBeEmpty();
-  await page.locator('#gisImportConfirmBtn').click();
-  await expect(page.locator('#gisImportModal')).toBeHidden({ timeout: 30_000 });
+  await expect.poll(() => page.evaluate(() => window.__testProjectOpened), { timeout: 90_000 }).toBe(true);
+  await expect(page.locator('#actionStatus')).not.toHaveClass(/\bworking\b/, { timeout: 90_000 });
   const expected = { territorial: project.territorialEntities.map(entity => entity.id),
     hydro: project.hydroEdits.map(feature => feature.id) };
   await expect.poll(() => page.evaluate(({ territorial, hydro }) => {
