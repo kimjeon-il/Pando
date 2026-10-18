@@ -13,6 +13,6 @@ export async function createNodeCoreProject(seed,platformPorts = {}) {
     await client.load(JSON.stringify(seed));
     const project=createProjectDomain({ ...domainPorts,commandOwner: client,documentModel,publishCommand() {},
       readBuiltinSelectionCatalogs: platformPorts.readBuiltinSelectionCatalogs || (() => []) });
-    return { client,project,documentModel,dispose() { project.dispose();client.dispose(); } };
+    return { client,project,documentModel,dispose() { try { project.dispose(); } finally { client.dispose(); } } };
   } catch (error) { client.dispose();throw error; }
 }
