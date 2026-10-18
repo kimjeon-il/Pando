@@ -118,7 +118,7 @@ export function renderReferenceImageList(listElement, records, selectedId) {
     actions.append(
       makeAction('visible', record.visible ? '숨기기' : '표시', record.visible ? 'icon-eye' : 'icon-eye-off'),
       makeAction('locked', record.locked ? '잠금 해제' : '잠금', record.locked ? 'icon-lock-closed' : 'icon-lock-open'),
-      makeAction('forward', '앞으로', 'icon-chevron-up', index === records.length - 1),
+      makeAction('forward', '앞으로', 'icon-chevron-down', index === records.length - 1),
       makeAction('backward', '뒤로', 'icon-chevron-down', index === 0),
     );
     item.append(row, actions);
