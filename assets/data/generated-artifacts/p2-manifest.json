@@ -1946,15 +1946,15 @@
       "sourceSha": "48fb3c908f38a1d01eb2a682e9b64550258f6d02"
     },
     "build-metadata": {
-      "inputFingerprint": "841519e84dca987b6b12765577609c8657a2c225cd839409f7efd1e835ecc1c1",
-      "outputFingerprint": "47d127bdcfccf6a75b2bccceef73d36de919fd5b1e37869a27c9ebe2c1d4d4b7",
+      "inputFingerprint": "219c951762b5020079f54d1cf85e8fbf119191d93ca68ef47ac9063660de1692",
+      "outputFingerprint": "b4546b89df92477bee8f3fc2f89440bea11a0a4d62fba40d5cd2ef346d7f282b",
       "inputs": {
         "assets/js/app.js": "96dfad126802a4ccf74f83c8d2b52295ebde7deb8113275a01920de895818303",
         "assets/js/bootstrap.js": "d57d5d77f72e3d167592aa51859496625121ce86558298eed2a7adeefc0474fd",
         "assets/js/gis-adapters.js": "8c8381760f230d1c714d3eb860274099544fcdb0b613b428c90c1b7f3ada71ca",
         "assets/js/gis-io.js": "4157a448ce30afca2e9c3168cd2c43971f1fd0fd652874fd7e40ae764db33724",
         "assets/js/modules/accent-presets.js": "f4b415cf624ddc707942a4b28d75d3d5ad5d97b0f42b298d290c9e32581332c6",
-        "assets/js/modules/adaptive-render-quality.js": "f65530e015c54893715482eb81113c3f337bf79d4eb00de528bf8d8e1797ed07",
+        "assets/js/modules/adaptive-render-quality.js": "ac4abbb9ef56de5fab4ef83932a7e13ed8538c7f27af9df10e6e2a4feae30846",
         "assets/js/modules/annex-geometry.js": "bd2c035a475b51119e226b049664d86c007780c206035a7fe999eca036464e32",
         "assets/js/modules/app-accent.js": "1e63f9889917a0903bf506b5335f421b227d2bef4e1979597876e668cf43560b",
         "assets/js/modules/app-builtin-session.js": "cb123e0235ab1d530ed9a81d697dbb0f4670852e7a1917fb2d652219ac2cf340",
@@ -2023,7 +2023,7 @@
         "assets/js/modules/app-task-stage-model.js": "75264b83973c52fdae45fb151f6245cc32a65c9bdc8847ff1d73613b9a678617",
         "assets/js/modules/app-territorial-conversion.js": "8e0c23c17ce86dd2bd8fc769d7ecc55d380df19bd160f84881846a9f3c1afc75",
         "assets/js/modules/app-territorial-drafts.js": "ad1582b109cab93dc5cd40f9931469dda810ed4f9bd651f7045745a129dc4d22",
-        "assets/js/modules/app-territorial-labels.js": "6909b3202d9d8a4e467b4d5f2fdf386b74cef2db7f3d5b10773d68b30ce49e73",
+        "assets/js/modules/app-territorial-labels.js": "fadc95f300ac823f5cf2ff1074b1bc742eacc12f7ccebbff152b3b94a4be911f",
         "assets/js/modules/app-territory-component-ui.js": "9532cddda1832865a603600bc2d4daaefe9a89b85cf7d26a42f8da1428e849f1",
         "assets/js/modules/app-territory-components.js": "9eff13f95de2b865daf43e8552ec564e6831acbcf2204334749610ffe4ea06a3",
         "assets/js/modules/app-territory-selection-workflow.js": "b804da81c05cb7fed7cf30d03007ca2e3f8f589b3b2b11b579703100b3b689b2",
@@ -2323,8 +2323,8 @@
       },
       "outputs": {
         "README.md": "6931d8ae20cb7f1e4135b61e24197d97e0cd13f5f1cd5819ce2916509490efd6",
-        "assets/js/build-meta.js": "df093ed6a79a67db4deb88506edf8018c6f01b0e951a4929b1cf549dec62016a",
-        "index.html": "fe8d5e3bc4a9e5bf2f664fddd90ab18083ac52dc04cb6ca592cb9a297aee353f"
+        "assets/js/build-meta.js": "4b0ef259d608c1d31542ba9dde7ad28a0360172f1482fb72a9653f71cf684218",
+        "index.html": "837e5110253b87b9fe9b3983f50fbf4e73791ea8d956dec01daa21c3c9e863f9"
       },
       "consumers": [
         "assets/js/bootstrap.js",
@@ -2339,7 +2339,7 @@
           "--check"
         ]
       ],
-      "sourceSha": "7f99c716e9c867369df480eacd28b20d85f91fff"
+      "sourceSha": "6cb9859d0aee132b57f9baf0e778e6516ce1d0c9"
     }
   }
 }
