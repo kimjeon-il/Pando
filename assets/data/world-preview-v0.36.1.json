@@ -474,7 +474,7 @@
   "countriesCompressedBytes": 917463,
   "meshCompressedBytes": 1734093,
   "combinedCompressedBytes": 2651556,
-  "countriesSha256": "1ee545410a2a654b5b333e9d8d19b4a0f914334d0759a3e7f2cdc3bc9c4f3ad0",
+  "countriesSha256": "9e5ee678f2cbe1ad5a4df8fb5bcd251c1f04e9e005d811fb1f154afa408be594",
   "meshSha256": "766f8107bfa250e6c22acff3e191ba30b0d3a2bb1252b1ce009e7f89ff37e583",
   "assets": {
     "previewCountries": {
@@ -482,7 +482,7 @@
       "encoding": "gzip",
       "compressedBytes": 917463,
       "decodedBytes": 2438854,
-      "sha256": "1ee545410a2a654b5b333e9d8d19b4a0f914334d0759a3e7f2cdc3bc9c4f3ad0"
+      "sha256": "9e5ee678f2cbe1ad5a4df8fb5bcd251c1f04e9e005d811fb1f154afa408be594"
     },
     "previewMesh": {
       "url": "world-mesh-preview-v0.36.1.bin.gz",
@@ -517,7 +517,7 @@
       "encoding": "gzip",
       "compressedBytes": 5122020,
       "decodedBytes": 8826200,
-      "sha256": "d7d25bb4c04a1eb9d29e214ec3333e09051bcab00d725d5ee78ab15836bd7325",
+      "sha256": "6bc58f6fd8c32b4c445f9bc328b87f8ea028221eca1f1a9ff5ff848d51343218",
       "header": [
         826753872,
         1,
