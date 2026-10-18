@@ -106,12 +106,13 @@ test('live-wire accepts a current corner-pin mapping and traces/applies an edge 
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGES__?.list().length || 0)).toBe(1);
 
   const start = page.locator('[data-ref-live-wire-action="start"]');
+  await page.locator('[data-ref-tab="match"]').click();
   await expect(start).toBeVisible();
   await expect(start).toBeDisabled();
 
   await expect.poll(async () => !!(await readStoredRecord(page))).toBe(true);
   const geometry = await referenceScreenGeometry(page);
-
+  await page.locator('[data-ref-tab="placement"]').click();
   await page.locator('[data-ref-action="free-transform"]').click();
   await expect(page.locator('#map')).toHaveClass(/is-reference-free-transform-mode/);
   const corner = geometry.corners[1];
@@ -128,6 +129,7 @@ test('live-wire accepts a current corner-pin mapping and traces/applies an edge 
     return { cornerPin: !!item?.cornerPinEnabled, ready: !!item?.mappingReady };
   })).toEqual({ cornerPin: true, ready: true });
   await page.keyboard.press('Escape');
+  await page.locator('[data-ref-tab="match"]').click();
   await expect(start).toBeEnabled();
 
   await page.locator('[data-ref-field="locked"]').check();
@@ -192,6 +194,7 @@ test('linear constraint preview leaves storage unchanged until one apply', async
   await page.mouse.move(corner.x+(geometry.center.x-corner.x)*.14,corner.y+(geometry.center.y-corner.y)*.14,{steps:4});await page.mouse.up();
   await expect.poll(() => page.evaluate(() => !!window.__PANDOLAB_REFERENCE_IMAGES__?.list()?.[0]?.cornerPinEnabled)).toBe(true);
   await page.keyboard.press('Escape');
+  await page.locator('[data-ref-tab="match"]').click();
   await page.locator('[data-ref-action="gcp"]').click();
   for (const [uv, delta] of [[[.2,.2],[18,12]],[[.8,.8],[22,14]]]) {
     const point=await screenPointForReferenceUv(page,uv);
