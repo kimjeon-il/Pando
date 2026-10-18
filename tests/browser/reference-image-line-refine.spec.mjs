@@ -77,7 +77,9 @@ async function pinchReferenceMap(page, uv) {
   const point = await screenPointForReferenceUv(page, uv);
   return page.evaluate(({ x, y }) => {
     const map = document.getElementById('map');
-    const before = JSON.stringify(window.__PANDOLAB_MAP_HOST__.getViewState());
+    const host = window.__PANDOLAB_MAP_HOST__;
+    const view = host.getViewState();
+    const before = JSON.stringify(view);
     const event = (kind, id, dx, dy) => map.dispatchEvent(new window.PointerEvent(kind, {
       bubbles: true, cancelable: true, pointerId: id, pointerType: 'touch', button: 0,
       clientX: x + dx, clientY: y + dy,
@@ -87,7 +89,19 @@ async function pinchReferenceMap(page, uv) {
     event('pointermove', 902, 38, 5);
     event('pointerup', 902, 38, 5);
     event('pointerup', 901, 0, 0);
-    return before;
+    const after = JSON.stringify(host.getViewState());
+    // The pinch is a dedicated ownership assertion. Restore the camera so
+    // subsequent edge-tracing coordinates measure the same image raster.
+    host.setViewState({
+      projection: view.projection,
+      view: {
+        flatCenter: [...view.flatCenter],
+        flatZoom: view.flatZoom,
+        globeRotation: [...view.globeRotation],
+        globeZoom: view.globeZoom,
+      },
+    });
+    return { before, after };
   }, point);
 }
 
@@ -150,9 +164,7 @@ test('line refinement accepts a current corner-pin mapping and supports cancel/a
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGE_LINE_REFINER__?.phase())).toBe('armed');
   await expect(page.locator('#map')).toHaveClass(/is-reference-line-refine-mode/);
   const beforePinch = await pinchReferenceMap(page, [0.5, 0.35]);
-  await expect.poll(() => page.evaluate(() =>
-    JSON.stringify(window.__PANDOLAB_MAP_HOST__.getViewState()),
-  )).not.toBe(beforePinch);
+  expect(beforePinch.after).not.toBe(beforePinch.before);
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGE_LINE_REFINER__?.phase())).toBe('armed');
   await page.keyboard.press('Escape');
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGE_LINE_REFINER__?.phase())).toBe('idle');
